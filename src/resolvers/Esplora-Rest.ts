@@ -4,14 +4,14 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { EsploraAsset } from '$/sources/Esplora/Rest/types.ts'
-type NetworkId = { caip2: {
-	namespace: string
-	reference: string
-} } | { slug: string }
+
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const esploraTargetForNetwork = (network: NetworkId) => {
 	const target = (
@@ -57,7 +57,7 @@ const elementsAssetTimestampFieldsFromWire = (
 	}),
 })
 
-const elementsAssetRowFromWire = (
+const elementsAssetReferenceFromWire = (
 	asset: EsploraAsset
 ) => ({
 	[EntityMetaKey.Selector]: {
@@ -68,7 +68,6 @@ const elementsAssetRowFromWire = (
 		},
 		assetId: asset.asset_id,
 	},
-	...elementsAssetFieldsFromWire(asset),
 })
 
 export default {
@@ -264,15 +263,13 @@ export default {
 							target: 'liquid',
 						})
 
-						return elementsAssetRowFromWire(asset)
+						return elementsAssetReferenceFromWire(asset)
 					},
 				}
 			},
 		})({
-				$nativeAsset: (snapshot) => ({
-					[EntityMetaKey.Selector]: snapshot[EntityMetaKey.Selector],
-				}),
-			}),
+			$nativeAsset: (assetReference) => assetReference,
+		}),
 
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsNetwork,
@@ -283,21 +280,19 @@ export default {
 							!('slug' in $network)
 							|| $network.slug !== 'liquid'
 						)
-						throw new Error('Esplora_Rest: unsupported Elements network')
+							throw new Error('Esplora_Rest: unsupported Elements network')
 
 						const { listRegistryAssets } = await import('$/sources/Esplora/Rest/queries.ts')
 						return (await listRegistryAssets({
 							target: 'liquid',
 						}))
 							.slice(0, resolverContextRowLimit(context))
-							.map((asset) => elementsAssetRowFromWire(asset))
+							.map(elementsAssetReferenceFromWire)
 					},
 				}
 			},
 		})({
-				$$assets: (snapshot) => snapshot.map((asset) => ({
-					[EntityMetaKey.Selector]: asset[EntityMetaKey.Selector],
-				})),
-			}),
+			$$assets: (assetReferences) => assetReferences,
+		}),
 	],
 }

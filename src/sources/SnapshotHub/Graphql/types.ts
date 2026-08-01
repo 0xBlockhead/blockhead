@@ -1,94 +1,106 @@
-import type { JsonValue } from '$/typescript/JsonValue.ts'
+import type { FragmentOf } from 'gql.tada'
 
-export type SnapshotHubStrategy = {
-	name: string
-	network: string | null
-	params: JsonValue
-}
+import { graphql } from './client.ts'
 
-export type SnapshotHubSpaceReference = {
-	id: string
-}
+export const SnapshotHubStrategyFragment = graphql(`
+	fragment SnapshotHubStrategy on Strategy @_unmask {
+		name
+		network
+		params
+	}
+`)
 
-export type SnapshotHubSpace = {
-	id: string
-	name: string | null
-	about: string | null
-	avatar: string | null
-	network: string | null
-	symbol: string | null
-	strategies: SnapshotHubStrategy[] | null
-	admins: string[] | null
-	members: string[] | null
-	categories: string[] | null
-	proposalsCount: number | null
-	votesCount: number | null
-	created: number
-}
+export const SnapshotHubSpaceFragment = graphql(`
+	fragment SnapshotHubSpace on Space @_unmask {
+		id
+		name
+		about
+		avatar
+		network
+		symbol
+		strategies {
+			...SnapshotHubStrategy
+		}
+		admins
+		members
+		categories
+		proposalsCount
+		votesCount
+		created
+	}
+`, [
+	SnapshotHubStrategyFragment,
+])
 
+export const SnapshotHubProposalFragment = graphql(`
+	fragment SnapshotHubProposal on Proposal @_unmask {
+		id
+		ipfs
+		author
+		created
+		updated
+		space {
+			id
+		}
+		network
+		symbol
+		type
+		strategies {
+			...SnapshotHubStrategy
+		}
+		title
+		body
+		choices
+		start
+		end
+		quorum
+		quorumType
+		snapshot
+		state
+		scores
+		scores_by_strategy
+		scores_state
+		scores_total
+		scores_updated
+		votes
+	}
+`, [
+	SnapshotHubStrategyFragment,
+])
+
+export const SnapshotHubVoteFragment = graphql(`
+	fragment SnapshotHubVote on Vote @_unmask {
+		id
+		ipfs
+		voter
+		created
+		space {
+			id
+		}
+		proposal {
+			id
+			space {
+				id
+			}
+			strategies {
+				name
+			}
+		}
+		choice
+		reason
+		vp
+		vp_by_strategy
+		vp_state
+	}
+`)
+
+export type SnapshotHubStrategy = FragmentOf<typeof SnapshotHubStrategyFragment>
+export type SnapshotHubSpace = FragmentOf<typeof SnapshotHubSpaceFragment>
+export type SnapshotHubProposal = FragmentOf<typeof SnapshotHubProposalFragment>
+export type SnapshotHubVote = FragmentOf<typeof SnapshotHubVoteFragment>
+
+// Hub documents this closed set, but its schema currently exposes state as String.
 export type SnapshotHubProposalState =
 	| 'pending'
 	| 'active'
 	| 'closed'
-
-export type SnapshotHubProposal = {
-	id: string
-	ipfs: string | null
-	author: string
-	created: number
-	updated: number | null
-	space: SnapshotHubSpaceReference | null
-	network: string
-	symbol: string
-	type: string | null
-	strategies: SnapshotHubStrategy[]
-	title: string
-	body: string | null
-	choices: string[]
-	start: number
-	end: number
-	quorum: number
-	quorumType: string
-	snapshot: number | null
-	state: SnapshotHubProposalState | null
-	scores: number[] | null
-	scores_by_strategy: JsonValue
-	scores_state: string | null
-	scores_total: number | null
-	scores_updated: number | null
-	votes: number | null
-}
-
-export type SnapshotHubVoteProposalReference = {
-	id: string
-	space: SnapshotHubSpaceReference | null
-	strategies: {
-		name: string
-	}[]
-}
-
-export type SnapshotHubVote = {
-	id: string
-	ipfs: string | null
-	voter: string
-	created: number
-	space: SnapshotHubSpaceReference
-	proposal: SnapshotHubVoteProposalReference | null
-	choice: JsonValue
-	reason: string | null
-	vp: number | null
-	vp_by_strategy: number[] | null
-	vp_state: string | null
-}
-
-export type SnapshotHubObservation<_Value> = {
-	value: _Value
-	observedBy: 'SnapshotHub_Graphql'
-	endpoint: 'https://hub.snapshot.org/graphql'
-	resolvedAtMs: number
-}
-
-export type SnapshotHubPage<_Value> = {
-	items: _Value[]
-	nextOffset?: number
-}

@@ -28,7 +28,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 			$network: parentData.selector,
 			dayStartTimestampMs: Number(params.dayStartTimestampMs),
 			source: 'SpaceAndTime_MakeInfinite',
-		}
+		},
+		'NetworkDayStartTimestampMsSource'
 	)
 	if (networkActivityDayNetworkDayStartTimestampMsSourceSelector instanceof arktype.errors)
 		error(404, 'Invalid Network_Activity_Day selector')

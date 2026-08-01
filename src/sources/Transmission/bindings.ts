@@ -14,7 +14,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'http://127.0.0.1:9091/transmission/rpc',
-				origin: 'http://127.0.0.1:9091',
 				corsEnabled: false,
 			},
 		],
@@ -32,4 +31,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.TransmissionRpc_JsonRpc]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

@@ -1,17 +1,19 @@
 import { fetchFailedMessage } from '$/lib/http.ts'
-import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import {
+	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import {
+	SourceTargetKind,
+} from '$/sources/SourceBinding.ts'
 import bindings from '$/sources/Mastodon/bindings.ts'
 
 const mastodonInstanceBindingByOrigin = new Map(
 	bindings[Source.Mastodon_Rest]
 		.filter(({ target }) => target.kind === SourceTargetKind.Global)
 		.map((binding) => [
-			binding.endpoints[0].origin,
+			new URL(firstHttpUrlForBinding(binding)).origin,
 			binding,
 		] as const)
 )
@@ -20,7 +22,7 @@ const mastodonPublicTimelineBindingByOrigin = new Map(
 	bindings[Source.Mastodon_Rest]
 		.filter(({ target }) => target.kind === SourceTargetKind.Feed)
 		.map((binding) => [
-			binding.endpoints[0].origin,
+			new URL(firstHttpUrlForBinding(binding)).origin,
 			binding,
 		] as const)
 )
@@ -39,7 +41,6 @@ const qs = (search: Record<string, string | undefined>) => {
 }
 
 export const mastodonGet = async <T>(
-	_publicEnv: SourcePublicEnv,
 	instanceOrigin: string,
 	path: string,
 	search?: Record<string, string | undefined>,
@@ -58,7 +59,6 @@ export const mastodonGet = async <T>(
 }
 
 export const mastodonFetch = async (
-	_publicEnv: SourcePublicEnv,
 	instanceOrigin: string,
 	path: string,
 	search?: Record<string, string | undefined>,
@@ -72,7 +72,6 @@ export const mastodonFetch = async (
 }
 
 export const mastodonFetchUrl = async (
-	_publicEnv: SourcePublicEnv,
 	url: string
 ) => {
 	const parsedUrl = new URL(url)
@@ -91,7 +90,6 @@ export const mastodonFetchUrl = async (
 }
 
 export const mastodonFetchPublicTimelineUrl = async (
-	_publicEnv: SourcePublicEnv,
 	url: string
 ) => {
 	const parsedUrl = new URL(url)

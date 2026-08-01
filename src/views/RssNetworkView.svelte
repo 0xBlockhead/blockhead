@@ -75,13 +75,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(prefetched.protocolName ?? '') || titleFallback}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			RSS and Atom syndication feeds publish ordered item streams keyed by feed URL.
-		</p>
+		RSS / Atom
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -206,13 +200,13 @@
 			{#snippet SectionRssNetworkFeeds({ id, label, open })}
 				<RssFeedsView
 					selection={selection.$$rssFeeds}
-					href={resolve('/(social)/(rss)/rss/(rssNetwork)/feeds')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === 'RssNetwork' ?
+							resolve('/(social)/(rss)/rss/(rssNetwork)/feeds')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No RSS feeds in this hub yet.'
 					id={`${id}-list`}

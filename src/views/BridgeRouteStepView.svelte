@@ -162,7 +162,6 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -182,7 +181,6 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -202,7 +200,6 @@
 									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 									prefetched={evmCoinInstance}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -222,7 +219,6 @@
 									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 									prefetched={evmCoinInstance}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -326,7 +322,6 @@
 					<BridgeRouteView
 						selection={select(EntityType.BridgeRoute, selection.entitySelector.$route)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

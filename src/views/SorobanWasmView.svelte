@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -22,7 +21,6 @@
 
 
 	// Components
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import StellarNetworkView from '$/views/StellarNetworkView.svelte'
 </script>
@@ -31,15 +29,10 @@
 <EntityView
 	entityType={EntityType.SorobanWasm}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'soroban Wasm'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		soroban Wasm
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +41,6 @@
 					<StellarNetworkView
 						selection={select(EntityType.StellarNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -22,7 +22,6 @@
 
 
 	// Components
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import ActivityPubInstance_TimestampView from '$/views/ActivityPubInstance_TimestampView.svelte'
 </script>
 
@@ -35,23 +34,12 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.peerDomain || 'ActivityPub instance peer'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ActivityPubInstance_TimestampView
 			selection={select(EntityType.ActivityPubInstance_Timestamp, selection.entitySelector.$observation)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A domain that a declared ActivityPub instance reports as a known connected domain.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -62,7 +50,6 @@
 					<ActivityPubInstance_TimestampView
 						selection={select(EntityType.ActivityPubInstance_Timestamp, selection.entitySelector.$observation)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

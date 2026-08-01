@@ -34,12 +34,8 @@
 
 	<LensAccountsView
 		href={resolve('/(social)/(lens)/lens/(lensNetwork)/observations/accounts')}
-		title='Lens accounts'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='lens-accounts'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

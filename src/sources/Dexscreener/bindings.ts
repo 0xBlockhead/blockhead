@@ -1,11 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
 const bindings = [
 	{
-		source: Source.Dexscreener_OpenApi,
+		source: Source.Dexscreener_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
 			key: 'dexscreener-openapi',
@@ -14,7 +14,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.dexscreener.com',
-				origin: 'https://api.dexscreener.com',
 				corsEnabled: false,
 			},
 		],
@@ -24,21 +23,15 @@ const bindings = [
 			SourceOperationGroup.GenericRead,
 		],
 		delivery: SourceDelivery.HttpProxy,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.OpenApiSpec,
 				path: 'src/sources/Dexscreener/OpenApi/openapi.yml',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/Dexscreener/OpenApi/schema-source.ts',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,
@@ -49,4 +42,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Dexscreener_OpenApi]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

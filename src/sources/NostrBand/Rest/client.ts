@@ -17,10 +17,10 @@ const toQuery = (params: Record<string, string | number | undefined>) => {
 	return query ? `?${query}` : ''
 }
 
-export const nostrBandGet = async <T>(
+export const nostrBandGet = <T>(
 	path: string,
 	params?: Record<string, string | number | undefined>
-): Promise<T> => (
+) => (
 	sourceGetJson<T>(
 		binding,
 		`${firstHttpUrlForBinding(binding)}/v0${path.startsWith('/') ? path : `/${path}`}${toQuery(params ?? {})}`

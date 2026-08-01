@@ -22,7 +22,7 @@ export const jsonRpc2 = async <_Result>(
 	method: string,
 	params?: readonly unknown[] | Readonly<Record<string, unknown>>,
 	endpoint?: SourceEndpoint
-): Promise<_Result> => {
+) => {
 	if (
 		endpoint != null
 		&& (

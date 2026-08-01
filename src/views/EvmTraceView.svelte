@@ -154,7 +154,6 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -174,7 +173,6 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -300,7 +298,6 @@
 					<EvmTransactionView
 						selection={select(EntityType.EvmTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

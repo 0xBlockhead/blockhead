@@ -7,7 +7,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import IconComponent from '$/components/Icon.svelte'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -43,6 +42,7 @@
 
 
 	// Components
+	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -77,7 +77,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Icon()}
 		<ResourceBoundary resource={evmNft}>
 			{#snippet children(entity)}
@@ -101,9 +100,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<span data-text="font-monospace">
-			{selection.entitySelector.tokenId}
-		</span>
+		<span data-text="font-monospace">{selection.entitySelector.tokenId}</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -120,7 +117,6 @@
 					<EvmContractView
 						selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -165,11 +161,11 @@
 			</div>
 		</dl>
 
-		<dl data-column-item="center">
-			<ProjectionBoundary
-				resource={selection.Eip8004Registration}
-			>
-				{#snippet Applicable(projection)}
+		<ProjectionBoundary
+			resource={selection.Eip8004Registration}
+		>
+			{#snippet Applicable(projection)}
+				<dl data-column-item="center">
 					<div>
 						<dt>Agent registry</dt>
 						<dd>
@@ -244,16 +240,15 @@
 											selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 											prefetched={evmAccount}
 											layout={EntityLayout.Value}
-											open={false}
 										/>
 									</dd>
 								</div>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
-				{/snippet}
-			</ProjectionBoundary>
-		</dl>
+				</dl>
+			{/snippet}
+		</ProjectionBoundary>
 
 		<dl data-column-item="center">
 			<ProjectionBoundary

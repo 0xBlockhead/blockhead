@@ -16,8 +16,11 @@ export default {
 			entityType: EntityType.RssFeed,
 			resolve: {
 				FeedUrl: {
-					resolve: async ({ feedUrl: feedUrlSelector }) => {
-					const { normalizeRssFeedUrl } = await import('$/sources/Rss/Rest/constants.ts')
+					resolve: async ({ feedUrl: feedUrlSelector }, context) => {
+					const {
+						normalizeRssFeedUrl,
+						rssItemIdentityFromParts,
+					} = await import('$/sources/Rss/Rest/constants.ts')
 					const { getFeed } = await import('$/sources/Rss/Rest/queries.ts')
 					const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
 					const feed = await getFeed(feedUrl)
@@ -31,6 +34,17 @@ export default {
 							lastBuildDate: feed.lastBuildDate,
 						}),
 						...(feed.imageUrl != null && { imageUrl: feed.imageUrl }),
+						items: feed.items
+							.slice(0, resolverContextRowLimit(context))
+							.flatMap((feedItem) => {
+								const identity = rssItemIdentityFromParts(feedItem.guid, feedItem.link)
+								return identity == null ? [] : [{
+									[EntityMetaKey.Selector]: {
+										$feed: { feedUrl },
+										...identity,
+									},
+								}]
+							}),
 					}
 				},
 				}
@@ -43,6 +57,7 @@ export default {
 			language: (snapshot) => snapshot.language,
 			lastBuildDate: (snapshot) => snapshot.lastBuildDate,
 			imageUrl: (snapshot) => snapshot.imageUrl,
+			$$items: (snapshot) => snapshot.items,
 		}),
 
 		defineResolver(Source.Rss_Rest, {
@@ -61,12 +76,13 @@ export default {
 					const { getFeed } = await import('$/sources/Rss/Rest/queries.ts')
 					const feedUrl = normalizeRssFeedUrl($feed.feedUrl)
 					const feed = await getFeed(feedUrl)
-					const feedItem = feed.items.find((candidate) => (
-						((identity) => (
+					const feedItem = feed.items.find((candidate) => {
+						const identity = rssItemIdentityFromParts(candidate.guid, candidate.link)
+						return (
 							identity?.itemIdentityKind === itemIdentityKind
 							&& identity.itemIdentity === itemIdentity
-						))(rssItemIdentityFromParts(candidate.guid, candidate.link))
-					))
+						)
+					})
 					if (feedItem == null) throw new Error('Rss_Rest: feed item not found')
 					return {
 						itemIdentityKind,
@@ -110,37 +126,6 @@ export default {
 			enclosureUrl: (snapshot) => snapshot.enclosureUrl,
 			commentsUrl: (snapshot) => snapshot.commentsUrl,
 			$feed: (snapshot) => snapshot.$feed,
-		}),
-
-		defineResolver(Source.Rss_Rest, {
-			entityType: EntityType.RssFeed,
-			resolve: {
-				FeedUrl: {
-					resolve: async ({ feedUrl: feedUrlSelector }, context) => {
-					const {
-						normalizeRssFeedUrl,
-						rssItemIdentityFromParts,
-					} = await import('$/sources/Rss/Rest/constants.ts')
-					const { listFeedItems } = await import('$/sources/Rss/Rest/queries.ts')
-					const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
-					const limit = resolverContextRowLimit(context)
-					return (
-						(await listFeedItems(feedUrl, limit))
-							.flatMap((feedItem) => {
-								const identity = rssItemIdentityFromParts(feedItem.guid, feedItem.link)
-								return identity == null ? [] : [{
-									[EntityMetaKey.Selector]: {
-										$feed: { feedUrl },
-										...identity,
-									},
-								}]
-							})
-					)
-				},
-				}
-			}
-		})({
-			$$items: (snapshot) => snapshot,
 		}),
 
 		defineResolver(Source.Rss_Rest, {
@@ -210,12 +195,13 @@ export default {
 					const { getFeed } = await import('$/sources/Rss/Rest/queries.ts')
 					const feedUrl = normalizeRssFeedUrl($item.$feed.feedUrl)
 					try {
-						const feedItem = (await getFeed(feedUrl)).items.find((candidate) => (
-							((identity) => (
+						const feedItem = (await getFeed(feedUrl)).items.find((candidate) => {
+							const identity = rssItemIdentityFromParts(candidate.guid, candidate.link)
+							return (
 								identity?.itemIdentityKind === $item.itemIdentityKind
 								&& identity.itemIdentity === $item.itemIdentity
-							))(rssItemIdentityFromParts(candidate.guid, candidate.link))
-						))
+							)
+						})
 						return {
 							$item: { [EntityMetaKey.Selector]: $item },
 							timestampMs,

@@ -71,13 +71,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(prefetched.protocolName ?? '') || titleFallback}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Lens is a social graph protocol. This hub shows bounded account and post windows from the declared Lens GraphQL source.
-		</p>
+		Lens
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -203,12 +197,7 @@
 				<LensAccountsView
 					selection={selection.$$lensAccounts}
 					href={resolve('/(social)/(lens)/lens/(lensNetwork)/observations/accounts')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Lens accounts in this observed.'
 					id={`${id}-list`}
@@ -241,12 +230,7 @@
 				<LensPostsView
 					selection={selection.$$lensPosts}
 					href={resolve('/(social)/(lens)/lens/(lensNetwork)/observations/posts')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Lens posts in this observed.'
 					id={`${id}-list`}

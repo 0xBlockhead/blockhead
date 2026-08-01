@@ -27,7 +27,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import StarknetNetworkView from '$/views/StarknetNetworkView.svelte'
 	import StarknetAccount_TimestampsView from '$/views/StarknetAccount_TimestampsView.svelte'
@@ -46,15 +45,10 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.address || 'starknet contract'}
-	{/snippet}
-
 	{#snippet Value()}
 		<StarknetNetworkView
 			selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -66,7 +60,6 @@
 					<StarknetNetworkView
 						selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -108,12 +101,7 @@
 			{#snippet SectionStarknetContractAccountStates({ id, label, open })}
 				<StarknetAccount_TimestampsView
 					selection={selection.$$accountStates}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No account states.'
 					id={`${id}-list`}
@@ -123,12 +111,7 @@
 			{#snippet SectionStarknetContractEvents({ id, label, open })}
 				<StarknetEventsView
 					selection={selection.$$events}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No events.'
 					id={`${id}-list`}
@@ -164,12 +147,7 @@
 			{#snippet SectionStarknetContractStorage({ id, label, open })}
 				<StarknetStorageEntriesView
 					selection={selection.$$storage}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No storage.'
 					id={`${id}-list`}
@@ -179,12 +157,7 @@
 			{#snippet SectionStarknetContractTransactions({ id, label, open })}
 				<StarknetTransactionsView
 					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No transactions.'
 					id={`${id}-list`}

@@ -11,7 +11,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['A supported bridge path between two EVM coin instances through a specific bridge tool.'],
 		open = $bindable(true),
 		id = 'CoinBridgeCapabilities-list',
 		...EntitiesListProps
@@ -28,7 +27,6 @@
 	entityType={EntityType.CoinBridgeCapability}
 	{id}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {

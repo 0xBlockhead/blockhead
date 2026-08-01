@@ -68,7 +68,6 @@
 					<BlockheadCashuMeltQuoteView
 						selection={select(EntityType.BlockheadCashuMeltQuote, selection.entitySelector.$meltQuote)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -36,10 +36,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		ICP subnet canister range timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +44,6 @@
 					<IcpSubnetView
 						selection={select(EntityType.IcpSubnet, selection.entitySelector.$subnet)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

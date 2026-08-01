@@ -81,7 +81,6 @@
 					<BlockheadLogosBlockchainWalletKeyStateView
 						selection={select(EntityType.BlockheadLogosBlockchainWalletKeyState, selection.entitySelector.$walletKeyState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

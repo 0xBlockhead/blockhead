@@ -12,7 +12,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['A block in an EVM-compatible execution chain.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.EvmBlock> = $props()
@@ -27,7 +26,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.EvmBlock}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {

@@ -36,10 +36,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		XRPL transaction timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +44,6 @@
 					<XrplTransactionView
 						selection={select(EntityType.XrplTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -13,7 +13,6 @@
 	let {
 		selection,
 		title = 'ERC-8004 Registrations',
-		typeAnnotationParagraphs = ['A non-fungible token on an EVM contract, with ERC-8004 agent registration fields shown when the resolver supplies registry evidence.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.EvmNft> = $props()
@@ -29,7 +28,6 @@
 	entityType={EntityType.EvmNft}
 	{title}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			sources: selection.sources ?? [

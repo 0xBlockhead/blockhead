@@ -74,7 +74,6 @@
 					<ElementsAssetView
 						selection={select(EntityType.ElementsAsset, selection.entitySelector.$asset)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

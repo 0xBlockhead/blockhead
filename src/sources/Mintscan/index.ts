@@ -10,8 +10,8 @@ export default {
 	label: 'Mintscan',
 	sources: [
 		{
-			source: Source.Mintscan_Rest,
-			label: 'Mintscan REST',
+			source: Source.Mintscan,
+			label: 'Mintscan',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

@@ -236,7 +236,6 @@
 					<GlobalRedditNetworkView
 						selection={select(EntityType._GlobalRedditNetwork, selection.entitySelector.$hub)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

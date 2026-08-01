@@ -19,6 +19,16 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]',
+			{
+				chainId: params.chainId,
+				poolId: params.poolId,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,32 +39,18 @@
 
 {#key [params.chainId, params.poolId].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]',
-				{
-					chainId: params.chainId,
-					poolId: params.poolId,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<LiquidityPoolView
 				selection={
-					select(EntityType.LiquidityPool, data.selector, { sources: [
-						Source.Dexscreener_OpenApi,
-					] })
+					select(EntityType.LiquidityPool, data.selector, {
+						sources: [
+							Source.Dexscreener_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]',
-						{
-							chainId: params.chainId,
-							poolId: params.poolId,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

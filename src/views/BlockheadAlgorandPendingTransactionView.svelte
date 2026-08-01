@@ -51,10 +51,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.txId || 'blockhead algorand pending transaction'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAlgorandPendingTransaction}>
 			{#snippet children(entity)}
@@ -104,7 +100,6 @@
 									selection={select(EntityType.AlgorandNetwork, algorandNetwork[EntityMetaKey.Selector])}
 									prefetched={algorandNetwork}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

@@ -20,13 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadLightningInvoice_Timestamp> = $props()
 
-	const blockheadLightningInvoiceTimestamp = $derived(selection({
-		fields: {
-			state: true,
-			amountPaidMsat: true,
-		},
-	}))
-
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
@@ -49,7 +42,16 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadLightningInvoiceTimestamp}>
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						state: true,
+						amountPaidMsat: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
 				{[(entity.state ?? ''), String(entity.amountPaidMsat ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
@@ -64,7 +66,6 @@
 					<BlockheadLightningInvoiceView
 						selection={select(EntityType.BlockheadLightningInvoice, selection.entitySelector.$invoice)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -54,10 +54,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.transactionAddress || 'blockhead quilibrium pending transaction'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadQuilibriumPendingTransaction}>
 			{#snippet children(entity)}
@@ -92,7 +88,6 @@
 					<BlockheadQuilibriumAccountStateView
 						selection={select(EntityType.BlockheadQuilibriumAccountState, selection.entitySelector.$accountState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -116,7 +111,6 @@
 									selection={select(EntityType.QuilibriumAccount, quilibriumAccount[EntityMetaKey.Selector])}
 									prefetched={quilibriumAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -136,7 +130,6 @@
 									selection={select(EntityType.QuilibriumAccount, quilibriumAccount[EntityMetaKey.Selector])}
 									prefetched={quilibriumAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

@@ -18,6 +18,16 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/rollup/[projectId=stringSegment]',
+			{
+				network: params.network,
+				projectId: params.projectId,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -28,28 +38,12 @@
 
 {#key [params.network, params.projectId].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/rollup/[projectId=stringSegment]',
-				{
-					network: params.network,
-					projectId: params.projectId,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<EvmRollupView
 				selection={select(EntityType.EvmRollup, data.selector)}
-				href={
-					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/rollup/[projectId=stringSegment]',
-						{
-							network: params.network,
-							projectId: params.projectId,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

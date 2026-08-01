@@ -27,7 +27,8 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			host: params.host,
-		}
+		},
+		'EvmNetworkHost'
 	)
 	if (mevRelayEvmNetworkHostSelector instanceof arktype.errors)
 		error(404, 'Invalid MevRelay selector')

@@ -15,7 +15,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.x.com',
-				origin: 'https://api.x.com',
 				corsEnabled: false,
 			},
 		],
@@ -31,19 +30,15 @@ const bindings = [
 				env: arktype({
 					'PUBLIC_X_API_BEARER': 'string > 0',
 				}),
-				keys: [
-					'PUBLIC_X_API_BEARER',
-				],
 			},
 		],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/X/Rest/types.ts',
-				generated: false,
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.X_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

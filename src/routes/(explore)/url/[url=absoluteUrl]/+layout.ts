@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		UrlSchema,
 		{
 			url: decodeURIComponent(params.url),
-		}
+		},
+		'Url'
 	)
 	if (urlUrlSelector instanceof arktype.errors)
 		error(404, 'Invalid Url selector')

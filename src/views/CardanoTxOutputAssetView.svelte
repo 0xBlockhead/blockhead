@@ -47,7 +47,6 @@
 		<CardanoNativeAssetView
 			selection={select(EntityType.CardanoNativeAsset, selection.entitySelector.$asset)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -69,7 +68,6 @@
 					<CardanoTxOutputView
 						selection={select(EntityType.CardanoTxOutput, selection.entitySelector.$output)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -80,7 +78,6 @@
 					<CardanoNativeAssetView
 						selection={select(EntityType.CardanoNativeAsset, selection.entitySelector.$asset)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

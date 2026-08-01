@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -31,15 +30,10 @@
 <EntityView
 	entityType={EntityType.AlgorandApplication_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'algorand application timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		algorand application timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +42,6 @@
 					<AlgorandApplicationView
 						selection={select(EntityType.AlgorandApplication, selection.entitySelector.$application)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

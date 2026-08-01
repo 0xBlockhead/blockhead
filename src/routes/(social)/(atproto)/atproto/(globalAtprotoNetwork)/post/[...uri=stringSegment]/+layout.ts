@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		AtprotoPostSchema,
 		{
 			uri: decodeURIComponent(params.uri),
-		}
+		},
+		'Uri'
 	)
 	if (atprotoPostUriSelector instanceof arktype.errors)
 		error(404, 'Invalid AtprotoPost selector')

@@ -11,7 +11,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['Lens is a social graph protocol. This hub shows bounded account and post windows from the declared Lens GraphQL source.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.LensNetwork> = $props()
@@ -26,7 +25,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.LensNetwork}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {
@@ -43,6 +41,10 @@
 		>
 			{#snippet Title()}
 				{lensNetwork.protocolName || 'Lens'}
+			{/snippet}
+
+			{#snippet Value()}
+				Lens
 			{/snippet}
 		</EntityView>
 	{/snippet}

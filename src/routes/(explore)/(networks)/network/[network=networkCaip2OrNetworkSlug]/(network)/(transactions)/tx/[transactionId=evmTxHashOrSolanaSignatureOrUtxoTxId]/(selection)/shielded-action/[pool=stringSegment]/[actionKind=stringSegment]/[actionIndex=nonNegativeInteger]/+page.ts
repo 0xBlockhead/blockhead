@@ -32,7 +32,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 			pool: params.pool,
 			actionKind: params.actionKind,
 			indexInTransaction: Number(params.actionIndex),
-		}
+		},
+		'TransactionPoolActionKindIndexInTransaction'
 	)
 	if (zcashShieldedActionTransactionPoolActionKindIndexInTransactionSelector instanceof arktype.errors)
 		error(404, 'Invalid ZcashShieldedAction selector')

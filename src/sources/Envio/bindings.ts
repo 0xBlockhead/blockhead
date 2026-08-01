@@ -3,6 +3,12 @@
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
+const envio1Credentials = [
+	{
+		scope: SourceCredentialScope.RuntimeSecret,
+	},
+] as const
+
 const bindings = [
 	{
 		source: Source.EnvioHyperRpc_JsonRpc,
@@ -14,7 +20,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://eth.rpc.hypersync.xyz/{ENVIO_API_TOKEN}',
-				origin: 'https://eth.rpc.hypersync.xyz',
 				corsEnabled: false,
 			},
 		],
@@ -24,21 +29,15 @@ const bindings = [
 			SourceOperationGroup.EvmRpcCore,
 		],
 		delivery: SourceDelivery.HttpProxy,
-		credentials: [
-			{
-				scope: SourceCredentialScope.RuntimeSecret,
-			},
-		],
+		credentials: envio1Credentials,
 		artifacts: [
 			{
 				kind: SourceArtifactKind.OpenRpcSpec,
 				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
-				generated: false,
 			},
 		],
 	},
@@ -52,7 +51,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://eth.hypersync.xyz',
-				origin: 'https://eth.hypersync.xyz',
 				corsEnabled: false,
 			},
 		],
@@ -62,23 +60,15 @@ const bindings = [
 			SourceOperationGroup.GenericRead,
 		],
 		delivery: SourceDelivery.HttpProxy,
-		credentials: [
-			{
-				scope: SourceCredentialScope.RuntimeSecret,
-			},
-		],
+		credentials: envio1Credentials,
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/Envio/HyperSync/types.ts',
-				generated: false,
 				referenceUrl: 'https://docs.envio.dev/docs/HyperSync/overview',
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.EnvioHyperRpc_JsonRpc]: typeof bindings[0]
-	readonly [Source.EnvioHyperSync_RawHttp]: typeof bindings[1]
-}>(bindings)
+export default indexSourceBindings(bindings)

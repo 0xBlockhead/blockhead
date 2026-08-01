@@ -19,6 +19,8 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = resolve('/(social)/(atproto)/atproto')
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -28,16 +30,18 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/(social)/(atproto)/atproto')}
+	href={detailHref}
 >
 	{#snippet Summary()}
 		<GlobalAtprotoNetworkView
 			selection={
-				select(EntityType._GlobalAtprotoNetwork, data.selector, { sources: [
-					Source.Constants_Internal,
-				] })
+				select(EntityType._GlobalAtprotoNetwork, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
 			}
-			href={resolve('/(social)/(atproto)/atproto')}
+			href={detailHref}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

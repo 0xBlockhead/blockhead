@@ -85,7 +85,6 @@
 					<AcpTerminalView
 						selection={select(EntityType.AcpTerminal, selection.entitySelector.$terminal)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

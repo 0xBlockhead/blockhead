@@ -37,11 +37,7 @@
 				}
 			)
 		}
-		title='ERC-4337 bundlers'
 		selection={select(EntityType.Network, data.selector).Evm.$$erc4337Bundlers}
 		id='erc4337-bundlers'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

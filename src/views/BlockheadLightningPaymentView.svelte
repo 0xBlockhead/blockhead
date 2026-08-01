@@ -108,7 +108,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -191,7 +190,6 @@
 									selection={select(EntityType.BlockheadLightningNodeState, blockheadLightningNodeState[EntityMetaKey.Selector])}
 									prefetched={blockheadLightningNodeState}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -211,7 +209,6 @@
 									selection={select(EntityType.BlockheadLightningInvoice, blockheadLightningInvoice[EntityMetaKey.Selector])}
 									prefetched={blockheadLightningInvoice}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

@@ -108,7 +108,6 @@
 									selection={select(EntityType.AiModelProvider, aiModelProvider[EntityMetaKey.Selector])}
 									prefetched={aiModelProvider}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

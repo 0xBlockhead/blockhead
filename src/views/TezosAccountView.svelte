@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -15,7 +16,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -26,14 +26,11 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import TezosNetworkView from '$/views/TezosNetworkView.svelte'
-	import TezosOperationsView from '$/views/TezosOperationsView.svelte'
-	import TezosTokenTransfersView from '$/views/TezosTokenTransfersView.svelte'
-	import TezosTokenBalance_TimestampsView from '$/views/TezosTokenBalance_TimestampsView.svelte'
-	import TezosAccount_TimestampsView from '$/views/TezosAccount_TimestampsView.svelte'
 </script>
 
 
@@ -41,15 +38,10 @@
 	entityType={EntityType.TezosAccount}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? 'tezos account'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		tezos account
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -58,7 +50,6 @@
 					<TezosNetworkView
 						selection={select(EntityType.TezosNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -117,33 +108,41 @@
 			{/snippet}
 
 			{#snippet SectionTezosAccountOperations({ id, label, open })}
-				<TezosOperationsView
-					selection={selection.$$operations}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.TezosOperation}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No operations.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$operations()}
+				>
+					{#snippet Item({ item: tezosOperation })}
+						<EntityView
+							entityType={EntityType.TezosOperation}
+							entitySelector={tezosOperation[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionTezosAccountTokenTransfers({ id, label, open })}
-				<TezosTokenTransfersView
-					selection={selection.$$tokenTransfers}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.TezosTokenTransfer}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No token transfers.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$tokenTransfers()}
+				>
+					{#snippet Item({ item: tezosTokenTransfer })}
+						<EntityView
+							entityType={EntityType.TezosTokenTransfer}
+							entitySelector={tezosTokenTransfer[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -173,33 +172,41 @@
 			{/snippet}
 
 			{#snippet SectionTezosAccountTokenBalanceTimestamps({ id, label, open })}
-				<TezosTokenBalance_TimestampsView
-					selection={selection.$$tokenBalanceTimestamps}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.TezosTokenBalance_Timestamp}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No token balance timestamps.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$tokenBalanceTimestamps()}
+				>
+					{#snippet Item({ item: tezosTokenBalanceTimestamp })}
+						<EntityView
+							entityType={EntityType.TezosTokenBalance_Timestamp}
+							entitySelector={tezosTokenBalanceTimestamp[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionTezosAccountTimestamps({ id, label, open })}
-				<TezosAccount_TimestampsView
-					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.TezosAccount_Timestamp}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No timestamps.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$timestamps()}
+				>
+					{#snippet Item({ item: tezosAccountTimestamp })}
+						<EntityView
+							entityType={EntityType.TezosAccount_Timestamp}
+							entitySelector={tezosAccountTimestamp[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>

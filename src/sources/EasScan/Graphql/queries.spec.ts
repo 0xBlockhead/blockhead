@@ -9,7 +9,6 @@ import {
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
@@ -23,6 +22,7 @@ import {
 	getAttestationsByAttester,
 	getAttestationsByRecipient,
 	getAttestationsBySchema,
+	getSchema,
 } from '$/sources/EasScan/Graphql/queries.ts'
 
 vi.mock('$/sources/_shared/wire/Graphql/client.ts', () => ({
@@ -32,13 +32,12 @@ vi.mock('$/sources/_shared/wire/Graphql/client.ts', () => ({
 const binding = {
 	source: Source.EasScan_Graphql,
 	target: {
-		kind: SourceTargetKind.Caip2Network,
-		key: 'eip155:1',
+		kind: SourceTargetKind.Eip155Chain,
+		key: '1',
 	},
 	endpoints: [{
 		endpointKind: SourceEndpointKind.HttpUrl,
 		locator: 'https://easscan.org/graphql',
-		origin: 'https://easscan.org',
 		corsEnabled: false,
 	}],
 	wireProtocol: WireProtocol.Graphql,
@@ -47,9 +46,7 @@ const binding = {
 		SourceOperationGroup.GenericRead,
 	],
 	delivery: SourceDelivery.HttpProxy,
-	credentials: [{
-		scope: SourceCredentialScope.None,
-	}],
+	credentials: [],
 } as const satisfies SourceBinding
 
 const uid = `0x${'1'.repeat(64)}`
@@ -57,6 +54,7 @@ const schemaUid = `0x${'2'.repeat(64)}`
 const refUid = `0x${'0'.repeat(64)}`
 const attester = '0x3333333333333333333333333333333333333333'
 const recipient = '0x4444444444444444444444444444444444444444'
+const transactionHash = `0x${'5'.repeat(64)}`
 
 const attestation = {
 	id: uid,
@@ -65,10 +63,23 @@ const attestation = {
 	recipient,
 	refUID: refUid,
 	revocable: true,
+	revoked: true,
 	revocationTime: 1_700_000_100,
 	expirationTime: 1_800_000_000,
 	time: 1_700_000_000,
 	data: '0x1234',
+	txid: transactionHash,
+}
+
+const easSchema = {
+	id: schemaUid,
+	schema: 'address subject, bool verified',
+	creator: attester,
+	resolver: recipient,
+	revocable: true,
+	index: '42',
+	txid: transactionHash,
+	time: 1_699_000_000,
 }
 
 beforeEach(() => {
@@ -136,6 +147,26 @@ describe('EasScan GraphQL public reads', () => {
 		})
 	})
 
+	it('gets an exact network-scoped schema registration', async () => {
+		vi.mocked(graphql).mockResolvedValueOnce({
+			schema: easSchema,
+		})
+
+		await expect(getSchema({
+			binding,
+			network: 'eip155:1',
+			schemaUid,
+		})).resolves.toEqual(easSchema)
+		expect(graphql).toHaveBeenCalledWith(expect.objectContaining({
+			binding,
+			variables: {
+				where: {
+					id: schemaUid,
+				},
+			},
+		}))
+	})
+
 	it('rejects global bindings, foreign subjects, and over-broad pages', async () => {
 		await expect(getAttestation({
 			binding: {
@@ -147,7 +178,7 @@ describe('EasScan GraphQL public reads', () => {
 			},
 			network: 'eip155:1',
 			uid,
-		})).rejects.toThrow('exact CAIP-2 network binding')
+		})).rejects.toThrow('exact EIP-155 chain binding')
 
 		vi.mocked(graphql).mockResolvedValueOnce({
 			attestations: [{

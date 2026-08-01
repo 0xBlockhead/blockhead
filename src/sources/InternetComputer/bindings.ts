@@ -3,6 +3,10 @@
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
+const internetComputerGenericReadOperationGroups = [
+	SourceOperationGroup.GenericRead,
+] as const
+
 const bindings = [
 	{
 		source: Source.IcDashboard_Canister,
@@ -18,15 +22,9 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.Canister,
 		apiFamily: ApiFamily.IcCanister,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: internetComputerGenericReadOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
 		source: Source.InternetComputer_Canister,
@@ -42,15 +40,9 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.Canister,
 		apiFamily: ApiFamily.IcCanister,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: internetComputerGenericReadOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
 		source: Source.InternetComputer_Http,
@@ -67,15 +59,9 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.RawHttp,
 		apiFamily: ApiFamily.CertifiedHttpGateway,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: internetComputerGenericReadOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
 		source: Source.InternetComputer_RosettaApi,
@@ -92,15 +78,9 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RosettaApi,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: internetComputerGenericReadOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
 		source: Source.InternetComputer_WalletApi,
@@ -129,10 +109,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.IcDashboard_Canister]: typeof bindings[0]
-	readonly [Source.InternetComputer_Canister]: typeof bindings[1]
-	readonly [Source.InternetComputer_Http]: typeof bindings[2]
-	readonly [Source.InternetComputer_RosettaApi]: typeof bindings[3]
-	readonly [Source.InternetComputer_WalletApi]: typeof bindings[4]
-}>(bindings)
+export default indexSourceBindings(bindings)

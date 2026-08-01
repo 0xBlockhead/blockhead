@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(social)/(nostr)/nostr/(globalNostrNetwork)/note/[eventId=stringSegment]',
+			{
+				eventId: params.eventId,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,32 +38,20 @@
 
 {#key params.eventId}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(social)/(nostr)/nostr/(globalNostrNetwork)/note/[eventId=stringSegment]',
-				{
-					eventId: params.eventId,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<NostrNoteView
 				selection={
-					select(EntityType.NostrNote, data.selector, { sources: [
-						Source.Constants_Internal,
-						Source.NostrBand_Rest,
-						Source.Primal_Rest,
-					] })
+					select(EntityType.NostrNote, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+							Source.NostrBand_Rest,
+							Source.Primal_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(social)/(nostr)/nostr/(globalNostrNetwork)/note/[eventId=stringSegment]',
-						{
-							eventId: params.eventId,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

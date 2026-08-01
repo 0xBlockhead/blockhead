@@ -87,7 +87,6 @@
 					<SolanaAccountView
 						selection={select(EntityType.SolanaAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -111,7 +110,6 @@
 									selection={select(EntityType.SolanaProgram, solanaProgram[EntityMetaKey.Selector])}
 									prefetched={solanaProgram}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

@@ -1,5 +1,5 @@
 import { throwHttpError } from '$/lib/http.ts'
-import { filecoinNetworkBySlug } from '$/constants/FilecoinNetwork.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/_shared/wire/JsonRpc2/constants.ts'
 import {
@@ -8,6 +8,7 @@ import {
 } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/Lotus/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	LotusActor,
@@ -21,17 +22,21 @@ import type {
 	LotusVersion,
 } from '$/sources/Lotus/JsonRpc/types.ts'
 
-const binding = bindings[Source.Lotus_JsonRpc].find(({ target }) => (
-	target.key === `${filecoinNetworkBySlug.filecoin.caip2.namespace}:${filecoinNetworkBySlug.filecoin.caip2.reference}`
-))
-if (binding == null)
-	throw new Error('Lotus_JsonRpc: Filecoin mainnet binding is not registered')
+const binding = new Map<string, SourceBinding<Source.Lotus_JsonRpc>>(
+	bindings[Source.Lotus_JsonRpc].map((binding) => [
+		binding.target.key,
+		binding,
+	] as const)
+).get(`${networkBySlug.filecoin.caip2.namespace}:${networkBySlug.filecoin.caip2.reference}`)
 
-export const getRpcEndpoints = () => [{
-	url: `${firstHttpUrlForBinding(binding).replace(/\/$/, '')}/rpc/v1`,
+if (binding == null)
+	throw new Error('Lotus_JsonRpc: no Filecoin binding')
+
+export const getRpcEndpoints = () => binding.endpoints.map((endpoint) => ({
+	url: `${endpoint.locator.replace(/\/$/, '')}/rpc/v1`,
 	transportType: TransportType.Http,
 	providerName: 'GLIF',
-}]
+}))
 
 type JsonRpcResponse<_Result> = {
 	jsonrpc: typeof jsonRpcVersion

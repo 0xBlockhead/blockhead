@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType._GlobalSwarmAccess, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -36,6 +30,12 @@
 
 <Page>
 	<GlobalSwarmAccessView
-		selection={pageSelection}
+		selection={
+			select(EntityType._GlobalSwarmAccess, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+			})
+		}
 	/>
 </Page>

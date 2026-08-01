@@ -5,8 +5,10 @@ import { networkBySlug } from '$/constants/Network.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	TronNodeBlock,
@@ -15,10 +17,7 @@ import type {
 	TronNodeTransactionInfo,
 } from '$/sources/TronGrid/Rest/types.ts'
 
-type NetworkId = { caip2: {
-	namespace: string
-	reference: string
-} } | { slug: string }
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertTronMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug.tron.slug)

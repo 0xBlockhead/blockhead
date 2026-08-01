@@ -177,7 +177,6 @@
 										selection={select(EntityType.RedditLink, redditLink[EntityMetaKey.Selector])}
 										prefetched={redditLink}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>
@@ -199,7 +198,6 @@
 										selection={select(EntityType.RedditComment, redditComment[EntityMetaKey.Selector])}
 										prefetched={redditComment}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>

@@ -164,7 +164,6 @@
 									selection={select(EntityType.EthereumExecutionUpgrade, ethereumExecutionUpgrade[EntityMetaKey.Selector])}
 									prefetched={ethereumExecutionUpgrade}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							{/snippet}
 						</ResourceBoundary>
@@ -185,7 +184,6 @@
 										selection={select(EntityType.EthereumConsensusUpgrade, ethereumConsensusUpgrade[EntityMetaKey.Selector])}
 										prefetched={ethereumConsensusUpgrade}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>

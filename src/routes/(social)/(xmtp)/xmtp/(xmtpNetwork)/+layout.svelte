@@ -19,6 +19,8 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = resolve('/(social)/(xmtp)/xmtp')
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -28,16 +30,18 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/(social)/(xmtp)/xmtp')}
+	href={detailHref}
 >
 	{#snippet Summary()}
 		<XmtpNetworkView
 			selection={
-				select(EntityType.XmtpNetwork, data.selector, { sources: [
-					Source.Constants_Internal,
-				] })
+				select(EntityType.XmtpNetwork, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
 			}
-			href={resolve('/(social)/(xmtp)/xmtp')}
+			href={detailHref}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

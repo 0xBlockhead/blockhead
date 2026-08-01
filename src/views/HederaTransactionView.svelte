@@ -36,6 +36,7 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -44,8 +45,6 @@
 	import HederaBlockView from '$/views/HederaBlockView.svelte'
 	import HederaScheduleView from '$/views/HederaScheduleView.svelte'
 	import HederaHbarTransfersView from '$/views/HederaHbarTransfersView.svelte'
-	import HederaTokenTransfersView from '$/views/HederaTokenTransfersView.svelte'
-	import HederaContractResultsView from '$/views/HederaContractResultsView.svelte'
 </script>
 
 
@@ -92,7 +91,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -281,7 +279,6 @@
 									selection={select(EntityType.HederaBlock, hederaBlock[EntityMetaKey.Selector])}
 									prefetched={hederaBlock}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -301,7 +298,6 @@
 									selection={select(EntityType.HederaSchedule, hederaSchedule[EntityMetaKey.Selector])}
 									prefetched={hederaSchedule}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -339,12 +335,7 @@
 			{#snippet SectionHederaTransactionHbarTransfers({ id, label, open })}
 				<HederaHbarTransfersView
 					selection={selection.$$hbarTransfers}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No hbar transfers.'
 					id={`${id}-list`}
@@ -352,18 +343,22 @@
 			{/snippet}
 
 			{#snippet SectionHederaTransactionTokenTransfers({ id, label, open })}
-				<HederaTokenTransfersView
-					selection={selection.$$tokenTransfers}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.HederaTokenTransfer}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No token transfers.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$tokenTransfers()}
+				>
+					{#snippet Item({ item: hederaTokenTransfer })}
+						<EntityView
+							entityType={EntityType.HederaTokenTransfer}
+							entitySelector={hederaTokenTransfer[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -389,18 +384,22 @@
 			{/snippet}
 
 			{#snippet SectionHederaTransactionContractResults({ id, label, open })}
-				<HederaContractResultsView
-					selection={selection.$$contractResults}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.HederaContractResult}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No contract results.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$contractResults()}
+				>
+					{#snippet Item({ item: hederaContractResult })}
+						<EntityView
+							entityType={EntityType.HederaContractResult}
+							entitySelector={hederaContractResult[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>

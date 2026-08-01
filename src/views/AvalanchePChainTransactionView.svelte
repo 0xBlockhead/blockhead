@@ -71,7 +71,6 @@
 							selection={select(EntityType.AvalanchePChainBlock, avalanchePChainBlock[EntityMetaKey.Selector])}
 							prefetched={avalanchePChainBlock}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -87,7 +86,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -127,7 +125,6 @@
 									selection={select(EntityType.AvalanchePChainBlock, avalanchePChainBlock[EntityMetaKey.Selector])}
 									prefetched={avalanchePChainBlock}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

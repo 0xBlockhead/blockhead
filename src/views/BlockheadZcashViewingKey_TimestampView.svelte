@@ -83,7 +83,6 @@
 					<BlockheadZcashViewingKeyView
 						selection={select(EntityType.BlockheadZcashViewingKey, selection.entitySelector.$viewingKey)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

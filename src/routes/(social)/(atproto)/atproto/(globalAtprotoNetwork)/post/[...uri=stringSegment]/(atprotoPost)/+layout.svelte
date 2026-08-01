@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]',
+			{
+				uri: params.uri,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,30 +38,18 @@
 
 {#key params.uri}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]',
-				{
-					uri: params.uri,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<AtprotoPostView
 				selection={
-					select(EntityType.AtprotoPost, data.selector, { sources: [
-						Source.Atproto_Xrpc,
-					] })
+					select(EntityType.AtprotoPost, data.selector, {
+						sources: [
+							Source.Atproto_Xrpc,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]',
-						{
-							uri: params.uri,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

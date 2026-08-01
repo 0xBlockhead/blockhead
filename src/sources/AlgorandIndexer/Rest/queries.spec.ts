@@ -43,7 +43,7 @@ describe('Algorand Indexer account portfolio transport', () => {
 		})
 		expect(getJson).toHaveBeenCalledWith(
 			expect.objectContaining({
-				source: 'Nodely_AlgorandIndexer_Rest',
+				source: 'Nodely',
 				target: {
 					kind: 'NetworkSlug',
 					key: 'algorand',
@@ -73,7 +73,7 @@ describe('Algorand Indexer account portfolio transport', () => {
 		})
 		expect(getJson).toHaveBeenCalledWith(
 			expect.objectContaining({
-				source: 'Nodely_AlgorandIndexer_Rest',
+				source: 'Nodely',
 			}),
 			`/v2/accounts/${account}`
 		)

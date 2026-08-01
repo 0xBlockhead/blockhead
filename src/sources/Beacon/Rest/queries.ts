@@ -3,111 +3,119 @@
  */
 
 import { throwHttpError } from '$/lib/http.ts'
-import { with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/Beacon/bindings.ts'
+import type { BeaconBlockDutySummary } from '$/sources/Beacon/Rest/types.ts'
 import type {
-	BeaconFinalityCheckpoints,
-	BeaconForkScheduleEntry,
-	BeaconBlockDutySummary,
-	BeaconCommittee,
-	BeaconHeader,
-	BeaconHeaderHeadResponse,
-	BeaconHeaderResponse,
-	BeaconSyncCommittee,
-	BeaconValidatorResponse,
-	BeaconValidatorSummary,
-} from '$/sources/Beacon/Rest/types.ts'
+	components,
+	operations,
+} from '$/sources/Beacon/OpenApi/openapi.d.ts'
 import { Source } from '$/sources/Source.ts'
 import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
+import { type Type, type as arktype } from 'arktype'
 
-const bindingByChainId = Object.fromEntries(
-	bindings[Source.Beacon_Rest].map((binding) => [binding.target.key, binding])
+type BeaconHeaderWire = (
+	operations['getBlockHeader']['responses'][200]['content']['application/json']['data']
+)
+type BeaconGenesisWire = (
+	operations['getGenesis']['responses'][200]['content']['application/json']['data']
 )
 
-export const beaconRestBinding = (chainId: number) => bindingByChainId[String(chainId)]
+const beaconHeaderWire = arktype({
+	root: 'string',
+	canonical: 'boolean',
+	header: {
+		message: {
+			slot: 'string',
+			proposer_index: 'string',
+			parent_root: 'string',
+			state_root: 'string',
+			body_root: 'string',
+		},
+		signature: 'string',
+	},
+}) satisfies Type<BeaconHeaderWire>
+
+const beaconGenesisWire = arktype({
+	genesis_time: 'string',
+	genesis_validators_root: 'string',
+	genesis_fork_version: 'string',
+}) satisfies Type<BeaconGenesisWire>
+
+const isUint64Wire = (value: string) => (
+	/^[0-9]+$/.test(value)
+	&& BigInt(value) <= 18_446_744_073_709_551_615n
+)
+
+export const beaconRestByChainId = new Map(
+	bindings[Source.Beacon_Rest].map((binding) => [
+		Number(binding.target.key),
+		{
+			binding,
+			chainId: binding.target.key,
+			restBaseUrls: binding.endpoints.map((endpoint) => endpoint.locator),
+		},
+	] as const)
+)
 
 const beaconFetch = (
 	chainId: number,
 	path: `/${string}`,
 	init?: RequestInit
 ) => {
-	const binding = beaconRestBinding(chainId)
-	if (binding == null)
+	const beaconRest = beaconRestByChainId.get(chainId)
+	if (beaconRest == null)
 		throw new Error(`Beacon_Rest: no binding for chain ${String(chainId)}`)
 
 	return sourceFetch(
-		binding,
-		`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}${path}`,
+		beaconRest.binding,
+		`${firstHttpUrlForBinding(beaconRest.binding).replace(/\/$/, '')}${path}`,
 		init
 	)
 }
 
-export const getHeadSlot = async (chainId: number): Promise<number> => {
-	const res = await beaconFetch(chainId, '/eth/v1/beacon/headers/head', {
-		headers: { accept: 'application/json' },
-	})
-	if (!res.ok) await throwHttpError('Beacon GET head', res)
-	const wire = await res.json<BeaconHeaderHeadResponse>()
-	const data = wire.data
-	if (data == null) throw new Error('Beacon: head response missing data')
-	const header = data.header
-	if (header == null) throw new Error('Beacon: head response missing header')
-	const message = header.message
-	if (message == null) throw new Error('Beacon: head response missing message')
-	const slotRaw = message.slot
-	if (slotRaw == null) throw new Error('Beacon: head response missing slot')
-	const n = Number.parseInt(String(slotRaw), 10)
-	if (!Number.isFinite(n)) throw new Error('Beacon: invalid head slot')
-	return n
+export const getHeadSlot = async (chainId: number) => {
+	const header = await getHeader(chainId, 'head')
+	return header.header.message.slot
+}
+
+export const getHeaderFromWire = (
+	wire: JsonValue
+): BeaconHeaderWire | undefined => {
+	if (!isJsonObject(wire)) return undefined
+	const header = beaconHeaderWire(wire.data)
+	if (
+		header instanceof arktype.errors
+		|| ![
+			header.header.message.slot,
+			header.header.message.proposer_index,
+		].every(isUint64Wire)
+		|| ![
+			header.root,
+			header.header.message.parent_root,
+			header.header.message.state_root,
+			header.header.message.body_root,
+		].every((value) => /^0x[0-9a-fA-F]{64}$/.test(value))
+		|| !/^0x[0-9a-fA-F]{192}$/.test(header.header.signature)
+	) return undefined
+	return header
 }
 
 export const getHeader = async (
 	chainId: number,
 	blockId: string | number
-): Promise<BeaconHeader> => {
+) => {
 	const res = await beaconFetch(chainId, `/eth/v1/beacon/headers/${blockId}`, {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET header', res)
-	const wire = await res.json<BeaconHeaderResponse>()
-	const data = wire.data
-	if (data == null) throw new Error('Beacon: header response missing data')
-	const root = data.root
-	if (root == null) throw new Error('Beacon: header response missing root')
-	const header = data.header
-	if (header == null) throw new Error('Beacon: header response missing header')
-	const signature = header.signature
-	if (signature == null) throw new Error('Beacon: header response missing signature')
-	const message = header.message
-	if (message == null) throw new Error('Beacon: header response missing message')
-	const slotRaw = message.slot
-	const proposerRaw = message.proposer_index
-	if (slotRaw == null) throw new Error('Beacon: header response missing slot')
-	if (proposerRaw == null) throw new Error('Beacon: header response missing proposer index')
-	const slot = Number.parseInt(String(slotRaw), 10)
-	const proposerIndex = Number.parseInt(String(proposerRaw), 10)
-	if (!Number.isFinite(slot)) throw new Error('Beacon: header response invalid slot')
-	if (!Number.isFinite(proposerIndex)) throw new Error('Beacon: header response invalid proposer index')
-	const parentRoot = message.parent_root
-	if (parentRoot == null) throw new Error('Beacon: header response missing parent root')
-	const stateRoot = message.state_root
-	if (stateRoot == null) throw new Error('Beacon: header response missing state root')
-	const bodyRoot = message.body_root
-	if (bodyRoot == null) throw new Error('Beacon: header response missing body root')
-	return {
-		bodyRoot,
-		canonical: data.canonical,
-		parentRoot,
-		proposerIndex,
-		root,
-		signature,
-		slot,
-		stateRoot,
-	}
+	const wire = await res.json<JsonValue>()
+	const header = getHeaderFromWire(wire)
+	if (header == null) throw new Error('Beacon: invalid header response')
+	return header
 }
 
 /**
@@ -122,10 +130,12 @@ export const getRecentProposerValidatorIndices = async ({
 	chainId: number
 	limit: number
 	slotLookbackCap: number
-}): Promise<number[]> => {
-	const head = await getHeadSlot(chainId)
-	const seen = new Map<number, true>()
-	const ordered: number[] = []
+}) => {
+	const head = Number(await getHeadSlot(chainId))
+	if (!Number.isSafeInteger(head))
+		throw new Error('Beacon: head slot must be a safe integer for recent proposer discovery')
+	const seen = new Set<string>()
+	const ordered: string[] = []
 	for (let slotOffset = 0;
 		slotOffset < slotLookbackCap && ordered.length < limit;
 		slotOffset++
@@ -133,9 +143,9 @@ export const getRecentProposerValidatorIndices = async ({
 		const slot = head - slotOffset
 		if (slot < 0) break
 		const header = await getHeader(chainId, slot)
-		const index = header.proposerIndex
+		const index = header.header.message.proposer_index
 		if (seen.has(index)) continue
-		seen.set(index, true)
+		seen.add(index)
 		ordered.push(index)
 	}
 	return ordered
@@ -148,10 +158,50 @@ const nonNegativeDecimalBigIntFromWire = (raw: string | undefined): bigint | und
 		undefined
 )
 
-export const getValidatorSummaryAtHead = async (
+const beaconValidatorWire = arktype({
+	index: 'string',
+	balance: 'string',
+	status: "'pending_initialized' | 'pending_queued' | 'active_ongoing' | 'active_exiting' | 'active_slashed' | 'exited_unslashed' | 'exited_slashed' | 'withdrawal_possible' | 'withdrawal_done'",
+	validator: {
+		pubkey: 'string',
+		withdrawal_credentials: 'string',
+		effective_balance: 'string',
+		slashed: 'boolean',
+		activation_eligibility_epoch: 'string',
+		activation_epoch: 'string',
+		exit_epoch: 'string',
+		withdrawable_epoch: 'string',
+	},
+}) satisfies Type<components['schemas']['ValidatorResponse']>
+
+export const getValidatorFromWire = (
+	wire: JsonValue
+): components['schemas']['ValidatorResponse'] | undefined => {
+	if (!isJsonObject(wire)) return undefined
+	const validator = beaconValidatorWire(wire.data)
+	if (
+		validator instanceof arktype.errors
+		|| ![
+			validator.index,
+			validator.balance,
+			validator.validator.effective_balance,
+			validator.validator.activation_eligibility_epoch,
+			validator.validator.activation_epoch,
+			validator.validator.exit_epoch,
+			validator.validator.withdrawable_epoch,
+		].every(isUint64Wire)
+		|| !/^0x[0-9a-fA-F]{96}$/.test(validator.validator.pubkey)
+		|| !/^0x[0-9a-fA-F]{64}$/.test(validator.validator.withdrawal_credentials)
+	) return undefined
+	return validator
+}
+
+export const getValidatorAtHead = async (
 	chainId: number,
 	validatorIndex: number
-): Promise<BeaconValidatorSummary | null> => {
+) => {
+	if (!Number.isSafeInteger(validatorIndex) || validatorIndex < 0)
+		throw new Error('Beacon: validator index must be a non-negative safe integer')
 	const res = await beaconFetch(
 		chainId,
 		`/eth/v1/beacon/states/head/validators/${String(validatorIndex)}`,
@@ -161,84 +211,69 @@ export const getValidatorSummaryAtHead = async (
 	)
 	if (res.status === 404) return null
 	if (!res.ok) await throwHttpError('Beacon GET validator', res)
-	const wire = await res.json<BeaconValidatorResponse>()
-	const data = wire.data
-	if (data == null) throw new Error('Beacon: validator response missing data')
-	const validatorNested = data.validator
-	const pubkeyRaw = validatorNested?.pubkey
-	const pubkey = (
-		pubkeyRaw?.startsWith('0x') ?
-			zeroExLowerCase(with0xHex(pubkeyRaw.slice(2)))
-		:
-			null
-	)
-	const balanceGwei = nonNegativeDecimalBigIntFromWire(data.balance)
-	const effectiveBalanceGwei = (
-		nonNegativeDecimalBigIntFromWire(
-			validatorNested?.effective_balance
-		)
-		?? balanceGwei
-	)
-	const status = data.status
-	const slashed = validatorNested?.slashed === true
-	if (
-		pubkey == null
-		|| balanceGwei == null
-		|| effectiveBalanceGwei == null
-		|| status == null
-		|| status.length === 0
-	) return null
-	return {
-		balanceGwei,
-		effectiveBalanceGwei,
-		pubkey,
-		slashed,
-		status,
-	}
+	const validator = getValidatorFromWire(await res.json<JsonValue>())
+	if (validator == null)
+		throw new Error('Beacon: invalid validator response')
+	if (BigInt(validator.index) !== BigInt(validatorIndex))
+		throw new Error('Beacon: validator response does not match the subject')
+	return validator
 }
 
-const checkpointFromWire = (
-	checkpointWire: JsonValue | undefined
-): BeaconFinalityCheckpoints['finalized'] | undefined => {
-	if (checkpointWire == null) return undefined
-	if (!isJsonObject(checkpointWire)) return undefined
-	const epochRaw = checkpointWire.epoch
-	const rootRaw = checkpointWire.root
-	if (epochRaw == null || rootRaw == null) return undefined
-	const epoch = Number.parseInt(String(epochRaw), 10)
-	if (!Number.isFinite(epoch)) return undefined
-	const root = String(rootRaw)
-	if (!root.startsWith('0x')) return undefined
-	return {
-		epoch,
-		root: with0xHex(root.slice(2)),
-	}
-}
+type BeaconFinalityCheckpointsWire = (
+	operations['getStateFinalityCheckpoints']['responses'][200]['content']['application/json']['data']
+)
+
+const beaconCheckpointWire = arktype({
+	epoch: 'string',
+	root: 'string',
+}) satisfies Type<components['schemas']['Checkpoint']>
+
+const beaconFinalityCheckpointsWire = arktype({
+	previous_justified: beaconCheckpointWire,
+	current_justified: beaconCheckpointWire,
+	finalized: beaconCheckpointWire,
+}) satisfies Type<BeaconFinalityCheckpointsWire>
+
+const beaconForkScheduleEntryWire = arktype({
+	epoch: 'string',
+	previous_version: 'string',
+	current_version: 'string',
+}) satisfies Type<components['schemas']['Fork']>
+
+const beaconCommitteeWire = arktype({
+	index: 'string',
+	slot: 'string',
+	validators: 'string[]',
+}) satisfies Type<components['schemas']['Committee']>
+
+const beaconSyncCommitteeWire = arktype({
+	validators: 'string[]',
+	validator_aggregates: 'string[][]',
+}) satisfies Type<components['schemas']['SyncCommitteeByValidatorIndices']>
+
+const isNonNegativeSafeIntegerWire = (value: string) => (
+	/^[0-9]+$/.test(value)
+	&& Number.isSafeInteger(Number(value))
+)
 
 export const getFinalityCheckpointsFromWire = (
 	wire: JsonValue
-): BeaconFinalityCheckpoints | undefined => {
+): BeaconFinalityCheckpointsWire | undefined => {
 	if (!isJsonObject(wire)) return undefined
-	const data = wire.data
-	if (!isJsonObject(data)) return undefined
-	const previousJustified = checkpointFromWire(data.previous_justified)
-	const currentJustified = checkpointFromWire(data.current_justified)
-	const finalized = checkpointFromWire(data.finalized)
+	const checkpoints = beaconFinalityCheckpointsWire(wire.data)
 	if (
-		previousJustified == null
-		|| currentJustified == null
-		|| finalized == null
+		checkpoints instanceof arktype.errors
+		|| Object.values(checkpoints).some((checkpoint) => (
+			!checkpoint.root.startsWith('0x')
+			|| !/^[0-9]+$/.test(checkpoint.epoch)
+		))
 	) return undefined
-	return {
-		previousJustified,
-		currentJustified,
-		finalized,
-	}
+	return checkpoints
 }
 
 export const getFinalityCheckpoints = async (
 	chainId: number
-): Promise<BeaconFinalityCheckpoints | undefined> => {
+) => {
 	const res = await beaconFetch(chainId, '/eth/v1/beacon/states/head/finality_checkpoints', {
 		headers: { accept: 'application/json' },
 	})
@@ -249,49 +284,27 @@ export const getFinalityCheckpoints = async (
 
 export const getForkScheduleFromWire = (
 	wire: JsonValue
-): BeaconForkScheduleEntry[] => {
+): components['schemas']['Fork'][] => {
 	if (!isJsonObject(wire)) return []
 	const data = wire.data
 	if (!Array.isArray(data)) return []
 	return (
 		data.flatMap((entryWire) => {
-			if (!isJsonObject(entryWire)) return []
-			const epochRaw = entryWire.epoch
-			const previousVersionRaw = (
-				entryWire.previousVersion
-				?? entryWire.previous_version
-			)
-			const currentVersionRaw = (
-				entryWire.currentVersion
-				?? entryWire.current_version
-			)
+			const entry = beaconForkScheduleEntryWire(entryWire)
 			if (
-				epochRaw == null
-				|| previousVersionRaw == null
-				|| currentVersionRaw == null
+				entry instanceof arktype.errors
+				|| !/^[0-9]+$/.test(entry.epoch)
+				|| !entry.previous_version.startsWith('0x')
+				|| !entry.current_version.startsWith('0x')
 			) return []
-			const epoch = Number.parseInt(String(epochRaw), 10)
-			if (!Number.isFinite(epoch)) return []
-			const previousVersion = String(previousVersionRaw)
-			const currentVersion = String(currentVersionRaw)
-			if (
-				!previousVersion.startsWith('0x')
-				|| !currentVersion.startsWith('0x')
-			) return []
-			return [
-				{
-					epoch,
-					previousVersion: with0xHex(previousVersion),
-					currentVersion: with0xHex(currentVersion),
-				},
-			]
+			return [entry]
 		})
 	)
 }
 
 export const getForkSchedule = async (
 	chainId: number
-): Promise<BeaconForkScheduleEntry[]> => {
+) => {
 	const res = await beaconFetch(chainId, '/eth/v1/config/fork_schedule', {
 		headers: { accept: 'application/json' },
 	})
@@ -302,48 +315,39 @@ export const getForkSchedule = async (
 
 export const getGenesisTimeSeconds = async (
 	chainId: number
-): Promise<number | undefined> => {
+) => {
 	const res = await beaconFetch(chainId, '/eth/v1/beacon/genesis', {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET genesis', res)
-	const wire = await res.json<import('$/sources/Beacon/Rest/types.ts').BeaconGenesisResponse>()
-	const genesisTimeRaw = wire.data?.genesis_time
-	if (genesisTimeRaw == null) return undefined
-	const genesisTimeSeconds = Number.parseInt(String(genesisTimeRaw), 10)
-	return (
-		Number.isFinite(genesisTimeSeconds) ?
-			genesisTimeSeconds
-		:
-			undefined
-	)
+	const wire = await res.json<JsonValue>()
+	if (!isJsonObject(wire)) return undefined
+	const genesis = beaconGenesisWire(wire.data)
+	if (
+		genesis instanceof arktype.errors
+		|| !isUint64Wire(genesis.genesis_time)
+		|| !/^0x[0-9a-fA-F]{64}$/.test(genesis.genesis_validators_root)
+		|| !/^0x[0-9a-fA-F]{8}$/.test(genesis.genesis_fork_version)
+	) return undefined
+	return genesis.genesis_time
 }
 
-export const getCommitteesFromWire = (wire: JsonValue): BeaconCommittee[] => {
+export const getCommitteesFromWire = (
+	wire: JsonValue
+): components['schemas']['Committee'][] => {
 	if (!isJsonObject(wire)) return []
 	const data = wire.data
 	if (!Array.isArray(data)) return []
 	return (
 		data.flatMap((committeeWire) => {
-			if (!isJsonObject(committeeWire)) return []
-			const slot = Number.parseInt(String(committeeWire.slot), 10)
-			const index = Number.parseInt(String(committeeWire.index), 10)
-			const validators = committeeWire.validators
+			const committee = beaconCommitteeWire(committeeWire)
 			if (
-				!Number.isFinite(slot)
-				|| !Number.isFinite(index)
-				|| !Array.isArray(validators)
+				committee instanceof arktype.errors
+				|| !isNonNegativeSafeIntegerWire(committee.slot)
+				|| !isNonNegativeSafeIntegerWire(committee.index)
+				|| !committee.validators.every(isNonNegativeSafeIntegerWire)
 			) return []
-			return [
-				{
-					slot,
-					index,
-					validatorIndices: validators.flatMap((validator) => {
-						const validatorIndex = Number.parseInt(String(validator), 10)
-						return Number.isFinite(validatorIndex) ? [validatorIndex] : []
-					}),
-				},
-			]
+			return [committee]
 		})
 	)
 }
@@ -351,7 +355,7 @@ export const getCommitteesFromWire = (wire: JsonValue): BeaconCommittee[] => {
 export const getCommittees = async (
 	chainId: number,
 	stateId = 'head'
-): Promise<BeaconCommittee[]> => {
+) => {
 	const res = await beaconFetch(chainId, `/eth/v1/beacon/states/${stateId}/committees`, {
 		headers: { accept: 'application/json' },
 	})
@@ -359,24 +363,25 @@ export const getCommittees = async (
 	return getCommitteesFromWire(await res.json<JsonValue>())
 }
 
-export const getSyncCommitteeFromWire = (wire: JsonValue): BeaconSyncCommittee | undefined => {
+export const getSyncCommitteeFromWire = (
+	wire: JsonValue
+): components['schemas']['SyncCommitteeByValidatorIndices'] | undefined => {
 	if (!isJsonObject(wire)) return undefined
-	const data = wire.data
-	if (!isJsonObject(data)) return undefined
-	const validators = data.validators
-	if (!Array.isArray(validators)) return undefined
-	return {
-		validatorIndices: validators.flatMap((validator) => {
-			const validatorIndex = Number.parseInt(String(validator), 10)
-			return Number.isFinite(validatorIndex) ? [validatorIndex] : []
-		}),
-	}
+	const committee = beaconSyncCommitteeWire(wire.data)
+	if (
+		committee instanceof arktype.errors
+		|| !committee.validators.every(isNonNegativeSafeIntegerWire)
+		|| !committee.validator_aggregates.every((validators) => (
+			validators.every(isNonNegativeSafeIntegerWire)
+		))
+	) return undefined
+	return committee
 }
 
 export const getSyncCommittee = async (
 	chainId: number,
 	stateId = 'head'
-): Promise<BeaconSyncCommittee | undefined> => {
+) => {
 	const res = await beaconFetch(chainId, `/eth/v1/beacon/states/${stateId}/sync_committees`, {
 		headers: { accept: 'application/json' },
 	})
@@ -477,7 +482,7 @@ export const getBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySum
 export const getBlockDutySummary = async (
 	chainId: number,
 	blockId: string | number
-): Promise<BeaconBlockDutySummary> => {
+) => {
 	const res = await beaconFetch(chainId, `/eth/v2/beacon/blocks/${blockId}`, {
 		headers: { accept: 'application/json' },
 	})

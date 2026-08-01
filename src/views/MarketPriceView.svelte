@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -65,7 +64,6 @@
 			selection={select(EntityType.Market, selection.entitySelector.$market)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -74,7 +72,6 @@
 			selection={select(EntityType.Market, selection.entitySelector.$market)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -87,15 +84,6 @@
 						resource={
 							selection
 							.$$quotes({
-								sources: [
-									Source.Coingecko_Rest,
-									Source.Coingecko_OpenApi,
-									Source.CoinMarketCap_Rest,
-									Source.Coinpaprika_OpenApi,
-									Source.Defillama_OpenApi,
-									Source.Blockscout_Rest,
-									Source.Defillama_Rest,
-								],
 								limit: 1,
 								orderBy: [
 									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
@@ -108,22 +96,9 @@
 							{#if marketTimestamp != null}
 								{@const marketTimestampSelector = marketTimestamp[EntityMetaKey.Selector]}
 								<Market_TimestampView
-									selection={
-										select(EntityType.Market_Timestamp, marketTimestampSelector, {
-											sources: [
-												Source.Coingecko_Rest,
-												Source.Coingecko_OpenApi,
-												Source.CoinMarketCap_Rest,
-												Source.Coinpaprika_OpenApi,
-												Source.Defillama_OpenApi,
-												Source.Blockscout_Rest,
-												Source.Defillama_Rest,
-											],
-										})
-									}
+									selection={select(EntityType.Market_Timestamp, marketTimestampSelector)}
 									prefetched={{ ...marketTimestampSelector, ...marketTimestamp }}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							{:else}
 								<p data-text="muted" data-section-state="resolved-empty">No latest quote available.</p>
@@ -141,7 +116,6 @@
 					<MarketView
 						selection={select(EntityType.Market, selection.entitySelector.$market)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -157,7 +131,6 @@
 								selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
 								prefetched={market}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -169,15 +142,6 @@
 	{#snippet Details({ open: detailsOpen })}
 		{@const quotesResource = selection
 			.$$quotes({
-				sources: [
-					Source.Coingecko_Rest,
-					Source.Coingecko_OpenApi,
-					Source.CoinMarketCap_Rest,
-					Source.Coinpaprika_OpenApi,
-					Source.Defillama_OpenApi,
-					Source.Blockscout_Rest,
-					Source.Defillama_Rest,
-				],
 				limit: 64,
 			})}
 		<ResourceBoundary

@@ -14,7 +14,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.mistral.ai',
-				origin: 'https://api.mistral.ai',
 				corsEnabled: false,
 			},
 		],
@@ -37,4 +36,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.MistralAi_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

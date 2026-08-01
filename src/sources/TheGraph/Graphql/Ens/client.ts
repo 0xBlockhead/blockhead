@@ -12,7 +12,7 @@ export const graphql = initGraphQLTada<{
 	introspection: introspection
 }>()
 
-export const queryEns = async <
+export const queryEns = <
 	_Result extends object,
 	_Variables extends object,
 >(

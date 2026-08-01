@@ -68,7 +68,6 @@
 					<CardanoTransactionView
 						selection={select(EntityType.CardanoTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

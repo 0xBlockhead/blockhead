@@ -102,7 +102,6 @@
 								selection={select(EntityType.BlockheadAgentConversation, blockheadAgentConversation[EntityMetaKey.Selector])}
 								prefetched={blockheadAgentConversation}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

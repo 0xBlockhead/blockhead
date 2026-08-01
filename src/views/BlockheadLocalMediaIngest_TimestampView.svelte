@@ -76,7 +76,6 @@
 					<BlockheadLocalMediaIngestView
 						selection={select(EntityType.BlockheadLocalMediaIngest, selection.entitySelector.$ingest)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -11,7 +11,7 @@ export const tonCenterV3RawAddress = (address: string) => {
 		|| workchain < signedInt32Minimum
 		|| workchain > signedInt32Maximum
 	)
-		throw new Error('TonCenter_V3_Rest: malformed raw TON address')
+		throw new Error('TON Center v3: malformed raw TON address')
 
 	return `${workchain}:${coordinates[2].toLowerCase()}`
 }
@@ -39,13 +39,13 @@ export const tonCenterV3Hash = (
 			.map((byte) => byte.toString(16).padStart(2, '0'))
 			.join('')
 	} catch {
-		throw new Error(`TonCenter_V3_Rest: malformed ${fieldName}`)
+		throw new Error(`TON Center v3: malformed ${fieldName}`)
 	}
 }
 
 export const tonCenterV3Shard = (shard: string) => {
 	if (!/^[0-9a-fA-F]{16}$/.test(shard))
-		throw new Error('TonCenter_V3_Rest: malformed shard')
+		throw new Error('TON Center v3: malformed shard')
 
 	return shard.toLowerCase()
 }
@@ -55,11 +55,11 @@ export const tonCenterV3NonnegativeInt64 = (
 	fieldName: string
 ) => {
 	if (!/^(?:0|[1-9]\d*)$/.test(value))
-		throw new Error(`TonCenter_V3_Rest: malformed ${fieldName}`)
+		throw new Error(`TON Center v3: malformed ${fieldName}`)
 
 	const integer = BigInt(value)
 	if (integer > signedInt64Maximum)
-		throw new Error(`TonCenter_V3_Rest: ${fieldName} exceeds signed int64`)
+		throw new Error(`TON Center v3: ${fieldName} exceeds signed int64`)
 
 	return integer
 }
@@ -69,7 +69,7 @@ export const tonCenterV3NonnegativeInteger = (
 	fieldName: string
 ) => {
 	if (!/^(?:0|[1-9]\d*)$/.test(value))
-		throw new Error(`TonCenter_V3_Rest: malformed ${fieldName}`)
+		throw new Error(`TON Center v3: malformed ${fieldName}`)
 
 	return BigInt(value)
 }
@@ -79,7 +79,7 @@ export const tonCenterV3NonnegativeSafeInteger = (
 	fieldName: string
 ) => {
 	if (!Number.isSafeInteger(value) || value < 0)
-		throw new Error(`TonCenter_V3_Rest: malformed ${fieldName}`)
+		throw new Error(`TON Center v3: malformed ${fieldName}`)
 
 	return value
 }

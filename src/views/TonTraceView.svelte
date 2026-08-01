@@ -46,10 +46,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		TON trace
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -63,7 +59,6 @@
 								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 								prefetched={network}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -100,7 +95,6 @@
 								selection={select(EntityType.TonMessage, tonMessage[EntityMetaKey.Selector])}
 								prefetched={tonMessage}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -166,12 +160,7 @@
 			{#snippet SectionTonTraceTransactions({ id, label, open })}
 				<TonTransactionsView
 					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No transactions.'
 					id={`${id}-list`}
@@ -181,12 +170,7 @@
 			{#snippet SectionTonTraceMessages({ id, label, open })}
 				<TonMessagesView
 					selection={selection.$$messages}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No messages.'
 					id={`${id}-list`}
@@ -218,12 +202,7 @@
 			{#snippet SectionTonTraceTimestamps({ id, label, open })}
 				<TonTrace_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No timestamps.'
 					id={`${id}-list`}

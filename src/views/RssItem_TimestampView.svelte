@@ -67,7 +67,6 @@
 			selection={select(EntityType.RssItem, selection.entitySelector.$item)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -83,7 +82,6 @@
 					<RssItemView
 						selection={select(EntityType.RssItem, selection.entitySelector.$item)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

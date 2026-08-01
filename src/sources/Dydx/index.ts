@@ -10,12 +10,8 @@ export default {
 	label: 'dYdX',
 	sources: [
 		{
-			source: Source.DydxIndexer_Rest,
-			label: 'dYdX Indexer REST',
-		},
-		{
-			source: Source.DydxValidator_Rest,
-			label: 'dYdX Validator REST',
+			source: Source.DydxIndexer,
+			label: 'dYdX Indexer',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

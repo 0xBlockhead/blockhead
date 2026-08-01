@@ -27,7 +27,8 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			slot: Number(params.slot),
-		}
+		},
+		'EvmNetworkSlot'
 	)
 	if (beaconSlotEvmNetworkSlotSelector instanceof arktype.errors)
 		error(404, 'Invalid BeaconSlot selector')

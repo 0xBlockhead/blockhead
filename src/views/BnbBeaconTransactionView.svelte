@@ -71,7 +71,6 @@
 							selection={select(EntityType.BnbBeaconBlock, bnbBeaconBlock[EntityMetaKey.Selector])}
 							prefetched={bnbBeaconBlock}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -87,7 +86,6 @@
 					<BnbBeaconNetworkView
 						selection={select(EntityType.BnbBeaconNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

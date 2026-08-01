@@ -26,15 +26,15 @@ const getJson = vi.hoisted(() => vi.fn())
 vi.mock('$/sources/_runtime/http.ts', () => {
 	const originsForBinding = (binding: {
 		endpoints: {
-			origin?: string
+			locator: string
 			corsEnabled?: boolean
 		}[]
 	}) => binding.endpoints.flatMap((endpoint) => (
-		endpoint.origin == null ?
+		endpoint.locator.startsWith('env:') ?
 			[]
 		:
 			[{
-				origin: endpoint.origin,
+				origin: new URL(endpoint.locator).origin,
 				corsEnabled: endpoint.corsEnabled === true,
 			}]
 	))
@@ -548,13 +548,13 @@ describe('Cosmos SDK denom metadata transport', () => {
 			message: 'name',
 		},
 		{
-			label: 'unsafe exponent',
+			label: 'uint32 overflow exponent',
 			response: {
 				metadata: {
 					...metadata.metadata,
 					denom_units: [{
 						denom: 'uatom',
-						exponent: Number.MAX_SAFE_INTEGER + 1,
+						exponent: 4_294_967_296,
 						aliases: [],
 					}],
 				},

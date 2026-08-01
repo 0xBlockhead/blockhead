@@ -419,11 +419,13 @@ describe('Blockfrost Cardano address facet', () => {
 						blockSlot: 130_000_000n,
 						source: Source.Blockfrost_Rest,
 					},
-					timestampMs: 1_720_000_000_000,
-					blockHash: 'block-hash',
-					lovelaceBalance: 42_000_000n,
-					nativeAssetCount: 1,
-					transactionCount: 12,
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.CardanoAddress_Timestamp, [], 'timestampMs')]: 1_720_000_000_000,
+						[entityFieldAddressKey(EntityType.CardanoAddress_Timestamp, [], 'blockHash')]: 'block-hash',
+						[entityFieldAddressKey(EntityType.CardanoAddress_Timestamp, [], 'lovelaceBalance')]: 42_000_000n,
+						[entityFieldAddressKey(EntityType.CardanoAddress_Timestamp, [], 'nativeAssetCount')]: 1,
+						[entityFieldAddressKey(EntityType.CardanoAddress_Timestamp, [], 'transactionCount')]: 12,
+					},
 				},
 			],
 		})
@@ -886,7 +888,6 @@ describe('Blockfrost Cardano network facet', () => {
 					$network: cardanoNetwork,
 					hash: 'transaction-hash',
 				},
-				hash: 'transaction-hash',
 			},
 		])
 	})
@@ -900,7 +901,6 @@ describe('Blockfrost Cardano network facet', () => {
 					$network: cardanoNetwork,
 					poolId: 'pool1example',
 				},
-				poolId: 'pool1example',
 			},
 		])
 	})
@@ -914,9 +914,10 @@ describe('Blockfrost Cardano network facet', () => {
 					$network: cardanoNetwork,
 					drepCredential: 'drep1example',
 				},
-				drepCredential: 'drep1example',
-				credentialKind: 'key',
-				displayName: 'Example DRep',
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoDRep, [], 'credentialKind')]: 'key',
+					[entityFieldAddressKey(EntityType.CardanoDRep, [], 'displayName')]: 'Example DRep',
+				},
 			},
 		])
 	})
@@ -951,8 +952,6 @@ describe('Blockfrost Cardano network facet', () => {
 					proposalIndex: 1,
 				},
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'proposalTxHash')]: 'proposal-transaction-hash',
-					[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'proposalIndex')]: 1,
 					[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'governanceActionId')]: 'gov_action1example',
 					[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'proposalKind')]: 'info_action',
 				},
@@ -1030,8 +1029,6 @@ describe('Blockfrost Cardano network facet', () => {
 					policyId: 'a'.repeat(56),
 					assetName: '746f6b656e',
 				},
-				policyId: 'a'.repeat(56),
-				assetName: '746f6b656e',
 			},
 		])
 	})
@@ -1046,12 +1043,12 @@ describe('Blockfrost Cardano network facet', () => {
 					epoch: 500,
 					source: Source.Blockfrost_Rest,
 				},
-				epoch: 500,
-				source: Source.Blockfrost_Rest,
-				minFeeA: 44n,
-				keyDeposit: 2_000_000n,
-				coinsPerUtxoByte: 4_310n,
-				maxValueSize: 5_000,
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'minFeeA')]: 44n,
+					[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'keyDeposit')]: 2_000_000n,
+					[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'coinsPerUtxoByte')]: 4_310n,
+					[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxValueSize')]: 5_000,
+				},
 			},
 		])
 	})
@@ -1084,23 +1081,29 @@ describe('Blockfrost Cardano network facet', () => {
 					epoch: 500,
 					source: Source.Blockfrost_Rest,
 				},
-				govActionId: 'gov_action1committee',
-				$seatingProposal: {
-					$network: cardanoNetwork,
-					proposalTxHash: 'committee-proposal-transaction-hash',
-					proposalIndex: 2,
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'govActionId')]: 'gov_action1committee',
+					[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], '$seatingProposal')]: {
+						[EntityMetaKey.Selector]: {
+							$network: cardanoNetwork,
+							proposalTxHash: 'committee-proposal-transaction-hash',
+							proposalIndex: 2,
+						},
+					},
+					[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'dissolved')]: false,
+					[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'quorumNumerator')]: 2,
+					[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'quorumDenominator')]: 3,
+					[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'memberCount')]: 1,
+					[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], '$$votes')]: [{
+						[EntityMetaKey.Selector]: {
+							voterKind: 'constitutional-committee',
+							voteTxHash: 'committee-vote-hash',
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'timestampMs')]: 1_700_000_000_000,
+						},
+					}],
 				},
-				dissolved: false,
-				quorumNumerator: 2,
-				quorumDenominator: 3,
-				memberCount: 1,
-				$$votes: [
-					expect.objectContaining({
-						voterKind: 'constitutional-committee',
-						voteTxHash: 'committee-vote-hash',
-						timestampMs: 1_700_000_000_000,
-					}),
-				],
 			},
 		])
 	})
@@ -1882,16 +1885,24 @@ describe('Blockfrost Cardano governance details', () => {
 			proposalKind: 'info_action',
 			$$votes: [
 				expect.objectContaining({
-					voterCredential: 'drep1example',
-					voteTxHash: 'vote-hash',
-					$transaction: {
-						$network: cardanoNetwork,
-						hash: 'vote-hash',
-					},
-					$drep: {
-						$network: cardanoNetwork,
-						drepCredential: 'drep1example',
-					},
+					[EntityMetaKey.Selector]: expect.objectContaining({
+						voterCredential: 'drep1example',
+						voteTxHash: 'vote-hash',
+					}),
+					[EntityMetaKey.Fields]: expect.objectContaining({
+						[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], '$transaction')]: {
+							[EntityMetaKey.Selector]: {
+								$network: cardanoNetwork,
+								hash: 'vote-hash',
+							},
+						},
+						[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], '$drep')]: {
+							[EntityMetaKey.Selector]: {
+								$network: cardanoNetwork,
+								drepCredential: 'drep1example',
+							},
+						},
+					}),
 				}),
 			],
 		})
@@ -1949,13 +1960,19 @@ describe('Blockfrost Cardano governance details', () => {
 		}, context)
 		expect(snapshot).toMatchObject({
 			$$votes: [{
-				$transaction: {
-					$network: cardanoNetwork,
-					hash: 'spo-vote-hash',
-				},
-				$stakePool: {
-					$network: cardanoNetwork,
-					poolId: 'pool1example',
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], '$transaction')]: {
+						[EntityMetaKey.Selector]: {
+							$network: cardanoNetwork,
+							hash: 'spo-vote-hash',
+						},
+					},
+					[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], '$stakePool')]: {
+						[EntityMetaKey.Selector]: {
+							$network: cardanoNetwork,
+							poolId: 'pool1example',
+						},
+					},
 				},
 			}],
 		})

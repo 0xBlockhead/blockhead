@@ -70,7 +70,6 @@
 								selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
 								prefetched={nearAccount}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/if}
 					{/snippet}
@@ -92,7 +91,6 @@
 							selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
 							prefetched={nearAccount}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -108,7 +106,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -145,7 +142,6 @@
 									selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
 									prefetched={nearAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -165,7 +161,6 @@
 									selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
 									prefetched={nearAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

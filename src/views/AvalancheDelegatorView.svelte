@@ -75,7 +75,6 @@
 					<AvalancheValidatorView
 						selection={select(EntityType.AvalancheValidator, selection.entitySelector.$validator)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

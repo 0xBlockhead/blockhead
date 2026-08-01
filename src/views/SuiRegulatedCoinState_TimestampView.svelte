@@ -36,10 +36,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Sui regulated coin state timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +44,6 @@
 					<SuiCoinTypeView
 						selection={select(EntityType.SuiCoinType, selection.entitySelector.$coinType)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

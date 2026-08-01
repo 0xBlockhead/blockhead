@@ -85,7 +85,6 @@
 					<SolanaTokenAccountView
 						selection={select(EntityType.SolanaTokenAccount, selection.entitySelector.$tokenAccount)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

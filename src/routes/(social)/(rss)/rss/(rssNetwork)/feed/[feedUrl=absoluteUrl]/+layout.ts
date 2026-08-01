@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		RssFeedSchema,
 		{
 			feedUrl: decodeURIComponent(params.feedUrl),
-		}
+		},
+		'FeedUrl'
 	)
 	if (rssFeedFeedUrlSelector instanceof arktype.errors)
 		error(404, 'Invalid RssFeed selector')

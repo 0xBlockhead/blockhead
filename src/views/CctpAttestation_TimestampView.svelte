@@ -23,7 +23,7 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.CircleCctp_IrisApi,
+			Source.CircleCctpIris,
 		],
 	}))
 	const cctpAttestationTimestamp = $derived(viewSelection({
@@ -75,7 +75,6 @@
 					<CctpMessageView
 						selection={select(EntityType.CctpMessage, selection.entitySelector.$message)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

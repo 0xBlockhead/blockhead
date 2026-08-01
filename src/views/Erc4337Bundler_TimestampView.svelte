@@ -131,7 +131,6 @@
 					<Erc4337BundlerView
 						selection={select(EntityType.Erc4337Bundler, selection.entitySelector.$bundler)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

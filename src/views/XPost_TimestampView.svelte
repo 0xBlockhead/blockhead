@@ -57,7 +57,6 @@
 			selection={select(EntityType.XPost, selection.entitySelector.$post)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -79,7 +78,6 @@
 					<XPostView
 						selection={select(EntityType.XPost, selection.entitySelector.$post)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

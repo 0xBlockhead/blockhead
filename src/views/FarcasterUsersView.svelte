@@ -55,7 +55,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(farcasterUserSelector.fid)}
+				{['FID ', String(farcasterUserSelector.fid)].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

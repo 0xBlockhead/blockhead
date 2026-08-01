@@ -12,7 +12,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['A concrete asset on a specific network or venue, such as a native coin, token, share, or collectible.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.AssetInstance> = $props()
@@ -27,7 +26,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.AssetInstance}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {

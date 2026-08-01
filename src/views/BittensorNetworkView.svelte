@@ -21,14 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BittensorNetwork> = $props()
 
-	const titleFallback = 'Bittensor network'
 	const viewDomId = $derived('bittensor-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import BittensorNetwork_TimestampsView from '$/views/BittensorNetwork_TimestampsView.svelte'
 	import BittensorBlocksView from '$/views/BittensorBlocksView.svelte'
@@ -40,7 +38,7 @@
 	entityType={EntityType.BittensorNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'Bittensor network'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -50,18 +48,11 @@
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{titleFallback}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Bittensor network-specific view over a canonical Network row, with runtime observations, finalized blocks, and subnets from declared Bittensor JSON-RPC sources.
-		</p>
+		Bittensor
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -72,7 +63,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -107,12 +97,7 @@
 			{#snippet SectionBittensorChainObservations({ id, label, open })}
 				<BittensorNetwork_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -121,12 +106,7 @@
 			{#snippet SectionBittensorChainBlocks({ id, label, open })}
 				<BittensorBlocksView
 					selection={selection.$$blocks}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -157,12 +137,7 @@
 			{#snippet SectionBittensorSubnetList({ id, label, open })}
 				<BittensorSubnetsView
 					selection={selection.$$subnets}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>

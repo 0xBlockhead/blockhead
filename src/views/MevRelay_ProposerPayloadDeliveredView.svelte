@@ -104,7 +104,6 @@
 							selection={select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector])}
 							prefetched={mevBuilder}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -217,7 +216,6 @@
 									selection={select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector])}
 									prefetched={mevBuilder}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -237,7 +235,6 @@
 									selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
 									prefetched={evmBlock}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -253,7 +250,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

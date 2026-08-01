@@ -29,6 +29,7 @@ import {
 	basename,
 	join,
 } from 'node:path'
+import ts from 'typescript'
 
 
 const srcPath = join(
@@ -721,6 +722,50 @@ describe('client resolver architecture', () => {
 		}
 	})
 
+	it('keeps source binding and transport modules behind resolver-facing queries', () => {
+		for (const filePath of scannedSourceFiles.filter((path) => (
+			path.startsWith(join(srcPath, 'resolvers'))
+			&& basename(path) !== '$resolvers.ts'
+			&& basename(path) !== 'index.ts'
+		))) {
+			const relativePath = filePath.slice(srcPath.length + 1)
+			const sourceFile = ts.createSourceFile(
+				filePath,
+				scannedSourceByFilePath[filePath],
+				ts.ScriptTarget.Latest,
+				true,
+				ts.ScriptKind.TS
+			)
+			const valueSourceImports: string[] = []
+			const visit = (node: ts.Node) => {
+				if (
+					ts.isImportDeclaration(node)
+					&& !node.importClause?.isTypeOnly
+					&& ts.isStringLiteral(node.moduleSpecifier)
+				)
+					valueSourceImports.push(node.moduleSpecifier.text)
+
+				if (
+					ts.isCallExpression(node)
+					&& node.expression.kind === ts.SyntaxKind.ImportKeyword
+					&& node.arguments.length === 1
+					&& ts.isStringLiteral(node.arguments[0])
+				)
+					valueSourceImports.push(node.arguments[0].text)
+
+				ts.forEachChild(node, visit)
+			}
+			visit(sourceFile)
+
+			for (const sourceImport of valueSourceImports.filter((sourceImport) => (
+				sourceImport.startsWith('$/sources/')
+			))) {
+				expect(sourceImport, relativePath).not.toBe('$/sources/SourceBinding.ts')
+				expect(sourceImport, relativePath).not.toMatch(/\/(?:bindings|client|index)\.ts$/)
+			}
+		}
+	})
+
 	it('keeps source binding lookup hot paths pre-indexed', () => {
 		for (const filePath of scannedSourceFiles.filter((path) => (
 			path.startsWith(join(srcPath, 'sources'))
@@ -947,13 +992,13 @@ describe('client resolver architecture', () => {
 
 	it('does not present DefiLlama close-price charts as OHLC candles', () => {
 		expect(scannedSourceByFilePath[join(srcPath, 'schema', 'Market.ts')]).not.toMatch(
-			/name: '\$\$marketTimeIntervalTimestamps'[\s\S]*?defaultSources: \[[^\]]*Source\.Defillama_OpenApi/
+			/name: '\$\$marketTimeIntervalTimestamps'[\s\S]*?defaultSources: \[[^\]]*Source\.Defillama_Rest/
 		)
 		expect(scannedSourceByFilePath[join(srcPath, 'schema', 'Market_TimeInterval_Timestamp.ts')]).not.toMatch(
-			/defaultSources: \[[^\]]*Source\.Defillama_OpenApi/
+			/defaultSources: \[[^\]]*Source\.Defillama_Rest/
 		)
-		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', 'Defillama-OpenApi.ts')]).not.toMatch(/\b(?:Market_TimeInterval_Timestamp|\$\$marketTimeIntervalTimestamps|getChartOhlcRows)\b/)
-		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Defillama', 'OpenApi', 'queries.ts')]).not.toMatch(/\b(?:OhlcCandle|getChartOhlcRows|Maps DefiLlama chart closes)\b/)
+		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', 'Defillama-Rest.ts')]).not.toMatch(/\b(?:Market_TimeInterval_Timestamp|\$\$marketTimeIntervalTimestamps|getChartOhlcRows)\b/)
+		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Defillama', 'Rest', 'queries.ts')]).not.toMatch(/\b(?:OhlcCandle|getChartOhlcRows|Maps DefiLlama chart closes)\b/)
 		expect(scannedSourceByFilePath[join(srcPath, 'views', 'Market_TimeInterval_TimestampsView.svelte')] ?? '').not.toMatch(/\bDefiLlama|Defillama\b/)
 	})
 

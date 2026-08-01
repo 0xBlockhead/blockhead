@@ -70,7 +70,6 @@
 					<GlobalAiModelCatalogView
 						selection={select(EntityType._GlobalAiModelCatalog, selection.entitySelector.$catalog)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

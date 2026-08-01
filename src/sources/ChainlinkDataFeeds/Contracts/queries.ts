@@ -10,10 +10,7 @@ import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
-import type {
-	ChainlinkJsonRpcResponse,
-	ChainlinkLatestRound,
-} from '$/sources/ChainlinkDataFeeds/Contracts/types.ts'
+import type { ChainlinkJsonRpcResponse } from '$/sources/ChainlinkDataFeeds/Contracts/types.ts'
 
 const addressPattern = /^0x[0-9a-fA-F]{40}$/
 const quantityPattern = /^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$/
@@ -160,8 +157,6 @@ export const getLatestRound = async ({
 	baseAsset,
 	quoteAsset,
 	expectedAggregatorAddress,
-	staleAfterMs,
-	resolvedAtMs = Date.now(),
 }: {
 	binding: SourceBinding
 	network: `eip155:${string}`
@@ -169,9 +164,7 @@ export const getLatestRound = async ({
 	baseAsset: string
 	quoteAsset: string
 	expectedAggregatorAddress?: string
-	staleAfterMs: number
-	resolvedAtMs?: number
-}): Promise<ChainlinkLatestRound> => {
+}) => {
 	if (
 		binding.source !== Source.ChainlinkDataFeeds_Contracts
 		|| binding.target.kind !== SourceTargetKind.Caip2Network
@@ -192,11 +185,6 @@ export const getLatestRound = async ({
 		|| quoteAsset.includes('/')
 	)
 		throw new Error('ChainlinkDataFeeds_Contracts: invalid base or quote identity')
-	if (!Number.isSafeInteger(staleAfterMs) || staleAfterMs < 1)
-		throw new Error('ChainlinkDataFeeds_Contracts: stale threshold must be a positive safe integer')
-	if (!Number.isSafeInteger(resolvedAtMs) || resolvedAtMs < 0)
-		throw new Error('ChainlinkDataFeeds_Contracts: invalid resolution timestamp')
-
 	const blockQuantity = await rpc({
 		binding,
 		method: 'eth_blockNumber',
@@ -280,13 +268,6 @@ export const getLatestRound = async ({
 	)
 		throw new Error('ChainlinkDataFeeds_Contracts: invalid latest round lifecycle')
 
-	const updatedAtMs = updatedAtSeconds * 1_000n
-	if (updatedAtMs > BigInt(resolvedAtMs))
-		throw new Error('ChainlinkDataFeeds_Contracts: latest round timestamp is in the future')
-	const ageMs = BigInt(resolvedAtMs) - updatedAtMs
-	if (ageMs > BigInt(Number.MAX_SAFE_INTEGER))
-		throw new Error('ChainlinkDataFeeds_Contracts: latest round age is not safely representable')
-
 	return {
 		network,
 		feedAddress: zeroExLowerCase(feedAddress),
@@ -301,10 +282,5 @@ export const getLatestRound = async ({
 		updatedAtSeconds: updatedAtSeconds.toString(),
 		answeredInRound: answeredInRound.toString(),
 		blockNumber: blockNumber.toString(),
-		source: binding.source,
-		resolvedAtMs,
-		staleAfterMs,
-		ageMs: Number(ageMs),
-		stale: ageMs > BigInt(staleAfterMs),
 	}
 }

@@ -40,8 +40,5 @@
 		title='Beacon finality'
 		selection={select(EntityType.Network, data.selector).Evm.$$beaconFinalityTimestamps}
 		id='beacon-finality-timestamps'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

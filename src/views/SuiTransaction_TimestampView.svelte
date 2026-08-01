@@ -37,10 +37,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Sui transaction timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -49,7 +45,6 @@
 					<SuiTransactionView
 						selection={select(EntityType.SuiTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

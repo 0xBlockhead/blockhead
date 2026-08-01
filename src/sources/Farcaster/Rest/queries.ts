@@ -16,21 +16,20 @@ import type {
 	FarcasterChannel,
 	FarcasterChannelsResponse,
 	FarcasterPrimaryAddressResponse,
-	FarcasterThreadCast,
 	FarcasterUserThreadCastsResponse,
 } from '$/sources/Farcaster/Rest/types.ts'
 
 /**
  * `GET /v2/all-channels`
  */
-export const getAllChannelsPage = async ({
+export const getAllChannelsPage = ({
 	cursor,
 	limit = farcasterRestAllChannelsPageLimit,
 }: {
 	cursor?: string
 	limit?: number
 } = {}) => (
-	await farcasterGet<FarcasterChannelsResponse>('/v2/all-channels', {
+	farcasterGet<FarcasterChannelsResponse>('/v2/all-channels', {
 		cursor,
 		limit,
 	})
@@ -93,7 +92,7 @@ export const getPrimaryAddress = async ({
  * Public web API used by farcaster.xyz cast pages (no API key required).
  * `GET /~api/v2/user-thread-casts?castHashPrefix=<prefix>&username=<name>`
  */
-export const getUserThreadCasts = async ({
+export const getUserThreadCasts = ({
 	username,
 	castHashPrefix,
 	limit = farcasterRestUserThreadCastsLimit,
@@ -102,7 +101,7 @@ export const getUserThreadCasts = async ({
 	castHashPrefix: string
 	limit?: number
 }) => (
-	await farcasterGet<FarcasterUserThreadCastsResponse>(
+	farcasterGet<FarcasterUserThreadCastsResponse>(
 		'/~api/v2/user-thread-casts',
 		{
 			username,
@@ -111,54 +110,6 @@ export const getUserThreadCasts = async ({
 		}
 	)
 )
-
-export const getCastByUsernameAndHashPrefix = async ({
-	username,
-	castHashPrefix,
-}: {
-	username: string
-	castHashPrefix: string
-}): Promise<FarcasterThreadCast | undefined> => (
-	(await getUserThreadCasts({
-		username,
-		castHashPrefix,
-	})).result?.casts?.[0]
-)
-
-export const getCastAndDirectRepliesByUsernameAndHashPrefix = async ({
-	username,
-	castHashPrefix,
-}: {
-	username: string
-	castHashPrefix: string
-}) => {
-	const casts = (
-		(await getUserThreadCasts({
-			username,
-			castHashPrefix,
-		})).result?.casts ?? []
-	)
-	const cast = casts.at(0)
-	if (cast?.hash == null)
-		return {
-			cast,
-			directReplies: [],
-		}
-
-	return ((focalHash) => ({
-		cast,
-		directReplies: casts.filter((candidate) => (
-			candidate.hash != null
-			&& candidate.author != null
-			&& Number.isSafeInteger(candidate.author.fid)
-			&& candidate.author.fid >= 0
-			&& candidate.parentHash != null
-			&& candidate.parentAuthor?.fid === cast.author?.fid
-			&& candidate.parentHash.toLowerCase().replace(/^0x/, '')
-				=== focalHash.toLowerCase().replace(/^0x/, '')
-		)),
-	}))(cast.hash)
-}
 
 /**
  * `GET /v1/channel-followers`
@@ -216,7 +167,7 @@ const countRowsAcrossFarcasterPages = async <_Result, _Row>({
 	return count
 }
 
-export const getChannelFollowersCount = async ({
+export const getChannelFollowersCount = ({
 	channelId,
 }: {
 	channelId: string
@@ -235,7 +186,7 @@ export const getChannelFollowersCount = async ({
 	})
 )
 
-export const getChannelMembersCount = async ({
+export const getChannelMembersCount = ({
 	channelId,
 }: {
 	channelId: string
@@ -254,7 +205,7 @@ export const getChannelMembersCount = async ({
 	})
 )
 
-export const getUserFollowingChannelsCount = async ({
+export const getUserFollowingChannelsCount = ({
 	fid,
 }: {
 	fid: number

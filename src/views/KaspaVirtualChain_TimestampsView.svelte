@@ -32,10 +32,6 @@
 		<EntityView
 			entityType={EntityType.KaspaVirtualChain_Timestamp}
 			entitySelector={kaspaVirtualChainTimestamp[EntityMetaKey.Selector]}
-		>
-			{#snippet Title()}
-				kaspa virtual chain timestamp
-			{/snippet}
-		</EntityView>
+		/>
 	{/snippet}
 </EntitiesList>

@@ -12,21 +12,18 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalActivityPubNetwork> = $props()
 
-	const titleFallback = 'global ActivityPub network'
 	const viewDomId = $derived('-global-activity-pub-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import ActivityPubInstancesView from '$/views/ActivityPubInstancesView.svelte'
 	import ActivityPubActorsView from '$/views/ActivityPubActorsView.svelte'
 	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
@@ -38,7 +35,6 @@
 	entityType={EntityType._GlobalActivityPubNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
 	href={
 		href === undefined ?
 			resolve('/(social)/(activitypub)/activitypub')
@@ -49,12 +45,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		global ActivityPub network
-	{/snippet}
-
 	{#snippet Value()}
-		{selection.entitySelector.scope || titleFallback}
+		{selection.entitySelector.scope}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -92,12 +84,7 @@
 			{#snippet SectionActivitypubInstances({ id, label, open })}
 				<ActivityPubInstancesView
 					selection={selection.$$instances}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No ActivityPub instances declared.'
 					id={`${id}-list`}
@@ -134,12 +121,7 @@
 				<ActivityPubActorsView
 					selection={selection.$$observedActors}
 					href={resolve('/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actors')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -149,12 +131,7 @@
 				<ActivityPubNotesView
 					selection={selection.$$observedNotes}
 					href={resolve('/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/notes')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -185,12 +162,7 @@
 			{#snippet SectionActivitypubHubObservations({ id, label, open })}
 				<GlobalActivityPubNetwork_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No ActivityPub hub observations yet.'
 					id={`${id}-list`}

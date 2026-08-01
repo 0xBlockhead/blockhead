@@ -45,10 +45,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.peerId || 'blockhead Logos blockchain node state'}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.connectionId || selection.entitySelector.peerId || titleFallback}
 	{/snippet}

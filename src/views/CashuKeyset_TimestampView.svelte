@@ -64,7 +64,6 @@
 					<CashuKeysetView
 						selection={select(EntityType.CashuKeyset, selection.entitySelector.$keyset)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

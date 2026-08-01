@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -12,20 +11,17 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalXNetwork> = $props()
 
-	const titleFallback = 'global X network'
 	const viewDomId = $derived('-global-xnetwork-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import XUsersView from '$/views/XUsersView.svelte'
 	import XPostsView from '$/views/XPostsView.svelte'
 </script>
@@ -35,17 +31,12 @@
 	entityType={EntityType._GlobalXNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		global X network
-	{/snippet}
-
 	{#snippet Value()}
-		{selection.entitySelector.scope || titleFallback}
+		{selection.entitySelector.scope}
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
@@ -76,12 +67,7 @@
 			{#snippet SectionXUsers({ id, label, open })}
 				<XUsersView
 					selection={selection.$$observedUsers}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No X users in this observed.'
 					id={`${id}-list`}
@@ -91,12 +77,7 @@
 			{#snippet SectionXPosts({ id, label, open })}
 				<XPostsView
 					selection={selection.$$observedPosts}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No X posts in this observed.'
 					id={`${id}-list`}

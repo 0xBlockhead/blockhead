@@ -67,10 +67,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{`${selection.entitySelector.timeInterval.value}${selection.entitySelector.timeInterval.unit}` || 'OHLC candle'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={marketTimeIntervalTimestamp}>
 			{#snippet children(entity)}
@@ -99,7 +95,6 @@
 					<MarketView
 						selection={select(EntityType.Market, selection.entitySelector.$market)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -250,7 +245,6 @@
 								selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
 								prefetched={market}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

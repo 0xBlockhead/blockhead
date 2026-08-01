@@ -1,27 +1,23 @@
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import {
-	bitcoinNetworkBySlug,
-} from '$/constants/BitcoinNetwork.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
-type NetworkId = { caip2: {
-	namespace: string
-	reference: string
-} } | { slug: string }
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertZcashMainnet = (network: NetworkId) => {
 	if (
 		'caip2' in network ?
 			(
-				network.caip2.namespace !== bitcoinNetworkBySlug.zcash.caip2.namespace
-				|| network.caip2.reference !== bitcoinNetworkBySlug.zcash.caip2.reference
+				network.caip2.namespace !== networkBySlug.zcash.caip2.namespace
+				|| network.caip2.reference !== networkBySlug.zcash.caip2.reference
 			)
 		:
 			network.slug !== networkBySlug.zcash.slug
@@ -29,8 +25,6 @@ const assertZcashMainnet = (network: NetworkId) => {
 		throw new Error('Zebra_JsonRpc: unsupported Zcash network')
 	}
 }
-
-const valueSatsFromZec = (valueZec: number) => BigInt(Math.round(valueZec * 100_000_000))
 
 const getTransaction = async ({ $network, txId }: {
 	$network: NetworkId
@@ -213,7 +207,7 @@ export default {
 								$transaction: $transaction,
 								indexInTransaction: indexInTransaction,
 							},
-							valueSats: valueSatsFromZec(output.value),
+							valueSats: BigInt(Math.round(output.value * 100_000_000)),
 							scriptPubKeyAsm: output.scriptPubKey.asm,
 							scriptPubKeyHex: output.scriptPubKey.hex,
 							scriptPubKeyType: output.scriptPubKey.type,

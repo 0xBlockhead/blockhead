@@ -32,10 +32,6 @@
 		<EntityView
 			entityType={EntityType.TronWitness}
 			entitySelector={tronWitness[EntityMetaKey.Selector]}
-		>
-			{#snippet Title()}
-				tron witness
-			{/snippet}
-		</EntityView>
+		/>
 	{/snippet}
 </EntitiesList>

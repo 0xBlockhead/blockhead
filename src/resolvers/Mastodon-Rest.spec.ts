@@ -11,11 +11,12 @@ const {
 	getAccountByLocalAccountId,
 	getStatus,
 	getStatusByActivityStreamsUri,
-	listAccountStatusesByLocalAccountId,
 	listAccountStatusesPageByLocalAccountId,
 	listInstanceModeratedDomains,
 	listInstancePeerDomains,
-	listPublicTimeline,
+	listPublicTimelinePage,
+	mastodonInstanceOrigins,
+	mastodonPublicTimelineOrigins,
 } = vi.hoisted(() => ({
 	getInstance: vi.fn(),
 	getAccountByAcct: vi.fn(),
@@ -23,11 +24,17 @@ const {
 	getAccountByLocalAccountId: vi.fn(),
 	getStatus: vi.fn(),
 	getStatusByActivityStreamsUri: vi.fn(),
-	listAccountStatusesByLocalAccountId: vi.fn(),
 	listAccountStatusesPageByLocalAccountId: vi.fn(),
 	listInstanceModeratedDomains: vi.fn(),
 	listInstancePeerDomains: vi.fn(),
-	listPublicTimeline: vi.fn(),
+	listPublicTimelinePage: vi.fn(),
+	mastodonInstanceOrigins: [
+		'https://mastodon.social',
+		'https://fosstodon.org',
+	],
+	mastodonPublicTimelineOrigins: [
+		'https://fosstodon.org',
+	],
 }))
 
 vi.mock('$/sources/Mastodon/Rest/queries.ts', () => ({
@@ -38,11 +45,12 @@ vi.mock('$/sources/Mastodon/Rest/queries.ts', () => ({
 	getInstance,
 	getStatus,
 	getStatusByActivityStreamsUri,
-	listAccountStatusesByLocalAccountId,
 	listAccountStatusesPageByLocalAccountId,
 	listInstanceModeratedDomains,
 	listInstancePeerDomains,
-	listPublicTimeline,
+	listPublicTimelinePage,
+	mastodonInstanceOrigins,
+	mastodonPublicTimelineOrigins,
 }))
 
 const { default: mastodon } = await import('$/resolvers/Mastodon-Rest.ts')
@@ -76,18 +84,20 @@ describe('Mastodon ActivityPub observations', () => {
 		getInstance.mockReset()
 		getStatus.mockReset()
 		getStatusByActivityStreamsUri.mockReset()
-		listAccountStatusesByLocalAccountId.mockReset()
 		listAccountStatusesPageByLocalAccountId.mockReset()
 		listInstanceModeratedDomains.mockReset()
 		listInstancePeerDomains.mockReset()
-		listPublicTimeline.mockReset()
+		listPublicTimelinePage.mockReset()
 	})
 
 	it('materializes public timeline identities only from declared anonymous feeds', async () => {
-		listPublicTimeline.mockResolvedValueOnce([
-			{ id: '114000000000000002' },
-			{},
-		])
+		listPublicTimelinePage.mockResolvedValueOnce({
+			statuses: [
+				{ id: '114000000000000002' },
+				{},
+			],
+			continuationToken: undefined,
+		})
 
 		const notes = await resolver(
 			EntityType.ActivityPubNetwork,
@@ -97,12 +107,11 @@ describe('Mastodon ActivityPub observations', () => {
 			pagination: { limit: 25 },
 		})
 
-		expect(listPublicTimeline).toHaveBeenCalledWith(
-			{},
+		expect(listPublicTimelinePage).toHaveBeenCalledWith(
 			'https://fosstodon.org',
 			25
 		)
-		expect(listPublicTimeline).toHaveBeenCalledTimes(1)
+		expect(listPublicTimelinePage).toHaveBeenCalledTimes(1)
 		expect(notes.map((note) => note[EntityMetaKey.Selector])).toEqual([
 			{
 				instanceOrigin: 'https://fosstodon.org',
@@ -113,8 +122,8 @@ describe('Mastodon ActivityPub observations', () => {
 
 	it('materializes the routed global timeline with canonical configured identities', async () => {
 		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_200)
-		listPublicTimeline.mockResolvedValueOnce([
-			{
+		listPublicTimelinePage.mockResolvedValueOnce({
+			statuses: [{
 				id: '114000000000000003',
 				uri: 'https://remote.example/users/alice/statuses/3',
 				account: {
@@ -147,8 +156,9 @@ describe('Mastodon ActivityPub observations', () => {
 					acct: 'bob',
 					display_name: 'Bob',
 				},
-			},
-		])
+			}],
+			continuationToken: undefined,
+		})
 
 		const definition = resolver(
 			EntityType._GlobalActivityPubNetwork,
@@ -165,12 +175,11 @@ describe('Mastodon ActivityPub observations', () => {
 		if (typeof notes !== 'function' || typeof actors !== 'function')
 			throw new Error('Mastodon-Rest spec missing shared global timeline projections')
 
-		expect(listPublicTimeline).toHaveBeenCalledWith(
-			{},
+		expect(listPublicTimelinePage).toHaveBeenCalledWith(
 			'https://fosstodon.org',
 			17
 		)
-		expect(listPublicTimeline).toHaveBeenCalledTimes(1)
+		expect(listPublicTimelinePage).toHaveBeenCalledTimes(1)
 		expect(notes(timeline)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
@@ -214,8 +223,8 @@ describe('Mastodon ActivityPub observations', () => {
 	})
 
 	it('treats the requested limit as the aggregate limit and performs no work for zero', async () => {
-		listPublicTimeline.mockResolvedValue([
-			{
+		listPublicTimelinePage.mockResolvedValue({
+			statuses: [{
 				id: '1',
 				uri: 'https://mastodon.social/users/alice/statuses/1',
 				account: {
@@ -232,8 +241,9 @@ describe('Mastodon ActivityPub observations', () => {
 					uri: 'https://mastodon.social/users/bob',
 					acct: 'bob@mastodon.social',
 				},
-			},
-		])
+			}],
+			continuationToken: undefined,
+		})
 		const definition = resolver(EntityType._GlobalActivityPubNetwork, '$$observedNotes')
 		const notes = definition.projections.$$observedNotes
 		const actors = definition.projections.$$observedActors
@@ -248,9 +258,9 @@ describe('Mastodon ActivityPub observations', () => {
 		})
 		expect(notes(limitedTimeline)).toHaveLength(1)
 		expect(actors(limitedTimeline)).toHaveLength(1)
-		expect(listPublicTimeline).toHaveBeenCalledTimes(1)
+		expect(listPublicTimelinePage).toHaveBeenCalledTimes(1)
 
-		listPublicTimeline.mockClear()
+		listPublicTimelinePage.mockClear()
 		const emptyTimeline = await definition.resolve['Scope'].resolve({
 			scope: '_GlobalActivityPubNetwork',
 		}, {
@@ -259,7 +269,7 @@ describe('Mastodon ActivityPub observations', () => {
 		})
 		expect(notes(emptyTimeline)).toEqual([])
 		expect(actors(emptyTimeline)).toEqual([])
-		expect(listPublicTimeline).not.toHaveBeenCalled()
+		expect(listPublicTimelinePage).not.toHaveBeenCalled()
 	})
 
 	it('fails closed on missing, local-foreign, and remote-domain-mismatched timeline authors', async () => {
@@ -292,7 +302,10 @@ describe('Mastodon ActivityPub observations', () => {
 				},
 			},
 		]) {
-			listPublicTimeline.mockResolvedValueOnce([status])
+			listPublicTimelinePage.mockResolvedValueOnce({
+				statuses: [status],
+				continuationToken: undefined,
+			})
 
 			const timeline = await definition.resolve['Scope'].resolve({
 				scope: '_GlobalActivityPubNetwork',
@@ -471,6 +484,7 @@ describe('Mastodon ActivityPub observations', () => {
 	})
 
 	it('converges local, acct, and ActivityStreams actor selectors on one source-shaped identity', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_300)
 		const account = {
 			id: 'actor-17',
 			uri: 'https://mastodon.social/users/alice',
@@ -478,17 +492,17 @@ describe('Mastodon ActivityPub observations', () => {
 			acct: 'alice@federation.example',
 			display_name: 'Alice',
 		}
-		getAccountByLocalAccountId.mockImplementation(async (_publicEnv, instanceOrigin, localAccountId) => {
+		getAccountByLocalAccountId.mockImplementation(async (instanceOrigin, localAccountId) => {
 			if (instanceOrigin !== 'https://mastodon.social' || localAccountId !== 'actor-17')
 				throw new Error('unknown local actor request')
 			return account
 		})
-		getAccountByAcct.mockImplementation(async (_publicEnv, instanceOrigin, acct) => {
+		getAccountByAcct.mockImplementation(async (instanceOrigin, acct) => {
 			if (instanceOrigin !== 'https://mastodon.social' || acct !== 'alice@federation.example')
 				throw new Error('unknown acct actor request')
 			return account
 		})
-		getAccountByActivityStreamsUri.mockImplementation(async (_publicEnv, activityStreamsUri) => {
+		getAccountByActivityStreamsUri.mockImplementation(async (activityStreamsUri) => {
 			if (activityStreamsUri !== account.uri)
 				throw new Error('unknown ActivityStreams actor request')
 			return account
@@ -523,6 +537,7 @@ describe('Mastodon ActivityPub observations', () => {
 	})
 
 	it('maps source-shaped note author, reply, boost, and media relations to typed entity references', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_785_507_628_670)
 		const status = {
 			id: 'note-9',
 			uri: 'https://fosstodon.org/users/alice/statuses/note-9',
@@ -550,12 +565,12 @@ describe('Mastodon ActivityPub observations', () => {
 				url: 'https://media-origin.example/files/image.png',
 			}],
 		}
-		getStatus.mockImplementation(async (_publicEnv, instanceOrigin, localStatusId) => {
+		getStatus.mockImplementation(async (instanceOrigin, localStatusId) => {
 			if (instanceOrigin !== 'https://fosstodon.org' || localStatusId !== 'note-9')
 				throw new Error('unknown local note request')
 			return status
 		})
-		getStatusByActivityStreamsUri.mockImplementation(async (_publicEnv, activityStreamsUri) => {
+		getStatusByActivityStreamsUri.mockImplementation(async (activityStreamsUri) => {
 			if (activityStreamsUri !== status.uri)
 				throw new Error('unknown ActivityStreams note request')
 			return status
@@ -690,7 +705,6 @@ describe('Mastodon ActivityPub observations', () => {
 		})
 
 		expect(listAccountStatusesPageByLocalAccountId).toHaveBeenCalledWith(
-			{},
 			'https://mastodon.social',
 			'13179',
 			3,

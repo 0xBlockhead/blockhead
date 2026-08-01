@@ -59,6 +59,7 @@ export default entity({
 		entityType: EntityType.XrplAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
+			Source.Bithomp,
 			Source.Xrpl_Rippled,
 		],
 	},

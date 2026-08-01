@@ -24,7 +24,8 @@ export const load: LayoutLoad = ({ params }) => {
 				},
 			},
 			id: params.poolId,
-		}
+		},
+		'EvmNetworkId'
 	)
 	if (liquidityPoolEvmNetworkIdSelector instanceof arktype.errors)
 		error(404, 'Invalid LiquidityPool selector')

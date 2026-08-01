@@ -28,12 +28,8 @@
 
 	<NostrNotesView
 		href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/notes')}
-		title='Nostr notes'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='observed-notes'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

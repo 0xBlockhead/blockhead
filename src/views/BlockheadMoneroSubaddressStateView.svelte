@@ -99,7 +99,6 @@
 									selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
 									prefetched={blockheadWallet}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -118,7 +117,6 @@
 								selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector])}
 								prefetched={moneroNetwork}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

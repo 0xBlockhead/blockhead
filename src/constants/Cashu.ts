@@ -14,6 +14,7 @@ export const cashuMints = [
 
 // Lookups
 
-export const cashuMintBySlug = {
-	probe: cashuMints[0],
-}
+export const cashuMintBySlug = Object.fromEntries(cashuMints.map((mint) => [
+	mint.slug,
+	mint,
+]))

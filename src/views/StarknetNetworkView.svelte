@@ -27,10 +27,9 @@
 			Source.Constants_Internal,
 			Source.Juno_JsonRpc,
 			Source.L2Beat_Rest,
-			Source.Pathfinder_JsonRpc,
-			Source.Starknet_JsonRpc,
-			Source.Starkscan_Rest,
-			Source.Voyager_Rest,
+			Source.Pathfinder,
+			Source.Starkscan,
+			Source.Voyager,
 		],
 	})({
 		fields: {
@@ -68,7 +67,6 @@
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -88,7 +86,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -143,12 +140,7 @@
 			{#snippet SectionStarknetChainObservations({ id, label, open })}
 				<StarknetNetwork_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Starknet network observations.'
 					id={`${id}-list`}
@@ -158,12 +150,7 @@
 			{#snippet SectionStarknetChainBlocks({ id, label, open })}
 				<StarknetBlocksView
 					selection={selection.$$blocks}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Starknet blocks.'
 					id={`${id}-list`}
@@ -173,12 +160,7 @@
 			{#snippet SectionStarknetChainTransactions({ id, label, open })}
 				<StarknetTransactionsView
 					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Starknet transactions.'
 					id={`${id}-list`}
@@ -214,12 +196,7 @@
 			{#snippet SectionStarknetContracts({ id, label, open })}
 				<StarknetContractsView
 					selection={selection.$$contracts}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Starknet contracts.'
 					id={`${id}-list`}
@@ -229,12 +206,7 @@
 			{#snippet SectionStarknetClasses({ id, label, open })}
 				<StarknetClassesView
 					selection={selection.$$classes}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Starknet classes.'
 					id={`${id}-list`}

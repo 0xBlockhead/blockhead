@@ -38,10 +38,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		XRPL AMM timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -50,7 +46,6 @@
 					<XrplAmmView
 						selection={select(EntityType.XrplAmm, selection.entitySelector.$amm)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -191,7 +186,6 @@
 									selection={select(EntityType.XrplLedgerEntry, xrplLedgerEntry[EntityMetaKey.Selector])}
 									prefetched={xrplLedgerEntry}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

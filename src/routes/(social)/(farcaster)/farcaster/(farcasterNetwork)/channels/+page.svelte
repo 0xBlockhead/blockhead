@@ -34,12 +34,8 @@
 
 	<FarcasterChannelsView
 		href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/channels')}
-		title='Farcaster channels'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='channels'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

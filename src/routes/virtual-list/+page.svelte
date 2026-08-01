@@ -2,12 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
-	import { EntityType } from '$/schema/EntityType.ts'
 	import VirtualList from '$/components/VirtualList.svelte'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	type Row = {

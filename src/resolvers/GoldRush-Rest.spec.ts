@@ -47,15 +47,15 @@ describe('GoldRush Foundational transaction source', () => {
 				withInputData: true,
 			},
 		})).resolves.toMatchObject({
-			updatedAt: transactionResponse.data.updated_at,
-			chainId: 1,
-			chainName: 'eth-mainnet',
-			transaction: {
+			updated_at: transactionResponse.data.updated_at,
+			chain_id: 1,
+			chain_name: 'eth-mainnet',
+			items: [{
 				tx_hash: transactionResponse.data.items[0].tx_hash,
 				internal_transfers: transactionResponse.data.items[0].internal_transfers,
 				state_changes: transactionResponse.data.items[0].state_changes,
 				input_data: transactionResponse.data.items[0].input_data,
-			},
+			}],
 		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			goldRushBinding,

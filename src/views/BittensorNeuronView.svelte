@@ -23,7 +23,6 @@
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BittensorSubnetView from '$/views/BittensorSubnetView.svelte'
 </script>
 
@@ -46,7 +45,6 @@
 		<BittensorSubnetView
 			selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -58,7 +56,6 @@
 					<BittensorSubnetView
 						selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

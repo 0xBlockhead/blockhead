@@ -16,24 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.RssItem_Timestamp, {
-		$item: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [({
-			$item: data.selector,
-			timestampMs: Number(params.timestampMs),
-			source: params.source,
-		}).source],
-		fields: {
-			observed: true,
-			reachable: true,
-			fetchWindowKind: true,
-			error: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -48,6 +30,24 @@
 
 <Page>
 	<RssItem_TimestampView
-		selection={pageSelection}
+		selection={
+			select(EntityType.RssItem_Timestamp, {
+				$item: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [({
+					$item: data.selector,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}).source],
+				fields: {
+					observed: true,
+					reachable: true,
+					fetchWindowKind: true,
+					error: true,
+				},
+			})
+		}
 	/>
 </Page>

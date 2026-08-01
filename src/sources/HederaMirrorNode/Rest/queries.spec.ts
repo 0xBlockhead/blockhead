@@ -174,7 +174,6 @@ describe('Hedera Mirror network collections', () => {
 			delivery: SourceDelivery.HttpProxy,
 			endpoints: [{
 				locator: 'https://mainnet-public.mirrornode.hedera.com',
-				origin: 'https://mainnet-public.mirrornode.hedera.com',
 				corsEnabled: false,
 			}],
 		})

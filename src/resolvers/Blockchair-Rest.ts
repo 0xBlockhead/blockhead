@@ -3,20 +3,21 @@ import {
 	defineResolver,
 	type SourceResolverContext,
 } from '$/resolvers/defineResolver.ts'
-import {
-	entityFieldAddressKey,
-	EntityMetaKey,
-} from '$/schema/$schema.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	networkBySlug,
-	NetworkExecutionModel,
 	NetworkLedgerModel,
 } from '$/constants/Network.ts'
-import type { BlockchairBitcoinLikeChain, BlockchairBitcoinLikeBlock, BlockchairBitcoinLikeTransaction } from '$/sources/Blockchair/Rest/types.ts'
+import type {
+	BlockchairBitcoinLikeBlock,
+	BlockchairBitcoinLikeBlockDashboard,
+	BlockchairBitcoinLikeChain,
+	BlockchairBitcoinLikeTransaction,
+} from '$/sources/Blockchair/Rest/types.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -28,22 +29,34 @@ const blockchairNetworkSlugs = [
 	'bitcoin-cash',
 ] as const
 
-const blockchairNetworkTimestampApplicability = blockchairNetworkSlugs.flatMap((slug) => ([
+const blockchairNetworkTimestampApplicability = [
 	{
 		$network: {
-			caip2: networkBySlug[slug].caip2,
+			caip2: networkBySlug[blockchairNetworkSlugs[0]].caip2,
 		},
 		source: Source.Blockchair_Rest,
 	},
 	{
-		$network: { slug },
+		$network: {
+			slug: blockchairNetworkSlugs[0],
+		},
 		source: Source.Blockchair_Rest,
 	},
-]))
+	...blockchairNetworkSlugs.slice(1).flatMap((slug) => ([
+		{
+			$network: {
+				caip2: networkBySlug[slug].caip2,
+			},
+			source: Source.Blockchair_Rest,
+		},
+		{
+			$network: { slug },
+			source: Source.Blockchair_Rest,
+		},
+	])),
+] as const
 
-const blockchairNetworkSelectors = <
-
-const _Snapshot extends object>(
+const blockchairNetworkSelectors = <_Snapshot extends object>(
 	resolve: (
 		network: NetworkId,
 		context: SourceResolverContext<Source.Blockchair_Rest>
@@ -146,6 +159,31 @@ const getAddressDashboard = async ({ $network, address }: {
 	).address
 }
 
+const blockDashboardSnapshot = (
+	$network: NetworkId,
+	hash: string,
+	dashboard: BlockchairBitcoinLikeBlockDashboard
+) => ({
+	hash,
+	...(dashboard.block.time != null && {
+		timestampMs: Date.parse(dashboard.block.time),
+	}),
+	merkleRoot: dashboard.block.merkle_root,
+	...(dashboard.block.nonce != null && {
+		nonce: dashboard.block.nonce,
+	}),
+	difficulty: dashboard.block.difficulty,
+	sizeBytes: dashboard.block.size,
+	weightUnits: dashboard.block.weight,
+	transactionCount: dashboard.block.transaction_count,
+	$$transactions: dashboard.transactions.map((transaction) => ({
+		[EntityMetaKey.Selector]: {
+			$network,
+			txId: transaction.hash,
+		},
+	})),
+})
+
 export default {
 	source: Source.Blockchair_Rest,
 
@@ -157,75 +195,62 @@ export default {
 				slug: blockchairChain(network),
 			})),
 		})({
-				slug: (network) => network.slug,
-			}),
+			slug: (network) => network.slug,
+		}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoBlock,
-				resolve: {
-					NetworkHeight: {
-						resolve: async ({ $network, height }) => {
-							const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
-							const [hash, dashboard] = firstDashboardEntry(
-								(
+			resolve: {
+				NetworkHeight: {
+					resolve: async ({ $network, height }) => {
+						const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
+						const [hash, dashboard] = firstDashboardEntry(
+							(
 								await getBitcoinLikeBlockDashboard({
 									chain: blockchairChain($network),
 									block: height,
 								})
-								).data,
-								height.toString()
-							)
-							return {
-								hash,
-								timestampMs: dashboard.block.time == null ? undefined : Date.parse(dashboard.block.time),
-								merkleRoot: dashboard.block.merkle_root,
-								...(dashboard.block.nonce != null && {
-									nonce: dashboard.block.nonce,
-								}),
-								difficulty: dashboard.block.difficulty,
-								sizeBytes: dashboard.block.size,
-								weightUnits: dashboard.block.weight,
-								transactionCount: dashboard.block.transaction_count,
-							}
-						},
+							).data,
+							height.toString()
+						)
+						return blockDashboardSnapshot(
+							$network,
+							hash,
+							dashboard
+						)
 					},
-					NetworkHeightHash: {
-						resolve: async ({ $network, hash }) => {
-							const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
-							const dashboard = firstDashboardRow(
+				},
+				NetworkHeightHash: {
+					resolve: async ({ $network, hash }) => {
+						const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
+						const dashboard = firstDashboardRow(
 							(
-							await getBitcoinLikeBlockDashboard({
-								chain: blockchairChain($network),
-								block: hash,
-							})
+								await getBitcoinLikeBlockDashboard({
+									chain: blockchairChain($network),
+									block: hash,
+								})
 							).data,
 							hash
 						)
-						return {
-							hash: dashboard.block.hash,
-							timestampMs: dashboard.block.time == null ? undefined : Date.parse(dashboard.block.time),
-							merkleRoot: dashboard.block.merkle_root,
-							...(dashboard.block.nonce != null && {
-								nonce: dashboard.block.nonce,
-							}),
-							difficulty: dashboard.block.difficulty,
-							sizeBytes: dashboard.block.size,
-							weightUnits: dashboard.block.weight,
-							transactionCount: dashboard.block.transaction_count,
-						}
+						return blockDashboardSnapshot(
+							$network,
+							dashboard.block.hash,
+							dashboard
+						)
 					},
-					}
+				},
 			},
 		})({
-				hash: (block) => block.hash,
-				timestampMs: (block) => block.timestampMs,
-				merkleRoot: (block) => block.merkleRoot,
-				nonce: (block) => block.nonce,
-				difficulty: (block) => block.difficulty,
-				sizeBytes: (block) => block.sizeBytes,
-				weightUnits: (block) => block.weightUnits,
-				transactionCount: (block) => block.transactionCount,
-			}),
+			hash: (block) => block.hash,
+			timestampMs: (block) => block.timestampMs,
+			merkleRoot: (block) => block.merkleRoot,
+			nonce: (block) => block.nonce,
+			difficulty: (block) => block.difficulty,
+			sizeBytes: (block) => block.sizeBytes,
+			weightUnits: (block) => block.weightUnits,
+			transactionCount: (block) => block.transactionCount,
+			$$transactions: (block) => block.$$transactions,
+		}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoTransaction,
@@ -251,20 +276,34 @@ export default {
 								feeSats: BigInt(transactionDashboard.transaction.fee),
 							}),
 							isCoinbase: transactionDashboard.transaction.is_coinbase,
+							$$inputs: transactionDashboard.inputs.map((_input, indexInTransaction) => ({
+								[EntityMetaKey.Selector]: {
+									$transaction: entitySelector,
+									indexInTransaction,
+								},
+							})),
+							$$outputs: transactionDashboard.outputs.map((_output, indexInTransaction) => ({
+								[EntityMetaKey.Selector]: {
+									$transaction: entitySelector,
+									indexInTransaction,
+								},
+							})),
 						}
 					},
 				}
 			},
 		})({
-				$block: (transaction) => transaction.$block,
-				version: (transaction) => transaction.version,
-				lockTime: (transaction) => transaction.lockTime,
-				sizeBytes: (transaction) => transaction.sizeBytes,
-				virtualSizeBytes: (transaction) => transaction.virtualSizeBytes,
-				weightUnits: (transaction) => transaction.weightUnits,
-				feeSats: (transaction) => transaction.feeSats,
-				isCoinbase: (transaction) => transaction.isCoinbase,
-			}),
+			$block: (transaction) => transaction.$block,
+			version: (transaction) => transaction.version,
+			lockTime: (transaction) => transaction.lockTime,
+			sizeBytes: (transaction) => transaction.sizeBytes,
+			virtualSizeBytes: (transaction) => transaction.virtualSizeBytes,
+			weightUnits: (transaction) => transaction.weightUnits,
+			feeSats: (transaction) => transaction.feeSats,
+			isCoinbase: (transaction) => transaction.isCoinbase,
+			$$inputs: (transaction) => transaction.$$inputs,
+			$$outputs: (transaction) => transaction.$$outputs,
+		}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoAddress,
@@ -288,9 +327,9 @@ export default {
 				},
 			},
 		})({
-				address: (address) => address.address,
-				$$timestamps: (address) => address.$$timestamps,
-			}),
+			address: (address) => address.address,
+			$$timestamps: (address) => address.$$timestamps,
+		}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoAddress_Timestamp,
@@ -300,12 +339,12 @@ export default {
 				},
 			},
 		})({
-				balanceSats: (address) => bigintFromNumber(address.balance),
-				transactionCount: (address) => address.transaction_count,
-				unspentOutputCount: (address) => address.unspent_output_count,
-				fundedValueSats: (address) => bigintFromNumber(address.received),
-				spentValueSats: (address) => bigintFromNumber(address.spent),
-			}),
+			balanceSats: (address) => bigintFromNumber(address.balance),
+			transactionCount: (address) => address.transaction_count,
+			unspentOutputCount: (address) => address.unspent_output_count,
+			fundedValueSats: (address) => bigintFromNumber(address.received),
+			spentValueSats: (address) => bigintFromNumber(address.spent),
+		}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoInput,
@@ -348,11 +387,11 @@ export default {
 				}
 			},
 		})({
-				$spentOutput: (input) => input.$spentOutput,
-				scriptSigAsm: (input) => input.scriptSigAsm,
-				sequence: (input) => input.sequence,
-				witness: (input) => input.witness ?? [],
-			}),
+			$spentOutput: (input) => input.$spentOutput,
+			scriptSigAsm: (input) => input.scriptSigAsm,
+			sequence: (input) => input.sequence,
+			witness: (input) => input.witness ?? [],
+		}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoOutput,
@@ -391,12 +430,12 @@ export default {
 				}
 			},
 		})({
-				valueSats: (output) => output.valueSats,
-				scriptPubKeyHex: (output) => output.scriptPubKeyHex,
-				scriptPubKeyType: (output) => output.scriptPubKeyType,
-				$address: (output) => output.$address,
-				isSpent: (output) => output.isSpent,
-			}),
+			valueSats: (output) => output.valueSats,
+			scriptPubKeyHex: (output) => output.scriptPubKeyHex,
+			scriptPubKeyType: (output) => output.scriptPubKeyType,
+			$address: (output) => output.$address,
+			isSpent: (output) => output.isSpent,
+		}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.Network_Timestamp,
@@ -423,6 +462,11 @@ export default {
 						const medianTransactionFee24hSats = bigintFromNumber(stats.median_transaction_fee_24h)
 						const blockchainSizeBytes = bigintFromNumber(stats.blockchain_size)
 						const bestBlockTimeMs = timestampMsFromBlockchairTime(stats.best_block_time)
+						if (bestBlockTimeMs != null && bestBlockTimeMs !== timestampMs)
+							throw new Error(
+								`Blockchair_Rest: network timestamp mismatch ${bestBlockTimeMs} !== ${timestampMs}`
+							)
+
 						return {
 							$network: {
 								[EntityMetaKey.Selector]: $network,
@@ -430,88 +474,61 @@ export default {
 							timestampMs,
 							source,
 							ledgerModels: [NetworkLedgerModel.Utxo],
-							executionModels: [] satisfies NetworkExecutionModel[],
-							[EntityMetaKey.Fields]: {
-								...(bestBlockHeight != null && {
-									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: bestBlockHeight,
-								}),
-								...(stats.best_block_hash != null && {
-									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHash')]: stats.best_block_hash,
-								}),
-								...(bestBlockTimeMs != null && {
-									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockTimeMs')]: bestBlockTimeMs,
-								}),
-								...(blockCount != null && {
-									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blockCount')]: blockCount,
-								}),
-								...(transactionCount != null && {
-									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'transactionCount')]: transactionCount,
-								}),
-								...(stats.blocks_24h != null && {
-									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blocks24h')]: stats.blocks_24h,
-								}),
-								...(stats.transactions_24h != null && {
-									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'transactions24h')]: stats.transactions_24h,
-								}),
-								...(stats.mempool_transactions != null && {
-									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: stats.mempool_transactions,
-								}),
-								...(mempoolSizeBytes != null && {
-									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: mempoolSizeBytes,
-								}),
-								...(stats.mempool_tps != null && {
-									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTps')]: stats.mempool_tps,
-								}),
-								...(averageTransactionFee24hSats != null && {
-									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'averageTransactionFee24hSats')]: averageTransactionFee24hSats,
-								}),
-								...(medianTransactionFee24hSats != null && {
-									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'medianTransactionFee24hSats')]: medianTransactionFee24hSats,
-								}),
-								...(stats.suggested_transaction_fee_per_byte_sat != null && {
-									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'suggestedTransactionFeePerByteSats')]: stats.suggested_transaction_fee_per_byte_sat,
-								}),
-								...(blockchainSizeBytes != null && {
-									[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blockchainSizeBytes')]: blockchainSizeBytes,
-								}),
-							},
+							executionModels: [],
+							...(bestBlockHeight != null && { bestBlockHeight }),
+							...(stats.best_block_hash != null && {
+								bestBlockHash: stats.best_block_hash,
+							}),
+							...(bestBlockTimeMs != null && { bestBlockTimeMs }),
+							...(blockCount != null && { blockCount }),
+							...(transactionCount != null && { transactionCount }),
+							...(stats.blocks_24h != null && { blocks24h: stats.blocks_24h }),
+							...(stats.transactions_24h != null && {
+								transactions24h: stats.transactions_24h,
+							}),
+							...(stats.mempool_transactions != null && {
+								mempoolTransactionCount: stats.mempool_transactions,
+							}),
+							...(mempoolSizeBytes != null && { mempoolSizeBytes }),
+							...(stats.mempool_tps != null && { mempoolTps: stats.mempool_tps }),
+							...(averageTransactionFee24hSats != null && {
+								averageTransactionFee24hSats,
+							}),
+							...(medianTransactionFee24hSats != null && {
+								medianTransactionFee24hSats,
+							}),
+							...(stats.suggested_transaction_fee_per_byte_sat != null && {
+								suggestedTransactionFeePerByteSats:
+									stats.suggested_transaction_fee_per_byte_sat,
+							}),
+							...(blockchainSizeBytes != null && { blockchainSizeBytes }),
 						}
 					},
 				}
 			},
 		})({
-				$network: (timestamp) => timestamp.$network,
-				timestampMs: (timestamp) => timestamp.timestampMs,
-				source: (timestamp) => timestamp.source,
-				ledgerModels: (timestamp) => timestamp.ledgerModels,
-				executionModels: (timestamp) => timestamp.executionModels,
-				Utxo: {
-					bestBlockHeight: (timestamp) => timestamp.bestBlockHeight,
-					bestBlockHash: (timestamp) => timestamp.bestBlockHash,
-					bestBlockTimeMs: (timestamp) => timestamp.bestBlockTimeMs,
-					blockCount: (timestamp) => timestamp.blockCount,
-					transactionCount: (timestamp) => timestamp.transactionCount,
-					blocks24h: (timestamp) => timestamp.blocks24h,
-					transactions24h: (timestamp) => timestamp.transactions24h,
-					mempoolTransactionCount: (timestamp) => timestamp.mempoolTransactionCount,
-					mempoolSizeBytes: (timestamp) => timestamp.mempoolSizeBytes,
-					mempoolTps: (timestamp) => timestamp.mempoolTps,
-					averageTransactionFee24hSats: (timestamp) => timestamp.averageTransactionFee24hSats,
-					medianTransactionFee24hSats: (timestamp) => timestamp.medianTransactionFee24hSats,
-					suggestedTransactionFeePerByteSats: (timestamp) => timestamp.suggestedTransactionFeePerByteSats,
-					blockchainSizeBytes: (timestamp) => timestamp.blockchainSizeBytes,
-				},
-			}),
-
-		defineResolver(Source.Blockchair_Rest, {
-			entityType: EntityType.Network,
-			resolve: blockchairNetworkSelectors(async (network) => ({
-				[EntityMetaKey.Selector]: network,
-				slug: blockchairChain(network),
-			})),
-		})({
-				slug: (network) => network.slug,
-			}),
+			$network: (timestamp) => timestamp.$network,
+			timestampMs: (timestamp) => timestamp.timestampMs,
+			source: (timestamp) => timestamp.source,
+			ledgerModels: (timestamp) => timestamp.ledgerModels,
+			executionModels: (timestamp) => timestamp.executionModels,
+			Utxo: {
+				bestBlockHeight: (timestamp) => timestamp.bestBlockHeight,
+				bestBlockHash: (timestamp) => timestamp.bestBlockHash,
+				bestBlockTimeMs: (timestamp) => timestamp.bestBlockTimeMs,
+				blockCount: (timestamp) => timestamp.blockCount,
+				transactionCount: (timestamp) => timestamp.transactionCount,
+				blocks24h: (timestamp) => timestamp.blocks24h,
+				transactions24h: (timestamp) => timestamp.transactions24h,
+				mempoolTransactionCount: (timestamp) => timestamp.mempoolTransactionCount,
+				mempoolSizeBytes: (timestamp) => timestamp.mempoolSizeBytes,
+				mempoolTps: (timestamp) => timestamp.mempoolTps,
+				averageTransactionFee24hSats: (timestamp) => timestamp.averageTransactionFee24hSats,
+				medianTransactionFee24hSats: (timestamp) => timestamp.medianTransactionFee24hSats,
+				suggestedTransactionFeePerByteSats: (timestamp) => timestamp.suggestedTransactionFeePerByteSats,
+				blockchainSizeBytes: (timestamp) => timestamp.blockchainSizeBytes,
+			},
+		}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.Network,
@@ -520,61 +537,32 @@ export default {
 				const stats = (await getBitcoinLikeStats({
 					chain: blockchairChain(network),
 				})).data
-				const bestBlockHeight = bigintFromNumber(stats.best_block_height)
-				const blockCount = bigintFromNumber(stats.blocks)
-				const transactionCount = bigintFromNumber(stats.transactions)
-				const mempoolSizeBytes = bigintFromNumber(stats.mempool_size)
-				const averageTransactionFee24hSats = bigintFromNumber(stats.average_transaction_fee_24h)
-				const medianTransactionFee24hSats = bigintFromNumber(stats.median_transaction_fee_24h)
-				const blockchainSizeBytes = bigintFromNumber(stats.blockchain_size)
 				const bestBlockTimeMs = timestampMsFromBlockchairTime(stats.best_block_time)
-				return [
-					{
-						[EntityMetaKey.Selector]: {
-							$network: network,
-							timestampMs: bestBlockTimeMs ?? Date.now(),
-							source: Source.Blockchair_Rest,
+				return {
+					$$timestamps: [
+						{
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								timestampMs: bestBlockTimeMs ?? Date.now(),
+								source: Source.Blockchair_Rest,
+							},
 						},
-						...(bestBlockHeight != null && { bestBlockHeight }),
-						...(stats.best_block_hash != null && { bestBlockHash: stats.best_block_hash }),
-						...(bestBlockTimeMs != null && { bestBlockTimeMs }),
-						...(blockCount != null && { blockCount }),
-						...(transactionCount != null && { transactionCount }),
-						...(stats.blocks_24h != null && { blocks24h: stats.blocks_24h }),
-						...(stats.transactions_24h != null && { transactions24h: stats.transactions_24h }),
-						...(stats.mempool_transactions != null && { mempoolTransactionCount: stats.mempool_transactions }),
-						...(mempoolSizeBytes != null && { mempoolSizeBytes }),
-						...(stats.mempool_tps != null && { mempoolTps: stats.mempool_tps }),
-						...(averageTransactionFee24hSats != null && { averageTransactionFee24hSats }),
-						...(medianTransactionFee24hSats != null && { medianTransactionFee24hSats }),
-						...(stats.suggested_transaction_fee_per_byte_sat != null && {
-							suggestedTransactionFeePerByteSats: stats.suggested_transaction_fee_per_byte_sat,
-						}),
-						...(blockchainSizeBytes != null && { blockchainSizeBytes }),
-					},
-				]
+					],
+					blocks: stats.blocks,
+					transactions: stats.transactions,
+				}
 			}),
 		})({
-				$$timestamps: (timestamps) => timestamps.map((timestamp) => ({
-					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blockchainSizeBytes')]: timestamp.blockchainSizeBytes,
-						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'suggestedTransactionFeePerByteSats')]: timestamp.suggestedTransactionFeePerByteSats,
-						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'medianTransactionFee24hSats')]: timestamp.medianTransactionFee24hSats,
-						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'averageTransactionFee24hSats')]: timestamp.averageTransactionFee24hSats,
-						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTps')]: timestamp.mempoolTps,
-						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: timestamp.mempoolSizeBytes,
-						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: timestamp.mempoolTransactionCount,
-						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'transactions24h')]: timestamp.transactions24h,
-						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blocks24h')]: timestamp.blocks24h,
-						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'transactionCount')]: timestamp.transactionCount,
-						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blockCount')]: timestamp.blockCount,
-						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockTimeMs')]: timestamp.bestBlockTimeMs,
-						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHash')]: timestamp.bestBlockHash,
-						[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: timestamp.bestBlockHeight,
-					},
-				})),
-			}),
+			$$timestamps: (network) => network.$$timestamps,
+			Utxo: {
+				$$blocks: {
+					resolveCount: (network) => blockchairCount(network.blocks, 'block'),
+				},
+				$$transactions: {
+					resolveCount: (network) => blockchairCount(network.transactions, 'transaction'),
+				},
+			},
+		}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.Network,
@@ -595,10 +583,10 @@ export default {
 				}))
 			}),
 		})({
-				Utxo: {
-					$$blocks: (blocks) => blocks,
-				},
-			}),
+			Utxo: {
+				$$blocks: (blocks) => blocks,
+			},
+		}),
 
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.Network,
@@ -618,122 +606,10 @@ export default {
 				}))
 			}),
 		})({
-				Utxo: {
-					$$transactions: (transactions) => transactions,
-				},
-			}),
-
-		defineResolver(Source.Blockchair_Rest, {
-			entityType: EntityType.Network,
-			resolve: blockchairNetworkSelectors(async (network) => {
-				const { getBitcoinLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
-				const stats = (await getBitcoinLikeStats({
-					chain: blockchairChain(network),
-				})).data
-				return {
-					blocks: blockchairCount(stats.blocks, 'block'),
-					transactions: blockchairCount(stats.transactions, 'transaction'),
-				}
-			}),
-		})({
-				Utxo: {
-					$$blocks: {
-						resolveCount: (counts) => counts.blocks,
-					},
-					$$transactions: {
-						resolveCount: (counts) => counts.transactions,
-					},
-				},
-			}),
-
-		defineResolver(Source.Blockchair_Rest, {
-			entityType: EntityType.UtxoBlock,
-				resolve: {
-					NetworkHeight: {
-						resolve: async ({ $network, height }) => {
-							const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
-							const dashboard = firstDashboardRow(
-								(
-								await getBitcoinLikeBlockDashboard({
-									chain: blockchairChain($network),
-									block: height,
-								})
-								).data,
-								height.toString()
-							)
-							return dashboard.transactions.map((transaction) => ({
-								[EntityMetaKey.Selector]: {
-									$network,
-									txId: transaction.hash,
-								},
-							}))
-						},
-					},
-					NetworkHeightHash: {
-						resolve: async ({ $network, hash }) => {
-							const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
-							const dashboard = firstDashboardRow(
-							(
-							await getBitcoinLikeBlockDashboard({
-								chain: blockchairChain($network),
-								block: hash,
-							})
-							).data,
-							hash
-						)
-						return dashboard.transactions.map((transaction) => ({
-							[EntityMetaKey.Selector]: {
-								$network,
-								txId: transaction.hash,
-							},
-						}))
-					},
-					}
-			},
-		})({
+			Utxo: {
 				$$transactions: (transactions) => transactions,
-			}),
-
-		defineResolver(Source.Blockchair_Rest, {
-			entityType: EntityType.UtxoTransaction,
-			resolve: {
-				NetworkTxId: {
-					resolve: async (entitySelector) => {
-						const transactionDashboard = await getTransactionDashboard(entitySelector)
-						return transactionDashboard.inputs.map((input, indexInTransaction) => (
-							{
-								[EntityMetaKey.Selector]: {
-									$transaction: entitySelector,
-									indexInTransaction,
-								},
-							}
-						))
-					},
-				}
 			},
-		})({
-				$$inputs: (inputs) => inputs,
-			}),
+		}),
 
-		defineResolver(Source.Blockchair_Rest, {
-			entityType: EntityType.UtxoTransaction,
-			resolve: {
-				NetworkTxId: {
-					resolve: async (entitySelector) => {
-						const transactionDashboard = await getTransactionDashboard(entitySelector)
-						return transactionDashboard.outputs.map((output, indexInTransaction) => (
-							{
-								[EntityMetaKey.Selector]: {
-									$transaction: entitySelector,
-									indexInTransaction,
-								},
-							}
-						))
-					},
-				}
-			},
-		})({
-				$$outputs: (outputs) => outputs,
-			}),
 	],
 }

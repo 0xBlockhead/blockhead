@@ -48,7 +48,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Icon()}
 		<ResourceBoundary resource={tokenMetadataDocument}>
 			{#snippet children(entity)}
@@ -58,7 +57,6 @@
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -280,7 +278,6 @@
 								selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
 								prefetched={assetInstance}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

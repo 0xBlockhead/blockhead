@@ -54,7 +54,6 @@
 			<CelestiaNamespaceView
 				selection={select(EntityType.CelestiaNamespace, selection.entitySelector.$namespace)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -67,7 +66,6 @@
 					<CelestiaNamespaceView
 						selection={select(EntityType.CelestiaNamespace, selection.entitySelector.$namespace)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -242,7 +240,6 @@
 									selection={select(EntityType.CelestiaBlock, celestiaBlock[EntityMetaKey.Selector])}
 									prefetched={celestiaBlock}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

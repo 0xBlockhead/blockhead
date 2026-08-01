@@ -34,12 +34,8 @@
 
 	<AtprotoActorsView
 		href={resolve('/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actors')}
-		title='AT Protocol accounts'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='observed-actors'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

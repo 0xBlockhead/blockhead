@@ -72,13 +72,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(prefetched.protocolName ?? '') || titleFallback}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Farcaster profiles, channels, and casts: FID plus cast-hash identity with hub feeds from declared Farcaster sources.
-		</p>
+		Farcaster
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -212,12 +206,7 @@
 				<FarcasterFeedsView
 					selection={selection.$$feeds}
 					href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Farcaster feeds in this observed.'
 					id={`${id}-list`}
@@ -228,12 +217,7 @@
 				<FarcasterUsersView
 					selection={selection.$$users}
 					href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/users')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Farcaster users in this observed.'
 					id={`${id}-list`}
@@ -244,12 +228,7 @@
 				<FarcasterChannelsView
 					selection={selection.$$channels}
 					href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/channels')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Farcaster channels in this observed.'
 					id={`${id}-list`}

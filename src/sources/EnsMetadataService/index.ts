@@ -10,8 +10,8 @@ export default {
 	label: 'ENS metadata service',
 	sources: [
 		{
-			source: Source.EnsMetadataService_Rest,
-			label: 'ENS metadata service REST',
+			source: Source.EnsMetadataService,
+			label: 'ENS metadata service',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

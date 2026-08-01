@@ -10,7 +10,6 @@
 	// State
 	let {
 		selection,
-		title = 'Arweave observeds',
 		open = $bindable(true),
 		id = 'GlobalArweaveNetworks-list',
 		...EntitiesListProps
@@ -26,7 +25,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType._GlobalArweaveNetwork}
 	{id}
-	{title}
 	bind:open
 	resource={
 		selection({
@@ -42,10 +40,6 @@
 			entityType={EntityType._GlobalArweaveNetwork}
 			entitySelector={globalArweaveNetworkSelector}
 		>
-			{#snippet Title()}
-				global Arweave network
-			{/snippet}
-
 			{#snippet Value()}
 				{globalArweaveNetworkSelector.scope}
 			{/snippet}

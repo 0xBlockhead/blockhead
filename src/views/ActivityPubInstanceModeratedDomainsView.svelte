@@ -10,7 +10,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['A domain that a declared ActivityPub instance reports in its public moderation-domain list.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.ActivityPubInstanceModeratedDomain> = $props()
@@ -25,7 +24,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.ActivityPubInstanceModeratedDomain}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {

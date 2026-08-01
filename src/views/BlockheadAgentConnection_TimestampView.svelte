@@ -88,7 +88,6 @@
 					<BlockheadAgentConnectionView
 						selection={select(EntityType.BlockheadAgentConnection, selection.entitySelector.$connection)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

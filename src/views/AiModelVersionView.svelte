@@ -76,7 +76,6 @@
 						selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
 						prefetched={aiModel}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -110,7 +109,6 @@
 									selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
 									prefetched={aiModel}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -146,7 +144,6 @@
 									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
 									prefetched={aiArtifact}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

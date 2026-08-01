@@ -51,10 +51,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.turnId || 'ACP prompt turn'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={acpPromptTurn}>
 			{#snippet children(entity)}
@@ -84,7 +80,6 @@
 					<AcpSessionView
 						selection={select(EntityType.AcpSession, selection.entitySelector.$session)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

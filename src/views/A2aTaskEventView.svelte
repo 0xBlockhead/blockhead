@@ -48,10 +48,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{String(selection.entitySelector.sequence)}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={a2aTaskEvent}>
 			{#snippet children(entity)}
@@ -81,7 +77,6 @@
 					<A2aTaskView
 						selection={select(EntityType.A2aTask, selection.entitySelector.$task)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -178,7 +173,6 @@
 									selection={select(EntityType.A2aArtifact, a2aArtifact[EntityMetaKey.Selector])}
 									prefetched={a2aArtifact}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -31,15 +30,10 @@
 <EntityView
 	entityType={EntityType.StellarAccountSigner_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'stellar account signer timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		stellar account signer timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +42,6 @@
 					<StellarAccountSignerView
 						selection={select(EntityType.StellarAccountSigner, selection.entitySelector.$signer)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

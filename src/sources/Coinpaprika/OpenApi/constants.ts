@@ -1,27 +1,6 @@
 import { CoinId } from '$/constants/Coin.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 
-/** Free vs bearer-auth hosts (REST path {@link pathPrefix}). */
-export const freeOrigin = 'https://api.coinpaprika.com' as const
-export const proOrigin = 'https://api-pro.coinpaprika.com' as const
-
-export const coinpaprikaOrigins = [
-	{
-		origin: freeOrigin,
-		corsEnabled: false,
-	},
-	{
-		origin: proOrigin,
-		corsEnabled: false,
-	},
-] as const
-
-export const pathPrefix = '/v1' as const
-
-export const freeBaseUrl = `${freeOrigin}${pathPrefix}` as const
-
-export const proBaseUrl = `${proOrigin}${pathPrefix}` as const
-
 const catalog = [
 	{ coinId: CoinId.AAVE, wireId: 'aave-aave' },
 	{ coinId: CoinId.ADA, wireId: 'ada-cardano' },

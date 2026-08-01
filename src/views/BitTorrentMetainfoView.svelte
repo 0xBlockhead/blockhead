@@ -289,12 +289,7 @@
 			{#snippet SectionBittorrentFiles({ id, label, open })}
 				<BitTorrentFilesView
 					selection={selection.$$files}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No files found.'
 					id={`${id}-list`}
@@ -304,12 +299,7 @@
 			{#snippet SectionBittorrentFileTree({ id, label, open })}
 				<BitTorrentFileTreeEntriesView
 					selection={selection.$$fileTreeEntries}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No file tree entries found.'
 					id={`${id}-list`}
@@ -319,12 +309,7 @@
 			{#snippet SectionBittorrentPieces({ id, label, open })}
 				<BitTorrentPiecesView
 					selection={selection.$$pieces}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No pieces found.'
 					id={`${id}-list`}
@@ -360,12 +345,7 @@
 			{#snippet SectionBittorrentTrackers({ id, label, open })}
 				<BitTorrentTrackersView
 					selection={selection.$$trackers}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No trackers found.'
 					id={`${id}-list`}
@@ -375,12 +355,7 @@
 			{#snippet SectionBittorrentMagnets({ id, label, open })}
 				<MagnetLinksView
 					selection={selection.$$magnets}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No magnets found.'
 					id={`${id}-list`}
@@ -416,12 +391,7 @@
 			{#snippet SectionBittorrentSwarmObservations({ id, label, open })}
 				<BitTorrentSwarmObservation_TimestampsView
 					selection={selection.$$swarmTimestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No swarm observations yet.'
 					id={`${id}-list`}
@@ -431,12 +401,7 @@
 			{#snippet SectionBittorrentClientTransfers({ id, label, open })}
 				<BlockheadBitTorrentTransfer_TimestampsView
 					selection={selection.$$clientTransfers}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No client transfers yet.'
 					id={`${id}-list`}

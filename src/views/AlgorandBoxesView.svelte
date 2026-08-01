@@ -32,10 +32,6 @@
 		<EntityView
 			entityType={EntityType.AlgorandBox}
 			entitySelector={algorandBox[EntityMetaKey.Selector]}
-		>
-			{#snippet Title()}
-				algorand box
-			{/snippet}
-		</EntityView>
+		/>
 	{/snippet}
 </EntitiesList>

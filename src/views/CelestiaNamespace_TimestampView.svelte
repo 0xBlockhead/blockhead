@@ -70,7 +70,6 @@
 					<CelestiaNamespaceView
 						selection={select(EntityType.CelestiaNamespace, selection.entitySelector.$namespace)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

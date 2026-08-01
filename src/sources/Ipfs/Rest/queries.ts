@@ -3,13 +3,11 @@ import {
 	ipfsNamespaceForTarget,
 	trimIpfsSlashes,
 } from '$/lib/ipfs.ts'
+import type { IpfsNamespace } from '$/lib/ipfs.ts'
 import { Source } from '$/sources/Source.ts'
+import { sourceEndpointOrigin } from '$/sources/SourceBinding.ts'
 import bindings from '$/sources/Ipfs/bindings.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
-import type {
-	IpfsBrowseResult,
-	IpfsNamespace,
-} from '$/sources/Ipfs/Rest/types.ts'
 
 const binding = bindings[Source.Ipfs_Rest]
 
@@ -23,7 +21,7 @@ const resolvedIpfsNamespace = ({
 }: {
 	target: string
 	namespace?: IpfsNamespace
-}): IpfsNamespace => (
+}) => (
 	namespace ?? ipfsNamespaceForTarget(target)
 )
 
@@ -37,7 +35,7 @@ export const getGatewayUrl = ({
 	target: string
 	contentPath?: string
 	gatewayOrigin: string
-}): string => {
+}) => {
 	const trimmedTarget = trimIpfsSlashes(target.trim())
 	const trimmedPath = trimIpfsSlashes(contentPath?.trim() ?? '')
 	return `${gatewayOrigin}/${resolvedIpfsNamespace({
@@ -56,7 +54,7 @@ export const fetchBrowseResult = async ({
 	target: string
 	contentPath?: string
 	signal?: AbortSignal
-}): Promise<IpfsBrowseResult> => {
+}) => {
 	const trimmedTarget = trimIpfsSlashes(target.trim())
 	const trimmedPath = trimIpfsSlashes(contentPath?.trim() ?? '')
 	const resolvedNamespace = resolvedIpfsNamespace({
@@ -102,7 +100,7 @@ export const fetchBrowseResult = async ({
 			namespace: resolvedNamespace,
 			target: trimmedTarget,
 			contentPath: trimmedPath,
-			gatewayOrigin: endpoint.origin,
+			gatewayOrigin: sourceEndpointOrigin(endpoint),
 			gatewayUrl,
 			fileName: parsedContent.fileName,
 			extension: parsedContent.extension,

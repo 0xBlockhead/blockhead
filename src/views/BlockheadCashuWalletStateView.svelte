@@ -49,10 +49,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.walletId || 'blockhead Cashu wallet state'}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.unit}
 		<ResourceBoundary
@@ -63,7 +59,6 @@
 					selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
 					prefetched={cashuMint}
 					layout={EntityLayout.Value}
-					open={false}
 				/>
 			{/snippet}
 		</ResourceBoundary>
@@ -90,7 +85,6 @@
 									selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
 									prefetched={blockheadWallet}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -109,7 +103,6 @@
 								selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
 								prefetched={cashuMint}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -166,12 +159,7 @@
 			{#snippet SectionCashuProofs({ id, label, open })}
 				<BlockheadCashuProofsView
 					selection={selection.$$proofs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No proofs found.'
 					id={`${id}-list`}
@@ -181,12 +169,7 @@
 			{#snippet SectionCashuTokens({ id, label, open })}
 				<BlockheadCashuTokensView
 					selection={selection.$$tokens}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No tokens found.'
 					id={`${id}-list`}
@@ -222,12 +205,7 @@
 			{#snippet SectionCashuMintQuotes({ id, label, open })}
 				<BlockheadCashuMintQuotesView
 					selection={selection.$$mintQuotes}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No mint quotes found.'
 					id={`${id}-list`}
@@ -237,12 +215,7 @@
 			{#snippet SectionCashuMeltQuotes({ id, label, open })}
 				<BlockheadCashuMeltQuotesView
 					selection={selection.$$meltQuotes}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No melt quotes found.'
 					id={`${id}-list`}
@@ -274,12 +247,7 @@
 			{#snippet SectionCashuWalletTimestamps({ id, label, open })}
 				<BlockheadCashuWalletState_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No observations yet.'
 					id={`${id}-list`}

@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -72,7 +71,6 @@
 			<NetworkView
 				selection={select(EntityType.Network, selection.entitySelector.$network)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -85,7 +83,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -134,7 +131,6 @@
 									selection={select(EntityType.EvmRollup, evmRollup[EntityMetaKey.Selector])}
 									prefetched={evmRollup}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

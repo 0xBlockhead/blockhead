@@ -39,10 +39,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{[selection.entitySelector.owner, selection.entitySelector.repositoryName].filter(Boolean).join(' ') || 'Git forge mirror'}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.forgeHost || [selection.entitySelector.owner, selection.entitySelector.repositoryName].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
@@ -82,7 +78,6 @@
 									selection={select(EntityType.GitRepository, gitRepository[EntityMetaKey.Selector])}
 									prefetched={gitRepository}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

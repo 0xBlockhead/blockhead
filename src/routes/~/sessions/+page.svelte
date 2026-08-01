@@ -34,12 +34,8 @@
 
 	<BlockheadSessionsView
 		href={resolve('/~/sessions')}
-		title='Sessions'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='blockhead-sessions'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

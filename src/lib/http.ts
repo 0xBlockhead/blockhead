@@ -1,6 +1,6 @@
 import type { SourceOrigin } from '$/sources/SourceProviderDefinition.ts'
 import { SourceDelivery } from '$/sources/SourceBinding.ts'
-import { isJsonObject, jsonMessage, type JsonValue } from '$/typescript/JsonValue.ts'
+import { isJsonObject, isJsonString, type JsonValue } from '$/typescript/JsonValue.ts'
 
 
 export type RetryOptions = {
@@ -65,7 +65,7 @@ export type CorsAwareFetchOptions = {
 const doFetch = async (
 	url: string,
 	options: CorsAwareFetchOptions
-): Promise<Response> => {
+) => {
 	if (!url.startsWith('http://') && !url.startsWith('https://'))
 		return fetch(url, withTimeout(options.init))
 
@@ -112,7 +112,7 @@ const doFetch = async (
 export const corsFetch = async (
 	url: string,
 	options: CorsAwareFetchOptions
-): Promise<Response> => {
+) => {
 	const retry: Required<RetryOptions> = {
 		...defaultRetry,
 		...options.retry,
@@ -132,10 +132,17 @@ export const corsFetch = async (
 }
 
 
+const jsonMessage = (value: JsonValue | undefined) => {
+	if (!isJsonObject(value) || !isJsonString(value.message))
+		return undefined
+
+	return value.message === '' ? undefined : value.message
+}
+
 /** Pull `{ message }` / `{ error: { message } }` from JSON bodies — generic gateways often return `{ message: "Internal Error" }`. */
 export const jsonErrorHintFromResponse = async (
 	response: Response
-): Promise<string | undefined> => {
+) => {
 	const ct = response.headers.get('content-type') ?? ''
 	if (!ct.includes('application/json')) return undefined
 	let parsed: JsonValue
@@ -158,7 +165,7 @@ export const jsonErrorHintFromResponse = async (
 export const fetchFailedMessage = async (
 	url: string,
 	response: Response
-): Promise<string> => {
+) => {
 	const base = `Fetch failed (${response.status} ${response.statusText}) for ${url}`
 	const hint = await jsonErrorHintFromResponse(response)
 	return hint ? `${base}: ${hint}` : base
@@ -168,7 +175,7 @@ export const fetchFailedMessage = async (
 export const throwIfHttpNotOk = async (
 	response: Response,
 	url: string
-): Promise<void> => {
+) => {
 	if (response.ok) return
 	throw new Error(await fetchFailedMessage(url, response))
 }
@@ -178,7 +185,7 @@ export const throwIfHttpNotOk = async (
 export const throwHttpError = async (
 	contextLabel: string,
 	response: Response
-): Promise<never> => {
+) => {
 	const hint = await jsonErrorHintFromResponse(response)
 	throw new Error(
 		hint ?
@@ -195,7 +202,7 @@ export const throwHttpError = async (
 export const getText = async (
 	url: string,
 	options: CorsAwareFetchOptions
-): Promise<string> => {
+) => {
 	const response = await corsFetch(url, options)
 
 	if (!response.ok)
@@ -206,16 +213,16 @@ export const getText = async (
 
 /**
 	* `GET` (or custom `init`) then `Response.json()` after `res.ok`.
-	* Pass `T` when the wire shape is known; otherwise defaults to `JsonValue`.
+	* Pass a type argument when the wire shape is known; otherwise defaults to `JsonValue`.
 	*/
-export const getJson = async <T = JsonValue>(
+export const getJson = async <_Type = JsonValue>(
 	url: string,
 	options: CorsAwareFetchOptions
-): Promise<T> => {
+) => {
 	const response = await corsFetch(url, options)
 
 	if (!response.ok)
 		throw new Error(await fetchFailedMessage(url, response))
 
-	return response.json()
+	return response.json<_Type>()
 }

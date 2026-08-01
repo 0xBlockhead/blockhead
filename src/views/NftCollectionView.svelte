@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
@@ -14,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -22,9 +22,8 @@
 
 
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import NftTokensView from '$/views/NftTokensView.svelte'
-	import RoyaltyRight_TimestampsView from '$/views/RoyaltyRight_TimestampsView.svelte'
 	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 </script>
 
@@ -32,15 +31,10 @@
 <EntityView
 	entityType={EntityType.NftCollection}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'NFT collection'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		NFT collection
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -49,7 +43,6 @@
 					<AssetInstanceView
 						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -63,12 +56,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<NftTokensView
-						selection={tokensResource}
+					<EntitiesList
+						entityType={EntityType.NftToken}
 						countResource={tokensResource.count}
 						title='tokens'
+						open={true}
 						id='tokens'
-					/>
+						resource={tokensResource()}
+					>
+						{#snippet Item({ item: nftToken })}
+							<EntityView
+								entityType={EntityType.NftToken}
+								entitySelector={nftToken[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -78,12 +80,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<RoyaltyRight_TimestampsView
-						selection={royaltyTimestampsResource}
+					<EntitiesList
+						entityType={EntityType.RoyaltyRight_Timestamp}
 						countResource={royaltyTimestampsResource.count}
 						title='royalty timestamps'
+						open={true}
 						id='royalty-timestamps'
-					/>
+						resource={royaltyTimestampsResource()}
+					>
+						{#snippet Item({ item: royaltyRightTimestamp })}
+							<EntityView
+								entityType={EntityType.RoyaltyRight_Timestamp}
+								entitySelector={royaltyRightTimestamp[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

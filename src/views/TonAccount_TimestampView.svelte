@@ -151,7 +151,6 @@
 					<TonAccountView
 						selection={select(EntityType.TonAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

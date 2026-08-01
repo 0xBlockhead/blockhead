@@ -23,7 +23,7 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.Defillama_OpenApi,
+			Source.Defillama_Rest,
 		],
 	}))
 	const erc4626VaultTimestamp = $derived(viewSelection({
@@ -74,7 +74,6 @@
 					<Erc4626VaultView
 						selection={select(EntityType.Erc4626Vault, selection.entitySelector.$vault)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

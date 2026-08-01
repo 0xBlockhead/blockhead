@@ -21,7 +21,6 @@ const {
 		endpoints: [{
 			endpointKind: 'HttpUrl',
 			locator: 'https://eth.hypersync.xyz',
-			origin: 'https://eth.hypersync.xyz',
 			corsEnabled: false,
 		}],
 		wireProtocol: 'RawHttp',
@@ -34,7 +33,6 @@ const {
 		artifacts: [{
 			kind: 'HandwrittenTypes',
 			path: 'src/sources/Envio/HyperSync/types.ts',
-			generated: false,
 			referenceUrl: 'https://docs.envio.dev/docs/HyperSync/overview',
 		}],
 	},
@@ -88,11 +86,13 @@ describe('Envio HyperSync query boundary', () => {
 			toBlock: 19_000_001n,
 		})).resolves.toMatchObject({
 			resolution: EnvioHyperSyncResolution.Complete,
-			nextBlock: 19_000_001,
-			archiveHeight: 19_000_020,
-			blocks: [{
-				number: 19_000_000,
-			}],
+			next_block: 19_000_001,
+			archive_height: 19_000_020,
+			data: {
+				blocks: [{
+					number: 19_000_000,
+				}],
+			},
 		})
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toEqual({
 			from_block: 19_000_000,
@@ -167,7 +167,7 @@ describe('Envio HyperSync query boundary', () => {
 			toBlock: 19_000_010n,
 		})).resolves.toMatchObject({
 			resolution: EnvioHyperSyncResolution.Partial,
-			nextBlock: 19_000_005,
+			next_block: 19_000_005,
 		})
 
 		sourceFetch.mockResolvedValueOnce(Response.json(evmBlockRollback))
@@ -183,6 +183,7 @@ describe('Envio HyperSync query boundary', () => {
 			},
 		})).resolves.toMatchObject({
 			resolution: EnvioHyperSyncResolution.Reorg,
+			rollback_guard: evmBlockRollback.rollback_guard,
 		})
 	})
 })
@@ -229,19 +230,20 @@ describe('Envio HyperSync resolver', () => {
 		expect(firstHttpUrlForBinding).toHaveBeenCalledWith(resolverBinding)
 	})
 
-	it.each([
-		['eip155', '137'],
-		['solana', '1'],
-	])('rejects unsupported %s:%s before transport', async (namespace, reference) => {
-		await expect(envioHyperSync.resolvers[0].resolve['EvmNetworkBlockNumber'].resolve({
-			$network: {
-				caip2: {
-					namespace,
-					reference,
-				},
-			},
+	it('preserves a Slug network selector through transaction references', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json(evmBlockPage))
+		const slugNetwork = {
+			slug: 'ethereum',
+		}
+		const resolved = await envioHyperSync.resolvers[0].resolve['EvmNetworkBlockNumber'].resolve({
+			$network: slugNetwork,
 			blockNumber: 19_000_000n,
-		}, context)).rejects.toThrow('unsupported network')
-		expect(sourceFetch).not.toHaveBeenCalled()
+		}, context)
+
+		expect(resolved.transactions).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$network: slugNetwork,
+			},
+		}])
 	})
 })

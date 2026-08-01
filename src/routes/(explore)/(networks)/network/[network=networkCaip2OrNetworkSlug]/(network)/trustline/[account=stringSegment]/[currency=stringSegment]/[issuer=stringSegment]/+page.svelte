@@ -15,13 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.XrplTrustline, data.selector, {
-		fields: {
-			$account: true,
-			$issuerAccount: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -36,6 +29,13 @@
 
 <Page>
 	<XrplTrustlineView
-		selection={pageSelection}
+		selection={
+			select(EntityType.XrplTrustline, data.selector, {
+				fields: {
+					$account: true,
+					$issuerAccount: true,
+				},
+			})
+		}
 	/>
 </Page>

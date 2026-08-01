@@ -14,7 +14,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.covalenthq.com',
-				origin: 'https://api.covalenthq.com',
 				corsEnabled: false,
 			},
 		],
@@ -33,11 +32,10 @@ const bindings = [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/Covalent/GoldRush/Rest/types.ts',
-				generated: false,
 				referenceUrl: 'https://goldrush.dev/docs/skills/goldrush-foundational-api/references/endpoints-transactions/',
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.GoldRushFoundational_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

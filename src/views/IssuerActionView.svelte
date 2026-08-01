@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -32,15 +31,10 @@
 <EntityView
 	entityType={EntityType.IssuerAction}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'issuer action'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		issuer action
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -80,7 +74,6 @@
 								selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
 								prefetched={assetInstance}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -123,7 +116,6 @@
 									selection={select(EntityType.IssuerPower, issuerPower[EntityMetaKey.Selector])}
 									prefetched={issuerPower}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

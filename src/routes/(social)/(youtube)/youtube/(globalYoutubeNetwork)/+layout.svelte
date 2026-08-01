@@ -19,6 +19,8 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = resolve('/(social)/(youtube)/youtube')
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -28,16 +30,18 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/(social)/(youtube)/youtube')}
+	href={detailHref}
 >
 	{#snippet Summary()}
 		<GlobalYoutubeNetworkView
 			selection={
-				select(EntityType._GlobalYoutubeNetwork, data.selector, { sources: [
-					Source.Constants_Internal,
-				] })
+				select(EntityType._GlobalYoutubeNetwork, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
 			}
-			href={resolve('/(social)/(youtube)/youtube')}
+			href={detailHref}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

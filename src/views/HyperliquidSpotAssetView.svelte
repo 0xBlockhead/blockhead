@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
@@ -24,7 +25,7 @@
 
 	const hyperliquidSpotAsset = $derived(selection({
 		sources: selection.sources ?? [
-			Source.Hyperliquid_Rest,
+			Source.Hyperliquid,
 		],
 	})({
 		fields: {
@@ -40,12 +41,12 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
-	import HyperliquidSpotPairsView from '$/views/HyperliquidSpotPairsView.svelte'
 </script>
 
 
@@ -77,7 +78,6 @@
 			<NetworkView
 				selection={select(EntityType.Network, selection.entitySelector.$network)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -90,7 +90,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -202,33 +201,41 @@
 			{/snippet}
 
 			{#snippet SectionHyperliquidSpotAssetBasePairs({ id, label, open })}
-				<HyperliquidSpotPairsView
-					selection={selection.$$basePairs}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.HyperliquidSpotPair}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No base pairs.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$basePairs()}
+				>
+					{#snippet Item({ item: hyperliquidSpotPair })}
+						<EntityView
+							entityType={EntityType.HyperliquidSpotPair}
+							entitySelector={hyperliquidSpotPair[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionHyperliquidSpotAssetQuotePairs({ id, label, open })}
-				<HyperliquidSpotPairsView
-					selection={selection.$$quotePairs}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.HyperliquidSpotPair}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No quote pairs.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$quotePairs()}
+				>
+					{#snippet Item({ item: hyperliquidSpotPair })}
+						<EntityView
+							entityType={EntityType.HyperliquidSpotPair}
+							entitySelector={hyperliquidSpotPair[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>

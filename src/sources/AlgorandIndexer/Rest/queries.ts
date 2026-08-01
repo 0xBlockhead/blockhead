@@ -1,5 +1,6 @@
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import { Source } from '$/sources/Source.ts'
+import { ApiFamily } from '$/sources/SourceBinding.ts'
 import bindings from '$/sources/Nodely/bindings.ts'
 import type {
 	AlgorandIndexerAccountResponse,
@@ -8,7 +9,12 @@ import type {
 	AlgorandIndexerTransactionsPage,
 } from '$/sources/AlgorandIndexer/Rest/types.ts'
 
-const binding = bindings[Source.Nodely_AlgorandIndexer_Rest]
+const binding = Object.fromEntries(
+	bindings[Source.Nodely].map((sourceBinding) => [
+		sourceBinding.apiFamily,
+		sourceBinding,
+	])
+)[ApiFamily.AlgorandIndexerRestApi]
 
 const assertAddress = (
 	address: string,

@@ -33,10 +33,7 @@ const zeroXLowerHexCastHash = (hash: string): CastHash => {
 
 const neynarCastSummaryReference = (cast: NeynarCast) => {
 	if (
-		(cast.object != null && cast.object !== 'cast')
-		||
-		cast.author?.fid == null
-		|| !Number.isSafeInteger(cast.author.fid)
+		!Number.isSafeInteger(cast.author.fid)
 		|| cast.author.fid < 0
 		|| !ZeroExHex.allows(cast.hash)
 		|| cast.hash === '0x'
@@ -91,6 +88,51 @@ const neynarPfpHttpUrl = (
 		)?.url
 }
 
+const neynarCastEmbedRows = (
+	cast: NeynarCast,
+	castId: {
+		fid: number
+		hash: CastHash
+	}
+) => cast.embeds.map((embed, indexInCast) => {
+	const url = 'url' in embed ? optionalNonemptyString(embed.url) : undefined
+	const metadata = 'url' in embed ? embed.metadata?.html : undefined
+	const embeddedCast = 'cast' in embed ? embed.cast : undefined
+	const iconUrl = neynarPfpHttpUrl(
+		metadata?.ogImage?.[0]?.url,
+		{ pageBaseUrl: url }
+	)
+	return {
+		[EntityMetaKey.Selector]: {
+			$cast: castId,
+			indexInCast,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'url')]: url,
+			[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], '$embeddedCast')]: (
+				embeddedCast == null ?
+					undefined
+				:
+					{
+						[EntityMetaKey.Selector]: {
+							fid: embeddedCast.author.fid,
+							hash: zeroXLowerHexCastHash(embeddedCast.hash),
+						},
+					}
+			),
+			[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'title')]: optionalNonemptyString(metadata?.ogTitle),
+			[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'description')]: optionalNonemptyString(metadata?.ogDescription),
+			...(iconUrl != null && {
+				[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'iconUrl')]: iconUrl,
+				...((iconMedia) => iconMedia != null && {
+					[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], '$icon')]: iconMedia,
+				})(mediaFromUrl(iconUrl, MediaType.Image)),
+			}),
+			[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'quotedPreviewText')]: optionalNonemptyString(embeddedCast?.text),
+		},
+	}
+})
+
 
 export default {
 	source: Source.Neynar_Rest,
@@ -108,14 +150,14 @@ export default {
 						})
 						const user = users.find((neynarUser) => neynarUser.fid === fid)
 						if (user == null) throw new Error('Neynar_Rest: user not found')
-						const bioRaw = user.profile?.bio
+						const bioRaw = user.profile.bio
 						const ethAddresses = (
 							[
-								...(user.verified_addresses?.primary?.eth_address != null ?
+								...(user.verified_addresses.primary.eth_address != null ?
 								[user.verified_addresses.primary.eth_address]
 							:
 								[]),
-								...(user.verified_addresses?.eth_addresses ?? []),
+								...user.verified_addresses.eth_addresses,
 							]
 								.map(optionalNonemptyString)
 								.filter((address): address is string => address != null)
@@ -123,11 +165,11 @@ export default {
 						)
 						const solAddresses = (
 							[
-								...(user.verified_addresses?.primary?.sol_address != null ?
+								...(user.verified_addresses.primary.sol_address != null ?
 								[user.verified_addresses.primary.sol_address]
 							:
 								[]),
-								...(user.verified_addresses?.sol_addresses ?? []),
+								...user.verified_addresses.sol_addresses,
 							]
 								.map(optionalNonemptyString)
 								.filter((address): address is string => address != null)
@@ -147,9 +189,7 @@ export default {
 						)
 						const username = optionalNonemptyString(user.username)
 						const displayName = optionalNonemptyString(user.display_name)
-						const bio = optionalNonemptyString(
-							bioRaw != null && typeof bioRaw === 'object' ? bioRaw.text : bioRaw ?? undefined
-						)
+						const bio = optionalNonemptyString(bioRaw.text)
 						const iconUrl = neynarPfpHttpUrl(user.pfp_url)
 						const iconMedia = iconUrl == null ? undefined : mediaFromUrl(iconUrl, MediaType.Image)
 						return {
@@ -231,22 +271,22 @@ export default {
 							if (user == null) throw new Error('Neynar_Rest: user not found')
 							const ethAddresses = (
 								[
-									...(user.verified_addresses?.primary?.eth_address != null ?
+									...(user.verified_addresses.primary.eth_address != null ?
 										[user.verified_addresses.primary.eth_address]
 									:
 										[]),
-									...(user.verified_addresses?.eth_addresses ?? []),
+									...user.verified_addresses.eth_addresses,
 								]
 									.map(optionalNonemptyString)
 									.filter((address): address is string => address != null)
 							)
 							const solAddresses = (
 								[
-									...(user.verified_addresses?.primary?.sol_address != null ?
+									...(user.verified_addresses.primary.sol_address != null ?
 										[user.verified_addresses.primary.sol_address]
 									:
 										[]),
-									...(user.verified_addresses?.sol_addresses ?? []),
+									...user.verified_addresses.sol_addresses,
 								]
 									.map(optionalNonemptyString)
 									.filter((address): address is string => address != null)
@@ -324,7 +364,6 @@ export default {
 								parentUrl: undefined,
 								rootParentUrl: undefined,
 								timestamp: undefined,
-								mentions: undefined,
 								mentionedProfileFids: undefined,
 								mentionedChannelIds: undefined,
 								$$embeds: [],
@@ -332,9 +371,7 @@ export default {
 								$channel: undefined,
 							}
 						const castHash = zeroXLowerHexCastHash(cast.hash)
-						const timestamp = Date.parse(cast.timestamp ?? '')
-						if (cast.author?.fid == null)
-							throw new Error('Neynar_Rest: cast missing author fid')
+						const timestamp = Date.parse(cast.timestamp)
 						if (
 						castHash !== zeroXLowerHexCastHash(hash)
 						) {
@@ -352,13 +389,11 @@ export default {
 							hash: castHash,
 						}
 						const mentionFids = (
-							(cast.mentioned_profiles ?? [])
-								.map((u) => u.fid)
-								.filter((fidValue): fidValue is number => fidValue != null)
+							cast.mentioned_profiles.map((user) => user.fid)
 						)
 						const mentionChIds = (
-							(cast.mentioned_channels ?? [])
-								.map((ch) => optionalNonemptyString(ch.id))
+							cast.mentioned_channels
+								.map((channel) => optionalNonemptyString(channel.id))
 								.filter((idValue): idValue is string => idValue != null)
 						)
 						const channelId = optionalNonemptyString(cast.channel?.id)
@@ -368,7 +403,7 @@ export default {
 							fid: cast.author.fid,
 							hash: castHash,
 							clientUrl: undefined,
-							...(cast.author.username != null && cast.author.username !== '' && {
+							...(cast.author.username !== '' && {
 								username: cast.author.username,
 							}),
 							$author: {
@@ -384,7 +419,7 @@ export default {
 							),
 							text: optionalNonemptyString(cast.text) ?? '',
 							$parentCast: (
-								cast.parent_author?.fid == null
+								cast.parent_author.fid == null
 							|| cast.parent_hash == null
 							|| cast.parent_hash === '' ?
 									undefined
@@ -399,56 +434,9 @@ export default {
 							...(parentUrl != null && { parentUrl }),
 							...(rootParentUrl != null && { rootParentUrl }),
 							timestamp,
-							mentions: cast.mentions,
 							mentionedProfileFids: mentionFids.length > 0 ? mentionFids : undefined,
 							mentionedChannelIds: mentionChIds.length > 0 ? mentionChIds : undefined,
-							$$embeds: (cast.embeds ?? []).map((embed, indexInCast) => {
-								const ogImages = embed.metadata?.html?.ogImage
-								const og0 = ogImages?.[0]?.url
-								return (({
-									[EntityMetaKey.Selector]: {
-										$cast: castId,
-										indexInCast,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'url')]: optionalNonemptyString(embed.url),
-										[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], '$embeddedCast')]: (
-										embed.cast?.hash != null && embed.cast.author?.fid != null ?
-											{
-												[EntityMetaKey.Selector]: {
-													fid: embed.cast.author.fid,
-													hash: zeroXLowerHexCastHash(String(embed.cast.hash)),
-												},
-											}
-										:
-											embed.cast_id?.fid != null && embed.cast_id.hash != null ?
-												{
-													[EntityMetaKey.Selector]: {
-														fid: embed.cast_id.fid,
-														hash: zeroXLowerHexCastHash(String(embed.cast_id.hash)),
-													},
-												}
-											:
-												undefined
-										),
-										[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'title')]: optionalNonemptyString(embed.metadata?.html?.ogTitle),
-										[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'description')]: optionalNonemptyString(embed.metadata?.html?.ogDescription),
-									...((iconUrl) => (
-										iconUrl == null ?
-											{}
-										:
-												{
-												[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'iconUrl')]: iconUrl,
-												...( (iconMedia) => iconMedia != null && { [entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], '$icon')]: iconMedia })(mediaFromUrl(iconUrl, MediaType.Image)),
-											}
-									))(neynarPfpHttpUrl(
-										og0 ?? undefined,
-										{ pageBaseUrl: optionalNonemptyString(embed.url) }
-									)),
-										[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'quotedPreviewText')]: optionalNonemptyString(embed.cast?.text),
-									},
-								}))
-							}),
+							$$embeds: neynarCastEmbedRows(cast, castId),
 							...(cast.thread_hash != null && cast.thread_hash !== '' && {
 								threadHash: zeroXLowerHexCastHash(String(cast.thread_hash)),
 							}),
@@ -471,9 +459,7 @@ export default {
 						if (cast == null)
 							throw new Error('Neynar_Rest: cast not found')
 						const castHash = zeroXLowerHexCastHash(cast.hash)
-						const timestamp = Date.parse(cast.timestamp ?? '')
-						if (cast.author?.fid == null)
-							throw new Error('Neynar_Rest: cast missing author fid')
+						const timestamp = Date.parse(cast.timestamp)
 						if (!Number.isFinite(timestamp))
 							throw new Error('Neynar_Rest: cast missing timestamp')
 						const castId = {
@@ -481,13 +467,11 @@ export default {
 							hash: castHash,
 						}
 						const mentionFids = (
-							(cast.mentioned_profiles ?? [])
-								.map((u) => u.fid)
-								.filter((fidValue): fidValue is number => fidValue != null)
+							cast.mentioned_profiles.map((user) => user.fid)
 						)
 						const mentionChIds = (
-							(cast.mentioned_channels ?? [])
-								.map((ch) => optionalNonemptyString(ch.id))
+							cast.mentioned_channels
+								.map((channel) => optionalNonemptyString(channel.id))
 								.filter((idValue): idValue is string => idValue != null)
 						)
 						const channelId = optionalNonemptyString(cast.channel?.id)
@@ -496,7 +480,7 @@ export default {
 						return {
 							fid: cast.author.fid,
 							hash: castHash,
-							...(cast.author.username != null && cast.author.username !== '' && {
+							...(cast.author.username !== '' && {
 								username: cast.author.username,
 							}),
 							clientUrl,
@@ -513,7 +497,7 @@ export default {
 							),
 							text: optionalNonemptyString(cast.text) ?? '',
 							$parentCast: (
-								cast.parent_author?.fid == null
+								cast.parent_author.fid == null
 							|| cast.parent_hash == null
 							|| cast.parent_hash === '' ?
 									undefined
@@ -528,56 +512,9 @@ export default {
 							...(parentUrl != null && { parentUrl }),
 							...(rootParentUrl != null && { rootParentUrl }),
 							timestamp,
-							mentions: cast.mentions,
 							mentionedProfileFids: mentionFids.length > 0 ? mentionFids : undefined,
 							mentionedChannelIds: mentionChIds.length > 0 ? mentionChIds : undefined,
-							$$embeds: (cast.embeds ?? []).map((embed, indexInCast) => {
-								const ogImages = embed.metadata?.html?.ogImage
-								const og0 = ogImages?.[0]?.url
-								return (({
-									[EntityMetaKey.Selector]: {
-										$cast: castId,
-										indexInCast,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'url')]: optionalNonemptyString(embed.url),
-										[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], '$embeddedCast')]: (
-										embed.cast?.hash != null && embed.cast.author?.fid != null ?
-											{
-												[EntityMetaKey.Selector]: {
-													fid: embed.cast.author.fid,
-													hash: zeroXLowerHexCastHash(String(embed.cast.hash)),
-												},
-											}
-										:
-											embed.cast_id?.fid != null && embed.cast_id.hash != null ?
-												{
-													[EntityMetaKey.Selector]: {
-														fid: embed.cast_id.fid,
-														hash: zeroXLowerHexCastHash(String(embed.cast_id.hash)),
-													},
-												}
-											:
-												undefined
-										),
-										[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'title')]: optionalNonemptyString(embed.metadata?.html?.ogTitle),
-										[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'description')]: optionalNonemptyString(embed.metadata?.html?.ogDescription),
-									...((iconUrl) => (
-										iconUrl == null ?
-											{}
-										:
-											{
-												[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'iconUrl')]: iconUrl,
-												...((iconMedia) => iconMedia != null && { [entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], '$icon')]: iconMedia })(mediaFromUrl(iconUrl, MediaType.Image)),
-											}
-									))(neynarPfpHttpUrl(
-										og0 ?? undefined,
-										{ pageBaseUrl: optionalNonemptyString(embed.url) }
-									)),
-										[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'quotedPreviewText')]: optionalNonemptyString(embed.cast?.text),
-									},
-								}))
-							}),
+							$$embeds: neynarCastEmbedRows(cast, castId),
 							...(cast.thread_hash != null && cast.thread_hash !== '' && {
 								threadHash: zeroXLowerHexCastHash(String(cast.thread_hash)),
 							}),
@@ -602,7 +539,6 @@ export default {
 				parentUrl: (cast) => cast.parentUrl,
 				rootParentUrl: (cast) => cast.rootParentUrl,
 				timestamp: (cast) => cast.timestamp,
-				mentions: (cast) => cast.mentions,
 				mentionedProfileFids: (cast) => cast.mentionedProfileFids,
 				mentionedChannelIds: (cast) => cast.mentionedChannelIds,
 				$$embeds: (cast) => cast.$$embeds,
@@ -625,19 +561,19 @@ export default {
 									type: 'hash',
 								}
 							)
-						)?.conversation?.cast
+						)?.conversation.cast
 						if (conversationCast == null)
 							throw new Error('Neynar_Rest: conversation subject not found')
 						if (
-							conversationCast.author?.fid !== fid
+							conversationCast.author.fid !== fid
 							|| zeroXLowerHexCastHash(conversationCast.hash) !== parentHash
 						)
 							throw new Error('Neynar_Rest: conversation subject mismatch')
 						return {
 							$$directReplies: (
-								conversationCast.direct_replies ?? []
+								conversationCast.direct_replies
 							).filter((reply) => (
-								reply.parent_author?.fid === fid
+								reply.parent_author.fid === fid
 								&& reply.parent_hash != null
 								&& zeroXLowerHexCastHash(reply.parent_hash) === parentHash
 							)).flatMap(neynarCastSummaryReference)
@@ -667,9 +603,9 @@ export default {
 									type: 'url',
 								}
 							)
-						)?.conversation?.cast
+						)?.conversation.cast
 						if (
-							conversationCast?.author?.fid == null
+							conversationCast == null
 							|| !ZeroExHex.allows(conversationCast.hash)
 							|| conversationCast.hash === '0x'
 						)
@@ -677,9 +613,9 @@ export default {
 						const parentHash = zeroXLowerHexCastHash(conversationCast.hash)
 						return {
 							$$directReplies: (
-								conversationCast.direct_replies ?? []
+								conversationCast.direct_replies
 							).filter((reply) => (
-								reply.parent_author?.fid === conversationCast.author?.fid
+								reply.parent_author.fid === conversationCast.author.fid
 								&& reply.parent_hash != null
 								&& zeroXLowerHexCastHash(reply.parent_hash) === parentHash
 							)).flatMap(neynarCastSummaryReference)
@@ -778,40 +714,38 @@ export default {
 				},
 			},
 		})({
-				$$entries: {
-					select: (page, entitySelector) => (
-						(page.casts ?? [])
-							.filter((cast) => {
-								const fid = Object.getOwnPropertyDescriptor(entitySelector, 'fid')?.value
-								if (fid != null && cast.author?.fid !== fid) return false
-								const channelId = Object.getOwnPropertyDescriptor(entitySelector, 'channelId')?.value
-								return channelId == null || cast.channel?.id === channelId
-							})
-							.flatMap(neynarCastSummaryReference)
-					),
-					continuation: (page, entitySelector) => (
-						page.next?.cursor == null || page.next.cursor === '' ?
-							{
-								operation: 'feed',
-								target: 'api',
-								...(Object.getOwnPropertyDescriptor(entitySelector, 'viewerFid')?.value != null && {
-									viewerScope: String(Object.getOwnPropertyDescriptor(entitySelector, 'viewerFid')?.value),
-								}),
-								terminal: true,
-							}
-						:
-							{
-								operation: 'feed',
-								target: 'api',
-								...(Object.getOwnPropertyDescriptor(entitySelector, 'viewerFid')?.value != null && {
-									viewerScope: String(Object.getOwnPropertyDescriptor(entitySelector, 'viewerFid')?.value),
-								}),
-								terminal: false,
-								token: page.next.cursor,
-							}
-					),
-				},
-			}),
+			$$entries: {
+				select: (page, entitySelector) => (
+					page.casts
+						.filter((cast) => {
+							if ('fid' in entitySelector && cast.author.fid !== entitySelector.fid) return false
+							return !('channelId' in entitySelector) || cast.channel?.id === entitySelector.channelId
+						})
+						.flatMap(neynarCastSummaryReference)
+				),
+				continuation: (page, entitySelector) => (
+					page.next.cursor == null || page.next.cursor === '' ?
+						{
+							operation: 'feed',
+							target: 'api',
+							...('viewerFid' in entitySelector && {
+								viewerScope: String(entitySelector.viewerFid),
+							}),
+							terminal: true,
+						}
+					:
+						{
+							operation: 'feed',
+							target: 'api',
+							...('viewerFid' in entitySelector && {
+								viewerScope: String(entitySelector.viewerFid),
+							}),
+							terminal: false,
+							token: page.next.cursor,
+						}
+				),
+			},
+		}),
 
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterUser,
@@ -838,12 +772,12 @@ export default {
 		})({
 				$$casts: {
 					select: (page, { fid }) => (
-						(page.casts ?? [])
-							.filter((cast) => cast.author?.fid === fid)
+						page.casts
+							.filter((cast) => cast.author.fid === fid)
 							.flatMap(neynarCastSummaryReference)
 					),
 					continuation: (page) => (
-						page.next?.cursor == null || page.next.cursor === '' ?
+						page.next.cursor == null || page.next.cursor === '' ?
 							{
 								operation: 'user-feed',
 								target: 'api',
@@ -886,12 +820,12 @@ export default {
 		})({
 				$$casts: {
 					select: (page, { id }) => (
-						(page.casts ?? [])
+						page.casts
 							.filter((cast) => cast.channel?.id === id)
 							.flatMap(neynarCastSummaryReference)
 					),
 					continuation: (page) => (
-						page.next?.cursor == null || page.next.cursor === '' ?
+						page.next.cursor == null || page.next.cursor === '' ?
 							{
 								operation: 'channel-feed',
 								target: 'api',

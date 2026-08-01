@@ -49,7 +49,6 @@
 			selection={select(EntityType.ZcashShieldedPool, selection.entitySelector.$pool)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -69,7 +68,6 @@
 					<UtxoBlockView
 						selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -80,7 +78,6 @@
 					<ZcashShieldedPoolView
 						selection={select(EntityType.ZcashShieldedPool, selection.entitySelector.$pool)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

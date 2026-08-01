@@ -43,7 +43,6 @@
 			selection={select(EntityType.EnsName, selection.entitySelector.$name)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -51,7 +50,6 @@
 		<AccountView
 			selection={select(EntityType.Account, selection.entitySelector.$account)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -63,7 +61,6 @@
 					<AccountView
 						selection={select(EntityType.Account, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -74,7 +71,6 @@
 					<EnsNameView
 						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

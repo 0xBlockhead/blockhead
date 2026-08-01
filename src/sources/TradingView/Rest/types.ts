@@ -1,8 +1,17 @@
-export type TradingViewScannerColumn = 'name' | 'close' | 'update_mode'
+export type TradingViewScannerColumn =
+	| 'close'
+	| 'name'
+	| 'update_mode'
+	| 'update_time'
 
 export type TradingViewScannerDatum = {
-	s?: string
-	d?: unknown[]
+	s: string
+	d: [
+		name: string | null,
+		price: number | null,
+		updateMode: string | null,
+		updateTimeSec: number | null,
+	]
 }
 
 export type TradingViewScannerResponse = {
@@ -15,4 +24,5 @@ export type TradingViewQuote = {
 	name: string
 	price: number
 	updateMode: string
+	updateTimeSec: number
 }

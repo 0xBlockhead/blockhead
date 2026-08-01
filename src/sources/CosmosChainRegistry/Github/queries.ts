@@ -6,17 +6,14 @@ import bindings from '$/sources/CosmosChainRegistry/bindings.ts'
 import {
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
-import { githubRawUrl } from '$/sources/_shared/hosts/Github/Http/client.ts'
+import {
+	githubRawUrl,
+	githubRepositoryTargetFromKey,
+} from '$/sources/_shared/hosts/Github/Http/client.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.CosmosChainRegistry_Github]
-
-const cosmosChainRegistryRepo = {
-	owner: 'cosmos',
-	repo: 'chain-registry',
-	path: '',
-	ref: 'master',
-}
+const target = githubRepositoryTargetFromKey(binding.target.key)
 
 export const getChain = ({
 	chainName,
@@ -26,7 +23,7 @@ export const getChain = ({
 	sourceGetJson<CosmosChainRegistryChain>(
 		binding,
 		githubRawUrl({
-			...cosmosChainRegistryRepo,
+			...target,
 			path: `${chainName}/chain.json`,
 		})
 	)
@@ -40,7 +37,7 @@ export const getAssetList = ({
 	sourceGetJson<CosmosChainRegistryAssetList>(
 		binding,
 		githubRawUrl({
-			...cosmosChainRegistryRepo,
+			...target,
 			path: `${chainName}/assetlist.json`,
 		})
 	)

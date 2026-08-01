@@ -207,7 +207,6 @@
 					<LensAccountView
 						selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -37,10 +37,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Cardano native asset timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -49,7 +45,6 @@
 					<CardanoNativeAssetView
 						selection={select(EntityType.CardanoNativeAsset, selection.entitySelector.$asset)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

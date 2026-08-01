@@ -16,14 +16,14 @@ vi.mock('$/sources/Farcaster/Rest/client.ts', () => ({
 }))
 
 const {
-	getCastAndDirectRepliesByUsernameAndHashPrefix,
 	getPrimaryAddress,
+	getUserThreadCasts,
 } = await import(
 	'$/sources/Farcaster/Rest/queries.ts'
 )
-describe('Farcaster public thread direct replies', () => {
-	it('keeps only casts whose exact parent is the focal cast', async () => {
-		farcasterGet.mockResolvedValueOnce({
+describe('Farcaster public thread endpoint', () => {
+	it('returns the endpoint-native ordered thread response', async () => {
+		const response = {
 			result: {
 				casts: [
 					{
@@ -57,17 +57,21 @@ describe('Farcaster public thread direct replies', () => {
 					},
 				],
 			},
-		})
+		}
+		farcasterGet.mockResolvedValueOnce(response)
 
-		await expect(getCastAndDirectRepliesByUsernameAndHashPrefix({
+		await expect(getUserThreadCasts({
 			username: 'alice',
 			castHashPrefix: '0xf0ca1',
-		})).resolves.toEqual({
-			cast: expect.objectContaining({ hash: '0xF0CA1' }),
-			directReplies: [
-				expect.objectContaining({ hash: '0xD1RECT' }),
-			],
-		})
+		})).resolves.toEqual(response)
+		expect(farcasterGet).toHaveBeenCalledWith(
+			'/~api/v2/user-thread-casts',
+			{
+				username: 'alice',
+				castHashPrefix: '0xf0ca1',
+				limit: 15,
+			}
+		)
 	})
 
 	it('rejects a primary address for a different account or protocol', async () => {

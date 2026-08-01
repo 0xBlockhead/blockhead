@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -22,7 +21,6 @@
 
 
 	// Components
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import SorobanContractView from '$/views/SorobanContractView.svelte'
 </script>
@@ -31,15 +29,10 @@
 <EntityView
 	entityType={EntityType.SorobanContractStorageEntry}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'soroban contract storage entry'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		soroban contract storage entry
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +41,6 @@
 					<SorobanContractView
 						selection={select(EntityType.SorobanContract, selection.entitySelector.$contract)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

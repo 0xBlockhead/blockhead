@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		YoutubeVideoSchema,
 		{
 			videoId: decodeURIComponent(params.videoId),
-		}
+		},
+		'VideoId'
 	)
 	if (youtubeVideoVideoIdSelector instanceof arktype.errors)
 		error(404, 'Invalid YoutubeVideo selector')

@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -38,15 +37,10 @@
 <EntityView
 	entityType={EntityType.StellarTrade}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'stellar trade'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		stellar trade
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -55,7 +49,6 @@
 					<StellarNetworkView
 						selection={select(EntityType.StellarNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -108,7 +101,6 @@
 									selection={select(EntityType.StellarAccount, stellarAccount[EntityMetaKey.Selector])}
 									prefetched={stellarAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -128,7 +120,6 @@
 									selection={select(EntityType.StellarAccount, stellarAccount[EntityMetaKey.Selector])}
 									prefetched={stellarAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -148,7 +139,6 @@
 									selection={select(EntityType.StellarOffer, stellarOffer[EntityMetaKey.Selector])}
 									prefetched={stellarOffer}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -168,7 +158,6 @@
 									selection={select(EntityType.StellarOffer, stellarOffer[EntityMetaKey.Selector])}
 									prefetched={stellarOffer}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -188,7 +177,6 @@
 									selection={select(EntityType.StellarLiquidityPool, stellarLiquidityPool[EntityMetaKey.Selector])}
 									prefetched={stellarLiquidityPool}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -208,7 +196,6 @@
 									selection={select(EntityType.StellarLiquidityPool, stellarLiquidityPool[EntityMetaKey.Selector])}
 									prefetched={stellarLiquidityPool}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -228,7 +215,6 @@
 									selection={select(EntityType.StellarAsset, stellarAsset[EntityMetaKey.Selector])}
 									prefetched={stellarAsset}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -248,7 +234,6 @@
 									selection={select(EntityType.StellarAsset, stellarAsset[EntityMetaKey.Selector])}
 									prefetched={stellarAsset}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -356,7 +341,6 @@
 									selection={select(EntityType.StellarTransaction, stellarTransaction[EntityMetaKey.Selector])}
 									prefetched={stellarTransaction}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -376,7 +360,6 @@
 									selection={select(EntityType.StellarOperation, stellarOperation[EntityMetaKey.Selector])}
 									prefetched={stellarOperation}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

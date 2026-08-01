@@ -79,7 +79,6 @@
 					<SolanaValidatorView
 						selection={select(EntityType.SolanaValidator, selection.entitySelector.$validator)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

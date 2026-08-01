@@ -67,7 +67,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Icon()}
 		<ResourceBoundary resource={nostrProfileMetadataEvent}>
 			{#snippet children(entity)}
@@ -77,7 +76,6 @@
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -106,12 +104,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			One cryptographically signed kind-0 metadata version for a stable Nostr profile.
-		</p>
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -125,7 +117,6 @@
 								selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
 								prefetched={nostrProfile}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

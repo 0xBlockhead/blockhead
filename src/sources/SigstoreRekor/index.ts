@@ -10,8 +10,8 @@ export default {
 	label: 'Sigstore Rekor',
 	sources: [
 		{
-			source: Source.SigstoreRekor_Rest,
-			label: 'Sigstore Rekor REST',
+			source: Source.SigstoreRekor,
+			label: 'Sigstore Rekor',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

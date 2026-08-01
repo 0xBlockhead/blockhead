@@ -12,7 +12,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['A point-in-time observation of an EVM-compatible network.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.EvmNetwork_Timestamp> = $props()
@@ -27,7 +26,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.EvmNetwork_Timestamp}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {

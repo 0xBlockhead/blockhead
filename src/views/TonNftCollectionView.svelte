@@ -47,10 +47,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		TON NFT collection
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -59,7 +55,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -83,7 +78,6 @@
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
 									prefetched={tonAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -121,12 +115,7 @@
 			{#snippet SectionTonNftCollectionItems({ id, label, open })}
 				<TonNftItemsView
 					selection={selection.$$items}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No items.'
 					id={`${id}-list`}
@@ -136,12 +125,7 @@
 			{#snippet SectionTonNftCollectionTransfers({ id, label, open })}
 				<TonNftTransfersView
 					selection={selection.$$transfers}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No transfers.'
 					id={`${id}-list`}
@@ -173,12 +157,7 @@
 			{#snippet SectionTonNftCollectionTimestamps({ id, label, open })}
 				<TonNftCollection_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No timestamps.'
 					id={`${id}-list`}

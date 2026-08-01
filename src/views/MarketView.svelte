@@ -5,14 +5,11 @@
 	import { resolve } from '$app/paths'
 	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { marketAssetRouteLabelByKind, MarketKind, marketKindByMarketKind } from '$/constants/Market.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { Source } from '$/sources/Source.ts'
-	import Market_Derivative_TimestampView from '$/views/Market_Derivative_TimestampView.svelte'
-	import MarketAssetView from '$/views/MarketAssetView.svelte'
-	import MarketVenueView from '$/views/MarketVenueView.svelte'
 
 
 	// Context
@@ -36,10 +33,13 @@
 
 
 	// Components
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Market_Derivative_TimestampView from '$/views/Market_Derivative_TimestampView.svelte'
+	import MarketAssetView from '$/views/MarketAssetView.svelte'
+	import MarketVenueView from '$/views/MarketVenueView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import MarketPricesView from '$/views/MarketPricesView.svelte'
 	import Market_TimeInterval_TimestampsView from '$/views/Market_TimeInterval_TimestampsView.svelte'
 	import Market_Derivative_TimestampsView from '$/views/Market_Derivative_TimestampsView.svelte'
@@ -71,7 +71,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Icon()}
 		<IconComponent />
 	{/snippet}
@@ -100,7 +99,6 @@
 							selection={select(EntityType.MarketVenue, selection.entitySelector.$marketVenue)}
 							layout={EntityLayout.Value}
 							showTypeAnnotation={false}
-							open={false}
 						/>
 					</dd>
 				</div>
@@ -115,7 +113,7 @@
 							<ResourceBoundary
 								resource={selection.$$derivativeTimestamps({
 									sources: [
-										Source.Coingecko_OpenApi,
+										Source.Coingecko_Rest,
 									],
 									limit: 64,
 								})}
@@ -142,7 +140,6 @@
 							selection={select(EntityType.MarketAsset, selection.entitySelector.$base)}
 							layout={EntityLayout.Value}
 							showTypeAnnotation={false}
-							open={false}
 						/>
 					</dd>
 				</div>
@@ -154,7 +151,6 @@
 							selection={select(EntityType.MarketAsset, selection.entitySelector.$quote)}
 							layout={EntityLayout.Value}
 							showTypeAnnotation={false}
-							open={false}
 						/>
 					</dd>
 				</div>
@@ -163,109 +159,101 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		<ProjectionBoundary
-			resource={selection.Spot}
-		>
-			{#snippet Applicable(projection)}
-				<CollapsibleTabs
-					id={viewDomId + '-carousel-market-spot'}
-					sectionIdPrefix={viewDomId}
-					sections={
-						[
-							{
-								id: 'market-prices',
-								label: 'Spot',
-							},
-							{
-								id: 'market-ohlc',
-								label: 'Candles',
-							},
-						]
-					}
-					data-card
-					class='network-view-collapsible-spot'
-				>
-					{#snippet Summary()}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>Spot</HeadingComponent>
-						</header>
-					{/snippet}
+					{#if selection.entitySelector.marketKind === 'Spot'}
+						<ProjectionBoundary
+							resource={selection.Spot}
+						>
+							{#snippet Applicable(projection)}
+								<CollapsibleTabs
+									id={viewDomId + '-carousel-market-spot'}
+									sectionIdPrefix={viewDomId}
+									sections={
+										[
+											{
+												id: 'market-prices',
+												label: 'Spot',
+											},
+											{
+												id: 'market-ohlc',
+												label: 'Candles',
+											},
+										]
+									}
+									data-card
+									class='network-view-collapsible-spot'
+								>
+									{#snippet Summary()}
+										<header data-row-item="flexible" data-row="wrap gap-4">
+											<HeadingComponent>Spot</HeadingComponent>
+										</header>
+									{/snippet}
 
-					{#snippet SectionMarketPrices({ id, label, open })}
-						<MarketPricesView
-							selection={selection.$$marketPrices}
-							CollapsibleProps={{ canToggle: false }}
-							collapsible={false}
-							data-column-item="flexible"
-							data-card
-							data-scroll-container
-							open={open}
-							title={label}
-							emptyText='No spot market prices.'
-							id={`${id}-list`}
-						/>
-					{/snippet}
+									{#snippet SectionMarketPrices({ id, label, open })}
+										<MarketPricesView
+											selection={selection.$$marketPrices}
+											collapsible={false}
+											title={label}
+											emptyText='No spot market prices.'
+											id={`${id}-list`}
+										/>
+									{/snippet}
 
-					{#snippet SectionMarketOhlc({ id, label, open })}
-						<Market_TimeInterval_TimestampsView
-							selection={selection.$$marketTimeIntervalTimestamps}
-							CollapsibleProps={{ canToggle: false }}
-							collapsible={false}
-							data-column-item="flexible"
-							data-card
-							data-scroll-container
-							open={open}
-							title={label}
-							emptyText='No OHLC candles.'
-							id={`${id}-list`}
-						/>
-					{/snippet}
+									{#snippet SectionMarketOhlc({ id, label, open })}
+										<Market_TimeInterval_TimestampsView
+											selection={selection.$$marketTimeIntervalTimestamps}
+											collapsible={false}
+											title={label}
+											emptyText='No OHLC candles.'
+											id={`${id}-list`}
+										/>
+									{/snippet}
 
-				</CollapsibleTabs>
-			{/snippet}
-		</ProjectionBoundary>
+								</CollapsibleTabs>
+							{/snippet}
+						</ProjectionBoundary>
+					{/if}
 
-		<ProjectionBoundary
-			resource={selection.Derivative}
-		>
-			{#snippet Applicable(projection)}
-				<CollapsibleTabs
-					id={viewDomId + '-carousel-market-derivatives'}
-					sectionIdPrefix={viewDomId}
-					sections={
-						[
-							{
-								id: 'market-derivative-timestamps',
-								label: 'Derivative observations',
-							},
-						]
-					}
-					data-card
-					class='network-view-collapsible-derivatives'
-				>
-					{#snippet Summary()}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>Derivative observations</HeadingComponent>
-						</header>
-					{/snippet}
+					{#if [
+			'Perpetual',
+			'Futures',
+		].includes(selection.entitySelector.marketKind)}
+						<ProjectionBoundary
+							resource={selection.Derivative}
+						>
+							{#snippet Applicable(projection)}
+								<CollapsibleTabs
+									id={viewDomId + '-carousel-market-derivatives'}
+									sectionIdPrefix={viewDomId}
+									sections={
+										[
+											{
+												id: 'market-derivative-timestamps',
+												label: 'Derivative observations',
+											},
+										]
+									}
+									data-card
+									class='network-view-collapsible-derivatives'
+								>
+									{#snippet Summary()}
+										<header data-row-item="flexible" data-row="wrap gap-4">
+											<HeadingComponent>Derivative observations</HeadingComponent>
+										</header>
+									{/snippet}
 
-					{#snippet SectionMarketDerivativeTimestamps({ id, label, open })}
-						<Market_Derivative_TimestampsView
-							selection={selection.$$derivativeTimestamps}
-							CollapsibleProps={{ canToggle: false }}
-							collapsible={false}
-							data-column-item="flexible"
-							data-card
-							data-scroll-container
-							open={open}
-							title={label}
-							emptyText='No derivative observations.'
-							id={`${id}-list`}
-						/>
-					{/snippet}
+									{#snippet SectionMarketDerivativeTimestamps({ id, label, open })}
+										<Market_Derivative_TimestampsView
+											selection={selection.$$derivativeTimestamps}
+											collapsible={false}
+											title={label}
+											emptyText='No derivative observations.'
+											id={`${id}-list`}
+										/>
+									{/snippet}
 
-				</CollapsibleTabs>
-			{/snippet}
-		</ProjectionBoundary>
+								</CollapsibleTabs>
+							{/snippet}
+						</ProjectionBoundary>
+					{/if}
 	{/snippet}
 </EntityView>

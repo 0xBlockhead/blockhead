@@ -68,7 +68,6 @@
 						prefetched={nostrArticleEvent}
 						href={null}
 						layout={EntityLayout.Title}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -85,12 +84,6 @@
 			<span>kind </span>
 			{selection.entitySelector.kind}
 		</span>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A Nostr long-form article is a replaceable kind-30023 event addressed by author public key and identifier.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -131,7 +124,6 @@
 									selection={select(EntityType.NostrArticleEvent, nostrArticleEvent[EntityMetaKey.Selector])}
 									prefetched={nostrArticleEvent}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

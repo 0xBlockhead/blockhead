@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		CurrencySchema,
 		{
 			iso4217: params.iso4217,
-		}
+		},
+		'Iso4217'
 	)
 	if (currencyIso4217Selector instanceof arktype.errors)
 		error(404, 'Invalid Currency selector')

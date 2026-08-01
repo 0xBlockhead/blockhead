@@ -108,12 +108,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A block in an EVM-compatible execution chain.
-		</p>
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -310,7 +304,6 @@
 										selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
 										prefetched={evmBlock}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>
@@ -332,7 +325,6 @@
 										selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 										prefetched={evmAccount}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>

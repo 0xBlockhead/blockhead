@@ -13,7 +13,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -53,7 +52,6 @@
 	entityType={EntityType._GlobalNostrNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? 'Nostr'}
 	href={
 		href === undefined ?
 			resolve('/(social)/(nostr)/nostr')
@@ -64,16 +62,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Nostr
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Nostr is a relay-based social protocol for signed events. Profiles, notes, reposts, and articles are event kinds; relays are transport endpoints and are not global proof that an event exists everywhere.
-		</p>
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<ResourceBoundary
@@ -205,12 +193,7 @@
 				<NostrProfilesView
 					selection={selection.$$observedProfiles}
 					href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/profiles')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Nostr profiles in this observed.'
 					id={`${id}-list`}
@@ -221,12 +204,7 @@
 				<NostrRelaysView
 					selection={selection.$$observedRelays}
 					href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/relays')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Nostr relays in this observed.'
 					id={`${id}-list`}
@@ -263,12 +241,7 @@
 				<NostrNotesView
 					selection={selection.$$observedNotes}
 					href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/notes')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Nostr notes in this observed.'
 					id={`${id}-list`}
@@ -279,12 +252,7 @@
 				<NostrArticlesView
 					selection={selection.$$observedArticles}
 					href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/articles')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Nostr articles in this observed.'
 					id={`${id}-list`}
@@ -317,12 +285,7 @@
 				<NostrRepostsView
 					selection={selection.$$observedReposts}
 					href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/reposts')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Nostr reposts in this observed.'
 					id={`${id}-list`}

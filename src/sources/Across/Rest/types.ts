@@ -111,9 +111,3 @@ export type AcrossSuggestedFees = {
 	}
 	id: string
 }
-
-export type AcrossObservation<_Value> = {
-	value: _Value
-	observedBy: 'Across_Rest'
-	resolvedAtMs: number
-}

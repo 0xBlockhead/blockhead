@@ -1,12 +1,7 @@
 import {
-	ProposalCategory as OwnedProposalCategory,
-	SpecificationRealm as OwnedSpecificationRealm,
+	ProposalCategory,
+	SpecificationRealm,
 } from '$/constants/SpecificationProposal.ts'
-import {
-	quilibriumNodeInterfaces,
-	quilibriumProtocolFacts,
-	quilibriumServiceLayers,
-} from '$/constants/QuilibriumNetwork.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -17,24 +12,15 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
-const quilibriumDocumentRows = async () => {
-	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-	return [
-		{
-			[EntityMetaKey.Selector]: {
-				realm: SpecificationRealm.Quilibrium,
-				category: ProposalCategory.ProtocolDocument,
-				number: 1,
-			},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentCategory')]: 'Protocol document',
-				[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentTitle')]: 'Quilibrium peer-to-peer MPC platform whitepaper',
-				[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentStatus')]: 'Published',
-				[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentBody')]: 'Quilibrium protocol whitepaper and architecture reference.',
-			},
-		},
-	]
-}
+const quilibriumDocuments = [
+	{
+		number: 1,
+		documentCategory: 'Protocol document',
+		documentTitle: 'Quilibrium peer-to-peer MPC platform whitepaper',
+		documentStatus: 'Published',
+		documentBody: 'Quilibrium protocol whitepaper and architecture reference.',
+	},
+]
 
 export default {
 	source: Source.QuilibriumDocs_Rest,
@@ -46,22 +32,16 @@ export default {
 				RealmCategoryNumber: {
 					appliesTo: [
 						{
-							realm: OwnedSpecificationRealm.Quilibrium,
-							category: OwnedProposalCategory.ProtocolDocument,
+							realm: SpecificationRealm.Quilibrium,
+							category: ProposalCategory.ProtocolDocument,
 						},
 					],
 					resolve: async ({ category, number, realm }) => {
-						const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 						if (realm !== SpecificationRealm.Quilibrium || category !== ProposalCategory.ProtocolDocument)
 							throw new Error('QuilibriumDocs_Rest: proposal resolver only supports Quilibrium protocol documents')
-						const document = (await quilibriumDocumentRows()).find((quilibriumDocument) => quilibriumDocument[EntityMetaKey.Selector].number === number)
+						const document = quilibriumDocuments.find((quilibriumDocument) => quilibriumDocument.number === number)
 						if (document == null) throw new Error(`QuilibriumDocs_Rest: document not found ${number.toString()}`)
-						return {
-							documentCategory: document[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentCategory')],
-							documentTitle: document[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentTitle')],
-							documentStatus: document[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentStatus')],
-							documentBody: document[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentBody')],
-						}
+						return document
 					},
 				},
 			},
@@ -76,7 +56,19 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
-					resolve: quilibriumDocumentRows,
+					resolve: async () => quilibriumDocuments.map((document) => ({
+						[EntityMetaKey.Selector]: {
+							realm: SpecificationRealm.Quilibrium,
+							category: ProposalCategory.ProtocolDocument,
+							number: document.number,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentCategory')]: document.documentCategory,
+							[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentTitle')]: document.documentTitle,
+							[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentStatus')]: document.documentStatus,
+							[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentBody')]: document.documentBody,
+						},
+					})),
 				},
 			},
 		})({

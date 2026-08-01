@@ -52,15 +52,10 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.nodeId || 'blockhead zero g storage node state'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ZeroGNetworkView
 			selection={select(EntityType.ZeroGNetwork, selection.entitySelector.$network)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -85,7 +80,6 @@
 					<ZeroGNetworkView
 						selection={select(EntityType.ZeroGNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -177,12 +171,7 @@
 			{#snippet SectionZerogLocalChunks({ id, label, open })}
 				<BlockheadZeroGStoredChunksView
 					selection={selection.$$localChunks}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No local chunks.'
 					id={`${id}-list`}
@@ -192,12 +181,7 @@
 			{#snippet SectionZerogLocalProofs({ id, label, open })}
 				<BlockheadZeroGStorageProofsView
 					selection={selection.$$localProofs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No local proofs.'
 					id={`${id}-list`}
@@ -229,12 +213,7 @@
 			{#snippet SectionZerogStorageTimestamps({ id, label, open })}
 				<BlockheadZeroGStorageNodeState_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No 0G storage-node observations.'
 					id={`${id}-list`}

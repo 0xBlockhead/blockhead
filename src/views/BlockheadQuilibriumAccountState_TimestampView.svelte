@@ -81,7 +81,6 @@
 					<BlockheadQuilibriumAccountStateView
 						selection={select(EntityType.BlockheadQuilibriumAccountState, selection.entitySelector.$accountState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

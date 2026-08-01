@@ -84,7 +84,6 @@
 					<SolanaTokenMintView
 						selection={select(EntityType.SolanaTokenMint, selection.entitySelector.$mint)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

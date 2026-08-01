@@ -10,8 +10,8 @@ export default {
 	label: 'Tally',
 	sources: [
 		{
-			source: Source.Tally_Graphql,
-			label: 'Tally GraphQL',
+			source: Source.Tally,
+			label: 'Tally',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

@@ -40,8 +40,5 @@
 		title='ERC-4337 user operations'
 		selection={select(EntityType.Network, data.selector).Evm.$$userOperations}
 		id='user-operations'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

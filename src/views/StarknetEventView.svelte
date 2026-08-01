@@ -24,9 +24,8 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.Starknet_JsonRpc,
-			Source.Starkscan_Rest,
-			Source.Voyager_Rest,
+			Source.Starkscan,
+			Source.Voyager,
 		],
 	}))
 
@@ -57,7 +56,6 @@
 		<StarknetTransactionView
 			selection={select(EntityType.StarknetTransaction, selection.entitySelector.$transaction)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -72,7 +70,6 @@
 							selection={select(EntityType.StarknetContract, starknetContract[EntityMetaKey.Selector])}
 							prefetched={starknetContract}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -88,7 +85,6 @@
 					<StarknetTransactionView
 						selection={select(EntityType.StarknetTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -114,7 +110,6 @@
 									selection={select(EntityType.StarknetContract, starknetContract[EntityMetaKey.Selector])}
 									prefetched={starknetContract}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

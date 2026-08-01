@@ -47,10 +47,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{'Epoch ' + String(selection.entitySelector.epoch)}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={cardanoGovernanceProposalTimestamp}>
 			{#snippet children(entity)}
@@ -73,7 +69,6 @@
 					<CardanoGovernanceProposalView
 						selection={select(EntityType.CardanoGovernanceProposal, selection.entitySelector.$proposal)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

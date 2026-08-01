@@ -37,7 +37,8 @@ export const load: LayoutLoad = ({ params }) => {
 			fromAddress: params.fromAddress,
 			slippage: Number(params.slippage),
 			toAddress: params.toAddress,
-		}
+		},
+		'Quote'
 	)
 	if (bridgeRouteQuoteSelector instanceof arktype.errors)
 		error(404, 'Invalid BridgeRoute selector')

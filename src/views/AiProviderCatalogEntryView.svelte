@@ -83,7 +83,6 @@
 					<AiModelProviderView
 						selection={select(EntityType.AiModelProvider, selection.entitySelector.$provider)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -5,7 +5,6 @@ import { EntityMetaKey } from '$/schema/$schema.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
@@ -27,7 +26,6 @@ const resolverBinding = vi.hoisted(() => ({
 	endpoints: [{
 		endpointKind: 'HttpUrl',
 		locator: 'https://portal.sqd.dev/datasets/ethereum-mainnet',
-		origin: 'https://portal.sqd.dev',
 		corsEnabled: false,
 	}],
 	wireProtocol: 'RawHttp',
@@ -38,7 +36,6 @@ const resolverBinding = vi.hoisted(() => ({
 	artifacts: [{
 		kind: 'HandwrittenTypes',
 		path: 'src/sources/Sqd/Portal/types.ts',
-		generated: false,
 	}],
 }))
 
@@ -56,14 +53,13 @@ const binding = {
 	endpoints: [{
 		endpointKind: SourceEndpointKind.HttpUrl,
 		locator: 'https://portal.sqd.dev/datasets/ethereum-mainnet',
-		origin: 'https://portal.sqd.dev',
 		corsEnabled: false,
 	}],
 	wireProtocol: WireProtocol.RawHttp,
 	apiFamily: ApiFamily.SqdPortalStream,
 	operationGroups: [SourceOperationGroup.GenericRead],
 	delivery: SourceDelivery.HttpProxy,
-	credentials: [{ scope: SourceCredentialScope.None }],
+	credentials: [],
 } as const satisfies SourceBinding
 
 const evmBlockNdjson = readFileSync(

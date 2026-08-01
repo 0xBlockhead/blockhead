@@ -59,7 +59,6 @@
 			selection={select(EntityType.FilecoinMiner, selection.entitySelector.$miner)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -84,7 +83,6 @@
 					<FilecoinMinerView
 						selection={select(EntityType.FilecoinMiner, selection.entitySelector.$miner)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -50,10 +50,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.supplyScopeKey || 'asset supply ledger coordinate'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={assetSupplyLedgerCoordinate}>
 			{#snippet children(entity)}
@@ -84,7 +80,6 @@
 					<AssetInstanceView
 						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -108,7 +103,6 @@
 									selection={select(EntityType.AssetClass, assetClass[EntityMetaKey.Selector])}
 									prefetched={assetClass}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

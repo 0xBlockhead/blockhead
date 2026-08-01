@@ -10,7 +10,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['A point-in-time runtime and subsystem observation for a Bittensor network.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.BittensorNetwork_Timestamp> = $props()
@@ -25,7 +24,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.BittensorNetwork_Timestamp}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {

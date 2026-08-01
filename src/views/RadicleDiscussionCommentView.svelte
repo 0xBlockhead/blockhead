@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -31,15 +30,10 @@
 <EntityView
 	entityType={EntityType.RadicleDiscussionComment}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'radicle discussion comment'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		radicle discussion comment
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -193,7 +187,6 @@
 									selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
 									prefetched={gitObject}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

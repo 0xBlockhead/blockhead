@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/~/agents/conversation/[conversationId=stringSegment]',
+			{
+				conversationId: params.conversationId,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,30 +38,18 @@
 
 {#key params.conversationId}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/~/agents/conversation/[conversationId=stringSegment]',
-				{
-					conversationId: params.conversationId,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<BlockheadAgentConversationView
 				selection={
-					select(EntityType.BlockheadAgentConversation, data.selector, { sources: [
-						Source.Local_Internal,
-					] })
+					select(EntityType.BlockheadAgentConversation, data.selector, {
+						sources: [
+							Source.Local_Internal,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/~/agents/conversation/[conversationId=stringSegment]',
-						{
-							conversationId: params.conversationId,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

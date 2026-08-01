@@ -47,10 +47,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.directoryUrl || 'payjoin directory'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={payjoinDirectory}>
 			{#snippet children(entity)}

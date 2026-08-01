@@ -159,7 +159,6 @@ export default {
 						assertPolkadotMainnet($network)
 						const {
 							getBlock,
-							getBlockHash,
 						} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
 						const hash = hashSelector
 						const block = await getBlock({
@@ -260,56 +259,5 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Polkadot_JsonRpc, {
-			entityType: EntityType.PolkadotBlock,
-			resolve: {
-				NetworkBlockNumberHash: {
-					resolve: async ({ $network, blockNumber, hash }) => {
-						assertPolkadotMainnet($network)
-						if (blockNumber === 0n) throw new Error('Polkadot_JsonRpc: genesis block has no parent')
-						const {
-							getBlock,
-							getBlockHash,
-						} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
-						const block = await getBlock({
-							blockHash: hash,
-						})
-						return {
-							[EntityMetaKey.Selector]: {
-								$network: $network,
-								blockNumber: blockNumberFromHeader(block.block.header) - 1n,
-								hash: block.block.header.parentHash,
-							},
-						}
-					},
-				}
-			},
-		})({
-				$parent: (parent) => parent,
-			}),
-
-		defineResolver(Source.Polkadot_JsonRpc, {
-			entityType: EntityType.PolkadotBlock,
-			resolve: {
-				NetworkBlockNumberHash: {
-					resolve: async ({ $network, hash }) => {
-						assertPolkadotMainnet($network)
-						const {
-							getBlock,
-							getBlockHash,
-						} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
-						return polkadotExtrinsicRows(
-							$network,
-							await getBlock({
-								blockHash: hash,
-							}),
-							hash
-						)
-					},
-				}
-			},
-		})({
-				$$extrinsics: (extrinsics) => extrinsics,
-			}),
 	],
 }

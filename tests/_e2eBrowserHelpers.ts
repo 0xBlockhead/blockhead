@@ -16,10 +16,10 @@ import {
 	redditNetworkSeedSubreddits,
 } from '$/constants/Social/Reddit.ts'
 import { rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
-import { TransportType } from '$/constants/TransportType.ts'
 import sourceProviderDefinitions from '$/sources/$sourceProviders.ts'
 import { nostrEventId } from '$/sources/NostrRelay/Nip01/event.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
 import { voltaireJsonRpcTransports } from '$/sources/Voltaire/JsonRpc/queries.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
@@ -4995,7 +4995,7 @@ export const publicJsonRpcHttpUrlForChainE2e = async (chainId: number) => {
 	if (!Object.hasOwn(voltaireJsonRpcTransportByChainId, chainId)) return null
 
 	const transport = voltaireJsonRpcTransportByChainId[chainId]
-	if (transport.transportType !== TransportType.Http) return null
+	if (transport.endpoint.endpointKind !== SourceEndpointKind.HttpUrl) return null
 
 	return transport.endpoint.locator
 }

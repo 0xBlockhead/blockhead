@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -35,15 +34,10 @@
 <EntityView
 	entityType={EntityType.PayoutClaim_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'payout claim timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		payout claim timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -52,7 +46,6 @@
 					<PayoutView
 						selection={select(EntityType.Payout, selection.entitySelector.$payout)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -63,7 +56,6 @@
 					<AccountView
 						selection={select(EntityType.Account, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -184,7 +176,6 @@
 									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
 									prefetched={evmTransaction}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

@@ -10,7 +10,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['Reddit protocol catalog identity for public API and listing metadata. Product observeds live on the global Reddit hub.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.RedditNetwork> = $props()
@@ -25,7 +24,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.RedditNetwork}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {
@@ -41,6 +39,10 @@
 		>
 			{#snippet Title()}
 				{redditNetwork.protocolName || 'Reddit network'}
+			{/snippet}
+
+			{#snippet Value()}
+				Reddit
 			{/snippet}
 		</EntityView>
 	{/snippet}

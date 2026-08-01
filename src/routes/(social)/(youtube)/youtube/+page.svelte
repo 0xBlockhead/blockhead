@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType._GlobalYoutubeNetwork, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -36,6 +30,12 @@
 
 <Page>
 	<GlobalYoutubeNetworkView
-		selection={pageSelection}
+		selection={
+			select(EntityType._GlobalYoutubeNetwork, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+			})
+		}
 	/>
 </Page>

@@ -1,5 +1,5 @@
-import type { CroissantDocument } from '$/sources/MlCommons/Local/types.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-export const parseDocument = (text: string): CroissantDocument => (
+export const parseDocument = (text: string): JsonValue => (
 	JSON.parse(text)
 )

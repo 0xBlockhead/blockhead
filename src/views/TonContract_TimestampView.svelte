@@ -37,10 +37,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		TON contract timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -49,7 +45,6 @@
 					<TonContractView
 						selection={select(EntityType.TonContract, selection.entitySelector.$contract)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		FarcasterChannelSchema,
 		{
 			id: params.channelId,
-		}
+		},
+		'Id'
 	)
 	if (farcasterChannelIdSelector instanceof arktype.errors)
 		error(404, 'Invalid FarcasterChannel selector')

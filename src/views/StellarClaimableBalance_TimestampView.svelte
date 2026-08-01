@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -34,15 +33,10 @@
 <EntityView
 	entityType={EntityType.StellarClaimableBalance_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'stellar claimable balance timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		stellar claimable balance timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -51,7 +45,6 @@
 					<StellarClaimableBalanceView
 						selection={select(EntityType.StellarClaimableBalance, selection.entitySelector.$claimableBalance)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -104,7 +97,6 @@
 									selection={select(EntityType.StellarAsset, stellarAsset[EntityMetaKey.Selector])}
 									prefetched={stellarAsset}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -168,7 +160,6 @@
 									selection={select(EntityType.StellarTransaction, stellarTransaction[EntityMetaKey.Selector])}
 									prefetched={stellarTransaction}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

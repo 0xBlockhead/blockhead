@@ -75,7 +75,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Icon()}
 		<ResourceBoundary resource={farcasterChannel}>
 			{#snippet children(entity)}
@@ -85,7 +84,6 @@
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -101,7 +99,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{selection.entitySelector.id || [(prefetched.name ?? ''), selection.entitySelector.id].filter(Boolean).join(' ') || titleFallback}
+		{['/', selection.entitySelector.id].filter(Boolean).join(' ') || [(prefetched.name ?? ''), selection.entitySelector.id].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -164,7 +162,6 @@
 									selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
 									prefetched={farcasterUser}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -186,7 +183,6 @@
 									selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
 									prefetched={farcasterUser}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -287,12 +283,7 @@
 							}
 						)
 					}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Farcaster casts for this channel.'
 					id={`${id}-list`}
@@ -324,12 +315,7 @@
 			{#snippet SectionFarcasterChannelTimestamps({ id, label, open })}
 				<FarcasterChannel_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Farcaster channel observations yet.'
 					id={`${id}-list`}

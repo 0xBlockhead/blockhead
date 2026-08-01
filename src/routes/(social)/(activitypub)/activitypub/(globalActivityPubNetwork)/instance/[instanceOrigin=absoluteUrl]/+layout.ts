@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		ActivityPubInstanceSchema,
 		{
 			instanceOrigin: decodeURIComponent(params.instanceOrigin),
-		}
+		},
+		'InstanceOrigin'
 	)
 	if (activityPubInstanceInstanceOriginSelector instanceof arktype.errors)
 		error(404, 'Invalid ActivityPubInstance selector')

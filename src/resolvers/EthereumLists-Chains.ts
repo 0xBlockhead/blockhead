@@ -1,280 +1,26 @@
-import { type } from 'arktype'
-
 import { coins } from '$/constants/Coin.ts'
-import { ExecutionRpcProvider } from '$/constants/ExecutionRpcProvider.ts'
 import { NetworkEnvironment } from '$/constants/Network.ts'
-import { TransportType } from '$/constants/TransportType.ts'
 import { resolveMediaUrlTransport } from '$/lib/media.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
+import { defineResolver } from '$/resolvers/defineResolver.ts'
 import {
-	defineResolver,
-} from '$/resolvers/defineResolver.ts'
+	evmChainCatalogEthereumRootAcceptsTestnet,
+	evmChainCatalogExplorerUrlEntities,
+	evmChainCatalogFamilyKey,
+	evmChainCatalogIsEthereumExecutionRoot,
+	evmChainCatalogRowImpliesTestnet,
+	evmChainCatalogUrlEntities,
+	evmChainIdFromCatalogParent,
+	evmNetworkSelectorFromChainId,
+	selectBestEvmChainCatalogMainnet,
+} from '$/resolvers/evm.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import type { EntitySelectorForSelectorName } from '$/schema/$schema.ts'
-import { UrlString } from '$/schema/UrlString.ts'
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { MediaType } from '$/schema/MediaType.ts'
-import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import type {
-	EthereumListsExplorerLike,
-	EthereumListsChainPairing,
-} from '$/sources/EthereumLists/Rest/types.ts'
-
-type EvmNetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.Network, 'Caip2'>
-
-const evmNetworkIdFromChainId = (chainId: number): EvmNetworkId => ({
-	caip2: {
-		namespace: 'eip155',
-		reference: String(chainId),
-	},
-})
-
-const testnetKeywordPattern = /\b(testnet|sepolia|holesky|hoodi|goerli|rinkeby|ropsten|kovan)\b/i
-
-const familyAliasByToken: Record<string, string> = {
-	op: 'optimism',
-	oeth: 'optimism',
-	arb: 'arbitrum',
-	arb1: 'arbitrum',
-	eth: 'ethereum',
-}
-
-const pairingFamilyEquivalenceRoot: Record<string, string> = {
-	bnb: 'binance',
-	bnbt: 'binance',
-	bsctest: 'binance',
-	binance: 'binance',
-	matic: 'polygon',
-	maticmum: 'polygon',
-	polygonamoy: 'polygon',
-}
-
-const familyStopwords = new Set([
-	'mainnet',
-	'testnet',
-	'network',
-	'chain',
-	'rollup',
-	'l2',
-	'l3',
-	'public',
-	'private',
-	'alpha',
-	'beta',
-	'devnet',
-	'deprecated',
-	'legacy',
-	'stage',
-	'staging',
-	'v1',
-	'v2',
-	'v3',
-])
-
-const slugFamilyTokenAliases: Record<string, string> = {
-	zksyncera: 'zksync',
-}
-
-const normalizePairingShortName = (shortName: string | undefined): string => (
-	(shortName ?? '')
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, '')
-		.replace(/(testnet|sepolia|holesky|hoodi|goerli|rinkeby|ropsten|kovan)+$/g, '')
-)
-
-const normalizeFamilyToken = (value: string): string => (
-	value.toLowerCase().replace(/[^a-z0-9]+/g, '')
-)
-
-const canonicalFamilyToken = (value: string): string => (
-	familyAliasByToken[normalizeFamilyToken(value)]
-	?? normalizeFamilyToken(value)
-)
-
-const ethereumFamilyCanonical = canonicalFamilyToken('ethereum')
-
-const resolveCatalogFamilyToken = ({
-	name,
-	title,
-	shortName,
-	chainSlug,
-}: Pick<EthereumListsChainPairing, 'name' | 'shortName'> & {
-	title?: string
-	chainSlug?: string
-}): string | undefined => {
-	const chainSlugTrimmed = chainSlug?.trim()
-	if (chainSlugTrimmed != null && chainSlugTrimmed.length > 0) {
-		const slugCanonical = canonicalFamilyToken(chainSlugTrimmed)
-		const slugNormalized = normalizeFamilyToken(slugCanonical)
-		return slugFamilyTokenAliases[slugNormalized] ?? slugCanonical
-	}
-	const text = `${title ?? ''} ${name } ${shortName }`
-	if (/\bethereum\s+classic\b/i.test(text))
-		return 'ethereumclassic'
-	if (/\bpolygon\s+zkevm\b/i.test(text) || (/\bpolygon\b/i.test(text) && /\bzkevm\b/i.test(text)))
-		return normalizeFamilyToken('polygonzkevm')
-	const token = text
-		.toLowerCase()
-		.split(/[^a-z0-9]+/g)
-		.find((value) => value.length > 0 && !familyStopwords.has(value))
-	return token == null ? undefined : canonicalFamilyToken(token)
-}
-
-const pairingFamilyKey = (chain: EthereumListsChainPairing): string | undefined => {
-	const raw = resolveCatalogFamilyToken(chain)
-	if (raw == null) return undefined
-	const normalized = normalizeFamilyToken(raw)
-	return pairingFamilyEquivalenceRoot[normalized] ?? raw
-}
-
-const ethereumListsRowImpliesTestnet = (chain: Pick<EthereumListsChainPairing, 'name' | 'title'>): boolean => (
-	testnetKeywordPattern.test(`${chain.title ?? ''} ${chain.name }`)
-)
-
-const catalogChainIsEthereumExecutionRoot = (chain: EthereumListsChainPairing): boolean => (
-	pairingFamilyKey(chain) === ethereumFamilyCanonical
-	&& chain.parent?.chain == null
-)
-
-const catalogEthereumExecutionRootAcceptsTestnetCandidate = (
-	sourceMainnet: EthereumListsChainPairing,
-	candidateTestnet: EthereumListsChainPairing
-): boolean => (
-	!catalogChainIsEthereumExecutionRoot(sourceMainnet)
-	|| candidateTestnet.nativeCurrency.symbol.trim().toUpperCase() === 'ETH'
-)
-
-const selectBestMainnetCandidate = ({
-	testnetChainId,
-	testnetShortName,
-	mainnetCandidates,
-}: {
-	testnetChainId: number
-	testnetShortName?: string
-	mainnetCandidates: {
-		chainId: number
-		shortName?: string
-		name?: string
-	}[]
-}) => {
-	const testnetChainIdAsString = String(testnetChainId)
-	const byChainIdPrefix = mainnetCandidates
-		.filter((candidate) => (
-			testnetChainIdAsString.startsWith(String(candidate.chainId))
-		))
-		.toSorted((leftCandidate, rightCandidate) => (
-			String(rightCandidate.chainId).length - String(leftCandidate.chainId).length
-			|| leftCandidate.chainId - rightCandidate.chainId
-		))
-	const chainIdPrefixMatch = byChainIdPrefix.at(0)
-	if (chainIdPrefixMatch != null) return chainIdPrefixMatch
-	const normalizedSourceShortName = normalizePairingShortName(testnetShortName)
-	if (normalizedSourceShortName.length > 0) {
-		const byShortNamePrefix = mainnetCandidates
-			.filter((candidate) => {
-				const normalizedCandidateShortName = normalizePairingShortName(candidate.shortName)
-				return (
-					normalizedCandidateShortName.length > 0
-					&& (
-						normalizedSourceShortName.startsWith(normalizedCandidateShortName)
-						|| normalizedCandidateShortName.startsWith(normalizedSourceShortName)
-					)
-				)
-			})
-			.toSorted((leftCandidate, rightCandidate) => (
-				leftCandidate.chainId - rightCandidate.chainId
-			))
-		const shortNamePrefixMatch = byShortNamePrefix.at(0)
-		if (shortNamePrefixMatch != null) return shortNamePrefixMatch
-	}
-	const byMainnetKeyword = mainnetCandidates
-		.filter((candidate) => /\bmainnet\b/i.test(candidate.name ?? ''))
-		.toSorted((leftCandidate, rightCandidate) => (
-			leftCandidate.chainId - rightCandidate.chainId
-		))
-	const mainnetKeywordMatch = byMainnetKeyword.at(0)
-	if (mainnetKeywordMatch != null) return mainnetKeywordMatch
-	return mainnetCandidates
-		.toSorted((leftCandidate, rightCandidate) => (
-			leftCandidate.chainId - rightCandidate.chainId
-		)).at(0)
-}
-
-const canonicalPublicHttpUrlFromCatalogString = (raw: string): string => {
-	const trimmed = raw.trim()
-	const absolute = (
-		trimmed.startsWith('http://')
-		|| trimmed.startsWith('https://') ?
-			trimmed
-		:
-			trimmed.startsWith('//') ?
-				`https:${trimmed}`
-			:
-				`https://${trimmed}`
-	)
-	return new URL(absolute).toString()
-}
-
-const blockExplorerLikeFromExplorersAndInfoUrl = ({
-	explorers,
-	infoURL,
-}: {
-	explorers: EthereumListsExplorerLike[] | undefined
-	infoURL: string | undefined | null
-}) => {
-	const infoUrlTrimmed = infoURL?.trim() ?? ''
-	return [
-		...(explorers ?? []).flatMap((explorer) => {
-			const url = explorer.url.trim()
-			if (url === '') return []
-			const name = explorer.name.trim()
-			const standard = explorer.standard == null ? '' : String(explorer.standard).trim()
-			const icon = explorer.icon == null ? '' : String(explorer.icon).trim()
-			return [{
-				origin: url,
-				...(name !== '' && { name }),
-				...(standard !== '' && { standard }),
-				...(icon !== '' && { icon }),
-			}]
-		}),
-		...(
-			infoUrlTrimmed !== ''
-			&& !(explorers ?? []).some((explorer) => explorer.url.trim() === infoUrlTrimmed) ?
-				[{ origin: infoUrlTrimmed }]
-			:
-				[]
-		),
-	]
-}
-
-const urlEntitiesFromBlockExplorerCatalog = (
-	blockExplorers: ReturnType<typeof blockExplorerLikeFromExplorersAndInfoUrl>
-) =>
-	blockExplorers.flatMap((explorer) => {
-		if (explorer.origin === '') return []
-		const url = canonicalPublicHttpUrlFromCatalogString(explorer.origin)
-		const hrefAsUrlString = UrlString(url)
-		if (hrefAsUrlString instanceof type.errors) return []
-		return [{
-			[EntityMetaKey.Selector]: { url: hrefAsUrlString },
-		}]
-	})
-
-const urlEntitiesFromFaucetUrlStrings = (
-	faucetUrls: string[]
-) =>
-	faucetUrls.flatMap((raw) => {
-		const trimmed = raw.trim()
-		if (trimmed === '') return []
-		const url = canonicalPublicHttpUrlFromCatalogString(trimmed)
-		const hrefAsUrlString = UrlString(url)
-		if (hrefAsUrlString instanceof type.errors) return []
-		return [{ [EntityMetaKey.Selector]: { url: hrefAsUrlString } }]
-	})
 
 export default {
 	source: Source.EthereumLists_Rest,
@@ -290,10 +36,10 @@ export default {
 							listedChain.chainId === Number(entitySelector.$toNetwork.caip2.reference)
 						))
 						if (chain == null) throw new Error('EthereumLists_Rest: network bridge target chain not in chains.json')
-						const parentMatch = chain.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim())
+						const parentChainId = evmChainIdFromCatalogParent(chain.parent)
 						if (
-						parentMatch == null
-						|| Number(parentMatch[1]) !== Number(entitySelector.$fromNetwork.caip2.reference)
+						parentChainId == null
+						|| parentChainId !== Number(entitySelector.$fromNetwork.caip2.reference)
 						|| (
 							(chain.parent?.bridges ?? []).length > 0
 							&& !(chain.parent?.bridges ?? []).some((bridge) => bridge.url === entitySelector.url)
@@ -324,86 +70,209 @@ export default {
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
-					resolve: async ({ caip2 }) => {
+					resolve: async (entitySelector) => {
 						const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 						const chains = await fetchChainsJson()
-						const chain = chains.find((listedChain) => listedChain.chainId === Number(caip2.reference))
+						const chain = chains.find((listedChain) => listedChain.chainId === Number(entitySelector.caip2.reference))
 						if (chain == null) return undefined
-						const nativeSymbol = chain.nativeCurrency.symbol.trim()
-						const displayName = `${chain.title ?? chain.name }`.trim()
-						if (nativeSymbol === '') throw new Error(`EthereumLists_Rest: native currency symbol missing for chain ${chain.chainId}`)
-						if (displayName.length === 0) throw new Error(`EthereumLists_Rest: chain display name missing for chain ${chain.chainId}`)
-						const rpcUrls = chain.rpc.filter((url) => url.length > 0)
-						if (rpcUrls.length === 0) throw new Error(`EthereumLists_Rest: no RPC URLs for chain ${chain.chainId}`)
-						const icon = resolveMediaUrlTransport(chain.icon)?.url
-						const nativeCoin = coins.find(({ symbol }) => symbol === nativeSymbol.toUpperCase())
+
 						return {
-							[EntityMetaKey.Selector]: evmNetworkIdFromChainId(chain.chainId),
-							...(icon != null && { iconUrl: icon }),
-							...((iconMedia) => iconMedia != null && { $icon: iconMedia })(mediaFromUrl(icon, MediaType.Image)),
-							...(chain.status != null && chain.status !== '' && { registryStatus: String(chain.status) }),
-							executionEndpoints: rpcUrls.map((url) => ({
-								url,
-								serviceProvider: ExecutionRpcProvider.Unknown,
-								transportType: (
-									url.toLowerCase().startsWith('ws') ?
-										TransportType.WebSocket
-									:
-										TransportType.Http
-								),
-							})),
-							$$rpcUrls: urlEntitiesFromFaucetUrlStrings(rpcUrls),
-							name: displayName,
-							...(nativeCoin != null && {
-								$nativeCoin: {
-									[EntityMetaKey.Selector]: {
-										coinId: nativeCoin.id,
-									},
-								},
-							}),
-							$nativeCoinInstance: {
-								[EntityMetaKey.Selector]: {
-									$network: evmNetworkIdFromChainId(chain.chainId),
-									type: CoinInstanceType.NativeCurrency,
-								},
-							},
-							peeringId: chain.networkId,
-							...(chain.shortName !== '' && { shortName: chain.shortName }),
-							...(chain.slip44 != null && { slip44: chain.slip44 }),
-							environment: ethereumListsRowImpliesTestnet(chain) ?
-								NetworkEnvironment.Testnet
-							:
-								NetworkEnvironment.Mainnet,
-							$parent: (
-								((parentMatch) => (
-								parentMatch == null || chain.parent == null ?
-									undefined
-								:
-									{
-										[EntityMetaKey.Selector]: evmNetworkIdFromChainId(Number(parentMatch[1])),
-									}
-								))(chain.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim()))
-							),
+							entitySelector,
+							chain,
+							chains,
 						}
 					},
 				}
 			},
 		})({
-				iconUrl: (network) => network.iconUrl,
-				$icon: (network) => network.$icon,
-				name: (network) => network.name,
-				environment: (network) => network.environment,
-				Evm: {
-					registryStatus: (network) => network.registryStatus,
-					$$rpcUrls: (network) => network.$$rpcUrls,
-					$nativeCoin: (network) => network.$nativeCoin,
-					$nativeCoinInstance: (network) => network.$nativeCoinInstance,
-					peeringId: (network) => network.peeringId,
-					shortName: (network) => network.shortName,
-					slip44: (network) => network.slip44,
-					$parent: (network) => network.$parent
-				},
+			iconUrl: ({ chain }) => resolveMediaUrlTransport(chain.icon)?.url,
+			$icon: ({ chain }) => mediaFromUrl(
+				resolveMediaUrlTransport(chain.icon)?.url,
+				MediaType.Image
+			),
+			name: ({ chain }) => {
+				const name = `${chain.title ?? chain.name}`.trim()
+				if (name.length === 0)
+					throw new Error(`EthereumLists_Rest: chain display name missing for chain ${chain.chainId}`)
+
+				return name
+			},
+			environment: ({ chain }) => (
+				evmChainCatalogRowImpliesTestnet(chain) ?
+					NetworkEnvironment.Testnet
+				:
+					NetworkEnvironment.Mainnet
+			),
+			$$blockExplorerUrls: ({ chain }) => evmChainCatalogExplorerUrlEntities({
+				explorers: chain.explorers,
+				infoURL: chain.infoURL,
 			}),
+			$$faucetUrls: ({ chain }) => evmChainCatalogUrlEntities(
+				(chain.faucets ?? []).filter((url) => url.length > 0)
+			),
+			Evm: {
+				registryStatus: ({ chain }) => (
+					chain.status == null || chain.status === '' ?
+						undefined
+					:
+						String(chain.status)
+				),
+				$$rpcUrls: ({ chain }) => {
+					const rpcUrls = chain.rpc.filter((url) => url.length > 0)
+					if (rpcUrls.length === 0)
+						throw new Error(`EthereumLists_Rest: no RPC URLs for chain ${chain.chainId}`)
+
+					return evmChainCatalogUrlEntities(rpcUrls)
+				},
+				$nativeCoin: ({ chain }) => {
+					const nativeSymbol = chain.nativeCurrency.symbol.trim()
+					if (nativeSymbol === '')
+						throw new Error(`EthereumLists_Rest: native currency symbol missing for chain ${chain.chainId}`)
+
+					const nativeCoin = coins.find(({ symbol }) => symbol === nativeSymbol.toUpperCase())
+					return (
+						nativeCoin == null ?
+							undefined
+						:
+							{
+								[EntityMetaKey.Selector]: {
+									coinId: nativeCoin.id,
+								},
+							}
+					)
+				},
+				$nativeCoinInstance: ({ entitySelector }) => ({
+					[EntityMetaKey.Selector]: {
+						$network: entitySelector,
+						type: CoinInstanceType.NativeCurrency,
+					},
+				}),
+				peeringId: ({ chain }) => chain.networkId,
+				shortName: ({ chain }) => (
+					chain.shortName === '' ?
+						undefined
+					:
+						chain.shortName
+				),
+				slip44: ({ chain }) => chain.slip44,
+				$parent: ({ chain }) => {
+					const parentChainId = evmChainIdFromCatalogParent(chain.parent)
+					return (
+						parentChainId == null ?
+							undefined
+						:
+							{
+								[EntityMetaKey.Selector]: evmNetworkSelectorFromChainId(parentChainId),
+							}
+					)
+				},
+				$$bridges: ({ chain }) => {
+					const parentChainId = evmChainIdFromCatalogParent(chain.parent)
+					if (parentChainId == null) return []
+
+					const fromNetwork = evmNetworkSelectorFromChainId(parentChainId)
+					const toNetwork = evmNetworkSelectorFromChainId(chain.chainId)
+					return (chain.parent?.bridges ?? []).map((bridge) => ({
+						[EntityMetaKey.Selector]: {
+							$fromNetwork: fromNetwork,
+							$toNetwork: toNetwork,
+							url: bridge.url,
+						},
+						$fromNetwork: {
+							[EntityMetaKey.Selector]: fromNetwork,
+						},
+						$toNetwork: {
+							[EntityMetaKey.Selector]: toNetwork,
+						},
+						url: bridge.url,
+						relationshipType: String(chain.parent?.type ?? 'unknown'),
+					}))
+				},
+				$$childLayers: ({ chain, chains }) => chains.flatMap((candidate) => {
+					const parentChainId = evmChainIdFromCatalogParent(candidate.parent)
+					return (
+						parentChainId == null
+						|| parentChainId !== chain.chainId
+						|| candidate.chainId === chain.chainId ?
+							[]
+						:
+							[{
+								[EntityMetaKey.Selector]: evmNetworkSelectorFromChainId(candidate.chainId),
+							}]
+					)
+				}),
+				$$testnets: ({ chain, chains }) => {
+					if (evmChainCatalogRowImpliesTestnet(chain)) return []
+
+					const sourceFamilyKey = evmChainCatalogFamilyKey(chain)
+					if (sourceFamilyKey == null)
+						throw new Error('EthereumLists_Rest: cannot pair testnets (no family key)')
+
+					const sourceIsEthereumExecutionRoot = evmChainCatalogIsEthereumExecutionRoot(chain)
+					return chains.flatMap((candidate) => (
+						candidate.chainId === chain.chainId
+						|| !evmChainCatalogRowImpliesTestnet(candidate)
+						|| evmChainCatalogFamilyKey(candidate) !== sourceFamilyKey
+						|| (
+							sourceIsEthereumExecutionRoot
+							&& candidate.parent?.chain != null
+						)
+						|| !evmChainCatalogEthereumRootAcceptsTestnet(chain, candidate) ?
+							[]
+						:
+							[{
+								[EntityMetaKey.Selector]: evmNetworkSelectorFromChainId(candidate.chainId),
+							}]
+					))
+				},
+				$mainnet: ({ chain, chains }) => {
+					if (!evmChainCatalogRowImpliesTestnet(chain)) return undefined
+
+					const sourceFamilyKey = evmChainCatalogFamilyKey(chain)
+					if (sourceFamilyKey == null)
+						throw new Error('EthereumLists_Rest: cannot pair mainnet (no family key)')
+
+					const testnetIsEthereumExecutionRoot = evmChainCatalogIsEthereumExecutionRoot(chain)
+					const mainnet = selectBestEvmChainCatalogMainnet({
+						testnetChainId: chain.chainId,
+						testnetShortName: chain.shortName,
+						mainnetCandidates: chains.filter((candidate) => (
+							candidate.chainId !== chain.chainId
+							&& !evmChainCatalogRowImpliesTestnet(candidate)
+							&& evmChainCatalogFamilyKey(candidate) === sourceFamilyKey
+							&& (
+								!testnetIsEthereumExecutionRoot
+								|| candidate.parent?.chain == null
+							)
+						)),
+					})
+					return (
+						mainnet == null ?
+							undefined
+						:
+							{
+								[EntityMetaKey.Selector]: evmNetworkSelectorFromChainId(mainnet.chainId),
+							}
+					)
+				},
+				$$siblingShardNetworks: ({ chain, chains }) => (
+					chain.parent == null || String(chain.parent.type).toLowerCase() !== 'shard' ?
+						[]
+					:
+						chains.flatMap((candidate) => (
+							candidate.chainId === chain.chainId
+							|| candidate.parent == null
+							|| candidate.parent.chain.trim() !== chain.parent?.chain.trim()
+							|| String(candidate.parent.type).toLowerCase() !== 'shard' ?
+								[]
+							:
+								[{
+									[EntityMetaKey.Selector]: evmNetworkSelectorFromChainId(candidate.chainId),
+								}]
+						))
+				),
+			},
+		}),
 
 		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType._Global,
@@ -412,233 +281,12 @@ export default {
 					resolve: async (_entitySelector) => {
 						const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 						return (await fetchChainsJson())
-							.map((chain) => ({ [EntityMetaKey.Selector]: evmNetworkIdFromChainId(chain.chainId) }))
+							.map((chain) => ({ [EntityMetaKey.Selector]: evmNetworkSelectorFromChainId(chain.chainId) }))
 					},
 				}
 			},
 		})({
 				$$evmNetworks: (networks) => networks,
-			}),
-
-		defineResolver(Source.EthereumLists_Rest, {
-			entityType: EntityType.Network,
-			resolve: {
-				Caip2: {
-					resolve: async ({ caip2 }) => {
-						const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
-						const chain = (await fetchChainsJson()).find((listedChain) => listedChain.chainId === Number(caip2.reference))
-						const parentMatch = chain?.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim())
-						if (chain == null) return []
-						if (parentMatch == null) return []
-						return (chain.parent?.bridges ?? [])
-							.map((bridge) => ({
-								[EntityMetaKey.Selector]: {
-									$fromNetwork: evmNetworkIdFromChainId(Number(parentMatch[1])),
-									$toNetwork: evmNetworkIdFromChainId(chain.chainId),
-									url: bridge.url,
-								},
-								$fromNetwork: {
-									[EntityMetaKey.Selector]: evmNetworkIdFromChainId(Number(parentMatch[1])),
-								},
-								$toNetwork: {
-									[EntityMetaKey.Selector]: evmNetworkIdFromChainId(chain.chainId),
-								},
-								url: bridge.url,
-								relationshipType: String(chain.parent?.type ?? 'unknown'),
-							}))
-					},
-				}
-			},
-		})({
-				Evm: {
-					$$bridges: (bridges) => bridges
-				},
-			}),
-
-		defineResolver(Source.EthereumLists_Rest, {
-			entityType: EntityType.Network,
-			resolve: {
-				Caip2: {
-					resolve: async ({ caip2 }) => {
-						const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
-						const chains = await fetchChainsJson()
-						const chainId = Number(caip2.reference)
-						if (chains.find((chain) => chain.chainId === chainId) == null)
-							return []
-
-						return chains.flatMap((chain) => {
-							const parentMatch = chain.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim())
-							return parentMatch == null || Number(parentMatch[1]) !== chainId || chain.chainId === chainId ?
-								[]
-							:
-								[{ [EntityMetaKey.Selector]: evmNetworkIdFromChainId(chain.chainId) }]
-						})
-					},
-				}
-			},
-		})({
-				Evm: {
-					$$childLayers: (childLayers) => childLayers
-				},
-			}),
-
-		defineResolver(Source.EthereumLists_Rest, {
-			entityType: EntityType.Network,
-			resolve: {
-				Caip2: {
-					resolve: async ({ caip2 }) => {
-						const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
-						const chains = await fetchChainsJson()
-						const chain = chains.find((listedChain) => listedChain.chainId === Number(caip2.reference))
-						if (chain == null)
-							return []
-						if (ethereumListsRowImpliesTestnet(chain)) return []
-						const sourceFamilyKey = pairingFamilyKey(chain)
-						if (sourceFamilyKey == null)
-							throw new Error('EthereumLists_Rest: cannot pair testnets (no family key)')
-						const sourceIsEthereumExecutionRoot = catalogChainIsEthereumExecutionRoot(chain)
-						return chains.flatMap((candidate) => (
-							candidate.chainId === Number(caip2.reference)
-							|| !ethereumListsRowImpliesTestnet(candidate)
-							|| pairingFamilyKey(candidate) !== sourceFamilyKey
-							|| (
-								sourceIsEthereumExecutionRoot
-								&& candidate.parent?.chain != null
-							)
-							|| !catalogEthereumExecutionRootAcceptsTestnetCandidate(chain, candidate) ?
-								[]
-							:
-								[{ [EntityMetaKey.Selector]: evmNetworkIdFromChainId(candidate.chainId) }]
-						))
-					},
-				}
-			},
-		})({
-				Evm: {
-					$$testnets: (testnets) => testnets
-				},
-			}),
-
-		defineResolver(Source.EthereumLists_Rest, {
-			entityType: EntityType.Network,
-			resolve: {
-				Caip2: {
-					resolve: async ({ caip2 }) => {
-						const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
-						const chains = await fetchChainsJson()
-						const chain = chains.find((listedChain) => listedChain.chainId === Number(caip2.reference))
-						if (chain == null)
-							return undefined
-						if (!ethereumListsRowImpliesTestnet(chain)) return undefined
-						const sourceFamilyKey = pairingFamilyKey(chain)
-						if (sourceFamilyKey == null)
-							throw new Error('EthereumLists_Rest: cannot pair mainnet (no family key)')
-						const testnetIsEthereumExecutionRoot = catalogChainIsEthereumExecutionRoot(chain)
-						const mainnet = selectBestMainnetCandidate({
-							testnetChainId: chain.chainId,
-							testnetShortName: chain.shortName,
-							mainnetCandidates: chains.filter((candidate) => (
-								candidate.chainId !== Number(caip2.reference)
-							&& !ethereumListsRowImpliesTestnet(candidate)
-							&& pairingFamilyKey(candidate) === sourceFamilyKey
-							&& (
-								!testnetIsEthereumExecutionRoot
-								|| candidate.parent?.chain == null
-							)
-							)),
-						})
-						return (
-							mainnet == null ?
-								undefined
-							:
-								{
-									[EntityMetaKey.Selector]: evmNetworkIdFromChainId(mainnet.chainId),
-								}
-						)
-					},
-				}
-			},
-		})({
-				Evm: {
-					$mainnet: (mainnet) => mainnet
-				},
-			}),
-
-		defineResolver(Source.EthereumLists_Rest, {
-			entityType: EntityType.Network,
-			resolve: {
-				Caip2: {
-					resolve: async ({ caip2 }) => {
-						const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
-						const chains = await fetchChainsJson()
-						const chain = chains.find((listedChain) => listedChain.chainId === Number(caip2.reference))
-						if (chain == null)
-							return []
-						return (
-							chain.parent == null || String(chain.parent.type).toLowerCase() !== 'shard' ?
-								[]
-							:
-								(() => {
-								const shardParentChain = chain.parent.chain.trim()
-								return (
-									chains.flatMap((candidate) => (
-								candidate.chainId === chain.chainId
-								|| candidate.parent == null
-										|| candidate.parent.chain.trim() !== shardParentChain
-										|| String(candidate.parent.type).toLowerCase() !== 'shard' ?
-									[]
-								:
-									[{ [EntityMetaKey.Selector]: evmNetworkIdFromChainId(candidate.chainId) }]
-									))
-								)
-								})()
-						)
-					},
-				}
-			},
-		})({
-				Evm: {
-					$$siblingShardNetworks: (siblingShardNetworks) => siblingShardNetworks
-				},
-			}),
-
-		defineResolver(Source.EthereumLists_Rest, {
-			entityType: EntityType.Network,
-			resolve: {
-				Caip2: {
-					resolve: async ({ caip2 }) => {
-						const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
-						const chain = (await fetchChainsJson()).find((listedChain) => listedChain.chainId === Number(caip2.reference))
-						if (chain == null) return []
-						return urlEntitiesFromBlockExplorerCatalog(
-							blockExplorerLikeFromExplorersAndInfoUrl({
-								explorers: chain.explorers,
-								infoURL: chain.infoURL,
-							})
-						)
-					},
-				}
-			},
-		})({
-				$$blockExplorerUrls: (blockExplorerUrls) => blockExplorerUrls,
-			}),
-
-		defineResolver(Source.EthereumLists_Rest, {
-			entityType: EntityType.Network,
-			resolve: {
-				Caip2: {
-					resolve: async ({ caip2 }) => {
-						const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
-						const chain = (await fetchChainsJson()).find((listedChain) => listedChain.chainId === Number(caip2.reference))
-						if (chain == null) return []
-						return urlEntitiesFromFaucetUrlStrings(
-							(chain.faucets ?? []).filter((url) => url.length > 0)
-						)
-					},
-				}
-			},
-		})({
-				$$faucetUrls: (faucetUrls) => faucetUrls,
 			}),
 	],
 }

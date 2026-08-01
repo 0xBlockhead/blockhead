@@ -11,7 +11,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['X profiles and posts surfaced through declared public HTTP sources.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.XNetwork> = $props()
@@ -26,7 +25,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.XNetwork}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {
@@ -49,6 +47,10 @@
 		>
 			{#snippet Title()}
 				{xNetwork.protocolName || 'X'}
+			{/snippet}
+
+			{#snippet Value()}
+				X
 			{/snippet}
 		</EntityView>
 	{/snippet}

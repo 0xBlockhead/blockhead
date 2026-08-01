@@ -57,7 +57,7 @@ const normalizeRelayUrl = (value: string | undefined) => {
 				value
 			:
 				`wss://${value}`
-				)
+		)
 		if (url.protocol !== 'wss:' && url.protocol !== 'ws:') return undefined
 		const pathname = url.pathname.replace(/\/$/, '')
 		return `wss://${url.host}${pathname}`
@@ -96,33 +96,11 @@ const tagValueFromTags = (
 const eTagEventIdsFromTags = (tags: NostrEvent['tags']) => (
 	tags?.flatMap((tag) => (
 		tag[0] === 'e' ?
-			(
-				((eventId) => (
-					eventId != null ?
-						[eventId]
-					:
-						[]
-				))(normalizeEventId(tag[1]))
-			)
+			normalizeEventId(tag[1]) ?? []
 		:
 			[]
 	))
 	?? []
-)
-
-const eventIdFromETags = (tags: NostrEvent['tags']) => (
-	tags?.flatMap((tag) => (
-		tag[0] === 'e' ?
-			[normalizeEventId(tag[1])]
-		:
-			[]
-	))
-		.flatMap((eventId) => (
-			eventId == null ?
-				[]
-			:
-				[eventId]
-		)).at(0)
 )
 
 const reactionTargetEventIdFromTags = (tags: NostrEvent['tags']) => {
@@ -268,14 +246,9 @@ export const nostrNoteFieldValuesFromEvent = (event: NostrEvent) => {
 			...(timestampMsFromUnixSeconds(event.created_at) != null && {
 				createdAt: timestampMsFromUnixSeconds(event.created_at),
 			}),
-			$author: ((normalizedPubkey) => (
-				normalizedPubkey == null ?
-					undefined
-				:
-					{
-						[EntityMetaKey.Selector]: { pubkey: normalizedPubkey },
-					}
-			))(normalizePubkey(event.pubkey)),
+			$author: {
+				[EntityMetaKey.Selector]: { pubkey: eventPubkey },
+			},
 			...(replyToEventId != null && {
 				replyToEventId,
 			}),
@@ -312,14 +285,9 @@ const repostFieldValuesFromEvent = (event: NostrEvent) => {
 			...(timestampMsFromUnixSeconds(event.created_at) != null && {
 				createdAt: timestampMsFromUnixSeconds(event.created_at),
 			}),
-			$author: ((normalizedPubkey) => (
-				normalizedPubkey == null ?
-					undefined
-				:
-					{
-						[EntityMetaKey.Selector]: { pubkey: normalizedPubkey },
-					}
-			))(normalizePubkey(event.pubkey)),
+			$author: {
+				[EntityMetaKey.Selector]: { pubkey: eventPubkey },
+			},
 			...(repostedEventId != null && {
 				repostedEventId,
 				...(kind === 6 && {
@@ -328,7 +296,7 @@ const repostFieldValuesFromEvent = (event: NostrEvent) => {
 					},
 				}),
 			}),
-		}))(eventIdFromETags(event.tags))
+		}))(eTagEventIdsFromTags(event.tags).at(0))
 	)
 }
 
@@ -374,14 +342,9 @@ const reactionFieldValuesFromEvent = (event: NostrEvent) => {
 		...(timestampMsFromUnixSeconds(event.created_at) != null && {
 			createdAt: timestampMsFromUnixSeconds(event.created_at),
 		}),
-		$author: ((normalizedPubkey) => (
-			normalizedPubkey == null ?
-				undefined
-			:
-				{
-					[EntityMetaKey.Selector]: { pubkey: normalizedPubkey },
-				}
-		))(normalizePubkey(event.pubkey)),
+		$author: {
+			[EntityMetaKey.Selector]: { pubkey: eventPubkey },
+		},
 		content: optionalNonemptyString(event.content),
 	}
 }
@@ -445,14 +408,9 @@ const articleFieldValuesFromEvent = (event: NostrEvent) => {
 			contentWarning: optionalNonemptyString(tagValueFromTags(event.tags, 'content-warning')),
 			...(event.tags != null && { tags: event.tags }),
 			...(publishedAt != null && { publishedAt }),
-			$author: ((normalizedPubkey) => (
-				normalizedPubkey == null ?
-					undefined
-				:
-					{
-						[EntityMetaKey.Selector]: { pubkey: normalizedPubkey },
-					}
-			))(normalizePubkey(event.pubkey)),
+			$author: {
+				[EntityMetaKey.Selector]: { pubkey: eventPubkey },
+			},
 		}))(articlePublishedAtMs(event))
 	)
 }
@@ -469,6 +427,12 @@ const newestNostrEventFirst = (
 
 const profileMetadataEventFieldValues = (event: ValidatedNostrEvent) => {
 	const metadata = profileMetadataFromContent(event.content)
+	const displayName = optionalNonemptyString(metadata?.display_name ?? metadata?.name)
+	const about = optionalNonemptyString(metadata?.about)
+	const nip05 = optionalNonemptyString(metadata?.nip05)
+	const lud16 = optionalNonemptyString(metadata?.lud16)
+	const lud06 = optionalNonemptyString(metadata?.lud06)
+	const website = optionalUrlString(optionalNonemptyString(metadata?.website))
 	const iconUrl = optionalUrlString(optionalNonemptyString(metadata?.picture))
 	const bannerUrl = optionalUrlString(optionalNonemptyString(metadata?.banner))
 	return {
@@ -482,16 +446,12 @@ const profileMetadataEventFieldValues = (event: ValidatedNostrEvent) => {
 		signature: event.sig,
 		content: event.content,
 		tags: event.tags,
-		...(optionalNonemptyString(metadata?.display_name ?? metadata?.name) != null && {
-			displayName: optionalNonemptyString(metadata?.display_name ?? metadata?.name),
-		}),
-		...(optionalNonemptyString(metadata?.about) != null && { about: optionalNonemptyString(metadata?.about) }),
-		...(optionalNonemptyString(metadata?.nip05) != null && { nip05: optionalNonemptyString(metadata?.nip05) }),
-		...(optionalNonemptyString(metadata?.lud16) != null && { lud16: optionalNonemptyString(metadata?.lud16) }),
-		...(optionalNonemptyString(metadata?.lud06) != null && { lud06: optionalNonemptyString(metadata?.lud06) }),
-		...(optionalUrlString(optionalNonemptyString(metadata?.website)) != null && {
-			website: optionalUrlString(optionalNonemptyString(metadata?.website)),
-		}),
+		...(displayName != null && { displayName }),
+		...(about != null && { about }),
+		...(nip05 != null && { nip05 }),
+		...(lud16 != null && { lud16 }),
+		...(lud06 != null && { lud06 }),
+		...(website != null && { website }),
 		...(iconUrl != null && {
 			iconUrl,
 			$icon: mediaFromUrl(iconUrl, MediaType.Image),
@@ -507,6 +467,12 @@ const articleEventFieldValues = (event: ValidatedNostrEvent) => {
 	const identifier = tagValueFromTags(event.tags, 'd')
 	if (identifier == null)
 		throw new Error('NostrBand_Rest: article event missing identifier')
+	const title = optionalNonemptyString(tagValueFromTags(event.tags, 'title'))
+	const summary = optionalNonemptyString(tagValueFromTags(event.tags, 'summary'))
+	const imageUrl = optionalUrlString(optionalNonemptyString(tagValueFromTags(event.tags, 'image')))
+	const content = optionalNonemptyString(event.content)
+	const contentWarning = optionalNonemptyString(tagValueFromTags(event.tags, 'content-warning'))
+	const publishedAt = articlePublishedAtMs(event)
 
 	return {
 		eventId: event.id,
@@ -523,21 +489,13 @@ const articleEventFieldValues = (event: ValidatedNostrEvent) => {
 		createdAt: event.created_at * 1000,
 		signature: event.sig,
 		tags: event.tags,
-		...(optionalNonemptyString(tagValueFromTags(event.tags, 'title')) != null && {
-			title: optionalNonemptyString(tagValueFromTags(event.tags, 'title')),
-		}),
-		...(optionalNonemptyString(tagValueFromTags(event.tags, 'summary')) != null && {
-			summary: optionalNonemptyString(tagValueFromTags(event.tags, 'summary')),
-		}),
-		...(optionalUrlString(optionalNonemptyString(tagValueFromTags(event.tags, 'image'))) != null && {
-			imageUrl: optionalUrlString(optionalNonemptyString(tagValueFromTags(event.tags, 'image'))),
-		}),
-		...(optionalNonemptyString(event.content) != null && { content: optionalNonemptyString(event.content) }),
+		...(title != null && { title }),
+		...(summary != null && { summary }),
+		...(imageUrl != null && { imageUrl }),
+		...(content != null && { content }),
 		sensitive: event.tags.some((tag) => tag[0] === 'content-warning'),
-		...(optionalNonemptyString(tagValueFromTags(event.tags, 'content-warning')) != null && {
-			contentWarning: optionalNonemptyString(tagValueFromTags(event.tags, 'content-warning')),
-		}),
-		...(articlePublishedAtMs(event) != null && { publishedAt: articlePublishedAtMs(event) }),
+		...(contentWarning != null && { contentWarning }),
+		...(publishedAt != null && { publishedAt }),
 		$author: {
 			[EntityMetaKey.Selector]: { pubkey: event.pubkey },
 		},
@@ -662,10 +620,10 @@ export default {
 			resolve: {
 				CanonicalPubkey: {
 					resolve: async ({ pubkey }, context) => {
-						const { listAuthorMetadataEvents } = await import('$/sources/NostrBand/Rest/queries.ts')
+						const { listAuthorEvents } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const events = [...new Map(
 							validatedEvents(
-								(await listAuthorMetadataEvents(pubkey, resolverContextRowLimit(context))).events ?? [],
+								(await listAuthorEvents(pubkey, resolverContextRowLimit(context), [0])).events ?? [],
 								{
 									kinds: [0],
 									pubkey,
@@ -767,7 +725,7 @@ export default {
 			entityType: EntityType.NostrRelay,
 			resolve: {
 				RelayUrl: {
-					resolve: async ({ relayUrl: relayUrlSelector }) => {
+					resolve: ({ relayUrl: relayUrlSelector }) => {
 						const relayUrl = normalizeRelayUrl(relayUrlSelector)
 						if (relayUrl == null)
 							throw new Error('NostrBand_Rest: relay url invalid')
@@ -986,14 +944,14 @@ export default {
 			resolve: {
 				CanonicalCoordinate: {
 					resolve: async ({ identifier: identifierSelector, kind, pubkey: pubkeySelector }, context) => {
-						const { listAuthorArticles } = await import('$/sources/NostrBand/Rest/queries.ts')
+						const { listAuthorEvents } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const pubkey = normalizePubkey(pubkeySelector)
 						const identifier = identifierSelector
 						if (pubkey == null || identifier === '' || kind !== 30023)
 							throw new Error('NostrBand_Rest: article id invalid')
 						const events = [...new Map(
 							validatedEvents(
-								(await listAuthorArticles(pubkey, resolverContextRowLimit(context))).events ?? [],
+								(await listAuthorEvents(pubkey, resolverContextRowLimit(context), [30_023])).events ?? [],
 								{
 									pubkey,
 									kinds: [30_023],
@@ -1057,163 +1015,142 @@ export default {
 			$author: (event) => event.$author,
 		}),
 
-			defineResolver(Source.NostrBand_Rest, {
-				entityType: EntityType._GlobalNostrNetwork,
-				resolve: {
-					Scope: {
-						resolve: async (_entitySelector, context) => {
+		defineResolver(Source.NostrBand_Rest, {
+			entityType: EntityType._GlobalNostrNetwork,
+			resolve: {
+				Scope: {
+					resolve: async (_entitySelector, context) => {
 						const { listTopProfiles } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (
 							((await listTopProfiles(limit)).profiles ?? [])
 								.flatMap((topProfile) => {
-								if (topProfile.profile == null) return []
-								const event = validatedEvents([topProfile.profile], { kinds: [0] }).at(0)
-								if (event == null) return []
-								const pubkey = normalizePubkey(topProfile.pubkey ?? event.pubkey)
-								if (pubkey == null || event.pubkey !== pubkey) return []
-								return [{
-									[EntityMetaKey.Selector]: { pubkey },
-								}]
+									if (topProfile.profile == null) return []
+									const event = validatedEvents([topProfile.profile], { kinds: [0] }).at(0)
+									if (event == null) return []
+									const pubkey = normalizePubkey(topProfile.pubkey ?? event.pubkey)
+									if (pubkey == null || event.pubkey !== pubkey) return []
+									return [{
+										[EntityMetaKey.Selector]: { pubkey },
+									}]
 								})
 						)
 					},
-					}
+				},
 			},
-			})({
-					$$observedProfiles: (profiles) => profiles,
-				}),
+		})({
+			$$observedProfiles: (profiles) => profiles,
+		}),
 
-			defineResolver(Source.NostrBand_Rest, {
-				entityType: EntityType._GlobalNostrNetwork,
-				resolve: {
-					Scope: {
-						resolve: async (_entitySelector, context) => {
-						const { listRecentTextNotes } = await import('$/sources/NostrBand/Rest/queries.ts')
+		defineResolver(Source.NostrBand_Rest, {
+			entityType: EntityType._GlobalNostrNetwork,
+			resolve: {
+				Scope: {
+					resolve: async (_entitySelector, context) => {
+						const { listRecentEvents } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (
 							validatedEvents(
-								(await listRecentTextNotes(limit)).events ?? [],
+								(await listRecentEvents(limit, [1])).events ?? [],
 								{ kinds: [1] }
 							)
-								.flatMap((event) => (
-								event.kind !== 1 || normalizeEventId(event.id) == null ?
-									[]
-								:
-									[
-										{
-											[EntityMetaKey.Selector]: { eventId: normalizeEventId(event.id)! },
-										},
-									]
-								))
+								.map((event) => ({
+									[EntityMetaKey.Selector]: { eventId: event.id },
+								}))
 						)
 					},
-					}
+				},
 			},
-			})({
-					$$observedNotes: (notes) => notes,
-				}),
+		})({
+			$$observedNotes: (notes) => notes,
+		}),
 
-			defineResolver(Source.NostrBand_Rest, {
-				entityType: EntityType._GlobalNostrNetwork,
-				resolve: {
-					Scope: {
-						resolve: async (_entitySelector, context) => {
+		defineResolver(Source.NostrBand_Rest, {
+			entityType: EntityType._GlobalNostrNetwork,
+			resolve: {
+				Scope: {
+					resolve: async (_entitySelector, context) => {
 						const { listTopRelays } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (
 							((await listTopRelays(limit)).relays ?? [])
 								.flatMap((relay) => {
-								const relayUrl = relayUrlFromWire(relay)
-								if (relayUrl == null) return []
-								return [{
-									[EntityMetaKey.Selector]: { relayUrl: relayUrl },
-								}]
+									const relayUrl = relayUrlFromWire(relay)
+									if (relayUrl == null) return []
+									return [{
+										[EntityMetaKey.Selector]: { relayUrl },
+									}]
 								})
 						)
 					},
-					}
+				},
 			},
-			})({
-					$$observedRelays: (relays) => relays,
-				}),
+		})({
+			$$observedRelays: (relays) => relays,
+		}),
 
-			defineResolver(Source.NostrBand_Rest, {
-				entityType: EntityType._GlobalNostrNetwork,
-				resolve: {
-					Scope: {
-						resolve: async (_entitySelector, context) => {
-						const { listRecentReposts } = await import('$/sources/NostrBand/Rest/queries.ts')
+		defineResolver(Source.NostrBand_Rest, {
+			entityType: EntityType._GlobalNostrNetwork,
+			resolve: {
+				Scope: {
+					resolve: async (_entitySelector, context) => {
+						const { listRecentEvents } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (
 							validatedEvents(
-								(await listRecentReposts(limit)).events ?? [],
+								(await listRecentEvents(limit, [6, 16])).events ?? [],
 								{ kinds: [6, 16] }
 							)
-								.flatMap((event) => (
-								!isNostrRepostKind(event.kind) || normalizeEventId(event.id) == null ?
-									[]
-								:
-									[
-										{
-											[EntityMetaKey.Selector]: { eventId: normalizeEventId(event.id)! },
-										},
-									]
-								))
+								.map((event) => ({
+									[EntityMetaKey.Selector]: { eventId: event.id },
+								}))
 						)
 					},
-					}
+				},
 			},
-			})({
-					$$observedReposts: (reposts) => reposts,
-				}),
+		})({
+			$$observedReposts: (reposts) => reposts,
+		}),
 
-			defineResolver(Source.NostrBand_Rest, {
-				entityType: EntityType._GlobalNostrNetwork,
-				resolve: {
-					Scope: {
-						resolve: async (_entitySelector, context) => {
-						const { listRecentArticles } = await import('$/sources/NostrBand/Rest/queries.ts')
+		defineResolver(Source.NostrBand_Rest, {
+			entityType: EntityType._GlobalNostrNetwork,
+			resolve: {
+				Scope: {
+					resolve: async (_entitySelector, context) => {
+						const { listRecentEvents } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (
 							validatedEvents(
-								(await listRecentArticles(limit)).events ?? [],
+								(await listRecentEvents(limit, [30_023])).events ?? [],
 								{ kinds: [30_023] }
 							)
 								.flatMap((event) => articleRefFromEvent(event))
 						)
 					},
-					}
+				},
 			},
-			})({
-					$$observedArticles: (articles) => articles,
-				}),
+		})({
+			$$observedArticles: (articles) => articles,
+		}),
 
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				CanonicalPubkey: {
 					resolve: async ({ pubkey }, context) => {
-						const { listAuthorTextNotes } = await import('$/sources/NostrBand/Rest/queries.ts')
+						const { listAuthorEvents } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (
 							validatedEvents(
-								(await listAuthorTextNotes(pubkey, limit)).events ?? [],
+								(await listAuthorEvents(pubkey, limit, [1])).events ?? [],
 								{
 									pubkey,
 									kinds: [1],
 								}
 							)
-								.flatMap((event) => (
-								event.kind !== 1 || normalizeEventId(event.id) == null ?
-									[]
-								:
-									[
-										{
-											[EntityMetaKey.Selector]: { eventId: normalizeEventId(event.id)! },
-										},
-									]
-								))
+								.map((event) => ({
+									[EntityMetaKey.Selector]: { eventId: event.id },
+								}))
 						)
 					},
 				}
@@ -1227,11 +1164,11 @@ export default {
 			resolve: {
 				CanonicalPubkey: {
 					resolve: async ({ pubkey }, context) => {
-						const { listAuthorArticles } = await import('$/sources/NostrBand/Rest/queries.ts')
+						const { listAuthorEvents } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (
 							validatedEvents(
-								(await listAuthorArticles(pubkey, limit)).events ?? [],
+								(await listAuthorEvents(pubkey, limit, [30_023])).events ?? [],
 								{
 									pubkey,
 									kinds: [30_023],
@@ -1251,26 +1188,19 @@ export default {
 			resolve: {
 				CanonicalPubkey: {
 					resolve: async ({ pubkey }, context) => {
-						const { listAuthorReposts } = await import('$/sources/NostrBand/Rest/queries.ts')
+						const { listAuthorEvents } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (
 							validatedEvents(
-								(await listAuthorReposts(pubkey, limit)).events ?? [],
+								(await listAuthorEvents(pubkey, limit, [6, 16])).events ?? [],
 								{
 									pubkey,
 									kinds: [6, 16],
 								}
 							)
-								.flatMap((event) => (
-								!isNostrRepostKind(event.kind) || normalizeEventId(event.id) == null ?
-									[]
-								:
-									[
-										{
-											[EntityMetaKey.Selector]: { eventId: normalizeEventId(event.id)! },
-										},
-									]
-								))
+								.map((event) => ({
+									[EntityMetaKey.Selector]: { eventId: event.id },
+								}))
 						)
 					},
 				}
@@ -1292,16 +1222,9 @@ export default {
 								{ kinds: [1] }
 							)
 								.filter((event) => replyToEventIdFromTags(event.tags) === eventId)
-								.flatMap((event) => (
-								event.kind !== 1 || normalizeEventId(event.id) == null ?
-									[]
-								:
-									[
-										{
-											[EntityMetaKey.Selector]: { eventId: normalizeEventId(event.id)! },
-										},
-									]
-								))
+								.map((event) => ({
+									[EntityMetaKey.Selector]: { eventId: event.id },
+								}))
 						)
 					},
 				}
@@ -1323,16 +1246,9 @@ export default {
 								{ kinds: [7] }
 							)
 								.filter((event) => reactionTargetEventIdFromTags(event.tags) === eventId)
-								.flatMap((event) => (
-								event.kind !== 7 || normalizeEventId(event.id) == null ?
-									[]
-								:
-									[
-										{
-											[EntityMetaKey.Selector]: { eventId: normalizeEventId(event.id)! },
-										},
-									]
-								))
+								.map((event) => ({
+									[EntityMetaKey.Selector]: { eventId: event.id },
+								}))
 						)
 					},
 				}
@@ -1341,32 +1257,5 @@ export default {
 				$$reactions: (reactions) => reactions,
 			}),
 
-		defineResolver(Source.NostrBand_Rest, {
-			entityType: EntityType.NostrNote,
-			resolve: {
-				CanonicalEventId: {
-					resolve: async ({ eventId }, context) => {
-						const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
-						const event = eventFromWire(await getEventById(eventId), {
-							eventId,
-							kinds: [1],
-						})
-						if (event == null || event.kind !== 1)
-							throw new Error('NostrBand_Rest: note not found for reply target')
-						const normalizedReplyTo = replyToEventIdFromTags(event.tags)
-						return (
-							normalizedReplyTo == null ?
-								undefined
-							:
-								{
-									[EntityMetaKey.Selector]: { eventId: normalizedReplyTo },
-								}
-						)
-					},
-				}
-			},
-		})({
-				$replyToNote: (replyToNote) => replyToNote,
-			}),
 	],
 }

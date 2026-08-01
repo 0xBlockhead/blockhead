@@ -27,7 +27,7 @@
 			Source.CircleCctpContracts_Evm,
 			Source.CircleCctpContracts_Solana,
 			Source.CircleCctpContracts_Stellar,
-			Source.CircleCctp_IrisApi,
+			Source.CircleCctpIris,
 		],
 	}))
 	const cctpDomainSupport = $derived(viewSelection({
@@ -64,7 +64,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{String(selection.entitySelector.domainId) || (prefetched.name ?? '') || titleFallback}
+		{String(selection.entitySelector.domainId)}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -114,7 +114,6 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

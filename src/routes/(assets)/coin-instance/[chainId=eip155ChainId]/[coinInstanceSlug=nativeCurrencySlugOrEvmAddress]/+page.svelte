@@ -15,80 +15,8 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(
-		(
-			data.entityType === EntityType.EvmCoinInstance && data.selectorName === 'NetworkType' ?
-				select(EntityType.EvmCoinInstance, data.selector, {
-					fields: {
-						NativeCurrency: {
-							fields: {
-								symbol: true,
-								name: true,
-								coinId: true,
-								decimals: true,
-								caip19: true,
-								representation: true,
-								iconUrl: true,
-								$canonicalInstance: true,
-								$icon: true,
-							},
-						},
-						Erc20Token: {
-							fields: {
-								symbol: true,
-								name: true,
-								coinId: true,
-								decimals: true,
-								caip19: true,
-								representation: true,
-								iconUrl: true,
-								$canonicalInstance: true,
-								$icon: true,
-							},
-						},
-						$contract: true,
-					},
-				})
-			:
-				select(EntityType.EvmCoinInstance, data.selector, {
-					fields: {
-						NativeCurrency: {
-							fields: {
-								symbol: true,
-								name: true,
-								coinId: true,
-								decimals: true,
-								caip19: true,
-								representation: true,
-								iconUrl: true,
-								$canonicalInstance: true,
-								$icon: true,
-							},
-						},
-						Erc20Token: {
-							fields: {
-								symbol: true,
-								name: true,
-								coinId: true,
-								decimals: true,
-								caip19: true,
-								representation: true,
-								iconUrl: true,
-								$canonicalInstance: true,
-								$icon: true,
-							},
-						},
-					},
-				})
-		)
-	)
 	const pageTitle = $derived(
-		(
-			data.entityType === EntityType.EvmCoinInstance && data.selectorName === 'NetworkType' ?
-				pageSelection.entity == null ? 'EVM coin instance' : 'EVM coin instance'
-			:
-				pageSelection.entity == null ? 'EVM coin instance' : 'EVM coin instance'
-		)
+		'EVM coin instance'
 	)
 
 	// Components
@@ -104,6 +32,38 @@
 
 <Page>
 	<EvmCoinInstanceView
-		selection={pageSelection}
+		selection={
+			select(EntityType.EvmCoinInstance, data.selector, {
+				fields: {
+					NativeCurrency: {
+						fields: {
+							symbol: true,
+							name: true,
+							coinId: true,
+							decimals: true,
+							caip19: true,
+							representation: true,
+							iconUrl: true,
+							$canonicalInstance: true,
+							$icon: true,
+						},
+					},
+					Erc20Token: {
+						fields: {
+							symbol: true,
+							name: true,
+							coinId: true,
+							decimals: true,
+							caip19: true,
+							representation: true,
+							iconUrl: true,
+							$canonicalInstance: true,
+							$icon: true,
+						},
+					},
+					$contract: true,
+				},
+			})
+		}
 	/>
 </Page>

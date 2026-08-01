@@ -78,7 +78,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Icon()}
 		<IconComponent />
 	{/snippet}
@@ -178,7 +177,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -195,7 +193,6 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -204,572 +201,253 @@
 			</ResourceBoundary>
 		</dl>
 
-		<dl data-column-item="center">
-			{#if selection.entitySelector.type === 'NativeCurrency'}
-				<ProjectionBoundary
-					resource={selection.NativeCurrency}
-				>
-					{#snippet Applicable(projection)}
-						<div>
-							<dt>Symbol</dt>
-							<dd>
-								<ResourceBoundary
-									resource={projection.symbol}
-								>
-									{#snippet children(symbol)}
-										{symbol}
-									{/snippet}
-								</ResourceBoundary>
-							</dd>
-						</div>
+		<ProjectionBoundary
+			resource={
+				selection.entitySelector.type === 'NativeCurrency' ?
+					selection.NativeCurrency
+				:
+					selection.Erc20Token
+			}
+		>
+			{#snippet Applicable(projection)}
+				<dl data-column-item="center">
+					<div>
+						<dt>Symbol</dt>
+						<dd>
+							<ResourceBoundary
+								resource={projection.symbol}
+							>
+								{#snippet children(symbol)}
+									{symbol}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
 
-						<ResourceBoundary
-							resource={projection.name}
-						>
-							{#snippet children(name)}
-								{#if name != null}
-									<div>
-										<dt>Name</dt>
-										<dd>
-											{name}
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
+					<ResourceBoundary
+						resource={projection.name}
+					>
+						{#snippet children(name)}
+							{#if name != null}
+								<div>
+									<dt>Name</dt>
+									<dd>
+										{name}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 
-						<div>
-							<dt>Coin ID</dt>
-							<dd>
-								<ResourceBoundary
-									resource={projection.coinId}
-								>
-									{#snippet children(coinId)}
-										{coinId}
-									{/snippet}
-								</ResourceBoundary>
-							</dd>
-						</div>
-					{/snippet}
-				</ProjectionBoundary>
-			{/if}
-		</dl>
+					<div>
+						<dt>Coin ID</dt>
+						<dd>
+							<ResourceBoundary
+								resource={projection.coinId}
+							>
+								{#snippet children(coinId)}
+									{coinId}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				</dl>
 
-		<dl data-column-item="center">
-			{#if selection.entitySelector.type === 'NativeCurrency'}
-				<ProjectionBoundary
-					resource={selection.NativeCurrency}
-				>
-					{#snippet Applicable(projection)}
-						<div>
-							<dt>Decimals</dt>
-							<dd>
-								<ResourceBoundary
-									resource={projection.decimals}
-								>
-									{#snippet children(decimals)}
-										{decimals}
-									{/snippet}
-								</ResourceBoundary>
-							</dd>
-						</div>
+				<dl data-column-item="center">
+					<div>
+						<dt>Decimals</dt>
+						<dd>
+							<ResourceBoundary
+								resource={projection.decimals}
+							>
+								{#snippet children(decimals)}
+									{decimals}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
 
-						<ResourceBoundary
-							resource={projection.caip19}
-						>
-							{#snippet children(caip19)}
-								{#if caip19 != null}
-									<div>
-										<dt>CAIP-19</dt>
-										<dd>
-											{caip19}
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
+					<ResourceBoundary
+						resource={projection.caip19}
+					>
+						{#snippet children(caip19)}
+							{#if caip19 != null}
+								<div>
+									<dt>CAIP-19</dt>
+									<dd>
+										{caip19}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 
-						<ResourceBoundary
-							resource={projection.representation}
-						>
-							{#snippet children(representation)}
-								{#if representation != null}
-									<div>
-										<dt>Representation</dt>
-										<dd>
-											{representation}
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
+					<ResourceBoundary
+						resource={projection.representation}
+					>
+						{#snippet children(representation)}
+							{#if representation != null}
+								<div>
+									<dt>Representation</dt>
+									<dd>
+										{representation}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 
-						<ResourceBoundary
-							resource={projection.iconUrl}
-						>
-							{#snippet children(iconUrl)}
-								{#if iconUrl != null}
-									<div>
-										<dt>Icon URL</dt>
-										<dd>
-											<a
-												href={iconUrl}
-												target="_blank"
-												rel="noreferrer noopener"
-											>
-												<TruncatedValue value={iconUrl} />
-											</a>
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-				</ProjectionBoundary>
-			{/if}
-		</dl>
+					<ResourceBoundary
+						resource={projection.iconUrl}
+					>
+						{#snippet children(iconUrl)}
+							{#if iconUrl != null}
+								<div>
+									<dt>Icon URL</dt>
+									<dd>
+										<a
+											href={iconUrl}
+											target="_blank"
+											rel="noreferrer noopener"
+										>
+											<TruncatedValue value={iconUrl} />
+										</a>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dl>
 
-		<dl data-column-item="center">
-			{#if selection.entitySelector.type === 'NativeCurrency'}
-				<ProjectionBoundary
-					resource={selection.NativeCurrency}
-				>
-					{#snippet Applicable(projection)}
-						<ResourceBoundary
-							resource={projection.$canonicalInstance}
-						>
-							{#snippet children(evmCoinInstance)}
-								{#if evmCoinInstance != null}
-									<div>
-										<dt>Canonical instance</dt>
-										<dd>
-											<EvmCoinInstanceView
-												selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-												prefetched={evmCoinInstance}
-												layout={EntityLayout.Value}
-												open={false}
-											/>
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
+				<dl data-column-item="center">
+					<ResourceBoundary
+						resource={projection.$canonicalInstance}
+					>
+						{#snippet children(evmCoinInstance)}
+							{#if evmCoinInstance != null}
+								<div>
+									<dt>Canonical instance</dt>
+									<dd>
+										<EvmCoinInstanceView
+											selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+											prefetched={evmCoinInstance}
+											layout={EntityLayout.Value}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 
-						<ResourceBoundary
-							resource={projection.$icon}
-						>
-							{#snippet children(media)}
-								{#if media != null}
-									<div>
-										<dt>Icon</dt>
-										<dd>
-											<MediaView
-												selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
-												prefetched={media}
-												layout={EntityLayout.Value}
-												open={false}
-											/>
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-				</ProjectionBoundary>
-			{/if}
-		</dl>
-
-		<dl data-column-item="center">
-			{#if selection.entitySelector.type === 'Erc20Token'}
-				<ProjectionBoundary
-					resource={selection.Erc20Token}
-				>
-					{#snippet Applicable(projection)}
-						<div>
-							<dt>Symbol</dt>
-							<dd>
-								<ResourceBoundary
-									resource={projection.symbol}
-								>
-									{#snippet children(symbol)}
-										{symbol}
-									{/snippet}
-								</ResourceBoundary>
-							</dd>
-						</div>
-
-						<ResourceBoundary
-							resource={projection.name}
-						>
-							{#snippet children(name)}
-								{#if name != null}
-									<div>
-										<dt>Name</dt>
-										<dd>
-											{name}
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-
-						<div>
-							<dt>Coin ID</dt>
-							<dd>
-								<ResourceBoundary
-									resource={projection.coinId}
-								>
-									{#snippet children(coinId)}
-										{coinId}
-									{/snippet}
-								</ResourceBoundary>
-							</dd>
-						</div>
-					{/snippet}
-				</ProjectionBoundary>
-			{/if}
-		</dl>
-
-		<dl data-column-item="center">
-			{#if selection.entitySelector.type === 'Erc20Token'}
-				<ProjectionBoundary
-					resource={selection.Erc20Token}
-				>
-					{#snippet Applicable(projection)}
-						<div>
-							<dt>Decimals</dt>
-							<dd>
-								<ResourceBoundary
-									resource={projection.decimals}
-								>
-									{#snippet children(decimals)}
-										{decimals}
-									{/snippet}
-								</ResourceBoundary>
-							</dd>
-						</div>
-
-						<ResourceBoundary
-							resource={projection.caip19}
-						>
-							{#snippet children(caip19)}
-								{#if caip19 != null}
-									<div>
-										<dt>CAIP-19</dt>
-										<dd>
-											{caip19}
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-
-						<ResourceBoundary
-							resource={projection.representation}
-						>
-							{#snippet children(representation)}
-								{#if representation != null}
-									<div>
-										<dt>Representation</dt>
-										<dd>
-											{representation}
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-
-						<ResourceBoundary
-							resource={projection.iconUrl}
-						>
-							{#snippet children(iconUrl)}
-								{#if iconUrl != null}
-									<div>
-										<dt>Icon URL</dt>
-										<dd>
-											<a
-												href={iconUrl}
-												target="_blank"
-												rel="noreferrer noopener"
-											>
-												<TruncatedValue value={iconUrl} />
-											</a>
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-				</ProjectionBoundary>
-			{/if}
-		</dl>
-
-		<dl data-column-item="center">
-			{#if selection.entitySelector.type === 'Erc20Token'}
-				<ProjectionBoundary
-					resource={selection.Erc20Token}
-				>
-					{#snippet Applicable(projection)}
-						<ResourceBoundary
-							resource={projection.$canonicalInstance}
-						>
-							{#snippet children(evmCoinInstance)}
-								{#if evmCoinInstance != null}
-									<div>
-										<dt>Canonical instance</dt>
-										<dd>
-											<EvmCoinInstanceView
-												selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-												prefetched={evmCoinInstance}
-												layout={EntityLayout.Value}
-												open={false}
-											/>
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-
-						<ResourceBoundary
-							resource={projection.$icon}
-						>
-							{#snippet children(media)}
-								{#if media != null}
-									<div>
-										<dt>Icon</dt>
-										<dd>
-											<MediaView
-												selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
-												prefetched={media}
-												layout={EntityLayout.Value}
-												open={false}
-											/>
-										</dd>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-				</ProjectionBoundary>
-			{/if}
-		</dl>
+					<ResourceBoundary
+						resource={projection.$icon}
+					>
+						{#snippet children(media)}
+							{#if media != null}
+								<div>
+									<dt>Icon</dt>
+									<dd>
+										<MediaView
+											selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
+											prefetched={media}
+											layout={EntityLayout.Value}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dl>
+			{/snippet}
+		</ProjectionBoundary>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{#if selection.entitySelector.type === 'NativeCurrency'}
-			<ProjectionBoundary
-				resource={selection.NativeCurrency}
-			>
-				{#snippet Applicable(projection)}
-					{@const outboundBridgeCapabilitiesResource = projection
-						.$$outboundBridgeCapabilities({
-							sources: [
-								Source.Lifi_Rest,
-							],
-						})}
-					<ResourceBoundary
-						resource={outboundBridgeCapabilitiesResource}
-					>
-						{#snippet children(entities)}
-							{#if entities.values.length > 0}
-								<CoinBridgeCapabilitiesView
-									selection={outboundBridgeCapabilitiesResource}
-									countResource={outboundBridgeCapabilitiesResource.count}
-									title='Outbound bridge capabilities'
-									id='outbound-bridge-capabilities'
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ProjectionBoundary>
-		{/if}
+		<ProjectionBoundary
+			resource={
+				selection.entitySelector.type === 'NativeCurrency' ?
+					selection.NativeCurrency
+				:
+					selection.Erc20Token
+			}
+		>
+			{#snippet Applicable(projection)}
+				{@const outboundBridgeCapabilitiesResource = projection
+					.$$outboundBridgeCapabilities({
+						sources: [
+							Source.Lifi_Rest,
+						],
+					})}
+				<ResourceBoundary
+					resource={outboundBridgeCapabilitiesResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+							<CoinBridgeCapabilitiesView
+								selection={outboundBridgeCapabilitiesResource}
+								countResource={outboundBridgeCapabilitiesResource.count}
+								title='Outbound bridge capabilities'
+								id='outbound-bridge-capabilities'
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-		{#if selection.entitySelector.type === 'NativeCurrency'}
-			<ProjectionBoundary
-				resource={selection.NativeCurrency}
-			>
-				{#snippet Applicable(projection)}
-					{@const inboundBridgeCapabilitiesResource = projection
-						.$$inboundBridgeCapabilities({
-							sources: [
-								Source.Lifi_Rest,
-							],
-						})}
-					<ResourceBoundary
-						resource={inboundBridgeCapabilitiesResource}
-					>
-						{#snippet children(entities)}
-							{#if entities.values.length > 0}
-								<CoinBridgeCapabilitiesView
-									selection={inboundBridgeCapabilitiesResource}
-									countResource={inboundBridgeCapabilitiesResource.count}
-									title='Inbound bridge capabilities'
-									id='inbound-bridge-capabilities'
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ProjectionBoundary>
-		{/if}
+				{@const inboundBridgeCapabilitiesResource = projection
+					.$$inboundBridgeCapabilities({
+						sources: [
+							Source.Lifi_Rest,
+						],
+					})}
+				<ResourceBoundary
+					resource={inboundBridgeCapabilitiesResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+							<CoinBridgeCapabilitiesView
+								selection={inboundBridgeCapabilitiesResource}
+								countResource={inboundBridgeCapabilitiesResource.count}
+								title='Inbound bridge capabilities'
+								id='inbound-bridge-capabilities'
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-		{#if selection.entitySelector.type === 'NativeCurrency'}
-			<ProjectionBoundary
-				resource={selection.NativeCurrency}
-			>
-				{#snippet Applicable(projection)}
-					{@const marketsWithInstanceAsBaseResource = projection.$$marketsWithInstanceAsBase}
-					<ResourceBoundary
-						resource={marketsWithInstanceAsBaseResource}
-					>
-						{#snippet children(entities)}
-							{#if entities.values.length > 0}
-								<MarketsView
-									selection={marketsWithInstanceAsBaseResource}
-									countResource={marketsWithInstanceAsBaseResource.count}
-									title='Markets with instance as base'
-									href={resolve('/(assets)/markets')}
-									id='markets-with-instance-as-base'
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ProjectionBoundary>
-		{/if}
+				{@const marketsWithInstanceAsBaseResource = projection.$$marketsWithInstanceAsBase}
+				<ResourceBoundary
+					resource={marketsWithInstanceAsBaseResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+							<MarketsView
+								selection={marketsWithInstanceAsBaseResource}
+								countResource={marketsWithInstanceAsBaseResource.count}
+								title='Markets with instance as base'
+								href={resolve('/(assets)/markets')}
+								id='markets-with-instance-as-base'
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-		{#if selection.entitySelector.type === 'NativeCurrency'}
-			<ProjectionBoundary
-				resource={selection.NativeCurrency}
-			>
-				{#snippet Applicable(projection)}
-					{@const marketsWithInstanceAsQuoteResource = projection.$$marketsWithInstanceAsQuote}
-					<ResourceBoundary
-						resource={marketsWithInstanceAsQuoteResource}
-					>
-						{#snippet children(entities)}
-							{#if entities.values.length > 0}
-								<MarketsView
-									selection={marketsWithInstanceAsQuoteResource}
-									countResource={marketsWithInstanceAsQuoteResource.count}
-									title='Markets with instance as quote'
-									href={resolve('/(assets)/markets')}
-									id='markets-with-instance-as-quote'
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ProjectionBoundary>
-		{/if}
-
-		{#if selection.entitySelector.type === 'Erc20Token'}
-			<ProjectionBoundary
-				resource={selection.Erc20Token}
-			>
-				{#snippet Applicable(projection)}
-					{@const outboundBridgeCapabilitiesResource = projection
-						.$$outboundBridgeCapabilities({
-							sources: [
-								Source.Lifi_Rest,
-							],
-						})}
-					<ResourceBoundary
-						resource={outboundBridgeCapabilitiesResource}
-					>
-						{#snippet children(entities)}
-							{#if entities.values.length > 0}
-								<CoinBridgeCapabilitiesView
-									selection={outboundBridgeCapabilitiesResource}
-									countResource={outboundBridgeCapabilitiesResource.count}
-									title='Outbound bridge capabilities'
-									id='outbound-bridge-capabilities'
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ProjectionBoundary>
-		{/if}
-
-		{#if selection.entitySelector.type === 'Erc20Token'}
-			<ProjectionBoundary
-				resource={selection.Erc20Token}
-			>
-				{#snippet Applicable(projection)}
-					{@const inboundBridgeCapabilitiesResource = projection
-						.$$inboundBridgeCapabilities({
-							sources: [
-								Source.Lifi_Rest,
-							],
-						})}
-					<ResourceBoundary
-						resource={inboundBridgeCapabilitiesResource}
-					>
-						{#snippet children(entities)}
-							{#if entities.values.length > 0}
-								<CoinBridgeCapabilitiesView
-									selection={inboundBridgeCapabilitiesResource}
-									countResource={inboundBridgeCapabilitiesResource.count}
-									title='Inbound bridge capabilities'
-									id='inbound-bridge-capabilities'
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ProjectionBoundary>
-		{/if}
-
-		{#if selection.entitySelector.type === 'Erc20Token'}
-			<ProjectionBoundary
-				resource={selection.Erc20Token}
-			>
-				{#snippet Applicable(projection)}
-					{@const marketsWithInstanceAsBaseResource = projection.$$marketsWithInstanceAsBase}
-					<ResourceBoundary
-						resource={marketsWithInstanceAsBaseResource}
-					>
-						{#snippet children(entities)}
-							{#if entities.values.length > 0}
-								<MarketsView
-									selection={marketsWithInstanceAsBaseResource}
-									countResource={marketsWithInstanceAsBaseResource.count}
-									title='Markets with instance as base'
-									href={resolve('/(assets)/markets')}
-									id='markets-with-instance-as-base'
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ProjectionBoundary>
-		{/if}
-
-		{#if selection.entitySelector.type === 'Erc20Token'}
-			<ProjectionBoundary
-				resource={selection.Erc20Token}
-			>
-				{#snippet Applicable(projection)}
-					{@const marketsWithInstanceAsQuoteResource = projection.$$marketsWithInstanceAsQuote}
-					<ResourceBoundary
-						resource={marketsWithInstanceAsQuoteResource}
-					>
-						{#snippet children(entities)}
-							{#if entities.values.length > 0}
-								<MarketsView
-									selection={marketsWithInstanceAsQuoteResource}
-									countResource={marketsWithInstanceAsQuoteResource.count}
-									title='Markets with instance as quote'
-									href={resolve('/(assets)/markets')}
-									id='markets-with-instance-as-quote'
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ProjectionBoundary>
-		{/if}
+				{@const marketsWithInstanceAsQuoteResource = projection.$$marketsWithInstanceAsQuote}
+				<ResourceBoundary
+					resource={marketsWithInstanceAsQuoteResource}
+				>
+					{#snippet children(entities)}
+						{#if entities.values.length > 0}
+							<MarketsView
+								selection={marketsWithInstanceAsQuoteResource}
+								countResource={marketsWithInstanceAsQuoteResource.count}
+								title='Markets with instance as quote'
+								href={resolve('/(assets)/markets')}
+								id='markets-with-instance-as-quote'
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ProjectionBoundary>
 	{/snippet}
 </EntityView>

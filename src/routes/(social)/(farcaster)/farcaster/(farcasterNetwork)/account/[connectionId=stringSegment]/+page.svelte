@@ -16,23 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadFarcasterAccountConnection, {
-		connectionId: params.connectionId,
-	}, {
-		sources: [
-			Source.Local_Internal,
-		],
-		fields: {
-			$user: true,
-			authMethod: true,
-			signerAddress: true,
-			verifiedAt: true,
-			expiresAt: true,
-			associationFingerprint: true,
-			selected: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -41,12 +24,29 @@
 
 
 <svelte:head>
-	<title>{'Blockhead Farcaster account connection'} • Blockhead Farcaster account connection • Blockhead</title>
+	<title>{'Verified Farcaster connection'} • Blockhead Farcaster account connection • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BlockheadFarcasterAccountConnectionView
-		selection={pageSelection}
+		selection={
+			select(EntityType.BlockheadFarcasterAccountConnection, {
+				connectionId: params.connectionId,
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					$user: true,
+					authMethod: true,
+					signerAddress: true,
+					verifiedAt: true,
+					expiresAt: true,
+					associationFingerprint: true,
+					selected: true,
+				},
+			})
+		}
 	/>
 </Page>

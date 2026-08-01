@@ -3,6 +3,7 @@ import bindings from '$/sources/SolanaSimds/bindings.ts'
 import type { SolanaSimdContentEntry } from '$/sources/SolanaSimds/Github/types.ts'
 import {
 	githubContentsUrl,
+	githubRepositoryTargetFromKey,
 	githubRawUrl,
 } from '$/sources/_shared/hosts/Github/Http/client.ts'
 import {
@@ -10,30 +11,20 @@ import {
 	sourceGetJson,
 	sourceGetText,
 } from '$/sources/_runtime/http.ts'
-import { regex } from 'arkregex'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.SolanaSimds_Github]
+const target = githubRepositoryTargetFromKey(binding.target.key)
 
-const githubRepositoryTarget = regex('^(?<owner>[^/]+)/(?<repo>[^@]+)@(?<ref>[^:]+):(?<path>.*)$')
-
-export const getProposalContents = (): Promise<SolanaSimdContentEntry[]> => {
-	const target = githubRepositoryTarget.exec(binding.target.key)?.groups
-	if (target == null)
-		throw new Error('SolanaSimds_Github: source binding has an invalid Git repository target')
-
-	return sourceGetJson<SolanaSimdContentEntry[]>(binding, githubContentsUrl(target))
-}
+export const getProposalContents = () => (
+	sourceGetJson<SolanaSimdContentEntry[]>(binding, githubContentsUrl(target))
+)
 
 export const getProposalMarkdownText = async ({
 	number,
 }: {
 	number: number
 }) => {
-	const target = githubRepositoryTarget.exec(binding.target.key)?.groups
-	if (target == null)
-		throw new Error('SolanaSimds_Github: source binding has an invalid Git repository target')
-
 	const proposalUrl = githubRawUrl({
 		...target,
 		path: `${target.path}/${number.toString().padStart(4, '0')}-simd-process.md`,

@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
@@ -28,10 +29,9 @@
 
 
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import HederaTokenTransfersView from '$/views/HederaTokenTransfersView.svelte'
-	import HederaNft_TimestampsView from '$/views/HederaNft_TimestampsView.svelte'
 	import HederaTokenView from '$/views/HederaTokenView.svelte'
 </script>
 
@@ -54,7 +54,6 @@
 		<HederaTokenView
 			selection={select(EntityType.HederaToken, selection.entitySelector.$token)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -79,7 +78,6 @@
 					<HederaTokenView
 						selection={select(EntityType.HederaToken, selection.entitySelector.$token)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -142,12 +140,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<HederaTokenTransfersView
-						selection={transfersResource}
+					<EntitiesList
+						entityType={EntityType.HederaTokenTransfer}
 						countResource={transfersResource.count}
 						title='Transfers'
+						open={true}
 						id='transfers'
-					/>
+						resource={transfersResource()}
+					>
+						{#snippet Item({ item: hederaTokenTransfer })}
+							<EntityView
+								entityType={EntityType.HederaTokenTransfer}
+								entitySelector={hederaTokenTransfer[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -157,12 +164,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<HederaNft_TimestampsView
-						selection={timestampsResource}
+					<EntitiesList
+						entityType={EntityType.HederaNft_Timestamp}
 						countResource={timestampsResource.count}
 						title='Observations'
+						open={true}
 						id='timestamps'
-					/>
+						resource={timestampsResource()}
+					>
+						{#snippet Item({ item: hederaNftTimestamp })}
+							<EntityView
+								entityType={EntityType.HederaNft_Timestamp}
+								entitySelector={hederaNftTimestamp[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

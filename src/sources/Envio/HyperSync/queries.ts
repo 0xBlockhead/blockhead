@@ -8,7 +8,6 @@ import {
 import {
 	EnvioHyperSyncBlockRangeResponse,
 	type EnvioHyperSyncBlockRangeRequest,
-	type EnvioHyperSyncBlockRangeResult,
 	type EnvioHyperSyncRollbackGuard,
 	EnvioHyperSyncResolution,
 } from '$/sources/Envio/HyperSync/types.ts'
@@ -23,7 +22,7 @@ export const getEvmBlockRangePage = async ({
 	fromBlock: bigint
 	toBlock: bigint
 	rollbackGuard?: EnvioHyperSyncRollbackGuard
-}): Promise<EnvioHyperSyncBlockRangeResult> => {
+}) => {
 	const numericFromBlock = Number(fromBlock)
 	const numericToBlock = Number(toBlock)
 	if (
@@ -34,7 +33,7 @@ export const getEvmBlockRangePage = async ({
 	)
 		throw new Error(`EnvioHyperSync_RawHttp: invalid block range [${fromBlock.toString()}, ${toBlock.toString()})`)
 
-	const request: EnvioHyperSyncBlockRangeRequest = {
+	const request = {
 		from_block: numericFromBlock,
 		to_block: numericToBlock,
 		include_all_blocks: true,
@@ -55,7 +54,7 @@ export const getEvmBlockRangePage = async ({
 				'hash',
 			],
 		},
-	}
+	} satisfies EnvioHyperSyncBlockRangeRequest
 	const response = await sourceFetch(
 		binding,
 		new URL('/query', firstHttpUrlForBinding(binding)).toString(),
@@ -71,49 +70,23 @@ export const getEvmBlockRangePage = async ({
 		throw new Error(await fetchFailedMessage('Envio HyperSync EVM block range', response))
 
 	const page = EnvioHyperSyncBlockRangeResponse.assert(await response.json())
-	if (
-		rollbackGuard != null
-		&& page.rollback_guard != null
-		&& rollbackGuard.hash !== page.rollback_guard.first_parent_hash
-	)
-		return {
-			resolution: EnvioHyperSyncResolution.Reorg,
-			previousRollbackGuard: rollbackGuard,
-			rollbackGuard: page.rollback_guard,
-		}
-
-	const resultMetadata = {
-		nextBlock: page.next_block,
-		...(page.archive_height != null && { archiveHeight: page.archive_height }),
-		...(page.rollback_guard != null && { rollbackGuard: page.rollback_guard }),
-	}
-	if (
-		page.data.blocks.length === 0
-		&& page.archive_height != null
-		&& page.archive_height >= numericToBlock - 1
-		&& page.next_block >= numericToBlock
-	)
-		return {
-			resolution: EnvioHyperSyncResolution.Empty,
-			...resultMetadata,
-			archiveHeight: page.archive_height,
-		}
-
-	if (
-		page.data.blocks.length === 0
-		|| page.next_block < numericToBlock
-	)
-		return {
-			resolution: EnvioHyperSyncResolution.Partial,
-			blocks: page.data.blocks,
-			transactions: page.data.transactions,
-			...resultMetadata,
-		}
-
 	return {
-		resolution: EnvioHyperSyncResolution.Complete,
-		blocks: page.data.blocks,
-		transactions: page.data.transactions,
-		...resultMetadata,
+		...page,
+		resolution: (
+			rollbackGuard != null
+			&& page.rollback_guard != null
+			&& rollbackGuard.hash !== page.rollback_guard.first_parent_hash ?
+				EnvioHyperSyncResolution.Reorg
+			: page.data.blocks.length === 0
+				&& page.archive_height != null
+				&& page.archive_height >= numericToBlock - 1
+				&& page.next_block >= numericToBlock ?
+					EnvioHyperSyncResolution.Empty
+			: page.data.blocks.length === 0
+				|| page.next_block < numericToBlock ?
+					EnvioHyperSyncResolution.Partial
+			:
+				EnvioHyperSyncResolution.Complete
+		),
 	}
 }

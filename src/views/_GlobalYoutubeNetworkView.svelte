@@ -25,7 +25,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import YoutubeChannelsView from '$/views/YoutubeChannelsView.svelte'
 	import YoutubeVideosView from '$/views/YoutubeVideosView.svelte'
 	import YoutubePlaylistsView from '$/views/YoutubePlaylistsView.svelte'
@@ -47,10 +46,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		YouTube
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -95,12 +90,7 @@
 				<YoutubeChannelsView
 					selection={selection.$$observedChannels}
 					href={resolve('/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channels')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -110,12 +100,7 @@
 				<YoutubeVideosView
 					selection={selection.$$observedVideos}
 					href={resolve('/(social)/(youtube)/youtube/(globalYoutubeNetwork)/videos')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -125,12 +110,7 @@
 				<YoutubePlaylistsView
 					selection={selection.$$observedPlaylists}
 					href={resolve('/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlists')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>

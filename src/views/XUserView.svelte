@@ -78,7 +78,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Icon()}
 		<ResourceBoundary resource={xUser}>
 			{#snippet children(entity)}
@@ -88,7 +87,6 @@
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}

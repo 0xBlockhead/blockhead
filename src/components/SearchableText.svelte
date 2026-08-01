@@ -1,71 +1,29 @@
 <script lang="ts">
 	// Types/constants
-	import { SvelteSet } from 'svelte/reactivity'
-	import { untrack } from 'svelte'
+	import { fuzzyMatch } from '$/lib/string.ts'
 
 
 	// State
 	let {
 		text,
 		query,
-		matches,
 	}: {
 		text: string
 		query: string
-		matches?: SvelteSet<Match>
 	} = $props()
 
-
-	// Functions
-	const escapeHtml = (s: string) => (
-		s
-			.replace(/&/g, '&amp;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;')
-			.replace(/"/g, '&quot;')
+	const ranges = $derived(
+		fuzzyMatch(text, query)
 	)
-
-	const highlightRanges = (escaped: string, ranges: Match[]) => {
-		if (ranges.length === 0) return escaped
-		const parts: string[] = []
-		let last = 0
-		for (const { start, end } of ranges) {
-			if (start > last) parts.push(escaped.slice(last, start))
-			parts.push('<mark>', escaped.slice(start, end), '</mark>')
-			last = end
-		}
-		if (last < escaped.length) parts.push(escaped.slice(last))
-		return parts.join('')
-	}
-
-
-	import { type Match, fuzzyMatch } from '$/lib/string.ts'
-
-	let previousRanges: Match[] = []
-
-	$effect(() => {
-		if (!matches) return
-		const ranges = fuzzyMatch(text, query)
-
-		untrack(() => {
-			for (const m of previousRanges)
-				matches.delete(m)
-
-			previousRanges = ranges
-
-			for (const m of ranges)
-				matches.add(m)
-		})
-	})
 </script>
 
 
-<span>{@html highlightRanges(escapeHtml(text), fuzzyMatch(text, query))}</span>
+<span>{#each ranges as range, index (range.start)}{text.slice(index === 0 ? 0 : ranges[index - 1].end, range.start)}<mark>{text.slice(range.start, range.end)}</mark>{/each}{text.slice(ranges.at(-1)?.end ?? 0)}</span>
 
 
 <style>
 	span {
-		:global(mark) {
+		mark {
 			font-weight: 600;
 			text-decoration: underline;
 			background-color: transparent;

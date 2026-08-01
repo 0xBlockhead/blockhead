@@ -32,8 +32,5 @@
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='specification-realms'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

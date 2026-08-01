@@ -27,7 +27,6 @@ const resolverBinding = vi.hoisted(() => ({
 	endpoints: [{
 		endpointKind: 'HttpUrl',
 		locator: 'https://go.getblock.io/{GETBLOCK_API_KEY}/',
-		origin: 'https://go.getblock.io',
 		corsEnabled: false,
 	}],
 	wireProtocol: 'Grpc',
@@ -40,7 +39,6 @@ const resolverBinding = vi.hoisted(() => ({
 	artifacts: [{
 		kind: 'HandwrittenTypes',
 		path: 'src/sources/GetBlock/Yellowstone/types.ts',
-		generated: false,
 		referenceUrl: 'https://getblock.io/docs/yellowstone-grpc/',
 	}],
 }))
@@ -59,6 +57,7 @@ vi.mock('$/sources/$sourceServerCredentials.server.ts', () => ({
 			resolverBinding.source,
 			resolverBinding.target.kind,
 			resolverBinding.target.key,
+			resolverBinding.wireProtocol,
 			resolverBinding.delivery,
 			resolverBinding.apiFamily,
 		]),
@@ -66,7 +65,7 @@ vi.mock('$/sources/$sourceServerCredentials.server.ts', () => ({
 			envKey: 'GETBLOCK_API_KEY',
 			injection: {
 				endpointTemplate: {
-					slot: 'accessToken',
+					slot: 'GETBLOCK_API_KEY',
 				},
 			},
 		},
@@ -163,7 +162,7 @@ const startServer = async (
 	if (address == null || typeof address === 'string')
 		throw new Error('Yellowstone test HTTP/2 server did not acquire a TCP port')
 	return {
-		locator: `http://127.0.0.1:${address.port}/{accessToken}`,
+		locator: `http://127.0.0.1:${address.port}/{GETBLOCK_API_KEY}`,
 		requestBody,
 	}
 }

@@ -48,7 +48,7 @@
 <EntityView
 	entityType={EntityType.BlockheadFarcasterAccountConnection}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'Blockhead Farcaster account connection'}
+	title={title ?? 'Verified Farcaster connection'}
 	href={
 		href === undefined ?
 			resolve(
@@ -64,10 +64,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Blockhead Farcaster account connection
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary
 			resource={selection.$user}
@@ -78,7 +74,6 @@
 					prefetched={farcasterUser}
 					href={null}
 					layout={EntityLayout.Value}
-					open={false}
 				/>
 			{/snippet}
 		</ResourceBoundary>
@@ -110,7 +105,6 @@
 								selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
 								prefetched={farcasterUser}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

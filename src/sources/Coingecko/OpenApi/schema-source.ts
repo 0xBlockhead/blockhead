@@ -3,7 +3,7 @@
  * @see https://github.com/coingecko/coingecko-api-oas
  */
 export const schemaSource = {
-	schemaUrl: 'https://raw.githubusercontent.com/coingecko/coingecko-api-oas/main/coingecko-demo.json',
-	schemaFile: './coingecko-demo.json',
+	schemaUrl: 'https://raw.githubusercontent.com/coingecko/coingecko-api-oas/main/demo-api.json',
+	schemaFile: './demo-api.json',
 	typesFile: './openapi.d.ts',
 } as const

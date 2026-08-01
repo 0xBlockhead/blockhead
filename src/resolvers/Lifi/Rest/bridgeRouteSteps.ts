@@ -1,9 +1,6 @@
 import { bridgeToolByKey } from '$/constants/Bridge.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-import {
-	entityFieldAddressKey,
-	EntityMetaKey,
-} from '$/schema/$schema.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
@@ -86,7 +83,7 @@ export const lifiToolKeyFromQuoteStep = (
 	|| ''
 )
 
-export const bridgeRouteStepEntityFieldsFromLifiQuoteStep = (
+export const bridgeRouteStepSnapshotFromLifiQuoteStep = (
 	routeId: EntitySelector<typeof schema, EntityType.BridgeRoute>,
 	indexInRoute: number,
 	step: LifiQuoteStepLike
@@ -99,10 +96,9 @@ export const bridgeRouteStepEntityFieldsFromLifiQuoteStep = (
 			$route: routeId,
 			indexInRoute,
 		},
-		[EntityMetaKey.Fields]: {
-			[entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'stepType')]: step.type,
-			[entityFieldAddressKey(EntityType.BridgeRouteStep, [], 'tool')]: toolKey === '' ? step.tool : toolKey,
-			[entityFieldAddressKey(EntityType.BridgeRouteStep, [], '$fromNetwork')]: {
+		stepType: step.type,
+		tool: toolKey === '' ? step.tool : toolKey,
+		$fromNetwork: {
 			[EntityMetaKey.Selector]: {
 				caip2: {
 					namespace: 'eip155' as const,
@@ -110,7 +106,7 @@ export const bridgeRouteStepEntityFieldsFromLifiQuoteStep = (
 				},
 			},
 		},
-			[entityFieldAddressKey(EntityType.BridgeRouteStep, [], '$toNetwork')]: {
+		$toNetwork: {
 			[EntityMetaKey.Selector]: {
 				caip2: {
 					namespace: 'eip155' as const,
@@ -118,12 +114,8 @@ export const bridgeRouteStepEntityFieldsFromLifiQuoteStep = (
 				},
 			},
 		},
-			...(fromTokenRef != null && { [entityFieldAddressKey(EntityType.BridgeRouteStep, [], '$fromToken')]: fromTokenRef }),
-			...(toTokenRef != null && { [entityFieldAddressKey(EntityType.BridgeRouteStep, [], '$toToken')]: toTokenRef }),
-			...Object.fromEntries(Object.entries(bridgeRouteStepMechanicsFromToolKey(toolKey || undefined)).map(([fieldName, value]) => [
-				entityFieldAddressKey(EntityType.BridgeRouteStep, [], fieldName),
-				value,
-			])),
-		},
+		...(fromTokenRef != null && { $fromToken: fromTokenRef }),
+		...(toTokenRef != null && { $toToken: toTokenRef }),
+		...bridgeRouteStepMechanicsFromToolKey(toolKey || undefined),
 	}
 }

@@ -2,12 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
-	import { EntityType } from '$/schema/EntityType.ts'
 	import RefinableList, { type Sort } from '$/components/RefinableList.svelte'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	type Row = { id: string, label: string }

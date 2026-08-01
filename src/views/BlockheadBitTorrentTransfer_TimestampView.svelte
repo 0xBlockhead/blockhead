@@ -61,7 +61,6 @@
 			<BitTorrentMetainfoView
 				selection={select(EntityType.BitTorrentMetainfo, selection.entitySelector.$torrent)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -74,7 +73,6 @@
 					<BlockheadBitTorrentClientStateView
 						selection={select(EntityType.BlockheadBitTorrentClientState, selection.entitySelector.$client)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -85,7 +83,6 @@
 					<BitTorrentMetainfoView
 						selection={select(EntityType.BitTorrentMetainfo, selection.entitySelector.$torrent)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

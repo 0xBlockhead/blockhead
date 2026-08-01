@@ -70,7 +70,6 @@
 			<ScalingDeploymentClaimView
 				selection={select(EntityType.ScalingDeploymentClaim, selection.entitySelector.$claim)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -83,7 +82,6 @@
 					<ScalingDeploymentClaimView
 						selection={select(EntityType.ScalingDeploymentClaim, selection.entitySelector.$claim)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -248,7 +246,6 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -314,7 +311,6 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

@@ -52,10 +52,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.operationId || 'ACP file operation'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={acpFileOperation}>
 			{#snippet children(entity)}
@@ -85,7 +81,6 @@
 					<AcpSessionView
 						selection={select(EntityType.AcpSession, selection.entitySelector.$session)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

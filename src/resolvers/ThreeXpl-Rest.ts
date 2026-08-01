@@ -4,18 +4,17 @@ import {
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { ThreeXplBlockEvent } from '$/sources/ThreeXpl/Rest/types.ts'
 
-const threeXplBlockchain = (
-	network: { caip2: {
-		namespace: string
-		reference: string
-	} } | { slug: string }
-) => {
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const threeXplBlockchain = (network: NetworkId) => {
 	if ('slug' in network) {
 		if (network.slug === 'near') return 'near'
 		if (network.slug === 'tron') return 'tron'
@@ -68,14 +67,30 @@ export default {
 							...(wireBlock.data.block?.time != null && {
 								timestampMs: Date.parse(wireBlock.data.block.time),
 							}),
+							$$transactions: eventTransactions(wireBlock.data.events).map((txHash) => ({
+								[EntityMetaKey.Selector]: {
+									$network,
+									txHash,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.MoneroTransaction, [], '$block')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											height,
+											hash,
+										},
+									},
+								},
+							})),
 						}
 					},
 				}
 			},
 		})({
-				hash: (block) => block.hash,
-				timestampMs: (block) => block.timestampMs,
-			}),
+			hash: (block) => block.hash,
+			timestampMs: (block) => block.timestampMs,
+			$$transactions: (block) => block.$$transactions,
+		}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.NearBlock,
@@ -125,38 +140,49 @@ export default {
 			entityType: EntityType.SolanaBlock,
 			resolve: {
 				Slot: {
-					resolve: async ({ $network, slot }: {
-						$network: { caip2: {
-							namespace: string
-							reference: string
-						} } | { slug: string }
-						slot: bigint
-					}) => {
-							const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
-							const wireBlock = await fetchBlock({
-								blockchain: threeXplBlockchain($network),
-								block: slot.toString(),
-							})
-							return {
-								...(wireBlock.data.block?.hash != null && {
-									blockHash: wireBlock.data.block.hash,
-								}),
-								...(wireBlock.data.block?.time != null && {
-									timestampMs: Date.parse(wireBlock.data.block.time),
-								}),
-								transactionCount: wireBlock.data.block?.events?.transactions,
-							}
+					resolve: async ({ $network, slot }) => {
+						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+						const wireBlock = await fetchBlock({
+							blockchain: threeXplBlockchain($network),
+							block: slot.toString(),
+						})
+						return {
+							...(wireBlock.data.block?.hash != null && {
+								blockHash: wireBlock.data.block.hash,
+							}),
+							...(wireBlock.data.block?.time != null && {
+								timestampMs: Date.parse(wireBlock.data.block.time),
+							}),
+							transactionCount: wireBlock.data.block?.events?.transactions,
+							$$transactions: eventTransactions(wireBlock.data.events).map((signature) => ({
+								[EntityMetaKey.Selector]: {
+									$network,
+									signature,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.SolanaTransaction, [], '$block')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											slot,
+										},
+									},
+									[entityFieldAddressKey(EntityType.SolanaTransaction, [], 'slot')]: slot,
+								},
+							})),
+						}
 					},
 				},
 			},
 		})({
-				blockHash: (block) => {
-					if (block.blockHash == null) throw new Error('ThreeXpl_Rest: Solana block missing block hash')
-					return block.blockHash
-				},
-				timestampMs: (block) => block.timestampMs,
-				transactionCount: (block) => block.transactionCount,
-			}),
+			blockHash: (block) => {
+				if (block.blockHash == null) throw new Error('ThreeXpl_Rest: Solana block missing block hash')
+				return block.blockHash
+			},
+			timestampMs: (block) => block.timestampMs,
+			transactionCount: (block) => block.transactionCount,
+			$$transactions: (block) => block.$$transactions,
+		}),
+
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
@@ -200,15 +226,32 @@ export default {
 								timestampMs: Date.parse(wireBlock.data.block.time),
 							}),
 							transactionCount: wireBlock.data.block?.events?.transactions,
+							$$transactions: eventTransactions(wireBlock.data.events).map((transactionId) => ({
+								[EntityMetaKey.Selector]: {
+									$network,
+									transactionId,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.TronTransaction, [], '$block')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											height,
+											hash,
+										},
+									},
+									[entityFieldAddressKey(EntityType.TronTransaction, [], 'blockHeight')]: height,
+								},
+							})),
 						}
 					},
 				}
 			},
 		})({
-				hash: (block) => block.hash,
-				timestampMs: (block) => block.timestampMs,
-				transactionCount: (block) => block.transactionCount,
-			}),
+			hash: (block) => block.hash,
+			timestampMs: (block) => block.timestampMs,
+			transactionCount: (block) => block.transactionCount,
+			$$transactions: (block) => block.$$transactions,
+		}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.TronTransaction,
@@ -249,7 +292,7 @@ export default {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				NetworkHeightHash: {
-					resolve: async ({ $network, hash }) => {
+					resolve: async ({ $network, height, hash }) => {
 						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireBlock = await fetchBlock({
 							blockchain: threeXplBlockchain($network),
@@ -261,152 +304,21 @@ export default {
 								timestampMs: Date.parse(wireBlock.data.block.time),
 							}),
 							transactionCount: wireBlock.data.block?.events?.transactions,
+							$$transactions: eventTransactions(wireBlock.data.events).map((txId) => ({
+								[EntityMetaKey.Selector]: {
+									$network,
+									txId,
+								},
+							})),
 						}
 					},
 				}
 			},
 		})({
-				hash: (block) => block.hash,
-				timestampMs: (block) => block.timestampMs,
-				transactionCount: (block) => block.transactionCount,
-			}),
-
-		defineResolver(Source.ThreeXpl_Rest, {
-			entityType: EntityType.MoneroBlock,
-			resolve: {
-				NetworkHeightHash: {
-					resolve: async ({ $network, height, hash }) => {
-						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
-						return eventTransactions(
-							(
-							await fetchBlock({
-								blockchain: threeXplBlockchain($network),
-								block: height.toString(),
-							})
-							).data.events
-							).map((txHash) => ({
-								[EntityMetaKey.Selector]: {
-									$network,
-									txHash,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.MoneroTransaction, [], '$block')]: {
-										[EntityMetaKey.Selector]: {
-											$network,
-											height,
-											hash,
-										},
-									},
-								},
-							}))
-					},
-				}
-			},
-		})({
-				$$transactions: (transactions) => transactions,
-			}),
-
-		defineResolver(Source.ThreeXpl_Rest, {
-			entityType: EntityType.SolanaBlock,
-			resolve: {
-				Slot: {
-					resolve: async ({ $network, slot }: {
-						$network: { caip2: {
-							namespace: string
-							reference: string
-						} } | { slug: string }
-						slot: bigint
-					}) => {
-							const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
-							return eventTransactions(
-								(
-								await fetchBlock({
-									blockchain: threeXplBlockchain($network),
-									block: slot.toString(),
-								})
-								).data.events
-								).map((signature) => ({
-									[EntityMetaKey.Selector]: {
-										$network,
-										signature,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.SolanaTransaction, [], '$block')]: {
-											[EntityMetaKey.Selector]: {
-												$network,
-												slot,
-											},
-										},
-										[entityFieldAddressKey(EntityType.SolanaTransaction, [], 'slot')]: slot,
-									},
-								}))
-					},
-				},
-			},
-		})({
-				$$transactions: (transactions) => transactions,
-			}),
-
-		defineResolver(Source.ThreeXpl_Rest, {
-			entityType: EntityType.TronBlock,
-			resolve: {
-				NetworkHeightHash: {
-					resolve: async ({ $network, height, hash }) => {
-						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
-						return eventTransactions(
-							(
-							await fetchBlock({
-								blockchain: threeXplBlockchain($network),
-								block: hash,
-							})
-							).data.events
-							).map((transactionId) => ({
-								[EntityMetaKey.Selector]: {
-									$network,
-									transactionId,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.TronTransaction, [], '$block')]: {
-										[EntityMetaKey.Selector]: {
-											$network,
-											height,
-											hash,
-										},
-									},
-									[entityFieldAddressKey(EntityType.TronTransaction, [], 'blockHeight')]: height,
-								},
-							}))
-					},
-				}
-			},
-		})({
-				$$transactions: (transactions) => transactions,
-			}),
-
-		defineResolver(Source.ThreeXpl_Rest, {
-			entityType: EntityType.UtxoBlock,
-			resolve: {
-				NetworkHeightHash: {
-					resolve: async ({ $network, height, hash }) => {
-						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
-						return eventTransactions(
-							(
-							await fetchBlock({
-								blockchain: threeXplBlockchain($network),
-								block: hash,
-							})
-							).data.events
-							).map((txId) => ({
-								[EntityMetaKey.Selector]: {
-									$network,
-									txId,
-								},
-							}))
-					},
-				}
-			},
-		})({
-				$$transactions: (transactions) => transactions,
-			}),
+			hash: (block) => block.hash,
+			timestampMs: (block) => block.timestampMs,
+			transactionCount: (block) => block.transactionCount,
+			$$transactions: (block) => block.$$transactions,
+		}),
 	],
 }

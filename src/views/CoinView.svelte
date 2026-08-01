@@ -71,7 +71,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Icon()}
 		<ResourceBoundary resource={coin}>
 			{#snippet children(entity)}
@@ -81,7 +80,6 @@
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -130,7 +128,7 @@
 									Source.Constants_Internal,
 									Source.Coingecko_Rest,
 									Source.CoinMarketCap_Rest,
-									Source.Coinpaprika_OpenApi,
+									Source.Coinpaprika_Rest,
 								],
 								fields: {
 									marketCapRank: true,
@@ -158,13 +156,12 @@
 												Source.Constants_Internal,
 												Source.Coingecko_Rest,
 												Source.CoinMarketCap_Rest,
-												Source.Coinpaprika_OpenApi,
+												Source.Coinpaprika_Rest,
 											],
 										})
 									}
 									prefetched={{ ...coinTimestampSelector, ...coinTimestamp }}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							{:else}
 								<p data-text="muted" data-section-state="resolved-empty">No latest snapshot available.</p>
@@ -214,12 +211,7 @@
 			{#snippet SectionCoinInstances({ id, label, open })}
 				<EvmCoinInstancesView
 					selection={selection.$$coinInstances}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -228,12 +220,7 @@
 			{#snippet SectionCoinBridgeCapabilities({ id, label, open })}
 				<CoinBridgeCapabilitiesView
 					selection={selection.$$bridgeCapabilities}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -279,12 +266,7 @@
 							limit: 1,
 						})
 					}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -298,12 +280,7 @@
 							limit: 16,
 						})
 					}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -317,12 +294,7 @@
 							limit: 16,
 						})
 					}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>

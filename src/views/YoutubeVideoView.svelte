@@ -69,7 +69,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Icon()}
 		<ResourceBoundary resource={youtubeVideo}>
 			{#snippet children(entity)}
@@ -79,7 +78,6 @@
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -105,7 +103,6 @@
 						prefetched={youtubeChannel}
 						href={null}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -189,7 +186,6 @@
 										selection={select(EntityType.YoutubeChannel, youtubeChannel[EntityMetaKey.Selector])}
 										prefetched={youtubeChannel}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>

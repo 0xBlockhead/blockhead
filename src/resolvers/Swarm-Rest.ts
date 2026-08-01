@@ -133,7 +133,9 @@ export default {
 				},
 			},
 		})({
-			$hub: (snapshot) => snapshot.$hub,
+			$hub: (snapshot) => ({
+				[EntityMetaKey.Selector]: snapshot.$hub,
+			}),
 			timestampMs: (snapshot) => snapshot.timestampMs,
 			source: (snapshot) => snapshot.source,
 			declaredAccessEndpointCount: (snapshot) => snapshot.declaredAccessEndpointCount,

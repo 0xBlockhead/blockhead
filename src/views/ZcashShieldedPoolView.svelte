@@ -64,10 +64,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.pool || 'Zcash shielded pool'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={zcashShieldedPool}>
 			{#snippet children(entity)}
@@ -127,7 +123,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

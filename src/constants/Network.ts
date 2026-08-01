@@ -106,20 +106,6 @@ export enum NetworkExecutionModel {
 
 // Constants
 
-const networkEnvironments = [
-	{
-		environment: NetworkEnvironment.Mainnet,
-		label: 'Mainnet',
-	},
-	{
-		environment: NetworkEnvironment.Testnet,
-		label: 'Testnet',
-	},
-] as const satisfies readonly {
-	environment: NetworkEnvironment
-	label: string
-}[]
-
 export const networks = [
 	{
 		slug: '0g',
@@ -268,6 +254,10 @@ export const networks = [
 	{
 		slug: 'dydx',
 		name: 'dYdX Chain',
+		caip2: {
+			namespace: 'cosmos',
+			reference: 'dydx-mainnet-1',
+		},
 		namespace: NetworkNamespace.Dydx,
 		environment: NetworkEnvironment.Mainnet,
 		ledgerModels: [NetworkLedgerModel.Account],
@@ -498,6 +488,18 @@ export const networks = [
 		executionModels: [],
 	},
 	{
+		slug: 'ton-testnet',
+		name: 'TON Testnet',
+		caip2: {
+			namespace: 'ton',
+			reference: '-3',
+		},
+		namespace: NetworkNamespace.Ton,
+		environment: NetworkEnvironment.Testnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [],
+	},
+	{
 		slug: 'tron',
 		name: 'TRON Mainnet',
 		caip2: {
@@ -676,13 +678,6 @@ export const networkResourceUrls = [
 }[]
 
 // Lookups
-
-export const networkEnvironmentByEnvironment = Object.fromEntries(
-	networkEnvironments.map((row) => [
-		row.environment,
-		row,
-	])
-)
 
 export const networkBySlug = Object.fromEntries(
 	networks.map((row) => [

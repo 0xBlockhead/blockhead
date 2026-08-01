@@ -24,8 +24,7 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Juno_JsonRpc,
-			Source.Pathfinder_JsonRpc,
-			Source.Starknet_JsonRpc,
+			Source.Pathfinder,
 		],
 	}))
 
@@ -50,7 +49,6 @@
 		<StarknetStorageEntryView
 			selection={select(EntityType.StarknetStorageEntry, selection.entitySelector.$entry)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -74,7 +72,6 @@
 					<StarknetStorageEntryView
 						selection={select(EntityType.StarknetStorageEntry, selection.entitySelector.$entry)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

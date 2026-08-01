@@ -18,6 +18,16 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
+			{
+				network: params.network,
+				accountId: params.accountId,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -35,30 +45,14 @@
 
 {#key [params.network, params.accountId].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
-				{
-					network: params.network,
-					accountId: params.accountId,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
-			{@const DetailView = data.entityType === EntityType.PolkadotAccount && data.selectorName === 'NetworkAccountId' ? PolkadotAccountView : data.entityType === EntityType.CosmosAccount && data.selectorName === 'NetworkAddress' ? CosmosAccountView : data.entityType === EntityType.HederaAccount && data.selectorName === 'NetworkAccountId' ? HederaAccountView : data.entityType === EntityType.CardanoAddress && data.selectorName === 'NetworkAddress' ? CardanoAddressView : data.entityType === EntityType.EvmNetworkAccount && data.selectorName === 'EvmNetworkEvmAccount' ? EvmNetworkAccountView : data.entityType === EntityType.SolanaAccount && data.selectorName === 'NetworkPubkey' ? SolanaAccountView : data.entityType === EntityType.TonAccount && data.selectorName === 'NetworkAddress' ? TonAccountView : XrplAccountView}
+			{@const DetailView = data.entityType === EntityType.PolkadotAccount ? PolkadotAccountView : data.entityType === EntityType.CosmosAccount ? CosmosAccountView : data.entityType === EntityType.HederaAccount ? HederaAccountView : data.entityType === EntityType.CardanoAddress ? CardanoAddressView : data.entityType === EntityType.EvmNetworkAccount ? EvmNetworkAccountView : data.entityType === EntityType.SolanaAccount ? SolanaAccountView : data.entityType === EntityType.TonAccount ? TonAccountView : XrplAccountView}
 
 			<DetailView
 				selection={select(data.entityType, data.selector)}
-				href={
-					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
-						{
-							network: params.network,
-							accountId: params.accountId,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

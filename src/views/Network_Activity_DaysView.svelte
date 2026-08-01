@@ -12,7 +12,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['A completed UTC day of provider-reported network activity aggregates.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.Network_Activity_Day> = $props()
@@ -27,7 +26,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.Network_Activity_Day}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {

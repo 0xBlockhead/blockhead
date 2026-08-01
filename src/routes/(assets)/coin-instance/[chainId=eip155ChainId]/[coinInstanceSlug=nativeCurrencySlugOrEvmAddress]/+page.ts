@@ -45,12 +45,11 @@ export const load: PageLoad = ({ params }) => {
 					},
 				},
 				type: 'NativeCurrency',
-			}
+			},
+			'NetworkType'
 		)
 		if (
 			!(evmCoinInstanceNetworkTypeSelector instanceof arktype.errors)
-			&& '$network' in evmCoinInstanceNetworkTypeSelector
-			&& 'type' in evmCoinInstanceNetworkTypeSelector
 			&& evmCoinInstanceNetworkTypeSelector.type === 'NativeCurrency'
 		)
 			routeCandidates.push({
@@ -81,13 +80,11 @@ export const load: PageLoad = ({ params }) => {
 					},
 					address: params.coinInstanceSlug,
 				},
-			}
+			},
+			'NetworkTypeContract'
 		)
 		if (
 			!(evmCoinInstanceNetworkTypeContractSelector instanceof arktype.errors)
-			&& '$network' in evmCoinInstanceNetworkTypeContractSelector
-			&& 'type' in evmCoinInstanceNetworkTypeContractSelector
-			&& '$contract' in evmCoinInstanceNetworkTypeContractSelector
 			&& evmCoinInstanceNetworkTypeContractSelector.type === 'Erc20Token'
 		)
 			routeCandidates.push({

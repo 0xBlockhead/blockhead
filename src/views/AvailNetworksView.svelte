@@ -41,6 +41,10 @@
 			{#snippet Title()}
 				{availNetwork.$network.name || (availNetworkSelector.$network.caip2 == null ? '' : `${availNetworkSelector.$network.caip2.namespace}:${availNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
+
+			{#snippet Value()}
+				Avail
+			{/snippet}
 		</EntityView>
 	{/snippet}
 </EntitiesList>

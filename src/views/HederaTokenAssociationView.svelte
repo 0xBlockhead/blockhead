@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
@@ -22,9 +23,9 @@
 
 
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import HederaTokenAssociation_TimestampsView from '$/views/HederaTokenAssociation_TimestampsView.svelte'
 	import HederaAccountView from '$/views/HederaAccountView.svelte'
 	import HederaTokenView from '$/views/HederaTokenView.svelte'
 </script>
@@ -42,7 +43,6 @@
 		<HederaTokenView
 			selection={select(EntityType.HederaToken, selection.entitySelector.$token)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -51,7 +51,6 @@
 			selection={select(EntityType.HederaAccount, selection.entitySelector.$account)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -63,7 +62,6 @@
 					<HederaAccountView
 						selection={select(EntityType.HederaAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -74,7 +72,6 @@
 					<HederaTokenView
 						selection={select(EntityType.HederaToken, selection.entitySelector.$token)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -88,12 +85,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<HederaTokenAssociation_TimestampsView
-						selection={timestampsResource}
+					<EntitiesList
+						entityType={EntityType.HederaTokenAssociation_Timestamp}
 						countResource={timestampsResource.count}
 						title='Observations'
+						open={true}
 						id='timestamps'
-					/>
+						resource={timestampsResource()}
+					>
+						{#snippet Item({ item: hederaTokenAssociationTimestamp })}
+							<EntityView
+								entityType={EntityType.HederaTokenAssociation_Timestamp}
+								entitySelector={hederaTokenAssociationTimestamp[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

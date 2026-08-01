@@ -87,7 +87,6 @@
 					<OracleFeedView
 						selection={select(EntityType.OracleFeed, selection.entitySelector.$oracleFeed)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -103,7 +102,6 @@
 								selection={select(EntityType.OracleFeed, oracleFeed[EntityMetaKey.Selector])}
 								prefetched={oracleFeed}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -215,7 +213,6 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

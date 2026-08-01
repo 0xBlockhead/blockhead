@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		NostrRelaySchema,
 		{
 			relayUrl: decodeURIComponent(params.relayKey),
-		}
+		},
+		'RelayUrl'
 	)
 	if (nostrRelayRelayUrlSelector instanceof arktype.errors)
 		error(404, 'Invalid NostrRelay selector')

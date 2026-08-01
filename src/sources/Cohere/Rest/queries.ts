@@ -1,18 +1,17 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { sourceFetch, firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import { throwHttpError } from '$/lib/http.ts'
-import type { CohereJson } from '$/sources/Cohere/Rest/types.ts'
+import bindings from '$/sources/Cohere/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-const requestCohereJson = async ({
-	binding,
-	path,
+const binding = bindings[Source.Cohere_Rest]
+
+export const listModels = async ({
 	credential,
 }: {
-	binding: SourceBinding
-	path: string
 	credential: string
 }) => {
-	const response = await sourceFetch(binding, new URL(path, firstHttpUrlForBinding(binding)).toString(), {
+	const response = await sourceFetch(binding, new URL('/v1/models', firstHttpUrlForBinding(binding)).toString(), {
 		headers: {
 			'authorization': `Bearer ${credential}`,
 		},
@@ -21,17 +20,5 @@ const requestCohereJson = async ({
 	if (!response.ok)
 		await throwHttpError(binding.source, response)
 
-	return response.json<CohereJson>()
+	return response.json<JsonValue>()
 }
-
-export const listModels = ({
-	binding,
-	credential,
-}: {
-	binding: SourceBinding
-	credential: string
-}) => requestCohereJson({
-	binding,
-	path: '/v1/models',
-	credential,
-})

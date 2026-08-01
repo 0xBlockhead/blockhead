@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -15,7 +16,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -26,12 +26,10 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import StellarNetworkView from '$/views/StellarNetworkView.svelte'
 	import SorobanContractStorageEntriesView from '$/views/SorobanContractStorageEntriesView.svelte'
-	import StellarTransactionsView from '$/views/StellarTransactionsView.svelte'
-	import SorobanContract_TimestampsView from '$/views/SorobanContract_TimestampsView.svelte'
 </script>
 
 
@@ -39,15 +37,10 @@
 	entityType={EntityType.SorobanContract}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? 'soroban contract'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		soroban contract
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -56,7 +49,6 @@
 					<StellarNetworkView
 						selection={select(EntityType.StellarNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -98,12 +90,7 @@
 			{#snippet SectionSorobanContractStorageEntries({ id, label, open })}
 				<SorobanContractStorageEntriesView
 					selection={selection.$$storageEntries}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No storage entries.'
 					id={`${id}-list`}
@@ -111,18 +98,22 @@
 			{/snippet}
 
 			{#snippet SectionSorobanContractTransactions({ id, label, open })}
-				<StellarTransactionsView
-					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.StellarTransaction}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No transactions.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$transactions()}
+				>
+					{#snippet Item({ item: stellarTransaction })}
+						<EntityView
+							entityType={EntityType.StellarTransaction}
+							entitySelector={stellarTransaction[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -148,18 +139,22 @@
 			{/snippet}
 
 			{#snippet SectionSorobanContractTimestamps({ id, label, open })}
-				<SorobanContract_TimestampsView
-					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.SorobanContract_Timestamp}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No timestamps.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$timestamps()}
+				>
+					{#snippet Item({ item: sorobanContractTimestamp })}
+						<EntityView
+							entityType={EntityType.SorobanContract_Timestamp}
+							entitySelector={sorobanContractTimestamp[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>

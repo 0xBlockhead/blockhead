@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -34,15 +33,10 @@
 <EntityView
 	entityType={EntityType.RoyaltyRight_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'royalty right timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		royalty right timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -106,7 +100,6 @@
 									selection={select(EntityType.NftCollection, nftCollection[EntityMetaKey.Selector])}
 									prefetched={nftCollection}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -126,7 +119,6 @@
 									selection={select(EntityType.NftToken, nftToken[EntityMetaKey.Selector])}
 									prefetched={nftToken}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

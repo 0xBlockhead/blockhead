@@ -1,380 +1,138 @@
 /**
-	* Coinpaprika coins and ticker endpoints.
-	* @see https://docs.coinpaprika.com/api-reference/coins/get-coin-by-id.md
-	* @see https://docs.coinpaprika.com/api-reference/tickers/get-ticker-for-a-specific-coin.md
-	*/
-import type { CoinId } from '$/constants/Coin.ts'
-import { Iso4217 } from '$/constants/Currency.ts'
-import { MarketAssetKind, MarketKind, marketOhlcDayLookbackValues } from '$/constants/Market.ts'
-import type { MarketVenueId } from '$/constants/MarketVenue.ts'
-import { optionalPublicEnvString } from '$/sources/$sources.ts'
-import type { EntitySelector } from '$/schema/$schema.ts'
-import { EntityType } from '$/schema/EntityType.ts'
-import { schema } from '$/schema/index.ts'
+ * Coinpaprika coins and ticker endpoints.
+ * @see https://docs.coinpaprika.com/api-reference/coins/get-coin-by-id
+ * @see https://docs.coinpaprika.com/api-reference/tickers/get-ticker-for-a-specific-coin
+ */
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import {
-	coinpaprikaMarketVenueIdByHostnameFragment,
-	coinpaprikaUsdQuoteWireIds,
-	coinIdByWireId,
-} from '$/sources/Coinpaprika/OpenApi/constants.ts'
 import { getCoinpaprikaJson } from '$/sources/Coinpaprika/OpenApi/client.ts'
 import type {
 	CoinpaprikaCoin,
-	CoinpaprikaCurrency,
-	CoinpaprikaMarket,
-	CoinpaprikaOhlcv,
+	CoinpaprikaCoinMarkets,
+	CoinpaprikaCoinPath,
+	CoinpaprikaCurrencies,
+	CoinpaprikaExchangeMarkets,
+	CoinpaprikaExchangeMarketsPath,
+	CoinpaprikaOhlcvHistoricalQuery,
+	CoinpaprikaOhlcvHistoricalRows,
+	CoinpaprikaOhlcvTodayRows,
 	CoinpaprikaTicker,
 } from '$/sources/Coinpaprika/OpenApi/types.ts'
 
-type OhlcCandle = readonly [
-	timestampMs: number,
-	open: number,
-	high: number,
-	low: number,
-	close: number,
-	quoteVolume?: number,
-]
-
-const marketAssetEntitySelectorKey = (
-	asset: EntitySelector<typeof schema, EntityType.Market>['$base']
-) => (
-	asset.kind === MarketAssetKind.Coin ?
-		`coin:${asset.assetKey}`
-	: asset.kind === MarketAssetKind.Currency ?
-		`currency:${asset.assetKey}`
-	:
-		(() => {
-			throw new Error('Coinpaprika_OpenApi: CoinInstance market keys are unsupported')
-		})()
-)
-
-const marketEntitySelectorKey = (
-	marketId: EntitySelector<typeof schema, EntityType.Market>
-) => (
-	[
-		marketAssetEntitySelectorKey(marketId.$base),
-		marketAssetEntitySelectorKey(marketId.$quote),
-		marketId.$marketVenue.marketVenueId,
-		marketId.marketKind,
-	].join('|')
-)
-
-
-export const getMarketKindFromMarketCategory = (
-	category: string | undefined
-): MarketKind => (
-	category === 'Futures' ?
-		MarketKind.Futures
-	:
-		category === 'Perpetuals' || category === 'Perpetual' ?
-			MarketKind.Perpetual
-		:
-			MarketKind.Spot
-)
-
-
-export const getMarketVenueIdFromMarketUrl = (
-	marketUrl: string | undefined
-): MarketVenueId | null => {
-	if (marketUrl == null || marketUrl === '')
-		return null
-	try {
-		const host = new URL(marketUrl).hostname.toLowerCase()
-		for (const [fragment, marketVenueId] of coinpaprikaMarketVenueIdByHostnameFragment) {
-			if (host.includes(fragment))
-				return marketVenueId
-		}
-	} catch {
-		return null
-	}
-	return null
-}
-
-
-export const getMarketEntitySelectorFromMarket = (
-	market: CoinpaprikaMarket,
-	scope?: {
-		baseCoinId?: CoinId
-		marketVenueId?: MarketVenueId
-	}
-): EntitySelector<typeof schema, EntityType.Market> | null => {
-	const baseWireId = market.base_currency_id
-	const quoteWireId = market.quote_currency_id
-	if (baseWireId == null || quoteWireId == null)
-		return null
-	const baseCoinId = coinIdByWireId[baseWireId]
-	if (
-		baseCoinId == null
-		|| (
-			scope?.baseCoinId != null
-			&& baseCoinId !== scope.baseCoinId
-		)
-	) {
-		return null
-	}
-	const marketVenueId = (
-		scope?.marketVenueId
-		?? getMarketVenueIdFromMarketUrl(market.market_url)
-	)
-	if (marketVenueId == null)
-		return null
-	const quoteCoinId = coinIdByWireId[quoteWireId]
-	const marketKind = getMarketKindFromMarketCategory(market.category)
-	if (coinpaprikaUsdQuoteWireIds.some((usdQuoteWireId) => usdQuoteWireId === quoteWireId)) {
-		return {
-			$base: {
-				kind: MarketAssetKind.Coin,
-				assetKey: baseCoinId,
-			},
-			$quote: {
-				kind: MarketAssetKind.Currency,
-				assetKey: Iso4217.USD,
-			},
-			$marketVenue: { marketVenueId },
-			marketKind,
-		}
-	}
-	if (quoteCoinId != null)
-		return {
-			$base: {
-				kind: MarketAssetKind.Coin,
-				assetKey: baseCoinId,
-			},
-			$quote: {
-				kind: MarketAssetKind.Coin,
-				assetKey: quoteCoinId,
-			},
-			$marketVenue: { marketVenueId },
-			marketKind,
-		}
-	return null
-}
-
-
-export const collectMarketEntitySelectorsForCoin = async ({
-	publicEnv,
-	catalogCoinId,
-	coinpaprikaId,
-}: {
-	publicEnv: SourcePublicEnv
-	catalogCoinId: CoinId
-	coinpaprikaId: string
-}): Promise<EntitySelector<typeof schema, EntityType.Market>[]> => {
-	const markets = await getCoinMarkets({
-		publicEnv,
-		coinpaprikaId,
-	})
-	const seen = new Set<string>()
-	return (
-		markets.flatMap((market) => {
-			const marketId = getMarketEntitySelectorFromMarket(market, {
-				baseCoinId: catalogCoinId,
-			})
-			if (marketId == null)
-				return []
-			const key = marketEntitySelectorKey(marketId)
-			if (seen.has(key))
-				return []
-			seen.add(key)
-			return [marketId]
-		})
-	)
-}
-
-
-export const collectMarketEntitySelectorsForExchange = async ({
-	publicEnv,
-	marketVenueId,
-}: {
-	publicEnv: SourcePublicEnv
-	marketVenueId: MarketVenueId
-}): Promise<EntitySelector<typeof schema, EntityType.Market>[]> => {
-	const { coinpaprikaExchangeIdByMarketVenueId } = await import(
-		'$/sources/Coinpaprika/OpenApi/constants.ts'
-	)
-	const exchangeId = coinpaprikaExchangeIdByMarketVenueId[marketVenueId]
-	if (exchangeId == null)
-		return []
-	const markets = await getExchangeMarkets({
-		publicEnv,
-		exchangeId,
-	})
-	const seen = new Set<string>()
-	return (
-		markets.flatMap((market) => {
-			const marketId = getMarketEntitySelectorFromMarket(market, {
-				marketVenueId,
-			})
-			if (marketId == null)
-				return []
-			const key = marketEntitySelectorKey(marketId)
-			if (seen.has(key))
-				return []
-			seen.add(key)
-			return [marketId]
-		})
-	)
-}
-
-/**
-	* OHLC range windows registered for Coinpaprika: multi-day historical needs pro API key
-	* (`Authorization` on api-pro); free plan only supports today / 24h historical per OpenAPI plan table.
-	*/
-export const getOhlcDayWindowValues = (
-	publicEnv: SourcePublicEnv
-) => (
-	optionalPublicEnvString(publicEnv, 'PUBLIC_COINPAPRIKA_API_KEY') != null ?
-		[...marketOhlcDayLookbackValues]
-	:
-		[1]
-)
-
-export const getCoinById = async ({
+export const getCoinById = ({
 	publicEnv,
 	coinpaprikaId,
 }: {
 	publicEnv: SourcePublicEnv
-	coinpaprikaId: string
+	coinpaprikaId: CoinpaprikaCoinPath['coin_id']
 }) => (
-	await getCoinpaprikaJson<CoinpaprikaCoin>(
+	getCoinpaprikaJson<CoinpaprikaCoin>(
 		publicEnv,
-		`/coins/${coinpaprikaId}`
+		`/coins/${encodeURIComponent(coinpaprikaId)}`
 	)
 )
 
-export const getCoins = async ({
+export const getCoins = ({
 	publicEnv,
 }: {
 	publicEnv: SourcePublicEnv
 }) => (
-	await getCoinpaprikaJson<CoinpaprikaCurrency[]>(
+	getCoinpaprikaJson<CoinpaprikaCurrencies>(
 		publicEnv,
 		'/coins'
 	)
 )
 
 /**
-	* `GET /coins/{coin_id}/markets`
-	* @see https://docs.coinpaprika.com/api-reference/coins/get-markets-for-a-coin.md
-	*/
-export const getCoinMarkets = async ({
+ * `GET /coins/{coin_id}/markets`
+ * @see https://docs.coinpaprika.com/api-reference/coins/get-markets-for-a-coin
+ */
+export const getCoinMarkets = ({
 	publicEnv,
 	coinpaprikaId,
 }: {
 	publicEnv: SourcePublicEnv
-	coinpaprikaId: string
+	coinpaprikaId: CoinpaprikaCoinPath['coin_id']
 }) => (
-	await getCoinpaprikaJson<CoinpaprikaMarket[]>(
+	getCoinpaprikaJson<CoinpaprikaCoinMarkets>(
 		publicEnv,
-		`/coins/${coinpaprikaId}/markets?quotes=USD`
+		`/coins/${encodeURIComponent(coinpaprikaId)}/markets?quotes=USD`
 	)
-
 )
 
 
 /**
-	* `GET /exchanges/{exchange_id}/markets`
-	* @see https://docs.coinpaprika.com/api-reference/exchanges/get-markets-by-exchange-id.md
-	*/
-export const getExchangeMarkets = async ({
+ * `GET /exchanges/{exchange_id}/markets`
+ * @see https://docs.coinpaprika.com/api-reference/exchanges/get-markets-by-exchange-id
+ */
+export const getExchangeMarkets = ({
 	publicEnv,
 	exchangeId,
 }: {
 	publicEnv: SourcePublicEnv
-	exchangeId: string
+	exchangeId: CoinpaprikaExchangeMarketsPath['exchange_id']
 }) => (
-	await getCoinpaprikaJson<CoinpaprikaMarket[]>(
+	getCoinpaprikaJson<CoinpaprikaExchangeMarkets>(
 		publicEnv,
-		`/exchanges/${exchangeId}/markets?quotes=USD`
+		`/exchanges/${encodeURIComponent(exchangeId)}/markets?quotes=USD`
 	)
-
 )
 
 
-export const getTickerById = async ({
+export const getTickerById = ({
 	publicEnv,
 	coinpaprikaId,
 }: {
 	publicEnv: SourcePublicEnv
-	coinpaprikaId: string
+	coinpaprikaId: CoinpaprikaCoinPath['coin_id']
 }) => (
-	await getCoinpaprikaJson<CoinpaprikaTicker>(
+	getCoinpaprikaJson<CoinpaprikaTicker>(
 		publicEnv,
-		`/tickers/${coinpaprikaId}`
+		`/tickers/${encodeURIComponent(coinpaprikaId)}`
 	)
 )
 
 /**
-	* `GET /coins/{coin_id}/ohlcv/today`
-	* @see https://docs.coinpaprika.com/api-reference/coins/get-today-ohlc.md
-	*/
-export const getOhlcvTodayRows = async ({
+ * `GET /coins/{coin_id}/ohlcv/today`
+ * @see https://docs.coinpaprika.com/api-reference/coins/get-today-ohlc
+ */
+export const getOhlcvToday = ({
 	publicEnv,
 	coinpaprikaId,
 }: {
 	publicEnv: SourcePublicEnv
-	coinpaprikaId: string
-}): Promise<OhlcCandle[]> => {
-	const rows = await getCoinpaprikaJson<CoinpaprikaOhlcv[]>(
+	coinpaprikaId: CoinpaprikaCoinPath['coin_id']
+}) => (
+	getCoinpaprikaJson<CoinpaprikaOhlcvTodayRows>(
 		publicEnv,
-		`/coins/${coinpaprikaId}/ohlcv/today`
+		`/coins/${encodeURIComponent(coinpaprikaId)}/ohlcv/today`
 	)
-	return rows.flatMap((row) => (
-		row.time_open == null
-		|| row.open == null
-		|| row.high == null
-		|| row.low == null
-		|| row.close == null ?
-			[]
-		:
-			[[
-				Date.parse(row.time_open),
-				row.open,
-				row.high,
-				row.low,
-				row.close,
-				row.volume ?? undefined,
-			]]
-	))
-}
+)
 
 /**
-	* `GET /coins/{coin_id}/ohlcv/historical` — `interval=24h`; free plan: last 24 hours.
-	* @see https://docs.coinpaprika.com/api-reference/coins/get-historical-ohlc.md
-	*/
-export const getOhlcvHistoricalRows = async ({
+ * `GET /coins/{coin_id}/ohlcv/historical` — `interval=24h`; free plan: last 24 hours.
+ * @see https://docs.coinpaprika.com/api-reference/coins/get-historical-ohlc
+ */
+export const getOhlcvHistorical = ({
 	publicEnv,
 	coinpaprikaId,
-	lookbackDayCount,
+	start,
+	end,
+	limit,
 }: {
 	publicEnv: SourcePublicEnv
-	coinpaprikaId: string
-	lookbackDayCount: number
-}): Promise<OhlcCandle[]> => {
-	const end = new Date()
-	const start = new Date(end)
-	start.setUTCDate(start.getUTCDate() - lookbackDayCount)
-	const startDate = start.toISOString().slice(0, 10)
-	const endDate = end.toISOString().slice(0, 10)
-	const rows = await getCoinpaprikaJson<CoinpaprikaOhlcv[]>(
+	coinpaprikaId: CoinpaprikaCoinPath['coin_id']
+	start: CoinpaprikaOhlcvHistoricalQuery['start']
+	end?: CoinpaprikaOhlcvHistoricalQuery['end']
+	limit?: CoinpaprikaOhlcvHistoricalQuery['limit']
+}) => (
+	getCoinpaprikaJson<CoinpaprikaOhlcvHistoricalRows>(
 		publicEnv,
-		`/coins/${coinpaprikaId}/ohlcv/historical?start=${startDate}&end=${endDate}&limit=${lookbackDayCount}&interval=24h&quote=usd`
+		`/coins/${encodeURIComponent(coinpaprikaId)}/ohlcv/historical?${new URLSearchParams({
+			start,
+			...(end != null && { end }),
+			...(limit != null && { limit: String(limit) }),
+			interval: '24h',
+			quote: 'usd',
+		})}`
 	)
-	return rows.flatMap((row) => (
-		row.time_open == null
-		|| row.open == null
-		|| row.high == null
-		|| row.low == null
-		|| row.close == null ?
-			[]
-		:
-			[[
-				Date.parse(row.time_open),
-				row.open,
-				row.high,
-				row.low,
-				row.close,
-				row.volume ?? undefined,
-			]]
-	))
-}
+)

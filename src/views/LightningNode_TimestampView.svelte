@@ -74,7 +74,6 @@
 					<LightningNodeView
 						selection={select(EntityType.LightningNode, selection.entitySelector.$node)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

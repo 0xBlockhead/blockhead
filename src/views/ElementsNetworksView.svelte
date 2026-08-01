@@ -10,7 +10,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['Elements/Liquid-specific view over a canonical Network row, including federation metadata, settlement network, native asset, and registry assets.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.ElementsNetwork> = $props()
@@ -25,7 +24,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.ElementsNetwork}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {

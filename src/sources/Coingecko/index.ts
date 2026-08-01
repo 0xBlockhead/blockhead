@@ -10,10 +10,6 @@ export default {
 	label: 'Coingecko',
 	sources: [
 		{
-			source: Source.Coingecko_OpenApi,
-			label: 'Coingecko OpenAPI',
-		},
-		{
 			source: Source.Coingecko_Rest,
 			label: 'Coingecko REST',
 		},

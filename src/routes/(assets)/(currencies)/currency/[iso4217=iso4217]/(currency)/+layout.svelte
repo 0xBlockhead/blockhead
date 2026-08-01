@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(assets)/(currencies)/currency/[iso4217=iso4217]',
+			{
+				iso4217: params.iso4217,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,30 +38,18 @@
 
 {#key params.iso4217}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(assets)/(currencies)/currency/[iso4217=iso4217]',
-				{
-					iso4217: params.iso4217,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<CurrencyView
 				selection={
-					select(EntityType.Currency, data.selector, { sources: [
-						Source.Constants_Internal,
-					] })
+					select(EntityType.Currency, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(assets)/(currencies)/currency/[iso4217=iso4217]',
-						{
-							iso4217: params.iso4217,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

@@ -20,7 +20,10 @@ import type {
 	PrimalNostrEvent,
 } from '$/sources/Primal/Rest/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
-import { isJsonObject } from '$/typescript/JsonValue.ts'
+import {
+	isJsonObject,
+	isJsonString,
+} from '$/typescript/JsonValue.ts'
 import {
 	type NostrEventExpectation,
 	validateNostrEvent,
@@ -68,33 +71,11 @@ const tagValueFromTags = (
 const eTagEventIdsFromTags = (tags: PrimalNostrEvent['tags']) => (
 	tags?.flatMap((tag) => (
 		tag[0] === 'e' ?
-			(
-				((eventId) => (
-					eventId != null ?
-						[eventId]
-					:
-						[]
-				))(normalizeEventId(tag[1]))
-			)
+			normalizeEventId(tag[1]) ?? []
 		:
 			[]
 	))
 	?? []
-)
-
-const eventIdFromETags = (tags: PrimalNostrEvent['tags']) => (
-	tags?.flatMap((tag) => (
-		tag[0] === 'e' ?
-			[normalizeEventId(tag[1])]
-		:
-			[]
-	))
-		.flatMap((eventId) => (
-			eventId == null ?
-				[]
-			:
-				[eventId]
-		)).at(0)
 )
 
 const reactionTargetEventIdFromTags = (tags: PrimalNostrEvent['tags']) => {
@@ -204,14 +185,9 @@ const noteFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 			...(timestampMsFromUnixSeconds(event.created_at) != null && {
 				createdAt: timestampMsFromUnixSeconds(event.created_at),
 			}),
-			$author: ((normalizedPubkey) => (
-				normalizedPubkey == null ?
-					undefined
-				:
-					{
-						[EntityMetaKey.Selector]: { pubkey: normalizedPubkey },
-					}
-			))(normalizePubkey(event.pubkey)),
+			$author: {
+				[EntityMetaKey.Selector]: { pubkey: eventPubkey },
+			},
 			...(replyToEventId != null && {
 				replyToEventId,
 			}),
@@ -248,14 +224,9 @@ const repostFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 			...(timestampMsFromUnixSeconds(event.created_at) != null && {
 				createdAt: timestampMsFromUnixSeconds(event.created_at),
 			}),
-			$author: ((normalizedPubkey) => (
-				normalizedPubkey == null ?
-					undefined
-				:
-					{
-						[EntityMetaKey.Selector]: { pubkey: normalizedPubkey },
-					}
-			))(normalizePubkey(event.pubkey)),
+			$author: {
+				[EntityMetaKey.Selector]: { pubkey: eventPubkey },
+			},
 			...(repostedEventId != null && {
 				repostedEventId,
 				...(kind === 6 && {
@@ -264,7 +235,7 @@ const repostFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 					},
 				}),
 			}),
-		}))(eventIdFromETags(event.tags))
+		}))(eTagEventIdsFromTags(event.tags).at(0))
 	)
 }
 
@@ -310,14 +281,9 @@ const reactionFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 		...(timestampMsFromUnixSeconds(event.created_at) != null && {
 			createdAt: timestampMsFromUnixSeconds(event.created_at),
 		}),
-		$author: ((normalizedPubkey) => (
-			normalizedPubkey == null ?
-				undefined
-			:
-				{
-					[EntityMetaKey.Selector]: { pubkey: normalizedPubkey },
-				}
-		))(normalizePubkey(event.pubkey)),
+		$author: {
+			[EntityMetaKey.Selector]: { pubkey: eventPubkey },
+		},
 		content: optionalNonemptyString(event.content),
 	}
 }
@@ -381,14 +347,9 @@ const articleFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 			contentWarning: optionalNonemptyString(tagValueFromTags(event.tags, 'content-warning')),
 			...(event.tags != null && { tags: event.tags }),
 			...(publishedAt != null && { publishedAt }),
-			$author: ((normalizedPubkey) => (
-				normalizedPubkey == null ?
-					undefined
-				:
-					{
-						[EntityMetaKey.Selector]: { pubkey: normalizedPubkey },
-					}
-			))(normalizePubkey(event.pubkey)),
+			$author: {
+				[EntityMetaKey.Selector]: { pubkey: eventPubkey },
+			},
 		}))(articlePublishedAtMs(event))
 	)
 }
@@ -444,52 +405,52 @@ const parseKind0Metadata = (content: string | undefined) => {
 		if (!isJsonObject(parsed)) return {}
 		return {
 			displayName: optionalNonemptyString(
-				typeof parsed.display_name === 'string' ?
+				isJsonString(parsed.display_name) ?
 					parsed.display_name
 				:
-					typeof parsed.name === 'string' ?
+					isJsonString(parsed.name) ?
 						parsed.name
 					:
 						undefined
 			),
 			about: optionalNonemptyString(
-				typeof parsed.about === 'string' ?
+				isJsonString(parsed.about) ?
 					parsed.about
 				:
 					undefined
 			),
 			picture: optionalNonemptyString(
-				typeof parsed.picture === 'string' ?
+				isJsonString(parsed.picture) ?
 					parsed.picture
 				:
 					undefined
 			),
 			banner: optionalNonemptyString(
-				typeof parsed.banner === 'string' ?
+				isJsonString(parsed.banner) ?
 					parsed.banner
 				:
 					undefined
 			),
 			website: optionalNonemptyString(
-				typeof parsed.website === 'string' ?
+				isJsonString(parsed.website) ?
 					parsed.website
 				:
 					undefined
 			),
 			nip05: optionalNonemptyString(
-				typeof parsed.nip05 === 'string' ?
+				isJsonString(parsed.nip05) ?
 					parsed.nip05
 				:
 					undefined
 			),
 			lud16: optionalNonemptyString(
-				typeof parsed.lud16 === 'string' ?
+				isJsonString(parsed.lud16) ?
 					parsed.lud16
 				:
 					undefined
 			),
 			lud06: optionalNonemptyString(
-				typeof parsed.lud06 === 'string' ?
+				isJsonString(parsed.lud06) ?
 					parsed.lud06
 				:
 					undefined
@@ -529,6 +490,9 @@ const profileMetadataEventFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 	if (eventId == null || pubkey == null || createdAt == null || event.sig == null || event.content == null)
 		throw new Error('Primal_Rest: incomplete profile metadata event')
 	const metadata = parseKind0Metadata(event.content)
+	const website = optionalUrlString(metadata.website)
+	const iconUrl = optionalUrlString(metadata.picture)
+	const bannerUrl = optionalUrlString(metadata.banner)
 
 	return {
 		eventId,
@@ -546,25 +510,15 @@ const profileMetadataEventFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 		...(metadata.nip05 != null && { nip05: metadata.nip05 }),
 		...(metadata.lud16 != null && { lud16: metadata.lud16 }),
 		...(metadata.lud06 != null && { lud06: metadata.lud06 }),
-		...(optionalUrlString(metadata.website) != null && { website: optionalUrlString(metadata.website) }),
-		...((iconUrl) => (
-			iconUrl == null ?
-				{}
-			:
-				{
-					iconUrl,
-					$icon: mediaFromUrl(iconUrl, MediaType.Image),
-				}
-		))(optionalUrlString(metadata.picture)),
-		...((bannerUrl) => (
-			bannerUrl == null ?
-				{}
-			:
-				{
-					bannerUrl,
-					$banner: mediaFromUrl(bannerUrl, MediaType.Image),
-				}
-		))(optionalUrlString(metadata.banner)),
+		...(website != null && { website }),
+		...(iconUrl != null && {
+			iconUrl,
+			$icon: mediaFromUrl(iconUrl, MediaType.Image),
+		}),
+		...(bannerUrl != null && {
+			bannerUrl,
+			$banner: mediaFromUrl(bannerUrl, MediaType.Image),
+		}),
 	}
 }
 
@@ -581,7 +535,7 @@ const profileMetadataEventReference = (event: ValidatedNostrEvent) => ({
 const profileEventFromWire = (wire: JsonValue | undefined): PrimalNostrEvent | undefined => {
 	if (wire == null || !isJsonObject(wire)) return undefined
 	if (
-		typeof wire.id === 'string'
+		isJsonString(wire.id)
 		&& wire.kind === 0
 	) return validateNostrEvent(wire, { kinds: [0] })
 	if (wire.metadata != null) return profileEventFromWire(wire.metadata)
@@ -592,7 +546,7 @@ const profileEventFromWire = (wire: JsonValue | undefined): PrimalNostrEvent | u
 
 const noteEventFromWire = (wire: JsonValue | undefined): PrimalNostrEvent | undefined => {
 	if (wire == null || !isJsonObject(wire)) return undefined
-	if (typeof wire.id !== 'string') return undefined
+	if (!isJsonString(wire.id)) return undefined
 	if (wire.event != null) return noteEventFromWire(wire.event)
 	if (wire.note != null) return noteEventFromWire(wire.note)
 	return validateNostrEvent(wire)
@@ -615,7 +569,7 @@ const eventFromWire = (
 const eventsFromTimelineResponse = (
 	response: JsonValue | undefined,
 	expectation: NostrEventExpectation = {}
-): ValidatedNostrEvent[] => {
+) => {
 	if (Array.isArray(response))
 		return response.flatMap((noteEvent) => {
 			try {
@@ -657,10 +611,9 @@ export default {
 			entityType: EntityType.NostrNote,
 			resolve: {
 				CanonicalEventId: {
-					resolve: async ({ eventId: eventIdSelector }, context) => {
+					resolve: async ({ eventId: eventIdSelector }) => {
 						const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
-						const publicEnv = context.publicEnv
-						const event = eventFromWire(await getEventById(publicEnv, eventIdSelector), {
+						const event = eventFromWire(await getEventById(eventIdSelector), {
 							eventId: eventIdSelector,
 							kinds: [1],
 						})
@@ -693,10 +646,9 @@ export default {
 			entityType: EntityType.NostrRepost,
 			resolve: {
 				CanonicalEventId: {
-					resolve: async ({ eventId: eventIdSelector }, context) => {
+					resolve: async ({ eventId: eventIdSelector }) => {
 						const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
-						const publicEnv = context.publicEnv
-						const event = eventFromWire(await getEventById(publicEnv, eventIdSelector), {
+						const event = eventFromWire(await getEventById(eventIdSelector), {
 							eventId: eventIdSelector,
 							kinds: [6, 16],
 						})
@@ -719,7 +671,7 @@ export default {
 							values
 						let targetEvent
 						try {
-							targetEvent = eventFromWire(await getEventById(publicEnv, targetEventId), {
+							targetEvent = eventFromWire(await getEventById(targetEventId), {
 								eventId: targetEventId,
 							})
 						} catch {
@@ -749,10 +701,9 @@ export default {
 			entityType: EntityType.NostrReaction,
 			resolve: {
 				CanonicalEventId: {
-					resolve: async ({ eventId: eventIdSelector }, context) => {
+					resolve: async ({ eventId: eventIdSelector }) => {
 						const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
-						const publicEnv = context.publicEnv
-						const event = eventFromWire(await getEventById(publicEnv, eventIdSelector), {
+						const event = eventFromWire(await getEventById(eventIdSelector), {
 							eventId: eventIdSelector,
 							kinds: [7],
 						})
@@ -765,7 +716,7 @@ export default {
 						const targetEventId = reactionTargetEventIdFromTags(event.tags)
 						let targetEvent
 						try {
-							targetEvent = eventFromWire(await getEventById(publicEnv, targetEventId), {
+							targetEvent = eventFromWire(await getEventById(targetEventId), {
 								eventId: targetEventId,
 							})
 						} catch {
@@ -794,9 +745,9 @@ export default {
 			entityType: EntityType.NostrArticleEvent,
 			resolve: {
 				CanonicalEventId: {
-					resolve: async ({ eventId }, context) => {
+					resolve: async ({ eventId }) => {
 						const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
-						const event = eventFromWire(await getEventById(context.publicEnv, eventId), {
+						const event = eventFromWire(await getEventById(eventId), {
 							eventId,
 							kinds: [30_023],
 						})
@@ -831,7 +782,6 @@ export default {
 				CanonicalCoordinate: {
 					resolve: async ({ identifier: identifierSelector, kind, pubkey: pubkeySelector }, context) => {
 						const { getProfileArticles } = await import('$/sources/Primal/Rest/queries.ts')
-						const publicEnv = context.publicEnv
 						const pubkey = normalizePubkey(pubkeySelector)
 						const identifier = identifierSelector
 						if (pubkey == null || identifier === '' || kind !== 30023)
@@ -839,7 +789,7 @@ export default {
 						const limit = resolverContextRowLimit(context)
 						const events = versionEventsNewestFirst(
 							eventsFromTimelineResponse(
-								await getProfileArticles(publicEnv, pubkey, limit),
+								await getProfileArticles(pubkey, limit),
 								{
 									pubkey,
 									kinds: [30_023],
@@ -875,9 +825,9 @@ export default {
 			entityType: EntityType.NostrProfileMetadataEvent,
 			resolve: {
 				CanonicalEventId: {
-					resolve: async ({ eventId }, context) => {
+					resolve: async ({ eventId }) => {
 						const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
-						const event = eventFromWire(await getEventById(context.publicEnv, eventId), {
+						const event = eventFromWire(await getEventById(eventId), {
 							eventId,
 							kinds: [0],
 						})
@@ -910,13 +860,13 @@ export default {
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				CanonicalPubkey: {
-					resolve: async ({ pubkey: pubkeySelector }, context) => {
+					resolve: async ({ pubkey: pubkeySelector }) => {
 						const { getProfile } = await import('$/sources/Primal/Rest/queries.ts')
 						const pubkey = normalizePubkey(pubkeySelector)
 						if (pubkey == null)
 							throw new Error('Primal_Rest: profile pubkey invalid')
 						const events = profileEventsFromResponse(
-							await getProfile(context.publicEnv, pubkey),
+							await getProfile(pubkey),
 							pubkey
 						)
 						return {
@@ -943,26 +893,18 @@ export default {
 				CanonicalPubkey: {
 					resolve: async ({ pubkey }, context) => {
 						const { getProfileNotes } = await import('$/sources/Primal/Rest/queries.ts')
-						const publicEnv = context.publicEnv
 						const limit = resolverContextRowLimit(context)
 						return (
 							eventsFromTimelineResponse(
-								await getProfileNotes(publicEnv, pubkey, limit),
+								await getProfileNotes(pubkey, limit),
 								{
 									pubkey,
 									kinds: [1],
 								}
-						)
-								.flatMap((event) => (
-								event.kind !== 1 || normalizeEventId(event.id) == null ?
-									[]
-								:
-									[
-										{
-											[EntityMetaKey.Selector]: { eventId: normalizeEventId(event.id)! },
-										},
-									]
-								))
+							)
+								.map((event) => ({
+									[EntityMetaKey.Selector]: { eventId: event.id },
+								}))
 						)
 					},
 				}
@@ -977,26 +919,18 @@ export default {
 				CanonicalPubkey: {
 					resolve: async ({ pubkey }, context) => {
 						const { getProfileReposts } = await import('$/sources/Primal/Rest/queries.ts')
-						const publicEnv = context.publicEnv
 						const limit = resolverContextRowLimit(context)
 						return (
 							eventsFromTimelineResponse(
-								await getProfileReposts(publicEnv, pubkey, limit),
+								await getProfileReposts(pubkey, limit),
 								{
 									pubkey,
 									kinds: [6, 16],
 								}
-						)
-								.flatMap((event) => (
-								!isNostrRepostKind(event.kind) || normalizeEventId(event.id) == null ?
-									[]
-								:
-									[
-										{
-											[EntityMetaKey.Selector]: { eventId: normalizeEventId(event.id)! },
-										},
-									]
-								))
+							)
+								.map((event) => ({
+									[EntityMetaKey.Selector]: { eventId: event.id },
+								}))
 						)
 					},
 				}
@@ -1011,16 +945,15 @@ export default {
 				CanonicalPubkey: {
 					resolve: async ({ pubkey }, context) => {
 						const { getProfileArticles } = await import('$/sources/Primal/Rest/queries.ts')
-						const publicEnv = context.publicEnv
 						const limit = resolverContextRowLimit(context)
 						return (
 							eventsFromTimelineResponse(
-								await getProfileArticles(publicEnv, pubkey, limit),
+								await getProfileArticles(pubkey, limit),
 								{
 									pubkey,
 									kinds: [30_023],
 								}
-						)
+							)
 								.flatMap((event) => articleRefFromEvent(event))
 						)
 					},
@@ -1035,28 +968,19 @@ export default {
 			resolve: {
 				CanonicalEventId: {
 					resolve: async ({ eventId }, context) => {
-						const { getNoteReplies } = await import('$/sources/Primal/Rest/queries.ts')
-						const publicEnv = context.publicEnv
+						const { getNoteActions } = await import('$/sources/Primal/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (
 							eventsFromTimelineResponse(
-								await getNoteReplies(publicEnv, eventId, limit),
+								await getNoteActions(eventId, 1, limit),
 								{
 									kinds: [1],
 								}
-					)
-								.flatMap((event) => (
-								event.kind !== 1
-									|| normalizeEventId(event.id) == null
-									|| replyToEventIdFromTags(event.tags) !== eventId ?
-									[]
-								:
-									[
-										{
-											[EntityMetaKey.Selector]: { eventId: normalizeEventId(event.id)! },
-										},
-									]
-								))
+							)
+								.filter((event) => replyToEventIdFromTags(event.tags) === eventId)
+								.map((event) => ({
+									[EntityMetaKey.Selector]: { eventId: event.id },
+								}))
 						)
 					},
 				}
@@ -1070,28 +994,19 @@ export default {
 			resolve: {
 				CanonicalEventId: {
 					resolve: async ({ eventId }, context) => {
-						const { getNoteReactions } = await import('$/sources/Primal/Rest/queries.ts')
-						const publicEnv = context.publicEnv
+						const { getNoteActions } = await import('$/sources/Primal/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (
 							eventsFromTimelineResponse(
-								await getNoteReactions(publicEnv, eventId, limit),
+								await getNoteActions(eventId, 7, limit),
 								{
 									kinds: [7],
 								}
-					)
-								.flatMap((event) => (
-								event.kind !== 7
-									|| normalizeEventId(event.id) == null
-									|| reactionTargetEventIdFromTags(event.tags) !== eventId ?
-									[]
-								:
-									[
-										{
-											[EntityMetaKey.Selector]: { eventId: normalizeEventId(event.id)! },
-										},
-									]
-								))
+							)
+								.filter((event) => reactionTargetEventIdFromTags(event.tags) === eventId)
+								.map((event) => ({
+									[EntityMetaKey.Selector]: { eventId: event.id },
+								}))
 						)
 					},
 				}
@@ -1100,33 +1015,5 @@ export default {
 				$$reactions: (note) => note,
 			}),
 
-		defineResolver(Source.Primal_Rest, {
-			entityType: EntityType.NostrNote,
-			resolve: {
-				CanonicalEventId: {
-					resolve: async ({ eventId }, context) => {
-						const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
-						const publicEnv = context.publicEnv
-						const event = eventFromWire(await getEventById(publicEnv, eventId), {
-							eventId,
-							kinds: [1],
-						})
-						if (event == null || event.kind !== 1)
-							throw new Error('Primal_Rest: note not found for reply target')
-						const normalizedReplyTo = replyToEventIdFromTags(event.tags)
-						return (
-							normalizedReplyTo == null ?
-								undefined
-							:
-								{
-									[EntityMetaKey.Selector]: { eventId: normalizedReplyTo },
-								}
-						)
-					},
-				}
-			},
-		})({
-				$replyToNote: (note) => note,
-			}),
 	],
 }

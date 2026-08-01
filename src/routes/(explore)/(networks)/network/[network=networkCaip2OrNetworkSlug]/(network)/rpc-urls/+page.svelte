@@ -40,8 +40,5 @@
 		title='RPC URLs'
 		selection={select(EntityType.Network, data.selector).Evm.$$rpcUrls}
 		id='rpc-urls'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

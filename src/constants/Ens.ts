@@ -13,36 +13,11 @@ export type EnsTextRecordLinkEntry = {
 	urlPrefix?: string
 }
 
-export enum EnsRegistrationStatus {
-	Active = 'active',
-	GracePeriod = 'gracePeriod',
-	Expired = 'expired',
-}
-
-
 // Constants
 
 const evmEnsCoinTypeId = (chainId: number) => (
 	0x80000000 | chainId
 )
-
-const ensRegistrationStatuses = [
-	{
-		status: EnsRegistrationStatus.Active,
-		label: 'Active registration',
-	},
-	{
-		status: EnsRegistrationStatus.GracePeriod,
-		label: 'Grace period',
-	},
-	{
-		status: EnsRegistrationStatus.Expired,
-		label: 'Expired',
-	},
-] as const satisfies readonly {
-	status: EnsRegistrationStatus
-	label: string
-}[]
 
 export const ensTextRecords = [
 	{
@@ -314,42 +289,3 @@ export const ensTextRecordLinkRules = [
 		urlPrefix: 'https://discord.com/users/',
 	},
 ] as const satisfies readonly EnsTextRecordLinkEntry[]
-
-
-// Lookups
-
-export const ensRegistrationStatusByStatus = Object.fromEntries(
-	ensRegistrationStatuses.map((row) => [
-		row.status,
-		row,
-	])
-)
-
-export const ensTextRecordLabelByKey = Object.fromEntries(
-	ensTextRecords.map((row) => [
-		row.key,
-		row,
-	])
-)
-
-export const ensCoinTypeLabelByKey = Object.fromEntries(
-	ensCoinTypes.map((row) => [
-		row.key,
-		row,
-	])
-)
-
-export const ensTextRecordDisplayRank = Object.fromEntries(
-	ensTextRecords.flatMap((row) => (
-		row.displayRank === null ?
-			[]
-		:
-			[[
-				row.key,
-				{
-					key: row.key,
-					rank: row.displayRank,
-				},
-			]]
-	))
-)

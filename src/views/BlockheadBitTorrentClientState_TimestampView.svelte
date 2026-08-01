@@ -69,7 +69,6 @@
 					<BlockheadBitTorrentClientStateView
 						selection={select(EntityType.BlockheadBitTorrentClientState, selection.entitySelector.$clientState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

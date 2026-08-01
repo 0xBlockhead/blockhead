@@ -63,10 +63,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.palletName || 'Polkadot pallet'}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.palletName || titleFallback}
 	{/snippet}
@@ -115,7 +111,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

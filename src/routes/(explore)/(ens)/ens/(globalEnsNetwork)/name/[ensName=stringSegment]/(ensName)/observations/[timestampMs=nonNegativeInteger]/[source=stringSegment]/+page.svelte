@@ -15,30 +15,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EnsName_Timestamp, {
-		$name: {
-			name: decodeURIComponent(params.ensName),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [({
-			$name: {
-				name: decodeURIComponent(params.ensName),
-			},
-			timestampMs: Number(params.timestampMs),
-			source: params.source,
-		}).source],
-		fields: {
-			$resolvedActor: true,
-			$resolverContract: true,
-			$ownerActor: true,
-			subdomainCount: true,
-			ttl: true,
-			isMigrated: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -53,6 +29,30 @@
 
 <Page>
 	<EnsName_TimestampView
-		selection={pageSelection}
+		selection={
+			select(EntityType.EnsName_Timestamp, {
+				$name: {
+					name: decodeURIComponent(params.ensName),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [({
+					$name: {
+						name: decodeURIComponent(params.ensName),
+					},
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}).source],
+				fields: {
+					$resolvedActor: true,
+					$resolverContract: true,
+					$ownerActor: true,
+					subdomainCount: true,
+					ttl: true,
+					isMigrated: true,
+				},
+			})
+		}
 	/>
 </Page>

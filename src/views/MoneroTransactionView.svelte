@@ -67,7 +67,6 @@
 						selection={select(EntityType.MoneroBlock, moneroBlock[EntityMetaKey.Selector])}
 						prefetched={moneroBlock}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -97,7 +96,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -121,7 +119,6 @@
 									selection={select(EntityType.MoneroBlock, moneroBlock[EntityMetaKey.Selector])}
 									prefetched={moneroBlock}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

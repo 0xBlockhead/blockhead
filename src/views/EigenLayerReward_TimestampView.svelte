@@ -26,7 +26,6 @@
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
 			Source.EigenLayerContracts_Evm,
-			Source.EigenLayerSubgraph_Graphql,
 			Source.Etherscan_Rest,
 			Source.Voltaire_JsonRpc,
 		],
@@ -63,7 +62,6 @@
 			selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$earner)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -92,7 +90,6 @@
 					<EvmNetworkAccountView
 						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$earner)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -116,7 +113,6 @@
 									selection={select(EntityType.EigenLayerStrategy, eigenLayerStrategy[EntityMetaKey.Selector])}
 									prefetched={eigenLayerStrategy}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -136,7 +132,6 @@
 									selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
 									prefetched={eigenLayerOperator}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -156,7 +151,6 @@
 									selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
 									prefetched={eigenLayerAvs}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

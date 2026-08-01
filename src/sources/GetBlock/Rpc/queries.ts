@@ -15,9 +15,8 @@ const binding = bindings[Source.GetBlockRpc_JsonRpc]
 
 const request = async <_Result>(
 	method: string,
-	parameters: string[],
-	id: number
-): Promise<_Result> => {
+	parameters: string[]
+) => {
 	const httpResponse = await sourceFetch(
 		binding,
 		firstHttpUrlForBinding(binding),
@@ -28,7 +27,7 @@ const request = async <_Result>(
 			},
 			body: JSON.stringify({
 				jsonrpc: '2.0',
-				id,
+				id: 1,
 				method,
 				params: parameters,
 			}),
@@ -46,8 +45,8 @@ const request = async <_Result>(
 
 export const getEvmTransactionByHash = (
 	txHash: string
-) => request<GetBlockEvmTransaction | null>('eth_getTransactionByHash', [txHash], 1)
+) => request<GetBlockEvmTransaction | null>('eth_getTransactionByHash', [txHash])
 
 export const getEvmTransactionReceipt = (
 	txHash: string
-) => request<GetBlockEvmTransactionReceipt | null>('eth_getTransactionReceipt', [txHash], 2)
+) => request<GetBlockEvmTransactionReceipt | null>('eth_getTransactionReceipt', [txHash])

@@ -48,10 +48,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.endpointUrl || 'A2A agent service'}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.protocolBinding || selection.entitySelector.endpointUrl || titleFallback}
 	{/snippet}
@@ -77,7 +73,6 @@
 					<A2aAgentCardView
 						selection={select(EntityType.A2aAgentCard, selection.entitySelector.$card)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

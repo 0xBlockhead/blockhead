@@ -9,7 +9,6 @@ import bindings from '$/sources/Tzkt/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
@@ -149,7 +148,6 @@ describe('TzKT block transport and resolver', () => {
 			endpoints: [{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.tzkt.io',
-				origin: 'https://api.tzkt.io',
 				corsEnabled: false,
 			}],
 			wireProtocol: WireProtocol.HttpRest,
@@ -158,9 +156,7 @@ describe('TzKT block transport and resolver', () => {
 				SourceOperationGroup.GenericRead,
 			],
 			delivery: SourceDelivery.HttpProxy,
-			credentials: [{
-				scope: SourceCredentialScope.None,
-			}],
+			credentials: [],
 		})
 	})
 

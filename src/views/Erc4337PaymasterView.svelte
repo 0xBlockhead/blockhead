@@ -73,7 +73,6 @@
 			<NetworkView
 				selection={select(EntityType.Network, selection.entitySelector.$network)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -98,7 +97,6 @@
 								selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 								prefetched={evmContract}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -111,7 +109,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

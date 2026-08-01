@@ -16,6 +16,15 @@
 		data,
 		params,
 	}: PageProps = $props()
+	const collectionHref = $derived(
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/outputs',
+			{
+				network: params.network,
+				transactionId: params.transactionId,
+			}
+		)
+	)
 
 
 	// Components
@@ -35,22 +44,11 @@
 		{@const collection0Selection = select(EntityType.CardanoTransaction, data.selector).$$outputs}
 
 		<CardanoTxOutputsView
-			href={
-				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/outputs',
-					{
-						network: params.network,
-						transactionId: params.transactionId,
-					}
-				)
-			}
+			href={collectionHref}
 			title='Cardano outputs'
 			selection={collection0Selection}
 			countResource={collection0Selection.count}
 			id='outputs'
-			data-column-item="flexible"
-			data-card
-			data-scroll-container
 		/>
 	{/if}
 
@@ -58,22 +56,10 @@
 		{@const collection1Selection = select(EntityType.UtxoTransaction, data.selector).$$outputs}
 
 		<UtxoOutputsView
-			href={
-				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/outputs',
-					{
-						network: params.network,
-						transactionId: params.transactionId,
-					}
-				)
-			}
-			title='UTXO outputs'
+			href={collectionHref}
 			selection={collection1Selection}
 			countResource={collection1Selection.count}
 			id='outputs'
-			data-column-item="flexible"
-			data-card
-			data-scroll-container
 		/>
 	{/if}
 </Page>

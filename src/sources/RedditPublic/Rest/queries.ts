@@ -107,7 +107,7 @@ const redditThingFromRssEntry = (
 const listSubredditRss = async (
 	name: string,
 	limit: number
-): Promise<RedditPublicApiListing> => ({
+) => ({
 	kind: 'Listing',
 	data: {
 		children: (
@@ -122,7 +122,7 @@ const listSubredditRss = async (
 	},
 })
 
-export const getInfo = async (id: string) => (
+export const getInfo = (id: string) => (
 	redditJsonGet<RedditPublicApiInfoResponse>(
 		`/api/info.json?${(
 			new URLSearchParams({ id, raw_json: '1' }).toString()
@@ -130,70 +130,40 @@ export const getInfo = async (id: string) => (
 	)
 )
 
-export const getSubredditAbout = async (name: string) => (
+export const getSubredditAbout = (name: string) => (
 	redditJsonGet<RedditPublicApiSubredditAbout>(
 		`/r/${encodeURIComponent(name)}/about.json?raw_json=1`
-	)
-)
-
-export const listSubredditHot = async (
-	name: string,
-	limit: number,
-	after?: string
-): Promise<RedditPublicApiListing> => (
-	limit === 0 ?
-		{
-			kind: 'Listing',
-			data: { children: [] },
-		}
-	:
-	redditJsonGet<RedditPublicApiListing>(
-		`/r/${encodeURIComponent(name)}/hot.json?${(
-			new URLSearchParams({
-				...(after !== undefined && {
-					after,
-				}),
-				limit: String(redditListingLimit(limit)),
-				raw_json: '1',
-			}).toString()
-		)}`
-	).catch(
-		after === undefined ?
-			async () => listSubredditRss(name, redditListingLimit(limit))
-		:
-			undefined
 	)
 )
 
 export const listSubredditLinks = async (
 	name: string,
 	request: RedditPublicApiListingRequest
-): Promise<RedditPublicApiListing> => (
-	request.limit === 0 ?
-		{
+) => {
+	const limit = redditListingLimit(request.limit)
+	if (limit === 0)
+		return {
 			kind: 'Listing',
 			data: { children: [] },
 		}
-	:
-	request.sort === 'hot' ?
-		listSubredditHot(
-			name,
-			request.limit,
-			request.after
-		)
-	:
-		redditJsonGet<RedditPublicApiListing>(
-			`/r/${encodeURIComponent(name)}/${request.sort}.json?${(
-				new URLSearchParams({
-					...(request.after !== undefined && {
-						after: request.after,
-					}),
-					limit: String(redditListingLimit(request.limit)),
-					raw_json: '1',
-				}).toString()
-			)}`
-		)
-)
+
+	return redditJsonGet<RedditPublicApiListing>(
+		`/r/${encodeURIComponent(name)}/${request.sort}.json?${(
+			new URLSearchParams({
+				...(request.after !== undefined && {
+					after: request.after,
+				}),
+				limit: String(limit),
+				raw_json: '1',
+			}).toString()
+		)}`
+	).catch(
+		request.sort === 'hot' && request.after === undefined ?
+			() => listSubredditRss(name, limit)
+		:
+			undefined
+	)
+}
 
 export const getComments = async (
 	permalink: string,

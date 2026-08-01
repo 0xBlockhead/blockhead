@@ -70,7 +70,6 @@
 			selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -86,7 +85,6 @@
 					<LensAccountView
 						selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

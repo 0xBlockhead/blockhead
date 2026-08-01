@@ -19,6 +19,8 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = resolve('/(explore)/(ipfs)/ipfs')
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -28,16 +30,18 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/(explore)/(ipfs)/ipfs')}
+	href={detailHref}
 >
 	{#snippet Summary()}
 		<IpfsProtocolView
 			selection={
-				select(EntityType.IpfsProtocol, data.selector, { sources: [
-					Source.Constants_Internal,
-				] })
+				select(EntityType.IpfsProtocol, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
 			}
-			href={resolve('/(explore)/(ipfs)/ipfs')}
+			href={detailHref}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

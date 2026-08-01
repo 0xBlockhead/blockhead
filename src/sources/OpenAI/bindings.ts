@@ -14,7 +14,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.openai.com',
-				origin: 'https://api.openai.com',
 				corsEnabled: false,
 			},
 		],
@@ -34,4 +33,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.OpenAI_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

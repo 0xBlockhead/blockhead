@@ -56,10 +56,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.noteCommitment || 'blockhead zcash note state'}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.pool || selection.entitySelector.noteCommitment || titleFallback}
 	{/snippet}
@@ -100,7 +96,6 @@
 									selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
 									prefetched={blockheadWallet}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -120,7 +115,6 @@
 									selection={select(EntityType.ZcashShieldedAction, zcashShieldedAction[EntityMetaKey.Selector])}
 									prefetched={zcashShieldedAction}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

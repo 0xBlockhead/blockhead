@@ -40,8 +40,5 @@
 		title='Beacon slots'
 		selection={select(EntityType.Network, data.selector).Evm.$$beaconSlots}
 		id='beacon-slots'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

@@ -2,17 +2,11 @@ import { type as arktype } from 'arktype'
 
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
-import type {
-	CeleniumAddress,
-	CeleniumBlobMetadata,
-	CeleniumBlock,
-	CeleniumHead,
-	CeleniumNamespace,
-	CeleniumTransaction,
-} from '$/sources/Celenium/Rest/types.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Celenium/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
+const binding = bindings[Source.Celenium_Rest]
 const celeniumHash = /^[0-9a-fA-F]{64}$/
 const celeniumAddress = /^celestia1[02-9ac-hj-np-z]{38}$/
 const namespaceIdPattern = /^[0-9a-fA-F]{56}$/
@@ -75,7 +69,7 @@ const blobMetadataWire = arktype({
 	signer: {
 		hash: 'string',
 	},
-})
+}).onUndeclaredKey('delete')
 
 const addressWire = arktype({
 	first_height: 'number.integer >= 0',
@@ -146,14 +140,11 @@ const assertPage = ({
 		throw new Error('Celenium_Rest: page offset must be from 0 through 1000000')
 }
 
-export const query = (
-	binding: SourceBinding,
-	path: string
-) => {
+export const query = (path: string) => {
 	return sourceGetJson<JsonValue>(binding, httpUrl(binding, path))
 }
 
-export const getHead = async (binding: SourceBinding): Promise<CeleniumHead> => {
+export const getHead = async () => {
 	const wire = headWire.assert(await sourceGetJson<unknown>(
 		binding,
 		httpUrl(binding, '/v1/head')
@@ -163,35 +154,24 @@ export const getHead = async (binding: SourceBinding): Promise<CeleniumHead> => 
 		[wire.total_tx, 'transaction count'],
 		[wire.total_accounts, 'account count'],
 		[wire.total_blobs_size, 'total blob bytes'],
-	])
+	] satisfies [number, string][])
 		assertSafeInteger(value, label)
 	assertHash(wire.hash, 'head hash')
 	assertDecimal(wire.total_fee, 'total fee')
 	assertDecimal(wire.total_supply, 'total supply')
 	if (wire.chain_id !== 'celestia')
 		throw new Error('Celenium_Rest: foreign chain head')
-	return {
-		chainId: wire.chain_id,
-		latestHeight: BigInt(wire.last_height),
-		latestHash: wire.hash.toLowerCase(),
-		latestTime: wire.last_time,
-		totalTransactions: BigInt(wire.total_tx),
-		totalAccounts: BigInt(wire.total_accounts),
-		totalFeeUtia: BigInt(wire.total_fee),
-		totalBlobBytes: BigInt(wire.total_blobs_size),
-		totalSupplyUtia: BigInt(wire.total_supply),
-		synced: wire.synced,
-	}
+	return wire
 }
 
-const blockFromWire = (wire: typeof blockWire.infer): CeleniumBlock => {
+const validatedBlockWire = (wire: typeof blockWire.infer) => {
 	for (const [value, label] of [
 		[wire.height, 'block height'],
 		[wire.stats.tx_count, 'block transaction count'],
 		[wire.stats.blobs_count, 'block blob count'],
 		[wire.stats.blobs_size, 'block blob bytes'],
 		[wire.stats.bytes_in_block, 'block bytes'],
-	])
+	] satisfies [number, string][])
 		assertSafeInteger(value, label)
 	for (const [value, label] of [
 		[wire.hash, 'block hash'],
@@ -203,46 +183,30 @@ const blockFromWire = (wire: typeof blockWire.infer): CeleniumBlock => {
 	if (!/^[0-9a-fA-F]{40}$/.test(wire.proposer.cons_address))
 		throw new Error('Celenium_Rest: invalid block proposer address')
 	assertDecimal(wire.stats.fee, 'block fee')
-	return {
-		height: BigInt(wire.height),
-		hash: wire.hash.toLowerCase(),
-		parentHash: wire.parent_hash.toLowerCase(),
-		appHash: wire.app_hash.toLowerCase(),
-		dataHash: wire.data_hash.toLowerCase(),
-		proposerAddress: wire.proposer.cons_address.toLowerCase(),
-		time: wire.time,
-		transactionCount: BigInt(wire.stats.tx_count),
-		blobCount: BigInt(wire.stats.blobs_count),
-		blobBytes: BigInt(wire.stats.blobs_size),
-		feeUtia: BigInt(wire.stats.fee),
-		bytesInBlock: BigInt(wire.stats.bytes_in_block),
-	}
+	return wire
 }
 
 export const getBlock = async (
-	binding: SourceBinding,
 	height: bigint
-): Promise<CeleniumBlock> => {
+) => {
 	if (height < 1n)
 		throw new Error('Celenium_Rest: block height must be positive')
-	const block = blockFromWire(blockWire.assert(await sourceGetJson<unknown>(
+	const block = validatedBlockWire(blockWire.assert(await sourceGetJson<unknown>(
 		binding,
 		httpUrl(binding, `/v1/block/${height}?stats=true`)
 	)))
-	if (block.height !== height)
+	if (BigInt(block.height) !== height)
 		throw new Error('Celenium_Rest: block response has mismatched height')
 	return block
 }
 
 export const listBlocks = async ({
-	binding,
 	limit,
 	offset,
 }: {
-	binding: SourceBinding
 	limit: number
 	offset: number
-}): Promise<CeleniumBlock[]> => {
+}) => {
 	assertPage({
 		limit,
 		offset,
@@ -253,15 +217,15 @@ export const listBlocks = async ({
 	))
 	if (wires.length > limit)
 		throw new Error('Celenium_Rest: block page exceeds requested limit')
-	return wires.map(blockFromWire)
+	return wires.map(validatedBlockWire)
 }
 
-const namespaceFromWire = (wire: typeof namespaceWire.infer): CeleniumNamespace => {
+const validatedNamespaceWire = (wire: typeof namespaceWire.infer) => {
 	for (const [value, label] of [
 		[wire.size, 'namespace bytes'],
 		[wire.blobs_count, 'namespace blob count'],
 		[wire.last_height, 'namespace last height'],
-	])
+	] satisfies [number, string][])
 		assertSafeInteger(value, label)
 	if (wire.version > 255)
 		throw new Error('Celenium_Rest: invalid namespace version')
@@ -269,27 +233,16 @@ const namespaceFromWire = (wire: typeof namespaceWire.infer): CeleniumNamespace 
 		throw new Error('Celenium_Rest: invalid namespace ID')
 	if (!namespaceHashPattern.test(wire.hash))
 		throw new Error('Celenium_Rest: invalid namespace hash')
-	return {
-		namespaceId: wire.namespace_id.toLowerCase(),
-		namespaceHash: wire.hash,
-		version: wire.version,
-		sizeBytes: BigInt(wire.size),
-		blobCount: BigInt(wire.blobs_count),
-		lastHeight: BigInt(wire.last_height),
-		name: wire.name,
-		reserved: wire.reserved,
-	}
+	return wire
 }
 
 export const listNamespaces = async ({
-	binding,
 	limit,
 	offset,
 }: {
-	binding: SourceBinding
 	limit: number
 	offset: number
-}): Promise<CeleniumNamespace[]> => {
+}) => {
 	assertPage({
 		limit,
 		offset,
@@ -300,10 +253,10 @@ export const listNamespaces = async ({
 	))
 	if (wires.length > limit)
 		throw new Error('Celenium_Rest: namespace page exceeds requested limit')
-	return wires.map(namespaceFromWire)
+	return wires.map(validatedNamespaceWire)
 }
 
-const blobMetadataFromWire = (wire: typeof blobMetadataWire.infer): CeleniumBlobMetadata => {
+const validatedBlobMetadataWire = (wire: typeof blobMetadataWire.infer) => {
 	assertSafeInteger(wire.height, 'blob height')
 	assertSafeInteger(wire.size, 'blob bytes')
 	if (wire.share_version > 255)
@@ -314,28 +267,16 @@ const blobMetadataFromWire = (wire: typeof blobMetadataWire.infer): CeleniumBlob
 		throw new Error('Celenium_Rest: invalid blob commitment')
 	assertHash(wire.tx_hash, 'blob transaction hash')
 	assertAddress(wire.signer.hash)
-	return {
-		namespaceHash: wire.namespace,
-		height: BigInt(wire.height),
-		commitment: wire.commitment,
-		sizeBytes: BigInt(wire.size),
-		shareVersion: wire.share_version,
-		time: wire.time,
-		contentType: wire.content_type,
-		transactionHash: wire.tx_hash.toLowerCase(),
-		signer: wire.signer.hash,
-	}
+	return wire
 }
 
 export const listBlobMetadata = async ({
-	binding,
 	limit,
 	offset,
 }: {
-	binding: SourceBinding
 	limit: number
 	offset: number
-}): Promise<CeleniumBlobMetadata[]> => {
+}) => {
 	assertPage({
 		limit,
 		offset,
@@ -346,13 +287,12 @@ export const listBlobMetadata = async ({
 	))
 	if (wires.length > limit)
 		throw new Error('Celenium_Rest: blob page exceeds requested limit')
-	return wires.map(blobMetadataFromWire)
+	return wires.map(validatedBlobMetadataWire)
 }
 
 export const getAddress = async (
-	binding: SourceBinding,
 	address: string
-): Promise<CeleniumAddress> => {
+) => {
 	assertAddress(address)
 	const wire = addressWire.assert(await sourceGetJson<unknown>(
 		binding,
@@ -368,21 +308,12 @@ export const getAddress = async (
 		[wire.balance.unbonding, 'unbonding balance'],
 	])
 		assertDecimal(value, label)
-	return {
-		address,
-		firstHeight: BigInt(wire.first_height),
-		lastHeight: BigInt(wire.last_height),
-		currency: wire.balance.currency,
-		spendableAmount: BigInt(wire.balance.spendable),
-		delegatedAmount: BigInt(wire.balance.delegated),
-		unbondingAmount: BigInt(wire.balance.unbonding),
-	}
+	return wire
 }
 
 export const getTransaction = async (
-	binding: SourceBinding,
 	hash: string
-): Promise<CeleniumTransaction> => {
+) => {
 	assertHash(hash, 'transaction hash')
 	const wire = transactionWire.assert(await sourceGetJson<unknown>(
 		binding,
@@ -395,21 +326,10 @@ export const getTransaction = async (
 		[wire.position, 'transaction position'],
 		[wire.gas_wanted, 'transaction gas wanted'],
 		[wire.gas_used, 'transaction gas used'],
-	])
+	] satisfies [number, string][])
 		assertSafeInteger(value, label)
 	assertDecimal(wire.fee, 'transaction fee')
 	for (const signer of wire.signers)
 		assertAddress(signer.hash)
-	return {
-		hash: wire.hash.toLowerCase(),
-		height: BigInt(wire.height),
-		position: BigInt(wire.position),
-		gasWanted: BigInt(wire.gas_wanted),
-		gasUsed: BigInt(wire.gas_used),
-		feeUtia: BigInt(wire.fee),
-		time: wire.time,
-		status: wire.status,
-		signers: wire.signers.map((signer) => signer.hash),
-		messageTypes: wire.message_types,
-	}
+	return wire
 }

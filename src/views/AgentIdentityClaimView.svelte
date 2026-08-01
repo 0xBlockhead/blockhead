@@ -48,10 +48,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.identityKind || 'agent identity claim'}
-	{/snippet}
-
 	{#snippet Value()}
 		{[selection.entitySelector.subjectKind, selection.entitySelector.objectKind].filter(Boolean).join(' ') || selection.entitySelector.identityKind || titleFallback}
 	{/snippet}
@@ -159,7 +155,6 @@
 									selection={select(EntityType.AiDocument, aiDocument[EntityMetaKey.Selector])}
 									prefetched={aiDocument}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

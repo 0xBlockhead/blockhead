@@ -46,33 +46,3 @@ export type Eip8004ScanAgentDetailResponse = {
 	success?: boolean
 	data?: Eip8004ScanAgentDetail
 }
-
-export type NormalizedEip8004ScanAgent = {
-	chainId: number
-	tokenId: string
-	contractAddress: `0x${string}`
-	agentId?: string
-	agentWallet?: `0x${string}`
-	ownerAddress?: `0x${string}`
-}
-
-export type NormalizedEip8004ScanAgentDetail = NormalizedEip8004ScanAgent & {
-	agentUri: string
-	fetchedAt: number
-	services: {
-		endpointKind: string
-		endpointUrl: string
-		name?: string
-		version?: string
-		protocolKind?: string
-		active?: boolean
-	}[]
-	name?: string
-	description?: string
-	image?: string
-	registrationTypeIri?: string
-	x402Support?: boolean
-	active?: boolean
-	contactEndpoint?: string
-	supportedTrust?: string[]
-}

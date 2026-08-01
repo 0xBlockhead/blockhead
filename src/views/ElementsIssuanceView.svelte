@@ -61,7 +61,6 @@
 						selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
 						prefetched={elementsAsset}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -76,7 +75,6 @@
 						selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
 						prefetched={elementsAsset}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -104,7 +102,6 @@
 					<UtxoTransactionView
 						selection={select(EntityType.UtxoTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -130,7 +127,6 @@
 									selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
 									prefetched={elementsAsset}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -150,7 +146,6 @@
 									selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
 									prefetched={elementsAsset}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

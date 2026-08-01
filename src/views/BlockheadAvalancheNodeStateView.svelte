@@ -49,10 +49,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.nodeId || 'blockhead avalanche node state'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary
 			resource={selection.$network}
@@ -64,7 +60,6 @@
 						prefetched={network}
 						href={null}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -105,7 +100,6 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

@@ -10,8 +10,8 @@ export default {
 	label: 'Kaspa Explorer',
 	sources: [
 		{
-			source: Source.KaspaExplorer_Rest,
-			label: 'Kaspa Explorer REST',
+			source: Source.KaspaExplorer,
+			label: 'Kaspa Explorer',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

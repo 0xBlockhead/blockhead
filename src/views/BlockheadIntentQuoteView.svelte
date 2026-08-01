@@ -128,7 +128,6 @@
 									selection={select(EntityType.BlockheadSessionAction, blockheadSessionAction[EntityMetaKey.Selector])}
 									prefetched={blockheadSessionAction}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

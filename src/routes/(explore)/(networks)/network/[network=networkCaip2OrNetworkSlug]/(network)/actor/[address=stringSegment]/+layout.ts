@@ -21,7 +21,8 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			address: params.address,
-		}
+		},
+		'NetworkAddress'
 	)
 	if (filecoinActorNetworkAddressSelector instanceof arktype.errors)
 		error(404, 'Invalid FilecoinActor selector')

@@ -52,8 +52,7 @@
 		selection({
 			sources: selection.sources ?? [
 				Source.Coingecko_Rest,
-				Source.Coingecko_OpenApi,
-				Source.Coinpaprika_OpenApi,
+				Source.Coinpaprika_Rest,
 				Source.CoinMarketCap_Rest,
 			],
 			fields: {

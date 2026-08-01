@@ -20,7 +20,8 @@ export const load: LayoutLoad = ({ params }) => {
 			namespace: params.namespace,
 			target: params.target,
 			contentPath: '',
-		}
+		},
+		'ResourceAddress'
 	)
 	if (ipfsResourceResourceAddressSelector instanceof arktype.errors)
 		error(404, 'Invalid IpfsResource selector')

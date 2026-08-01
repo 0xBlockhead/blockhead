@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -23,9 +22,9 @@
 
 
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import PayoutClaim_TimestampsView from '$/views/PayoutClaim_TimestampsView.svelte'
 	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 	import AssetClassView from '$/views/AssetClassView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -36,15 +35,10 @@
 <EntityView
 	entityType={EntityType.Payout}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'payout'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		payout
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -73,7 +67,6 @@
 									selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
 									prefetched={assetInstance}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -93,7 +86,6 @@
 									selection={select(EntityType.AssetClass, assetClass[EntityMetaKey.Selector])}
 									prefetched={assetClass}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -113,7 +105,6 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -133,7 +124,6 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -286,12 +276,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<PayoutClaim_TimestampsView
-						selection={claimsResource}
+					<EntitiesList
+						entityType={EntityType.PayoutClaim_Timestamp}
 						countResource={claimsResource.count}
 						title='claims'
+						open={true}
 						id='claims'
-					/>
+						resource={claimsResource()}
+					>
+						{#snippet Item({ item: payoutClaimTimestamp })}
+							<EntityView
+								entityType={EntityType.PayoutClaim_Timestamp}
+								entitySelector={payoutClaimTimestamp[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

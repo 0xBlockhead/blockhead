@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -32,15 +31,10 @@
 <EntityView
 	entityType={EntityType.RadiclePatch}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'radicle patch'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		radicle patch
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -49,7 +43,6 @@
 					<RadicleRepositoryView
 						selection={select(EntityType.RadicleRepository, selection.entitySelector.$repository)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -224,7 +217,6 @@
 									selection={select(EntityType.GitCommit, gitCommit[EntityMetaKey.Selector])}
 									prefetched={gitCommit}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -244,7 +236,6 @@
 									selection={select(EntityType.GitCommit, gitCommit[EntityMetaKey.Selector])}
 									prefetched={gitCommit}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

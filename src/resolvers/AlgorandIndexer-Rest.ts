@@ -33,10 +33,10 @@ const assertAlgorandMainnet = (
 }
 
 export default {
-	source: Source.Nodely_AlgorandIndexer_Rest,
+	source: Source.Nodely,
 
 	resolvers: [
-		defineResolver(Source.Nodely_AlgorandIndexer_Rest, {
+		defineResolver(Source.Nodely, {
 			entityType: EntityType.AlgorandAccount,
 			resolve: {
 				NetworkAddress: {
@@ -62,7 +62,7 @@ export default {
 							assetId: BigInt(holding['asset-id']),
 						},
 						round: BigInt(page['current-round']),
-						source: Source.Nodely_AlgorandIndexer_Rest,
+						source: Source.Nodely,
 					},
 					[EntityMetaKey.Fields]: {
 						[entityFieldAddressKey(EntityType.AlgorandAssetHolding_Round, [], 'amount')]: BigInt(holding.amount),
@@ -94,7 +94,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Nodely_AlgorandIndexer_Rest, {
+		defineResolver(Source.Nodely, {
 			entityType: EntityType.AlgorandAccount,
 			resolve: {
 				NetworkAddress: {
@@ -110,7 +110,7 @@ export default {
 							[EntityMetaKey.Selector]: {
 								$account: account,
 								round: BigInt(response['current-round']),
-								source: Source.Nodely_AlgorandIndexer_Rest,
+								source: Source.Nodely,
 							},
 							[EntityMetaKey.Fields]: {
 								[entityFieldAddressKey(EntityType.AlgorandAccount_Timestamp, [], 'amount')]: BigInt(response.account.amount),

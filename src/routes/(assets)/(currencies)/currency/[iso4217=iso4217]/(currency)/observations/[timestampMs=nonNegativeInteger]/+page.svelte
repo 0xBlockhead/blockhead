@@ -15,17 +15,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.Currency_Timestamp, {
-		$currency: {
-			iso4217: params.iso4217,
-		},
-		timestampMs: Number(params.timestampMs),
-	}, {
-		fields: {
-			marketCap: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -40,6 +29,17 @@
 
 <Page>
 	<Currency_TimestampView
-		selection={pageSelection}
+		selection={
+			select(EntityType.Currency_Timestamp, {
+				$currency: {
+					iso4217: params.iso4217,
+				},
+				timestampMs: Number(params.timestampMs),
+			}, {
+				fields: {
+					marketCap: true,
+				},
+			})
+		}
 	/>
 </Page>

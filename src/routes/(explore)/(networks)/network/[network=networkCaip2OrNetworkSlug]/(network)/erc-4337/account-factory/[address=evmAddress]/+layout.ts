@@ -27,7 +27,8 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			address: params.address,
-		}
+		},
+		'EvmNetworkAddress'
 	)
 	if (erc4337AccountFactoryEvmNetworkAddressSelector instanceof arktype.errors)
 		error(404, 'Invalid Erc4337AccountFactory selector')

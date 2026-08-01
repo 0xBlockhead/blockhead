@@ -13,7 +13,8 @@ export const load: LayoutLoad = ({ params }) => {
 		SwarmProtocolSchema,
 		{
 			scope: 'SwarmProtocol',
-		}
+		},
+		'Scope'
 	)
 	if (swarmProtocolScopeSelector instanceof arktype.errors)
 		error(404, 'Invalid SwarmProtocol selector')

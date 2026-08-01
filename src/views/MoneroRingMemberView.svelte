@@ -74,7 +74,6 @@
 					<MoneroRingView
 						selection={select(EntityType.MoneroRing, selection.entitySelector.$ring)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

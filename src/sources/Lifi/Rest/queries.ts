@@ -13,9 +13,10 @@ import type {
 	LifiQuoteRequest,
 	LifiQuoteStep,
 	LifiQuoteStepLike,
+	LifiStatusRequest,
+	LifiStatusResponse,
 	LifiTokensResponse,
 	LifiToolsResponse,
-	LifiToolsWireResponse,
 } from '$/sources/Lifi/Rest/types.ts'
 
 const maximumQuoteSteps = 32
@@ -51,8 +52,8 @@ const assertQuoteStep = (
 	]) {
 		if (
 			!unsignedIntegerPattern.test(row.amount ?? '')
-			|| !decimalPattern.test(row.amountUSD)
-			|| ('percentage' in row && row.percentage != null && !decimalPattern.test(row.percentage))
+			|| !decimalPattern.test(row.amountUSD ?? '')
+			|| ('percentage' in row && !decimalPattern.test(row.percentage))
 		)
 			throw new Error(`Lifi_Rest: malformed ${label} quote cost`)
 	}
@@ -68,8 +69,8 @@ const assertQuoteStep = (
  * `GET /v1/chains` — supported chains (optional `chainTypes` e.g. `EVM,SVM`).
  */
 export async function fetchChains(
-	options?: Omit<FetchLifiChainsOptions, 'baseUrl'>
-): Promise<LifiChainsResponse> {
+	options?: FetchLifiChainsOptions
+) {
 	const params = new URLSearchParams()
 	if (options?.chainTypes != null && options.chainTypes !== '')
 		params.set('chainTypes', options.chainTypes)
@@ -96,8 +97,8 @@ export async function fetchChains(
  * `GET /v1/tokens` — token lists keyed by chain id string under `tokens`.
  */
 export async function fetchTokens(
-	options?: Omit<FetchLifiTokensOptions, 'baseUrl'>
-): Promise<LifiTokensResponse> {
+	options?: FetchLifiTokensOptions
+) {
 	const params = new URLSearchParams()
 	if (options?.chains != null && options.chains !== '')
 		params.set('chains', options.chains)
@@ -127,21 +128,37 @@ export async function fetchTokens(
 	return result
 }
 
-export const findChainByChainId = async (
-	chainId: number
-): Promise<LifiChainsResponse['chains'][number] | undefined> => (
-	(await fetchChains()).chains.find((row) => row.id === chainId)
-)
+/**
+ * `GET /v1/status` — the current state of one cross-chain transfer.
+ * The official operation accepts a source/destination transaction hash or a
+ * LI.FI step id and deliberately returns `200` for `NOT_FOUND`.
+ */
+export const fetchTransferStatus = async (
+	params: LifiStatusRequest
+) => {
+	if (params.txHash.trim() === '')
+		throw new Error('Lifi_Rest: transfer status requires a transaction hash or step id')
+
+	const path = `/v1/status?${new URLSearchParams({
+		txHash: params.txHash,
+		...(params.bridge != null && { bridge: params.bridge }),
+		...(params.fromChain != null && { fromChain: params.fromChain }),
+		...(params.toChain != null && { toChain: params.toChain }),
+	})}`
+	const response = await lifiRestFetch(path)
+	await throwIfHttpNotOk(response, path)
+	return response.json<LifiStatusResponse>()
+}
 
 /**
  * `GET /v1/tools` — supported bridges (and exchanges; callers use `bridges`).
  * @see https://docs.li.fi/li.fi-api/li.fi-api/requesting-all-supported-tools
  */
-export async function fetchTools(): Promise<LifiToolsResponse> {
+export async function fetchTools() {
 	const path = '/v1/tools'
 	const res = await lifiRestFetch(path)
 	await throwIfHttpNotOk(res, path)
-	const result = await res.json<LifiToolsWireResponse>()
+	const result = await res.json<LifiToolsResponse>()
 	const bridges = result.bridges?.map((tool) => {
 		if (
 			tool.key == null
@@ -165,11 +182,15 @@ export async function fetchTools(): Promise<LifiToolsResponse> {
 				throw new Error('Lifi_Rest: malformed tools catalog')
 
 			return {
-				fromChainId: String(pair.fromChainId),
-				toChainId: String(pair.toChainId),
+				fromChainId: pair.fromChainId,
+				toChainId: pair.toChainId,
 			}
 		})
-		if (new Set(supportedChains.map((pair) => `${pair.fromChainId}:${pair.toChainId}`)).size !== supportedChains.length)
+		if (
+			new Set(supportedChains.map((pair) => (
+				`${String(pair.fromChainId)}:${String(pair.toChainId)}`
+			))).size !== supportedChains.length
+		)
 			throw new Error('Lifi_Rest: malformed tools catalog')
 
 		return {
@@ -215,7 +236,7 @@ export async function fetchTools(): Promise<LifiToolsResponse> {
  */
 export const fetchQuote = async (
 	params: LifiQuoteRequest
-): Promise<LifiQuoteStep> => {
+) => {
 	if (
 		!Number.isSafeInteger(params.fromChain)
 		|| params.fromChain <= 0

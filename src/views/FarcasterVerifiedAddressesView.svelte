@@ -58,7 +58,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{[farcasterVerifiedAddressSelector.protocol, String(farcasterVerifiedAddressSelector.fid)].filter(Boolean).join(' ')}
+				{[farcasterVerifiedAddressSelector.protocol, ' / FID ', String(farcasterVerifiedAddressSelector.fid)].filter(Boolean).join(' ')}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -28,12 +28,8 @@
 
 	<MarketVenuesView
 		href={resolve('/(assets)/market-venues')}
-		title='Market venues'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='market-venues'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

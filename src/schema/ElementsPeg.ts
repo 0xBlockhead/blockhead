@@ -29,7 +29,7 @@ export default entity({
 	direction: {
 		label: 'Direction',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
+		primitiveType: type.enumerated(...Object.values(ElementsPegDirection)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$bitcoinTransaction: {

@@ -1,6 +1,10 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
-import { EntityMetaKey, type EntitySelector } from '$/schema/$schema.ts'
+import {
+	EntityMetaKey,
+	type EntitySelector,
+	type EntitySelectorForSelectorName,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
@@ -14,6 +18,16 @@ import type {
 
 type AptosNetworkIdentity = EntitySelector<typeof schema, EntityType.AptosNetwork>
 type AptosTransactionIdentity = EntitySelector<typeof schema, EntityType.AptosTransaction>
+type AptosTransactionHashIdentity = EntitySelectorForSelectorName<
+	typeof schema,
+	EntityType.AptosTransaction,
+	'NetworkHash'
+>
+type AptosTransactionVersionIdentity = EntitySelectorForSelectorName<
+	typeof schema,
+	EntityType.AptosTransaction,
+	'NetworkVersion'
+>
 type AptosCommittedTransaction = Exclude<AptosTransaction, { type: 'pending_transaction' }>
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -296,22 +310,22 @@ const stateChangeFields = (
 	}
 }
 
-const transactionBySelector = async (selector: {
-	$network: AptosNetworkIdentity
-	version?: bigint
-	hash?: string
-}) => {
+const transactionByHash = async (selector: AptosTransactionHashIdentity) => {
 	assertAptosMainnet(selector.$network.$network)
-	const queries = await import('$/sources/AptosFullnode/Rest/queries.ts')
-	const transaction = selector.version == null ?
-			(await queries.getTransactionByHash(selector.hash ?? '')).body
-		:
-			(await queries.getTransactionByVersion(selector.version)).body
-	const committed = committedTransaction(transaction)
-	if (selector.version != null && bigintFromWire(committed.version, 'transaction version') !== selector.version)
-		throw new Error('AptosFullnode_Rest: transaction version mismatch')
-	if (selector.hash != null && committed.hash !== selector.hash)
+	const { getTransactionByHash } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+	const committed = committedTransaction((await getTransactionByHash(selector.hash)).body)
+	if (committed.hash !== selector.hash)
 		throw new Error('AptosFullnode_Rest: transaction hash mismatch')
+
+	return transactionFields(committed, selector.$network)
+}
+
+const transactionByVersion = async (selector: AptosTransactionVersionIdentity) => {
+	assertAptosMainnet(selector.$network.$network)
+	const { getTransactionByVersion } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+	const committed = committedTransaction((await getTransactionByVersion(selector.version)).body)
+	if (bigintFromWire(committed.version, 'transaction version') !== selector.version)
+		throw new Error('AptosFullnode_Rest: transaction version mismatch')
 
 	return transactionFields(committed, selector.$network)
 }
@@ -574,11 +588,11 @@ export default {
 			resolve: {
 				NetworkVersion: {
 					appliesTo: aptosNetworkReferenceApplicability,
-					resolve: transactionBySelector,
+					resolve: transactionByVersion,
 				},
 				NetworkHash: {
 					appliesTo: aptosNetworkReferenceApplicability,
-					resolve: transactionBySelector,
+					resolve: transactionByHash,
 				},
 			},
 		})({

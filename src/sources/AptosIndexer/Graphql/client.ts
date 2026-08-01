@@ -39,7 +39,7 @@ export const executeAptosIndexer = async <
 	if (!response.ok)
 		await throwHttpError('AptosIndexer_Graphql', response)
 
-	const payload: AptosIndexerGraphqlResponse<_Result> = await response.json()
+	const payload = await response.json<AptosIndexerGraphqlResponse<_Result>>()
 	if (payload.errors?.[0]?.message != null)
 		throw new Error(`AptosIndexer_Graphql: ${payload.errors[0].message}`)
 	if (payload.data == null)

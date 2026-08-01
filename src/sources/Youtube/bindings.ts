@@ -15,7 +15,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://www.googleapis.com',
-				origin: 'https://www.googleapis.com',
 				corsEnabled: false,
 			},
 		],
@@ -31,24 +30,19 @@ const bindings = [
 				env: arktype({
 					'PUBLIC_YOUTUBE_API_KEY': 'string > 0',
 				}),
-				keys: [
-					'PUBLIC_YOUTUBE_API_KEY',
-				],
 			},
 		],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.GoogleDiscovery,
 				path: 'src/sources/Youtube/Discovery/youtube-v3.json',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/Youtube/Discovery/schema-source.ts',
-				generated: false,
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Youtube_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

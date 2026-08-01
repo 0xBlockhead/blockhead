@@ -50,10 +50,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.messageHash || 'blockhead waku message observation timestamp'}
-	{/snippet}
-
 	{#snippet Value()}
 		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
@@ -79,7 +75,6 @@
 					<BlockheadWakuNodeStateView
 						selection={select(EntityType.BlockheadWakuNodeState, selection.entitySelector.$nodeState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

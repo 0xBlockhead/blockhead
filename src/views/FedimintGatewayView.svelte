@@ -40,10 +40,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.gatewayId || 'Fedimint gateway'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={fedimintGateway}>
 			{#snippet children(entity)}

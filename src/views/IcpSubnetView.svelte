@@ -27,7 +27,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import IcpNetworkView from '$/views/IcpNetworkView.svelte'
 	import IcpSubnetCanisterRange_TimestampsView from '$/views/IcpSubnetCanisterRange_TimestampsView.svelte'
 	import IcpCanistersView from '$/views/IcpCanistersView.svelte'
@@ -44,10 +43,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		ICP subnet
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -56,7 +51,6 @@
 					<IcpNetworkView
 						selection={select(EntityType.IcpNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -98,12 +92,7 @@
 			{#snippet SectionIcpSubnetCanisterRanges({ id, label, open })}
 				<IcpSubnetCanisterRange_TimestampsView
 					selection={selection.$$canisterRanges}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No canister ranges.'
 					id={`${id}-list`}
@@ -113,12 +102,7 @@
 			{#snippet SectionIcpSubnetCanisters({ id, label, open })}
 				<IcpCanistersView
 					selection={selection.$$canisters}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No canisters.'
 					id={`${id}-list`}
@@ -150,12 +134,7 @@
 			{#snippet SectionIcpSubnetTimestamps({ id, label, open })}
 				<IcpSubnet_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No timestamps.'
 					id={`${id}-list`}

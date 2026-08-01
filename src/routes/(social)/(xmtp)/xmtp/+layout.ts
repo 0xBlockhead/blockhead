@@ -13,7 +13,8 @@ export const load: LayoutLoad = ({ params }) => {
 		XmtpNetworkSchema,
 		{
 			scope: 'XmtpNetwork',
-		}
+		},
+		'Scope'
 	)
 	if (xmtpNetworkScopeSelector instanceof arktype.errors)
 		error(404, 'Invalid XmtpNetwork selector')

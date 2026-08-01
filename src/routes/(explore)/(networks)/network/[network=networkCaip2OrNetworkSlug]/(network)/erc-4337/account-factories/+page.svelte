@@ -37,11 +37,7 @@
 				}
 			)
 		}
-		title='ERC-4337 account factories'
 		selection={select(EntityType.Network, data.selector).Evm.$$erc4337AccountFactories}
 		id='erc4337-account-factories'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

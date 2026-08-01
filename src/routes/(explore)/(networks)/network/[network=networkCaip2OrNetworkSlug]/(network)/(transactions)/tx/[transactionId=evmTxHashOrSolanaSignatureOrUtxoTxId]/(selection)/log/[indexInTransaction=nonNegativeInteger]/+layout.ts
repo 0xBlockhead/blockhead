@@ -27,7 +27,8 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		{
 			$transaction: parentData.selector,
 			indexInTransaction: Number(params.indexInTransaction),
-		}
+		},
+		'TransactionIndexInTransaction'
 	)
 	if (evmLogTransactionIndexInTransactionSelector instanceof arktype.errors)
 		error(404, 'Invalid EvmLog selector')

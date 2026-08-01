@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -31,15 +30,10 @@
 <EntityView
 	entityType={EntityType.StellarTrustline_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'stellar trustline timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		stellar trustline timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +42,6 @@
 					<StellarTrustlineView
 						selection={select(EntityType.StellarTrustline, selection.entitySelector.$trustline)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

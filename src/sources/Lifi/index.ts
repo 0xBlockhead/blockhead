@@ -10,10 +10,6 @@ export default {
 	label: 'LI.FI',
 	sources: [
 		{
-			source: Source.LifiStatus_Rest,
-			label: 'LI.FI status REST',
-		},
-		{
 			source: Source.Lifi_Rest,
 			label: 'LI.FI REST',
 		},

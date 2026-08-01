@@ -1,4 +1,94 @@
 export interface paths {
+    "/api/v2/drops/{slug}/items/{token_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Build transaction data for updating a SelfMint drop item
+         * @description Returns ready-to-sign onchain transaction data for updating a SelfMint drop item. The caller is responsible for signing and broadcasting the transaction.
+         */
+        put: operations["update_self_mint_drop_item"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update drop item
+         * @description Update drop item metadata.
+         */
+        patch: operations["update_drop_item"];
+        trace?: never;
+    };
+    "/api/v2/accounts/wallets/{wallet}/private": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Make a registered wallet private
+         * @description Hides the wallet's public account linkage, including agent ownership relationships.
+         */
+        put: operations["make_wallet_private"];
+        post?: never;
+        /**
+         * Make a registered wallet public
+         * @description Allows the wallet's public account linkage, including eligible agent ownership relationships.
+         */
+        delete: operations["make_wallet_public"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/accounts/wallets/{wallet}/agent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Mark a registered wallet as an agent wallet */
+        put: operations["mark_wallet_as_agent"];
+        post?: never;
+        /** Remove a registered wallet's agent designation */
+        delete: operations["remove_wallet_agent_designation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/watchlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add a watchlist entry
+         * @description Add an NFT, token, collection, or perpetual to the authenticated account's watchlist.
+         */
+        post: operations["add_watchlist_entry"];
+        /**
+         * Remove a watchlist entry
+         * @description Remove an NFT, token, collection, or perpetual from the authenticated account's watchlist.
+         */
+        delete: operations["remove_watchlist_entry"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v2/transactions/receipt": {
         parameters: {
             query?: never;
@@ -30,7 +120,7 @@ export interface paths {
         put?: never;
         /**
          * [Beta] Report tool usage (metrics only)
-         * @description [Beta] Report verified tool usage for metrics and analytics purposes only. Supports verification_type: eip3009_authorization (free tools, identity proof) or x402_settlement (paid tools, onchain USDC payment verification). Identify the tool by providing tool_chain_id + tool_registry_address + tool_onchain_id, or alternatively just tool_endpoint (the tool's canonical URL). This endpoint does NOT trigger any onchain transactions. This endpoint is under active development and may change without notice.
+         * @description [Beta] Report verified tool usage for metrics and analytics purposes only. Supports verification_type: eip3009_authorization (free tools, identity proof) or x402_settlement (paid tools, onchain USDC payment verification). Identify the tool by providing tool_chain_id + tool_registry_address (an onchain EVM address, or x402_bazaar / x402_bankr for x402 tools) + tool_onchain_id, or alternatively just tool_endpoint (the tool's canonical URL). This endpoint does NOT trigger any onchain transactions. This endpoint is under active development and may change without notice.
          */
         post: operations["report_tool_usage"];
         delete?: never;
@@ -73,6 +163,126 @@ export interface paths {
          * @description Get executable transactions for token-to-token swaps. Supports same-chain and cross-chain swaps with multiple from/to assets.
          */
         post: operations["post_swap_execute"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/saved-tools": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * [Beta] List saved tools
+         * @description List tools saved by the authenticated account.
+         */
+        get: operations["list_saved_tools"];
+        put?: never;
+        /**
+         * [Beta] Save a tool
+         * @description Save a registered tool for the authenticated account.
+         */
+        post: operations["save_tool"];
+        /**
+         * [Beta] Remove a saved tool
+         * @description Idempotently remove a registered tool from the authenticated account's saved tools. Removed is false when the tool was already absent.
+         */
+        delete: operations["unsave_tool"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/profile/username": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Claim a profile username
+         * @description Claim a username for the authenticated wallet.
+         */
+        post: operations["claim_profile_username"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/profile/shelves": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get profile shelves
+         * @description Get the shelves for a public wallet address.
+         */
+        get: operations["get_profile_shelves"];
+        put?: never;
+        /**
+         * Create a profile shelf
+         * @description Create a shelf for the authenticated wallet.
+         */
+        post: operations["create_profile_shelf"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Reorder profile shelves
+         * @description Reorder the authenticated wallet's shelves.
+         */
+        patch: operations["reorder_profile_shelves"];
+        trace?: never;
+    };
+    "/api/v2/profile/nft-pfp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set NFT profile picture
+         * @description Set an onchain NFT owned by the authenticated wallet as its verified profile picture. The NFT must be from a verified collection and owned by one of the account's wallets.
+         */
+        post: operations["set_profile_nft_pfp"];
+        /**
+         * Clear NFT profile picture
+         * @description Clear the authenticated wallet's NFT profile picture. This operation is idempotent: it returns 200 with `success=false` when no NFT profile picture was set, and `success=true` when one was cleared.
+         */
+        delete: operations["clear_profile_nft_pfp"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/profile/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload a profile image
+         * @description Set contentType in the context request to the exact MIME type of the image bytes. This response starts a three-step upload flow. First, request this context from OpenSea. Second, call the returned method at the returned URL. For POST, add every fields entry unchanged as a multipart text field, then add a file part containing the bytes. The file part must be last. Let the HTTP library generate the multipart boundary; do not set the overall multipart Content-Type header yourself. POST storage uploads normally return 204. For PUT, upload the raw bytes, use only headers explicitly required by the endpoint, and expect 200. Treat any 2xx storage response as success. The URL and fields are short-lived sensitive credentials. Do not log, persist, alter, or put them in tickets. Third, after storage succeeds, pass the returned token to the documented OpenSea API endpoint. Do not use the token before the storage upload succeeds. Pass the token as the matching profile image field in PATCH /api/v2/profile.
+         */
+        post: operations["upload_profile_image"];
         delete?: never;
         options?: never;
         head?: never;
@@ -299,6 +509,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v2/drops/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get drop by collection slug
+         * @description Get detailed drop information for a collection, including stages and supply.
+         */
+        get: operations["get_drop_by_slug"];
+        put?: never;
+        /**
+         * Update Creator Studio drop edits
+         * @description Update an existing ERC-721 SeaDrop V1 drop and its stages.
+         */
+        post: operations["save_drop_edits"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/drops/{slug}/prereveal-item": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save prereveal drop item
+         * @description Save prereveal drop item metadata.
+         */
+        post: operations["save_prereveal_drop_item"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v2/drops/{slug}/mint": {
         parameters: {
             query?: never;
@@ -319,6 +573,126 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v2/drops/{slug}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Build transaction data for creating a SelfMint drop item
+         * @description Returns ready-to-sign onchain transaction data for creating a SelfMint drop item. The caller is responsible for signing and broadcasting the transaction.
+         */
+        post: operations["save_self_mint_drop_item"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/drops/{slug}/items/media": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload drop item media
+         * @description This response starts a three-step upload flow. First, request this context from OpenSea. Second, call the returned method at the returned URL. For POST, add every fields entry unchanged as a multipart text field, then add a file part containing the bytes. The file part must be last. Let the HTTP library generate the multipart boundary; do not set the overall multipart Content-Type header yourself. POST storage uploads normally return 204. For PUT, upload the raw bytes, use only headers explicitly required by the endpoint, and expect 200. Treat any 2xx storage response as success. The URL and fields are short-lived sensitive credentials. Do not log, persist, alter, or put them in tickets. Third, after storage succeeds, pass the returned token to the documented OpenSea API endpoint. Do not use the token before the storage upload succeeds. Pass each token as media_token to POST /api/v2/drops/{slug}/items or POST /api/v2/drops/{slug}/prereveal-item, as media_tokens to POST /api/v2/drops/{slug}/items/media/save, or as media_token to PUT /api/v2/drops/{slug}/items/{token_id}.
+         */
+        post: operations["upload_drop_item_media"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/drops/{slug}/items/media/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save drop item media
+         * @description Persist drop item media references.
+         */
+        post: operations["save_drop_item_media"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/drops/{slug}/cross_chain_mint": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Build cross-chain mint transactions for a drop
+         * @description Returns an ordered list of transactions for minting a drop using a token on another chain. The payer signs each transaction in order, and the minter receives the NFT. After submission, pass receipt_request to POST /api/v2/transactions/receipt and poll until the status is terminal.
+         */
+        post: operations["build_cross_chain_drop_mint_transactions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/drops/{slug}/allowlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload drop allowlist
+         * @description This response starts a three-step upload flow. First, request this context from OpenSea. Second, call the returned method at the returned URL. For POST, add every fields entry unchanged as a multipart text field, then add a file part containing the bytes. The file part must be last. Let the HTTP library generate the multipart boundary; do not set the overall multipart Content-Type header yourself. POST storage uploads normally return 204. For PUT, upload the raw bytes, use only headers explicitly required by the endpoint, and expect 200. Treat any 2xx storage response as success. The URL and fields are short-lived sensitive credentials. Do not log, persist, alter, or put them in tickets. Third, after storage succeeds, pass the returned token to the documented OpenSea API endpoint. Do not use the token before the storage upload succeeds. Pass the token as allowlist_file_token to POST /api/v2/drops/{slug}/allowlist/validate.
+         */
+        post: operations["upload_drop_allowlist"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/drops/{slug}/allowlist/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validate drop allowlist
+         * @description Validate an uploaded drop allowlist file token.
+         */
+        post: operations["validate_drop_allowlist"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v2/drops/deploy": {
         parameters: {
             query?: never;
@@ -333,6 +707,26 @@ export interface paths {
          * @description Returns ready-to-sign transaction data for deploying a new NFT drop contract. The caller is responsible for signing and submitting the transaction.
          */
         post: operations["deploy_drop_contract"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/collections/{slug}/images/{image_type}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload collection image
+         * @description Set the content_type query parameter to the exact MIME type of the image bytes. This response starts a three-step upload flow. First, request this context from OpenSea. Second, call the returned method at the returned URL. For POST, add every fields entry unchanged as a multipart text field, then add a file part containing the bytes. The file part must be last. Let the HTTP library generate the multipart boundary; do not set the overall multipart Content-Type header yourself. POST storage uploads normally return 204. For PUT, upload the raw bytes, use only headers explicitly required by the endpoint, and expect 200. Treat any 2xx storage response as success. The URL and fields are short-lived sensitive credentials. Do not log, persist, alter, or put them in tickets. Third, after storage succeeds, pass the returned token to the documented OpenSea API endpoint. Do not use the token before the storage upload succeeds. Pass the token as the matching image field in PATCH /api/v2/collections/{slug}.
+         */
+        post: operations["upload_collection_image"];
         delete?: never;
         options?: never;
         head?: never;
@@ -437,6 +831,170 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v2/accounts/{address_or_username}/watch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Watch a followed profile */
+        post: operations["watch_account"];
+        /** Stop watching a profile */
+        delete: operations["unwatch_account"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/accounts/{address_or_username}/follow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Follow a profile */
+        post: operations["follow_account"];
+        /** Unfollow a profile */
+        delete: operations["unfollow_account"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/accounts/wallets/siwx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Link a wallet to the authenticated account
+         * @description Verify control of a wallet using a SIWX signature and link it to the authenticated account.
+         */
+        post: operations["link_wallet_with_siwx"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update profile settings
+         * @description Update the authenticated wallet's profile settings.
+         */
+        patch: operations["update_profile_settings"];
+        trace?: never;
+    };
+    "/api/v2/profile/shelves/{shelf_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a profile shelf
+         * @description Delete the authenticated wallet's shelf.
+         */
+        delete: operations["delete_profile_shelf"];
+        options?: never;
+        head?: never;
+        /**
+         * Update a profile shelf
+         * @description Update shelf fields and optionally item descriptions. Shelf field updates are applied first; if a later item description update fails, earlier changes are not rolled back.
+         */
+        patch: operations["update_profile_shelf"];
+        trace?: never;
+    };
+    "/api/v2/collections/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a single collection
+         * @description Get a single collection including details such as fees, traits, and links.
+         */
+        get: operations["get_collection"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Modify collection metadata
+         * @description Update an existing collection's metadata.
+         */
+        patch: operations["modify_collection"];
+        trace?: never;
+    };
+    "/api/v2/collections/{slug}/visibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Set collection visibility
+         * @description Hide or unhide a collection.
+         */
+        patch: operations["set_collection_visibility"];
+        trace?: never;
+    };
+    "/api/v2/collections/{slug}/metadata": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update collection metadata
+         * @description Update collection about, hero, overview, and logo image metadata.
+         */
+        patch: operations["update_collection_metadata"];
         trace?: never;
     };
     "/api/v2/traits/{slug}": {
@@ -967,7 +1525,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v2/drops/{slug}": {
+    "/api/v2/drops/{slug}/eligibility": {
         parameters: {
             query?: never;
             header?: never;
@@ -975,10 +1533,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get drop by collection slug
-         * @description Get detailed drop information for a collection, including stages and supply.
+         * Get drop eligibility for the authenticated wallet
+         * @description Returns per-stage eligibility for the authenticated wallet, including pricing and mint limits.
          */
-        get: operations["get_drop_by_slug"];
+        get: operations["get_drop_eligibility"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1019,26 +1577,6 @@ export interface paths {
          * @description Get a list of collections with filters and sorting options.
          */
         get: operations["list_collections"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/collections/{slug}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get a single collection
-         * @description Get a single collection including details such as fees, traits, and links.
-         */
-        get: operations["get_collection"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1327,6 +1865,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v2/chain/{chain}/token/{address}/activity/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get token trading activity stats
+         * @description Get materialized trade count, USD volume, and average trade size for a token. Windows with no swaps are omitted; an omitted requested key means zero trades in that window. Each window ends at its own materialized snapshot; computed_at is the oldest snapshot among the returned windows and can precede request time because the response is cached.
+         */
+        get: operations["get_token_activity_stats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v2/chain/{chain}/payment_token/{address}": {
         parameters: {
             query?: never;
@@ -1507,6 +2065,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v2/accounts/{address_or_username}/relationship": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the authenticated account's relationship with a profile */
+        get: operations["get_account_relationship"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/accounts/{address_or_username}/following": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get profiles followed
+         * @description Returns account targets followed by a username profile. Wallet targets return an empty page because wallet following graphs are not exposed.
+         */
+        get: operations["get_account_following"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/accounts/{address_or_username}/followers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get profile followers */
+        get: operations["get_account_followers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/accounts/{address_or_username}/agent-relationships": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get public agent ownership relationships for a profile
+         * @description Returns an agent wallet's public owner profile or an account profile's public agent wallets. Private wallet relationships are omitted. Standard API-key quotas and an additional 30-per-hour per-profile limit apply.
+         */
+        get: operations["get_agent_profile_relationships"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v2/accounts/resolve/{identifier}": {
         parameters: {
             query?: never;
@@ -1539,6 +2171,46 @@ export interface paths {
          * @description Get fungible token balances for a specific wallet address. Returns quantity (in display units, not raw/wei), USD value, and token metadata for each token held.
          */
         get: operations["get_token_balances_by_account"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/account/{address}/token_watchlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get tokens watched by an account
+         * @description Get the tokens watched by a wallet address. Requires wallet identity authentication; the requested address must belong to the authenticated account.
+         */
+        get: operations["get_account_token_watchlist"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/account/{address}/token-activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get account token activity
+         * @description Get paginated fungible token activity (transfers, swaps, wraps, and unwraps) for an account across all chains. Optionally filter by chain, token, and/or activity type.
+         */
+        get: operations["get_account_token_activity"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1647,6 +2319,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v2/account/{address}/perpetual_watchlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get perpetuals watched by an account
+         * @description Get the perpetual futures watched by a wallet address. Requires wallet identity authentication; the requested address must belong to the authenticated account.
+         */
+        get: operations["get_account_perpetual_watchlist"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v2/account/{address}/offers_received": {
         parameters: {
             query?: never;
@@ -1707,6 +2399,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v2/account/{address}/favorites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get items favorited by an account
+         * @description Get a paginated list of items favorited by a wallet address. Requires wallet identity authentication; the requested address must belong to the authenticated account.
+         */
+        get: operations["get_profile_favorites"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v2/account/{address}/collections": {
         parameters: {
             query?: never;
@@ -1727,6 +2439,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v2/accounts/wallets/{wallet}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Unlink a wallet from the authenticated account
+         * @description Unlink a wallet from the authenticated account using a scoped wallet token.
+         */
+        delete: operations["unlink_wallet"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1737,7 +2469,75 @@ export interface components {
          * @example ethereum
          * @enum {string}
          */
-        ChainIdentifier: "blast" | "base" | "ethereum" | "zora" | "arbitrum" | "sei" | "avalanche" | "polygon" | "optimism" | "ape_chain" | "flow" | "b3" | "soneium" | "ronin" | "bera_chain" | "solana" | "shape" | "unichain" | "gunzilla" | "abstract" | "animechain" | "hyperevm" | "somnia" | "monad" | "hyperliquid" | "megaeth" | "ink" | "robinhood";
+        ChainIdentifier: "blast" | "base" | "ethereum" | "zora" | "arbitrum" | "sei" | "avalanche" | "polygon" | "optimism" | "ape_chain" | "flow" | "b3" | "soneium" | "ronin" | "bera_chain" | "solana" | "shape" | "unichain" | "gunzilla" | "abstract" | "animechain" | "hyperevm" | "somnia" | "monad" | "hyperliquid" | "megaeth" | "ink" | "robinhood" | "stablechain";
+        /** @description Ready-to-sign SelfMint drop item transaction data */
+        SelfMintDropItemResponse: {
+            /** @description Transaction target contract address */
+            to: string;
+            /** @description Encoded transaction data (hex) */
+            data: string;
+            /** @description Transaction value in wei (hex) */
+            value: string;
+            /** @description Chain identifier */
+            chain: string;
+        };
+        V1ErrorWrapper: {
+            errors: string[];
+        };
+        /** @description Trait identifier for a SelfMint drop item */
+        SelfMintDropItemTraitRequest: {
+            /** @description Trait type */
+            trait_type: string;
+            /** @description Trait value */
+            value: string;
+        };
+        /** @description Request to update a SelfMint drop item */
+        UpdateSelfMintDropItemRequest: {
+            /** @description Media token reference */
+            media_token: string;
+            /** @description Item name */
+            name: string;
+            /** @description Item description */
+            description?: string;
+            /** @description External URL */
+            external_url?: string;
+            /** @description Item traits */
+            traits?: components["schemas"]["SelfMintDropItemTraitRequest"][];
+        };
+        WalletVisibilityResponse: {
+            address: string;
+            is_private: boolean;
+        };
+        WalletAgentStatusResponse: {
+            address: string;
+            is_agent: boolean;
+        };
+        /** @description Request body for managing a watchlist entry */
+        WatchlistRequest: {
+            /**
+             * @description Watchlist entity type
+             * @enum {string}
+             */
+            type: "ITEM" | "TOKEN" | "COLLECTION" | "PERPETUAL";
+            /**
+             * @description Blockchain chain slug
+             * @example ethereum
+             */
+            chain?: string;
+            /** @description Contract address */
+            contract_address?: string;
+            /** @description Token ID */
+            token_id?: string;
+            /** @description Collection slug */
+            slug?: string;
+            /** @description Perpetual ID */
+            id?: string;
+        };
+        /** @description Response for a favorites write operation */
+        FavoriteResponse: {
+            /** @description Whether the operation succeeded */
+            success: boolean;
+        };
         /** @description An asset with quantity in base units */
         AssetQuantityInput: {
             /**
@@ -2004,10 +2804,39 @@ export interface components {
             opensea_url: string;
             /** @description A description of the token */
             description?: string;
+            /**
+             * @description Source of the description. `TOKEN_METADATA` is supplied by token metadata; `AI_GENERATED` is OpenSea's generated token-page description.
+             * @enum {string}
+             */
+            description_source?: "TOKEN_METADATA" | "AI_GENERATED";
+            /**
+             * Format: double
+             * @description When an AI-generated description was generated
+             */
+            description_generated_at?: number;
+            /** @description Sources used for an AI-generated description */
+            description_sources?: string[];
             /** @description Market statistics for the token */
             stats?: components["schemas"]["TokenStatsResponse"];
             /** @description Social media links for the token */
             socials?: components["schemas"]["TokenSocialsResponse"];
+            /**
+             * Format: int64
+             * @description Number of token holders
+             */
+            holders_count?: number;
+            /** @description Whether OpenSea has verified the token */
+            is_verified: boolean;
+            /**
+             * Format: double
+             * @description When OpenSea first recorded the token
+             */
+            created_at?: number;
+            /**
+             * Format: double
+             * @description Earliest known onchain activity for the token
+             */
+            genesis_date?: number;
             /**
              * @description Token safety status based on OpenSea's spam-classification rules. `OK` for tokens that pass all safety checks (the normal case). Categories are intentionally broad and may evolve. Possible values, in decreasing severity: `WARNING` (flagged as risky/suspicious — caution advised), `SPAM` (flagged as spam), `LOW_LIQUIDITY` (insufficient liquidity pool reserves), `OK` (passes all checks).
              * @default OK
@@ -2019,6 +2848,8 @@ export interface components {
         TokenSocialsResponse: {
             /** @description The token's website URL */
             website?: string;
+            /** @description The token's subreddit identifier */
+            subreddit_identifier?: string;
             /** @description The token's Twitter/X handle */
             twitter_handle?: string;
             /** @description The token's Telegram identifier */
@@ -2227,6 +3058,166 @@ export interface components {
             value?: string;
             /** @description The native token value to send with the transaction (hex, 0x-prefixed) */
             value_hex?: string;
+        };
+        /** @description A registered tool to save or remove from saved tools */
+        SavedToolRequest: {
+            /**
+             * @description Numeric registered tool ID
+             * @example 42
+             */
+            tool_id: string;
+            /**
+             * @description Numeric registry chain ID
+             * @example 8453
+             */
+            registry_chain: string;
+            /**
+             * @description Registry contract address or supported x402 registry identifier
+             * @example 0x0000000000000000000000000000000000000000
+             */
+            registry_addr: string;
+            /**
+             * @description Saved-tools toolkit name
+             * @example All
+             */
+            toolkit_name?: string;
+        };
+        /** @description A tool saved by the authenticated account */
+        SavedToolResponse: {
+            /** @description Saved-tool record ID */
+            id: string;
+            /** @description Numeric registered tool ID */
+            tool_id: string;
+            /** @description Numeric registry chain ID */
+            registry_chain: string;
+            /** @description Registry contract address or x402 registry identifier */
+            registry_addr: string;
+        };
+        /** @description Request body for claiming a profile username */
+        ClaimAccountUsernameRequest: {
+            /** @description Username to claim */
+            username: string;
+        };
+        /** @description Response for claiming a profile username */
+        ClaimAccountUsernameResponse: {
+            /** @description Whether the username claim succeeded */
+            success: boolean;
+        };
+        /** @description Identifier for a shelf item */
+        ProfileShelfItemIdentifierResponse: {
+            chain: string;
+            contract_address: string;
+            token_id: string;
+        };
+        /** @description Metadata for a shelf item */
+        ProfileShelfItemMetadataResponse: {
+            description?: string;
+        };
+        /** @description Profile shelf */
+        ProfileShelfResponse: {
+            id: string;
+            account_address?: string;
+            title: string;
+            description?: string;
+            /** Format: int32 */
+            display_order: number;
+            items: components["schemas"]["ProfileShelfItemIdentifierResponse"][];
+            icon?: string;
+            view?: string;
+            single_item_shelf_side?: string;
+            shelf_item_metadata: {
+                [key: string]: components["schemas"]["ProfileShelfItemMetadataResponse"];
+            };
+        };
+        /** @description Request body for creating a profile shelf */
+        CreateProfileShelfRequest: {
+            /** @description Shelf title */
+            title: string;
+            /** @description Shelf description */
+            description?: string;
+            items: components["schemas"]["ProfileShelfItemRequest"][];
+            /** @description Shelf icon */
+            icon?: string;
+            /** @description Shelf view */
+            view?: string;
+            /** @description Single-item shelf side */
+            single_item_shelf_side?: string;
+        };
+        /** @description A shelf item identifier */
+        ProfileShelfItemRequest: {
+            /** @description Item token ID */
+            token_id: string;
+            /** @description Blockchain chain slug */
+            chain: string;
+            /** @description Contract address */
+            contract_address: string;
+        };
+        NftPfpResponse: {
+            contract_address: string;
+            token_id: string;
+            chain: string;
+            collection_slug?: string;
+            image_url: string;
+            is_verified: boolean;
+        };
+        /** @description Request body for setting an NFT as the profile picture */
+        SetNftPfpRequest: {
+            /**
+             * @description Contract address of the NFT
+             * @example 0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d
+             */
+            contractAddress: string;
+            /**
+             * @description Token ID of the NFT
+             * @example 1
+             */
+            tokenId: string;
+            /**
+             * @description Chain the NFT is on
+             * @example ethereum
+             */
+            chain: string;
+            /** @description Collection slug of the NFT */
+            collectionSlug?: string;
+        };
+        /** @description This response starts a three-step upload flow. First, request this context from OpenSea. Second, call the returned method at the returned URL. For POST, add every fields entry unchanged as a multipart text field, then add a file part containing the bytes. The file part must be last. Let the HTTP library generate the multipart boundary; do not set the overall multipart Content-Type header yourself. POST storage uploads normally return 204. For PUT, upload the raw bytes, use only headers explicitly required by the endpoint, and expect 200. Treat any 2xx storage response as success. The URL and fields are short-lived sensitive credentials. Do not log, persist, alter, or put them in tickets. Third, after storage succeeds, pass the returned token to the documented OpenSea API endpoint. Do not use the token before the storage upload succeeds. */
+        UploadContext: {
+            /**
+             * @description Short-lived storage URL. Use it exactly as returned and treat it as sensitive.
+             * @example https://uploads.example.com/
+             */
+            url: string;
+            /**
+             * @description HTTP method to use at url. Current upload contexts use POST.
+             * @example POST
+             * @enum {string}
+             */
+            method: "POST" | "PUT";
+            /**
+             * @description Short-lived sensitive multipart text fields for POST. Submit every entry unchanged before the file part. Content-Type contains the exact MIME type required by the signed policy. This map is empty for PUT.
+             * @example {
+             *       "key": "uploads/example.png",
+             *       "Content-Type": "image/png"
+             *     }
+             */
+            fields: {
+                [key: string]: string;
+            };
+            /**
+             * @description Reference for the next OpenSea API call. Use it only after storage returns 2xx.
+             * @example upload-token-example
+             */
+            token: string;
+        };
+        /** @description Request body for uploading a profile image */
+        UploadProfileImageRequest: {
+            /** @description Image type to upload */
+            imageType: string;
+            /**
+             * @description Exact MIME type of the image bytes
+             * @example image/png
+             */
+            contentType: string;
         };
         ConsiderationItem: {
             /** Format: int32 */
@@ -2711,6 +3702,8 @@ export interface components {
             traits: components["schemas"]["Trait"][];
             /** Format: double */
             estimated_value_usd?: number;
+            /** Format: int32 */
+            decimals?: number;
         };
         NftBatchResponse: {
             nfts: components["schemas"]["NftDetailed"][];
@@ -2735,6 +3728,8 @@ export interface components {
             traits: components["schemas"]["Trait"][];
             /** Format: double */
             estimated_value_usd?: number;
+            /** Format: int32 */
+            decimals?: number;
             animation_url?: string;
             is_suspicious: boolean;
             creator: string;
@@ -2756,8 +3751,11 @@ export interface components {
             rank?: number;
         };
         SubscriptionInfoResponse: {
-            /** Format: date-time */
-            expires_at?: string;
+            /**
+             * Format: double
+             * @description Unix timestamp in seconds, including fractional seconds
+             */
+            expires_at?: number;
             is_renewable: boolean;
             is_expired: boolean;
         };
@@ -2767,7 +3765,7 @@ export interface components {
             max_value?: string;
             value: unknown;
         };
-        /** @description Payment token to use for cross-chain fulfillment */
+        /** @description Payment token to use for a cross-chain transaction */
         CrossChainPaymentToken: {
             /**
              * @description Chain of the payment token (e.g. 'base', 'ethereum')
@@ -2925,6 +3923,85 @@ export interface components {
             /** @description Ordered list of blockchain actions to execute. May include approval actions (e.g. setApprovalForAll) and a createListingsAction containing the Seaport order to sign. Serialized using proto3 JSON format — fields with default values (empty string, 0, false) may be omitted. */
             steps: components["schemas"]["JsonNode"][];
         };
+        /** @description Response for saving Creator Studio drop edits */
+        SaveDropResponse: {
+            /** @description Whether the drop edits were saved successfully */
+            success: boolean;
+        };
+        /** @description Native token price for a Creator Studio drop stage */
+        SaveDropEditsPriceRequest: {
+            /** @description Price unit as a decimal string */
+            unit: string;
+            /** @description Contract address for the price token */
+            contract_address: string;
+        };
+        /** @description Request to save Creator Studio drop edits */
+        SaveDropEditsRequest: {
+            /** @description Drop stages to save */
+            stages: components["schemas"]["SaveDropEditsStageRequest"][];
+            /** @description Maximum supply for the drop as a decimal string */
+            max_supply?: string;
+            /** @description Creator payout address */
+            creator_payout_address?: string;
+        };
+        /** @description A drop stage for Creator Studio edits */
+        SaveDropEditsStageRequest: {
+            /** @description Stage UUID */
+            uuid: string;
+            /**
+             * @description Stage type
+             * @example public_sale
+             */
+            stage_type: string;
+            /**
+             * Format: date-time
+             * @description Stage start time
+             * @example 2024-01-01T00:00:00Z
+             */
+            start_time: string;
+            /**
+             * Format: date-time
+             * @description Stage end time
+             * @example 2024-01-01T01:00:00Z
+             */
+            end_time: string;
+            /** @description Stage price */
+            price: components["schemas"]["SaveDropEditsPriceRequest"];
+            /** @description Maximum tokens mintable per wallet as a decimal string */
+            max_total_mintable_by_wallet: string;
+            /** @description Maximum token supply for this stage as a decimal string */
+            max_token_supply_for_stage?: string;
+            /** @description Stage label */
+            label?: string;
+            /** @description Stage description */
+            description?: string;
+            /** @description Allowlist file token */
+            allowlist_file_token?: string;
+        };
+        /** @description Response body for saving a prereveal drop item */
+        PrerevealDropItemResponse: {
+            /** @description Item name */
+            name: string;
+            /** @description Item description */
+            description?: string;
+            /** @description Item image URL */
+            image_url: string;
+            /** @description Image media token */
+            media_token: string;
+            /** @description Item media type */
+            media_type?: string;
+        };
+        /** @description Request body for saving a prereveal drop item */
+        SavePrerevealDropItemRequest: {
+            /** @description Media token reference */
+            media_token: string;
+            /** @description Item name */
+            name: string;
+            /** @description Item description */
+            description?: string;
+            /** @description Media type */
+            media_type?: string;
+        };
         /** @description Ready-to-sign mint transaction data */
         DropMintResponse: {
             /** @description Transaction target contract address */
@@ -2935,9 +4012,6 @@ export interface components {
             value: string;
             /** @description Chain identifier */
             chain: string;
-        };
-        V1ErrorWrapper: {
-            errors: string[];
         };
         /** @description Mint request parameters */
         DropMintRequest: {
@@ -2952,6 +4026,74 @@ export interface components {
              * @example 1
              */
             quantity: number;
+        };
+        /** @description Request to create a SelfMint drop item */
+        SaveSelfMintDropItemRequest: {
+            /** @description Media token reference */
+            media_token: string;
+            /** @description Item name */
+            name: string;
+            /** @description Item supply as a decimal string */
+            supply: string;
+            /** @description Item description */
+            description?: string;
+            /** @description External URL */
+            external_url?: string;
+            /** @description Item traits */
+            traits?: components["schemas"]["SelfMintDropItemTraitRequest"][];
+        };
+        /** @description Request body for uploading drop item media */
+        UploadDropItemMediaRequest: {
+            /** @description Filenames to upload */
+            filenames: string[];
+        };
+        /** @description Response body for saving drop item media */
+        SaveDropItemMediaResponse: {
+            /** @description Whether the save succeeded */
+            success: boolean;
+        };
+        /** @description Request body for saving drop item media */
+        SaveDropItemMediaRequest: {
+            /** @description Media tokens to save */
+            media_tokens: string[];
+        };
+        /** @description Ordered transactions required to complete a cross-chain mint */
+        CrossChainDropMintResponse: {
+            /** @description Ordered list of transactions to sign and submit */
+            transactions: components["schemas"]["SwapTransactionResponse"][];
+            /** @description Pass this object to POST /api/v2/transactions/receipt after submitting the transactions, and poll until the returned status is terminal */
+            receipt_request: components["schemas"]["TransactionReceiptRequest"];
+        };
+        /** @description Cross-chain mint request parameters */
+        CrossChainDropMintRequest: {
+            /**
+             * @description Wallet address that will sign and pay for the transactions
+             * @example 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
+             */
+            payer: string;
+            /**
+             * @description Wallet address that will receive the minted tokens
+             * @example 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
+             */
+            minter: string;
+            /**
+             * Format: int32
+             * @description Number of tokens to mint
+             * @example 1
+             */
+            quantity: number;
+            /** @description Token used to pay for the mint */
+            payment: components["schemas"]["CrossChainPaymentToken"];
+        };
+        /** @description Response body for validating a drop allowlist */
+        ValidateDropAllowlistResponse: {
+            /** @description Token for the validated allowlist file */
+            token: string;
+        };
+        /** @description Request body for validating a drop allowlist */
+        ValidateDropAllowlistRequest: {
+            /** @description Token for the uploaded allowlist file */
+            allowlist_file_token: string;
         };
         /** @description Ready-to-sign deploy contract transaction data */
         DropDeployResponse: {
@@ -3147,6 +4289,386 @@ export interface components {
         TransferResponse: {
             /** @description Ordered list of blockchain actions to execute. Each action is a JSON object with a single field indicating the type (e.g. transferAction, approvalAction) and its associated data. Serialized using proto3 JSON format — fields with default values (empty string, 0, false) may be omitted. */
             steps: components["schemas"]["JsonNode"][];
+        };
+        ProfileSocialMutationResponse: {
+            status: string;
+        };
+        LinkWalletSiwxRequest: {
+            message: components["schemas"]["JsonNode"];
+            signature: string;
+            chainArch: string;
+        };
+        WalletLinkResponse: {
+            linkedWalletAddress: string;
+        };
+        /** @description Request body for updating profile settings */
+        UpdateProfileSettingsRequest: {
+            /** @description Profile display name */
+            displayName?: string;
+            /** @description Profile bio */
+            bio?: string;
+            /** @description Profile external URL */
+            externalUrl?: string;
+            /** @description Profile image upload token */
+            profileImageToken?: string;
+            /** @description Banner image upload token */
+            bannerImageToken?: string;
+        };
+        /** @description Response for updating profile settings */
+        UpdateProfileSettingsResponse: {
+            /** @description Display name */
+            displayName?: string;
+            /** @description Profile bio */
+            bio?: string;
+            /** @description Profile external URL */
+            externalUrl?: string;
+        };
+        /** @description Response body for a profile shelf action */
+        ProfileShelfActionResponse: {
+            success: boolean;
+        };
+        /** @description Request body for reordering profile shelves */
+        ReorderProfileShelvesRequest: {
+            /** @description Ordered shelf IDs */
+            shelf_ids: string[];
+        };
+        /** @description A shelf item entry that can include an optional description */
+        ProfileShelfItemUpdateRequest: {
+            item: components["schemas"]["ProfileShelfItemRequest"];
+            /** @description Optional item description */
+            description?: string;
+        };
+        /** @description Request body for updating a profile shelf */
+        UpdateProfileShelfRequest: {
+            /** @description Shelf title */
+            title?: string;
+            /** @description Shelf description */
+            description?: string;
+            items?: components["schemas"]["ProfileShelfItemUpdateRequest"][];
+            /** @description Shelf icon */
+            icon?: string;
+            /** @description Shelf view */
+            view?: string;
+            /** @description Single-item shelf side */
+            single_item_shelf_side?: string;
+        };
+        /** @description Response body for a drop item attribute */
+        DropItemAttributeResponse: {
+            /** @description Trait type */
+            traitType: string;
+            /** @description Trait value */
+            value: string;
+        };
+        /** @description Response body for a drop item */
+        DropItemResponse: {
+            /** @description Token ID */
+            token_id: string;
+            /** @description Item name */
+            name?: string;
+            /** @description Item description */
+            description?: string;
+            /** @description Item image URL */
+            image_url: string;
+            /** @description Item attributes */
+            attributes: components["schemas"]["DropItemAttributeResponse"][];
+            /** @description Image media token */
+            media_token: string;
+            /** @description Contract standard */
+            contract_standard: string;
+            /** @description External URL */
+            external_url?: string;
+            /** @description Chain identifier */
+            chain: string;
+            /** @description Contract address */
+            contract_address: string;
+        };
+        /** @description Request body for updating a drop item */
+        UpdateDropItemRequest: {
+            /** @description Media token reference */
+            media_token: string;
+            /** @description Item name */
+            name: string;
+            /** @description External URL */
+            external_url?: string;
+            /** @description Item description */
+            description?: string;
+            /** @description Traits to apply */
+            traits?: components["schemas"]["SelfMintDropItemTraitRequest"][];
+        };
+        /** @description Response for modifying collection metadata */
+        ModifyCollectionResponse: {
+            /** @description Whether the collection metadata was modified successfully */
+            success: boolean;
+        };
+        /** @description A creator fee entry for collection edits */
+        ModifyCollectionCreatorFeeRequest: {
+            /**
+             * Format: int32
+             * @description Creator fee basis points
+             */
+            basis_points: number;
+            /** @description Creator fee recipient address */
+            address: string;
+        };
+        /** @description Request body for modifying collection metadata */
+        ModifyCollectionRequest: {
+            /** @description Collection name */
+            name?: string;
+            /** @description Collection description */
+            description?: string;
+            /** @description Logo image token */
+            logo_image_token?: string;
+            /** @description Banner image token */
+            banner_image_token?: string;
+            /** @description Collection category */
+            category?: string;
+            /** @description New collection slug */
+            slug?: string;
+            /** @description Whether the collection is NSFW */
+            is_nsfw?: boolean;
+            /** @description Whether trait offers are enabled */
+            is_trait_offers_enabled?: boolean;
+            /** @description Whether rarity is disabled */
+            is_rarity_disabled?: boolean;
+            /** @description Authorized editors */
+            authorized_editors?: string[];
+            /** @description Collection external URL */
+            external_url?: string;
+            /** @description Collection Telegram URL */
+            telegram_url?: string;
+            /** @description Medium username */
+            medium_username?: string;
+            /** @description Creator fees */
+            creator_fees?: components["schemas"]["ModifyCollectionCreatorFeeRequest"][];
+            /** @description Whether buyer-side creator fees are enabled */
+            buyer_side_creator_fee_enabled?: boolean;
+            /**
+             * Format: int32
+             * @description Buyer-side creator fee basis points
+             */
+            buyer_side_creator_fee_basis_points?: number;
+            /** @description Buyer-side creator fee recipient */
+            buyer_side_creator_fee_recipient?: string;
+        };
+        /** @description Response body for setting collection visibility */
+        SetCollectionVisibilityResponse: {
+            /** @description Whether the visibility update succeeded */
+            success: boolean;
+        };
+        /** @description Request body for setting collection visibility */
+        SetCollectionVisibilityRequest: {
+            /** @description Whether the collection should be hidden */
+            hidden: boolean;
+        };
+        /** @description Response for updating collection metadata */
+        UpdateCollectionMetadataResponse: {
+            /** @description Whether the metadata update succeeded */
+            success: boolean;
+        };
+        /** @description Collection about content */
+        AboutMetadataRequest: {
+            /** @description Preview media */
+            preview_media?: components["schemas"]["MediaInputRequest"][];
+            /** @description About sections */
+            sections?: components["schemas"]["AboutSectionRequest"][];
+        };
+        /** @description A section within collection about content */
+        AboutSectionRequest: {
+            /** @description Section ID */
+            id?: string;
+            /** @description Section title */
+            title: string;
+            /** @description Section description */
+            description: string;
+            /** @description Section media */
+            media?: components["schemas"]["MediaInputRequest"][];
+        };
+        /** @description A content block overview module */
+        ContentBlockModuleRequest: {
+            /**
+             * Format: int32
+             * @description Module index
+             */
+            index: number;
+            /** @description Module ID */
+            id?: string;
+            /** @description Module title */
+            title?: string;
+            /** @description Module description */
+            description?: string;
+            /** @description Module sections */
+            sections?: components["schemas"]["ContentBlockSectionRequest"][];
+        };
+        /** @description A content block section */
+        ContentBlockSectionRequest: {
+            /** @description Section ID */
+            id?: string;
+            /** @description Section title */
+            title?: string;
+            /** @description Section description */
+            description?: string;
+            /** @description Section external link */
+            external_link?: components["schemas"]["LinkRequest"];
+            /** @description Section media */
+            media?: components["schemas"]["MediaInputRequest"];
+            /** @description Section module type */
+            module_type: string;
+            /** @description Section date */
+            date?: string;
+            /** @description Collection slug */
+            collection_slug?: string;
+            /** @description Token ID */
+            token_id?: string;
+        };
+        /** @description A FAQ overview module */
+        FaqBlockModuleRequest: {
+            /**
+             * Format: int32
+             * @description Module index
+             */
+            index: number;
+            /** @description Whether the module is hidden */
+            hidden?: boolean;
+            /** @description Module title */
+            title?: string;
+            /** @description Module description */
+            description?: string;
+            /** @description Module sections */
+            sections?: components["schemas"]["FaqSectionRequest"][];
+        };
+        /** @description A FAQ section */
+        FaqSectionRequest: {
+            /** @description Section ID */
+            id?: string;
+            /** @description Question */
+            question: string;
+            /** @description Answer */
+            answer: string;
+        };
+        /** @description Collection hero content */
+        HeroMetadataRequest: {
+            /** @description Desktop hero media */
+            desktop_hero_media?: components["schemas"]["MediaInputRequest"];
+            /** @description Mobile hero media */
+            mobile_hero_media?: components["schemas"]["MediaInputRequest"];
+        };
+        /** @description An image media input */
+        ImageMediaRequest: {
+            /** @description Image token */
+            token: string;
+        };
+        /** @description A link input */
+        LinkRequest: {
+            /** @description Link URL */
+            href: string;
+            /** @description Link label */
+            label: string;
+        };
+        /** @description A generic media input */
+        MediaInputRequest: {
+            /** @description Image media */
+            image?: components["schemas"]["ImageMediaRequest"];
+            /** @description Video media */
+            video?: components["schemas"]["VideoMediaRequest"];
+        };
+        /** @description A narrative overview module */
+        NarrativeModuleRequest: {
+            /** @description Module ID */
+            id?: string;
+            /**
+             * Format: int32
+             * @description Module index
+             */
+            index: number;
+            /** @description Module title */
+            title: string;
+            /** @description Module description */
+            description: string;
+            /** @description Module media */
+            media?: components["schemas"]["MediaInputRequest"][];
+            /** @description Horizontal text position */
+            horizontal_text_position?: string;
+            /** @description Vertical text position */
+            vertical_text_position?: string;
+            /** @description Desktop background media */
+            desktop_background_media?: components["schemas"]["MediaInputRequest"];
+            /** @description Mobile background media */
+            mobile_background_media?: components["schemas"]["MediaInputRequest"];
+            /** @description Module variant */
+            variant?: string;
+            /** @description Background image */
+            background_image?: components["schemas"]["ImageMediaRequest"];
+            /** @description Background media */
+            background_media?: components["schemas"]["MediaInputRequest"];
+        };
+        /** @description Collection overview content */
+        OverviewMetadataRequest: {
+            /** @description Overview modules */
+            modules: components["schemas"]["OverviewModuleRequest"];
+        };
+        /** @description Overview modules */
+        OverviewModuleRequest: {
+            /** @description Narrative modules */
+            narrative?: components["schemas"]["NarrativeModuleRequest"][];
+            /** @description Content block modules */
+            content_block?: components["schemas"]["ContentBlockModuleRequest"][];
+            /** @description Team modules */
+            team?: components["schemas"]["TeamBlockModuleRequest"][];
+            /** @description FAQ modules */
+            faq?: components["schemas"]["FaqBlockModuleRequest"][];
+        };
+        /** @description A team overview module */
+        TeamBlockModuleRequest: {
+            /**
+             * Format: int32
+             * @description Module index
+             */
+            index: number;
+            /** @description Whether the module is hidden */
+            hidden?: boolean;
+            /** @description Module title */
+            title?: string;
+            /** @description Module description */
+            description?: string;
+            /** @description Module sections */
+            sections?: components["schemas"]["TeamSectionRequest"][];
+        };
+        /** @description A team section */
+        TeamSectionRequest: {
+            /** @description Section ID */
+            id?: string;
+            /** @description Section name */
+            name: string;
+            /** @description Section title */
+            title: string;
+            /** @description Section bio */
+            bio: string;
+            /** @description Website URL */
+            website_url?: string;
+            /** @description Twitter URL */
+            twitter_url?: string;
+            /** @description Instagram URL */
+            instagram_url?: string;
+            /** @description Section media */
+            media?: components["schemas"]["MediaInputRequest"][];
+        };
+        /** @description Request body for updating collection metadata */
+        UpdateCollectionMetadataRequest: {
+            /** @description Collection about content */
+            about?: components["schemas"]["AboutMetadataRequest"];
+            /** @description Collection hero media */
+            hero?: components["schemas"]["HeroMetadataRequest"];
+            /** @description Collection overview content */
+            overview?: components["schemas"]["OverviewMetadataRequest"];
+            /** @description Collection logo image token */
+            logo_image_token?: string;
+        };
+        /** @description A video media input */
+        VideoMediaRequest: {
+            /** @description Video token */
+            token: string;
+            /** @description Enable static video */
+            enable_static_video?: boolean;
         };
         ToolListItemResponse: {
             tool_id: string;
@@ -3348,6 +4870,23 @@ export interface components {
              * @description Price change percentage over the last 24 hours
              */
             price_change_24h?: number;
+            /**
+             * Format: int64
+             * @description Number of token holders
+             */
+            holders_count?: number;
+            /** @description Whether OpenSea has verified the token */
+            is_verified: boolean;
+            /**
+             * Format: double
+             * @description When OpenSea first recorded the token
+             */
+            created_at?: number;
+            /**
+             * Format: double
+             * @description Earliest known onchain activity for the token
+             */
+            genesis_date?: number;
         };
         /** @description A currency within a token group */
         TokenGroupCurrencyResponse: {
@@ -3609,6 +5148,12 @@ export interface components {
             /** @description URL to the token page on OpenSea */
             opensea_url: string;
         };
+        /** @description A page of tools saved by the authenticated account */
+        SavedToolsPaginatedResponse: {
+            tools: components["schemas"]["SavedToolResponse"][];
+            /** @description Cursor for the next page, or null when this is the last page */
+            next?: string;
+        };
         GetOrderResponse: {
             order: components["schemas"]["Listing"] | components["schemas"]["Offer"];
         };
@@ -3624,6 +5169,8 @@ export interface components {
             external_link?: string;
             animation_url?: string;
             traits: components["schemas"]["Trait"][];
+            /** Format: int32 */
+            decimals?: number;
         };
         ListingsResponse: {
             listings: components["schemas"]["Listing"][];
@@ -3811,6 +5358,27 @@ export interface components {
             /** @description Maximum supply */
             max_supply?: string;
         };
+        /** @description Drop eligibility results for the authenticated wallet */
+        DropEligibilityResponse: {
+            /** @description Per-stage eligibility results */
+            stages: components["schemas"]["DropStageEligibilityResponse"][];
+        };
+        /** @description Drop stage eligibility result for the authenticated wallet */
+        DropStageEligibilityResponse: {
+            /**
+             * Format: uuid
+             * @description Drop stage UUID
+             */
+            stage_uuid: string;
+            /** @description Whether the wallet is eligible for this stage */
+            is_eligible: boolean;
+            /** @description Mint price per token in wei (decimal string) */
+            price?: string;
+            /** @description Max tokens the wallet can mint in this stage across all tokens */
+            max_total_mintable_by_wallet?: string;
+            /** @description Max tokens the wallet can mint per token in this stage (ERC-1155) */
+            max_total_mintable_by_wallet_per_token?: string;
+        };
         /** @description Deploy contract receipt status */
         DropDeployReceiptResponse: {
             /**
@@ -3858,7 +5426,7 @@ export interface components {
             total_supply: number;
             /** Format: int64 */
             unique_item_count: number;
-            /** Format: date-time */
+            /** Format: date */
             created_date: string;
             pricing_currencies: components["schemas"]["PricingCurrencies"];
         };
@@ -3963,10 +5531,7 @@ export interface components {
         CollectionHolderResponse: {
             /** @description Wallet address of the holder */
             address: string;
-            /**
-             * Format: int32
-             * @description Number of items held
-             */
+            /** @description Number of items held */
             quantity: number;
             /**
              * Format: float
@@ -3989,10 +5554,10 @@ export interface components {
         /** @description A floor price data point */
         FloorPricePointResponse: {
             /**
-             * Format: date-time
+             * Format: double
              * @description Timestamp of the data point
              */
-            time: string;
+            time: number;
             /** @description Floor price in USD */
             usd_price?: string;
             /**
@@ -4047,10 +5612,10 @@ export interface components {
         /** @description A price history data point */
         PriceHistoryPointResponse: {
             /**
-             * Format: date-time
+             * Format: double
              * @description Timestamp of the price point
              */
-            time: string;
+            time: number;
             /**
              * @description Price in USD
              * @example 1
@@ -4065,10 +5630,10 @@ export interface components {
         /** @description An OHLCV candle data point */
         OhlcvCandleResponse: {
             /**
-             * Format: date-time
+             * Format: double
              * @description Candle timestamp
              */
-            time: string;
+            time: number;
             /** @description Opening price in USD */
             open: number;
             /** @description Highest price in USD */
@@ -4202,10 +5767,10 @@ export interface components {
             /** @description Unique identifier for the swap event */
             id: string;
             /**
-             * Format: date-time
+             * Format: double
              * @description Timestamp of the swap
              */
-            timestamp: string;
+            timestamp: number;
             /** @description Address of the sender */
             sender_address: string;
             /** @description Token sold in the swap */
@@ -4220,6 +5785,43 @@ export interface components {
             swap_protocol?: string;
             /** @description Blockchain the swap occurred on */
             chain: string;
+        };
+        /** @description Windowed trading activity for a token */
+        TokenActivityStatsResponse: {
+            /**
+             * @description Blockchain slug
+             * @example base
+             */
+            chain: string;
+            /** @description Token contract address */
+            address: string;
+            /**
+             * Format: date-time
+             * @description End time of the oldest returned aggregation window, or null when no window is returned
+             */
+            computed_at?: string;
+            /** @description Trading activity keyed by requested window. A requested key is omitted when the token has no swaps in that window; an omitted key means zero trades. */
+            windows: {
+                [key: string]: components["schemas"]["TokenActivityWindowStatsResponse"];
+            };
+        };
+        /** @description Trading activity within one time window */
+        TokenActivityWindowStatsResponse: {
+            /**
+             * Format: int64
+             * @description Swap transaction count
+             */
+            trades: number;
+            /**
+             * @description Total buy and sell volume in USD
+             * @example 710410.75
+             */
+            volume_usd: string;
+            /**
+             * @description Average USD volume per trade
+             * @example 232.92
+             */
+            average_trade_usd: string;
         };
         ContractResponse: {
             address: string;
@@ -4245,10 +5847,10 @@ export interface components {
         /** @description A sale data point for an NFT */
         NftSalePointResponse: {
             /**
-             * Format: date-time
+             * Format: double
              * @description Timestamp of the sale
              */
-            time: string;
+            time: number;
             /** @description Sale price in USD */
             usd_price: string;
             /**
@@ -4264,17 +5866,60 @@ export interface components {
         AccountResponse: {
             address: string;
             username?: string;
+            display_name?: string;
+            ens_name?: string;
+            is_verified: boolean;
+            /** @description Whether the account owner has designated at least one registered wallet as an agent wallet. This is self-declared and is not OpenSea verification. */
+            is_agent: boolean;
+            /** Format: int64 */
+            follower_count: number;
+            /** Format: int64 */
+            following_count: number;
+            nft_pfp?: components["schemas"]["NftPfpResponse"];
             profile_image_url?: string;
             banner_image_url?: string;
             website?: string;
             social_media_accounts: components["schemas"]["SocialMediaAccount"][];
             bio: string;
-            /** Format: date-time */
+            /** Format: date */
             joined_date: string;
         };
         SocialMediaAccount: {
             platform: string;
             username: string;
+        };
+        ProfileRelationshipResponse: {
+            is_following: boolean;
+            is_watching: boolean;
+        };
+        SocialProfilePageResponse: {
+            profiles: components["schemas"]["SocialProfileSummaryResponse"][];
+            next?: string;
+        };
+        SocialProfileSummaryResponse: {
+            address: string;
+            username?: string;
+            display_name?: string;
+            profile_image_url?: string;
+            is_verified: boolean;
+            /** Format: int64 */
+            follower_count: number;
+            nft_pfp?: components["schemas"]["NftPfpResponse"];
+            is_following: boolean;
+            is_watching: boolean;
+        };
+        /** @description Public agent ownership relationships for a profile */
+        AgentProfileRelationshipsResponse: {
+            agent_owner_profile?: components["schemas"]["AgentProfileSummaryResponse"];
+            public_agent_wallets: components["schemas"]["AgentProfileSummaryResponse"][];
+        };
+        /** @description Compact public profile summary for an agent relationship */
+        AgentProfileSummaryResponse: {
+            address: string;
+            username?: string;
+            display_name?: string;
+            profile_image_url?: string;
+            is_verified: boolean;
         };
         /** @description Resolved account info */
         AccountResolveResponse: {
@@ -4362,6 +6007,64 @@ export interface components {
              */
             quote_token_liquidity_usd?: string;
         };
+        BitcoinAddress: {
+            "@type": "BitcoinAddress";
+        } & (Omit<WithRequired<components["schemas"]["BlockchainAddress"], "value">, "@type"> & {
+            validate?: boolean;
+        });
+        BlockchainAddress: {
+            value: string;
+            "@type": string;
+        };
+        EvmAddress: {
+            "@type": "EvmAddress";
+        } & (Omit<WithRequired<components["schemas"]["BlockchainAddress"], "value">, "@type"> & {
+            validate?: boolean;
+            skipLowercase?: boolean;
+        });
+        SolanaAddress: {
+            "@type": "SolanaAddress";
+        } & (Omit<WithRequired<components["schemas"]["BlockchainAddress"], "value">, "@type"> & {
+            validate?: boolean;
+        });
+        /** @description Paginated list of account token activity events */
+        TokenAccountActivityPaginatedResponse: {
+            /** @description List of token activity events */
+            activities: components["schemas"]["TokenAccountActivityResponse"][];
+            /** @description Cursor for the next page of results */
+            next?: string;
+        };
+        /** @description A fungible token activity event for an account */
+        TokenAccountActivityResponse: {
+            /**
+             * @description Type of activity
+             * @enum {string}
+             */
+            type: "send" | "receive" | "swap" | "wrap" | "unwrap";
+            /** @description Blockchain the activity occurred on */
+            chain: string;
+            /** @description Address that initiated the activity */
+            from: string;
+            /** @description Recipient address for transfers */
+            to?: string;
+            /** @description Token amount for transfers */
+            token?: components["schemas"]["TokenAmountResponse"];
+            /** @description Token sold/swapped from */
+            from_token?: components["schemas"]["TokenAmountResponse"];
+            /** @description Token received/swapped to */
+            to_token?: components["schemas"]["TokenAmountResponse"];
+            /** @description Swap protocol used */
+            swap_protocol?: string;
+            /** @description Transaction hash */
+            transaction_hash: string;
+            /** @description User operation hash (for account abstraction) */
+            user_op_hash?: string;
+            /**
+             * Format: double
+             * @description Timestamp of the activity
+             */
+            timestamp: number;
+        };
         /** @description Portfolio stats including total value, P&L, and asset breakdown */
         PortfolioStatsResponse: {
             /**
@@ -4398,11 +6101,11 @@ export interface components {
         /** @description A single net worth data point */
         PortfolioHistoryDataPoint: {
             /**
-             * Format: date-time
+             * Format: double
              * @description Timestamp of the data point
-             * @example 2026-04-28T00:00:00Z
+             * @example 1777334400
              */
-            timestamp: string;
+            timestamp: number;
             /**
              * @description Total portfolio value in USD
              * @example 124180
@@ -4490,11 +6193,11 @@ export interface components {
              */
             tx_signature: string;
             /**
-             * Format: date-time
+             * Format: double
              * @description Block time of the transfer, or null if unknown.
-             * @example 2026-04-28T00:00:00Z
+             * @example 1777334400
              */
-            block_time?: string;
+            block_time?: number;
             /**
              * @description Type of transfer, used to distinguish zero-cost acquisitions (e.g. AIRDROP, CEX_TRANSFER) from buys/sells (e.g. SWAP_BUY, SWAP_SELL). Null if unclassified.
              * @example SWAP_BUY
@@ -4544,19 +6247,19 @@ export interface components {
              */
             avg_cost_per_token_usd: string;
             /**
-             * Format: date-time
+             * Format: double
              * @description When the position was closed (last sell). Null if unknown.
-             * @example 2026-04-28T00:00:00Z
+             * @example 1777334400
              */
-            closed_at?: string;
+            closed_at?: number;
             /** @description Whether this was a round-trip OpenSea trade (bought and sold on OpenSea). */
             is_opensea_trade: boolean;
             /**
-             * Format: date-time
+             * Format: double
              * @description When the tokens in this position were first acquired. Null if unknown.
-             * @example 2026-01-15T00:00:00Z
+             * @example 1768435200
              */
-            first_acquired_at?: string;
+            first_acquired_at?: number;
         };
         /** @description A page of a wallet's closed (realized) trading positions */
         ClosedPositionsResponse: {
@@ -4570,6 +6273,121 @@ export interface components {
             total_count: number;
             /** @description Cursor for the next page of results, or null if there are no more pages */
             next?: string;
+        };
+        /** @description Common perpetual future identity fields shared across perpetual responses */
+        PerpetualFutureBaseResponse: {
+            /** @description The perpetual future ID */
+            id: string;
+            /** @description The display name of the perpetual future */
+            name: string;
+            /** @description The perpetual future symbol */
+            symbol: string;
+            /** @description URL of the perpetual future image */
+            image_url?: string;
+            /** @description Description of the perpetual future */
+            description?: string;
+            /**
+             * Format: double
+             * @description Created timestamp
+             */
+            created_at?: number;
+            /** @description Chain identifier */
+            chain: string;
+            /** @description Contract address */
+            contract_address: string;
+            /**
+             * Format: int32
+             * @description Maximum leverage
+             */
+            max_leverage: number;
+            /**
+             * Format: int32
+             * @description Decimal places
+             */
+            decimals: number;
+            /** @description Asset ID */
+            asset_id: string;
+            /**
+             * Format: int64
+             * @description Version
+             */
+            version: number;
+            /** @description Categories */
+            categories: string[];
+            /** @description Market */
+            market?: string;
+        };
+        /** @description Paginated list of perpetual futures */
+        PerpetualFuturePaginatedResponse: {
+            /** @description List of perpetual futures */
+            perpetuals: components["schemas"]["PerpetualFutureResponse"][];
+            /** @description Cursor for the next page of results */
+            next?: string;
+        };
+        /** @description A perpetual future */
+        PerpetualFutureResponse: {
+            /** @description The perpetual future ID */
+            id: string;
+            /** @description The display name of the perpetual future */
+            name: string;
+            /** @description The perpetual future symbol */
+            symbol: string;
+            /** @description URL of the perpetual future image */
+            image_url?: string;
+            /** @description Description of the perpetual future */
+            description?: string;
+            /**
+             * Format: double
+             * @description Created timestamp
+             */
+            created_at?: number;
+            /** @description Chain identifier */
+            chain: string;
+            /** @description Contract address */
+            contract_address: string;
+            /**
+             * Format: int32
+             * @description Maximum leverage
+             */
+            max_leverage: number;
+            /**
+             * Format: int32
+             * @description Decimal places
+             */
+            decimals: number;
+            /** @description Asset ID */
+            asset_id: string;
+            /**
+             * Format: int64
+             * @description Version
+             */
+            version: number;
+            /** @description Categories */
+            categories: string[];
+            /** @description Market */
+            market?: string;
+            /** @description Market statistics */
+            stats?: components["schemas"]["PerpetualFutureStatsResponse"];
+        };
+        /** @description Market statistics for a perpetual future */
+        PerpetualFutureStatsResponse: {
+            /** @description Price in USD */
+            price_usd?: number;
+            /**
+             * Format: float
+             * @description 24-hour price change percentage
+             */
+            price_change_24h?: number;
+            /** @description 24-hour volume in USD */
+            volume_24h?: number;
+            /** @description Mark price */
+            mark_price?: number;
+            /** @description Oracle price */
+            oracle_price?: number;
+            /** @description Funding rate */
+            funding_rate?: number;
+            /** @description Open interest */
+            open_interest?: number;
         };
         ProfileCollectionResponse: {
             collection: string;
@@ -4603,12 +6421,25 @@ export interface components {
             collections: components["schemas"]["ProfileCollectionResponse"][];
             next?: string;
         };
+        /** @description Result of removing a saved tool */
+        SavedToolActionResponse: {
+            /** @description Whether a saved tool existed and was removed */
+            removed: boolean;
+        };
+        /** @description Response for clearing the NFT profile picture */
+        ClearNftPfpResponse: {
+            /** @description Whether the NFT profile picture was cleared */
+            success: boolean;
+        };
+        WalletUnlinkResponse: {
+            success: boolean;
+        };
         /**
          * @description OAuth-style scope recognized by the OpenSea API for wallet-authenticated requests
          * @example read:favorites
          * @enum {string}
          */
-        AuthScope: "read:eligibility" | "read:favorites" | "read:rewards" | "write:orders" | "write:drops";
+        AuthScope: "read:eligibility" | "read:favorites" | "read:social" | "read:tools" | "write:favorites" | "write:social" | "write:tools" | "write:orders" | "write:drops" | "write:collections" | "write:profile" | "write:wallets";
     };
     responses: {
         /** @description For error reasons, review the response data. */
@@ -4625,8 +6456,22 @@ export interface components {
             };
             content?: never;
         };
+        /** @description Wallet token lacks permission for this request */
+        Forbidden: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content?: never;
+        };
         /** @description Resource not found */
         NotFound: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content?: never;
+        };
+        /** @description Resource conflict */
+        Conflict: {
             headers: {
                 [name: string]: unknown;
             };
@@ -4661,6 +6506,262 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    update_self_mint_drop_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Collection slug
+                 * @example cool-cats
+                 */
+                slug: string;
+                /**
+                 * @description Drop item token id
+                 * @example 123
+                 */
+                token_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSelfMintDropItemRequest"];
+            };
+        };
+        responses: {
+            /** @description Ready-to-sign transaction data */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SelfMintDropItemResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["V1ErrorWrapper"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SelfMintDropItemResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["V1ErrorWrapper"];
+                };
+            };
+            500: components["responses"]["InternalError"];
+        };
+    };
+    update_drop_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Collection slug
+                 * @example cool-cats
+                 */
+                slug: string;
+                /**
+                 * @description Drop item token id
+                 * @example 123
+                 */
+                token_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateDropItemRequest"];
+            };
+        };
+        responses: {
+            /** @description Drop item updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DropItemResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DropItemResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    make_wallet_private: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                wallet: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletVisibilityResponse"];
+                };
+            };
+        };
+    };
+    make_wallet_public: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                wallet: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletVisibilityResponse"];
+                };
+            };
+        };
+    };
+    mark_wallet_as_agent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                wallet: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletAgentStatusResponse"];
+                };
+            };
+        };
+    };
+    remove_wallet_agent_designation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                wallet: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletAgentStatusResponse"];
+                };
+            };
+        };
+    };
+    add_watchlist_entry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WatchlistRequest"];
+            };
+        };
+        responses: {
+            /** @description Watchlist entry added */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FavoriteResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    remove_watchlist_entry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WatchlistRequest"];
+            };
+        };
+        responses: {
+            /** @description Watchlist entry removed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FavoriteResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
     get_transaction_receipt: {
         parameters: {
             query?: never;
@@ -4765,12 +6866,293 @@ export interface operations {
             500: components["responses"]["InternalError"];
         };
     };
+    list_saved_tools: {
+        parameters: {
+            query?: {
+                toolkit_name?: string;
+                /**
+                 * @description Number of items to return per page
+                 * @example 20
+                 */
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Saved tools returned */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedToolsPaginatedResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    save_tool: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavedToolRequest"];
+            };
+        };
+        responses: {
+            /** @description Tool saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedToolResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    unsave_tool: {
+        parameters: {
+            query: {
+                tool_id: string;
+                registry_chain: string;
+                registry_addr: string;
+                toolkit_name?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Saved-tool removal result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedToolActionResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    claim_profile_username: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimAccountUsernameRequest"];
+            };
+        };
+        responses: {
+            /** @description Username claimed successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimAccountUsernameResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    get_profile_shelves: {
+        parameters: {
+            query: {
+                /**
+                 * @description Wallet address to retrieve shelves for
+                 * @example 0x8ba1f109551bd432803012645ac136c94c19d6e
+                 */
+                address: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Shelves retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileShelfResponse"][];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    create_profile_shelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProfileShelfRequest"];
+            };
+        };
+        responses: {
+            /** @description Shelf created successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileShelfResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    reorder_profile_shelves: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReorderProfileShelvesRequest"];
+            };
+        };
+        responses: {
+            /** @description Shelves reordered successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileShelfActionResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    set_profile_nft_pfp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetNftPfpRequest"];
+            };
+        };
+        responses: {
+            /** @description NFT profile picture set successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NftPfpResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    clear_profile_nft_pfp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description NFT profile picture cleared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClearNftPfpResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    upload_profile_image: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UploadProfileImageRequest"];
+            };
+        };
+        responses: {
+            /** @description Upload context returned successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadContext"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
     post_offer: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                chain: string;
+                /**
+                 * @description The blockchain on which to filter the results
+                 * @example ethereum
+                 */
+                chain: components["schemas"]["ChainIdentifier"];
                 protocol: string;
             };
             cookie?: never;
@@ -4799,7 +7181,11 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                chain: string;
+                /**
+                 * @description The blockchain on which to filter the results
+                 * @example ethereum
+                 */
+                chain: components["schemas"]["ChainIdentifier"];
                 protocol: string;
             };
             cookie?: never;
@@ -4830,7 +7216,11 @@ export interface operations {
                 "X-Api-Key"?: string;
             };
             path: {
-                chain: string;
+                /**
+                 * @description The blockchain on which to filter the results
+                 * @example ethereum
+                 */
+                chain: components["schemas"]["ChainIdentifier"];
                 protocol_address: string;
                 order_hash: string;
             };
@@ -5115,6 +7505,121 @@ export interface operations {
             500: components["responses"]["InternalError"];
         };
     };
+    get_drop_by_slug: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Collection slug
+                 * @example cool-cats
+                 */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Detailed drop information */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DropDetailedResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    save_drop_edits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The collection slug identifying the drop to update
+                 * @example cool-cats
+                 */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveDropEditsRequest"];
+            };
+        };
+        responses: {
+            /** @description Drop edits saved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SaveDropResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SaveDropResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    save_prereveal_drop_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Collection slug
+                 * @example cool-cats
+                 */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavePrerevealDropItemRequest"];
+            };
+        };
+        responses: {
+            /** @description Prereveal drop item saved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PrerevealDropItemResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PrerevealDropItemResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
     build_drop_mint_transaction: {
         parameters: {
             query?: never;
@@ -5170,7 +7675,7 @@ export interface operations {
                     "*/*": components["schemas"]["V1ErrorWrapper"];
                 };
             };
-            /** @description Minting precondition failed: wallet not in allowlist, mint limit exceeded, or supply exhausted */
+            /** @description Minting precondition failed: insufficient native balance, wallet not in allowlist, mint limit exceeded, or supply exhausted */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -5179,6 +7684,300 @@ export interface operations {
                     "*/*": components["schemas"]["V1ErrorWrapper"];
                 };
             };
+            500: components["responses"]["InternalError"];
+        };
+    };
+    save_self_mint_drop_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Collection slug
+                 * @example cool-cats
+                 */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveSelfMintDropItemRequest"];
+            };
+        };
+        responses: {
+            /** @description Ready-to-sign transaction data */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SelfMintDropItemResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["V1ErrorWrapper"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SelfMintDropItemResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["V1ErrorWrapper"];
+                };
+            };
+            500: components["responses"]["InternalError"];
+        };
+    };
+    upload_drop_item_media: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Collection slug
+                 * @example cool-cats
+                 */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UploadDropItemMediaRequest"];
+            };
+        };
+        responses: {
+            /** @description Upload contexts generated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UploadContext"][];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UploadContext"][];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    save_drop_item_media: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Collection slug
+                 * @example cool-cats
+                 */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveDropItemMediaRequest"];
+            };
+        };
+        responses: {
+            /** @description Drop item media saved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SaveDropItemMediaResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SaveDropItemMediaResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    build_cross_chain_drop_mint_transactions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The collection slug identifying the drop
+                 * @example boredapeyachtclub
+                 */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CrossChainDropMintRequest"];
+            };
+        };
+        responses: {
+            /** @description Ordered transactions required to complete the mint */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CrossChainDropMintResponse"];
+                };
+            };
+            /** @description Invalid address, payment chain, payment token, quantity, or request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["V1ErrorWrapper"];
+                };
+            };
+            /** @description Drop or collection not found for the given slug */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["V1ErrorWrapper"];
+                };
+            };
+            /** @description Drop is not currently active for minting */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["V1ErrorWrapper"];
+                };
+            };
+            /** @description Minting precondition failed, including an ineligible wallet, exhausted supply, insufficient balance, or a payer that is not allowed for the active presale */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["V1ErrorWrapper"];
+                };
+            };
+            500: components["responses"]["InternalError"];
+        };
+    };
+    upload_drop_allowlist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Collection slug
+                 * @example cool-cats
+                 */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Upload context generated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UploadContext"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UploadContext"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    validate_drop_allowlist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Collection slug
+                 * @example cool-cats
+                 */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ValidateDropAllowlistRequest"];
+            };
+        };
+        responses: {
+            /** @description Validated file token */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ValidateDropAllowlistResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ValidateDropAllowlistResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -5213,6 +8012,56 @@ export interface operations {
                     "*/*": components["schemas"]["V1ErrorWrapper"];
                 };
             };
+            500: components["responses"]["InternalError"];
+        };
+    };
+    upload_collection_image: {
+        parameters: {
+            query: {
+                /**
+                 * @description Exact MIME type of the image bytes
+                 * @example image/png
+                 */
+                content_type: string;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description Collection slug
+                 * @example boredapeyachtclub
+                 */
+                slug: string;
+                /**
+                 * @description Image type
+                 * @example profile_picture
+                 */
+                image_type: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Upload context generated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UploadContext"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UploadContext"];
+                };
+            };
+            404: components["responses"]["NotFound"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -5254,10 +8103,10 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description The blockchain on which the NFT exists
+                 * @description The blockchain on which to filter the results
                  * @example ethereum
                  */
-                chain: string;
+                chain: components["schemas"]["ChainIdentifier"];
                 /**
                  * @description The contract address
                  * @example 0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d
@@ -5296,8 +8145,11 @@ export interface operations {
             path: {
                 /** @description Contract address */
                 address: string;
-                /** @description Blockchain chain identifier */
-                chain: string;
+                /**
+                 * @description The blockchain on which to filter the results
+                 * @example ethereum
+                 */
+                chain: components["schemas"]["ChainIdentifier"];
                 /** @description Token identifier */
                 identifier: string;
             };
@@ -5400,6 +8252,361 @@ export interface operations {
             500: components["responses"]["InternalError"];
         };
     };
+    watch_account: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                address_or_username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProfileSocialMutationResponse"];
+                };
+            };
+        };
+    };
+    unwatch_account: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                address_or_username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProfileSocialMutationResponse"];
+                };
+            };
+        };
+    };
+    follow_account: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                address_or_username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProfileSocialMutationResponse"];
+                };
+            };
+        };
+    };
+    unfollow_account: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                address_or_username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProfileSocialMutationResponse"];
+                };
+            };
+        };
+    };
+    link_wallet_with_siwx: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkWalletSiwxRequest"];
+            };
+        };
+        responses: {
+            /** @description Wallet linked successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletLinkResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletLinkResponse"];
+                };
+            };
+            500: components["responses"]["InternalError"];
+        };
+    };
+    update_profile_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProfileSettingsRequest"];
+            };
+        };
+        responses: {
+            /** @description Profile settings updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateProfileSettingsResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    delete_profile_shelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shelf_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Shelf deleted successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProfileShelfActionResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    update_profile_shelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shelf_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProfileShelfRequest"];
+            };
+        };
+        responses: {
+            /** @description Shelf updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileShelfResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    get_collection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Unique identifier for the specific collection
+                 * @example doodles-official
+                 */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CollectionDetailedResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    modify_collection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Collection slug
+                 * @example boredapeyachtclub
+                 */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModifyCollectionRequest"];
+            };
+        };
+        responses: {
+            /** @description Collection metadata updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ModifyCollectionResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ModifyCollectionResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    set_collection_visibility: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Collection slug
+                 * @example boredapeyachtclub
+                 */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetCollectionVisibilityRequest"];
+            };
+        };
+        responses: {
+            /** @description Visibility updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SetCollectionVisibilityResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    update_collection_metadata: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Collection slug
+                 * @example boredapeyachtclub
+                 */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCollectionMetadataRequest"];
+            };
+        };
+        responses: {
+            /** @description Collection metadata updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UpdateCollectionMetadataResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UpdateCollectionMetadataResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
     get_collection_traits: {
         parameters: {
             query?: never;
@@ -5443,7 +8650,7 @@ export interface operations {
                  * @example 20
                  */
                 limit?: number;
-                "cursor.value"?: string;
+                cursor?: string;
             };
             header?: never;
             path?: never;
@@ -5557,7 +8764,7 @@ export interface operations {
                  * @example 20
                  */
                 limit?: number;
-                "cursor.value"?: string;
+                cursor?: string;
             };
             header?: never;
             path?: never;
@@ -5809,8 +9016,11 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Blockchain chain identifier */
-                chain: string;
+                /**
+                 * @description The blockchain on which to filter the results
+                 * @example ethereum
+                 */
+                chain: components["schemas"]["ChainIdentifier"];
                 /** @description Protocol contract address */
                 protocol_address: string;
                 /** @description Order hash */
@@ -5841,7 +9051,7 @@ export interface operations {
                  * @example 20
                  */
                 limit?: number;
-                "next.value"?: string;
+                next?: string;
             };
             header?: never;
             path: {
@@ -5898,7 +9108,7 @@ export interface operations {
                  * @example 20
                  */
                 limit?: number;
-                "next.value"?: string;
+                next?: string;
             };
             header?: never;
             path: {
@@ -5931,7 +9141,7 @@ export interface operations {
                  * @example 20
                  */
                 limit?: number;
-                "next.value"?: string;
+                next?: string;
             };
             header?: never;
             path: {
@@ -5996,7 +9206,7 @@ export interface operations {
                  * @example 20
                  */
                 limit?: number;
-                "next.value"?: string;
+                next?: string;
             };
             header?: never;
             path: {
@@ -6030,7 +9240,7 @@ export interface operations {
                  * @description The blockchain on which to filter the results
                  * @example ethereum
                  */
-                chain: string;
+                chain: components["schemas"]["ChainIdentifier"];
                 /**
                  * @description The unique public blockchain identifier for the contract
                  * @example 0x8ba1f109551bD432803012645Hac136c94C19D6e
@@ -6111,7 +9321,7 @@ export interface operations {
                  * @example 20
                  */
                 limit?: number;
-                "next.value"?: string;
+                next?: string;
             };
             header?: never;
             path: {
@@ -6148,7 +9358,7 @@ export interface operations {
                  * @example 20
                  */
                 limit?: number;
-                "next.value"?: string;
+                next?: string;
             };
             header?: never;
             path: {
@@ -6187,7 +9397,7 @@ export interface operations {
                  * @example 20
                  */
                 limit?: number;
-                "next.value"?: string;
+                next?: string;
             };
             header?: never;
             path?: never;
@@ -6232,7 +9442,7 @@ export interface operations {
                  * @example 20
                  */
                 limit?: number;
-                "next.value"?: string;
+                next?: string;
             };
             header?: never;
             path: {
@@ -6274,7 +9484,7 @@ export interface operations {
                  * @example 20
                  */
                 limit?: number;
-                "next.value"?: string;
+                next?: string;
             };
             header?: never;
             path: {
@@ -6282,7 +9492,7 @@ export interface operations {
                  * @description The blockchain on which to filter the results
                  * @example ethereum
                  */
-                chain: string;
+                chain: components["schemas"]["ChainIdentifier"];
                 /**
                  * @description The unique public blockchain identifier for the contract
                  * @example 0x8ba1f109551bD432803012645Hac136c94C19D6e
@@ -6321,14 +9531,17 @@ export interface operations {
                 before?: number;
                 /** @description Filter by event types. To get order invalidation and revalidation events, please use the Stream API. The order status can also be checked on the Get Order endpoint. */
                 event_type?: ("sale" | "transfer" | "mint" | "listing" | "offer" | "trait_offer" | "collection_offer")[];
-                /** @description Filter by blockchain */
-                chain?: string;
+                /**
+                 * @description Filter by blockchain
+                 * @example ethereum
+                 */
+                chain?: components["schemas"]["ChainIdentifier"];
                 /**
                  * @description Number of items to return per page
                  * @example 20
                  */
                 limit?: number;
-                "next.value"?: string;
+                next?: string;
             };
             header?: never;
             path: {
@@ -6395,7 +9608,7 @@ export interface operations {
             500: components["responses"]["InternalError"];
         };
     };
-    get_drop_by_slug: {
+    get_drop_eligibility: {
         parameters: {
             query?: never;
             header?: never;
@@ -6410,16 +9623,26 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Detailed drop information */
+            /** @description Eligibility results per drop stage */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["DropDetailedResponse"];
+                    "*/*": components["schemas"]["DropEligibilityResponse"];
                 };
             };
             400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DropEligibilityResponse"];
+                };
+            };
             404: components["responses"]["NotFound"];
             500: components["responses"]["InternalError"];
         };
@@ -6430,10 +9653,10 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description Chain slug (e.g. ethereum, base)
+                 * @description The blockchain on which to filter the results
                  * @example ethereum
                  */
-                chain: string;
+                chain: components["schemas"]["ChainIdentifier"];
                 /**
                  * @description Transaction hash of the deployment transaction
                  * @example 0xabc123...
@@ -6465,9 +9688,12 @@ export interface operations {
                  * @example 20
                  */
                 limit?: number;
-                "next.value"?: string;
-                /** @description Blockchain to filter by */
-                chain?: string;
+                next?: string;
+                /**
+                 * @description Blockchain to filter by
+                 * @example ethereum
+                 */
+                chain?: components["schemas"]["ChainIdentifier"];
                 /** @description Username of collection creator to filter by */
                 creator_username?: string;
                 /** @description Include hidden collections in results */
@@ -6491,35 +9717,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CollectionPaginatedResponse"];
-                };
-            };
-            400: components["responses"]["BadRequest"];
-            404: components["responses"]["NotFound"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    get_collection: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Unique identifier for the specific collection
-                 * @example doodles-official
-                 */
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CollectionDetailedResponse"];
                 };
             };
             400: components["responses"]["BadRequest"];
@@ -6786,7 +9983,7 @@ export interface operations {
                  * @example 20
                  */
                 limit?: number;
-                "next.value"?: string;
+                next?: string;
             };
             header?: never;
             path: {
@@ -6839,10 +10036,10 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description The blockchain on which the token exists
+                 * @description The blockchain on which to filter the results
                  * @example ethereum
                  */
-                chain: string;
+                chain: components["schemas"]["ChainIdentifier"];
                 /**
                  * @description The contract address of the token
                  * @example 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48
@@ -6889,10 +10086,10 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description The blockchain on which the token exists
+                 * @description The blockchain on which to filter the results
                  * @example ethereum
                  */
-                chain: string;
+                chain: components["schemas"]["ChainIdentifier"];
                 /**
                  * @description The contract address of the token
                  * @example 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48
@@ -6943,10 +10140,10 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description The blockchain on which the token exists
+                 * @description The blockchain on which to filter the results
                  * @example ethereum
                  */
-                chain: string;
+                chain: components["schemas"]["ChainIdentifier"];
                 /**
                  * @description The contract address of the token
                  * @example 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48
@@ -6982,10 +10179,10 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description The blockchain on which the token exists
+                 * @description The blockchain on which to filter the results
                  * @example ethereum
                  */
-                chain: string;
+                chain: components["schemas"]["ChainIdentifier"];
                 /**
                  * @description The contract address of the token
                  * @example 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48
@@ -7023,10 +10220,10 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description The blockchain on which the token exists
+                 * @description The blockchain on which to filter the results
                  * @example ethereum
                  */
-                chain: string;
+                chain: components["schemas"]["ChainIdentifier"];
                 /**
                  * @description The contract address of the token
                  * @example 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48
@@ -7064,10 +10261,10 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description The blockchain on which the token exists
+                 * @description The blockchain on which to filter the results
                  * @example ethereum
                  */
-                chain: string;
+                chain: components["schemas"]["ChainIdentifier"];
                 /**
                  * @description The contract address of the token
                  * @example 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48
@@ -7091,6 +10288,46 @@ export interface operations {
             500: components["responses"]["InternalError"];
         };
     };
+    get_token_activity_stats: {
+        parameters: {
+            query?: {
+                /**
+                 * @description Comma-separated windows. Defaults to 5m,1h,4h,24h.
+                 * @example 1h,24h
+                 */
+                windows?: string;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description The blockchain on which to filter the results
+                 * @example ethereum
+                 */
+                chain: components["schemas"]["ChainIdentifier"];
+                /**
+                 * @description The token contract address
+                 * @example 0x0000000000000000000000000000000000000000
+                 */
+                address: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TokenActivityStatsResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
     get_payment_token: {
         parameters: {
             query?: never;
@@ -7098,8 +10335,11 @@ export interface operations {
             path: {
                 /** @description The unique public blockchain identifier for the contract */
                 address: string;
-                /** @description The blockchain on which to filter the results */
-                chain: string;
+                /**
+                 * @description The blockchain on which to filter the results
+                 * @example ethereum
+                 */
+                chain: components["schemas"]["ChainIdentifier"];
             };
             cookie?: never;
         };
@@ -7126,8 +10366,11 @@ export interface operations {
             path: {
                 /** @description The unique public blockchain identifier for the contract */
                 address: string;
-                /** @description The blockchain on which to filter the results */
-                chain: string;
+                /**
+                 * @description The blockchain on which to filter the results
+                 * @example ethereum
+                 */
+                chain: components["schemas"]["ChainIdentifier"];
             };
             cookie?: never;
         };
@@ -7155,14 +10398,17 @@ export interface operations {
                  * @example 20
                  */
                 limit?: number;
-                "next.value"?: string;
+                next?: string;
             };
             header?: never;
             path: {
                 /** @description Contract address */
                 address: string;
-                /** @description Blockchain chain identifier */
-                chain: string;
+                /**
+                 * @description The blockchain on which to filter the results
+                 * @example ethereum
+                 */
+                chain: components["schemas"]["ChainIdentifier"];
             };
             cookie?: never;
         };
@@ -7190,7 +10436,7 @@ export interface operations {
                  * @description The blockchain on which to filter the results
                  * @example ethereum
                  */
-                chain: string;
+                chain: components["schemas"]["ChainIdentifier"];
                 /**
                  * @description The unique public blockchain identifier for the contract
                  * @example 0x8ba1f109551bD432803012645Hac136c94C19D6e
@@ -7237,7 +10483,7 @@ export interface operations {
                  * @description The blockchain on which to filter the results
                  * @example ethereum
                  */
-                chain: string;
+                chain: components["schemas"]["ChainIdentifier"];
                 /**
                  * @description The unique public blockchain identifier for the contract
                  * @example 0x8ba1f109551bD432803012645Hac136c94C19D6e
@@ -7276,7 +10522,7 @@ export interface operations {
                  * @description The blockchain on which to filter the results
                  * @example ethereum
                  */
-                chain: string;
+                chain: components["schemas"]["ChainIdentifier"];
                 /**
                  * @description The unique public blockchain identifier for the contract
                  * @example 0x8ba1f109551bD432803012645Hac136c94C19D6e
@@ -7315,7 +10561,7 @@ export interface operations {
                  * @description The blockchain on which to filter the results
                  * @example ethereum
                  */
-                chain: string;
+                chain: components["schemas"]["ChainIdentifier"];
                 /**
                  * @description The unique public blockchain identifier for the contract
                  * @example 0x8ba1f109551bD432803012645Hac136c94C19D6e
@@ -7354,14 +10600,17 @@ export interface operations {
                  * @example 20
                  */
                 limit?: number;
-                "next.value"?: string;
+                next?: string;
             };
             header?: never;
             path: {
                 /** @description Account address */
                 address: string;
-                /** @description Blockchain chain identifier */
-                chain: string;
+                /**
+                 * @description The blockchain on which to filter the results
+                 * @example ethereum
+                 */
+                chain: components["schemas"]["ChainIdentifier"];
             };
             cookie?: never;
         };
@@ -7387,8 +10636,8 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description The blockchain address or username of the account to retrieve
-                 * @example 0x8ba1f109551bD432803012645Hac136c94C19D6e
+                 * @description The blockchain address or username of the account to retrieve.
+                 * @example 0x8ba1f109551bD432803012645fAc136c94C19D6e
                  */
                 address_or_username: string;
             };
@@ -7408,6 +10657,112 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
             500: components["responses"]["InternalError"];
+        };
+    };
+    get_account_relationship: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                address_or_username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProfileRelationshipResponse"];
+                };
+            };
+        };
+    };
+    get_account_following: {
+        parameters: {
+            query?: {
+                /**
+                 * @description Number of items to return per page
+                 * @example 20
+                 */
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                address_or_username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SocialProfilePageResponse"];
+                };
+            };
+        };
+    };
+    get_account_followers: {
+        parameters: {
+            query?: {
+                /**
+                 * @description Number of items to return per page
+                 * @example 20
+                 */
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                address_or_username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SocialProfilePageResponse"];
+                };
+            };
+        };
+    };
+    get_agent_profile_relationships: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The blockchain address or username of the profile to retrieve.
+                 * @example 0x8ba1f109551bD432803012645fAc136c94C19D6e
+                 */
+                address_or_username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AgentProfileRelationshipsResponse"];
+                };
+            };
         };
     };
     resolve_account: {
@@ -7489,6 +10844,92 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["TokenBalancePaginatedResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    get_account_token_watchlist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The wallet address
+                 * @example 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
+                 */
+                address: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Watched tokens */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TokenPaginatedResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TokenPaginatedResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    get_account_token_activity: {
+        parameters: {
+            query?: {
+                /**
+                 * @description Chain(s) to filter by (e.g. ethereum). Repeat for multiple chains. Omit to query all chains.
+                 * @example ethereum
+                 */
+                chains?: components["schemas"]["ChainIdentifier"][];
+                /**
+                 * @description Token contract address(es) to filter by. Repeat for multiple tokens. Omit to include all tokens.
+                 * @example 0x0000000000000000000000000000000000000000
+                 */
+                tokens?: (components["schemas"]["BitcoinAddress"] | components["schemas"]["EvmAddress"] | components["schemas"]["SolanaAddress"])[];
+                /** @description Activity types to include (send, receive, swap, wrap, unwrap). Repeat for multiple types. Omit to include all. Note: swap also includes wrap and unwrap activities. */
+                type?: string[];
+                /**
+                 * @description Number of items to return per page
+                 * @example 20
+                 */
+                limit?: number;
+                next?: string;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description The account address to query token activity for
+                 * @example 0x0000000000000000000000000000000000000000
+                 */
+                address: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TokenAccountActivityPaginatedResponse"];
                 };
             };
             400: components["responses"]["BadRequest"];
@@ -7598,7 +11039,7 @@ export interface operations {
                  * @description The chain the currency is on
                  * @example ethereum
                  */
-                chain: string;
+                chain: components["schemas"]["ChainIdentifier"];
                 /** @description Number of results to return per page (1-200, default 20) */
                 limit?: number;
                 /** @description Cursor for the next page of results */
@@ -7661,6 +11102,45 @@ export interface operations {
                 };
             };
             400: components["responses"]["BadRequest"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    get_account_perpetual_watchlist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The wallet address
+                 * @example 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
+                 */
+                address: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Watched perpetuals */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PerpetualFuturePaginatedResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PerpetualFuturePaginatedResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -7787,6 +11267,56 @@ export interface operations {
             500: components["responses"]["InternalError"];
         };
     };
+    get_profile_favorites: {
+        parameters: {
+            query?: {
+                /** @description Cursor for pagination */
+                after?: string;
+                /** @description Number of results to return */
+                limit?: number;
+                /** @description Sort by field */
+                sort_by?: "CREATED_DATE" | "PRICE" | "RARITY" | "LISTING_CREATED_DATE" | "LAST_SALE";
+                /** @description Sort direction */
+                sort_direction?: "asc" | "desc";
+                /** @description Filter by chains */
+                chains?: components["schemas"]["ChainIdentifier"][];
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description The wallet address
+                 * @example 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
+                 */
+                address: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Favorited items */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["NftListResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["NftListResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
     get_profile_collections: {
         parameters: {
             query?: {
@@ -7822,4 +11352,43 @@ export interface operations {
             500: components["responses"]["InternalError"];
         };
     };
+    unlink_wallet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The linked wallet address to remove */
+                wallet: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Wallet unlinked successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletUnlinkResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletUnlinkResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
 }
+type WithRequired<T, K extends keyof T> = T & {
+    [P in K]-?: T[P];
+};

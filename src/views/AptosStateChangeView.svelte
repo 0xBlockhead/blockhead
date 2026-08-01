@@ -66,7 +66,6 @@
 			<AptosTransactionView
 				selection={select(EntityType.AptosTransaction, selection.entitySelector.$transaction)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -79,7 +78,6 @@
 					<AptosTransactionView
 						selection={select(EntityType.AptosTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -186,7 +184,6 @@
 									selection={select(EntityType.AptosAccountResource, aptosAccountResource[EntityMetaKey.Selector])}
 									prefetched={aptosAccountResource}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -252,7 +249,6 @@
 									selection={select(EntityType.MoveModule, moveModule[EntityMetaKey.Selector])}
 									prefetched={moveModule}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

@@ -37,10 +37,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Sui checkpoint
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -49,7 +45,6 @@
 					<SuiNetworkView
 						selection={select(EntityType.SuiNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

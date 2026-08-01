@@ -64,7 +64,6 @@
 			selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -80,7 +79,6 @@
 					<FarcasterChannelView
 						selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

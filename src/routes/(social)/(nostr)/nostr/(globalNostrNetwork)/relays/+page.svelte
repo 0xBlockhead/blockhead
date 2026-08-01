@@ -28,12 +28,8 @@
 
 	<NostrRelaysView
 		href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/relays')}
-		title='Nostr relays'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='observed-relays'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

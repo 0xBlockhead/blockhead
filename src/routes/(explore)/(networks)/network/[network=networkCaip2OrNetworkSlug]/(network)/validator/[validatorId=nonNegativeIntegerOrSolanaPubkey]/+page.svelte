@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { entityDefinitionByType } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -17,31 +16,12 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(
+	const documentTitle = $derived(
 		(
-			data.entityType === EntityType.BeaconValidator && data.selectorName === 'NetworkIndexInNetwork' ?
-				select(EntityType.BeaconValidator, data.selector, {
-					sources: [
-						Source.Beacon_Rest,
-					],
-					fields: {
-						status: true,
-						slashed: true,
-						balanceGwei: true,
-						effectiveBalanceGwei: true,
-						pubkey: true,
-					},
-				})
+			data.entityType === EntityType.BeaconValidator ?
+				((String(data.selector.indexInNetwork ?? '') ? 'Validator #' + String(data.selector.indexInNetwork ?? '') : '') || 'beacon validator') + ' • beacon validator • Blockhead'
 			:
-				select(EntityType.SolanaValidator, data.selector)
-		)
-	)
-	const pageTitle = $derived(
-		(
-			data.entityType === EntityType.BeaconValidator && data.selectorName === 'NetworkIndexInNetwork' ?
-				(String(data.selector.indexInNetwork ?? '') ? 'Validator #' + String(data.selector.indexInNetwork ?? '') : '') || 'beacon validator'
-			:
-				data.selector.votePubkey || 'solana validator'
+				(data.selector.votePubkey || 'solana validator') + ' • solana validator • Blockhead'
 		)
 	)
 	const entityViewByType = {
@@ -57,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{pageTitle} • {entityDefinitionByType[data.entityType].labels.singular} • Blockhead</title>
+	<title>{documentTitle}</title>
 </svelte:head>
 
 
@@ -65,6 +45,22 @@
 	{@const EntityView = entityViewByType[data.entityType]}
 
 	<EntityView
-		selection={pageSelection}
+		selection={
+			data.entityType === EntityType.BeaconValidator ?
+				select(EntityType.BeaconValidator, data.selector, {
+					sources: [
+						Source.Beacon_Rest,
+					],
+					fields: {
+						status: true,
+						slashed: true,
+						balanceGwei: true,
+						effectiveBalanceGwei: true,
+						pubkey: true,
+					},
+				})
+			:
+				select(EntityType.SolanaValidator, data.selector)
+		}
 	/>
 </Page>

@@ -23,7 +23,6 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.LightningLnd_Grpc,
 			Source.LightningLnd_Rest,
 			Source.Local_Internal,
 		],
@@ -87,7 +86,6 @@
 					<BlockheadLightningChannelStateView
 						selection={select(EntityType.BlockheadLightningChannelState, selection.entitySelector.$channelState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

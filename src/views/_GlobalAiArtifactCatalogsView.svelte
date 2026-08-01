@@ -32,10 +32,6 @@
 		<EntityView
 			entityType={EntityType._GlobalAiArtifactCatalog}
 			entitySelector={globalAiArtifactCatalog[EntityMetaKey.Selector]}
-		>
-			{#snippet Title()}
-				global AI artifact catalog
-			{/snippet}
-		</EntityView>
+		/>
 	{/snippet}
 </EntitiesList>

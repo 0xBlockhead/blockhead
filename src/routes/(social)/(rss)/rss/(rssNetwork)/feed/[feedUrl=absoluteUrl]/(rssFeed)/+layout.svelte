@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]',
+			{
+				feedUrl: params.feedUrl,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,31 +38,19 @@
 
 {#key params.feedUrl}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]',
-				{
-					feedUrl: params.feedUrl,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<RssFeedView
 				selection={
-					select(EntityType.RssFeed, data.selector, { sources: [
-						Source.Rss_Rest,
-						Source.Rss2Json_Rest,
-					] })
+					select(EntityType.RssFeed, data.selector, {
+						sources: [
+							Source.Rss_Rest,
+							Source.Rss2Json_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]',
-						{
-							feedUrl: params.feedUrl,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

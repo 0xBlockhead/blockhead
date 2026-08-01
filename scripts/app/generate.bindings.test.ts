@@ -5,6 +5,8 @@ import test from 'node:test'
 import {
 	app,
 	Source,
+	SourceCredentialScope,
+	SourceEndpointKind,
 } from '../../APP.ts'
 import { compileApp, renderSourcesMarkdown } from './generate.ts'
 
@@ -53,14 +55,6 @@ const domainTargetBySource = {
 	[Source.InternetComputer_Canister]: {
 		kind: 'Canister',
 		key: 'application-canister',
-	},
-	[Source.LibtorrentSession_Rest]: {
-		kind: 'LocalDevice',
-		key: 'libtorrent-session',
-	},
-	[Source.LightningLnd_Grpc]: {
-		kind: 'LocalDevice',
-		key: 'lnd',
 	},
 	[Source.McpDeclared_Protocol]: {
 		kind: 'LocalDevice',
@@ -144,7 +138,6 @@ test('owns every provider, source, and binding in APP', () => {
 			...(source.bindings ?? []),
 		]) {
 			assert.ok(binding.endpoints.length > 0)
-			assert.ok(binding.credentials.length > 0)
 		}
 	}
 })
@@ -255,7 +248,12 @@ test('renders SOURCES.md exactly from APP', async () => {
 			String(index + 1),
 			endpoint.endpointKind,
 			endpoint.locator,
-			endpoint.origin ?? '',
+			endpoint.endpointKind === SourceEndpointKind.HttpUrl
+				&& !endpoint.locator.startsWith('env:')
+				&& URL.canParse(endpoint.locator) ?
+					new URL(endpoint.locator).origin
+				:
+					'',
 			endpoint.corsEnabled == null ? '' : String(endpoint.corsEnabled),
 		])),
 	})
@@ -272,7 +270,15 @@ test('renders SOURCES.md exactly from APP', async () => {
 			String(index + 1),
 			credential.scope,
 			credential.env == null ? 'no' : 'yes',
-			(credential.keys ?? []).join(', '),
+			(
+				(
+					credential.scope === SourceCredentialScope.PublicConfig ?
+						credential.env?.keys.map(({ name }) => name)
+					:
+						credential.keys
+				)
+				?? []
+			).join(', '),
 		])),
 	})
 	assert.deepEqual(tableAfterHeading(sourceDoc, '## Artifacts'), {

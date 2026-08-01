@@ -99,7 +99,6 @@
 									selection={select(EntityType.LensAccount, lensAccount[EntityMetaKey.Selector])}
 									prefetched={lensAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -235,7 +234,6 @@
 									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
 									prefetched={lensPost}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -257,7 +255,6 @@
 									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
 									prefetched={lensPost}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -279,7 +276,6 @@
 									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
 									prefetched={lensPost}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -301,7 +297,6 @@
 									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
 									prefetched={lensPost}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

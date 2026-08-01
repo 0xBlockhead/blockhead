@@ -1,11 +1,51 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
-import { sourceGetJson } from '$/sources/_runtime/http.ts'
-import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
-import type { TonCenterJson } from '$/sources/TonCenter/Rest/types.ts'
+import type { components, operations } from '$/sources/TonCenter/OpenApi/openapi.d.ts'
+import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
+import bindings from '$/sources/TonCenter/bindings.ts'
+import { ApiFamily } from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
 
-export const query = (
-	binding: SourceBinding,
-	path: string
-) => {
-	return sourceGetJson<TonCenterJson>(binding, httpUrl(binding, path))
-}
+const bindingByNetwork = Object.fromEntries(
+	bindings[Source.TonCenter]
+		.filter((binding) => binding.apiFamily === ApiFamily.OpenApiHttp)
+		.map((binding) => [
+			binding.target.key,
+			binding,
+		])
+)
+
+type TonlibOperationResponse<_Result> = (
+	& Omit<components['schemas']['TonlibResponse'], 'result'>
+	& { result: _Result }
+)
+type TonCenterV2Binding = Extract<
+	typeof bindings[Source.TonCenter][number],
+	{ apiFamily: ApiFamily.OpenApiHttp }
+>
+type TonCenterV2Network = TonCenterV2Binding['target']['key']
+
+export const getAddressInformation = (
+	network: TonCenterV2Network,
+	{
+		address,
+		seqno,
+	}: operations['getAddressInformation_get']['parameters']['query']
+) => (
+	getJson<TonlibOperationResponse<components['schemas']['AddressInformation']>>(
+		bindingByNetwork[network],
+		`getAddressInformation?${new URLSearchParams({
+			address,
+			...(seqno != null && {
+				seqno: String(seqno),
+			}),
+		})}`
+	).then(({ result }) => result)
+)
+
+export const getMasterchainInfo = (
+	network: TonCenterV2Network
+) => (
+	getJson<TonlibOperationResponse<components['schemas']['MasterchainInfo']>>(
+		bindingByNetwork[network],
+		'getMasterchainInfo'
+	).then(({ result }) => result)
+)

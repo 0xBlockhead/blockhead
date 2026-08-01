@@ -20,13 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LightningNetwork_Timestamp> = $props()
 
-	const lightningNetworkTimestamp = $derived(selection({
-		fields: {
-			nodeCount: true,
-			channelCount: true,
-		},
-	}))
-
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
@@ -49,7 +42,16 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={lightningNetworkTimestamp}>
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						nodeCount: true,
+						channelCount: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
 				{[String(entity.nodeCount ?? ''), String(entity.channelCount ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
@@ -64,7 +66,6 @@
 					<LightningNetworkView
 						selection={select(EntityType.LightningNetwork, selection.entitySelector.$lightningNetwork)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

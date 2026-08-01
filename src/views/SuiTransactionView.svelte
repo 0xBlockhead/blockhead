@@ -47,10 +47,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Sui transaction
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -59,7 +55,6 @@
 					<SuiNetworkView
 						selection={select(EntityType.SuiNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -145,12 +140,7 @@
 			{#snippet SectionSuiTransactionCommands({ id, label, open })}
 				<SuiProgrammableTransactionCommandsView
 					selection={selection.$$commands}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No commands.'
 					id={`${id}-list`}
@@ -160,12 +150,7 @@
 			{#snippet SectionSuiTransactionObjectChanges({ id, label, open })}
 				<SuiObjectChangesView
 					selection={selection.$$objectChanges}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No object changes.'
 					id={`${id}-list`}
@@ -201,12 +186,7 @@
 			{#snippet SectionSuiTransactionBalanceChanges({ id, label, open })}
 				<SuiBalanceChangesView
 					selection={selection.$$balanceChanges}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No balance changes.'
 					id={`${id}-list`}
@@ -216,12 +196,7 @@
 			{#snippet SectionSuiTransactionEvents({ id, label, open })}
 				<SuiEventsView
 					selection={selection.$$events}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No events.'
 					id={`${id}-list`}
@@ -253,12 +228,7 @@
 			{#snippet SectionSuiTransactionTimestamps({ id, label, open })}
 				<SuiTransaction_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No timestamps.'
 					id={`${id}-list`}

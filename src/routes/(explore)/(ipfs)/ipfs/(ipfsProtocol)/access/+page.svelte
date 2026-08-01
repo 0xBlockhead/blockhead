@@ -9,14 +9,6 @@
 	// Context
 	import { select } from '$/routes/+layout.svelte'
 
-	const pageSelection = $derived(select(EntityType._GlobalIpfsAccess, {
-		scope: '_GlobalIpfsAccess',
-	}, {
-		sources: [
-			Source.Constants_Internal,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,6 +23,14 @@
 
 <Page>
 	<GlobalIpfsAccessView
-		selection={pageSelection}
+		selection={
+			select(EntityType._GlobalIpfsAccess, {
+				scope: '_GlobalIpfsAccess',
+			}, {
+				sources: [
+					Source.Constants_Internal,
+				],
+			})
+		}
 	/>
 </Page>

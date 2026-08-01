@@ -3,9 +3,6 @@ import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
-import {
-	tradingViewCryptoScannerPath,
-} from '$/sources/TradingView/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/TradingView/bindings.ts'
 import type {
@@ -22,7 +19,7 @@ export const tradingViewScannerFetch = async ({
 	columns: readonly TradingViewScannerColumn[]
 	tickers: readonly string[]
 }) => {
-	const url = `${firstHttpUrlForBinding(tradingViewBinding)}${tradingViewCryptoScannerPath}`
+	const url = `${firstHttpUrlForBinding(tradingViewBinding)}/crypto/scan`
 	const response = await sourceFetch(
 		tradingViewBinding,
 		url,

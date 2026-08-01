@@ -1,18 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-const solanaJsonRpcCredentials = [
-	{
-		scope: SourceCredentialScope.None,
-	},
-] as const
 const solanaJsonRpcArtifacts = [
 	{
 		kind: SourceArtifactKind.HandwrittenTypes,
 		path: 'src/sources/Solana/JsonRpc/types.ts',
-		generated: false,
 	},
 ] as const
 
@@ -27,7 +21,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://solana-rpc.publicnode.com',
-				origin: 'https://solana-rpc.publicnode.com',
 				corsEnabled: false,
 			},
 		],
@@ -37,7 +30,7 @@ const bindings = [
 			SourceOperationGroup.GenericRead,
 		],
 		delivery: SourceDelivery.HttpProxy,
-		credentials: solanaJsonRpcCredentials,
+		credentials: [],
 		artifacts: solanaJsonRpcArtifacts,
 	},
 	{
@@ -58,9 +51,9 @@ const bindings = [
 			SourceOperationGroup.GenericSubscribe,
 		],
 		delivery: SourceDelivery.RemoteLive,
-		credentials: solanaJsonRpcCredentials,
+		credentials: [],
 		artifacts: solanaJsonRpcArtifacts,
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Solana_JsonRpc]: readonly [typeof bindings[0], typeof bindings[1]] }>(bindings)
+export default indexSourceBindings(bindings)

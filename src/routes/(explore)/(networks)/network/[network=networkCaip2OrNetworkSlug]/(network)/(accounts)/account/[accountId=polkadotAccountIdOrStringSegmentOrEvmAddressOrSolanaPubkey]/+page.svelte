@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { entityDefinitionByType } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -17,85 +16,30 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(
+	const documentTitle = $derived(
 		(
-			data.entityType === EntityType.PolkadotAccount && data.selectorName === 'NetworkAccountId' ?
-				select(EntityType.PolkadotAccount, data.selector, {
-					sources: [
-						Source.SubstrateSidecar_Rest,
-					],
-				})
+			data.entityType === EntityType.PolkadotAccount ?
+				(data.selector.accountId || 'Polkadot account') + ' • Polkadot account • Blockhead'
 			:
-			data.entityType === EntityType.CosmosAccount && data.selectorName === 'NetworkAddress' ?
-				select(EntityType.CosmosAccount, data.selector)
+			data.entityType === EntityType.CosmosAccount ?
+				(data.selector.address || 'Cosmos account') + ' • Cosmos account • Blockhead'
 			:
-			data.entityType === EntityType.HederaAccount && data.selectorName === 'NetworkAccountId' ?
-				select(EntityType.HederaAccount, data.selector, {
-					sources: [
-						Source.HederaMirrorNode_Rest,
-					],
-				})
+			data.entityType === EntityType.HederaAccount ?
+				(data.selector.accountId || 'hedera account') + ' • hedera account • Blockhead'
 			:
-			data.entityType === EntityType.CardanoAddress && data.selectorName === 'NetworkAddress' ?
-				select(EntityType.CardanoAddress, data.selector, {
-					sources: [
-						Source.Blockfrost_Rest,
-					],
-					fields: {
-						addressKind: true,
-						$stakeCredential: true,
-					},
-				})
+			data.entityType === EntityType.CardanoAddress ?
+				(data.selector.address || 'Cardano address') + ' • Cardano address • Blockhead'
 			:
-			data.entityType === EntityType.EvmNetworkAccount && data.selectorName === 'EvmNetworkEvmAccount' ?
-				select(EntityType.EvmNetworkAccount, data.selector)
+			data.entityType === EntityType.EvmNetworkAccount ?
+				('EVM network account') + ' • EVM network account • Blockhead'
 			:
-			data.entityType === EntityType.SolanaAccount && data.selectorName === 'NetworkPubkey' ?
-				select(EntityType.SolanaAccount, data.selector, {
-					sources: [
-						Source.Solana_JsonRpc,
-					],
-				})
+			data.entityType === EntityType.SolanaAccount ?
+				(data.selector.pubkey || 'solana account') + ' • solana account • Blockhead'
 			:
-			data.entityType === EntityType.TonAccount && data.selectorName === 'NetworkAddress' ?
-				select(EntityType.TonAccount, data.selector, {
-					fields: {
-						workchain: true,
-						addressHash: true,
-					},
-				})
+			data.entityType === EntityType.TonAccount ?
+				('TON account') + ' • TON account • Blockhead'
 			:
-				select(EntityType.XrplAccount, data.selector, {
-					sources: [
-						Source.Xrpl_Rippled,
-					],
-				})
-		)
-	)
-	const pageTitle = $derived(
-		(
-			data.entityType === EntityType.PolkadotAccount && data.selectorName === 'NetworkAccountId' ?
-				data.selector.accountId || 'Polkadot account'
-			:
-			data.entityType === EntityType.CosmosAccount && data.selectorName === 'NetworkAddress' ?
-				data.selector.address || 'Cosmos account'
-			:
-			data.entityType === EntityType.HederaAccount && data.selectorName === 'NetworkAccountId' ?
-				data.selector.accountId || 'hedera account'
-			:
-			data.entityType === EntityType.CardanoAddress && data.selectorName === 'NetworkAddress' ?
-				data.selector.address || 'Cardano address'
-			:
-			data.entityType === EntityType.EvmNetworkAccount && data.selectorName === 'EvmNetworkEvmAccount' ?
-				'EVM network account'
-			:
-			data.entityType === EntityType.SolanaAccount && data.selectorName === 'NetworkPubkey' ?
-				data.selector.pubkey || 'solana account'
-			:
-			data.entityType === EntityType.TonAccount && data.selectorName === 'NetworkAddress' ?
-				'TON account'
-			:
-				data.selector.account || 'XRPL account'
+				(data.selector.account || 'XRPL account') + ' • XRPL account • Blockhead'
 		)
 	)
 	const entityViewByType = {
@@ -123,7 +67,7 @@
 
 
 <svelte:head>
-	<title>{pageTitle} • {entityDefinitionByType[data.entityType].labels.singular} • Blockhead</title>
+	<title>{documentTitle}</title>
 </svelte:head>
 
 
@@ -131,6 +75,58 @@
 	{@const EntityView = entityViewByType[data.entityType]}
 
 	<EntityView
-		selection={pageSelection}
+		selection={
+			data.entityType === EntityType.PolkadotAccount ?
+				select(EntityType.PolkadotAccount, data.selector, {
+					sources: [
+						Source.SubstrateSidecar_Rest,
+					],
+				})
+			:
+			data.entityType === EntityType.CosmosAccount ?
+				select(EntityType.CosmosAccount, data.selector)
+			:
+			data.entityType === EntityType.HederaAccount ?
+				select(EntityType.HederaAccount, data.selector, {
+					sources: [
+						Source.HederaMirrorNode_Rest,
+					],
+				})
+			:
+			data.entityType === EntityType.CardanoAddress ?
+				select(EntityType.CardanoAddress, data.selector, {
+					sources: [
+						Source.Blockfrost_Rest,
+					],
+					fields: {
+						addressKind: true,
+						$stakeCredential: true,
+					},
+				})
+			:
+			data.entityType === EntityType.EvmNetworkAccount ?
+				select(EntityType.EvmNetworkAccount, data.selector)
+			:
+			data.entityType === EntityType.SolanaAccount ?
+				select(EntityType.SolanaAccount, data.selector, {
+					sources: [
+						Source.Solana_JsonRpc,
+					],
+				})
+			:
+			data.entityType === EntityType.TonAccount ?
+				select(EntityType.TonAccount, data.selector, {
+					fields: {
+						workchain: true,
+						addressHash: true,
+					},
+				})
+			:
+				select(EntityType.XrplAccount, data.selector, {
+					sources: [
+						Source.Xrpl_Rippled,
+					],
+				})
+		}
 	/>
 </Page>

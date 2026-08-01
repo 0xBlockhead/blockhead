@@ -30,12 +30,6 @@
 			Source.Constants_Internal,
 		],
 	}))
-	const currency = $derived(viewSelection({
-		fields: {
-			name: true,
-			symbol: true,
-		},
-	}))
 	const titleFallback = $derived((prefetched.name ?? '') || selection.entitySelector.iso4217 || 'currency')
 	const viewDomId = $derived('currency-' + encodeURIComponent(stringify(selection.entitySelector)))
 
@@ -71,7 +65,20 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={currency}>
+		<ResourceBoundary
+			resource={
+				selection({
+					sources: selection.sources ?? [
+						Source.Constants_Internal,
+					],
+				})({
+					fields: {
+						name: true,
+						symbol: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
 				{entity.name || title || titleFallback}
 			{/snippet}
@@ -80,12 +87,6 @@
 
 	{#snippet Value()}
 		{selection.entitySelector.iso4217 || (prefetched.name ?? '') || titleFallback}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A currency unit used for quoting values, balances, and market data.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -125,7 +126,6 @@
 									}
 									prefetched={{ ...currencyTimestampSelector, ...currencyTimestamp }}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							{:else}
 								<p data-text="muted" data-section-state="resolved-empty">No catalog snapshot available.</p>
@@ -139,7 +139,18 @@
 		<dl data-column-item="center">
 			{#if !contentOpen}
 				<ResourceBoundary
-					resource={currency}
+					resource={
+						selection({
+							sources: selection.sources ?? [
+								Source.Constants_Internal,
+							],
+						})({
+							fields: {
+								name: true,
+								symbol: true,
+							},
+						})
+					}
 				>
 					{#snippet children(entity)}
 						{@const symbol = entity.symbol}
@@ -221,7 +232,7 @@
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
 					<HeadingComponent>Markets</HeadingComponent>
-					<Tooltip contentProps={{ side: 'top' }}>
+					<Tooltip>
 						{#snippet Content()}
 							<p>
 								Markets where this currency is the base or quote leg.
@@ -239,12 +250,7 @@
 			{#snippet SectionMarketsWithCurrencyAsBase({ id, label, open })}
 				<MarketsView
 					selection={selection.$$marketsWithCurrencyAsBase}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -253,12 +259,7 @@
 			{#snippet SectionMarketsWithCurrencyAsQuote({ id, label, open })}
 				<MarketsView
 					selection={selection.$$marketsWithCurrencyAsQuote}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>

@@ -21,7 +21,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			hash: params.hash,
-		}
+		},
+		'NetworkHash'
 	)
 	if (xrplTransactionNetworkHashSelector instanceof arktype.errors)
 		error(404, 'Invalid XrplTransaction selector')

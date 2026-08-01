@@ -27,7 +27,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import CelestiaNetwork_TimestampsView from '$/views/CelestiaNetwork_TimestampsView.svelte'
 	import CelestiaBlocksView from '$/views/CelestiaBlocksView.svelte'
@@ -50,7 +49,6 @@
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -62,7 +60,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -97,12 +94,7 @@
 			{#snippet SectionCelestiaChainObservations({ id, label, open })}
 				<CelestiaNetwork_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No observations yet.'
 					id={`${id}-list`}
@@ -112,12 +104,7 @@
 			{#snippet SectionCelestiaChainBlocks({ id, label, open })}
 				<CelestiaBlocksView
 					selection={selection.$$blocks}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No blocks found.'
 					id={`${id}-list`}
@@ -153,12 +140,7 @@
 			{#snippet SectionCelestiaNamespaces({ id, label, open })}
 				<CelestiaNamespacesView
 					selection={selection.$$namespaces}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No namespaces found.'
 					id={`${id}-list`}
@@ -168,12 +150,7 @@
 			{#snippet SectionCelestiaBlobs({ id, label, open })}
 				<CelestiaBlobsView
 					selection={selection.$$blobs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No blobs found.'
 					id={`${id}-list`}

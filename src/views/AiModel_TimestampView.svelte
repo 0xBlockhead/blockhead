@@ -90,7 +90,6 @@
 					<AiModelView
 						selection={select(EntityType.AiModel, selection.entitySelector.$model)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

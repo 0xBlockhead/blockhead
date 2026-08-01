@@ -71,7 +71,6 @@
 						selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector])}
 						prefetched={acpAgentProgram}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -105,7 +104,6 @@
 									selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector])}
 									prefetched={acpAgentProgram}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -141,7 +139,6 @@
 									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
 									prefetched={aiArtifact}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

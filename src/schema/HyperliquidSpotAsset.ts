@@ -33,7 +33,7 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Hyperliquid_Rest,
+			Source.Hyperliquid,
 		],
 	},
 	szDecimals: {
@@ -42,7 +42,7 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Hyperliquid_Rest,
+			Source.Hyperliquid,
 		],
 	},
 	weiDecimals: {
@@ -51,7 +51,7 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Hyperliquid_Rest,
+			Source.Hyperliquid,
 		],
 	},
 	tokenId: {
@@ -61,7 +61,7 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Hyperliquid_Rest,
+			Source.Hyperliquid,
 		],
 	},
 	$$basePairs: {

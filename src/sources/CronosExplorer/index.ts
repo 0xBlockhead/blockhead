@@ -10,8 +10,8 @@ export default {
 	label: 'Cronos Explorer',
 	sources: [
 		{
-			source: Source.CronosExplorer_Rest,
-			label: 'Cronos Explorer REST',
+			source: Source.CronosExplorer,
+			label: 'Cronos Explorer',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

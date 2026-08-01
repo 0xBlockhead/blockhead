@@ -469,7 +469,6 @@
 					<NostrRelayView
 						selection={select(EntityType.NostrRelay, selection.entitySelector.$relay)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

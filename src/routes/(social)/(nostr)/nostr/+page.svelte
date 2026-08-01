@@ -16,19 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType._GlobalNostrNetwork, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-		],
-		fields: {
-			registryName: true,
-			protocolName: true,
-			homeUrl: true,
-			docsUrl: true,
-			relationshipModel: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -43,6 +30,19 @@
 
 <Page>
 	<GlobalNostrNetworkView
-		selection={pageSelection}
+		selection={
+			select(EntityType._GlobalNostrNetwork, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					registryName: true,
+					protocolName: true,
+					homeUrl: true,
+					docsUrl: true,
+					relationshipModel: true,
+				},
+			})
+		}
 	/>
 </Page>

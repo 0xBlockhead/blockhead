@@ -1,31 +1,39 @@
 import {
 	githubContentsUrl,
 	githubRawUrl,
+	githubRepositoryTargetFromKey,
 } from '$/sources/_shared/hosts/Github/Http/client.ts'
 import type { GithubContentsEntry } from '$/sources/_shared/hosts/Github/Http/types.ts'
 import bindings from '$/sources/EthereumEips/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceGetJson, sourceGetText } from '$/sources/_runtime/http.ts'
 import {
-	ethereumEipSpecGithubRepoByLedger,
 	ethereumEipSpecMarkdownPrefixByLedger,
 } from '$/sources/EthereumEips/Github/constants.ts'
 import type { EthereumEipSpecLedger } from '$/sources/EthereumEips/Github/types.ts'
 
-const bindingForLedger = (ledger: EthereumEipSpecLedger) => {
-	const target = ethereumEipSpecGithubRepoByLedger[ledger]
-	const binding = bindings[Source.EthereumEips_Github].find(({ target: bindingTarget }) => (
-		bindingTarget.key === `${target.owner}/${target.repo}@${target.ref}:${target.path}`
-	))
-	if (binding == null)
-		throw new Error(`EthereumEips_Github: ${ledger.toUpperCase()} source binding is missing`)
-
-	return binding
-}
+const bindingByTargetKey = Object.fromEntries(
+	bindings[Source.EthereumEips_Github].map((binding) => ([
+		binding.target.key,
+		binding,
+	] as const))
+)
+const bindingByLedger = {
+	eip: bindingByTargetKey['ethereum/EIPs@master:EIPS'],
+	erc: bindingByTargetKey['ethereum/ercs@master:ERCS'],
+} as const satisfies Record<EthereumEipSpecLedger, unknown>
+const targetByLedger = Object.fromEntries(
+	Object.entries(bindingByLedger).map(([ledger, binding]) => ([
+		ledger,
+		githubRepositoryTargetFromKey(binding.target.key),
+	] as const))
+)
 
 const githubTargetForLedger = (ledger: EthereumEipSpecLedger) => (
-	ethereumEipSpecGithubRepoByLedger[ledger]
+	targetByLedger[ledger]
 )
+
+const bindingForLedger = (ledger: EthereumEipSpecLedger) => bindingByLedger[ledger]
 
 export const getContentsUrl = ({ ledger }: { ledger: EthereumEipSpecLedger }) => (
 	githubContentsUrl({
@@ -64,6 +72,17 @@ export const getProposalMarkdownUrl = ({
 		...target,
 		path: `${target.path}/${ethereumEipSpecMarkdownPrefixByLedger[ledger]}-${number}.md`,
 	})
+}
+
+export const getProposalMarkdownPageUrl = ({
+	ledger,
+	number,
+}: {
+	ledger: EthereumEipSpecLedger
+	number: number
+}) => {
+	const target = githubTargetForLedger(ledger)
+	return `https://github.com/${target.owner}/${target.repo}/blob/${target.ref}/${target.path}/${ethereumEipSpecMarkdownPrefixByLedger[ledger]}-${number}.md`
 }
 
 export const getContents = ({

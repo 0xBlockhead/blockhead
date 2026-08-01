@@ -79,7 +79,6 @@
 						selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
 						prefetched={bitcoinCashCashTokenCategory}
 						layout={EntityLayout.Title}
-						open={false}
 					/>
 				</span>
 			{/snippet}
@@ -114,7 +113,6 @@
 								selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
 								prefetched={bitcoinCashCashTokenCategory}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -127,7 +125,6 @@
 					<UtxoOutputView
 						selection={select(EntityType.UtxoOutput, selection.entitySelector.$output)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

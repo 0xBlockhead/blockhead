@@ -384,7 +384,6 @@
 					<BeaconValidatorView
 						selection={select(EntityType.BeaconValidator, selection.entitySelector.$validator)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

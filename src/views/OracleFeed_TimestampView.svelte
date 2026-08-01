@@ -71,7 +71,6 @@
 					<OracleFeedView
 						selection={select(EntityType.OracleFeed, selection.entitySelector.$oracleFeed)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

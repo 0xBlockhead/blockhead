@@ -71,7 +71,6 @@
 					<BitTorrentMetainfoView
 						selection={select(EntityType.BitTorrentMetainfo, selection.entitySelector.$torrent)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

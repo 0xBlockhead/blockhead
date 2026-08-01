@@ -49,15 +49,10 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.connectionId || 'blockhead kaspa node state'}
-	{/snippet}
-
 	{#snippet Value()}
 		<KaspaNetworkView
 			selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -89,7 +84,6 @@
 					<KaspaNetworkView
 						selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

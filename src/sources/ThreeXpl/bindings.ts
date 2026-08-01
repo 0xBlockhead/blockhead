@@ -3,46 +3,62 @@
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
+const threeXplRestGenericReadOperationGroups = [
+	SourceOperationGroup.GenericRead,
+] as const
+
 const bindings = [
 	{
 		source: Source.ThreeXpl_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
-			key: 'json-api',
+			key: 'sandbox',
 		},
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://sandbox-api.3xpl.com',
-				origin: 'https://sandbox-api.3xpl.com',
-				corsEnabled: true,
-			},
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://api.3xpl.com',
-				origin: 'https://api.3xpl.com',
 				corsEnabled: true,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: threeXplRestGenericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/ThreeXpl/Rest/types.ts',
-				generated: false,
+			},
+		],
+	},
+	{
+		source: Source.ThreeXpl_Rest,
+		target: {
+			kind: SourceTargetKind.Global,
+			key: 'production',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://api.3xpl.com',
+				corsEnabled: true,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: threeXplRestGenericReadOperationGroups,
+		delivery: SourceDelivery.BrowserDirect,
+		credentials: [
+			{
+				scope: SourceCredentialScope.UserDelegated,
+				keys: [
+					'Xpl-Token',
+				],
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.ThreeXpl_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

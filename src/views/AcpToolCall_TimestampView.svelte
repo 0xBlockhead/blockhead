@@ -85,7 +85,6 @@
 					<AcpToolCallView
 						selection={select(EntityType.AcpToolCall, selection.entitySelector.$toolCall)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

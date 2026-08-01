@@ -237,6 +237,21 @@ export default {
 							...(iconMedia != null && {
 								$icon: iconMedia,
 							}),
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$subreddit: { name },
+									timestampMs: Date.now(),
+									source: Source.Reddit_PublicJson,
+								},
+								[EntityMetaKey.Fields]: {
+									...(subredditAbout.subscribers != null && {
+										[entityFieldAddressKey(EntityType.RedditSubreddit_Timestamp, [], 'subscriberCount')]: subredditAbout.subscribers,
+									}),
+									...(subredditAbout.active_user_count != null && {
+										[entityFieldAddressKey(EntityType.RedditSubreddit_Timestamp, [], 'activeUserCount')]: subredditAbout.active_user_count,
+									}),
+								},
+							}],
 						}
 					},
 				}
@@ -247,6 +262,7 @@ export default {
 				createdAt: (subreddit) => subreddit.createdAt,
 				over18: (subreddit) => subreddit.over18,
 				$icon: (subreddit) => subreddit.$icon,
+				$$timestamps: (subreddit) => subreddit.$$timestamps,
 			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
@@ -274,6 +290,22 @@ export default {
 									}
 							),
 							permalink: canonicalRedditPermalink(redditThing.data.permalink),
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$link: { fullname },
+									timestampMs: Date.now(),
+									source: Source.Reddit_PublicJson,
+								},
+								[EntityMetaKey.Fields]: {
+									...(redditThing.data.score != null && {
+										[entityFieldAddressKey(EntityType.RedditLink_Timestamp, [], 'score')]: redditThing.data.score,
+									}),
+									...(redditThing.data.num_comments != null && {
+										[entityFieldAddressKey(EntityType.RedditLink_Timestamp, [], 'commentCount')]: redditThing.data.num_comments,
+									}),
+								},
+							}],
+							commentCount: redditThing.data.num_comments,
 						}
 					},
 				}
@@ -286,6 +318,14 @@ export default {
 				createdAt: (link) => link.createdAt,
 				$subreddit: (link) => link.$subreddit,
 				permalink: (link) => link.permalink,
+				$$timestamps: (link) => link.$$timestamps,
+				$$comments: {
+					resolveCount: (link) => {
+						if (link.commentCount == null || link.commentCount < 0)
+							throw new Error('Reddit_PublicJson: link comment count not found')
+						return link.commentCount
+					},
+				},
 			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
@@ -315,6 +355,18 @@ export default {
 							...(parentId?.startsWith('t1_') === true && parentId.length > 3 && {
 								$parentComment: { [EntityMetaKey.Selector]: { fullname: parentId } },
 							}),
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$comment: { fullname },
+									timestampMs: Date.now(),
+									source: Source.Reddit_PublicJson,
+								},
+								[EntityMetaKey.Fields]: {
+									...(redditThing.data.score != null && {
+										[entityFieldAddressKey(EntityType.RedditComment_Timestamp, [], 'score')]: redditThing.data.score,
+									}),
+								},
+							}],
 						}
 					},
 				}
@@ -326,6 +378,7 @@ export default {
 				depth: (comment) => comment.depth,
 				$link: (comment) => comment.$link,
 				$parentComment: (comment) => comment.$parentComment,
+				$$timestamps: (comment) => comment.$$timestamps,
 			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
@@ -392,10 +445,15 @@ export default {
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
-						const { listSubredditHot } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const { listSubredditLinks } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
-						return [...new Map(
-							((await listSubredditHot('popular', limit)).data.children ?? [])
+						const children = (await listSubredditLinks('popular', {
+							limit,
+							sort: 'hot',
+						})).data.children ?? []
+						return {
+							subreddits: [...new Map(
+								children
 								.flatMap((child) => {
 									if (redditLinkCardReference(child) == null) return []
 									const name = optionalNonemptyString(child.data.subreddit?.trim())?.toLowerCase()
@@ -403,61 +461,15 @@ export default {
 										[EntityMetaKey.Selector]: { name },
 									}] as const]
 								})
-						).values()]
+							).values()],
+							links: redditLinkCardReferences(children, limit),
+						}
 					},
 				}
 			},
 		})({
-				$$observedSubreddits: (subreddits) => subreddits,
-			}),
-
-		defineResolver(Source.Reddit_PublicJson, {
-			entityType: EntityType._GlobalRedditNetwork,
-			resolve: {
-				Scope: {
-					resolve: async (_entitySelector, context) => {
-						const { listSubredditHot } = await import('$/sources/RedditPublic/Rest/queries.ts')
-						const limit = resolverContextRowLimit(context)
-						return redditLinkCardReferences(
-							(await listSubredditHot('popular', limit)).data.children,
-							limit
-						)
-					},
-				}
-			},
-		})({
-				$$observedLinks: (links) => links,
-			}),
-
-		defineResolver(Source.Reddit_PublicJson, {
-			entityType: EntityType.RedditSubreddit,
-			resolve: {
-				Name: {
-					resolve: async ({ name }) => {
-						const { getSubredditAbout } = await import('$/sources/RedditPublic/Rest/queries.ts')
-						const data = (await getSubredditAbout(name)).data
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$subreddit: { name },
-									timestampMs: Date.now(),
-									source: Source.Reddit_PublicJson,
-								},
-								[EntityMetaKey.Fields]: {
-									...(data.subscribers != null && {
-										[entityFieldAddressKey(EntityType.RedditSubreddit_Timestamp, [], 'subscriberCount')]: data.subscribers,
-									}),
-									...(data.active_user_count != null && {
-										[entityFieldAddressKey(EntityType.RedditSubreddit_Timestamp, [], 'activeUserCount')]: data.active_user_count,
-									}),
-								},
-							},
-						]
-					},
-				}
-			},
-		})({
-				$$timestamps: (timestamps) => timestamps,
+				$$observedSubreddits: (network) => network.subreddits,
+				$$observedLinks: (network) => network.links,
 			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
@@ -465,12 +477,12 @@ export default {
 			resolve: {
 				Name: {
 					resolve: async ({ name }, context) => {
-						const { listSubredditHot } = await import('$/sources/RedditPublic/Rest/queries.ts')
-						return listSubredditHot(
-							name,
-							resolverContextRowLimit(context),
-							context.providerContinuationToken
-						)
+						const { listSubredditLinks } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						return listSubredditLinks(name, {
+							after: context.providerContinuationToken,
+							limit: resolverContextRowLimit(context),
+							sort: 'hot',
+						})
 					},
 				}
 			},
@@ -506,37 +518,6 @@ export default {
 			entityType: EntityType.RedditLink,
 			resolve: {
 				Fullname: {
-					resolve: async ({ fullname }) => {
-						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
-						const redditThing = redditThingFromInfo(await getInfo(fullname), fullname, 't3')
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$link: { fullname },
-									timestampMs: Date.now(),
-									source: Source.Reddit_PublicJson,
-								},
-								[EntityMetaKey.Fields]: {
-									...(redditThing.data.score != null && {
-										[entityFieldAddressKey(EntityType.RedditLink_Timestamp, [], 'score')]: redditThing.data.score,
-									}),
-									...(redditThing.data.num_comments != null && {
-										[entityFieldAddressKey(EntityType.RedditLink_Timestamp, [], 'commentCount')]: redditThing.data.num_comments,
-									}),
-								},
-							},
-						]
-					},
-				}
-			},
-		})({
-				$$timestamps: (timestamps) => timestamps,
-			}),
-
-		defineResolver(Source.Reddit_PublicJson, {
-			entityType: EntityType.RedditLink,
-			resolve: {
-				Fullname: {
 					resolve: async ({ fullname }, context) => {
 						const limit = resolverContextRowLimit(context)
 						if (limit === 0)
@@ -553,53 +534,6 @@ export default {
 			},
 		})({
 				$$comments: (comments) => comments,
-			}),
-
-		defineResolver(Source.Reddit_PublicJson, {
-			entityType: EntityType.RedditLink,
-			resolve: {
-				Fullname: {
-					resolve: async ({ fullname }) => {
-						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
-						const redditThing = redditThingFromInfo(await getInfo(fullname), fullname, 't3')
-						if (redditThing.data.num_comments == null || redditThing.data.num_comments < 0)
-							throw new Error('Reddit_PublicJson: link comment count not found')
-						return redditThing.data.num_comments
-					},
-				}
-			},
-		})({
-				$$comments: {
-					resolveCount: (count) => count,
-				},
-			}),
-
-		defineResolver(Source.Reddit_PublicJson, {
-			entityType: EntityType.RedditComment,
-			resolve: {
-				Fullname: {
-					resolve: async ({ fullname }) => {
-						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
-						const redditThing = redditThingFromInfo(await getInfo(fullname), fullname, 't1')
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$comment: { fullname },
-									timestampMs: Date.now(),
-									source: Source.Reddit_PublicJson,
-								},
-								[EntityMetaKey.Fields]: {
-									...(redditThing.data.score != null && {
-										[entityFieldAddressKey(EntityType.RedditComment_Timestamp, [], 'score')]: redditThing.data.score,
-									}),
-								},
-							},
-						]
-					},
-				}
-			},
-		})({
-				$$timestamps: (timestamps) => timestamps,
 			}),
 
 		defineResolver(Source.Reddit_PublicJson, {

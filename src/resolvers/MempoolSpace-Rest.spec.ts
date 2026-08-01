@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { bitcoinNetworkBySlug } from '$/constants/BitcoinNetwork.ts'
+import { networkBySlug } from '$/constants/Network.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import bindings from '$/sources/MempoolSpace/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -27,12 +28,27 @@ const addressTransactionsResolver = mempoolSpaceResolvers.resolvers.find((resolv
 	resolver.entityType === EntityType.UtxoAddress
 	&& '$$transactions' in resolver.projections
 ))
+const transactionResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoTransaction
+))
+const inputResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoInput
+))
+const outputResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoOutput
+))
 
 if (blocksResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing Network.Utxo.$$blocks resolver')
 
 if (addressTransactionsResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing UtxoAddress.$$transactions resolver')
+
+if (transactionResolver == null)
+	throw new Error('MempoolSpace-Rest spec missing UtxoTransaction same-response resolver')
+
+if (inputResolver == null || outputResolver == null)
+	throw new Error('MempoolSpace-Rest spec missing independently addressable child resolver')
 
 const binding = bindings[Source.MempoolSpace_Rest]
 
@@ -48,7 +64,7 @@ const resolverContext = {
 	publicEnv: {},
 }
 const network = {
-	caip2: bitcoinNetworkBySlug.bitcoin.caip2,
+	caip2: networkBySlug.bitcoin.caip2,
 }
 const address = {
 	$network: network,
@@ -63,9 +79,66 @@ const transactions = [
 	},
 ]
 
-describe('MempoolSpace UTXO address transactions', () => {
+describe('MempoolSpace UTXO', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
+	})
+
+	it('projects transaction fields and child selectors from one provider response', async () => {
+		const txId = 'b'.repeat(64)
+		sourceGetJson.mockResolvedValueOnce({
+			txid: txId,
+			version: 2,
+			locktime: 0,
+			size: 200,
+			weight: 800,
+			fee: 1_000,
+			status: {
+				confirmed: true,
+				block_height: 840_000,
+				block_hash: 'c'.repeat(64),
+			},
+			vin: [{
+				txid: 'd'.repeat(64),
+				vout: 1,
+				is_coinbase: false,
+				sequence: 1,
+			}],
+			vout: [{
+				scriptpubkey: '0014',
+				scriptpubkey_type: 'v0_p2wpkh',
+				value: 5_000,
+			}],
+		})
+		const entitySelector = {
+			$network: network,
+			txId,
+		}
+		const transaction = await transactionResolver.resolve[
+			'NetworkTxId'
+		].resolve(entitySelector)
+
+		expect(transactionResolver.projections.version(transaction)).toBe(2)
+		expect(transactionResolver.projections.$$inputs(transaction)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: entitySelector,
+				indexInTransaction: 0,
+			},
+		}])
+		expect(transactionResolver.projections.$$outputs(transaction)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: entitySelector,
+				indexInTransaction: 0,
+			},
+		}])
+		expect(sourceGetJson).toHaveBeenCalledOnce()
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			`https://mempool.space/api/tx/${txId}`
+		)
+		expect(mempoolSpaceResolvers.resolvers.filter((resolver) => (
+			resolver.entityType === EntityType.UtxoTransaction
+		))).toEqual([transactionResolver])
 	})
 
 	it('limits every selector to canonical Bitcoin subjects', () => {
@@ -76,7 +149,7 @@ describe('MempoolSpace UTXO address transactions', () => {
 		for (const resolver of networkResolvers) {
 			expect(resolver.resolve['Caip2'].appliesTo).toEqual([
 				{
-					caip2: bitcoinNetworkBySlug.bitcoin.caip2,
+					caip2: networkBySlug.bitcoin.caip2,
 				},
 			])
 			expect(resolver.resolve['Slug'].appliesTo).toEqual([
@@ -161,12 +234,12 @@ describe('MempoolSpace UTXO address transactions', () => {
 			{
 				caip2: {
 					namespace: 'wrong-namespace',
-					reference: bitcoinNetworkBySlug.bitcoin.caip2.reference,
+					reference: networkBySlug.bitcoin.caip2.reference,
 				},
 			},
 			{
 				caip2: {
-					namespace: bitcoinNetworkBySlug.bitcoin.caip2.namespace,
+					namespace: networkBySlug.bitcoin.caip2.namespace,
 					reference: 'wrong-mainnet',
 				},
 			},

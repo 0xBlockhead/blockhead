@@ -14,7 +14,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://{registry}/v2',
-				origin: 'https://{registry}',
 				corsEnabled: false,
 			},
 		],
@@ -33,4 +32,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.OciRegistry_Distribution]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

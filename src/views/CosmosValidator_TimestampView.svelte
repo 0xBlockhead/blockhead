@@ -44,10 +44,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.source || 'Cosmos validator timestamp'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={cosmosValidatorTimestamp}>
 			{#snippet children(entity)}
@@ -206,7 +202,6 @@
 					<CosmosValidatorView
 						selection={select(EntityType.CosmosValidator, selection.entitySelector.$validator)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

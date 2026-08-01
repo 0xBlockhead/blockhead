@@ -27,7 +27,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			timestampMs: Number(params.timestampMs),
-		}
+		},
+		'EvmNetworkTimestampMs'
 	)
 	if (ethereumBeaconFinalityTimestampEvmNetworkTimestampMsSelector instanceof arktype.errors)
 		error(404, 'Invalid EthereumBeaconFinality_Timestamp selector')

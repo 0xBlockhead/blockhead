@@ -87,7 +87,6 @@
 			<EvmRollupView
 				selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -222,7 +221,6 @@
 					<EvmRollupView
 						selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

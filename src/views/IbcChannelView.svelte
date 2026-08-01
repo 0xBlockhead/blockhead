@@ -44,10 +44,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.channelId || 'IBC channel'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={ibcChannel}>
 			{#snippet children(entity)}
@@ -262,7 +258,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

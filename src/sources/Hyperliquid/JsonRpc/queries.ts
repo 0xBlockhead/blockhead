@@ -1,6 +1,7 @@
 import { throwHttpError } from '$/lib/http.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { Source } from '$/sources/Source.ts'
+import { ApiFamily } from '$/sources/SourceBinding.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
@@ -14,7 +15,12 @@ import type {
 } from '$/sources/Hyperliquid/JsonRpc/types.ts'
 import bindings from '$/sources/Hyperliquid/bindings.ts'
 
-const binding = bindings[Source.Hyperliquid_JsonRpc]
+const binding = bindings[Source.Hyperliquid].find(
+	({ apiFamily }) => apiFamily === ApiFamily.EvmExecutionJsonRpc
+)
+
+if (binding == null)
+	throw new Error('Hyperliquid EVM binding is missing')
 
 export const hyperliquidJsonRpcEndpoints = binding.endpoints.map((endpoint) => ({
 	url: endpoint.locator,

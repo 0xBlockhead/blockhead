@@ -84,7 +84,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -181,7 +180,6 @@
 									selection={select(EntityType.QuilibriumShard, quilibriumShard[EntityMetaKey.Selector])}
 									prefetched={quilibriumShard}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -201,7 +199,6 @@
 									selection={select(EntityType.QuilibriumProver, quilibriumProver[EntityMetaKey.Selector])}
 									prefetched={quilibriumProver}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

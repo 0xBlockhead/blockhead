@@ -10,10 +10,6 @@ export default {
 	label: 'LND',
 	sources: [
 		{
-			source: Source.LightningLnd_Grpc,
-			label: 'LND gRPC',
-		},
-		{
 			source: Source.LightningLnd_Rest,
 			label: 'LND REST',
 		},

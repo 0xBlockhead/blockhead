@@ -10,7 +10,7 @@ import {
 
 const binding = bindings[Source.ZeroGChain_JsonRpc]
 
-export const getBlockNumber = async (): Promise<`0x${string}`> => (
+export const getBlockNumber = async () => (
 	`0x${(await getEvmBlockNumber(binding)).toString(16)}`
 )
 

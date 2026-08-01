@@ -167,12 +167,7 @@
 			{#snippet SectionGitRepositoryRefs({ id, label, open })}
 				<GitRefsView
 					selection={selection.$$refs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No refs.'
 					id={`${id}-list`}
@@ -182,12 +177,7 @@
 			{#snippet SectionGitRepositoryObjectList({ id, label, open })}
 				<GitObjectsView
 					selection={selection.$$objects}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No objects.'
 					id={`${id}-list`}
@@ -223,12 +213,7 @@
 			{#snippet SectionGitRepositoryRemoteList({ id, label, open })}
 				<GitRemotesView
 					selection={selection.$$remotes}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No remotes.'
 					id={`${id}-list`}
@@ -238,12 +223,7 @@
 			{#snippet SectionGitRepositoryFetches({ id, label, open })}
 				<GitFetchObservationsView
 					selection={selection.$$fetches}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No fetch observations.'
 					id={`${id}-list`}

@@ -11,7 +11,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['A Bluesky feed post record addressed by an at-URI inside an actor repository. Text, author, reply edges, labels, languages, and engagement counts resolve through appview sources.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.AtprotoPost> = $props()
@@ -26,7 +25,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.AtprotoPost}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {

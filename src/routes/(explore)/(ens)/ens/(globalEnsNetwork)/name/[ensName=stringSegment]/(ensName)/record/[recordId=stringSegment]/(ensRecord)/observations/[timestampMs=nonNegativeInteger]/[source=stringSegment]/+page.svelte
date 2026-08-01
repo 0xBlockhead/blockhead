@@ -15,31 +15,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EnsRecord_Timestamp, {
-		$record: {
-			$name: {
-				name: decodeURIComponent(params.ensName),
-			},
-			recordKey: decodeURIComponent(params.recordId),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [({
-			$record: {
-				$name: {
-					name: decodeURIComponent(params.ensName),
-				},
-				recordKey: decodeURIComponent(params.recordId),
-			},
-			timestampMs: Number(params.timestampMs),
-			source: params.source,
-		}).source],
-		fields: {
-			value: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -54,6 +29,31 @@
 
 <Page>
 	<EnsRecord_TimestampView
-		selection={pageSelection}
+		selection={
+			select(EntityType.EnsRecord_Timestamp, {
+				$record: {
+					$name: {
+						name: decodeURIComponent(params.ensName),
+					},
+					recordKey: decodeURIComponent(params.recordId),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [({
+					$record: {
+						$name: {
+							name: decodeURIComponent(params.ensName),
+						},
+						recordKey: decodeURIComponent(params.recordId),
+					},
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}).source],
+				fields: {
+					value: true,
+				},
+			})
+		}
 	/>
 </Page>

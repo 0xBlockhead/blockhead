@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -31,15 +30,10 @@
 <EntityView
 	entityType={EntityType.TezosBigMapKey_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'tezos big map key timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		tezos big map key timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +42,6 @@
 					<TezosBigMapKeyView
 						selection={select(EntityType.TezosBigMapKey, selection.entitySelector.$bigMapKey)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -34,12 +34,8 @@
 
 	<BlockheadAccountsView
 		href={resolve('/~/accounts')}
-		title='Accounts'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='blockhead-accounts'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

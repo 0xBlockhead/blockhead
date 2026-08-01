@@ -11,7 +11,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['An account address in the EVM address space, independent of any one chain.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.EvmAccount> = $props()
@@ -26,7 +25,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.EvmAccount}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {

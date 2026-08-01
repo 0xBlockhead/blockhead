@@ -37,11 +37,7 @@
 				}
 			)
 		}
-		title='ERC-4337 smart accounts'
 		selection={select(EntityType.Network, data.selector).Evm.$$erc4337SmartAccounts}
 		id='erc4337-smart-accounts'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

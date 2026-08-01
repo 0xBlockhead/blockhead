@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -31,15 +30,10 @@
 <EntityView
 	entityType={EntityType.HederaContractAction}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'hedera contract action'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		hedera contract action
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +42,6 @@
 					<HederaContractResultView
 						selection={select(EntityType.HederaContractResult, selection.entitySelector.$result)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

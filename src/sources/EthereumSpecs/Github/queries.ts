@@ -9,24 +9,35 @@ const consensusSpecsConfigYamlFilenameByPreset = {
 	holesky: 'holesky.yaml',
 } satisfies Record<ConsensusSpecsNetworkPreset, string>
 
-const binding = bindings[Source.EthereumSpecs_Github][2]
+const bindingByTargetKey = Object.fromEntries(
+	bindings[Source.EthereumSpecs_Github].map((binding) => ([
+		binding.target.key,
+		binding,
+	] as const))
+)
 
-export const fetchConsensusSpecsConfigYaml = async ({
+export const fetchConsensusSpecsConfigYaml = ({
 	preset,
 }: {
 	preset: ConsensusSpecsNetworkPreset
 }) => (
-	getText(binding, consensusSpecsConfigYamlFilenameByPreset[preset])
+	getText(
+		bindingByTargetKey['ethereum/consensus-specs@master:configs'],
+		consensusSpecsConfigYamlFilenameByPreset[preset]
+	)
 )
 
-export const fetchGoEthereumParamsConfigGo = async () => (
-	getText(binding)
+export const fetchGoEthereumParamsConfigGo = () => (
+	getText(bindingByTargetKey['ethereum/go-ethereum@master:params/config.go'])
 )
 
-export const fetchExecutionSpecsMainnetUpgradeMarkdown = async ({
+export const fetchExecutionSpecsMainnetUpgradeMarkdown = ({
 	filename,
 }: {
 	filename: string
 }) => (
-	getText(binding, filename)
+	getText(
+		bindingByTargetKey['ethereum/execution-specs@8dbde99b65d519ea4c96084d784f85957e9314d0:network-upgrades/mainnet-upgrades'],
+		filename
+	)
 )

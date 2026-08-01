@@ -66,7 +66,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadSiweChallenge}>
 			{#snippet children(entity)}
-				{String(entity.verified) || entity.domain || titleFallback}
+				{String(entity.verified)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -101,7 +101,6 @@
 								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 								prefetched={network}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -119,7 +118,6 @@
 								selection={select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector])}
 								prefetched={blockheadRoom}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -175,7 +173,6 @@
 								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 								prefetched={evmAccount}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

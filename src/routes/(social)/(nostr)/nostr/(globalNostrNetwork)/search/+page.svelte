@@ -2,12 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import { EntityType } from '$/schema/EntityType.ts'
+	import { resolve } from '$app/paths'
 	import { goto } from '$app/navigation'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	let query = $state('')

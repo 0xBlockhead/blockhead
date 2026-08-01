@@ -77,7 +77,6 @@
 					<BlockheadIntentOrderView
 						selection={select(EntityType.BlockheadIntentOrder, selection.entitySelector.$order)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

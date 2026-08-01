@@ -1,11 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
 const bindings = [
 	{
-		source: Source.Pathfinder_JsonRpc,
+		source: Source.Pathfinder,
 		target: {
 			kind: SourceTargetKind.NetworkSlug,
 			key: 'starknet',
@@ -13,8 +13,7 @@ const bindings = [
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://{pathfinder-rpc-host}',
-				origin: 'https://{pathfinder-rpc-host}',
+				locator: 'http://127.0.0.1:9545/rpc/v0_10',
 				corsEnabled: false,
 			},
 		],
@@ -23,13 +22,19 @@ const bindings = [
 		operationGroups: [
 			SourceOperationGroup.GenericRead,
 		],
-		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
+		delivery: SourceDelivery.LocalOnly,
+		credentials: [],
+		artifacts: [
 			{
-				scope: SourceCredentialScope.None,
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/openrpc.json',
+			},
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/schema-source.ts',
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Pathfinder_JsonRpc]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

@@ -1,16 +1,15 @@
-import { getGithubContents, getGithubRawText } from '$/sources/_shared/hosts/Github/Http/client.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/CodexNetworkPresets/bindings.ts'
+import {
+	getGithubContents,
+	getGithubRawText,
+	githubRepositoryTargetFromKey,
+} from '$/sources/_shared/hosts/Github/Http/client.ts'
+import { Source } from '$/sources/Source.ts'
 
-const target = {
-	owner: 'codex-storage-network',
-	repo: 'codex-network-presets',
-	ref: 'master',
-	path: '',
-}
+const binding = bindings[Source.CodexNetworkPresets_Github]
+const target = githubRepositoryTargetFromKey(binding.target.key)
 
-export const getContents = (
-	binding: SourceBinding
-) => (
+export const getContents = () => (
 	getGithubContents({
 		binding,
 		target,
@@ -18,7 +17,6 @@ export const getContents = (
 )
 
 export const getRawText = (
-	binding: SourceBinding,
 	path: string
 ) => (
 	getGithubRawText({

@@ -77,7 +77,6 @@
 					<BlockheadStateChannelDepositView
 						selection={select(EntityType.BlockheadStateChannelDeposit, selection.entitySelector.$deposit)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

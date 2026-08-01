@@ -213,7 +213,6 @@
 									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
 									prefetched={aiArtifact}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

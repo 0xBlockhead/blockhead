@@ -79,7 +79,6 @@
 					<SolanaTransactionView
 						selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

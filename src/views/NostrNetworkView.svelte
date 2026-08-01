@@ -55,12 +55,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Compatibility protocol row for the Nostr network concept. The product-backed observed is modeled by _GlobalNostrNetwork.
-		</p>
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>

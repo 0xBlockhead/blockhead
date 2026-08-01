@@ -79,7 +79,6 @@
 					<A2aTaskView
 						selection={select(EntityType.A2aTask, selection.entitySelector.$task)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

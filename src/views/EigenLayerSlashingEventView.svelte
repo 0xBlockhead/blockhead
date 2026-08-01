@@ -26,7 +26,6 @@
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
 			Source.EigenLayerContracts_Evm,
-			Source.EigenLayerSubgraph_Graphql,
 			Source.Etherscan_Rest,
 			Source.Voltaire_JsonRpc,
 		],
@@ -68,7 +67,6 @@
 						selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
 						prefetched={eigenLayerOperator}
 						layout={EntityLayout.Title}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -85,7 +83,6 @@
 						selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
 						prefetched={eigenLayerAvs}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -121,7 +118,6 @@
 									selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
 									prefetched={eigenLayerOperator}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -141,7 +137,6 @@
 									selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
 									prefetched={eigenLayerAvs}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -161,7 +156,6 @@
 									selection={select(EntityType.EigenLayerStrategy, eigenLayerStrategy[EntityMetaKey.Selector])}
 									prefetched={eigenLayerStrategy}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -268,7 +262,6 @@
 								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 								prefetched={network}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

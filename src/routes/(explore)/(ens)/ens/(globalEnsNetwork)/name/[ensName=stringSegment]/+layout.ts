@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		EnsNameSchema,
 		{
 			name: decodeURIComponent(params.ensName),
-		}
+		},
+		'NormalizedName'
 	)
 	if (ensNameNormalizedNameSelector instanceof arktype.errors)
 		error(404, 'Invalid EnsName selector')

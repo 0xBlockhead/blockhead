@@ -80,7 +80,6 @@
 							selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
 							prefetched={blockheadAgentConnection}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -109,7 +108,6 @@
 									selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
 									prefetched={blockheadAgentConnection}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

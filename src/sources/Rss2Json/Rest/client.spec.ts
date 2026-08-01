@@ -3,7 +3,6 @@ import { beforeEach, expect, test, vi } from 'vitest'
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
@@ -45,7 +44,6 @@ test('uses the registered HttpProxy binding', async () => {
 				{
 					endpointKind: SourceEndpointKind.HttpUrl,
 					locator: 'https://api.rss2json.com',
-					origin: 'https://api.rss2json.com',
 					corsEnabled: false,
 				},
 			],
@@ -55,11 +53,7 @@ test('uses the registered HttpProxy binding', async () => {
 				SourceOperationGroup.GenericRead,
 			],
 			delivery: SourceDelivery.HttpProxy,
-			credentials: [
-				{
-					scope: SourceCredentialScope.None,
-				},
-			],
+			credentials: [],
 		}),
 		'https://api.rss2json.com/v1/api.json?rss_url=fixture'
 	)
@@ -73,8 +67,7 @@ test('encodes an arbitrary feed URL as one reserved query value', async () => {
 
 	await getFeed(
 		'https://example.com/feed.xml?topic=a+b&redirect=https%3A%2F%2Fother.example%2Fx%3Fy%3D1%26z%3D2#latest',
-		17,
-		{}
+		17
 	)
 
 	const requestUrl = new URL(sourceGetJson.mock.calls[0][1])

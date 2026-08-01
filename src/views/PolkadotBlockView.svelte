@@ -191,7 +191,6 @@
 									selection={select(EntityType.PolkadotBlock, polkadotBlock[EntityMetaKey.Selector])}
 									prefetched={polkadotBlock}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -205,7 +204,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

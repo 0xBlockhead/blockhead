@@ -192,7 +192,6 @@
 										selection={select(EntityType.RedditSubreddit, redditSubreddit[EntityMetaKey.Selector])}
 										prefetched={redditSubreddit}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>

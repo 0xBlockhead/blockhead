@@ -30,7 +30,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 			$network: parentData.selector,
 			timestampMs: Number(params.timestampMs),
 			source: params.source,
-		}
+		},
+		'NetworkTimestampMsSource'
 	)
 	if (evmNetworkGasEstimateTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors)
 		error(404, 'Invalid EvmNetwork_GasEstimate_Timestamp selector')

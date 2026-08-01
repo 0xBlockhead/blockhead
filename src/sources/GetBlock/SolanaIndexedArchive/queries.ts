@@ -13,7 +13,7 @@ import {
 export const getSolanaTransaction = async (
 	binding: SourceBinding,
 	signature: string
-): Promise<GetBlockSolanaIndexedArchiveResponse> => {
+) => {
 	const request: GetBlockSolanaIndexedArchiveRequest = {
 		signature,
 		include: {

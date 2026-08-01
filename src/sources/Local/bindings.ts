@@ -1,7 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
 const bindings = [
 	{
@@ -22,12 +22,8 @@ const bindings = [
 			SourceOperationGroup.GenericRead,
 		],
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Local_Internal]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

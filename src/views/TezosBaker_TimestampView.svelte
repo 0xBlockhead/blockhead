@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -31,15 +30,10 @@
 <EntityView
 	entityType={EntityType.TezosBaker_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'tezos baker timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		tezos baker timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +42,6 @@
 					<TezosBakerView
 						selection={select(EntityType.TezosBaker, selection.entitySelector.$baker)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

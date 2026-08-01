@@ -10,7 +10,7 @@ const binding = bindings[Source.Lifi_Rest]
 export const lifiRestFetch = (
 	path: string,
 	init?: RequestInit
-): Promise<Response> => {
+) => {
 	return sourceFetch(
 		binding,
 		new URL(path, firstHttpUrlForBinding(binding)).toString(),

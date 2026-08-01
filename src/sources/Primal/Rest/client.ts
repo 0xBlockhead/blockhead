@@ -10,7 +10,7 @@ import {
 
 const binding = bindings[Source.Primal_Rest]
 
-export const primalGet = async <T>(path: string) => (
+export const primalGet = <T>(path: string) => (
 	sourceGetJson<T>(
 		binding,
 		`${firstHttpUrlForBinding(binding)}/v1${path.startsWith('/') ? path : `/${path}`}`

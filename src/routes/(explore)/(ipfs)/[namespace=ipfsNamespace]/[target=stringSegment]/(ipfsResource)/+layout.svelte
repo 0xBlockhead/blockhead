@@ -19,6 +19,16 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]',
+			{
+				namespace: params.namespace,
+				target: params.target,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,32 +39,18 @@
 
 {#key [params.namespace, params.target].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]',
-				{
-					namespace: params.namespace,
-					target: params.target,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<IpfsResourceView
 				selection={
-					select(EntityType.IpfsResource, data.selector, { sources: [
-						Source.Ipfs_Rest,
-					] })
+					select(EntityType.IpfsResource, data.selector, {
+						sources: [
+							Source.Ipfs_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]',
-						{
-							namespace: params.namespace,
-							target: params.target,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

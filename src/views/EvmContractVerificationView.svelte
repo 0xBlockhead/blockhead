@@ -89,7 +89,6 @@
 			<EvmContractView
 				selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -202,7 +201,6 @@
 					<EvmContractView
 						selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -219,7 +217,6 @@
 									selection={select(EntityType.EvmContractCompilation, evmContractCompilation[EntityMetaKey.Selector])}
 									prefetched={evmContractCompilation}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -239,7 +236,6 @@
 									selection={select(EntityType.EvmContractSourceBundle, evmContractSourceBundle[EntityMetaKey.Selector])}
 									prefetched={evmContractSourceBundle}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

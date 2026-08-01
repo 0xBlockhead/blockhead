@@ -64,7 +64,6 @@
 			selection={select(EntityType._GlobalSwarmAccess, selection.entitySelector.$hub)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -80,7 +79,6 @@
 					<GlobalSwarmAccessView
 						selection={select(EntityType._GlobalSwarmAccess, selection.entitySelector.$hub)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

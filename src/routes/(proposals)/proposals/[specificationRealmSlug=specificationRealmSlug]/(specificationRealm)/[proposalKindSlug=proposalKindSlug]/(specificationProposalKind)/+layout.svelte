@@ -19,6 +19,16 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]',
+			{
+				specificationRealmSlug: params.specificationRealmSlug,
+				proposalKindSlug: params.proposalKindSlug,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,32 +39,18 @@
 
 {#key [params.specificationRealmSlug, params.proposalKindSlug].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]',
-				{
-					specificationRealmSlug: params.specificationRealmSlug,
-					proposalKindSlug: params.proposalKindSlug,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<SpecificationProposalKindView
 				selection={
-					select(EntityType.SpecificationProposalKind, data.selector, { sources: [
-						Source.Constants_Internal,
-					] })
+					select(EntityType.SpecificationProposalKind, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]',
-						{
-							specificationRealmSlug: params.specificationRealmSlug,
-							proposalKindSlug: params.proposalKindSlug,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

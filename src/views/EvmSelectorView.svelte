@@ -19,16 +19,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmSelector> = $props()
 
-	const evmSelector = $derived(selection({
-		sources: selection.sources ?? [
-			Source.Openchain_Rest,
-		],
-	})({
-		fields: {
-			signatures: true,
-		},
-	}))
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -58,7 +48,17 @@
 >
 	{#snippet Title()}
 		<ResourceBoundary
-			resource={evmSelector}
+			resource={
+				selection({
+					sources: selection.sources ?? [
+						Source.Openchain_Rest,
+					],
+				})({
+					fields: {
+						signatures: true,
+					},
+				})
+			}
 			placeholderText="Loading decoded function selector..."
 		>
 			{#snippet Pending()}
@@ -72,9 +72,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<span data-text="font-monospace">
-			{selection.entitySelector.hex}
-		</span>
+		<span data-text="font-monospace">{selection.entitySelector.hex}</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}

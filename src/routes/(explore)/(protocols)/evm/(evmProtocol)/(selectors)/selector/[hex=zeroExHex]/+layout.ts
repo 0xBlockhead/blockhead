@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		EvmSelectorSchema,
 		{
 			hex: params.hex,
-		}
+		},
+		'Hex'
 	)
 	if (evmSelectorHexSelector instanceof arktype.errors)
 		error(404, 'Invalid EvmSelector selector')

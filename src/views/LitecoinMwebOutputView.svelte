@@ -71,7 +71,6 @@
 					<LitecoinMwebTransactionView
 						selection={select(EntityType.LitecoinMwebTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

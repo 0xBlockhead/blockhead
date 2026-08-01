@@ -31,9 +31,9 @@
 
 
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import UsageRight_TimestampsView from '$/views/UsageRight_TimestampsView.svelte'
 	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 	import AssetClassView from '$/views/AssetClassView.svelte'
 </script>
@@ -47,10 +47,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.objectKey || 'asset object'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={assetObject}>
 			{#snippet children(entity)}
@@ -64,15 +60,8 @@
 			<AssetInstanceView
 				selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A distinct asset object or item within an asset instance, such as an NFT or uniquely addressable collectible.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -83,7 +72,6 @@
 					<AssetInstanceView
 						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -120,7 +108,6 @@
 									selection={select(EntityType.AssetClass, assetClass[EntityMetaKey.Selector])}
 									prefetched={assetClass}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -205,12 +192,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<UsageRight_TimestampsView
-						selection={usageRightsResource}
+					<EntitiesList
+						entityType={EntityType.UsageRight_Timestamp}
 						countResource={usageRightsResource.count}
 						title='usage rights'
+						open={true}
 						id='usage-rights'
-					/>
+						resource={usageRightsResource()}
+					>
+						{#snippet Item({ item: usageRightTimestamp })}
+							<EntityView
+								entityType={EntityType.UsageRight_Timestamp}
+								entitySelector={usageRightTimestamp[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

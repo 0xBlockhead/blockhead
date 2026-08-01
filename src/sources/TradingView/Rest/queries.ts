@@ -17,6 +17,7 @@ export const getCryptoQuotes = async ({
 			'name',
 			'close',
 			'update_mode',
+			'update_time',
 		],
 	})).data
 		?.flatMap((row): TradingViewQuote[] => {
@@ -24,12 +25,13 @@ export const getCryptoQuotes = async ({
 				name,
 				price,
 				updateMode,
-			] = row.d ?? []
+				updateTimeSec,
+			] = row.d
 			return (
-				typeof row.s !== 'string'
-				|| typeof name !== 'string'
-				|| typeof price !== 'number'
-				|| typeof updateMode !== 'string' ?
+				name == null
+				|| price == null
+				|| updateMode == null
+				|| updateTimeSec == null ?
 					[]
 				:
 					[
@@ -38,6 +40,7 @@ export const getCryptoQuotes = async ({
 							name,
 							price,
 							updateMode,
+							updateTimeSec,
 						},
 					]
 			)

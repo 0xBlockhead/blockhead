@@ -1,7 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
 const bindings = [
 	{
@@ -14,13 +14,11 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://gateway.ethswarm.org',
-				origin: 'https://gateway.ethswarm.org',
 				corsEnabled: true,
 			},
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://bzz.link',
-				origin: 'https://bzz.link',
 				corsEnabled: true,
 			},
 		],
@@ -30,12 +28,8 @@ const bindings = [
 			SourceOperationGroup.ContentGatewayRead,
 		],
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Swarm_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

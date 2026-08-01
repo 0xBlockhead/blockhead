@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		NostrNoteSchema,
 		{
 			eventId: params.eventId,
-		}
+		},
+		'CanonicalEventId'
 	)
 	if (nostrNoteCanonicalEventIdSelector instanceof arktype.errors)
 		error(404, 'Invalid NostrNote selector')

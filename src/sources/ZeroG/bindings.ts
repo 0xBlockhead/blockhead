@@ -3,6 +3,10 @@
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
+const zeroGGenericReadOperationGroups = [
+	SourceOperationGroup.GenericRead,
+] as const
+
 const bindings = [
 	{
 		source: Source.ZeroGChain_JsonRpc,
@@ -14,7 +18,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://evmrpc.0g.ai',
-				origin: 'https://evmrpc.0g.ai',
 				corsEnabled: false,
 			},
 		],
@@ -24,21 +27,15 @@ const bindings = [
 			SourceOperationGroup.EvmRpcCore,
 		],
 		delivery: SourceDelivery.HttpProxy,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.OpenRpcSpec,
 				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
-				generated: false,
 			},
 		],
 	},
@@ -52,15 +49,12 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'http://127.0.0.1:5678',
-				origin: 'http://127.0.0.1:5678',
 				corsEnabled: true,
 			},
 		],
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.JsonRpcApi,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: zeroGGenericReadOperationGroups,
 		delivery: SourceDelivery.LocalOnly,
 		credentials: [
 			{
@@ -71,7 +65,6 @@ const bindings = [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/ZeroG/StorageNode/JsonRpc/types.ts',
-				generated: false,
 			},
 		],
 	},
@@ -85,26 +78,18 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://chainscan.0g.ai',
-				origin: 'https://chainscan.0g.ai',
 				corsEnabled: true,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: zeroGGenericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/ZeroG/ChainScan/Rest/types.ts',
-				generated: false,
 			},
 		],
 	},
@@ -118,34 +103,21 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://storagescan.0g.ai',
-				origin: 'https://storagescan.0g.ai',
 				corsEnabled: true,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: zeroGGenericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/ZeroG/StorageScan/Rest/types.ts',
-				generated: false,
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.ZeroGChain_JsonRpc]: typeof bindings[0]
-	readonly [Source.ZeroGStorageNode_JsonRpc]: typeof bindings[1]
-	readonly [Source.ZeroGChainScan_Rest]: typeof bindings[2]
-	readonly [Source.ZeroGStorageScan_Rest]: typeof bindings[3]
-}>(bindings)
+export default indexSourceBindings(bindings)

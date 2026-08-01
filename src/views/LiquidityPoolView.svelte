@@ -28,7 +28,7 @@
 	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	}))
 	const viewDomId = $derived('liquidity-pool-' + encodeURIComponent(stringify(selection.entitySelector)))
@@ -87,7 +87,6 @@
 			<NetworkView
 				selection={select(EntityType.Network, selection.entitySelector.$network)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -100,7 +99,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -126,7 +124,6 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -146,7 +143,6 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -166,7 +162,6 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -276,12 +271,7 @@
 			{#snippet SectionLiquidityPoolBlocks({ id, label, open })}
 				<LiquidityPool_BlocksView
 					selection={selection.$$blocks}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No liquidity pool blocks yet.'
 					id={`${id}-list`}
@@ -291,12 +281,7 @@
 			{#snippet SectionLiquidityPoolLeverages({ id, label, open })}
 				<LeveragesView
 					selection={selection.$$leverages}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No leverage positions yet.'
 					id={`${id}-list`}
@@ -328,12 +313,7 @@
 			{#snippet SectionLiquidityPoolTimestamps({ id, label, open })}
 				<LiquidityPool_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No liquidity pool observations yet.'
 					id={`${id}-list`}

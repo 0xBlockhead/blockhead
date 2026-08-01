@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -33,15 +32,10 @@
 <EntityView
 	entityType={EntityType.TezosOperation}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'tezos operation'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		tezos operation
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -50,7 +44,6 @@
 					<TezosOperationGroupView
 						selection={select(EntityType.TezosOperationGroup, selection.entitySelector.$operationGroup)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -398,7 +391,6 @@
 									selection={select(EntityType.TezosBlock, tezosBlock[EntityMetaKey.Selector])}
 									prefetched={tezosBlock}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

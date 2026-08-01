@@ -16,22 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.FarcasterUser_Timestamp, {
-		$user: {
-			fid: Number(params.userId),
-		},
-		timestampMs: Number(params.timestampMs),
-	}, {
-		sources: [
-			Source.Snapchain_Rest,
-			Source.Neynar_Rest,
-		],
-		fields: {
-			followerCount: true,
-			followingCount: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -46,6 +30,22 @@
 
 <Page>
 	<FarcasterUser_TimestampView
-		selection={pageSelection}
+		selection={
+			select(EntityType.FarcasterUser_Timestamp, {
+				$user: {
+					fid: Number(params.userId),
+				},
+				timestampMs: Number(params.timestampMs),
+			}, {
+				sources: [
+					Source.Snapchain_Rest,
+					Source.Neynar_Rest,
+				],
+				fields: {
+					followerCount: true,
+					followingCount: true,
+				},
+			})
+		}
 	/>
 </Page>

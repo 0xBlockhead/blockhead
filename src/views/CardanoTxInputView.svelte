@@ -110,7 +110,6 @@
 					<CardanoTransactionView
 						selection={select(EntityType.CardanoTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -194,7 +193,6 @@
 									selection={select(EntityType.CardanoTxOutput, cardanoTxOutput[EntityMetaKey.Selector])}
 									prefetched={cardanoTxOutput}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

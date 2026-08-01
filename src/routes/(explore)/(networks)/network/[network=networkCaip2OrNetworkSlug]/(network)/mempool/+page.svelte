@@ -40,8 +40,5 @@
 		title='Mempool'
 		selection={select(EntityType.Network, data.selector).Evm.$$txpoolTimestamps}
 		id='txpool-timestamps'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

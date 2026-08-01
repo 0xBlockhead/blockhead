@@ -11,7 +11,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['A bounded NostrBand profile search addressed by its normalized query.'],
 		open = $bindable(true),
 		id = 'NostrSearchQueries-list',
 		...EntitiesListProps
@@ -28,7 +27,6 @@
 	entityType={EntityType.NostrSearchQuery}
 	{id}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {
@@ -53,7 +51,7 @@
 			}
 		>
 			{#snippet Title()}
-				{nostrSearchQuerySelector.query || 'Nostr profile search'}
+				{['Search: ', nostrSearchQuerySelector.query].filter(Boolean).join(' ') || 'Nostr profile search'}
 			{/snippet}
 
 			{#snippet Value()}

@@ -53,10 +53,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.transportSessionId || 'blockhead wallet transport session'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadWalletTransportSession}>
 			{#snippet children(entity)}
@@ -93,7 +89,6 @@
 									selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector])}
 									prefetched={blockheadWalletConnection}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

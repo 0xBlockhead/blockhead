@@ -72,7 +72,6 @@
 			selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -88,7 +87,6 @@
 					<ActivityPubNoteView
 						selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

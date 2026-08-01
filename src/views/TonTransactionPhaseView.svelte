@@ -35,10 +35,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		TON transaction phase
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -47,7 +43,6 @@
 					<TonTransactionView
 						selection={select(EntityType.TonTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

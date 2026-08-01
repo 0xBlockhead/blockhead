@@ -5,43 +5,46 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
-	entityFieldAddressKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannelStatus.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	LndChannel,
+	LndGetInfoResponse,
 	LndInvoice,
 	LndPayment,
 } from '$/sources/LightningLnd/Rest/types.ts'
 
-type NetworkId = { caip2: {
-	namespace: string
-	reference: string
-} } | { slug: string }
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const lightningNetwork = {
+	slug: 'lightning',
+} as const
 
 const assertLightningNetwork = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== 'lightning')
 		throw new Error('LightningLnd_Rest: unsupported Lightning network')
 }
 
-const bigintFromWire = (value: string | null | undefined): bigint | undefined => (
+const bigintFromWire = (value: string | null | undefined) => (
 	value == null || value === '' ?
 		undefined
 	:
 		BigInt(value)
 )
 
-const timestampMsFromSeconds = (seconds: string | null | undefined): number | undefined => (
+const timestampMsFromSeconds = (seconds: string | null | undefined) => (
 	seconds == null || seconds === '' ?
 		undefined
 	:
 		Number(seconds) * 1000
 )
 
-const timestampMsFromNanoseconds = (nanoseconds: string | null | undefined): number | undefined => (
+const timestampMsFromNanoseconds = (nanoseconds: string | null | undefined) => (
 	nanoseconds == null || nanoseconds === '' ?
 		undefined
 	:
@@ -56,7 +59,7 @@ const channelPointParts = (channelPoint: string) => {
 	}
 }
 
-const channelStatusFromLndChannel = (channel: LndChannel): LightningChannelStatus => (
+const channelStatusFromLndChannel = (channel: LndChannel) => (
 	channel.active === true ?
 		LightningChannelStatus.Active
 	:
@@ -66,43 +69,30 @@ const channelStatusFromLndChannel = (channel: LndChannel): LightningChannelStatu
 			LightningChannelStatus.Unknown
 )
 
-const lightningTimestampMs = () => Date.now()
+const lightningNodeTimestampFields = (
+	publicKey: string,
+	info: LndGetInfoResponse,
+	channels: LndChannel[]
+) => {
+	if (publicKey === info.identity_pubkey)
+		return {
+			alias: info.alias,
+			color: info.color,
+			channelCount: (info.num_active_channels ?? 0) + (info.num_inactive_channels ?? 0),
+			networkAddresses: info.uris ?? [],
+		}
 
-const lightningNodeTimestampFields = ({
-	nodeId,
-	timestampMs,
-	alias,
-	color,
-	channelCount,
-	networkAddresses,
-}: {
-	nodeId: {
-		$network: NetworkId
-		publicKey: string
+	const channelsForNode = channels.filter((channel) => channel.remote_pubkey === publicKey)
+	if (channelsForNode.length === 0)
+		throw new Error(`LightningLnd_Rest: node not found ${publicKey}`)
+
+	return {
+		alias: undefined,
+		color: undefined,
+		channelCount: channelsForNode.length,
+		networkAddresses: [],
 	}
-	timestampMs: number
-	alias?: string
-	color?: string
-	channelCount?: number
-	networkAddresses?: string[]
-}) => ({
-	[EntityMetaKey.Selector]: {
-		$node: nodeId,
-		timestampMs,
-		source: Source.LightningLnd_Rest,
-	},
-	[EntityMetaKey.Fields]: {
-		[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], '$node')]: {
-			[EntityMetaKey.Selector]: nodeId,
-		},
-		[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'timestampMs')]: timestampMs,
-		[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'source')]: Source.LightningLnd_Rest,
-		[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'alias')]: alias,
-		[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'color')]: color,
-		[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'channelCount')]: channelCount,
-		[entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'networkAddresses')]: networkAddresses ?? [],
-	},
-})
+}
 
 const invoiceStateFromLnd = (state: string | null | undefined) => (
 	state === 'OPEN' ?
@@ -115,9 +105,9 @@ const invoiceStateFromLnd = (state: string | null | undefined) => (
 				'Canceled'
 			:
 				state === 'ACCEPTED' ?
-				'Accepted'
-			:
-				'Unknown'
+					'Accepted'
+				:
+					'Unknown'
 )
 
 const paymentStatusFromLnd = (status: string | null | undefined) => (
@@ -135,160 +125,112 @@ const paymentStatusFromLnd = (status: string | null | undefined) => (
 
 const channelFieldsFromLndChannel = (
 	channel: LndChannel,
-	timestampMs = lightningTimestampMs()
-) => ({
-	[EntityMetaKey.Selector]: {
-		$network: {
-			slug: 'lightning',
-		},
-		channelId: channel.chan_id,
-	},
-	[EntityMetaKey.Fields]: {
-		[entityFieldAddressKey(EntityType.LightningChannel, [], '$node1')]: {
+	timestampMs = Date.now()
+) => {
+	const channelPoint = channelPointParts(channel.channel_point)
+	return {
+		$node1: {
 			[EntityMetaKey.Selector]: {
-				$network: {
-					slug: 'lightning',
-				},
+				$network: lightningNetwork,
 				publicKey: channel.remote_pubkey,
 			},
 		},
-		[entityFieldAddressKey(EntityType.LightningChannel, [], 'fundingTransactionId')]: channelPointParts(channel.channel_point).fundingTransactionId,
-		[entityFieldAddressKey(EntityType.LightningChannel, [], 'fundingOutputIndex')]: channelPointParts(channel.channel_point).fundingOutputIndex,
-		[entityFieldAddressKey(EntityType.LightningChannel, [], '$$timestamps')]: [
-		{
-			[EntityMetaKey.Selector]: {
-				$channel: {
-					$network: {
-						slug: 'lightning',
-					},
-					channelId: channel.chan_id,
-				},
-				timestampMs,
-				source: Source.LightningLnd_Rest,
-			},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], '$channel')]: {
-					[EntityMetaKey.Selector]: {
-						$network: {
-							slug: 'lightning',
-						},
+		fundingTransactionId: channelPoint.fundingTransactionId,
+		fundingOutputIndex: channelPoint.fundingOutputIndex,
+		$$timestamps: [
+			{
+				[EntityMetaKey.Selector]: {
+					$channel: {
+						$network: lightningNetwork,
 						channelId: channel.chan_id,
 					},
+					timestampMs,
+					source: Source.LightningLnd_Rest,
 				},
-				[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'timestampMs')]: timestampMs,
-				[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'source')]: Source.LightningLnd_Rest,
-				[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'status')]: channelStatusFromLndChannel(channel),
-				[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: bigintFromWire(channel.capacity),
 			},
-		},
 		],
+	}
+}
+
+const channelTimestampFieldsFromLndChannel = (channel: LndChannel) => ({
+	status: channelStatusFromLndChannel(channel),
+	capacitySats: bigintFromWire(channel.capacity),
+})
+
+const channelReferenceFromLndChannel = (channel: LndChannel) => ({
+	[EntityMetaKey.Selector]: {
+		$network: lightningNetwork,
+		channelId: channel.chan_id,
 	},
 })
 
-const invoicePaymentHash = (invoice: LndInvoice): string | undefined => (
+const invoicePaymentHash = (invoice: LndInvoice) => (
 	invoice.r_hash_str ?? invoice.r_hash
 )
 
 const invoiceFieldsFromLndInvoice = (
 	invoice: LndInvoice,
-	timestampMs = lightningTimestampMs()
+	paymentHash: string,
+	timestampMs = Date.now()
 ) => ({
-	[EntityMetaKey.Selector]: {
-		$network: {
-			slug: 'lightning',
-		},
-		paymentHash: invoicePaymentHash(invoice) ?? '',
-	},
-	[EntityMetaKey.Fields]: {
-		[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'paymentRequest')]: invoice.payment_request,
-		[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'memo')]: invoice.memo,
-		[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'valueMsat')]: bigintFromWire(invoice.value_msat),
-		[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'createdAtMs')]: timestampMsFromSeconds(invoice.creation_date),
-		[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'expirySeconds')]: invoice.expiry == null ? undefined : Number(invoice.expiry),
-		[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'private')]: invoice.private,
-		[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'addIndex')]: bigintFromWire(invoice.add_index),
-		[entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], '$$timestamps')]: [
+	paymentRequest: invoice.payment_request,
+	memo: invoice.memo,
+	valueMsat: bigintFromWire(invoice.value_msat),
+	createdAtMs: timestampMsFromSeconds(invoice.creation_date),
+	expirySeconds: invoice.expiry == null ? undefined : Number(invoice.expiry),
+	private: invoice.private,
+	addIndex: bigintFromWire(invoice.add_index),
+	$$timestamps: [
 		{
 			[EntityMetaKey.Selector]: {
 				$invoice: {
-					$network: {
-						slug: 'lightning',
-					},
-					paymentHash: invoicePaymentHash(invoice) ?? '',
+					$network: lightningNetwork,
+					paymentHash,
 				},
 				timestampMs,
 				source: Source.LightningLnd_Rest,
 			},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], '$invoice')]: {
-					[EntityMetaKey.Selector]: {
-						$network: {
-							slug: 'lightning',
-						},
-						paymentHash: invoicePaymentHash(invoice) ?? '',
-					},
-				},
-				[entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], 'timestampMs')]: timestampMs,
-				[entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], 'source')]: Source.LightningLnd_Rest,
-				[entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], 'amountPaidMsat')]: bigintFromWire(invoice.amt_paid_msat),
-				[entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], 'settledAtMs')]: timestampMsFromSeconds(invoice.settle_date),
-				[entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], 'state')]: invoiceStateFromLnd(invoice.state),
-				[entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], 'settleIndex')]: bigintFromWire(invoice.settle_index),
-			},
 		},
-		],
-	},
+	],
+})
+
+const invoiceTimestampFieldsFromLndInvoice = (invoice: LndInvoice) => ({
+	amountPaidMsat: bigintFromWire(invoice.amt_paid_msat),
+	settledAtMs: timestampMsFromSeconds(invoice.settle_date),
+	state: invoiceStateFromLnd(invoice.state),
+	settleIndex: bigintFromWire(invoice.settle_index),
 })
 
 const paymentFieldsFromLndPayment = (
 	payment: LndPayment,
-	timestampMs = lightningTimestampMs()
+	timestampMs = Date.now()
 ) => ({
-	[EntityMetaKey.Selector]: {
-		$network: {
-			slug: 'lightning',
-		},
-		paymentHash: payment.payment_hash,
-	},
-	[EntityMetaKey.Fields]: {
-		[entityFieldAddressKey(EntityType.BlockheadLightningPayment, [], 'paymentRequest')]: payment.payment_request,
-		[entityFieldAddressKey(EntityType.BlockheadLightningPayment, [], 'valueMsat')]: bigintFromWire(payment.value_msat),
-		[entityFieldAddressKey(EntityType.BlockheadLightningPayment, [], 'createdAtMs')]: (
+	paymentRequest: payment.payment_request,
+	valueMsat: bigintFromWire(payment.value_msat),
+	createdAtMs: (
 		timestampMsFromNanoseconds(payment.creation_time_ns)
 		?? timestampMsFromSeconds(payment.creation_date)
-		),
-		[entityFieldAddressKey(EntityType.BlockheadLightningPayment, [], 'paymentIndex')]: bigintFromWire(payment.payment_index),
-		[entityFieldAddressKey(EntityType.BlockheadLightningPayment, [], '$$timestamps')]: [
+	),
+	paymentIndex: bigintFromWire(payment.payment_index),
+	$$timestamps: [
 		{
 			[EntityMetaKey.Selector]: {
 				$payment: {
-					$network: {
-						slug: 'lightning',
-					},
+					$network: lightningNetwork,
 					paymentHash: payment.payment_hash,
 				},
 				timestampMs,
 				source: Source.LightningLnd_Rest,
 			},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], '$payment')]: {
-					[EntityMetaKey.Selector]: {
-						$network: {
-							slug: 'lightning',
-						},
-						paymentHash: payment.payment_hash,
-					},
-				},
-				[entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], 'timestampMs')]: timestampMs,
-				[entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], 'source')]: Source.LightningLnd_Rest,
-				[entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], 'feeMsat')]: bigintFromWire(payment.fee_msat),
-				[entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], 'status')]: paymentStatusFromLnd(payment.status),
-				[entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], 'failureReason')]: payment.failure_reason,
-				[entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], 'preimage')]: payment.payment_preimage,
-			},
 		},
-		],
-	},
+	],
+})
+
+const paymentTimestampFieldsFromLndPayment = (payment: LndPayment) => ({
+	feeMsat: bigintFromWire(payment.fee_msat),
+	status: paymentStatusFromLnd(payment.status),
+	failureReason: payment.failure_reason,
+	preimage: payment.payment_preimage,
 })
 
 const lndChannels = async (context: SourceResolverContext<Source.LightningLnd_Rest>) => {
@@ -325,12 +267,12 @@ export default {
 							},
 						}
 					},
-				}
+				},
 			},
 		})({
-				name: (network) => network.name,
-				$settlementNetwork: (network) => network.$settlementNetwork,
-			}),
+			name: (network) => network.name,
+			$settlementNetwork: (network) => network.$settlementNetwork,
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.BlockheadLightningNodeState,
@@ -357,12 +299,12 @@ export default {
 				},
 			},
 		})({
-				connectionId: (state) => state.connectionId,
-				$network: (state) => state.$network,
-				lndPubkey: (state) => state.lndPubkey,
-				alias: (state) => state.alias,
-				$node: (state) => state.$node,
-			}),
+			connectionId: (state) => state.connectionId,
+			$network: (state) => state.$network,
+			lndPubkey: (state) => state.lndPubkey,
+			alias: (state) => state.alias,
+			$node: (state) => state.$node,
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNode,
@@ -372,82 +314,52 @@ export default {
 						assertLightningNetwork($network)
 						const info = await lndInfo(context)
 						const channels = await lndChannels(context)
-						if (publicKey === info.identity_pubkey)
-							return {
-								$$timestamps: [
-									lightningNodeTimestampFields({
-										nodeId: {
+						lightningNodeTimestampFields(publicKey, info, channels)
+						return {
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$node: {
 											$network,
 											publicKey,
 										},
-										timestampMs: lightningTimestampMs(),
-										alias: info.alias,
-										color: info.color,
-										channelCount: (info.num_active_channels ?? 0) + (info.num_inactive_channels ?? 0),
-										networkAddresses: info.uris ?? [],
-									}),
-								],
-							}
-						if (!channels.some((channel) => channel.remote_pubkey === publicKey))
-							throw new Error(`LightningLnd_Rest: node not found ${publicKey}`)
-						return {
-							$$timestamps: [
-								lightningNodeTimestampFields({
-									nodeId: {
-										$network,
-										publicKey,
+										timestampMs: Date.now(),
+										source: Source.LightningLnd_Rest,
 									},
-									timestampMs: lightningTimestampMs(),
-									channelCount: channels.filter((channel) => channel.remote_pubkey === publicKey).length,
-								}),
+								},
 							],
 						}
 					},
-				}
+				},
 			},
 		})({
-				$$timestamps: (node) => node.$$timestamps.map((timestamp) => ({
-					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-				})),
-			}),
+			$$timestamps: (node) => node.$$timestamps,
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNode_Timestamp,
 			resolve: {
 				NodeTimestampMsSource: {
-					resolve: async ({ $node, timestampMs, source }, context) => {
+					resolve: async ({ $node, source }, context) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($node.$network)
 						const info = await lndInfo(context)
 						const channels = await lndChannels(context)
-						if ($node.publicKey === info.identity_pubkey)
-							return lightningNodeTimestampFields({
-								nodeId: $node,
-								timestampMs,
-								alias: info.alias,
-								color: info.color,
-								channelCount: (info.num_active_channels ?? 0) + (info.num_inactive_channels ?? 0),
-								networkAddresses: info.uris ?? [],
-							})
-						if (!channels.some((channel) => channel.remote_pubkey === $node.publicKey))
-							throw new Error(`LightningLnd_Rest: node not found ${$node.publicKey}`)
-						return lightningNodeTimestampFields({
-							nodeId: $node,
-							timestampMs,
-							channelCount: channels.filter((channel) => channel.remote_pubkey === $node.publicKey).length,
-						})
+						return lightningNodeTimestampFields($node.publicKey, info, channels)
 					},
 				},
 			},
 		})({
-				$node: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], '$node')],
-				timestampMs: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'timestampMs')],
-				source: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'source')],
-				alias: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'alias')],
-				color: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'color')],
-				channelCount: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'channelCount')],
-				networkAddresses: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.LightningNode_Timestamp, [], 'networkAddresses')],
+			$node: (_timestamp, { $node }) => ({
+				[EntityMetaKey.Selector]: $node,
 			}),
+			timestampMs: (_timestamp, { timestampMs }) => timestampMs,
+			source: (_timestamp, { source }) => source,
+			alias: (timestamp) => timestamp.alias,
+			color: (timestamp) => timestamp.color,
+			channelCount: (timestamp) => timestamp.channelCount,
+			networkAddresses: (timestamp) => timestamp.networkAddresses,
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningChannel,
@@ -460,38 +372,38 @@ export default {
 							throw new Error(`LightningLnd_Rest: channel not found ${channelId}`)
 						return channelFieldsFromLndChannel(channel)
 					},
-				}
+				},
 			},
 		})({
-				$node1: (channel) => channel[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.LightningChannel, [], '$node1')],
-				fundingTransactionId: (channel) => channel[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.LightningChannel, [], 'fundingTransactionId')],
-				fundingOutputIndex: (channel) => channel[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.LightningChannel, [], 'fundingOutputIndex')],
-				$$timestamps: (channel) => channel[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.LightningChannel, [], '$$timestamps')].map((timestamp) => ({
-					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-				})),
-			}),
+			$node1: (channel) => channel.$node1,
+			fundingTransactionId: (channel) => channel.fundingTransactionId,
+			fundingOutputIndex: (channel) => channel.fundingOutputIndex,
+			$$timestamps: (channel) => channel.$$timestamps,
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningChannel_Timestamp,
 			resolve: {
 				ChannelTimestampMsSource: {
-					resolve: async ({ $channel, timestampMs, source }, context) => {
+					resolve: async ({ $channel, source }, context) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($channel.$network)
 						const channel = (await lndChannels(context)).find((channel) => channel.chan_id === $channel.channelId)
 						if (channel == null)
 							throw new Error(`LightningLnd_Rest: channel not found ${$channel.channelId}`)
-						return channelFieldsFromLndChannel(channel, timestampMs)[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.LightningChannel, [], '$$timestamps')][0]
+						return channelTimestampFieldsFromLndChannel(channel)
 					},
 				},
 			},
 		})({
-				$channel: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], '$channel')],
-				timestampMs: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'timestampMs')],
-				source: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'source')],
-				status: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'status')],
-				capacitySats: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')],
+			$channel: (_timestamp, { $channel }) => ({
+				[EntityMetaKey.Selector]: $channel,
 			}),
+			timestampMs: (_timestamp, { timestampMs }) => timestampMs,
+			source: (_timestamp, { source }) => source,
+			status: (timestamp) => timestamp.status,
+			capacitySats: (timestamp) => timestamp.capacitySats,
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.BlockheadLightningInvoice,
@@ -507,28 +419,26 @@ export default {
 						).find((invoice) => invoicePaymentHash(invoice) === paymentHash)
 						if (invoice == null)
 							throw new Error(`LightningLnd_Rest: invoice not found ${paymentHash}`)
-						return invoiceFieldsFromLndInvoice(invoice)
+						return invoiceFieldsFromLndInvoice(invoice, paymentHash)
 					},
-				}
+				},
 			},
 		})({
-				paymentRequest: (invoice) => invoice[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'paymentRequest')],
-				memo: (invoice) => invoice[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'memo')],
-				valueMsat: (invoice) => invoice[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'valueMsat')],
-				createdAtMs: (invoice) => invoice[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'createdAtMs')],
-				expirySeconds: (invoice) => invoice[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'expirySeconds')],
-				private: (invoice) => invoice[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'private')],
-				addIndex: (invoice) => invoice[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], 'addIndex')],
-				$$timestamps: (invoice) => invoice[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], '$$timestamps')].map((timestamp) => ({
-					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-				})),
-			}),
+			paymentRequest: (invoice) => invoice.paymentRequest,
+			memo: (invoice) => invoice.memo,
+			valueMsat: (invoice) => invoice.valueMsat,
+			createdAtMs: (invoice) => invoice.createdAtMs,
+			expirySeconds: (invoice) => invoice.expirySeconds,
+			private: (invoice) => invoice.private,
+			addIndex: (invoice) => invoice.addIndex,
+			$$timestamps: (invoice) => invoice.$$timestamps,
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.BlockheadLightningInvoice_Timestamp,
 			resolve: {
 				InvoiceTimestampMsSource: {
-					resolve: async ({ $invoice, timestampMs, source }, context) => {
+					resolve: async ({ $invoice, source }, context) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($invoice.$network)
 						const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
@@ -539,19 +449,21 @@ export default {
 						).find((invoice) => invoicePaymentHash(invoice) === $invoice.paymentHash)
 						if (invoice == null)
 							throw new Error(`LightningLnd_Rest: invoice not found ${$invoice.paymentHash}`)
-						return invoiceFieldsFromLndInvoice(invoice, timestampMs)[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningInvoice, [], '$$timestamps')][0]
+						return invoiceTimestampFieldsFromLndInvoice(invoice)
 					},
 				},
 			},
 		})({
-				$invoice: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], '$invoice')],
-				timestampMs: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], 'timestampMs')],
-				source: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], 'source')],
-				state: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], 'state')],
-				amountPaidMsat: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], 'amountPaidMsat')],
-				settledAtMs: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], 'settledAtMs')],
-				settleIndex: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningInvoice_Timestamp, [], 'settleIndex')],
+			$invoice: (_timestamp, { $invoice }) => ({
+				[EntityMetaKey.Selector]: $invoice,
 			}),
+			timestampMs: (_timestamp, { timestampMs }) => timestampMs,
+			source: (_timestamp, { source }) => source,
+			state: (timestamp) => timestamp.state,
+			amountPaidMsat: (timestamp) => timestamp.amountPaidMsat,
+			settledAtMs: (timestamp) => timestamp.settledAtMs,
+			settleIndex: (timestamp) => timestamp.settleIndex,
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.BlockheadLightningPayment,
@@ -569,23 +481,21 @@ export default {
 							throw new Error(`LightningLnd_Rest: payment not found ${paymentHash}`)
 						return paymentFieldsFromLndPayment(payment)
 					},
-				}
+				},
 			},
 		})({
-				paymentRequest: (payment) => payment[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningPayment, [], 'paymentRequest')],
-				valueMsat: (payment) => payment[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningPayment, [], 'valueMsat')],
-				createdAtMs: (payment) => payment[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningPayment, [], 'createdAtMs')],
-				paymentIndex: (payment) => payment[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningPayment, [], 'paymentIndex')],
-				$$timestamps: (payment) => payment[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningPayment, [], '$$timestamps')].map((timestamp) => ({
-					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-				})),
-			}),
+			paymentRequest: (payment) => payment.paymentRequest,
+			valueMsat: (payment) => payment.valueMsat,
+			createdAtMs: (payment) => payment.createdAtMs,
+			paymentIndex: (payment) => payment.paymentIndex,
+			$$timestamps: (payment) => payment.$$timestamps,
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.BlockheadLightningPayment_Timestamp,
 			resolve: {
 				PaymentTimestampMsSource: {
-					resolve: async ({ $payment, timestampMs, source }, context) => {
+					resolve: async ({ $payment, source }, context) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($payment.$network)
 						const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
@@ -596,19 +506,21 @@ export default {
 						).find((payment) => payment.payment_hash === $payment.paymentHash)
 						if (payment == null)
 							throw new Error(`LightningLnd_Rest: payment not found ${$payment.paymentHash}`)
-						return paymentFieldsFromLndPayment(payment, timestampMs)[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningPayment, [], '$$timestamps')][0]
+						return paymentTimestampFieldsFromLndPayment(payment)
 					},
 				},
 			},
 		})({
-				$payment: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], '$payment')],
-				timestampMs: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], 'timestampMs')],
-				source: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], 'source')],
-				status: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], 'status')],
-				feeMsat: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], 'feeMsat')],
-				failureReason: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], 'failureReason')],
-				preimage: (timestamp) => timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.BlockheadLightningPayment_Timestamp, [], 'preimage')],
+			$payment: (_timestamp, { $payment }) => ({
+				[EntityMetaKey.Selector]: $payment,
 			}),
+			timestampMs: (_timestamp, { timestampMs }) => timestampMs,
+			source: (_timestamp, { source }) => source,
+			status: (timestamp) => timestamp.status,
+			feeMsat: (timestamp) => timestamp.feeMsat,
+			failureReason: (timestamp) => timestamp.failureReason,
+			preimage: (timestamp) => timestamp.preimage,
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
@@ -620,25 +532,17 @@ export default {
 						return [
 							{
 								[EntityMetaKey.Selector]: {
-									$network: {
-										slug: 'lightning',
-									},
+									$network: lightningNetwork,
 									publicKey: info.identity_pubkey,
 								},
-								alias: info.alias,
-								color: info.color,
-								channelCount: (info.num_active_channels ?? 0) + (info.num_inactive_channels ?? 0),
-								networkAddresses: info.uris ?? [],
 							},
 						]
 					},
-				}
+				},
 			},
 		})({
-				$$nodes: (nodes) => nodes.map((node) => ({
-					[EntityMetaKey.Selector]: node[EntityMetaKey.Selector],
-				})),
-			}),
+			$$nodes: (nodes) => nodes,
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
@@ -646,18 +550,15 @@ export default {
 				Network: {
 					resolve: async ({ $network }, context) => {
 						assertLightningNetwork($network)
-						const info = await lndInfo(context)
 						return (await lndChannels(context))
 							.slice(0, resolverContextRowLimit(context))
-							.map((channel) => channelFieldsFromLndChannel(channel))
+							.map(channelReferenceFromLndChannel)
 					},
-				}
+				},
 			},
 		})({
-				$$channels: (channels) => channels.map((channel) => ({
-					[EntityMetaKey.Selector]: channel[EntityMetaKey.Selector],
-				})),
-			}),
+			$$channels: (channels) => channels,
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
@@ -671,20 +572,26 @@ export default {
 								publicEnv: context.publicEnv,
 								numMaxInvoices: resolverContextRowLimit(context),
 							})).invoices ?? []
-						).flatMap((invoice) => (
-							invoicePaymentHash(invoice) == null ?
-								[]
-							:
-								[invoiceFieldsFromLndInvoice(invoice)]
-						))
+						).flatMap((invoice) => {
+							const paymentHash = invoicePaymentHash(invoice)
+							return (
+								paymentHash == null ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											$network: lightningNetwork,
+											paymentHash,
+										},
+									}]
+							)
+						})
 					},
-				}
+				},
 			},
 		})({
-				$$invoices: (invoices) => invoices.map((invoice) => ({
-					[EntityMetaKey.Selector]: invoice[EntityMetaKey.Selector],
-				})),
-			}),
+			$$invoices: (invoices) => invoices,
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
@@ -698,15 +605,18 @@ export default {
 								publicEnv: context.publicEnv,
 								maxPayments: resolverContextRowLimit(context),
 							})).payments ?? []
-						).map(paymentFieldsFromLndPayment)
+						).map((payment) => ({
+							[EntityMetaKey.Selector]: {
+								$network: lightningNetwork,
+								paymentHash: payment.payment_hash,
+							},
+						}))
 					},
-				}
+				},
 			},
 		})({
-				$$payments: (payments) => payments.map((payment) => ({
-					[EntityMetaKey.Selector]: payment[EntityMetaKey.Selector],
-				})),
-			}),
+			$$payments: (payments) => payments,
+		}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNode,
@@ -717,19 +627,17 @@ export default {
 						const info = await lndInfo(context)
 						return (await lndChannels(context))
 							.filter((channel) => (
-							publicKey === info.identity_pubkey
-							|| publicKey === channel.remote_pubkey
+								publicKey === info.identity_pubkey
+								|| publicKey === channel.remote_pubkey
 							))
 							.slice(0, resolverContextRowLimit(context))
-							.map((channel) => channelFieldsFromLndChannel(channel))
+							.map(channelReferenceFromLndChannel)
 					},
-				}
+				},
 			},
 		})({
-				$$channels: (channels) => channels.map((channel) => ({
-					[EntityMetaKey.Selector]: channel[EntityMetaKey.Selector],
-				})),
-			}),
+			$$channels: (channels) => channels,
+		}),
 
 	],
 }

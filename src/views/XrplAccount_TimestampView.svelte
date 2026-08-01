@@ -84,7 +84,6 @@
 					<XrplAccountView
 						selection={select(EntityType.XrplAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

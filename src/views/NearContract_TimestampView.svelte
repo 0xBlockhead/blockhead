@@ -89,7 +89,6 @@
 					<NearContractView
 						selection={select(EntityType.NearContract, selection.entitySelector.$contract)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

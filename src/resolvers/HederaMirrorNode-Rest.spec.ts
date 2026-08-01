@@ -18,7 +18,6 @@ import bindings from '$/sources/HederaMirrorNode/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
@@ -242,16 +241,13 @@ describe('Hedera Mirror Node block query', () => {
 			endpoints: [{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://mainnet-public.mirrornode.hedera.com',
-				origin: 'https://mainnet-public.mirrornode.hedera.com',
 				corsEnabled: false,
 			}],
 			wireProtocol: WireProtocol.HttpRest,
 			apiFamily: ApiFamily.RestJson,
 			operationGroups: [SourceOperationGroup.GenericRead],
 			delivery: SourceDelivery.HttpProxy,
-			credentials: [{
-				scope: SourceCredentialScope.None,
-			}],
+			credentials: [],
 		})
 	})
 

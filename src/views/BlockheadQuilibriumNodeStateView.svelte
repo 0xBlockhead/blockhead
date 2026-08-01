@@ -59,16 +59,11 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.connectionId || 'blockhead quilibrium node state'}
-	{/snippet}
-
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -106,7 +101,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -233,12 +227,7 @@
 			{#snippet SectionQuilibriumFrames({ id, label, open })}
 				<QuilibriumFramesView
 					selection={selection.$$frames}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Quilibrium frames.'
 					id={`${id}-list`}
@@ -248,12 +237,7 @@
 			{#snippet SectionQuilibriumProvers({ id, label, open })}
 				<QuilibriumProversView
 					selection={selection.$$provers}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Quilibrium provers.'
 					id={`${id}-list`}
@@ -285,12 +269,7 @@
 			{#snippet SectionQuilibriumNodeTimestamps({ id, label, open })}
 				<BlockheadQuilibriumNodeState_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Quilibrium node observations.'
 					id={`${id}-list`}

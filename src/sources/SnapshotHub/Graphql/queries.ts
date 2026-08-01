@@ -1,100 +1,110 @@
-import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
-import { graphql as queryGraphql } from '$/sources/_shared/wire/Graphql/client.ts'
-import type {
-	SnapshotHubObservation,
-	SnapshotHubPage,
-	SnapshotHubProposal,
-	SnapshotHubProposalState,
-	SnapshotHubSpace,
-	SnapshotHubStrategy,
-	SnapshotHubVote,
+import {
+	SnapshotHubProposalFragment,
+	SnapshotHubSpaceFragment,
+	SnapshotHubVoteFragment,
+	type SnapshotHubProposal,
+	type SnapshotHubProposalState,
+	type SnapshotHubSpace,
+	type SnapshotHubStrategy,
+	type SnapshotHubVote,
 } from '$/sources/SnapshotHub/Graphql/types.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
 import {
 	isJsonArray,
 	isJsonNumber,
 } from '$/typescript/JsonValue.ts'
 
-export const maximumSnapshotHubGraphqlResponseBytes = 2_000_000
+import {
+	graphql,
+	querySnapshotHub,
+} from './client.ts'
 
-const proposalFields = `
-	id
-	ipfs
-	author
-	created
-	updated
-	space {
-		id
-	}
-	network
-	symbol
-	type
-	strategies {
-		name
-		network
-		params
-	}
-	title
-	body
-	choices
-	start
-	end
-	quorum
-	quorumType
-	snapshot
-	state
-	scores
-	scores_by_strategy
-	scores_state
-	scores_total
-	scores_updated
-	votes
-`
-
-const spaceFields = `
-	id
-	name
-	about
-	avatar
-	network
-	symbol
-	strategies {
-		name
-		network
-		params
-	}
-	admins
-	members
-	categories
-	proposalsCount
-	votesCount
-	created
-`
-
-const voteFields = `
-	id
-	ipfs
-	voter
-	created
-	space {
-		id
-	}
-	proposal {
-		id
-		space {
-			id
-		}
-		strategies {
-			name
+const SnapshotHubSpace = graphql(`
+	query SnapshotHubSpace($id: String!) {
+		space(id: $id) {
+			...SnapshotHubSpace
 		}
 	}
-	choice
-	reason
-	vp
-	vp_by_strategy
-	vp_state
-`
+`, [
+	SnapshotHubSpaceFragment,
+])
+
+const SnapshotHubSpaces = graphql(`
+	query SnapshotHubSpaces(
+		$first: Int!
+		$skip: Int!
+	) {
+		spaces(
+			first: $first
+			skip: $skip
+			orderBy: "created"
+			orderDirection: desc
+		) {
+			...SnapshotHubSpace
+		}
+	}
+`, [
+	SnapshotHubSpaceFragment,
+])
+
+const SnapshotHubProposal = graphql(`
+	query SnapshotHubProposal($id: String!) {
+		proposal(id: $id) {
+			...SnapshotHubProposal
+		}
+	}
+`, [
+	SnapshotHubProposalFragment,
+])
+
+const SnapshotHubProposals = graphql(`
+	query SnapshotHubProposals(
+		$first: Int!
+		$skip: Int!
+		$where: ProposalWhere
+	) {
+		proposals(
+			first: $first
+			skip: $skip
+			where: $where
+			orderBy: "created"
+			orderDirection: desc
+		) {
+			...SnapshotHubProposal
+		}
+	}
+`, [
+	SnapshotHubProposalFragment,
+])
+
+const SnapshotHubVote = graphql(`
+	query SnapshotHubVote($id: String!) {
+		vote(id: $id) {
+			...SnapshotHubVote
+		}
+	}
+`, [
+	SnapshotHubVoteFragment,
+])
+
+const SnapshotHubVotes = graphql(`
+	query SnapshotHubVotes(
+		$first: Int!
+		$skip: Int!
+		$where: VoteWhere
+	) {
+		votes(
+			first: $first
+			skip: $skip
+			where: $where
+			orderBy: "created"
+			orderDirection: desc
+		) {
+			...SnapshotHubVote
+		}
+	}
+`, [
+	SnapshotHubVoteFragment,
+])
 
 const assertOpaqueIdentity = (
 	value: string,
@@ -150,37 +160,6 @@ const assertPage = ({
 		throw new Error('SnapshotHub_Graphql: page offset must be from 0 through 1000000')
 }
 
-const graphql = async <_Data>({
-	binding,
-	query,
-	variables,
-}: {
-	binding: SourceBinding
-	query: string
-	variables: JsonValue
-}) => {
-	const data = await queryGraphql<_Data>({
-		binding,
-		maximumResponseBytes: maximumSnapshotHubGraphqlResponseBytes,
-		query,
-		variables,
-	})
-	if (data == null)
-		throw new Error('SnapshotHub_Graphql: response is missing data')
-
-	return data
-}
-
-const observation = <_Value>(
-	binding: SourceBinding,
-	value: _Value
-): SnapshotHubObservation<_Value> => ({
-	value,
-	observedBy: 'SnapshotHub_Graphql',
-	endpoint: firstHttpUrlForBinding(binding),
-	resolvedAtMs: Date.now(),
-})
-
 const assertStrategy = (
 	strategy: SnapshotHubStrategy
 ) => {
@@ -194,15 +173,23 @@ const assertSpace = (
 ) => {
 	assertOpaqueIdentity(space.id, 'space ID')
 	assertSafeNonnegativeInteger(space.created, 'space creation timestamp')
-	for (const strategy of space.strategies ?? [])
+	for (const strategy of space.strategies ?? []) {
+		if (strategy == null)
+			throw new Error('SnapshotHub_Graphql: space contains an empty strategy')
+
 		assertStrategy(strategy)
+	}
 	if ((space.strategies?.length ?? 0) > 32)
 		throw new Error('SnapshotHub_Graphql: space has too many strategies')
 	for (const identity of [
 		...space.admins ?? [],
 		...space.members ?? [],
-	])
+	]) {
+		if (identity == null)
+			throw new Error('SnapshotHub_Graphql: space contains an empty account identity')
+
 		assertOpaqueIdentity(identity, 'space account identity')
+	}
 	for (const count of [
 		space.proposalsCount,
 		space.votesCount,
@@ -244,11 +231,19 @@ const assertProposal = (
 		throw new Error('SnapshotHub_Graphql: invalid proposal choice count')
 	if (proposal.strategies.length > 32)
 		throw new Error('SnapshotHub_Graphql: proposal has too many strategies')
-	for (const strategy of proposal.strategies)
+	for (const strategy of proposal.strategies) {
+		if (strategy == null)
+			throw new Error('SnapshotHub_Graphql: proposal contains an empty strategy')
+
 		assertStrategy(strategy)
+	}
 	if (proposal.scores != null) {
-		for (const score of proposal.scores)
+		for (const score of proposal.scores) {
+			if (score == null)
+				throw new Error('SnapshotHub_Graphql: proposal contains an empty score')
+
 			assertFiniteNonnegativeNumber(score, 'proposal choice score')
+		}
 		if (
 			proposal.scores.length !== 0
 			&& proposal.scores.length !== proposal.choices.length
@@ -302,8 +297,12 @@ const assertVote = (
 	if (vote.vp != null)
 		assertFiniteNonnegativeNumber(vote.vp, 'vote voting power')
 	if (vote.vp_by_strategy != null) {
-		for (const votingPower of vote.vp_by_strategy)
+		for (const votingPower of vote.vp_by_strategy) {
+			if (votingPower == null)
+				throw new Error('SnapshotHub_Graphql: vote contains empty strategy voting power')
+
 			assertFiniteNonnegativeNumber(votingPower, 'strategy voting power')
+		}
 		if (
 			vote.vp_by_strategy.length !== 0
 			&& vote.vp_by_strategy.length !== vote.proposal.strategies.length
@@ -312,52 +311,27 @@ const assertVote = (
 	}
 }
 
-const page = <_Value>(
-	items: _Value[],
-	limit: number,
-	offset: number
-): SnapshotHubPage<_Value> => ({
-	items,
-	...(items.length === limit && {
-		nextOffset: offset + limit,
-	}),
-})
-
 export const getSpace = async ({
-	binding,
 	spaceId,
 }: {
-	binding: SourceBinding
 	spaceId: string
 }) => {
 	assertOpaqueIdentity(spaceId, 'requested space ID')
-	const { space } = await graphql<{
-		space: SnapshotHubSpace | null
-	}>({
-		binding,
-		query: `query Space($id: String!) {
-			space(id: $id) {
-				${spaceFields}
-			}
-		}`,
-		variables: {
-			id: spaceId,
-		},
+	const { space } = await querySnapshotHub(SnapshotHubSpace, {
+		id: spaceId,
 	})
 	if (space == null)
-		return observation(binding, null)
+		return null
 	assertSpace(space)
 	if (space.id !== spaceId)
 		throw new Error('SnapshotHub_Graphql: returned a foreign space')
-	return observation(binding, space)
+	return space
 }
 
 export const getSpacesPage = async ({
-	binding,
 	limit,
 	offset,
 }: {
-	binding: SourceBinding
 	limit: number
 	offset: number
 }) => {
@@ -365,78 +339,50 @@ export const getSpacesPage = async ({
 		limit,
 		offset,
 	})
-	const { spaces } = await graphql<{
-		spaces: SnapshotHubSpace[]
-	}>({
-		binding,
-		query: `query Spaces($first: Int!, $skip: Int!) {
-			spaces(
-				first: $first
-				skip: $skip
-				orderBy: "created"
-				orderDirection: desc
-			) {
-				${spaceFields}
-			}
-		}`,
-		variables: {
-			first: limit,
-			skip: offset,
-		},
+	const { spaces } = await querySnapshotHub(SnapshotHubSpaces, {
+		first: limit,
+		skip: offset,
 	})
+	if (spaces == null)
+		throw new Error('SnapshotHub_Graphql: space page is missing')
 	if (spaces.length > limit)
 		throw new Error('SnapshotHub_Graphql: space page exceeds requested limit')
 	const spaceIds = new Set<string>()
 	for (const space of spaces) {
+		if (space == null)
+			throw new Error('SnapshotHub_Graphql: space page contains an empty row')
+
 		assertSpace(space)
 		if (spaceIds.has(space.id))
 			throw new Error('SnapshotHub_Graphql: duplicate space in page')
 		spaceIds.add(space.id)
 	}
-	return observation(binding, page(
-		spaces,
-		limit,
-		offset
-	))
+	return spaces
 }
 
 export const getProposal = async ({
-	binding,
 	proposalId,
 }: {
-	binding: SourceBinding
 	proposalId: string
 }) => {
 	assertMessageIdentity(proposalId, 'requested proposal ID')
-	const { proposal } = await graphql<{
-		proposal: SnapshotHubProposal | null
-	}>({
-		binding,
-		query: `query Proposal($id: String!) {
-			proposal(id: $id) {
-				${proposalFields}
-			}
-		}`,
-		variables: {
-			id: proposalId,
-		},
+	const { proposal } = await querySnapshotHub(SnapshotHubProposal, {
+		id: proposalId,
 	})
 	if (proposal == null)
-		return observation(binding, null)
+		return null
 	assertProposal(proposal)
 	if (proposal.id !== proposalId)
 		throw new Error('SnapshotHub_Graphql: returned a foreign proposal')
-	return observation(binding, proposal)
+	return proposal
 }
 
 export const getProposalsPage = async ({
-	binding,
 	spaceId,
 	state,
 	limit,
 	offset,
 }: {
-	binding: SourceBinding
 	spaceId: string
 	state?: SnapshotHubProposalState
 	limit: number
@@ -447,40 +393,25 @@ export const getProposalsPage = async ({
 		limit,
 		offset,
 	})
-	const { proposals } = await graphql<{
-		proposals: SnapshotHubProposal[]
-	}>({
-		binding,
-		query: `query Proposals(
-			$first: Int!
-			$skip: Int!
-			$where: ProposalWhere
-		) {
-			proposals(
-				first: $first
-				skip: $skip
-				where: $where
-				orderBy: "created"
-				orderDirection: desc
-			) {
-				${proposalFields}
-			}
-		}`,
-		variables: {
-			first: limit,
-			skip: offset,
-			where: {
-				space: spaceId,
-				...(state != null && {
-					state,
-				}),
-			},
+	const { proposals } = await querySnapshotHub(SnapshotHubProposals, {
+		first: limit,
+		skip: offset,
+		where: {
+			space: spaceId,
+			...(state != null && {
+				state,
+			}),
 		},
 	})
+	if (proposals == null)
+		throw new Error('SnapshotHub_Graphql: proposal page is missing')
 	if (proposals.length > limit)
 		throw new Error('SnapshotHub_Graphql: proposal page exceeds requested limit')
 	const proposalIds = new Set<string>()
 	for (const proposal of proposals) {
+		if (proposal == null)
+			throw new Error('SnapshotHub_Graphql: proposal page contains an empty row')
+
 		assertProposal(proposal)
 		if (proposal.space?.id !== spaceId)
 			throw new Error('SnapshotHub_Graphql: returned a proposal from a foreign space')
@@ -490,49 +421,31 @@ export const getProposalsPage = async ({
 			throw new Error('SnapshotHub_Graphql: duplicate proposal in page')
 		proposalIds.add(proposal.id)
 	}
-	return observation(binding, page(
-		proposals,
-		limit,
-		offset
-	))
+	return proposals
 }
 
 export const getVote = async ({
-	binding,
 	voteId,
 }: {
-	binding: SourceBinding
 	voteId: string
 }) => {
 	assertMessageIdentity(voteId, 'requested vote ID')
-	const { vote } = await graphql<{
-		vote: SnapshotHubVote | null
-	}>({
-		binding,
-		query: `query Vote($id: String!) {
-			vote(id: $id) {
-				${voteFields}
-			}
-		}`,
-		variables: {
-			id: voteId,
-		},
+	const { vote } = await querySnapshotHub(SnapshotHubVote, {
+		id: voteId,
 	})
 	if (vote == null)
-		return observation(binding, null)
+		return null
 	assertVote(vote)
 	if (vote.id !== voteId)
 		throw new Error('SnapshotHub_Graphql: returned a foreign vote')
-	return observation(binding, vote)
+	return vote
 }
 
 export const getVotesPage = async ({
-	binding,
 	proposalId,
 	limit,
 	offset,
 }: {
-	binding: SourceBinding
 	proposalId: string
 	limit: number
 	offset: number
@@ -542,37 +455,22 @@ export const getVotesPage = async ({
 		limit,
 		offset,
 	})
-	const { votes } = await graphql<{
-		votes: SnapshotHubVote[]
-	}>({
-		binding,
-		query: `query Votes(
-			$first: Int!
-			$skip: Int!
-			$where: VoteWhere
-		) {
-			votes(
-				first: $first
-				skip: $skip
-				where: $where
-				orderBy: "created"
-				orderDirection: desc
-			) {
-				${voteFields}
-			}
-		}`,
-		variables: {
-			first: limit,
-			skip: offset,
-			where: {
-				proposal: proposalId,
-			},
+	const { votes } = await querySnapshotHub(SnapshotHubVotes, {
+		first: limit,
+		skip: offset,
+		where: {
+			proposal: proposalId,
 		},
 	})
+	if (votes == null)
+		throw new Error('SnapshotHub_Graphql: vote page is missing')
 	if (votes.length > limit)
 		throw new Error('SnapshotHub_Graphql: vote page exceeds requested limit')
 	const voteIds = new Set<string>()
 	for (const vote of votes) {
+		if (vote == null)
+			throw new Error('SnapshotHub_Graphql: vote page contains an empty row')
+
 		assertVote(vote)
 		if (vote.proposal?.id !== proposalId)
 			throw new Error('SnapshotHub_Graphql: returned a vote for a foreign proposal')
@@ -580,9 +478,5 @@ export const getVotesPage = async ({
 			throw new Error('SnapshotHub_Graphql: duplicate vote in page')
 		voteIds.add(vote.id)
 	}
-	return observation(binding, page(
-		votes,
-		limit,
-		offset
-	))
+	return votes
 }

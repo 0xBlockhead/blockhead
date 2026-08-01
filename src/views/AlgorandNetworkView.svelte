@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -15,7 +16,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -26,13 +26,10 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
-	import AlgorandNetwork_TimestampsView from '$/views/AlgorandNetwork_TimestampsView.svelte'
-	import AlgorandRoundsView from '$/views/AlgorandRoundsView.svelte'
 	import AlgorandTransactionsView from '$/views/AlgorandTransactionsView.svelte'
-	import AlgorandAccountsView from '$/views/AlgorandAccountsView.svelte'
 	import AlgorandAssetsView from '$/views/AlgorandAssetsView.svelte'
 	import AlgorandApplicationsView from '$/views/AlgorandApplicationsView.svelte'
 	import AlgorandTealProgramsView from '$/views/AlgorandTealProgramsView.svelte'
@@ -43,15 +40,10 @@
 	entityType={EntityType.AlgorandNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? 'algorand network'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		algorand network
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -60,7 +52,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -97,44 +88,47 @@
 			{/snippet}
 
 			{#snippet SectionAlgorandChainObservations({ id, label, open })}
-				<AlgorandNetwork_TimestampsView
-					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.AlgorandNetwork_Timestamp}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Algorand network observations.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$timestamps()}
+				>
+					{#snippet Item({ item: algorandNetworkTimestamp })}
+						<EntityView
+							entityType={EntityType.AlgorandNetwork_Timestamp}
+							entitySelector={algorandNetworkTimestamp[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionAlgorandChainRounds({ id, label, open })}
-				<AlgorandRoundsView
-					selection={selection.$$rounds}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.AlgorandRound}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Algorand rounds.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$rounds()}
+				>
+					{#snippet Item({ item: algorandRound })}
+						<EntityView
+							entityType={EntityType.AlgorandRound}
+							entitySelector={algorandRound[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionAlgorandChainTransactions({ id, label, open })}
 				<AlgorandTransactionsView
 					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Algorand transactions.'
 					id={`${id}-list`}
@@ -168,29 +162,28 @@
 			{/snippet}
 
 			{#snippet SectionAlgorandAccounts({ id, label, open })}
-				<AlgorandAccountsView
-					selection={selection.$$accounts}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.AlgorandAccount}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Algorand accounts.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$accounts()}
+				>
+					{#snippet Item({ item: algorandAccount })}
+						<EntityView
+							entityType={EntityType.AlgorandAccount}
+							entitySelector={algorandAccount[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionAlgorandAssets({ id, label, open })}
 				<AlgorandAssetsView
 					selection={selection.$$assets}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Algorand assets.'
 					id={`${id}-list`}
@@ -226,12 +219,7 @@
 			{#snippet SectionAlgorandApplicationList({ id, label, open })}
 				<AlgorandApplicationsView
 					selection={selection.$$applications}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Algorand applications.'
 					id={`${id}-list`}
@@ -241,12 +229,7 @@
 			{#snippet SectionAlgorandTealPrograms({ id, label, open })}
 				<AlgorandTealProgramsView
 					selection={selection.$$tealPrograms}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Algorand TEAL programs.'
 					id={`${id}-list`}

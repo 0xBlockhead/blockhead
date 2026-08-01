@@ -52,17 +52,7 @@ describe('Arweave GraphQL public transaction discovery', () => {
 	it('preserves exact IDs, winston units, tags, and confirmed block identity', async () => {
 		vi.spyOn(httpRestClient, 'postJson').mockResolvedValue({
 			data: {
-				transactions: {
-					pageInfo: {
-						hasNextPage: false,
-					},
-					edges: [
-						{
-							cursor,
-							node: transaction,
-						},
-					],
-				},
+				transaction,
 			},
 		})
 
@@ -106,15 +96,37 @@ describe('Arweave GraphQL public transaction discovery', () => {
 			first: 10,
 			after: cursor,
 		})).resolves.toMatchObject({
-			nextCursor: 'cursor-2',
+			pageInfo: {
+				hasNextPage: true,
+			},
 			edges: [
 				{
+					cursor: 'cursor-2',
 					node: {
 						block: null,
 					},
 				},
 			],
 		})
+	})
+
+	it('rejects incomplete coordinates on confirmed blocks', async () => {
+		vi.spyOn(httpRestClient, 'postJson').mockResolvedValue({
+			data: {
+				transaction: {
+					...transaction,
+					block: {
+						...transaction.block,
+						id: null,
+					},
+				},
+			},
+		})
+
+		await expect(getTransactionById(
+			binding,
+			transactionId
+		)).rejects.toThrow('incomplete confirmed block coordinates')
 	})
 
 	it('rejects foreign owner rows, duplicate cursors, and stalled pagination', async () => {

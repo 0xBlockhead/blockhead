@@ -615,11 +615,14 @@ describe('Cardano Koios network relationships', () => {
 		await expect(dRepResolver.resolve['Caip2'].resolve(
 			cardanoNetwork,
 			resolverContext
-		)).resolves.toMatchObject({
-			dReps: [{
-				drep_id: 'drep1example',
-			}],
-		})
+		)).resolves.toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				drepCredential: 'drep1example',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.CardanoDRep, [], 'credentialKind')]: 'key',
+			},
+		}])
 		expect(listGovernanceProposals).not.toHaveBeenCalled()
 
 		getLatestProtocolParameters.mockRejectedValueOnce(new Error('protocol parameters unavailable'))
@@ -683,32 +686,7 @@ describe('Cardano Koios network relationships', () => {
 					$network: cardanoNetwork,
 					poolId: 'pool1example',
 				},
-				poolId: 'pool1example',
-				ticker: 'EXAMPLE',
-			},
-			{
-				[EntityMetaKey.Selector]: {
-					$network: cardanoNetwork,
-					poolId: 'pool1null',
-				},
-				poolId: 'pool1null',
-			},
-			{
-				[EntityMetaKey.Selector]: {
-					$network: cardanoNetwork,
-					poolId: 'pool1absent',
-				},
-				poolId: 'pool1absent',
-			},
-		])
-		expect(resolver.projections.Cardano.$$stakePools(snapshot)).toEqual([
-			{
-				[EntityMetaKey.Selector]: {
-					$network: cardanoNetwork,
-					poolId: 'pool1example',
-				},
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.CardanoStakePool, [], 'poolId')]: 'pool1example',
 					[entityFieldAddressKey(EntityType.CardanoStakePool, [], 'ticker')]: 'EXAMPLE',
 				},
 			},
@@ -717,19 +695,14 @@ describe('Cardano Koios network relationships', () => {
 					$network: cardanoNetwork,
 					poolId: 'pool1null',
 				},
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.CardanoStakePool, [], 'poolId')]: 'pool1null',
-				},
 			},
 			{
 				[EntityMetaKey.Selector]: {
 					$network: cardanoNetwork,
 					poolId: 'pool1absent',
 				},
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.CardanoStakePool, [], 'poolId')]: 'pool1absent',
-				},
 			},
 		])
+		expect(resolver.projections.Cardano.$$stakePools(snapshot)).toBe(snapshot)
 	})
 })

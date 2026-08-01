@@ -39,8 +39,5 @@
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='market-time-interval-timestamps'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

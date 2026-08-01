@@ -20,8 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AvailNetwork> = $props()
 
-	const titleFallback = 'avail network'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,7 +34,7 @@
 <EntityView
 	entityType={EntityType.AvailNetwork}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'avail network'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -46,12 +44,11 @@
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{titleFallback}
+		Avail
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -62,7 +59,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

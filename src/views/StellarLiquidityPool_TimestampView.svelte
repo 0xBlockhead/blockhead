@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -31,15 +30,10 @@
 <EntityView
 	entityType={EntityType.StellarLiquidityPool_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'stellar liquidity pool timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		stellar liquidity pool timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +42,6 @@
 					<StellarLiquidityPoolView
 						selection={select(EntityType.StellarLiquidityPool, selection.entitySelector.$liquidityPool)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

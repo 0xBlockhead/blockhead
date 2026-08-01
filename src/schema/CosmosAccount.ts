@@ -34,6 +34,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.CosmosSdk_Rest,
+			Source.Mintscan,
 		],
 	},
 	$$transactions: {

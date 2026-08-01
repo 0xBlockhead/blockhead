@@ -77,7 +77,6 @@
 					<PolkadotAssetView
 						selection={select(EntityType.PolkadotAsset, selection.entitySelector.$asset)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

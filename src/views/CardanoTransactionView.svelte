@@ -83,10 +83,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.hash || 'Cardano transaction'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={cardanoTransaction}>
 			{#snippet children(entity)}
@@ -116,7 +112,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -288,12 +283,7 @@
 			{#snippet SectionCardanoTransactionInputs({ id, label, open })}
 				<CardanoTxInputsView
 					selection={selection.$$inputs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No inputs.'
 					id={`${id}-list`}
@@ -303,12 +293,7 @@
 			{#snippet SectionCardanoTransactionOutputs({ id, label, open })}
 				<CardanoTxOutputsView
 					selection={selection.$$outputs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No outputs.'
 					id={`${id}-list`}
@@ -318,12 +303,7 @@
 			{#snippet SectionCardanoTransactionCertificates({ id, label, open })}
 				<CardanoCertificatesView
 					selection={selection.$$certificates}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No certificates.'
 					id={`${id}-list`}
@@ -333,12 +313,7 @@
 			{#snippet SectionCardanoTransactionScripts({ id, label, open })}
 				<CardanoScriptWitnessesView
 					selection={selection.$$scripts}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No scripts.'
 					id={`${id}-list`}
@@ -378,12 +353,7 @@
 			{#snippet SectionCardanoTransactionGovernanceProposals({ id, label, open })}
 				<CardanoGovernanceProposalsView
 					selection={selection.$$governanceProposals}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No governance proposals.'
 					id={`${id}-list`}
@@ -393,12 +363,7 @@
 			{#snippet SectionCardanoTransactionGovernanceVotes({ id, label, open })}
 				<CardanoGovernanceVotesView
 					selection={selection.$$governanceVotes}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No governance votes.'
 					id={`${id}-list`}
@@ -408,12 +373,7 @@
 			{#snippet SectionCardanoTransactionAssets({ id, label, open })}
 				<CardanoNativeAssetsView
 					selection={selection.$$assets}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No assets.'
 					id={`${id}-list`}

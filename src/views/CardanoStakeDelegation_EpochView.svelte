@@ -39,10 +39,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Cardano stake delegation epoch
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -51,7 +47,6 @@
 					<CardanoStakeCredentialView
 						selection={select(EntityType.CardanoStakeCredential, selection.entitySelector.$stakeCredential)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -82,7 +77,6 @@
 									selection={select(EntityType.CardanoStakePool, cardanoStakePool[EntityMetaKey.Selector])}
 									prefetched={cardanoStakePool}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -102,7 +96,6 @@
 									selection={select(EntityType.CardanoDRep, cardanoDRep[EntityMetaKey.Selector])}
 									prefetched={cardanoDRep}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

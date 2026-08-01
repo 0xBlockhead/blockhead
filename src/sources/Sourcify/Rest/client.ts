@@ -13,7 +13,7 @@ export const sourcifyGetJsonOrNull = async <T = JsonValue>({
 	path,
 }: {
 	path: string
-}): Promise<T | null> => {
+}) => {
 	const url = `${firstHttpUrlForBinding(binding).replace(/\/$/, '')}${path.startsWith('/') ? path : `/${path}`}`
 	const res = await sourceFetch(binding, url)
 	if (res.status === 404) return null

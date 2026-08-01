@@ -4,54 +4,37 @@ import { Source } from '$/sources/Source.ts'
 import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 import { type as arktype } from 'arktype'
 
+const coinpaprikaRestGenericReadOperationGroups = [
+	SourceOperationGroup.GenericRead,
+] as const
+
 const bindings = [
 	{
-		source: Source.Coinpaprika_OpenApi,
+		source: Source.Coinpaprika_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
-			key: 'coinpaprika-openapi',
+			key: 'free-api',
 		},
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.coinpaprika.com/v1',
-				origin: 'https://api.coinpaprika.com',
-				corsEnabled: false,
-			},
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://api-pro.coinpaprika.com/v1',
-				origin: 'https://api-pro.coinpaprika.com',
 				corsEnabled: false,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.OpenApiHttp,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: coinpaprikaRestGenericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
-		credentials: [
-			{
-				scope: SourceCredentialScope.PublicConfig,
-				env: arktype({
-					'PUBLIC_COINPAPRIKA_API_KEY': 'string > 0?',
-				}),
-				keys: [
-					'PUBLIC_COINPAPRIKA_API_KEY',
-				],
-			},
-		],
+		credentials: [],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.OpenApiSpec,
 				path: 'src/sources/Coinpaprika/OpenApi/openapi.yml',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/Coinpaprika/OpenApi/schema-source.ts',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,
@@ -60,6 +43,32 @@ const bindings = [
 			},
 		],
 	},
+	{
+		source: Source.Coinpaprika_Rest,
+		target: {
+			kind: SourceTargetKind.Global,
+			key: 'pro-api',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://api-pro.coinpaprika.com/v1',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.OpenApiHttp,
+		operationGroups: coinpaprikaRestGenericReadOperationGroups,
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [
+			{
+				scope: SourceCredentialScope.PublicConfig,
+				env: arktype({
+					'PUBLIC_COINPAPRIKA_API_KEY': 'string > 0?',
+				}),
+			},
+		],
+	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Coinpaprika_OpenApi]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

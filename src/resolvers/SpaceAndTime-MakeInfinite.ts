@@ -2,8 +2,10 @@ import { defineResolver } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { OptimisticProviderResult } from '$/schema/OptimisticProviderResult.ts'
 import { Source } from '$/sources/Source.ts'
 import { getActivityDay } from '$/sources/SpaceAndTime/MakeInfinite/queries.ts'
@@ -15,15 +17,12 @@ export const resolveNetworkActivityDay = async ({
 	dayStartTimestampMs,
 	nowMs = Date.now(),
 }: {
-	network: {
-		caip2: {
-			namespace: string
-			reference: string
-		}
-	}
+	network: EntitySelector<typeof schema, EntityType.Network>
 	dayStartTimestampMs: number
 	nowMs?: number
 }) => {
+	if (!('caip2' in network))
+		throw new Error('SpaceAndTime_MakeInfinite: network must use a CAIP-2 selector')
 	if (network.caip2.namespace !== 'eip155' || network.caip2.reference !== '1')
 		throw new Error(`SpaceAndTime_MakeInfinite: unsupported network ${network.caip2.namespace}:${network.caip2.reference}`)
 	if (!Number.isSafeInteger(dayStartTimestampMs) || dayStartTimestampMs < 0 || dayStartTimestampMs % millisecondsPerUtcDay !== 0)

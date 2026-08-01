@@ -1,4 +1,5 @@
 import { fetchFailedMessage } from '$/lib/http.ts'
+import { TransportType } from '$/constants/TransportType.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	firstHttpUrlForBinding,
@@ -53,7 +54,7 @@ const cosmosSdkDenomMetadataWire = arktype({
 		symbol: 'string',
 		denom_units: arktype({
 			denom: 'string > 0',
-			exponent: 'number.integer >= 0 <= 4294967295',
+			exponent: 'number.integer >= 0 & number <= 4294967295',
 			aliases: 'string[]',
 		}).array(),
 	},
@@ -62,12 +63,16 @@ const cosmosSdkDenomMetadataWire = arktype({
 const binding = bindings[Source.CosmosSdk_Rest]
 const base = firstHttpUrlForBinding(binding).replace(/\/$/, '')
 
-export const endpointLocators = binding.endpoints.map(({ locator }) => locator)
+export const cosmosSdkRestEndpoints = binding.endpoints.map(({ locator: url }) => ({
+	url,
+	transportType: TransportType.Http,
+	providerName: 'Cosmos Directory',
+}))
 
 const getJsonAtBlockHeight = <_Json>(
 	url: string,
 	blockHeight: bigint
-): Promise<_Json> => sourceFetch(binding, url, {
+) => sourceFetch(binding, url, {
 		headers: {
 			'x-cosmos-block-height': blockHeight.toString(),
 		},
@@ -76,7 +81,7 @@ const getJsonAtBlockHeight = <_Json>(
 		if (!response.ok)
 			throw new Error(await fetchFailedMessage(url, response))
 
-		return response.json()
+		return response.json<_Json>()
 	})
 
 export const getBlock = ({

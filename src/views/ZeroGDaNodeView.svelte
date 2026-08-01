@@ -22,13 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGDaNode> = $props()
 
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.ZeroGChainScan_Rest,
-			Source.ZeroGStorageNode_JsonRpc,
-		],
-	}))
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -46,16 +39,11 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.nodeId || 'zero g da node'}
-	{/snippet}
-
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -70,7 +58,6 @@
 							selection={select(EntityType.ZeroGDaQuorum, zeroGDaQuorum[EntityMetaKey.Selector])}
 							prefetched={zeroGDaQuorum}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -86,7 +73,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -110,7 +96,6 @@
 									selection={select(EntityType.ZeroGDaQuorum, zeroGDaQuorum[EntityMetaKey.Selector])}
 									prefetched={zeroGDaQuorum}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -130,7 +115,6 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -140,7 +124,12 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
+						sources: selection.sources ?? [
+							Source.ZeroGChainScan_Rest,
+							Source.ZeroGStorageNode_JsonRpc,
+						],
+					})({
 						fields: {
 							endpoint: true,
 						},

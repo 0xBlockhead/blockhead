@@ -10,8 +10,8 @@ export default {
 	label: 'Bithomp',
 	sources: [
 		{
-			source: Source.Bithomp_Rest,
-			label: 'Bithomp REST',
+			source: Source.Bithomp,
+			label: 'Bithomp',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

@@ -40,9 +40,10 @@ export const load: LayoutLoad = ({ params }) => {
 			NetworkSchema,
 			{
 				caip2: caip2SelectorValueFromString(params.network),
-			}
+			},
+			'Caip2'
 		)
-		if (!(networkCaip2Selector instanceof arktype.errors) && 'caip2' in networkCaip2Selector)
+		if (!(networkCaip2Selector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.Network,
 				selectorName: 'Caip2',
@@ -56,9 +57,10 @@ export const load: LayoutLoad = ({ params }) => {
 			NetworkSchema,
 			{
 				slug: params.network,
-			}
+			},
+			'Slug'
 		)
-		if (!(networkSlugSelector instanceof arktype.errors) && 'slug' in networkSlugSelector)
+		if (!(networkSlugSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.Network,
 				selectorName: 'Slug',

@@ -18,6 +18,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]',
+			{
+				relayKey: params.relayKey,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -28,26 +37,12 @@
 
 {#key params.relayKey}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]',
-				{
-					relayKey: params.relayKey,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<NostrRelayView
 				selection={select(EntityType.NostrRelay, data.selector)}
-				href={
-					resolve(
-						'/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]',
-						{
-							relayKey: params.relayKey,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

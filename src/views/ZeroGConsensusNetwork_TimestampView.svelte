@@ -21,12 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGConsensusNetwork_Timestamp> = $props()
 
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.ZeroGChainScan_Rest,
-		],
-	}))
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -48,7 +42,6 @@
 		<ZeroGConsensusNetworkView
 			selection={select(EntityType.ZeroGConsensusNetwork, selection.entitySelector.$consensusNetwork)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -64,7 +57,6 @@
 					<ZeroGConsensusNetworkView
 						selection={select(EntityType.ZeroGConsensusNetwork, selection.entitySelector.$consensusNetwork)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -85,7 +77,11 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
+						sources: selection.sources ?? [
+							Source.ZeroGChainScan_Rest,
+						],
+					})({
 						fields: {
 							sharedStakingStatusSource: true,
 						},

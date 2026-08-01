@@ -72,7 +72,6 @@
 			<CashuMintView
 				selection={select(EntityType.CashuMint, selection.entitySelector.$mint)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -85,7 +84,6 @@
 					<CashuMintView
 						selection={select(EntityType.CashuMint, selection.entitySelector.$mint)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -163,12 +161,7 @@
 			{#snippet SectionCashuKeysetTimestamps({ id, label, open })}
 				<CashuKeyset_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No keyset observations.'
 					id={`${id}-list`}

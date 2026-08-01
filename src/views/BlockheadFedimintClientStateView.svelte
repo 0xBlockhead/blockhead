@@ -101,7 +101,6 @@
 								selection={select(EntityType.FedimintFederation, fedimintFederation[EntityMetaKey.Selector])}
 								prefetched={fedimintFederation}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

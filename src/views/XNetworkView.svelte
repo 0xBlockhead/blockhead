@@ -76,13 +76,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(prefetched.protocolName ?? '') || titleFallback}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			X profiles and posts surfaced through declared public HTTP sources.
-		</p>
+		X
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -211,13 +205,13 @@
 			{#snippet SectionXNetworkUsers({ id, label, open })}
 				<XUsersView
 					selection={selection.$$xUsers}
-					href={resolve('/(social)/(x)/x/(xNetwork)/users')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === 'XNetwork' ?
+							resolve('/(social)/(x)/x/(xNetwork)/users')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No X users here yet.'
 					id={`${id}-list`}
@@ -227,13 +221,13 @@
 			{#snippet SectionXNetworkPosts({ id, label, open })}
 				<XPostsView
 					selection={selection.$$xPosts}
-					href={resolve('/(social)/(x)/x/(xNetwork)/posts')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === 'XNetwork' ?
+							resolve('/(social)/(x)/x/(xNetwork)/posts')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No X posts here yet.'
 					id={`${id}-list`}

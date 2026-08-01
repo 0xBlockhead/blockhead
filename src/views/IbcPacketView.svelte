@@ -405,7 +405,6 @@
 					<IbcChannelView
 						selection={select(EntityType.IbcChannel, selection.entitySelector.$channel)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

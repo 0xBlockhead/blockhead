@@ -19,6 +19,8 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = resolve('/(social)/(activitypub)/activitypub')
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -28,17 +30,19 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/(social)/(activitypub)/activitypub')}
+	href={detailHref}
 >
 	{#snippet Summary()}
 		<GlobalActivityPubNetworkView
 			selection={
-				select(EntityType._GlobalActivityPubNetwork, data.selector, { sources: [
-					Source.Constants_Internal,
-					Source.Mastodon_Rest,
-				] })
+				select(EntityType._GlobalActivityPubNetwork, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+						Source.Mastodon_Rest,
+					],
+				})
 			}
-			href={resolve('/(social)/(activitypub)/activitypub')}
+			href={detailHref}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

@@ -50,11 +50,6 @@ export type PipedChannelNextpage = {
 	relatedStreams?: PipedStreamItem[]
 }
 
-export type PipedListChannelVideos = {
-	items: PipedStreamItem[]
-	nextpage?: string | null
-}
-
 export type PipedComment = {
 	author?: string
 	commentId?: string
@@ -92,11 +87,6 @@ export type PipedPlaylistNextpage = {
 	relatedStreams?: PipedStreamItem[]
 }
 
-export type PipedListPlaylistVideos = {
-	items: PipedStreamItem[]
-	nextpage?: string | null
-}
-
 export type PipedPlaylistSummary = {
 	type?: string
 	url?: string
@@ -112,9 +102,4 @@ export type PipedPlaylistSummary = {
 export type PipedChannelTab = {
 	nextpage?: string | null
 	content?: PipedPlaylistSummary[]
-}
-
-export type PipedListChannelPlaylists = {
-	items: PipedPlaylistSummary[]
-	nextpage?: string | null
 }

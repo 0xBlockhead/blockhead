@@ -32,7 +32,7 @@ export const queryAmboss = async <
 >(
 	document: TadaDocumentNode<_Result, _Variables>,
 	variables?: _Variables
-): Promise<_Result> => {
+) => {
 	const response = await sourceFetch(binding, firstHttpUrlForBinding(binding), {
 			method: 'POST',
 			headers: {

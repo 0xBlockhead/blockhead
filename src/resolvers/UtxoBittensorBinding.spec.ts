@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { bitcoinNetworkBySlug } from '$/constants/BitcoinNetwork.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import bitcoinCashNodeBindings from '$/sources/BitcoinCashNode/bindings.ts'
 import bitcoinCoreBindings from '$/sources/BitcoinCore/bindings.ts'
@@ -41,10 +41,10 @@ const [
 ])
 
 const bitcoinNetwork = {
-	caip2: bitcoinNetworkBySlug.bitcoin.caip2,
+	caip2: networkBySlug.bitcoin.caip2,
 }
 const bitcoinCashNetwork = {
-	caip2: bitcoinNetworkBySlug['bitcoin-cash'].caip2,
+	caip2: networkBySlug['bitcoin-cash'].caip2,
 }
 
 describe('UTXO and Bittensor resolver binding ownership', () => {

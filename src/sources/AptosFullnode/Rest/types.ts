@@ -21,8 +21,3 @@ export type AptosResponseMetadata = {
 	gasUsed?: string
 	cursor?: string
 }
-
-export type AptosResponse<_Body> = {
-	body: _Body
-	metadata: AptosResponseMetadata
-}

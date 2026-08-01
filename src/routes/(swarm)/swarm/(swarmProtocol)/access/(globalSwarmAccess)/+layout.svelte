@@ -19,6 +19,8 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = resolve('/(swarm)/swarm/(swarmProtocol)/access')
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -28,16 +30,18 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/(swarm)/swarm/(swarmProtocol)/access')}
+	href={detailHref}
 >
 	{#snippet Summary()}
 		<GlobalSwarmAccessView
 			selection={
-				select(EntityType._GlobalSwarmAccess, data.selector, { sources: [
-					Source.Constants_Internal,
-				] })
+				select(EntityType._GlobalSwarmAccess, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
 			}
-			href={resolve('/(swarm)/swarm/(swarmProtocol)/access')}
+			href={detailHref}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

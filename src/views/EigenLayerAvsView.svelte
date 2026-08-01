@@ -27,7 +27,6 @@
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
 			Source.EigenLayerContracts_Evm,
-			Source.EigenLayerSubgraph_Graphql,
 			Source.Etherscan_Rest,
 			Source.Voltaire_JsonRpc,
 		],
@@ -64,10 +63,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.avsAddress || 'eigen layer avs'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={eigenLayerAvs}>
 			{#snippet children(entity)}
@@ -81,7 +76,6 @@
 			<NetworkView
 				selection={select(EntityType.Network, selection.entitySelector.$network)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -175,7 +169,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -192,7 +185,6 @@
 									selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
 									prefetched={evmNetworkAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -230,12 +222,7 @@
 			{#snippet SectionEigenlayerAvsOperatorList({ id, label, open })}
 				<EigenLayerOperatorsView
 					selection={selection.$$operators}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No EigenLayer operators.'
 					id={`${id}-list`}
@@ -245,12 +232,7 @@
 			{#snippet SectionEigenlayerAvsAllocations({ id, label, open })}
 				<EigenLayerAllocation_TimestampsView
 					selection={selection.$$allocations}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No EigenLayer allocation observations.'
 					id={`${id}-list`}
@@ -286,12 +268,7 @@
 			{#snippet SectionEigenlayerAvsObservations({ id, label, open })}
 				<EigenLayerAvs_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No EigenLayer AVS observations.'
 					id={`${id}-list`}
@@ -301,12 +278,7 @@
 			{#snippet SectionEigenlayerAvsSlashing({ id, label, open })}
 				<EigenLayerSlashingEventsView
 					selection={selection.$$slashingEvents}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No EigenLayer slashing events.'
 					id={`${id}-list`}

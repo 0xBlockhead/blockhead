@@ -13,7 +13,7 @@ export const githubContentsUrl = ({
 	repo,
 	ref,
 	path,
-}: GithubRepositoryTarget): string => (
+}: GithubRepositoryTarget) => (
 	`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${encodeURIComponent(ref)}`
 )
 
@@ -22,9 +22,26 @@ export const githubRawUrl = ({
 	repo,
 	ref,
 	path,
-}: GithubRepositoryTarget): string => (
+}: GithubRepositoryTarget) => (
 	`https://raw.githubusercontent.com/${owner}/${repo}/${ref}/${path}`
 )
+
+export const githubRepositoryTargetFromKey = (key: string) => {
+	const match = /^(?<owner>[^/]+)\/(?<repo>[^@]+)@(?<ref>[^:]+):(?<path>.*)$/.exec(key)
+	const owner = match?.groups?.owner
+	const repo = match?.groups?.repo
+	const ref = match?.groups?.ref
+	const path = match?.groups?.path
+	if (owner == null || repo == null || ref == null || path == null)
+		throw new Error(`Invalid GitHub repository target: ${key}`)
+
+	return {
+		owner,
+		repo,
+		ref,
+		path,
+	}
+}
 
 export const getGithubContents = ({
 	binding,
@@ -32,7 +49,7 @@ export const getGithubContents = ({
 }: {
 	binding: SourceBinding
 	target: GithubRepositoryTarget
-}): Promise<GithubContentsEntry[]> => (
+}) => (
 	sourceGetJson<GithubContentsEntry[]>(
 		binding,
 		githubContentsUrl(target)
@@ -45,7 +62,7 @@ export const getGithubRawText = ({
 }: {
 	binding: SourceBinding
 	target: GithubRepositoryTarget
-}): Promise<string> => (
+}) => (
 	sourceGetText(
 		binding,
 		githubRawUrl(target)

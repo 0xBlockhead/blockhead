@@ -20,6 +20,7 @@ import {
 	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
+	sourceEndpointOrigin,
 } from '$/sources/SourceBinding.ts'
 import sourceProviders from '$/sources/$sourceProviders.ts'
 import { auditSourceProviders } from '$/sources/auditSourceProviders.ts'
@@ -33,8 +34,7 @@ const browserSourceBindings = sourceBindings.filter((binding) => (
 			|| binding.delivery === SourceDelivery.RemoteLive
 		)
 		&& binding.credentials.every((credential) => (
-			credential.scope === SourceCredentialScope.None
-			|| credential.scope === SourceCredentialScope.PublicConfig
+			credential.scope === SourceCredentialScope.PublicConfig
 			|| credential.scope === SourceCredentialScope.UserDelegated
 		))
 	))
@@ -57,7 +57,7 @@ const httpProxyOrigins = new Set(
 		.flatMap((binding) => (
 			binding.endpoints
 				.filter((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
-				.map((endpoint) => endpoint.origin ?? endpoint.locator)
+				.flatMap((endpoint) => sourceEndpointOrigin(endpoint) ?? [])
 		))
 )
 const audit = auditSourceProviders(sourceProviders)
@@ -146,15 +146,18 @@ const failures = [
 	)) ? [] : ['RemoteLive binding lacks dispatcher coverage']),
 	...evmExecutionOpenRpcArtifactFailures(sourceBindings),
 	...(httpProxyOrigins.has('wss://ethereum.publicnode.com') ? ['WebSocket leaked into HTTP proxy origins'] : []),
-	...(sourceBindings.some((binding) => (
-		binding.source === Source.Coingecko_OpenApi
+	...([
+		'src/sources/Coingecko/OpenApi/openapi.d.ts',
+		'src/sources/Coingecko/OpenApi/Pro/openapi.d.ts',
+	].every((path) => sourceBindings.some((binding) => (
+		binding.source === Source.Coingecko_Rest
 		&& binding.apiFamily === ApiFamily.OpenApiHttp
 		&& binding.artifacts?.some((artifact) => (
 			artifact.kind === SourceArtifactKind.OpenApiTypes
-			&& artifact.path === 'src/sources/Coingecko/OpenApi/openapi.d.ts'
+			&& artifact.path === path
 			&& artifact.generated
 		))
-	)) ? [] : ['missing Coingecko OpenAPI artifact binding']),
+	))) ? [] : ['missing Coingecko OpenAPI artifact binding']),
 	...(sourceBindings.some((binding) => (
 		binding.source === sourceMember('EthereumEips_Github')
 		&& binding.apiFamily === ApiFamily.GithubContentsApi

@@ -1,11 +1,24 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+
+const bitTorrentEndpoints = [
+	{
+		endpointKind: SourceEndpointKind.TcpAddress,
+		locator: '{peer-host}:{port}',
+	},
+] as const
+const bitTorrentRepositoryMetadataOperationGroups = [
+	SourceOperationGroup.RepositoryMetadata,
+] as const
+const bitTorrentAnnounceOperationGroups = [
+	SourceOperationGroup.BitTorrentAnnounce,
+] as const
 
 const bindings = [
 	{
-		source: Source.BitTorrentMetainfo_File,
+		source: Source.BitTorrent,
 		target: {
 			kind: SourceTargetKind.TorrentSwarm,
 			key: 'metainfo-file',
@@ -18,18 +31,12 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.Bencode,
 		apiFamily: ApiFamily.BitTorrentClient,
-		operationGroups: [
-			SourceOperationGroup.RepositoryMetadata,
-		],
+		operationGroups: bitTorrentRepositoryMetadataOperationGroups,
 		delivery: SourceDelivery.LocalOnly,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
-		source: Source.BitTorrent_HttpTracker,
+		source: Source.BitTorrent,
 		target: {
 			kind: SourceTargetKind.TorrentSwarm,
 			key: 'http-tracker',
@@ -38,24 +45,17 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://{tracker-host}/announce',
-				origin: 'https://{tracker-host}',
 				corsEnabled: false,
 			},
 		],
 		wireProtocol: WireProtocol.RawHttp,
 		apiFamily: ApiFamily.BitTorrentTracker,
-		operationGroups: [
-			SourceOperationGroup.BitTorrentAnnounce,
-		],
+		operationGroups: bitTorrentAnnounceOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
-		source: Source.BitTorrent_UdpTracker,
+		source: Source.BitTorrent,
 		target: {
 			kind: SourceTargetKind.TorrentSwarm,
 			key: 'udp-tracker',
@@ -68,18 +68,12 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.Bencode,
 		apiFamily: ApiFamily.BitTorrentTracker,
-		operationGroups: [
-			SourceOperationGroup.BitTorrentAnnounce,
-		],
+		operationGroups: bitTorrentAnnounceOperationGroups,
 		delivery: SourceDelivery.ServerOnly,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
-		source: Source.BitTorrent_MainlineDht,
+		source: Source.BitTorrent,
 		target: {
 			kind: SourceTargetKind.TorrentSwarm,
 			key: 'mainline-dht',
@@ -96,67 +90,36 @@ const bindings = [
 			SourceOperationGroup.BitTorrentDhtLookup,
 		],
 		delivery: SourceDelivery.ServerOnly,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
-		source: Source.BitTorrent_MetadataExchange,
+		source: Source.BitTorrent,
 		target: {
 			kind: SourceTargetKind.TorrentSwarm,
 			key: 'metadata-exchange',
 		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.TcpAddress,
-				locator: '{peer-host}:{port}',
-			},
-		],
+		endpoints: bitTorrentEndpoints,
 		wireProtocol: WireProtocol.Bencode,
 		apiFamily: ApiFamily.BitTorrentClient,
-		operationGroups: [
-			SourceOperationGroup.RepositoryMetadata,
-		],
+		operationGroups: bitTorrentRepositoryMetadataOperationGroups,
 		delivery: SourceDelivery.ServerOnly,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
-		source: Source.BitTorrent_PeerWire,
+		source: Source.BitTorrent,
 		target: {
 			kind: SourceTargetKind.TorrentSwarm,
 			key: 'peer-wire',
 		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.TcpAddress,
-				locator: '{peer-host}:{port}',
-			},
-		],
+		endpoints: bitTorrentEndpoints,
 		wireProtocol: WireProtocol.Bencode,
 		apiFamily: ApiFamily.BitTorrentClient,
 		operationGroups: [
 			SourceOperationGroup.GenericRead,
 		],
 		delivery: SourceDelivery.ServerOnly,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.BitTorrentMetainfo_File]: typeof bindings[0]
-	readonly [Source.BitTorrent_HttpTracker]: typeof bindings[1]
-	readonly [Source.BitTorrent_UdpTracker]: typeof bindings[2]
-	readonly [Source.BitTorrent_MainlineDht]: typeof bindings[3]
-	readonly [Source.BitTorrent_MetadataExchange]: typeof bindings[4]
-	readonly [Source.BitTorrent_PeerWire]: typeof bindings[5]
-}>(bindings)
+export default indexSourceBindings(bindings)

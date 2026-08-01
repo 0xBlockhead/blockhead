@@ -14,7 +14,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'http://127.0.0.1:8545',
-				origin: 'http://127.0.0.1:8545',
 				corsEnabled: false,
 			},
 		],
@@ -35,15 +34,13 @@ const bindings = [
 			{
 				kind: SourceArtifactKind.OpenRpcSpec,
 				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
-				generated: false,
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Reth_JsonRpc]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

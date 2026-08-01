@@ -54,10 +54,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.commitment || 'blockhead litecoin mweb output state'}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.walletId || selection.entitySelector.commitment || titleFallback}
 	{/snippet}
@@ -98,7 +94,6 @@
 									selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
 									prefetched={blockheadWallet}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -117,7 +112,6 @@
 								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 								prefetched={network}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -143,7 +137,6 @@
 									selection={select(EntityType.LitecoinMwebOutput, litecoinMwebOutput[EntityMetaKey.Selector])}
 									prefetched={litecoinMwebOutput}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

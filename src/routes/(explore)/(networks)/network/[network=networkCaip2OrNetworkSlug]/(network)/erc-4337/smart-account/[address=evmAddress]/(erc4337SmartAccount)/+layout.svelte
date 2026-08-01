@@ -19,6 +19,16 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/smart-account/[address=evmAddress]',
+			{
+				network: params.network,
+				address: params.address,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,32 +39,18 @@
 
 {#key [params.network, params.address].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/smart-account/[address=evmAddress]',
-				{
-					network: params.network,
-					address: params.address,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<Erc4337SmartAccountView
 				selection={
-					select(EntityType.Erc4337SmartAccount, data.selector, { sources: [
-						Source.Blockscout_Rest,
-					] })
+					select(EntityType.Erc4337SmartAccount, data.selector, {
+						sources: [
+							Source.Blockscout_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/smart-account/[address=evmAddress]',
-						{
-							network: params.network,
-							address: params.address,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

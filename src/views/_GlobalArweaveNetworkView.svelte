@@ -11,20 +11,17 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalArweaveNetwork> = $props()
 
-	const titleFallback = 'global Arweave network'
 	const viewDomId = $derived('-global-arweave-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import ArweaveNetworksView from '$/views/ArweaveNetworksView.svelte'
 	import ArweaveBlocksView from '$/views/ArweaveBlocksView.svelte'
 	import ArweaveTransactionsView from '$/views/ArweaveTransactionsView.svelte'
@@ -36,17 +33,12 @@
 	entityType={EntityType._GlobalArweaveNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		global Arweave network
-	{/snippet}
-
 	{#snippet Value()}
-		{selection.entitySelector.scope || titleFallback}
+		{selection.entitySelector.scope}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -92,12 +84,7 @@
 			{#snippet SectionArweaveNetworks({ id, label, open })}
 				<ArweaveNetworksView
 					selection={selection.$$observedNetworks}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Arweave networks in this observed.'
 					id={`${id}-list`}
@@ -107,12 +94,7 @@
 			{#snippet SectionArweaveBlocks({ id, label, open })}
 				<ArweaveBlocksView
 					selection={selection.$$observedBlocks}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Arweave blocks in this observed.'
 					id={`${id}-list`}
@@ -122,12 +104,7 @@
 			{#snippet SectionArweaveTransactions({ id, label, open })}
 				<ArweaveTransactionsView
 					selection={selection.$$observedTransactions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Arweave transactions in this observed.'
 					id={`${id}-list`}
@@ -159,12 +136,7 @@
 			{#snippet SectionArweaveResourceList({ id, label, open })}
 				<ArweaveResourcesView
 					selection={selection.$$observedResources}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Arweave resources in this observed.'
 					id={`${id}-list`}

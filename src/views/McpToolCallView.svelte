@@ -52,10 +52,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.callId || 'mcp tool call'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary
 			resource={selection.$tool}
@@ -66,7 +62,6 @@
 						selection={select(EntityType.McpTool, mcpTool[EntityMetaKey.Selector])}
 						prefetched={mcpTool}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -94,7 +89,6 @@
 					<McpServerView
 						selection={select(EntityType.McpServer, selection.entitySelector.$server)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -118,7 +112,6 @@
 									selection={select(EntityType.McpTool, mcpTool[EntityMetaKey.Selector])}
 									prefetched={mcpTool}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

@@ -31,8 +31,8 @@
 
 
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import AlgorandTransactionProofsView from '$/views/AlgorandTransactionProofsView.svelte'
 	import AlgorandNetworkView from '$/views/AlgorandNetworkView.svelte'
 	import AlgorandTransactionGroupView from '$/views/AlgorandTransactionGroupView.svelte'
 </script>
@@ -46,10 +46,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.txId || 'algorand transaction'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={algorandTransaction}>
 			{#snippet children(entity)}
@@ -76,7 +72,6 @@
 					<AlgorandNetworkView
 						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -194,7 +189,6 @@
 									selection={select(EntityType.AlgorandTransactionGroup, algorandTransactionGroup[EntityMetaKey.Selector])}
 									prefetched={algorandTransactionGroup}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -276,12 +270,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<AlgorandTransactionProofsView
-						selection={proofsResource}
+					<EntitiesList
+						entityType={EntityType.AlgorandTransactionProof}
 						countResource={proofsResource.count}
 						title='proofs'
+						open={true}
 						id='proofs'
-					/>
+						resource={proofsResource()}
+					>
+						{#snippet Item({ item: algorandTransactionProof })}
+							<EntityView
+								entityType={EntityType.AlgorandTransactionProof}
+								entitySelector={algorandTransactionProof[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

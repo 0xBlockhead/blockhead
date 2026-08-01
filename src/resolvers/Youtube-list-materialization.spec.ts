@@ -32,6 +32,12 @@ const pipedQueries = vi.hoisted(() => ({
 vi.mock('$/sources/Youtube/Rest/queries.ts', () => youtubeQueries)
 vi.mock('$/sources/Piped/Rest/queries.ts', () => pipedQueries)
 
+const {
+	listChannelVideos,
+	listPlaylistVideos,
+} = await vi.importActual<typeof import('$/sources/Piped/Rest/queries.ts')>(
+	'$/sources/Piped/Rest/queries.ts'
+)
 const { default: youtubeResolvers } = await import('$/resolvers/Youtube-Rest.ts')
 const { default: pipedResolvers } = await import('$/resolvers/Piped-Rest.ts')
 
@@ -46,48 +52,83 @@ const resolverContext = {
 	limit: 10,
 }
 
+describe('Piped preloaded page materialization', () => {
+	it('preserves a preloaded playlist continuation', async () => {
+		expect(await listPlaylistVideos(
+			'playlist-1',
+			10,
+			{
+				playlist: {
+					nextpage: 'playlist-next',
+					relatedStreams: [],
+				},
+			}
+		)).toEqual({
+			items: [],
+			nextpage: 'playlist-next',
+		})
+	})
+
+	it('marks preloaded stream suggestions terminal', async () => {
+		expect(await listChannelVideos(
+			'channel-1',
+			10,
+			{
+				stream: {
+					relatedStreams: [],
+				},
+			}
+		)).toEqual({
+			items: [],
+			nextpage: undefined,
+		})
+	})
+})
+
 describe.each([
 	{
 		label: 'YouTube',
 		continuationToken: 'youtube-next',
 		resolveRows: async () => {
-			const videoSnapshot = await youtubeResolvers.resolvers[5].resolve['ChannelId'].resolve(
+			const videoSnapshot = await youtubeResolvers.resolvers[4].resolve['ChannelId'].resolve(
 				{ channelId: 'channel-1' },
 				resolverContext
 			)
-			const playlistSnapshot = await youtubeResolvers.resolvers[7].resolve['ChannelId'].resolve(
+			const playlistSnapshot = await youtubeResolvers.resolvers[5].resolve['ChannelId'].resolve(
 				{ channelId: 'channel-1' },
 				resolverContext
 			)
-			const commentSnapshot = await youtubeResolvers.resolvers[12].resolve['VideoId'].resolve(
+			const commentSnapshot = await youtubeResolvers.resolvers[7].resolve['VideoId'].resolve(
 				{ videoId: 'video-1' },
 				resolverContext
 			)
 			return {
-				video: youtubeResolvers.resolvers[5].projections.$$videos.select(
+				video: youtubeResolvers.resolvers[4].projections.$$videos.select(
 					videoSnapshot,
 					{ channelId: 'channel-1' },
 					resolverContext
 				)[0],
-				playlist: youtubeResolvers.resolvers[7].projections.$$playlists.select(
+				playlist: youtubeResolvers.resolvers[5].projections.$$playlists.select(
 					playlistSnapshot,
 					{ channelId: 'channel-1' },
 					resolverContext
 				)[0],
-				comment: youtubeResolvers.resolvers[12].projections.$$comments.select(
+				comment: youtubeResolvers.resolvers[7].projections.$$comments.select(
 					commentSnapshot,
 					{ videoId: 'video-1' },
 					resolverContext
 				)[0],
-				continuation: youtubeResolvers.resolvers[12].projections.$$comments.continuation(
+				continuation: youtubeResolvers.resolvers[7].projections.$$comments.continuation(
 					commentSnapshot,
 					{ videoId: 'video-1' },
 					resolverContext
 				),
 				channel: (
-					await youtubeResolvers.resolvers[17].resolve['Scope'].resolve(
+					youtubeResolvers.resolvers[10].projections.$$observedChannels(
+						await youtubeResolvers.resolvers[10].resolve['Scope'].resolve(
 						{ scope: '_GlobalYoutubeNetwork' },
 						resolverContext
+						)
 					)
 				)[0],
 			}
@@ -153,43 +194,45 @@ describe.each([
 		label: 'Piped',
 		continuationToken: 'piped-next',
 		resolveRows: async () => {
-			const videoSnapshot = await pipedResolvers.resolvers[5].resolve['ChannelId'].resolve(
+			const videoSnapshot = await pipedResolvers.resolvers[4].resolve['ChannelId'].resolve(
 				{ channelId: 'channel-1' },
 				resolverContext
 			)
-			const playlistSnapshot = await pipedResolvers.resolvers[6].resolve['ChannelId'].resolve(
+			const playlistSnapshot = await pipedResolvers.resolvers[5].resolve['ChannelId'].resolve(
 				{ channelId: 'channel-1' },
 				resolverContext
 			)
-			const commentSnapshot = await pipedResolvers.resolvers[9].resolve['VideoId'].resolve(
+			const commentSnapshot = await pipedResolvers.resolvers[7].resolve['VideoId'].resolve(
 				{ videoId: 'video-1' },
 				resolverContext
 			)
 			return {
-				video: pipedResolvers.resolvers[5].projections.$$videos.select(
+				video: pipedResolvers.resolvers[4].projections.$$videos.select(
 					videoSnapshot,
 					{ channelId: 'channel-1' },
 					resolverContext
 				)[0],
-				playlist: pipedResolvers.resolvers[6].projections.$$playlists.select(
+				playlist: pipedResolvers.resolvers[5].projections.$$playlists.select(
 					playlistSnapshot,
 					{ channelId: 'channel-1' },
 					resolverContext
 				)[0],
-				comment: pipedResolvers.resolvers[9].projections.$$comments.select(
+				comment: pipedResolvers.resolvers[7].projections.$$comments.select(
 					commentSnapshot,
 					{ videoId: 'video-1' },
 					resolverContext
 				)[0],
-				continuation: pipedResolvers.resolvers[9].projections.$$comments.continuation(
+				continuation: pipedResolvers.resolvers[7].projections.$$comments.continuation(
 					commentSnapshot,
 					{ videoId: 'video-1' },
 					resolverContext
 				),
 				channel: (
-					await pipedResolvers.resolvers[11].resolve['Scope'].resolve(
+					pipedResolvers.resolvers[8].projections.$$observedChannels(
+						await pipedResolvers.resolvers[8].resolve['Scope'].resolve(
 						{ scope: '_GlobalYoutubeNetwork' },
 						resolverContext
+						)
 					)
 				)[0],
 			}
@@ -337,7 +380,7 @@ describe('YouTube observation provenance', () => {
 			}],
 		})
 
-		const playlists = await youtubeResolvers.resolvers[19]
+		const playlists = await youtubeResolvers.resolvers[11]
 			.resolve['Scope']
 			.resolve(
 				{ scope: '_GlobalYoutubeNetwork' },
@@ -361,12 +404,14 @@ describe('YouTube observation provenance', () => {
 		{
 			label: 'YouTube',
 			source: Source.Youtube_Rest,
-			resolveObservation: async () => (
-				await youtubeResolvers.resolvers[4].resolve['ChannelId'].resolve(
+			request: youtubeQueries.getChannel,
+			resolveObservation: async () => {
+				const channel = await youtubeResolvers.resolvers[0].resolve['ChannelId'].resolve(
 					{ channelId: 'channel-1' },
 					resolverContext
 				)
-			)[0],
+				return youtubeResolvers.resolvers[0].projections.$$timestamps(channel)[0]
+			},
 			historicalResolverEntityTypes: youtubeResolvers.resolvers.map(({ entityType }) => entityType),
 			arrange: () => youtubeQueries.getChannel.mockResolvedValueOnce({
 				items: [{
@@ -381,12 +426,14 @@ describe('YouTube observation provenance', () => {
 		{
 			label: 'Piped',
 			source: Source.Piped_Rest,
-			resolveObservation: async () => (
-				await pipedResolvers.resolvers[4].resolve['ChannelId'].resolve(
+			request: pipedQueries.getChannel,
+			resolveObservation: async () => {
+				const channel = await pipedResolvers.resolvers[0].resolve['ChannelId'].resolve(
 					{ channelId: 'channel-1' },
 					resolverContext
 				)
-			)[0],
+				return pipedResolvers.resolvers[0].projections.$$timestamps(channel)[0]
+			},
 			historicalResolverEntityTypes: pipedResolvers.resolvers.map(({ entityType }) => entityType),
 			arrange: () => pipedQueries.getChannel.mockResolvedValueOnce({
 				id: 'channel-1',
@@ -395,6 +442,7 @@ describe('YouTube observation provenance', () => {
 		},
 	])('$label captures source-keyed persisted observations without historical refetch resolvers', async ({
 		source,
+		request,
 		resolveObservation,
 		historicalResolverEntityTypes,
 		arrange,
@@ -402,6 +450,7 @@ describe('YouTube observation provenance', () => {
 		arrange()
 		const observation = await resolveObservation()
 
+		expect(request).toHaveBeenCalledOnce()
 		expect(observation[EntityMetaKey.Selector]).toMatchObject({
 			$channel: { channelId: 'channel-1' },
 			source,
@@ -419,21 +468,21 @@ describe('YouTube observation provenance', () => {
 describe('YouTube reading-card continuation and identity', () => {
 	it.each([
 		{
-			resolverIndex: 5,
+			resolverIndex: 4,
 			projection: '$$videos' as const,
 			operation: 'search.list:channel-videos',
 			target: { channelId: 'channel-1' },
 			request: youtubeQueries.searchChannelVideos,
 		},
 		{
-			resolverIndex: 7,
+			resolverIndex: 5,
 			projection: '$$playlists' as const,
 			operation: 'playlists.list:channel',
 			target: { channelId: 'channel-1' },
 			request: youtubeQueries.listChannelPlaylists,
 		},
 		{
-			resolverIndex: 9,
+			resolverIndex: 6,
 			projection: '$$videos' as const,
 			operation: 'playlistItems.list',
 			target: { playlistId: 'playlist-1' },
@@ -533,7 +582,7 @@ describe('YouTube reading-card continuation and identity', () => {
 			],
 			nextPageToken: 'opaque/+ % token',
 		})
-		const resolver = youtubeResolvers.resolvers[15]
+		const resolver = youtubeResolvers.resolvers[9]
 		const selector = {
 			videoId: 'video-1',
 			commentId: 'parent-1',

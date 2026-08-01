@@ -36,10 +36,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		XRPL ledger entry
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +44,6 @@
 					<XrplLedgerView
 						selection={select(EntityType.XrplLedger, selection.entitySelector.$ledger)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

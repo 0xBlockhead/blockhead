@@ -39,10 +39,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		TON NFT item
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -56,7 +52,6 @@
 								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 								prefetched={network}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -94,7 +89,6 @@
 									selection={select(EntityType.TonNftCollection, tonNftCollection[EntityMetaKey.Selector])}
 									prefetched={tonNftCollection}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -136,7 +130,6 @@
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
 									prefetched={tonAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

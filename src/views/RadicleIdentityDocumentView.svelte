@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -32,15 +31,10 @@
 <EntityView
 	entityType={EntityType.RadicleIdentityDocument}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'radicle identity document'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		radicle identity document
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -154,7 +148,6 @@
 									selection={select(EntityType.RadicleRepository, radicleRepository[EntityMetaKey.Selector])}
 									prefetched={radicleRepository}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

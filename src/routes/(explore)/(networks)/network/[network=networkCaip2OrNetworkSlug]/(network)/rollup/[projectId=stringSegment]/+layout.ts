@@ -27,7 +27,8 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			projectId: params.projectId,
-		}
+		},
+		'EvmNetworkProjectId'
 	)
 	if (evmRollupEvmNetworkProjectIdSelector instanceof arktype.errors)
 		error(404, 'Invalid EvmRollup selector')

@@ -95,7 +95,6 @@
 						selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
 						prefetched={beaconEpoch}
 						layout={EntityLayout.Title}
-						open={false}
 					/>
 				</span>
 			{/snippet}
@@ -139,7 +138,6 @@
 								selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
 								prefetched={beaconEpoch}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -320,12 +318,7 @@
 			{#snippet SectionBeaconSlotCommittees({ id, label, open })}
 				<BeaconCommitteesView
 					selection={selection.$$beaconCommittees}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -334,12 +327,7 @@
 			{#snippet SectionBeaconSlotAttestations({ id, label, open })}
 				<BeaconAttestationsView
 					selection={selection.$$beaconAttestations}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -374,12 +362,7 @@
 			{#snippet SectionBeaconSlotWithdrawals({ id, label, open })}
 				<BeaconWithdrawalsView
 					selection={selection.$$beaconWithdrawals}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -388,12 +371,7 @@
 			{#snippet SectionBeaconSlotSlashings({ id, label, open })}
 				<BeaconSlashingsView
 					selection={selection.$$beaconSlashings}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>

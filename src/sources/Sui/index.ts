@@ -10,16 +10,8 @@ export default {
 	label: 'Sui',
 	sources: [
 		{
-			source: Source.Sui_Graphql,
-			label: 'Sui GraphQL',
-		},
-		{
-			source: Source.Sui_Grpc,
-			label: 'Sui gRPC',
-		},
-		{
-			source: Source.Sui_JsonRpc,
-			label: 'Sui JSON-RPC',
+			source: Source.Sui,
+			label: 'Sui',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

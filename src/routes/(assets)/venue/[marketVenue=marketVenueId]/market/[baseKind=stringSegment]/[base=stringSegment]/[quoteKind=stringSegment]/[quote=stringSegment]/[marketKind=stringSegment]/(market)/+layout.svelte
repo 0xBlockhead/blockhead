@@ -18,6 +18,20 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]',
+			{
+				marketVenue: params.marketVenue,
+				baseKind: params.baseKind,
+				base: params.base,
+				quoteKind: params.quoteKind,
+				quote: params.quote,
+				marketKind: params.marketKind,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -28,36 +42,12 @@
 
 {#key [params.marketVenue, params.baseKind, params.base, params.quoteKind, params.quote, params.marketKind].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]',
-				{
-					marketVenue: params.marketVenue,
-					baseKind: params.baseKind,
-					base: params.base,
-					quoteKind: params.quoteKind,
-					quote: params.quote,
-					marketKind: params.marketKind,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<MarketView
 				selection={select(EntityType.Market, data.selector)}
-				href={
-					resolve(
-						'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]',
-						{
-							marketVenue: params.marketVenue,
-							baseKind: params.baseKind,
-							base: params.base,
-							quoteKind: params.quoteKind,
-							quote: params.quote,
-							marketKind: params.marketKind,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

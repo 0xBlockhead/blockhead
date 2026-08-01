@@ -41,6 +41,10 @@
 			{#snippet Title()}
 				{hyperliquidNetwork.$network.name || (hyperliquidNetworkSelector.$network.caip2 == null ? '' : `${hyperliquidNetworkSelector.$network.caip2.namespace}:${hyperliquidNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
+
+			{#snippet Value()}
+				Hyperliquid
+			{/snippet}
 		</EntityView>
 	{/snippet}
 </EntitiesList>

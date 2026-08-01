@@ -415,10 +415,7 @@ export interface paths {
          */
         get: {
             parameters: {
-                query?: {
-                    /** @description time range on either side to find price data, defaults to 6 hours */
-                    searchWidth?: string;
-                };
+                query?: never;
                 header?: never;
                 path: {
                     /** @description set of comma-separated tokens defined as {chain}:{address} */
@@ -488,10 +485,7 @@ export interface paths {
          */
         get: {
             parameters: {
-                query?: {
-                    /** @description time range on either side to find price data, defaults to 6 hours */
-                    searchWidth?: string;
-                };
+                query?: never;
                 header?: never;
                 path: {
                     /** @description set of comma-separated tokens defined as {chain}:{address} */
@@ -557,19 +551,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get historical prices for multiple tokens at multiple different timestamps
-         * @description Strings accepted by period and searchWidth:
-         *     Can use regular chart candle notion like ‘4h’ etc where:
-         *     W = week, D = day, H = hour, M = minute (not case sensitive)
-         */
+        /** Get historical prices for multiple tokens at multiple different timestamps */
         get: {
             parameters: {
                 query: {
                     /** @description object where keys are coins in the form {chain}:{address}, and values are arrays of requested timestamps */
                     coins: string;
-                    /** @description time range on either side to find price data, defaults to 6 hours */
-                    searchWidth?: string;
                 };
                 header?: never;
                 path?: never;
@@ -627,7 +614,7 @@ export interface paths {
         };
         /**
          * Get token prices at regular time intervals
-         * @description Strings accepted by period and searchWidth:
+         * @description Strings accepted by period:
          *     Can use regular chart candle notion like ‘4h’ etc where:
          *     W = week, D = day, H = hour, M = minute (not case sensitive)
          */
@@ -642,8 +629,6 @@ export interface paths {
                     span?: number;
                     /** @description duration between data points, defaults to 24 hours */
                     period?: string;
-                    /** @description time range on either side to find price data, defaults to 10% of period */
-                    searchWidth?: string;
                 };
                 header?: never;
                 path: {

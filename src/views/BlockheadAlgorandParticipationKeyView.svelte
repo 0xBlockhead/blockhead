@@ -53,10 +53,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.participationId || 'blockhead algorand participation key'}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.nodeId || selection.entitySelector.participationId || titleFallback}
 	{/snippet}
@@ -104,7 +100,6 @@
 									selection={select(EntityType.AlgorandAccount, algorandAccount[EntityMetaKey.Selector])}
 									prefetched={algorandAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -124,7 +119,6 @@
 									selection={select(EntityType.AlgorandNetwork, algorandNetwork[EntityMetaKey.Selector])}
 									prefetched={algorandNetwork}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

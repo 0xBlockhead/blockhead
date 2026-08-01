@@ -85,7 +85,6 @@
 					<McpResourceView
 						selection={select(EntityType.McpResource, selection.entitySelector.$resource)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

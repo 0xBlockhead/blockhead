@@ -40,8 +40,5 @@
 		title='MEV payloads'
 		selection={select(EntityType.Network, data.selector).Evm.$$mevProposerPayloadDelivered}
 		id='mev-proposer-payload-delivered'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

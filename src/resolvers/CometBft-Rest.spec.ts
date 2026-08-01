@@ -5,7 +5,7 @@ import {
 	vi,
 } from 'vitest'
 
-import { cosmosNetworkBySlug } from '$/constants/CosmosNetwork.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import bindings from '$/sources/CometBft/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -45,7 +45,7 @@ describe('CometBFT resolver binding', () => {
 
 		await resolver.resolve['NetworkHeight'].resolve({
 			$network: {
-				caip2: cosmosNetworkBySlug.cosmos.caip2,
+				caip2: networkBySlug.cosmos.caip2,
 			},
 			height: 1n,
 		}, {

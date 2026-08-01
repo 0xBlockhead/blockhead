@@ -19,11 +19,6 @@ import {
 	sepoliaNetworkUpgradeActivations,
 	type NetworkUpgradeActivation,
 } from '$/constants/EthereumNetworkUpgradeActivations.ts'
-import {
-	ethereumNetworkMarketingNetworkUpgradeSlugByUpgradeId,
-	networkConsensusUpgradeSlugByUpgradeId,
-	networkExecutionUpgradeSlugByUpgradeId,
-} from '$/constants/EthereumNetworkUpgradeSlugs.ts'
 
 /**
 	* Manual dual-layer marketing umbrellas (Merge, Shapella, …).
@@ -99,13 +94,11 @@ const upgradeIdentityFromActivation = (args: {
 	readonly upgradeId: string
 	readonly name: string | undefined
 	readonly slugOverride: string | undefined
-	readonly slugByUpgradeId?: Record<string, { readonly slug: string }>
 }) => ({
 	upgradeId: args.upgradeId,
 	name: args.name ?? upgradeNameFromUpgradeId(args.upgradeId),
 	slug: (
 		args.slugOverride
-		?? args.slugByUpgradeId?.[args.upgradeId]?.slug
 		?? upgradeIdSlugSegment(args.upgradeId)
 	),
 })
@@ -127,35 +120,35 @@ export const ethereumNetworkMarketingUmbrellas = [
 	{
 		upgradeId: 'Merge',
 		name: 'The Merge',
-		slug: ethereumNetworkMarketingNetworkUpgradeSlugByUpgradeId['Merge'].slug,
+		slug: upgradeIdSlugSegment('Merge'),
 		executionUpgradeId: 'Paris',
 		consensusUpgradeId: 'Bellatrix',
 	},
 	{
 		upgradeId: 'Shapella',
 		name: 'Shapella',
-		slug: ethereumNetworkMarketingNetworkUpgradeSlugByUpgradeId['Shapella'].slug,
+		slug: upgradeIdSlugSegment('Shapella'),
 		executionUpgradeId: 'Shanghai',
 		consensusUpgradeId: 'Capella',
 	},
 	{
 		upgradeId: 'Dencun',
 		name: 'Dencun',
-		slug: ethereumNetworkMarketingNetworkUpgradeSlugByUpgradeId['Dencun'].slug,
+		slug: upgradeIdSlugSegment('Dencun'),
 		executionUpgradeId: 'Cancun',
 		consensusUpgradeId: 'Deneb',
 	},
 	{
 		upgradeId: 'Pectra',
 		name: 'Pectra',
-		slug: ethereumNetworkMarketingNetworkUpgradeSlugByUpgradeId['Pectra'].slug,
+		slug: upgradeIdSlugSegment('Pectra'),
 		executionUpgradeId: 'Prague',
 		consensusUpgradeId: 'Electra',
 	},
 	{
 		upgradeId: 'Fusaka',
 		name: 'Fusaka',
-		slug: ethereumNetworkMarketingNetworkUpgradeSlugByUpgradeId['Fusaka'].slug,
+		slug: upgradeIdSlugSegment('Fusaka'),
 		executionUpgradeId: 'Osaka',
 		consensusUpgradeId: 'Fulu',
 	},
@@ -212,7 +205,6 @@ const networkExecutionUpgradeRowFromActivation = (
 		upgradeId,
 		name,
 		slugOverride: slugMaybe,
-		slugByUpgradeId: networkExecutionUpgradeSlugByUpgradeId,
 	})
 	const pinnedFilename = executionSpecsPinnedMarkdownFilenameFromLink(links?.executionSpecs)
 	if (activationSource.blobParameterOnly === true)
@@ -263,7 +255,6 @@ const networkConsensusUpgradeRowFromActivation = (
 		upgradeId,
 		name,
 		slugOverride: slugMaybe,
-		slugByUpgradeId: networkConsensusUpgradeSlugByUpgradeId,
 	})
 	return {
 		chainId,
@@ -405,20 +396,7 @@ export const networkUpgrades = [
 	...networkUpgradeMarketingUmbrellas,
 ]
 
-/** Execution / consensus codename aliases → umbrella `NetworkUpgrade.upgradeId` on Ethereum L1 and those public testnets. */
-const ethereumMainnetNetworkUpgradeSlugAliases = [
-	{
-		segmentSlug: 'paris',
-		umbrellaUpgradeId: 'Merge',
-	},
-	{
-		segmentSlug: 'bellatrix',
-		umbrellaUpgradeId: 'Merge',
-	},
-	{
-		segmentSlug: 'merge',
-		umbrellaUpgradeId: 'Merge',
-	},
+const ethereumMainnetNetworkUpgradeExceptionalSlugAliases = [
 	{
 		segmentSlug: 'the-merge',
 		umbrellaUpgradeId: 'Merge',
@@ -427,42 +405,35 @@ const ethereumMainnetNetworkUpgradeSlugAliases = [
 		segmentSlug: 'the merge',
 		umbrellaUpgradeId: 'Merge',
 	},
-	{
-		segmentSlug: 'shanghai',
-		umbrellaUpgradeId: 'Shapella',
-	},
-	{
-		segmentSlug: 'capella',
-		umbrellaUpgradeId: 'Shapella',
-	},
-	{
-		segmentSlug: 'cancun',
-		umbrellaUpgradeId: 'Dencun',
-	},
-	{
-		segmentSlug: 'deneb',
-		umbrellaUpgradeId: 'Dencun',
-	},
-	{
-		segmentSlug: 'prague',
-		umbrellaUpgradeId: 'Pectra',
-	},
-	{
-		segmentSlug: 'electra',
-		umbrellaUpgradeId: 'Pectra',
-	},
-	{
-		segmentSlug: 'osaka',
-		umbrellaUpgradeId: 'Fusaka',
-	},
-	{
-		segmentSlug: 'fulu',
-		umbrellaUpgradeId: 'Fusaka',
-	},
 ] as const satisfies readonly {
 	segmentSlug: string
 	umbrellaUpgradeId: string
 }[]
+
+/** Execution / consensus codenames route to their canonical marketing umbrella. */
+const ethereumMainnetNetworkUpgradeSlugAliases = (
+	ethereumNetworkMarketingUmbrellas.flatMap((umbrella) => [
+		...[
+			umbrella.executionUpgradeId,
+			umbrella.consensusUpgradeId,
+		].flatMap((upgradeId) => (
+			ethereumMainnetNetworkUpgradeActivations.flatMap((activation: NetworkUpgradeActivation) => (
+				activation.upgradeId === upgradeId ?
+					[
+						{
+							segmentSlug: activation.slug ?? upgradeIdSlugSegment(activation.upgradeId),
+							umbrellaUpgradeId: umbrella.upgradeId,
+						},
+					]
+				:
+					[]
+			))
+		)),
+		...ethereumMainnetNetworkUpgradeExceptionalSlugAliases.filter((alias) => (
+			alias.umbrellaUpgradeId === umbrella.upgradeId
+		)),
+	])
+)
 
 
 // Lookups
@@ -479,6 +450,23 @@ export const networkUpgradeByChainIdAndUpgradeId = Object.fromEntries(
 		`${networkUpgrade.chainId}:${networkUpgrade.upgradeId}`,
 		networkUpgrade,
 	])
+)
+
+export const networkUpgradesByChainId = Object.groupBy(
+	networkUpgrades,
+	(networkUpgrade) => networkUpgrade.chainId
+)
+
+export const networkUpgradeByChainIdAndConsensusUpgradeId = Object.fromEntries(
+	networkUpgrades.flatMap((networkUpgrade) => (
+		networkUpgrade.consensusUpgradeId == null ?
+			[]
+		:
+			[[
+				`${networkUpgrade.chainId}:${networkUpgrade.consensusUpgradeId}`,
+				networkUpgrade,
+			]]
+	))
 )
 
 export const networkUpgradeByChainIdAndRouteSegment = Object.fromEntries(
@@ -515,6 +503,11 @@ export const networkExecutionUpgradeByChainIdAndUpgradeId = Object.fromEntries(
 	])
 )
 
+export const networkExecutionUpgradesByChainId = Object.groupBy(
+	networkExecutionUpgrades,
+	(executionUpgrade) => executionUpgrade.chainId
+)
+
 export const networkExecutionUpgradeByChainIdAndRouteSegment = Object.fromEntries(
 	networkExecutionUpgrades.flatMap((executionUpgrade) => (
 		[
@@ -536,6 +529,11 @@ export const networkConsensusUpgradeByChainIdAndUpgradeId = Object.fromEntries(
 		`${consensusUpgrade.chainId}:${consensusUpgrade.upgradeId}`,
 		consensusUpgrade,
 	])
+)
+
+export const networkConsensusUpgradesByChainId = Object.groupBy(
+	networkConsensusUpgrades,
+	(consensusUpgrade) => consensusUpgrade.chainId
 )
 
 export const networkConsensusUpgradeByChainIdAndRouteSegment = Object.fromEntries(

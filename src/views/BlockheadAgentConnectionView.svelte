@@ -53,10 +53,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.connectionId || 'blockhead agent connection'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAgentConnection}>
 			{#snippet children(entity)}
@@ -99,7 +95,6 @@
 									selection={select(EntityType.BlockheadAgentProfile, blockheadAgentProfile[EntityMetaKey.Selector])}
 									prefetched={blockheadAgentProfile}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -119,7 +114,6 @@
 									selection={select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector])}
 									prefetched={blockheadSource}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

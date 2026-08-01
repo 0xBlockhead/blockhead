@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -34,15 +33,10 @@
 <EntityView
 	entityType={EntityType.HederaNft_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'hedera NFT timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		hedera NFT timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -51,7 +45,6 @@
 					<HederaNftView
 						selection={select(EntityType.HederaNft, selection.entitySelector.$nft)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -82,7 +75,6 @@
 									selection={select(EntityType.HederaAccount, hederaAccount[EntityMetaKey.Selector])}
 									prefetched={hederaAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

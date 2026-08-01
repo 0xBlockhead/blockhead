@@ -39,7 +39,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json',
-				origin: 'https://cdn.agentclientprotocol.com',
 				corsEnabled: false,
 			},
 		],
@@ -51,22 +50,14 @@ const bindings = [
 			SourceOperationGroup.RepositoryMetadata,
 		],
 		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/Acp/Rest/types.ts',
-				generated: false,
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.AcpLocal_JsonRpc]: typeof bindings[0]
-	readonly [Source.AcpRegistry_Rest]: typeof bindings[1]
-}>(bindings)
+export default indexSourceBindings(bindings)

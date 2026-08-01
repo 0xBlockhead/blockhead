@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -15,7 +16,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -26,13 +26,10 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import KaspaNetworkView from '$/views/KaspaNetworkView.svelte'
-	import KaspaTransactionsView from '$/views/KaspaTransactionsView.svelte'
-	import KaspaAddressUtxo_TimestampsView from '$/views/KaspaAddressUtxo_TimestampsView.svelte'
-	import KaspaAddress_TimestampsView from '$/views/KaspaAddress_TimestampsView.svelte'
 </script>
 
 
@@ -40,15 +37,10 @@
 	entityType={EntityType.KaspaAddress}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? 'kaspa address'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		kaspa address
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -57,7 +49,6 @@
 					<KaspaNetworkView
 						selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -97,33 +88,41 @@
 			{/snippet}
 
 			{#snippet SectionKaspaAddressTransactions({ id, label, open })}
-				<KaspaTransactionsView
-					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.KaspaTransaction}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Kaspa transactions.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$transactions()}
+				>
+					{#snippet Item({ item: kaspaTransaction })}
+						<EntityView
+							entityType={EntityType.KaspaTransaction}
+							entitySelector={kaspaTransaction[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionKaspaAddressUtxos({ id, label, open })}
-				<KaspaAddressUtxo_TimestampsView
-					selection={selection.$$utxos}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.KaspaAddressUtxo_Timestamp}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Kaspa UTXO observations.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$utxos()}
+				>
+					{#snippet Item({ item: kaspaAddressUtxoTimestamp })}
+						<EntityView
+							entityType={EntityType.KaspaAddressUtxo_Timestamp}
+							entitySelector={kaspaAddressUtxoTimestamp[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -149,18 +148,22 @@
 			{/snippet}
 
 			{#snippet SectionKaspaAddressTimestamps({ id, label, open })}
-				<KaspaAddress_TimestampsView
-					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.KaspaAddress_Timestamp}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Kaspa address observations.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$timestamps()}
+				>
+					{#snippet Item({ item: kaspaAddressTimestamp })}
+						<EntityView
+							entityType={EntityType.KaspaAddress_Timestamp}
+							entitySelector={kaspaAddressTimestamp[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>

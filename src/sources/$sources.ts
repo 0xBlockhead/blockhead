@@ -73,25 +73,6 @@ export const resolveEnvLocator = (
 	return value
 }
 
-export const sourceOriginsFromBindings = (bindings: readonly SourceBinding[]) => [
-	...new Map(
-		bindings
-			.flatMap((binding) => binding.endpoints)
-			.flatMap((endpoint) => (
-				endpoint.origin == null ?
-					[]
-				:
-					[[
-						endpoint.origin,
-						{
-							origin: endpoint.origin,
-							corsEnabled: endpoint.corsEnabled === true,
-						},
-					]]
-			))
-	).values(),
-]
-
 export const indexSourceProviders = <
 	const _SourceProvider extends PropertyKey,
 	const _Source extends PropertyKey,

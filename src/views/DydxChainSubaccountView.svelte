@@ -28,7 +28,6 @@
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import DydxChainNetworkView from '$/views/DydxChainNetworkView.svelte'
 	import CosmosAccountView from '$/views/CosmosAccountView.svelte'
@@ -52,7 +51,6 @@
 			selection={select(EntityType.CosmosAccount, selection.entitySelector.$account)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -70,7 +68,6 @@
 					<DydxChainNetworkView
 						selection={select(EntityType.DydxChainNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -81,7 +78,6 @@
 					<CosmosAccountView
 						selection={select(EntityType.CosmosAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -125,12 +121,7 @@
 			{#snippet SectionDydxSubaccountPositions({ id, label, open })}
 				<DydxChainPerpetualPosition_TimestampsView
 					selection={selection.$$positions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No dYdX position observations.'
 					id={`${id}-list`}
@@ -140,12 +131,7 @@
 			{#snippet SectionDydxSubaccountOrders({ id, label, open })}
 				<DydxChainOrdersView
 					selection={selection.$$orders}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No dYdX orders.'
 					id={`${id}-list`}
@@ -177,12 +163,7 @@
 			{#snippet SectionDydxSubaccountTimestamps({ id, label, open })}
 				<DydxChainSubaccount_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No dYdX subaccount observations.'
 					id={`${id}-list`}

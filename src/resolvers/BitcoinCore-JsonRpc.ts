@@ -1,23 +1,22 @@
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import {
-	bitcoinNetworkBySlug,
-} from '$/constants/BitcoinNetwork.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
-const assertBitcoinMainnet = (network: { caip2: {
-	namespace: string
-	reference: string
-} } | { networkSlug: string } | { slug: string }) => {
+const assertBitcoinMainnet = (
+	network: EntitySelector<typeof schema, EntityType.Network>
+) => {
 	if (
 		!('caip2' in network)
-		|| network.caip2.namespace !== bitcoinNetworkBySlug.bitcoin.caip2.namespace
-		|| network.caip2.reference !== bitcoinNetworkBySlug.bitcoin.caip2.reference
+		|| network.caip2.namespace !== networkBySlug.bitcoin.caip2.namespace
+		|| network.caip2.reference !== networkBySlug.bitcoin.caip2.reference
 	) {
 		throw new Error('BitcoinCore_JsonRpc: unsupported Bitcoin network')
 	}

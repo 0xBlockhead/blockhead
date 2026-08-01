@@ -41,7 +41,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Solana_JsonRpc,
-			Source.Helius_Rest,
+			Source.Helius,
 		],
 	},
 	feeLamports: {
@@ -51,7 +51,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Solana_JsonRpc,
-			Source.Helius_Rest,
+			Source.Helius,
 		],
 	},
 	computeUnitsConsumed: {
@@ -70,7 +70,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Solana_JsonRpc,
-			Source.Helius_Rest,
+			Source.Helius,
 		],
 	},
 	confirmationStatus: {
@@ -89,7 +89,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Solana_JsonRpc,
-			Source.Helius_Rest,
+			Source.Helius,
 		],
 	},
 })({

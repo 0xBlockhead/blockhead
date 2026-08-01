@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]',
+			{
+				channelId: params.channelId,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,30 +38,18 @@
 
 {#key params.channelId}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]',
-				{
-					channelId: params.channelId,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<FarcasterChannelView
 				selection={
-					select(EntityType.FarcasterChannel, data.selector, { sources: [
-						Source.Farcaster_Rest,
-					] })
+					select(EntityType.FarcasterChannel, data.selector, {
+						sources: [
+							Source.Farcaster_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]',
-						{
-							channelId: params.channelId,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

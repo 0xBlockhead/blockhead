@@ -1,8 +1,9 @@
 import { beforeEach, expect, it, vi } from 'vitest'
 
-import { filecoinNetworkBySlug } from '$/constants/FilecoinNetwork.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import { indexResolvers } from '$/resolvers/$resolvers.ts'
 import { loadResolvers } from '$/resolvers/index.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
@@ -28,7 +29,7 @@ const context = {
 	sources: [Source.Lotus_JsonRpc],
 	publicEnv: {},
 }
-const network = { slug: filecoinNetworkBySlug.filecoin.slug }
+const network = { slug: networkBySlug.filecoin.slug }
 const actorSelector = {
 	$network: network,
 	address: 'f01234',
@@ -77,6 +78,9 @@ it('materializes current and historical actor state only at the exact selected t
 	getHead.mockResolvedValue({
 		Height: 123,
 		Cids: [{ '/': 'bafy-head' }],
+		Blocks: [{
+			Timestamp: 1_750_000_000,
+		}],
 	})
 	getTipSetByHeight.mockResolvedValue({
 		Height: 123,
@@ -98,16 +102,20 @@ it('materializes current and historical actor state only at the exact selected t
 		context
 	)).resolves.toEqual({
 		$$timestamps: [{
-			$actor: actorSelector,
-			height: 123n,
-			tipsetKey: 'bafy-head',
-			source: Source.Lotus_JsonRpc,
+			[EntityMetaKey.Selector]: {
+				$actor: actorSelector,
+				timestampMs: 1_750_000_000_000,
+				height: 123n,
+				tipsetKey: 'bafy-head',
+				source: Source.Lotus_JsonRpc,
+			},
 		}],
 	})
 	expect(getActor).not.toHaveBeenCalled()
 
 	await expect(actorTimestampResolver.resolve['ActorHeightTipsetKeySource'].resolve({
 		$actor: actorSelector,
+		timestampMs: 1_750_000_000_000,
 		height: 123n,
 		tipsetKey: 'bafy-head',
 		source: Source.Lotus_JsonRpc,
@@ -133,18 +141,27 @@ it('materializes current and historical actor state only at the exact selected t
 
 it.each([
 	{
+		name: 'timestamp',
+		timestampMs: 1_750_000_001_000,
+		height: 123n,
+		tipsetKey: 'bafy-head',
+		source: Source.Lotus_JsonRpc,
+	},
+	{
 		name: 'height',
+		timestampMs: 1_750_000_000_000,
 		height: 122n,
 		tipsetKey: 'bafy-head',
 		source: Source.Lotus_JsonRpc,
 	},
 	{
 		name: 'tipset key',
+		timestampMs: 1_750_000_000_000,
 		height: 123n,
 		tipsetKey: 'bafy-other',
 		source: Source.Lotus_JsonRpc,
 	},
-])('rejects a mixed-head $name without reading mutable actor state', async ({ name: _name, ...selector }) => {
+])('rejects a mixed-head $name without reading mutable actor state', async ({ name, ...selector }) => {
 	getTipSetByHeight.mockResolvedValue({
 		Height: 123,
 		Cids: [{ '/': 'bafy-head' }],
@@ -156,7 +173,12 @@ it.each([
 	await expect(actorTimestampResolver.resolve['ActorHeightTipsetKeySource'].resolve({
 		$actor: actorSelector,
 		...selector,
-	}, context)).rejects.toThrow('actor observation does not match')
+	}, context)).rejects.toThrow(
+		name === 'timestamp' ?
+			'actor observation does not match'
+		:
+			'tipset does not match'
+	)
 	expect(getActor).not.toHaveBeenCalled()
 	expect(getIdAddress).not.toHaveBeenCalled()
 })
@@ -164,6 +186,7 @@ it.each([
 it('rejects another source before reading the tipset or actor', async () => {
 	await expect(actorTimestampResolver.resolve['ActorHeightTipsetKeySource'].resolve({
 		$actor: actorSelector,
+		timestampMs: 1_750_000_000_000,
 		height: 123n,
 		tipsetKey: 'bafy-head',
 		source: Source.Filfox_Rest,

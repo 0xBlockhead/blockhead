@@ -64,7 +64,6 @@
 			selection={select(EntityType.FarcasterUser, selection.entitySelector.$user)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -80,7 +79,6 @@
 					<FarcasterUserView
 						selection={select(EntityType.FarcasterUser, selection.entitySelector.$user)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

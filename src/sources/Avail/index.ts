@@ -10,8 +10,8 @@ export default {
 	label: 'Avail',
 	sources: [
 		{
-			source: Source.Avail_JsonRpc,
-			label: 'Avail JSON-RPC',
+			source: Source.Avail,
+			label: 'Avail',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

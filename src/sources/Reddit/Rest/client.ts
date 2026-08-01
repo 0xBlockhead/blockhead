@@ -3,6 +3,7 @@ import {
 } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
 import {
+	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/Reddit/bindings.ts'
@@ -19,15 +20,22 @@ let tokenCache: {
 	expMs: number
 } | null = null
 
-const binding = bindings[Source.Reddit_Rest]
+const bindingByTargetKey = Object.fromEntries(
+	bindings[Source.Reddit_Rest].map((binding) => ([
+		binding.target.key,
+		binding,
+	] as const))
+)
+const apiBinding = bindingByTargetKey['oauth-api']
+const tokenBinding = bindingByTargetKey['oauth-token']
 
 const getAccessToken = async (publicEnv: SourcePublicEnv) => {
 	const id = requiredPublicEnvString(publicEnv, 'PUBLIC_REDDIT_CLIENT_ID')
 	const sec = requiredPublicEnvString(publicEnv, 'PUBLIC_REDDIT_CLIENT_SECRET')
 	if (tokenCache != null && tokenCache.expMs > Date.now() + 5_000)
 		return tokenCache.t
-	const url = `${binding.endpoints[1].locator}/api/v1/access_token`
-	const response = await sourceFetch(binding, url, {
+	const url = `${firstHttpUrlForBinding(tokenBinding)}/api/v1/access_token`
+	const response = await sourceFetch(tokenBinding, url, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/x-www-form-urlencoded',
@@ -52,8 +60,8 @@ const getAccessToken = async (publicEnv: SourcePublicEnv) => {
 }
 
 const oauthGetJson = async <T>(publicEnv: SourcePublicEnv, path: string) => {
-	const url = `${binding.endpoints[0].locator}${path.startsWith('/') ? path : `/${path}`}`
-	const response = await sourceFetch(binding, url, {
+	const url = `${firstHttpUrlForBinding(apiBinding)}${path.startsWith('/') ? path : `/${path}`}`
+	const response = await sourceFetch(apiBinding, url, {
 		headers: {
 			Authorization: `Bearer ${await getAccessToken(publicEnv)}`,
 			'User-Agent': redditUserAgent,

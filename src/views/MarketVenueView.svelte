@@ -19,15 +19,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MarketVenue> = $props()
 
-	const marketVenue = $derived(selection({
-		sources: selection.sources ?? [
-			Source.Constants_Internal,
-		],
-	})({
-		fields: {
-			label: true,
-		},
-	}))
 	const titleFallback = $derived((prefetched.label ?? '') || selection.entitySelector.marketVenueId || 'Market venue')
 
 
@@ -57,17 +48,23 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={marketVenue}>
+		<ResourceBoundary
+			resource={
+				selection({
+					sources: selection.sources ?? [
+						Source.Constants_Internal,
+					],
+				})({
+					fields: {
+						label: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
 				{entity.label || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A curated exchange or venue identifier used to group markets.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}

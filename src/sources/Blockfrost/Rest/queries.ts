@@ -1,4 +1,5 @@
 import { throwHttpError } from '$/lib/http.ts'
+import { TransportType } from '$/constants/TransportType.ts'
 import { firstHttpUrlForBinding, sourceFetch } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/Blockfrost/bindings.ts'
 import type {
@@ -39,6 +40,14 @@ import {
 import { parseCardanoGovernanceAction } from '$/sources/_shared/interfaces/CardanoGovernance/types.ts'
 import { type } from 'arktype'
 import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.Blockfrost_Rest]
+
+export const getRestEndpoints = () => [{
+	url: firstHttpUrlForBinding(binding),
+	transportType: TransportType.Http,
+	providerName: 'Blockfrost',
+}]
 
 export const request = async <_Response>({
 	path,
@@ -292,4 +301,3 @@ export const getCommittee = () => (
 export const listCommitteeVotes = (count: number) => (
 	listPage<BlockfrostCommitteeVotes[number]>('governance/committee/votes', count)
 )
-const binding = bindings[Source.Blockfrost_Rest]

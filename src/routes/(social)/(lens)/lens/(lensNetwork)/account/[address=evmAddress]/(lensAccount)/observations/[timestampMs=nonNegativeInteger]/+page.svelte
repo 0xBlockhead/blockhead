@@ -16,21 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.LensAccount_Timestamp, {
-		$account: {
-			address: params.address,
-		},
-		timestampMs: Number(params.timestampMs),
-	}, {
-		sources: [
-			Source.Lens_Graphql,
-		],
-		fields: {
-			followerCount: true,
-			followingCount: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -45,6 +30,21 @@
 
 <Page>
 	<LensAccount_TimestampView
-		selection={pageSelection}
+		selection={
+			select(EntityType.LensAccount_Timestamp, {
+				$account: {
+					address: params.address,
+				},
+				timestampMs: Number(params.timestampMs),
+			}, {
+				sources: [
+					Source.Lens_Graphql,
+				],
+				fields: {
+					followerCount: true,
+					followingCount: true,
+				},
+			})
+		}
 	/>
 </Page>

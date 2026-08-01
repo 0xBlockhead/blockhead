@@ -1,6 +1,6 @@
 import {
-	ProposalCategory as OwnedProposalCategory,
-	SpecificationRealm as OwnedSpecificationRealm,
+	ProposalCategory,
+	SpecificationRealm,
 } from '$/constants/SpecificationProposal.ts'
 import {
 	defineResolver,
@@ -12,34 +12,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-const githubCaipProposalIndexRows = async (
-	data: {
-		type: string
-		name: string
-	}[]
-) => {
-	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-	const markdownFiles = data.filter((githubContent) => githubContent.type === 'file' && githubContent.name.endsWith('.md'))
-	return markdownFiles.flatMap((markdownFile) => {
-		const caipNumberRaw = regex('^caip-(?<caipNumber>\\d+)\\.md$').exec(markdownFile.name)?.groups.caipNumber
-		const caipNumber = caipNumberRaw != null ?
-			parseInt(caipNumberRaw, 10)
-		:
-			null
-
-		return caipNumber == null ?
-			[]
-		:
-			[{
-				[EntityMetaKey.Selector]: {
-					realm: SpecificationRealm.ChainAgnostic,
-					category: ProposalCategory.Caip,
-					number: caipNumber,
-				},
-			}]
-	})
-}
-
 export default {
 	source: Source.Caips_Github,
 
@@ -50,12 +22,11 @@ export default {
 				RealmCategoryNumber: {
 					appliesTo: [
 						{
-							realm: OwnedSpecificationRealm.ChainAgnostic,
-							category: OwnedProposalCategory.Caip,
+							realm: SpecificationRealm.ChainAgnostic,
+							category: ProposalCategory.Caip,
 						},
 					],
 					resolve: async ({ category, number, realm }) => {
-						const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 						const {
 							getMarkdownTextForNumber,
 						} = await import('$/sources/Caips/Github/queries.ts')
@@ -65,7 +36,7 @@ export default {
 							|| realm !== SpecificationRealm.ChainAgnostic
 						) throw new Error('Caips_Github: unsupported proposal id')
 						const text = await getMarkdownTextForNumber({
-							number: number,
+							number,
 						})
 						const body = stripFrontmatter(text)
 						const frontmatter = parseFrontmatter(text)
@@ -91,7 +62,25 @@ export default {
 				Scope: {
 					resolve: async () => {
 						const { getContents } = await import('$/sources/Caips/Github/queries.ts')
-						return githubCaipProposalIndexRows(await getContents())
+						return (await getContents())
+							.flatMap((githubContent) => {
+								const caipNumberRaw = (
+									githubContent.type === 'file' && githubContent.name.endsWith('.md') ?
+										regex('^caip-(?<caipNumber>\\d+)\\.md$').exec(githubContent.name)?.groups.caipNumber
+									:
+										undefined
+								)
+								return caipNumberRaw == null ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											realm: SpecificationRealm.ChainAgnostic,
+											category: ProposalCategory.Caip,
+											number: parseInt(caipNumberRaw, 10),
+										},
+									}]
+							})
 					},
 				},
 			},

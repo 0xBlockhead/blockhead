@@ -15,7 +15,7 @@ import { Source } from '$/sources/Source.ts'
 import {
 	mastodonInstanceOrigins,
 	mastodonPublicTimelineOrigins,
-} from '$/sources/Mastodon/Rest/client.ts'
+} from '$/sources/Mastodon/Rest/queries.ts'
 import type {
 	MastodonApiV1Account,
 	MastodonApiV1MediaAttachment,
@@ -87,16 +87,16 @@ const activityPubNoteFieldsFromMastodonStatus = (
 		throw new Error('Mastodon_Rest: ActivityPub note missing ActivityStreams URI')
 	const visibility = (
 		status.visibility === 'public' ?
-			'public' as const
+			'public'
 		:
 			status.visibility === 'unlisted' ?
-				'unlisted' as const
+				'unlisted'
 			:
 				status.visibility === 'private' ?
-					'private' as const
+					'private'
 				:
 					status.visibility === 'direct' ?
-					'direct' as const
+					'direct'
 				:
 					undefined
 	)
@@ -210,9 +210,6 @@ const activityPubNoteCardReferenceFromMastodonStatus = (
 					[entityFieldAddressKey(EntityType.ActivityPubNote, [], '$$timestamps')]: [
 						activityPubNoteTimestampReferenceFromMastodonStatus(
 							status,
-							{
-								activityStreamsUri,
-							},
 							resolvedAtMs
 						),
 					],
@@ -275,6 +272,36 @@ const activityPubActorFieldsFromMastodonAccount = (
 	}
 }
 
+const activityPubActorTimestampReferenceFromMastodonAccount = (
+	account: MastodonApiV1Account,
+	timestampMs: number
+) => {
+	const activityStreamsUri = optionalNonemptyString(account.uri)
+	if (activityStreamsUri == null)
+		throw new Error('Mastodon_Rest: ActivityPub actor account missing ActivityStreams URI')
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$actor: {
+				activityStreamsUri,
+			},
+			timestampMs,
+			source: Source.Mastodon_Rest,
+		},
+		[EntityMetaKey.Fields]: {
+			...(account.followers_count != null && {
+				[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'followersCount')]: account.followers_count,
+			}),
+			...(account.following_count != null && {
+				[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'followingCount')]: account.following_count,
+			}),
+			...(account.statuses_count != null && {
+				[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'statusesCount')]: account.statuses_count,
+			}),
+		},
+	}
+}
+
 const activityPubActorCardReferenceFromMastodonStatus = (
 	status: MastodonApiV1Status,
 	servingInstanceOrigin: string,
@@ -326,57 +353,45 @@ const activityPubActorCardReferenceFromMastodonStatus = (
 					entityFieldAddressKey(EntityType.ActivityPubActor, [], fieldName),
 					value,
 				])),
-			[entityFieldAddressKey(EntityType.ActivityPubActor, [], '$$timestamps')]: [{
-				[EntityMetaKey.Selector]: {
-					$actor: {
-						activityStreamsUri,
-					},
-					timestampMs: resolvedAtMs,
-					source: Source.Mastodon_Rest,
-				},
-				[EntityMetaKey.Fields]: {
-					...(status.account.followers_count != null && {
-						[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'followersCount')]: status.account.followers_count,
-					}),
-					...(status.account.following_count != null && {
-						[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'followingCount')]: status.account.following_count,
-					}),
-					...(status.account.statuses_count != null && {
-						[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'statusesCount')]: status.account.statuses_count,
-					}),
-				},
-			}],
+			[entityFieldAddressKey(EntityType.ActivityPubActor, [], '$$timestamps')]: [
+				activityPubActorTimestampReferenceFromMastodonAccount(
+					status.account,
+					resolvedAtMs
+				),
+			],
 		},
 	}
 }
 
 const activityPubNoteTimestampReferenceFromMastodonStatus = (
 	status: MastodonApiV1Status,
-	noteSelector: {
-		activityStreamsUri: string
-	} | {
-		instanceOrigin: string
-		localStatusId: string
-	},
 	timestampMs: number
-) => ({
-	[EntityMetaKey.Selector]: {
-		$note: noteSelector,
-		timestampMs,
-		source: Source.Mastodon_Rest,
-	},
-	[EntityMetaKey.Fields]: {
-		...(status.favourites_count != null && {
-			[entityFieldAddressKey(EntityType.ActivityPubNote_Timestamp, [], 'favouriteCount')]: status.favourites_count,
-		}),
-		...(status.reblogs_count != null && {
-			[entityFieldAddressKey(EntityType.ActivityPubNote_Timestamp, [], 'reblogCount')]: status.reblogs_count,
-		}),
-		...(status.replies_count != null && {
-			[entityFieldAddressKey(EntityType.ActivityPubNote_Timestamp, [], 'replyCount')]: status.replies_count,
-		}),
-	},
-})
+) => {
+	const activityStreamsUri = optionalNonemptyString(status.uri)
+	if (activityStreamsUri == null)
+		throw new Error('Mastodon_Rest: ActivityPub note missing ActivityStreams URI')
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$note: {
+				activityStreamsUri,
+			},
+			timestampMs,
+			source: Source.Mastodon_Rest,
+		},
+		[EntityMetaKey.Fields]: {
+			...(status.favourites_count != null && {
+				[entityFieldAddressKey(EntityType.ActivityPubNote_Timestamp, [], 'favouriteCount')]: status.favourites_count,
+			}),
+			...(status.reblogs_count != null && {
+				[entityFieldAddressKey(EntityType.ActivityPubNote_Timestamp, [], 'reblogCount')]: status.reblogs_count,
+			}),
+			...(status.replies_count != null && {
+				[entityFieldAddressKey(EntityType.ActivityPubNote_Timestamp, [], 'replyCount')]: status.replies_count,
+			}),
+		},
+	}
+}
 
 const mastodonAvatarUrl = (
 	value: string | null | undefined,
@@ -402,7 +417,7 @@ export default {
 			resolve: {
 				Scope: {
 					resolve: async (_selector, context) => {
-						const { listPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
+						const { listPublicTimelinePage } = await import('$/sources/Mastodon/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						if (limit === 0)
 							return {
@@ -413,7 +428,7 @@ export default {
 						const timelineStatuses = (
 							await Promise.all(
 								mastodonPublicTimelineOrigins.map(async (instanceOrigin) => (
-									(await listPublicTimeline(context.publicEnv, instanceOrigin, limit))
+									(await listPublicTimelinePage(instanceOrigin, limit)).statuses
 										.map((status) => ({
 											instanceOrigin,
 											status,
@@ -473,13 +488,13 @@ export default {
 			entityType: EntityType._GlobalActivityPubNetwork,
 			resolve: {
 				Scope: {
-					resolve: async () => {
-						return mastodonInstanceOrigins.map((instanceOrigin) => ({
+					resolve: () => (
+						mastodonInstanceOrigins.map((instanceOrigin) => ({
 							[EntityMetaKey.Selector]: {
 								instanceOrigin,
 							},
 						}))
-					},
+					),
 				},
 			},
 		})({
@@ -490,13 +505,13 @@ export default {
 			entityType: EntityType._GlobalActivityPubNetwork,
 			resolve: {
 				Scope: {
-					resolve: async ({ scope }, context) => {
+					resolve: async ({ scope }) => {
 						const timestampMs = Date.now()
 						const [instanceOrigin] = mastodonInstanceOrigins
 						const { getInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
 
 						try {
-							const instance = await getInstance(context.publicEnv, instanceOrigin)
+							const instance = await getInstance(instanceOrigin)
 							return [{
 								[EntityMetaKey.Selector]: {
 									$hub: { scope },
@@ -578,8 +593,7 @@ export default {
 			entityType: EntityType.ActivityPubInstance,
 			resolve: {
 				InstanceOrigin: {
-					resolve: async ({ instanceOrigin }, context) => {
-						const publicEnv = context.publicEnv
+					resolve: async ({ instanceOrigin }) => {
 						const {
 							assertInstanceMatches,
 							getInstance,
@@ -595,9 +609,9 @@ export default {
 							source: Source.Mastodon_Rest,
 						}
 						const [instance, peerDomains, moderatedDomains] = await Promise.all([
-							getInstance(publicEnv, instanceOrigin),
-							listInstancePeerDomains(publicEnv, instanceOrigin),
-							listInstanceModeratedDomains(publicEnv, instanceOrigin),
+							getInstance(instanceOrigin),
+							listInstancePeerDomains(instanceOrigin),
+							listInstanceModeratedDomains(instanceOrigin),
 						])
 						return [{
 							[EntityMetaKey.Selector]: $observation,
@@ -696,13 +710,12 @@ export default {
 			resolve: {
 				Scope: {
 					resolve: async (_selector, context) => {
-						const publicEnv = context.publicEnv
-						const { listPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
+						const { listPublicTimelinePage } = await import('$/sources/Mastodon/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (
 							await Promise.all(
 								mastodonPublicTimelineOrigins.map(async (instanceOrigin) => (
-									(await listPublicTimeline(publicEnv, instanceOrigin, limit))
+									(await listPublicTimelinePage(instanceOrigin, limit)).statuses
 										.flatMap((status) => (
 										status.id == null ?
 											[]
@@ -728,50 +741,71 @@ export default {
 			entityType: EntityType.ActivityPubActor,
 			resolve: {
 				LocalAccountId: {
-					resolve: async ({ instanceOrigin, localAccountId }, context) => {
-						const publicEnv = context.publicEnv
+					resolve: async ({ instanceOrigin, localAccountId }) => {
 						const { assertInstanceMatches, getAccountByLocalAccountId } = await import('$/sources/Mastodon/Rest/queries.ts')
 						assertInstanceMatches(instanceOrigin)
-						const a = await getAccountByLocalAccountId(publicEnv, instanceOrigin, localAccountId)
+						const a = await getAccountByLocalAccountId(instanceOrigin, localAccountId)
 						if (String(a.id) !== localAccountId)
 							throw new Error('Mastodon_Rest: ActivityPub actor response does not match the local account subject')
 
-						return activityPubActorFieldsFromMastodonAccount(
-							a,
-							instanceOrigin,
-							mastodonAvatarUrl
-						)
+						return {
+							...activityPubActorFieldsFromMastodonAccount(
+								a,
+								instanceOrigin,
+								mastodonAvatarUrl
+							),
+							$$timestamps: [
+								activityPubActorTimestampReferenceFromMastodonAccount(
+									a,
+									Date.now()
+								),
+							],
+						}
 					},
 				},
 				Acct: {
-					resolve: async ({ instanceOrigin, acct }, context) => {
-						const publicEnv = context.publicEnv
+					resolve: async ({ instanceOrigin, acct }) => {
 						const { assertInstanceMatches, getAccountByAcct } = await import('$/sources/Mastodon/Rest/queries.ts')
 						assertInstanceMatches(instanceOrigin)
-						const a = await getAccountByAcct(publicEnv, instanceOrigin, acct)
+						const a = await getAccountByAcct(instanceOrigin, acct)
 						if (a.acct !== acct)
 							throw new Error('Mastodon_Rest: ActivityPub actor response does not match the acct subject')
 
-						return activityPubActorFieldsFromMastodonAccount(
-							a,
-							instanceOrigin,
-							mastodonAvatarUrl
-						)
+						return {
+							...activityPubActorFieldsFromMastodonAccount(
+								a,
+								instanceOrigin,
+								mastodonAvatarUrl
+							),
+							$$timestamps: [
+								activityPubActorTimestampReferenceFromMastodonAccount(
+									a,
+									Date.now()
+								),
+							],
+						}
 					},
 				},
 				ActivityStreamsUri: {
-					resolve: async ({ activityStreamsUri }, context) => {
-						const publicEnv = context.publicEnv
+					resolve: async ({ activityStreamsUri }) => {
 						const { getAccountByActivityStreamsUri } = await import('$/sources/Mastodon/Rest/queries.ts')
-						const a = await getAccountByActivityStreamsUri(publicEnv, activityStreamsUri)
+						const a = await getAccountByActivityStreamsUri(activityStreamsUri)
 						if (a.uri !== activityStreamsUri)
 							throw new Error('Mastodon_Rest: ActivityPub actor response does not match the ActivityStreams subject')
 
-						return activityPubActorFieldsFromMastodonAccount(
-							a,
-							new URL(activityStreamsUri).origin,
-							mastodonAvatarUrl
-						)
+						return {
+							...activityPubActorFieldsFromMastodonAccount(
+								a,
+								new URL(activityStreamsUri).origin,
+								mastodonAvatarUrl
+							),
+							$$timestamps: [
+								activityPubActorTimestampReferenceFromMastodonAccount(
+									a,
+									Date.now()
+								),
+							],
+						}
 					},
 				},
 			},
@@ -790,37 +824,52 @@ export default {
 				bot: (actor) => actor.bot,
 				locked: (actor) => actor.locked,
 				createdAt: (actor) => actor.createdAt,
+				$$timestamps: (actor) => actor.$$timestamps,
 			}),
 
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNote,
 			resolve: {
 				InstanceOriginLocalStatusId: {
-					resolve: async ({ instanceOrigin, localStatusId }, context) => {
-						const publicEnv = context.publicEnv
+					resolve: async ({ instanceOrigin, localStatusId }) => {
 						const {
 							assertInstanceMatches,
 							getStatus,
 						} = await import('$/sources/Mastodon/Rest/queries.ts')
 						assertInstanceMatches(instanceOrigin)
-						const s = await getStatus(publicEnv, instanceOrigin, localStatusId)
+						const s = await getStatus(instanceOrigin, localStatusId)
 						if (String(s.id) !== localStatusId)
 							throw new Error('Mastodon_Rest: ActivityPub note response does not match the local status subject')
 
-						return activityPubNoteFieldsFromMastodonStatus(s, instanceOrigin)
+						return {
+							...activityPubNoteFieldsFromMastodonStatus(s, instanceOrigin),
+							$$timestamps: [
+								activityPubNoteTimestampReferenceFromMastodonStatus(
+									s,
+									Date.now()
+								),
+							],
+						}
 					},
 				},
 				ActivityStreamsUri: {
-					resolve: async ({ activityStreamsUri }, context) => {
-						const publicEnv = context.publicEnv
+					resolve: async ({ activityStreamsUri }) => {
 						const {
 							getStatusByActivityStreamsUri,
 						} = await import('$/sources/Mastodon/Rest/queries.ts')
-						const s = await getStatusByActivityStreamsUri(publicEnv, activityStreamsUri)
+						const s = await getStatusByActivityStreamsUri(activityStreamsUri)
 						if (s.uri !== activityStreamsUri)
 							throw new Error('Mastodon_Rest: ActivityPub note response does not match the ActivityStreams subject')
 
-						return activityPubNoteFieldsFromMastodonStatus(s, new URL(activityStreamsUri).origin)
+						return {
+							...activityPubNoteFieldsFromMastodonStatus(s, new URL(activityStreamsUri).origin),
+							$$timestamps: [
+								activityPubNoteTimestampReferenceFromMastodonStatus(
+									s,
+									Date.now()
+								),
+							],
+						}
 					},
 				},
 			},
@@ -840,6 +889,7 @@ export default {
 				$author: (note) => note.$author,
 				$inReplyTo: (note) => note.$inReplyTo,
 				$reblogOf: (note) => note.$reblogOf,
+				$$timestamps: (note) => note.$$timestamps,
 			}),
 
 		defineResolver(Source.Mastodon_Rest, {
@@ -880,119 +930,10 @@ export default {
 			resolve: {
 				LocalAccountId: {
 					resolve: async ({ instanceOrigin, localAccountId }, context) => {
-						const publicEnv = context.publicEnv
-						const { assertInstanceMatches, getAccountByLocalAccountId } = await import('$/sources/Mastodon/Rest/queries.ts')
-						assertInstanceMatches(instanceOrigin)
-						const account = await getAccountByLocalAccountId(publicEnv, instanceOrigin, localAccountId)
-						if (String(account.id) !== localAccountId)
-							throw new Error('Mastodon_Rest: ActivityPub actor observation does not match the local account subject')
-
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$actor: {
-										instanceOrigin,
-										localAccountId: String(account.id),
-									},
-									timestampMs: Date.now(),
-									source: Source.Mastodon_Rest,
-								},
-								[EntityMetaKey.Fields]: {
-									...(account.followers_count != null && {
-										[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'followersCount')]: account.followers_count,
-									}),
-									...(account.following_count != null && {
-										[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'followingCount')]: account.following_count,
-									}),
-									...(account.statuses_count != null && {
-										[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'statusesCount')]: account.statuses_count,
-									}),
-								},
-							},
-						]
-					},
-				},
-				Acct: {
-					resolve: async ({ instanceOrigin, acct }, context) => {
-						const publicEnv = context.publicEnv
-						const { assertInstanceMatches, getAccountByAcct } = await import('$/sources/Mastodon/Rest/queries.ts')
-						assertInstanceMatches(instanceOrigin)
-						const account = await getAccountByAcct(publicEnv, instanceOrigin, acct)
-						if (account.acct !== acct || account.id == null)
-							throw new Error('Mastodon_Rest: ActivityPub actor observation does not match the acct subject')
-
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$actor: {
-										instanceOrigin,
-										localAccountId: String(account.id),
-									},
-									timestampMs: Date.now(),
-									source: Source.Mastodon_Rest,
-								},
-								[EntityMetaKey.Fields]: {
-									...(account.followers_count != null && {
-										[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'followersCount')]: account.followers_count,
-									}),
-									...(account.following_count != null && {
-										[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'followingCount')]: account.following_count,
-									}),
-									...(account.statuses_count != null && {
-										[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'statusesCount')]: account.statuses_count,
-									}),
-								},
-							},
-						]
-					},
-				},
-				ActivityStreamsUri: {
-					resolve: async ({ activityStreamsUri }, context) => {
-						const publicEnv = context.publicEnv
-						const { getAccountByActivityStreamsUri } = await import('$/sources/Mastodon/Rest/queries.ts')
-						const account = await getAccountByActivityStreamsUri(publicEnv, activityStreamsUri)
-						if (account.uri !== activityStreamsUri)
-							throw new Error('Mastodon_Rest: ActivityPub actor observation does not match the ActivityStreams subject')
-
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$actor: {
-										activityStreamsUri,
-									},
-									timestampMs: Date.now(),
-									source: Source.Mastodon_Rest,
-								},
-								[EntityMetaKey.Fields]: {
-									...(account.followers_count != null && {
-										[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'followersCount')]: account.followers_count,
-									}),
-									...(account.following_count != null && {
-										[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'followingCount')]: account.following_count,
-									}),
-									...(account.statuses_count != null && {
-										[entityFieldAddressKey(EntityType.ActivityPubActor_Timestamp, [], 'statusesCount')]: account.statuses_count,
-									}),
-								},
-							},
-						]
-					},
-				},
-			},
-		})({
-				$$timestamps: (actor) => actor,
-			}),
-
-		defineResolver(Source.Mastodon_Rest, {
-			entityType: EntityType.ActivityPubActor,
-			resolve: {
-				LocalAccountId: {
-					resolve: async ({ instanceOrigin, localAccountId }, context) => {
 						const { assertInstanceMatches, listAccountStatusesPageByLocalAccountId } = await import('$/sources/Mastodon/Rest/queries.ts')
 						assertInstanceMatches(instanceOrigin)
 						return {
 							...await listAccountStatusesPageByLocalAccountId(
-								context.publicEnv,
 								instanceOrigin,
 								localAccountId,
 								resolverContextRowLimit(context),
@@ -1007,7 +948,7 @@ export default {
 				ActivityStreamsUri: {
 					resolve: async ({ activityStreamsUri }, context) => {
 						const { getAccountByActivityStreamsUri, listAccountStatusesPageByLocalAccountId } = await import('$/sources/Mastodon/Rest/queries.ts')
-						const account = await getAccountByActivityStreamsUri(context.publicEnv, activityStreamsUri)
+						const account = await getAccountByActivityStreamsUri(activityStreamsUri)
 						if (account.uri !== activityStreamsUri || account.id == null)
 							throw new Error('Mastodon_Rest: ActivityPub actor notes response does not match the ActivityStreams subject')
 
@@ -1015,7 +956,6 @@ export default {
 						const localAccountId = String(account.id)
 						return {
 							...await listAccountStatusesPageByLocalAccountId(
-								context.publicEnv,
 								instanceOrigin,
 								localAccountId,
 								resolverContextRowLimit(context),
@@ -1066,60 +1006,13 @@ export default {
 			entityType: EntityType.ActivityPubNote,
 			resolve: {
 				InstanceOriginLocalStatusId: {
-					resolve: async (entitySelector, context) => {
-						const publicEnv = context.publicEnv
-						const {
-							assertInstanceMatches,
-							getStatus,
-						} = await import('$/sources/Mastodon/Rest/queries.ts')
-						assertInstanceMatches(entitySelector.instanceOrigin)
-						const status = await getStatus(publicEnv, entitySelector.instanceOrigin, entitySelector.localStatusId)
-						if (String(status.id) !== entitySelector.localStatusId)
-							throw new Error('Mastodon_Rest: ActivityPub note observation does not match the local status subject')
-
-						return [activityPubNoteTimestampReferenceFromMastodonStatus(
-							status,
-							entitySelector,
-							Date.now()
-						)]
-					},
-				},
-				ActivityStreamsUri: {
-					resolve: async ({ activityStreamsUri }, context) => {
-						const publicEnv = context.publicEnv
-						const {
-							getStatusByActivityStreamsUri,
-						} = await import('$/sources/Mastodon/Rest/queries.ts')
-						const status = await getStatusByActivityStreamsUri(publicEnv, activityStreamsUri)
-						if (status.uri !== activityStreamsUri)
-							throw new Error('Mastodon_Rest: ActivityPub note observation does not match the ActivityStreams subject')
-
-						return [activityPubNoteTimestampReferenceFromMastodonStatus(
-							status,
-							{
-								activityStreamsUri,
-							},
-							Date.now()
-						)]
-					},
-				},
-			},
-		})({
-				$$timestamps: (note) => note,
-			}),
-
-		defineResolver(Source.Mastodon_Rest, {
-			entityType: EntityType.ActivityPubNote,
-			resolve: {
-				InstanceOriginLocalStatusId: {
-					resolve: async ({ instanceOrigin, localStatusId }, context) => {
-						const publicEnv = context.publicEnv
+					resolve: async ({ instanceOrigin, localStatusId }) => {
 						const {
 							assertInstanceMatches,
 							getStatusContext,
 						} = await import('$/sources/Mastodon/Rest/queries.ts')
 						assertInstanceMatches(instanceOrigin)
-						const { ancestors = [], descendants = [] } = await getStatusContext(publicEnv, instanceOrigin, localStatusId)
+						const { ancestors = [], descendants = [] } = await getStatusContext(instanceOrigin, localStatusId)
 						return (
 							[
 								...ancestors,
@@ -1142,16 +1035,15 @@ export default {
 					},
 				},
 				ActivityStreamsUri: {
-					resolve: async ({ activityStreamsUri }, context) => {
-						const publicEnv = context.publicEnv
+					resolve: async ({ activityStreamsUri }) => {
 						const {
 							getStatusByActivityStreamsUri,
 							getStatusContext,
 						} = await import('$/sources/Mastodon/Rest/queries.ts')
-						const status = await getStatusByActivityStreamsUri(publicEnv, activityStreamsUri)
+						const status = await getStatusByActivityStreamsUri(activityStreamsUri)
 						if (status.id == null)
 							return []
-						const { ancestors = [], descendants = [] } = await getStatusContext(publicEnv, new URL(activityStreamsUri).origin, String(status.id))
+						const { ancestors = [], descendants = [] } = await getStatusContext(new URL(activityStreamsUri).origin, String(status.id))
 						return (
 							[
 								...ancestors,

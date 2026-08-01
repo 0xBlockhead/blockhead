@@ -17,7 +17,7 @@ export default entity({
 		label: 'Scope',
 		description: 'The fixed scope value that identifies this hub row.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
+		primitiveType: type.unit('_GlobalXNetwork'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$observedUsers: {

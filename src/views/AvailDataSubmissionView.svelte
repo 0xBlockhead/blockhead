@@ -46,10 +46,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.submissionKey || 'avail data submission'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={availDataSubmission}>
 			{#snippet children(entity)}
@@ -77,7 +73,6 @@
 					<AvailNetworkView
 						selection={select(EntityType.AvailNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -108,7 +103,6 @@
 									selection={select(EntityType.AvailBlock, availBlock[EntityMetaKey.Selector])}
 									prefetched={availBlock}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -128,7 +122,6 @@
 									selection={select(EntityType.AvailAppId, availAppId[EntityMetaKey.Selector])}
 									prefetched={availAppId}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

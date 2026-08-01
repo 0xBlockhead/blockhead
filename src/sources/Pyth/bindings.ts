@@ -1,7 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+
+const pythGenericReadOperationGroups = [
+	SourceOperationGroup.GenericRead,
+] as const
 
 const bindings = [
 	{
@@ -18,15 +22,9 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.CatalogRows,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: pythGenericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
 		source: Source.Pyth_SolanaProgram,
@@ -42,15 +40,9 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.CatalogRows,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: pythGenericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
 		source: Source.PythHermes_Rest,
@@ -61,20 +53,34 @@ const bindings = [
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://hermes.pyth.network',
-				origin: 'https://hermes.pyth.network',
+				locator: 'https://pyth.dourolabs.app/hermes',
 				corsEnabled: false,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		apiFamily: ApiFamily.OpenApiHttp,
+		operationGroups: pythGenericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [
 			{
-				scope: SourceCredentialScope.None,
+				scope: SourceCredentialScope.RuntimeSecret,
+			},
+		],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/Pyth/OpenApi/openapi.json',
+				generated: true,
+				officialUrl: 'https://hermes.pyth.network/docs/openapi.json',
+			},
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/Pyth/OpenApi/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiTypes,
+				path: 'src/sources/Pyth/OpenApi/openapi.d.ts',
+				generated: true,
 			},
 		],
 	},
@@ -88,54 +94,15 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://benchmarks.pyth.network',
-				origin: 'https://benchmarks.pyth.network',
 				corsEnabled: false,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: pythGenericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
-	},
-	{
-		source: Source.PythPriceFeedsCatalog_Rest,
-		target: {
-			kind: SourceTargetKind.Global,
-			key: 'pyth-price-feeds-catalog',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://benchmarks.pyth.network',
-				origin: 'https://benchmarks.pyth.network',
-				corsEnabled: false,
-			},
-		],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.Pyth_EvmContract]: typeof bindings[0]
-	readonly [Source.Pyth_SolanaProgram]: typeof bindings[1]
-	readonly [Source.PythHermes_Rest]: typeof bindings[2]
-	readonly [Source.PythBenchmarks_Rest]: typeof bindings[3]
-	readonly [Source.PythPriceFeedsCatalog_Rest]: typeof bindings[4]
-}>(bindings)
+export default indexSourceBindings(bindings)

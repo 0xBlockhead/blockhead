@@ -11,14 +11,14 @@ import type {
 	BskySocialSearchPostsResponse,
 } from '$/sources/AtprotoBskySocial/Rest/types.ts'
 
-export const resolveHandle = async (handle: string) => (
+export const resolveHandle = (handle: string) => (
 	bskySocialXrpcGet<AtprotoIdentityResolveHandleResponse>(
 		'/com.atproto.identity.resolveHandle',
 		{ handle }
 	)
 )
 
-export const getProfile = async (actor: string) => (
+export const getProfile = (actor: string) => (
 	bskySocialXrpcGet<BskyAppViewProfile>(
 		'/app.bsky.actor.getProfile',
 		{ actor }
@@ -35,7 +35,7 @@ export const getPosts = async (uris: string[]) => (
 		)
 )
 
-export const getPostThread = async (
+export const getPostThread = (
 	uri: string,
 	{
 		depth = 6,
@@ -55,7 +55,7 @@ export const getPostThread = async (
 	)
 )
 
-export const getAuthorFeed = async ({
+export const getAuthorFeed = ({
 	actor,
 	limit = 30,
 	cursor,
@@ -77,7 +77,7 @@ export const getAuthorFeed = async ({
 	)
 )
 
-export const searchActorsTypeahead = async ({
+export const searchActorsTypeahead = ({
 	limit = 25,
 	q,
 }: {
@@ -93,7 +93,7 @@ export const searchActorsTypeahead = async ({
 	)
 )
 
-export const searchPosts = async ({
+export const searchPosts = ({
 	limit = 25,
 	q,
 }: {

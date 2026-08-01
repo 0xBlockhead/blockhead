@@ -45,10 +45,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.nodeId || 'blockhead waku node state'}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.connectionId || selection.entitySelector.nodeId || titleFallback}
 	{/snippet}

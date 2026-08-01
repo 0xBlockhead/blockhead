@@ -81,7 +81,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Icon()}
 		<ResourceBoundary resource={activityPubActor}>
 			{#snippet children(entity)}
@@ -91,7 +90,6 @@
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -230,34 +228,25 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									instanceOrigin: true,
-									localAccountId: true,
-								},
-							})
+					<ActivityPubNotesView
+						selection={notesResource}
+						countResource={notesResource.count}
+						title='Notes'
+						href={
+							'instanceOrigin' in selection.entitySelector
+							&& 'localAccountId' in selection.entitySelector ?
+								resolve(
+									'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/notes',
+									{
+										instanceOrigin: encodeURIComponent(selection.entitySelector.instanceOrigin),
+										localAccountId: selection.entitySelector.localAccountId,
+									}
+								)
+							:
+								undefined
 						}
-					>
-						{#snippet children(entity)}
-							<ActivityPubNotesView
-								selection={notesResource}
-								countResource={notesResource.count}
-								title='Notes'
-								href={
-									entity.instanceOrigin != null && entity.localAccountId != null ? resolve(
-										'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/notes',
-										{
-											instanceOrigin: encodeURIComponent(entity.instanceOrigin),
-											localAccountId: entity.localAccountId,
-										}
-									) : undefined
-								}
-								id='notes'
-							/>
-						{/snippet}
-					</ResourceBoundary>
+						id='notes'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

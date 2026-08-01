@@ -34,12 +34,8 @@
 
 	<ActivityPubNotesView
 		href={resolve('/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/notes')}
-		title='ActivityPub notes'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='observed-notes'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

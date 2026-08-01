@@ -102,7 +102,6 @@
 					<RssFeedView
 						selection={select(EntityType.RssFeed, selection.entitySelector.$feed)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

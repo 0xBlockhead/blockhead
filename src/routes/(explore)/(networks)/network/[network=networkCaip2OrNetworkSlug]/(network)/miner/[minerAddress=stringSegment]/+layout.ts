@@ -21,7 +21,8 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			minerAddress: params.minerAddress,
-		}
+		},
+		'NetworkMinerAddress'
 	)
 	if (filecoinMinerNetworkMinerAddressSelector instanceof arktype.errors)
 		error(404, 'Invalid FilecoinMiner selector')

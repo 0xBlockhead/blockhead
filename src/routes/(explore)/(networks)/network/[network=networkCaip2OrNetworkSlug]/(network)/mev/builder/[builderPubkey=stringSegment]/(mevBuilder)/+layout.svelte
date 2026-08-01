@@ -18,6 +18,16 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/builder/[builderPubkey=stringSegment]',
+			{
+				network: params.network,
+				builderPubkey: params.builderPubkey,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -28,28 +38,12 @@
 
 {#key [params.network, params.builderPubkey].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/builder/[builderPubkey=stringSegment]',
-				{
-					network: params.network,
-					builderPubkey: params.builderPubkey,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<MevBuilderView
 				selection={select(EntityType.MevBuilder, data.selector)}
-				href={
-					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/builder/[builderPubkey=stringSegment]',
-						{
-							network: params.network,
-							builderPubkey: params.builderPubkey,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

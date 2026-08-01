@@ -83,12 +83,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			NEAR network catalog row with RPC endpoints, runtime observations, blocks, and validator sets from declared NEAR sources.
-		</p>
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -140,12 +134,7 @@
 			{#snippet SectionNearChainObservations({ id, label, open })}
 				<NearNetwork_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -154,12 +143,7 @@
 			{#snippet SectionNearChainBlocks({ id, label, open })}
 				<NearBlocksView
 					selection={selection.$$blocks}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -190,12 +174,7 @@
 			{#snippet SectionNearValidatorList({ id, label, open })}
 				<NearValidatorsView
 					selection={selection.$$validators}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>

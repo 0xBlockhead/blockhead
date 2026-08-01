@@ -29,7 +29,7 @@ describe('IPFS gateway binding transport', () => {
 			namespace: 'ipfs',
 			target: 'bafybeigdyrzt5sfp7udm7hu76uh7y26nf3fte7awh5x5fkdg4wq5rjlk4a',
 		})).resolves.toMatchObject({
-			gatewayOrigin: binding.endpoints[0].origin,
+			gatewayOrigin: new URL(binding.endpoints[0].locator).origin,
 			text: 'hello',
 		})
 		expect(sourceFetch).toHaveBeenCalledOnce()

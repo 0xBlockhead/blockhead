@@ -16,14 +16,11 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalEnsNetwork> = $props()
-
-	const titleFallback = 'ENS'
 
 
 	// Components
@@ -36,7 +33,6 @@
 <EntityView
 	entityType={EntityType._GlobalEnsNetwork}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
 	href={
 		href === undefined ?
 			resolve('/(explore)/(ens)/ens')
@@ -47,12 +43,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		ENS
-	{/snippet}
-
 	{#snippet Value()}
-		{titleFallback}
+		ENS
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -69,7 +61,6 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -91,7 +82,6 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -113,7 +103,6 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -135,7 +124,6 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

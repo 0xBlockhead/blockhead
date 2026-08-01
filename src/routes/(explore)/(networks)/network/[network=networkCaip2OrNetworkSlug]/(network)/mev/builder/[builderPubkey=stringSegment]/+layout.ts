@@ -27,7 +27,8 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			builderPubkey: params.builderPubkey,
-		}
+		},
+		'EvmNetworkBuilderPubkey'
 	)
 	if (mevBuilderEvmNetworkBuilderPubkeySelector instanceof arktype.errors)
 		error(404, 'Invalid MevBuilder selector')

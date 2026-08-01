@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -34,15 +33,10 @@
 <EntityView
 	entityType={EntityType.HyperliquidMarket_TimeInterval_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'hyperliquid market time interval timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		hyperliquid market time interval timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -51,7 +45,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -82,7 +75,6 @@
 									selection={select(EntityType.HyperliquidPerpMarket, hyperliquidPerpMarket[EntityMetaKey.Selector])}
 									prefetched={hyperliquidPerpMarket}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -102,7 +94,6 @@
 									selection={select(EntityType.HyperliquidSpotPair, hyperliquidSpotPair[EntityMetaKey.Selector])}
 									prefetched={hyperliquidSpotPair}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

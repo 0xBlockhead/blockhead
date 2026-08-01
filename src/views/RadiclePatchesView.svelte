@@ -32,10 +32,6 @@
 		<EntityView
 			entityType={EntityType.RadiclePatch}
 			entitySelector={radiclePatch[EntityMetaKey.Selector]}
-		>
-			{#snippet Title()}
-				radicle patch
-			{/snippet}
-		</EntityView>
+		/>
 	{/snippet}
 </EntitiesList>

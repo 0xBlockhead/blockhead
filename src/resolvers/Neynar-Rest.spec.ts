@@ -7,6 +7,10 @@ import {
 
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import type {
+	NeynarCast,
+	NeynarUser,
+} from '$/sources/Neynar/Rest/types.ts'
 const getCastByHash = vi.hoisted(() => vi.fn())
 const getCastByClientUrl = vi.hoisted(() => vi.fn())
 const getFeed = vi.hoisted(() => vi.fn())
@@ -61,19 +65,91 @@ const resolverContext = {
 	publicEnv: {},
 }
 
+const neynarUser = (
+	fid: number,
+	username = `user-${fid}`
+) => ({
+	auth_addresses: [],
+	custody_address: '0x0000000000000000000000000000000000000000',
+	fid,
+	follower_count: 0,
+	following_count: 0,
+	object: 'user',
+	profile: {
+		bio: { text: '' },
+	},
+	registered_at: '2026-07-15T00:00:00.000Z',
+	username,
+	verifications: [],
+	verified_accounts: [],
+	verified_addresses: {
+		eth_addresses: [],
+		primary: {
+			eth_address: null,
+			sol_address: null,
+		},
+		sol_addresses: [],
+	},
+}) satisfies NeynarUser
+
+const neynarCast = (
+	{
+		hash,
+		fid,
+		username,
+		channelId,
+		text = '',
+		timestamp = '2026-07-15T00:00:00.000Z',
+	}: {
+		hash: string
+		fid: number
+		username?: string
+		channelId?: string
+		text?: string
+		timestamp?: string
+	},
+	overrides: Partial<NeynarCast> = {}
+) => ({
+	author: neynarUser(fid, username),
+	channel: channelId == null ? null : {
+		id: channelId,
+		name: channelId,
+	},
+	embeds: [],
+	hash,
+	mentioned_channels: [],
+	mentioned_channels_ranges: [],
+	mentioned_profiles: [],
+	mentioned_profiles_ranges: [],
+	object: 'cast',
+	parent_author: { fid: null },
+	parent_hash: null,
+	parent_url: null,
+	reactions: {
+		likes: [],
+		likes_count: 0,
+		recasts: [],
+		recasts_count: 0,
+	},
+	replies: { count: 0 },
+	root_parent_url: null,
+	text,
+	thread_hash: null,
+	timestamp,
+	...overrides,
+}) satisfies NeynarCast
+
 describe('Neynar Farcaster feed resolver', () => {
 	it('materializes visible cast content from the feed response', async () => {
 		const page = {
 			casts: [
-				{
+				neynarCast({
 					hash: '0xABCDEF',
-					author: {
-						fid: 42,
-						username: 'alice',
-					},
+					fid: 42,
+					username: 'alice',
 					text: 'A live cast from the feed',
 					timestamp: '2026-07-15T12:34:56.000Z',
-				},
+				}),
 			],
 			next: {
 				cursor: 'next-page',
@@ -134,17 +210,10 @@ describe('Neynar Farcaster feed resolver', () => {
 		)
 	})
 
-	it('drops feed rows that cannot identify a cast', async () => {
+	it('does not invent feed rows when Neynar returns an empty page', async () => {
 		const page = {
-			casts: [
-				{
-					hash: '',
-					author: { fid: 42 },
-				},
-				{
-					hash: '0x1234',
-				},
-			],
+			casts: [],
+			next: { cursor: null },
 		}
 		getFeed.mockResolvedValueOnce(page)
 		await expect(feedResolver.resolve['Variant'].resolve({
@@ -211,6 +280,24 @@ describe('Neynar Farcaster feed resolver', () => {
 				viewerFid: 42,
 			}
 		)
+		expect(feedResolver.projections.$$entries.continuation(
+			{
+				casts: [],
+				next: {
+					cursor: '',
+				},
+			},
+			{
+				variant: 'following',
+				viewerFid: 42,
+			},
+			resolverContext
+		)).toEqual({
+			operation: 'feed',
+			target: 'api',
+			viewerScope: '42',
+			terminal: true,
+		})
 	})
 
 	it('preserves the members-only channel partition', async () => {
@@ -242,39 +329,91 @@ describe('Neynar Farcaster feed resolver', () => {
 		)
 	})
 
-	it('excludes foreign, unowned, dehydrated, and wrong-channel cast rows', () => {
+	it('partitions only user and channel selectors while preserving variant and following feeds', () => {
+		const projection = feedResolver.projections.$$entries
+		if (
+			typeof projection === 'function'
+			|| projection.select == null
+		)
+			throw new Error('Neynar spec missing FarcasterFeed selector')
 		const page = {
 			casts: [
-				{
-					object: 'cast' as const,
+				neynarCast({
 					hash: '0x1111',
-					author: { fid: 42 },
-					channel: { id: 'design' },
-				},
-				{
-					object: 'cast' as const,
+					fid: 42,
+					channelId: 'design',
+				}),
+				neynarCast({
 					hash: '0x2222',
-					author: { fid: 43 },
-					channel: { id: 'design' },
-				},
-				{
-					object: 'cast_dehydrated' as const,
+					fid: 43,
+					channelId: 'design',
+				}),
+				neynarCast({
 					hash: '0x3333',
-					author: { fid: 42 },
-					channel: { id: 'design' },
-				},
-				{
-					object: 'cast' as const,
-					hash: '0x4444',
-					channel: { id: 'design' },
-				},
-				{
-					object: 'cast' as const,
-					hash: '0x5555',
-					author: { fid: 42 },
-					channel: { id: 'other' },
-				},
+					fid: 42,
+					channelId: 'other',
+				}),
 			],
+			next: { cursor: null },
+		}
+
+		for (const {
+			entitySelector,
+			expectedHashes,
+		} of [
+			{
+				entitySelector: { variant: 'trending' },
+				expectedHashes: ['0x1111', '0x2222', '0x3333'],
+			},
+			{
+				entitySelector: {
+					variant: 'user',
+					fid: 42,
+				},
+				expectedHashes: ['0x1111', '0x3333'],
+			},
+			{
+				entitySelector: {
+					variant: 'channel',
+					channelId: 'design',
+				},
+				expectedHashes: ['0x1111', '0x2222'],
+			},
+			{
+				entitySelector: {
+					variant: 'following',
+					viewerFid: 42,
+				},
+				expectedHashes: ['0x1111', '0x2222', '0x3333'],
+			},
+		])
+			expect(projection.select(
+				page,
+				entitySelector,
+				resolverContext
+			).map((cast) => cast[EntityMetaKey.Selector].hash)).toEqual(expectedHashes)
+	})
+
+	it('partitions official cast rows by user and channel identity', () => {
+		const page = {
+			casts: [
+				neynarCast({
+					hash: '0x1111',
+					fid: 42,
+					channelId: 'design',
+				}),
+				neynarCast({
+					hash: '0x2222',
+					fid: 43,
+					channelId: 'design',
+				}),
+				neynarCast({
+					hash: '0x5555',
+					fid: 42,
+					channelId: 'other',
+				}),
+			],
+			next: { cursor: null },
 		}
 		const userProjection = userFeedResolver.projections.$$casts
 		const channelProjection = channelFeedResolver.projections.$$casts
@@ -403,7 +542,10 @@ describe('Neynar Farcaster cast resolver', () => {
 			label: 'keeps channel membership separate from its root URL',
 			wire: {
 				root_parent_url: 'https://warpcast.com/~/channel/design',
-				channel: { id: 'design' },
+				channel: {
+					id: 'design',
+					name: 'Design',
+				},
 			},
 			expected: {
 				$parentCast: undefined,
@@ -438,15 +580,15 @@ describe('Neynar Farcaster cast resolver', () => {
 					resolve: castResolver.resolve['ClientUrl'].resolve,
 				},
 			]) {
-				getCast.mockResolvedValueOnce({
-					hash: '0xabcdef',
-					author: {
+				getCast.mockResolvedValueOnce(neynarCast(
+					{
+						hash: '0xabcdef',
 						fid: 42,
+						text: 'Thread fixture',
+						timestamp: '2026-07-16T00:00:00.000Z',
 					},
-					text: 'Thread fixture',
-					timestamp: '2026-07-16T00:00:00.000Z',
-					...wire,
-				})
+					wire
+				))
 
 				const cast = await resolve(
 					selector,

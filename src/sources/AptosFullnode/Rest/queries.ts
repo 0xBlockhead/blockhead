@@ -10,7 +10,6 @@ import type {
 	AptosLedgerInfo,
 	AptosMoveModule,
 	AptosMoveResource,
-	AptosResponse,
 	AptosTableItemRequest,
 	AptosTransaction,
 } from '$/sources/AptosFullnode/Rest/types.ts'
@@ -45,7 +44,7 @@ const assertNonnegativeIntegerString = (
 const request = async <_Body>(
 	path = '',
 	init?: RequestInit
-): Promise<AptosResponse<_Body>> => {
+) => {
 	const response = await sourceFetch(
 		binding,
 		new URL(path, firstHttpUrlForBinding(binding)).toString(),
@@ -81,7 +80,7 @@ const request = async <_Body>(
 		throw new Error('AptosFullnode_Rest: empty pagination cursor')
 
 	return {
-		body: await response.json(),
+		body: await response.json<_Body>(),
 		metadata,
 	}
 }

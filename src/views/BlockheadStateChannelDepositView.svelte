@@ -45,7 +45,6 @@
 			selection={select(EntityType.EvmAccount, selection.entitySelector.$account)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -59,7 +58,6 @@
 					prefetched={network}
 					href={null}
 					layout={EntityLayout.Value}
-					open={false}
 				/>
 			{/snippet}
 		</ResourceBoundary>
@@ -70,7 +68,6 @@
 			<BlockheadStateChannelView
 				selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -83,7 +80,6 @@
 					<BlockheadStateChannelView
 						selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -94,7 +90,6 @@
 					<EvmAccountView
 						selection={select(EntityType.EvmAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -110,7 +105,6 @@
 								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 								prefetched={network}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

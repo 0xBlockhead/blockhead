@@ -268,7 +268,6 @@
 									selection={select(EntityType.UtxoBlock, utxoBlock[EntityMetaKey.Selector])}
 									prefetched={utxoBlock}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -282,7 +281,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -317,12 +315,7 @@
 			{#snippet SectionUtxoTransactionInputs({ id, label, open })}
 				<UtxoInputsView
 					selection={selection.$$inputs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No inputs.'
 					id={`${id}-list`}
@@ -332,12 +325,7 @@
 			{#snippet SectionUtxoTransactionOutputs({ id, label, open })}
 				<UtxoOutputsView
 					selection={selection.$$outputs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No outputs.'
 					id={`${id}-list`}

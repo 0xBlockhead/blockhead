@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(swarm)/swarm/(swarmProtocol)/[reference=stringSegment]',
+			{
+				reference: params.reference,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,30 +38,18 @@
 
 {#key params.reference}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(swarm)/swarm/(swarmProtocol)/[reference=stringSegment]',
-				{
-					reference: params.reference,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<SwarmResourceView
 				selection={
-					select(EntityType.SwarmResource, data.selector, { sources: [
-						Source.Swarm_Rest,
-					] })
+					select(EntityType.SwarmResource, data.selector, {
+						sources: [
+							Source.Swarm_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(swarm)/swarm/(swarmProtocol)/[reference=stringSegment]',
-						{
-							reference: params.reference,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

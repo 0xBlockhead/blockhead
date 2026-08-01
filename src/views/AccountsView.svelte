@@ -10,7 +10,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['A cross-chain account identity expressed with CAIP namespace, reference, and address fields.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.Account> = $props()
@@ -25,7 +24,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.Account}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {

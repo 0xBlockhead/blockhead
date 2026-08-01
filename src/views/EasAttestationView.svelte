@@ -60,10 +60,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.uid || 'EAS attestation'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary
 			resource={selection.$schema}
@@ -74,7 +70,6 @@
 						selection={select(EntityType.EasSchema, easSchema[EntityMetaKey.Selector])}
 						prefetched={easSchema}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -110,7 +105,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -280,7 +274,6 @@
 									selection={select(EntityType.EasSchema, easSchema[EntityMetaKey.Selector])}
 									prefetched={easSchema}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -300,7 +293,6 @@
 									selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
 									prefetched={evmNetworkAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -320,7 +312,6 @@
 									selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
 									prefetched={evmNetworkAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -340,7 +331,6 @@
 									selection={select(EntityType.EasAttestation, easAttestation[EntityMetaKey.Selector])}
 									prefetched={easAttestation}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

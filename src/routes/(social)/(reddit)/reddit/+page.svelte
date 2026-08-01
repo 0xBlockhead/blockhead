@@ -16,12 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType._GlobalRedditNetwork, data.selector, {
-		sources: [
-			Source.Reddit_PublicJson,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -36,6 +30,12 @@
 
 <Page>
 	<GlobalRedditNetworkView
-		selection={pageSelection}
+		selection={
+			select(EntityType._GlobalRedditNetwork, data.selector, {
+				sources: [
+					Source.Reddit_PublicJson,
+				],
+			})
+		}
 	/>
 </Page>

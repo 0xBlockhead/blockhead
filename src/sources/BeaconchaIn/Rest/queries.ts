@@ -24,7 +24,7 @@ export const getEpoch = async (
 		chainId: number
 		epoch: number | 'latest' | 'finalized'
 	}
-): Promise<BeaconchaInEpoch | undefined> => {
+) => {
 	const binding = bindingByChainId[String(chainId)]
 	if (binding == null)
 		throw new Error(`BeaconchaIn_Rest: no binding for chain ${String(chainId)}`)

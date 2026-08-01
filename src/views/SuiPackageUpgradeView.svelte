@@ -40,10 +40,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Sui package upgrade
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -52,7 +48,6 @@
 					<SuiPackageView
 						selection={select(EntityType.SuiPackage, selection.entitySelector.$package)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -186,7 +181,6 @@
 									selection={select(EntityType.SuiTransaction, suiTransaction[EntityMetaKey.Selector])}
 									prefetched={suiTransaction}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -206,7 +200,6 @@
 									selection={select(EntityType.SuiPackageVersion, suiPackageVersion[EntityMetaKey.Selector])}
 									prefetched={suiPackageVersion}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

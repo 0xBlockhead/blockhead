@@ -71,7 +71,6 @@
 						selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
 						prefetched={aiModel}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -128,7 +127,6 @@
 									selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
 									prefetched={aiModel}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -150,7 +148,6 @@
 									selection={select(EntityType.McpServer, mcpServer[EntityMetaKey.Selector])}
 									prefetched={mcpServer}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -170,7 +167,6 @@
 									selection={select(EntityType.Eip8004AgentRegistration, eip8004AgentRegistration[EntityMetaKey.Selector])}
 									prefetched={eip8004AgentRegistration}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

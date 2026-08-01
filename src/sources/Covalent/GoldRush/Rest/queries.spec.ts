@@ -73,10 +73,10 @@ describe('GoldRush account token balances', () => {
 			address,
 		})).resolves.toMatchObject({
 			address,
-			chainId: 1,
-			chainName: 'eth-mainnet',
-			chainTipHeight: 22_900_000,
-			balances: [{
+			chain_id: 1,
+			chain_name: 'eth-mainnet',
+			chain_tip_height: 22_900_000,
+			items: [{
 				balance: '900719925474099312345',
 			}],
 		})
@@ -197,9 +197,11 @@ describe('GoldRush account token balances', () => {
 			noLogs: true,
 		})).resolves.toMatchObject({
 			address,
-			page: 2,
-			nextPageUrl: 'https://api.covalenthq.com/page/3',
-			transactions: [{
+			current_page: 2,
+			links: {
+				next: 'https://api.covalenthq.com/page/3',
+			},
+			items: [{
 				value: '1000000000000000000',
 			}],
 		})

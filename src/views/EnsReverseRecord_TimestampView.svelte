@@ -74,7 +74,6 @@
 					<EnsReverseRecordView
 						selection={select(EntityType.EnsReverseRecord, selection.entitySelector.$reverseRecord)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

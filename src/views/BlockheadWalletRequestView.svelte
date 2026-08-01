@@ -105,7 +105,6 @@
 									selection={select(EntityType.BlockheadSessionAction, blockheadSessionAction[EntityMetaKey.Selector])}
 									prefetched={blockheadSessionAction}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -125,7 +124,6 @@
 									selection={select(EntityType.BlockheadIntentOrder, blockheadIntentOrder[EntityMetaKey.Selector])}
 									prefetched={blockheadIntentOrder}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -145,7 +143,6 @@
 									selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector])}
 									prefetched={blockheadWalletConnection}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

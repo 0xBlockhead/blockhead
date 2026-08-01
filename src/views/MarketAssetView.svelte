@@ -53,10 +53,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.assetKey || 'Market asset'}
-	{/snippet}
-
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
 			{selection.entitySelector.kind}
@@ -97,7 +93,6 @@
 											selection={select(EntityType.Coin, coin[EntityMetaKey.Selector])}
 											prefetched={coin}
 											layout={EntityLayout.Value}
-											open={false}
 										/>
 									{/snippet}
 								</ResourceBoundary>
@@ -123,7 +118,6 @@
 											selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 											prefetched={evmCoinInstance}
 											layout={EntityLayout.Value}
-											open={false}
 										/>
 									{/snippet}
 								</ResourceBoundary>
@@ -149,7 +143,6 @@
 											selection={select(EntityType.Currency, currency[EntityMetaKey.Selector])}
 											prefetched={currency}
 											layout={EntityLayout.Value}
-											open={false}
 										/>
 									{/snippet}
 								</ResourceBoundary>

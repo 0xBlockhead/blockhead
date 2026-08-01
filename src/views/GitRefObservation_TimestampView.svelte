@@ -72,7 +72,6 @@
 					<GitRefView
 						selection={select(EntityType.GitRef, selection.entitySelector.$ref)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

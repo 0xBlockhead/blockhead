@@ -80,7 +80,6 @@
 					<BlockheadLogosBlockchainNodeStateView
 						selection={select(EntityType.BlockheadLogosBlockchainNodeState, selection.entitySelector.$nodeState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

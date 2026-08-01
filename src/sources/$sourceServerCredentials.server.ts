@@ -30,6 +30,17 @@ export default new Map<
 		},
 	],
 	[
+		'["EigenExplorer_Rest","Global","eigen-explorer-api","HttpProxy","RestJson"]',
+		{
+			envKey: 'EIGEN_EXPLORER_API_TOKEN',
+			injection: {
+				header: {
+					name: 'x-api-token',
+				},
+			},
+		},
+	],
+	[
 		'["EnvioHyperRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"]',
 		{
 			envKey: 'ENVIO_API_TOKEN',
@@ -99,6 +110,18 @@ export default new Map<
 		},
 	],
 	[
+		'["PythHermes_Rest","Global","pyth-hermes","HttpProxy","OpenApiHttp"]',
+		{
+			envKey: 'PYTH_API_KEY',
+			injection: {
+				header: {
+					name: 'authorization',
+					prefix: 'Bearer ',
+				},
+			},
+		},
+	],
+	[
 		'["SafeTransactionService_Rest","Eip155Chain","1","HttpProxy","RestJson"]',
 		{
 			envKey: 'SAFE_TRANSACTION_SERVICE_API_KEY',
@@ -146,12 +169,56 @@ export default new Map<
 		},
 	],
 	[
-		'["Tally_Graphql","Global","tally-api","HttpProxy","GraphqlHttp"]',
+		'["Starkscan","NetworkSlug","starknet","HttpProxy","OpenApiHttp"]',
+		{
+			envKey: 'STARKSCAN_API_KEY',
+			injection: {
+				header: {
+					name: 'X-Starkscan-Api-Key',
+				},
+			},
+		},
+	],
+	[
+		'["Tally","Global","tally-api","HttpProxy","GraphqlHttp"]',
 		{
 			envKey: 'TALLY_API_KEY',
 			injection: {
 				header: {
 					name: 'Api-Key',
+				},
+			},
+		},
+	],
+	[
+		'["TonCenter","Caip2Network","ton:-239","HttpProxy","OpenApiHttp"]',
+		{
+			envKey: 'TONCENTER_MAINNET_API_KEY',
+			injection: {
+				header: {
+					name: 'X-API-Key',
+				},
+			},
+		},
+	],
+	[
+		'["TonCenter","Caip2Network","ton:-3","HttpProxy","OpenApiHttp"]',
+		{
+			envKey: 'TONCENTER_TESTNET_API_KEY',
+			injection: {
+				header: {
+					name: 'X-API-Key',
+				},
+			},
+		},
+	],
+	[
+		'["Voyager","NetworkSlug","starknet","HttpProxy","OpenApiHttp"]',
+		{
+			envKey: 'VOYAGER_API_KEY',
+			injection: {
+				header: {
+					name: 'x-api-key',
 				},
 			},
 		},

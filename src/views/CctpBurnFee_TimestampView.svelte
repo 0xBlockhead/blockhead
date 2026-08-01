@@ -23,7 +23,7 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.CircleCctp_IrisApi,
+			Source.CircleCctpIris,
 		],
 	}))
 
@@ -51,13 +51,11 @@
 		<CctpDomainSupportView
 			selection={select(EntityType.CctpDomainSupport, selection.entitySelector.$sourceDomain)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 
 		<CctpDomainSupportView
 			selection={select(EntityType.CctpDomainSupport, selection.entitySelector.$destinationDomain)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -75,7 +73,6 @@
 					<CctpDomainSupportView
 						selection={select(EntityType.CctpDomainSupport, selection.entitySelector.$sourceDomain)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -86,7 +83,6 @@
 					<CctpDomainSupportView
 						selection={select(EntityType.CctpDomainSupport, selection.entitySelector.$destinationDomain)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

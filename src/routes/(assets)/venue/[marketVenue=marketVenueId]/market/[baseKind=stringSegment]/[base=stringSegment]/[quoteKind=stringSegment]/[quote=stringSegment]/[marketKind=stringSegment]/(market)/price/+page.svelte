@@ -16,21 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.MarketPrice, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-			Source.Coingecko_Rest,
-			Source.Coingecko_OpenApi,
-			Source.CoinMarketCap_Rest,
-			Source.Coinpaprika_OpenApi,
-			Source.Defillama_OpenApi,
-			Source.Defillama_Rest,
-		],
-		fields: {
-			$parentMarket: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -45,6 +30,20 @@
 
 <Page>
 	<MarketPriceView
-		selection={pageSelection}
+		selection={
+			select(EntityType.MarketPrice, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+					Source.Coingecko_Rest,
+					Source.CoinMarketCap_Rest,
+					Source.Coinpaprika_Rest,
+					Source.Defillama_Rest,
+					Source.TradingView_Rest,
+				],
+				fields: {
+					$parentMarket: true,
+				},
+			})
+		}
 	/>
 </Page>

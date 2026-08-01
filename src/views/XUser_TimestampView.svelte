@@ -64,7 +64,6 @@
 			selection={select(EntityType.XUser, selection.entitySelector.$user)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -86,7 +85,6 @@
 					<XUserView
 						selection={select(EntityType.XUser, selection.entitySelector.$user)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

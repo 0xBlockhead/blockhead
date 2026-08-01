@@ -14,7 +14,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://gitlab.com',
-				origin: 'https://gitlab.com',
 				corsEnabled: false,
 			},
 		],
@@ -36,4 +35,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Gitlab_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

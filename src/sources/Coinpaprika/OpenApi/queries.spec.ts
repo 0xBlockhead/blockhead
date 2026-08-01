@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { getCoins } from '$/sources/Coinpaprika/OpenApi/queries.ts'
+import {
+	getCoinMarkets,
+	getCoins,
+	getExchangeMarkets,
+	getOhlcvHistorical,
+} from '$/sources/Coinpaprika/OpenApi/queries.ts'
 
 describe('Coinpaprika coin queries', () => {
 	afterEach(() => {
@@ -39,6 +44,78 @@ describe('Coinpaprika coin queries', () => {
 					Accept: 'application/json',
 				},
 			})
+		)
+	})
+
+	it('passes documented historical OHLC parameters through and returns raw rows', async () => {
+		const rows = [{
+			time_open: '2026-07-01T00:00:00.000Z',
+			open: 1,
+			high: 2,
+			low: 0.5,
+			close: 1.5,
+			volume: 100,
+		}]
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify(rows)))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getOhlcvHistorical({
+			publicEnv: {},
+			coinpaprikaId: 'btc-bitcoin',
+			start: '2026-07-01',
+			end: '2026-07-30',
+			limit: 30,
+		})).resolves.toEqual(rows)
+		expect(fetchMock).toHaveBeenCalledWith(
+			expect.stringContaining(encodeURIComponent(
+				'https://api.coinpaprika.com/v1/coins/btc-bitcoin/ohlcv/historical?start=2026-07-01&end=2026-07-30&limit=30&interval=24h&quote=usd'
+			)),
+			expect.objectContaining({
+				headers: {
+					Accept: 'application/json',
+				},
+			})
+		)
+	})
+
+	it('keeps coin and exchange market operations distinct and encodes their path IDs', async () => {
+		const coinMarkets = [{
+			exchange_id: 'binance',
+			pair: 'BTC/USDT',
+			adjusted_volume_24h_share: 30.29,
+		}]
+		const exchangeMarkets = [{
+			pair: 'BTC/USDT',
+			reported_volume_24h_share: 31.25,
+		}]
+		const fetchMock = vi.fn<typeof fetch>()
+			.mockResolvedValueOnce(new Response(JSON.stringify(coinMarkets)))
+			.mockResolvedValueOnce(new Response(JSON.stringify(exchangeMarkets)))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getCoinMarkets({
+			publicEnv: {},
+			coinpaprikaId: 'btc/bitcoin',
+		})).resolves.toEqual(coinMarkets)
+		await expect(getExchangeMarkets({
+			publicEnv: {},
+			exchangeId: 'binance/us',
+		})).resolves.toEqual(exchangeMarkets)
+		expect(fetchMock).toHaveBeenNthCalledWith(
+			1,
+			expect.stringContaining(encodeURIComponent(
+				'https://api.coinpaprika.com/v1/coins/btc%2Fbitcoin/markets?quotes=USD'
+			)),
+			expect.any(Object)
+		)
+		expect(fetchMock).toHaveBeenNthCalledWith(
+			2,
+			expect.stringContaining(encodeURIComponent(
+				'https://api.coinpaprika.com/v1/exchanges/binance%2Fus/markets?quotes=USD'
+			)),
+			expect.any(Object)
 		)
 	})
 })

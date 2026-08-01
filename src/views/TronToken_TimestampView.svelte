@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -32,15 +31,10 @@
 <EntityView
 	entityType={EntityType.TronToken_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'tron token timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		tron token timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -49,7 +43,6 @@
 					<TronTokenView
 						selection={select(EntityType.TronToken, selection.entitySelector.$token)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

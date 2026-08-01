@@ -75,12 +75,6 @@
 		</span>
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A current balance reported by the Aptos Indexer, anchored to the row's last transaction version. This surface does not imply retained balance history.
-		</p>
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -89,7 +83,6 @@
 					<AptosAccountView
 						selection={select(EntityType.AptosAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

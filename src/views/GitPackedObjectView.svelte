@@ -68,7 +68,6 @@
 						selection={select(EntityType.GitPackfile, gitPackfile[EntityMetaKey.Selector])}
 						prefetched={gitPackfile}
 						layout={EntityLayout.Title}
-						open={false}
 					/>
 				</span>
 			{/snippet}
@@ -171,7 +170,6 @@
 								selection={select(EntityType.GitPackfile, gitPackfile[EntityMetaKey.Selector])}
 								prefetched={gitPackfile}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -190,7 +188,6 @@
 									selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
 									prefetched={gitObject}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

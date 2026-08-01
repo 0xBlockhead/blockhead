@@ -82,7 +82,6 @@
 					<AcpAgentRuntimeView
 						selection={select(EntityType.AcpAgentRuntime, selection.entitySelector.$runtime)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

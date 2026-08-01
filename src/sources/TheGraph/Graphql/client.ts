@@ -27,7 +27,7 @@ export const queryTheGraph = async <
 	document: TadaDocumentNode<_Result, _Variables>
 	publicEnv: SourcePublicEnv
 	variables?: _Variables
-}): Promise<_Result> => {
+}) => {
 	const apiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_THEGRAPH_API_KEY')
 
 	if (apiKey == null)
@@ -59,7 +59,7 @@ export const queryTheGraph = async <
 	if (!response.ok)
 		throw new Error(`The Graph query failed: ${response.status} ${response.statusText}`)
 
-	const payload: TheGraphPayloadWire = await response.json()
+	const payload = await response.json<TheGraphPayloadWire>()
 
 	if ((payload.errors?.length ?? 0) > 0) {
 		const errors = payload.errors ?? []

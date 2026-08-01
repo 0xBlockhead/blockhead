@@ -123,7 +123,6 @@
 					<RedditCommentView
 						selection={select(EntityType.RedditComment, selection.entitySelector.$comment)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

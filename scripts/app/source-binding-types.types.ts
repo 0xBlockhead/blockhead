@@ -21,7 +21,6 @@ const validHttpBinding = {
 		{
 			endpointKind: SourceEndpointKind.HttpUrl,
 			locator: 'https://example.com',
-			origin: 'https://example.com',
 			corsEnabled: true,
 		},
 	],
@@ -31,11 +30,7 @@ const validHttpBinding = {
 		SourceOperationGroup.GenericRead,
 	],
 	delivery: SourceDelivery.BrowserDirect,
-	credentials: [
-		{
-			scope: SourceCredentialScope.None,
-		},
-	],
+	credentials: [],
 } as const satisfies _SourceBinding
 
 defineSources([
@@ -51,7 +46,7 @@ defineSources([
 		binding: validHttpBinding,
 	},
 	{
-		source: Source.Algod_Rest,
+		source: Source.Allium_Rest,
 		// @ts-expect-error Source rows must reference a captured provider identifier.
 		provider: 'Missing',
 		label: 'Invalid provider fixture',
@@ -364,7 +359,6 @@ const invalidOpenApiArtifact = {
 		{
 			kind: SourceArtifactKind.GraphqlSchema,
 			path: 'schema.graphql',
-			generated: false,
 		},
 	],
 	// @ts-expect-error OpenApiHttp cannot own GraphQL artifacts.
@@ -388,7 +382,6 @@ const invalidEvmArtifact = {
 		{
 			kind: SourceArtifactKind.OpenApiSpec,
 			path: 'openapi.json',
-			generated: false,
 		},
 	],
 	// @ts-expect-error EvmExecutionJsonRpc only owns OpenRPC artifacts and generation manifests.
@@ -403,8 +396,36 @@ const invalidHandwrittenOfficialArtifact = {
 		{
 			kind: SourceArtifactKind.HandwrittenTypes,
 			path: 'types.ts',
-			generated: false,
 			officialUrl: 'https://example.test/openapi.json',
+		},
+	],
+} as const satisfies _SourceBinding
+
+const invalidFalseGeneratedArtifact = {
+	...validHttpBinding,
+	artifacts: [
+		{
+			kind: SourceArtifactKind.HandwrittenTypes,
+			path: 'types.ts',
+			// @ts-expect-error Absence denotes handwritten; generated only records true.
+			generated: false,
+		},
+	],
+} as const satisfies _SourceBinding
+
+const invalidPublicConfigKeys = {
+	...validHttpBinding,
+	credentials: [
+		{
+			scope: SourceCredentialScope.PublicConfig,
+			env: {
+				keys: [{
+					name: 'PUBLIC_FIXTURE_KEY',
+					type: 'string',
+				}],
+			},
+			// @ts-expect-error Public config keys derive from the env schema.
+			keys: ['PUBLIC_FIXTURE_KEY'],
 		},
 	],
 } as const satisfies _SourceBinding

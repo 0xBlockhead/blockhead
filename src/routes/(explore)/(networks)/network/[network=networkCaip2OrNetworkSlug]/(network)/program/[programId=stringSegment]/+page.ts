@@ -27,7 +27,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			programId: params.programId,
-		}
+		},
+		'NetworkProgramId'
 	)
 	if (solanaProgramNetworkProgramIdSelector instanceof arktype.errors)
 		error(404, 'Invalid SolanaProgram selector')

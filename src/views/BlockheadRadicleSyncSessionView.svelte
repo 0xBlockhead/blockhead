@@ -54,10 +54,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.sessionId || 'blockhead radicle sync session'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadRadicleSyncSession}>
 			{#snippet children(entity)}
@@ -96,7 +92,6 @@
 								selection={select(EntityType.BlockheadRadicleNodeState, blockheadRadicleNodeState[EntityMetaKey.Selector])}
 								prefetched={blockheadRadicleNodeState}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -128,7 +123,6 @@
 									selection={select(EntityType.RadicleRepository, radicleRepository[EntityMetaKey.Selector])}
 									prefetched={radicleRepository}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

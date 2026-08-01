@@ -20,8 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MoneroRing> = $props()
 
-	const titleFallback = 'monero ring'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,7 +31,7 @@
 <EntityView
 	entityType={EntityType.MoneroRing}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'monero ring'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -42,12 +40,11 @@
 		<MoneroKeyImageView
 			selection={select(EntityType.MoneroKeyImage, selection.entitySelector.$keyImage)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{titleFallback}
+		Ring
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -58,7 +55,6 @@
 					<MoneroKeyImageView
 						selection={select(EntityType.MoneroKeyImage, selection.entitySelector.$keyImage)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/Starkscan/bindings.ts'
-import type {
-	StarkscanAddressTransaction,
-	StarkscanTokenHoldings,
-} from '$/sources/Starkscan/Rest/types.ts'
+import type { components } from '$/sources/Starkscan/OpenApi/openapi.d.ts'
+
+type AddressTransaction = components['schemas']['AddressTransactionListItem']
+type AddressTokenHoldings = components['schemas']['AddressTokenHoldingsView']
 
 const { getJson } = vi.hoisted(() => ({
 	getJson: vi.fn(),
@@ -20,7 +20,7 @@ const {
 	getExactTokenHoldings,
 } = await import('$/sources/Starkscan/Rest/queries.ts')
 
-const binding = bindings[Source.Starkscan_Rest]
+const binding = bindings[Source.Starkscan]
 
 const account = '0x01'
 const transaction = {
@@ -42,7 +42,7 @@ const transaction = {
 	topTransferTokenAddress: '0x3',
 	topTransferAmount: '340282366920938463463374607431768211455',
 	topTransferStandard: 'ERC20',
-} satisfies StarkscanAddressTransaction
+} satisfies AddressTransaction
 
 const holdings = {
 	chainId: 'SN_MAIN',
@@ -67,7 +67,7 @@ const holdings = {
 		capped: false,
 		cap: null,
 	},
-} satisfies StarkscanTokenHoldings
+} satisfies AddressTokenHoldings
 
 describe('Starkscan account portfolio transport', () => {
 	beforeEach(() => {

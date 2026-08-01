@@ -1,6 +1,6 @@
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
-import type { ForgejoJson } from '$/sources/Forgejo/Rest/types.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 export const getRepository = ({
 	binding,
@@ -11,7 +11,7 @@ export const getRepository = ({
 	owner: string
 	repo: string
 }) => (
-	getJson<ForgejoJson>(binding, `/repos/${owner}/${repo}`)
+	getJson<JsonValue>(binding, `/repos/${owner}/${repo}`)
 )
 
 export const getContents = ({
@@ -27,7 +27,7 @@ export const getContents = ({
 	path: string
 	ref?: string
 }) => (
-	getJson<ForgejoJson>(
+	getJson<JsonValue>(
 		binding,
 		`/repos/${owner}/${repo}/contents/${path}${ref == null ? '' : `?ref=${encodeURIComponent(ref)}`}`
 	)

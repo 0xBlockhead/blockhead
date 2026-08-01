@@ -42,14 +42,10 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{'Block ' + String(selection.entitySelector.blockNumber)}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={evmActorCoinAllowanceBlock}>
 			{#snippet children(entity)}
-				{String(entity.allowance) || 'Block ' + String(selection.entitySelector.blockNumber)}
+				{String(entity.allowance)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -139,7 +135,6 @@
 					<EvmActorCoinAllowanceView
 						selection={select(EntityType.EvmActorCoinAllowance, selection.entitySelector.$allowance)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -1,5 +1,4 @@
 import { substrateJsonRpc } from '$/sources/_shared/interfaces/SubstrateJsonRpc/client.ts'
-import type { BittensorScaleBytes } from '$/sources/Bittensor/JsonRpc/types.ts'
 import bindings from '$/sources/Bittensor/bindings.ts'
 import { type as arktype } from 'arktype'
 import {
@@ -38,7 +37,7 @@ const getScaleBytes = async ({
 	method: string
 	params: readonly unknown[]
 	maxBytes: number
-}): Promise<BittensorScaleBytes> => {
+}) => {
 	const bytes = scaleBytes.assert(await substrateJsonRpc<unknown>({
 		...bittensorJsonRpc,
 		method,

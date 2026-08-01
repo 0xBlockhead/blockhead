@@ -34,12 +34,8 @@
 
 	<LensPostsView
 		href={resolve('/(social)/(lens)/lens/(lensNetwork)/observations/posts')}
-		title='Lens posts'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='lens-posts'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

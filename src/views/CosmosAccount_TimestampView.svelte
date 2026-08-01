@@ -45,10 +45,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.source || 'Cosmos account timestamp'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={cosmosAccountTimestamp}>
 			{#snippet children(entity)}
@@ -117,7 +113,6 @@
 					<CosmosAccountView
 						selection={select(EntityType.CosmosAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

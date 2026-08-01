@@ -28,12 +28,8 @@
 
 	<MarketsView
 		href={resolve('/(assets)/markets')}
-		title='Markets'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='markets'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

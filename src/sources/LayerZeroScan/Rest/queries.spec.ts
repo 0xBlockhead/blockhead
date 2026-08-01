@@ -6,17 +6,8 @@ import {
 	vi,
 } from 'vitest'
 
+import bindings from '$/sources/LayerZeroScan/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceCredentialScope,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	SourceTargetKind,
-	WireProtocol,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 
 const getJson = vi.hoisted(() => vi.fn())
 
@@ -32,24 +23,7 @@ const {
 	getMessagesByTransaction,
 } = await import('$/sources/LayerZeroScan/Rest/queries.ts')
 
-const binding = {
-	source: Source.LayerZeroScan_Rest,
-	target: {
-		kind: SourceTargetKind.Global,
-		key: 'layerzero-scan-api',
-	},
-	endpoints: [{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://scan.layerzero-api.com',
-		origin: 'https://scan.layerzero-api.com',
-		corsEnabled: false,
-	}],
-	wireProtocol: WireProtocol.HttpRest,
-	apiFamily: ApiFamily.RestJson,
-	operationGroups: [SourceOperationGroup.GenericRead],
-	delivery: SourceDelivery.RemoteQuery,
-	credentials: [{ scope: SourceCredentialScope.None }],
-} as const satisfies SourceBinding
+const binding = bindings[Source.LayerZeroScan_Rest]
 
 const sender = '0x1111111111111111111111111111111111111111'
 const receiver = '0x2222222222222222222222222222222222222222'
@@ -130,7 +104,7 @@ const message = {
 	updated: '2026-07-23T05:09:24.000Z',
 } as const
 
-describe('LayerZero Scan public message observation', () => {
+describe('LayerZero Scan public message queries', () => {
 	beforeEach(() => {
 		getJson.mockReset()
 		getJson.mockResolvedValue({
@@ -141,7 +115,6 @@ describe('LayerZero Scan public message observation', () => {
 
 	it('preserves exact pathway, nonce, transaction, lifecycle, and units', async () => {
 		await expect(getLatestMessages({
-			binding,
 			limit: 1,
 			sourceEndpointIds: [30101],
 			destinationEndpointIds: [30110],
@@ -167,7 +140,6 @@ describe('LayerZero Scan public message observation', () => {
 					name: 'INFLIGHT',
 				},
 			}],
-			observedBy: 'LayerZeroScan_Rest',
 		})
 		expect(getJson).toHaveBeenCalledWith(
 			binding,
@@ -175,24 +147,53 @@ describe('LayerZero Scan public message observation', () => {
 		)
 	})
 
+	it('keeps source lossless block numbers distinct from destination numeric block heights', async () => {
+		getJson.mockResolvedValueOnce({
+			data: [{
+				...message,
+				destination: {
+					...message.destination,
+					tx: {
+						txHash: `0x${'6'.repeat(64)}`,
+						blockHash: `0x${'7'.repeat(64)}`,
+						blockNumber: 21_000_000,
+						blockTimestamp: 1_784_783_400,
+					},
+				},
+			}],
+		})
+
+		await expect(getLatestMessages()).resolves.toMatchObject({
+			data: [{
+				source: {
+					tx: {
+						blockNumber: '900719925474099312345',
+					},
+				},
+				destination: {
+					tx: {
+						blockNumber: 21_000_000,
+					},
+				},
+			}],
+		})
+	})
+
 	it.each([
 		{
 			query: () => getMessagesByTransaction({
-				binding,
 				transactionHash,
 			}),
 			path: `/v1/messages/tx/${transactionHash}`,
 		},
 		{
 			query: () => getMessageByGuid({
-				binding,
 				guid,
 			}),
 			path: `/v1/messages/guid/${guid}`,
 		},
 		{
 			query: () => getMessagesByPathway({
-				binding,
 				pathwayId,
 				limit: 1,
 			}),
@@ -200,7 +201,6 @@ describe('LayerZero Scan public message observation', () => {
 		},
 		{
 			query: () => getMessagesByOApp({
-				binding,
 				endpointId: 30101,
 				address: sender,
 				limit: 1,
@@ -214,7 +214,6 @@ describe('LayerZero Scan public message observation', () => {
 
 	it('carries opaque pagination without inventing offset semantics', async () => {
 		await getMessagesByPathway({
-			binding,
 			pathwayId,
 			limit: 25,
 			nextToken: 'eyJtZXNzYWdlSWQiOiIxIn0=',
@@ -227,16 +226,13 @@ describe('LayerZero Scan public message observation', () => {
 
 	it('rejects malformed bounds and unsafe integer identities before transport', async () => {
 		await expect(getLatestMessages({
-			binding,
 			limit: 101,
 		})).rejects.toThrow('invalid page limit')
 		await expect(getMessagesByOApp({
-			binding,
 			endpointId: 0,
 			address: sender,
 		})).rejects.toThrow('invalid endpoint id')
 		await expect(getMessageByGuid({
-			binding,
 			guid: 'not-a-guid',
 		})).rejects.toThrow('invalid message GUID')
 
@@ -249,7 +245,7 @@ describe('LayerZero Scan public message observation', () => {
 				},
 			}],
 		})
-		await expect(getLatestMessages({ binding }))
+		await expect(getLatestMessages())
 			.rejects.toThrow('unsafe message nonce')
 	})
 
@@ -288,16 +284,14 @@ describe('LayerZero Scan public message observation', () => {
 				...mutate,
 			}],
 		})
-		await expect(getLatestMessages({ binding })).rejects.toThrow(error)
+		await expect(getLatestMessages()).rejects.toThrow(error)
 	})
 
 	it('rejects foreign transaction and OApp subjects', async () => {
 		await expect(getMessagesByTransaction({
-			binding,
 			transactionHash: `0x${'6'.repeat(64)}`,
 		})).rejects.toThrow('foreign transaction message')
 		await expect(getMessagesByOApp({
-			binding,
 			endpointId: 30101,
 			address: receiver,
 		})).rejects.toThrow('foreign OApp message')

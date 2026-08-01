@@ -52,10 +52,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.supplyScopeKey || 'asset supply timestamp'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={assetSupplyTimestamp}>
 			{#snippet children(entity)}
@@ -243,7 +239,6 @@
 									selection={select(EntityType.AssetClass, assetClass[EntityMetaKey.Selector])}
 									prefetched={assetClass}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -257,7 +252,6 @@
 					<AssetInstanceView
 						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

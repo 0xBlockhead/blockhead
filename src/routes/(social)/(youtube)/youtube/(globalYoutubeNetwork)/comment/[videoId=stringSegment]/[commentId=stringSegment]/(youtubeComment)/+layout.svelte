@@ -19,6 +19,16 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]',
+			{
+				videoId: params.videoId,
+				commentId: params.commentId,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,33 +39,19 @@
 
 {#key [params.videoId, params.commentId].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]',
-				{
-					videoId: params.videoId,
-					commentId: params.commentId,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<YoutubeCommentView
 				selection={
-					select(EntityType.YoutubeComment, data.selector, { sources: [
-						Source.Youtube_Rest,
-						Source.Piped_Rest,
-					] })
+					select(EntityType.YoutubeComment, data.selector, {
+						sources: [
+							Source.Youtube_Rest,
+							Source.Piped_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]',
-						{
-							videoId: params.videoId,
-							commentId: params.commentId,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

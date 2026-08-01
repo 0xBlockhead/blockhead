@@ -40,8 +40,5 @@
 		title='NFT transfers'
 		selection={select(EntityType.Network, data.selector).Evm.$$nftTokenTransfers}
 		id='nft-token-transfers'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

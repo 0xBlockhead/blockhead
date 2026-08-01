@@ -1,16 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { print } from 'graphql'
 
 import { Source } from '$/sources/Source.ts'
 import {
+	ApiFamily,
 	SourceDelivery,
 	SourceTargetKind,
 } from '$/sources/SourceBinding.ts'
 import bindings from '$/sources/Sui/bindings.ts'
 
-const graphql = vi.hoisted(() => vi.fn())
+const executeSui = vi.hoisted(() => vi.fn())
 
-vi.mock('$/sources/_shared/wire/Graphql/client.ts', () => ({
-	graphql,
+vi.mock('$/sources/Sui/Graphql/client.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/sources/Sui/Graphql/client.ts')>(),
+	executeSui,
 }))
 
 const {
@@ -18,7 +21,12 @@ const {
 	getAddressTransactions,
 } = await import('$/sources/Sui/Graphql/queries.ts')
 
-const binding = bindings[Source.Sui_Graphql]
+const binding = bindings[Source.Sui].find(
+	({ apiFamily }) => apiFamily === ApiFamily.GraphqlHttp
+)
+
+if (binding == null)
+	throw new Error('Sui GraphQL spec missing GraphQL binding')
 
 const address = `0x${'1'.repeat(64)}`
 const pageInfo = {
@@ -28,11 +36,11 @@ const pageInfo = {
 
 describe('Sui GraphQL account portfolio queries', () => {
 	beforeEach(() => {
-		graphql.mockReset()
+		executeSui.mockReset()
 	})
 
 	it('queries complete owned balances through the existing RemoteQuery binding', async () => {
-		graphql.mockResolvedValueOnce({
+		executeSui.mockResolvedValueOnce({
 			address: {
 				address,
 				balances: {
@@ -75,19 +83,16 @@ describe('Sui GraphQL account portfolio queries', () => {
 			},
 			delivery: SourceDelivery.RemoteQuery,
 		})
-		expect(graphql.mock.calls[0][0]).toMatchObject({
-			binding,
-			variables: {
-				address,
-				first: 10,
-				after: 'current-cursor',
-			},
+		expect(executeSui.mock.calls[0][1]).toEqual({
+			address,
+			first: 10,
+			after: 'current-cursor',
 		})
-		expect(graphql.mock.calls[0][0].query).toContain('balances(first: $first, after: $after)')
+		expect(print(executeSui.mock.calls[0][0])).toContain('balances(first: $first, after: $after)')
 	})
 
 	it('queries affected-address activity with lossless digest and cursor identities', async () => {
-		graphql.mockResolvedValueOnce({
+		executeSui.mockResolvedValueOnce({
 			address: {
 				address,
 			},
@@ -117,16 +122,16 @@ describe('Sui GraphQL account portfolio queries', () => {
 				nextAfter: 'next-cursor',
 			},
 		})
-		expect(graphql.mock.calls[0][0].variables).toEqual({
+		expect(executeSui.mock.calls[0][1]).toEqual({
 			address,
 			first: 1,
 		})
-		expect(graphql.mock.calls[0][0].query).toContain('filter: { affectedAddress: $address }')
+		expect(print(executeSui.mock.calls[0][0])).toContain('filter: {affectedAddress: $address}')
 	})
 
 	it('normalizes shorthand addresses to the canonical GraphQL identity', async () => {
 		const canonicalAddress = `0x${'0'.repeat(63)}2`
-		graphql.mockResolvedValueOnce({
+		executeSui.mockResolvedValueOnce({
 			address: {
 				address: canonicalAddress,
 				balances: {
@@ -145,7 +150,7 @@ describe('Sui GraphQL account portfolio queries', () => {
 		})).resolves.toMatchObject({
 			balances: [],
 		})
-		expect(graphql.mock.calls[0][0].variables).toEqual({
+		expect(executeSui.mock.calls[0][1]).toEqual({
 			address: canonicalAddress,
 			first: 1,
 		})
@@ -196,7 +201,7 @@ describe('Sui GraphQL account portfolio queries', () => {
 			},
 		]
 		for (const payload of balanceFailures) {
-			graphql.mockResolvedValueOnce(payload)
+			executeSui.mockResolvedValueOnce(payload)
 			await expect(getAddressBalances({
 				address,
 				limit: 2,
@@ -235,14 +240,14 @@ describe('Sui GraphQL account portfolio queries', () => {
 				},
 			},
 		]) {
-			graphql.mockResolvedValueOnce(payload)
+			executeSui.mockResolvedValueOnce(payload)
 			await expect(getAddressTransactions({
 				address,
 				limit: 2,
 			})).rejects.toThrow()
 		}
 
-		graphql.mockResolvedValueOnce({
+		executeSui.mockResolvedValueOnce({
 			address: {
 				address,
 			},
@@ -284,6 +289,6 @@ describe('Sui GraphQL account portfolio queries', () => {
 				after: 'cursor',
 			},
 		})
-		expect(graphql).not.toHaveBeenCalled()
+		expect(executeSui).not.toHaveBeenCalled()
 	})
 })

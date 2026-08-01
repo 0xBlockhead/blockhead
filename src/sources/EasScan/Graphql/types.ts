@@ -1,20 +1,37 @@
-export type EasScanAttestation = {
-	id: string
-	schemaId: string
-	attester: string
-	recipient: string
-	refUID: string
-	revocable: boolean
-	revocationTime: number
-	expirationTime: number
-	time: number
-	data: string
-}
+import type { FragmentOf } from 'gql.tada'
 
-export type EasScanAttestationResponse = {
-	attestation: EasScanAttestation | null
-}
+import { graphql } from './client.ts'
 
-export type EasScanAttestationsResponse = {
-	attestations: EasScanAttestation[]
-}
+export const EasScanAttestationFragment = graphql(`
+	fragment EasScanAttestation on Attestation @_unmask {
+		id
+		schemaId
+		attester
+		recipient
+		refUID
+		revocable
+		revoked
+		revocationTime
+		expirationTime
+		time
+		data
+		txid
+	}
+`)
+
+export type EasScanAttestation = FragmentOf<typeof EasScanAttestationFragment>
+
+export const EasScanSchemaFragment = graphql(`
+	fragment EasScanSchema on Schema @_unmask {
+		id
+		schema
+		creator
+		resolver
+		revocable
+		index
+		txid
+		time
+	}
+`)
+
+export type EasScanSchema = FragmentOf<typeof EasScanSchemaFragment>

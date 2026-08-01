@@ -37,10 +37,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		TON jetton timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -49,7 +45,6 @@
 					<TonJettonView
 						selection={select(EntityType.TonJetton, selection.entitySelector.$jetton)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

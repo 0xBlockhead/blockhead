@@ -57,7 +57,6 @@ it('uses generated HttpProxy binding metadata and preserves reserved query ident
 		endpoints: [{
 			endpointKind: SourceEndpointKind.HttpUrl,
 			locator: 'https://www.googleapis.com',
-			origin: 'https://www.googleapis.com',
 			corsEnabled: false,
 		}],
 	})
@@ -73,7 +72,6 @@ it('keeps the YouTube binding endpoint registered as non-CORS provider reality',
 	expect(sourceGetJson.mock.calls[0][0].endpoints).toEqual([{
 		endpointKind: SourceEndpointKind.HttpUrl,
 		locator: 'https://www.googleapis.com',
-		origin: 'https://www.googleapis.com',
 		corsEnabled: false,
 	}])
 })

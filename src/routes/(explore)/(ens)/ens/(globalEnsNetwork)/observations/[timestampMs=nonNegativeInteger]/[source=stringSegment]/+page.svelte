@@ -15,32 +15,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType._GlobalEnsNetwork_Timestamp, {
-		$hub: {
-			scope: '_GlobalEnsNetwork',
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [({
-			$hub: {
-				scope: '_GlobalEnsNetwork',
-			},
-			timestampMs: Number(params.timestampMs),
-			source: params.source,
-		}).source],
-		fields: {
-			observedNameCount: true,
-			observedRecordCount: true,
-			observedReverseRecordCount: true,
-			seededContractCount: true,
-			discoveredResolverContractCount: true,
-			subgraphBlockNumber: true,
-			rpcBlockNumber: true,
-			reachable: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -55,6 +29,32 @@
 
 <Page>
 	<GlobalEnsNetwork_TimestampView
-		selection={pageSelection}
+		selection={
+			select(EntityType._GlobalEnsNetwork_Timestamp, {
+				$hub: {
+					scope: '_GlobalEnsNetwork',
+				},
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [({
+					$hub: {
+						scope: '_GlobalEnsNetwork',
+					},
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}).source],
+				fields: {
+					observedNameCount: true,
+					observedRecordCount: true,
+					observedReverseRecordCount: true,
+					seededContractCount: true,
+					discoveredResolverContractCount: true,
+					subgraphBlockNumber: true,
+					rpcBlockNumber: true,
+					reachable: true,
+				},
+			})
+		}
 	/>
 </Page>

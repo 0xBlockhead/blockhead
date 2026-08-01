@@ -15,7 +15,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.dune.com',
-				origin: 'https://api.dune.com',
 				corsEnabled: false,
 			},
 		],
@@ -31,19 +30,15 @@ const bindings = [
 				env: arktype({
 					'PUBLIC_DUNE_API_KEY': 'string > 0',
 				}),
-				keys: [
-					'PUBLIC_DUNE_API_KEY',
-				],
 			},
 		],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/Dune/Rest/types.ts',
-				generated: false,
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Dune_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

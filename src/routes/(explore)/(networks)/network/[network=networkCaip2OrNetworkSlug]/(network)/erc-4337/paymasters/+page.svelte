@@ -37,11 +37,7 @@
 				}
 			)
 		}
-		title='ERC-4337 paymasters'
 		selection={select(EntityType.Network, data.selector).Evm.$$erc4337Paymasters}
 		id='erc4337-paymasters'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

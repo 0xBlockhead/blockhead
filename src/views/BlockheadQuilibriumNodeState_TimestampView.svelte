@@ -88,7 +88,6 @@
 					<BlockheadQuilibriumNodeStateView
 						selection={select(EntityType.BlockheadQuilibriumNodeState, selection.entitySelector.$nodeState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

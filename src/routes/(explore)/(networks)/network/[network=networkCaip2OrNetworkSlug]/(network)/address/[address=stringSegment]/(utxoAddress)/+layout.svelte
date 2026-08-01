@@ -18,6 +18,16 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]',
+			{
+				network: params.network,
+				address: params.address,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -28,28 +38,12 @@
 
 {#key [params.network, params.address].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]',
-				{
-					network: params.network,
-					address: params.address,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<UtxoAddressView
 				selection={select(EntityType.UtxoAddress, data.selector)}
-				href={
-					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]',
-						{
-							network: params.network,
-							address: params.address,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

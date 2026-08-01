@@ -72,7 +72,6 @@
 			selection={select(EntityType.EvmTransaction, selection.entitySelector.$sourceTx)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -81,7 +80,6 @@
 			<EvmAccountView
 				selection={select(EntityType.EvmAccount, selection.entitySelector.$account)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -94,7 +92,6 @@
 					<EvmAccountView
 						selection={select(EntityType.EvmAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -105,7 +102,6 @@
 					<EvmTransactionView
 						selection={select(EntityType.EvmTransaction, selection.entitySelector.$sourceTx)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -131,7 +127,6 @@
 									selection={select(EntityType.BridgeTransfer, bridgeTransfer[EntityMetaKey.Selector])}
 									prefetched={bridgeTransfer}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

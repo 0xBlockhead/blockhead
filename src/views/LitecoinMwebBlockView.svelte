@@ -54,7 +54,6 @@
 			selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -87,7 +86,6 @@
 					<UtxoBlockView
 						selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

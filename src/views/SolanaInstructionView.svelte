@@ -91,7 +91,6 @@
 			selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -100,7 +99,6 @@
 			selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -214,7 +212,6 @@
 									selection={select(EntityType.SolanaProgram, solanaProgram[EntityMetaKey.Selector])}
 									prefetched={solanaProgram}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -228,7 +225,6 @@
 					<SolanaTransactionView
 						selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

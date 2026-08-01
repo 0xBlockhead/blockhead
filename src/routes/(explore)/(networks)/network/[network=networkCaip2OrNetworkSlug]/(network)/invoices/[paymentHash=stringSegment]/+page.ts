@@ -21,7 +21,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			paymentHash: params.paymentHash,
-		}
+		},
+		'NetworkPaymentHash'
 	)
 	if (blockheadLightningInvoiceNetworkPaymentHashSelector instanceof arktype.errors)
 		error(404, 'Invalid BlockheadLightningInvoice selector')

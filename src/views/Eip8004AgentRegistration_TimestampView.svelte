@@ -77,7 +77,6 @@
 					<Eip8004AgentRegistrationView
 						selection={select(EntityType.Eip8004AgentRegistration, selection.entitySelector.$registration)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

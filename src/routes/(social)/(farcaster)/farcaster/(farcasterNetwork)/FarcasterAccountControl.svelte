@@ -18,10 +18,6 @@
 	let signerAddress = $state('')
 	let status = $state('')
 	let error = $state('')
-	const connectionIdIsOpaque = $derived(
-		connectionId == null
-		|| /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(connectionId)
-	)
 
 	const storageKey = 'blockhead:farcaster-account-connections'
 	const persisted = (): {
@@ -101,7 +97,7 @@
 
 			<button type="submit">Verify and connect</button>
 		</form>
-	{:else if connectionIdIsOpaque}
+	{:else if /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(connectionId)}
 		<div data-row="start wrap gap-2">
 			<button type="button" onclick={() => update('select')}>Select viewer</button>
 			<button type="button" onclick={() => update('reverify')}>Reverify</button>

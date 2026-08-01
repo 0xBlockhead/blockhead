@@ -132,7 +132,6 @@
 					<Erc4337SmartAccountView
 						selection={select(EntityType.Erc4337SmartAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

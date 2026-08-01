@@ -1,11 +1,9 @@
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
-import type {
-	OciImageReference,
-} from '$/sources/OciRegistry/Distribution/types.ts'
 import {
 	getOciManifest,
 	ociManifestPath,
 } from '$/sources/_shared/wire/OciDistribution/client.ts'
+import type { OciImageReference } from '$/sources/_shared/wire/OciDistribution/types.ts'
 
 export const manifestPath = ({
 	repository,

@@ -70,13 +70,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(prefetched.protocolName ?? '') || titleFallback}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			XMTP transports encrypted payloads between inbox identities. This hub shows local conversation state from the seeded.
-		</p>
+		XMTP
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -188,7 +182,12 @@
 						selection={xmtpConversationsResource}
 						countResource={xmtpConversationsResource.count}
 						title='Conversations'
-						href={resolve('/(social)/(xmtp)/xmtp/(xmtpNetwork)/conversations')}
+						href={
+							selection.entitySelector.scope === 'XmtpNetwork' ?
+								resolve('/(social)/(xmtp)/xmtp/(xmtpNetwork)/conversations')
+							:
+								undefined
+						}
 						id='xmtp-conversations'
 					/>
 				{/if}

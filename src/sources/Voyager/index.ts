@@ -10,8 +10,8 @@ export default {
 	label: 'Voyager',
 	sources: [
 		{
-			source: Source.Voyager_Rest,
-			label: 'Voyager REST',
+			source: Source.Voyager,
+			label: 'Voyager',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

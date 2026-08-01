@@ -27,7 +27,6 @@
 			origin: true,
 		},
 	}))
-	const titleFallback = $derived(selection.entitySelector.id || 'leverage')
 
 
 	// Components
@@ -42,19 +41,15 @@
 <EntityView
 	entityType={EntityType.Leverage}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.id || 'leverage')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.id || 'leverage'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={leverage}>
 			{#snippet children(entity)}
-				{String(entity.liquidity) || selection.entitySelector.id || titleFallback}
+				{String(entity.liquidity)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -245,7 +240,6 @@
 								selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
 								prefetched={liquidityPool}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -263,7 +257,6 @@
 								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 								prefetched={evmAccount}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -276,7 +269,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

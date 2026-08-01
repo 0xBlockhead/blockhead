@@ -68,7 +68,6 @@
 			<UtxoOutputView
 				selection={select(EntityType.UtxoOutput, selection.entitySelector.$output)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -94,7 +93,6 @@
 					<UtxoOutputView
 						selection={select(EntityType.UtxoOutput, selection.entitySelector.$output)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

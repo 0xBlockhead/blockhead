@@ -114,7 +114,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -256,7 +255,6 @@
 									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
 									prefetched={evmTransaction}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -276,7 +274,6 @@
 									selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
 									prefetched={evmBlock}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -323,7 +320,6 @@
 												selection={select(EntityType.Erc4337SmartAccount, erc4337SmartAccount[EntityMetaKey.Selector])}
 												prefetched={erc4337SmartAccount}
 												layout={EntityLayout.Value}
-												open={false}
 											/>
 										</dd>
 									</div>
@@ -343,7 +339,6 @@
 												selection={select(EntityType.Erc4337Paymaster, erc4337Paymaster[EntityMetaKey.Selector])}
 												prefetched={erc4337Paymaster}
 												layout={EntityLayout.Value}
-												open={false}
 											/>
 										</dd>
 									</div>
@@ -363,7 +358,6 @@
 												selection={select(EntityType.Erc4337Bundler, erc4337Bundler[EntityMetaKey.Selector])}
 												prefetched={erc4337Bundler}
 												layout={EntityLayout.Value}
-												open={false}
 											/>
 										</dd>
 									</div>
@@ -383,7 +377,6 @@
 												selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 												prefetched={evmContract}
 												layout={EntityLayout.Value}
-												open={false}
 											/>
 										</dd>
 									</div>

@@ -3,7 +3,6 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
-	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import {
 	NetworkEnvironment,
@@ -12,44 +11,18 @@ import {
 	NetworkNamespace,
 } from '$/constants/Network.ts'
 import { NetworkStackId } from '$/constants/NetworkStack.ts'
+import NetworkSchema from '$/schema/Network.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { l2BeatProjectIdByChainId } from '$/sources/L2Beat/Rest/constants.ts'
-import type { L2BeatScalingSummaryProject } from '$/sources/L2Beat/Rest/types.ts'
+import {
+	chainIdByL2BeatProjectId,
+	ethereumChainId,
+	l2beatHostChainToParentChainId,
+	l2BeatProjectChainIds,
+	l2BeatProjectIdByChainId,
+} from '$/sources/L2Beat/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
-
-const evmRollupReference = (
-	$network: {
-		caip2: {
-			namespace: 'eip155'
-			reference: string
-		}
-	},
-	projectId: string,
-	project: L2BeatScalingSummaryProject,
-	settlementChainId: number
-) => ({
-	[EntityMetaKey.Selector]: {
-		$network,
-		projectId,
-	},
-	[EntityMetaKey.Fields]: {
-		[entityFieldAddressKey(EntityType.EvmRollup, [], 'name')]: project.name,
-		[entityFieldAddressKey(EntityType.EvmRollup, [], 'slug')]: project.slug,
-		[entityFieldAddressKey(EntityType.EvmRollup, [], 'type')]: project.type,
-		...(project.category != null && {
-			[entityFieldAddressKey(EntityType.EvmRollup, [], 'category')]: project.category,
-		}),
-		[entityFieldAddressKey(EntityType.EvmRollup, [], 'hostChain')]: project.hostChain,
-		[entityFieldAddressKey(EntityType.EvmRollup, [], '$settlementNetwork')]: {
-			[EntityMetaKey.Selector]: {
-				caip2: {
-					namespace: 'eip155' as const,
-					reference: String(settlementChainId),
-				},
-			},
-		},
-	},
-})
+import { type as arktype } from 'arktype'
 
 export default {
 	source: Source.L2Beat_Rest,
@@ -59,12 +32,20 @@ export default {
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
-					appliesTo: Object.keys(l2BeatProjectIdByChainId).map((reference) => ({
-						caip2: {
-							namespace: 'eip155',
-							reference,
+					appliesTo: [
+						{
+							caip2: {
+								namespace: 'eip155',
+								reference: String(l2BeatProjectChainIds[0].chainId),
+							},
 						},
-					})),
+						...l2BeatProjectChainIds.slice(1).map(({ chainId }) => ({
+							caip2: {
+								namespace: 'eip155' as const,
+								reference: String(chainId),
+							},
+						})),
+					],
 					resolve: async (entitySelector) => {
 						const project = (
 							await (
@@ -74,8 +55,19 @@ export default {
 						if (project == null)
 							throw new Error('L2Beat_Rest: network project not found')
 
+						const slugField = NetworkSchema.fields.find((field) => (
+							field.type === EntityFieldType.Primitive
+							&& field.name === 'slug'
+						))
+						if (slugField == null)
+							throw new Error('L2Beat_Rest: Network.slug schema field not found')
+
+						const slug = slugField.primitiveType(project.slug)
+						if (slug instanceof arktype.errors)
+							throw new Error(`L2Beat_Rest: invalid network slug: ${slug.summary}`)
+
 						return {
-							slug: project.slug,
+							slug,
 							name: project.name,
 							namespace: NetworkNamespace.Evm,
 							ledgerModels: [NetworkLedgerModel.Account],
@@ -104,31 +96,39 @@ export default {
 			entityType: EntityType.EvmRollup,
 			resolve: {
 				EvmNetworkProjectId: {
-					resolve: async ({ $network, projectId }) => {
-						const {
-							l2beatHostChainToParentChainId,
-						} = await import('$/sources/L2Beat/Rest/constants.ts')
+					resolve: async ({ projectId }) => {
 						const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
 						const project = (await fetchScalingSummary()).projects[projectId]
 						if (project == null)
 							throw new Error('L2Beat_Rest: rollup project not found')
 
-						return evmRollupReference(
-							$network,
-							projectId,
-							project,
-							l2beatHostChainToParentChainId[project.hostChain]
-						)
+						return {
+							name: project.name,
+							slug: project.slug,
+							type: project.type,
+							...(project.category != null && {
+								category: project.category,
+							}),
+							hostChain: project.hostChain,
+							$settlementNetwork: {
+								[EntityMetaKey.Selector]: {
+									caip2: {
+										namespace: 'eip155' as const,
+										reference: String(l2beatHostChainToParentChainId[project.hostChain]),
+									},
+								},
+							},
+						}
 					},
 				},
 			},
 		})({
-			name: (snapshot) => snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.EvmRollup, [], 'name')],
-			slug: (snapshot) => snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.EvmRollup, [], 'slug')],
-			type: (snapshot) => snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.EvmRollup, [], 'type')],
-			category: (snapshot) => snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.EvmRollup, [], 'category')],
-			hostChain: (snapshot) => snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.EvmRollup, [], 'hostChain')],
-			$settlementNetwork: (snapshot) => snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.EvmRollup, [], '$settlementNetwork')],
+			name: (snapshot) => snapshot.name,
+			slug: (snapshot) => snapshot.slug,
+			type: (snapshot) => snapshot.type,
+			category: (snapshot) => snapshot.category,
+			hostChain: (snapshot) => snapshot.hostChain,
+			$settlementNetwork: (snapshot) => snapshot.$settlementNetwork,
 		}),
 
 		defineResolver(Source.L2Beat_Rest, {
@@ -136,12 +136,6 @@ export default {
 			resolve: {
 				Scope: {
 					resolve: async () => {
-						const {
-							chainIdByL2BeatProjectId,
-							ethereumChainId,
-							l2BeatProjectChainIds,
-						} = await import('$/sources/L2Beat/Rest/constants.ts')
-						await (await import('$/sources/L2Beat/Rest/queries.ts')).fetchScalingSummary()
 						return [
 							{
 								[EntityMetaKey.Selector]: {
@@ -177,12 +171,6 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async (entitySelector) => {
-						const {
-							chainIdByL2BeatProjectId,
-							l2beatHostChainToParentChainId,
-							l2BeatProjectIdByChainId,
-							l2BeatProjectChainIds,
-						} = await import('$/sources/L2Beat/Rest/constants.ts')
 						const chainId = Number(entitySelector.caip2.reference)
 						const projectId = l2BeatProjectIdByChainId[entitySelector.caip2.reference]
 						const hostLabels = Object.entries(l2beatHostChainToParentChainId)
@@ -218,12 +206,12 @@ export default {
 							rollup: project == null || project.isArchived === true ?
 								undefined
 							:
-								evmRollupReference(
-									entitySelector,
-									projectId,
-									project,
-									l2beatHostChainToParentChainId[project.hostChain]
-								),
+								{
+									[EntityMetaKey.Selector]: {
+										$network: entitySelector,
+										projectId,
+									},
+								},
 							settledRollups: l2BeatProjectChainIds.flatMap(({ projectId: childProjectId }) => {
 								const childChainId = chainIdByL2BeatProjectId[childProjectId]
 								const childProject = summary.projects[childProjectId]
@@ -235,17 +223,17 @@ export default {
 								) ?
 									[]
 								:
-									[evmRollupReference(
-										{
-											caip2: {
-												namespace: 'eip155',
-												reference: String(childChainId),
+									[{
+										[EntityMetaKey.Selector]: {
+											$network: {
+												caip2: {
+													namespace: 'eip155',
+													reference: String(childChainId),
+												},
 											},
+											projectId: childProjectId,
 										},
-										childProjectId,
-										childProject,
-										l2beatHostChainToParentChainId[childProject.hostChain]
-									)]
+									}]
 							}),
 							childLayers: l2BeatProjectChainIds.flatMap(({ projectId: childProjectId }) => {
 								const childChainId = chainIdByL2BeatProjectId[childProjectId]
@@ -266,19 +254,6 @@ export default {
 												reference: String(childChainId),
 											},
 										},
-										[EntityMetaKey.Fields]: {
-											[entityFieldAddressKey(EntityType.Network, [], 'slug')]: childProject.slug,
-											[entityFieldAddressKey(EntityType.Network, [], 'name')]: childProject.name,
-											[entityFieldAddressKey(EntityType.Network, [], 'namespace')]: NetworkNamespace.Evm,
-											[entityFieldAddressKey(EntityType.Network, [], 'ledgerModels')]: [NetworkLedgerModel.Account],
-											[entityFieldAddressKey(EntityType.Network, [], 'executionModels')]: [NetworkExecutionModel.Evm],
-											[entityFieldAddressKey(EntityType.Network, [], '$networkStack')]: {
-												[EntityMetaKey.Selector]: {
-													networkStackId: NetworkStackId.Ethereum,
-												},
-											},
-											[entityFieldAddressKey(EntityType.Network, [], 'environment')]: NetworkEnvironment.Mainnet,
-										},
 									}]
 							}),
 						}
@@ -294,4 +269,4 @@ export default {
 			},
 		}),
 	],
-}
+} as const

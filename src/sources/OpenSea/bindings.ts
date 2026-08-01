@@ -14,7 +14,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.opensea.io',
-				origin: 'https://api.opensea.io',
 				corsEnabled: false,
 			},
 		],
@@ -33,12 +32,10 @@ const bindings = [
 			{
 				kind: SourceArtifactKind.OpenApiSpec,
 				path: 'src/sources/OpenSea/OpenApi/openapi.json',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/OpenSea/OpenApi/schema-source.ts',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,
@@ -49,4 +46,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.OpenSea_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

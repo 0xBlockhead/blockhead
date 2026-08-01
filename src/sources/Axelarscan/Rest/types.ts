@@ -88,8 +88,3 @@ export type AxelarscanGmpResponse = {
 	total: number
 	time_spent: number
 }
-
-export type AxelarscanGmpObservation = AxelarscanGmpResponse & {
-	observedBy: 'Axelarscan_Rest'
-	resolvedAtMs: number
-}

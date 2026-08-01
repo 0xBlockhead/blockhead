@@ -6,6 +6,7 @@ import {
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/TonCenter/bindings.ts'
+import { ApiFamily } from '$/sources/SourceBinding.ts'
 import {
 	tonCenterV3Hash,
 	tonCenterV3NonnegativeInt64,
@@ -15,33 +16,33 @@ import {
 	tonCenterV3Shard,
 } from '$/sources/TonCenter/V3/Rest/normalization.ts'
 import type {
-	TonCenterV3Block,
 	TonCenterV3BlocksWire,
 	TonCenterV3BlockWire,
-	TonCenterV3JettonMaster,
 	TonCenterV3JettonMastersWire,
 	TonCenterV3JettonMasterWire,
-	TonCenterV3Message,
 	TonCenterV3MessagesWire,
 	TonCenterV3MessageWire,
-	TonCenterV3NftCollection,
 	TonCenterV3NftCollectionsWire,
 	TonCenterV3NftCollectionWire,
-	TonCenterV3NftItem,
 	TonCenterV3NftItemsWire,
 	TonCenterV3NftItemWire,
 	TonCenterV3Order,
 	TonCenterV3Page,
-	TonCenterV3Trace,
 	TonCenterV3TracesWire,
 	TonCenterV3TraceWire,
-	TonCenterV3Transaction,
 	TonCenterV3TransactionsWire,
 	TonCenterV3TransactionWire,
 } from '$/sources/TonCenter/V3/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.TonCenter_V3_Rest]
+const binding = Object.fromEntries(
+	bindings[Source.TonCenter]
+		.filter((binding) => binding.apiFamily === ApiFamily.TonCenterV3Api)
+		.map((binding) => [
+			binding.target.key,
+			binding,
+		])
+)['ton:-239']
 
 const decimalString = /^(?:0|[1-9]\d*)$/
 const signedInt32Maximum = (2 ** 31) - 1
@@ -216,11 +217,11 @@ const pageParameters = ({
 	order?: TonCenterV3Order
 }) => {
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 1_000)
-		throw new Error('TonCenter_V3_Rest: limit must be an integer from 1 through 1000')
+		throw new Error('TON Center v3: limit must be an integer from 1 through 1000')
 	if (!Number.isSafeInteger(offset) || offset < 0 || offset > signedInt32Maximum)
-		throw new Error('TonCenter_V3_Rest: offset must be a nonnegative int32')
+		throw new Error('TON Center v3: offset must be a nonnegative int32')
 	if (offset + limit > signedInt32Maximum)
-		throw new Error('TonCenter_V3_Rest: page exceeds int32 offset bounds')
+		throw new Error('TON Center v3: page exceeds int32 offset bounds')
 
 	return new URLSearchParams({
 		limit: String(limit),
@@ -237,11 +238,9 @@ const page = <_Row>(
 	offset: number
 ): TonCenterV3Page<_Row> => {
 	if (rows.length > limit)
-		throw new Error('TonCenter_V3_Rest: response exceeds requested limit')
+		throw new Error('TON Center v3: response exceeds requested limit')
 
 	return {
-		source: binding.source,
-		target: 'ton:-239',
 		rows,
 		...(rows.length === limit && {
 			nextOffset: offset + rows.length,
@@ -264,16 +263,16 @@ const assertOrdered = (
 				current < previous
 		)
 	)
-		throw new Error(`TonCenter_V3_Rest: ${rows} are not ${order === 'desc' ? 'newest' : 'oldest'}-first`)
+		throw new Error(`TON Center v3: ${rows} are not ${order === 'desc' ? 'newest' : 'oldest'}-first`)
 }
 
-const message = (wire: TonCenterV3MessageWire): TonCenterV3Message => {
+const assertTonCenterV3MessageWire = (wire: TonCenterV3MessageWire) => {
 	if (
 		!decimalString.test(wire.created_at)
 		|| !Number.isSafeInteger(Number(wire.created_at))
 		|| Number(wire.created_at) < 0
 	)
-		throw new Error('TonCenter_V3_Rest: malformed message creation time')
+		throw new Error('TON Center v3: malformed message creation time')
 	if (
 		wire.opcode != null
 		&& (
@@ -282,66 +281,46 @@ const message = (wire: TonCenterV3MessageWire): TonCenterV3Message => {
 			|| wire.opcode > 2 ** 31 - 1
 		)
 	)
-		throw new Error('TonCenter_V3_Rest: malformed message opcode')
+		throw new Error('TON Center v3: malformed message opcode')
 
-	return {
-		hash: tonCenterV3Hash(wire.hash, 'message hash'),
-		...(wire.source != null && {
-			source: tonCenterV3RawAddress(wire.source),
-		}),
-		...(wire.destination != null && {
-			destination: tonCenterV3RawAddress(wire.destination),
-		}),
-		createdAtSeconds: Number(wire.created_at),
-		createdLt: tonCenterV3NonnegativeInt64(wire.created_lt, 'message logical time'),
-		valueNano: tonCenterV3NonnegativeInt64(wire.value, 'message value'),
-		forwardFeeNano: tonCenterV3NonnegativeInt64(wire.fwd_fee, 'message forward fee'),
-		...(wire.ihr_fee != null && {
-			ihrFeeNano: tonCenterV3NonnegativeInt64(wire.ihr_fee, 'message IHR fee'),
-		}),
-		importFeeNano: tonCenterV3NonnegativeInt64(wire.import_fee, 'message import fee'),
-		...(wire.opcode != null && {
-			opcode: wire.opcode,
-		}),
-		...(wire.in_msg_tx_hash != null && {
-			inboundTransactionHash: tonCenterV3Hash(wire.in_msg_tx_hash, 'inbound transaction hash'),
-		}),
-		...(wire.out_msg_tx_hash != null && {
-			outboundTransactionHash: tonCenterV3Hash(wire.out_msg_tx_hash, 'outbound transaction hash'),
-		}),
-	}
+	tonCenterV3Hash(wire.hash, 'message hash')
+	if (wire.source != null)
+		tonCenterV3RawAddress(wire.source)
+	if (wire.destination != null)
+		tonCenterV3RawAddress(wire.destination)
+	tonCenterV3NonnegativeInt64(wire.created_lt, 'message logical time')
+	tonCenterV3NonnegativeInt64(wire.value, 'message value')
+	tonCenterV3NonnegativeInt64(wire.fwd_fee, 'message forward fee')
+	if (wire.ihr_fee != null)
+		tonCenterV3NonnegativeInt64(wire.ihr_fee, 'message IHR fee')
+	tonCenterV3NonnegativeInt64(wire.import_fee, 'message import fee')
+	if (wire.in_msg_tx_hash != null)
+		tonCenterV3Hash(wire.in_msg_tx_hash, 'inbound transaction hash')
+	if (wire.out_msg_tx_hash != null)
+		tonCenterV3Hash(wire.out_msg_tx_hash, 'outbound transaction hash')
 }
 
-const nftCollection = (wire: TonCenterV3NftCollectionWire): TonCenterV3NftCollection => ({
-	address: tonCenterV3RawAddress(wire.address),
-	...(wire.code_hash != null && {
-		codeHash: tonCenterV3Hash(wire.code_hash, 'NFT collection code hash'),
-	}),
-	...(wire.collection_content != null && {
-		content: wire.collection_content,
-		...(wire.collection_content.uri != null && {
-			metadataUri: wire.collection_content.uri,
-		}),
-	}),
-	...(wire.data_hash != null && {
-		dataHash: tonCenterV3Hash(wire.data_hash, 'NFT collection data hash'),
-	}),
-	...(wire.last_transaction_lt != null && {
-		lastTransactionLogicalTime: tonCenterV3NonnegativeInt64(
+const assertTonCenterV3NftCollectionWire = (wire: TonCenterV3NftCollectionWire) => {
+	const address = tonCenterV3RawAddress(wire.address)
+	if (wire.code_hash != null)
+		tonCenterV3Hash(wire.code_hash, 'NFT collection code hash')
+	if (wire.data_hash != null)
+		tonCenterV3Hash(wire.data_hash, 'NFT collection data hash')
+	if (wire.last_transaction_lt != null)
+		tonCenterV3NonnegativeInt64(
 			wire.last_transaction_lt,
 			'NFT collection last transaction logical time'
-		),
-	}),
-	...(wire.next_item_index != null && {
-		nextItemIndex: tonCenterV3NonnegativeInteger(
+		)
+	if (wire.next_item_index != null)
+		tonCenterV3NonnegativeInteger(
 			wire.next_item_index,
 			'NFT collection next item index'
-		),
-	}),
-	...(wire.owner_address != null && {
-		ownerAddress: tonCenterV3RawAddress(wire.owner_address),
-	}),
-})
+		)
+	if (wire.owner_address != null)
+		tonCenterV3RawAddress(wire.owner_address)
+
+	return address
+}
 
 export const getTonCenterV3Blocks = async (
 	options: {
@@ -357,46 +336,38 @@ export const getTonCenterV3Blocks = async (
 	const identities = new Set<string>()
 	const hashIdentities = new Set<string>()
 	let previousGenerationTime: number | undefined
-	const rows = wire.blocks.map((block): TonCenterV3Block => {
+	for (const block of wire.blocks) {
 		const workchain = block.workchain
 		if (!Number.isSafeInteger(workchain) || workchain < -(2 ** 31) || workchain > 2 ** 31 - 1)
-			throw new Error('TonCenter_V3_Rest: malformed block workchain')
+			throw new Error('TON Center v3: malformed block workchain')
 		const seqno = tonCenterV3NonnegativeSafeInteger(block.seqno, 'block seqno')
 		const shard = tonCenterV3Shard(block.shard)
 		const identity = `${workchain}:${shard}:${seqno}`
 		if (identities.has(identity))
-			throw new Error('TonCenter_V3_Rest: duplicate block identity')
+			throw new Error('TON Center v3: duplicate block identity')
 		identities.add(identity)
 		if (
 			!decimalString.test(block.gen_utime)
 			|| !Number.isSafeInteger(Number(block.gen_utime))
 		)
-			throw new Error('TonCenter_V3_Rest: malformed block generation time')
+			throw new Error('TON Center v3: malformed block generation time')
 
 		const rootHash = tonCenterV3Hash(block.root_hash, 'block root hash')
 		const fileHash = tonCenterV3Hash(block.file_hash, 'block file hash')
 		const hashIdentity = `${rootHash}:${fileHash}`
 		if (hashIdentities.has(hashIdentity))
-			throw new Error('TonCenter_V3_Rest: duplicate block hash identity')
+			throw new Error('TON Center v3: duplicate block hash identity')
 		hashIdentities.add(hashIdentity)
 		const genUtimeSeconds = Number(block.gen_utime)
 		assertOrdered(previousGenerationTime, genUtimeSeconds, options.order, 'blocks')
 		previousGenerationTime = genUtimeSeconds
 
-		return {
-			workchain,
-			shard,
-			seqno,
-			rootHash,
-			fileHash,
-			genUtimeSeconds,
-			startLt: tonCenterV3NonnegativeInt64(block.start_lt, 'block start logical time'),
-			endLt: tonCenterV3NonnegativeInt64(block.end_lt, 'block end logical time'),
-			transactionCount: tonCenterV3NonnegativeSafeInteger(block.tx_count, 'block transaction count'),
-		}
-	})
+		tonCenterV3NonnegativeInt64(block.start_lt, 'block start logical time')
+		tonCenterV3NonnegativeInt64(block.end_lt, 'block end logical time')
+		tonCenterV3NonnegativeSafeInteger(block.tx_count, 'block transaction count')
+	}
 
-	return page(rows, options.limit, options.offset)
+	return page(wire.blocks, options.limit, options.offset)
 }
 
 export const getTonCenterV3Messages = async (
@@ -412,17 +383,18 @@ export const getTonCenterV3Messages = async (
 	))
 	const identities = new Set<string>()
 	let previousLogicalTime: bigint | undefined
-	const rows = wire.messages.map((wireMessage) => {
-		const normalizedMessage = message(wireMessage)
-		if (identities.has(normalizedMessage.hash))
-			throw new Error('TonCenter_V3_Rest: duplicate message identity')
-		identities.add(normalizedMessage.hash)
-		assertOrdered(previousLogicalTime, normalizedMessage.createdLt, options.order, 'messages')
-		previousLogicalTime = normalizedMessage.createdLt
-		return normalizedMessage
-	})
+	for (const message of wire.messages) {
+		assertTonCenterV3MessageWire(message)
+		const hash = tonCenterV3Hash(message.hash, 'message hash')
+		if (identities.has(hash))
+			throw new Error('TON Center v3: duplicate message identity')
+		identities.add(hash)
+		const createdLt = tonCenterV3NonnegativeInt64(message.created_lt, 'message logical time')
+		assertOrdered(previousLogicalTime, createdLt, options.order, 'messages')
+		previousLogicalTime = createdLt
+	}
 
-	return page(rows, options.limit, options.offset)
+	return page(wire.messages, options.limit, options.offset)
 }
 
 export const getTonCenterV3CompletedTraces = async (
@@ -438,50 +410,46 @@ export const getTonCenterV3CompletedTraces = async (
 	))
 	const identities = new Set<string>()
 	let previousLogicalTime: bigint | undefined
-	const rows = wire.traces.map((trace): TonCenterV3Trace => {
+	for (const trace of wire.traces) {
 		if (trace.is_incomplete || trace.trace_info.pending_messages !== 0)
-			throw new Error('TonCenter_V3_Rest: trace is incomplete')
+			throw new Error('TON Center v3: trace is incomplete')
 		const traceId = tonCenterV3Hash(trace.trace_id, 'trace ID')
-		const rootMessage = message(trace.trace.in_msg)
+		assertTonCenterV3MessageWire(trace.trace.in_msg)
+		const rootMessageHash = tonCenterV3Hash(trace.trace.in_msg.hash, 'message hash')
 		if (
-			tonCenterV3Hash(trace.trace.in_msg_hash, 'root message hash') !== rootMessage.hash
-			|| traceId !== rootMessage.hash
+			tonCenterV3Hash(trace.trace.in_msg_hash, 'root message hash') !== rootMessageHash
+			|| traceId !== rootMessageHash
 		)
-			throw new Error('TonCenter_V3_Rest: trace root message identity mismatch')
+			throw new Error('TON Center v3: trace root message identity mismatch')
 		if (identities.has(traceId))
-			throw new Error('TonCenter_V3_Rest: duplicate trace identity')
+			throw new Error('TON Center v3: duplicate trace identity')
 		identities.add(traceId)
 		const transactionHashes = trace.transactions_order.map((hash) => (
 			tonCenterV3Hash(hash, 'trace transaction hash')
 		))
 		if (new Set(transactionHashes).size !== transactionHashes.length)
-			throw new Error('TonCenter_V3_Rest: duplicate trace transaction identity')
+			throw new Error('TON Center v3: duplicate trace transaction identity')
 		if (trace.trace_info.transactions !== transactionHashes.length)
-			throw new Error('TonCenter_V3_Rest: trace transaction count mismatch')
+			throw new Error('TON Center v3: trace transaction count mismatch')
 
 		const endLt = tonCenterV3NonnegativeInt64(trace.end_lt, 'trace end logical time')
 		assertOrdered(previousLogicalTime, endLt, options.order, 'traces')
 		previousLogicalTime = endLt
 
-		return {
-			traceId,
-			...(trace.external_hash != null && {
-				externalHash: tonCenterV3Hash(trace.external_hash, 'trace external hash'),
-			}),
-			startLt: tonCenterV3NonnegativeInt64(trace.start_lt, 'trace start logical time'),
-			endLt,
-			startUtimeSeconds: tonCenterV3NonnegativeSafeInteger(trace.start_utime, 'trace start time'),
-			endUtimeSeconds: tonCenterV3NonnegativeSafeInteger(trace.end_utime, 'trace end time'),
-			masterchainStartSeqno: tonCenterV3NonnegativeInt64(trace.mc_seqno_start, 'trace start masterchain seqno'),
-			masterchainEndSeqno: tonCenterV3NonnegativeInt64(trace.mc_seqno_end, 'trace end masterchain seqno'),
-			rootMessage,
-			transactionHashes,
-			messageCount: tonCenterV3NonnegativeSafeInteger(trace.trace_info.messages, 'trace message count'),
-			transactionCount: tonCenterV3NonnegativeSafeInteger(trace.trace_info.transactions, 'trace transaction count'),
-		}
-	})
+		if (trace.external_hash != null)
+			tonCenterV3Hash(trace.external_hash, 'trace external hash')
+		tonCenterV3NonnegativeInt64(trace.start_lt, 'trace start logical time')
+		tonCenterV3NonnegativeSafeInteger(trace.start_utime, 'trace start time')
+		tonCenterV3NonnegativeSafeInteger(trace.end_utime, 'trace end time')
+		tonCenterV3NonnegativeInt64(trace.mc_seqno_start, 'trace start masterchain seqno')
+		tonCenterV3NonnegativeInt64(trace.mc_seqno_end, 'trace end masterchain seqno')
+		tonCenterV3NonnegativeSafeInteger(trace.trace_info.messages, 'trace message count')
+		tonCenterV3NonnegativeSafeInteger(trace.trace_info.transactions, 'trace transaction count')
+		if (trace.trace.tx_hash != null)
+			tonCenterV3Hash(trace.trace.tx_hash, 'trace root transaction hash')
+	}
 
-	return page(rows, options.limit, options.offset)
+	return page(wire.traces, options.limit, options.offset)
 }
 
 export const getTonCenterV3Transactions = async (
@@ -497,7 +465,7 @@ export const getTonCenterV3Transactions = async (
 	))
 	const accountLogicalTimeIdentities = new Map<string, string>()
 	let previousLogicalTime: bigint | undefined
-	const rows = wire.transactions.map((transaction): TonCenterV3Transaction => {
+	for (const transaction of wire.transactions) {
 		const account = tonCenterV3RawAddress(transaction.account)
 		const logicalTime = tonCenterV3NonnegativeInt64(transaction.lt, 'transaction logical time')
 		const hash = tonCenterV3Hash(transaction.hash, 'transaction hash')
@@ -506,87 +474,77 @@ export const getTonCenterV3Transactions = async (
 		if (existingHash != null)
 			throw new Error(
 				existingHash === hash ?
-					'TonCenter_V3_Rest: duplicate transaction identity'
+					'TON Center v3: duplicate transaction identity'
 				:
-					'TonCenter_V3_Rest: conflicting transaction hash identity'
+					'TON Center v3: conflicting transaction hash identity'
 			)
 		accountLogicalTimeIdentities.set(identity, hash)
 		assertOrdered(previousLogicalTime, logicalTime, options.order, 'transactions')
 		previousLogicalTime = logicalTime
 
-		const inboundMessage = transaction.in_msg == null ?
-			undefined
-		:
-			message(transaction.in_msg)
-		const outboundMessages = transaction.out_msgs.map(message)
+		if (transaction.in_msg != null)
+			assertTonCenterV3MessageWire(transaction.in_msg)
+		for (const outboundMessage of transaction.out_msgs)
+			assertTonCenterV3MessageWire(outboundMessage)
 		if (
-			inboundMessage != null
+			transaction.in_msg != null
 			&& (
-				(inboundMessage.destination != null && inboundMessage.destination !== account)
+				(
+					transaction.in_msg.destination != null
+					&& tonCenterV3RawAddress(transaction.in_msg.destination) !== account
+				)
 				|| (
-					inboundMessage.inboundTransactionHash != null
-					&& inboundMessage.inboundTransactionHash !== hash
+					transaction.in_msg.in_msg_tx_hash != null
+					&& tonCenterV3Hash(
+						transaction.in_msg.in_msg_tx_hash,
+						'inbound transaction hash'
+					) !== hash
 				)
 			)
 		)
-			throw new Error('TonCenter_V3_Rest: transaction has a foreign inbound message')
-		if (outboundMessages.some((outboundMessage) => (
-			(outboundMessage.source != null && outboundMessage.source !== account)
+			throw new Error('TON Center v3: transaction has a foreign inbound message')
+		if (transaction.out_msgs.some((outboundMessage) => (
+			(
+				outboundMessage.source != null
+				&& tonCenterV3RawAddress(outboundMessage.source) !== account
+			)
 			|| (
-				outboundMessage.outboundTransactionHash != null
-				&& outboundMessage.outboundTransactionHash !== hash
+				outboundMessage.out_msg_tx_hash != null
+				&& tonCenterV3Hash(
+					outboundMessage.out_msg_tx_hash,
+					'outbound transaction hash'
+				) !== hash
 			)
 		)))
-			throw new Error('TonCenter_V3_Rest: transaction has a foreign outbound message')
+			throw new Error('TON Center v3: transaction has a foreign outbound message')
 
 		const workchain = transaction.block_ref.workchain
 		if (!Number.isSafeInteger(workchain) || workchain < -(2 ** 31) || workchain > 2 ** 31 - 1)
-			throw new Error('TonCenter_V3_Rest: malformed transaction block workchain')
+			throw new Error('TON Center v3: malformed transaction block workchain')
 
-		return {
-			account,
-			logicalTime,
-			hash,
-			block: {
-				workchain,
-				shard: tonCenterV3Shard(transaction.block_ref.shard),
-				seqno: tonCenterV3NonnegativeSafeInteger(transaction.block_ref.seqno, 'transaction block seqno'),
-			},
-			timestampSeconds: tonCenterV3NonnegativeSafeInteger(transaction.now, 'transaction timestamp'),
-			totalFeesNano: tonCenterV3NonnegativeInt64(transaction.total_fees, 'transaction total fees'),
-			previousTransactionHash: tonCenterV3Hash(transaction.prev_trans_hash, 'previous transaction hash'),
-			previousTransactionLogicalTime: tonCenterV3NonnegativeInt64(transaction.prev_trans_lt, 'previous transaction logical time'),
-			originalStatus: transaction.orig_status,
-			endStatus: transaction.end_status,
-			transactionKind: transaction.description.type,
-			aborted: transaction.description.aborted,
-			destroyed: transaction.description.destroyed,
-			...(transaction.account_state_before != null && {
-				balanceBeforeNano: tonCenterV3NonnegativeInt64(
-					transaction.account_state_before.balance,
-					'transaction balance before'
-				),
-			}),
-			...(transaction.account_state_after != null && {
-				balanceAfterNano: tonCenterV3NonnegativeInt64(
-					transaction.account_state_after.balance,
-					'transaction balance after'
-				),
-			}),
-			...(inboundMessage != null && {
-				inboundMessage,
-			}),
-			outboundMessages,
-			...(transaction.trace_id != null && {
-				traceId: tonCenterV3Hash(transaction.trace_id, 'transaction trace ID'),
-			}),
-			...(transaction.trace_external_hash != null && {
-				traceExternalHash: tonCenterV3Hash(transaction.trace_external_hash, 'transaction trace external hash'),
-			}),
-		}
-	})
+		tonCenterV3Shard(transaction.block_ref.shard)
+		tonCenterV3NonnegativeSafeInteger(transaction.block_ref.seqno, 'transaction block seqno')
+		tonCenterV3NonnegativeSafeInteger(transaction.now, 'transaction timestamp')
+		tonCenterV3NonnegativeInt64(transaction.total_fees, 'transaction total fees')
+		tonCenterV3Hash(transaction.prev_trans_hash, 'previous transaction hash')
+		tonCenterV3NonnegativeInt64(transaction.prev_trans_lt, 'previous transaction logical time')
+		if (transaction.account_state_before != null)
+			tonCenterV3NonnegativeInt64(
+				transaction.account_state_before.balance,
+				'transaction balance before'
+			)
+		if (transaction.account_state_after != null)
+			tonCenterV3NonnegativeInt64(
+				transaction.account_state_after.balance,
+				'transaction balance after'
+			)
+		if (transaction.trace_id != null)
+			tonCenterV3Hash(transaction.trace_id, 'transaction trace ID')
+		if (transaction.trace_external_hash != null)
+			tonCenterV3Hash(transaction.trace_external_hash, 'transaction trace external hash')
+	}
 
-	return page(rows, options.limit, options.offset)
+	return page(wire.transactions, options.limit, options.offset)
 }
 
 export const getTonCenterV3JettonMasters = async (
@@ -600,54 +558,30 @@ export const getTonCenterV3JettonMasters = async (
 		`jetton/masters?${parameters.toString()}`
 	))
 	const identities = new Set<string>()
-	const rows = wire.jetton_masters.map((master): TonCenterV3JettonMaster => {
+	for (const master of wire.jetton_masters) {
 		const address = tonCenterV3RawAddress(master.address)
 		if (identities.has(address))
-			throw new Error('TonCenter_V3_Rest: duplicate jetton master identity')
+			throw new Error('TON Center v3: duplicate jetton master identity')
 		identities.add(address)
 
-		return {
-			address,
-			...(master.admin_address != null && {
-				adminAddress: tonCenterV3RawAddress(master.admin_address),
-			}),
-			...(master.code_hash != null && {
-				codeHash: tonCenterV3Hash(master.code_hash, 'jetton master code hash'),
-			}),
-			...(master.data_hash != null && {
-				dataHash: tonCenterV3Hash(master.data_hash, 'jetton master data hash'),
-			}),
-			...(master.jetton_content != null && {
-				content: master.jetton_content,
-				...(master.jetton_content.uri != null && {
-					metadataUri: master.jetton_content.uri,
-				}),
-			}),
-			...(master.jetton_wallet_code_hash != null && {
-				walletCodeHash: tonCenterV3Hash(
-					master.jetton_wallet_code_hash,
-					'jetton wallet code hash'
-				),
-			}),
-			...(master.last_transaction_lt != null && {
-				lastTransactionLogicalTime: tonCenterV3NonnegativeInt64(
-					master.last_transaction_lt,
-					'jetton master last transaction logical time'
-				),
-			}),
-			...(master.mintable != null && {
-				mintable: master.mintable,
-			}),
-			...(master.total_supply != null && {
-				totalSupplyUnits: tonCenterV3NonnegativeInteger(
-					master.total_supply,
-					'jetton total supply'
-				),
-			}),
-		}
-	})
+		if (master.admin_address != null)
+			tonCenterV3RawAddress(master.admin_address)
+		if (master.code_hash != null)
+			tonCenterV3Hash(master.code_hash, 'jetton master code hash')
+		if (master.data_hash != null)
+			tonCenterV3Hash(master.data_hash, 'jetton master data hash')
+		if (master.jetton_wallet_code_hash != null)
+			tonCenterV3Hash(master.jetton_wallet_code_hash, 'jetton wallet code hash')
+		if (master.last_transaction_lt != null)
+			tonCenterV3NonnegativeInt64(
+				master.last_transaction_lt,
+				'jetton master last transaction logical time'
+			)
+		if (master.total_supply != null)
+			tonCenterV3NonnegativeInteger(master.total_supply, 'jetton total supply')
+	}
 
-	return page(rows, options.limit, options.offset)
+	return page(wire.jetton_masters, options.limit, options.offset)
 }
 
 export const getTonCenterV3NftCollections = async (
@@ -661,15 +595,14 @@ export const getTonCenterV3NftCollections = async (
 		`nft/collections?${parameters.toString()}`
 	))
 	const identities = new Set<string>()
-	const rows = wire.nft_collections.map((collection) => {
-		const normalizedCollection = nftCollection(collection)
-		if (identities.has(normalizedCollection.address))
-			throw new Error('TonCenter_V3_Rest: duplicate NFT collection identity')
-		identities.add(normalizedCollection.address)
-		return normalizedCollection
-	})
+	for (const collection of wire.nft_collections) {
+		const address = assertTonCenterV3NftCollectionWire(collection)
+		if (identities.has(address))
+			throw new Error('TON Center v3: duplicate NFT collection identity')
+		identities.add(address)
+	}
 
-	return page(rows, options.limit, options.offset)
+	return page(wire.nft_collections, options.limit, options.offset)
 }
 
 export const getTonCenterV3NftItems = async (
@@ -684,26 +617,26 @@ export const getTonCenterV3NftItems = async (
 	))
 	const identities = new Set<string>()
 	const collectionItemIdentities = new Set<string>()
-	const rows = wire.nft_items.map((item): TonCenterV3NftItem => {
+	for (const item of wire.nft_items) {
 		const address = tonCenterV3RawAddress(item.address)
 		if (identities.has(address))
-			throw new Error('TonCenter_V3_Rest: duplicate NFT item identity')
+			throw new Error('TON Center v3: duplicate NFT item identity')
 		identities.add(address)
-		const collection = item.collection == null ?
+		const embeddedCollectionAddress = item.collection == null ?
 			undefined
 			:
-			nftCollection(item.collection)
+			assertTonCenterV3NftCollectionWire(item.collection)
 		const explicitCollectionAddress = item.collection_address == null ?
 			undefined
 			:
 			tonCenterV3RawAddress(item.collection_address)
 		if (
-			collection != null
+			embeddedCollectionAddress != null
 			&& explicitCollectionAddress != null
-			&& collection.address !== explicitCollectionAddress
+			&& embeddedCollectionAddress !== explicitCollectionAddress
 		)
-			throw new Error('TonCenter_V3_Rest: NFT item has a foreign embedded collection')
-		const collectionAddress = explicitCollectionAddress ?? collection?.address
+			throw new Error('TON Center v3: NFT item has a foreign embedded collection')
+		const collectionAddress = explicitCollectionAddress ?? embeddedCollectionAddress
 		const index = item.index == null ?
 			undefined
 			:
@@ -711,59 +644,28 @@ export const getTonCenterV3NftItems = async (
 		if (collectionAddress != null && index != null) {
 			const collectionItemIdentity = `${collectionAddress}:${index}`
 			if (collectionItemIdentities.has(collectionItemIdentity))
-				throw new Error('TonCenter_V3_Rest: duplicate NFT collection item identity')
+				throw new Error('TON Center v3: duplicate NFT collection item identity')
 			collectionItemIdentities.add(collectionItemIdentity)
 		}
 
-		return {
-			address,
-			...(item.auction_contract_address != null && {
-				auctionContractAddress: tonCenterV3RawAddress(item.auction_contract_address),
-			}),
-			...(item.code_hash != null && {
-				codeHash: tonCenterV3Hash(item.code_hash, 'NFT item code hash'),
-			}),
-			...(collection != null && {
-				collection,
-			}),
-			...(collectionAddress != null && {
-				collectionAddress,
-			}),
-			...(item.content != null && {
-				content: item.content,
-				...(item.content.uri != null && {
-					metadataUri: item.content.uri,
-				}),
-			}),
-			...(item.data_hash != null && {
-				dataHash: tonCenterV3Hash(item.data_hash, 'NFT item data hash'),
-			}),
-			...(index != null && {
-				index,
-			}),
-			...(item.init != null && {
-				initialized: item.init,
-			}),
-			...(item.last_transaction_lt != null && {
-				lastTransactionLogicalTime: tonCenterV3NonnegativeInt64(
-					item.last_transaction_lt,
-					'NFT item last transaction logical time'
-				),
-			}),
-			...(item.on_sale != null && {
-				onSale: item.on_sale,
-			}),
-			...(item.owner_address != null && {
-				ownerAddress: tonCenterV3RawAddress(item.owner_address),
-			}),
-			...(item.real_owner != null && {
-				realOwnerAddress: tonCenterV3RawAddress(item.real_owner),
-			}),
-			...(item.sale_contract_address != null && {
-				saleContractAddress: tonCenterV3RawAddress(item.sale_contract_address),
-			}),
-		}
-	})
+		if (item.auction_contract_address != null)
+			tonCenterV3RawAddress(item.auction_contract_address)
+		if (item.code_hash != null)
+			tonCenterV3Hash(item.code_hash, 'NFT item code hash')
+		if (item.data_hash != null)
+			tonCenterV3Hash(item.data_hash, 'NFT item data hash')
+		if (item.last_transaction_lt != null)
+			tonCenterV3NonnegativeInt64(
+				item.last_transaction_lt,
+				'NFT item last transaction logical time'
+			)
+		if (item.owner_address != null)
+			tonCenterV3RawAddress(item.owner_address)
+		if (item.real_owner != null)
+			tonCenterV3RawAddress(item.real_owner)
+		if (item.sale_contract_address != null)
+			tonCenterV3RawAddress(item.sale_contract_address)
+	}
 
-	return page(rows, options.limit, options.offset)
+	return page(wire.nft_items, options.limit, options.offset)
 }

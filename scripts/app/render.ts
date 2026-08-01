@@ -65,7 +65,13 @@ export type TypeScriptEmission =
 		}
 	| {
 			kind: 'object'
-			entries: readonly [string, TypeScriptEmission | undefined][]
+			entries: readonly (
+				| readonly [string, TypeScriptEmission | undefined]
+				| {
+					kind: 'spread'
+					value: TypeScriptEmission
+				}
+			)[]
 			multiline?: boolean
 		}
 	| {
@@ -198,10 +204,17 @@ const typeScriptExpression = (
 
 	return ts.factory.createObjectLiteralExpression(
 		ts.factory.createNodeArray(emission.entries
-			.filter((entry): entry is [string, TypeScriptEmission] => entry[1] !== undefined)
-			.map(([key, value]) => ts.factory.createPropertyAssignment(
-				/^[A-Za-z_$][\w$]*$/.test(key) ? ts.factory.createIdentifier(key) : typeScriptStringLiteral(key),
-				typeScriptExpression(value, rawExpressions)
+			.flatMap((entry) => (
+				Array.isArray(entry) ?
+					entry[1] === undefined ?
+						[]
+					:
+						[ts.factory.createPropertyAssignment(
+							/^[A-Za-z_$][\w$]*$/.test(entry[0]) ? ts.factory.createIdentifier(entry[0]) : typeScriptStringLiteral(entry[0]),
+							typeScriptExpression(entry[1], rawExpressions)
+						)]
+				:
+					[ts.factory.createSpreadAssignment(typeScriptExpression(entry.value, rawExpressions))]
 			)), emission.multiline ?? true),
 		emission.multiline ?? true
 	)

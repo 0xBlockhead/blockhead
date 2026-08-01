@@ -80,7 +80,6 @@
 									selection={select(EntityType.BlockheadWorkspace, blockheadWorkspace[EntityMetaKey.Selector])}
 									prefetched={blockheadWorkspace}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

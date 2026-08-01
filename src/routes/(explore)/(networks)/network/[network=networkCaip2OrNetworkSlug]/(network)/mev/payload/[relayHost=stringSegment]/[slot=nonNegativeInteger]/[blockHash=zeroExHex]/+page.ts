@@ -33,7 +33,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 			relayHost: params.relayHost,
 			slot: Number(params.slot),
 			blockHash: params.blockHash,
-		}
+		},
+		'EvmNetworkRelayHostSlotBlockHash'
 	)
 	if (mevRelayProposerPayloadDeliveredEvmNetworkRelayHostSlotBlockHashSelector instanceof arktype.errors)
 		error(404, 'Invalid MevRelay_ProposerPayloadDelivered selector')

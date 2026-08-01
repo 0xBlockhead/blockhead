@@ -2741,7 +2741,7 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 				address: '0x1',
 			},
 			blockNumber: 0n,
-			source: Source.Starknet_JsonRpc,
+			source: Source.Pathfinder,
 		},
 	},
 	[EntityType.TonJetton]: {

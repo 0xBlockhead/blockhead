@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		AtprotoActorSchema,
 		{
 			did: decodeURIComponent(params.did),
-		}
+		},
+		'Did'
 	)
 	if (atprotoActorDidSelector instanceof arktype.errors)
 		error(404, 'Invalid AtprotoActor selector')

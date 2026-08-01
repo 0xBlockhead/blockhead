@@ -15,28 +15,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.XPost_Timestamp, {
-		$post: {
-			id: params.postId,
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [({
-			$post: {
-				id: params.postId,
-			},
-			timestampMs: Number(params.timestampMs),
-			source: params.source,
-		}).source],
-		fields: {
-			likeCount: true,
-			retweetCount: true,
-			replyCount: true,
-			quoteCount: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -51,6 +29,28 @@
 
 <Page>
 	<XPost_TimestampView
-		selection={pageSelection}
+		selection={
+			select(EntityType.XPost_Timestamp, {
+				$post: {
+					id: params.postId,
+				},
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [({
+					$post: {
+						id: params.postId,
+					},
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}).source],
+				fields: {
+					likeCount: true,
+					retweetCount: true,
+					replyCount: true,
+					quoteCount: true,
+				},
+			})
+		}
 	/>
 </Page>

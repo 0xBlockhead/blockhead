@@ -42,7 +42,7 @@ export const queryLens = async <
 	publicEnv: SourcePublicEnv,
 	document: TadaDocumentNode<_Result, _Variables>,
 	variables?: _Variables
-): Promise<_Result> => {
+) => {
 	const apiKey = publicEnv.PUBLIC_LENS_API_KEY
 	const trimmedApiKey = (
 		typeof apiKey === 'string' ?

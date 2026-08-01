@@ -64,7 +64,6 @@
 						prefetched={filecoinMiner}
 						href={null}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -82,7 +81,6 @@
 							selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
 							prefetched={filecoinTipset}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -98,7 +96,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -122,7 +119,6 @@
 									selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
 									prefetched={filecoinTipset}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -142,7 +138,6 @@
 									selection={select(EntityType.FilecoinMiner, filecoinMiner[EntityMetaKey.Selector])}
 									prefetched={filecoinMiner}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

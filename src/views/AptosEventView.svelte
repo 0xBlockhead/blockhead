@@ -66,7 +66,6 @@
 					<AptosNetworkView
 						selection={select(EntityType.AptosNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -82,7 +81,6 @@
 								selection={select(EntityType.AptosTransaction, aptosTransaction[EntityMetaKey.Selector])}
 								prefetched={aptosTransaction}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

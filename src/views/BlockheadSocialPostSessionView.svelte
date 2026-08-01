@@ -168,7 +168,6 @@
 									selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector])}
 									prefetched={blockheadWalletConnection}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -188,7 +187,6 @@
 									selection={select(EntityType.BlockheadAgentConversation, blockheadAgentConversation[EntityMetaKey.Selector])}
 									prefetched={blockheadAgentConversation}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

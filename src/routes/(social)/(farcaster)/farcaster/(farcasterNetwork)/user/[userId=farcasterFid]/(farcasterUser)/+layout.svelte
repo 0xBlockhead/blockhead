@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]',
+			{
+				userId: params.userId,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,30 +38,18 @@
 
 {#key params.userId}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]',
-				{
-					userId: params.userId,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<FarcasterUserView
 				selection={
-					select(EntityType.FarcasterUser, data.selector, { sources: [
-						Source.Snapchain_Rest,
-					] })
+					select(EntityType.FarcasterUser, data.selector, {
+						sources: [
+							Source.Snapchain_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]',
-						{
-							userId: params.userId,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

@@ -5,7 +5,6 @@ import {
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/MetadataVision/bindings.ts'
-import type { MetadataVisionOpenGraphData } from '$/sources/MetadataVision/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.MetadataVision_Rest]
@@ -45,7 +44,7 @@ const metadataVisionResponse = type.or(
  */
 export const getOpenGraphWireForPublicHttpUrl = async (
 	publicHttpUrl: string
-): Promise<MetadataVisionOpenGraphData> => {
+) => {
 	const requestUrl = `${firstHttpUrlForBinding(binding)}/${publicHttpUrl}`
 	const json = await sourceGetJson(binding, requestUrl)
 	const parsed = metadataVisionResponse(json)

@@ -72,7 +72,6 @@
 			selection={select(EntityType.ActivityPubActor, selection.entitySelector.$actor)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -88,7 +87,6 @@
 					<ActivityPubActorView
 						selection={select(EntityType.ActivityPubActor, selection.entitySelector.$actor)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

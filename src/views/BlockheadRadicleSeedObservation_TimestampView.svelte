@@ -46,10 +46,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.nodeId || 'blockhead radicle seed observation timestamp'}
-	{/snippet}
-
 	{#snippet Value()}
 		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
@@ -59,7 +55,6 @@
 			<RadicleRepositoryView
 				selection={select(EntityType.RadicleRepository, selection.entitySelector.$repository)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -72,7 +67,6 @@
 					<RadicleRepositoryView
 						selection={select(EntityType.RadicleRepository, selection.entitySelector.$repository)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -96,7 +90,6 @@
 									selection={select(EntityType.BlockheadRadicleNodeState, blockheadRadicleNodeState[EntityMetaKey.Selector])}
 									prefetched={blockheadRadicleNodeState}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

@@ -10,8 +10,8 @@ export default {
 	label: 'Dexscreener',
 	sources: [
 		{
-			source: Source.Dexscreener_OpenApi,
-			label: 'Dexscreener OpenAPI',
+			source: Source.Dexscreener_Rest,
+			label: 'Dexscreener REST',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

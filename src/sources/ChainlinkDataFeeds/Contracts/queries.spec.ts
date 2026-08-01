@@ -32,7 +32,6 @@ const binding = {
 	endpoints: [{
 		endpointKind: SourceEndpointKind.HttpUrl,
 		locator: 'https://ethereum-rpc.example',
-		origin: 'https://ethereum-rpc.example',
 		corsEnabled: false,
 	}],
 }
@@ -82,7 +81,7 @@ beforeEach(() => {
 })
 
 describe('Chainlink latest feed round', () => {
-	it('pins exact network, feed, aggregator, pair, signed units, round IDs, timestamps, staleness, and block provenance', async () => {
+	it('pins exact network, feed, aggregator, pair, signed units, upstream timestamps, and block provenance', async () => {
 		mockRpcResults([
 			'0x1234',
 			`0x${word(8n)}`,
@@ -98,8 +97,6 @@ describe('Chainlink latest feed round', () => {
 			baseAsset: 'ETH',
 			quoteAsset: 'USD',
 			expectedAggregatorAddress: aggregatorAddress,
-			staleAfterMs: 60_000,
-			resolvedAtMs: 1_700_000_000_000,
 		})).resolves.toEqual({
 			network,
 			feedAddress,
@@ -114,11 +111,6 @@ describe('Chainlink latest feed round', () => {
 			updatedAtSeconds: '1699999900',
 			answeredInRound: ((1n << 79n) + 25n).toString(),
 			blockNumber: '4660',
-			source: Source.ChainlinkDataFeeds_Contracts,
-			resolvedAtMs: 1_700_000_000_000,
-			staleAfterMs: 60_000,
-			ageMs: 100_000,
-			stale: true,
 		})
 
 		const requests = vi.mocked(sourceFetch).mock.calls.map((call) => JSON.parse(String(call[2]?.body)))
@@ -160,7 +152,6 @@ describe('Chainlink latest feed round', () => {
 			feedAddress,
 			baseAsset: 'ETH',
 			quoteAsset: 'USD',
-			staleAfterMs: 60_000,
 		})).rejects.toThrow('exact EVM network JSON-RPC binding')
 
 		mockRpcResults([
@@ -176,8 +167,6 @@ describe('Chainlink latest feed round', () => {
 			feedAddress,
 			baseAsset: 'ETH',
 			quoteAsset: 'USD',
-			staleAfterMs: 60_000,
-			resolvedAtMs: 1_700_000_000_000,
 		})).rejects.toThrow('does not match base and quote')
 
 		mockRpcResults([
@@ -194,12 +183,10 @@ describe('Chainlink latest feed round', () => {
 			baseAsset: 'ETH',
 			quoteAsset: 'USD',
 			expectedAggregatorAddress: '0x3333333333333333333333333333333333333333',
-			staleAfterMs: 60_000,
-			resolvedAtMs: 1_700_000_000_000,
 		})).rejects.toThrow('aggregator does not match catalog')
 	})
 
-	it('rejects malformed or incomplete round lifecycle and future observations', async () => {
+	it('rejects malformed or incomplete upstream round lifecycle', async () => {
 		mockRpcResults([
 			'0x1234',
 			`0x${word(8n)}`,
@@ -216,29 +203,7 @@ describe('Chainlink latest feed round', () => {
 			feedAddress,
 			baseAsset: 'ETH',
 			quoteAsset: 'USD',
-			staleAfterMs: 60_000,
-			resolvedAtMs: 1_700_000_000_000,
 		})).rejects.toThrow('invalid latest round lifecycle')
-
-		mockRpcResults([
-			'0x1234',
-			`0x${word(8n)}`,
-			stringResponse('ETH / USD'),
-			`0x${addressWord(aggregatorAddress)}`,
-			latestRoundResponse({
-				startedAt: 1_700_000_100n,
-				updatedAt: 1_700_000_100n,
-			}),
-		])
-		await expect(getLatestRound({
-			binding,
-			network,
-			feedAddress,
-			baseAsset: 'ETH',
-			quoteAsset: 'USD',
-			staleAfterMs: 60_000,
-			resolvedAtMs: 1_700_000_000_000,
-		})).rejects.toThrow('timestamp is in the future')
 	})
 
 	it('rejects malformed ABI, decimals, addresses, and JSON-RPC response identity', async () => {
@@ -255,8 +220,6 @@ describe('Chainlink latest feed round', () => {
 			feedAddress,
 			baseAsset: 'ETH',
 			quoteAsset: 'USD',
-			staleAfterMs: 60_000,
-			resolvedAtMs: 1_700_000_000_000,
 		})).rejects.toThrow('invalid feed decimals')
 
 		await expect(getLatestRound({
@@ -265,7 +228,6 @@ describe('Chainlink latest feed round', () => {
 			feedAddress: '0xdead',
 			baseAsset: 'ETH',
 			quoteAsset: 'USD',
-			staleAfterMs: 60_000,
 		})).rejects.toThrow('invalid feed address')
 
 		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(JSON.stringify({
@@ -279,7 +241,6 @@ describe('Chainlink latest feed round', () => {
 			feedAddress,
 			baseAsset: 'ETH',
 			quoteAsset: 'USD',
-			staleAfterMs: 60_000,
 		})).rejects.toThrow('response identity mismatch')
 	})
 })

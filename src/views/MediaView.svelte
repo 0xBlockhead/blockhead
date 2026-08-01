@@ -46,7 +46,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Icon()}
 		<ResourceBoundary resource={media}>
 			{#snippet Pending()}

@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -30,15 +29,10 @@
 <EntityView
 	entityType={EntityType.TezosEntrypoint}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'tezos entrypoint'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		tezos entrypoint
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -47,7 +41,6 @@
 					<TezosContractView
 						selection={select(EntityType.TezosContract, selection.entitySelector.$contract)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

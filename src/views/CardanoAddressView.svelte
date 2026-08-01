@@ -80,10 +80,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.address || 'Cardano address'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={cardanoAddress}>
 			{#snippet children(entity)}
@@ -100,7 +96,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -140,7 +135,6 @@
 									selection={select(EntityType.CardanoStakeCredential, cardanoStakeCredential[EntityMetaKey.Selector])}
 									prefetched={cardanoStakeCredential}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -185,12 +179,7 @@
 			{#snippet SectionCardanoAddressObservations({ id, label, open })}
 				<CardanoAddress_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No address observations.'
 					id={`${id}-list`}
@@ -200,12 +189,7 @@
 			{#snippet SectionCardanoAddressTransactions({ id, label, open })}
 				<CardanoTransactionsView
 					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No address transactions.'
 					id={`${id}-list`}
@@ -215,12 +199,7 @@
 			{#snippet SectionCardanoAddressUtxos({ id, label, open })}
 				<CardanoTxOutputsView
 					selection={selection.$$utxos}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No unspent outputs.'
 					id={`${id}-list`}
@@ -230,12 +209,7 @@
 			{#snippet SectionCardanoAddressAssets({ id, label, open })}
 				<CardanoNativeAssetsView
 					selection={selection.$$assets}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No native assets in current unspent outputs.'
 					id={`${id}-list`}

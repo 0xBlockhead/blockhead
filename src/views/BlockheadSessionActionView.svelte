@@ -106,7 +106,6 @@
 								selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
 								prefetched={blockheadSession}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -204,7 +203,6 @@
 									selection={select(EntityType.BlockheadIntentInvocation, blockheadIntentInvocation[EntityMetaKey.Selector])}
 									prefetched={blockheadIntentInvocation}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -246,12 +244,7 @@
 			{#snippet SectionSessionActionReadiness({ id, label, open })}
 				<BlockheadActionReadinessChecksView
 					selection={selection.$$readinessChecks}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No readiness checks.'
 					id={`${id}-list`}
@@ -261,12 +254,7 @@
 			{#snippet SectionSessionActionQuotes({ id, label, open })}
 				<BlockheadIntentQuotesView
 					selection={selection.$$quotes}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No quotes.'
 					id={`${id}-list`}
@@ -276,12 +264,7 @@
 			{#snippet SectionSessionActionOrders({ id, label, open })}
 				<BlockheadIntentOrdersView
 					selection={selection.$$orders}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No orders.'
 					id={`${id}-list`}
@@ -317,12 +300,7 @@
 			{#snippet SectionSessionActionWalletRequests({ id, label, open })}
 				<BlockheadWalletRequestsView
 					selection={selection.$$walletRequests}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No wallet requests.'
 					id={`${id}-list`}
@@ -332,12 +310,7 @@
 			{#snippet SectionSessionActionOutcomes({ id, label, open })}
 				<BlockheadActionOutcomesView
 					selection={selection.$$outcomes}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No outcomes.'
 					id={`${id}-list`}

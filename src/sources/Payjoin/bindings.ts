@@ -1,7 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+
+const payjoinGenericReadOperationGroups = [
+	SourceOperationGroup.GenericRead,
+] as const
 
 const bindings = [
 	{
@@ -14,21 +18,14 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://{payjoin-ohttp-relay-host}',
-				origin: 'https://{payjoin-ohttp-relay-host}',
 				corsEnabled: false,
 			},
 		],
 		wireProtocol: WireProtocol.RawHttp,
 		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: payjoinGenericReadOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
 		source: Source.PayjoinReceiver_Http,
@@ -40,21 +37,14 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://{payjoin-receiver-host}',
-				origin: 'https://{payjoin-receiver-host}',
 				corsEnabled: false,
 			},
 		],
 		wireProtocol: WireProtocol.RawHttp,
 		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: payjoinGenericReadOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
 		source: Source.PayjoinDirectory_Rest,
@@ -66,45 +56,31 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://payjo.in',
-				origin: 'https://payjo.in',
 				corsEnabled: false,
 			},
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'http://127.0.0.1:8080',
-				origin: 'http://127.0.0.1:8080',
 				corsEnabled: false,
 			},
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'http://localhost:8080',
-				origin: 'http://localhost:8080',
 				corsEnabled: false,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: payjoinGenericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/Payjoin/Directory/Rest/queries.ts',
-				generated: false,
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.PayjoinOhttpRelay_Http]: typeof bindings[0]
-	readonly [Source.PayjoinReceiver_Http]: typeof bindings[1]
-	readonly [Source.PayjoinDirectory_Rest]: typeof bindings[2]
-}>(bindings)
+export default indexSourceBindings(bindings)

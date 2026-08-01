@@ -48,10 +48,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.messageId || 'A2A message'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={a2aMessage}>
 			{#snippet children(entity)}
@@ -81,7 +77,6 @@
 					<A2aTaskView
 						selection={select(EntityType.A2aTask, selection.entitySelector.$task)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -1,4 +1,5 @@
 import { throwHttpError } from '$/lib/http.ts'
+import { TransportType } from '$/constants/TransportType.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
@@ -19,28 +20,28 @@ import type {
 	SolanaRpcVoteAccounts,
 } from '$/sources/Solana/JsonRpc/types.ts'
 import {
+	SourceDelivery,
 	SourceEndpointKind,
 } from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/PublicNode/bindings.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-const sourceBindings = bindings[Source.Solana_JsonRpc]
-const binding = sourceBindings.find(({ endpoints }) => (
-	endpoints[0].endpointKind === SourceEndpointKind.HttpUrl
-))
+const binding = Object.fromEntries(
+	bindings[Source.Solana_JsonRpc].map((binding) => ([
+		binding.delivery,
+		binding,
+	] as const))
+)[SourceDelivery.HttpProxy]
 
-if (binding == null)
-	throw new Error('Solana_JsonRpc: canonical HTTP binding is missing')
-
-export const solanaRpcEndpoints = sourceBindings.flatMap(({ endpoints }) => (
+export const solanaRpcEndpoints = bindings[Source.Solana_JsonRpc].flatMap(({ endpoints }) => (
 	endpoints.map((endpoint) => ({
 		url: endpoint.locator,
 		transportType: (
 			endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
-				'Http'
+				TransportType.Http
 			:
-				'WebSocket'
+				TransportType.WebSocket
 		),
 		providerName: 'PublicNode',
 	}))

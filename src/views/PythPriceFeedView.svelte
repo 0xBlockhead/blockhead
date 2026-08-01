@@ -26,7 +26,6 @@
 		sources: selection.sources ?? [
 			Source.PythBenchmarks_Rest,
 			Source.PythHermes_Rest,
-			Source.PythPriceFeedsCatalog_Rest,
 			Source.Pyth_EvmContract,
 			Source.Pyth_SolanaProgram,
 		],
@@ -77,7 +76,6 @@
 							selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
 							prefetched={market}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -197,7 +195,6 @@
 									selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
 									prefetched={market}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

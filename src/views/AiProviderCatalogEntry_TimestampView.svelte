@@ -52,7 +52,6 @@
 		<AiProviderCatalogEntryView
 			selection={select(EntityType.AiProviderCatalogEntry, selection.entitySelector.$entry)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -81,7 +80,6 @@
 					<AiProviderCatalogEntryView
 						selection={select(EntityType.AiProviderCatalogEntry, selection.entitySelector.$entry)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

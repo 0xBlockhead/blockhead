@@ -15,29 +15,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.ActivityPubActor_Timestamp, {
-		$actor: {
-			instanceOrigin: decodeURIComponent(params.instanceOrigin),
-			localAccountId: params.localAccountId,
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [({
-			$actor: {
-				instanceOrigin: decodeURIComponent(params.instanceOrigin),
-				localAccountId: params.localAccountId,
-			},
-			timestampMs: Number(params.timestampMs),
-			source: params.source,
-		}).source],
-		fields: {
-			followersCount: true,
-			followingCount: true,
-			statusesCount: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -52,6 +29,29 @@
 
 <Page>
 	<ActivityPubActor_TimestampView
-		selection={pageSelection}
+		selection={
+			select(EntityType.ActivityPubActor_Timestamp, {
+				$actor: {
+					instanceOrigin: decodeURIComponent(params.instanceOrigin),
+					localAccountId: params.localAccountId,
+				},
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [({
+					$actor: {
+						instanceOrigin: decodeURIComponent(params.instanceOrigin),
+						localAccountId: params.localAccountId,
+					},
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}).source],
+				fields: {
+					followersCount: true,
+					followingCount: true,
+					statusesCount: true,
+				},
+			})
+		}
 	/>
 </Page>

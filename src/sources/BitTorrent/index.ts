@@ -10,28 +10,8 @@ export default {
 	label: 'BitTorrent',
 	sources: [
 		{
-			source: Source.BitTorrentMetainfo_File,
-			label: 'BitTorrent metainfo file',
-		},
-		{
-			source: Source.BitTorrent_HttpTracker,
-			label: 'BitTorrent HTTP tracker',
-		},
-		{
-			source: Source.BitTorrent_UdpTracker,
-			label: 'BitTorrent UDP tracker',
-		},
-		{
-			source: Source.BitTorrent_MainlineDht,
-			label: 'BitTorrent Mainline DHT',
-		},
-		{
-			source: Source.BitTorrent_MetadataExchange,
-			label: 'BitTorrent metadata exchange',
-		},
-		{
-			source: Source.BitTorrent_PeerWire,
-			label: 'BitTorrent peer wire',
+			source: Source.BitTorrent,
+			label: 'BitTorrent',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

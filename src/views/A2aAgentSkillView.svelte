@@ -57,7 +57,6 @@
 		<A2aAgentCard_SnapshotView
 			selection={select(EntityType.A2aAgentCard_Snapshot, selection.entitySelector.$cardSnapshot)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -69,7 +68,6 @@
 					<A2aAgentCard_SnapshotView
 						selection={select(EntityType.A2aAgentCard_Snapshot, selection.entitySelector.$cardSnapshot)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

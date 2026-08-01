@@ -15,16 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.SolanaInstruction, data.selector, {
-		fields: {
-			indexInInstruction: true,
-			parsedType: true,
-			stackHeight: true,
-			$program: true,
-			data: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -39,6 +29,16 @@
 
 <Page>
 	<SolanaInstructionView
-		selection={pageSelection}
+		selection={
+			select(EntityType.SolanaInstruction, data.selector, {
+				fields: {
+					indexInInstruction: true,
+					parsedType: true,
+					stackHeight: true,
+					$program: true,
+					data: true,
+				},
+			})
+		}
 	/>
 </Page>

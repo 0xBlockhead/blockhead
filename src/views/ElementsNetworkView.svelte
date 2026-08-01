@@ -58,7 +58,6 @@
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -70,12 +69,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Elements/Liquid-specific view over a canonical Network row, including federation metadata, settlement network, native asset, and registry assets.
-		</p>
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -84,7 +77,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -101,7 +93,6 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -183,7 +174,6 @@
 									selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
 									prefetched={elementsAsset}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

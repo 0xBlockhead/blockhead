@@ -4,11 +4,13 @@ import {
 } from '$/sources/_runtime/http.ts'
 import type {
 	MempoolSpaceAddress,
-	MempoolSpaceBlock,
 	MempoolSpaceMempoolStats,
 	MempoolSpaceRecommendedFees,
-	MempoolSpaceTransaction,
 } from '$/sources/MempoolSpace/Rest/types.ts'
+import type {
+	EsploraBlock,
+	EsploraTransaction,
+} from '$/sources/Esplora/Rest/types.ts'
 import bindings from '$/sources/MempoolSpace/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -23,7 +25,7 @@ const mempoolSpaceRestUrl = (
 
 export const getBlock = (
 	blockHash: string
-) => sourceGetJson<MempoolSpaceBlock>(
+) => sourceGetJson<EsploraBlock>(
 	binding,
 	mempoolSpaceRestUrl(`block/${encodeURIComponent(blockHash)}`)
 )
@@ -37,14 +39,14 @@ export const getBlockTransactionIds = (
 
 export const getTransaction = (
 	txId: string
-) => sourceGetJson<MempoolSpaceTransaction>(
+) => sourceGetJson<EsploraTransaction>(
 	binding,
 	mempoolSpaceRestUrl(`tx/${encodeURIComponent(txId)}`)
 )
 
 export const getBlocks = (
 	startHeight?: bigint
-) => sourceGetJson<MempoolSpaceBlock[]>(
+) => sourceGetJson<EsploraBlock[]>(
 	binding,
 	mempoolSpaceRestUrl(
 		startHeight == null ?
@@ -74,7 +76,7 @@ export const getAddress = (
 export const getAddressTransactions = (
 	address: string,
 	lastSeenTransactionId?: string
-) => sourceGetJson<MempoolSpaceTransaction[]>(
+) => sourceGetJson<EsploraTransaction[]>(
 	binding,
 	mempoolSpaceRestUrl(
 		`address/${encodeURIComponent(address)}/txs/chain${

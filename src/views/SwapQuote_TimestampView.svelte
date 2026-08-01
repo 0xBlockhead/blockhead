@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -35,15 +34,10 @@
 <EntityView
 	entityType={EntityType.SwapQuote_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'swap quote timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		swap quote timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -78,7 +72,6 @@
 								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 								prefetched={network}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -96,7 +89,6 @@
 								selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 								prefetched={evmCoinInstance}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -114,7 +106,6 @@
 								selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 								prefetched={evmCoinInstance}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -218,7 +209,6 @@
 									selection={select(EntityType.BlockheadSwapIntent, blockheadSwapIntent[EntityMetaKey.Selector])}
 									prefetched={blockheadSwapIntent}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

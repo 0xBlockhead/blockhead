@@ -12,6 +12,7 @@
 
 
 	// State
+	const collectionHref = resolve('/~/accounts/balances')
 	const collectionRoot0Selection = $derived(select(EntityType._Global, {
 		scope: '$$blockheadAccounts',
 	}).$$blockheadAccounts.$account)
@@ -110,13 +111,10 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<EvmNetworkActorCoinBalancesView
-					href={resolve('/~/accounts/balances')}
+					href={collectionHref}
 					title='EVM balances'
 					selection={collection0Selection}
 					id='account-evm-network-actor-coin-balance'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}
@@ -126,13 +124,10 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<AptosCoinBalance_TimestampsView
-					href={resolve('/~/accounts/balances')}
+					href={collectionHref}
 					title='Aptos balances'
 					selection={collection1Selection}
 					id='account-aptos-coin-balance-timestamp'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}
@@ -142,13 +137,10 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<CardanoAddress_TimestampsView
-					href={resolve('/~/accounts/balances')}
+					href={collectionHref}
 					title='Cardano balances'
 					selection={collection2Selection}
 					id='account-cardano-address-timestamp'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}
@@ -158,13 +150,10 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<HederaAccount_TimestampsView
-					href={resolve('/~/accounts/balances')}
+					href={collectionHref}
 					title='Hedera balances'
 					selection={collection3Selection}
 					id='account-hedera-account-timestamp'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}
@@ -174,13 +163,10 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<PolkadotAccount_TimestampsView
-					href={resolve('/~/accounts/balances')}
+					href={collectionHref}
 					title='Polkadot balances'
 					selection={collection4Selection}
 					id='account-polkadot-account-timestamp'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}
@@ -190,13 +176,10 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<SolanaAccount_TimestampsView
-					href={resolve('/~/accounts/balances')}
+					href={collectionHref}
 					title='Solana balances'
 					selection={collection5Selection}
 					id='account-solana-account-timestamp'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}
@@ -206,13 +189,10 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<TronAccount_TimestampsView
-					href={resolve('/~/accounts/balances')}
+					href={collectionHref}
 					title='Tron balances'
 					selection={collection6Selection}
 					id='account-tron-account-timestamp'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}
@@ -222,13 +202,10 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<TronAccountTokenBalance_TimestampsView
-					href={resolve('/~/accounts/balances')}
+					href={collectionHref}
 					title='Tron token balances'
 					selection={collection7Selection}
 					id='account-tron-account-token-balance-timestamp'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}
@@ -238,13 +215,10 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<TonAccount_TimestampsView
-					href={resolve('/~/accounts/balances')}
+					href={collectionHref}
 					title='TON balances'
 					selection={collection8Selection}
 					id='account-ton-account-timestamp'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}
@@ -254,13 +228,10 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<UtxoAddress_TimestampsView
-					href={resolve('/~/accounts/balances')}
+					href={collectionHref}
 					title='UTXO balances'
 					selection={collection9Selection}
 					id='account-utxo-address-timestamp'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}
@@ -270,13 +241,10 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<XrplAccount_TimestampsView
-					href={resolve('/~/accounts/balances')}
+					href={collectionHref}
 					title='XRPL balances'
 					selection={collection10Selection}
 					id='account-xrpl-account-timestamp'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}

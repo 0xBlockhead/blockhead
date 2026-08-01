@@ -144,9 +144,8 @@
 	> = $props()
 
 
-	const entityTitle = $derived(
-		title ?? entityDefinitionByType[entityType].labels.singular,
-	)
+	const entityDefinition = $derived(entityDefinitionByType[entityType])
+	const entityTitle = $derived(title ?? entityDefinition.labels.singular)
 
 
 	// Functions
@@ -158,8 +157,12 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import EntityId from './EntityId.svelte'
-	import EntityDetails from './EntityDetails.svelte'
 </script>
+
+
+{#snippet SchemaTypeAnnotationTooltip()}
+	<p>{entityDefinition.description}</p>
+{/snippet}
 
 
 {#snippet CardSummaryHeader(context?: {
@@ -215,17 +218,14 @@
 		</div>
 
 		{#if showTypeAnnotation}
-			{#if TypeAnnotationTooltip}
-				<Tooltip
-					contentProps={{ side: 'top' }}
-					Content={TypeAnnotationTooltip}
-				>
+			{#if TypeAnnotationTooltip || entityDefinition.description}
+				<Tooltip Content={TypeAnnotationTooltip ?? SchemaTypeAnnotationTooltip}>
 					{#snippet children()}
-						<span data-text="annotation">{entityDefinitionByType[entityType].labels.singular}</span>
+						<span data-text="annotation">{entityDefinition.labels.singular}</span>
 					{/snippet}
 				</Tooltip>
 			{:else}
-				<span data-text="annotation">{entityDefinitionByType[entityType].labels.singular}</span>
+				<span data-text="annotation">{entityDefinition.labels.singular}</span>
 			{/if}
 		{/if}
 	</header>
@@ -310,9 +310,9 @@
 
 			{#snippet children({ open })}
 				{#if !isInsideEntityList && (Content || Details)}
-					<EntityDetails
-						{entityType}
-						{entitySelector}
+					<div
+						class="entity-details"
+						style:view-transition-name={`EntityDetails-${stringify(entitySelector)}`}
 					>
 						{#if Content}
 							{@render Content({
@@ -327,7 +327,7 @@
 								open,
 							})}
 						{/if}
-					</EntityDetails>
+					</div>
 				{/if}
 			{/snippet}
 		</Collapsible>
@@ -336,6 +336,10 @@
 
 
 <style>
+	.entity-details {
+		display: contents;
+	}
+
 	article {
 		:global {
 			[data-columns] {

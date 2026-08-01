@@ -70,7 +70,7 @@ describe('Algorand Indexer account portfolio resolver', () => {
 				},
 			},
 		}])
-		expect(algorandIndexerResolvers.source).toBe(Source.Nodely_AlgorandIndexer_Rest)
+		expect(algorandIndexerResolvers.source).toBe(Source.Nodely)
 	})
 
 	it('materializes paginated asset holding observations with exact identity and provenance', async () => {
@@ -115,7 +115,7 @@ describe('Algorand Indexer account portfolio resolver', () => {
 				assetId: 42n,
 			},
 			round: 100n,
-			source: Source.Nodely_AlgorandIndexer_Rest,
+			source: Source.Nodely,
 		})
 		expect(holding[EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.AlgorandAssetHolding_Round, [], 'amount')]: 123n,
@@ -160,7 +160,7 @@ describe('Algorand Indexer account portfolio resolver', () => {
 		expect(observation[EntityMetaKey.Selector]).toEqual({
 			$account: account,
 			round: 100n,
-			source: Source.Nodely_AlgorandIndexer_Rest,
+			source: Source.Nodely,
 		})
 		expect(observation[EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.AlgorandAccount_Timestamp, [], 'amount')]: 9_000_000n,

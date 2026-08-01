@@ -2,7 +2,6 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import type { CoinId } from '$/constants/Coin.ts'
 import {
 	MarketAssetKind,
 	MarketKind,
@@ -13,8 +12,11 @@ import {
 import {
 	seededCoinSpotUsdMarkets,
 	seededCoinSpotUsdMarketByCoinId,
-	type CatalogCoinCurrencyMarket,
 } from '$/constants/MarketCatalog.ts'
+import {
+	isSeededCoinCurrencyMarket,
+	marketSelectorFromCatalogCoinCurrencyMarket,
+} from '$/resolvers/market.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	entityFieldAddressKey,
@@ -24,42 +26,41 @@ import type { EntitySelector } from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import type { CoinMarketCapOhlcvHistoricalResponse } from '$/sources/CoinMarketCap/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
-const marketSelectorFromCatalogCoinCurrencyMarket = (catalogMarket: CatalogCoinCurrencyMarket) => ({
-	$base: {
-		kind: MarketAssetKind.Coin,
-		assetKey: catalogMarket.baseCoinId,
-	},
-	$quote: {
-		kind: MarketAssetKind.Currency,
-		assetKey: catalogMarket.quoteIso4217,
-	},
-	$marketVenue: {
-		marketVenueId: catalogMarket.marketVenueId,
-	},
-	marketKind: catalogMarket.marketKind,
-}) satisfies EntitySelector<
-	typeof schema,
-	EntityType.Market
->
 
-const catalogCoinCurrencyMarketMatchesMarket = (
-	market: EntitySelector<typeof schema, EntityType.Market>
-): market is EntitySelector<typeof schema, EntityType.Market> & {
-	readonly $base: {
-		readonly kind: MarketAssetKind.Coin
-		readonly assetKey: CoinId
-	}
-} => (
-	market.$base.kind === MarketAssetKind.Coin
-	&& market.$quote.kind === MarketAssetKind.Currency
-	&& seededCoinSpotUsdMarkets.some((catalogMarket) => (
-		market.marketKind === catalogMarket.marketKind
-		&& market.$marketVenue.marketVenueId === catalogMarket.marketVenueId
-		&& market.$base.assetKey === catalogMarket.baseCoinId
-		&& market.$quote.assetKey === catalogMarket.quoteIso4217
-	))
-)
+const coinMarketCapOhlcCandles = (response: CoinMarketCapOhlcvHistoricalResponse) => (
+	(
+		response.data == null ?
+			undefined
+		:
+			Object.values(response.data)[0]
+	)?.quotes ?? []
+).flatMap((row) => {
+	const usd = row.quote?.USD
+	const timeOpen = row.time_open
+	if (
+		usd?.open == null
+		|| usd.high == null
+		|| usd.low == null
+		|| usd.close == null
+		|| timeOpen == null
+	)
+		return []
+
+	const timestampMs = Date.parse(timeOpen)
+	if (!Number.isFinite(timestampMs))
+		return []
+
+	return [[
+		timestampMs,
+		usd.open,
+		usd.high,
+		usd.low,
+		usd.close,
+		usd.volume,
+	] as const]
+})
 
 export default {
 	source: Source.CoinMarketCap_Rest,
@@ -126,7 +127,7 @@ export default {
 							throw new Error('CoinMarketCap_Rest: Market_Timestamp is spot-only')
 						if ($market.$base.kind !== MarketAssetKind.Coin)
 							throw new Error('Market source: market base must be catalog coin')
-						if (!catalogCoinCurrencyMarketMatchesMarket($market))
+						if (!isSeededCoinCurrencyMarket($market))
 							throw new Error('CoinMarketCap_Rest: Market_Timestamp is catalog coin USD market only')
 						const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 						const coinId = $market.$base.assetKey
@@ -200,10 +201,10 @@ export default {
 							throw new Error('CoinMarketCap_Rest: OHLC is spot-only')
 						if ($market.$base.kind !== MarketAssetKind.Coin)
 							throw new Error('Market source: market base must be catalog coin')
-						if (!catalogCoinCurrencyMarketMatchesMarket($market))
+						if (!isSeededCoinCurrencyMarket($market))
 							throw new Error('CoinMarketCap_Rest: OHLC is catalog coin USD market only')
 						const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
-						const { getOhlcvHistoricalRows } = await import(
+						const { getOhlcvHistorical } = await import(
 							'$/sources/CoinMarketCap/Rest/queries.ts'
 						)
 						if (timeInterval.unit !== marketOhlcDailyTimeInterval.unit || timeInterval.value !== marketOhlcDailyTimeInterval.value)
@@ -212,11 +213,11 @@ export default {
 						const coinMarketCapId = idByCoinId[coinId]
 						if (coinMarketCapId == null) throw new Error('CoinMarketCap_Rest: OHLC coin not mapped')
 
-						const ohlcCandles = await getOhlcvHistoricalRows({
+						const ohlcCandles = coinMarketCapOhlcCandles(await getOhlcvHistorical({
 							publicEnv: context.publicEnv,
 							id: coinMarketCapId,
-							lookbackDayCount: marketOhlcDefaultLookbackDayCount,
-						})
+							count: marketOhlcDefaultLookbackDayCount,
+						}))
 						const ohlcCandle = ohlcCandles.find(([timestampMs]) => (
 							Math.floor(timestampMs) === timestampMsSelector
 						))
@@ -333,41 +334,36 @@ export default {
 							return []
 						if (entitySelector.$base.kind !== MarketAssetKind.Coin)
 							return []
-						if (!catalogCoinCurrencyMarketMatchesMarket(entitySelector))
+						if (!isSeededCoinCurrencyMarket(entitySelector))
 							return []
 						const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
-						const { getOhlcvHistoricalRows } = await import(
+						const { getOhlcvHistorical } = await import(
 							'$/sources/CoinMarketCap/Rest/queries.ts'
 						)
 						const coinId = entitySelector.$base.assetKey
 						if (idByCoinId[coinId] == null) throw new Error('CoinMarketCap_Rest: OHLC coin not mapped')
 						const coinMarketCapId = idByCoinId[coinId]
 						const lim = resolverContextRowLimit(context)
-						return (
-							(await Promise.all([marketOhlcDayLookbackValues.find((value) => value >= lim) ?? marketOhlcDefaultLookbackDayCount].map(async (value) => {
-							const ohlcCandles = await getOhlcvHistoricalRows({
-								publicEnv: context.publicEnv,
-								id: coinMarketCapId,
-								lookbackDayCount: value,
-							})
-							return ohlcCandles.map(([timestampMs, open, high, low, close, quoteVolume]) => ({
-								[EntityMetaKey.Selector]: {
-									$market: entitySelector,
-									timeInterval: marketOhlcDailyTimeInterval,
-									timestampMs: Math.floor(timestampMs),
-								} satisfies EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>,
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'open')]: BigInt(Math.round(open * 1e8)),
-									[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'high')]: BigInt(Math.round(high * 1e8)),
-									[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'low')]: BigInt(Math.round(low * 1e8)),
-									[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'close')]: BigInt(Math.round(close * 1e8)),
-									...(quoteVolume != null && {
-										[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'quoteVolume')]: BigInt(Math.round(quoteVolume * 1e8)),
-									}),
-								},
-							}))
-							}))).flat().slice(0, lim)
-						)
+						return coinMarketCapOhlcCandles(await getOhlcvHistorical({
+							publicEnv: context.publicEnv,
+							id: coinMarketCapId,
+							count: marketOhlcDayLookbackValues.find((value) => value >= lim) ?? marketOhlcDefaultLookbackDayCount,
+						})).map(([timestampMs, open, high, low, close, quoteVolume]) => ({
+							[EntityMetaKey.Selector]: {
+								$market: entitySelector,
+								timeInterval: marketOhlcDailyTimeInterval,
+								timestampMs: Math.floor(timestampMs),
+							} satisfies EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>,
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'open')]: BigInt(Math.round(open * 1e8)),
+								[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'high')]: BigInt(Math.round(high * 1e8)),
+								[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'low')]: BigInt(Math.round(low * 1e8)),
+								[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'close')]: BigInt(Math.round(close * 1e8)),
+								...(quoteVolume != null && {
+									[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'quoteVolume')]: BigInt(Math.round(quoteVolume * 1e8)),
+								}),
+							},
+						})).slice(0, lim)
 					},
 				}
 			},
@@ -384,7 +380,7 @@ export default {
 							return []
 						if ($market.$base.kind !== MarketAssetKind.Coin)
 							return []
-						if (!catalogCoinCurrencyMarketMatchesMarket($market))
+						if (!isSeededCoinCurrencyMarket($market))
 							return []
 						const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 						const coinId = $market.$base.assetKey

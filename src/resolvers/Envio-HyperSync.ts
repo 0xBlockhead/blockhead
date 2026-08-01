@@ -32,12 +32,6 @@ export default {
 			resolve: {
 				EvmNetworkBlockNumber: {
 					resolve: async ({ $network, blockNumber }) => {
-						if (
-							$network.caip2.namespace !== 'eip155'
-							|| $network.caip2.reference !== networkBySlug.ethereum.caip2.reference
-						)
-							throw new Error(`EnvioHyperSync_RawHttp: unsupported network ${$network.caip2.namespace}:${$network.caip2.reference}`)
-
 						const { getEvmBlockRangePage } = await import('$/sources/Envio/HyperSync/queries.ts')
 						const result = await getEvmBlockRangePage({
 							fromBlock: blockNumber,
@@ -46,7 +40,7 @@ export default {
 						if (result.resolution !== EnvioHyperSyncResolution.Complete)
 							throw new Error(`EnvioHyperSync_RawHttp: ${result.resolution} block ${blockNumber.toString()}`)
 
-						const block = result.blocks.find((candidate) => candidate.number === Number(blockNumber))
+						const block = result.data.blocks.find((candidate) => candidate.number === Number(blockNumber))
 						if (block == null)
 							throw new Error(`EnvioHyperSync_RawHttp: block ${blockNumber.toString()} not returned`)
 
@@ -64,10 +58,10 @@ export default {
 							baseFeePerGas: quantity(block.base_fee_per_gas, 'base fee per gas'),
 							blobGasUsed: quantity(block.blob_gas_used, 'blob gas used'),
 							excessBlobGas: quantity(block.excess_blob_gas, 'excess blob gas'),
-							transactionCount: result.transactions.filter((transaction) => (
+							transactionCount: result.data.transactions.filter((transaction) => (
 								transaction.block_number === block.number
 							)).length,
-							transactions: result.transactions
+							transactions: result.data.transactions
 								.filter((transaction) => transaction.block_number === block.number)
 								.map((transaction) => {
 									const txHash = hexLowerOfByteSize(transaction.hash, 32)

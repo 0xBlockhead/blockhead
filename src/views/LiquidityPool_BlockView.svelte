@@ -27,7 +27,7 @@
 	const liquidityPool = $derived(selection.entitySelector.$liquidityPool)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	}))
 	const liquidityPoolBlock = $derived(viewSelection({
@@ -94,7 +94,6 @@
 			<LiquidityPoolView
 				selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -107,7 +106,6 @@
 					<LiquidityPoolView
 						selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -132,7 +130,6 @@
 								selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
 								prefetched={liquidityPool}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

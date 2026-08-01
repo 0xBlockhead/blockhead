@@ -1,6 +1,6 @@
 import sourceProviders from '$/sources/$sourceProviders.ts'
 import sourceServerCredentialsById from '$/sources/$sourceServerCredentials.server.ts'
-import { sourceBindingId, SourceCredentialScope, SourceDelivery, SourceEndpointKind, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { sourceBindingId, SourceCredentialScope, SourceDelivery, SourceEndpointKind, sourceEndpointOrigin, type SourceBinding } from '$/sources/SourceBinding.ts'
 import { env as privateEnv } from '$env/dynamic/private'
 
 const privateEnvHasValue = (key: string | undefined) => (
@@ -36,7 +36,7 @@ export const httpProxyOrigins = new Set(
 		.filter((binding) => binding.delivery === SourceDelivery.HttpProxy)
 		.flatMap((binding) => binding.endpoints)
 		.filter((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
-		.flatMap((endpoint) => endpoint.origin == null ? [] : [endpoint.origin])
+		.flatMap((endpoint) => sourceEndpointOrigin(endpoint) ?? [])
 )
 
 export const httpProxyBindingByProxyId = new Map<

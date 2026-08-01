@@ -17,7 +17,7 @@ const binding = bindings[Source.Dune_Rest]
 
 export const duneRequestHeaders = (
 	publicEnv: SourcePublicEnv
-): Record<string, string> => ({
+) => ({
 	'Content-Type': 'application/json',
 	Accept: 'application/json',
 	'X-DUNE-API-KEY': requiredPublicEnvString(publicEnv, 'PUBLIC_DUNE_API_KEY'),
@@ -27,7 +27,7 @@ export async function duneFetch<T>(
 	publicEnv: SourcePublicEnv,
 	path: string,
 	init?: RequestInit
-): Promise<T> {
+) {
 	const url = new URL(path, firstHttpUrlForBinding(binding)).toString()
 	const res = await sourceFetch(
 		binding,

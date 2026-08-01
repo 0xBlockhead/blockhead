@@ -28,12 +28,8 @@
 
 	<BlockheadSourcesView
 		href={resolve('/~/manage/sources')}
-		title='Sources'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='blockhead-sources'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

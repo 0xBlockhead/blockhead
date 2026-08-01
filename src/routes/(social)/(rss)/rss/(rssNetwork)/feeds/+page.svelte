@@ -28,12 +28,8 @@
 
 	<RssFeedsView
 		href={resolve('/(social)/(rss)/rss/(rssNetwork)/feeds')}
-		title='RSS feeds'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='rss-feeds'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

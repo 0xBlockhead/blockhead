@@ -21,7 +21,7 @@ const profileHandleParam = (idOrUsername: string) => {
 /**
  * GET /2/profile/{handle} — numeric id as `id:{snowflake}` or username without @.
  */
-export const getUser = async (
+export const getUser = (
 	idOrUsername: string
 ) => (
 	fxEmbedGet<FxEmbedUserResponse>(
@@ -32,7 +32,7 @@ export const getUser = async (
 /**
  * GET /2/status/{id} — tweet/post snowflake id.
  */
-export const getStatus = async (
+export const getStatus = (
 	id: string
 ) => (
 	fxEmbedGet<FxEmbedSocialThread>(
@@ -43,7 +43,7 @@ export const getStatus = async (
 /**
  * GET /2/search
  */
-export const searchStatuses = async (
+export const searchStatuses = (
 	count: number
 ) => (
 	fxEmbedGet<FxEmbedSearchResults>(
@@ -59,7 +59,7 @@ export const searchStatuses = async (
 /**
  * GET /2/profile/{handle}/statuses — numeric id as `id:{snowflake}` or username without @.
  */
-export const getUserStatuses = async (
+export const getUserStatuses = (
 	idOrUsername: string,
 	count: number
 ) => (

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { type as arktype } from 'arktype'
 import {
 	existsSync,
@@ -14,7 +14,6 @@ import {
 import sourceProviderDefinitions from '$/sources/$sourceProviders.ts'
 import { indexSourceProviders } from '$/sources/$sources.ts'
 import type { SourceProviderDefinition } from '$/sources/$sources.ts'
-import { TransportType } from '$/constants/TransportType.ts'
 import pipedBindings from '$/sources/Piped/bindings.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
 import { Source } from '$/sources/Source.ts'
@@ -28,15 +27,19 @@ import {
 } from '$/sources/Voltaire/JsonRpc/types.ts'
 
 import {
+	getGasPriceForEndpoint,
 	voltaireJsonRpcTransports,
 } from '$/sources/Voltaire/JsonRpc/queries.ts'
-import { beaconRestBinding } from '$/sources/Beacon/Rest/queries.ts'
+import {
+	beaconRestByChainId,
+} from '$/sources/Beacon/Rest/queries.ts'
 import {
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceTargetKind,
 	sourceBindingId,
+	sourceEndpointOrigin,
 } from '$/sources/SourceBinding.ts'
 import { sourceProviders as appSourceProviders } from '$/sources/index.ts'
 
@@ -44,7 +47,6 @@ const sourceBindingArtifacts = sourceProviderDefinitions.flatMap((provider) => p
 	.flatMap((binding) => binding.artifacts ?? [])
 const {
 	transportsByChainId: voltaireJsonRpcTransportsByChainId,
-	transportByChainId: voltaireJsonRpcTransportByChainId,
 } = voltaireJsonRpcTransports
 
 const fixtureSourceProviders = [
@@ -271,23 +273,18 @@ describe('source provider registry', () => {
 		})
 	})
 
-	it('keeps binding origins canonical and non-conflicting', () => {
-		const corsEnabledByOrigin = new Map<string, boolean>()
-
+	it('keeps binding origins canonical', () => {
 		for (const sourceProvider of appSourceProviders) {
 			expect(sourceProvider.provider, sourceProvider.label).toBeDefined()
 			expect(sourceProvider.sources.length, String(sourceProvider.provider)).toBeGreaterThan(0)
 
-			for (const { origin, corsEnabled } of sourceProvider.bindings.flatMap(({ endpoints }) => endpoints))
+			for (const endpoint of sourceProvider.bindings.flatMap(({ endpoints }) => endpoints)) {
+				const origin = sourceEndpointOrigin(endpoint)
 				if (origin != null) {
 					expect(new URL(origin).origin, `${sourceProvider.provider}: ${origin}`).toBe(origin)
 					expect(origin, String(sourceProvider.provider)).not.toMatch(/[/?#]$/)
-					expect(
-						corsEnabledByOrigin.get(origin) ?? corsEnabled === true,
-						`${sourceProvider.provider}: ${origin}`
-					).toBe(corsEnabled === true)
-					corsEnabledByOrigin.set(origin, corsEnabled === true)
 				}
+			}
 		}
 	})
 
@@ -300,6 +297,11 @@ describe('source provider registry', () => {
 				sourceProvidersBySource.set(sourceDefinition.source, sourceProvider.provider)
 			}
 		}
+	})
+
+	it('keeps every binding artifact path present', () => {
+		for (const artifact of sourceBindingArtifacts)
+			expect(existsSync(resolve(artifact.path)), artifact.path).toBe(true)
 	})
 
 	it('binds both public TRON REST sources to the canonical CAIP-2 mainnet', () => {
@@ -437,7 +439,6 @@ describe('source provider registry', () => {
 		expect(pipedBindings[Source.Piped_Rest].endpoints).toEqual([{
 			endpointKind: SourceEndpointKind.HttpUrl,
 			locator: 'https://api.piped.private.coffee',
-			origin: 'https://api.piped.private.coffee',
 			corsEnabled: true,
 		}])
 		for (const filePath of globSync('src/sources/Piped/**/*.ts'))
@@ -445,9 +446,15 @@ describe('source provider registry', () => {
 	})
 
 	it('derives Beacon REST chain support from its canonical bindings', () => {
-		expect(beaconRestBinding(1)?.source).toBe(Source.Beacon_Rest)
-		expect(beaconRestBinding(11_155_111)?.source).toBe(Source.Beacon_Rest)
-		expect(beaconRestBinding(10)).toBeUndefined()
+		expect([...beaconRestByChainId.values()].map(({ chainId }) => chainId)).toEqual([
+			'1',
+			'11155111',
+			'17000',
+		])
+		expect(beaconRestByChainId.has(1)).toBe(true)
+		expect(beaconRestByChainId.has(11155111)).toBe(true)
+		expect(beaconRestByChainId.has(17000)).toBe(true)
+		expect(beaconRestByChainId.has(10)).toBe(false)
 	})
 
 	it('keeps Voltaire transport endpoints aligned with canonical bindings', () => {
@@ -468,60 +475,104 @@ describe('source provider registry', () => {
 		)
 	})
 
-	it('keeps Voltaire default JSON-RPC transport HTTP when the chain has any HTTP candidate', () => {
-		for (const [chainId, transports] of Object.entries(voltaireJsonRpcTransportsByChainId)) {
-			const httpCandidate = transports.find((entry) => entry.transportType === TransportType.Http)
-			if (httpCandidate != null)
-				expect(voltaireJsonRpcTransportByChainId[Number(chainId)]).toBe(httpCandidate)
-		}
-	})
-
 	it('keeps every Voltaire executable transport joined to its canonical binding', () => {
-		for (const transport of Object.values(voltaireJsonRpcTransportsByChainId).flat()) {
-			const binding = sourceProviderDefinitions
-				.find((provider) => provider.provider === SourceProvider.Voltaire)!
-				.bindings.find((candidate) => candidate.endpoints.includes(transport.endpoint))!
-			expect(binding.target.key).toBe(String(transport.chainId))
-			expect(transport.endpoint.endpointKind).toBe(
-				transport.transportType === TransportType.Http ?
-					SourceEndpointKind.HttpUrl
-				:
-					SourceEndpointKind.WebSocketUrl
-			)
-			if (transport.transportType === TransportType.WebSocket)
-				expect(binding.delivery).toBe(SourceDelivery.RemoteLive)
-			else {
-				if (transport.endpoint.corsEnabled !== true) {
-					expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
-					expect(sourceBindingId(binding)).toBeTruthy()
+		const voltaireBindings = sourceProviderDefinitions
+			.find((provider) => provider.provider === SourceProvider.Voltaire)!
+			.bindings
+
+		for (const [chainId, transports] of Object.entries(voltaireJsonRpcTransportsByChainId)) {
+			for (const transport of transports) {
+				expect(voltaireBindings).toContain(transport.binding)
+				expect(transport.binding.endpoints).toContain(transport.endpoint)
+				expect(transport.binding.target.key).toBe(chainId)
+				if (transport.endpoint.endpointKind === SourceEndpointKind.WebSocketUrl)
+					expect(transport.binding.delivery).toBe(SourceDelivery.RemoteLive)
+				else if (transport.endpoint.corsEnabled !== true) {
+					expect(transport.binding.delivery).toBe(SourceDelivery.HttpProxy)
+					expect(sourceBindingId(transport.binding)).toBeTruthy()
 				}
 			}
 		}
 	})
 
+	it('preserves every Voltaire binding and endpoint pair in the execution transport index', () => {
+		const voltaireBindings = sourceProviderDefinitions
+			.find((provider) => provider.provider === SourceProvider.Voltaire)!
+			.bindings
+
+		for (const [chainId, transports] of Object.entries(voltaireJsonRpcTransportsByChainId)) {
+			expect(new Set(transports.map(({ binding, endpoint }) => (
+				`${sourceBindingId(binding)} ${endpoint.endpointKind} ${endpoint.locator}`
+			)))).toEqual(new Set(
+				voltaireBindings
+					.filter((binding) => binding.target.key === chainId)
+					.flatMap((binding) => (
+						binding.endpoints.map((endpoint) => (
+							`${sourceBindingId(binding)} ${endpoint.endpointKind} ${endpoint.locator}`
+						))
+					))
+			))
+		}
+	})
+
+	it('passes the owning Voltaire binding through the JSON-RPC call path', async () => {
+		const transports = Object.values(voltaireJsonRpcTransportsByChainId)
+			.flat()
+			.filter((transport) => (
+				transport.endpoint.endpointKind === SourceEndpointKind.HttpUrl
+			))
+		const transport = transports[0]
+		const otherBinding = transports.find((candidate) => (
+			candidate.binding !== transport.binding
+		))?.binding
+		if (otherBinding == null)
+			throw new Error('Voltaire call-path test requires HTTP transports from two bindings')
+
+		const fetch = vi.fn(async () => (
+			new Response(JSON.stringify({
+				jsonrpc: '2.0',
+				id: 1,
+				result: '0x2a',
+			}))
+		))
+		vi.stubGlobal('fetch', fetch)
+
+		try {
+			await expect(getGasPriceForEndpoint(transport)).resolves.toBe('0x2a')
+			expect(fetch).toHaveBeenCalledWith(
+				transport.endpoint.locator,
+				expect.objectContaining({
+					method: 'POST',
+				})
+			)
+			await expect(getGasPriceForEndpoint({
+				binding: otherBinding,
+				endpoint: transport.endpoint,
+			})).rejects.toThrow('JSON-RPC endpoint is not declared by the binding')
+			expect(fetch).toHaveBeenCalledTimes(1)
+		} finally {
+			vi.unstubAllGlobals()
+		}
+	})
+
 	it('uses generated Voltaire bindings as the executable transport authority', () => {
 		expect(readFileSync(join(process.cwd(), 'src', 'sources', 'Voltaire', 'JsonRpc', 'queries.ts'), 'utf8'))
-			.not.toMatch(/executionEndpoints\.ts|voltaireJsonRpcTransportCandidates/)
+			.not.toMatch(/executionEndpoints\.ts|voltaireJsonRpcTransportCandidates|bindingByEndpoint|bindingForEndpoint|supportsTxpool/)
 
 		expect(Object.values(voltaireJsonRpcTransportsByChainId).flat().map((transport) => ({
-			chainId: transport.chainId,
+			chainId: Number(transport.binding.target.key),
+			endpointKind: transport.endpoint.endpointKind,
 			rpcUrl: transport.endpoint.locator,
-			transportType: transport.transportType,
 		}))).toEqual(
 			sourceProviderDefinitions
 				.filter((provider) => provider.provider === SourceProvider.Voltaire)
 				.flatMap((provider) => provider.bindings)
 				.flatMap((binding) => (
 					binding.endpoints.map((endpoint) => ({
-								chainId: Number(binding.target.key),
-								rpcUrl: endpoint.locator,
-								transportType: (
-									endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
-										TransportType.Http
-									:
-										TransportType.WebSocket
-								),
-							}))
+						chainId: Number(binding.target.key),
+						endpointKind: endpoint.endpointKind,
+						rpcUrl: endpoint.locator,
+					}))
 				))
 		)
 	})
@@ -533,7 +584,7 @@ describe('source provider registry', () => {
 			.flatMap((binding) => binding.endpoints)
 			.map((endpoint) => ({
 				locator: endpoint.locator,
-				origin: endpoint.origin,
+				origin: sourceEndpointOrigin(endpoint),
 				corsEnabled: endpoint.corsEnabled,
 			}))).toEqual([
 			{
@@ -551,7 +602,11 @@ describe('source provider registry', () => {
 
 	it('keeps generated OpenAPI sources reproducible from checked-in schema manifests', () => {
 		const packageJson = readFileSync(join(process.cwd(), 'package.json'), 'utf8')
-		const manifestFiles = globSync('src/sources/*/OpenApi/schema-source.ts')
+		const openapiScript = readFileSync(join(process.cwd(), 'scripts', 'sources', 'openapi.ts'), 'utf8')
+		const manifestFiles = globSync([
+			'src/sources/*/OpenApi/schema-source.ts',
+			'src/sources/*/OpenApi/**/schema-source.ts',
+		])
 		const activeManifestFiles = new Set(
 			sourceBindingArtifacts
 				.filter((artifact) => artifact.kind === SourceArtifactKind.GenerationManifest)
@@ -562,7 +617,8 @@ describe('source provider registry', () => {
 
 		expect(packageJson).toMatch(/"sources:openapi": "node --import tsx scripts\/sources\/openapi\.ts"/)
 		expect(packageJson).toMatch(/"sources:openapi:check": "node --import tsx scripts\/sources\/openapi\.ts check"/)
-		expect(readFileSync(join(process.cwd(), 'scripts', 'sources', 'openapi.ts'), 'utf8')).toMatch(/glob\('\/?\*\/OpenApi\/schema-source\.ts'|glob\('\*\/OpenApi\/schema-source\.ts'/)
+		expect(openapiScript).toContain("'*/OpenApi/schema-source.ts'")
+		expect(openapiScript).toContain("'*/OpenApi/**/schema-source.ts'")
 
 		for (const manifestFile of manifestFiles) {
 			const manifestSource = readFileSync(manifestFile, 'utf8')

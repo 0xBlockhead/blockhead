@@ -31,6 +31,9 @@
 			sources: selection.sources ?? [
 				Source.Openchain_Rest,
 			],
+			fields: {
+				hex: true,
+			},
 		})
 	}
 >
@@ -48,8 +51,8 @@
 				)
 			}
 		>
-			{#snippet Title()}
-				EVM selector
+			{#snippet Value()}
+				{evmSelectorSelector.hex}
 			{/snippet}
 		</EntityView>
 	{/snippet}

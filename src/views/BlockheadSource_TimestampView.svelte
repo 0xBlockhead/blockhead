@@ -244,7 +244,6 @@
 					<BlockheadSourceView
 						selection={select(EntityType.BlockheadSource, selection.entitySelector.$source)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

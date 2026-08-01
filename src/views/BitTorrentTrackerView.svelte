@@ -40,10 +40,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.trackerUrl || 'bit torrent tracker'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentTracker}>
 			{#snippet children(entity)}

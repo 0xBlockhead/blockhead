@@ -26,7 +26,7 @@ import type {
  * `GET /` — ecosystem, blockchain, or module stats.
  * Include `library=blockchains,modules,rates(usd)` for metadata and market rates.
  */
-export const fetchChainStats = async ({
+export const fetchChainStats = ({
 	from,
 	mode,
 	library,
@@ -36,7 +36,7 @@ export const fetchChainStats = async ({
 	mode?: 'greedy' | 'non-greedy' | 'default'
 	library?: string
 	options?: ThreeXplClientOptions
-}): Promise<ThreeXplApiResponse<ThreeXplGeneralInfoData>> => (
+}) => (
 	threeXplGetJson<ThreeXplApiResponse<ThreeXplGeneralInfoData>>({
 		searchParams: {
 			from,
@@ -50,7 +50,7 @@ export const fetchChainStats = async ({
 /**
  * `GET /search` — search blocks, transactions, and addresses.
  */
-export const search = async ({
+export const search = ({
 	query,
 	from,
 	in: entity,
@@ -64,7 +64,7 @@ export const search = async ({
 	mixins?: 'stats'
 	library?: 'blockchains'
 	options?: ThreeXplClientOptions
-}): Promise<ThreeXplApiResponse<ThreeXplSearchData>> => (
+}) => (
 	threeXplGetJson<ThreeXplApiResponse<ThreeXplSearchData>>({
 		pathSegments: [
 			'search',
@@ -83,7 +83,7 @@ export const search = async ({
 /**
  * `GET /{blockchain}/blocks` — recent or paged block summaries.
  */
-export const fetchBlocks = async ({
+export const fetchBlocks = ({
 	blockchain,
 	from,
 	limit,
@@ -97,7 +97,7 @@ export const fetchBlocks = async ({
 	page?: string | number
 	library?: string
 	options?: ThreeXplClientOptions
-}): Promise<ThreeXplApiResponse<ThreeXplBlocksData>> => (
+}) => (
 	threeXplGetJson<ThreeXplApiResponse<ThreeXplBlocksData>>({
 		pathSegments: [
 			blockchain,
@@ -118,7 +118,7 @@ export const fetchBlocks = async ({
  * `GET /{blockchain}/block/{block}` — block summary and module events.
  * Use `library=currencies` to include token/asset metadata for event currencies.
  */
-export const fetchBlock = async ({
+export const fetchBlock = ({
 	blockchain,
 	block,
 	data = 'block,events',
@@ -138,7 +138,7 @@ export const fetchBlock = async ({
 	mixins?: 'stats'
 	library?: string
 	options?: ThreeXplClientOptions
-}): Promise<ThreeXplApiResponse<ThreeXplBlockData>> => (
+}) => (
 	threeXplGetJson<ThreeXplApiResponse<ThreeXplBlockData>>({
 		pathSegments: [
 			blockchain,
@@ -161,7 +161,7 @@ export const fetchBlock = async ({
  * `GET /{blockchain}/transaction/{transaction}` — transaction summary and module events.
  * Use `library=currencies` to include token/asset metadata for event currencies.
  */
-export const fetchTransaction = async ({
+export const fetchTransaction = ({
 	blockchain,
 	transaction,
 	data = 'transaction,events',
@@ -181,7 +181,7 @@ export const fetchTransaction = async ({
 	mixins?: string
 	library?: string
 	options?: ThreeXplClientOptions
-}): Promise<ThreeXplApiResponse<ThreeXplTransactionData>> => (
+}) => (
 	threeXplGetJson<ThreeXplApiResponse<ThreeXplTransactionData>>({
 		pathSegments: [
 			blockchain,
@@ -205,7 +205,7 @@ export const fetchTransaction = async ({
  * historical events, and mempool events. Balances and event currencies are the
  * documented token/asset surface; request `library=currencies` for metadata.
  */
-export const fetchAddress = async ({
+export const fetchAddress = ({
 	blockchain,
 	address,
 	data = 'address,balances,events,mempool',
@@ -227,7 +227,7 @@ export const fetchAddress = async ({
 	mixins?: 'stats'
 	library?: string
 	options?: ThreeXplClientOptions
-}): Promise<ThreeXplApiResponse<ThreeXplAddressData>> => (
+}) => (
 	threeXplGetJson<ThreeXplApiResponse<ThreeXplAddressData>>({
 		pathSegments: [
 			blockchain,
@@ -251,7 +251,7 @@ export const fetchAddress = async ({
  * `GET /{blockchain}/address/{address}/monetary` — calculated monetary account
  * details where 3xpl supports them.
  */
-export const fetchAddressMonetary = async ({
+export const fetchAddressMonetary = ({
 	blockchain,
 	address,
 	currency,
@@ -267,7 +267,7 @@ export const fetchAddressMonetary = async ({
 	to?: string
 	filter?: readonly string[]
 	options?: ThreeXplClientOptions
-}): Promise<ThreeXplApiResponse<ThreeXplAddressMonetaryData>> => (
+}) => (
 	threeXplGetJson<ThreeXplApiResponse<ThreeXplAddressMonetaryData>>({
 		pathSegments: [
 			blockchain,

@@ -14,7 +14,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
-	queryAccount,
+	queryAccountByAddress,
+	queryAccountByLegacyProfileId,
+	queryAccountByLocalName,
+	queryAccountStats,
 	queryAccounts,
 	queryFeed,
 	queryFeedPosts,
@@ -23,7 +26,10 @@ const {
 	queryPostComments,
 	queryPostsByAuthor,
 } = vi.hoisted(() => ({
-	queryAccount: vi.fn(),
+	queryAccountByAddress: vi.fn(),
+	queryAccountByLegacyProfileId: vi.fn(),
+	queryAccountByLocalName: vi.fn(),
+	queryAccountStats: vi.fn(),
 	queryAccounts: vi.fn(),
 	queryFeed: vi.fn(),
 	queryFeedPosts: vi.fn(),
@@ -34,7 +40,10 @@ const {
 }))
 
 vi.mock('$/sources/Lens/Graphql/queries.ts', () => ({
-	queryAccount,
+	queryAccountByAddress,
+	queryAccountByLegacyProfileId,
+	queryAccountByLocalName,
+	queryAccountStats,
 	queryAccounts,
 	queryFeed,
 	queryFeedPosts,
@@ -59,7 +68,10 @@ const context = {
 describe('Lens_Graphql reading relationships', () => {
 	beforeEach(() => {
 		vi.restoreAllMocks()
-		queryAccount.mockReset()
+		queryAccountByAddress.mockReset()
+		queryAccountByLegacyProfileId.mockReset()
+		queryAccountByLocalName.mockReset()
+		queryAccountStats.mockReset()
 		queryAccounts.mockReset()
 		queryFeed.mockReset()
 		queryFeedPosts.mockReset()
@@ -165,10 +177,10 @@ describe('Lens_Graphql reading relationships', () => {
 		await expect(lensGraphql.resolvers[0].resolve.Scope.resolve({
 			scope: 'LensNetwork',
 		}, context)).resolves.toEqual([expectedReference])
-		await expect(lensGraphql.resolvers[8].resolve['Address'].resolve({
+		await expect(lensGraphql.resolvers[6].resolve['Address'].resolve({
 			address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
 		}, context)).resolves.toEqual([expectedReference])
-		await expect(lensGraphql.resolvers[6].resolve['Id'].resolve({
+		await expect(lensGraphql.resolvers[5].resolve['Id'].resolve({
 			id: 'parent-post',
 		}, context)).resolves.toEqual([expectedReference])
 		expect(queryLatestPosts).toHaveBeenCalledWith(
@@ -191,7 +203,7 @@ describe('Lens_Graphql reading relationships', () => {
 
 	it('normalizes account identity and materializes observation metrics as keyed fields', async () => {
 		vi.spyOn(Date, 'now').mockReturnValue(1_750_000_000_000)
-		queryAccount.mockResolvedValue({
+		queryAccountByAddress.mockResolvedValue({
 			account: {
 				address: 'ABCDEFabcdefABCDEFabcdefABCDEFabcdefABCD',
 				owner: '0x1111111111111111111111111111111111111111',
@@ -214,30 +226,38 @@ describe('Lens_Graphql reading relationships', () => {
 			},
 		})
 
-		await expect(lensGraphql.resolvers[1].resolve['Address'].resolve({
+		const resolvedAccount = await lensGraphql.resolvers[1].resolve['Address'].resolve({
 			address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-		}, context)).resolves.toMatchObject({
+		}, context)
+		expect(resolvedAccount).toMatchObject({
 			address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
 			localName: 'alice',
 			displayName: 'Alice',
 			bio: 'Lens reader',
 			owner: '0x1111111111111111111111111111111111111111',
 			score: 73,
-		})
-		await expect(lensGraphql.resolvers[7].resolve['Address'].resolve({
-			address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-		}, context)).resolves.toEqual([{
-			[EntityMetaKey.Selector]: {
-				$account: {
-					address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+			$$timestamps: [
+				{
+					[EntityMetaKey.Selector]: {
+						$account: {
+							address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+						},
+						timestampMs: 1_750_000_000_000,
+					},
 				},
-				timestampMs: 1_750_000_000_000,
-			},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.LensAccount_Timestamp, [], 'followerCount')]: 42,
-				[entityFieldAddressKey(EntityType.LensAccount_Timestamp, [], 'followingCount')]: 7,
-			},
-		}])
+			],
+		})
+		expect(queryAccountByAddress).toHaveBeenCalledWith(
+			{},
+			'0xabcdefabcdefabcdefabcdefabcdefabcdefabcd'
+		)
+		await expect(lensGraphql.resolvers[3].resolve.LensAccountTimestampMs.resolve(
+			resolvedAccount.$$timestamps[0][EntityMetaKey.Selector],
+			context
+		)).resolves.toEqual({
+			followerCount: 42,
+			followingCount: 7,
+		})
 	})
 
 	it('preserves post author, thread references, text, and observation metrics', async () => {
@@ -274,9 +294,10 @@ describe('Lens_Graphql reading relationships', () => {
 			},
 		})
 
-		await expect(lensGraphql.resolvers[2].resolve['Id'].resolve({
+		const resolvedPost = await lensGraphql.resolvers[2].resolve['Id'].resolve({
 			id: 'post-one',
-		}, context)).resolves.toMatchObject({
+		}, context)
+		expect(resolvedPost).toMatchObject({
 			text: 'Readable Lens post',
 			contentUri: 'lens://metadata/post-one',
 			$author: {
@@ -290,25 +311,28 @@ describe('Lens_Graphql reading relationships', () => {
 			$root: {
 				[EntityMetaKey.Selector]: { id: 'root' },
 			},
-		})
-		await expect(lensGraphql.resolvers[5].resolve['Id'].resolve({
-			id: 'post-one',
-		}, context)).resolves.toEqual([{
-			[EntityMetaKey.Selector]: {
-				$post: {
-					id: 'post-one',
+			$$timestamps: [
+				{
+					[EntityMetaKey.Selector]: {
+						$post: {
+							id: 'post-one',
+						},
+						timestampMs: 1_750_000_000_001,
+					},
 				},
-				timestampMs: 1_750_000_000_001,
-			},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'commentCount')]: 3,
-				[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'repostCount')]: 2,
-				[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'quoteCount')]: 1,
-				[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'bookmarkCount')]: 4,
-				[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'collectCount')]: 5,
-				[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'reactionCount')]: 6,
-			},
-		}])
+			],
+		})
+		await expect(lensGraphql.resolvers[4].resolve.LensPostTimestampMs.resolve(
+			resolvedPost.$$timestamps[0][EntityMetaKey.Selector],
+			context
+		)).resolves.toEqual({
+			commentCount: 3,
+			repostCount: 2,
+			quoteCount: 1,
+			bookmarkCount: 4,
+			collectCount: 5,
+			reactionCount: 6,
+		})
 	})
 
 	it('materializes the public account directory and direct feed fields without fabricating absent values', async () => {
@@ -335,7 +359,7 @@ describe('Lens_Graphql reading relationships', () => {
 			},
 		})
 
-		await expect(lensGraphql.resolvers[9].resolve.Scope.resolve({
+		await expect(lensGraphql.resolvers[7].resolve.Scope.resolve({
 			scope: 'LensNetwork',
 		}, context)).resolves.toEqual([{
 			[EntityMetaKey.Selector]: {
@@ -350,7 +374,7 @@ describe('Lens_Graphql reading relationships', () => {
 			{},
 			64
 		)
-		await expect(lensGraphql.resolvers[10].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[8].resolve.Address.resolve({
 			address: '0x2222222222222222222222222222222222222222',
 		}, context)).resolves.toEqual({
 			address: '0x2222222222222222222222222222222222222222',
@@ -360,7 +384,7 @@ describe('Lens_Graphql reading relationships', () => {
 		})
 	})
 
-	it('bounds relationship rows and rejects mismatched direct identities', async () => {
+	it('bounds relationship rows and rejects mismatched direct feed identities', async () => {
 		const post = {
 			__typename: 'Post',
 			slug: 'post-one',
@@ -387,22 +411,12 @@ describe('Lens_Graphql reading relationships', () => {
 			pagination: { limit: 1 },
 		})).resolves.toHaveLength(1)
 
-		queryAccount.mockResolvedValueOnce({
-			account: {
-				address: '0x2222222222222222222222222222222222222222',
-				createdAt: '2025-01-02T03:04:05.000Z',
-			},
-		})
-		await expect(lensGraphql.resolvers[1].resolve['Address'].resolve({
-			address: '0x1111111111111111111111111111111111111111',
-		}, context)).rejects.toThrow('account response does not match request')
-
 		queryFeed.mockResolvedValueOnce({
 			feed: {
 				address: '0x3333333333333333333333333333333333333333',
 			},
 		})
-		await expect(lensGraphql.resolvers[10].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[8].resolve.Address.resolve({
 			address: '0x2222222222222222222222222222222222222222',
 		}, context)).rejects.toThrow('feed response does not match request')
 	})
@@ -444,7 +458,7 @@ describe('Lens_Graphql reading relationships', () => {
 			},
 		})
 
-		await expect(lensGraphql.resolvers[11].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[9].resolve.Address.resolve({
 			address: '0x1111111111111111111111111111111111111111',
 		}, {
 			...context,

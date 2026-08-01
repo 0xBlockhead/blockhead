@@ -68,7 +68,28 @@ export default {
 										$icon: iconMedia,
 									}
 								))(mediaFromUrl(user.avatar_url ?? undefined, MediaType.Image)),
-						}
+								$$timestamps: [{
+									[EntityMetaKey.Selector]: {
+										$user: { id: user.id },
+										timestampMs: Date.now(),
+										source: Source.X_FxEmbed_Rest,
+									},
+									[EntityMetaKey.Fields]: {
+										...(user.followers != null && {
+											[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followerCount')]:
+												user.followers,
+										}),
+										...(user.following != null && {
+											[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followingCount')]:
+												user.following,
+										}),
+										...(user.statuses != null && {
+											[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'tweetCount')]:
+												user.statuses,
+										}),
+									},
+								}],
+							}
 					},
 				},
 				Username: {
@@ -115,7 +136,28 @@ export default {
 							iconMedia != null && {
 								$icon: iconMedia,
 							}
-						))(mediaFromUrl(user.avatar_url ?? undefined, MediaType.Image)),
+							))(mediaFromUrl(user.avatar_url ?? undefined, MediaType.Image)),
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$user: { id: user.id },
+									timestampMs: Date.now(),
+									source: Source.X_FxEmbed_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									...(user.followers != null && {
+										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followerCount')]:
+											user.followers,
+									}),
+									...(user.following != null && {
+										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followingCount')]:
+											user.following,
+									}),
+									...(user.statuses != null && {
+										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'tweetCount')]:
+											user.statuses,
+									}),
+								},
+							}],
 						}
 					},
 				},
@@ -128,9 +170,10 @@ export default {
 				location: (snapshot) => snapshot.location,
 				verified: (snapshot) => snapshot.verified,
 				createdAt: (snapshot) => snapshot.createdAt,
-				websiteUrl: (snapshot) => snapshot.websiteUrl,
-				$icon: (snapshot) => snapshot.$icon,
-			}),
+					websiteUrl: (snapshot) => snapshot.websiteUrl,
+					$icon: (snapshot) => snapshot.$icon,
+					$$timestamps: (snapshot) => snapshot.$$timestamps,
+				}),
 
 		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XPost,
@@ -219,8 +262,33 @@ export default {
 											}),
 										},
 									}
-							),
-						}
+								),
+								$$timestamps: [{
+									[EntityMetaKey.Selector]: {
+										$post: { id },
+										timestampMs: Date.now(),
+										source: Source.X_FxEmbed_Rest,
+									},
+									[EntityMetaKey.Fields]: {
+										...(status.likes != null && {
+											[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'likeCount')]:
+												status.likes,
+										}),
+										...(status.reposts != null && {
+											[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'retweetCount')]:
+												status.reposts,
+										}),
+										...(status.replies != null && {
+											[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'replyCount')]:
+												status.replies,
+										}),
+										...(status.quotes != null && {
+											[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'quoteCount')]:
+												status.quotes,
+										}),
+									},
+								}],
+							}
 					},
 				}
 			},
@@ -229,60 +297,48 @@ export default {
 				text: (snapshot) => snapshot.text,
 				createdAt: (snapshot) => snapshot.createdAt,
 				postUrl: (snapshot) => snapshot.postUrl,
-				$replyToPost: (snapshot) => snapshot.$replyToPost,
-				$quotedPost: (snapshot) => snapshot.$quotedPost,
-				$author: (snapshot) => snapshot.$author,
-			}),
-
-			defineResolver(Source.X_FxEmbed_Rest, {
-				entityType: EntityType.XNetwork,
-				resolve: {
-					Scope: {
-						resolve: async (_entitySelector, context) => {
-						const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
-						const limit = resolverContextRowLimit(context)
-						const statusSearchResponse = await searchStatuses(limit)
-						return (
-							(statusSearchResponse.results ?? [])
-								.flatMap((status) => {
-								if (status.type !== 'status') return []
-								const authorId = optionalNonemptyString(status.author?.id)
-								if (authorId == null) return []
-								return [{
-									[EntityMetaKey.Selector]: { id: authorId },
-									[EntityMetaKey.Fields]: {
-										...(optionalNonemptyString(status.author?.screen_name) != null && {
-											[entityFieldAddressKey(EntityType.XUser, [], 'username')]:
-												optionalNonemptyString(status.author?.screen_name),
-										}),
-										...(optionalNonemptyString(status.author?.name) != null && {
-											[entityFieldAddressKey(EntityType.XUser, [], 'name')]:
-												optionalNonemptyString(status.author?.name),
-										}),
-									},
-								}]
-								})
-						)
-					},
-					}
-			},
-			})({
-					$$xUsers: (snapshot) => snapshot,
+					$replyToPost: (snapshot) => snapshot.$replyToPost,
+					$quotedPost: (snapshot) => snapshot.$quotedPost,
+					$author: (snapshot) => snapshot.$author,
+					$$timestamps: (snapshot) => snapshot.$$timestamps,
 				}),
 
-			defineResolver(Source.X_FxEmbed_Rest, {
-				entityType: EntityType.XNetwork,
-				resolve: {
-					Scope: {
-						resolve: async (_entitySelector, context) => {
+		defineResolver(Source.X_FxEmbed_Rest, {
+			entityType: EntityType.XNetwork,
+			resolve: {
+				Scope: {
+					resolve: async (_entitySelector, context) => {
 						const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
-						const limit = resolverContextRowLimit(context)
-						return (
-							((await searchStatuses(limit)).results ?? [])
-								.flatMap((wirePost) => (
-								wirePost.type === 'status'
-								&& wirePost.id != null ?
-									[{
+						return (await searchStatuses(resolverContextRowLimit(context))).results ?? []
+					},
+				},
+			},
+		})({
+			$$xUsers: (statuses) => (
+				statuses.flatMap((status) => {
+					if (status.type !== 'status') return []
+					const authorId = optionalNonemptyString(status.author?.id)
+					if (authorId == null) return []
+					return [{
+						[EntityMetaKey.Selector]: { id: authorId },
+						[EntityMetaKey.Fields]: {
+							...(optionalNonemptyString(status.author?.screen_name) != null && {
+								[entityFieldAddressKey(EntityType.XUser, [], 'username')]:
+									optionalNonemptyString(status.author?.screen_name),
+							}),
+							...(optionalNonemptyString(status.author?.name) != null && {
+								[entityFieldAddressKey(EntityType.XUser, [], 'name')]:
+									optionalNonemptyString(status.author?.name),
+							}),
+						},
+					}]
+				})
+			),
+			$$xPosts: (statuses) => (
+				statuses.flatMap((wirePost) => (
+									wirePost.type === 'status'
+									&& wirePost.id != null ?
+										[{
 										[EntityMetaKey.Selector]: { id: wirePost.id },
 										[EntityMetaKey.Fields]: {
 											...(optionalNonemptyString(wirePost.text) != null && {
@@ -320,133 +376,11 @@ export default {
 											}),
 										},
 									}]
-								:
-									[]
-								))
-						)
-					},
-					}
-			},
-			})({
-					$$xPosts: (snapshot) => snapshot,
-				}),
-
-		defineResolver(Source.X_FxEmbed_Rest, {
-			entityType: EntityType.XPost,
-			resolve: {
-				Id: {
-					resolve: async ({ id }) => {
-						const { getStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
-						const status = (await getStatus(id)).status
-						if (status?.type !== 'status' || status.id == null)
-							throw new Error('X_FxEmbed_Rest: post not found')
-						if (status.id !== id) throw new Error('X_FxEmbed_Rest: post id mismatch')
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$post: { id },
-									timestampMs: Date.now(),
-									source: Source.X_FxEmbed_Rest,
-								},
-								[EntityMetaKey.Fields]: {
-									...(status.likes != null && {
-										[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'likeCount')]:
-											status.likes,
-									}),
-									...(status.reposts != null && {
-										[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'retweetCount')]:
-											status.reposts,
-									}),
-									...(status.replies != null && {
-										[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'replyCount')]:
-											status.replies,
-									}),
-									...(status.quotes != null && {
-										[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'quoteCount')]:
-											status.quotes,
-									}),
-								},
-							},
-						]
-					},
-				}
-			},
-		})({
-				$$timestamps: (snapshot) => snapshot,
-			}),
-
-		defineResolver(Source.X_FxEmbed_Rest, {
-			entityType: EntityType.XUser,
-			resolve: {
-				Id: {
-					resolve: async ({ id }) => {
-						const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
-						const user = (await getUser(id)).user
-						if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
-						if (user.id !== id) throw new Error('X_FxEmbed_Rest: user id mismatch')
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$user: {
-										id: user.id,
-									},
-									timestampMs: Date.now(),
-									source: Source.X_FxEmbed_Rest,
-								},
-								[EntityMetaKey.Fields]: {
-									...(user.followers != null && {
-										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followerCount')]:
-											user.followers,
-									}),
-									...(user.following != null && {
-										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followingCount')]:
-											user.following,
-									}),
-									...(user.statuses != null && {
-										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'tweetCount')]:
-											user.statuses,
-									}),
-								},
-							},
-						]
-					},
-				},
-				Username: {
-					resolve: async ({ username }) => {
-						const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
-						const user = (await getUser(username)).user
-						if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$user: {
-										id: user.id,
-									},
-									timestampMs: Date.now(),
-									source: Source.X_FxEmbed_Rest,
-								},
-								[EntityMetaKey.Fields]: {
-									...(user.followers != null && {
-										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followerCount')]:
-											user.followers,
-									}),
-									...(user.following != null && {
-										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followingCount')]:
-											user.following,
-									}),
-									...(user.statuses != null && {
-										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'tweetCount')]:
-											user.statuses,
-									}),
-								},
-							},
-						]
-					},
-				},
-			},
-		})({
-				$$timestamps: (snapshot) => snapshot,
-			}),
+									:
+										[]
+				))
+			),
+		}),
 
 		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XUser,
@@ -547,19 +481,19 @@ export default {
 			entityType: EntityType._GlobalXNetwork,
 			resolve: {
 				Scope: {
-					resolve: async ({ scope }, context) => {
-						if (scope !== EntityType._GlobalXNetwork)
-							throw new Error(`X_FxEmbed_Rest: unsupported global X scope ${scope}`)
-
+					resolve: async (_entitySelector, context) => {
 						const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 						return (
-							(
-								await searchStatuses(
-									resolverContextRowLimit(context)
-								)
-							).results ?? []
-						)
-							.flatMap((status) => (
+							await searchStatuses(
+								resolverContextRowLimit(context)
+							)
+						).results ?? []
+					},
+				},
+			},
+		})({
+			$$observedUsers: (statuses) => (
+				statuses.flatMap((status) => (
 								status.type === 'status'
 								&& status.author?.id != null
 								&& optionalNonemptyString(status.author.screen_name) != null ?
@@ -576,31 +510,10 @@ export default {
 									}]
 								:
 									[]
-							))
-					},
-				},
-			},
-		})({
-			$$observedUsers: (users) => users,
-		}),
-
-		defineResolver(Source.X_FxEmbed_Rest, {
-			entityType: EntityType._GlobalXNetwork,
-			resolve: {
-				Scope: {
-					resolve: async ({ scope }, context) => {
-						if (scope !== EntityType._GlobalXNetwork)
-							throw new Error(`X_FxEmbed_Rest: unsupported global X scope ${scope}`)
-
-						const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
-						return (
-							(
-								await searchStatuses(
-									resolverContextRowLimit(context)
-								)
-							).results ?? []
-						)
-							.flatMap((status) => (
+				))
+			),
+			$$observedPosts: (statuses) => (
+				statuses.flatMap((status) => (
 								status.type === 'status' && status.id != null ?
 									[{
 										[EntityMetaKey.Selector]: { id: status.id },
@@ -642,12 +555,8 @@ export default {
 									}]
 								:
 									[]
-							))
-					},
-				},
-			},
-		})({
-			$$observedPosts: (posts) => posts,
+				))
+			),
 		}),
 	],
 }

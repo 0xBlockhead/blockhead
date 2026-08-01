@@ -41,13 +41,10 @@ export const load: PageLoad = async ({ params, parent }) => {
 			{
 				$transaction: parentData.selector,
 				inputIndex: Number(params.inputIndex),
-			}
+			},
+			'TransactionInputIndex'
 		)
-		if (
-			!(cardanoTxInputTransactionInputIndexSelector instanceof arktype.errors)
-			&& '$transaction' in cardanoTxInputTransactionInputIndexSelector
-			&& 'inputIndex' in cardanoTxInputTransactionInputIndexSelector
-		)
+		if (!(cardanoTxInputTransactionInputIndexSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.CardanoTxInput,
 				selectorName: 'TransactionInputIndex',
@@ -78,13 +75,10 @@ export const load: PageLoad = async ({ params, parent }) => {
 			{
 				$transaction: parentData.selector,
 				indexInTransaction: Number(params.inputIndex),
-			}
+			},
+			'TransactionIndexInTransaction'
 		)
-		if (
-			!(utxoInputTransactionIndexInTransactionSelector instanceof arktype.errors)
-			&& '$transaction' in utxoInputTransactionIndexInTransactionSelector
-			&& 'indexInTransaction' in utxoInputTransactionIndexInTransactionSelector
-		)
+		if (!(utxoInputTransactionIndexInTransactionSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.UtxoInput,
 				selectorName: 'TransactionIndexInTransaction',

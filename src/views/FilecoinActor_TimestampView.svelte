@@ -114,7 +114,6 @@
 					<FilecoinActorView
 						selection={select(EntityType.FilecoinActor, selection.entitySelector.$actor)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -166,7 +165,6 @@
 								selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
 								prefetched={filecoinTipset}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

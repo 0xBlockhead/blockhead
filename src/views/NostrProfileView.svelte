@@ -71,17 +71,10 @@
 						prefetched={nostrProfileMetadataEvent}
 						href={null}
 						layout={EntityLayout.Title}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A Nostr profile is replaceable kind-0 metadata keyed by a 64-character lowercase hex public key.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -107,7 +100,6 @@
 									selection={select(EntityType.NostrProfileMetadataEvent, nostrProfileMetadataEvent[EntityMetaKey.Selector])}
 									prefetched={nostrProfileMetadataEvent}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -161,12 +153,7 @@
 			{#snippet SectionNostrProfileNotes({ id, label, open })}
 				<NostrNotesView
 					selection={selection.$$notes}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No notes in this observed.'
 					id={`${id}-list`}
@@ -176,12 +163,7 @@
 			{#snippet SectionNostrProfileArticles({ id, label, open })}
 				<NostrArticlesView
 					selection={selection.$$articles}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No articles in this observed.'
 					id={`${id}-list`}
@@ -213,12 +195,7 @@
 			{#snippet SectionNostrProfileReposts({ id, label, open })}
 				<NostrRepostsView
 					selection={selection.$$reposts}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No reposts in this observed.'
 					id={`${id}-list`}

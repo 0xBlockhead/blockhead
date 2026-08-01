@@ -37,11 +37,7 @@
 				}
 			)
 		}
-		title='MEV builders'
 		selection={select(EntityType.Network, data.selector).Evm.$$mevBuilders}
 		id='mev-builders'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

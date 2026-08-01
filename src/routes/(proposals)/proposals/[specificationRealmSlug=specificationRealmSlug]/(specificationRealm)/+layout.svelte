@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]',
+			{
+				specificationRealmSlug: params.specificationRealmSlug,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,30 +38,18 @@
 
 {#key params.specificationRealmSlug}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]',
-				{
-					specificationRealmSlug: params.specificationRealmSlug,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<SpecificationRealmView
 				selection={
-					select(EntityType.SpecificationRealm, data.selector, { sources: [
-						Source.Constants_Internal,
-					] })
+					select(EntityType.SpecificationRealm, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]',
-						{
-							specificationRealmSlug: params.specificationRealmSlug,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

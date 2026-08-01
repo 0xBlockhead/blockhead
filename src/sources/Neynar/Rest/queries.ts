@@ -5,15 +5,18 @@
 
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import { neynarFetch } from '$/sources/Neynar/Rest/client.ts'
-import { neynarFeedDefaultLimit, neynarFeedMaxLimit } from '$/sources/Neynar/Rest/constants.ts'
+import {
+	neynarFeedDefaultLimit,
+	neynarFeedMaxLimit,
+	neynarFidCountMax,
+} from '$/sources/Neynar/Rest/constants.ts'
 import type {
 	NeynarBulkUsersResponse,
-	NeynarCast,
+	NeynarCastResponse,
 	NeynarConversationQuery,
 	NeynarConversationResponse,
 	NeynarFeedQuery,
 	NeynarFeedResponse,
-	NeynarUser,
 } from '$/sources/Neynar/Rest/types.ts'
 
 export const getBulkUsers = async ({
@@ -22,8 +25,11 @@ export const getBulkUsers = async ({
 }: {
 	publicEnv: SourcePublicEnv
 	fids: number[]
-}): Promise<readonly NeynarUser[]> => {
+}) => {
 	if (fids.length === 0) return []
+	if (fids.length > neynarFidCountMax)
+		throw new Error(`Neynar bulk users accepts at most ${neynarFidCountMax} FIDs`)
+
 	const searchParams = new URLSearchParams({ fids: fids.join(',') })
 	return (
 		(await neynarFetch<NeynarBulkUsersResponse>(
@@ -37,10 +43,10 @@ export const getBulkUsers = async ({
  * Neynar feed — `feed_type` + `filter_type` per
  * https://docs.neynar.com/reference/fetch-feed
  */
-export const getFeed = async (
+export const getFeed = (
 	publicEnv: SourcePublicEnv,
 	query: NeynarFeedQuery
-): Promise<NeynarFeedResponse | undefined> => {
+) => {
 	const searchParams = new URLSearchParams()
 	searchParams.set('feed_type', query.feedType)
 	if (query.feedType === 'following') {
@@ -48,7 +54,13 @@ export const getFeed = async (
 	}
 	else {
 		searchParams.set('filter_type', query.filterType)
-		if (query.filterType === 'fids' && query.fids.length > 0) {
+		if (query.filterType === 'fids') {
+			if (query.fids.length === 0)
+				throw new Error('Neynar FID feed filter requires at least one FID')
+
+			if (query.fids.length > neynarFidCountMax)
+				throw new Error(`Neynar FID feed filter accepts at most ${neynarFidCountMax} FIDs`)
+
 			searchParams.set('fids', query.fids.join(','))
 		}
 		if (query.filterType === 'channel_id') {
@@ -75,12 +87,12 @@ export const getFeed = async (
 export const getCastByHash = async (
 	publicEnv: SourcePublicEnv,
 	hash: `0x${string}`
-): Promise<NeynarCast | undefined> => {
+) => {
 	const searchParams = new URLSearchParams({
 		identifier: hash,
 		type: 'hash',
 	})
-	const response = await neynarFetch<{ cast?: NeynarCast }>(
+	const response = await neynarFetch<NeynarCastResponse>(
 		publicEnv,
 		`/v2/farcaster/cast/?${searchParams}`
 	)
@@ -94,12 +106,12 @@ export const getCastByHash = async (
 export const getCastByClientUrl = async (
 	publicEnv: SourcePublicEnv,
 	clientUrl: string
-): Promise<NeynarCast | undefined> => {
+) => {
 	const searchParams = new URLSearchParams({
 		identifier: clientUrl,
 		type: 'url',
 	})
-	const response = await neynarFetch<{ cast?: NeynarCast }>(
+	const response = await neynarFetch<NeynarCastResponse>(
 		publicEnv,
 		`/v2/farcaster/cast/?${searchParams}`
 	)
@@ -110,10 +122,10 @@ export const getCastByClientUrl = async (
  * One level of replies to the focal cast. Parent casts and recursive descendants
  * are intentionally excluded from this product relationship.
  */
-export const getCastConversation = async (
+export const getCastConversation = (
 	publicEnv: SourcePublicEnv,
 	query: NeynarConversationQuery
-): Promise<NeynarConversationResponse | undefined> => {
+) => {
 	const searchParams = new URLSearchParams({
 		identifier: query.identifier,
 		type: query.type,

@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -57,7 +56,6 @@
 			<NetworkView
 				selection={select(EntityType.Network, selection.entitySelector.$network)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -98,7 +96,6 @@
 									selection={select(EntityType.TronContract, tronContract[EntityMetaKey.Selector])}
 									prefetched={tronContract}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -132,12 +129,7 @@
 			{#snippet SectionTronAccountTransactions({ id, label, open })}
 				<TronTransactionsView
 					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No transactions.'
 					id={`${id}-list`}
@@ -173,12 +165,7 @@
 			{#snippet SectionTronAccountTimestamps({ id, label, open })}
 				<TronAccount_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No timestamps.'
 					id={`${id}-list`}
@@ -188,12 +175,7 @@
 			{#snippet SectionTronAccountTokenBalanceTimestamps({ id, label, open })}
 				<TronAccountTokenBalance_TimestampsView
 					selection={selection.$$tokenBalanceTimestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No token balance timestamps.'
 					id={`${id}-list`}

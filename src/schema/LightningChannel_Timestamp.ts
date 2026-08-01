@@ -4,6 +4,7 @@ import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { LightningChannelStatus } from '$/schema/LightningChannelStatus.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
@@ -37,7 +38,7 @@ export default entity({
 	status: {
 		label: 'Status',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
+		primitiveType: type.enumerated(...Object.values(LightningChannelStatus)),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,

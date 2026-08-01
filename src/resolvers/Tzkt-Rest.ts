@@ -6,8 +6,10 @@ import {
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	TzktBigMap,
@@ -19,10 +21,7 @@ import type {
 	TzktTokenTransfer,
 } from '$/sources/Tzkt/Rest/types.ts'
 
-type NetworkId = { caip2: {
-	namespace: string
-	reference: string
-} } | { slug: string }
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertTezosMainnet = (network: NetworkId) => {
 	if (
@@ -96,26 +95,6 @@ const assertAccount = (
 	if (!Number.isSafeInteger(timestampMsFromIso(account.lastActivity)))
 		throw new Error('Tzkt_Rest: account response has an invalid activity timestamp')
 }
-
-const bigMapFieldsFromWire = (
-	$contract: { $network: { $network: NetworkId }, address: string },
-	bigMap: TzktBigMap,
-	bigMapId = BigInt(bigMap.ptr)
-) => ({
-	[EntityMetaKey.Fields]: {
-		[entityFieldAddressKey(EntityType.TezosBigMap, [], '$contract')]: {
-			[EntityMetaKey.Selector]: $contract,
-		},
-	},
-		bigMapId,
-		path: bigMap.path,
-		...(bigMap.keyType != null && {
-			keyType: bigMap.keyType,
-		}),
-	...(bigMap.valueType != null && {
-		valueType: bigMap.valueType,
-	}),
-})
 
 const bigMapKeyFieldsFromWire = (
 	$bigMap: { $contract: { $network: { $network: NetworkId }, address: string }, bigMapId: bigint },
@@ -923,12 +902,24 @@ export default {
 						})
 						if (BigInt(bigMap.ptr) !== bigMapId)
 							throw new Error(`Tzkt_Rest: big map ${bigMapId.toString()} not found`)
-						return bigMapFieldsFromWire($contract, bigMap, bigMapId)
+						return {
+							$contract: {
+								[EntityMetaKey.Selector]: $contract,
+							},
+							bigMapId,
+							path: bigMap.path,
+							...(bigMap.keyType != null && {
+								keyType: bigMap.keyType,
+							}),
+							...(bigMap.valueType != null && {
+								valueType: bigMap.valueType,
+							}),
+						}
 					},
 				},
 			},
 		})({
-				$contract: (bigMap) => bigMap[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.TezosBigMap, [], '$contract')],
+				$contract: (bigMap) => bigMap.$contract,
 				bigMapId: (bigMap) => bigMap.bigMapId,
 				path: (bigMap) => bigMap.path,
 				keyType: (bigMap) => bigMap.keyType,

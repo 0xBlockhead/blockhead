@@ -22,7 +22,6 @@
 
 
 	// Components
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import Eip8004AgentRegistrationView from '$/views/Eip8004AgentRegistrationView.svelte'
 </script>
@@ -36,15 +35,10 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.fileUrl || 'EIP-8004 agent registration file'}
-	{/snippet}
-
 	{#snippet Value()}
 		<Eip8004AgentRegistrationView
 			selection={select(EntityType.Eip8004AgentRegistration, selection.entitySelector.$registration)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -56,7 +50,6 @@
 					<Eip8004AgentRegistrationView
 						selection={select(EntityType.Eip8004AgentRegistration, selection.entitySelector.$registration)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

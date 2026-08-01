@@ -37,10 +37,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		ICP request status timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -49,7 +45,6 @@
 					<IcpRequestStatusView
 						selection={select(EntityType.IcpRequestStatus, selection.entitySelector.$requestStatus)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -35,15 +34,10 @@
 <EntityView
 	entityType={EntityType.TronTokenTransfer}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'tron token transfer'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		tron token transfer
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -52,7 +46,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -83,7 +76,6 @@
 									selection={select(EntityType.TronTransaction, tronTransaction[EntityMetaKey.Selector])}
 									prefetched={tronTransaction}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -103,7 +95,6 @@
 									selection={select(EntityType.TronToken, tronToken[EntityMetaKey.Selector])}
 									prefetched={tronToken}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -145,7 +136,6 @@
 									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
 									prefetched={tronAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -165,7 +155,6 @@
 									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
 									prefetched={tronAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

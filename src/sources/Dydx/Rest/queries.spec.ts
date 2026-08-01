@@ -6,17 +6,8 @@ import {
 	vi,
 } from 'vitest'
 
+import bindings from '$/sources/Dydx/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceCredentialScope,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	SourceTargetKind,
-	WireProtocol,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 
@@ -31,39 +22,9 @@ const {
 	getPerpetualMarkets,
 	getPerpetualPositions,
 	getSubaccount,
-	getValidatorLatestBlock,
 } = await import('$/sources/Dydx/Rest/queries.ts')
 
-const binding = {
-	source: Source.DydxIndexer_Rest,
-	target: {
-		kind: SourceTargetKind.NetworkSlug,
-		key: 'dydx',
-	},
-	endpoints: [{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://indexer.dydx.test',
-		origin: 'https://indexer.dydx.test',
-		corsEnabled: false,
-	}],
-	wireProtocol: WireProtocol.HttpRest,
-	apiFamily: ApiFamily.DydxIndexerRest,
-	operationGroups: [SourceOperationGroup.GenericRead],
-	delivery: SourceDelivery.RemoteQuery,
-	credentials: [{ scope: SourceCredentialScope.None }],
-} as const satisfies SourceBinding
-
-const validatorBinding = {
-	...binding,
-	source: Source.DydxValidator_Rest,
-	endpoints: [{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://validator.dydx.test',
-		origin: 'https://validator.dydx.test',
-		corsEnabled: false,
-	}],
-	apiFamily: ApiFamily.CosmosLcdApi,
-} as const satisfies SourceBinding
+const binding = bindings[Source.DydxIndexer]
 
 const address = `dydx1${'q'.repeat(38)}`
 const height = {
@@ -117,10 +78,10 @@ describe('dYdX v4 read-only public transport', () => {
 				}
 		))
 
-		await expect(getPerpetualMarkets({
-			binding,
+		const marketObservation = await getPerpetualMarkets({
 			ticker: 'BTC-USD',
-		})).resolves.toMatchObject({
+		})
+		expect(marketObservation).toMatchObject({
 			value: {
 				markets: {
 					'BTC-USD': {
@@ -132,10 +93,40 @@ describe('dYdX v4 read-only public transport', () => {
 			indexedAtHeight: '9007199254740993',
 			indexedAtTime: '2026-07-22T00:00:00.000Z',
 		})
+		expect(marketObservation).not.toHaveProperty('resolvedAtMs')
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			'https://indexer.dydx.test/v4/perpetualMarkets?market=BTC-USD'
+			'https://indexer.dydx.trade/v4/perpetualMarkets?ticker=BTC-USD'
 		)
+	})
+
+	it('rejects a malformed oracle price', async () => {
+		sourceGetJson.mockImplementation((_binding, url) => Promise.resolve(
+			url.endsWith('/v4/height') ?
+				height
+			:
+				{
+					markets: {
+						'BTC-USD': {
+							ticker: 'BTC-USD',
+							oraclePrice: 'invalid',
+							priceChange24H: '0',
+							volume24H: '0',
+							nextFundingRate: '0',
+							initialMarginFraction: '0',
+							maintenanceMarginFraction: '0',
+							openInterest: '0',
+							tickSize: '0',
+							stepSize: '0',
+							baseOpenInterest: '0',
+						},
+					},
+				}
+		))
+
+		await expect(getPerpetualMarkets({
+			ticker: 'BTC-USD',
+		})).rejects.toThrow('invalid decimal oraclePrice')
 	})
 
 	it('keeps public subaccount identity independent of signing state', async () => {
@@ -144,22 +135,19 @@ describe('dYdX v4 read-only public transport', () => {
 				height
 				:
 				{
-					subaccount: {
-						address,
-						subaccountNumber: 128_000,
-						equity: '-0.000000000000000001',
-						freeCollateral: '9007199254740993.000000000000000001',
-						openPerpetualPositions: {},
-						assetPositions: {},
-						marginEnabled: true,
-						updatedAtHeight: '9007199254740992',
-						latestProcessedBlockHeight: '9007199254740993',
-					},
+					address,
+					subaccountNumber: 128_000,
+					equity: '-0.000000000000000001',
+					freeCollateral: '9007199254740993.000000000000000001',
+					openPerpetualPositions: {},
+					assetPositions: {},
+					marginEnabled: true,
+					updatedAtHeight: '9007199254740992',
+					latestProcessedBlockHeight: '9007199254740993',
 				}
 		))
 
 		await expect(getSubaccount({
-			binding,
 			address,
 			subaccountNumber: 128_000,
 		})).resolves.toMatchObject({
@@ -222,7 +210,6 @@ describe('dYdX v4 read-only public transport', () => {
 		))
 
 		await expect(query({
-			binding,
 			address,
 			subaccountNumber: 7,
 			limit: 1,
@@ -234,24 +221,21 @@ describe('dYdX v4 read-only public transport', () => {
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
 			expect.stringContaining(
-				`https://indexer.dydx.test${path}?address=${address}&subaccountNumber=7&limit=1`
+				`https://indexer.dydx.trade${path}?address=${address}&subaccountNumber=7&limit=1`
 			)
 		)
 	})
 
 	it('rejects malformed inputs, foreign subjects, and write-shaped arbitrary paths', async () => {
 		await expect(getOrders({
-			binding,
 			address: 'cosmos1foreign',
 			subaccountNumber: 0,
 		})).rejects.toThrow('invalid dYdX address')
 		await expect(getFills({
-			binding,
 			address,
 			subaccountNumber: 128_001,
 		})).rejects.toThrow('invalid subaccount number')
 		await expect(getPerpetualPositions({
-			binding,
 			address,
 			subaccountNumber: 0,
 			limit: 101,
@@ -269,7 +253,6 @@ describe('dYdX v4 read-only public transport', () => {
 				}]
 		))
 		await expect(getOrders({
-			binding,
 			address,
 			subaccountNumber: 0,
 		})).rejects.toThrow('foreign subaccount order')
@@ -277,23 +260,4 @@ describe('dYdX v4 read-only public transport', () => {
 		expect('query' in await import('$/sources/Dydx/Rest/queries.ts')).toBe(false)
 	})
 
-	it('rejects validator responses from another consensus chain', async () => {
-		sourceGetJson.mockResolvedValue({
-			block: {
-				header: {
-					chain_id: 'foreign-1',
-					height: '1',
-					time: '2026-07-22T00:00:00.000Z',
-				},
-			},
-		})
-
-		await expect(getValidatorLatestBlock(validatorBinding))
-			.rejects.toThrow('foreign chain')
-	})
-
-	it('rejects indexer authority for validator queries', async () => {
-		await expect(getValidatorLatestBlock(binding))
-			.rejects.toThrow('expected canonical mainnet validator binding')
-	})
 })

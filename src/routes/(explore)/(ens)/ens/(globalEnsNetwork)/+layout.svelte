@@ -19,6 +19,8 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = resolve('/(explore)/(ens)/ens')
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -28,16 +30,18 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/(explore)/(ens)/ens')}
+	href={detailHref}
 >
 	{#snippet Summary()}
 		<GlobalEnsNetworkView
 			selection={
-				select(EntityType._GlobalEnsNetwork, data.selector, { sources: [
-					Source.Constants_Internal,
-				] })
+				select(EntityType._GlobalEnsNetwork, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
 			}
-			href={resolve('/(explore)/(ens)/ens')}
+			href={detailHref}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

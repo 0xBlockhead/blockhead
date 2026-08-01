@@ -41,13 +41,13 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import ZeroGConsensusNetworkView from '$/views/ZeroGConsensusNetworkView.svelte'
 	import ZeroGNetwork_TimestampsView from '$/views/ZeroGNetwork_TimestampsView.svelte'
-	import ZeroGStorageNodesView from '$/views/ZeroGStorageNodesView.svelte'
 	import ZeroGDataBlobsView from '$/views/ZeroGDataBlobsView.svelte'
 	import ZeroGKvEntriesView from '$/views/ZeroGKvEntriesView.svelte'
 	import ZeroGDaQuorumsView from '$/views/ZeroGDaQuorumsView.svelte'
@@ -164,7 +164,6 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -184,7 +183,6 @@
 									selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector])}
 									prefetched={zeroGConsensusNetwork}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -218,12 +216,7 @@
 			{#snippet SectionZerogNetworkObservations({ id, label, open })}
 				<ZeroGNetwork_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No 0G network observations.'
 					id={`${id}-list`}
@@ -261,29 +254,28 @@
 			{/snippet}
 
 			{#snippet SectionZerogStorageNodes({ id, label, open })}
-				<ZeroGStorageNodesView
-					selection={selection.$$storageNodes}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.ZeroGStorageNode}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No 0G storage nodes.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$storageNodes()}
+				>
+					{#snippet Item({ item: zeroGStorageNode })}
+						<EntityView
+							entityType={EntityType.ZeroGStorageNode}
+							entitySelector={zeroGStorageNode[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionZerogDataBlobs({ id, label, open })}
 				<ZeroGDataBlobsView
 					selection={selection.$$dataBlobs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No 0G data blobs.'
 					id={`${id}-list`}
@@ -293,12 +285,7 @@
 			{#snippet SectionZerogKvEntries({ id, label, open })}
 				<ZeroGKvEntriesView
 					selection={selection.$$kvEntries}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No 0G KV entries.'
 					id={`${id}-list`}
@@ -334,12 +321,7 @@
 			{#snippet SectionZerogDaQuorums({ id, label, open })}
 				<ZeroGDaQuorumsView
 					selection={selection.$$daQuorums}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No 0G DA quorums.'
 					id={`${id}-list`}
@@ -349,12 +331,7 @@
 			{#snippet SectionZerogDaNodes({ id, label, open })}
 				<ZeroGDaNodesView
 					selection={selection.$$daNodes}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No 0G DA nodes.'
 					id={`${id}-list`}
@@ -386,12 +363,7 @@
 			{#snippet SectionZerogServiceProviderList({ id, label, open })}
 				<ZeroGServiceProvidersView
 					selection={selection.$$serviceProviders}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No 0G service providers.'
 					id={`${id}-list`}

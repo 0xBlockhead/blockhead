@@ -36,10 +36,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		ICP ledger canister timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +44,6 @@
 					<IcpLedgerCanisterView
 						selection={select(EntityType.IcpLedgerCanister, selection.entitySelector.$ledger)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

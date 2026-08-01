@@ -74,32 +74,3 @@ export enum EnvioHyperSyncResolution {
 	Partial = 'Partial',
 	Reorg = 'Reorg',
 }
-
-export type EnvioHyperSyncBlockRangeResult =
-	| {
-			resolution: EnvioHyperSyncResolution.Complete
-			blocks: EnvioHyperSyncBlock[]
-			transactions: EnvioHyperSyncTransaction[]
-			nextBlock: number
-			archiveHeight?: number
-			rollbackGuard?: EnvioHyperSyncRollbackGuard
-		}
-	| {
-			resolution: EnvioHyperSyncResolution.Empty
-			nextBlock: number
-			archiveHeight: number
-			rollbackGuard?: EnvioHyperSyncRollbackGuard
-		}
-	| {
-			resolution: EnvioHyperSyncResolution.Partial
-			blocks: EnvioHyperSyncBlock[]
-			transactions: EnvioHyperSyncTransaction[]
-			nextBlock: number
-			archiveHeight?: number
-			rollbackGuard?: EnvioHyperSyncRollbackGuard
-		}
-	| {
-			resolution: EnvioHyperSyncResolution.Reorg
-			previousRollbackGuard: EnvioHyperSyncRollbackGuard
-			rollbackGuard: EnvioHyperSyncRollbackGuard
-		}

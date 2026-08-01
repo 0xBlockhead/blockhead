@@ -43,8 +43,5 @@
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='reactions'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

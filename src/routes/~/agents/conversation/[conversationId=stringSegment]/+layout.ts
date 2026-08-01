@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		BlockheadAgentConversationSchema,
 		{
 			id: params.conversationId,
-		}
+		},
+		'Id'
 	)
 	if (blockheadAgentConversationIdSelector instanceof arktype.errors)
 		error(404, 'Invalid BlockheadAgentConversation selector')

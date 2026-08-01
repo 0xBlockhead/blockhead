@@ -52,8 +52,5 @@
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='thread'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

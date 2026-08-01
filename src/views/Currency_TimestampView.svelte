@@ -62,7 +62,6 @@
 			selection={select(EntityType.Currency, selection.entitySelector.$currency)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -120,7 +119,6 @@
 					<CurrencyView
 						selection={select(EntityType.Currency, selection.entitySelector.$currency)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

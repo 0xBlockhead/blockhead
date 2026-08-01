@@ -1,9 +1,7 @@
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
-import type {
-	OciDistributionJson,
-	OciImageReference,
-} from '$/sources/_shared/wire/OciDistribution/types.ts'
+import type { OciImageReference } from '$/sources/_shared/wire/OciDistribution/types.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 export const ociManifestPath = ({
 	repository,
@@ -16,5 +14,5 @@ export const getOciManifest = (
 	binding: SourceBinding,
 	image: Pick<OciImageReference, 'repository' | 'reference'>
 ) => (
-	getJson<OciDistributionJson>(binding, ociManifestPath(image))
+	getJson<JsonValue>(binding, ociManifestPath(image))
 )

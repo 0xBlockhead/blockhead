@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		LensPostSchema,
 		{
 			id: params.postId,
-		}
+		},
+		'Id'
 	)
 	if (lensPostIdSelector instanceof arktype.errors)
 		error(404, 'Invalid LensPost selector')

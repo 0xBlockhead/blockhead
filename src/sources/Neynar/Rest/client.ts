@@ -18,7 +18,7 @@ const binding = bindings[Source.Neynar_Rest]
 
 export const neynarRequestHeaders = (
 	publicEnv: SourcePublicEnv
-): Record<string, string> | undefined => {
+) => {
 	const apiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_NEYNAR_API_KEY')
 	return apiKey == null ?
 		undefined
@@ -34,7 +34,7 @@ export async function neynarFetch<T>(
 	publicEnv: SourcePublicEnv,
 	path: string,
 	init?: RequestInit
-): Promise<T | undefined> {
+) {
 	const headers = neynarRequestHeaders(publicEnv)
 	if (headers == null) return undefined
 
@@ -51,5 +51,5 @@ export async function neynarFetch<T>(
 	)
 	if (response.status === 401 || response.status === 403) return undefined
 	if (!response.ok) await throwHttpError('Neynar API', response)
-	return response.json()
+	return response.json<T>()
 }

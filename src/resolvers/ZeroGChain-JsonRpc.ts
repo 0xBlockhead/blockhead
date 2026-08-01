@@ -10,23 +10,29 @@ import {
 import { hexLowerOfByteSize, with0xHex } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	EntityMetaKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { RpcBlockHeader } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
 
 const zeroGChainId = 16661
 
-const assertZeroGMainnetChain = (network: { caip2: { namespace: string; reference: string } }) => {
-	if (network.caip2.namespace !== 'eip155' || network.caip2.reference !== String(zeroGChainId)) {
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const assertZeroGMainnetChain = (network: NetworkId) => {
+	if (
+		!('caip2' in network)
+		|| network.caip2.namespace !== 'eip155'
+		|| network.caip2.reference !== String(zeroGChainId)
+	)
 		throw new Error('ZeroGChain_JsonRpc: unsupported chain')
-	}
 }
 
-const assertZeroGMainnet = (network: { slug: string }) => {
-	if (network.slug !== '0g') {
+const assertZeroGMainnet = (network: NetworkId) => {
+	if (!('slug' in network) || network.slug !== '0g')
 		throw new Error('ZeroGChain_JsonRpc: unsupported network')
-	}
 }
 
 const zeroGEvmNetworkId = {

@@ -45,10 +45,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.clientId || 'IBC client'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={ibcClient}>
 			{#snippet children(entity)}
@@ -207,7 +203,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

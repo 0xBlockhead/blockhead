@@ -27,7 +27,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import DydxChainNetwork_TimestampsView from '$/views/DydxChainNetwork_TimestampsView.svelte'
 	import DydxChainMarketsView from '$/views/DydxChainMarketsView.svelte'
@@ -51,7 +50,6 @@
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -63,7 +61,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -94,12 +91,7 @@
 			{#snippet SectionDydxChainObservations({ id, label, open })}
 				<DydxChainNetwork_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No dYdX network observations.'
 					id={`${id}-list`}
@@ -139,12 +131,7 @@
 			{#snippet SectionDydxMarkets({ id, label, open })}
 				<DydxChainMarketsView
 					selection={selection.$$markets}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No dYdX markets.'
 					id={`${id}-list`}
@@ -154,12 +141,7 @@
 			{#snippet SectionDydxOrders({ id, label, open })}
 				<DydxChainOrdersView
 					selection={selection.$$orders}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No dYdX orders.'
 					id={`${id}-list`}
@@ -169,12 +151,7 @@
 			{#snippet SectionDydxPositions({ id, label, open })}
 				<DydxChainPerpetualPosition_TimestampsView
 					selection={selection.$$positions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No dYdX position observations.'
 					id={`${id}-list`}
@@ -206,12 +183,7 @@
 			{#snippet SectionDydxSubaccounts({ id, label, open })}
 				<DydxChainSubaccountsView
 					selection={selection.$$subaccounts}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No dYdX subaccounts.'
 					id={`${id}-list`}

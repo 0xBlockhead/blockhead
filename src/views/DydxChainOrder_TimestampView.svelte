@@ -23,8 +23,8 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.DydxIndexer_Rest,
-			Source.DydxValidator_Rest,
+			Source.DydxIndexer,
+			Source.KingnodesDydxNode,
 		],
 	}))
 	const dydxChainOrderTimestamp = $derived(viewSelection({
@@ -69,7 +69,6 @@
 					<DydxChainOrderView
 						selection={select(EntityType.DydxChainOrder, selection.entitySelector.$order)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

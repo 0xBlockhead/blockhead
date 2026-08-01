@@ -122,7 +122,6 @@
 									selection={select(EntityType.GitRepository, gitRepository[EntityMetaKey.Selector])}
 									prefetched={gitRepository}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

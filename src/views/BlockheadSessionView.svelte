@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import BlockheadSessionActionsComposer from '$/views/BlockheadSessionActionsComposer.svelte'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -44,6 +43,7 @@
 
 
 	// Components
+	import BlockheadSessionActionsComposer from '$/views/BlockheadSessionActionsComposer.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -178,7 +178,6 @@
 									selection={select(EntityType.BlockheadSessionSimulation, blockheadSessionSimulation[EntityMetaKey.Selector])}
 									prefetched={blockheadSessionSimulation}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -253,12 +252,7 @@
 			{#snippet SectionBlockheadSessionIntents({ id, label, open })}
 				<BlockheadIntentInvocationsView
 					selection={selection.$$intentInvocations}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No intent invocations.'
 					id={`${id}-list`}
@@ -290,12 +284,7 @@
 			{#snippet SectionBlockheadSessionSimulationList({ id, label, open })}
 				<BlockheadSessionSimulationsView
 					selection={selection.$$simulations}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No simulations.'
 					id={`${id}-list`}

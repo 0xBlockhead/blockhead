@@ -18,7 +18,7 @@ export default entity({
 		label: 'Scope',
 		description: 'The fixed scope value that identifies this hub row.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
+		primitiveType: type.unit('_GlobalEvmAbiCatalog'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$observedTopics: {

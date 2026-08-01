@@ -49,16 +49,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{`${selection.entitySelector.caip10.namespace}:${selection.entitySelector.caip10.reference}:${selection.entitySelector.caip10.accountAddress}` || 'account'}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A cross-chain account identity expressed with CAIP namespace, reference, and address fields.
-		</p>
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -79,7 +69,6 @@
 								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 								prefetched={network}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

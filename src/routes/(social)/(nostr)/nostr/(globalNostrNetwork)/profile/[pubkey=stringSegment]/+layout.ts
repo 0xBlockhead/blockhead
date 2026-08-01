@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		NostrProfileSchema,
 		{
 			pubkey: params.pubkey,
-		}
+		},
+		'CanonicalPubkey'
 	)
 	if (nostrProfileCanonicalPubkeySelector instanceof arktype.errors)
 		error(404, 'Invalid NostrProfile selector')

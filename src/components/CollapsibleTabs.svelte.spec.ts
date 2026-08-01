@@ -10,9 +10,18 @@ const section = (content: string) => createRawSnippet(() => ({
 	render: () => `<p>${content}</p>`,
 }))
 
+const summary = createRawSnippet<[context: {
+	open?: boolean,
+}]>((context) => ({
+	render: () => `<p>Summary ${context().open ? 'open' : 'closed'}</p>`,
+}))
+
 
 test('mounts every declared section before selection', async () => {
 	const { container } = await render(CollapsibleTabs, {
+		id: 'network-tabs',
+		class: 'network-tabs',
+		'data-card': true,
 		sectionIdPrefix: 'networks',
 		open: false,
 		sections: [
@@ -27,12 +36,30 @@ test('mounts every declared section before selection', async () => {
 		] as const,
 		SectionBlocks: section('Block rows'),
 		SectionTransactions: section('Transaction rows'),
+		Summary: summary,
 	})
 
+	const outerSection = container.querySelector(':scope > section')
+	const details = outerSection?.querySelector<HTMLDetailsElement>(':scope > details')
+
+	expect(outerSection?.getAttribute('data-column-item')).toBe('flexible basis-4')
+	expect(details).toMatchObject({
+		id: 'network-tabs',
+		className: 'network-tabs',
+		open: false,
+	})
+	expect(details?.hasAttribute('data-card')).toBe(true)
+	expect(details?.getAttribute('data-column-item')).toBe('flexible')
+	expect(details?.getAttribute('data-scroll-container')).toBe('block snap-block')
+	expect(details?.querySelector(':scope > summary [data-row-item="wrap-start"]')?.textContent).toBe('Summary closed')
 	expect(container.querySelectorAll('[data-carousel-markers] a')).toHaveLength(2)
 	expect(container.querySelectorAll('[data-collapsible-tabs-pane-host] > section')).toHaveLength(2)
 	await expect.element(page.getByText('Block rows')).toBeInTheDocument()
 	await expect.element(page.getByText('Transaction rows')).toBeInTheDocument()
+
+	await userEvent.click(page.getByText('Summary closed'))
+
+	expect(details?.open).toBe(true)
 })
 
 test('rejects a declared section without content', async () => {
@@ -58,7 +85,6 @@ test('keeps fragment navigation and accessible marker relationships usable', asy
 				label: 'Transactions',
 			},
 		] as const,
-		initialSection: 'blocks',
 		SectionBlocks: section('Block rows'),
 		SectionTransactions: section('Transaction rows'),
 	})

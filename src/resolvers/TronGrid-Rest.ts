@@ -1,13 +1,13 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type SourceResolverContext,
 } from '$/resolvers/defineResolver.ts'
 import {
 	Caip2Namespace,
 	Caip2Reference,
 	networkBySlug,
 } from '$/constants/Network.ts'
-import { TransportType } from '$/constants/TransportType.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
@@ -16,8 +16,6 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
-import bindings from '$/sources/TronGrid/bindings.ts'
 import type {
 	TronNodeBlock,
 	TronNodeContractValue,
@@ -41,6 +39,22 @@ const tronNetworkApplicability = [
 		slug: networkBySlug.tron.slug,
 	},
 ] as const
+
+const tronNetworkResolverSelectors = <_Snapshot extends object>(
+	resolve: (
+		network: NetworkId,
+		context: SourceResolverContext<Source.TronGrid_Rest>
+	) => Promise<_Snapshot>
+) => ({
+	Caip2: {
+		appliesTo: [tronNetworkApplicability[0]],
+		resolve,
+	},
+	Slug: {
+		appliesTo: [tronNetworkApplicability[1]],
+		resolve,
+	},
+})
 
 const tronNetworkReferenceApplicability = [
 	{
@@ -322,34 +336,13 @@ export default {
 	resolvers: [
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.Network,
-			resolve: {
-				Caip2: {
-					appliesTo: [tronNetworkApplicability[0]],
-					resolve: async (network) => {
-						assertTronMainnet(network)
-						return [
-							{
-								url: firstHttpUrlForBinding(bindings[Source.TronGrid_Rest]),
-								transportType: TransportType.Http,
-								providerName: 'TronGrid',
-							},
-						]
-					},
-				},
-				Slug: {
-					appliesTo: [tronNetworkApplicability[1]],
-					resolve: async (network) => {
-						assertTronMainnet(network)
-						return [
-							{
-								url: firstHttpUrlForBinding(bindings[Source.TronGrid_Rest]),
-								transportType: TransportType.Http,
-								providerName: 'TronGrid',
-							},
-						]
-					},
+			resolve: tronNetworkResolverSelectors(
+				async (network) => {
+					assertTronMainnet(network)
+					const { getRestEndpoints } = await import('$/sources/TronGrid/Rest/queries.ts')
+					return getRestEndpoints()
 				}
-			},
+			),
 		})({
 				Tron: {
 					restEndpoints: (restEndpoints) => restEndpoints,
@@ -642,38 +635,20 @@ export default {
 
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.Network,
-			resolve: {
-				Caip2: {
-					appliesTo: [tronNetworkApplicability[0]],
-					resolve: async (network) => {
-						assertTronMainnet(network)
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									timestampMs: Date.now(),
-									source: Source.TronGrid_Rest,
-								},
+			resolve: tronNetworkResolverSelectors(
+				async (network) => {
+					assertTronMainnet(network)
+					return [
+						{
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								timestampMs: Date.now(),
+								source: Source.TronGrid_Rest,
 							},
-						]
-					},
-				},
-				Slug: {
-					appliesTo: [tronNetworkApplicability[1]],
-					resolve: async (network) => {
-						assertTronMainnet(network)
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									timestampMs: Date.now(),
-									source: Source.TronGrid_Rest,
-								},
-							},
-						]
-					},
+						},
+					]
 				}
-			},
+			),
 		})({
 				Tron: {
 					$$timestamps: (timestamps) => timestamps,
@@ -682,30 +657,16 @@ export default {
 
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.Network,
-			resolve: {
-				Caip2: {
-					appliesTo: [tronNetworkApplicability[0]],
-					resolve: async (network) => {
-						assertTronMainnet(network)
-						const { listWitnesses } = await import('$/sources/TronGrid/Rest/queries.ts')
-						return witnessRows(
-							network,
-							(await listWitnesses()).witnesses
-						)
-					},
-				},
-				Slug: {
-					appliesTo: [tronNetworkApplicability[1]],
-					resolve: async (network) => {
-						assertTronMainnet(network)
-						const { listWitnesses } = await import('$/sources/TronGrid/Rest/queries.ts')
-						return witnessRows(
-							network,
-							(await listWitnesses()).witnesses
-						)
-					},
+			resolve: tronNetworkResolverSelectors(
+				async (network) => {
+					assertTronMainnet(network)
+					const { listWitnesses } = await import('$/sources/TronGrid/Rest/queries.ts')
+					return witnessRows(
+						network,
+						(await listWitnesses()).witnesses
+					)
 				}
-			},
+			),
 		})({
 				Tron: {
 					$$witnesses: (witnesses) => witnesses,
@@ -714,81 +675,34 @@ export default {
 
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.Network,
-			resolve: {
-				Caip2: {
-					appliesTo: [tronNetworkApplicability[0]],
-					resolve: async (network, context) => {
-						assertTronMainnet(network)
-						const { getNowBlock } = await import('$/sources/TronGrid/Rest/queries.ts')
-						const block = await getNowBlock()
-						const headBlockHeight = BigInt(block.block_header?.raw_data?.number ?? 0)
-						return Array.from({
-							length: Math.min(
-								Number(headBlockHeight + 1n),
-								resolverContextRowLimit(context)
-							),
-						}, (_value, blockOffset) => ({
-							[EntityMetaKey.Selector]: {
-								$network: network,
-								height: headBlockHeight - BigInt(blockOffset),
-								...(blockOffset === 0 && {
-									hash: block.blockID,
-								}),
-							},
-						}))
-					},
-				},
-				Slug: {
-					appliesTo: [tronNetworkApplicability[1]],
-					resolve: async (network, context) => {
-						assertTronMainnet(network)
-						const { getNowBlock } = await import('$/sources/TronGrid/Rest/queries.ts')
-						const block = await getNowBlock()
-						const headBlockHeight = BigInt(block.block_header?.raw_data?.number ?? 0)
-						return Array.from({
-							length: Math.min(
-								Number(headBlockHeight + 1n),
-								resolverContextRowLimit(context)
-							),
-						}, (_value, blockOffset) => ({
-							[EntityMetaKey.Selector]: {
-								$network: network,
-								height: headBlockHeight - BigInt(blockOffset),
-								...(blockOffset === 0 && {
-									hash: block.blockID,
-								}),
-							},
-						}))
-					},
+			resolve: tronNetworkResolverSelectors(
+				async (network, context) => {
+					assertTronMainnet(network)
+					const { getNowBlock } = await import('$/sources/TronGrid/Rest/queries.ts')
+					const block = await getNowBlock()
+					const headBlockHeight = BigInt(block.block_header?.raw_data?.number ?? 0)
+					return Array.from({
+						length: Math.min(
+							Number(headBlockHeight + 1n),
+							resolverContextRowLimit(context)
+						),
+					}, (_value, blockOffset) => ({
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							height: headBlockHeight - BigInt(blockOffset),
+							...(blockOffset === 0 && {
+								hash: block.blockID,
+							}),
+						},
+					}))
 				}
-			},
+			),
 		})({
 				Tron: {
 					$$blocks: (blocks) => blocks,
 				},
 			}),
 
-
-		defineResolver(Source.TronGrid_Rest, {
-			entityType: EntityType.TronBlock,
-			resolve: {
-				NetworkHeightHash: {
-					appliesTo: tronNetworkReferenceApplicability,
-					resolve: async ({ $network, height }) => {
-						assertTronMainnet($network)
-						const { getBlockByNumber } = await import('$/sources/TronGrid/Rest/queries.ts')
-						return blockFields(
-							$network,
-							await getBlockByNumber({
-								height: height,
-							})
-							).$$transactions
-					},
-				}
-			},
-		})({
-				$$transactions: (transactions) => transactions,
-			}),
 
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronAccount,

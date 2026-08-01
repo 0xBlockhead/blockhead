@@ -1,11 +1,10 @@
-import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import {
 	mastodonFetch,
 	mastodonFetchPublicTimelineUrl,
 	mastodonFetchUrl,
 	mastodonGet,
-	mastodonInstanceOrigins,
-	mastodonPublicTimelineOrigins,
+	mastodonInstanceOrigins as clientMastodonInstanceOrigins,
+	mastodonPublicTimelineOrigins as clientMastodonPublicTimelineOrigins,
 } from '$/sources/Mastodon/Rest/client.ts'
 import type {
 	MastodonApiV1Account,
@@ -15,6 +14,9 @@ import type {
 	MastodonApiV1Status,
 	MastodonApiV2Search,
 } from '$/sources/Mastodon/Rest/types.ts'
+
+export const mastodonInstanceOrigins = clientMastodonInstanceOrigins
+export const mastodonPublicTimelineOrigins = clientMastodonPublicTimelineOrigins
 
 const mastodonContinuationFromLink = (
 	linkHeader: string | null,
@@ -72,12 +74,11 @@ const mastodonContinuationFromLink = (
 	return nextUrls[0]
 }
 
-export const getAccountByLocalAccountId = async (
-	publicEnv: SourcePublicEnv,
+export const getAccountByLocalAccountId = (
 	instanceOrigin: string,
 	localAccountId: string
 ) => (
-	mastodonGet<MastodonApiV1Account>(publicEnv, instanceOrigin, `/accounts/${encodeURIComponent(localAccountId)}`)
+	mastodonGet<MastodonApiV1Account>(instanceOrigin, `/accounts/${encodeURIComponent(localAccountId)}`)
 )
 
 const assertPublicTimelineMatches = (instanceOrigin: string) => {
@@ -85,20 +86,17 @@ const assertPublicTimelineMatches = (instanceOrigin: string) => {
 		throw new Error(`Mastodon_Rest: public timeline binding is missing for ${instanceOrigin}`)
 }
 
-export const getAccountByAcct = async (
-	publicEnv: SourcePublicEnv,
+export const getAccountByAcct = (
 	instanceOrigin: string,
 	acct: string
 ) => (
-	mastodonGet<MastodonApiV1Account>(publicEnv, instanceOrigin, '/accounts/lookup', { acct })
+	mastodonGet<MastodonApiV1Account>(instanceOrigin, '/accounts/lookup', { acct })
 )
 
 export const getAccountByActivityStreamsUri = async (
-	publicEnv: SourcePublicEnv,
 	activityStreamsUri: string
 ) => {
 	const account = (await mastodonGet<MastodonApiV2Search>(
-		publicEnv,
 		new URL(activityStreamsUri).origin,
 		'/search',
 		{
@@ -113,20 +111,17 @@ export const getAccountByActivityStreamsUri = async (
 	return account
 }
 
-export const getStatus = async (
-	publicEnv: SourcePublicEnv,
+export const getStatus = (
 	instanceOrigin: string,
 	localStatusId: string
 ) => (
-	mastodonGet<MastodonApiV1Status>(publicEnv, instanceOrigin, `/statuses/${encodeURIComponent(localStatusId)}`)
+	mastodonGet<MastodonApiV1Status>(instanceOrigin, `/statuses/${encodeURIComponent(localStatusId)}`)
 )
 
 export const getStatusByActivityStreamsUri = async (
-	publicEnv: SourcePublicEnv,
 	activityStreamsUri: string
 ) => {
 	const status = (await mastodonGet<MastodonApiV2Search>(
-		publicEnv,
 		new URL(activityStreamsUri).origin,
 		'/search',
 		{
@@ -141,30 +136,14 @@ export const getStatusByActivityStreamsUri = async (
 	return status
 }
 
-export const getStatusContext = async (
-	publicEnv: SourcePublicEnv,
+export const getStatusContext = (
 	instanceOrigin: string,
 	localStatusId: string
 ) => (
-	mastodonGet<MastodonApiV1Context>(publicEnv, instanceOrigin, `/statuses/${encodeURIComponent(localStatusId)}/context`)
-)
-
-export const listAccountStatusesByLocalAccountId = async (
-	publicEnv: SourcePublicEnv,
-	instanceOrigin: string,
-	localAccountId: string,
-	limit: number
-) => (
-	mastodonGet<MastodonApiV1Status[]>(
-		publicEnv,
-		instanceOrigin,
-		`/accounts/${encodeURIComponent(localAccountId)}/statuses`,
-		{ limit: String(Math.min(80, Math.max(1, limit))) }
-	)
+	mastodonGet<MastodonApiV1Context>(instanceOrigin, `/statuses/${encodeURIComponent(localStatusId)}/context`)
 )
 
 export const listAccountStatusesPageByLocalAccountId = async (
-	publicEnv: SourcePublicEnv,
 	instanceOrigin: string,
 	localAccountId: string,
 	limit: number,
@@ -189,7 +168,7 @@ export const listAccountStatusesPageByLocalAccountId = async (
 	)
 		throw new Error('Mastodon_Rest: invalid authored notes continuation')
 
-	const response = await mastodonFetchUrl(publicEnv, requestUrl)
+	const response = await mastodonFetchUrl(requestUrl)
 	if (!response.ok)
 		throw new Error(`Mastodon_Rest: authored notes failed for ${instanceOrigin}: ${response.status} ${response.statusText}`)
 
@@ -212,30 +191,13 @@ export const listAccountStatusesPageByLocalAccountId = async (
 	}
 }
 
-export const getInstance = async (
-	publicEnv: SourcePublicEnv,
+export const getInstance = (
 	instanceOrigin: string
 ) => (
-	mastodonGet<MastodonApiV1Instance>(publicEnv, instanceOrigin, '/instance')
+	mastodonGet<MastodonApiV1Instance>(instanceOrigin, '/instance')
 )
 
-export const listPublicTimeline = async (
-	publicEnv: SourcePublicEnv,
-	instanceOrigin: string,
-	limit: number
-) => {
-	assertPublicTimelineMatches(instanceOrigin)
-
-	const url = `${instanceOrigin}/api/v1/timelines/public?limit=${Math.min(40, Math.max(1, limit))}`
-	const response = await mastodonFetchPublicTimelineUrl(publicEnv, url)
-	if (!response.ok)
-		throw new Error(`Mastodon_Rest: public timeline failed for ${instanceOrigin}: ${response.status} ${response.statusText}`)
-
-	return response.json<MastodonApiV1Status[]>()
-}
-
 export const listPublicTimelinePage = async (
-	publicEnv: SourcePublicEnv,
 	instanceOrigin: string,
 	limit: number,
 	continuationToken?: string
@@ -258,7 +220,7 @@ export const listPublicTimelinePage = async (
 	)
 		throw new Error('Mastodon_Rest: invalid public timeline continuation')
 
-	const response = await mastodonFetchPublicTimelineUrl(publicEnv, requestUrl)
+	const response = await mastodonFetchPublicTimelineUrl(requestUrl)
 	if (!response.ok)
 		throw new Error(`Mastodon_Rest: public timeline failed for ${instanceOrigin}: ${response.status} ${response.statusText}`)
 
@@ -282,20 +244,18 @@ export const listPublicTimelinePage = async (
 }
 
 export const listInstancePeerDomains = async (
-	publicEnv: SourcePublicEnv,
 	instanceOrigin: string
 ) => {
-	const response = await mastodonFetch(publicEnv, instanceOrigin, '/instance/peers')
+	const response = await mastodonFetch(instanceOrigin, '/instance/peers')
 	if (!response.ok)
 		throw new Error(`Mastodon_Rest: instance peers failed for ${instanceOrigin}: ${response.status} ${response.statusText}`)
 	return response.json<string[]>()
 }
 
 export const listInstanceModeratedDomains = async (
-	publicEnv: SourcePublicEnv,
 	instanceOrigin: string
 ) => {
-	const response = await mastodonFetch(publicEnv, instanceOrigin, '/instance/domain_blocks')
+	const response = await mastodonFetch(instanceOrigin, '/instance/domain_blocks')
 	if (!response.ok)
 		throw new Error(`Mastodon_Rest: instance domain blocks failed for ${instanceOrigin}: ${response.status} ${response.statusText}`)
 	return response.json<MastodonApiV1DomainBlock[]>()

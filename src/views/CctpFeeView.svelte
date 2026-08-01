@@ -20,7 +20,6 @@
 
 
 	// Components
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
@@ -32,10 +31,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.apiHost || 'CCTP fee'}
-	{/snippet}
-
 	{#snippet Value()}
 		{[String(selection.entitySelector.fromDomain), String(selection.entitySelector.toDomain)].filter(Boolean).join(' ') || selection.entitySelector.apiHost || titleFallback}
 	{/snippet}

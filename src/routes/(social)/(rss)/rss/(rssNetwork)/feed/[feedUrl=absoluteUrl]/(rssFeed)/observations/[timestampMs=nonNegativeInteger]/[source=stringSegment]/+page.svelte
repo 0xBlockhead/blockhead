@@ -16,24 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.RssFeed_Timestamp, {
-		$feed: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [({
-			$feed: data.selector,
-			timestampMs: Number(params.timestampMs),
-			source: params.source,
-		}).source],
-		fields: {
-			reachable: true,
-			observedItemCount: true,
-			fetchWindowKind: true,
-			error: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -48,6 +30,24 @@
 
 <Page>
 	<RssFeed_TimestampView
-		selection={pageSelection}
+		selection={
+			select(EntityType.RssFeed_Timestamp, {
+				$feed: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [({
+					$feed: data.selector,
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}).source],
+				fields: {
+					reachable: true,
+					observedItemCount: true,
+					fetchWindowKind: true,
+					error: true,
+				},
+			})
+		}
 	/>
 </Page>

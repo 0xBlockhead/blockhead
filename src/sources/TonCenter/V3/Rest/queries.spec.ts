@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { Source } from '$/sources/Source.ts'
 import {
 	tonCenterV3Hash,
 	tonCenterV3NonnegativeInt64,
@@ -189,17 +188,18 @@ describe('TON Center v3 source foundation', () => {
 	})
 
 	it('preserves provider block order, exact identities and offset continuation', async () => {
+		const blocks = [
+			block,
+			{
+				...block,
+				shard: '4000000000000000',
+				seqno: block.seqno - 1,
+				root_hash: secondHash,
+				file_hash: firstHash,
+			},
+		]
 		getJson.mockResolvedValueOnce({
-			blocks: [
-				block,
-				{
-					...block,
-					shard: '4000000000000000',
-					seqno: block.seqno - 1,
-					root_hash: secondHash,
-					file_hash: firstHash,
-				},
-			],
+			blocks,
 		})
 
 		await expect(getTonCenterV3Blocks({
@@ -207,25 +207,7 @@ describe('TON Center v3 source foundation', () => {
 			offset: 4,
 			order: 'desc',
 		})).resolves.toEqual({
-			source: Source.TonCenter_V3_Rest,
-			target: 'ton:-239',
-			rows: [
-				{
-					workchain: -1,
-					shard: block.shard,
-					seqno: block.seqno,
-					rootHash: firstHash,
-					fileHash: secondHash,
-					genUtimeSeconds: 1_753_315_200,
-					startLt: 9_007_199_254_740_993n,
-					endLt: 9_007_199_254_740_999n,
-					transactionCount: 42,
-				},
-				expect.objectContaining({
-					shard: '4000000000000000',
-					seqno: block.seqno - 1,
-				}),
-			],
+			rows: blocks,
 			nextOffset: 6,
 		})
 		expect(getJson).toHaveBeenCalledWith(
@@ -251,7 +233,7 @@ describe('TON Center v3 source foundation', () => {
 		)).toBe(9_007_199_254_740_993n)
 	})
 
-	it('normalizes message addresses, hashes, logical times, and nanotons losslessly', async () => {
+	it('preserves validated endpoint-native message rows', async () => {
 		getJson.mockResolvedValueOnce({
 			messages: [message],
 		})
@@ -261,21 +243,7 @@ describe('TON Center v3 source foundation', () => {
 			offset: 0,
 			order: 'asc',
 		})).resolves.toEqual({
-			source: Source.TonCenter_V3_Rest,
-			target: 'ton:-239',
-			rows: [{
-				hash: firstHash,
-				source: firstAddress,
-				destination: secondAddress,
-				createdAtSeconds: 1_753_315_200,
-				createdLt: 9_007_199_254_740_993n,
-				valueNano: 1_000_000_000n,
-				forwardFeeNano: 1_234n,
-				ihrFeeNano: 0n,
-				importFeeNano: 55n,
-				opcode: -1,
-				inboundTransactionHash: secondHash,
-			}],
+			rows: [message],
 		})
 		expect(getJson).toHaveBeenCalledWith(
 			expect.anything(),
@@ -283,14 +251,15 @@ describe('TON Center v3 source foundation', () => {
 		)
 	})
 
-	it('normalizes nullable external and log message endpoints and a null transaction input', async () => {
+	it('preserves nullable external and log message endpoints and a null transaction input', async () => {
+		const externalMessage = {
+			...message,
+			source: null,
+			destination: null,
+		}
 		getJson
 			.mockResolvedValueOnce({
-				messages: [{
-					...message,
-					source: null,
-					destination: null,
-				}],
+				messages: [externalMessage],
 			})
 			.mockResolvedValueOnce({
 				transactions: [{
@@ -303,12 +272,10 @@ describe('TON Center v3 source foundation', () => {
 			limit: 1,
 			offset: 0,
 			order: 'desc',
-		})).resolves.toEqual(expect.objectContaining({
-			rows: [expect.not.objectContaining({
-				source: expect.anything(),
-				destination: expect.anything(),
-			})],
-		}))
+		})).resolves.toEqual({
+			rows: [externalMessage],
+			nextOffset: 1,
+		})
 		await expect(getTonCenterV3Transactions({
 			limit: 1,
 			offset: 0,
@@ -330,24 +297,7 @@ describe('TON Center v3 source foundation', () => {
 			offset: 8,
 			order: 'desc',
 		})).resolves.toEqual({
-			source: Source.TonCenter_V3_Rest,
-			target: 'ton:-239',
-			rows: [{
-				traceId: firstHash,
-				externalHash: secondHash,
-				startLt: 9_007_199_254_740_993n,
-				endLt: 9_007_199_254_740_999n,
-				startUtimeSeconds: 1_753_315_200,
-				endUtimeSeconds: 1_753_315_201,
-				masterchainStartSeqno: 52_000_000n,
-				masterchainEndSeqno: 52_000_001n,
-				rootMessage: expect.objectContaining({
-					hash: firstHash,
-				}),
-				transactionHashes: [secondHash],
-				messageCount: 1,
-				transactionCount: 1,
-			}],
+			rows: [trace],
 			nextOffset: 9,
 		})
 		expect(getJson).toHaveBeenCalledWith(
@@ -356,7 +306,7 @@ describe('TON Center v3 source foundation', () => {
 		)
 	})
 
-	it('preserves transaction order, identity, relations, and bigint monetary values', async () => {
+	it('preserves exact transaction wires after validating order, identity, relations, and numeric bounds', async () => {
 		getJson.mockResolvedValueOnce({
 			transactions: [
 				transaction,
@@ -372,46 +322,12 @@ describe('TON Center v3 source foundation', () => {
 			offset: 5,
 			order: 'desc',
 		})).resolves.toEqual({
-			source: Source.TonCenter_V3_Rest,
-			target: 'ton:-239',
 			rows: [
+				transaction,
 				{
-					account: secondAddress,
-					logicalTime: 9_007_199_254_740_999n,
-					hash: secondHash,
-					block: {
-						workchain: -1,
-						shard: '8000000000000000',
-						seqno: 52_000_000,
-					},
-					timestampSeconds: 1_753_315_200,
-					totalFeesNano: 9_007_199_254_740_993n,
-					previousTransactionHash: firstHash,
-					previousTransactionLogicalTime: 9_007_199_254_740_993n,
-					originalStatus: 'active',
-					endStatus: 'active',
-					transactionKind: 'ord',
-					aborted: false,
-					destroyed: false,
-					balanceBeforeNano: 9_007_199_254_740_995n,
-					balanceAfterNano: 9_007_199_254_740_994n,
-					inboundMessage: expect.objectContaining({
-						hash: firstHash,
-						destination: secondAddress,
-						inboundTransactionHash: secondHash,
-					}),
-					outboundMessages: [expect.objectContaining({
-						hash: '03'.repeat(32),
-						source: secondAddress,
-						outboundTransactionHash: secondHash,
-					})],
-					traceId: firstHash,
-					traceExternalHash: secondHash,
+					...transaction,
+					lt: '9007199254740998',
 				},
-				expect.objectContaining({
-					logicalTime: 9_007_199_254_740_998n,
-					hash: secondHash,
-				}),
 			],
 			nextOffset: 7,
 		})
@@ -579,7 +495,7 @@ describe('TON Center v3 source foundation', () => {
 			limit: 2,
 			offset: 0,
 			order: 'desc',
-		})).rejects.toThrow(`TonCenter_V3_Rest: ${label} are not newest-first`)
+		})).rejects.toThrow(`TON Center v3: ${label} are not newest-first`)
 	})
 
 	it('rejects conflicting block hash selectors', async () => {
@@ -627,24 +543,12 @@ describe('TON Center v3 source foundation', () => {
 			limit: 2,
 			offset: 3,
 		})).resolves.toEqual({
-			source: Source.TonCenter_V3_Rest,
-			target: 'ton:-239',
 			rows: [
+				jettonMaster,
 				{
-					address: firstAddress,
-					adminAddress: secondAddress,
-					codeHash: firstHash,
-					dataHash: secondHash,
-					content: jettonMaster.jetton_content,
-					metadataUri: 'ipfs://jetton-metadata',
-					walletCodeHash: '03'.repeat(32),
-					lastTransactionLogicalTime: 9_007_199_254_740_999n,
-					mintable: true,
-					totalSupplyUnits: 340_282_366_920_938_463_463_374_607_431_768_211_455n,
-				},
-				expect.objectContaining({
+					...jettonMaster,
 					address: thirdAddress,
-				}),
+				},
 			],
 			nextOffset: 5,
 		})
@@ -663,18 +567,7 @@ describe('TON Center v3 source foundation', () => {
 			limit: 2,
 			offset: 0,
 		})).resolves.toEqual({
-			source: Source.TonCenter_V3_Rest,
-			target: 'ton:-239',
-			rows: [{
-				address: firstAddress,
-				codeHash: firstHash,
-				content: nftCollection.collection_content,
-				metadataUri: 'https://example.com/collection.json',
-				dataHash: secondHash,
-				lastTransactionLogicalTime: 9_007_199_254_740_999n,
-				nextItemIndex: 340_282_366_920_938_463_463_374_607_431_768_211_455n,
-				ownerAddress: secondAddress,
-			}],
+			rows: [nftCollection],
 		})
 		expect(getJson).toHaveBeenCalledWith(
 			expect.anything(),
@@ -691,28 +584,7 @@ describe('TON Center v3 source foundation', () => {
 			limit: 1,
 			offset: 6,
 		})).resolves.toEqual({
-			source: Source.TonCenter_V3_Rest,
-			target: 'ton:-239',
-			rows: [{
-				address: thirdAddress,
-				auctionContractAddress: secondAddress,
-				codeHash: firstHash,
-				collection: expect.objectContaining({
-					address: firstAddress,
-					ownerAddress: secondAddress,
-				}),
-				collectionAddress: firstAddress,
-				content: nftItem.content,
-				metadataUri: 'ipfs://item-metadata',
-				dataHash: secondHash,
-				index: 340_282_366_920_938_463_463_374_607_431_768_211_454n,
-				initialized: true,
-				lastTransactionLogicalTime: 9_007_199_254_740_998n,
-				onSale: true,
-				ownerAddress: secondAddress,
-				realOwnerAddress: firstAddress,
-				saleContractAddress: secondAddress,
-			}],
+			rows: [nftItem],
 			nextOffset: 7,
 		})
 		expect(getJson).toHaveBeenCalledWith(
@@ -844,6 +716,13 @@ describe('TON Center v3 source foundation', () => {
 				transactions: 2,
 			},
 			error: 'duplicate trace transaction identity',
+		},
+		{
+			trace: {
+				...trace.trace,
+				tx_hash: 'not-a-hash',
+			},
+			error: 'malformed trace root transaction hash',
 		},
 	])('fails closed on invalid completed-trace evidence', async ({
 		error,

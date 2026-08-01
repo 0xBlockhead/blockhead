@@ -91,7 +91,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -107,7 +106,6 @@
 								selection={select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector])}
 								prefetched={blockheadRoom}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -125,7 +123,6 @@
 								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 								prefetched={evmAccount}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -143,7 +140,6 @@
 								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 								prefetched={evmAccount}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

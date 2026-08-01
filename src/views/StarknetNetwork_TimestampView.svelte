@@ -24,10 +24,9 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Juno_JsonRpc,
-			Source.Pathfinder_JsonRpc,
-			Source.Starknet_JsonRpc,
-			Source.Starkscan_Rest,
-			Source.Voyager_Rest,
+			Source.Pathfinder,
+			Source.Starkscan,
+			Source.Voyager,
 		],
 	}))
 	const starknetNetworkTimestamp = $derived(viewSelection({
@@ -58,7 +57,6 @@
 		<StarknetNetworkView
 			selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -89,7 +87,6 @@
 					<StarknetNetworkView
 						selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

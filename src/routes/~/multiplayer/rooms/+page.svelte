@@ -28,12 +28,8 @@
 
 	<BlockheadRoomsView
 		href={resolve('/~/multiplayer/rooms')}
-		title='Rooms'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='blockhead-rooms'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

@@ -21,7 +21,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			amendmentId: params.amendmentId,
-		}
+		},
+		'NetworkAmendmentId'
 	)
 	if (xrplAmendmentNetworkAmendmentIdSelector instanceof arktype.errors)
 		error(404, 'Invalid XrplAmendment selector')

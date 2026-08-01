@@ -24,14 +24,13 @@ SchemaVersion 1
       - SourceBinding.Chainlist_Rest
       - SourceBinding.Cohere_Rest
       - SourceBinding.CoinMarketCap_Rest
-      - SourceBinding.Coingecko_OpenApi
       - SourceBinding.Coingecko_Rest
       - SourceBinding.Coinpaprika_OpenApi
       - SourceBinding.Constants_Internal
       - SourceBinding.CosmosAdrs_Github
       - SourceBinding.CroissantDocument_Local
       - SourceBinding.CycloneDxDocument_Local
-      - SourceBinding.Defillama_OpenApi
+      - SourceBinding.Defillama_Rest
       - SourceBinding.Dexscreener_OpenApi
       - SourceBinding.DogecoinDips_Github
       - SourceBinding.Dune_Rest
@@ -1171,10 +1170,9 @@ SchemaVersion 1
       - SourceBinding.Allium_Rest
       - SourceBinding.Blockscout_Rest
       - SourceBinding.CoinMarketCap_Rest
-      - SourceBinding.Coingecko_OpenApi
       - SourceBinding.Coingecko_Rest
       - SourceBinding.Coinpaprika_OpenApi
-      - SourceBinding.Defillama_OpenApi
+      - SourceBinding.Defillama_Rest
       - SourceBinding.Dune_Rest
       - SourceBinding.Etherscan_Rest
     View :: {"closed":["$assetInstance","supplyScopeKey","timestampMs"],"content":{"dl":[["$assetInstance","supplyScopeKey","$class","classKey","timestampMs","source"],["totalSupply","circulatingSupply","burnedSupply","methodology"]]},"details":{"tabs":[{"label":"Asset","items":["$assetInstance"]},{"label":"Class","items":["$class"]},{"label":"Methodology","items":["timestampMs"]}]}}
@@ -4225,11 +4223,10 @@ SchemaVersion 1
     Sources ::
       - SourceBinding.Blockscout_Rest
       - SourceBinding.CoinMarketCap_Rest
-      - SourceBinding.Coingecko_OpenApi
       - SourceBinding.Coingecko_Rest
       - SourceBinding.Coinpaprika_OpenApi
       - SourceBinding.Constants_Internal
-      - SourceBinding.Defillama_OpenApi
+      - SourceBinding.Defillama_Rest
       - SourceBinding.Lifi_Rest
       - SourceBinding.TradingView_Rest
     View :: {"route":{"href":"/coin/[coinId]","dependsOn":["coinId"]},"query":{"sources":["Constants_Internal","Coingecko_Rest","CoinMarketCap_Rest","Coinpaprika_OpenApi"],"fields":["symbol"],"openFields":["$logo","decimals","name","$$coinInstances","$$bridgeCapabilities"],"slot":"CoinQueryPolicy"},"media":{"image":"$logo","title":"name","fallbackIcon":"coin","slot":"CoinHeading"},"metrics":[{"label":"Market cap","format":"currency","slot":"CatalogUsdMarketCap"}],"latest":[{"field":"$$timestamps","sort":"timestampMs","direction":"desc","view":"Coin_TimestampView","slot":"LatestCoinSnapshot"}],"list":{"query":{"sources":["Constants_Internal","Coingecko_Rest","CoinMarketCap_Rest","Coinpaprika_OpenApi"],"limit":300},"orderBy":[{"field":"marketCapRank","direction":"asc"},{"field":"marketCapUsd","direction":"desc"},{"field":"valueKey","direction":"asc"}],"itemLayout":"Summary","emptyText":"No coins to show yet.","placeholderText":"Loading coins…"},"lists":[{"id":"coin-instances","label":"EVM coin instances","field":"$$coinInstances","slot":"CoinInstancesList"},{"id":"wrapped-coin-instances","label":"Wrapped EVM coin instances","field":"$$coinInstances","slot":"WrappedCoinInstancesList"},{"id":"bridge-capabilities","label":"Bridge capabilities","field":"$$bridgeCapabilities","slot":"BridgeCapabilitiesList"},{"id":"usd-market","label":"Catalog USD market","slot":"CatalogUsdMarket"},{"id":"timestamps","label":"timestamps","field":"$$timestamps","limit":24,"item":"summary","collapsible":true,"emptyText":"No rows"},{"id":"markets-with-coin-as-base","label":"markets with coin as base","field":"$$marketsWithCoinAsBase","limit":24,"item":"summary","collapsible":true,"emptyText":"No rows"},{"id":"markets-with-coin-as-quote","label":"markets with coin as quote","field":"$$marketsWithCoinAsQuote","limit":24,"item":"summary","collapsible":true,"emptyText":"No rows"},{"id":"asset-supply-timestamps","label":"asset supply timestamps","field":"$$assetSupplyTimestamps","limit":24,"item":"summary","collapsible":true,"emptyText":"No rows"}],"closed":["coinId","symbol","name"],"content":{"dl":[["coinId","symbol","name","$logo"],["decimals","$$timestamps","$$coinInstances","$$bridgeCapabilities"]]},"details":{"tabs":[{"label":"Relationship model","items":["$$coinInstances","$$bridgeCapabilities"]},{"label":"Markets","items":["$$marketsWithCoinAsBase","$$marketsWithCoinAsQuote"]},{"label":"Supply","items":["$$timestamps","$$assetSupplyTimestamps"]}]}}
@@ -4245,7 +4242,6 @@ SchemaVersion 1
     Sources ::
       - SourceBinding.Blockscout_Rest
       - SourceBinding.CoinMarketCap_Rest
-      - SourceBinding.Coingecko_OpenApi
       - SourceBinding.Coingecko_Rest
       - SourceBinding.Coinpaprika_OpenApi
       - SourceBinding.Dexscreener_OpenApi
@@ -4597,11 +4593,10 @@ SchemaVersion 1
     Field symbol :: Label :: Symbol ; Description :: The short ticker or symbol used for display.
     Sources ::
       - SourceBinding.CoinMarketCap_Rest
-      - SourceBinding.Coingecko_OpenApi
       - SourceBinding.Coingecko_Rest
       - SourceBinding.Coinpaprika_OpenApi
       - SourceBinding.Constants_Internal
-      - SourceBinding.Defillama_OpenApi
+      - SourceBinding.Defillama_Rest
       - SourceBinding.TradingView_Rest
     View :: {"closed":["iso4217","name","symbol"],"content":{"dl":[["iso4217","name","symbol","minorUnitExponent","catalogSortWeight"]]},"details":{"tabs":[{"label":"Markets as base","items":["$$marketsWithCurrencyAsBase","$$marketsWithCurrencyAsQuote"]},{"label":"Markets as quote","items":["$$marketsWithCurrencyAsBase","$$marketsWithCurrencyAsQuote"]}]},"lists":[{"id":"timestamps","label":"timestamps","field":"$$timestamps","limit":24,"item":"summary","collapsible":true,"emptyText":"No rows"},{"id":"markets-with-currency-as-base","label":"markets with currency as base","field":"$$marketsWithCurrencyAsBase","limit":24,"item":"summary","collapsible":true,"emptyText":"No rows"},{"id":"markets-with-currency-as-quote","label":"markets with currency as quote","field":"$$marketsWithCurrencyAsQuote","limit":24,"item":"summary","collapsible":true,"emptyText":"No rows"}]}
     Notes :: Catalog fiat/currency row used as a stable MarketAsset leg. Constants_Internal implements name, symbol, minor unit exponent, `$$timestamps`, and catalog markets; Coingecko, CoinMarketCap, Coinpaprika, Defillama, and TradingView currently contribute market relationship rows rather than currency identity fields. `catalogSortWeight` is a static ordering hint, not a live FX quote, money-supply metric, or token market cap. Market cap snapshots belong on Currency_Timestamp, and live FX rates should use source-clocked Market_Timestamp rows with explicit base/quote selectors.
@@ -5229,7 +5224,7 @@ SchemaVersion 1
     Field decimals :: Label :: Decimals ; Description :: The number of decimal places used to display the amount.
     Sources ::
       - SourceBinding.Blockscout_Rest
-      - SourceBinding.Defillama_OpenApi
+      - SourceBinding.Defillama_Rest
       - SourceBinding.Etherscan_Rest
       - SourceBinding.Sourcify_Rest
       - SourceBinding.Voltaire_JsonRpc
@@ -5256,7 +5251,7 @@ SchemaVersion 1
     Field timestampMs :: Label :: Timestamp ; Description :: The observation time in Unix milliseconds.
     Field source :: Label :: Source ; Description :: The source that produced this observation.
     Sources ::
-      - SourceBinding.Defillama_OpenApi
+      - SourceBinding.Defillama_Rest
     View :: {"closed":["$vault","timestampMs","source"],"content":{"dl":[["$vault","timestampMs","source","apyBase","apyReward","apyTotal","tvlUsd"],["projectSlug","chainLabel","poolId"]]},"details":{"tabs":[{"label":"Vault","items":["$vault"]}]}}
     Notes :: This is an off-chain yield/indexer observation keyed by source time, not consensus state. APY and TVL belong here because provider calculations can change independently of the vault contract at a block. Only connect the observation to Erc4626Vault when the source payload or resolver mapping identifies the vault contract with enough confidence.
 
@@ -8034,7 +8029,6 @@ SchemaVersion 1
     Description :: A tradeable market or quote pair on a venue.
     Sources ::
       - SourceBinding.CoinMarketCap_Rest
-      - SourceBinding.Coingecko_OpenApi
       - SourceBinding.Coingecko_Rest
       - SourceBinding.Coinpaprika_OpenApi
       - SourceBinding.Constants_Internal
@@ -8050,7 +8044,7 @@ SchemaVersion 1
     Description :: A curated exchange or venue identifier used to group markets.
     Field label :: Label :: Label ; Description :: A human-readable name for the subject.
     Sources ::
-      - SourceBinding.Coingecko_OpenApi
+      - SourceBinding.Coingecko_Rest
       - SourceBinding.Coinpaprika_OpenApi
       - SourceBinding.Constants_Internal
     View :: {"lists":[{"id":"markets","label":"Markets","field":"$$markets","slot":"MarketsList"}],"slots":[{"slot":"MarketsList","label":"venue markets list","for":"Details"}],"closed":["marketVenueId","label"],"content":{"dl":[["marketVenueId","label","$$markets"]]},"details":{"tabs":[{"label":"Markets","items":["$$markets"]}]}}
@@ -8064,7 +8058,7 @@ SchemaVersion 1
     Field timestampMs :: Label :: Timestamp ; Description :: The observation time in Unix milliseconds.
     Sources ::
       - SourceBinding.CoinMarketCap_Rest
-      - SourceBinding.Coingecko_OpenApi
+      - SourceBinding.Coingecko_Rest
       - SourceBinding.Coinpaprika_OpenApi
       - SourceBinding.TradingView_Rest
     View :: {"closed":["$market","timestampMs","feedKey"],"content":{"dl":[["$market","timestampMs","feedKey","$parentMarket","fundingRate"],["openInterestUsd","indexBasisPercent","markPrice","indexPrice","expiredAtMs"],["providerAssetId","transport"]]},"details":{"tabs":[{"label":"Market","items":["$market"]},{"label":"Derivative metrics","items":["fundingRate","openInterestUsd","indexBasisPercent"]},{"label":"Prices","items":["markPrice","indexPrice"]},{"label":"Lifecycle","items":["expiredAtMs"]},{"label":"Provider mapping","items":["feedKey","providerAssetId","transport"]}]}}
@@ -8079,7 +8073,6 @@ SchemaVersion 1
     Field quoteVolume :: Label :: quote volume ; Description :: Quote-leg candle volume, scaled by 1e8 like quote prices.
     Sources ::
       - SourceBinding.CoinMarketCap_Rest
-      - SourceBinding.Coingecko_OpenApi
       - SourceBinding.Coingecko_Rest
       - SourceBinding.Coinpaprika_OpenApi
       - SourceBinding.Constants_Internal
@@ -8096,13 +8089,11 @@ SchemaVersion 1
     Sources ::
       - SourceBinding.Blockscout_Rest
       - SourceBinding.CoinMarketCap_Rest
-      - SourceBinding.Coingecko_OpenApi
       - SourceBinding.Coingecko_Rest
       - SourceBinding.Coinpaprika_OpenApi
-      - SourceBinding.Defillama_OpenApi
       - SourceBinding.Defillama_Rest
       - SourceBinding.TradingView_Rest
-    View :: {"route":{"href":"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]","dependsOn":["$market"]},"query":{"sources":["Blockscout_Rest","Coingecko_Rest","Coingecko_OpenApi","CoinMarketCap_Rest","Coinpaprika_OpenApi","Defillama_OpenApi","TradingView_Rest"],"fields":["price"],"openFields":["caip19","marketCap","volume24h","transport","providerAssetId"],"slot":"MarketTimestampQueryPolicy"},"metrics":[{"field":"price","label":"Price","format":"currency","slot":"PriceCurrencyAmount"},{"field":"marketCap","label":"Market cap","format":"currency","slot":"MarketCapCurrencyAmount"},{"field":"volume24h","label":"24h volume","format":"currency","slot":"VolumeCurrencyAmount"}],"lists":[{"id":"market-observations","label":"Market observations","limit":2048,"query":{"limit":2048,"sources":["Blockscout_Rest","Coingecko_Rest","Coingecko_OpenApi","CoinMarketCap_Rest","Coinpaprika_OpenApi","Defillama_OpenApi","TradingView_Rest"]},"sort":"timestampMs","order":"desc"}],"closed":["$market","timestampMs","feedKey"],"content":{"dl":[["$market","timestampMs","feedKey","price","marketCap"],["volume24h","caip19","transport","providerAssetId"]]},"details":{"tabs":[{"label":"Market","items":["$market"]},{"label":"Quote","items":["price","timestampMs","feedKey"]},{"label":"Liquidity context","items":["marketCap","volume24h"]},{"label":"Provider mapping","items":["caip19","transport","providerAssetId"]},{"label":"History","items":["$market"]}]},"summary":{"value":"$market","title":"$market","after":["timestampMs","feedKey"]}}
+    View :: {"route":{"href":"/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]","dependsOn":["$market"]},"query":{"sources":["Blockscout_Rest","Coingecko_Rest","CoinMarketCap_Rest","Coinpaprika_OpenApi","Defillama_Rest","TradingView_Rest"],"fields":["price"],"openFields":["caip19","marketCap","volume24h","transport","providerAssetId"],"slot":"MarketTimestampQueryPolicy"},"metrics":[{"field":"price","label":"Price","format":"currency","slot":"PriceCurrencyAmount"},{"field":"marketCap","label":"Market cap","format":"currency","slot":"MarketCapCurrencyAmount"},{"field":"volume24h","label":"24h volume","format":"currency","slot":"VolumeCurrencyAmount"}],"lists":[{"id":"market-observations","label":"Market observations","limit":2048,"query":{"limit":2048,"sources":["Blockscout_Rest","Coingecko_Rest","CoinMarketCap_Rest","Coinpaprika_OpenApi","Defillama_Rest","TradingView_Rest"]},"sort":"timestampMs","order":"desc"}],"closed":["$market","timestampMs","feedKey"],"content":{"dl":[["$market","timestampMs","feedKey","price","marketCap"],["volume24h","caip19","transport","providerAssetId"]]},"details":{"tabs":[{"label":"Market","items":["$market"]},{"label":"Quote","items":["price","timestampMs","feedKey"]},{"label":"Liquidity context","items":["marketCap","volume24h"]},{"label":"Provider mapping","items":["caip19","transport","providerAssetId"]},{"label":"History","items":["$market"]}]},"summary":{"value":"$market","title":"$market","after":["timestampMs","feedKey"]}}
     Notes :: As-of market observation. `feedKey` pins provider/feed identity, `timestampMs` must match the source clock, price is scaled quote value, and marketCap/volume24h/caip19/providerAssetId are optional source-observation fields. Do not copy latest price, market cap, or 24h volume onto Coin, Currency, AssetInstance, or Market.
 
   Entity MarketPrice
@@ -8113,11 +8104,9 @@ SchemaVersion 1
     Sources ::
       - SourceBinding.Blockscout_Rest
       - SourceBinding.CoinMarketCap_Rest
-      - SourceBinding.Coingecko_OpenApi
       - SourceBinding.Coingecko_Rest
       - SourceBinding.Coinpaprika_OpenApi
       - SourceBinding.Constants_Internal
-      - SourceBinding.Defillama_OpenApi
       - SourceBinding.Defillama_Rest
       - SourceBinding.TradingView_Rest
     View :: {"charts":[{"id":"quotes","label":"Quote history","kind":"timeseries","controls":{"lookbackDays":[1,7,30,90]},"slot":"QuoteHistoryChart"}],"closed":["$market","$$quotes"],"content":{"dl":[["$market","$$quotes","$$quotes"],["$parentMarket","$$quotes","$market"]]},"details":{"tabs":[{"label":"Latest quote","items":["$market"]},{"label":"Quote history","items":["$market"]},{"label":"Market","items":["$parentMarket"]}]},"lists":[{"id":"quotes","label":"quotes","field":"$$quotes","limit":24,"item":"summary","collapsible":true,"emptyText":"No rows"}]}

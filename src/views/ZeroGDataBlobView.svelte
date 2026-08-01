@@ -36,10 +36,10 @@
 
 
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import ZeroGDataChunksView from '$/views/ZeroGDataChunksView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import ZeroGConsensusNetworkView from '$/views/ZeroGConsensusNetworkView.svelte'
 	import ZeroGDaQuorumView from '$/views/ZeroGDaQuorumView.svelte'
@@ -55,16 +55,11 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.dataRoot || 'zero g data blob'}
-	{/snippet}
-
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -91,7 +86,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -179,7 +173,6 @@
 									selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector])}
 									prefetched={zeroGConsensusNetwork}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -199,7 +192,6 @@
 									selection={select(EntityType.ZeroGDaQuorum, zeroGDaQuorum[EntityMetaKey.Selector])}
 									prefetched={zeroGDaQuorum}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -219,7 +211,6 @@
 									selection={select(EntityType.ZeroGStorageLogEntry, zeroGStorageLogEntry[EntityMetaKey.Selector])}
 									prefetched={zeroGStorageLogEntry}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -236,12 +227,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<ZeroGDataChunksView
-						selection={chunksResource}
+					<EntitiesList
+						entityType={EntityType.ZeroGDataChunk}
 						countResource={chunksResource.count}
 						title='chunks'
+						open={true}
 						id='chunks'
-					/>
+						resource={chunksResource()}
+					>
+						{#snippet Item({ item: zeroGDataChunk })}
+							<EntityView
+								entityType={EntityType.ZeroGDataChunk}
+								entitySelector={zeroGDataChunk[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

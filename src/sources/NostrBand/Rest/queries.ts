@@ -3,7 +3,6 @@ import type {
 	NostrBandEventById,
 	NostrBandEventsList,
 	NostrBandProfileSearch,
-	NostrBandRecentEvents,
 	NostrBandTopProfilesList,
 	NostrBandTopRelaysList,
 } from '$/sources/NostrBand/Rest/types.ts'
@@ -46,7 +45,7 @@ export const getEventById = (eventId: string) => (
 /**
  * GET /v0/users/profile/{pubkey}
  */
-export const getProfileByPubkey = async (pubkey: string) => (
+export const getProfileByPubkey = (pubkey: string) => (
 	nostrBandGet<NostrBandProfileSearch>(
 		`/users/profile/${encodeURIComponent(pubkey.toLowerCase())}`
 	)
@@ -55,7 +54,7 @@ export const getProfileByPubkey = async (pubkey: string) => (
 /**
  * GET /v0/stats/profile/list
  */
-export const listTopProfiles = async (limit: number) => (
+export const listTopProfiles = (limit: number) => (
 	nostrBandGet<NostrBandTopProfilesList>('/stats/profile/list', {
 		limit: clampNostrBandLimit(limit),
 	})
@@ -64,90 +63,34 @@ export const listTopProfiles = async (limit: number) => (
 /**
  * GET /v0/stats/relay/list
  */
-export const listTopRelays = async (limit: number) => (
+export const listTopRelays = (limit: number) => (
 	nostrBandGet<NostrBandTopRelaysList>('/stats/relay/list', {
 		limit: clampNostrBandLimit(limit),
 	})
 )
 
-/**
- * GET /v0/events/recent — kind-1 text notes only.
- */
-export const listRecentTextNotes = async (limit: number) => (
-	nostrBandGet<NostrBandRecentEvents>('/events/recent', {
-		limit: clampNostrBandLimit(limit),
-		kinds: '1',
-	})
-)
-
-/**
- * GET /v0/events/recent — kind-6 reposts only.
- */
-export const listRecentReposts = async (limit: number) => (
+/** GET /v0/events/recent */
+export const listRecentEvents = (
+	limit: number,
+	kinds: readonly number[]
+) => (
 	nostrBandGet<NostrBandEventsList>('/events/recent', {
 		limit: clampNostrBandLimit(limit),
-		kinds: '6',
+		kinds: kinds.join(','),
 	})
 )
 
-/**
- * GET /v0/events/recent — kind-30023 long-form articles only.
- */
-export const listRecentArticles = (limit: number) => (
-	nostrBandGet<NostrBandEventsList>('/events/recent', {
-		limit: clampNostrBandLimit(limit),
-		kinds: '30023',
-	})
-)
-
-/**
- * GET /v0/events/authors/{pubkey} — kind-1 text notes only.
- */
-export const listAuthorTextNotes = async (pubkey: string, limit: number) => (
-	nostrBandGet<NostrBandRecentEvents>(
-		`/events/authors/${encodeURIComponent(pubkey.toLowerCase())}`,
-		{
-			limit: clampNostrBandLimit(limit),
-			kinds: '1',
-		}
-	)
-)
-
-/**
- * GET /v0/events/authors/{pubkey} — kind-0 profile metadata events only.
- */
-export const listAuthorMetadataEvents = (pubkey: string, limit: number) => (
+/** GET /v0/events/authors/{pubkey} */
+export const listAuthorEvents = (
+	pubkey: string,
+	limit: number,
+	kinds: readonly number[]
+) => (
 	nostrBandGet<NostrBandEventsList>(
 		`/events/authors/${encodeURIComponent(pubkey.toLowerCase())}`,
 		{
 			limit: clampNostrBandLimit(limit),
-			kinds: '0',
-		}
-	)
-)
-
-/**
- * GET /v0/events/authors/{pubkey} — kind-6 reposts only.
- */
-export const listAuthorReposts = async (pubkey: string, limit: number) => (
-	nostrBandGet<NostrBandEventsList>(
-		`/events/authors/${encodeURIComponent(pubkey.toLowerCase())}`,
-		{
-			limit: clampNostrBandLimit(limit),
-			kinds: '6',
-		}
-	)
-)
-
-/**
- * GET /v0/events/authors/{pubkey} — kind-30023 long-form articles only.
- */
-export const listAuthorArticles = (pubkey: string, limit: number) => (
-	nostrBandGet<NostrBandEventsList>(
-		`/events/authors/${encodeURIComponent(pubkey.toLowerCase())}`,
-		{
-			limit: clampNostrBandLimit(limit),
-			kinds: '30023',
+			kinds: kinds.join(','),
 		}
 	)
 )
@@ -155,7 +98,7 @@ export const listAuthorArticles = (pubkey: string, limit: number) => (
 /**
  * GET /v0/events/e/{id}/reply — direct replies to a note.
  */
-export const listNoteReplies = async (eventId: string, limit: number) => (
+export const listNoteReplies = (eventId: string, limit: number) => (
 	nostrBandGet<NostrBandEventsList>(
 		`/events/e/${encodeURIComponent(eventId.toLowerCase())}/reply`,
 		{
@@ -168,7 +111,7 @@ export const listNoteReplies = async (eventId: string, limit: number) => (
 /**
  * GET /v0/events/e/{id}/related — reactions (kind 7) referencing the note.
  */
-export const listNoteReactions = async (eventId: string, limit: number) => (
+export const listNoteReactions = (eventId: string, limit: number) => (
 	nostrBandGet<NostrBandEventsList>(
 		`/events/e/${encodeURIComponent(eventId.toLowerCase())}/related`,
 		{

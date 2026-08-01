@@ -74,7 +74,6 @@
 					<BittensorSubnetView
 						selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

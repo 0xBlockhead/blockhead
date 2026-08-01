@@ -88,7 +88,7 @@
 		<h2>
 			{title}
 		</h2>
-		<Tooltip contentProps={{ side: 'top' }}>
+		<Tooltip>
 			{#snippet Content()}
 				<p>
 					Each candle encodes open, high, low, and close for one interval on the horizontal time axis.

@@ -55,7 +55,6 @@
 		<AiProviderApiOperationView
 			selection={select(EntityType.AiProviderApiOperation, selection.entitySelector.$operation)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -88,7 +87,6 @@
 					<AiProviderApiOperationView
 						selection={select(EntityType.AiProviderApiOperation, selection.entitySelector.$operation)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

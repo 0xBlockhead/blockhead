@@ -7,6 +7,7 @@ import {
 } from 'vitest'
 import bindings from '$/sources/Hyperliquid/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import { ApiFamily } from '$/sources/SourceBinding.ts'
 
 const corsFetch = vi.hoisted(() => vi.fn())
 
@@ -23,7 +24,12 @@ const {
 	getUserVaultEquities,
 } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 
-const binding = bindings[Source.Hyperliquid_Rest]
+const binding = bindings[Source.Hyperliquid].find(
+	({ apiFamily }) => apiFamily === ApiFamily.RestJson
+)
+
+if (binding == null)
+	throw new Error('Hyperliquid Info binding is missing')
 
 describe('Hyperliquid public account Info transport', () => {
 	beforeEach(() => {
@@ -109,7 +115,7 @@ describe('Hyperliquid public account Info transport', () => {
 			user: '0x1111111111111111111111111111111111111111',
 			startTime,
 			...(endTime != null && { endTime }),
-		})).toThrow('Hyperliquid_Rest: invalid fill')
+		})).toThrow('Hyperliquid Info: invalid fill')
 		expect(corsFetch).not.toHaveBeenCalled()
 	})
 })

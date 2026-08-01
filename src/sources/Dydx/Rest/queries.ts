@@ -1,27 +1,12 @@
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
-import type {
-	DydxDecimal,
-	DydxFills,
-	DydxIndexerHeight,
-	DydxIndexerObservation,
-	DydxOrder,
-	DydxPerpetualMarkets,
-	DydxPerpetualPosition,
-	DydxPositions,
-	DydxSubaccountResponse,
-	DydxValidatorLatestBlock,
-} from '$/sources/Dydx/Rest/types.ts'
+import bindings from '$/sources/Dydx/bindings.ts'
+import type { components } from '$/sources/Dydx/OpenApi/openapi.d.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	type SourceBinding,
-	SourceTargetKind,
-	WireProtocol,
-} from '$/sources/SourceBinding.ts'
+
+type DydxPerpetualPosition = components['schemas']['PerpetualPositionResponseObject']
+
+const binding = bindings[Source.DydxIndexer]
 
 const decimalPattern = /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/
 const addressPattern = /^dydx1[023456789acdefghjklmnpqrstuvwxyz]{38}$/
@@ -35,41 +20,42 @@ const assertSubaccount = ({
 	subaccountNumber: number
 }) => {
 	if (!addressPattern.test(address))
-		throw new Error(`Dydx_Rest: invalid dYdX address ${address}`)
+		throw new Error(`DydxIndexer: invalid dYdX address ${address}`)
 
 	if (!Number.isSafeInteger(subaccountNumber) || subaccountNumber < 0 || subaccountNumber > 128_000)
-		throw new Error(`Dydx_Rest: invalid subaccount number ${subaccountNumber}`)
+		throw new Error(`DydxIndexer: invalid subaccount number ${subaccountNumber}`)
 }
 
 const assertLimit = (limit: number) => {
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
-		throw new Error(`Dydx_Rest: invalid page limit ${limit}`)
+		throw new Error(`DydxIndexer: invalid page limit ${limit}`)
 }
 
 const assertHeight = (height: string) => {
 	if (!/^(?:0|[1-9]\d*)$/.test(height))
-		throw new Error(`Dydx_Rest: invalid block height ${height}`)
+		throw new Error(`dYdX chain: invalid block height ${height}`)
 }
 
-const assertDecimal = (value: DydxDecimal, field: string) => {
+const assertDecimal = (value: string, field: string) => {
 	if (!decimalPattern.test(value))
-		throw new Error(`Dydx_Rest: invalid decimal ${field}`)
+		throw new Error(`DydxIndexer: invalid decimal ${field}`)
 }
 
 const observeIndexer = async <_Value>(
-	binding: SourceBinding,
 	request: Promise<_Value>
-): Promise<DydxIndexerObservation<_Value>> => {
+) => {
 	const [value, indexerHeight] = await Promise.all([
 		request,
-		sourceGetJson<DydxIndexerHeight>(binding, httpUrl(binding, '/v4/height')),
+		sourceGetJson<components['schemas']['HeightResponse']>(
+			binding,
+			httpUrl(binding, '/v4/height')
+		),
 	])
 	assertHeight(indexerHeight.height)
 	return {
 		value,
 		indexedAtHeight: indexerHeight.height,
 		indexedAtTime: indexerHeight.time,
-		resolvedAtMs: Date.now(),
 	}
 }
 
@@ -105,7 +91,7 @@ const assertPosition = (
 	subaccountNumber: number
 ) => {
 	if (position.subaccountNumber !== subaccountNumber)
-		throw new Error('Dydx_Rest: foreign subaccount position')
+		throw new Error('DydxIndexer: foreign subaccount position')
 
 	for (const [field, value] of Object.entries({
 		size: position.size,
@@ -121,34 +107,32 @@ const assertPosition = (
 }
 
 export const getPerpetualMarkets = async ({
-	binding,
 	ticker,
 }: {
-	binding: SourceBinding
 	ticker?: string
 }) => {
 	if (ticker != null && !tickerPattern.test(ticker))
-		throw new Error(`Dydx_Rest: invalid market ticker ${ticker}`)
+		throw new Error(`DydxIndexer: invalid market ticker ${ticker}`)
 
 	const observation = await observeIndexer(
-		binding,
-		sourceGetJson<DydxPerpetualMarkets>(
+		sourceGetJson<components['schemas']['PerpetualMarketResponse']>(
 			binding,
 			httpUrl(
 				binding,
-				`/v4/perpetualMarkets${ticker == null ? '' : `?market=${encodeURIComponent(ticker)}`}`
+				`/v4/perpetualMarkets${ticker == null ? '' : `?ticker=${encodeURIComponent(ticker)}`}`
 			)
 		)
 	)
 	if (Object.keys(observation.value.markets).length > 500)
-		throw new Error('Dydx_Rest: perpetual market response exceeds bound')
+		throw new Error('DydxIndexer: perpetual market response exceeds bound')
 
 	for (const [marketKey, market] of Object.entries(observation.value.markets)) {
 		if (marketKey !== market.ticker || (ticker != null && market.ticker !== ticker))
-			throw new Error('Dydx_Rest: mismatched market identity')
+			throw new Error('DydxIndexer: mismatched market identity')
+
+		assertDecimal(market.oraclePrice, 'oraclePrice')
 
 		for (const [field, value] of Object.entries({
-			...(market.oraclePrice != null && { oraclePrice: market.oraclePrice }),
 			priceChange24H: market.priceChange24H,
 			volume24H: market.volume24H,
 			nextFundingRate: market.nextFundingRate,
@@ -166,11 +150,9 @@ export const getPerpetualMarkets = async ({
 }
 
 export const getSubaccount = async ({
-	binding,
 	address,
 	subaccountNumber,
 }: {
-	binding: SourceBinding
 	address: string
 	subaccountNumber: number
 }) => {
@@ -179,20 +161,19 @@ export const getSubaccount = async ({
 		subaccountNumber,
 	})
 	const observation = await observeIndexer(
-		binding,
-		sourceGetJson<DydxSubaccountResponse>(
+		sourceGetJson<components['schemas']['SubaccountResponseObject']>(
 			binding,
 			httpUrl(
 				binding,
 				`/v4/addresses/${encodeURIComponent(address)}/subaccountNumber/${subaccountNumber}`
 			)
-		).then(({ subaccount }) => subaccount)
+		)
 	)
 	if (
 		observation.value.address !== address
 		|| observation.value.subaccountNumber !== subaccountNumber
 	)
-		throw new Error('Dydx_Rest: mismatched subaccount identity')
+		throw new Error('DydxIndexer: mismatched subaccount identity')
 
 	assertDecimal(observation.value.equity, 'equity')
 	assertDecimal(observation.value.freeCollateral, 'freeCollateral')
@@ -205,12 +186,10 @@ export const getSubaccount = async ({
 }
 
 export const getOrders = async ({
-	binding,
 	address,
 	subaccountNumber,
 	limit = 100,
 }: {
-	binding: SourceBinding
 	address: string
 	subaccountNumber: number
 	limit?: number
@@ -221,15 +200,17 @@ export const getOrders = async ({
 		limit,
 	})
 	const observation = await observeIndexer(
-		binding,
-		sourceGetJson<DydxOrder[]>(binding, httpUrl(binding, `/v4/orders?${query}`))
+		sourceGetJson<components['schemas']['OrderResponseObject'][]>(
+			binding,
+			httpUrl(binding, `/v4/orders?${query}`)
+		)
 	)
 	if (observation.value.length > limit)
-		throw new Error('Dydx_Rest: order response exceeds requested limit')
+		throw new Error('DydxIndexer: order response exceeds requested limit')
 
 	for (const order of observation.value) {
 		if (order.subaccountNumber !== subaccountNumber)
-			throw new Error('Dydx_Rest: foreign subaccount order')
+			throw new Error('DydxIndexer: foreign subaccount order')
 		for (const [field, value] of Object.entries({
 			price: order.price,
 			size: order.size,
@@ -242,13 +223,11 @@ export const getOrders = async ({
 }
 
 export const getFills = async ({
-	binding,
 	address,
 	subaccountNumber,
 	limit = 100,
 	createdBeforeOrAtHeight,
 }: {
-	binding: SourceBinding
 	address: string
 	subaccountNumber: number
 	limit?: number
@@ -261,16 +240,18 @@ export const getFills = async ({
 		createdBeforeOrAtHeight,
 	})
 	const observation = await observeIndexer(
-		binding,
-		sourceGetJson<DydxFills>(binding, httpUrl(binding, `/v4/fills?${query}`))
+		sourceGetJson<components['schemas']['FillResponse']>(
+			binding,
+			httpUrl(binding, `/v4/fills?${query}`)
+		)
 			.then(({ fills }) => fills)
 	)
 	if (observation.value.length > limit)
-		throw new Error('Dydx_Rest: fill response exceeds requested limit')
+		throw new Error('DydxIndexer: fill response exceeds requested limit')
 
 	for (const fill of observation.value) {
 		if (fill.subaccountNumber !== subaccountNumber)
-			throw new Error('Dydx_Rest: foreign subaccount fill')
+			throw new Error('DydxIndexer: foreign subaccount fill')
 		assertHeight(fill.createdAtHeight)
 		for (const [field, value] of Object.entries({
 			price: fill.price,
@@ -285,13 +266,11 @@ export const getFills = async ({
 }
 
 export const getPerpetualPositions = async ({
-	binding,
 	address,
 	subaccountNumber,
 	limit = 100,
 	createdBeforeOrAtHeight,
 }: {
-	binding: SourceBinding
 	address: string
 	subaccountNumber: number
 	limit?: number
@@ -304,40 +283,16 @@ export const getPerpetualPositions = async ({
 		createdBeforeOrAtHeight,
 	})
 	const observation = await observeIndexer(
-		binding,
-		sourceGetJson<DydxPositions>(
+		sourceGetJson<components['schemas']['PerpetualPositionResponse']>(
 			binding,
 			httpUrl(binding, `/v4/perpetualPositions?${query}`)
 		)
 			.then(({ positions }) => positions)
 	)
 	if (observation.value.length > limit)
-		throw new Error('Dydx_Rest: position response exceeds requested limit')
+		throw new Error('DydxIndexer: position response exceeds requested limit')
 	for (const position of observation.value)
 		assertPosition(position, subaccountNumber)
 
 	return observation
-}
-
-export const getValidatorLatestBlock = async (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.DydxValidator_Rest
-		|| binding.target.kind !== SourceTargetKind.NetworkSlug
-		|| binding.target.key !== 'dydx'
-		|| !binding.endpoints.some((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
-		|| binding.wireProtocol !== WireProtocol.HttpRest
-		|| binding.apiFamily !== ApiFamily.CosmosLcdApi
-		|| !binding.operationGroups.includes(SourceOperationGroup.GenericRead)
-		|| binding.delivery !== SourceDelivery.RemoteQuery
-	)
-		throw new Error('Dydx_Rest: expected canonical mainnet validator binding')
-
-	const value = await sourceGetJson<DydxValidatorLatestBlock>(
-		binding,
-		httpUrl(binding, '/cosmos/base/tendermint/v1beta1/blocks/latest')
-	)
-	if (value.block.header.chain_id !== 'dydx-mainnet-1')
-		throw new Error('Dydx_Rest: validator returned a foreign chain')
-	assertHeight(value.block.header.height)
-	return value
 }

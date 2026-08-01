@@ -314,7 +314,6 @@
 									selection={select(EntityType.CosmosBlock, cosmosBlock[EntityMetaKey.Selector])}
 									prefetched={cosmosBlock}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -328,7 +327,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -40,8 +40,5 @@
 		title='Blobs'
 		selection={select(EntityType.Network, data.selector).Evm.$$blobs}
 		id='blobs'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

@@ -74,7 +74,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Icon()}
 		<ResourceBoundary resource={youtubeChannel}>
 			{#snippet children(entity)}
@@ -84,7 +83,6 @@
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -218,12 +216,7 @@
 							}
 						)
 					}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No YouTube videos.'
 					id={`${id}-list`}
@@ -241,12 +234,7 @@
 							}
 						)
 					}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No YouTube playlists.'
 					id={`${id}-list`}
@@ -278,12 +266,7 @@
 			{#snippet SectionYoutubeChannelTimestamps({ id, label, open })}
 				<YoutubeChannel_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No YouTube channel observations.'
 					id={`${id}-list`}

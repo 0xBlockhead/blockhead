@@ -49,10 +49,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Sui coin type
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -61,7 +57,6 @@
 					<SuiNetworkView
 						selection={select(EntityType.SuiNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -85,7 +80,6 @@
 									selection={select(EntityType.MoveStruct, moveStruct[EntityMetaKey.Selector])}
 									prefetched={moveStruct}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -105,7 +99,6 @@
 									selection={select(EntityType.SuiObject, suiObject[EntityMetaKey.Selector])}
 									prefetched={suiObject}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -125,7 +118,6 @@
 									selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
 									prefetched={assetInstance}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -279,12 +271,7 @@
 			{#snippet SectionSuiCoinTypeBalances({ id, label, open })}
 				<SuiCoinBalance_TimestampsView
 					selection={selection.$$balances}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No balances.'
 					id={`${id}-list`}
@@ -294,12 +281,7 @@
 			{#snippet SectionSuiCoinTypeObjects({ id, label, open })}
 				<SuiObjectsView
 					selection={selection.$$objects}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No objects.'
 					id={`${id}-list`}
@@ -331,12 +313,7 @@
 			{#snippet SectionSuiCoinTypeRegulatedStates({ id, label, open })}
 				<SuiRegulatedCoinState_TimestampsView
 					selection={selection.$$regulatedStates}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No regulated states.'
 					id={`${id}-list`}

@@ -3,7 +3,6 @@ import { beforeEach, expect, test, vi } from 'vitest'
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
@@ -61,7 +60,6 @@ test('uses the feed-target HttpProxy binding and parses its response', async () 
 				{
 					endpointKind: SourceEndpointKind.HttpUrl,
 					locator: 'https://hnrss.org',
-					origin: 'https://hnrss.org',
 					corsEnabled: false,
 				},
 			],
@@ -71,11 +69,7 @@ test('uses the feed-target HttpProxy binding and parses its response', async () 
 				SourceOperationGroup.GenericRead,
 			],
 			delivery: SourceDelivery.HttpProxy,
-			credentials: [
-				{
-					scope: SourceCredentialScope.None,
-				},
-			],
+			credentials: [],
 		}),
 		'https://hnrss.org/frontpage'
 	)

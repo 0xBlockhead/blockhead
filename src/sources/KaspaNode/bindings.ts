@@ -1,7 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+
+const kaspaNodeGenericReadOperationGroups = [
+	SourceOperationGroup.GenericRead,
+] as const
 
 const bindings = [
 	{
@@ -18,25 +22,17 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.Grpc,
 		apiFamily: ApiFamily.GrpcService,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: kaspaNodeGenericReadOperationGroups,
 		delivery: SourceDelivery.ServerOnly,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.Proto,
 				path: 'src/sources/KaspaNode/Grpc/proto',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/KaspaNode/Grpc/schema-source.ts',
-				generated: false,
 			},
 		],
 	},
@@ -55,15 +51,9 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.KaspaRestApi,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: kaspaNodeGenericReadOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
 		source: Source.KaspaNode_Wrpc,
@@ -80,20 +70,10 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.Wrpc,
 		apiFamily: ApiFamily.KaspaWrpcApi,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: kaspaNodeGenericReadOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.KaspaNode_Grpc]: typeof bindings[0]
-	readonly [Source.KaspaNode_Rest]: typeof bindings[1]
-	readonly [Source.KaspaNode_Wrpc]: typeof bindings[2]
-}>(bindings)
+export default indexSourceBindings(bindings)

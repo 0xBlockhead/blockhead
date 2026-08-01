@@ -1,12 +1,12 @@
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
-import type {
-	ZebraBlock,
-	ZebraTransaction,
-	ZebraTransparentAddressUtxos,
-} from '$/sources/Zebra/JsonRpc/types.ts'
+import type { ZebraTransparentAddressUtxos } from '$/sources/Zebra/JsonRpc/types.ts'
 import bindings from '$/sources/Zebra/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import type {
+	ZcashBlock,
+	ZcashTransaction,
+} from '$/sources/Zcashd/JsonRpc/types.ts'
 
 const binding = bindings[Source.Zebra_JsonRpc]
 
@@ -44,7 +44,7 @@ export const getBlock = ({
 }: {
 	blockHash: string
 }) => {
-	return jsonRpc2<ZebraBlock>(
+	return jsonRpc2<ZcashBlock>(
 		binding,
 		'getblock',
 		[
@@ -59,7 +59,7 @@ export const getRawTransaction = ({
 }: {
 	txId: string
 }) => {
-	return jsonRpc2<ZebraTransaction>(
+	return jsonRpc2<ZcashTransaction>(
 		binding,
 		'getrawtransaction',
 		[

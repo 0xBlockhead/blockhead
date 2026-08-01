@@ -38,10 +38,3 @@ export const mastodonInstanceByKey = Object.fromEntries(
 		row,
 	])
 )
-
-export const mastodonInstanceByBaseUrl = Object.fromEntries(
-	mastodonInstances.map((row) => [
-		row.origin,
-		row,
-	])
-)

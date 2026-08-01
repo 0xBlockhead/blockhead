@@ -28,12 +28,8 @@
 
 	<XUsersView
 		href={resolve('/(social)/(x)/x/(xNetwork)/users')}
-		title='X users'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='x-users'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

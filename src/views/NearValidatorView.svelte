@@ -50,10 +50,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.accountId || 'near validator'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={nearValidator}>
 			{#snippet children(entity)}
@@ -88,7 +84,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

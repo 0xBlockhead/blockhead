@@ -51,6 +51,7 @@ export default entity({
 		defaultSources: [
 			Source.Constants_Internal,
 			Source.Coingecko_Rest,
+			Source.TradingView_Rest,
 		],
 	},
 	$$marketTimeIntervalTimestamps: {
@@ -59,8 +60,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Coingecko_Rest,
-			Source.Coingecko_OpenApi,
-			Source.Coinpaprika_OpenApi,
+			Source.Coinpaprika_Rest,
 			Source.CoinMarketCap_Rest,
 		],
 	},
@@ -69,7 +69,7 @@ export default entity({
 		entityType: EntityType.Market_Derivative_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.Coingecko_OpenApi,
+			Source.Coingecko_Rest,
 		],
 	},
 })({

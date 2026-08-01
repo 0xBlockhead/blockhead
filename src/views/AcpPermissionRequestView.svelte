@@ -50,10 +50,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.requestId || 'ACP permission request'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={acpPermissionRequest}>
 			{#snippet children(entity)}
@@ -83,7 +79,6 @@
 					<AcpSessionView
 						selection={select(EntityType.AcpSession, selection.entitySelector.$session)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -52,10 +52,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.symbol || 'bnb beacon token'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={bnbBeaconToken}>
 			{#snippet children(entity)}
@@ -72,7 +68,6 @@
 					<BnbBeaconNetworkView
 						selection={select(EntityType.BnbBeaconNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -190,12 +185,7 @@
 			{#snippet SectionBnbBeaconTokenTransfers({ id, label, open })}
 				<BnbBeaconTokenTransfersView
 					selection={selection.$$transfers}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No transfers.'
 					id={`${id}-list`}
@@ -205,12 +195,7 @@
 			{#snippet SectionBnbBeaconTokenMigrations({ id, label, open })}
 				<BnbBeaconTokenMigrationsView
 					selection={selection.$$migrations}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No migrations.'
 					id={`${id}-list`}
@@ -242,12 +227,7 @@
 			{#snippet SectionBnbBeaconTokenTimestamps({ id, label, open })}
 				<BnbBeaconToken_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No timestamps.'
 					id={`${id}-list`}

@@ -4,6 +4,7 @@ import { env as privateEnv } from '$env/dynamic/private'
 import sourceServerCredentialsById from '$/sources/$sourceServerCredentials.server.ts'
 import {
 	SourceEndpointKind,
+	sourceEndpointOrigin,
 	type SourceServerCredentialDefinition,
 } from '$/sources/SourceBinding.ts'
 import {
@@ -15,7 +16,7 @@ const PROXY_UPSTREAM_TIMEOUT_MS = 30_000
 
 export const proxySourceHttpRequest = async (
 	event: Pick<RequestEvent, 'fetch' | 'request' | 'url'>
-): Promise<Response> => {
+) => {
 	const segments = event.url.pathname
 		.replace('/api-proxy/', '')
 		.split('/')
@@ -77,7 +78,7 @@ export const proxySourceHttpRequest = async (
 
 	if (
 		!httpProxyOrigins.has(url.origin)
-		|| url.origin !== endpoint.origin
+		|| url.origin !== sourceEndpointOrigin(endpoint)
 		|| (
 			credentialDefinition?.definition.injection.endpointTemplate == null
 			&& (
@@ -141,10 +142,11 @@ export const proxySourceHttpRequest = async (
 		Math.floor(PROXY_UPSTREAM_TIMEOUT_MS / candidateEndpoints.length)
 	)
 	for (const [candidateIndex, candidateEndpoint] of candidateEndpoints.entries()) {
+		const candidateOrigin = sourceEndpointOrigin(candidateEndpoint)
 		if (
 			candidateEndpoint.endpointKind !== SourceEndpointKind.HttpUrl
-			|| candidateEndpoint.origin == null
-			|| !httpProxyOrigins.has(candidateEndpoint.origin)
+			|| candidateOrigin == null
+			|| !httpProxyOrigins.has(candidateOrigin)
 		)
 			continue
 

@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]',
+			{
+				instanceOrigin: params.instanceOrigin,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,30 +38,18 @@
 
 {#key params.instanceOrigin}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]',
-				{
-					instanceOrigin: params.instanceOrigin,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<ActivityPubInstanceView
 				selection={
-					select(EntityType.ActivityPubInstance, data.selector, { sources: [
-						Source.Mastodon_Rest,
-					] })
+					select(EntityType.ActivityPubInstance, data.selector, {
+						sources: [
+							Source.Mastodon_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]',
-						{
-							instanceOrigin: params.instanceOrigin,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

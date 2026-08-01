@@ -16,6 +16,14 @@
 		data,
 		params,
 	}: PageProps = $props()
+	const collectionHref = $derived(
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validators',
+			{
+				network: params.network,
+			}
+		)
+	)
 	const collection0Selection = $derived(select(EntityType.Network, data.selector).Evm.$$beaconValidators)
 	const collection1Selection = $derived(select(EntityType.Network, data.selector).Solana.$$validators)
 
@@ -34,36 +42,16 @@
 
 <Page>
 	<BeaconValidatorsView
-		href={
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validators',
-				{
-					network: params.network,
-				}
-			)
-		}
+		href={collectionHref}
 		title='Beacon validators'
 		selection={collection0Selection}
 		id='beacon-validators'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 
 	<SolanaValidatorsView
-		href={
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validators',
-				{
-					network: params.network,
-				}
-			)
-		}
+		href={collectionHref}
 		title='Solana validators'
 		selection={collection1Selection}
 		id='validators'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

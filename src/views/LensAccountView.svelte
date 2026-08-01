@@ -82,7 +82,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Icon()}
 		<ResourceBoundary resource={lensAccount}>
 			{#snippet children(entity)}
@@ -92,7 +91,6 @@
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -315,19 +313,17 @@
 				<LensPostsView
 					selection={selection.$$posts}
 					href={
-						selection.entitySelector.address != null ? resolve(
-							'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]/(lensAccount)/posts',
-							{
-								address: selection.entitySelector.address,
-							}
-						) : undefined
+						'address' in selection.entitySelector ?
+							resolve(
+								'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]/(lensAccount)/posts',
+								{
+									address: selection.entitySelector.address,
+								}
+							)
+						:
+							undefined
 					}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Lens posts for this account.'
 					id={`${id}-list`}
@@ -359,12 +355,7 @@
 			{#snippet SectionLensAccountTimestamps({ id, label, open })}
 				<LensAccount_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Lens account observations yet.'
 					id={`${id}-list`}

@@ -1,34 +1,13 @@
 /**
- * Coin-scoped bridge capability rows: Coingecko deployments × LI.FI `/v1/tools` catalog × local mechanics.
+ * Directional filtering for coin-scoped LI.FI bridge capability rows.
  */
 
-import { coinBridgeCapabilityEntityRowsFromInstancesAndTools } from '$/resolvers/Lifi/Rest/coinBridgeCapabilityEntityRows.ts'
-import type { CoinInstanceEntitySelector } from '$/sources/Coingecko/Rest/coinInstances.ts'
+import {
+	coinBridgeCapabilityEntityRowsFromInstancesAndTools,
+	coinInstanceEntitySelectorKey,
+} from '$/resolvers/Lifi/Rest/coinBridgeCapabilityEntityRows.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import type { LifiToolsResponse } from '$/sources/Lifi/Rest/types.ts'
-
-
-export const coinBridgeCapabilityRowsFromInstancesAndTools = (
-	instanceRows: Parameters<typeof coinBridgeCapabilityEntityRowsFromInstancesAndTools>[0],
-	lifiTools: LifiToolsResponse
-) => {
-	const { bridges } = lifiTools
-	return coinBridgeCapabilityEntityRowsFromInstancesAndTools(instanceRows, bridges)
-}
-
-const coinInstanceEntitySelectorKey = (
-	instanceId: CoinInstanceEntitySelector
-) => (
-	[
-		instanceId.$network.caip2.namespace,
-		instanceId.$network.caip2.reference,
-		instanceId.type,
-		instanceId.type === 'Erc20Token' ?
-			instanceId.$contract.address
-		:
-			'',
-	].join(':')
-)
+import type { CoinInstanceEntitySelector } from '$/resolvers/Coingecko/Rest/coinInstances.ts'
 
 export const filterCoinBridgeCapabilityRowsForInstance = (
 	rows: ReturnType<typeof coinBridgeCapabilityEntityRowsFromInstancesAndTools>,
@@ -36,11 +15,10 @@ export const filterCoinBridgeCapabilityRowsForInstance = (
 	direction: 'inbound' | 'outbound'
 ) => {
 	const instanceKey = coinInstanceEntitySelectorKey(instanceId)
-	const filtered = rows.filter((row) => (
+	return rows.filter((row) => (
 		direction === 'outbound' ?
 			coinInstanceEntitySelectorKey(row[EntityMetaKey.Selector].$fromInstance) === instanceKey
 		:
 			coinInstanceEntitySelectorKey(row[EntityMetaKey.Selector].$toInstance) === instanceKey
 	))
-	return filtered
 }

@@ -36,7 +36,8 @@ export const load: LayoutLoad = ({ params }) => {
 				marketVenueId: params.marketVenue,
 			},
 			marketKind: params.marketKind,
-		}
+		},
+		'BaseQuoteMarketVenueKind'
 	)
 	if (marketBaseQuoteMarketVenueKindSelector instanceof arktype.errors)
 		error(404, 'Invalid Market selector')

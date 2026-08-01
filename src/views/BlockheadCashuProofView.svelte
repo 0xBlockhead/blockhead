@@ -84,7 +84,6 @@
 								selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
 								prefetched={cashuMint}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -116,7 +115,6 @@
 									selection={select(EntityType.CashuKeyset, cashuKeyset[EntityMetaKey.Selector])}
 									prefetched={cashuKeyset}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

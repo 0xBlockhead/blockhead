@@ -5,7 +5,6 @@ import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
 	SourceArtifactKind,
-	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
@@ -54,7 +53,6 @@ it('pins the canonical FxEmbed binding fingerprint', () => {
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.fxtwitter.com',
-				origin: 'https://api.fxtwitter.com',
 				corsEnabled: false,
 			},
 		],
@@ -64,16 +62,11 @@ it('pins the canonical FxEmbed binding fingerprint', () => {
 			SourceOperationGroup.GenericRead,
 		],
 		delivery: SourceDelivery.HttpProxy,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/FxEmbed/Rest/types.ts',
-				generated: false,
 			},
 		],
 	})

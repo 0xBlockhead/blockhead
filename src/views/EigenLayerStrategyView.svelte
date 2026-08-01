@@ -27,7 +27,6 @@
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
 			Source.EigenLayerContracts_Evm,
-			Source.EigenLayerSubgraph_Graphql,
 			Source.Etherscan_Rest,
 			Source.Voltaire_JsonRpc,
 		],
@@ -64,10 +63,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.strategyAddress || 'eigen layer strategy'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={eigenLayerStrategy}>
 			{#snippet children(entity)}
@@ -81,7 +76,6 @@
 			<NetworkView
 				selection={select(EntityType.Network, selection.entitySelector.$network)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -123,7 +117,6 @@
 									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 									prefetched={evmCoinInstance}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -161,7 +154,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -178,7 +170,6 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -212,12 +203,7 @@
 			{#snippet SectionEigenlayerStrategyTimestamps({ id, label, open })}
 				<EigenLayerStrategy_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No EigenLayer strategy observations.'
 					id={`${id}-list`}
@@ -253,12 +239,7 @@
 			{#snippet SectionEigenlayerStrategyDelegations({ id, label, open })}
 				<EigenLayerDelegation_TimestampsView
 					selection={selection.$$delegations}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No EigenLayer delegation observations.'
 					id={`${id}-list`}
@@ -268,12 +249,7 @@
 			{#snippet SectionEigenlayerStrategyAllocations({ id, label, open })}
 				<EigenLayerAllocation_TimestampsView
 					selection={selection.$$allocations}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No EigenLayer allocation observations.'
 					id={`${id}-list`}

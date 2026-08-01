@@ -91,7 +91,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Icon()}
 		<IconComponent />
 	{/snippet}
@@ -102,12 +101,6 @@
 
 	{#snippet Value()}
 		<TruncatedValue value={selection.entitySelector.txHash} />
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A transaction submitted to or included in an EVM-compatible network.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -124,7 +117,6 @@
 									selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
 									prefetched={evmBlock}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -143,7 +135,6 @@
 								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 								prefetched={evmAccount}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -162,7 +153,6 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -186,7 +176,6 @@
 											selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 											prefetched={evmContract}
 											layout={EntityLayout.Value}
-											open={false}
 										/>
 									</dd>
 								</div>
@@ -649,12 +638,7 @@
 			{#snippet SectionEvmTxTokenTransfers({ id, label, open })}
 				<EvmTokenTransfersView
 					selection={selection.$$tokenTransfers}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No token transfers.'
 					id={`${id}-list`}
@@ -664,12 +648,7 @@
 			{#snippet SectionEvmTxInternalTransfers({ id, label, open })}
 				<EvmInternalTransfersView
 					selection={selection.$$internalTransfers}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No internal transfers.'
 					id={`${id}-list`}
@@ -705,12 +684,7 @@
 			{#snippet SectionEvmTxLogs({ id, label, open })}
 				<EvmLogsView
 					selection={selection.$$logs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No logs.'
 					id={`${id}-list`}
@@ -720,12 +694,7 @@
 			{#snippet SectionEvmTxTraces({ id, label, open })}
 				<EvmTracesView
 					selection={selection.$$traces}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No traces.'
 					id={`${id}-list`}
@@ -757,12 +726,7 @@
 			{#snippet SectionEvmTxUserOperations({ id, label, open })}
 				<EvmUserOperationsView
 					selection={selection.$$userOperations}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No user operations.'
 					id={`${id}-list`}
@@ -798,12 +762,7 @@
 					{#snippet SectionEvmTxBlobs({ id, label, open })}
 						<EvmBlobsView
 							selection={projection.$$blobs}
-							CollapsibleProps={{ canToggle: false }}
 							collapsible={false}
-							data-column-item="flexible"
-							data-card
-							data-scroll-container
-							open={open}
 							title={label}
 							emptyText='No blobs.'
 							id={`${id}-list`}
@@ -841,12 +800,7 @@
 					{#snippet SectionEvmTxAuthorizations({ id, label, open })}
 						<Eip7702AuthorizationsView
 							selection={projection.$$authorizations}
-							CollapsibleProps={{ canToggle: false }}
 							collapsible={false}
-							data-column-item="flexible"
-							data-card
-							data-scroll-container
-							open={open}
 							title={label}
 							emptyText='No authorizations.'
 							id={`${id}-list`}

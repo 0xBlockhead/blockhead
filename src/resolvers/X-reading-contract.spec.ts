@@ -97,10 +97,11 @@ describe('X reading identity and observation contract', () => {
 			},
 		})
 
-		await expect(fxEmbedResolvers.resolvers[5].resolve['Username'].resolve(
+		const fxEmbedUser = await fxEmbedResolvers.resolvers[0].resolve['Username'].resolve(
 			{ username: 'fixture_reader' },
 			context
-		)).resolves.toEqual([{
+		)
+		expect(fxEmbedResolvers.resolvers[0].projections.$$timestamps(fxEmbedUser)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$user: {
 					id: '44196397',
@@ -114,10 +115,11 @@ describe('X reading identity and observation contract', () => {
 				[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'tweetCount')]: 0,
 			},
 		}])
-		await expect(xResolvers.resolvers[2].resolve['Id'].resolve(
+		const xPost = await xResolvers.resolvers[1].resolve['Id'].resolve(
 			{ id: '1890000000000000000' },
 			context
-		)).resolves.toEqual([{
+		)
+		expect(xResolvers.resolvers[1].projections.$$timestamps(xPost)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$post: {
 					id: '1890000000000000000',
@@ -125,11 +127,15 @@ describe('X reading identity and observation contract', () => {
 				timestampMs: 1_768_435_200_000,
 				source: Source.X_Rest,
 			},
-			likeCount: 0,
-			retweetCount: 0,
-			replyCount: 0,
-			quoteCount: 0,
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'likeCount')]: 0,
+				[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'retweetCount')]: 0,
+				[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'replyCount')]: 0,
+				[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'quoteCount')]: 0,
+			},
 		}])
+		expect(fxEmbedQueries.getUser).toHaveBeenCalledOnce()
+		expect(xQueries.getTweet).toHaveBeenCalledOnce()
 	})
 
 	it('keeps historical detail persisted-only and prefills official timeline cards', async () => {
@@ -171,11 +177,11 @@ describe('X reading identity and observation contract', () => {
 			},
 		})
 
-		const page = await xResolvers.resolvers[4].resolve['Id'].resolve(
+		const page = await xResolvers.resolvers[2].resolve['Id'].resolve(
 			{ id: '44196397' },
 			context
 		)
-		const postsProjection = xResolvers.resolvers[4].projections.$$posts
+		const postsProjection = xResolvers.resolvers[2].projections.$$posts
 		if (typeof postsProjection === 'function')
 			throw new Error('X reading spec missing timeline continuation')
 		expect(postsProjection.select?.(

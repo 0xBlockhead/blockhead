@@ -32,10 +32,6 @@
 		<EntityView
 			entityType={EntityType._GlobalAgentNetwork}
 			entitySelector={globalAgentNetwork[EntityMetaKey.Selector]}
-		>
-			{#snippet Title()}
-				global agent network
-			{/snippet}
-		</EntityView>
+		/>
 	{/snippet}
 </EntitiesList>

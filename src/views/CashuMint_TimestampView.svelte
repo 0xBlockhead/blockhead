@@ -78,7 +78,6 @@
 					<CashuMintView
 						selection={select(EntityType.CashuMint, selection.entitySelector.$mint)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

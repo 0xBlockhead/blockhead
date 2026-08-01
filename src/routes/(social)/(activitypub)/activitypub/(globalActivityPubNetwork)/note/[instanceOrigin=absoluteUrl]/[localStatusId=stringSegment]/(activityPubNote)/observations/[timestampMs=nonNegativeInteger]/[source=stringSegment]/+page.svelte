@@ -15,29 +15,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.ActivityPubNote_Timestamp, {
-		$note: {
-			instanceOrigin: decodeURIComponent(params.instanceOrigin),
-			localStatusId: params.localStatusId,
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [({
-			$note: {
-				instanceOrigin: decodeURIComponent(params.instanceOrigin),
-				localStatusId: params.localStatusId,
-			},
-			timestampMs: Number(params.timestampMs),
-			source: params.source,
-		}).source],
-		fields: {
-			favouriteCount: true,
-			reblogCount: true,
-			replyCount: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -52,6 +29,29 @@
 
 <Page>
 	<ActivityPubNote_TimestampView
-		selection={pageSelection}
+		selection={
+			select(EntityType.ActivityPubNote_Timestamp, {
+				$note: {
+					instanceOrigin: decodeURIComponent(params.instanceOrigin),
+					localStatusId: params.localStatusId,
+				},
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [({
+					$note: {
+						instanceOrigin: decodeURIComponent(params.instanceOrigin),
+						localStatusId: params.localStatusId,
+					},
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}).source],
+				fields: {
+					favouriteCount: true,
+					reblogCount: true,
+					replyCount: true,
+				},
+			})
+		}
 	/>
 </Page>

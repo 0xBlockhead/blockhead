@@ -36,10 +36,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Cardano DRep timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +44,6 @@
 					<CardanoDRepView
 						selection={select(EntityType.CardanoDRep, selection.entitySelector.$drep)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

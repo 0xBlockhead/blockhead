@@ -76,10 +76,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.name || 'ENS name'}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.name || titleFallback}
 	{/snippet}
@@ -171,7 +167,6 @@
 									selection={select(EntityType.EnsName, ensName[EntityMetaKey.Selector])}
 									prefetched={ensName}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -191,7 +186,6 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -211,7 +205,6 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -231,7 +224,6 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -269,12 +261,7 @@
 			{#snippet SectionEnsNameSubdomains({ id, label, open })}
 				<EnsNamesView
 					selection={selection.$$subdomains}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No subdomains for this ENS name yet.'
 					id={`${id}-list`}
@@ -292,12 +279,7 @@
 							}
 						)
 					}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No ENS records for this name yet.'
 					id={`${id}-list`}
@@ -329,12 +311,7 @@
 			{#snippet SectionEnsNameTimestamps({ id, label, open })}
 				<EnsName_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No ENS name observations yet.'
 					id={`${id}-list`}

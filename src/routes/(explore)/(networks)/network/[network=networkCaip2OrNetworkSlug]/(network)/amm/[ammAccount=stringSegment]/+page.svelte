@@ -15,16 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.XrplAmm, data.selector, {
-		fields: {
-			assetCurrency: true,
-			assetIssuer: true,
-			asset2Currency: true,
-			asset2Issuer: true,
-			lpTokenCurrency: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -39,6 +29,16 @@
 
 <Page>
 	<XrplAmmView
-		selection={pageSelection}
+		selection={
+			select(EntityType.XrplAmm, data.selector, {
+				fields: {
+					assetCurrency: true,
+					assetIssuer: true,
+					asset2Currency: true,
+					asset2Issuer: true,
+					lpTokenCurrency: true,
+				},
+			})
+		}
 	/>
 </Page>

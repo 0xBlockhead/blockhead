@@ -6,17 +6,8 @@ import {
 	vi,
 } from 'vitest'
 
+import bindings from '$/sources/Across/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceCredentialScope,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	SourceTargetKind,
-	WireProtocol,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 
@@ -33,24 +24,7 @@ const {
 	getSuggestedFees,
 } = await import('$/sources/Across/Rest/queries.ts')
 
-const binding = {
-	source: Source.Across_Rest,
-	target: {
-		kind: SourceTargetKind.Global,
-		key: 'across-api',
-	},
-	endpoints: [{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://app.across.to',
-		origin: 'https://app.across.to',
-		corsEnabled: false,
-	}],
-	wireProtocol: WireProtocol.HttpRest,
-	apiFamily: ApiFamily.RestJson,
-	operationGroups: [SourceOperationGroup.GenericRead],
-	delivery: SourceDelivery.HttpProxy,
-	credentials: [{ scope: SourceCredentialScope.None }],
-} as const satisfies SourceBinding
+const binding = bindings[Source.Across_Rest]
 
 const depositor = '0xA4d353BBc130cbeF1811f27ac70989F9d568CeAB'
 const recipient = '0xB4d353BBc130cbeF1811f27ac70989F9d568CeAB'
@@ -93,7 +67,7 @@ const deposit = {
 	speedups: [],
 } as const
 
-describe('Across public bridge observations', () => {
+describe('Across public bridge queries', () => {
 	beforeEach(() => {
 		sourceGetJson.mockReset()
 	})
@@ -108,22 +82,18 @@ describe('Across public bridge observations', () => {
 		})
 
 		await expect(getDeposit({
-			binding,
 			originChainId: 8453,
 			depositId,
 		})).resolves.toMatchObject({
-			value: {
-				deposit: {
-					depositId,
-					relayHash,
-					depositTxnRef,
-					fillTxnRef,
-					inputAmount: '900719925474099312345',
-					bridgeFeeUsd: '0.017884155707075979',
-					status: 'filled',
-				},
+			deposit: {
+				depositId,
+				relayHash,
+				depositTxnRef,
+				fillTxnRef,
+				inputAmount: '900719925474099312345',
+				bridgeFeeUsd: '0.017884155707075979',
+				status: 'filled',
 			},
-			observedBy: 'Across_Rest',
 		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
@@ -141,7 +111,6 @@ describe('Across public bridge observations', () => {
 		})
 
 		await getDepositByTransaction({
-			binding,
 			depositTxnRef,
 			index: 2,
 		})
@@ -170,21 +139,17 @@ describe('Across public bridge observations', () => {
 		})
 
 		await expect(getDepositStatus({
-			binding,
 			originChainId: 8453,
 			depositId,
 		})).resolves.toMatchObject({
-			value: {
-				status: 'filled',
-				fillTxnRef,
-			},
+			status: 'filled',
+			fillTxnRef,
 		})
 	})
 
 	it('bounds depositor pagination and rejects foreign rows', async () => {
 		sourceGetJson.mockResolvedValue([deposit])
 		await getDeposits({
-			binding,
 			depositor,
 			limit: 1,
 			skip: 100,
@@ -199,7 +164,6 @@ describe('Across public bridge observations', () => {
 			depositor: recipient,
 		}])
 		await expect(getDeposits({
-			binding,
 			depositor,
 		})).rejects.toThrow('foreign depositor deposit')
 	})
@@ -262,30 +226,25 @@ describe('Across public bridge observations', () => {
 		})
 
 		await expect(getSuggestedFees({
-			binding,
 			inputToken,
 			outputToken,
 			originChainId: 8453,
 			destinationChainId: 42161,
 			amount: '1000000000000000000',
 		})).resolves.toMatchObject({
-			value: {
-				totalRelayFee: {
-					pct: '78905024308003',
-				},
-				quoteBlock: '900719925474099312345',
+			totalRelayFee: {
+				pct: '78905024308003',
 			},
+			quoteBlock: '900719925474099312345',
 		})
 	})
 
 	it('rejects malformed identities, bounds, units, and impossible chronology', async () => {
 		await expect(getDeposit({
-			binding,
 			originChainId: 8453,
 			depositId: '9e18',
 		})).rejects.toThrow('invalid deposit id')
 		await expect(getDeposits({
-			binding,
 			depositor,
 			limit: 101,
 		})).rejects.toThrow('invalid page limit')
@@ -301,7 +260,6 @@ describe('Across public bridge observations', () => {
 			},
 		})
 		await expect(getDeposit({
-			binding,
 			originChainId: 8453,
 			depositId,
 		})).rejects.toThrow('invalid input amount')
@@ -317,7 +275,6 @@ describe('Across public bridge observations', () => {
 			},
 		})
 		await expect(getDeposit({
-			binding,
 			originChainId: 8453,
 			depositId,
 		})).rejects.toThrow('fill predates deposit')

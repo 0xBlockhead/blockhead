@@ -62,10 +62,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.address || 'filecoin actor'}
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -105,7 +101,6 @@
 									}
 									prefetched={{ ...filecoinActorTimestampSelector, ...filecoinActorTimestamp }}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							{:else}
 								<p data-text="muted" data-section-state="resolved-empty">No latest observation available.</p>
@@ -123,7 +118,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

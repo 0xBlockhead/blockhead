@@ -31,4 +31,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.FedimintGatewayd_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

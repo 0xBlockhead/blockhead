@@ -39,10 +39,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.objectId || 'Git object verification timestamp'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={gitObjectVerificationTimestamp}>
 			{#snippet children(entity)}

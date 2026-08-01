@@ -34,12 +34,8 @@
 
 	<FarcasterFeedsView
 		href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed')}
-		title='Farcaster feeds'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='feeds'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

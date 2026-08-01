@@ -28,12 +28,8 @@
 
 	<XmtpConversationsView
 		href={resolve('/(social)/(xmtp)/xmtp/(xmtpNetwork)/conversations')}
-		title='XMTP conversations'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='xmtp-conversations'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

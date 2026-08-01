@@ -21,11 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TronTransaction> = $props()
 
-	const tronTransaction = $derived(selection({
-		fields: {
-			result: true,
-		},
-	}))
 	const titleFallback = $derived(selection.entitySelector.transactionId || 'tron transaction')
 
 
@@ -54,7 +49,15 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={tronTransaction}>
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						result: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
 				{(entity.result ?? '') || selection.entitySelector.transactionId || titleFallback}
 			{/snippet}
@@ -72,7 +75,6 @@
 							selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
 							prefetched={tronAccount}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -89,7 +91,6 @@
 							selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
 							prefetched={tronAccount}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -105,7 +106,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -122,7 +122,6 @@
 									selection={select(EntityType.TronBlock, tronBlock[EntityMetaKey.Selector])}
 									prefetched={tronBlock}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -252,7 +251,6 @@
 									selection={select(EntityType.TronContract, tronContract[EntityMetaKey.Selector])}
 									prefetched={tronContract}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -357,7 +355,6 @@
 									selection={select(EntityType.TronTransactionReceipt, tronTransactionReceipt[EntityMetaKey.Selector])}
 									prefetched={tronTransactionReceipt}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

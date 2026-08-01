@@ -1,7 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+
+const chainlinkDataFeedsGenericReadOperationGroups = [
+	SourceOperationGroup.GenericRead,
+] as const
 
 const bindings = [
 	{
@@ -18,15 +22,9 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.CatalogRows,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: chainlinkDataFeedsGenericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
 		source: Source.ChainlinkDataFeeds_Contracts,
@@ -42,19 +40,10 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.CatalogRows,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: chainlinkDataFeedsGenericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.ChainlinkDataFeeds_AddressCatalog]: typeof bindings[0]
-	readonly [Source.ChainlinkDataFeeds_Contracts]: typeof bindings[1]
-}>(bindings)
+export default indexSourceBindings(bindings)

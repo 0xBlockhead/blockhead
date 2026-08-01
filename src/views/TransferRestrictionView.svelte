@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -23,8 +22,8 @@
 
 
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TransferRestrictionCheck_TimestampsView from '$/views/TransferRestrictionCheck_TimestampsView.svelte'
 	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 	import RegulatedAssetProfileView from '$/views/RegulatedAssetProfileView.svelte'
 </script>
@@ -33,15 +32,10 @@
 <EntityView
 	entityType={EntityType.TransferRestriction}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'transfer restriction'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		transfer restriction
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -50,7 +44,6 @@
 					<AssetInstanceView
 						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -102,7 +95,6 @@
 									selection={select(EntityType.RegulatedAssetProfile, regulatedAssetProfile[EntityMetaKey.Selector])}
 									prefetched={regulatedAssetProfile}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -141,12 +133,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<TransferRestrictionCheck_TimestampsView
-						selection={checksResource}
+					<EntitiesList
+						entityType={EntityType.TransferRestrictionCheck_Timestamp}
 						countResource={checksResource.count}
 						title='checks'
+						open={true}
 						id='checks'
-					/>
+						resource={checksResource()}
+					>
+						{#snippet Item({ item: transferRestrictionCheckTimestamp })}
+							<EntityView
+								entityType={EntityType.TransferRestrictionCheck_Timestamp}
+								entitySelector={transferRestrictionCheckTimestamp[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

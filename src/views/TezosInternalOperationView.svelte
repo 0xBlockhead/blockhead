@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -31,15 +30,10 @@
 <EntityView
 	entityType={EntityType.TezosInternalOperation}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'tezos internal operation'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		tezos internal operation
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +42,6 @@
 					<TezosOperationView
 						selection={select(EntityType.TezosOperation, selection.entitySelector.$parentOperation)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

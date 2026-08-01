@@ -1,26 +1,9 @@
-import { graphql } from '$/sources/_shared/wire/Graphql/client.ts'
-import bindings from '$/sources/Sui/bindings.ts'
-import { Source } from '$/sources/Source.ts'
-import type {
-	SuiGraphqlAddressBalances,
-	SuiGraphqlAddressTransactions,
-} from '$/sources/Sui/Graphql/types.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
+import {
+	executeSui,
+	graphql,
+} from '$/sources/Sui/Graphql/client.ts'
 
-const binding = bindings[Source.Sui_Graphql]
-
-export const query = <_Data = JsonValue>(
-	document: string,
-	variables?: JsonValue
-) => (
-	graphql<_Data>({
-		binding,
-		query: document,
-		variables,
-	})
-)
-
-const addressBalancesQuery = `
+const addressBalancesDocument = graphql(`
 	query SuiAddressBalances($address: SuiAddress!, $first: Int!, $after: String) {
 		address(address: $address) {
 			address
@@ -40,9 +23,9 @@ const addressBalancesQuery = `
 			}
 		}
 	}
-`
+`)
 
-const addressTransactionsQuery = `
+const addressTransactionsDocument = graphql(`
 	query SuiAddressTransactions($address: SuiAddress!, $first: Int!, $after: String) {
 		address(address: $address) {
 			address
@@ -64,7 +47,7 @@ const addressTransactionsQuery = `
 			}
 		}
 	}
-`
+`)
 
 export const normalizeSuiAddress = (address: string) => {
 	const match = /^0x([0-9a-f]{1,64})$/i.exec(address)
@@ -138,15 +121,15 @@ export const getAddressBalances = async (
 		}
 
 	const canonicalAddress = normalizeSuiAddress(address)
-	const result = await query<SuiGraphqlAddressBalances>(
-		addressBalancesQuery,
+	const result = await executeSui(
+		addressBalancesDocument,
 		{
 			address: canonicalAddress,
 			first: limit,
 			...(after != null && { after }),
 		}
 	)
-	if (result?.address == null)
+	if (result.address == null || result.address.balances == null)
 		throw new Error(`Sui GraphQL address balances did not find ${address}`)
 	if (normalizeSuiAddress(result.address.address) !== canonicalAddress)
 		throw new Error(`Sui GraphQL address balances returned a mismatched address for ${address}`)
@@ -154,30 +137,41 @@ export const getAddressBalances = async (
 		throw new Error('Sui GraphQL address balances exceeded the requested limit')
 
 	const coinTypes = new Set<string>()
-	for (const balance of result.address.balances.nodes) {
-		if (balance.coinType.repr.length === 0)
-			throw new Error('Sui GraphQL address balances returned an empty coin type')
-		if (coinTypes.has(balance.coinType.repr))
-			throw new Error('Sui GraphQL address balances returned a duplicate coin type')
-		for (const amount of [
-			balance.totalBalance,
-			balance.coinBalance,
-			balance.addressBalance,
-		]) {
-			try {
-				if (BigInt(amount) < 0n)
-					throw new Error('negative')
-			}
-			catch {
-				throw new Error('Sui GraphQL address balances returned an invalid amount')
-			}
-		}
-
-		coinTypes.add(balance.coinType.repr)
-	}
-
 	return {
-		balances: result.address.balances.nodes,
+		balances: result.address.balances.nodes.map((balance) => {
+			if (
+				balance.coinType == null
+				|| balance.coinType.repr.length === 0
+				|| balance.totalBalance == null
+				|| balance.coinBalance == null
+				|| balance.addressBalance == null
+			)
+				throw new Error('Sui GraphQL address balances returned an incomplete balance')
+			if (coinTypes.has(balance.coinType.repr))
+				throw new Error('Sui GraphQL address balances returned a duplicate coin type')
+			for (const amount of [
+				balance.totalBalance,
+				balance.coinBalance,
+				balance.addressBalance,
+			]) {
+				try {
+					if (BigInt(amount) < 0n)
+						throw new Error('negative')
+				}
+				catch {
+					throw new Error('Sui GraphQL address balances returned an invalid amount')
+				}
+			}
+
+			coinTypes.add(balance.coinType.repr)
+
+			return {
+				coinType: balance.coinType,
+				totalBalance: balance.totalBalance,
+				coinBalance: balance.coinBalance,
+				addressBalance: balance.addressBalance,
+			}
+		}),
 		pagination: pagination(
 			limit,
 			after,
@@ -212,15 +206,15 @@ export const getAddressTransactions = async (
 		}
 
 	const canonicalAddress = normalizeSuiAddress(address)
-	const result = await query<SuiGraphqlAddressTransactions>(
-		addressTransactionsQuery,
+	const result = await executeSui(
+		addressTransactionsDocument,
 		{
 			address: canonicalAddress,
 			first: limit,
 			...(after != null && { after }),
 		}
 	)
-	if (result?.address == null)
+	if (result.address == null || result.transactions == null)
 		throw new Error(`Sui GraphQL address transactions did not find ${address}`)
 	if (normalizeSuiAddress(result.address.address) !== canonicalAddress)
 		throw new Error(`Sui GraphQL address transactions returned a mismatched address for ${address}`)

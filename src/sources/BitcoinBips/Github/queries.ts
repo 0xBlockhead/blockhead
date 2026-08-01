@@ -1,28 +1,31 @@
-import { getGithubContents, getGithubRawText, githubContentsUrl, githubRawUrl } from '$/sources/_shared/hosts/Github/Http/client.ts'
 import {
-	bitcoinBipsGithubRepo,
-} from '$/sources/BitcoinBips/Github/constants.ts'
+	getGithubContents,
+	getGithubRawText,
+	githubContentsUrl,
+	githubRawUrl,
+	githubRepositoryTargetFromKey,
+} from '$/sources/_shared/hosts/Github/Http/client.ts'
 import bindings from '$/sources/BitcoinBips/bindings.ts'
-import type { BitcoinBipsGithubContents } from '$/sources/BitcoinBips/Github/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.BitcoinBips_Github]
+const target = githubRepositoryTargetFromKey(binding.target.key)
 
 export const getContentsUrl = () => (
-	githubContentsUrl(bitcoinBipsGithubRepo)
+	githubContentsUrl(target)
 )
 
 export const getProposalMediaWikiUrl = ({ number }: { number: number }) => (
 	githubRawUrl({
-		...bitcoinBipsGithubRepo,
+		...target,
 		path: `bip-${number.toString().padStart(4, '0')}.mediawiki`,
 	})
 )
 
-export const getContents = (): Promise<BitcoinBipsGithubContents> => (
+export const getContents = () => (
 	getGithubContents({
 		binding,
-		target: bitcoinBipsGithubRepo,
+		target,
 	})
 )
 
@@ -34,7 +37,7 @@ export const getProposalMediaWikiText = ({
 	getGithubRawText({
 		binding,
 		target: {
-			...bitcoinBipsGithubRepo,
+			...target,
 			path: `bip-${number.toString().padStart(4, '0')}.mediawiki`,
 		},
 	})

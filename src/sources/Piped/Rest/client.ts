@@ -3,7 +3,6 @@ import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
-import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import bindings from '$/sources/Piped/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -19,11 +18,10 @@ const toQuery = (params: Record<string, string | undefined>) => {
 	return query ? `?${query}` : ''
 }
 
-export const pipedApiGet = async <T>(
-	_publicEnv: SourcePublicEnv,
+export const pipedApiGet = <T>(
 	path: `/${string}`,
 	params?: Record<string, string | undefined>
-): Promise<T> => (
+) => (
 	sourceGetJson<T>(
 		binding,
 		`${firstHttpUrlForBinding(binding)}${path}${toQuery(params ?? {})}`

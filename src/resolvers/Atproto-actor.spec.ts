@@ -253,37 +253,10 @@ describe.each([
 		expect(getProfile).toHaveBeenCalledTimes(1)
 	})
 
-	it('rejects another source and never refreshes a historical observation', async () => {
-		const historical = resolver(
-			EntityType.AtprotoActor_Timestamp,
-			'source',
-			'AtprotoActorTimestampMsSource'
-		)
-		const mismatchedSource = (
-			source === Source.Atproto_Xrpc ?
-				Source.Atproto_BskySocial_Xrpc
-			:
-				Source.Atproto_Xrpc
-		)
-
-		await expect(historical.resolve[
-			'AtprotoActorTimestampMsSource'
-		].resolve({
-			$actor: {
-				did: 'did:plc:alice',
-			},
-			timestampMs: 1_700_000_000_000,
-			source: mismatchedSource,
-		}, context)).rejects.toThrow('observation source mismatch')
-		await expect(historical.resolve[
-			'AtprotoActorTimestampMsSource'
-		].resolve({
-			$actor: {
-				did: 'did:plc:alice',
-			},
-			timestampMs: 1_700_000_000_000,
-			source,
-		}, context)).rejects.toThrow('historical actor observation is unavailable')
+	it('does not advertise an impossible direct historical observation resolver', () => {
+		expect(definition.resolvers.some((resolverDefinition) => (
+			resolverDefinition.entityType === EntityType.AtprotoActor_Timestamp
+		))).toBe(false)
 		expect(getProfile).not.toHaveBeenCalled()
 	})
 

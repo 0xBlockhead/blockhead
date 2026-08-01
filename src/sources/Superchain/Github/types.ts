@@ -9,13 +9,3 @@ export type SuperchainChainListEntry = {
 	chainId: number
 	parent?: SuperchainParent
 }
-
-export type SuperchainNetwork = {
-	chainId: number
-	name: string
-	identifier: string
-	namespace: string
-	slug: string
-	parentChainId?: number
-	parentType?: string
-}

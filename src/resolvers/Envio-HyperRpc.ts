@@ -51,12 +51,6 @@ export default {
 			resolve: {
 				EvmNetworkTxHash: {
 					resolve: async ({ $network, txHash }) => {
-						if (
-							$network.caip2.namespace !== 'eip155'
-							|| $network.caip2.reference !== networkBySlug.ethereum.caip2.reference
-						)
-							throw new Error(`EnvioHyperRpc_JsonRpc: unsupported network ${$network.caip2.namespace}:${$network.caip2.reference}`)
-
 						const {
 							getEvmTransactionByHash,
 							getEvmTransactionReceipt,

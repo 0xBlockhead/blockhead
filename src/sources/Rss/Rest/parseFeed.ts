@@ -65,7 +65,7 @@ const publishedAtFromBlock = (block: string) => {
 	return undefined
 }
 
-const categoriesFromBlock = (block: string): string[] => {
+const categoriesFromBlock = (block: string) => {
 	const categories: string[] = []
 	for (const match of block.matchAll(/<category(?:\s[^>]*)?>([\s\S]*?)<\/category>/gi)) {
 		const text = match[1]?.trim()

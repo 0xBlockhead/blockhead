@@ -1,275 +1,205 @@
+/**
+ * CoinGecko Demo and Pro endpoints backed by the provider's official OpenAPI contracts.
+ * @see https://github.com/coingecko/coingecko-api-oas
+ * @see https://docs.coingecko.com/reference/endpoint-overview
+ */
+
 import { throwHttpError } from '$/lib/http.ts'
-import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import { coingeckoRestFetch } from '$/sources/Coingecko/Rest/client.ts'
+import { coingeckoFetch } from '$/sources/Coingecko/Rest/client.ts'
 import type {
 	CoingeckoAssetPlatform,
 	CoingeckoCoin,
-	CoingeckoCoinWithMarketData,
+	CoingeckoCoinByContract,
+	CoingeckoCoinTickers,
+	CoingeckoCoinsMarket,
+	CoingeckoDerivativesExchange,
+	CoingeckoOhlc,
+	GetCoingeckoAssetPlatformsArgs,
+	GetCoingeckoCoinArgs,
+	GetCoingeckoCoinByContractArgs,
+	GetCoingeckoCoinOhlcArgs,
+	GetCoingeckoCoinsMarketsArgs,
+	GetCoingeckoCoinTickersArgs,
+	GetCoingeckoDerivativesExchangeArgs,
 } from '$/sources/Coingecko/Rest/types.ts'
 
-type OhlcCandle = readonly [
-	timestampMs: number,
-	open: number,
-	high: number,
-	low: number,
-	close: number,
-]
-
-/** Includes `market_data` so entity resolvers can attach rank / market cap without a second request. */
-const coingeckoCoinMetadataQuery = (
-	'localization=false'
-	+ '&tickers=false'
-	+ '&market_data=true'
-	+ '&community_data=false'
-	+ '&developer_data=false'
-	+ '&sparkline=false'
-)
-
-const coingeckoCoinMarketSpotQuery = (
-	'localization=false'
-	+ '&tickers=false'
-	+ '&market_data=true'
-	+ '&community_data=false'
-	+ '&developer_data=false'
-	+ '&sparkline=false'
-)
-
-export const getCoin = async (
-	publicEnv: SourcePublicEnv,
-	coingeckoId: string
-): Promise<CoingeckoCoin | undefined> => {
-	if (coingeckoId === '') return undefined
-
-	const res = await coingeckoRestFetch(
-		publicEnv,
-		`/coins/${encodeURIComponent(coingeckoId)}?${coingeckoCoinMetadataQuery}`
-	)
-
-	if (res.status === 404) return undefined
-	if (!res.ok) await throwHttpError(`CoinGecko /coins/${coingeckoId}`, res)
-
-	return res.json<CoingeckoCoin>()
-}
-
-/**
-	* Spot USD + as-of from `GET /coins/{id}` with `market_data` (replaces a separate `/simple/price` call
-	* when platforms / CAIP-19 for the same coin are needed).
-	* @see https://docs.coingecko.com/reference/coins-id
-	*/
-export const getCoinMarketSpot = async (
-	publicEnv: SourcePublicEnv,
-	coingeckoId: string
-): Promise<{
-	coin: CoingeckoCoinWithMarketData
-	usd: number
-	marketCapUsd?: number
-	volume24hUsd?: number
-	lastUpdatedAtSec: number
-} | undefined> => {
-	if (coingeckoId === '') return undefined
-
-	const res = await coingeckoRestFetch(
-		publicEnv,
-		`/coins/${encodeURIComponent(coingeckoId)}?${coingeckoCoinMarketSpotQuery}`
-	)
-
-	if (res.status === 404) return undefined
-	if (!res.ok) await throwHttpError(`CoinGecko /coins/${coingeckoId} (market)`, res)
-
-	const coin = await res.json<CoingeckoCoinWithMarketData>()
-	const usd = coin.market_data?.current_price?.usd
-	if (typeof usd !== 'number' || !Number.isFinite(usd))
-		return undefined
-	const marketCapUsd = coin.market_data?.market_cap?.usd
-	const volume24hUsd = coin.market_data?.total_volume?.usd
-	const lastUpdatedAtSec = Date.parse(String(coin.market_data?.last_updated ?? '')) / 1000
-	if (!Number.isFinite(lastUpdatedAtSec))
-		return undefined
-	return {
-		coin,
-		usd,
-		...(typeof marketCapUsd === 'number' && Number.isFinite(marketCapUsd) && { marketCapUsd }),
-		...(typeof volume24hUsd === 'number' && Number.isFinite(volume24hUsd) && { volume24hUsd }),
-		lastUpdatedAtSec,
-	}
-}
-
-export const getCoinByAssetPlatformContract = async ({
+/** `GET /coins/{id}` — coin metadata and current market data. */
+export const getCoin = async ({
 	publicEnv,
-	assetPlatformId,
-	contractAddress,
-}: {
-	publicEnv: SourcePublicEnv
-	assetPlatformId: string
-	contractAddress: `0x${string}`
-}): Promise<CoingeckoCoin | undefined> => {
-	if (assetPlatformId === '') return undefined
+	id,
+	...query
+}: GetCoingeckoCoinArgs) => {
+	if (id === '')
+		return undefined
 
-	const res = await coingeckoRestFetch(
+	const searchParams = new URLSearchParams()
+	for (const [name, value] of Object.entries({
+		localization: false,
+		tickers: false,
+		market_data: true,
+		community_data: false,
+		developer_data: false,
+		sparkline: false,
+		...query,
+	}))
+		if (value != null)
+			searchParams.set(name, String(value))
+
+	const response = await coingeckoFetch(
 		publicEnv,
-		`/coins/${encodeURIComponent(assetPlatformId)}/contract/${contractAddress.toLowerCase()}?${coingeckoCoinMetadataQuery}`
+		`/coins/${encodeURIComponent(id)}?${searchParams}`
 	)
 
-	if (res.status === 404) return undefined
-	if (!res.ok)
+	if (response.status === 404)
+		return undefined
+	if (!response.ok)
+		await throwHttpError(`CoinGecko /coins/${id}`, response)
+
+	return response.json<CoingeckoCoin>()
+}
+
+/** `GET /coins/{id}/contract/{contract_address}` — coin data by token address. */
+export const getCoinByContract = async ({
+	publicEnv,
+	id,
+	contract_address,
+}: GetCoingeckoCoinByContractArgs) => {
+	if (id === '' || contract_address === '')
+		return undefined
+
+	const response = await coingeckoFetch(
+		publicEnv,
+		`/coins/${encodeURIComponent(id)}/contract/${encodeURIComponent(contract_address)}`
+	)
+
+	if (response.status === 404)
+		return undefined
+	if (!response.ok)
 		await throwHttpError(
-			`CoinGecko /coins/${assetPlatformId}/contract/${contractAddress}`,
-			res
+			`CoinGecko /coins/${id}/contract/${contract_address}`,
+			response
 		)
 
-	return res.json<CoingeckoCoin>()
+	return response.json<CoingeckoCoinByContract>()
 }
 
-export const getAssetPlatformById = async (
-	publicEnv: SourcePublicEnv,
-	platformId: string
-): Promise<CoingeckoAssetPlatform | undefined> => {
-	const platforms = await fetchAssetPlatforms(publicEnv)
-	return platforms.find((p) => p.id === platformId)
-}
-
-export const fetchAssetPlatforms = async (
-	publicEnv: SourcePublicEnv
-): Promise<CoingeckoAssetPlatform[]> => {
-	const res = await coingeckoRestFetch(publicEnv, '/asset_platforms')
-
-	if (!res.ok) await throwHttpError('CoinGecko /asset_platforms', res)
-
-	return res.json<CoingeckoAssetPlatform[]>()
-}
-
-
-export const getCoinWithAssetPlatforms = async (
-	publicEnv: SourcePublicEnv,
-	coingeckoId: string
-): Promise<{
-	coin: CoingeckoCoin | undefined
-	assetPlatforms: CoingeckoAssetPlatform[]
-}> => {
-	const [coin, assetPlatforms] = await Promise.all([
-		getCoin(publicEnv, coingeckoId),
-		fetchAssetPlatforms(publicEnv),
-	])
-	return {
-		coin,
-		assetPlatforms,
-	}
-}
-
-export const findAssetPlatformByChainId = async (
-	_publicEnv: SourcePublicEnv,
-	chainId: number
-): Promise<CoingeckoAssetPlatform | undefined> => {
-	const { coingeckoAssetPlatformIdByChainId } = await import('$/sources/Coingecko/Rest/constants.ts')
-	const platformId = coingeckoAssetPlatformIdByChainId[chainId]
-	if (platformId == null)
-		return undefined
-	return {
-		id: platformId,
-		name: platformId,
-		chain_identifier: chainId,
-	}
-}
-
-export const getSimplePriceUsd = async ({
+/** `GET /asset_platforms` — supported blockchain networks. */
+export const getAssetPlatforms = async ({
 	publicEnv,
-	coingeckoId,
-}: {
-	publicEnv: SourcePublicEnv
-	coingeckoId: string
-}) => {
-	if (coingeckoId === '') return undefined
-
-	const res = await coingeckoRestFetch(
-		publicEnv,
-		`/simple/price?ids=${encodeURIComponent(coingeckoId)}&vs_currencies=usd&include_last_updated_at=true`
-	)
-
-	if (res.status === 404) return undefined
-	if (!res.ok) await throwHttpError('CoinGecko /simple/price', res)
-
-	type CoingeckoSimplePrice = Record<string, {
-		usd?: number
-		last_updated_at?: number
-	}>
-	const payload = await res.json<CoingeckoSimplePrice>()
-
-	return payload[coingeckoId]
-}
-
-export type CoingeckoCoinsMarket = {
-	id: string
-	symbol: string
-	name: string
-	market_cap?: number | null
-	market_cap_rank?: number | null
-}
-
-export const getCoinsMarketsPage = async ({
-	publicEnv,
-	vsCurrency,
-	order,
-	perPage,
-	page,
-}: {
-	publicEnv: SourcePublicEnv
-	vsCurrency: string
-	order: 'market_cap_desc'
-	perPage: number
-	page: number
-}): Promise<CoingeckoCoinsMarket[]> => {
+	filter,
+}: GetCoingeckoAssetPlatformsArgs) => {
 	const searchParams = new URLSearchParams()
-	searchParams.set('vs_currency', vsCurrency)
-	searchParams.set('order', order)
-	searchParams.set('per_page', String(perPage))
-	searchParams.set('page', String(page))
-	searchParams.set('sparkline', 'false')
+	if (filter != null)
+		searchParams.set('filter', filter)
 
-	const res = await coingeckoRestFetch(
+	const response = await coingeckoFetch(
 		publicEnv,
-		`/coins/markets?${searchParams.toString()}`
+		`/asset_platforms${searchParams.size === 0 ? '' : `?${searchParams}`}`
 	)
 
-	if (!res.ok) await throwHttpError('CoinGecko /coins/markets', res)
+	if (!response.ok)
+		await throwHttpError('CoinGecko /asset_platforms', response)
 
-	return res.json<CoingeckoCoinsMarket[]>()
+	return response.json<CoingeckoAssetPlatform[]>()
 }
 
+/** `GET /coins/markets` — paged coin market data. */
+export const getCoinsMarkets = async ({
+	publicEnv,
+	...query
+}: GetCoingeckoCoinsMarketsArgs) => {
+	const searchParams = new URLSearchParams()
+	for (const [name, value] of Object.entries(query))
+		if (value != null)
+			searchParams.set(name, String(value))
+
+	const response = await coingeckoFetch(
+		publicEnv,
+		`/coins/markets?${searchParams}`
+	)
+
+	if (!response.ok)
+		await throwHttpError('CoinGecko /coins/markets', response)
+
+	return response.json<CoingeckoCoinsMarket[]>()
+}
+
+/** `GET /coins/{id}/ohlc` — fixed-range OHLC candles. */
 export const getCoinOhlc = async ({
 	publicEnv,
-	coingeckoId,
-	vs,
-	lookbackDayCount,
-}: {
-	publicEnv: SourcePublicEnv
-	coingeckoId: string
-	vs: string
-	lookbackDayCount: number
-}): Promise<OhlcCandle[]> => {
-	if (coingeckoId === '') return []
+	id,
+	days,
+	...query
+}: GetCoingeckoCoinOhlcArgs) => {
+	if (id === '')
+		return []
 
 	const searchParams = new URLSearchParams()
-	searchParams.set('vs_currency', vs)
-	searchParams.set('days', String(lookbackDayCount))
+	for (const [name, value] of Object.entries({
+		...query,
+		days,
+	}))
+		if (value != null)
+			searchParams.set(name, String(value))
 
-	const res = await coingeckoRestFetch(
+	const response = await coingeckoFetch(
 		publicEnv,
-		`/coins/${encodeURIComponent(coingeckoId)}/ohlc?${searchParams.toString()}`
+		`/coins/${encodeURIComponent(id)}/ohlc?${searchParams}`
 	)
 
-	if (res.status === 404) return []
-	if (!res.ok) await throwHttpError(`CoinGecko /coins/${coingeckoId}/ohlc`, res)
+	if (response.status === 404)
+		return []
+	if (!response.ok)
+		await throwHttpError(`CoinGecko /coins/${id}/ohlc`, response)
 
-	return (
-		(await res.json<number[][]>())
-			.map(([timestampMs, open, high, low, close]): OhlcCandle => (
-				[
-					timestampMs,
-					open,
-					high,
-					low,
-					close,
-				]
-			))
+	return response.json<CoingeckoOhlc>()
+}
+
+/** `GET /coins/{id}/tickers` — spot books across exchanges. */
+export const getCoinTickers = async ({
+	publicEnv,
+	id,
+	...query
+}: GetCoingeckoCoinTickersArgs) => {
+	if (id === '')
+		return undefined
+
+	const searchParams = new URLSearchParams()
+	for (const [name, value] of Object.entries(query))
+		if (value != null)
+			searchParams.set(name, String(value))
+
+	const response = await coingeckoFetch(
+		publicEnv,
+		`/coins/${encodeURIComponent(id)}/tickers${searchParams.size === 0 ? '' : `?${searchParams}`}`
 	)
+
+	if (response.status === 404)
+		return undefined
+	if (!response.ok)
+		await throwHttpError(`CoinGecko /coins/${id}/tickers`, response)
+
+	return response.json<CoingeckoCoinTickers>()
+}
+
+/** `GET /derivatives/exchanges/{id}` — one derivatives exchange and its tickers. */
+export const getDerivativesExchange = async ({
+	publicEnv,
+	id,
+	include_tickers = 'unexpired',
+}: GetCoingeckoDerivativesExchangeArgs) => {
+	if (id === '')
+		return undefined
+
+	const response = await coingeckoFetch(
+		publicEnv,
+		`/derivatives/exchanges/${encodeURIComponent(id)}?include_tickers=${include_tickers}`
+	)
+
+	if (response.status === 404)
+		return undefined
+	if (!response.ok)
+		await throwHttpError(`CoinGecko /derivatives/exchanges/${id}`, response)
+
+	return response.json<CoingeckoDerivativesExchange>()
 }

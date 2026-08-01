@@ -1,7 +1,5 @@
-import { graphqlUrl } from '$/sources/Amboss/Graphql/constants.ts'
-
 export const schemaSource = {
-	schemaUrl: graphqlUrl,
+	schemaUrl: 'https://api.amboss.space/graphql',
 	schemaFile: './schema.graphql',
 	outputFile: './graphql-env.d.ts',
 } as const

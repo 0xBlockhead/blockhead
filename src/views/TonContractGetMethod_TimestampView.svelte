@@ -37,10 +37,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		TON contract get method timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -49,7 +45,6 @@
 					<TonContractGetMethodView
 						selection={select(EntityType.TonContractGetMethod, selection.entitySelector.$method)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

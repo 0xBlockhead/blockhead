@@ -15,14 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.XrplTransaction, data.selector, {
-		fields: {
-			transactionType: true,
-			account: true,
-			sequence: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -37,6 +29,14 @@
 
 <Page>
 	<XrplTransactionView
-		selection={pageSelection}
+		selection={
+			select(EntityType.XrplTransaction, data.selector, {
+				fields: {
+					transactionType: true,
+					account: true,
+					sequence: true,
+				},
+			})
+		}
 	/>
 </Page>

@@ -27,7 +27,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			epoch: Number(params.epoch),
-		}
+		},
+		'EvmNetworkEpoch'
 	)
 	if (beaconEpochEvmNetworkEpochSelector instanceof arktype.errors)
 		error(404, 'Invalid BeaconEpoch selector')

@@ -41,8 +41,7 @@ export default entity({
 		defaultSources: [
 			Source.Constants_Internal,
 			Source.Coingecko_Rest,
-			Source.Coingecko_OpenApi,
-			Source.Coinpaprika_OpenApi,
+			Source.Coinpaprika_Rest,
 			Source.CoinMarketCap_Rest,
 		],
 	},
@@ -52,8 +51,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Coingecko_Rest,
-			Source.Coingecko_OpenApi,
-			Source.Coinpaprika_OpenApi,
+			Source.Coinpaprika_Rest,
 			Source.CoinMarketCap_Rest,
 		],
 	},
@@ -63,8 +61,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Coingecko_Rest,
-			Source.Coingecko_OpenApi,
-			Source.Coinpaprika_OpenApi,
+			Source.Coinpaprika_Rest,
 			Source.CoinMarketCap_Rest,
 		],
 	},
@@ -74,8 +71,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Coingecko_Rest,
-			Source.Coingecko_OpenApi,
-			Source.Coinpaprika_OpenApi,
+			Source.Coinpaprika_Rest,
 			Source.CoinMarketCap_Rest,
 		],
 	},
@@ -85,8 +81,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Coingecko_Rest,
-			Source.Coingecko_OpenApi,
-			Source.Coinpaprika_OpenApi,
+			Source.Coinpaprika_Rest,
 			Source.CoinMarketCap_Rest,
 		],
 	},
@@ -97,7 +92,7 @@ export default entity({
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Coinpaprika_OpenApi,
+			Source.Coinpaprika_Rest,
 			Source.CoinMarketCap_Rest,
 		],
 	},

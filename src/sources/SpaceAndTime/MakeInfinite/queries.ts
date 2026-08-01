@@ -7,7 +7,6 @@ import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/SpaceAndTime/bindings.ts'
 import {
 	makeInfiniteTable,
-	type MakeInfiniteActivityDayAggregate,
 	type MakeInfiniteActivityDayAggregateRow,
 	type MakeInfiniteSqlRequest,
 } from '$/sources/SpaceAndTime/MakeInfinite/types.ts'
@@ -44,7 +43,7 @@ export const getActivityDay = async ({
 }: {
 	dayStartTimestampMs: number
 	table?: string
-}): Promise<MakeInfiniteActivityDayAggregate | undefined> => {
+}) => {
 	if (table !== makeInfiniteTable)
 		throw new Error(`SpaceAndTime_MakeInfinite: unsupported table ${table}`)
 	if (

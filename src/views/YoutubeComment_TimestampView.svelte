@@ -26,7 +26,6 @@
 
 
 	// Components
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import YoutubeCommentView from '$/views/YoutubeCommentView.svelte'
 </script>
@@ -59,7 +58,6 @@
 			selection={select(EntityType.YoutubeComment, selection.entitySelector.$comment)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 
 		<Timestamp timestamp={selection.entitySelector.timestampMs} />

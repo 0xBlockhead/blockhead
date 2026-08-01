@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]',
+			{
+				address: params.address,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,30 +38,18 @@
 
 {#key params.address}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]',
-				{
-					address: params.address,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<LensAccountView
 				selection={
-					select(EntityType.LensAccount, data.selector, { sources: [
-						Source.Lens_Graphql,
-					] })
+					select(EntityType.LensAccount, data.selector, {
+						sources: [
+							Source.Lens_Graphql,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]',
-						{
-							address: params.address,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

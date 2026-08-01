@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -30,15 +29,10 @@
 <EntityView
 	entityType={EntityType.ComplianceModule}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'compliance module'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		compliance module
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -47,7 +41,6 @@
 					<RegulatedAssetProfileView
 						selection={select(EntityType.RegulatedAssetProfile, selection.entitySelector.$profile)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -94,7 +94,6 @@
 								selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
 								prefetched={blockheadSession}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -366,7 +365,6 @@
 									selection={select(EntityType.BlockheadSessionAction, blockheadSessionAction[EntityMetaKey.Selector])}
 									prefetched={blockheadSessionAction}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

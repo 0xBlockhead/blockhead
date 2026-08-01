@@ -10,8 +10,8 @@ export default {
 	label: 'Helius',
 	sources: [
 		{
-			source: Source.Helius_Rest,
-			label: 'Helius REST',
+			source: Source.Helius,
+			label: 'Helius',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

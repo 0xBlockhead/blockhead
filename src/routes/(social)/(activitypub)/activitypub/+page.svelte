@@ -16,13 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType._GlobalActivityPubNetwork, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-			Source.Mastodon_Rest,
-		],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -37,6 +30,13 @@
 
 <Page>
 	<GlobalActivityPubNetworkView
-		selection={pageSelection}
+		selection={
+			select(EntityType._GlobalActivityPubNetwork, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+					Source.Mastodon_Rest,
+				],
+			})
+		}
 	/>
 </Page>

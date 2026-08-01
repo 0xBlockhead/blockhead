@@ -14,13 +14,11 @@
 	import { getWalletConnectionRuntime } from '$/state/wallets/walletConnectionRuntime.svelte.ts'
 
 
-	// State
-	let {
-		id,
-	}: {
-		id: string
-	} = $props()
+	// IDs
+	const id = 'wallet-connections'
 
+
+	// State
 	const walletRuntime = $derived(getWalletConnectionRuntime())
 	const availableCandidates = $derived(walletRuntime?.candidates.filter((candidate) => (
 		!walletRuntime.connections.some((connection) => connection.walletId === candidate.id)

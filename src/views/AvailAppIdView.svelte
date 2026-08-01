@@ -67,7 +67,6 @@
 					<AvailNetworkView
 						selection={select(EntityType.AvailNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

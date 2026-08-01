@@ -5,8 +5,10 @@ import { NetworkEnvironment } from '$/constants/Network.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	EntityMetaKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstanceKind.ts'
 import { Source } from '$/sources/Source.ts'
@@ -14,18 +16,45 @@ import type {
 	CosmosChainRegistryAssetList,
 	CosmosChainRegistryChain,
 } from '$/sources/CosmosChainRegistry/Github/types.ts'
-const assertCosmosRegistryNetwork = (network: { caip2: {
-	namespace: string
-	reference: string
-} } | { slug: string }) => {
-	if (!('caip2' in network) || network.caip2.namespace !== 'cosmos' || network.caip2.reference !== 'cosmoshub-4')
+
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const assertCosmosRegistryNetwork = (network: NetworkId) => {
+	if (
+		'caip2' in network ?
+			network.caip2.namespace !== 'cosmos' || network.caip2.reference !== 'cosmoshub-4'
+		:
+			network.slug !== 'cosmos'
+	)
 		throw new Error('CosmosChainRegistry_Github: unsupported network')
 }
 
-const chainNameForNetwork = (network: { caip2: {
-	namespace: string
-	reference: string
-} } | { slug: string }) => {
+const cosmosNetworkApplicability = {
+	Caip2: [{
+		caip2: {
+			namespace: 'cosmos',
+			reference: 'cosmoshub-4',
+		},
+	}],
+	Slug: [{
+		slug: 'cosmos',
+	}],
+} as const
+
+const cosmosNetworkSelectors = <_Snapshot extends object>(
+	resolve: (network: NetworkId) => Promise<_Snapshot>
+) => ({
+	Caip2: {
+		appliesTo: cosmosNetworkApplicability.Caip2,
+		resolve,
+	},
+	Slug: {
+		appliesTo: cosmosNetworkApplicability.Slug,
+		resolve,
+	},
+})
+
+const chainNameForNetwork = (network: NetworkId) => {
 	assertCosmosRegistryNetwork(network)
 	return 'cosmoshub'
 }
@@ -46,10 +75,7 @@ const assetInstanceFields = (asset: CosmosChainRegistryAssetList['assets'][numbe
 })
 
 const assetInstanceRows = (
-	network: { caip2: {
-		namespace: string
-		reference: string
-	} } | { slug: string },
+	network: NetworkId,
 	assetList: CosmosChainRegistryAssetList
 ) => (
 	assetList.assets
@@ -70,58 +96,23 @@ export default {
 	resolvers: [
 		defineResolver(Source.CosmosChainRegistry_Github, {
 			entityType: EntityType.Network,
-			resolve: {
-				Caip2: {
-					appliesTo: [{
-						caip2: {
-							namespace: 'cosmos',
-							reference: 'cosmoshub-4',
-						},
-					}],
-					resolve: async (entitySelector) => {
-						if (
-							entitySelector.caip2.namespace !== 'cosmos'
-							|| entitySelector.caip2.reference !== 'cosmoshub-4'
-						)
-							return undefined
-
-						const { getChain } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
-						const chain = await getChain({
-							chainName: chainNameForNetwork(entitySelector),
-						})
-						const iconMedia = iconMediaFromChain(chain)
-						return {
-							name: chain.pretty_name ?? chain.chain_name,
-							environment: NetworkEnvironment.Mainnet,
-							...(iconMedia != null && { $icon: iconMedia }),
-						}
-					},
-				},
-				Slug: {
-					appliesTo: [{
-						slug: 'cosmos',
-					}],
-					resolve: async (entitySelector) => {
-						if (entitySelector.slug !== 'cosmos') return undefined
-
-						const { getChain } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
-						const chain = await getChain({
-							chainName: chainNameForNetwork(entitySelector),
-						})
-						const iconMedia = iconMediaFromChain(chain)
-						return {
-							name: chain.pretty_name ?? chain.chain_name,
-							environment: NetworkEnvironment.Mainnet,
-							...(iconMedia != null && { $icon: iconMedia }),
-						}
-					},
-				},
-			},
-		})({
-				name: (snapshot) => snapshot.name,
-				environment: (snapshot) => snapshot.environment,
-				$icon: (snapshot) => snapshot.$icon,
+			resolve: cosmosNetworkSelectors(async (entitySelector) => {
+				const { getChain } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
+				const chain = await getChain({
+					chainName: chainNameForNetwork(entitySelector),
+				})
+				const iconMedia = iconMediaFromChain(chain)
+				return {
+					name: chain.pretty_name ?? chain.chain_name,
+					environment: NetworkEnvironment.Mainnet,
+					...(iconMedia != null && { $icon: iconMedia }),
+				}
 			}),
+		})({
+			name: (snapshot) => snapshot.name,
+			environment: (snapshot) => snapshot.environment,
+			$icon: (snapshot) => snapshot.$icon,
+		}),
 
 		defineResolver(Source.CosmosChainRegistry_Github, {
 			entityType: EntityType.AssetInstance,
@@ -164,43 +155,17 @@ export default {
 
 		defineResolver(Source.CosmosChainRegistry_Github, {
 			entityType: EntityType.Network,
-			resolve: {
-				Caip2: {
-					appliesTo: [{
-						caip2: {
-							namespace: 'cosmos',
-							reference: 'cosmoshub-4',
-						},
-					}],
-					resolve: async (entitySelector) => {
-						assertCosmosRegistryNetwork(entitySelector)
-						const { getAssetList } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
-						return assetInstanceRows(
-							entitySelector,
-							await getAssetList({
-								chainName: chainNameForNetwork(entitySelector),
-							})
-						)
-					},
-				},
-				Slug: {
-					appliesTo: [{
-						slug: 'cosmos',
-					}],
-					resolve: async (entitySelector) => {
-						assertCosmosRegistryNetwork(entitySelector)
-						const { getAssetList } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
-						return assetInstanceRows(
-							entitySelector,
-							await getAssetList({
-								chainName: chainNameForNetwork(entitySelector),
-							})
-						)
-					},
-				},
-			},
-		})({
-				$$nativeAssets: (snapshot) => snapshot,
+			resolve: cosmosNetworkSelectors(async (entitySelector) => {
+				const { getAssetList } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
+				return assetInstanceRows(
+					entitySelector,
+					await getAssetList({
+						chainName: chainNameForNetwork(entitySelector),
+					})
+				)
 			}),
+		})({
+			$$nativeAssets: (snapshot) => snapshot,
+		}),
 	],
 }

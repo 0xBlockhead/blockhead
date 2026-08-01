@@ -23,7 +23,7 @@ const clampYoutubeMaxResults = (limit: number) => (
 	Math.min(50, Math.max(1, limit))
 )
 
-export const getChannel = async (
+export const getChannel = (
 	publicEnv: SourcePublicEnv,
 	channelId: string
 ) => (
@@ -37,7 +37,7 @@ export const getChannel = async (
 	)
 )
 
-export const getVideo = async (
+export const getVideo = (
 	publicEnv: SourcePublicEnv,
 	videoId: string
 ) => (
@@ -51,7 +51,7 @@ export const getVideo = async (
 	)
 )
 
-export const getComment = async (
+export const getComment = (
 	publicEnv: SourcePublicEnv,
 	commentId: string
 ) => (
@@ -65,7 +65,7 @@ export const getComment = async (
 	)
 )
 
-export const getCommentThread = async (
+export const getCommentThread = (
 	publicEnv: SourcePublicEnv,
 	commentThreadId: string
 ) => (
@@ -79,7 +79,7 @@ export const getCommentThread = async (
 	)
 )
 
-export const getPlaylist = async (
+export const getPlaylist = (
 	publicEnv: SourcePublicEnv,
 	playlistId: string
 ) => (
@@ -93,7 +93,7 @@ export const getPlaylist = async (
 	)
 )
 
-export const listChannelPlaylists = async (
+export const listChannelPlaylists = (
 	publicEnv: SourcePublicEnv,
 	channelId: string,
 	limit: number,
@@ -111,7 +111,7 @@ export const listChannelPlaylists = async (
 	)
 )
 
-export const listPlaylistItems = async (
+export const listPlaylistItems = (
 	publicEnv: SourcePublicEnv,
 	playlistId: string,
 	limit: number,
@@ -129,7 +129,7 @@ export const listPlaylistItems = async (
 	)
 )
 
-export const listCommentThreads = async (
+export const listCommentThreads = (
 	publicEnv: SourcePublicEnv,
 	videoId: string,
 	limit: number,
@@ -147,7 +147,7 @@ export const listCommentThreads = async (
 	)
 )
 
-export const listCommentReplies = async (
+export const listCommentReplies = (
 	publicEnv: SourcePublicEnv,
 	parentId: string,
 	limit: number,
@@ -234,7 +234,7 @@ export const listCompleteCommentReplies = async (
 	throw new Error('Youtube_Rest: comment reply page limit exceeded')
 }
 
-export const listPopularVideos = async (
+export const listPopularVideos = (
 	publicEnv: SourcePublicEnv,
 	limit: number
 ) => (
@@ -249,7 +249,7 @@ export const listPopularVideos = async (
 	)
 )
 
-export const searchChannels = async (
+export const searchChannels = (
 	publicEnv: SourcePublicEnv,
 	query: string,
 	limit: number
@@ -266,7 +266,7 @@ export const searchChannels = async (
 	)
 )
 
-export const searchChannelVideos = async (
+export const searchChannelVideos = (
 	publicEnv: SourcePublicEnv,
 	channelId: string,
 	limit: number,

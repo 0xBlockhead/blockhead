@@ -3,8 +3,6 @@
 import constantsSourceProvider from './_Constants/index.ts'
 import acpSourceProvider from './Acp/index.ts'
 import acrossSourceProvider from './Across/index.ts'
-import algodSourceProvider from './Algod/index.ts'
-import algorandIndexerSourceProvider from './AlgorandIndexer/index.ts'
 import algorandWalletSourceProvider from './AlgorandWallet/index.ts'
 import alliumSourceProvider from './Allium/index.ts'
 import ambossSourceProvider from './Amboss/index.ts'
@@ -17,19 +15,13 @@ import atprotoBskySourceProvider from './AtprotoBsky/index.ts'
 import atprotoBskySocialSourceProvider from './AtprotoBskySocial/index.ts'
 import atprotoSyncSourceProvider from './AtprotoSync/index.ts'
 import availSourceProvider from './Avail/index.ts'
-import availExplorerSourceProvider from './AvailExplorer/index.ts'
 import avalancheInfoSourceProvider from './AvalancheInfo/index.ts'
 import avalanchePlatformVmSourceProvider from './AvalanchePlatformVm/index.ts'
-import avascanSourceProvider from './Avascan/index.ts'
 import awsBedrockSourceProvider from './AwsBedrock/index.ts'
 import axelarscanSourceProvider from './Axelarscan/index.ts'
 import azureAiFoundrySourceProvider from './AzureAiFoundry/index.ts'
 import beaconSourceProvider from './Beacon/index.ts'
 import beaconchaInSourceProvider from './BeaconchaIn/index.ts'
-import betterCallDevSourceProvider from './BetterCallDev/index.ts'
-import bigDipperSourceProvider from './BigDipper/index.ts'
-import binanceChainApiSourceProvider from './BinanceChainApi/index.ts'
-import binanceChainExplorerSourceProvider from './BinanceChainExplorer/index.ts'
 import bitcoinBipsSourceProvider from './BitcoinBips/index.ts'
 import bitcoinCashBcmrSourceProvider from './BitcoinCashBcmr/index.ts'
 import bitcoinCashChipsSourceProvider from './BitcoinCashChips/index.ts'
@@ -42,8 +34,6 @@ import blobscanSourceProvider from './Blobscan/index.ts'
 import blockchairSourceProvider from './Blockchair/index.ts'
 import blockfrostSourceProvider from './Blockfrost/index.ts'
 import blockscoutSourceProvider from './Blockscout/index.ts'
-import bnbBeaconArchiveSourceProvider from './BnbBeaconArchive/index.ts'
-import bnbChainFusionSourceProvider from './BnbChainFusion/index.ts'
 import caipsSourceProvider from './Caips/index.ts'
 import cardanoCip30SourceProvider from './CardanoCip30/index.ts'
 import cardanoDbSyncSourceProvider from './CardanoDbSync/index.ts'
@@ -57,7 +47,6 @@ import chainlinkDataFeedsSourceProvider from './ChainlinkDataFeeds/index.ts'
 import chainlistSourceProvider from './Chainlist/index.ts'
 import circleCctpSourceProvider from './CircleCctp/index.ts'
 import codexNetworkPresetsSourceProvider from './CodexNetworkPresets/index.ts'
-import codexNodeSourceProvider from './CodexNode/index.ts'
 import cohereSourceProvider from './Cohere/index.ts'
 import coingeckoSourceProvider from './Coingecko/index.ts'
 import coinMarketCapSourceProvider from './CoinMarketCap/index.ts'
@@ -80,7 +69,6 @@ import easSourceProvider from './Eas/index.ts'
 import easScanSourceProvider from './EasScan/index.ts'
 import eigenExplorerSourceProvider from './EigenExplorer/index.ts'
 import eigenLayerSourceProvider from './EigenLayer/index.ts'
-import eigenLayerSubgraphSourceProvider from './EigenLayerSubgraph/index.ts'
 import eip8004ScanSourceProvider from './Eip8004Scan/index.ts'
 import ensipsSourceProvider from './Ensips/index.ts'
 import ensMetadataServiceSourceProvider from './EnsMetadataService/index.ts'
@@ -91,7 +79,6 @@ import ethereumEipsSourceProvider from './EthereumEips/index.ts'
 import ethereumListsSourceProvider from './EthereumLists/index.ts'
 import ethereumSpecsSourceProvider from './EthereumSpecs/index.ts'
 import etherscanSourceProvider from './Etherscan/index.ts'
-import ethForksSourceProvider from './EthForks/index.ts'
 import farcasterSourceProvider from './Farcaster/index.ts'
 import fedimintClientSourceProvider from './FedimintClient/index.ts'
 import fedimintGatewaydSourceProvider from './FedimintGatewayd/index.ts'
@@ -102,7 +89,6 @@ import freighterSourceProvider from './Freighter/index.ts'
 import fxEmbedSourceProvider from './FxEmbed/index.ts'
 import getBlockSourceProvider from './GetBlock/index.ts'
 import gitSourceProvider from './Git/index.ts'
-import githubSourceProvider from './Github/index.ts'
 import gitlabSourceProvider from './Gitlab/index.ts'
 import googleAiSourceProvider from './GoogleAi/index.ts'
 import hashConnectSourceProvider from './HashConnect/index.ts'
@@ -124,13 +110,13 @@ import kaspaWalletCliSourceProvider from './KaspaWalletCli/index.ts'
 import kaspaWalletSdkSourceProvider from './KaspaWalletSdk/index.ts'
 import kaswareWalletSourceProvider from './KaswareWallet/index.ts'
 import keplrSourceProvider from './Keplr/index.ts'
+import kingnodesSourceProvider from './Kingnodes/index.ts'
 import koiosSourceProvider from './Koios/index.ts'
 import l2BeatSourceProvider from './L2Beat/index.ts'
 import layerZeroScanSourceProvider from './LayerZeroScan/index.ts'
 import leapSourceProvider from './Leap/index.ts'
 import ledgerFilecoinSourceProvider from './LedgerFilecoin/index.ts'
 import lensSourceProvider from './Lens/index.ts'
-import libtorrentSessionSourceProvider from './LibtorrentSession/index.ts'
 import lifiSourceProvider from './Lifi/index.ts'
 import lightningLndSourceProvider from './LightningLnd/index.ts'
 import lightningMempoolSpaceSourceProvider from './LightningMempoolSpace/index.ts'
@@ -148,7 +134,6 @@ import mastodonSourceProvider from './Mastodon/index.ts'
 import mcpSourceProvider from './Mcp/index.ts'
 import mempoolSpaceSourceProvider from './MempoolSpace/index.ts'
 import metadataVisionSourceProvider from './MetadataVision/index.ts'
-import metaplexDASSourceProvider from './MetaplexDAS/index.ts'
 import mevRelaySourceProvider from './MevRelay/index.ts'
 import mintscanSourceProvider from './Mintscan/index.ts'
 import mistralAiSourceProvider from './MistralAi/index.ts'
@@ -163,19 +148,16 @@ import nearRpcSourceProvider from './NearRpc/index.ts'
 import nearWalletSelectorSourceProvider from './NearWalletSelector/index.ts'
 import neynarSourceProvider from './Neynar/index.ts'
 import nfidSourceProvider from './Nfid/index.ts'
-import nitroSourceProvider from './Nitro/index.ts'
 import nodelySourceProvider from './Nodely/index.ts'
 import nostrBandSourceProvider from './NostrBand/index.ts'
 import nostrRelaySourceProvider from './NostrRelay/index.ts'
 import ociRegistrySourceProvider from './OciRegistry/index.ts'
+import octezSourceProvider from './Octez/index.ts'
 import ogmiosSourceProvider from './Ogmios/index.ts'
-import oneInchSwapSourceProvider from './OneInchSwap/index.ts'
 import onnxSourceProvider from './Onnx/index.ts'
 import openAISourceProvider from './OpenAI/index.ts'
 import openchainSourceProvider from './Openchain/index.ts'
 import openSeaSourceProvider from './OpenSea/index.ts'
-import osmosisLCDSourceProvider from './OsmosisLCD/index.ts'
-import paraswapSourceProvider from './Paraswap/index.ts'
 import pathfinderSourceProvider from './Pathfinder/index.ts'
 import payjoinSourceProvider from './Payjoin/index.ts'
 import petraSourceProvider from './Petra/index.ts'
@@ -198,7 +180,6 @@ import radicleCliSourceProvider from './RadicleCli/index.ts'
 import radicleNodeSourceProvider from './RadicleNode/index.ts'
 import redditSourceProvider from './Reddit/index.ts'
 import redditPublicSourceProvider from './RedditPublic/index.ts'
-import reservoirSourceProvider from './Reservoir/index.ts'
 import rethSourceProvider from './Reth/index.ts'
 import rssSourceProvider from './Rss/index.ts'
 import rss2JsonSourceProvider from './Rss2Json/index.ts'
@@ -213,7 +194,6 @@ import sourcifySourceProvider from './Sourcify/index.ts'
 import spaceAndTimeSourceProvider from './SpaceAndTime/index.ts'
 import spdxSourceProvider from './Spdx/index.ts'
 import sqdSourceProvider from './Sqd/index.ts'
-import starknetSourceProvider from './Starknet/index.ts'
 import starkscanSourceProvider from './Starkscan/index.ts'
 import stellarExpertSourceProvider from './StellarExpert/index.ts'
 import stellarHorizonSourceProvider from './StellarHorizon/index.ts'
@@ -227,7 +207,6 @@ import superchainSourceProvider from './Superchain/index.ts'
 import swarmSourceProvider from './Swarm/index.ts'
 import tallySourceProvider from './Tally/index.ts'
 import tezosDappetizerSourceProvider from './TezosDappetizer/index.ts'
-import tezosNodeSourceProvider from './TezosNode/index.ts'
 import theGraphSourceProvider from './TheGraph/index.ts'
 import threeXplSourceProvider from './ThreeXpl/index.ts'
 import tonApiSourceProvider from './TonApi/index.ts'
@@ -235,7 +214,6 @@ import tonCenterSourceProvider from './TonCenter/index.ts'
 import tonConnectSourceProvider from './TonConnect/index.ts'
 import tonlibSourceProvider from './Tonlib/index.ts'
 import tonLiteServerSourceProvider from './TonLiteServer/index.ts'
-import tonVerifierSourceProvider from './TonVerifier/index.ts'
 import tradingViewSourceProvider from './TradingView/index.ts'
 import transmissionSourceProvider from './Transmission/index.ts'
 import tronFullNodeSourceProvider from './TronFullNode/index.ts'
@@ -266,14 +244,11 @@ import zcashdSourceProvider from './Zcashd/index.ts'
 import zcashLightwalletdSourceProvider from './ZcashLightwalletd/index.ts'
 import zcashZipsSourceProvider from './ZcashZips/index.ts'
 import zebraSourceProvider from './Zebra/index.ts'
-import zeroExSwapSourceProvider from './ZeroExSwap/index.ts'
 import zeroGSourceProvider from './ZeroG/index.ts'
 
 export default [
 	acpSourceProvider,
 	acrossSourceProvider,
-	algodSourceProvider,
-	algorandIndexerSourceProvider,
 	algorandWalletSourceProvider,
 	alliumSourceProvider,
 	ambossSourceProvider,
@@ -286,19 +261,13 @@ export default [
 	atprotoBskySocialSourceProvider,
 	atprotoSyncSourceProvider,
 	availSourceProvider,
-	availExplorerSourceProvider,
 	avalancheInfoSourceProvider,
 	avalanchePlatformVmSourceProvider,
-	avascanSourceProvider,
 	awsBedrockSourceProvider,
 	axelarscanSourceProvider,
 	azureAiFoundrySourceProvider,
 	beaconSourceProvider,
 	beaconchaInSourceProvider,
-	betterCallDevSourceProvider,
-	bigDipperSourceProvider,
-	binanceChainApiSourceProvider,
-	binanceChainExplorerSourceProvider,
 	bitcoinBipsSourceProvider,
 	bitcoinCashBcmrSourceProvider,
 	bitcoinCashChipsSourceProvider,
@@ -311,8 +280,6 @@ export default [
 	blockchairSourceProvider,
 	blockfrostSourceProvider,
 	blockscoutSourceProvider,
-	bnbBeaconArchiveSourceProvider,
-	bnbChainFusionSourceProvider,
 	caipsSourceProvider,
 	cardanoCip30SourceProvider,
 	cardanoDbSyncSourceProvider,
@@ -326,7 +293,6 @@ export default [
 	chainlistSourceProvider,
 	circleCctpSourceProvider,
 	codexNetworkPresetsSourceProvider,
-	codexNodeSourceProvider,
 	cohereSourceProvider,
 	coingeckoSourceProvider,
 	coinMarketCapSourceProvider,
@@ -350,7 +316,6 @@ export default [
 	easScanSourceProvider,
 	eigenExplorerSourceProvider,
 	eigenLayerSourceProvider,
-	eigenLayerSubgraphSourceProvider,
 	eip8004ScanSourceProvider,
 	ensipsSourceProvider,
 	ensMetadataServiceSourceProvider,
@@ -360,7 +325,6 @@ export default [
 	ethereumListsSourceProvider,
 	ethereumSpecsSourceProvider,
 	etherscanSourceProvider,
-	ethForksSourceProvider,
 	envioSourceProvider,
 	farcasterSourceProvider,
 	fedimintClientSourceProvider,
@@ -372,7 +336,6 @@ export default [
 	fxEmbedSourceProvider,
 	getBlockSourceProvider,
 	gitSourceProvider,
-	githubSourceProvider,
 	gitlabSourceProvider,
 	googleAiSourceProvider,
 	hashConnectSourceProvider,
@@ -394,13 +357,13 @@ export default [
 	kaspaWalletSdkSourceProvider,
 	kaswareWalletSourceProvider,
 	keplrSourceProvider,
+	kingnodesSourceProvider,
 	koiosSourceProvider,
 	l2BeatSourceProvider,
 	layerZeroScanSourceProvider,
 	leapSourceProvider,
 	ledgerFilecoinSourceProvider,
 	lensSourceProvider,
-	libtorrentSessionSourceProvider,
 	lifiSourceProvider,
 	lightningLndSourceProvider,
 	lightningMempoolSpaceSourceProvider,
@@ -418,7 +381,6 @@ export default [
 	mcpSourceProvider,
 	mempoolSpaceSourceProvider,
 	metadataVisionSourceProvider,
-	metaplexDASSourceProvider,
 	mevRelaySourceProvider,
 	mintscanSourceProvider,
 	mistralAiSourceProvider,
@@ -433,19 +395,15 @@ export default [
 	nearWalletSelectorSourceProvider,
 	neynarSourceProvider,
 	nfidSourceProvider,
-	nitroSourceProvider,
 	nodelySourceProvider,
 	nostrBandSourceProvider,
 	nostrRelaySourceProvider,
 	ociRegistrySourceProvider,
 	ogmiosSourceProvider,
-	oneInchSwapSourceProvider,
 	onnxSourceProvider,
 	openAISourceProvider,
 	openchainSourceProvider,
 	openSeaSourceProvider,
-	osmosisLCDSourceProvider,
-	paraswapSourceProvider,
 	pathfinderSourceProvider,
 	payjoinSourceProvider,
 	petraSourceProvider,
@@ -468,7 +426,6 @@ export default [
 	radicleNodeSourceProvider,
 	redditSourceProvider,
 	redditPublicSourceProvider,
-	reservoirSourceProvider,
 	rethSourceProvider,
 	rssSourceProvider,
 	rss2JsonSourceProvider,
@@ -482,7 +439,6 @@ export default [
 	sourcifySourceProvider,
 	spdxSourceProvider,
 	sqdSourceProvider,
-	starknetSourceProvider,
 	starkscanSourceProvider,
 	stellarExpertSourceProvider,
 	stellarHorizonSourceProvider,
@@ -496,7 +452,7 @@ export default [
 	swarmSourceProvider,
 	tallySourceProvider,
 	tezosDappetizerSourceProvider,
-	tezosNodeSourceProvider,
+	octezSourceProvider,
 	theGraphSourceProvider,
 	threeXplSourceProvider,
 	tonApiSourceProvider,
@@ -504,7 +460,6 @@ export default [
 	tonConnectSourceProvider,
 	tonlibSourceProvider,
 	tonLiteServerSourceProvider,
-	tonVerifierSourceProvider,
 	tradingViewSourceProvider,
 	transmissionSourceProvider,
 	tronFullNodeSourceProvider,
@@ -535,6 +490,5 @@ export default [
 	zcashLightwalletdSourceProvider,
 	zcashZipsSourceProvider,
 	zebraSourceProvider,
-	zeroExSwapSourceProvider,
 	zeroGSourceProvider,
 ] satisfies readonly SourceProviderDefinition[]

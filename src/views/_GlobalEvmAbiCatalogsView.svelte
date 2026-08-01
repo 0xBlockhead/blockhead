@@ -40,10 +40,6 @@
 			entityType={EntityType._GlobalEvmAbiCatalog}
 			entitySelector={globalEvmAbiCatalogSelector}
 		>
-			{#snippet Title()}
-				global EVM ABI catalog
-			{/snippet}
-
 			{#snippet Value()}
 				{globalEvmAbiCatalogSelector.scope}
 			{/snippet}

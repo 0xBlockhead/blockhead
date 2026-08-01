@@ -51,10 +51,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.claimPath || 'AI document claim'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={aiDocumentClaim}>
 			{#snippet children(entity)}
@@ -86,7 +82,6 @@
 					<AiDocumentView
 						selection={select(EntityType.AiDocument, selection.entitySelector.$document)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

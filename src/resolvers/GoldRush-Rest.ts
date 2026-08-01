@@ -50,11 +50,11 @@ export default {
 						if (chainName == null)
 							throw new Error(`GoldRushFoundational_Rest: unsupported chain ${$network.caip2.reference}`)
 
-						const { transaction } = await getTransaction({
+						const transaction = (await getTransaction({
 							chainId: 1,
 							chainName,
 							txHash,
-						})
+						})).items[0]
 						const fromAddress = hexLowerOfByteSize(transaction.from_address, 20)
 						const toAddress = transaction.to_address == null ? undefined : hexLowerOfByteSize(transaction.to_address, 20)
 						if (fromAddress == null)

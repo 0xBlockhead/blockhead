@@ -2,7 +2,7 @@ import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type {
 	GitObjectRequest,
 	GitRepositoryLocator,
-} from '$/sources/Git/Git/types.ts'
+} from '$/sources/_shared/wire/Git/types.ts'
 import {
 	gitObjectRequest,
 	gitRepositoryLocator,

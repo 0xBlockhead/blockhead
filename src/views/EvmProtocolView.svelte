@@ -83,12 +83,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Catalog surface for EVM signature, topic, and error registries.
-		</p>
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -213,13 +207,13 @@
 			{#snippet SectionEvmProtocolSelectors({ id, label, open })}
 				<EvmSelectorsView
 					selection={selection.$$evmSelectors}
-					href={resolve('/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selectors')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === 'EvmProtocol' ?
+							resolve('/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selectors')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No EVM selectors in this observed.'
 					id={`${id}-list`}
@@ -229,13 +223,13 @@
 			{#snippet SectionEvmProtocolTopics({ id, label, open })}
 				<EvmTopicsView
 					selection={selection.$$evmTopics}
-					href={resolve('/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topics')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === 'EvmProtocol' ?
+							resolve('/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topics')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No EVM topics in this observed.'
 					id={`${id}-list`}
@@ -267,13 +261,13 @@
 			{#snippet SectionEvmProtocolErrorList({ id, label, open })}
 				<EvmErrorsView
 					selection={selection.$$evmErrors}
-					href={resolve('/(explore)/(protocols)/evm/(evmProtocol)/(errors)/errors')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === 'EvmProtocol' ?
+							resolve('/(explore)/(protocols)/evm/(evmProtocol)/(errors)/errors')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No EVM errors in this observed.'
 					id={`${id}-list`}

@@ -40,10 +40,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.nodeId || 'bit torrent DHT node timestamp'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentDhtNodeTimestamp}>
 			{#snippet children(entity)}

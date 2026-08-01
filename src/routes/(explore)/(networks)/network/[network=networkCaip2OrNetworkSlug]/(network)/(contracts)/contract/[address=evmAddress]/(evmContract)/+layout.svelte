@@ -19,6 +19,16 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddress]',
+			{
+				network: params.network,
+				address: params.address,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,33 +39,19 @@
 
 {#key [params.network, params.address].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddress]',
-				{
-					network: params.network,
-					address: params.address,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<EvmContractView
 				selection={
-					select(EntityType.EvmContract, data.selector, { sources: [
-						Source.Constants_Internal,
-						Source.Blockscout_Rest,
-					] })
+					select(EntityType.EvmContract, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+							Source.Blockscout_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddress]',
-						{
-							network: params.network,
-							address: params.address,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

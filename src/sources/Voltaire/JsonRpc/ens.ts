@@ -6,22 +6,18 @@ import {
 	ensCoinTypes,
 	ensTextRecords,
 } from '$/constants/Ens.ts'
-import { TransportType } from '$/constants/TransportType.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-import type { SourceEndpoint } from '$/sources/SourceBinding.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-import { getProviderForExecutionUrl } from './queries.ts'
+import {
+	getProviderForExecutionUrl,
+	type ExecutionTransport,
+} from './queries.ts'
 
 const ENS_REGISTRY_MAINNET = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e' as const
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 const emptyStringRecord: Record<string, string> = {}
-
-type ExecutionTransport = {
-	endpoint: SourceEndpoint
-	transportType: TransportType
-}
 
 const ENS_REGISTRY_ABI = new Abi([
 	{
@@ -153,8 +149,8 @@ const decodedBytesAsHex = (value: JsonValue | Uint8Array) => (
 )
 
 const getRegistryAddress = async ({
+	binding,
 	endpoint,
-	transportType,
 	node,
 	method,
 }: ExecutionTransport & {
@@ -162,8 +158,8 @@ const getRegistryAddress = async ({
 	method: 'owner' | 'resolver'
 }) => {
 	const provider = await getProviderForExecutionUrl({
+		binding,
 		endpoint,
-		transportType,
 	})
 	const response = await provider.request({
 		method: 'eth_call',
@@ -185,8 +181,8 @@ const getRegistryAddress = async ({
 }
 
 const resolveAddr = async ({
+	binding,
 	endpoint,
-	transportType,
 	resolverAddress,
 	node,
 }: ExecutionTransport & {
@@ -194,8 +190,8 @@ const resolveAddr = async ({
 	node: `0x${string}`
 }) => {
 	const provider = await getProviderForExecutionUrl({
+		binding,
 		endpoint,
-		transportType,
 	})
 	const response = await provider.request({
 		method: 'eth_call',
@@ -217,8 +213,8 @@ const resolveAddr = async ({
 }
 
 const resolveText = async ({
+	binding,
 	endpoint,
-	transportType,
 	resolverAddress,
 	node,
 	key,
@@ -228,8 +224,8 @@ const resolveText = async ({
 	key: string
 }) => {
 	const provider = await getProviderForExecutionUrl({
+		binding,
 		endpoint,
-		transportType,
 	})
 	const response = await provider.request({
 		method: 'eth_call',
@@ -248,8 +244,8 @@ const resolveText = async ({
 }
 
 const resolveContentHash = async ({
+	binding,
 	endpoint,
-	transportType,
 	resolverAddress,
 	node,
 }: ExecutionTransport & {
@@ -257,8 +253,8 @@ const resolveContentHash = async ({
 	node: `0x${string}`
 }) => {
 	const provider = await getProviderForExecutionUrl({
+		binding,
 		endpoint,
-		transportType,
 	})
 	const response = await provider.request({
 		method: 'eth_call',
@@ -292,8 +288,8 @@ const resolverAbiJsonTextFromWire = (
 }
 
 const resolveResolverAbiJson = async ({
+	binding,
 	endpoint,
-	transportType,
 	resolverAddress,
 	node,
 }: ExecutionTransport & {
@@ -301,8 +297,8 @@ const resolveResolverAbiJson = async ({
 	node: `0x${string}`
 }) => {
 	const provider = await getProviderForExecutionUrl({
+		binding,
 		endpoint,
-		transportType,
 	})
 	const response = await provider.request({
 		method: 'eth_call',
@@ -340,8 +336,8 @@ const resolveResolverAbiJson = async ({
 }
 
 const resolveMulticoinAddr = async ({
+	binding,
 	endpoint,
-	transportType,
 	resolverAddress,
 	node,
 	coinType,
@@ -351,8 +347,8 @@ const resolveMulticoinAddr = async ({
 	coinType: number
 }) => {
 	const provider = await getProviderForExecutionUrl({
+		binding,
 		endpoint,
-		transportType,
 	})
 	const response = await provider.request({
 		method: 'eth_call',
@@ -380,8 +376,8 @@ const reverseNode = (address: `0x${string}`) => (
 )
 
 const resolveReverseName = async ({
+	binding,
 	endpoint,
-	transportType,
 	resolverAddress,
 	node,
 }: ExecutionTransport & {
@@ -389,8 +385,8 @@ const resolveReverseName = async ({
 	node: `0x${string}`
 }) => {
 	const provider = await getProviderForExecutionUrl({
+		binding,
 		endpoint,
-		transportType,
 	})
 	const response = await provider.request({
 		method: 'eth_call',
@@ -416,8 +412,8 @@ export const normalizeEnsName = (raw: string) => {
 }
 
 export const resolveEnsForwardForEndpoint = async ({
+	binding,
 	endpoint,
-	transportType,
 	name,
 	textKeys = ensTextRecords.map((row) => row.key),
 	coinTypeIds = ensCoinTypes.map((row) => Number(row.key)),
@@ -429,14 +425,14 @@ export const resolveEnsForwardForEndpoint = async ({
 	const node = bytes32FromNamehash(namehash(name))
 	const [owner, resolverAddress] = await Promise.all([
 		getRegistryAddress({
+			binding,
 			endpoint,
-			transportType,
 			node,
 			method: 'owner',
 		}),
 		getRegistryAddress({
+			binding,
 			endpoint,
-			transportType,
 			node,
 			method: 'resolver',
 		}),
@@ -454,8 +450,8 @@ export const resolveEnsForwardForEndpoint = async ({
 	}
 	const [address, textRecords, contentHash, resolverAbiJsonText, coinAddresses] = await Promise.all([
 		resolveAddr({
+			binding,
 			endpoint,
-			transportType,
 			resolverAddress,
 			node,
 		}),
@@ -464,8 +460,8 @@ export const resolveEnsForwardForEndpoint = async ({
 				[
 					key,
 					await resolveText({
+						binding,
 						endpoint,
-						transportType,
 						resolverAddress,
 						node,
 						key,
@@ -475,14 +471,14 @@ export const resolveEnsForwardForEndpoint = async ({
 		)
 			.then((entries) => Object.fromEntries(entries.filter(([, value]) => value !== ''))),
 		resolveContentHash({
+			binding,
 			endpoint,
-			transportType,
 			resolverAddress,
 			node,
 		}),
 		resolveResolverAbiJson({
+			binding,
 			endpoint,
-			transportType,
 			resolverAddress,
 			node,
 		}),
@@ -491,8 +487,8 @@ export const resolveEnsForwardForEndpoint = async ({
 				[
 					String(coinType),
 					await resolveMulticoinAddr({
+						binding,
 						endpoint,
-						transportType,
 						resolverAddress,
 						node,
 						coinType,
@@ -518,16 +514,16 @@ export const resolveEnsForwardForEndpoint = async ({
 }
 
 export const resolveEnsReverseForEndpoint = async ({
+	binding,
 	endpoint,
-	transportType,
 	address,
 }: ExecutionTransport & {
 	address: `0x${string}`
 }) => {
 	const node = reverseNode(address)
 	const resolverAddress = await getRegistryAddress({
+		binding,
 		endpoint,
-		transportType,
 		node,
 		method: 'resolver',
 	})
@@ -535,8 +531,8 @@ export const resolveEnsReverseForEndpoint = async ({
 			null
 		:
 			resolveReverseName({
+				binding,
 				endpoint,
-				transportType,
 				resolverAddress,
 			node,
 		})

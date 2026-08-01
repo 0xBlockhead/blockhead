@@ -36,14 +36,13 @@ import {
 	SourceEndpointKind,
 	SourceTargetKind,
 } from '$/sources/SourceBinding.ts'
-import { TransportType } from '$/constants/TransportType.ts'
 import {
 	enabledSources as browserEnabledSources,
 	sourceProviders,
 } from '$/sources/index.ts'
 import { loadResolvers } from '$/resolvers/index.ts'
-import { bitcoinNetworkBySlug } from '$/constants/BitcoinNetwork.ts'
 import { CoinId } from '$/constants/Coin.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import voltaireJsonRpc from '$/resolvers/Voltaire-JsonRpc.ts'
 
 const resolvers = await loadResolvers()
@@ -174,12 +173,8 @@ const validFixtureResolver = {
 
 describe('resolver registry live resolver architecture', () => {
 	it('registers only resolver modules with at least one definition', () => {
-		const activeResolverSources = resolvers.flatMap((resolverModule) => (
-			resolverModule.resolvers.length > 0 ?
-				[resolverModule.source]
-			:
-				[]
-		))
+		expect(resolvers.every((resolverModule) => resolverModule.resolvers.length > 0)).toBe(true)
+		const activeResolverSources = resolvers.map((resolverModule) => resolverModule.source)
 
 		expect(activeResolverSources.length).toBeGreaterThan(0)
 		expect(new Set(activeResolverSources).size).toBe(activeResolverSources.length)
@@ -188,6 +183,27 @@ describe('resolver registry live resolver architecture', () => {
 				sourceProvider.sources.some((sourceDefinition) => sourceDefinition.source === source)
 			))
 		))).toBe(true)
+	})
+
+	it('assigns each selector field capability to one resolver definition', () => {
+		const ownershipKeys = allSourceResolverParts.flatMap((part) => (
+			Object.keys(part.resolver.resolve).flatMap((selectorName) => [
+				...(part.select == null ? [] : ['value']),
+				...(part.resolveCount == null ? [] : ['count']),
+				...(part.resolveLive == null ? [] : ['live']),
+			].map((capability) => [
+				part.source,
+				part.entityType,
+				selectorName,
+				...part.facetPath,
+				part.fieldName,
+				capability,
+			].join('\0')))
+		))
+
+		expect(ownershipKeys.filter((ownershipKey, index) => (
+			ownershipKeys.indexOf(ownershipKey) !== index
+		))).toEqual([])
 	})
 
 	it('rejects invalid resolver definitions before runtime reads', () => {
@@ -408,6 +424,25 @@ describe('resolver registry live resolver architecture', () => {
 		))).toBe(true)
 	})
 
+	it('types projection fields declared by nested facets', () => {
+		expect(
+			defineResolver(Source.Blockscout_Rest, {
+				entityType: EntityType.EvmLog,
+				resolve: {
+					TransactionIndexInTransaction: {
+						resolve: async () => [],
+					},
+				},
+			})({
+				Event: {
+					TokenTransfer: {
+						$$tokenTransfers: (transfers) => transfers,
+					},
+				},
+			}).projections.Event.TokenTransfer.$$tokenTransfers
+		).toBeTypeOf('function')
+	})
+
 	it('indexes live definitions by materialized position instead of source/entity/field identity', () => {
 		const liveDefinitions = Object.values(resolverRootLivePartsByEntityType).flat()
 
@@ -490,19 +525,24 @@ describe('resolver registry live resolver architecture', () => {
 			voltaireJsonRpcTransports: {
 				transportsByChainId: {
 					1: [{
-						chainId: 1,
-						endpoint: voltaireMainnetHttpEndpoint,
-						transportType: TransportType.Http,
 						binding: voltaireMainnetBinding,
+						endpoint: voltaireMainnetHttpEndpoint,
+						diagnosticLabel: 'mainnet HTTP',
 					}],
 				},
-				transportByChainId: {
-					1: {
-						chainId: 1,
-						endpoint: voltaireMainnetHttpEndpoint,
-						transportType: TransportType.Http,
+				httpTransportsByChainId: {
+					1: [{
 						binding: voltaireMainnetBinding,
-					},
+						endpoint: voltaireMainnetHttpEndpoint,
+						diagnosticLabel: 'mainnet HTTP',
+					}],
+				},
+				providerTransportsByChainId: {
+					1: [{
+						binding: voltaireMainnetBinding,
+						endpoint: voltaireMainnetHttpEndpoint,
+						diagnosticLabel: 'mainnet HTTP',
+					}],
 				},
 			},
 		}))
@@ -1069,19 +1109,17 @@ describe('resolver registry live resolver architecture', () => {
 			voltaireJsonRpcTransports: {
 				transportsByChainId: {
 					1: [{
-						chainId: 1,
-						endpoint: voltaireMainnetHttpEndpoint,
-						transportType: TransportType.Http,
 						binding: voltaireMainnetBinding,
+						endpoint: voltaireMainnetHttpEndpoint,
+						diagnosticLabel: 'mainnet HTTP',
 					}],
 				},
-				transportByChainId: {
-					1: {
-						chainId: 1,
-						endpoint: voltaireMainnetHttpEndpoint,
-						transportType: TransportType.Http,
+				httpTransportsByChainId: {
+					1: [{
 						binding: voltaireMainnetBinding,
-					},
+						endpoint: voltaireMainnetHttpEndpoint,
+						diagnosticLabel: 'mainnet HTTP',
+					}],
 				},
 			},
 		}))
@@ -1157,35 +1195,6 @@ describe('resolver registry live resolver architecture', () => {
 			$network,
 			txHash,
 		}, resolverContext)).toEqual([{
-			[EntityMetaKey.Selector]: {
-				$transaction: {
-					$network,
-					txHash,
-				},
-				indexInTransaction: 3,
-			},
-		}])
-
-		const transactionLogsResolver = allSourceResolverDefinitions.find((candidate) => (
-			candidate.source === Source.Voltaire_JsonRpc
-			&& candidate.entityType === EntityType.EvmTransaction
-			&& Object.keys(candidate.projections).length === 1
-			&& '$$logs' in candidate.projections
-		))
-		const resolveTransactionLogs = transactionLogsResolver?.resolve['EvmNetworkTxHash']
-		if (transactionLogsResolver == null || resolveTransactionLogs == null)
-			throw new Error('Voltaire_JsonRpc: missing EvmTransaction.$$logs resolver')
-		expect(resolverFieldSelector(transactionLogsResolver, '$$logs')(
-			await resolveTransactionLogs({
-				$network,
-				txHash,
-			}, resolverContext),
-			{
-				$network,
-				txHash,
-			},
-			resolverContext
-		)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: {
 					$network,
@@ -1376,6 +1385,14 @@ describe('resolver registry live resolver architecture', () => {
 
 		vi.doMock('$/sources/Coingecko/Rest/queries.ts', () => ({
 			getCoin: vi.fn(async () => ({
+				id: 'ethereum',
+				symbol: 'eth',
+				name: 'Ethereum',
+				image: {
+					thumb: 'https://example.com/ethereum.png',
+					small: 'https://example.com/ethereum.png',
+					large: 'https://example.com/ethereum.png',
+				},
 				market_data: {
 					last_updated: '2024-01-02T03:04:05.000Z',
 					market_cap_rank: 2,
@@ -1436,12 +1453,6 @@ describe('resolver registry live resolver architecture', () => {
 				},
 				timestampMs: coingeckoTimestampMs,
 				source: Source.Coingecko_Rest,
-			},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.Coin_Timestamp, [], 'marketCapRank')]: 2,
-				[entityFieldAddressKey(EntityType.Coin_Timestamp, [], 'marketCapUsd')]: 123,
-				[entityFieldAddressKey(EntityType.Coin_Timestamp, [], 'transport')]: 'coingecko-coin',
-				[entityFieldAddressKey(EntityType.Coin_Timestamp, [], 'providerAssetId')]: 'ethereum',
 			},
 		}])
 
@@ -1689,10 +1700,6 @@ describe('resolver registry live resolver architecture', () => {
 				linkItem,
 			],
 		}))
-		const listNativeFeedItems = vi.fn(async () => [
-			guidItem,
-			linkItem,
-		])
 		const getRss2JsonFeed = vi.fn(async () => ({
 			status: 'ok',
 			feed: {},
@@ -1703,7 +1710,6 @@ describe('resolver registry live resolver architecture', () => {
 		}))
 		vi.doMock('$/sources/Rss/Rest/queries.ts', () => ({
 			getFeed: getNativeFeed,
-			listFeedItems: listNativeFeedItems,
 		}))
 		vi.doMock('$/sources/Rss2Json/Rest/queries.ts', () => ({
 			getFeed: getRss2JsonFeed,
@@ -1712,13 +1718,16 @@ describe('resolver registry live resolver architecture', () => {
 		for (const source of [Source.Rss_Rest, Source.Rss2Json_Rest]) {
 			const itemResolver = allSourceResolverDefinitions.find((resolver) => (
 				resolver.source === source
-				&& resolver.entityType === EntityType.RssItem
+					&& resolver.entityType === EntityType.RssItem
 			))
-			const feedItemsResolver = allSourceResolverDefinitions.find((resolver) => (
+			const feedResolvers = allSourceResolverDefinitions.filter((resolver) => (
 				resolver.source === source
-				&& resolver.entityType === EntityType.RssFeed
-				&& '$$items' in resolver.projections
+					&& resolver.entityType === EntityType.RssFeed
 			))
+			expect(feedResolvers).toHaveLength(1)
+			const [feedItemsResolver] = feedResolvers
+			expect(feedItemsResolver.projections).toHaveProperty('title')
+			expect(feedItemsResolver.projections).toHaveProperty('$$items')
 			const feedObservationResolver = allSourceResolverDefinitions.find((resolver) => (
 				resolver.source === source
 				&& resolver.entityType === EntityType.RssFeed_Timestamp
@@ -1728,7 +1737,7 @@ describe('resolver registry live resolver architecture', () => {
 				&& resolver.entityType === EntityType.RssItem_Timestamp
 			))
 			const resolveItem = itemResolver?.resolve['FeedIdentity']
-			const resolveFeedItems = feedItemsResolver?.resolve['FeedUrl']
+			const resolveFeedItems = feedItemsResolver.resolve['FeedUrl']
 			const resolveFeedObservation = feedObservationResolver?.resolve[
 				'FeedTimestampMsSource'
 			]
@@ -1831,19 +1840,19 @@ describe('resolver registry live resolver architecture', () => {
 			publicEnv: {},
 		}
 		const bitcoinNetworkSelector = {
-			caip2: bitcoinNetworkBySlug.bitcoin.caip2,
+			caip2: networkBySlug.bitcoin.caip2,
 		}
 		const bitcoinNetworkSlugSelector = {
 			slug: 'bitcoin',
 		}
 		const litecoinNetworkSelector = {
-			caip2: bitcoinNetworkBySlug.litecoin.caip2,
+			caip2: networkBySlug.litecoin.caip2,
 		}
 		const dogecoinNetworkSelector = {
-			caip2: bitcoinNetworkBySlug.dogecoin.caip2,
+			caip2: networkBySlug.dogecoin.caip2,
 		}
 		const zcashNetworkSelector = {
-			caip2: bitcoinNetworkBySlug.zcash.caip2,
+			caip2: networkBySlug.zcash.caip2,
 		}
 
 		vi.doMock('$/sources/Blockchair/Rest/queries.ts', () => ({
@@ -1864,6 +1873,9 @@ describe('resolver registry live resolver architecture', () => {
 			getBitcoinLikeBlockDashboard: vi.fn(async () => ({
 				data: {
 					'0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5': {
+						block: {
+							hash: '0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5',
+						},
 						transactions: [{
 							hash: 'blockchair-block-transaction',
 						}],
@@ -1995,8 +2007,23 @@ describe('resolver registry live resolver architecture', () => {
 			getBlockHashByHeight: vi.fn(async () => '0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5'),
 			getBlockTransactionIds: vi.fn(async () => ['mempoolspace-block-transaction']),
 			getTransaction: vi.fn(async () => ({
-				vin: [{}],
-				vout: [{}],
+				txid: 'mempoolspace-parent-transaction',
+				version: 2,
+				locktime: 0,
+				size: 100,
+				weight: 400,
+				status: {
+					confirmed: false,
+				},
+				vin: [{
+					is_coinbase: false,
+					sequence: 1,
+				}],
+				vout: [{
+					scriptpubkey: '51',
+					scriptpubkey_type: 'pubkey',
+					value: 1,
+				}],
 			})),
 		}))
 		vi.doMock('$/sources/ThreeXpl/Rest/queries.ts', () => ({
@@ -2429,13 +2456,13 @@ describe('resolver registry live resolver architecture', () => {
 				activityStreamsUri: 'https://mastodon.social/users/Gargron/statuses/116539053870420123',
 			})
 			expect(getAccountByLocalAccountId).toHaveBeenCalledTimes(1)
-			expect(getAccountByLocalAccountId).toHaveBeenCalledWith({}, 'https://mastodon.social', '13179')
+			expect(getAccountByLocalAccountId).toHaveBeenCalledWith('https://mastodon.social', '13179')
 			expect(getAccountByAcct).toHaveBeenCalledTimes(1)
-			expect(getAccountByAcct).toHaveBeenCalledWith({}, 'https://mastodon.social', 'Gargron')
+			expect(getAccountByAcct).toHaveBeenCalledWith('https://mastodon.social', 'Gargron')
 			expect(getAccountByActivityStreamsUri).toHaveBeenCalledTimes(1)
-			expect(getAccountByActivityStreamsUri).toHaveBeenCalledWith({}, 'https://mastodon.social/users/Gargron')
+			expect(getAccountByActivityStreamsUri).toHaveBeenCalledWith('https://mastodon.social/users/Gargron')
 			expect(getStatusByActivityStreamsUri).toHaveBeenCalledTimes(1)
-			expect(getStatusByActivityStreamsUri).toHaveBeenCalledWith({}, 'https://mastodon.social/users/Gargron/statuses/116539053870420123')
+			expect(getStatusByActivityStreamsUri).toHaveBeenCalledWith('https://mastodon.social/users/Gargron/statuses/116539053870420123')
 		}
 	})
 

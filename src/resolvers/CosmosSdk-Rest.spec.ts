@@ -45,6 +45,31 @@ const context = {
 }
 
 describe('Cosmos SDK endpoint resolver', () => {
+	it('keeps all six network projections exact across CAIP-2 and slug selectors', () => {
+		const pairedResolvers = cosmosSdk.resolvers.filter((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& 'Caip2' in resolver.resolve
+			&& 'Slug' in resolver.resolve
+		))
+		expect(pairedResolvers).toHaveLength(6)
+
+		for (const resolver of pairedResolvers) {
+			if (!('Caip2' in resolver.resolve) || !('Slug' in resolver.resolve))
+				throw new Error('Cosmos SDK paired network resolver is incomplete')
+
+			expect(resolver.resolve.Caip2.resolve).toBe(resolver.resolve.Slug.resolve)
+			expect(resolver.resolve.Caip2.appliesTo).toEqual([{
+				caip2: {
+					namespace: 'cosmos',
+					reference: 'cosmoshub-4',
+				},
+			}])
+			expect(resolver.resolve.Slug.appliesTo).toEqual([{
+				slug: 'cosmos',
+			}])
+		}
+	})
+
 	it('projects the declared executable REST endpoint as the field value', async () => {
 		const networkSelector = {
 			slug: 'cosmos',
@@ -101,7 +126,7 @@ describe('Cosmos SDK account list resolver', () => {
 		getJson.mockReset()
 	})
 
-	it('materializes base, module, and vesting accounts with timestamped auth state', async () => {
+	it('materializes base, module, and vesting account selectors with their authoritative count', async () => {
 		getJson.mockResolvedValueOnce({
 			accounts: [
 				{
@@ -134,9 +159,16 @@ describe('Cosmos SDK account list resolver', () => {
 			},
 		})
 
-		await expect(cosmosSdk.resolvers[16].resolve['Slug'].resolve({
+		const snapshot = await cosmosSdk.resolvers[16].resolve['Slug'].resolve({
 			slug: 'cosmos',
-		}, context)).resolves.toEqual([
+		}, context)
+		expect(cosmosSdk.resolvers[16].projections.Cosmos.$$accounts.select(
+			snapshot,
+			{
+				slug: 'cosmos',
+			},
+			context
+		)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: {
@@ -162,6 +194,13 @@ describe('Cosmos SDK account list resolver', () => {
 				},
 			},
 		])
+		expect(cosmosSdk.resolvers[16].projections.Cosmos.$$accounts.resolveCount(
+			snapshot,
+			{
+				slug: 'cosmos',
+			},
+			context
+		)).toBe(3_691_345)
 		expect(getJson).toHaveBeenCalledWith(
 			'https://rest.cosmos.directory/cosmoshub/cosmos/auth/v1beta1/accounts?pagination.limit=2&pagination.count_total=true',
 			expect.any(Object)
@@ -176,12 +215,22 @@ describe('Cosmos SDK account list resolver', () => {
 			},
 		})
 
-		await expect(cosmosSdk.resolvers[17].resolve['Caip2'].resolve({
+		const snapshot = await cosmosSdk.resolvers[16].resolve['Caip2'].resolve({
 			caip2: {
 				namespace: 'cosmos',
 				reference: 'cosmoshub-4',
 			},
-		}, context)).resolves.toBe(3691345)
+		}, context)
+		expect(cosmosSdk.resolvers[16].projections.Cosmos.$$accounts.resolveCount(
+			snapshot,
+			{
+				caip2: {
+					namespace: 'cosmos',
+					reference: 'cosmoshub-4',
+				},
+			},
+			context
+		)).toBe(3_691_345)
 	})
 })
 
@@ -273,6 +322,47 @@ describe('Cosmos SDK account detail resolver', () => {
 		})).toHaveLength(1)
 	})
 
+	it('projects one account timestamp snapshot without duplicating its account reference', async () => {
+		getJson.mockResolvedValueOnce({
+			account: {
+				address: 'cosmos1account',
+				account_number: '13',
+				sequence: '8',
+			},
+		})
+		const accountSelector = {
+			$network: {
+				slug: 'cosmos',
+			},
+			address: 'cosmos1account',
+		}
+		const timestampMs = Date.parse('2026-07-20T12:34:56.000Z')
+		const snapshot = await cosmosSdk.resolvers[5].resolve[
+			'AccountTimestampMsSource'
+		].resolve({
+			$account: accountSelector,
+			timestampMs,
+			source: Source.CosmosSdk_Rest,
+		}, context)
+
+		expect(snapshot).toEqual({
+			$account: {
+				[EntityMetaKey.Selector]: accountSelector,
+			},
+			timestampMs,
+			source: Source.CosmosSdk_Rest,
+			accountNumber: 13n,
+			sequence: 8n,
+		})
+		expect(cosmosSdk.resolvers[5].projections.$account(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: accountSelector,
+		})
+		expect(cosmosSdk.resolvers[5].projections.timestampMs(snapshot)).toBe(timestampMs)
+		expect(cosmosSdk.resolvers[5].projections.source(snapshot)).toBe(Source.CosmosSdk_Rest)
+		expect(cosmosSdk.resolvers[5].projections.accountNumber(snapshot)).toBe(13n)
+		expect(cosmosSdk.resolvers[5].projections.sequence(snapshot)).toBe(8n)
+	})
+
 	it('rejects an unsupported network before transport', async () => {
 		await expect(cosmosSdk.resolvers[4].resolve[
 			'NetworkAddress'
@@ -316,6 +406,114 @@ describe('Cosmos SDK account detail resolver', () => {
 	})
 })
 
+describe('Cosmos SDK validator timestamp resolver', () => {
+	beforeEach(() => {
+		getJson.mockReset()
+	})
+
+	it('projects one validator timestamp snapshot without duplicating its validator reference', async () => {
+		getJson.mockResolvedValueOnce({
+			validator: {
+				operator_address: 'cosmosvaloper1validator',
+				consensus_pubkey: {},
+				description: {
+					moniker: 'Validator',
+				},
+				jailed: false,
+				status: 'BOND_STATUS_BONDED',
+				tokens: '9007199254740993',
+			},
+		})
+		const validatorSelector = {
+			$network: {
+				slug: 'cosmos',
+			},
+			operatorAddress: 'cosmosvaloper1validator',
+		}
+		const timestampMs = Date.parse('2026-07-20T12:34:56.000Z')
+		const snapshot = await cosmosSdk.resolvers[7].resolve[
+			'ValidatorTimestampMsSource'
+		].resolve({
+			$validator: validatorSelector,
+			timestampMs,
+			source: Source.CosmosSdk_Rest,
+		}, context)
+
+		expect(snapshot).toEqual({
+			$validator: {
+				[EntityMetaKey.Selector]: validatorSelector,
+			},
+			timestampMs,
+			source: Source.CosmosSdk_Rest,
+			jailed: false,
+			status: 'BOND_STATUS_BONDED',
+			tokens: 9_007_199_254_740_993n,
+		})
+		expect(cosmosSdk.resolvers[7].projections.$validator(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: validatorSelector,
+		})
+		expect(cosmosSdk.resolvers[7].projections.timestampMs(snapshot)).toBe(timestampMs)
+		expect(cosmosSdk.resolvers[7].projections.source(snapshot)).toBe(Source.CosmosSdk_Rest)
+		expect(cosmosSdk.resolvers[7].projections.jailed(snapshot)).toBe(false)
+		expect(cosmosSdk.resolvers[7].projections.status(snapshot)).toBe('BOND_STATUS_BONDED')
+		expect(cosmosSdk.resolvers[7].projections.tokens(snapshot)).toBe(9_007_199_254_740_993n)
+	})
+})
+
+describe('Cosmos SDK message resolver', () => {
+	beforeEach(() => {
+		getJson.mockReset()
+	})
+
+	it('projects message fields and wraps each entity reference once', async () => {
+		getJson.mockResolvedValueOnce({
+			tx: {
+				body: {
+					messages: [{
+						'@type': '/cosmwasm.wasm.v1.MsgExecuteContract',
+						sender: 'cosmos1signer',
+						contract: 'cosmos1contract',
+					}],
+				},
+			},
+			tx_response: {},
+		})
+		const transactionSelector = {
+			$network: {
+				slug: 'cosmos',
+			},
+			txHash: 'ABC123',
+		}
+		const snapshot = await cosmosSdk.resolvers[8].resolve[
+			'TransactionIndexInTransaction'
+		].resolve({
+			$transaction: transactionSelector,
+			indexInTransaction: 0,
+		}, context)
+		const signer = {
+			[EntityMetaKey.Selector]: {
+				$network: transactionSelector.$network,
+				address: 'cosmos1signer',
+			},
+		}
+		const contract = {
+			[EntityMetaKey.Selector]: {
+				$network: transactionSelector.$network,
+				address: 'cosmos1contract',
+			},
+		}
+
+		expect(snapshot).toEqual({
+			typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
+			$signer: signer,
+			$contract: contract,
+		})
+		expect(cosmosSdk.resolvers[8].projections.typeUrl(snapshot)).toBe('/cosmwasm.wasm.v1.MsgExecuteContract')
+		expect(cosmosSdk.resolvers[8].projections.$signer(snapshot)).toEqual(signer)
+		expect(cosmosSdk.resolvers[8].projections.$contract(snapshot)).toEqual(contract)
+	})
+})
+
 describe('Cosmos SDK governance proposal resolver', () => {
 	beforeEach(() => {
 		getJson.mockReset()
@@ -337,6 +535,9 @@ describe('Cosmos SDK governance proposal resolver', () => {
 						},
 					}],
 				}],
+				pagination: {
+					total: '1',
+				},
 			})
 			.mockResolvedValueOnce({
 				proposal: {
@@ -370,9 +571,16 @@ describe('Cosmos SDK governance proposal resolver', () => {
 				},
 			})
 
-		await expect(cosmosSdk.resolvers[20].resolve['Slug'].resolve({
+		const proposalSnapshot = await cosmosSdk.resolvers[18].resolve['Slug'].resolve({
 			slug: 'cosmos',
-		}, context)).resolves.toEqual([{
+		}, context)
+		expect(cosmosSdk.resolvers[18].projections.Cosmos.$$governanceProposals.select(
+			proposalSnapshot,
+			{
+				slug: 'cosmos',
+			},
+			context
+		)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: {
 					slug: 'cosmos',
@@ -380,6 +588,13 @@ describe('Cosmos SDK governance proposal resolver', () => {
 				proposalId: '1',
 			},
 		}])
+		expect(cosmosSdk.resolvers[18].projections.Cosmos.$$governanceProposals.resolveCount(
+			proposalSnapshot,
+			{
+				slug: 'cosmos',
+			},
+			context
+		)).toBe(1)
 		await expect(cosmosSdk.resolvers[9].resolve[
 			'NetworkProposalId'
 		].resolve({
@@ -513,7 +728,7 @@ describe('Cosmos SDK account transaction resolver', () => {
 			total: '3',
 		})
 
-		const page = await cosmosSdk.resolvers[23].resolve[
+		const page = await cosmosSdk.resolvers[19].resolve[
 			'NetworkAddress'
 		].resolve(cosmosAccount, {
 			...context,
@@ -521,7 +736,7 @@ describe('Cosmos SDK account transaction resolver', () => {
 				limit: 3,
 			},
 		})
-		const transactions = cosmosSdk.resolvers[23].projections.$$transactions.select(
+		const transactions = cosmosSdk.resolvers[19].projections.$$transactions.select(
 			page,
 			cosmosAccount,
 			context
@@ -574,7 +789,7 @@ describe('Cosmos SDK account transaction resolver', () => {
 			fieldDefinition,
 			value: transactions,
 		})).toHaveLength(3)
-		expect(cosmosSdk.resolvers[23].projections.$$transactions.continuation(
+		expect(cosmosSdk.resolvers[19].projections.$$transactions.continuation(
 			page,
 			cosmosAccount,
 			context
@@ -597,7 +812,7 @@ describe('Cosmos SDK account transaction resolver', () => {
 			total: '3',
 		})
 
-		const continuedPage = await cosmosSdk.resolvers[23].resolve[
+		const continuedPage = await cosmosSdk.resolvers[19].resolve[
 			'NetworkAddress'
 		].resolve(cosmosAccount, {
 			...context,
@@ -606,7 +821,7 @@ describe('Cosmos SDK account transaction resolver', () => {
 			},
 			providerContinuationToken: '3',
 		})
-		expect(cosmosSdk.resolvers[23].projections.$$transactions.select(
+		expect(cosmosSdk.resolvers[19].projections.$$transactions.select(
 			continuedPage,
 			cosmosAccount,
 			context
@@ -615,7 +830,7 @@ describe('Cosmos SDK account transaction resolver', () => {
 			'https://rest.cosmos.directory/cosmoshub/cosmos/tx/v1beta1/txs?events=message.sender%3D%27cosmos1account%27&order_by=ORDER_BY_DESC&page=1&limit=6',
 			'https://rest.cosmos.directory/cosmoshub/cosmos/tx/v1beta1/txs?events=transfer.recipient%3D%27cosmos1account%27&order_by=ORDER_BY_DESC&page=1&limit=6',
 		])
-		expect(cosmosSdk.resolvers[23].projections.$$transactions.continuation(
+		expect(cosmosSdk.resolvers[19].projections.$$transactions.continuation(
 			continuedPage,
 			cosmosAccount,
 			context
@@ -629,16 +844,16 @@ describe('Cosmos SDK account transaction resolver', () => {
 			total: '0',
 		})
 
-		const page = await cosmosSdk.resolvers[23].resolve[
+		const page = await cosmosSdk.resolvers[19].resolve[
 			'NetworkAddress'
 		].resolve(cosmosAccount, context)
 
-		expect(cosmosSdk.resolvers[23].projections.$$transactions.select(
+		expect(cosmosSdk.resolvers[19].projections.$$transactions.select(
 			page,
 			cosmosAccount,
 			context
 		)).toEqual([])
-		expect(cosmosSdk.resolvers[23].projections.$$transactions.continuation(
+		expect(cosmosSdk.resolvers[19].projections.$$transactions.continuation(
 			page,
 			cosmosAccount,
 			context
@@ -683,7 +898,7 @@ describe('Cosmos SDK account transaction resolver', () => {
 			total: '0',
 		})
 
-		await expect(cosmosSdk.resolvers[23].resolve[
+		await expect(cosmosSdk.resolvers[19].resolve[
 			'NetworkAddress'
 		].resolve(cosmosAccount, context)).rejects.toThrow(error)
 	})

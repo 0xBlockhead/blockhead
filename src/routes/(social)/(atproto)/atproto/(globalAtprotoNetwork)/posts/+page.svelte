@@ -34,12 +34,8 @@
 
 	<AtprotoPostsView
 		href={resolve('/(social)/(atproto)/atproto/(globalAtprotoNetwork)/posts')}
-		title='AT Protocol posts'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='observed-posts'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

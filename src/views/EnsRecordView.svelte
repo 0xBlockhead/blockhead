@@ -59,16 +59,11 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.recordKey || 'ENS record'}
-	{/snippet}
-
 	{#snippet Value()}
 		<EnsNameView
 			selection={select(EntityType.EnsName, selection.entitySelector.$name)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -80,7 +75,6 @@
 					<EnsNameView
 						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

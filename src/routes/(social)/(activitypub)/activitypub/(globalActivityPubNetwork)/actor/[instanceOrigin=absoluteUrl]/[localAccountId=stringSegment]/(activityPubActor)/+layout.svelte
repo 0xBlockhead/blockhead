@@ -19,6 +19,16 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]',
+			{
+				instanceOrigin: params.instanceOrigin,
+				localAccountId: params.localAccountId,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,32 +39,18 @@
 
 {#key [params.instanceOrigin, params.localAccountId].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]',
-				{
-					instanceOrigin: params.instanceOrigin,
-					localAccountId: params.localAccountId,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<ActivityPubActorView
 				selection={
-					select(EntityType.ActivityPubActor, data.selector, { sources: [
-						Source.Mastodon_Rest,
-					] })
+					select(EntityType.ActivityPubActor, data.selector, {
+						sources: [
+							Source.Mastodon_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]',
-						{
-							instanceOrigin: params.instanceOrigin,
-							localAccountId: params.localAccountId,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

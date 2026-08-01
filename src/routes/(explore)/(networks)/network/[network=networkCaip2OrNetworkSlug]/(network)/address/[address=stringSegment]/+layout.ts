@@ -27,7 +27,8 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			address: params.address,
-		}
+		},
+		'NetworkAddress'
 	)
 	if (utxoAddressNetworkAddressSelector instanceof arktype.errors)
 		error(404, 'Invalid UtxoAddress selector')

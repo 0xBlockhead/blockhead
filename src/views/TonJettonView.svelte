@@ -47,10 +47,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		TON jetton
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -59,7 +55,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -83,7 +78,6 @@
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
 									prefetched={tonAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -117,12 +111,7 @@
 			{#snippet SectionTonJettonTransfers({ id, label, open })}
 				<TonJettonTransfersView
 					selection={selection.$$transfers}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No transfers.'
 					id={`${id}-list`}
@@ -158,12 +147,7 @@
 			{#snippet SectionTonJettonBalanceTimestamps({ id, label, open })}
 				<TonJettonBalance_TimestampsView
 					selection={selection.$$balanceTimestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No balance timestamps.'
 					id={`${id}-list`}
@@ -173,12 +157,7 @@
 			{#snippet SectionTonJettonTimestamps({ id, label, open })}
 				<TonJetton_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No timestamps.'
 					id={`${id}-list`}

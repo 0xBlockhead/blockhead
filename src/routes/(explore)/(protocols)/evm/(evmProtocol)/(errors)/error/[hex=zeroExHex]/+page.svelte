@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EvmError, data.selector, {
-		sources: [
-			Source.Openchain_Rest,
-		],
-		fields: {
-			signatures: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -39,6 +30,15 @@
 
 <Page>
 	<EvmErrorView
-		selection={pageSelection}
+		selection={
+			select(EntityType.EvmError, data.selector, {
+				sources: [
+					Source.Openchain_Rest,
+				],
+				fields: {
+					signatures: true,
+				},
+			})
+		}
 	/>
 </Page>

@@ -70,7 +70,6 @@
 					<FedimintGatewayView
 						selection={select(EntityType.FedimintGateway, selection.entitySelector.$gateway)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -1,8 +1,8 @@
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type {
-	RadicleObjectRequest,
-	RadicleRepositoryLocator,
-} from '$/sources/Radicle/Git/types.ts'
+	GitObjectRequest,
+	GitRepositoryLocator,
+} from '$/sources/_shared/wire/Git/types.ts'
 import {
 	gitObjectRequest,
 	gitRepositoryLocator,
@@ -10,14 +10,14 @@ import {
 
 export const radicleRepositoryLocator = (
 	binding: SourceBinding,
-	repository: RadicleRepositoryLocator
+	repository: GitRepositoryLocator
 ) => (
 	gitRepositoryLocator(binding, repository)
 )
 
 export const radicleObjectRequest = (
 	binding: SourceBinding,
-	request: RadicleObjectRequest
+	request: GitObjectRequest
 ) => (
 	gitObjectRequest(binding, request)
 )

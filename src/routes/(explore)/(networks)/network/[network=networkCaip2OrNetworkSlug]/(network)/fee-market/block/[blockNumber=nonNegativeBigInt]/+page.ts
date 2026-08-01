@@ -27,7 +27,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			blockNumber: BigInt(params.blockNumber),
-		}
+		},
+		'EvmNetworkBlockNumber'
 	)
 	if (evmNetworkGasFeeBlockEvmNetworkBlockNumberSelector instanceof arktype.errors)
 		error(404, 'Invalid EvmNetwork_GasFee_Block selector')

@@ -76,7 +76,6 @@
 					<ArweaveNetworkView
 						selection={select(EntityType.ArweaveNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

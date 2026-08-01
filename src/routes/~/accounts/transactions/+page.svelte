@@ -12,6 +12,7 @@
 
 
 	// State
+	const collectionHref = resolve('/~/accounts/transactions')
 	const collectionRoot0Selection = $derived(select(EntityType._Global, {
 		scope: '$$blockheadAccounts',
 	}).$$blockheadAccounts.$account)
@@ -91,13 +92,9 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<EvmTransactionsView
-					href={resolve('/~/accounts/transactions')}
-					title='EVM transactions'
+					href={collectionHref}
 					selection={collection0Selection}
 					id='account-evm-transaction'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}
@@ -107,13 +104,9 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<AptosTransactionsView
-					href={resolve('/~/accounts/transactions')}
-					title='Aptos transactions'
+					href={collectionHref}
 					selection={collection1Selection}
 					id='account-aptos-transaction'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}
@@ -123,13 +116,9 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<CardanoTransactionsView
-					href={resolve('/~/accounts/transactions')}
-					title='Cardano transactions'
+					href={collectionHref}
 					selection={collection2Selection}
 					id='account-cardano-transaction'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}
@@ -139,13 +128,10 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<CosmosTransactionsView
-					href={resolve('/~/accounts/transactions')}
+					href={collectionHref}
 					title='Cosmos transactions'
 					selection={collection3Selection}
 					id='account-cosmos-transaction'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}
@@ -155,13 +141,9 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<HederaTransactionsView
-					href={resolve('/~/accounts/transactions')}
-					title='Hedera transactions'
+					href={collectionHref}
 					selection={collection4Selection}
 					id='account-hedera-transaction'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}
@@ -171,13 +153,9 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<TronTransactionsView
-					href={resolve('/~/accounts/transactions')}
-					title='Tron transactions'
+					href={collectionHref}
 					selection={collection5Selection}
 					id='account-tron-transaction'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}
@@ -187,13 +165,9 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<UtxoTransactionsView
-					href={resolve('/~/accounts/transactions')}
-					title='UTXO transactions'
+					href={collectionHref}
 					selection={collection6Selection}
 					id='account-utxo-transaction'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}
@@ -203,13 +177,9 @@
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
 				<XrplTransactionsView
-					href={resolve('/~/accounts/transactions')}
-					title='XRPL transactions'
+					href={collectionHref}
 					selection={collection7Selection}
 					id='account-xrpl-transaction'
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
 				/>
 			{/if}
 		{/snippet}

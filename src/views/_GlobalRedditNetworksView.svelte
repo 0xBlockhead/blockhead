@@ -41,10 +41,6 @@
 			entityType={EntityType._GlobalRedditNetwork}
 			entitySelector={globalRedditNetwork[EntityMetaKey.Selector]}
 			href={resolve('/(social)/(reddit)/reddit')}
-		>
-			{#snippet Title()}
-				Reddit
-			{/snippet}
-		</EntityView>
+		/>
 	{/snippet}
 </EntitiesList>

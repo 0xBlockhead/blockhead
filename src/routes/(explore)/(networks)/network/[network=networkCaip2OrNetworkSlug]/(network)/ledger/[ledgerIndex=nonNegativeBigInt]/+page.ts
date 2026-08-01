@@ -21,7 +21,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			ledgerIndex: BigInt(params.ledgerIndex),
-		}
+		},
+		'NetworkLedgerIndex'
 	)
 	if (xrplLedgerNetworkLedgerIndexSelector instanceof arktype.errors)
 		error(404, 'Invalid XrplLedger selector')

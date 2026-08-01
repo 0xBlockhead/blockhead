@@ -27,7 +27,6 @@
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
 			Source.EigenLayerContracts_Evm,
-			Source.EigenLayerSubgraph_Graphql,
 			Source.Etherscan_Rest,
 			Source.Voltaire_JsonRpc,
 		],
@@ -65,10 +64,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.operatorAddress || 'eigen layer operator'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={eigenLayerOperator}>
 			{#snippet children(entity)}
@@ -82,7 +77,6 @@
 			<NetworkView
 				selection={select(EntityType.Network, selection.entitySelector.$network)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -250,7 +244,6 @@
 									selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
 									prefetched={evmNetworkAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -288,12 +281,7 @@
 			{#snippet SectionEigenlayerOperatorDelegations({ id, label, open })}
 				<EigenLayerDelegation_TimestampsView
 					selection={selection.$$delegations}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No EigenLayer delegation observations.'
 					id={`${id}-list`}
@@ -303,12 +291,7 @@
 			{#snippet SectionEigenlayerOperatorAllocations({ id, label, open })}
 				<EigenLayerAllocation_TimestampsView
 					selection={selection.$$allocations}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No EigenLayer allocation observations.'
 					id={`${id}-list`}
@@ -344,12 +327,7 @@
 			{#snippet SectionEigenlayerOperatorRewards({ id, label, open })}
 				<EigenLayerReward_TimestampsView
 					selection={selection.$$rewards}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No EigenLayer reward observations.'
 					id={`${id}-list`}
@@ -359,12 +337,7 @@
 			{#snippet SectionEigenlayerOperatorSlashing({ id, label, open })}
 				<EigenLayerSlashingEventsView
 					selection={selection.$$slashingEvents}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No EigenLayer slashing events.'
 					id={`${id}-list`}

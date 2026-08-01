@@ -1,11 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
 const bindings = [
 	{
-		source: Source.SigstoreRekor_Rest,
+		source: Source.SigstoreRekor,
 		target: {
 			kind: SourceTargetKind.Global,
 			key: 'transparency-log',
@@ -13,24 +13,36 @@ const bindings = [
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://rekor.sigstore.dev',
-				origin: 'https://rekor.sigstore.dev',
-				corsEnabled: false,
+				locator: 'https://rekor.sigstore.dev/',
+				corsEnabled: true,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.SigstoreRekorApi,
+		apiFamily: ApiFamily.OpenApiHttp,
 		operationGroups: [
-			SourceOperationGroup.AiArtifactCatalog,
+			SourceOperationGroup.SoftwareArtifactRegistry,
 			SourceOperationGroup.GenericRead,
 		],
-		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
+		delivery: SourceDelivery.BrowserDirect,
+		credentials: [],
+		artifacts: [
 			{
-				scope: SourceCredentialScope.None,
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/SigstoreRekor/OpenApi/openapi.yaml',
+				generated: true,
+				officialUrl: 'https://raw.githubusercontent.com/sigstore/rekor/main/openapi.yaml',
+			},
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/SigstoreRekor/OpenApi/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiTypes,
+				path: 'src/sources/SigstoreRekor/OpenApi/openapi.d.ts',
+				generated: true,
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.SigstoreRekor_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

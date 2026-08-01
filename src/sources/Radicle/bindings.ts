@@ -48,15 +48,8 @@ const bindings = [
 			SourceOperationGroup.RepositoryMetadata,
 		],
 		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.Radicle_Local]: typeof bindings[0]
-	readonly [Source.Radicle_Remote]: typeof bindings[1]
-}>(bindings)
+export default indexSourceBindings(bindings)

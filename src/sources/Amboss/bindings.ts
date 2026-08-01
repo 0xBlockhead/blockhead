@@ -14,7 +14,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.amboss.space/graphql',
-				origin: 'https://api.amboss.space',
 				corsEnabled: false,
 			},
 		],
@@ -38,7 +37,6 @@ const bindings = [
 			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/Amboss/Graphql/schema-source.ts',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.GraphqlTypes,
@@ -49,4 +47,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Amboss_Graphql]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

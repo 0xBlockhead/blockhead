@@ -8,10 +8,11 @@ import swagger2openapi from 'swagger2openapi'
 import YAML from 'yaml'
 
 /**
- * Syncs provider-local `src/sources/<Provider>/OpenApi/schema-source.ts` manifests.
+ * Syncs provider-local `schema-source.ts` manifests anywhere below
+ * `src/sources/<Provider>/OpenApi/`, including variant contracts such as `OpenApi/Pro/`.
  *
  * Replication contract:
- * 1. Add `src/sources/<Provider>/OpenApi/schema-source.ts`
+ * 1. Add a `schema-source.ts` below `src/sources/<Provider>/OpenApi/`
  * 2. Export `schemaSource` with `schemaUrl`, `schemaFile`, `typesFile`
  * 3. Run `pnpm run sources:openapi` to sync all, or `-- <Provider>` to sync one
  */
@@ -27,27 +28,30 @@ const rootDir = resolve(
 )
 const sourcesDir = join(rootDir, 'src/sources')
 
-const discoverProviders = async (filter?: string): Promise<string[]> => {
-	const providers: string[] = []
-	for await (const manifestPath of glob('*/OpenApi/schema-source.ts', { cwd: sourcesDir })) {
-		const provider = manifestPath.split('/')[0]
-		if (filter == null || provider === filter) providers.push(provider)
-	}
-	if (filter != null && providers.length === 0) throw new Error(`No OpenAPI source found matching: ${filter}`)
-	return providers
+const discoverSchemaSources = async (filter?: string) => {
+	const manifestFiles = new Set<string>()
+	for (const pattern of [
+		'*/OpenApi/schema-source.ts',
+		'*/OpenApi/**/schema-source.ts',
+	])
+		for await (const manifestPath of glob(pattern, { cwd: sourcesDir })) {
+			const provider = manifestPath.split('/')[0]
+			if (filter == null || provider === filter)
+				manifestFiles.add(resolve(sourcesDir, manifestPath))
+		}
+
+	if (filter != null && manifestFiles.size === 0)
+		throw new Error(`No OpenAPI source found matching: ${filter}`)
+
+	return [...manifestFiles].sort()
 }
 
-const loadSchemaSource = async (provider: string): Promise<{
+const loadSchemaSource = async (manifestFile: string): Promise<{
 	manifest: OpenApiSchemaSource
 	manifestFile: string
 	schemaFile: string
 	typesFile: string
 }> => {
-	const manifestFile = resolve(
-		sourcesDir,
-		provider,
-		'OpenApi/schema-source.ts'
-	)
 	const module = await import(pathToFileURL(manifestFile).href)
 	const manifest = module.schemaSource as OpenApiSchemaSource | undefined
 
@@ -145,7 +149,10 @@ const parseSchema = async (
 
 	const converted = (
 		typeof parsedSchema?.swagger === 'string' ?
-			(await swagger2openapi.convertObj(parsedSchema, {})).openapi
+			(await swagger2openapi.convertObj(parsedSchema, {
+				resolve: true,
+				source: schemaFile,
+			})).openapi
 		:
 			parsedSchema
 	)
@@ -175,7 +182,7 @@ const downloadSchema = async ({
 	console.log(`Downloaded schema to ${schemaFile}`)
 }
 
-const localRefPattern = /\$ref:\s*['"]?(\.{1,2}\/[^'"\s#]+)(?:#[^'"\s]*)?['"]?|"\$ref"\s*:\s*"(\.{1,2}\/[^"#]+)(?:#[^"]*)?"/g
+const localRefPattern = /\$ref:\s*['"]?((?:\.{1,2}\/)?(?!\/)[^'"\s#:]+)(?:#[^'"\s]*)?['"]?|"\$ref"\s*:\s*"((?:\.{1,2}\/)?(?!\/)[^"#:]+)(?:#[^"]*)?"/g
 
 const syncLocalOpenApiRefs = async ({
 	manifest,
@@ -229,7 +236,7 @@ const generateTypes = async ({
 	const schemaText = await readFile(schemaFile, 'utf8')
 
 	const output = await openapiTS(
-		hasLocalOpenApiRefs(schemaText) ?
+		hasLocalOpenApiRefs(schemaText) && !/^(?:\s|#)*swagger:/m.test(schemaText) ?
 			pathToFileURL(schemaFile)
 		:
 			await parseSchema(
@@ -246,9 +253,9 @@ const generateTypes = async ({
 	console.log(`Generated types at ${typesFile}`)
 }
 
-const checkTypes = async (provider: string) => {
-	console.log(`Checking ${provider}`)
-	const { schemaFile, typesFile } = await loadSchemaSource(provider)
+const checkTypes = async (manifestFile: string) => {
+	console.log(`Checking ${manifestFile.slice(sourcesDir.length + 1)}`)
+	const { schemaFile, typesFile } = await loadSchemaSource(manifestFile)
 	const tempDir = await mkdtemp(join(tmpdir(), 'blockhead-openapi-'))
 	const tempTypesFile = join(tempDir, 'openapi.d.ts')
 
@@ -267,15 +274,15 @@ const checkTypes = async (provider: string) => {
 		])
 
 		if (actual !== expected)
-			throw new Error(`${provider}: generated OpenAPI types drift from checked-in ${typesFile}`)
+			throw new Error(`${manifestFile}: generated OpenAPI types drift from checked-in ${typesFile}`)
 	} finally {
 		await rm(tempDir, { recursive: true, force: true })
 	}
 }
 
-const syncProvider = async (provider: string) => {
-	const { manifest, schemaFile, typesFile } = await loadSchemaSource(provider)
-	console.log(`Syncing ${provider}`)
+const syncSchemaSource = async (manifestFile: string) => {
+	const { manifest, schemaFile, typesFile } = await loadSchemaSource(manifestFile)
+	console.log(`Syncing ${manifestFile.slice(sourcesDir.length + 1)}`)
 	await downloadSchema({
 		manifest,
 		schemaFile,
@@ -295,9 +302,9 @@ const [
 	filterAfterMode,
 ] = process.argv.slice(2).filter((arg) => arg !== '--')
 const check = modeOrFilter === 'check'
-for (const provider of await discoverProviders(check ? filterAfterMode : modeOrFilter)) {
+for (const manifestFile of await discoverSchemaSources(check ? filterAfterMode : modeOrFilter)) {
 	if (check)
-		await checkTypes(provider)
+		await checkTypes(manifestFile)
 	else
-		await syncProvider(provider)
+		await syncSchemaSource(manifestFile)
 }

@@ -11,7 +11,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['XMTP transports encrypted payloads between inbox identities. This hub shows local conversation state from the seeded.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.XmtpNetwork> = $props()
@@ -26,7 +25,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.XmtpNetwork}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {
@@ -49,6 +47,10 @@
 		>
 			{#snippet Title()}
 				{xmtpNetwork.protocolName || 'XMTP'}
+			{/snippet}
+
+			{#snippet Value()}
+				XMTP
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -25,10 +25,6 @@ export default {
 			source: Source.PythBenchmarks_Rest,
 			label: 'Pyth benchmarks REST',
 		},
-		{
-			source: Source.PythPriceFeedsCatalog_Rest,
-			label: 'Pyth price feeds catalog REST',
-		},
 	],
 	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

@@ -48,15 +48,10 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.requestId || 'zero g service request'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ZeroGServiceProviderView
 			selection={select(EntityType.ZeroGServiceProvider, selection.entitySelector.$serviceProvider)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -71,7 +66,6 @@
 							selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 							prefetched={evmAccount}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -87,7 +81,6 @@
 					<ZeroGServiceProviderView
 						selection={select(EntityType.ZeroGServiceProvider, selection.entitySelector.$serviceProvider)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -111,7 +104,6 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -175,7 +167,6 @@
 									selection={select(EntityType.ZeroGSettlementTrace, zeroGSettlementTrace[EntityMetaKey.Selector])}
 									prefetched={zeroGSettlementTrace}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

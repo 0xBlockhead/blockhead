@@ -21,13 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FilecoinNetwork> = $props()
 
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.Lotus_JsonRpc,
-		],
-	}))
-	const titleFallback = 'filecoin network'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -40,7 +33,7 @@
 <EntityView
 	entityType={EntityType.FilecoinNetwork}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'filecoin network'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -50,18 +43,11 @@
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{titleFallback}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Filecoin-specific view over a canonical Network row, including Lotus endpoints, chain head observations, and tipsets.
-		</p>
+		Filecoin
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -72,7 +58,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -82,7 +67,11 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							viewSelection({
+							selection({
+								sources: selection.sources ?? [
+									Source.Lotus_JsonRpc,
+								],
+							})({
 								fields: {
 									rpcEndpoints: true,
 								},

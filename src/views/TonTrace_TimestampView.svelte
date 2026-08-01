@@ -36,10 +36,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		TON trace timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +44,6 @@
 					<TonTraceView
 						selection={select(EntityType.TonTrace, selection.entitySelector.$trace)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

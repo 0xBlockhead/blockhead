@@ -21,7 +21,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			channelId: params.channelId,
-		}
+		},
+		'NetworkChannelId'
 	)
 	if (lightningChannelNetworkChannelIdSelector instanceof arktype.errors)
 		error(404, 'Invalid LightningChannel selector')

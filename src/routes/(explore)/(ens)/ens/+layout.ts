@@ -13,7 +13,8 @@ export const load: LayoutLoad = ({ params }) => {
 		_GlobalEnsNetworkSchema,
 		{
 			scope: '_GlobalEnsNetwork',
-		}
+		},
+		'Scope'
 	)
 	if (globalEnsNetworkScopeSelector instanceof arktype.errors)
 		error(404, 'Invalid _GlobalEnsNetwork selector')

@@ -10,7 +10,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -26,15 +25,10 @@
 <EntityView
 	entityType={EntityType.RadicleIdentityRevision}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'radicle identity revision'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		radicle identity revision
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>

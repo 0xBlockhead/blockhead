@@ -94,7 +94,7 @@ export const getBlock = <_Verbosity extends 0 | 1 | 2 = 2>({
 	)
 }
 
-export const getRawTransaction = async ({
+export const getRawTransaction = ({
 	txId,
 }: {
 	txId: string

@@ -746,6 +746,23 @@ type EntitySelectorFieldValue<
 :
 	never
 
+type EntitySelectorFromSelectorDefinition<
+	_Schema extends Schema,
+	_EntityDefinition extends EntityDefinition,
+	_SelectorDefinition,
+> = (
+	_SelectorDefinition extends {
+		readonly fields: infer _Fields extends readonly string[]
+	} ?
+		{
+			readonly [
+				_FieldName in _Fields[number]
+			]: EntitySelectorFieldValue<_Schema, _EntityDefinition, _FieldName>
+		}
+	:
+		never
+)
+
 type EntitySelectorFromDefinition<
 	_Schema extends Schema,
 	_EntityDefinition,
@@ -753,19 +770,7 @@ type EntitySelectorFromDefinition<
 	_EntityDefinition extends EntityDefinition & {
 		readonly selectors: infer _Selectors extends readonly EntitySelectorDefinition[]
 	} ?
-		_Selectors[number] extends infer _Selector ?
-			_Selector extends {
-				readonly fields: infer _Fields extends readonly string[]
-			} ?
-				{
-					readonly [
-						_FieldName in _Fields[number]
-					]: EntitySelectorFieldValue<_Schema, _EntityDefinition, _FieldName>
-				}
-			:
-				never
-		:
-			never
+		EntitySelectorFromSelectorDefinition<_Schema, _EntityDefinition, _Selectors[number]>
 	:
 		never
 )
@@ -774,22 +779,14 @@ export type EntitySelectorForSelectorName<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 	_SelectorName extends string,
-> = Extract<
-	EntityDefinitionForEntityType<_Schema, _EntityType>['selectors'][number],
-	{ readonly name: _SelectorName }
-> extends infer _Selector ?
-	_Selector extends {
-		readonly fields: infer _Fields extends readonly string[]
-	} ?
-		{
-			readonly [
-				_FieldName in _Fields[number]
-			]: EntitySelectorFieldValue<_Schema, EntityDefinitionForEntityType<_Schema, _EntityType>, _FieldName>
-		}
-	:
-		never
-:
-	never
+> = EntitySelectorFromSelectorDefinition<
+	_Schema,
+	EntityDefinitionForEntityType<_Schema, _EntityType>,
+	Extract<
+		EntityDefinitionForEntityType<_Schema, _EntityType>['selectors'][number],
+		{ readonly name: _SelectorName }
+	>
+>
 
 const entitySelectorObjectRecord = (
 	value: object
@@ -901,6 +898,20 @@ const parseNamedEntitySelector = <
 export function parseEntitySelector<
 	const _Schema extends Schema,
 	const _EntityDefinition extends EntityDefinition,
+	const _SelectorName extends _EntityDefinition['selectors'][number]['name'],
+>(
+	schema: _Schema,
+	entityDefinition: _EntityDefinition,
+	value: unknown,
+	selectorName: _SelectorName
+): EntitySelectorFromSelectorDefinition<
+	_Schema,
+	_EntityDefinition,
+	Extract<_EntityDefinition['selectors'][number], { readonly name: _SelectorName }>
+> | InstanceType<typeof arktype.errors>
+export function parseEntitySelector<
+	const _Schema extends Schema,
+	const _EntityDefinition extends EntityDefinition,
 >(
 	schema: _Schema,
 	entityDefinition: _EntityDefinition,
@@ -909,10 +920,19 @@ export function parseEntitySelector<
 export function parseEntitySelector(
 	schema: Schema,
 	entityDefinition: EntityDefinition,
-	value: unknown
+	value: unknown,
+	selectorName?: string
 ): EntitySelectorFromDefinition<Schema, EntityDefinition> | InstanceType<typeof arktype.errors> {
 	if (value == null || typeof value !== 'object')
 		return arktype('never')(value)
+
+	if (selectorName != null) {
+		const selector = entityDefinition.selectors.find((candidate) => candidate.name === selectorName)
+		return selector == null ?
+			arktype('never')(value)
+		:
+			parseNamedEntitySelector(schema, entityDefinition, selector, value)
+	}
 
 	for (const selector of entityDefinition.selectors) {
 		const parsed = parseNamedEntitySelector(schema, entityDefinition, selector, value)

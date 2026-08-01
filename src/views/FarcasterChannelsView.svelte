@@ -55,7 +55,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{farcasterChannelSelector.id}
+				{['/', farcasterChannelSelector.id].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

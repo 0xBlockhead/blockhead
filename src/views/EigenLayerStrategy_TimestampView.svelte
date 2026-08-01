@@ -25,7 +25,6 @@
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
 			Source.EigenLayerContracts_Evm,
-			Source.EigenLayerSubgraph_Graphql,
 			Source.Etherscan_Rest,
 			Source.Voltaire_JsonRpc,
 		],
@@ -57,7 +56,6 @@
 		<EigenLayerStrategyView
 			selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -88,7 +86,6 @@
 					<EigenLayerStrategyView
 						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

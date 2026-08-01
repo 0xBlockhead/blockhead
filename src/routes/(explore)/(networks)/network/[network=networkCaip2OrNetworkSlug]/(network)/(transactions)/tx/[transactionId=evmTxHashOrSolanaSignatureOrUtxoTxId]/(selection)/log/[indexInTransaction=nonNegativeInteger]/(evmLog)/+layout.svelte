@@ -19,6 +19,17 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/log/[indexInTransaction=nonNegativeInteger]',
+			{
+				network: params.network,
+				transactionId: params.transactionId,
+				indexInTransaction: params.indexInTransaction,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,34 +40,18 @@
 
 {#key [params.network, params.transactionId, params.indexInTransaction].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/log/[indexInTransaction=nonNegativeInteger]',
-				{
-					network: params.network,
-					transactionId: params.transactionId,
-					indexInTransaction: params.indexInTransaction,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<EvmLogView
 				selection={
-					select(EntityType.EvmLog, data.selector, { sources: [
-						Source.Blockscout_Rest,
-					] })
+					select(EntityType.EvmLog, data.selector, {
+						sources: [
+							Source.Blockscout_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/log/[indexInTransaction=nonNegativeInteger]',
-						{
-							network: params.network,
-							transactionId: params.transactionId,
-							indexInTransaction: params.indexInTransaction,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

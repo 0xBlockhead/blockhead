@@ -46,10 +46,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.path || 'Git tree entry'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={gitTreeEntry}>
 			{#snippet children(entity)}
@@ -76,7 +72,6 @@
 					<GitTreeView
 						selection={select(EntityType.GitTree, selection.entitySelector.$tree)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -145,7 +140,6 @@
 									selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
 									prefetched={gitObject}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

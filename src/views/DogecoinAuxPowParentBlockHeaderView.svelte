@@ -54,7 +54,6 @@
 		<DogecoinBlockAuxPowView
 			selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -74,7 +73,6 @@
 					<DogecoinBlockAuxPowView
 						selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

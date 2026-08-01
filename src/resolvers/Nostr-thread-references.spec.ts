@@ -14,21 +14,18 @@ import { nostrEventId } from '$/sources/NostrRelay/Nip01/event.ts'
 const getNostrBandEventById = vi.hoisted(() => vi.fn())
 const getPrimalEventById = vi.hoisted(() => vi.fn())
 const getPrimalProfile = vi.hoisted(() => vi.fn())
-const listNostrBandAuthorArticles = vi.hoisted(() => vi.fn())
-const listNostrBandAuthorMetadataEvents = vi.hoisted(() => vi.fn())
-const listNostrBandRecentTextNotes = vi.hoisted(() => vi.fn())
+const listNostrBandAuthorEvents = vi.hoisted(() => vi.fn())
+const listNostrBandRecentEvents = vi.hoisted(() => vi.fn())
 const listNostrBandTopProfiles = vi.hoisted(() => vi.fn())
 const listNostrBandNoteReactions = vi.hoisted(() => vi.fn())
 const listNostrBandNoteReplies = vi.hoisted(() => vi.fn())
 const getPrimalProfileArticles = vi.hoisted(() => vi.fn())
-const getPrimalNoteReactions = vi.hoisted(() => vi.fn())
-const getPrimalNoteReplies = vi.hoisted(() => vi.fn())
+const getPrimalNoteActions = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/NostrBand/Rest/queries.ts', () => ({
 	getEventById: getNostrBandEventById,
-	listAuthorArticles: listNostrBandAuthorArticles,
-	listAuthorMetadataEvents: listNostrBandAuthorMetadataEvents,
-	listRecentTextNotes: listNostrBandRecentTextNotes,
+	listAuthorEvents: listNostrBandAuthorEvents,
+	listRecentEvents: listNostrBandRecentEvents,
 	listTopProfiles: listNostrBandTopProfiles,
 	listNoteReactions: listNostrBandNoteReactions,
 	listNoteReplies: listNostrBandNoteReplies,
@@ -36,8 +33,7 @@ vi.mock('$/sources/NostrBand/Rest/queries.ts', () => ({
 vi.mock('$/sources/Primal/Rest/queries.ts', () => ({
 	getEventById: getPrimalEventById,
 	getProfile: getPrimalProfile,
-	getNoteReactions: getPrimalNoteReactions,
-	getNoteReplies: getPrimalNoteReplies,
+	getNoteActions: getPrimalNoteActions,
 	getProfileArticles: getPrimalProfileArticles,
 }))
 
@@ -322,8 +318,9 @@ describe('Nostr thread references', () => {
 				listNostrBandNoteReplies.mockResolvedValueOnce({ events: [invalidReply, wrongReply, validReply] })
 				listNostrBandNoteReactions.mockResolvedValueOnce({ events: [wrongReaction, validReaction] })
 			} else {
-				getPrimalNoteReplies.mockResolvedValueOnce({ events: [invalidReply, wrongReply, validReply] })
-				getPrimalNoteReactions.mockResolvedValueOnce({ events: [wrongReaction, validReaction] })
+				getPrimalNoteActions
+					.mockResolvedValueOnce({ events: [invalidReply, wrongReply, validReply] })
+					.mockResolvedValueOnce({ events: [wrongReaction, validReaction] })
 			}
 
 			await expect(repliesResolver.resolve['CanonicalEventId'].resolve({
@@ -336,6 +333,20 @@ describe('Nostr thread references', () => {
 			}, resolverContext)).resolves.toEqual([{
 				[EntityMetaKey.Selector]: { eventId: validReaction.id },
 			}])
+			if (source === 'Primal') {
+				expect(getPrimalNoteActions).toHaveBeenNthCalledWith(
+					1,
+					replyEventId,
+					1,
+					expect.any(Number)
+				)
+				expect(getPrimalNoteActions).toHaveBeenNthCalledWith(
+					2,
+					replyEventId,
+					7,
+					expect.any(Number)
+				)
+			}
 		})
 
 		it(`${source} selects an article coordinate after validating sibling rows`, async () => {
@@ -346,7 +357,7 @@ describe('Nostr thread references', () => {
 			}
 			const target = signedEvent([['d', 'target']], 30_023, 'target')
 			if (source === 'NostrBand')
-				listNostrBandAuthorArticles.mockResolvedValueOnce({ events: [sibling, invalidTarget, target] })
+				listNostrBandAuthorEvents.mockResolvedValueOnce({ events: [sibling, invalidTarget, target] })
 			else
 				getPrimalProfileArticles.mockResolvedValueOnce({ events: [sibling, invalidTarget, target] })
 
@@ -359,7 +370,13 @@ describe('Nostr thread references', () => {
 				identifier: 'target',
 			}))
 			if (source === 'NostrBand')
-				listNostrBandAuthorArticles.mockResolvedValueOnce({ events: [sibling, invalidTarget] })
+				expect(listNostrBandAuthorEvents).toHaveBeenLastCalledWith(
+					pubkey,
+					expect.any(Number),
+					[30_023]
+				)
+			if (source === 'NostrBand')
+				listNostrBandAuthorEvents.mockResolvedValueOnce({ events: [sibling, invalidTarget] })
 			else
 				getPrimalProfileArticles.mockResolvedValueOnce({ events: [sibling, invalidTarget] })
 
@@ -393,7 +410,7 @@ describe('Nostr thread references', () => {
 				{ pubkey: validProfile.pubkey, profile: validProfile },
 			],
 		})
-		listNostrBandRecentTextNotes.mockResolvedValueOnce({ events: [invalidNote, validNote] })
+		listNostrBandRecentEvents.mockResolvedValueOnce({ events: [invalidNote, validNote] })
 
 		await expect(profilesResolver.resolve['Scope'].resolve(
 			{},
@@ -407,6 +424,10 @@ describe('Nostr thread references', () => {
 		)).resolves.toEqual([{
 			[EntityMetaKey.Selector]: { eventId: validNote.id },
 		}])
+		expect(listNostrBandRecentEvents).toHaveBeenCalledWith(
+			expect.any(Number),
+			[1]
+		)
 	})
 
 	it('NostrBand materializes signed profile and article versions with deterministic latest references', async () => {
@@ -439,7 +460,7 @@ describe('Nostr thread references', () => {
 			|| profileEventResolver == null
 		) throw new Error('NostrBand spec missing version materialization resolver')
 
-		listNostrBandAuthorArticles.mockResolvedValueOnce({ events: articleVersions.toReversed() })
+		listNostrBandAuthorEvents.mockResolvedValueOnce({ events: articleVersions.toReversed() })
 		const article = await articleResolver.resolve['CanonicalCoordinate'].resolve({
 			identifier: 'target',
 			kind: 30_023,
@@ -449,6 +470,11 @@ describe('Nostr thread references', () => {
 		expect(article.$latestEvent[EntityMetaKey.Selector]).toEqual({ eventId: articleVersions[0].id })
 		expect(article.$$events.map((event) => event[EntityMetaKey.Selector])).toEqual(
 			articleVersions.map((event) => ({ eventId: event.id }))
+		)
+		expect(listNostrBandAuthorEvents).toHaveBeenLastCalledWith(
+			pubkey,
+			expect.any(Number),
+			[30_023]
 		)
 
 		getNostrBandEventById.mockResolvedValueOnce({ event: articleVersions[0] })
@@ -461,7 +487,7 @@ describe('Nostr thread references', () => {
 			tags: articleVersions[0].tags,
 		}))
 
-		listNostrBandAuthorMetadataEvents.mockResolvedValueOnce({ events: profileVersions.toReversed() })
+		listNostrBandAuthorEvents.mockResolvedValueOnce({ events: profileVersions.toReversed() })
 		const profile = await profileResolver.resolve['CanonicalPubkey'].resolve({
 			pubkey,
 		}, resolverContext)
@@ -469,6 +495,11 @@ describe('Nostr thread references', () => {
 		expect(profile.$latestMetadataEvent[EntityMetaKey.Selector]).toEqual({ eventId: profileVersions[0].id })
 		expect(profile.$$metadataEvents.map((event) => event[EntityMetaKey.Selector])).toEqual(
 			profileVersions.map((event) => ({ eventId: event.id }))
+		)
+		expect(listNostrBandAuthorEvents).toHaveBeenLastCalledWith(
+			pubkey,
+			expect.any(Number),
+			[0]
 		)
 
 		getNostrBandEventById.mockResolvedValueOnce({ event: profileVersions[0] })

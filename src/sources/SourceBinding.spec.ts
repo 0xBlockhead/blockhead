@@ -20,7 +20,9 @@ import {
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceTargetKind,
+	WireProtocol,
 	sourceBindingId,
+	sourceEndpointOrigin,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 import generatedSourceProviders from '$/sources/$sourceProviders.ts'
@@ -55,6 +57,27 @@ const sourceMember = (
 ) => (Source as Record<string, Source | undefined>)[name]
 
 describe('source binding indexes', () => {
+	it('derives binding identity from only the five stable selection axes', () => {
+		const binding = sourceBindings.find(({ source }) => source === Source.Blockscout_Rest)
+		expect(binding).toBeDefined()
+		if (binding == null)
+			throw new Error('Blockscout binding is missing')
+
+		const identity = JSON.stringify([
+			binding.source,
+			binding.target.kind,
+			binding.target.key,
+			binding.delivery,
+			binding.apiFamily,
+		])
+		expect(sourceBindingId(binding)).toBe(identity)
+		const wireProtocolMutation = {
+			...binding,
+			wireProtocol: WireProtocol.RawHttp,
+		}
+		expect(sourceBindingId(wireProtocolMutation)).toBe(identity)
+	})
+
 	it('keeps every Source enum member represented by one provider source row and one binding source', () => {
 		const audit = auditSourceProviders(sourceProviders)
 
@@ -79,7 +102,7 @@ describe('source binding indexes', () => {
 				.flatMap((binding) => (
 					binding.endpoints
 						.filter((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
-						.flatMap((endpoint) => endpoint.origin == null ? [] : [endpoint.origin])
+						.flatMap((endpoint) => sourceEndpointOrigin(endpoint) ?? [])
 				))
 		))
 		expect(httpProxyOrigins.size).toBeGreaterThan(0)
@@ -149,20 +172,24 @@ describe('source binding indexes', () => {
 			])
 	})
 
-	it('keeps public config credentials schema-backed', () => {
+	it('derives public config credential keys from their schemas', () => {
 		expect(sourceBindings.flatMap((binding) => (
 			binding.credentials.flatMap((credential) => (
-				credential.scope === SourceCredentialScope.PublicConfig && credential.keys != null ?
-					credential.keys.flatMap((key) => (
-						credential.env?.props.some((property) => property.key === key) === true ?
-							[]
-						:
-							[`${binding.source}:${key}`]
-					))
+				credential.scope === SourceCredentialScope.PublicConfig
+				&& 'keys' in credential ?
+					[binding.source]
 				:
 					[]
 			))
 		))).toEqual([])
+		expect(sourceBindings
+			.find((binding) => binding.source === Source.Allium_Rest)
+			?.credentials.flatMap((credential) => (
+				credential.scope === SourceCredentialScope.PublicConfig ?
+					credential.env?.props.map(({ key }) => String(key)) ?? []
+				:
+					[]
+			))).toEqual(['PUBLIC_ALLIUM_API_KEY'])
 	})
 
 	it('keeps RemoteLive WebSocket bindings out of the HTTP proxy origins', () => {
@@ -180,7 +207,7 @@ describe('source binding indexes', () => {
 
 	it('derives network source applicability directly from binding targets', () => {
 		const sources = [
-			Source.AvailExplorer_Rest,
+			Source.Avail,
 			Source.EnvioHyperRpc_JsonRpc,
 			Source.Constants_Internal,
 		]
@@ -281,27 +308,21 @@ describe('source binding indexes', () => {
 			.not.toMatch(/e2eBoundaryLiveOptionalPathnames|failFast\s*:/)
 	})
 
-	it('models generated OpenAPI artifacts as binding metadata', () => {
-		expect(sourceBindings.some((binding) => (
-			binding.source === Source.Coingecko_OpenApi
-			&& binding.apiFamily === ApiFamily.OpenApiHttp
-			&& binding.artifacts?.some((artifact) => (
-				artifact.kind === SourceArtifactKind.OpenApiTypes
-				&& artifact.path === 'src/sources/Coingecko/OpenApi/openapi.d.ts'
-				&& artifact.generated
-			))
-		))).toBe(true)
-	})
-
-	it('models Coingecko REST separately from its OpenAPI artifact-backed binding', () => {
-		expect(sourceBindings.some((binding) => (
+	it('models Demo and Pro contracts on one Coingecko source', () => {
+		expect(sourceBindings.filter((binding) => (
 			binding.source === Source.Coingecko_Rest
-			&& binding.apiFamily === ApiFamily.RestJson
-			&& binding.artifacts?.some((artifact) => (
-				artifact.kind === SourceArtifactKind.HandwrittenTypes
-				&& artifact.path === 'src/sources/Coingecko/Rest/types.ts'
-			))
-		))).toBe(true)
+			&& binding.apiFamily === ApiFamily.OpenApiHttp
+		)).flatMap((binding) => (
+			binding.artifacts?.flatMap((artifact) => (
+				artifact.kind === SourceArtifactKind.OpenApiTypes ?
+					[artifact.path]
+				:
+					[]
+			)) ?? []
+		))).toEqual([
+			'src/sources/Coingecko/OpenApi/openapi.d.ts',
+			'src/sources/Coingecko/OpenApi/Pro/openapi.d.ts',
+		])
 	})
 
 	it('models Superchain registry as a Git repository binding on the shared GitHub host', () => {

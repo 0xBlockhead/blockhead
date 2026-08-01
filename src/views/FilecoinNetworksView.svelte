@@ -11,7 +11,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['Filecoin-specific view over a canonical Network row, including Lotus endpoints, chain head observations, and tipsets.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.FilecoinNetwork> = $props()
@@ -26,7 +25,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.FilecoinNetwork}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			sources: selection.sources ?? [
@@ -46,6 +44,10 @@
 		>
 			{#snippet Title()}
 				{filecoinNetwork.$network.name || (filecoinNetworkSelector.$network.caip2 == null ? '' : `${filecoinNetworkSelector.$network.caip2.namespace}:${filecoinNetworkSelector.$network.caip2.reference}`) || 'Network'}
+			{/snippet}
+
+			{#snippet Value()}
+				Filecoin
 			{/snippet}
 		</EntityView>
 	{/snippet}

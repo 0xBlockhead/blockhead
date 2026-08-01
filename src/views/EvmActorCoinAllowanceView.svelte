@@ -68,7 +68,6 @@
 			selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -77,7 +76,6 @@
 			selection={select(EntityType.EvmAccount, selection.entitySelector.$spender)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -89,7 +87,6 @@
 					<EvmAccountView
 						selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -100,7 +97,6 @@
 					<EvmContractView
 						selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -116,7 +112,6 @@
 								selection={select(EntityType.EvmNetworkActorCoinBalance, evmNetworkActorCoinBalance[EntityMetaKey.Selector])}
 								prefetched={evmNetworkActorCoinBalance}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -129,7 +124,6 @@
 					<EvmAccountView
 						selection={select(EntityType.EvmAccount, selection.entitySelector.$spender)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -155,7 +149,6 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

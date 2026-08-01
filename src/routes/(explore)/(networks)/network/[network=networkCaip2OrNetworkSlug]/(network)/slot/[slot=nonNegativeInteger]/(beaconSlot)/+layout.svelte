@@ -18,6 +18,16 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]',
+			{
+				network: params.network,
+				slot: params.slot,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -28,28 +38,12 @@
 
 {#key [params.network, params.slot].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]',
-				{
-					network: params.network,
-					slot: params.slot,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<BeaconSlotView
 				selection={select(EntityType.BeaconSlot, data.selector)}
-				href={
-					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]',
-						{
-							network: params.network,
-							slot: params.slot,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

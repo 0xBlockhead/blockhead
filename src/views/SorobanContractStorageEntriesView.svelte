@@ -32,10 +32,6 @@
 		<EntityView
 			entityType={EntityType.SorobanContractStorageEntry}
 			entitySelector={sorobanContractStorageEntry[EntityMetaKey.Selector]}
-		>
-			{#snippet Title()}
-				soroban contract storage entry
-			{/snippet}
-		</EntityView>
+		/>
 	{/snippet}
 </EntitiesList>

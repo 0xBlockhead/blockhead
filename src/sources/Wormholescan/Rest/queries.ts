@@ -1,10 +1,41 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
-import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
-import type { WormholescanJson } from '$/sources/Wormholescan/Rest/types.ts'
+import {
+	getJson,
+	postJson,
+} from '$/sources/_shared/wire/HttpRest/client.ts'
+import bindings from '$/sources/Wormholescan/bindings.ts'
+import type { operations } from '$/sources/Wormholescan/OpenApi/openapi.d.ts'
+import { Source } from '$/sources/Source.ts'
 
-export const query = (
-	binding: SourceBinding,
-	path: string
+const binding = bindings[Source.Wormholescan]
+
+export const getHealth = () => (
+	getJson<operations['health-check']['responses'][200]['content']['*/*']>(
+		binding,
+		'health'
+	)
+)
+
+export const getOperations = (
+	parameters: NonNullable<operations['get-operations']['parameters']['query']> = {}
+) => {
+	const searchParameters = new URLSearchParams(
+		Object.entries(parameters).flatMap(([name, value]) => (
+			value == null ? [] : [[name, String(value)]]
+		))
+	)
+
+	return getJson<operations['get-operations']['responses'][200]['content']['*/*']>(
+		binding,
+		`operations${searchParameters.size === 0 ? '' : `?${searchParameters}`}`
+	)
+}
+
+export const searchOperations = (
+	transactionHashes: operations['search-operations']['requestBody']['content']['application/json']
 ) => (
-	getJson<WormholescanJson>(binding, path)
+	postJson<operations['search-operations']['responses'][200]['content']['*/*']>({
+		binding,
+		path: 'operations',
+		body: transactionHashes,
+	})
 )

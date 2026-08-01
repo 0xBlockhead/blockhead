@@ -16,24 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.FarcasterCast_Timestamp, {
-		$cast: {
-			fid: Number(params.fid),
-			hash: params.hash,
-		},
-		timestampMs: Number(params.timestampMs),
-	}, {
-		sources: [
-			Source.Snapchain_Rest,
-			Source.Neynar_Rest,
-		],
-		fields: {
-			likeCount: true,
-			recastCount: true,
-			replyCount: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -48,6 +30,24 @@
 
 <Page>
 	<FarcasterCast_TimestampView
-		selection={pageSelection}
+		selection={
+			select(EntityType.FarcasterCast_Timestamp, {
+				$cast: {
+					fid: Number(params.fid),
+					hash: params.hash,
+				},
+				timestampMs: Number(params.timestampMs),
+			}, {
+				sources: [
+					Source.Snapchain_Rest,
+					Source.Neynar_Rest,
+				],
+				fields: {
+					likeCount: true,
+					recastCount: true,
+					replyCount: true,
+				},
+			})
+		}
 	/>
 </Page>

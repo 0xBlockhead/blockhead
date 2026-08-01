@@ -46,10 +46,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.quoteId || 'blockhead Cashu mint quote'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadCashuMintQuote}>
 			{#snippet children(entity)}
@@ -73,7 +69,6 @@
 					<CashuMintView
 						selection={select(EntityType.CashuMint, selection.entitySelector.$mint)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -123,7 +118,6 @@
 									selection={select(EntityType.BlockheadCashuWalletState, blockheadCashuWalletState[EntityMetaKey.Selector])}
 									prefetched={blockheadCashuWalletState}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

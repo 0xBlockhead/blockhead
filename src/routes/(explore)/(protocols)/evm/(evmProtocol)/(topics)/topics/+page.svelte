@@ -34,12 +34,8 @@
 
 	<EvmTopicsView
 		href={resolve('/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topics')}
-		title='EVM topics'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='evm-topics'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

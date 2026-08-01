@@ -1,5 +1,4 @@
 import { networkBySlug } from '$/constants/Network.ts'
-import { TransportType } from '$/constants/TransportType.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type SourceResolverContext } from '$/resolvers/defineResolver.ts'
 import {
@@ -11,8 +10,6 @@ import { cardanoGovernanceActionFields } from '$/resolvers/CardanoGovernance.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
-import bindings from '$/sources/Blockfrost/bindings.ts'
 import type { BlockfrostBlock } from '$/sources/Blockfrost/Rest/types.ts'
 
 const assertCardanoMainnet = (
@@ -32,9 +29,7 @@ const assertCardanoMainnet = (
 		throw new Error('Blockfrost_Rest: unsupported network')
 }
 
-const cardanoNetworkSelectors = <
-
-const _Snapshot extends object>(
+const cardanoNetworkSelectors = <const _Snapshot extends object>(
 	resolve: (
 		network: EntitySelector<typeof schema, EntityType.Network>,
 		context: SourceResolverContext<Source.Blockfrost_Rest>
@@ -173,38 +168,46 @@ const committeeEpoch = async (
 	])
 
 	return {
-		[EntityMetaKey.Selector]: {
-			$network: network,
-			epoch: epoch.epoch,
-			source: Source.Blockfrost_Rest,
-		},
 		epoch: epoch.epoch,
 		source: Source.Blockfrost_Rest,
 		govActionId: committee.gov_action_id ?? undefined,
-		$seatingProposal: committee.proposal_tx_hash == null || committee.proposal_index == null ? undefined : {
-			$network: network,
-			proposalTxHash: committee.proposal_tx_hash,
-			proposalIndex: committee.proposal_index,
-		},
+		$seatingProposal: committee.proposal_tx_hash != null && committee.proposal_index != null ?
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					proposalTxHash: committee.proposal_tx_hash,
+					proposalIndex: committee.proposal_index,
+				},
+			}
+		:
+			undefined,
 		dissolved: committee.is_dissolved,
 		quorumNumerator: committee.quorum.numerator,
 		quorumDenominator: committee.quorum.denominator,
 		memberCount: committee.members.length,
 		members: committee.members,
 		$$votes: votes.map((vote) => ({
-			$proposal: {
-				$network: network,
-				proposalTxHash: vote.proposal_tx_hash,
-				proposalIndex: vote.proposal_index,
+			[EntityMetaKey.Selector]: {
+				$proposal: {
+					$network: network,
+					proposalTxHash: vote.proposal_tx_hash,
+					proposalIndex: vote.proposal_index,
+				},
+				voterKind: 'constitutional-committee',
+				voterCredential: vote.voter_hot_id,
+				voteTxHash: vote.tx_hash,
+				source: Source.Blockfrost_Rest,
 			},
-			voterKind: 'constitutional-committee',
-			voterCredential: vote.voter_hot_id,
-			source: Source.Blockfrost_Rest,
-			vote: vote.vote,
-			voteTxHash: vote.tx_hash,
-			anchorUrl: vote.metadata_url ?? undefined,
-			anchorHash: vote.metadata_hash ?? undefined,
-			timestampMs: vote.block_time * 1_000,
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'vote')]: vote.vote,
+				...(vote.metadata_url != null && {
+					[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'anchorUrl')]: vote.metadata_url,
+				}),
+				...(vote.metadata_hash != null && {
+					[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'anchorHash')]: vote.metadata_hash,
+				}),
+				[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'timestampMs')]: vote.block_time * 1_000,
+			},
 		})),
 	}
 }
@@ -258,13 +261,15 @@ export default {
 										blockSlot: BigInt(block.slot),
 										source: Source.Blockfrost_Rest,
 									},
-									timestampMs: block.time * 1_000,
-									blockHash: block.hash,
-									lovelaceBalance: BigInt(
-										address.amount.find(({ unit }) => unit === 'lovelace')?.quantity ?? '0'
-									),
-									nativeAssetCount: address.amount.filter(({ unit }) => unit !== 'lovelace').length,
-									transactionCount: total.tx_count,
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.CardanoAddress_Timestamp, [], 'timestampMs')]: block.time * 1_000,
+										[entityFieldAddressKey(EntityType.CardanoAddress_Timestamp, [], 'blockHash')]: block.hash,
+										[entityFieldAddressKey(EntityType.CardanoAddress_Timestamp, [], 'lovelaceBalance')]: BigInt(
+											address.amount.find(({ unit }) => unit === 'lovelace')?.quantity ?? '0'
+										),
+										[entityFieldAddressKey(EntityType.CardanoAddress_Timestamp, [], 'nativeAssetCount')]: address.amount.filter(({ unit }) => unit !== 'lovelace').length,
+										[entityFieldAddressKey(EntityType.CardanoAddress_Timestamp, [], 'transactionCount')]: total.tx_count,
+									},
 								},
 							],
 						}
@@ -274,16 +279,7 @@ export default {
 		})({
 			addressKind: (address) => address.addressKind,
 			$stakeCredential: (address) => address.$stakeCredential,
-			$$timestamps: (address) => address.$$timestamps.map((timestamp) => ({
-				[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.CardanoAddress_Timestamp, [], 'timestampMs')]: timestamp.timestampMs,
-					[entityFieldAddressKey(EntityType.CardanoAddress_Timestamp, [], 'blockHash')]: timestamp.blockHash,
-					[entityFieldAddressKey(EntityType.CardanoAddress_Timestamp, [], 'lovelaceBalance')]: timestamp.lovelaceBalance,
-					[entityFieldAddressKey(EntityType.CardanoAddress_Timestamp, [], 'nativeAssetCount')]: timestamp.nativeAssetCount,
-					[entityFieldAddressKey(EntityType.CardanoAddress_Timestamp, [], 'transactionCount')]: timestamp.transactionCount,
-				},
-			})),
+			$$timestamps: (address) => address.$$timestamps,
 		}),
 
 		defineResolver(Source.Blockfrost_Rest, {
@@ -305,26 +301,23 @@ export default {
 						return {
 							limit,
 							page,
-							transactions: await listAddressTransactions(
+							transactions: (await listAddressTransactions(
 								cardanoAddress.address,
 								limit,
 								page
-							),
+							)).map((transaction) => ({
+								[EntityMetaKey.Selector]: {
+									$network: cardanoAddress.$network,
+									hash: transaction.tx_hash,
+								},
+							})),
 						}
 					},
 				},
 			},
 		})({
 			$$transactions: {
-				select: (page, cardanoAddress) => page.transactions.map((transaction) => ({
-					[EntityMetaKey.Selector]: {
-						$network: cardanoAddress.$network,
-						hash: transaction.tx_hash,
-					},
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoTransaction, [], 'hash')]: transaction.tx_hash,
-					},
-				})),
+				select: (page) => page.transactions,
 				continuation: (page, cardanoAddress) => (
 					page.transactions.length < page.limit ?
 						{
@@ -373,30 +366,37 @@ export default {
 			},
 		})({
 			$$utxos: {
-				select: (page, cardanoAddress) => page.utxos.map((utxo) => ({
-					[EntityMetaKey.Selector]: {
-						$transaction: {
-							$network: cardanoAddress.$network,
-							hash: utxo.tx_hash,
+				select: (page, cardanoAddress) => page.utxos.map((utxo) => {
+					const lovelace = utxo.amount.find(({ unit }) => unit === 'lovelace')
+
+					return {
+						[EntityMetaKey.Selector]: {
+							$transaction: {
+								$network: cardanoAddress.$network,
+								hash: utxo.tx_hash,
+							},
+							outputIndex: utxo.output_index,
 						},
-						outputIndex: utxo.output_index,
-					},
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'address')]: utxo.address,
-						[entityFieldAddressKey(EntityType.CardanoTxOutput, [], '$address')]: {
-							[EntityMetaKey.Selector]: cardanoAddress,
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'address')]: utxo.address,
+							[entityFieldAddressKey(EntityType.CardanoTxOutput, [], '$address')]: {
+								[EntityMetaKey.Selector]: cardanoAddress,
+							},
+							...(lovelace != null && {
+								[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'lovelace')]: BigInt(lovelace.quantity),
+							}),
+							...(utxo.data_hash != null && {
+								[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'datumHash')]: utxo.data_hash,
+							}),
+							...(utxo.inline_datum != null && {
+								[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'inlineDatum')]: utxo.inline_datum,
+							}),
+							...(utxo.reference_script_hash != null && {
+								[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'referenceScriptHash')]: utxo.reference_script_hash,
+							}),
 						},
-						[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'lovelace')]: (
-							utxo.amount.find(({ unit }) => unit === 'lovelace') == null ?
-								undefined
-							:
-								BigInt(utxo.amount.find(({ unit }) => unit === 'lovelace')?.quantity ?? '0')
-						),
-						[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'datumHash')]: utxo.data_hash ?? undefined,
-						[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'inlineDatum')]: utxo.inline_datum ?? undefined,
-						[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'referenceScriptHash')]: utxo.reference_script_hash ?? undefined,
-					},
-				})),
+					}
+				}),
 				continuation: (page, cardanoAddress) => (
 					page.utxos.length < page.limit ?
 						{
@@ -410,8 +410,8 @@ export default {
 							target: cardanoAddress.address,
 							terminal: false,
 							token: (page.page + 1).toString(),
-					}
-				),
+						}
+					),
 			},
 			$$assets: {
 				select: (page, cardanoAddress) => (
@@ -430,10 +430,6 @@ export default {
 								$network: cardanoAddress.$network,
 								policyId: asset.slice(0, 56),
 								assetName: asset.slice(56),
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.CardanoNativeAsset, [], 'policyId')]: asset.slice(0, 56),
-								[entityFieldAddressKey(EntityType.CardanoNativeAsset, [], 'assetName')]: asset.slice(56),
 							},
 						}
 					})
@@ -534,16 +530,21 @@ export default {
 								address: output.address,
 							},
 						},
-						[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'lovelace')]: (
-							lovelace == null ?
-								undefined
-							:
-								BigInt(lovelace.quantity)
-						),
-						[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'datumHash')]: output.data_hash ?? undefined,
-						[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'inlineDatum')]: output.inline_datum ?? undefined,
-						[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'referenceScriptHash')]: output.reference_script_hash ?? undefined,
-						[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'spentByTxHash')]: output.consumed_by_tx ?? undefined,
+						...(lovelace != null && {
+							[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'lovelace')]: BigInt(lovelace.quantity),
+						}),
+						...(output.data_hash != null && {
+							[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'datumHash')]: output.data_hash,
+						}),
+						...(output.inline_datum != null && {
+							[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'inlineDatum')]: output.inline_datum,
+						}),
+						...(output.reference_script_hash != null && {
+							[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'referenceScriptHash')]: output.reference_script_hash,
+						}),
+						...(output.consumed_by_tx != null && {
+							[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'spentByTxHash')]: output.consumed_by_tx,
+						}),
 					},
 				}
 			}),
@@ -565,10 +566,6 @@ export default {
 							$network: cardanoTransaction.$network,
 							policyId: asset.slice(0, 56),
 							assetName: asset.slice(56),
-						},
-						[EntityMetaKey.Fields]: {
-							[entityFieldAddressKey(EntityType.CardanoNativeAsset, [], 'policyId')]: asset.slice(0, 56),
-							[entityFieldAddressKey(EntityType.CardanoNativeAsset, [], 'assetName')]: asset.slice(56),
 						},
 					}
 				})
@@ -671,14 +668,8 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
 					assertCardanoMainnet(network)
-
-					return [
-						{
-							url: firstHttpUrlForBinding(bindings[Source.Blockfrost_Rest]),
-							transportType: TransportType.Http,
-							providerName: 'Blockfrost',
-						},
-					]
+					const { getRestEndpoints } = await import('$/sources/Blockfrost/Rest/queries.ts')
+					return getRestEndpoints()
 				}
 			),
 		})({
@@ -691,42 +682,40 @@ export default {
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
-				assertCardanoMainnet(network)
-				const observation = await networkObservation()
+					assertCardanoMainnet(network)
+					const observation = await networkObservation()
 
-				return [
-					{
+					return [{
 						[EntityMetaKey.Selector]: {
 							$network: network,
 							timestampMs: observation.timestampMs,
 							source: Source.Blockfrost_Rest,
 						},
-						...observation,
-					},
-				]
-			}
-			),
+						[EntityMetaKey.Fields]: {
+							...(observation.latestSlot != null && {
+								[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestSlot')]: observation.latestSlot,
+							}),
+							...(observation.latestBlockNo != null && {
+								[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockNo')]: observation.latestBlockNo,
+							}),
+							[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockHash')]: observation.latestBlockHash,
+							[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockTimeMs')]: observation.latestBlockTimeMs,
+							[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockTransactionCount')]: observation.latestBlockTransactionCount,
+							[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'epoch')]: observation.epoch,
+							[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'epochBlockCount')]: observation.epochBlockCount,
+							[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'epochTransactionCount')]: observation.epochTransactionCount,
+							[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'circulatingSupplyLovelace')]: observation.circulatingSupplyLovelace,
+							[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'totalSupplyLovelace')]: observation.totalSupplyLovelace,
+							[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'liveStakeLovelace')]: observation.liveStakeLovelace,
+							[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'activeStakeLovelace')]: observation.activeStakeLovelace,
+							[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'backendHealthy')]: observation.backendHealthy,
+						},
+					}]
+				}
+				),
 		})({
 			Cardano: {
-				$$timestamps: (timestamps) => timestamps.map((timestamp) => ({
-					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'timestampMs')]: timestamp.timestampMs,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestSlot')]: timestamp.latestSlot,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockNo')]: timestamp.latestBlockNo,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockHash')]: timestamp.latestBlockHash,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockTimeMs')]: timestamp.latestBlockTimeMs,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockTransactionCount')]: timestamp.latestBlockTransactionCount,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'epoch')]: timestamp.epoch,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'epochBlockCount')]: timestamp.epochBlockCount,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'epochTransactionCount')]: timestamp.epochTransactionCount,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'circulatingSupplyLovelace')]: timestamp.circulatingSupplyLovelace,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'totalSupplyLovelace')]: timestamp.totalSupplyLovelace,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'liveStakeLovelace')]: timestamp.liveStakeLovelace,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'activeStakeLovelace')]: timestamp.activeStakeLovelace,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'backendHealthy')]: timestamp.backendHealthy,
-					},
-				})),
+				$$timestamps: (timestamps) => timestamps,
 			},
 		}),
 
@@ -734,31 +723,33 @@ export default {
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
-				assertCardanoMainnet(network)
-				const { listBlocks } = await import('$/sources/Blockfrost/Rest/queries.ts')
+					assertCardanoMainnet(network)
+					const { listBlocks } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
-				return (await listBlocks(
-					Math.min(resolverContextRowLimit(context), 100)
-				)).map((block) => ({
-					[EntityMetaKey.Selector]: {
-						$network: network,
-						hash: block.hash,
-					},
-					...blockFields(block),
-				}))
-			}
-			),
+					return (await listBlocks(
+						Math.min(resolverContextRowLimit(context), 100)
+					)).map((block) => {
+						const fields = blockFields(block)
+
+						return {
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								hash: fields.hash,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.CardanoBlock, [], 'slot')]: fields.slot,
+								[entityFieldAddressKey(EntityType.CardanoBlock, [], 'blockNo')]: fields.blockNo,
+								...(fields.epoch != null && {
+									[entityFieldAddressKey(EntityType.CardanoBlock, [], 'epoch')]: fields.epoch,
+								}),
+							},
+						}
+					})
+				}
+				),
 		})({
 			Cardano: {
-				$$blocks: (blocks) => blocks.map((block) => ({
-					[EntityMetaKey.Selector]: block[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoBlock, [], 'hash')]: block.hash,
-						[entityFieldAddressKey(EntityType.CardanoBlock, [], 'slot')]: block.slot,
-						[entityFieldAddressKey(EntityType.CardanoBlock, [], 'blockNo')]: block.blockNo,
-						[entityFieldAddressKey(EntityType.CardanoBlock, [], 'epoch')]: block.epoch,
-					},
-				})),
+				$$blocks: (blocks) => blocks,
 			},
 		}),
 
@@ -766,28 +757,22 @@ export default {
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
-				assertCardanoMainnet(network)
-				const { listLatestBlockTransactions } = await import('$/sources/Blockfrost/Rest/queries.ts')
+					assertCardanoMainnet(network)
+					const { listLatestBlockTransactions } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
-				return (await listLatestBlockTransactions(
-					Math.min(resolverContextRowLimit(context), 100)
-				)).map((hash) => ({
-					[EntityMetaKey.Selector]: {
-						$network: network,
-						hash,
-					},
-					hash,
-				}))
-			}
-			),
+					return (await listLatestBlockTransactions(
+						Math.min(resolverContextRowLimit(context), 100)
+					)).map((hash) => ({
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							hash,
+						},
+					}))
+				}
+				),
 		})({
 			Cardano: {
-				$$transactions: (transactions) => transactions.map((transaction) => ({
-					[EntityMetaKey.Selector]: transaction[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoTransaction, [], 'hash')]: transaction.hash,
-					},
-				})),
+				$$transactions: (transactions) => transactions,
 			},
 		}),
 
@@ -795,28 +780,22 @@ export default {
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
-				assertCardanoMainnet(network)
-				const { listStakePools } = await import('$/sources/Blockfrost/Rest/queries.ts')
+					assertCardanoMainnet(network)
+					const { listStakePools } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
-				return (await listStakePools(
-					Math.min(resolverContextRowLimit(context), 100)
-				)).map((poolId) => ({
-					[EntityMetaKey.Selector]: {
-						$network: network,
-						poolId,
-					},
-					poolId,
-				}))
-			}
-			),
+					return (await listStakePools(
+						Math.min(resolverContextRowLimit(context), 100)
+					)).map((poolId) => ({
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							poolId,
+						},
+					}))
+				}
+				),
 		})({
 			Cardano: {
-				$$stakePools: (stakePools) => stakePools.map((stakePool) => ({
-					[EntityMetaKey.Selector]: stakePool[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoStakePool, [], 'poolId')]: stakePool.poolId,
-					},
-				})),
+				$$stakePools: (stakePools) => stakePools,
 			},
 		}),
 
@@ -824,34 +803,28 @@ export default {
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
-				assertCardanoMainnet(network)
-				const { listDReps } = await import('$/sources/Blockfrost/Rest/queries.ts')
+					assertCardanoMainnet(network)
+					const { listDReps } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
-				return (await listDReps(
-					Math.min(resolverContextRowLimit(context), 100)
-				)).map((dRep) => ({
-					[EntityMetaKey.Selector]: {
-						$network: network,
-						drepCredential: dRep.drep_id,
-					},
-					drepCredential: dRep.drep_id,
-					credentialKind: dRep.has_script ? 'script' : 'key',
-					...(dRep.displayName != null && { displayName: dRep.displayName }),
-				}))
-			}
-			),
+					return (await listDReps(
+						Math.min(resolverContextRowLimit(context), 100)
+					)).map((dRep) => ({
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							drepCredential: dRep.drep_id,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.CardanoDRep, [], 'credentialKind')]: dRep.has_script ? 'script' : 'key',
+							...(dRep.displayName != null && {
+								[entityFieldAddressKey(EntityType.CardanoDRep, [], 'displayName')]: dRep.displayName,
+							}),
+						},
+					}))
+				}
+				),
 		})({
 			Cardano: {
-				$$dReps: (dReps) => dReps.map((dRep) => ({
-					[EntityMetaKey.Selector]: dRep[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoDRep, [], 'drepCredential')]: dRep.drepCredential,
-						[entityFieldAddressKey(EntityType.CardanoDRep, [], 'credentialKind')]: dRep.credentialKind,
-						...(dRep.displayName != null && {
-							[entityFieldAddressKey(EntityType.CardanoDRep, [], 'displayName')]: dRep.displayName,
-						}),
-					},
-				})),
+				$$dReps: (dReps) => dReps,
 			},
 		}),
 
@@ -903,8 +876,6 @@ export default {
 							proposalIndex: proposal.cert_index,
 						},
 						[EntityMetaKey.Fields]: {
-							[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'proposalTxHash')]: proposal.tx_hash,
-							[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'proposalIndex')]: proposal.cert_index,
 							[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'governanceActionId')]: proposal.id,
 							[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'proposalKind')]: proposal.governance_type,
 						},
@@ -935,36 +906,28 @@ export default {
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
-				assertCardanoMainnet(network)
-				const { listAssets } = await import('$/sources/Blockfrost/Rest/queries.ts')
+					assertCardanoMainnet(network)
+					const { listAssets } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
-				return (await listAssets(
-					Math.min(resolverContextRowLimit(context), 100)
-				)).map(({ asset }) => {
-					if (asset.length < 56 || asset.length % 2 !== 0 || !/^[0-9a-f]+$/u.test(asset))
-						throw new Error('Blockfrost_Rest: asset identifier is malformed')
+					return (await listAssets(
+						Math.min(resolverContextRowLimit(context), 100)
+					)).map(({ asset }) => {
+						if (asset.length < 56 || asset.length % 2 !== 0 || !/^[0-9a-f]+$/u.test(asset))
+							throw new Error('Blockfrost_Rest: asset identifier is malformed')
 
-					return {
-						[EntityMetaKey.Selector]: {
-							$network: network,
-							policyId: asset.slice(0, 56),
-							assetName: asset.slice(56),
-						},
-						policyId: asset.slice(0, 56),
-						assetName: asset.slice(56),
-					}
-				})
-			}
-			),
+						return {
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								policyId: asset.slice(0, 56),
+								assetName: asset.slice(56),
+							},
+						}
+					})
+				}
+				),
 		})({
 			Cardano: {
-				$$assets: (assets) => assets.map((asset) => ({
-					[EntityMetaKey.Selector]: asset[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoNativeAsset, [], 'policyId')]: asset.policyId,
-						[entityFieldAddressKey(EntityType.CardanoNativeAsset, [], 'assetName')]: asset.assetName,
-					},
-				})),
+				$$assets: (assets) => assets,
 			},
 		}),
 
@@ -972,103 +935,78 @@ export default {
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
-				assertCardanoMainnet(network)
-				const { getLatestProtocolParameters } = await import('$/sources/Blockfrost/Rest/queries.ts')
-				const parameters = await getLatestProtocolParameters()
+					assertCardanoMainnet(network)
+					const { getLatestProtocolParameters } = await import('$/sources/Blockfrost/Rest/queries.ts')
+					const parameters = await getLatestProtocolParameters()
 
-				if (
-					parameters.max_val_size != null
-					&& !Number.isSafeInteger(Number(parameters.max_val_size))
-				)
-					throw new Error('Blockfrost_Rest: protocol parameter max value size is malformed')
+					if (
+						parameters.max_val_size != null
+						&& !Number.isSafeInteger(Number(parameters.max_val_size))
+					)
+						throw new Error('Blockfrost_Rest: protocol parameter max value size is malformed')
 
-				return [
-					{
+					return [{
 						[EntityMetaKey.Selector]: {
 							$network: network,
 							epoch: parameters.epoch,
 							source: Source.Blockfrost_Rest,
 						},
-						epoch: parameters.epoch,
-						source: Source.Blockfrost_Rest,
-						minFeeA: BigInt(parameters.min_fee_a),
-						minFeeB: BigInt(parameters.min_fee_b),
-						maxBlockBodySize: parameters.max_block_size,
-						maxTxSize: parameters.max_tx_size,
-						maxBlockHeaderSize: parameters.max_block_header_size,
-						keyDeposit: BigInt(parameters.key_deposit),
-						poolDeposit: BigInt(parameters.pool_deposit),
-						maxEpoch: parameters.e_max,
-						nOpt: parameters.n_opt,
-						rho: parameters.rho.toString(),
-						tau: parameters.tau.toString(),
-						decentralisation: parameters.decentralisation_param.toString(),
-						protocolMajor: parameters.protocol_major_ver,
-						protocolMinor: parameters.protocol_minor_ver,
-						minPoolCost: BigInt(parameters.min_pool_cost),
-						coinsPerUtxoByte: parameters.coins_per_utxo_size == null
-							? undefined
-							: BigInt(parameters.coins_per_utxo_size),
-						costModels: parameters.cost_models_raw ?? parameters.cost_models ?? undefined,
-						executionPrices: parameters.price_mem == null && parameters.price_step == null
-							? undefined
-							: {
-								memory: parameters.price_mem,
-								steps: parameters.price_step,
-							},
-						maxTxExUnits: parameters.max_tx_ex_mem == null && parameters.max_tx_ex_steps == null
-							? undefined
-							: {
-								memory: parameters.max_tx_ex_mem,
-								steps: parameters.max_tx_ex_steps,
-							},
-						maxBlockExUnits: parameters.max_block_ex_mem == null && parameters.max_block_ex_steps == null
-							? undefined
-							: {
-								memory: parameters.max_block_ex_mem,
-								steps: parameters.max_block_ex_steps,
-							},
-						maxValueSize: parameters.max_val_size == null
-							? undefined
-							: Number(parameters.max_val_size),
-						collateralPercentage: parameters.collateral_percent ?? undefined,
-						maxCollateralInputs: parameters.max_collateral_inputs ?? undefined,
-					},
-				]
-			}
-			),
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'minFeeA')]: BigInt(parameters.min_fee_a),
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'minFeeB')]: BigInt(parameters.min_fee_b),
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxBlockBodySize')]: parameters.max_block_size,
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxTxSize')]: parameters.max_tx_size,
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxBlockHeaderSize')]: parameters.max_block_header_size,
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'keyDeposit')]: BigInt(parameters.key_deposit),
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'poolDeposit')]: BigInt(parameters.pool_deposit),
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxEpoch')]: parameters.e_max,
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'nOpt')]: parameters.n_opt,
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'rho')]: parameters.rho.toString(),
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'tau')]: parameters.tau.toString(),
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'decentralisation')]: parameters.decentralisation_param.toString(),
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'protocolMajor')]: parameters.protocol_major_ver,
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'protocolMinor')]: parameters.protocol_minor_ver,
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'minPoolCost')]: BigInt(parameters.min_pool_cost),
+							...(parameters.coins_per_utxo_size != null && {
+								[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'coinsPerUtxoByte')]: BigInt(parameters.coins_per_utxo_size),
+							}),
+							...((parameters.cost_models_raw != null || parameters.cost_models != null) && {
+								[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'costModels')]: parameters.cost_models_raw ?? parameters.cost_models,
+							}),
+							...((parameters.price_mem != null || parameters.price_step != null) && {
+								[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'executionPrices')]: {
+									memory: parameters.price_mem,
+									steps: parameters.price_step,
+								},
+							}),
+							...((parameters.max_tx_ex_mem != null || parameters.max_tx_ex_steps != null) && {
+								[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxTxExUnits')]: {
+									memory: parameters.max_tx_ex_mem,
+									steps: parameters.max_tx_ex_steps,
+								},
+							}),
+							...((parameters.max_block_ex_mem != null || parameters.max_block_ex_steps != null) && {
+								[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxBlockExUnits')]: {
+									memory: parameters.max_block_ex_mem,
+									steps: parameters.max_block_ex_steps,
+								},
+							}),
+							...(parameters.max_val_size != null && {
+								[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxValueSize')]: Number(parameters.max_val_size),
+							}),
+							...(parameters.collateral_percent != null && {
+								[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'collateralPercentage')]: parameters.collateral_percent,
+							}),
+							...(parameters.max_collateral_inputs != null && {
+								[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxCollateralInputs')]: parameters.max_collateral_inputs,
+							}),
+						},
+					}]
+				}
+				),
 		})({
 			Cardano: {
-				$$protocolParameterEpochs: (parameterEpochs) => parameterEpochs.map((parameters) => ({
-					[EntityMetaKey.Selector]: parameters[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'epoch')]: parameters.epoch,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'source')]: parameters.source,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'minFeeA')]: parameters.minFeeA,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'minFeeB')]: parameters.minFeeB,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxBlockBodySize')]: parameters.maxBlockBodySize,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxTxSize')]: parameters.maxTxSize,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxBlockHeaderSize')]: parameters.maxBlockHeaderSize,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'keyDeposit')]: parameters.keyDeposit,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'poolDeposit')]: parameters.poolDeposit,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxEpoch')]: parameters.maxEpoch,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'nOpt')]: parameters.nOpt,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'rho')]: parameters.rho,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'tau')]: parameters.tau,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'decentralisation')]: parameters.decentralisation,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'protocolMajor')]: parameters.protocolMajor,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'protocolMinor')]: parameters.protocolMinor,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'minPoolCost')]: parameters.minPoolCost,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'coinsPerUtxoByte')]: parameters.coinsPerUtxoByte,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'costModels')]: parameters.costModels,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'executionPrices')]: parameters.executionPrices,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxTxExUnits')]: parameters.maxTxExUnits,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxBlockExUnits')]: parameters.maxBlockExUnits,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxValueSize')]: parameters.maxValueSize,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'collateralPercentage')]: parameters.collateralPercentage,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxCollateralInputs')]: parameters.maxCollateralInputs,
-					},
-				})),
+				$$protocolParameterEpochs: (parameterEpochs) => parameterEpochs,
 			},
 		}),
 
@@ -1076,49 +1014,38 @@ export default {
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
-				assertCardanoMainnet(network)
-
-				return [
-					await committeeEpoch(
+					assertCardanoMainnet(network)
+					const committee = await committeeEpoch(
 						network,
 						Math.min(resolverContextRowLimit(context), 100)
-					),
-				]
-			}
-			),
+					)
+
+					return [{
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							epoch: committee.epoch,
+							source: Source.Blockfrost_Rest,
+						},
+						[EntityMetaKey.Fields]: {
+							...(committee.govActionId != null && {
+								[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'govActionId')]: committee.govActionId,
+							}),
+							...(committee.$seatingProposal != null && {
+								[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], '$seatingProposal')]: committee.$seatingProposal,
+							}),
+							[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'dissolved')]: committee.dissolved,
+							[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'quorumNumerator')]: committee.quorumNumerator,
+							[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'quorumDenominator')]: committee.quorumDenominator,
+							[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'memberCount')]: committee.memberCount,
+							[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'members')]: committee.members,
+							[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], '$$votes')]: committee.$$votes,
+						},
+					}]
+				}
+				),
 		})({
 			Cardano: {
-				$$committeeEpochs: (committeeEpochs) => committeeEpochs.map((committee) => ({
-					[EntityMetaKey.Selector]: committee[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'epoch')]: committee.epoch,
-						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'source')]: committee.source,
-						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'govActionId')]: committee.govActionId,
-						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], '$seatingProposal')]: committee.$seatingProposal == null ? undefined : {
-							[EntityMetaKey.Selector]: committee.$seatingProposal,
-						},
-						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'dissolved')]: committee.dissolved,
-						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'quorumNumerator')]: committee.quorumNumerator,
-						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'quorumDenominator')]: committee.quorumDenominator,
-						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'memberCount')]: committee.memberCount,
-						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'members')]: committee.members,
-						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], '$$votes')]: committee.$$votes.map((vote) => ({
-							[EntityMetaKey.Selector]: {
-								$proposal: vote.$proposal,
-								voterKind: vote.voterKind,
-								voterCredential: vote.voterCredential,
-								voteTxHash: vote.voteTxHash,
-								source: vote.source,
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'vote')]: vote.vote,
-								[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'anchorUrl')]: vote.anchorUrl,
-								[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'anchorHash')]: vote.anchorHash,
-								[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'timestampMs')]: vote.timestampMs,
-							},
-						})),
-					},
-				})),
+				$$committeeEpochs: (committeeEpochs) => committeeEpochs,
 			},
 		}),
 
@@ -1209,13 +1136,18 @@ export default {
 							))
 						)
 							throw new Error('Blockfrost_Rest: governance proposal votes continuation did not advance')
+						const lastVote = votes.at(-1)
 
 						return {
 							limit,
 							page,
+							lastVoteIdentity: lastVote == null ?
+								undefined
+							:
+								`${lastVote.tx_hash}:${lastVote.cert_index.toString()}:${lastVote.voter_role}:${lastVote.voter}`,
 							governanceActionId: proposal.id,
 							proposalKind: proposal.governance_type,
-							...(proposal.governance_description == null ? {} : cardanoGovernanceActionFields(
+							...(proposal.governance_description != null && cardanoGovernanceActionFields(
 								proposal.governance_description,
 								$network
 							)),
@@ -1252,33 +1184,43 @@ export default {
 								},
 							}],
 							$$votes: votes.map((vote) => ({
-								$proposal: {
-									$network,
-									proposalTxHash,
-									proposalIndex,
-								},
-								voterKind: vote.voter_role,
-								voterCredential: vote.voter,
-								source: Source.Blockfrost_Rest,
-								vote: vote.vote,
-								voteTxHash: vote.tx_hash,
-								voteIndex: vote.cert_index,
-								$transaction: {
-									$network,
-									hash: vote.tx_hash,
-								},
-								...(vote.voter_role === 'drep' && {
-									$drep: {
+								[EntityMetaKey.Selector]: {
+									$proposal: {
 										$network,
-										drepCredential: vote.voter,
+										proposalTxHash,
+										proposalIndex,
 									},
-								}),
-								...(vote.voter_role === 'spo' && {
-									$stakePool: {
-										$network,
-										poolId: vote.voter,
+									voterKind: vote.voter_role,
+									voterCredential: vote.voter,
+									voteTxHash: vote.tx_hash,
+									source: Source.Blockfrost_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'vote')]: vote.vote,
+									[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'voteIndex')]: vote.cert_index,
+									[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], '$transaction')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											hash: vote.tx_hash,
+										},
 									},
-								}),
+									...(vote.voter_role === 'drep' && {
+										[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], '$drep')]: {
+											[EntityMetaKey.Selector]: {
+												$network,
+												drepCredential: vote.voter,
+											},
+										},
+									}),
+									...(vote.voter_role === 'spo' && {
+										[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], '$stakePool')]: {
+											[EntityMetaKey.Selector]: {
+												$network,
+												poolId: vote.voter,
+											},
+										},
+									}),
+								},
 							})),
 						}
 					},
@@ -1304,34 +1246,14 @@ export default {
 			returnAddress: (proposal) => proposal.returnAddress,
 			$$timestamps: (proposal) => proposal.$$timestamps,
 			$$votes: {
-				select: (proposal) => proposal.$$votes.map((vote) => ({
-					[EntityMetaKey.Selector]: {
-						$proposal: vote.$proposal,
-						voterKind: vote.voterKind,
-						voterCredential: vote.voterCredential,
-						voteTxHash: vote.voteTxHash,
-						source: vote.source,
-					},
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'vote')]: vote.vote,
-						[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'voteIndex')]: vote.voteIndex,
-						[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], '$transaction')]: {
-							[EntityMetaKey.Selector]: vote.$transaction,
-						},
-						...(vote.$drep != null && {
-							[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], '$drep')]: {
-								[EntityMetaKey.Selector]: vote.$drep,
-							},
-						}),
-						...(vote.$stakePool != null && {
-							[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], '$stakePool')]: {
-								[EntityMetaKey.Selector]: vote.$stakePool,
-							},
-						}),
-					},
-				})),
-				continuation: ({ limit, page, $$votes }, proposal) => (
-					$$votes.length < limit ?
+				select: (proposal) => proposal.$$votes,
+				continuation: ({
+					limit,
+					page,
+					lastVoteIdentity,
+					$$votes,
+				}, proposal) => (
+					$$votes.length < limit || lastVoteIdentity == null ?
 						{
 							operation: 'cardano-governance-proposal-votes',
 							target: `${proposal.proposalTxHash}:${proposal.proposalIndex.toString()}`,
@@ -1341,11 +1263,11 @@ export default {
 						{
 							operation: 'cardano-governance-proposal-votes',
 							target: `${proposal.proposalTxHash}:${proposal.proposalIndex.toString()}`,
-								terminal: false,
-								token: new URLSearchParams({
-									after: `${$$votes[$$votes.length - 1].voteTxHash}:${$$votes[$$votes.length - 1].voteIndex.toString()}:${$$votes[$$votes.length - 1].voterKind}:${$$votes[$$votes.length - 1].voterCredential}`,
-									page: (page + 1).toString(),
-								}).toString(),
+							terminal: false,
+							token: new URLSearchParams({
+								after: lastVoteIdentity,
+								page: (page + 1).toString(),
+							}).toString(),
 						}
 				),
 			},
@@ -1458,21 +1380,27 @@ export default {
 						return {
 							credentialKind: drep.has_script ? 'script' : 'key',
 							$$votes: votes.map((vote) => ({
-								$proposal: {
-									$network,
-									proposalTxHash: vote.proposal_tx_hash,
-									proposalIndex: vote.proposal_cert_index,
+								[EntityMetaKey.Selector]: {
+									$proposal: {
+										$network,
+										proposalTxHash: vote.proposal_tx_hash,
+										proposalIndex: vote.proposal_cert_index,
+									},
+									voterKind: 'drep',
+									voterCredential: drepCredential,
+									voteTxHash: vote.tx_hash,
+									source: Source.Blockfrost_Rest,
 								},
-								voterKind: 'drep',
-								voterCredential: drepCredential,
-								source: Source.Blockfrost_Rest,
-								vote: vote.vote,
-								$drep: {
-									$network,
-									drepCredential,
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'vote')]: vote.vote,
+									[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'voteIndex')]: vote.cert_index,
+									[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], '$drep')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											drepCredential,
+										},
+									},
 								},
-								voteTxHash: vote.tx_hash,
-								voteIndex: vote.cert_index,
 							})),
 						}
 					},
@@ -1480,22 +1408,7 @@ export default {
 			},
 		})({
 			credentialKind: (drep) => drep.credentialKind,
-			$$votes: (drep) => drep.$$votes.map((vote) => ({
-				[EntityMetaKey.Selector]: {
-					$proposal: vote.$proposal,
-					voterKind: vote.voterKind,
-					voterCredential: vote.voterCredential,
-					voteTxHash: vote.voteTxHash,
-					source: vote.source,
-				},
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'vote')]: vote.vote,
-					[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'voteIndex')]: vote.voteIndex,
-					[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], '$drep')]: {
-						[EntityMetaKey.Selector]: vote.$drep,
-					},
-				},
-			})),
+			$$votes: (drep) => drep.$$votes,
 		}),
 
 		defineResolver(Source.Blockfrost_Rest, {

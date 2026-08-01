@@ -60,10 +60,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.walletId || 'blockhead monero wallet state'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadMoneroWalletState}>
 			{#snippet children(entity)}
@@ -82,7 +78,6 @@
 						selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector])}
 						prefetched={moneroNetwork}
 						layout={EntityLayout.Title}
-						open={false}
 					/>
 				</span>
 			{/snippet}
@@ -110,7 +105,6 @@
 									selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
 									prefetched={blockheadWallet}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -129,7 +123,6 @@
 								selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector])}
 								prefetched={moneroNetwork}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -272,12 +265,7 @@
 			{#snippet SectionMoneroSubaddresses({ id, label, open })}
 				<BlockheadMoneroSubaddressStatesView
 					selection={selection.$$subaddresses}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Monero subaddresses.'
 					id={`${id}-list`}
@@ -287,12 +275,7 @@
 			{#snippet SectionMoneroOutputs({ id, label, open })}
 				<BlockheadMoneroOutputStatesView
 					selection={selection.$$outputs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Monero outputs.'
 					id={`${id}-list`}
@@ -328,12 +311,7 @@
 			{#snippet SectionMoneroTransfers({ id, label, open })}
 				<BlockheadMoneroTransferStatesView
 					selection={selection.$$transfers}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Monero transfers.'
 					id={`${id}-list`}
@@ -343,12 +321,7 @@
 			{#snippet SectionMoneroWalletTimestamps({ id, label, open })}
 				<BlockheadMoneroWalletState_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Monero wallet observations.'
 					id={`${id}-list`}

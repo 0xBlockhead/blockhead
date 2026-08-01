@@ -1,6 +1,6 @@
 import {
-	ProposalCategory as OwnedProposalCategory,
-	SpecificationRealm as OwnedSpecificationRealm,
+	ProposalCategory,
+	SpecificationRealm,
 } from '$/constants/SpecificationProposal.ts'
 import {
 	defineResolver,
@@ -15,36 +15,6 @@ const bipMetadataValue = (text: string, key: string) => (
 	new RegExp(`^\\s*${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim()
 )
 
-const githubBipProposalIndexRows = async (
-	data: {
-		type: string
-		name: string
-	}[]
-) => {
-	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-	return data
-		.flatMap((githubContent) => {
-			const proposalNumberRaw = (
-				githubContent.type === 'file' ?
-					regex('^bip-(?<proposalNumber>\\d{4})\\.mediawiki$').exec(githubContent.name)?.groups.proposalNumber
-				:
-					null
-			)
-			return proposalNumberRaw == null ?
-				[]
-			:
-				[
-					{
-						[EntityMetaKey.Selector]: {
-							realm: SpecificationRealm.Bitcoin,
-							category: ProposalCategory.Bip,
-							number: parseInt(proposalNumberRaw, 10),
-						},
-					},
-				]
-		})
-}
-
 export default {
 	source: Source.BitcoinBips_Github,
 
@@ -55,18 +25,17 @@ export default {
 				RealmCategoryNumber: {
 					appliesTo: [
 						{
-							realm: OwnedSpecificationRealm.Bitcoin,
-							category: OwnedProposalCategory.Bip,
+							realm: SpecificationRealm.Bitcoin,
+							category: ProposalCategory.Bip,
 						},
 					],
 					resolve: async ({ category, number, realm }) => {
-						const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 						const { getProposalMediaWikiText } = await import('$/sources/BitcoinBips/Github/queries.ts')
 						if (realm !== SpecificationRealm.Bitcoin || category !== ProposalCategory.Bip) {
 							throw new Error('BitcoinBips_Github: proposal resolver only supports Bitcoin BIPs')
 						}
 						const text = await getProposalMediaWikiText({
-							number: number,
+							number,
 						})
 						if (text.trim() === '') throw new Error('BitcoinBips_Github: empty proposal text')
 						return {
@@ -91,7 +60,27 @@ export default {
 				Scope: {
 					resolve: async () => {
 						const { getContents } = await import('$/sources/BitcoinBips/Github/queries.ts')
-						return githubBipProposalIndexRows(await getContents())
+						return (await getContents())
+							.flatMap((githubContent) => {
+								const proposalNumberRaw = (
+									githubContent.type === 'file' ?
+										regex('^bip-(?<proposalNumber>\\d{4})\\.mediawiki$').exec(githubContent.name)?.groups.proposalNumber
+									:
+										null
+								)
+								return proposalNumberRaw == null ?
+									[]
+								:
+									[
+										{
+											[EntityMetaKey.Selector]: {
+												realm: SpecificationRealm.Bitcoin,
+												category: ProposalCategory.Bip,
+												number: parseInt(proposalNumberRaw, 10),
+											},
+										},
+									]
+							})
 					},
 				},
 			},

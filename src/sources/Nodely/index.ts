@@ -10,12 +10,8 @@ export default {
 	label: 'Nodely',
 	sources: [
 		{
-			source: Source.Nodely_Algod_Rest,
-			label: 'Nodely Algod REST',
-		},
-		{
-			source: Source.Nodely_AlgorandIndexer_Rest,
-			label: 'Nodely Algorand Indexer REST',
+			source: Source.Nodely,
+			label: 'Nodely',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

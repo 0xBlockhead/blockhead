@@ -58,14 +58,12 @@
 		<BnbBeaconTokenView
 			selection={select(EntityType.BnbBeaconToken, selection.entitySelector.$token)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$targetNetwork)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -77,7 +75,6 @@
 					<BnbBeaconTokenView
 						selection={select(EntityType.BnbBeaconToken, selection.entitySelector.$token)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -88,7 +85,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$targetNetwork)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -1,7 +1,7 @@
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import { bitcoinNetworkBySlug } from '$/constants/BitcoinNetwork.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -17,10 +17,10 @@ export default {
 						if (
 							!(
 								('caip2' in $network
-									&& $network.caip2.namespace === bitcoinNetworkBySlug['bitcoin-cash'].caip2.namespace
-									&& $network.caip2.reference === bitcoinNetworkBySlug['bitcoin-cash'].caip2.reference)
+									&& $network.caip2.namespace === networkBySlug['bitcoin-cash'].caip2.namespace
+									&& $network.caip2.reference === networkBySlug['bitcoin-cash'].caip2.reference)
 								|| ('slug' in $network
-									&& $network.slug === bitcoinNetworkBySlug['bitcoin-cash'].slug)
+									&& $network.slug === networkBySlug['bitcoin-cash'].slug)
 							)
 						)
 							throw new Error('BitcoinCashBcmr_Github: unsupported network')

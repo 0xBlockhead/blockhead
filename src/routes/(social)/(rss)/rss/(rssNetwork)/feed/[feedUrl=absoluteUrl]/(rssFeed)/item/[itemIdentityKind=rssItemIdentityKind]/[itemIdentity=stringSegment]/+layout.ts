@@ -22,7 +22,8 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			$feed: parentData.selector,
 			itemIdentityKind: params.itemIdentityKind,
 			itemIdentity: decodeURIComponent(params.itemIdentity),
-		}
+		},
+		'FeedIdentity'
 	)
 	if (rssItemFeedIdentitySelector instanceof arktype.errors)
 		error(404, 'Invalid RssItem selector')

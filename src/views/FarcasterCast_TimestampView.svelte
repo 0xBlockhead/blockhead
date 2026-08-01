@@ -72,7 +72,6 @@
 			selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -88,7 +87,6 @@
 					<FarcasterCastView
 						selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

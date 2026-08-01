@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -33,15 +32,10 @@
 <EntityView
 	entityType={EntityType.HederaSchedule_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'hedera schedule timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		hedera schedule timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -50,7 +44,6 @@
 					<HederaScheduleView
 						selection={select(EntityType.HederaSchedule, selection.entitySelector.$schedule)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -191,7 +184,6 @@
 									selection={select(EntityType.HederaTransaction, hederaTransaction[EntityMetaKey.Selector])}
 									prefetched={hederaTransaction}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

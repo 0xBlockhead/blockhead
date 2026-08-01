@@ -62,10 +62,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		XRPL trustline
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -74,7 +70,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -112,7 +107,6 @@
 									selection={select(EntityType.XrplAccount, xrplAccount[EntityMetaKey.Selector])}
 									prefetched={xrplAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -132,7 +126,6 @@
 									selection={select(EntityType.XrplAccount, xrplAccount[EntityMetaKey.Selector])}
 									prefetched={xrplAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

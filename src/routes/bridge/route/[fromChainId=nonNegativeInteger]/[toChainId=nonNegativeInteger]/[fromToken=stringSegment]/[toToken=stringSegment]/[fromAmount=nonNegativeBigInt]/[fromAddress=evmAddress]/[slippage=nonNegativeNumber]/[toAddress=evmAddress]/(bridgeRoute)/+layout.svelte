@@ -19,6 +19,22 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]',
+			{
+				fromChainId: params.fromChainId,
+				toChainId: params.toChainId,
+				fromToken: params.fromToken,
+				toToken: params.toToken,
+				fromAmount: params.fromAmount,
+				fromAddress: params.fromAddress,
+				slippage: params.slippage,
+				toAddress: params.toAddress,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,44 +45,18 @@
 
 {#key [params.fromChainId, params.toChainId, params.fromToken, params.toToken, params.fromAmount, params.fromAddress, params.slippage, params.toAddress].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]',
-				{
-					fromChainId: params.fromChainId,
-					toChainId: params.toChainId,
-					fromToken: params.fromToken,
-					toToken: params.toToken,
-					fromAmount: params.fromAmount,
-					fromAddress: params.fromAddress,
-					slippage: params.slippage,
-					toAddress: params.toAddress,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<BridgeRouteView
 				selection={
-					select(EntityType.BridgeRoute, data.selector, { sources: [
-						Source.Lifi_Rest,
-					] })
+					select(EntityType.BridgeRoute, data.selector, {
+						sources: [
+							Source.Lifi_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]',
-						{
-							fromChainId: params.fromChainId,
-							toChainId: params.toChainId,
-							fromToken: params.fromToken,
-							toToken: params.toToken,
-							fromAmount: params.fromAmount,
-							fromAddress: params.fromAddress,
-							slippage: params.slippage,
-							toAddress: params.toAddress,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

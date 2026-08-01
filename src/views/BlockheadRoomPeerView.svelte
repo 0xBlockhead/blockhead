@@ -78,7 +78,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadRoomPeer}>
 			{#snippet children(entity)}
-				{String(entity.isConnected) || (entity.displayName ?? '') || titleFallback}
+				{String(entity.isConnected)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -96,7 +96,6 @@
 								selection={select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector])}
 								prefetched={blockheadRoom}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

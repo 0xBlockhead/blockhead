@@ -6,15 +6,17 @@ import {
 	vi,
 } from 'vitest'
 
-import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/OpenSea/bindings.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
-import { sourceFetch } from '$/sources/_runtime/http.ts'
 import {
 	getAccountEvents,
 	getAccountNfts,
 } from '$/sources/OpenSea/Rest/queries.ts'
+import type {
+	OpenSeaAccountEventsResponse,
+	OpenSeaAccountNftsResponse,
+} from '$/sources/OpenSea/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
+import { sourceFetch } from '$/sources/_runtime/http.ts'
 
 vi.mock('$/sources/_runtime/http.ts', () => ({
 	firstHttpUrlForBinding: () => 'https://api.opensea.io',
@@ -24,9 +26,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 const binding = bindings[Source.OpenSea_Rest]
 
 const address = '0x1111111111111111111111111111111111111111'
-const counterparty = '0x2222222222222222222222222222222222222222'
 const contract = '0x3333333333333333333333333333333333333333'
-const transaction = `0x${'4'.repeat(64)}`
 
 const nft = {
 	identifier: '900719925474099312345',
@@ -41,10 +41,10 @@ const nft = {
 	is_disabled: false,
 	is_nsfw: false,
 	traits: [],
-}
+} satisfies OpenSeaAccountNftsResponse['nfts'][number]
 
 const respond = (
-	body: unknown
+	body: OpenSeaAccountEventsResponse | OpenSeaAccountNftsResponse
 ) => {
 	vi.mocked(sourceFetch).mockResolvedValueOnce(
 		new Response(JSON.stringify(body), {
@@ -59,29 +59,27 @@ beforeEach(() => {
 	vi.clearAllMocks()
 })
 
-describe('OpenSea public owner reads', () => {
-	it('fetches an exact chain-scoped owner page with opaque continuation', async () => {
+describe('OpenSea account endpoints', () => {
+	it('encodes every documented NFT account parameter', async () => {
 		respond({
 			nfts: [nft],
 			next: 'cursor+/=',
 		})
 
 		await expect(getAccountNfts({
-			binding,
 			credential: 'secret',
 			chain: 'ethereum',
 			address,
+			collection: 'collection + one',
 			limit: 50,
 			next: 'prior+/=',
-		})).resolves.toMatchObject({
-			nfts: [{
-				identifier: '900719925474099312345',
-			}],
+		})).resolves.toEqual({
+			nfts: [nft],
 			next: 'cursor+/=',
 		})
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
-			`https://api.opensea.io/api/v2/chain/ethereum/account/${address}/nfts?limit=50&next.value=prior%2B%2F%3D`,
+			`https://api.opensea.io/api/v2/chain/ethereum/account/${address}/nfts?limit=50&next=prior%2B%2F%3D&collection=collection+%2B+one`,
 			{
 				headers: {
 					accept: 'application/json',
@@ -91,104 +89,62 @@ describe('OpenSea public owner reads', () => {
 		)
 	})
 
-	it('rejects duplicate NFT identities and invalid bounds', async () => {
-		respond({
-			nfts: [
-				nft,
-				nft,
-			],
-		})
-
-		await expect(getAccountNfts({
-			binding,
-			credential: 'secret',
-			chain: 'base',
-			address,
-		})).rejects.toThrow('duplicate NFTs')
-		await expect(getAccountNfts({
-			binding,
-			credential: 'secret',
-			chain: 'base',
-			address,
-			limit: 201,
-		})).rejects.toThrow('between 1 and 200')
-		expect(sourceFetch).toHaveBeenCalledTimes(1)
-	})
-
-	it('keeps account sales and transfers chain- and subject-bound', async () => {
-		respond({
-			asset_events: [
-				{
-					event_type: 'sale',
-					event_timestamp: 1_700_000_000,
-					transaction,
-					chain: 'ethereum',
-					closing_date: 1_700_000_000,
-					seller: address,
-					buyer: counterparty,
-					quantity: 1,
-					nft,
-				},
-				{
-					event_type: 'transfer',
-					event_timestamp: 1_700_000_001,
-					transaction,
-					chain: 'ethereum',
-					transfer_type: 'single',
-					from_address: counterparty,
-					to_address: address,
-					quantity: 1,
-					nft,
-				},
-			],
+	it('uses the official account-event filters and exact event response', async () => {
+		const response = {
+			asset_events: [{
+				event_type: 'listing',
+				event_timestamp: 1_700_000_000,
+				chain: 'ethereum',
+				order_type: 'basic',
+				quantity: 1,
+				maker: address,
+				is_private_listing: false,
+			}],
 			next: 'next',
-		})
+		} satisfies OpenSeaAccountEventsResponse
+
+		respond(response)
 
 		await expect(getAccountEvents({
-			binding,
 			credential: 'secret',
-			chain: 'ethereum',
 			address,
-			limit: 2,
-		})).resolves.toMatchObject({
-			asset_events: [
-				{
-					event_type: 'sale',
-				},
-				{
-					event_type: 'transfer',
-				},
+			after: 1_700_000_000,
+			before: 1_800_000_000,
+			eventTypes: [
+				'sale',
+				'transfer',
+				'mint',
+				'listing',
+				'offer',
+				'trait_offer',
+				'collection_offer',
 			],
-		})
+			chain: 'ethereum',
+			limit: 20,
+			next: 'cursor+/=',
+		})).resolves.toEqual(response)
 		expect(vi.mocked(sourceFetch).mock.calls[0]?.[1]).toBe(
-			`https://api.opensea.io/api/v2/events/accounts/${address}?limit=2&chain=ethereum&event_type=sale&event_type=transfer&event_type=mint`
+			`https://api.opensea.io/api/v2/events/accounts/${address}?limit=20&next=cursor%2B%2F%3D&after=1700000000&before=1800000000&chain=ethereum&event_type=sale&event_type=transfer&event_type=mint&event_type=listing&event_type=offer&event_type=trait_offer&event_type=collection_offer`
 		)
 	})
 
-	it('fails closed on foreign activity and missing credentials', async () => {
-		respond({
-			asset_events: [{
-				event_type: 'transfer',
-				event_timestamp: 1_700_000_001,
-				chain: 'base',
-				transfer_type: 'single',
-				from_address: counterparty,
-				to_address: contract,
-				quantity: 1,
-			}],
-		})
-
-		await expect(getAccountEvents({
-			binding,
-			credential: 'secret',
-			chain: 'base',
-			address,
-		})).rejects.toThrow('foreign transfer')
+	it('keeps credential and pagination policy at the source boundary', async () => {
 		await expect(getAccountNfts({
-			binding,
 			credential: '',
 			chain: 'ethereum',
 			address,
 		})).rejects.toThrow('API key is required')
+		await expect(getAccountNfts({
+			credential: 'secret',
+			chain: 'ethereum',
+			address,
+			limit: 201,
+		})).rejects.toThrow('between 1 and 200')
+		await expect(getAccountEvents({
+			credential: 'secret',
+			address,
+			next: '',
+		})).rejects.toThrow('opaque and nonempty')
+		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 })

@@ -108,7 +108,6 @@
 									selection={select(EntityType.FilecoinNetwork, filecoinNetwork[EntityMetaKey.Selector])}
 									prefetched={filecoinNetwork}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -128,7 +127,6 @@
 									selection={select(EntityType.FilecoinMessage, filecoinMessage[EntityMetaKey.Selector])}
 									prefetched={filecoinMessage}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -148,7 +146,6 @@
 									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 									prefetched={filecoinActor}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -168,7 +165,6 @@
 									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 									prefetched={filecoinActor}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

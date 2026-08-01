@@ -219,12 +219,7 @@
 			{#snippet SectionAiProviderCatalogEntries({ id, label, open })}
 				<AiProviderCatalogEntriesView
 					selection={selection.$$catalogEntries}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No AI provider catalog entries.'
 					id={`${id}-list`}
@@ -234,12 +229,7 @@
 			{#snippet SectionAiProviderModels({ id, label, open })}
 				<AiModelsView
 					selection={selection.$$models}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No AI models.'
 					id={`${id}-list`}
@@ -271,12 +261,7 @@
 			{#snippet SectionAiProviderApiOperations({ id, label, open })}
 				<AiProviderApiOperationsView
 					selection={selection.$$apiOperations}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No AI provider API operations.'
 					id={`${id}-list`}

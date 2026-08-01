@@ -25,7 +25,6 @@
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
 			Source.EigenLayerContracts_Evm,
-			Source.EigenLayerSubgraph_Graphql,
 			Source.Etherscan_Rest,
 			Source.Voltaire_JsonRpc,
 		],
@@ -55,7 +54,6 @@
 			selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$staker)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -63,7 +61,6 @@
 		<EigenLayerOperatorView
 			selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -72,7 +69,6 @@
 			<EigenLayerStrategyView
 				selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -85,7 +81,6 @@
 					<EvmNetworkAccountView
 						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$staker)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -96,7 +91,6 @@
 					<EigenLayerOperatorView
 						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -107,7 +101,6 @@
 					<EigenLayerStrategyView
 						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

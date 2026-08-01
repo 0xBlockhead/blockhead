@@ -268,7 +268,6 @@
 									selection={select(EntityType.AiDataset, aiDataset[EntityMetaKey.Selector])}
 									prefetched={aiDataset}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

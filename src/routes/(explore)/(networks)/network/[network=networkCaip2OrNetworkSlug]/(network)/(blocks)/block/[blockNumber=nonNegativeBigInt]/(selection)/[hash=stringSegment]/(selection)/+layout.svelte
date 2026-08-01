@@ -18,6 +18,17 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]',
+			{
+				network: params.network,
+				blockNumber: params.blockNumber,
+				hash: params.hash,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,32 +40,14 @@
 
 {#key [params.network, params.blockNumber, params.hash].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]',
-				{
-					network: params.network,
-					blockNumber: params.blockNumber,
-					hash: params.hash,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
-			{@const DetailView = data.entityType === EntityType.PolkadotBlock && data.selectorName === 'NetworkBlockNumberHash' ? PolkadotBlockView : UtxoBlockView}
+			{@const DetailView = data.entityType === EntityType.PolkadotBlock ? PolkadotBlockView : UtxoBlockView}
 
 			<DetailView
 				selection={select(data.entityType, data.selector)}
-				href={
-					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]',
-						{
-							network: params.network,
-							blockNumber: params.blockNumber,
-							hash: params.hash,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

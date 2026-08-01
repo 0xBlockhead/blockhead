@@ -55,12 +55,6 @@
 		</a>
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A declared Mastodon-compatible ActivityPub server observed through the shared Mastodon REST source.
-		</p>
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>

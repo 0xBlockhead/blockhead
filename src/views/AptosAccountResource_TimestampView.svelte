@@ -74,7 +74,6 @@
 					<AptosAccountResourceView
 						selection={select(EntityType.AptosAccountResource, selection.entitySelector.$resource)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

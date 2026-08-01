@@ -28,7 +28,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 			account: params.account,
 			currency: params.currency,
 			issuer: params.issuer,
-		}
+		},
+		'NetworkAccountCurrencyIssuer'
 	)
 	if (xrplTrustlineNetworkAccountCurrencyIssuerSelector instanceof arktype.errors)
 		error(404, 'Invalid XrplTrustline selector')

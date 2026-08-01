@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -21,23 +22,15 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HyperliquidNetwork> = $props()
 
-	const titleFallback = 'hyperliquid network'
 	const viewDomId = $derived('hyperliquid-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
-	import HyperliquidNetwork_TimestampsView from '$/views/HyperliquidNetwork_TimestampsView.svelte'
-	import HyperliquidBlocksView from '$/views/HyperliquidBlocksView.svelte'
-	import HyperliquidTransactionsView from '$/views/HyperliquidTransactionsView.svelte'
-	import HyperliquidValidatorsView from '$/views/HyperliquidValidatorsView.svelte'
 	import HyperliquidSpotAssetsView from '$/views/HyperliquidSpotAssetsView.svelte'
-	import HyperliquidSpotPairsView from '$/views/HyperliquidSpotPairsView.svelte'
-	import HyperliquidPerpMarketsView from '$/views/HyperliquidPerpMarketsView.svelte'
-	import HyperliquidVaultsView from '$/views/HyperliquidVaultsView.svelte'
 </script>
 
 
@@ -45,7 +38,7 @@
 	entityType={EntityType.HyperliquidNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'hyperliquid network'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -55,12 +48,11 @@
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{titleFallback}
+		Hyperliquid
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -71,7 +63,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -108,48 +99,60 @@
 			{/snippet}
 
 			{#snippet SectionHyperliquidChainObservations({ id, label, open })}
-				<HyperliquidNetwork_TimestampsView
-					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.HyperliquidNetwork_Timestamp}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Hyperliquid network observations.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$timestamps()}
+				>
+					{#snippet Item({ item: hyperliquidNetworkTimestamp })}
+						<EntityView
+							entityType={EntityType.HyperliquidNetwork_Timestamp}
+							entitySelector={hyperliquidNetworkTimestamp[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionHyperliquidChainBlocks({ id, label, open })}
-				<HyperliquidBlocksView
-					selection={selection.$$blocks}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.HyperliquidBlock}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Hyperliquid blocks.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$blocks()}
+				>
+					{#snippet Item({ item: hyperliquidBlock })}
+						<EntityView
+							entityType={EntityType.HyperliquidBlock}
+							entitySelector={hyperliquidBlock[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionHyperliquidChainTransactions({ id, label, open })}
-				<HyperliquidTransactionsView
-					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.HyperliquidTransaction}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Hyperliquid transactions.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$transactions()}
+				>
+					{#snippet Item({ item: hyperliquidTransaction })}
+						<EntityView
+							entityType={EntityType.HyperliquidTransaction}
+							entitySelector={hyperliquidTransaction[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -175,18 +178,22 @@
 			{/snippet}
 
 			{#snippet SectionHyperliquidValidatorList({ id, label, open })}
-				<HyperliquidValidatorsView
-					selection={selection.$$validators}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.HyperliquidValidator}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Hyperliquid validators.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$validators()}
+				>
+					{#snippet Item({ item: hyperliquidValidator })}
+						<EntityView
+							entityType={EntityType.HyperliquidValidator}
+							entitySelector={hyperliquidValidator[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -226,12 +233,7 @@
 			{#snippet SectionHyperliquidSpotAssets({ id, label, open })}
 				<HyperliquidSpotAssetsView
 					selection={selection.$$spotAssets}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Hyperliquid spot assets.'
 					id={`${id}-list`}
@@ -239,48 +241,60 @@
 			{/snippet}
 
 			{#snippet SectionHyperliquidSpotPairs({ id, label, open })}
-				<HyperliquidSpotPairsView
-					selection={selection.$$spotPairs}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.HyperliquidSpotPair}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Hyperliquid spot pairs.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$spotPairs()}
+				>
+					{#snippet Item({ item: hyperliquidSpotPair })}
+						<EntityView
+							entityType={EntityType.HyperliquidSpotPair}
+							entitySelector={hyperliquidSpotPair[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionHyperliquidPerpMarkets({ id, label, open })}
-				<HyperliquidPerpMarketsView
-					selection={selection.$$perpMarkets}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.HyperliquidPerpMarket}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Hyperliquid perp markets.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$perpMarkets()}
+				>
+					{#snippet Item({ item: hyperliquidPerpMarket })}
+						<EntityView
+							entityType={EntityType.HyperliquidPerpMarket}
+							entitySelector={hyperliquidPerpMarket[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionHyperliquidVaults({ id, label, open })}
-				<HyperliquidVaultsView
-					selection={selection.$$vaults}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.HyperliquidVault}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Hyperliquid vaults.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$vaults()}
+				>
+					{#snippet Item({ item: hyperliquidVault })}
+						<EntityView
+							entityType={EntityType.HyperliquidVault}
+							entitySelector={hyperliquidVault[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>

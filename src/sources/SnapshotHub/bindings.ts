@@ -1,7 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
 const bindings = [
 	{
@@ -14,7 +14,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://hub.snapshot.org/graphql',
-				origin: 'https://hub.snapshot.org',
 				corsEnabled: true,
 			},
 		],
@@ -24,19 +23,25 @@ const bindings = [
 			SourceOperationGroup.GenericRead,
 		],
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 		artifacts: [
 			{
-				kind: SourceArtifactKind.HandwrittenTypes,
-				path: 'src/sources/SnapshotHub/Graphql/types.ts',
-				generated: false,
+				kind: SourceArtifactKind.GraphqlSchema,
+				path: 'src/sources/SnapshotHub/Graphql/schema.graphql',
+				generated: true,
+				officialUrl: 'https://hub.snapshot.org/graphql',
+			},
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/SnapshotHub/Graphql/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.GraphqlTypes,
+				path: 'src/sources/SnapshotHub/Graphql/graphql-env.d.ts',
+				generated: true,
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.SnapshotHub_Graphql]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

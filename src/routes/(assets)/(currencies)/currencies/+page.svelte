@@ -28,12 +28,8 @@
 
 	<CurrenciesView
 		href={resolve('/(assets)/(currencies)/currencies')}
-		title='Currencies'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='currencies'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

@@ -18,6 +18,16 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]',
+			{
+				network: params.network,
+				validatorId: params.validatorId,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,30 +39,14 @@
 
 {#key [params.network, params.validatorId].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]',
-				{
-					network: params.network,
-					validatorId: params.validatorId,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
-			{@const DetailView = data.entityType === EntityType.BeaconValidator && data.selectorName === 'NetworkIndexInNetwork' ? BeaconValidatorView : SolanaValidatorView}
+			{@const DetailView = data.entityType === EntityType.BeaconValidator ? BeaconValidatorView : SolanaValidatorView}
 
 			<DetailView
 				selection={select(data.entityType, data.selector)}
-				href={
-					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]',
-						{
-							network: params.network,
-							validatorId: params.validatorId,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

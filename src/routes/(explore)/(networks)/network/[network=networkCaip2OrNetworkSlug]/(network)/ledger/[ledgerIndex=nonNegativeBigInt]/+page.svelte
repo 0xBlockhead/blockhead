@@ -15,18 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.XrplLedger, data.selector, {
-		fields: {
-			ledgerHash: true,
-			closeTimeMs: true,
-			validated: true,
-			totalCoinsDrops: true,
-			parentHash: true,
-			accountHash: true,
-			transactionHash: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -41,6 +29,18 @@
 
 <Page>
 	<XrplLedgerView
-		selection={pageSelection}
+		selection={
+			select(EntityType.XrplLedger, data.selector, {
+				fields: {
+					ledgerHash: true,
+					closeTimeMs: true,
+					validated: true,
+					totalCoinsDrops: true,
+					parentHash: true,
+					accountHash: true,
+					transactionHash: true,
+				},
+			})
+		}
 	/>
 </Page>

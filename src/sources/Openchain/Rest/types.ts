@@ -18,9 +18,3 @@ export type OpenchainLookupResponse = {
 export type FourbyteSignaturesList = {
 	results?: { text_signature: string }[]
 }
-
-export const looksLikeSolidityErrorName = (text: string) => (
-	text.startsWith('Error(') ||
-	text.startsWith('Panic(') ||
-	/^[A-Z][a-zA-Z0-9_]*\(/.test(text)
-)

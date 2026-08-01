@@ -16,6 +16,14 @@
 		data,
 		params,
 	}: PageProps = $props()
+	const collectionHref = $derived(
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance',
+			{
+				network: params.network,
+			}
+		)
+	)
 	const collection0Selection = $derived(select(EntityType.Network, data.selector).Cosmos.$$governanceProposals)
 	const collection1Selection = $derived(select(EntityType.Network, data.selector).Cardano.$$governanceProposals)
 
@@ -34,36 +42,16 @@
 
 <Page>
 	<CosmosGovernanceProposalsView
-		href={
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance',
-				{
-					network: params.network,
-				}
-			)
-		}
+		href={collectionHref}
 		title='Governance'
 		selection={collection0Selection}
 		id='governance-proposals'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 
 	<CardanoGovernanceProposalsView
-		href={
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance',
-				{
-					network: params.network,
-				}
-			)
-		}
+		href={collectionHref}
 		title='Governance'
 		selection={collection1Selection}
 		id='governance-proposals'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

@@ -43,8 +43,5 @@
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='invoices'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

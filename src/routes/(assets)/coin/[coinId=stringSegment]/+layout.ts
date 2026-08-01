@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		CoinSchema,
 		{
 			coinId: params.coinId,
-		}
+		},
+		'CoinId'
 	)
 	if (coinCoinIdSelector instanceof arktype.errors)
 		error(404, 'Invalid Coin selector')

@@ -36,10 +36,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		XRPL amendment timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +44,6 @@
 					<XrplAmendmentView
 						selection={select(EntityType.XrplAmendment, selection.entitySelector.$amendment)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

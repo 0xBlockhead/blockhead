@@ -40,8 +40,5 @@
 		title='Observations'
 		selection={select(EntityType.Network, data.selector).Evm.$$timestamps}
 		id='timestamps'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

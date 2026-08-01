@@ -50,7 +50,7 @@ const storageNodeJsonRpc = async <_Result>({
 		}
 	)
 	if (!response.ok) await throwHttpError(`ZeroGStorageNode_JsonRpc ${method}`, response)
-	const json: ZeroGStorageNodeJsonRpcResponse<_Result> = await response.json()
+	const json = await response.json<ZeroGStorageNodeJsonRpcResponse<_Result>>()
 	if (json.error != null) throw new Error(`ZeroGStorageNode_JsonRpc ${method}: ${json.error.message}`)
 	if (json.result === undefined) throw new Error(`ZeroGStorageNode_JsonRpc ${method}: missing result`)
 	return json.result

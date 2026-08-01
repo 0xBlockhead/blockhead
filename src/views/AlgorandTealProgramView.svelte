@@ -52,10 +52,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.programHash || 'algorand teal program'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={algorandTealProgram}>
 			{#snippet children(entity)}
@@ -85,7 +81,6 @@
 					<AlgorandNetworkView
 						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -159,12 +154,7 @@
 			{#snippet SectionAlgorandTealApplications({ id, label, open })}
 				<AlgorandApplicationsView
 					selection={selection.$$applications}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Algorand applications.'
 					id={`${id}-list`}
@@ -174,12 +164,7 @@
 			{#snippet SectionAlgorandTealTransactions({ id, label, open })}
 				<AlgorandTransactionsView
 					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Algorand transactions.'
 					id={`${id}-list`}
@@ -211,12 +196,7 @@
 			{#snippet SectionAlgorandTealTimestamps({ id, label, open })}
 				<AlgorandTealProgram_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Algorand TEAL program observations.'
 					id={`${id}-list`}

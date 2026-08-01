@@ -1,13 +1,4 @@
-import type {
-	TorrentMetainfoSummary,
-	TorrentTrackerAnnounceRequest,
-} from '$/sources/BitTorrent/Bencode/types.ts'
-
-export const summarizeMetainfo = (
-	bytes: Uint8Array
-) => ({
-	byteLength: bytes.byteLength,
-}) satisfies TorrentMetainfoSummary
+import type { TorrentTrackerAnnounceRequest } from '$/sources/BitTorrent/Bencode/types.ts'
 
 export const httpTrackerAnnounceSearchParams = ({
 	infoHash,

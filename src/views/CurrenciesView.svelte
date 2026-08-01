@@ -11,7 +11,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['A currency unit used for quoting values, balances, and market data.'],
 		open = $bindable(true),
 		id = 'Currencies-list',
 		...EntitiesListProps
@@ -28,7 +27,6 @@
 	entityType={EntityType.Currency}
 	{id}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {

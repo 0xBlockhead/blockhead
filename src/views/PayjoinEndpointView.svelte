@@ -46,10 +46,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.endpointUrl || 'payjoin endpoint'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={payjoinEndpoint}>
 			{#snippet children(entity)}
@@ -69,7 +65,6 @@
 							selection={select(EntityType.PayjoinDirectory, payjoinDirectory[EntityMetaKey.Selector])}
 							prefetched={payjoinDirectory}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -120,7 +115,6 @@
 									selection={select(EntityType.PayjoinDirectory, payjoinDirectory[EntityMetaKey.Selector])}
 									prefetched={payjoinDirectory}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

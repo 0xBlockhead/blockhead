@@ -72,10 +72,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{'Epoch ' + String(selection.entitySelector.epoch)}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={cardanoCommitteeEpoch}>
 			{#snippet children(entity)}
@@ -92,7 +88,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -166,7 +161,6 @@
 									selection={select(EntityType.CardanoGovernanceProposal, cardanoGovernanceProposal[EntityMetaKey.Selector])}
 									prefetched={cardanoGovernanceProposal}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

@@ -13,7 +13,8 @@ export const load: LayoutLoad = ({ params }) => {
 		_GlobalYoutubeNetworkSchema,
 		{
 			scope: '_GlobalYoutubeNetwork',
-		}
+		},
+		'Scope'
 	)
 	if (globalYoutubeNetworkScopeSelector instanceof arktype.errors)
 		error(404, 'Invalid _GlobalYoutubeNetwork selector')

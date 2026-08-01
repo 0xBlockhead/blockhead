@@ -3,6 +3,19 @@
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
+const getBlockEndpoints = [
+	{
+		endpointKind: SourceEndpointKind.HttpUrl,
+		locator: 'https://go.getblock.io/{GETBLOCK_API_KEY}/',
+		corsEnabled: false,
+	},
+] as const
+const getBlockCredentials = [
+	{
+		scope: SourceCredentialScope.RuntimeSecret,
+	},
+] as const
+
 const bindings = [
 	{
 		source: Source.GetBlockRpc_JsonRpc,
@@ -10,35 +23,22 @@ const bindings = [
 			kind: SourceTargetKind.Eip155Chain,
 			key: '1',
 		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://go.getblock.io/{GETBLOCK_API_KEY}/',
-				origin: 'https://go.getblock.io',
-				corsEnabled: false,
-			},
-		],
+		endpoints: getBlockEndpoints,
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.EvmExecutionJsonRpc,
 		operationGroups: [
 			SourceOperationGroup.EvmRpcCore,
 		],
 		delivery: SourceDelivery.HttpProxy,
-		credentials: [
-			{
-				scope: SourceCredentialScope.RuntimeSecret,
-			},
-		],
+		credentials: getBlockCredentials,
 		artifacts: [
 			{
 				kind: SourceArtifactKind.OpenRpcSpec,
 				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
-				generated: false,
 			},
 		],
 	},
@@ -48,37 +48,22 @@ const bindings = [
 			kind: SourceTargetKind.Caip2Network,
 			key: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
 		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://go.getblock.io/{GETBLOCK_API_KEY}/',
-				origin: 'https://go.getblock.io',
-				corsEnabled: false,
-			},
-		],
+		endpoints: getBlockEndpoints,
 		wireProtocol: WireProtocol.Grpc,
 		apiFamily: ApiFamily.GrpcService,
 		operationGroups: [
 			SourceOperationGroup.GenericSubscribe,
 		],
 		delivery: SourceDelivery.RemoteLive,
-		credentials: [
-			{
-				scope: SourceCredentialScope.RuntimeSecret,
-			},
-		],
+		credentials: getBlockCredentials,
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/GetBlock/Yellowstone/types.ts',
-				generated: false,
 				referenceUrl: 'https://getblock.io/docs/yellowstone-grpc/',
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.GetBlockRpc_JsonRpc]: typeof bindings[0]
-	readonly [Source.GetBlockYellowstone_Grpc]: typeof bindings[1]
-}>(bindings)
+export default indexSourceBindings(bindings)

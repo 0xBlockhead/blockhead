@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
@@ -16,7 +17,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -24,7 +24,7 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.KaspaExplorer_Rest,
+			Source.KaspaExplorer,
 			Source.KaspaNode_Grpc,
 			Source.KaspaNode_Rest,
 			Source.KaspaNode_Wrpc,
@@ -35,13 +35,13 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import KaspaNetworkView from '$/views/KaspaNetworkView.svelte'
 	import UtxoInputsView from '$/views/UtxoInputsView.svelte'
 	import UtxoOutputsView from '$/views/UtxoOutputsView.svelte'
-	import KaspaAcceptedTransactionsView from '$/views/KaspaAcceptedTransactionsView.svelte'
 </script>
 
 
@@ -49,15 +49,10 @@
 	entityType={EntityType.KaspaTransaction}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? 'kaspa transaction'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		kaspa transaction
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -66,7 +61,6 @@
 					<KaspaNetworkView
 						selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -219,12 +213,7 @@
 			{#snippet SectionKaspaTxInputs({ id, label, open })}
 				<UtxoInputsView
 					selection={selection.$$inputs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No UTXO inputs.'
 					id={`${id}-list`}
@@ -234,12 +223,7 @@
 			{#snippet SectionKaspaTxOutputs({ id, label, open })}
 				<UtxoOutputsView
 					selection={selection.$$outputs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No UTXO outputs.'
 					id={`${id}-list`}
@@ -269,18 +253,22 @@
 			{/snippet}
 
 			{#snippet SectionKaspaTxAcceptances({ id, label, open })}
-				<KaspaAcceptedTransactionsView
-					selection={selection.$$acceptances}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.KaspaAcceptedTransaction}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Kaspa acceptances.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$acceptances()}
+				>
+					{#snippet Item({ item: kaspaAcceptedTransaction })}
+						<EntityView
+							entityType={EntityType.KaspaAcceptedTransaction}
+							entitySelector={kaspaAcceptedTransaction[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>

@@ -15,7 +15,17 @@ vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
 	jsonRpc2: vi.fn(),
 }))
 
-const binding = bindings[Source.Celestia_JsonRpc]
+const binding = bindings[Source.CelestiaNode]
+const publicEnv = {
+	PUBLIC_CELESTIA_NODE_RPC_URL: 'https://example.com',
+}
+const resolvedBinding = {
+	...binding,
+	endpoints: binding.endpoints.map((endpoint) => ({
+		...endpoint,
+		locator: publicEnv.PUBLIC_CELESTIA_NODE_RPC_URL,
+	})),
+}
 
 const jsonRpc2Mock = vi.mocked(jsonRpc2)
 const hash = 'a'.repeat(64)
@@ -26,7 +36,7 @@ const commitment = `${'B'.repeat(43)}=`
 const headerWire = {
 	header: {
 		chain_id: 'celestia',
-		height: '9007199254740993123',
+		height: '9007199254740991',
 		time: '2026-07-23T04:49:10Z',
 		last_block_id: {
 			hash: parentHash,
@@ -42,57 +52,78 @@ const headerWire = {
 	},
 }
 
-describe('Celestia Node read-only JSON-RPC contracts', () => {
+describe('Celestia Node v0.28.4 read-only JSON-RPC contracts', () => {
 	beforeEach(() => {
 		jsonRpc2Mock.mockReset()
 	})
 
-	it('preserves header height and exact chain identity', async () => {
+	it('uses the official integer parameter and preserves header identity', async () => {
 		jsonRpc2Mock.mockResolvedValue(headerWire)
 		await expect(getHeaderByHeight(
-			binding,
-			9_007_199_254_740_993_123n
+			publicEnv,
+			9_007_199_254_740_991n
 		)).resolves.toMatchObject({
 			chainId: 'celestia',
-			height: 9_007_199_254_740_993_123n,
+			height: 9_007_199_254_740_991n,
 			hash,
 			parentHash,
 		})
 		expect(jsonRpc2Mock).toHaveBeenCalledWith(
-			binding,
+			resolvedBinding,
 			'header.GetByHeight',
-			['9007199254740993123']
+			[9_007_199_254_740_991]
 		)
 	})
 
-	it('distinguishes local, network, and sync-head observations', async () => {
+	it('fails closed before transport when the node endpoint is not configured', async () => {
+		await expect(getHeaderLocalHead({})).rejects.toThrow(
+			'Missing or empty source endpoint env: PUBLIC_CELESTIA_NODE_RPC_URL'
+		)
+		expect(jsonRpc2Mock).not.toHaveBeenCalled()
+	})
+
+	it('distinguishes local, network, and complete sync-head observations', async () => {
 		jsonRpc2Mock.mockResolvedValueOnce(headerWire)
-		await getHeaderLocalHead(binding)
+		await getHeaderLocalHead(publicEnv)
 		expect(jsonRpc2Mock).toHaveBeenLastCalledWith(
-			binding,
+			resolvedBinding,
 			'header.LocalHead',
 			[]
 		)
 
 		jsonRpc2Mock.mockResolvedValueOnce(headerWire)
-		await getHeaderNetworkHead(binding)
+		await getHeaderNetworkHead(publicEnv)
 		expect(jsonRpc2Mock).toHaveBeenLastCalledWith(
-			binding,
+			resolvedBinding,
 			'header.NetworkHead',
 			[]
 		)
 
 		jsonRpc2Mock.mockResolvedValueOnce({
-			from_height: '9007199254740993123',
-			to_height: '9007199254740993999',
+			id: 42,
+			height: 12_424_743,
+			from_height: 12_424_700,
+			to_height: 12_424_800,
+			from_hash: hash,
+			to_hash: parentHash,
+			start: '2026-07-23T04:49:10Z',
+			end: '2026-07-23T04:50:10Z',
+			error: '',
 		})
-		await expect(getHeaderSyncState(binding)).resolves.toEqual({
-			fromHeight: 9_007_199_254_740_993_123n,
-			toHeight: 9_007_199_254_740_993_999n,
+		await expect(getHeaderSyncState(publicEnv)).resolves.toEqual({
+			id: 42,
+			height: 12_424_743n,
+			fromHeight: 12_424_700n,
+			toHeight: 12_424_800n,
+			fromHash: hash,
+			toHash: parentHash,
+			start: '2026-07-23T04:49:10Z',
+			end: '2026-07-23T04:50:10Z',
+			error: '',
 		})
 	})
 
-	it('requests proof metadata without invoking blob.Get or blob.GetAll', async () => {
+	it('returns a validated proof without reading blob payload data', async () => {
 		jsonRpc2Mock.mockResolvedValue([
 			{
 				end: 8,
@@ -102,16 +133,22 @@ describe('Celestia Node read-only JSON-RPC contracts', () => {
 		])
 
 		await expect(getBlobProof({
-			binding,
+			publicEnv,
 			height: 12_424_743n,
 			namespace,
 			commitment,
-		})).resolves.toHaveLength(1)
+		})).resolves.toEqual([
+			{
+				end: 8,
+				nodes: [hash],
+				is_max_namespace_ignored: true,
+			},
+		])
 		expect(jsonRpc2Mock).toHaveBeenCalledWith(
-			binding,
+			resolvedBinding,
 			'blob.GetProof',
 			[
-				'12424743',
+				12_424_743,
 				namespace,
 				commitment,
 			]
@@ -125,7 +162,13 @@ describe('Celestia Node read-only JSON-RPC contracts', () => {
 			height: 0n,
 			namespace,
 			commitment,
-			message: 'positive unsigned 64-bit integer',
+			message: 'positive JSON-safe integer',
+		},
+		{
+			height: 9_007_199_254_740_992n,
+			namespace,
+			commitment,
+			message: 'positive JSON-safe integer',
 		},
 		{
 			height: 1n,
@@ -146,7 +189,7 @@ describe('Celestia Node read-only JSON-RPC contracts', () => {
 		message,
 	}) => {
 		await expect(getBlobProof({
-			binding,
+			publicEnv,
 			height,
 			namespace: candidateNamespace,
 			commitment: candidateCommitment,
@@ -154,7 +197,7 @@ describe('Celestia Node read-only JSON-RPC contracts', () => {
 		expect(jsonRpc2Mock).not.toHaveBeenCalled()
 	})
 
-	it('rejects foreign header identity and substituted height', async () => {
+	it('rejects foreign headers, substituted heights, and malformed proofs', async () => {
 		jsonRpc2Mock.mockResolvedValueOnce({
 			...headerWire,
 			header: {
@@ -162,7 +205,7 @@ describe('Celestia Node read-only JSON-RPC contracts', () => {
 				chain_id: 'mocha-4',
 			},
 		})
-		await expect(getHeaderLocalHead(binding)).rejects.toThrow('foreign chain header')
+		await expect(getHeaderLocalHead(publicEnv)).rejects.toThrow('foreign chain header')
 
 		jsonRpc2Mock.mockResolvedValueOnce({
 			...headerWire,
@@ -172,8 +215,22 @@ describe('Celestia Node read-only JSON-RPC contracts', () => {
 			},
 		})
 		await expect(getHeaderByHeight(
-			binding,
+			publicEnv,
 			1n
 		)).rejects.toThrow('mismatched height')
+
+		jsonRpc2Mock.mockResolvedValueOnce([
+			{
+				end: 8,
+				nodes: ['not base64'],
+				is_max_namespace_ignored: false,
+			},
+		])
+		await expect(getBlobProof({
+			publicEnv,
+			height: 1n,
+			namespace,
+			commitment,
+		})).rejects.toThrow('invalid blob proof node')
 	})
 })

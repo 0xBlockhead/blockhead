@@ -12,7 +12,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -24,7 +23,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworksView from '$/views/NetworksView.svelte'
 	import NetworkStacksView from '$/views/NetworkStacksView.svelte'
 	import EthereumNetworkUpgradesView from '$/views/EthereumNetworkUpgradesView.svelte'
@@ -77,21 +75,10 @@
 	entityType={EntityType._Global}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? 'global'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		global
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Root catalog and navigation scope for top-level networks, assets, markets, proposals, and local Blockhead state.
-		</p>
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -139,13 +126,13 @@
 			{#snippet SectionGlobalNetworksAll({ id, label, open })}
 				<NetworksView
 					selection={selection.$$networks}
-					href={resolve('/(explore)/networks')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$networks' ?
+							resolve('/(explore)/networks')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No networks.'
 					id={`${id}-list`}
@@ -155,13 +142,13 @@
 			{#snippet SectionGlobalNetworkStacks({ id, label, open })}
 				<NetworkStacksView
 					selection={selection.$$networkStacks}
-					href={resolve('/(explore)/network-stacks')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$networkStacks' ?
+							resolve('/(explore)/network-stacks')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No network stacks.'
 					id={`${id}-list`}
@@ -171,12 +158,7 @@
 			{#snippet SectionGlobalEvmNetworks({ id, label, open })}
 				<NetworksView
 					selection={selection.$$evmNetworks}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No EVM networks.'
 					id={`${id}-list`}
@@ -186,13 +168,13 @@
 			{#snippet SectionGlobalNetworkUpgrades({ id, label, open })}
 				<EthereumNetworkUpgradesView
 					selection={selection.$$networkUpgrades}
-					href={resolve('/upgrades')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$networkUpgrades' ?
+							resolve('/upgrades')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No network upgrades.'
 					id={`${id}-list`}
@@ -244,13 +226,13 @@
 			{#snippet SectionGlobalCoins({ id, label, open })}
 				<CoinsView
 					selection={selection.$$coins}
-					href={resolve('/(assets)/coins')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$coins' ?
+							resolve('/(assets)/coins')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No coins.'
 					id={`${id}-list`}
@@ -260,13 +242,13 @@
 			{#snippet SectionGlobalMarkets({ id, label, open })}
 				<MarketsView
 					selection={selection.$$markets}
-					href={resolve('/(assets)/markets')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$markets' ?
+							resolve('/(assets)/markets')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No markets.'
 					id={`${id}-list`}
@@ -276,13 +258,13 @@
 			{#snippet SectionGlobalMarketVenues({ id, label, open })}
 				<MarketVenuesView
 					selection={selection.$$marketVenues}
-					href={resolve('/(assets)/market-venues')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$marketVenues' ?
+							resolve('/(assets)/market-venues')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No market venues.'
 					id={`${id}-list`}
@@ -292,13 +274,13 @@
 			{#snippet SectionGlobalCurrencies({ id, label, open })}
 				<CurrenciesView
 					selection={selection.$$currencies}
-					href={resolve('/(assets)/(currencies)/currencies')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$currencies' ?
+							resolve('/(assets)/(currencies)/currencies')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No currencies.'
 					id={`${id}-list`}
@@ -308,13 +290,13 @@
 			{#snippet SectionGlobalLiquidityPools({ id, label, open })}
 				<LiquidityPoolsView
 					selection={selection.$$liquidityPools}
-					href={resolve('/(assets)/pools')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$liquidityPools' ?
+							resolve('/(assets)/pools')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No liquidity pools.'
 					id={`${id}-list`}
@@ -324,12 +306,7 @@
 			{#snippet SectionGlobalActorCoins({ id, label, open })}
 				<EvmNetworkActorCoinBalancesView
 					selection={selection.$$actorCoins}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No actor coin balances.'
 					id={`${id}-list`}
@@ -365,13 +342,13 @@
 			{#snippet SectionGlobalMarketPrices({ id, label, open })}
 				<MarketPricesView
 					selection={selection.$$marketPrices}
-					href={resolve('/(assets)/coins/prices')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$marketPrices' ?
+							resolve('/(assets)/coins/prices')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No market prices.'
 					id={`${id}-list`}
@@ -381,13 +358,13 @@
 			{#snippet SectionGlobalMarketOhlc({ id, label, open })}
 				<Market_TimeInterval_TimestampsView
 					selection={selection.$$marketTimeIntervalTimestamps}
-					href={resolve('/(assets)/coins/candles')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$marketTimeIntervalTimestamps' ?
+							resolve('/(assets)/coins/candles')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No OHLC observations.'
 					id={`${id}-list`}
@@ -427,12 +404,7 @@
 			{#snippet SectionGlobalProposalsList({ id, label, open })}
 				<SpecificationProposalsView
 					selection={selection.$$proposals}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No proposals.'
 					id={`${id}-list`}
@@ -442,13 +414,13 @@
 			{#snippet SectionGlobalSpecificationRealms({ id, label, open })}
 				<SpecificationRealmsView
 					selection={selection.$$specificationRealms}
-					href={resolve('/(proposals)/proposals')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$specificationRealms' ?
+							resolve('/(proposals)/proposals')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No specification realms.'
 					id={`${id}-list`}
@@ -458,12 +430,7 @@
 			{#snippet SectionGlobalProposalKinds({ id, label, open })}
 				<SpecificationProposalKindsView
 					selection={selection.$$proposalKinds}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No proposal kinds.'
 					id={`${id}-list`}
@@ -511,13 +478,13 @@
 			{#snippet SectionGlobalActors({ id, label, open })}
 				<EvmAccountsView
 					selection={selection.$$actors}
-					href={resolve('/(social)/(xmtp)/xmtp/(xmtpNetwork)/accounts')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$actors' ?
+							resolve('/(social)/(xmtp)/xmtp/(xmtpNetwork)/accounts')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No actors.'
 					id={`${id}-list`}
@@ -527,12 +494,7 @@
 			{#snippet SectionGlobalXmtp({ id, label, open })}
 				<XmtpConversationsView
 					selection={selection.$$xmtpConversations}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No XMTP conversations.'
 					id={`${id}-list`}
@@ -542,13 +504,13 @@
 			{#snippet SectionGlobalRooms({ id, label, open })}
 				<BlockheadRoomsView
 					selection={selection.$$blockheadRooms}
-					href={resolve('/~/multiplayer/rooms')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$blockheadRooms' ?
+							resolve('/~/multiplayer/rooms')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No rooms.'
 					id={`${id}-list`}
@@ -558,13 +520,13 @@
 			{#snippet SectionGlobalRoomPeers({ id, label, open })}
 				<BlockheadRoomPeersView
 					selection={selection.$$blockheadRoomPeers}
-					href={resolve('/~/multiplayer/contacts')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$blockheadRoomPeers' ?
+							resolve('/~/multiplayer/contacts')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No room peers.'
 					id={`${id}-list`}
@@ -574,13 +536,13 @@
 			{#snippet SectionGlobalStateChannels({ id, label, open })}
 				<BlockheadStateChannelsView
 					selection={selection.$$blockheadStateChannels}
-					href={resolve('/channels')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$blockheadStateChannels' ?
+							resolve('/channels')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No state channels.'
 					id={`${id}-list`}
@@ -636,12 +598,7 @@
 			{#snippet SectionGlobalWalletsList({ id, label, open })}
 				<BlockheadWalletsView
 					selection={selection.$$blockheadWallets}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No wallets.'
 					id={`${id}-list`}
@@ -651,13 +608,13 @@
 			{#snippet SectionGlobalWalletConnections({ id, label, open })}
 				<BlockheadWalletConnectionsView
 					selection={selection.$$blockheadWalletConnections}
-					href={resolve('/~/accounts/connections')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$blockheadWalletConnections' ?
+							resolve('/~/accounts/connections')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No wallet connections.'
 					id={`${id}-list`}
@@ -667,13 +624,13 @@
 			{#snippet SectionGlobalAccounts({ id, label, open })}
 				<BlockheadAccountsView
 					selection={selection.$$blockheadAccounts}
-					href={resolve('/~/accounts')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$blockheadAccounts' ?
+							resolve('/~/accounts')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -682,12 +639,7 @@
 			{#snippet SectionGlobalWalletTransport({ id, label, open })}
 				<BlockheadWalletTransportSessionsView
 					selection={selection.$$blockheadWalletTransportSessions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No wallet transport sessions.'
 					id={`${id}-list`}
@@ -697,12 +649,7 @@
 			{#snippet SectionGlobalWalletRequests({ id, label, open })}
 				<BlockheadWalletRequestsView
 					selection={selection.$$blockheadWalletRequests}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No wallet requests.'
 					id={`${id}-list`}
@@ -712,12 +659,7 @@
 			{#snippet SectionGlobalWalletGrants({ id, label, open })}
 				<BlockheadWalletCapabilityGrantsView
 					selection={selection.$$blockheadWalletCapabilityGrants}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No capability grants.'
 					id={`${id}-list`}
@@ -727,12 +669,7 @@
 			{#snippet SectionGlobalWalletAuth({ id, label, open })}
 				<BlockheadWalletAuthenticationsView
 					selection={selection.$$blockheadWalletAuthentications}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No wallet authentications.'
 					id={`${id}-list`}
@@ -796,13 +733,13 @@
 			{#snippet SectionGlobalSources({ id, label, open })}
 				<BlockheadSourcesView
 					selection={selection.$$blockheadSources}
-					href={resolve('/~/manage/sources')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$blockheadSources' ?
+							resolve('/~/manage/sources')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No sources.'
 					id={`${id}-list`}
@@ -812,13 +749,13 @@
 			{#snippet SectionGlobalSessions({ id, label, open })}
 				<BlockheadSessionsView
 					selection={selection.$$blockheadSessions}
-					href={resolve('/~/sessions')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$blockheadSessions' ?
+							resolve('/~/sessions')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No sessions.'
 					id={`${id}-list`}
@@ -828,12 +765,7 @@
 			{#snippet SectionGlobalWorkspaces({ id, label, open })}
 				<BlockheadWorkspacesView
 					selection={selection.$$blockheadWorkspaces}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No workspaces.'
 					id={`${id}-list`}
@@ -843,13 +775,13 @@
 			{#snippet SectionGlobalPanelTrees({ id, label, open })}
 				<BlockheadPanelTreesView
 					selection={selection.$$blockheadPanelTrees}
-					href={resolve('/~/dashboards')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$blockheadPanelTrees' ?
+							resolve('/~/dashboards')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No panel trees.'
 					id={`${id}-list`}
@@ -859,12 +791,7 @@
 			{#snippet SectionGlobalMediaIngests({ id, label, open })}
 				<BlockheadLocalMediaIngestsView
 					selection={selection.$$blockheadLocalMediaIngests}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No media ingests.'
 					id={`${id}-list`}
@@ -874,12 +801,7 @@
 			{#snippet SectionGlobalSharedAddresses({ id, label, open })}
 				<BlockheadSharedAddressesView
 					selection={selection.$$blockheadSharedAddresses}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No shared addresses.'
 					id={`${id}-list`}
@@ -889,13 +811,13 @@
 			{#snippet SectionGlobalFarcasterConnections({ id, label, open })}
 				<BlockheadFarcasterAccountConnectionsView
 					selection={selection.$$blockheadFarcasterAccountConnections}
-					href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/accounts')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$blockheadFarcasterAccountConnections' ?
+							resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/accounts')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Farcaster connections.'
 					id={`${id}-list`}
@@ -905,13 +827,19 @@
 			{#snippet SectionGlobalAgentConversations({ id, label, open })}
 				<BlockheadAgentConversationsView
 					selection={selection.$$blockheadAgentConversations}
-					href={resolve('/~/agents')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$blockheadAgentConversations' ?
+							true ?
+								resolve('/~/agents')
+							:
+								true ?
+									resolve('/~/agents/conversations')
+								:
+									undefined
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No agent conversations.'
 					id={`${id}-list`}
@@ -921,12 +849,7 @@
 			{#snippet SectionGlobalAlgorandKeys({ id, label, open })}
 				<BlockheadAlgorandParticipationKeysView
 					selection={selection.$$blockheadAlgorandParticipationKeys}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Algorand participation keys.'
 					id={`${id}-list`}
@@ -970,12 +893,7 @@
 			{#snippet SectionGlobalAiModelCatalogs({ id, label, open })}
 				<GlobalAiModelCatalogsView
 					selection={selection.$$aiModelCatalogs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No AI model catalogs.'
 					id={`${id}-list`}
@@ -985,12 +903,7 @@
 			{#snippet SectionGlobalAiArtifactCatalogs({ id, label, open })}
 				<GlobalAiArtifactCatalogsView
 					selection={selection.$$aiArtifactCatalogs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No AI artifact catalogs.'
 					id={`${id}-list`}
@@ -1000,12 +913,7 @@
 			{#snippet SectionGlobalAgentNetworks({ id, label, open })}
 				<GlobalAgentNetworksView
 					selection={selection.$$agentNetworks}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No agent networks.'
 					id={`${id}-list`}
@@ -1015,12 +923,7 @@
 			{#snippet SectionGlobalEvmAbiCatalogs({ id, label, open })}
 				<GlobalEvmAbiCatalogsView
 					selection={selection.$$evmAbiCatalogs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No EVM ABI catalogs.'
 					id={`${id}-list`}
@@ -1060,12 +963,7 @@
 			{#snippet SectionGlobalBridgeTransactions({ id, label, open })}
 				<BlockheadBridgeTransactionsView
 					selection={selection.$$bridgeTransactions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No bridge transactions.'
 					id={`${id}-list`}
@@ -1075,12 +973,7 @@
 			{#snippet SectionGlobalBridgeTransfers({ id, label, open })}
 				<BridgeTransfersView
 					selection={selection.$$bridgeTransfers}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No bridge transfers.'
 					id={`${id}-list`}
@@ -1090,13 +983,13 @@
 			{#snippet SectionGlobalEip8004({ id, label, open })}
 				<EvmNftsView
 					selection={selection.$$eip8004Services}
-					href={resolve('/services/agents')}
-					CollapsibleProps={{ canToggle: false }}
+					href={
+						selection.entitySelector.scope === '$$eip8004Services' ?
+							resolve('/services/agents')
+						:
+							undefined
+					}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No EIP-8004 services.'
 					id={`${id}-list`}
@@ -1136,12 +1029,7 @@
 			{#snippet SectionGlobalZerogNodes({ id, label, open })}
 				<BlockheadZeroGStorageNodeStatesView
 					selection={selection.$$blockheadZeroGStorageNodeStates}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No 0G storage node states.'
 					id={`${id}-list`}
@@ -1151,12 +1039,7 @@
 			{#snippet SectionGlobalZerogChunks({ id, label, open })}
 				<BlockheadZeroGStoredChunksView
 					selection={selection.$$blockheadZeroGStoredChunks}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No stored chunks.'
 					id={`${id}-list`}
@@ -1166,12 +1049,7 @@
 			{#snippet SectionGlobalZerogProofs({ id, label, open })}
 				<BlockheadZeroGStorageProofsView
 					selection={selection.$$blockheadZeroGStorageProofs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No storage proofs.'
 					id={`${id}-list`}

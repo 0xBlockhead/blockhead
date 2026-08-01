@@ -79,7 +79,6 @@
 					<ElementsPegView
 						selection={select(EntityType.ElementsPeg, selection.entitySelector.$peg)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

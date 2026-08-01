@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		LensAccountSchema,
 		{
 			address: params.address,
-		}
+		},
+		'Address'
 	)
 	if (lensAccountAddressSelector instanceof arktype.errors)
 		error(404, 'Invalid LensAccount selector')

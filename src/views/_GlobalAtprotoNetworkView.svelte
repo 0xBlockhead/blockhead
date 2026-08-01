@@ -68,12 +68,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			AT Protocol is a DID-based social protocol. This hub shows bounded actor and post windows from declared Bluesky-compatible appview sources, not a claim about every repository on the network.
-		</p>
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -193,7 +187,7 @@
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
 					<HeadingComponent>Directory and examples</HeadingComponent>
-					<Tooltip contentProps={{ side: 'top' }}>
+					<Tooltip>
 						{#snippet Content()}
 							<p>
 								Bounded observeds and example routes from declared AT Protocol appviews.
@@ -212,12 +206,7 @@
 				<AtprotoActorsView
 					selection={selection.$$observedActors}
 					href={resolve('/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actors')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -227,12 +216,7 @@
 				<AtprotoPostsView
 					selection={selection.$$observedPosts}
 					href={resolve('/(social)/(atproto)/atproto/(globalAtprotoNetwork)/posts')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>

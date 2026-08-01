@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -31,15 +30,10 @@
 <EntityView
 	entityType={EntityType.HyperliquidVault_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'hyperliquid vault timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		hyperliquid vault timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +42,6 @@
 					<HyperliquidVaultView
 						selection={select(EntityType.HyperliquidVault, selection.entitySelector.$vault)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

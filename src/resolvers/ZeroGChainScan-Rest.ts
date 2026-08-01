@@ -4,16 +4,17 @@ import {
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
-type NetworkId = { caip2: { namespace: string; reference: string } } | { slug: string }
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertZeroGMainnet = (network: NetworkId) => {
-	if (!('slug' in network) || network.slug !== '0g') {
+	if (!('slug' in network) || network.slug !== '0g')
 		throw new Error('ZeroGChainScan_Rest: unsupported network')
-	}
 }
 
 export default {

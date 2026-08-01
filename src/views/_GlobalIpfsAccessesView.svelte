@@ -35,8 +35,8 @@
 			entitySelector={globalIpfsAccess[EntityMetaKey.Selector]}
 			href={resolve('/(explore)/(ipfs)/ipfs/(ipfsProtocol)/access')}
 		>
-			{#snippet Title()}
-				global IPFS access
+			{#snippet Value()}
+				IPFS gateway access
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -29,19 +29,15 @@
 		.$$coins({
 			sources: [
 				Source.Constants_Internal,
-				Source.Coinpaprika_OpenApi,
+				Source.Coinpaprika_Rest,
 			],
 			limit: 8,
 		})}
 
 	<CoinsView
 		href={resolve('/(assets)/coins')}
-		title='Coins'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='coins'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

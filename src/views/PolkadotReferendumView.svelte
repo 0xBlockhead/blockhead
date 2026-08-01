@@ -44,10 +44,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.referendumId || 'Polkadot referendum'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={polkadotReferendum}>
 			{#snippet children(entity)}
@@ -61,7 +57,6 @@
 			<NetworkView
 				selection={select(EntityType.Network, selection.entitySelector.$network)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -74,7 +69,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -10,7 +10,13 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import {
+	networkChainIdBySuperchainIdentifier,
+	superchainMainnetIdentifier,
+	superchainSepoliaIdentifier,
+} from '$/sources/Superchain/Github/constants.ts'
 import { Source } from '$/sources/Source.ts'
+
 const superchainNetworkApplicability = [
 	{
 		caip2: networkBySlug.base.caip2,
@@ -19,6 +25,15 @@ const superchainNetworkApplicability = [
 		caip2: networkBySlug.optimism.caip2,
 	},
 ] as const
+
+const networkReference = (chainId: number) => ({
+	[EntityMetaKey.Selector]: {
+		caip2: {
+			namespace: 'eip155',
+			reference: String(chainId),
+		},
+	},
+})
 
 export default {
 	source: Source.Superchain_Github,
@@ -30,32 +45,71 @@ export default {
 				Caip2: {
 					appliesTo: superchainNetworkApplicability,
 					resolve: async ({ caip2 }) => {
+						const { getChainList } = await import('$/sources/Superchain/Github/queries.ts')
+						const chains = await getChainList()
+						const chain = chains.find((candidate) => candidate.chainId === Number(caip2.reference))
+						if (chain == null) return undefined
 
-						const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
-						const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
-						const networks = await fetchNetworks()
-						const network = networks.find((candidate) => candidate.chainId === Number(caip2.reference))
-						if (network == null) return undefined
+						const [namespace, slug] = chain.identifier.split('/')
+						const chainByIdentifier = new Map(chains.map((candidate) => [
+							candidate.identifier,
+							candidate,
+						]))
+						const parentChainId = (() => {
+							const parentChain = chain.parent?.chain
+							if (parentChain == null) return undefined
+
+							const numericChainId = Number(parentChain)
+							if (Number.isSafeInteger(numericChainId) && numericChainId > 0)
+								return numericChainId
+
+							if (parentChain === superchainMainnetIdentifier)
+								return networkChainIdBySuperchainIdentifier[superchainMainnetIdentifier]
+
+							if (parentChain === superchainSepoliaIdentifier)
+								return networkChainIdBySuperchainIdentifier[superchainSepoliaIdentifier]
+
+							return (
+								chainByIdentifier.get(`${namespace}/${parentChain}`)?.chainId
+								?? chainByIdentifier.get(`${superchainMainnetIdentifier}/${parentChain}`)?.chainId
+								?? chainByIdentifier.get(`${superchainSepoliaIdentifier}/${parentChain}`)?.chainId
+							)
+						})()
+						const mainnet = (
+							namespace === superchainMainnetIdentifier ?
+								undefined
+							:
+								chains.find((candidate) => (
+									candidate.identifier === `${superchainMainnetIdentifier}/${slug}`
+								))
+						)
 
 						return {
-							name: network.name,
-							namespace: NetworkNamespace.Evm,
+							name: chain.name,
 							environment: (
-								network.namespace === superchainMainnetIdentifier ?
+								namespace === superchainMainnetIdentifier ?
 									NetworkEnvironment.Mainnet
 								:
 									NetworkEnvironment.Testnet
 							),
-							...(network.parentChainId != null && {
-								$parent: {
-									[EntityMetaKey.Selector]: {
-										caip2: {
-											namespace: 'eip155',
-											reference: String(network.parentChainId),
-										},
-									},
-								},
+							...(parentChainId != null && {
+								$parent: networkReference(parentChainId),
 							}),
+							...(mainnet != null && {
+								$mainnet: networkReference(mainnet.chainId),
+							}),
+							$$testnets: (
+								namespace === superchainMainnetIdentifier ?
+									chains.flatMap((candidate) => (
+										candidate.identifier === `${superchainMainnetIdentifier}/${slug}`
+										|| !candidate.identifier.endsWith(`/${slug}`) ?
+											[]
+										:
+											[networkReference(candidate.chainId)]
+									))
+								:
+									[]
+							),
 						}
 					},
 				},
@@ -66,100 +120,8 @@ export default {
 			environment: (snapshot) => snapshot.environment,
 			Evm: {
 				$parent: (snapshot) => snapshot.$parent,
-			},
-		}),
-
-		defineResolver(Source.Superchain_Github, {
-			entityType: EntityType.Network,
-			resolve: {
-				Caip2: {
-					appliesTo: superchainNetworkApplicability,
-					resolve: async ({ caip2 }) => {
-						const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
-						const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
-						const networks = await fetchNetworks()
-						const network = networks.find((candidate) => candidate.chainId === Number(caip2.reference))
-						return {
-							$parent: (
-								network?.parentChainId == null ?
-									undefined
-								:
-									{
-										[EntityMetaKey.Selector]: {
-											caip2: {
-												namespace: 'eip155',
-												reference: String(network.parentChainId),
-											},
-										},
-									}
-							),
-							$mainnet: (() => {
-								if (
-									network == null
-									|| network.namespace === superchainMainnetIdentifier
-								)
-									return undefined
-
-								const mainnet = networks.find((candidate) => (
-									candidate.namespace === superchainMainnetIdentifier
-									&& candidate.slug === network.slug
-								))
-								return (
-									mainnet == null ?
-										undefined
-									:
-										{
-											[EntityMetaKey.Selector]: {
-												caip2: {
-													namespace: 'eip155',
-													reference: String(mainnet.chainId),
-												},
-											},
-										}
-								)
-							})(),
-						}
-					},
-				},
-			},
-		})({
-			Evm: {
-				$parent: (snapshot) => snapshot.$parent,
 				$mainnet: (snapshot) => snapshot.$mainnet,
-			},
-		}),
-
-		defineResolver(Source.Superchain_Github, {
-			entityType: EntityType.Network,
-			resolve: {
-				Caip2: {
-					appliesTo: superchainNetworkApplicability,
-					resolve: async ({ caip2 }) => {
-						const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
-						const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
-						const networks = await fetchNetworks()
-						const network = networks.find((candidate) => candidate.chainId === Number(caip2.reference))
-						if (network == null || network.namespace !== superchainMainnetIdentifier) return []
-						return networks.flatMap((candidate) => (
-							candidate.namespace === superchainMainnetIdentifier
-							|| candidate.slug !== network.slug ?
-								[]
-							:
-								[{
-									[EntityMetaKey.Selector]: {
-										caip2: {
-											namespace: 'eip155',
-											reference: String(candidate.chainId),
-										},
-									},
-								}]
-						))
-					},
-				},
-			},
-		})({
-			Evm: {
-				$$testnets: (snapshot) => snapshot,
+				$$testnets: (snapshot) => snapshot.$$testnets,
 			},
 		}),
 	],

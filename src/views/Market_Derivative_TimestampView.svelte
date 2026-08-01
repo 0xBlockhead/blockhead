@@ -69,10 +69,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.feedKey || 'market derivative timestamp'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={marketDerivativeTimestamp}>
 			{#snippet children(entity)}
@@ -310,7 +306,6 @@
 					<MarketView
 						selection={select(EntityType.Market, selection.entitySelector.$market)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -326,7 +321,6 @@
 								selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
 								prefetched={market}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

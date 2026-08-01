@@ -86,7 +86,6 @@
 					<BlockheadAvalancheNodeStateView
 						selection={select(EntityType.BlockheadAvalancheNodeState, selection.entitySelector.$nodeState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

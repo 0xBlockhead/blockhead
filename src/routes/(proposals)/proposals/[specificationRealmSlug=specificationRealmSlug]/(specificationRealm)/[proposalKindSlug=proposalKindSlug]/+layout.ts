@@ -20,7 +20,8 @@ export const load: LayoutLoad = ({ params }) => {
 		{
 			realm: specificationRealmBySlug[params.specificationRealmSlug].id,
 			category: proposalCategoryBySlug[params.proposalKindSlug].id,
-		}
+		},
+		'RealmCategory'
 	)
 	if (specificationProposalKindRealmCategorySelector instanceof arktype.errors)
 		error(404, 'Invalid SpecificationProposalKind selector')

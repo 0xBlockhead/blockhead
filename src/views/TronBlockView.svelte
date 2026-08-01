@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -35,15 +34,10 @@
 <EntityView
 	entityType={EntityType.TronBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'tron block'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		tron block
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -52,7 +46,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -95,7 +88,6 @@
 									selection={select(EntityType.TronBlock, tronBlock[EntityMetaKey.Selector])}
 									prefetched={tronBlock}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -159,7 +151,6 @@
 									selection={select(EntityType.TronWitness, tronWitness[EntityMetaKey.Selector])}
 									prefetched={tronWitness}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

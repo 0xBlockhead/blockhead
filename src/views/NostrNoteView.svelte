@@ -110,12 +110,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A Nostr text note is a kind-1 event addressed by event id; author, reply, root, reaction, and relay facets remain separate fields.
-		</p>
-	{/snippet}
-
 	{#snippet ContentWarningContent(content)}
 		{#if content != null && content !== ''}
 			<p data-text="long-text">{content}</p>
@@ -192,7 +186,6 @@
 										selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
 										prefetched={nostrProfile}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>
@@ -214,7 +207,6 @@
 										selection={select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector])}
 										prefetched={nostrNote}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>
@@ -236,7 +228,6 @@
 										selection={select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector])}
 										prefetched={nostrNote}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>

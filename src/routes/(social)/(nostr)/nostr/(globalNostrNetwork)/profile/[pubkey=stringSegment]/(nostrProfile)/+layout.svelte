@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile/[pubkey=stringSegment]',
+			{
+				pubkey: params.pubkey,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,32 +38,20 @@
 
 {#key params.pubkey}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile/[pubkey=stringSegment]',
-				{
-					pubkey: params.pubkey,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<NostrProfileView
 				selection={
-					select(EntityType.NostrProfile, data.selector, { sources: [
-						Source.Constants_Internal,
-						Source.NostrBand_Rest,
-						Source.Primal_Rest,
-					] })
+					select(EntityType.NostrProfile, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+							Source.NostrBand_Rest,
+							Source.Primal_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile/[pubkey=stringSegment]',
-						{
-							pubkey: params.pubkey,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -31,12 +32,11 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import AlgorandNetworkView from '$/views/AlgorandNetworkView.svelte'
 	import AlgorandBoxesView from '$/views/AlgorandBoxesView.svelte'
-	import AlgorandApplicationLocalState_RoundsView from '$/views/AlgorandApplicationLocalState_RoundsView.svelte'
-	import AlgorandApplication_TimestampsView from '$/views/AlgorandApplication_TimestampsView.svelte'
 </script>
 
 
@@ -49,15 +49,10 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{String(selection.entitySelector.applicationId)}
-	{/snippet}
-
 	{#snippet Value()}
 		<AlgorandNetworkView
 			selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -82,7 +77,6 @@
 					<AlgorandNetworkView
 						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -140,12 +134,7 @@
 			{#snippet SectionAlgorandAppBoxes({ id, label, open })}
 				<AlgorandBoxesView
 					selection={selection.$$boxes}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Algorand boxes.'
 					id={`${id}-list`}
@@ -153,18 +142,22 @@
 			{/snippet}
 
 			{#snippet SectionAlgorandAppLocalState({ id, label, open })}
-				<AlgorandApplicationLocalState_RoundsView
-					selection={selection.$$localStateRounds}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.AlgorandApplicationLocalState_Round}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Algorand application local state rounds.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$localStateRounds()}
+				>
+					{#snippet Item({ item: algorandApplicationLocalStateRound })}
+						<EntityView
+							entityType={EntityType.AlgorandApplicationLocalState_Round}
+							entitySelector={algorandApplicationLocalStateRound[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -190,18 +183,22 @@
 			{/snippet}
 
 			{#snippet SectionAlgorandAppTimestamps({ id, label, open })}
-				<AlgorandApplication_TimestampsView
-					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.AlgorandApplication_Timestamp}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Algorand application observations.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$timestamps()}
+				>
+					{#snippet Item({ item: algorandApplicationTimestamp })}
+						<EntityView
+							entityType={EntityType.AlgorandApplication_Timestamp}
+							entitySelector={algorandApplicationTimestamp[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>

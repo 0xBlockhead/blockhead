@@ -68,7 +68,6 @@
 					<BnbBeaconTokenMigrationView
 						selection={select(EntityType.BnbBeaconTokenMigration, selection.entitySelector.$migration)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

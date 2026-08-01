@@ -65,7 +65,6 @@
 			selection={select(EntityType._GlobalEnsNetwork, selection.entitySelector.$hub)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -81,7 +80,6 @@
 					<GlobalEnsNetworkView
 						selection={select(EntityType._GlobalEnsNetwork, selection.entitySelector.$hub)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

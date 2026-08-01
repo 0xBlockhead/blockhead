@@ -85,7 +85,6 @@
 					<PayjoinEndpointView
 						selection={select(EntityType.PayjoinEndpoint, selection.entitySelector.$endpoint)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

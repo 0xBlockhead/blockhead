@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -34,15 +33,10 @@
 <EntityView
 	entityType={EntityType.TransferRestrictionCheck_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'transfer restriction check timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		transfer restriction check timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -51,7 +45,6 @@
 					<TransferRestrictionView
 						selection={select(EntityType.TransferRestriction, selection.entitySelector.$restriction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -91,7 +84,6 @@
 									selection={select(EntityType.Account, account[EntityMetaKey.Selector])}
 									prefetched={account}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

@@ -24,6 +24,7 @@ import {
 	EntityFieldCardinality,
 	EntityFieldType,
 	EntityType,
+	rawSnippetReference,
 	Source,
 	SourceArtifactKind,
 	SourceCredentialScope,
@@ -103,6 +104,22 @@ test('entity hrefs compile directly from routes without a parallel artifact fami
 	assert.equal(generatedFiles.some(({ path }) => path.endsWith('.href.ts')), false)
 	assert.equal(generatedFiles.some(({ path }) => path === 'src/constants/Network.ts'), false)
 	assert.doesNotMatch(generatorSource, /JSON\.stringify\(\{\s*path: existingLink/)
+
+	const detailLayouts = generatedFiles
+		.filter(({ path }) => path.endsWith('/+layout.svelte'))
+		.map((generatedFile) => ({
+			path: generatedFile.path,
+			source: renderGeneratedFile(generatedFile),
+		}))
+		.filter(({ source }) => source.includes('href={detailHref}'))
+	assert.ok(detailLayouts.length > 0)
+	assert.ok(detailLayouts.some(({ source }) => source.includes('const detailHref = resolve(')))
+	assert.ok(detailLayouts.some(({ source }) => source.includes('const detailHref = $derived(')))
+	for (const { path: layoutPath, source } of detailLayouts) {
+		assert.equal((source.match(/href=\{detailHref\}/g) ?? []).length, 2, layoutPath)
+		assert.equal((source.match(/const detailHref = /g) ?? []).length, 1, layoutPath)
+		assert.equal((source.match(/\bresolve\(/g) ?? []).length, 1, layoutPath)
+	}
 
 	const youtubeVideoView = generatedFiles.find(({ path }) => path === 'src/views/YoutubeVideoView.svelte')
 	assert(youtubeVideoView)
@@ -269,7 +286,8 @@ test('entity hrefs compile directly from routes without a parallel artifact fami
 	assert.doesNotMatch(renderedMarketAssetView, /'\$coin' in|'\$currency' in/)
 	assert.doesNotMatch(renderedMarketAssetView, /const marketAsset =|resource=\{marketAsset\}/)
 	assert.doesNotMatch(renderedMarketAssetView, /fields: \{\s*(?:kind|assetKey): true/)
-	assert.match(renderedMarketAssetView, /\{selection\.entitySelector\.assetKey \|\| 'Market asset'\}/)
+	assert.match(renderedMarketAssetView, /title=\{title \?\? \(selection\.entitySelector\.assetKey \|\| 'Market asset'\)\}/)
+	assert.doesNotMatch(renderedMarketAssetView, /\{#snippet Title\(\)\}/)
 
 	const networkView = generatedFiles.find(({ path }) => path === 'src/views/NetworkView.svelte')
 	assert(networkView)
@@ -289,7 +307,11 @@ test('entity hrefs compile directly from routes without a parallel artifact fami
 	const mediaView = generatedFiles.find(({ path }) => path === 'src/views/MediaView.svelte')
 	const atprotoRepoCommitView = generatedFiles.find(({ path }) => path === 'src/views/AtprotoRepoCommitView.svelte')
 	assert(evmAccountView && mediaView && atprotoRepoCommitView)
-	assert.match(renderGeneratedFile(evmAccountView), /const evmAccount = \$derived\(viewSelection\)/)
+	assert.doesNotMatch(renderGeneratedFile(evmAccountView), /const evmAccount =/)
+	assert.match(
+		renderGeneratedFile(evmAccountView),
+		/<ResourceBoundary\s+resource=\{\s*selection\(\{\s*sources: selection\.sources \?\? \[\s*Source\.Constants_Internal,/
+	)
 	assert.match(renderGeneratedFile(evmAccountView), /<TruncatedValue value=\{selection\.entitySelector\.address\} \/>/)
 	assert.doesNotMatch(renderGeneratedFile(evmAccountView), /<TruncatedValue value=\{String\(selection\.entitySelector\.address\)\} \/>/)
 	assert.doesNotMatch(renderGeneratedFile(evmAccountView), /\{@const address\d* = selection\.entitySelector\.address\}/)
@@ -297,9 +319,23 @@ test('entity hrefs compile directly from routes without a parallel artifact fami
 	assert.match(renderGeneratedFile(atprotoRepoCommitView), /fields: \{\s*rev: true,\s*commitCid: true,/)
 })
 
+test('prints detail layout source options as structured TypeScript expressions', () => {
+	assert.match(
+		generatedSource('src/routes/(explore)/(protocols)/evm/(evmProtocol)/+layout.svelte'),
+		/selection=\{\n\t+select\(EntityType\.EvmProtocol, data\.selector, \{\n\t+sources: \[\n\t+Source\.Constants_Internal,\n\t+\],\n\t+\}\)\n\t+\}/
+	)
+	for (const detailLayout of generatedSvelteFiles.filter(({ path: filePath }) => filePath.endsWith('/+layout.svelte')))
+		assert.doesNotMatch(
+			renderGeneratedFile(detailLayout),
+			/select\([^\n]*, \{ sources: \[/,
+			detailLayout.path
+		)
+})
+
 test('generated views import runtime schema symbols used by raw snippets', () => {
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
 	assert.doesNotMatch(generatorSource, /rawSnippetSources/)
+	assert.doesNotMatch(generatorSource, /svelteComponentNames|viewMarkupLines|raw\.includes/)
 	assert.doesNotMatch(
 		generatorSource,
 		/__PENDING_ENTITY_STATE__|line\.replace|concreteExpression|expression\.replace\(\(\?<\!\\\.\)|pending\.expression\.replace|renderPresentRouteParamExpression[\s\S]{0,250}\.replaceAll|replaceAll\(projectionResourceExpression|directSummaryRowLines\.map/
@@ -357,17 +393,128 @@ test('generated views import runtime schema symbols used by raw snippets', () =>
 	)
 })
 
+test('raw snippet imports are declarative rather than inferred from rendered text', () => {
+	const textOnlyApp = structuredClone(app)
+	const textOnlyCctpFee = textOnlyApp.schema.entities.find(({ entityType }) => entityType === EntityType.CctpFee)
+	assert.ok(textOnlyCctpFee?.views.singular?.summary)
+	textOnlyCctpFee.views.singular.summary.Title = {
+		raw: [
+			'<p>{\'ResourceBoundary TruncatedValue\'}</p>',
+			'<!-- <ResourceBoundary><TruncatedValue /></ResourceBoundary> -->',
+		].join('\n'),
+	}
+	const textOnlyView = compileApp(textOnlyApp).generatedFiles.find(({ path: filePath }) => (
+		filePath === 'src/views/CctpFeeView.svelte'
+	))
+	assert.ok(textOnlyView)
+	assert.doesNotMatch(
+		renderGeneratedFile(textOnlyView),
+		/import (?:ResourceBoundary|TruncatedValue) /
+	)
+
+	const referencedApp = structuredClone(textOnlyApp)
+	const referencedCctpFee = referencedApp.schema.entities.find(({ entityType }) => entityType === EntityType.CctpFee)
+	assert.ok(referencedCctpFee?.views.singular?.summary)
+	referencedCctpFee.views.singular.summary.Title = {
+		raw: [
+			'<ResourceBoundary resource={selection}>',
+			'\t{#snippet children()}',
+			'\t\t<TruncatedValue value={selection.entitySelector.apiHost} />',
+			'\t{/snippet}',
+			'</ResourceBoundary>',
+		].join('\n'),
+		imports: [
+			{
+				from: '$/components/ResourceBoundary.svelte',
+				default: 'ResourceBoundary',
+			},
+			{
+				from: '$/components/TruncatedValue.svelte',
+				default: 'TruncatedValue',
+			},
+		],
+	}
+	const referencedView = compileApp(referencedApp).generatedFiles.find(({ path: filePath }) => (
+		filePath === 'src/views/CctpFeeView.svelte'
+	))
+	assert.ok(referencedView)
+	assert.match(
+		renderGeneratedFile(referencedView),
+		/import ResourceBoundary from '\$\/components\/ResourceBoundary\.svelte'[\s\S]*import TruncatedValue from '\$\/components\/TruncatedValue\.svelte'/
+	)
+
+	const evmNftView = generatedSource('src/views/EvmNftView.svelte')
+	assert.match(
+		evmNftView,
+		/\{#snippet Icon\(\)\}\n\t\t<ResourceBoundary resource=\{evmNft\}>\n\t\t\t\{#snippet children\(entity\)\}[\s\S]*?\n\t\t\t\{\/snippet\}\n\t\t<\/ResourceBoundary>\n\t\{\/snippet\}/
+	)
+
+	const specificationProposalView = generatedSource('src/views/SpecificationProposalView.svelte')
+	assert.match(
+		specificationProposalView,
+		/\t\t\{:else\}\n\t\t\t<ResourceBoundary resource=\{specificationProposal\}>[\s\S]*?\n\t\t\t<\/ResourceBoundary>\n\t\t\{\/if\}\n\t\{\/snippet\}/
+	)
+	assert.match(
+		specificationProposalView,
+		/<p>\n\t\t\tCatalog entries capture stewarded specification text[\s\S]*?\n\t\t<\/p>/
+	)
+})
+
 test('rejects entity-list fields in scalar summaries', () => {
 	const mutatedApp = structuredClone(app)
 	const icpNetwork = mutatedApp.schema.entities.find(({ entityType }) => entityType === EntityType.IcpNetwork)
 
 	assert.ok(icpNetwork)
 	assert.ok(icpNetwork.views.singular?.summary)
-	icpNetwork.views.singular.summary.value = ['$$timestamps']
+	icpNetwork.views.singular.summary.value = [{
+		field: '$$timestamps',
+		format: 'monospace',
+	}]
 
 	assert.throws(
 		() => compileApp(mutatedApp),
 		/IcpNetwork\.\$\$timestamps cannot render an entity list in a scalar summary/
+	)
+})
+
+test('renders schema-owned primitive lists and rejects non-list fields', () => {
+	for (const [
+		entityType,
+		emptyText,
+	] of [
+		[EntityType.EvmError, 'No catalog matches for this revert/error selector.'],
+		[EntityType.EvmError_Timestamp, 'No catalog matches for this revert/error selector.'],
+		[EntityType.EvmSelector, 'No catalog signatures matched this function selector.'],
+		[EntityType.EvmSelector_Timestamp, 'No catalog signatures matched this function selector.'],
+		[EntityType.EvmTopic, 'No catalog signatures matched this log topic hash.'],
+		[EntityType.EvmTopic_Timestamp, 'No catalog signatures matched this log topic hash.'],
+	] as const) {
+		const source = generatedSource(`src/views/${entityType}View.svelte`)
+		assert.match(source, /<dt>Signatures<\/dt>/)
+		assert.match(source, /\{#each entity\.signatures\.values as signature \(signature\)\}/)
+		assert.ok(source.includes(`<p data-text="muted">${emptyText}</p>`))
+	}
+
+	const mutatedApp = structuredClone(app)
+	const evmError = mutatedApp.schema.entities.find(({ entityType }) => entityType === EntityType.EvmError)
+	assert.ok(evmError?.views.singular?.content)
+	evmError.views.singular.content.dl = [[{
+		field: 'hex',
+		primitiveList: 'No signatures.',
+	}]]
+
+	assert.throws(
+		() => compileApp(mutatedApp),
+		/EvmError\.hex primitive list requires a Many or ZeroOrMany primitive field/
+	)
+})
+
+test('derives many-cardinality emitter branches from one predicate', () => {
+	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
+
+	assert.equal(
+		(generatorSource.match(/cardinality === EntityFieldCardinality\.Many\s*\|\| [^\n]+cardinality === EntityFieldCardinality\.ZeroOrMany/g) ?? []).length,
+		1
 	)
 })
 
@@ -428,6 +575,41 @@ const runTestProcess = (
 	}
 }
 
+const assertTypeChecks = (
+	phase: string,
+	files: readonly string[],
+	strict = false
+) => {
+	const configPath = `${files[0]}.json`
+	writeFileSync(configPath, JSON.stringify({
+		compilerOptions: {
+			allowImportingTsExtensions: true,
+			module: 'preserve',
+			moduleResolution: 'bundler',
+			noEmit: true,
+			paths: {
+				'$/*': [`${root}/src/*`],
+			},
+			skipLibCheck: true,
+			strict,
+			target: 'esnext',
+		},
+		files,
+	}))
+	const result = runTestProcess(
+		phase,
+		process.execPath,
+		[
+			'--max-old-space-size=2048',
+			process.env.TSC_PATH ?? path.join(root, 'node_modules/@typescript/native/bin/tsc'),
+			'--project',
+			configPath,
+		],
+		{}
+	)
+	assert.equal(result.status, 0, result.failure)
+}
+
 const runGenerator = (
 	command: 'check' | 'generate',
 	generatedOutputRoot: string,
@@ -479,6 +661,154 @@ const removeFreshRoot = (freshRoot: string) => {
 const baselineCompileStartedAt = performance.now()
 const baselineCompiledApp = compileApp(app)
 const baselineCompileElapsedMs = performance.now() - baselineCompileStartedAt
+const generatedFileByPath = new Map(baselineCompiledApp.generatedFiles.map((generatedFile) => [generatedFile.path, generatedFile]))
+const generatedSource = (filePath: string) => {
+	const generatedFile = generatedFileByPath.get(filePath)
+	assert.ok(generatedFile)
+	return renderGeneratedFile(generatedFile)
+}
+const generatedSvelteFiles = baselineCompiledApp.generatedFiles.filter(({ kind }) => kind === 'svelte')
+const generatedRouteSvelteFiles = generatedSvelteFiles.filter(({ path: filePath }) => filePath.startsWith('src/routes/'))
+const generatedViewSources = generatedSvelteFiles
+	.filter(({ path: filePath }) => filePath.startsWith('src/views/'))
+	.map((generatedFile) => [generatedFile.path, renderGeneratedFile(generatedFile)] as const)
+const pluralComponentNames = new Set(app.schema.entities.flatMap((entity) => entity.views?.plural?.component == null ? [] : [entity.views.plural.component]))
+const generatedPaths = new Set(baselineCompiledApp.generatedFiles.map(({ path: filePath }) => filePath))
+const omittedPluralEntities = app.schema.entities.filter((entity) => (
+	!generatedPaths.has(`src/views/${entity.views.plural.component}.svelte`)
+))
+const retainedPluralEntities = app.schema.entities.filter((entity) => (
+	generatedPaths.has(`src/views/${entity.views.plural.component}.svelte`)
+))
+
+test('generated views and pages import exactly the dependencies they use', () => {
+	const dependencyContracts = [
+		['ResourceBoundary', /^\s*import ResourceBoundary from '\$\/components\/ResourceBoundary\.svelte'$/m, /<ResourceBoundary\b/],
+		['resolve', /^\s*import \{ resolve \} from '\$app\/paths'$/m, /\bresolve\(/],
+		['EntityType', /^\s*import \{ EntityType \} from '\$\/schema\/EntityType\.ts'$/m, /\bEntityType\./],
+		['Source', /^\s*import \{ Source \} from '\$\/sources\/Source\.ts'$/m, /\bSource\./],
+		['select', /^\s*import \{ select \} from '\$\/routes\/\+layout\.svelte'$/m, /\bselect\(/],
+	] as const
+	const mismatches = baselineCompiledApp.generatedFiles
+		.filter(({ path }) => (
+			path.startsWith('src/views/')
+			|| path.endsWith('/+page.svelte')
+		))
+		.flatMap((generatedFile) => {
+			const source = renderGeneratedFile(generatedFile)
+
+			return dependencyContracts.flatMap(([
+				name,
+				importPattern,
+				usagePattern,
+			]) => {
+				const imported = importPattern.test(source)
+				const used = usagePattern.test(source.replace(importPattern, ''))
+
+				return imported === used ? [] : [
+					`${generatedFile.path}: ${name} is ${imported ? 'imported but unused' : 'used but not imported'}`,
+				]
+			})
+		})
+
+	assert.deepEqual(mismatches, [])
+})
+
+test('compiles exact default plural wrappers into their generated consumers', () => {
+	assert.equal(omittedPluralEntities.length, 149)
+	assert.equal(retainedPluralEntities.length, 846)
+	assert.ok(omittedPluralEntities.some(({ entityType }) => entityType === EntityType.AlgorandNetwork))
+	assert.ok(omittedPluralEntities.some(({ entityType }) => entityType === EntityType.HyperliquidBlock))
+	assert.ok(retainedPluralEntities.some(({ entityType }) => entityType === EntityType.EvmError))
+
+	const unresolvedViewImports = generatedSvelteFiles.flatMap((generatedFile) => (
+		[...renderGeneratedFile(generatedFile).matchAll(/from '\$\/views\/([^']+)\.svelte'/g)]
+			.flatMap((match) => (
+				match[1] == null
+				|| generatedPaths.has(`src/views/${match[1]}.svelte`)
+				|| existsSync(path.join(root, `src/views/${match[1]}.svelte`)) ?
+					[]
+				:
+					[`${generatedFile.path}: ${match[1]}`]
+			))
+	))
+	assert.deepEqual(unresolvedViewImports, [])
+
+	const omittedEntityTypes = new Set(omittedPluralEntities.map(({ entityType }) => String(entityType)))
+	const inlinedDefaultLists = generatedSvelteFiles.flatMap((generatedFile) => (
+		[...renderGeneratedFile(generatedFile).matchAll(/<EntitiesList\s+entityType=\{EntityType\.([A-Za-z0-9_]+)\}/g)]
+			.flatMap((match) => (
+				match[1] != null && omittedEntityTypes.has(match[1]) ?
+					[`${generatedFile.path}: ${match[1]}`]
+				:
+					[]
+			))
+	))
+	assert.equal(inlinedDefaultLists.length, 129)
+
+	const algorandBoxView = generatedSource('src/views/AlgorandBoxView.svelte')
+	assert.doesNotMatch(algorandBoxView, /AlgorandBox_RoundsView/)
+	assert.match(algorandBoxView, /<EntitiesList\s+entityType=\{EntityType\.AlgorandBox_Round\}[\s\S]*?countResource=\{roundsResource\.count\}[\s\S]*?title='rounds'[\s\S]*?open=\{true\}[\s\S]*?id='rounds'[\s\S]*?resource=\{roundsResource\(\)\}/)
+	assert.match(algorandBoxView, /<EntityView\s+entityType=\{EntityType\.AlgorandBox_Round\}\s+entitySelector=\{algorandBoxRound\[EntityMetaKey\.Selector\]\}\s*\/>/)
+
+	const algorandNetworkView = generatedSource('src/views/AlgorandNetworkView.svelte')
+	assert.doesNotMatch(algorandNetworkView, /AlgorandNetworksView|AlgorandRoundsView/)
+	assert.match(algorandNetworkView, /<EntitiesList\s+entityType=\{EntityType\.AlgorandRound\}[\s\S]*?collapsible=\{false\}[\s\S]*?title=\{label\}[\s\S]*?emptyText='No Algorand rounds\.'[\s\S]*?open=\{true\}[\s\S]*?resource=\{selection\.\$\$rounds\(\)\}/)
+
+	for (const routePath of [
+		'src/routes_/(explore)/(networks)/network/[networkSlug=networkSlug]/blocks/+page.svelte',
+		'src/routes_/(explore)/(networks)/network/[networkSlug=networkSlug]/transactions/+page.svelte',
+	]) {
+		const source = readFileSync(path.join(root, routePath), 'utf8')
+		assert.doesNotMatch(source, /from '\$\/views\/(?:HyperliquidBlocks|HyperliquidTransactions|TronBlocks)View\.svelte'/)
+		assert.match(source, /<EntitiesList[\s\S]*?<EntityView/)
+	}
+})
+
+test('inlines generated resource selections with one consumer', () => {
+	const singleUseBindings = [
+		...generatedViewSources.flatMap(([filePath, source]) => (
+			[...source.matchAll(/const (\w+) = \$derived\((?:selection|viewSelection)(?=[(\n)])/g)]
+				.flatMap((match) => (
+					match[1] != null
+					&& (source.match(new RegExp(`\\b${match[1]}\\b`, 'g')) ?? []).length === 2 ?
+						[`${filePath}: ${match[1]}`]
+					:
+						[]
+				))
+		)),
+		...generatedRouteSvelteFiles.flatMap((generatedFile) => {
+			const source = renderGeneratedFile(generatedFile)
+			return (
+				source.includes('const pageSelection = $derived')
+				&& (source.match(/\bpageSelection\b/g) ?? []).length === 2 ?
+					[`${generatedFile.path}: pageSelection`]
+				:
+					[]
+			)
+		}),
+	]
+	assert.deepEqual(singleUseBindings, [])
+
+	const assetClassView = generatedSource('src/views/AssetClassView.svelte')
+	assert.doesNotMatch(assetClassView, /const assetClass =/)
+	assert.match(assetClassView, /<ResourceBoundary\s+resource=\{\s+selection\(\{/)
+
+	const sourceSelectedView = generatedSource('src/views/Eip8004CrossRegistrationView.svelte')
+	assert.doesNotMatch(sourceSelectedView, /const viewSelection =/)
+	assert.match(sourceSelectedView, /resource=\{\s+selection\(\{\s+sources: selection\.sources/)
+
+	const oneConsumerPage = generatedSource(
+		'src/routes/(explore)/(protocols)/evm/(evmProtocol)/(errors)/error/[hex=zeroExHex]/+page.svelte'
+	)
+	assert.doesNotMatch(oneConsumerPage, /const pageSelection =/)
+	assert.match(oneConsumerPage, /selection=\{\s+select\(EntityType\.EvmError/)
+
+	const sharedPageSelection = generatedSource('src/routes/(explore)/url/[url=absoluteUrl]/+page.svelte')
+	assert.match(sharedPageSelection, /const pageSelection = \$derived/)
+	assert.match(sharedPageSelection, /pageSelection\.entitySelector\.url/)
+	assert.match(sharedPageSelection, /selection=\{pageSelection\}/)
+})
 
 const stageReadOnlyGeneratedFixture = (generatedOutputRoot: string) => {
 	const startedAt = performance.now()
@@ -627,6 +957,16 @@ test('generates one APP-ordered lazy resolver loader registry', () => {
 	assert.doesNotMatch(source, /export default loadResolvers/)
 	assert.doesNotMatch(source, /loadResolverEntries|loadAllResolvers/)
 	assert.match(source, /Resolver module source mismatch/)
+	for (const loaderEntry of [
+		"[Source.Nodely, () => import('./AlgorandIndexer-Rest.ts')]",
+		"[Source.KaspaExplorer, () => import('./KaspaExplorer.ts')]",
+		"[Source.Starkscan, () => import('./Starkscan.ts')]",
+		"[Source.StellarHorizon_Rest, () => import('./StellarHorizon-Rest.ts')]",
+		"[Source.Sui, () => import('./Sui.ts')]",
+		"[Source.TonCenter, () => import('./TonCenter.ts')]",
+	])
+		assert.ok(source.includes(loaderEntry), `missing resolver loader ${loaderEntry}`)
+
 	assert.deepEqual(
 		[...source.matchAll(/\[Source\.([A-Za-z0-9_]+), \(\) => import\('([^']+)'\)\]/g)].map((match) => ({
 			source: match[1],
@@ -665,6 +1005,8 @@ test('derives schema condition plans from the generated schema instead of emitti
 	assert.ok(schemaIndex)
 	const source = renderGeneratedFile(schemaIndex)
 	assert.match(source, /export const schemaMeta = indexSchema\(schema\)/)
+	assert.match(source, /export type RegisteredEntityDefinitionByType = typeof entityDefinitionByType/)
+	assert.doesNotMatch(source, /interface RegisteredEntityDefinitionByType|\[EntityType\./)
 	assert.doesNotMatch(source, /projectionConditionPlanByEntityTypeAndPath|conditionPlan:/)
 })
 
@@ -742,6 +1084,23 @@ test('keeps APP compiler registries internally aligned', () => {
 	assert.equal(appResolverModulePaths.length, new Set(appResolverModulePaths).size)
 })
 
+test('renders compiled source documentation with one ordered section table each', () => {
+	const source = generatedSource('SOURCES.md')
+	assert.equal(source, readFileSync(path.join(root, 'SOURCES.md'), 'utf8'))
+	assert.deepEqual(
+		[...source.matchAll(/^## (.+)$/gm)].map((match) => match[1]),
+		[
+			'Providers',
+			'Sources',
+			'Bindings',
+			'Endpoints',
+			'Credentials',
+			'Artifacts',
+		]
+	)
+	assert.equal(source.endsWith('\n'), true)
+})
+
 test('loads one complete singular-view query while plural rows render direct summaries', () => {
 	const generatedFiles = baselineCompiledApp.generatedFiles
 	const singularRootQuery = (source: string) => (
@@ -796,7 +1155,14 @@ test('loads one complete singular-view query while plural rows render direct sum
 	}
 	assert.match(renderGeneratedFile(filecoinMessageView), /resource=\{selection\.\$from\}[\s\S]*?resource=\{selection\.\$to\}[\s\S]*?<ResourceBoundary resource=\{filecoinMessage\}>/)
 	assert.match(renderGeneratedFile(cardanoTxInputView), /entity\.inputKind[\s\S]*?selection\.entitySelector\.inputIndex[\s\S]*?spent transaction hash[\s\S]*?spent output[\s\S]*?redeemer index/)
-	assert.match(renderGeneratedFile(cardanoTxOutputView), /<CardanoTxOutputAssetsView[\s\S]*?selection=\{selection\.\$\$assets\}[\s\S]*?data-card[\s\S]*?data-scroll-container/)
+	const cardanoTxOutputAssets = (
+		renderGeneratedFile(cardanoTxOutputView).match(/<CardanoTxOutputAssetsView[\s\S]*?\n\s*\/>/)?.[0] ?? ''
+	)
+	assert.match(cardanoTxOutputAssets, /selection=\{selection\.\$\$assets\}/)
+	assert.doesNotMatch(
+		cardanoTxOutputAssets,
+		/^\s+data-column-item="flexible"\n\s+data-card\n\s+data-scroll-container$/m
+	)
 	assert.doesNotMatch(renderGeneratedFile(cardanoTxOutputView), /const cardanoTransactionOutputAssetsListResource/)
 	assert.doesNotMatch(renderGeneratedFile(cardanoTxOutputView), /\$\$assets\(\{[\s\S]*?Source\.Blockfrost_Rest/)
 	assert.match(renderGeneratedFile(cardanoTxOutputAssetView), /CardanoNativeAssetView[\s\S]*?entity\.quantity/)
@@ -831,7 +1197,6 @@ test('loads one complete singular-view query while plural rows render direct sum
 })
 
 test('renders plural rows as direct declarative EntityView summaries without registries', () => {
-	const generatedFileByPath = new Map(baselineCompiledApp.generatedFiles.map((file) => [file.path, file]))
 	const cardanoGovernanceProposalsView = generatedFileByPath.get('src/views/CardanoGovernanceProposalsView.svelte')
 	const aptosTransactionsView = generatedFileByPath.get('src/views/AptosTransactionsView.svelte')
 	const networkActivityDaysView = generatedFileByPath.get('src/views/Network_Activity_DaysView.svelte')
@@ -849,9 +1214,45 @@ test('renders plural rows as direct declarative EntityView summaries without reg
 	const renderedNetworkActivityDaysView = renderGeneratedFile(networkActivityDaysView)
 	assert.match(renderedNetworkActivityDaysView, /\{networkActivityDay\.transactionCount\}/)
 	assert.doesNotMatch(renderedNetworkActivityDaysView, /\{String\(networkActivityDay\.transactionCount\)\}/)
+	let compiledAwaySchemaLabelCount = 0
+	for (const entity of app.schema.entities) {
+		const pluralComponent = entity.views?.plural?.component
+		if (pluralComponent == null)
+			continue
+
+		const pluralView = generatedFileByPath.get(`src/views/${pluralComponent}.svelte`)
+		if (pluralView == null) {
+			assert.ok(omittedPluralEntities.includes(entity))
+			continue
+		}
+
+		const renderedView = renderGeneratedFile(pluralView)
+		assert.doesNotMatch(
+			renderedView,
+			new RegExp(`\\{#snippet Title\\(\\)\\}\\s*${entity.labels.singular.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{/snippet\\}`),
+			`${pluralView.path} repeats its schema label in a Title snippet`
+		)
+		if (
+			renderedView.includes('<EntityView')
+			&& !renderedView.includes('{#snippet Title()}')
+		)
+			compiledAwaySchemaLabelCount++
+	}
+	assert.ok(compiledAwaySchemaLabelCount + omittedPluralEntities.length > 100)
+	const globalActivityPubNetworksView = generatedFileByPath.get('src/views/_GlobalActivityPubNetworksView.svelte')
+	const icpLedgerAccountTimestampsView = generatedFileByPath.get('src/views/IcpLedgerAccount_TimestampsView.svelte')
+	const tezosTokenTransfersView = generatedFileByPath.get('src/views/TezosTokenTransfersView.svelte')
+	assert.ok(globalActivityPubNetworksView && icpLedgerAccountTimestampsView)
+	assert.equal(tezosTokenTransfersView, undefined)
+	assert.ok(omittedPluralEntities.some(({ entityType }) => entityType === EntityType.TezosTokenTransfer))
+	assert.doesNotMatch(renderGeneratedFile(globalActivityPubNetworksView), /\{#snippet Title\(\)\}/)
+	assert.match(renderGeneratedFile(globalActivityPubNetworksView), /\{#snippet Value\(\)\}/)
+	assert.match(renderGeneratedFile(icpLedgerAccountTimestampsView), /\{#snippet Title\(\)\}\s*ICP ledger account timestamp/)
 	const singularComponentNames = new Set(app.schema.entities.map((entity) => `${entity.entityType}View`))
 	for (const generatedView of baselineCompiledApp.generatedFiles.filter((file) => (
-		file.path.startsWith('src/views/') && renderGeneratedFile(file).includes('<EntitiesList')
+		file.path.startsWith('src/views/')
+		&& file.kind === 'svelte'
+		&& file.ast.markup?.find((line) => line.trim() !== '')?.trim() === '<EntitiesList'
 	)))
 		assert.deepEqual(
 			[...renderGeneratedFile(generatedView).matchAll(/from '\$\/views\/([^']+\.svelte)'/g)]
@@ -874,6 +1275,234 @@ test('renders plural rows as direct declarative EntityView summaries without reg
 			.some((source) => /entityViewComponentContext|installEntityViewComponents/.test(source)),
 		false
 	)
+})
+
+test('leaves plural schema descriptions to EntitiesList', () => {
+	let schemaDescriptionCount = 0
+	for (const entity of app.schema.entities) {
+		const pluralComponent = entity.views?.plural?.component
+		if (pluralComponent == null || entity.description == null)
+			continue
+
+		assert.doesNotMatch(generatedSource(`src/views/${pluralComponent}.svelte`), /typeAnnotationParagraphs/)
+		schemaDescriptionCount++
+	}
+	assert.ok(schemaDescriptionCount > 50)
+
+	assert.match(generatedSource('src/views/EvmBlobsView.svelte'), /\{#snippet ModelTypeAnnotationTooltip\(\)\}/)
+	assert.match(
+		readFileSync(path.join(root, 'src/components/EntitiesList.svelte'), 'utf8'),
+		/TypeAnnotationTooltip == null && entityDefinitionByType\[entityType\]\.description != null/
+	)
+})
+
+test('leaves singular schema descriptions to EntityView', () => {
+	let schemaDescriptionCount = 0
+	for (const entity of app.schema.entities) {
+		if (
+			entity.description == null
+			|| entity.views?.singular?.TypeAnnotationTooltip != null
+		)
+			continue
+
+		assert.doesNotMatch(generatedSource(`src/views/${entity.entityType}View.svelte`), /\{#snippet TypeAnnotationTooltip\(\)\}/)
+		schemaDescriptionCount++
+	}
+	assert.ok(schemaDescriptionCount > 50)
+
+	assert.match(generatedSource('src/views/CoinView.svelte'), /\{#snippet TypeAnnotationTooltip\(\)\}/)
+	assert.match(
+		readFileSync(path.join(root, 'src/components/EntityView.svelte'), 'utf8'),
+		/Content=\{TypeAnnotationTooltip \?\? SchemaTypeAnnotationTooltip\}/
+	)
+})
+
+test('omits collection page titles already owned by plural views', () => {
+	let defaultTitlePageCount = 0
+	for (const generatedPage of generatedRouteSvelteFiles) {
+		for (const component of renderGeneratedFile(generatedPage).matchAll(/<([A-Za-z0-9_]+View)\n([\s\S]*?)\n\s*\/>/g)) {
+			if (
+				pluralComponentNames.has(component[1] ?? '')
+				&& !/^\s+title=/m.test(component[2] ?? '')
+			)
+				defaultTitlePageCount++
+		}
+	}
+	assert.ok(defaultTitlePageCount > 50)
+
+	assert.match(generatedSource('src/routes/~/accounts/balances/+page.svelte'), /<EvmNetworkActorCoinBalancesView[\s\S]*?\n\s+title='EVM balances'/)
+	assert.match(generatedSource('src/routes/~/accounts/+page.svelte'), /<title>Accounts • Blockhead<\/title>/)
+})
+
+test('leaves collection container defaults to EntitiesList', () => {
+	let collectionPageCount = 0
+	for (const generatedPage of generatedRouteSvelteFiles) {
+		for (const component of renderGeneratedFile(generatedPage).matchAll(/<([A-Za-z0-9_]+View)\n([\s\S]*?)\n\s*\/>/g)) {
+			if (!pluralComponentNames.has(component[1] ?? ''))
+				continue
+
+			assert.doesNotMatch(
+				component[2] ?? '',
+				/^\s+data-column-item="flexible"\n\s+data-card\n\s+data-scroll-container$/m,
+				generatedPage.path
+			)
+			collectionPageCount++
+		}
+	}
+	assert.ok(collectionPageCount > 100)
+
+	const entitiesList = readFileSync(path.join(root, 'src/components/EntitiesList.svelte'), 'utf8')
+	assert.match(entitiesList, /data-column-item=\{articleElementProps\['data-column-item'\] \?\? 'flexible'\}/)
+	assert.match(entitiesList, /\n\tdata-card\n\tdata-scroll-container\n/)
+})
+
+test('leaves singular relationship-list container defaults to their list owner', () => {
+	let relationshipListCount = 0
+	for (const [filePath, source] of generatedViewSources) {
+		if (!source.includes('\n<EntityView\n'))
+			continue
+
+		for (const component of source.matchAll(/<([A-Za-z0-9_]+View)\n([\s\S]*?)\n\s*\/>/g)) {
+			if (
+				!pluralComponentNames.has(component[1] ?? '')
+				|| !/^\s+collapsible=\{false\}$/m.test(component[2] ?? '')
+				|| !/^\s+title=\{label\}$/m.test(component[2] ?? '')
+				|| !/^\s+id=\{`\$\{id\}-list`\}$/m.test(component[2] ?? '')
+			)
+				continue
+
+			assert.doesNotMatch(
+				component[2] ?? '',
+				/^\s+data-column-item="flexible"\n\s+data-card\n\s+data-scroll-container$/m,
+				filePath
+			)
+			relationshipListCount++
+		}
+		for (const entitiesList of source.matchAll(/<EntitiesList\n([\s\S]*?)\n\s*>/g)) {
+			if (
+				!/^\s+collapsible=\{false\}$/m.test(entitiesList[1] ?? '')
+				|| !/^\s+title=\{label\}$/m.test(entitiesList[1] ?? '')
+				|| !/^\s+id=\{`\$\{id\}-list`\}$/m.test(entitiesList[1] ?? '')
+			)
+				continue
+
+			assert.doesNotMatch(
+				entitiesList[1] ?? '',
+				/^\s+data-column-item="flexible"\n\s+data-card\n\s+data-scroll-container$/m,
+				filePath
+			)
+			relationshipListCount++
+		}
+	}
+	assert.ok(relationshipListCount > 500)
+
+	const mutatedApp = structuredClone(app)
+	const rssNetwork = mutatedApp.schema.entities.find(({ entityType }) => entityType === EntityType.RssNetwork)
+	const rssFeedsSection = rssNetwork?.views.singular?.carousels?.[0]?.sections[0]
+	assert.ok(rssFeedsSection)
+	rssFeedsSection.List = 'CustomRssFeedsView'
+	const rssNetworkView = compileApp(mutatedApp).generatedFiles.find(({ path }) => (
+		path === 'src/views/RssNetworkView.svelte'
+	))
+	assert.ok(rssNetworkView)
+	assert.match(
+		renderGeneratedFile(rssNetworkView),
+		/<CustomRssFeedsView[\s\S]*?data-column-item="flexible"[\s\S]*?data-card[\s\S]*?data-scroll-container/
+	)
+})
+
+test('leaves generated display defaults to their component contracts', () => {
+	const generatedSvelteSource = generatedSvelteFiles
+		.map(renderGeneratedFile)
+		.join('\n')
+	assert.equal((generatedSvelteSource.match(/\n\s+open=\{true\}/g) ?? []).length, 140)
+	assert.doesNotMatch(generatedSvelteSource, /TruncatedValueFormat\.Visual/)
+	assert.doesNotMatch(generatedSvelteSource, /<Tooltip contentProps=\{\{ side: 'top' \}\}>/)
+
+	assert.match(generatedSource('src/views/YoutubeCommentView.svelte'), /<TruncatedValue\n\s+value=\{[^]*?\n\s+startLength=\{64\}\n\s+endLength=\{16\}\n\s+\/>/)
+
+	for (const [
+		filePath,
+		pattern,
+	] of [
+		['src/components/Tooltip.svelte', /position-area: top;/],
+		['src/components/TruncatedValue.svelte', /format = TruncatedValueFormat\.Visual,/],
+		['src/routes/(social)/(nostr)/nostr/open-relay/+page.svelte', /<ParentPageCollapsible open=\{true\}>/],
+		['src/routes/~/accounts/WalletConnectionsControl.svelte', /open=\{false\}/],
+	] as const)
+		assert.match(readFileSync(path.join(root, filePath), 'utf8'), pattern)
+})
+
+test('renders selector summary values from indexed declarative fields', () => {
+	for (const [
+		entityType,
+		fieldName,
+		format,
+	] of [
+		[EntityType.EvmCalldata, 'hex', 'monospace'],
+		[EntityType.EvmError, 'hex', 'monospace'],
+		[EntityType.EvmNft, 'tokenId', 'monospace'],
+		[EntityType.EvmSelector, 'hex', 'monospace'],
+		[EntityType.EvmTopic, 'hex', 'monospace'],
+		[EntityType.NostrReaction, 'eventId', 'truncated'],
+		[EntityType.NostrRepost, 'eventId', 'truncated'],
+		[EntityType.YoutubeComment, 'commentId', 'truncated'],
+	] as const) {
+		const entity = app.schema.entities.find((candidate) => candidate.entityType === entityType)
+		assert.ok(entity?.views.singular?.summary)
+		assert.equal(entity.views.singular.summary.Value, undefined)
+		if (format === 'monospace')
+			assert.deepEqual(entity.views.singular.summary.value, [{
+				field: fieldName,
+				format,
+			}])
+		assert.match(
+			generatedSource(`src/views/${entityType}View.svelte`),
+			format === 'monospace' ?
+				new RegExp(`<span data-text="font-monospace">\\{selection\\.entitySelector\\.${fieldName}\\}</span>`)
+			:
+				new RegExp(`<TruncatedValue value=\\{selection\\.entitySelector\\.${fieldName}\\} />`)
+		)
+	}
+
+	assert.match(
+		app.schema.entities.find(({ entityType }) => entityType === EntityType.Coin)
+			?.views.singular?.summary?.Value?.raw ?? '',
+		/selection\.entitySelector\.coinId/
+	)
+})
+
+test('leaves singular schema-default titles to EntityView', () => {
+	let compiledAwayFallbackTitleCount = 0
+	for (const generatedView of baselineCompiledApp.generatedFiles.filter((file) => (
+		file.path.startsWith('src/views/')
+		&& file.path.endsWith('View.svelte')
+		&& !file.path.endsWith('sView.svelte')
+	))) {
+		const renderedView = renderGeneratedFile(generatedView)
+		if (
+			renderedView.includes('<EntityView')
+			&& !renderedView.includes('\t\ttitle,')
+			&& !/\n\ttitle=/.test(renderedView)
+			&& !renderedView.includes('{#snippet Title()}')
+		) {
+			assert.doesNotMatch(renderedView, /const titleFallback =/)
+			compiledAwayFallbackTitleCount++
+		}
+	}
+	assert.ok(compiledAwayFallbackTitleCount > 100)
+
+	const tezosTokenTransferView = generatedSource('src/views/TezosTokenTransferView.svelte')
+	const icpLedgerAccountTimestampView = generatedSource('src/views/IcpLedgerAccount_TimestampView.svelte')
+	const atprotoActorView = generatedSource('src/views/AtprotoActorView.svelte')
+	assert.doesNotMatch(tezosTokenTransferView, /\n\t+title(?:,|=)/)
+	assert.doesNotMatch(tezosTokenTransferView, /\{#snippet Title\(\)\}/)
+	assert.match(tezosTokenTransferView, /\{#snippet Content\(\{ open: contentOpen \}\)\}/)
+	assert.match(icpLedgerAccountTimestampView, /title=\{title \?\? 'ICP ledger account timestamp'\}/)
+	assert.doesNotMatch(icpLedgerAccountTimestampView, /\{#snippet Title\(\)\}/)
+	assert.match(atprotoActorView, /title=\{title \?\?/)
+	assert.match(atprotoActorView, /\{#snippet Title\(\)\}[\s\S]*?<ResourceBoundary/)
+	assert.match(generatedSource('src/views/MarketAssetView.svelte'), /title=\{title \?\? \(selection\.entitySelector\.assetKey \|\| 'Market asset'\)\}/)
 })
 
 test('uses one resource-owned declarative summary path', () => {
@@ -905,7 +1534,23 @@ test('uses one resource-owned declarative summary path', () => {
 		},
 		summary: {
 			Title: {
-				raw: '{titleFallback}',
+				raw: [
+					`<ResourceBoundary resource={${rawSnippetReference.resolvedEntity.source}}>`,
+					'\t{#snippet children()}',
+					'\t\t{titleFallback}',
+					'\t{/snippet}',
+					'</ResourceBoundary>',
+				].join('\n'),
+				imports: [
+					{
+						from: '$/components/ResourceBoundary.svelte',
+						default: 'ResourceBoundary',
+					},
+				],
+				references: [
+					'resolvedEntity',
+					'titleFallback',
+				],
 			},
 		},
 	}
@@ -917,6 +1562,7 @@ test('uses one resource-owned declarative summary path', () => {
 		'src/views/FilecoinMessageView.svelte',
 		'src/views/NetworkView.svelte',
 		'src/views/XrplTransactionView.svelte',
+		'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/[ledgerIndex=nonNegativeBigInt]/+page.svelte',
 	].map((path) => {
 		const generatedView = generatedFiles.find((generatedFile) => generatedFile.path === path)
 		assert.ok(generatedView)
@@ -924,7 +1570,9 @@ test('uses one resource-owned declarative summary path', () => {
 	}))
 
 	assert.match(renderedViewByPath['src/views/XrplLedgerView.svelte'], /fields: \{\s*closeTimeMs: true,\s*\}/)
-	assert.match(renderedViewByPath['src/views/XrplLedgerView.svelte'], /\{#snippet Title\(\)\}\s*<ResourceBoundary resource=\{xrplLedger\}>[\s\S]*?entity\.closeTimeMs/)
+	assert.match(renderedViewByPath['src/views/XrplLedgerView.svelte'], /\{#snippet Title\(\)\}\s*<ResourceBoundary\s+resource=\{\s*selection\(\{[\s\S]*?closeTimeMs: true,[\s\S]*?entity\.closeTimeMs/)
+	assert.doesNotMatch(renderedViewByPath['src/views/XrplLedgerView.svelte'], /const xrplLedger =|resource=\{xrplLedger\}/)
+	assert.match(renderedViewByPath['src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/[ledgerIndex=nonNegativeBigInt]/+page.svelte'], /fields: \{[\s\S]*?closeTimeMs: true,[\s\S]*?<title>\{data\.title \?\? \(pageSelection\.entity == null \? 'XRPL ledger' : String\(pageSelection\.entity\.closeTimeMs \?\? ''\) \|\| 'XRPL ledger'\)\}/)
 	assert.doesNotMatch(renderedViewByPath['src/views/XrplLedgerView.svelte'], /Object\.hasOwn\(prefetched|layout !== EntityLayout\.SummaryDetails/)
 	assert.match(renderedViewByPath['src/views/FilecoinMessageView.svelte'], /\{#snippet Title\(\)\}\s*<ResourceBoundary[\s\S]*?resource=\{[\s\S]*?selection\s*\.\$from/)
 	assert.doesNotMatch(renderedViewByPath['src/views/FilecoinMessageView.svelte'], /const filecoinMessage =|resource=\{filecoinMessage\}/)
@@ -941,7 +1589,8 @@ test('uses one resource-owned declarative summary path', () => {
 	assert.doesNotMatch(renderedViewByPath['src/views/BlockheadWalletConnectionsView.svelte'], /\$wallet: true/)
 	assert.match(renderedViewByPath['src/views/NetworkView.svelte'], /\{#snippet Title\(\)\}\s*<ProjectionBoundary[\s\S]*?resource=\{selection\s*\.Evm\}/)
 	assert.doesNotMatch(renderedViewByPath['src/views/NetworkView.svelte'], /const network =|resource=\{network\}/)
-	assert.match(renderedViewByPath['src/views/XrplTransactionView.svelte'], /const xrplTransaction = \$derived\(selection\(\{[\s\S]*?fields: \{\s*transactionType: true,\s*\}/)
+	assert.match(renderedViewByPath['src/views/XrplTransactionView.svelte'], /<ResourceBoundary[\s\S]*?resource=\{\s*selection\(\{[\s\S]*?fields: \{\s*transactionType: true,\s*\}/)
+	assert.doesNotMatch(renderedViewByPath['src/views/XrplTransactionView.svelte'], /const xrplTransaction =|resource=\{xrplTransaction\}/)
 	assert.doesNotMatch(renderedViewByPath['src/views/XrplTransactionView.svelte'], /prefetched\[EntityMetaKey\.Selector\][\s\S]*?layout !== EntityLayout\.SummaryDetails \?/)
 	assert.doesNotMatch(renderedViewByPath['src/views/NetworkView.svelte'], /\{#if layout !== EntityLayout\.SummaryDetails/)
 	assert.doesNotMatch(renderedViewByPath['src/views/XrplTransactionView.svelte'], /\{#if layout !== EntityLayout\.SummaryDetails/)
@@ -1048,9 +1697,14 @@ test('renders source-backed social hub lists as carousel cards', () => {
 		const generatedView = baselineCompiledApp.generatedFiles.find(({ path }) => path === viewPath)
 
 		assert.ok(generatedView)
+		const list = renderGeneratedFile(generatedView).match(new RegExp(`<${listName}[\\s\\S]*?\\n\\s*/>`))?.[0] ?? ''
 		assert.match(
-			renderGeneratedFile(generatedView),
-			new RegExp(`<CollapsibleTabs[\\s\\S]*?<${listName}[\\s\\S]*?data-column-item="flexible"[\\s\\S]*?data-card[\\s\\S]*?data-scroll-container`)
+			list,
+			new RegExp(`<${listName}[\\s\\S]*?collapsible=\\{false\\}[\\s\\S]*?title=\\{label\\}`)
+		)
+		assert.doesNotMatch(
+			list,
+			/^\s+data-column-item="flexible"\n\s+data-card\n\s+data-scroll-container$/m
 		)
 	}
 	const rssFeedsView = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/views/RssFeedsView.svelte')
@@ -1136,6 +1790,15 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 	assert.ok(blockheadAccountBalancesPage)
 	assert.ok(blockheadAccountTransactionsPage)
 	assert.ok(networksPage)
+	for (const [page, route] of [
+		[blockheadAccountBalancesPage, '/~/accounts/balances'],
+		[blockheadAccountTransactionsPage, '/~/accounts/transactions'],
+	] as const) {
+		const source = renderGeneratedFile(page)
+		assert.match(source, new RegExp(`const collectionHref = resolve\\('${route}'\\)`))
+		assert.equal((source.match(new RegExp(`resolve\\('${route}'\\)`, 'g')) ?? []).length, 1)
+		assert.doesNotMatch(source, new RegExp(`href=\\{resolve\\('${route}'\\)\\}`))
+	}
 	assert.match(collapsibleTabs, /\{#each sections as section \(section\.id\)\}[\s\S]*?\{@const Marker = markerSnippetForSection\(section\)\}[\s\S]*?\{@render Marker\([\s\S]*?MarkerContent/)
 	assert.match(collapsibleTabs, /\{#each sections as section \(section\.id\)\}[\s\S]*?\{@const Section = sectionSnippetForSection\(section\)\}[\s\S]*?\{#if section\.ownsSection\}[\s\S]*?\{@render Section\(/)
 	assert.match(collapsibleTabs, /sections\[0\]\.ownsSection \? undefined : sections\[0\]\.id/)
@@ -1145,6 +1808,10 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 	const renderedNetworkView = renderGeneratedFile(networkView)
 	const renderedCoinView = renderGeneratedFile(coinView)
 	const renderedMarketsView = renderGeneratedFile(marketsView)
+	const pendingNetworkEntity = renderedNetworkView.slice(
+		renderedNetworkView.indexOf('const pendingEntity = $derived('),
+		renderedNetworkView.indexOf('const voltaireJsonRpcSources = $derived(')
+	)
 	assert.match(renderedCoinView, /SectionCatalogUsdMarket[\s\S]*?<MarketsView[\s\S]*?selection=\{[\s\S]*?selection\s*\.\$\$marketsWithCoinAsBase\([\s\S]*?Source\.Constants_Internal[\s\S]*?limit: 1/)
 	assert.match(renderedCoinView, /SectionMarketsWithCoinAsBase[\s\S]*?\$\$marketsWithCoinAsBase\(\{[\s\S]*?limit: 16/)
 	assert.match(renderedCoinView, /SectionMarketsWithCoinAsQuote[\s\S]*?\$\$marketsWithCoinAsQuote\(\{[\s\S]*?limit: 16/)
@@ -1156,12 +1823,13 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 		renderedNetworkView.indexOf('const titleFallback = $derived(')
 	)
 
-	assert.match(renderedNetworkView, /import \{ beaconRestBaseByExecutionChainId \} from '\$\/constants\/BeaconConsensus\.ts'/)
+	assert.doesNotMatch(renderedNetworkView, /import .*BeaconConsensus\.ts|beaconRestBaseByExecutionChainId/)
 	assert.match(renderedNetworkView, /import \{[^}]*networkByCaip2, networkBySlug[^}]*\} from '\$\/constants\/Network\.ts'/)
 	assert.match(renderedNetworkView, /import \{ networkApplicableSources \} from '\$\/sources\/index\.ts'/)
 	assert.doesNotMatch(renderedNetworkView, /SourceTargetKind|const networkApplicableSources/)
 	assert.doesNotMatch(renderedNetworkView, /\{#if entity\.executionModels\.values\.includes\('Evm'\)\}/)
-	assert.match(renderedNetworkView, /const pendingEntity = \$derived\([\s\S]*?networkByCaip2\[caip2Key\][\s\S]*?networkBySlug\[base\.slug\][\s\S]*?beaconRestBaseByExecutionChainId/)
+	assert.match(pendingNetworkEntity, /networkByCaip2\[caip2Key\][\s\S]*?networkBySlug\[base\.slug\]/)
+	assert.doesNotMatch(pendingNetworkEntity, /beacon|consensusProtocol|consensusEndpoints/)
 	assert.doesNotMatch(networkRootQuery, /\$networkStack|\$icon|\$\$nativeAssets|\$\$blockExplorerUrls|\$\$faucetUrls/)
 	assert.match(renderedNetworkView, /\{#snippet Icon\(\)\}\s*<IconComponent \/>/)
 	assert.match(renderedNetworkView, /\{#snippet Title\(\)\}\s*<ResourceBoundary resource=\{network\}>[\s\S]*?entity\.name/)
@@ -1183,7 +1851,22 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 	assert.match(renderedNetworkView, /href=\{consensusEndpoint\.restBaseUrl\}/)
 	assert.doesNotMatch(renderedNetworkView, /restBaseUrlValue|String\(consensusEndpoint\.restBaseUrl\)|\{#if consensusEndpoint\.restBaseUrl != null\}/)
 	assert.match(renderedNetworkView, /import ProjectionBoundary from '\$\/components\/ProjectionBoundary\.svelte'/)
-	assert.match(renderedNetworkView, /<ProjectionBoundary[\s\S]*?resource=\{selection\.Evm\}[\s\S]*?\{#snippet Applicable\(projection\)\}[\s\S]*?<CollapsibleTabs/)
+	const evmTopologyCarouselIndex = renderedNetworkView.indexOf("id={viewDomId + '-carousel-evm-network-topology'}")
+	const evmDetailsCarousels = renderedNetworkView.slice(
+		renderedNetworkView.lastIndexOf(
+			"{#if pendingEntity.executionModels != null && pendingEntity.executionModels.values.includes('Evm')}",
+			evmTopologyCarouselIndex
+		),
+		renderedNetworkView.indexOf(
+			"{#if pendingEntity.executionModels != null && pendingEntity.executionModels.values.includes('CosmosSdk')}",
+			evmTopologyCarouselIndex
+		)
+	)
+	assert.equal(evmDetailsCarousels.match(/resource=\{selection\.Evm\}/g)?.length, 1)
+	assert.equal(evmDetailsCarousels.match(/<ProjectionBoundary/g)?.length, 2)
+	assert.equal(evmDetailsCarousels.match(/\{#snippet Applicable\(projection\)\}/g)?.length, 2)
+	assert.match(evmDetailsCarousels, /<HeadingComponent>Topology<\/HeadingComponent>[\s\S]*?<HeadingComponent>Execution<\/HeadingComponent>[\s\S]*?resource=\{projection\.EthereumBeacon\}[\s\S]*?<HeadingComponent>Consensus and block production<\/HeadingComponent>[\s\S]*?<HeadingComponent>Contracts and accounts<\/HeadingComponent>[\s\S]*?<HeadingComponent>Assets<\/HeadingComponent>/)
+	assert.doesNotMatch(evmDetailsCarousels, /resource=\{selection\.Evm\.EthereumBeacon\}/)
 	assert.doesNotMatch(renderedNetworkView, /<ResourceBoundary[\s\S]{0,300}?<Projection projection=\{projectionValue\}>/)
 	assert.doesNotMatch(renderedNetworkView, /\{#snippet NotApplicable\(/)
 	assert.doesNotMatch(renderedNetworkView, /\{#snippet (?:Blocked|Unsupported)\(\)\}|data-section-state="projection-(?:blocked|unsupported)"/)
@@ -1201,7 +1884,7 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 	)
 	assert.match(
 		renderedNetworkView,
-		/\{@const ([A-Za-z0-9]+Sources) = networkApplicableSources\([\s\S]*?\)\}[\s\S]*?(?:selection|projection)[\s\S]*?sources: \1/
+		/\{@const ([A-Za-z0-9]+Sources) = networkApplicableSources\([\s\S]*?\)\}[\s\S]*?(?:selection|[A-Za-z0-9]+Projection)[\s\S]*?sources: \1/
 	)
 	assert.doesNotMatch(renderedNetworkView, /Sources\.length === 0 \? undefined : (?:selection|projection)/)
 	assert.match(renderedNetworkView, /Consensus endpoints are not listed for this network\.|emptyText='No blocks available\.'/)
@@ -1215,10 +1898,11 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 	)
 	assert.doesNotMatch(executionBlocksSection, /\{#if (?:open|!open)|\{#if [^}]*\bopen\b/)
 	assert.doesNotMatch(executionBlocksSection, /\{#snippet (?:Pending|Failed)/)
-	assert.match(executionBlocksSection, /<EvmBlocksView[\s\S]*?data-card[\s\S]*?data-scroll-container/)
+	assert.doesNotMatch(executionBlocksSection.match(/<EvmBlocksView[\s\S]*?\n\s*\/>/)?.[0] ?? '', /^\s+data-column-item="flexible"\n\s+data-card\n\s+data-scroll-container$/m)
 	assert.doesNotMatch(executionBlocksSection, /<section/)
 	assert.match(renderGeneratedFile(evmBlocksView), /<EntitiesList[\s\S]*?resource=\{/)
-	assert.match(renderedNetworkView, /<XrplLedgersView[\s\S]*?CollapsibleProps=\{\{ canToggle: false \}\}[\s\S]*?collapsible=\{false\}[\s\S]*?open=\{open\}/)
+	assert.match(renderedNetworkView, /<XrplLedgersView[\s\S]*?collapsible=\{false\}/)
+	assert.doesNotMatch(renderedNetworkView, /CollapsibleProps=\{\{ canToggle: false \}\}/)
 	assert.doesNotMatch(renderedNetworkView, /count: true/)
 	assert.match(renderGeneratedFile(xrplLedgersView), /<EntitiesList[\s\S]*?resource=\{/)
 	assert.doesNotMatch(renderGeneratedFile(xrplLedgersView), /getKey=/)
@@ -1229,7 +1913,7 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 		/href=\{[\s\S]*?resolve\([\s\S]*?'\/\(explore\)\/url\/\[url=absoluteUrl\]',[\s\S]*?url: encodeURIComponent\(urlSelector\.url\),/
 	)
 	assert.doesNotMatch(renderGeneratedFile(urlsView), /urlHrefFields/)
-	assert.match(renderGeneratedFile(networksPage), /data-column-item="flexible"[\s\S]*?data-card[\s\S]*?data-scroll-container/)
+	assert.doesNotMatch(renderGeneratedFile(networksPage), /^\s+data-column-item="flexible"\n\s+data-card\n\s+data-scroll-container$/m)
 	assert.match(renderGeneratedFile(networksPage), /\.\$\$networks\(\{[\s\S]*?Source\.Constants_Internal/)
 	assert.match(
 		renderGeneratedFile(accountView),
@@ -1382,20 +2066,33 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 		assert.doesNotMatch(renderedPage, /countResource=/)
 		assert.match(renderedPage, /<ResourceBoundary resource=\{[\s\S]*?\{#snippet children\(entities\)\}[\s\S]*?\{#if entities\.values\.length > 0\}/)
 		for (const component of components)
-			assert.match(renderedPage, new RegExp(`<${component}[\\s\\S]*?data-column-item="flexible"[\\s\\S]*?data-card[\\s\\S]*?data-scroll-container`))
+			assert.doesNotMatch(
+				renderedPage.match(new RegExp(`<${component}[\\s\\S]*?\\n\\s*/>`))?.[0] ?? '',
+				/^\s+data-column-item="flexible"\n\s+data-card\n\s+data-scroll-container$/m
+			)
 	}
 	const renderedEvmUserOperationView = renderGeneratedFile(evmUserOperationView)
 	for (const tab of ['participants', 'gas-fees', 'payloads'])
 		assert.match(renderedEvmUserOperationView, new RegExp(`id=\\{\\\`\\$\\{id\\}-${tab}-fields\\\`\\} data-column-item="flexible" data-card data-scroll-container`))
 	assert.match(renderedNetworkView, /<dt>Name<\/dt>[\s\S]*?<dt>Namespace<\/dt>[\s\S]*?<dt>Ledger models<\/dt>[\s\S]*?<dt>Execution models<\/dt>[\s\S]*?<dt>Network stack<\/dt>[\s\S]*?<dt>Environment<\/dt>[\s\S]*?<dt>CAIP-2<\/dt>/)
-	assert.match(renderedNetworkView, /<dt>Upgrade<\/dt>[\s\S]*?<dt>Block<\/dt>[\s\S]*?<dt>Fee market<\/dt>[\s\S]*?<dt>Mempool<\/dt>[\s\S]*?<dt>Epoch<\/dt>[\s\S]*?<dt>Slot<\/dt>/)
-	assert.match(renderedNetworkView, /\{#if pendingEntity\.executionModels != null && pendingEntity\.executionModels\.values\.includes\('Evm'\)\}[\s\S]*?<dt>Upgrade<\/dt>/)
+	const networkLatest = renderedNetworkView.slice(
+		renderedNetworkView.indexOf("<dl class='network-summary-head'"),
+		renderedNetworkView.indexOf('<dl data-column-item="center">')
+	)
+	assert.match(networkLatest, /<dt>Upgrade<\/dt>[\s\S]*?<dt>Block<\/dt>[\s\S]*?<dt>Fee market<\/dt>[\s\S]*?<dt>Mempool<\/dt>[\s\S]*?<dt>Epoch<\/dt>[\s\S]*?<dt>Slot<\/dt>/)
+	assert.equal(networkLatest.match(/pendingEntity\.executionModels != null && pendingEntity\.executionModels\.values\.includes\('Evm'\)/g)?.length, 1)
+	assert.equal(networkLatest.match(/resource=\{selection\.Evm\}/g)?.length, 1)
+	assert.equal(networkLatest.match(/<ResourceBoundary/g)?.length, 6)
+	assert.match(networkLatest, /\{#snippet Applicable\(projection\)\}[\s\S]*?<dt>Mempool<\/dt>[\s\S]*?\{#if pendingEntity\.consensusProtocol === 'EthereumBeacon'\}[\s\S]*?resource=\{projection\.EthereumBeacon\}[\s\S]*?<dt>Epoch<\/dt>[\s\S]*?selection\.Evm\s*\.\$\$beaconEpochs\([\s\S]*?<dt>Slot<\/dt>[\s\S]*?selection\.Evm\s*\.\$\$beaconSlots\(/)
 	const ethereumBeaconCarousel = renderedNetworkView.slice(
 		renderedNetworkView.indexOf('{#snippet SectionEvmConsensusUpgrades'),
 		renderedNetworkView.indexOf('{#snippet SectionEvmContractsPrecompiles')
 	)
 	assert.match(renderedNetworkView, /\{@const [A-Za-z0-9]+Resource = [\s\S]*?selection\.Evm\s*\.\$\$consensusUpgrades\(/)
-	assert.match(renderedNetworkView, /resource=\{selection\.Evm\.consensusEndpoints\}/)
+	assert.match(
+		renderedNetworkView,
+		/resource=\{\s*selection\.Evm\s*\.consensusEndpoints\(\{\s*sources: beaconRestSources,\s*\}\)\s*\}/
+	)
 	assert.match(renderedNetworkView, /selection=\{\s*projection\s*\.\$\$upgrades\s*\}/)
 	assert.doesNotMatch(renderedNetworkView, /constantsInternalSources/)
 	assert.doesNotMatch(ethereumBeaconCarousel, /projection\.Evm/)
@@ -1418,14 +2115,15 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 		networkCarousels.length
 	)
 	for (const carousel of networkCarousels) {
-		assert.ok(renderedNetworkView.includes(`id={viewDomId + '-carousel-${carousel.id}'}`), carousel.id)
+		assert.equal(renderedNetworkView.match(new RegExp(`id=\\{viewDomId \\+ '-carousel-${carousel.id}'\\}`, 'g'))?.length, 1, carousel.id)
 		assert.ok(renderedNetworkView.includes(`<HeadingComponent>${carousel.label}</HeadingComponent>`), carousel.id)
-		for (const section of carousel.sections)
-			assert.match(
-				renderedNetworkView,
-				new RegExp(`\\{#snippet Section${section.id.split(/[^A-Za-z0-9]+/).filter(Boolean).map((part) => `${part[0]?.toUpperCase()}${part.slice(1)}`).join('')}\\(`),
-				section.id
+		for (const section of carousel.sections) {
+			const sectionSnippetPattern = new RegExp(
+				`\\{#snippet Section${section.id.split(/[^A-Za-z0-9]+/).filter(Boolean).map((part) => `${part[0]?.toUpperCase()}${part.slice(1)}`).join('')}\\(`,
+				'g'
 			)
+			assert.equal(renderedNetworkView.match(sectionSnippetPattern)?.length, 1, section.id)
+		}
 	}
 	for (const carouselLabel of [
 		'Topology',
@@ -1563,6 +2261,42 @@ test('renders cardinality-one carousel references as singular card sections', ()
 	assert.doesNotMatch(nativeCoinSection, /<EntitiesList/)
 })
 
+test('emits field-existence checks only for schema-optional resolved values', () => {
+	let optionalFieldGuardCount = 0
+	for (const entity of app.schema.entities) {
+		const viewPath = `src/views/${entity.entityType}View.svelte`
+		const view = generatedFileByPath.get(viewPath)
+		if (view == null)
+			continue
+
+		const renderedView = renderGeneratedFile(view)
+		for (const match of renderedView.matchAll(
+			/\{@const ([A-Za-z_$][\w$]*) = entity\.([A-Za-z_$][\w$]*)\}\s*\{#if \1 != null/g
+		)) {
+			const field = entity.fields.find((candidate) => candidate.name === match[2])
+			assert.equal(
+				field?.cardinality,
+				EntityFieldCardinality.ZeroOrOne,
+				`${viewPath} guards non-optional ${entity.entityType}.${match[2]}`
+			)
+			optionalFieldGuardCount++
+		}
+
+		for (const field of entity.fields.filter((candidate) => (
+			candidate.cardinality === EntityFieldCardinality.ZeroOrOne
+			&& entity.selectors.every((selector) => selector.fields.includes(candidate.name))
+		)))
+			assert.doesNotMatch(
+				renderedView,
+				new RegExp(`${field.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} != null`),
+				`${viewPath} guards selector-owned ${entity.entityType}.${field.name}`
+			)
+	}
+
+	assert.ok(optionalFieldGuardCount > 0)
+	assert.doesNotMatch(generatedSource('src/views/NetworkView.svelte'), /pendingEntity\.namespace != null && pendingEntity\.namespace ===/)
+})
+
 test('keeps every projection-carousel field at its declared facet owner', () => {
 	for (const entity of app.schema.entities) {
 		const view = baselineCompiledApp.generatedFiles.find(({ path: generatedFilePath }) => generatedFilePath === `src/views/${entity.entityType}View.svelte`)
@@ -1667,7 +2401,9 @@ test('renders every generated entity-list item through a card-backed singular su
 			&& generatedFile.path.startsWith('src/views/')
 		))
 	const pluralViews = generatedViews
-		.filter((generatedFile) => generatedFile.ast.markup?.some((line) => line.includes('<EntitiesList')) === true)
+		.filter((generatedFile) => (
+			generatedFile.ast.markup?.find((line) => line.trim() !== '')?.trim() === '<EntitiesList'
+		))
 		.map((generatedFile) => ({
 			path: generatedFile.path,
 			lines: generatedFile.ast.markup ?? [],
@@ -1683,7 +2419,10 @@ test('renders every generated entity-list item through a card-backed singular su
 		))
 		const rowEntityViewEndIndex = pluralView.lines.findIndex((line, index) => (
 			index > rowEntityViewIndex
-			&& line.trim() === '>'
+			&& (
+				line.trim() === '>'
+				|| line.trim() === '/>'
+			)
 		))
 		assert.ok(itemSnippetIndex >= 0, pluralView.path)
 		assert.ok(rowEntityViewIndex > itemSnippetIndex, pluralView.path)
@@ -1730,12 +2469,21 @@ test('renders selected entity titles on every multi-selector detail page', () =>
 
 	assert.ok(multiSelectorPages.length > 0)
 	for (const page of multiSelectorPages) {
-		assert.match(page.source, /const pageSelection = \$derived\(/, page.path)
-		assert.match(page.source, /const pageTitle = \$derived\([\s\S]*?data\.entityType/, page.path)
-		assert.match(page.source, /<svelte:head>[\s\S]*?<title>\{pageTitle\} • \{entityDefinitionByType\[data\.entityType\]\.labels\.singular\} • Blockhead<\/title>[\s\S]*?<\/svelte:head>/, page.path)
+		const pageSelectionOccurrences = page.source.match(/\bpageSelection\b/g)?.length ?? 0
+		if (page.source.includes('const pageSelection = $derived')) {
+			assert.ok(pageSelectionOccurrences > 2, page.path)
+			assert.match(page.source, /selection=\{pageSelection\}/, page.path)
+		} else {
+			assert.equal(pageSelectionOccurrences, 0, page.path)
+			assert.match(page.source, /<EntityView[\s\S]*?selection=\{[\s\S]*?select\(EntityType\./, page.path)
+		}
+		assert.match(page.source, /const documentTitle = \$derived\([\s\S]*?data\.entityType/, page.path)
+		assert.match(page.source, /<svelte:head>\s*<title>\{documentTitle\}<\/title>\s*<\/svelte:head>/, page.path)
+		assert.doesNotMatch(page.source, /const pageTitle = |data\.selectorName|<title>[^<]*data\.entityType/, page.path)
+		assert.ok((page.source.match(/ • [^']+ • Blockhead'/g) ?? []).length > 1, page.path)
+		assert.doesNotMatch(page.source, /entityDefinitionByType/, page.path)
 		assert.doesNotMatch(page.source, /entityViewByType[\s\S]*?label:/, page.path)
 		assert.doesNotMatch(page.source, /pageEntity(?:Title|TypeLabel)|entityViewComponentByType/, page.path)
-		assert.match(page.source, /selection=\{pageSelection\}/, page.path)
 		assert.doesNotMatch(page.source, /^\s*[A-Za-z_$][A-Za-z0-9_$]*,[A-Za-z_$][A-Za-z0-9_$]*:\s*true,/m, page.path)
 	}
 
@@ -1754,10 +2502,32 @@ test('renders selected entity titles on every multi-selector detail page', () =>
 	assert.doesNotMatch(networkPage.source, /const entityViewByType =/)
 	assert.doesNotMatch(networkPage.source, /\{@const EntityView =/)
 	assert.match(networkPage.source, /<title>\{pageTitle\} • Network • Blockhead<\/title>/)
+	assert.match(networkPage.source, /data\.entityType === EntityType\.Network\s*&& data\.selectorName === 'Caip2'/)
+	assert.equal((networkPage.source.match(/data\.selectorName/g) ?? []).length, 1)
+	assert.doesNotMatch(networkPage.source, /const documentTitle =/)
 	assert.match(networkPage.source, /<NetworkView\s+selection=\{pageSelection\}/)
 	assert.doesNotMatch(networkPage.source, /pageSelection\.entitySelector\.(?:name|caip2)/)
 	assert.doesNotMatch(networkPage.source, /\.\.\.pageSelection\.entitySelector/)
 	assert.doesNotMatch(networkPage.source, /const pageSelection = \$derived\([\s\S]*? : undefined\)/)
+	assert.equal(
+		(networkPage.source.match(/select\(EntityType\.Network, data\.selector/g) ?? []).length,
+		1
+	)
+	assert.equal((networkPage.source.match(/\bcaip2: true,/g) ?? []).length, 1)
+	assert.equal((networkPage.source.match(/\bconsensusProtocol: true,/g) ?? []).length, 1)
+	assert.equal((networkPage.source.match(/\bSource\.Constants_Internal,/g) ?? []).length, 1)
+	const evmCoinInstancePage = baselineCompiledApp.generatedFiles.find((file) => (
+		file.path.endsWith('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]/+page.svelte')
+	))
+	assert.ok(evmCoinInstancePage)
+	const evmCoinInstancePageSource = renderGeneratedFile(evmCoinInstancePage)
+	assert.equal(
+		(evmCoinInstancePageSource.match(/select\(EntityType\.EvmCoinInstance, data\.selector/g) ?? []).length,
+		1
+	)
+	assert.equal((evmCoinInstancePageSource.match(/\bNativeCurrency: \{/g) ?? []).length, 1)
+	assert.equal((evmCoinInstancePageSource.match(/\bErc20Token: \{/g) ?? []).length, 1)
+	assert.equal((evmCoinInstancePageSource.match(/\$contract: true,/g) ?? []).length, 1)
 	const networkLayout = baselineCompiledApp.generatedFiles.find((file) => (
 		file.path.endsWith('/network/[network=networkCaip2OrNetworkSlug]/+layout.ts')
 	))
@@ -1789,7 +2559,13 @@ test('emits every source-axis enum and only valid enum references in provider ro
 
 	const renderedSourceBinding = renderGeneratedFile(sourceBinding)
 	assert.doesNotMatch(renderedSourceBinding, /\bprovider: SourceProvider\b/)
-	assert.match(renderedSourceBinding, /export const sourceBindingId =/)
+	assert.doesNotMatch(renderedSourceBinding, /\bNone\s*=\s*'None'/)
+	assert.match(renderedSourceBinding, /generated\?: true/)
+	assert.match(renderedSourceBinding, /scope: SourceCredentialScope\.PublicConfig[\s\S]*?keys\?: never/)
+	assert.match(
+		renderedSourceBinding,
+		/export const sourceBindingId = \(\{[\s\S]*?\) => JSON\.stringify\(\[\n\tsource,\n\ttarget\.kind,\n\ttarget\.key,\n\tdelivery,\n\tapiFamily,\n\]\)/
+	)
 	const sourceAxes = {
 		ApiFamily,
 		SourceArtifactKind,
@@ -1825,23 +2601,123 @@ test('emits every source-axis enum and only valid enum references in provider ro
 		/^src\/sources\/[^/]+\/bindings\.ts$/.test(path)
 	))) {
 		const source = renderGeneratedFile(generatedBindings)
-		assert.match(source, /const bindings = \[[\s\S]*?\] as const satisfies readonly SourceBinding\[\]/)
-		assert.match(source, /export default indexSourceBindings<\{[\s\S]*?\}>\(bindings\)/)
+		assert.match(source, /const bindings = [\s\S]*?satisfies readonly SourceBinding\[\]/)
+		assert.match(source, /export default indexSourceBindings\(bindings\)/)
+		assert.doesNotMatch(source, /SourceCredentialScope\.None|generated: false/)
+		assert.doesNotMatch(source, /typeof bindings\[\d+\]/)
 		assert.doesNotMatch(source, /^\s*\[Source\.[A-Za-z0-9_]+\]: \{/m)
+		assert.doesNotMatch(source, /^const [A-Za-z0-9_$]+Credentials = \[\] as const$/m)
 		for (const declaration of source.matchAll(/^const ([A-Za-z_$][\w$]*) =/gm))
 			if (declaration[1] !== 'bindings')
 				assert.ok(
-					(source.match(new RegExp(`\\b${declaration[1]}\\b`, 'g')) ?? []).length >= 3,
+					(source.match(new RegExp(`\\b${declaration[1]}\\b`, 'g')) ?? []).length >= (source.includes('.flatMap(({') ? 2 : 3),
 					`${generatedBindings.path}: ${declaration[1]} must replace at least two repeated values`
 				)
 	}
+
+	const blockscoutBindings = generatedFiles.find(({ path }) => path === 'src/sources/Blockscout/bindings.ts')
+	const blockscoutSource = app.sources.sources.find(({ source }) => source === Source.Blockscout_Rest)
+	assert.ok(blockscoutBindings && blockscoutSource?.bindings)
+	const renderedBlockscoutBindings = renderGeneratedFile(blockscoutBindings)
+	assert.match(renderedBlockscoutBindings, /const blockscoutRestTargets = \[/)
+	assert.match(renderedBlockscoutBindings, /const bindings = blockscoutRestTargets\.flatMap/)
+	assert.match(renderedBlockscoutBindings, /locator: `\$\{locator\}\/api\/eth-rpc`/)
+	assert.equal(
+		(renderedBlockscoutBindings.match(/^\s*key: '[0-9]+',$/gm) ?? []).length,
+		blockscoutSource.bindings.length / 2
+	)
+	assert.equal((renderedBlockscoutBindings.match(/\.\.\.blockscoutRest[^,]+BindingAxes/g) ?? []).length, 2)
 
 	const voltaireBindings = generatedFiles.find(({ path }) => path === 'src/sources/Voltaire/bindings.ts')
 	assert.ok(voltaireBindings)
 	const renderedVoltaireBindings = renderGeneratedFile(voltaireBindings)
 	const voltaireBindingCount = (renderedVoltaireBindings.match(/source: Source\.Voltaire_JsonRpc/g) ?? []).length
-	assert.equal((renderedVoltaireBindings.match(/credentials: voltaireJsonRpcCredentials/g) ?? []).length, voltaireBindingCount)
+	assert.ok(voltaireBindingCount > 0)
+	assert.doesNotMatch(renderedVoltaireBindings, /const voltaireJsonRpcCredentials =/)
+	assert.match(renderedVoltaireBindings, /credentials: \[\]/)
 	assert.equal((renderedVoltaireBindings.match(/artifacts: voltaireJsonRpcArtifacts/g) ?? []).length, voltaireBindingCount)
+
+	const forgejoBindings = generatedFiles.find(({ path }) => path === 'src/sources/Forgejo/bindings.ts')
+	const coingeckoBindings = generatedFiles.find(({ path }) => path === 'src/sources/Coingecko/bindings.ts')
+	const bitTorrentBindings = generatedFiles.find(({ path }) => path === 'src/sources/BitTorrent/bindings.ts')
+	const getBlockBindings = generatedFiles.find(({ path }) => path === 'src/sources/GetBlock/bindings.ts')
+	assert.ok(forgejoBindings && coingeckoBindings && bitTorrentBindings && getBlockBindings)
+	const renderedForgejoBindings = renderGeneratedFile(forgejoBindings)
+	const renderedCoingeckoBindings = renderGeneratedFile(coingeckoBindings)
+	const renderedBitTorrentBindings = renderGeneratedFile(bitTorrentBindings)
+	const renderedGetBlockBindings = renderGeneratedFile(getBlockBindings)
+	assert.equal((renderedForgejoBindings.match(/source: Source\.Forgejo_Rest/g) ?? []).length, 1)
+	assert.equal((renderedForgejoBindings.match(/locator: 'https:\/\/\{forgejo-host\}\/api\/v1'/g) ?? []).length, 1)
+	for (const operationGroup of [
+		'GitRepositoryContents',
+		'IssueTracking',
+		'PullRequestReview',
+		'ReleaseMetadata',
+		'RepositoryMetadata',
+	])
+		assert.match(renderedForgejoBindings, new RegExp(`SourceOperationGroup\\.${operationGroup}`))
+	assert.equal((renderedCoingeckoBindings.match(/source: Source\.Coingecko_Rest/g) ?? []).length, 2)
+	assert.equal((renderedCoingeckoBindings.match(/kind: SourceArtifactKind\.OpenApiSpec/g) ?? []).length, 2)
+	assert.match(renderedCoingeckoBindings, /key: 'coingecko-demo'/)
+	assert.match(renderedCoingeckoBindings, /key: 'coingecko-pro'/)
+	assert.doesNotMatch(renderedCoingeckoBindings, /Coingecko_OpenApi/)
+	assert.match(renderedBitTorrentBindings, /^const bitTorrentAnnounceOperationGroups = \[$/m)
+	assert.doesNotMatch(renderedBitTorrentBindings, /bitTorrentBitTorrentAnnounceOperationGroups|bitTorrentCredentials/)
+	assert.equal((renderedBitTorrentBindings.match(/credentials: \[\]/g) ?? []).length, 6)
+	assert.match(renderedGetBlockBindings, /^const getBlockCredentials = \[$/m)
+	assert.equal((renderedGetBlockBindings.match(/credentials: getBlockCredentials/g) ?? []).length, 2)
+})
+
+test('keeps scope-prefix reduction collision-safe for shared binding values', () => {
+	const collisionApp = structuredClone(app)
+	const arweaveRest = collisionApp.sources.sources.find(({ source }) => source === Source.Arweave_Rest)
+	const arweaveGraphql = collisionApp.sources.sources.find(({ source }) => source === Source.Arweave_Graphql)
+	assert.ok(arweaveRest?.binding?.artifacts && arweaveGraphql?.binding?.artifacts)
+
+	const collisionRest = structuredClone(arweaveRest)
+	Object.defineProperty(collisionRest, 'source', {
+		value: 'ArweaveArweave',
+	})
+	const secondRestBinding = structuredClone(collisionRest.binding)
+	secondRestBinding.target.key = 'arweave-alternate'
+	secondRestBinding.endpoints[0].locator = 'https://arweave-alternate.example'
+	Object.defineProperty(secondRestBinding, 'operationGroups', {
+		value: [SourceOperationGroup.GenericRead],
+	})
+	Object.defineProperty(collisionRest, 'bindings', {
+		value: [secondRestBinding],
+	})
+	Object.defineProperty(collisionRest, 'binding', {
+		value: undefined,
+	})
+
+	const collisionGraphql = structuredClone(arweaveGraphql)
+	Object.defineProperty(collisionGraphql, 'source', {
+		value: 'Arweave',
+	})
+	const secondGraphqlBinding = structuredClone(collisionGraphql.binding)
+	secondGraphqlBinding.target.key = 'arweave-graphql-alternate'
+	secondGraphqlBinding.endpoints[0].locator = 'https://arweave-graphql-alternate.example/graphql'
+	Object.defineProperty(secondGraphqlBinding, 'delivery', {
+		value: SourceDelivery.RemoteQuery,
+	})
+	Object.defineProperty(collisionGraphql, 'bindings', {
+		value: [secondGraphqlBinding],
+	})
+	Object.defineProperty(collisionGraphql, 'binding', {
+		value: undefined,
+	})
+	collisionApp.sources.sources.push(collisionRest, collisionGraphql)
+
+	const generatedArweaveBindings = compileApp(collisionApp).generatedFiles.find(({ path }) => (
+		path === 'src/sources/Arweave/bindings.ts'
+	))
+	assert.ok(generatedArweaveBindings)
+	const source = renderGeneratedFile(generatedArweaveBindings)
+	assert.match(source, /^const arweaveArtifacts1 = \[$/m)
+	assert.match(source, /^const arweaveArtifacts2 = \[$/m)
+	const declarationNames = [...source.matchAll(/^const ([A-Za-z_$][\w$]*) =/gm)].map((match) => match[1])
+	assert.equal(declarationNames.length, new Set(declarationNames).size)
 })
 
 test('keeps source binding compatibility in the compiler instead of re-encoding it at runtime', () => {
@@ -1975,6 +2851,45 @@ test('derives binding identity only from the stable semantic tuple', () => {
 			...changedTarget,
 		})
 	)
+
+	const changedWireProtocol = structuredClone(source.binding)
+	changedWireProtocol.wireProtocol = WireProtocol.RawHttp
+	assert.equal(
+		sourceBindingId({
+			source: String(source.source),
+			...source.binding,
+		}),
+		sourceBindingId({
+			source: String(source.source),
+			...changedWireProtocol,
+		})
+	)
+
+	const changedDelivery = structuredClone(source.binding)
+	changedDelivery.delivery = SourceDelivery.ServerOnly
+	assert.notEqual(
+		sourceBindingId({
+			source: String(source.source),
+			...source.binding,
+		}),
+		sourceBindingId({
+			source: String(source.source),
+			...changedDelivery,
+		})
+	)
+
+	const changedApiFamily = structuredClone(source.binding)
+	changedApiFamily.apiFamily = ApiFamily.RestJson
+	assert.notEqual(
+		sourceBindingId({
+			source: String(source.source),
+			...source.binding,
+		}),
+		sourceBindingId({
+			source: String(source.source),
+			...changedApiFamily,
+		})
+	)
 })
 
 test('rejects duplicate stable source binding identities', () => {
@@ -1989,6 +2904,118 @@ test('rejects duplicate stable source binding identities', () => {
 		() => compileApp(duplicateBindingApp),
 		/Duplicate source binding identity/
 	)
+})
+
+test('rejects operation groups split across indistinguishable provider sources', () => {
+	const splitForgejoApp = structuredClone(app)
+	const forgejoSourceIndex = splitForgejoApp.sources.sources.findIndex(({ source }) => (
+		source === Source.Forgejo_Rest
+	))
+	const forgejoSource = splitForgejoApp.sources.sources[forgejoSourceIndex]
+	assert.ok(forgejoSource?.binding)
+
+	splitForgejoApp.sources.sources.push(
+		...([
+			{
+				source: 'ForgejoRepos_Rest',
+				label: 'Forgejo repositories REST',
+				targetKey: 'forgejo-repositories',
+				operationGroups: [
+					SourceOperationGroup.GitRepositoryContents,
+					SourceOperationGroup.RepositoryMetadata,
+				],
+			},
+			{
+				source: 'ForgejoIssues_Rest',
+				label: 'Forgejo issues REST',
+				targetKey: 'forgejo-issues',
+				operationGroups: [SourceOperationGroup.IssueTracking],
+			},
+			{
+				source: 'ForgejoPulls_Rest',
+				label: 'Forgejo pulls REST',
+				targetKey: 'forgejo-pulls',
+				operationGroups: [SourceOperationGroup.PullRequestReview],
+			},
+			{
+				source: 'ForgejoReleases_Rest',
+				label: 'Forgejo releases REST',
+				targetKey: 'forgejo-releases',
+				operationGroups: [SourceOperationGroup.ReleaseMetadata],
+			},
+		] as const).map(({ source, label, targetKey, operationGroups }) => {
+			const splitSource = structuredClone(forgejoSource)
+			assert.ok(splitSource.binding)
+			Object.defineProperty(splitSource, 'source', {
+				value: source,
+			})
+			splitSource.label = label
+			splitSource.binding.target.key = targetKey
+			Object.defineProperty(splitSource.binding, 'operationGroups', {
+				value: operationGroups,
+			})
+
+			return splitSource
+		})
+	)
+
+	assert.throws(
+		() => compileApp(splitForgejoApp),
+		/Forgejo: source identities Forgejo_Rest, ForgejoRepos_Rest, ForgejoIssues_Rest, ForgejoPulls_Rest, ForgejoReleases_Rest share one transport and provenance; combine their operation groups on one source binding/
+	)
+})
+
+test('allows same-provider sources with distinct transport or provenance', () => {
+	const distinctEndpointApp = structuredClone(app)
+	const forgejoSource = distinctEndpointApp.sources.sources.find(({ source }) => (
+		source === Source.Forgejo_Rest
+	))
+	assert.ok(forgejoSource?.binding)
+	const distinctEndpointSource = structuredClone(forgejoSource)
+	assert.ok(distinctEndpointSource.binding)
+	Object.defineProperty(distinctEndpointSource, 'source', {
+		value: 'ForgejoMirror_Rest',
+	})
+	distinctEndpointSource.binding.endpoints[0].locator = 'https://{forgejo-mirror-host}/api/v1'
+	distinctEndpointApp.sources.sources.push(distinctEndpointSource)
+	assert.doesNotThrow(() => compileApp(distinctEndpointApp))
+
+	const distinctProtocolApp = structuredClone(app)
+	const distinctProtocolSource = structuredClone(forgejoSource)
+	assert.ok(distinctProtocolSource.binding)
+	Object.defineProperty(distinctProtocolSource, 'source', {
+		value: 'ForgejoRawHttp',
+	})
+	Object.defineProperty(distinctProtocolSource.binding, 'wireProtocol', {
+		value: WireProtocol.RawHttp,
+	})
+	Object.defineProperty(distinctProtocolSource.binding, 'apiFamily', {
+		value: ApiFamily.RestJson,
+	})
+	distinctProtocolApp.sources.sources.push(distinctProtocolSource)
+	assert.doesNotThrow(() => compileApp(distinctProtocolApp))
+
+	const distinctProvenanceApp = structuredClone(app)
+	const distinctRepositorySources = [
+		'owner/repository-one@main',
+		'owner/repository-two@main',
+	].map((repository, index) => {
+		const repositorySource = structuredClone(forgejoSource)
+		assert.ok(repositorySource.binding)
+		Object.defineProperty(repositorySource, 'source', {
+			value: `ForgejoRepository${index + 1}_Rest`,
+		})
+		Object.defineProperty(repositorySource.binding, 'target', {
+			value: {
+				kind: SourceTargetKind.GitRepository,
+				key: repository,
+			},
+		})
+
+		return repositorySource
+	})
+	distinctProvenanceApp.sources.sources.push(...distinctRepositorySources)
+	assert.doesNotThrow(() => compileApp(distinctProvenanceApp))
 })
 
 test('covers every authored source binding with APP compatibility rows', () => {
@@ -2118,10 +3145,10 @@ test('rejects incompatible and empty authored bindings before compilation', () =
 	const templatedProxyBinding = templatedProxySource?.binding ?? templatedProxySource?.bindings?.[0]
 
 	assert.ok(templatedProxyBinding?.endpoints[0])
-	Object.defineProperty(templatedProxyBinding.endpoints[0], 'origin', {
-		value: 'https://{origin}',
+	Object.defineProperty(templatedProxyBinding.endpoints[0], 'locator', {
+		value: 'https://{origin}/api/v2',
 	})
-	assert.throws(() => compileApp(templatedProxyApp), /HttpProxy requires concrete HTTP origins/)
+	assert.throws(() => compileApp(templatedProxyApp), /HttpProxy requires a concrete HTTP origin/)
 })
 
 test('consumes authored singular lists and plural query presentation defaults', () => {
@@ -2339,13 +3366,13 @@ test('keeps ActivityPub relation list hrefs scoped to their owning entity', () =
 	const activityPubNoteSource = renderGeneratedFile(activityPubNoteView)
 	assert.match(
 		activityPubActorSource,
-		/entity\.instanceOrigin != null && entity\.localAccountId != null \? resolve\([\s\S]*?'\/\(social\)\/\(activitypub\)\/activitypub\/\(globalActivityPubNetwork\)\/actor\/\[instanceOrigin=absoluteUrl\]\/\[localAccountId=stringSegment\]\/\(activityPubActor\)\/notes',[\s\S]*?instanceOrigin: encodeURIComponent\(entity\.instanceOrigin\),[\s\S]*?localAccountId: entity\.localAccountId,[\s\S]*?\) : undefined/
+		/'instanceOrigin' in selection\.entitySelector\s*&& 'localAccountId' in selection\.entitySelector \?\s*resolve\([\s\S]*?'\/\(social\)\/\(activitypub\)\/activitypub\/\(globalActivityPubNetwork\)\/actor\/\[instanceOrigin=absoluteUrl\]\/\[localAccountId=stringSegment\]\/\(activityPubActor\)\/notes',[\s\S]*?instanceOrigin: encodeURIComponent\(selection\.entitySelector\.instanceOrigin\),[\s\S]*?localAccountId: selection\.entitySelector\.localAccountId,[\s\S]*?\)\s*:\s*undefined/
 	)
 	assert.doesNotMatch(activityPubActorSource, /href=\{resolve\('\/activitypub\/notes'\)\}/)
 	assert.doesNotMatch(activityPubActorSource, /resolve\(\s*`/)
 	assert.match(
 		activityPubNoteSource,
-		/selection\.entitySelector\.instanceOrigin != null && selection\.entitySelector\.localStatusId != null \? resolve\([\s\S]*?'\/\(social\)\/\(activitypub\)\/activitypub\/\(globalActivityPubNetwork\)\/note\/\[instanceOrigin=absoluteUrl\]\/\[localStatusId=stringSegment\]\/\(activityPubNote\)\/thread',[\s\S]*?instanceOrigin: encodeURIComponent\(selection\.entitySelector\.instanceOrigin\),[\s\S]*?localStatusId: selection\.entitySelector\.localStatusId,[\s\S]*?\) : undefined/
+		/'instanceOrigin' in selection\.entitySelector\s*&& 'localStatusId' in selection\.entitySelector \?\s*resolve\([\s\S]*?'\/\(social\)\/\(activitypub\)\/activitypub\/\(globalActivityPubNetwork\)\/note\/\[instanceOrigin=absoluteUrl\]\/\[localStatusId=stringSegment\]\/\(activityPubNote\)\/thread',[\s\S]*?instanceOrigin: encodeURIComponent\(selection\.entitySelector\.instanceOrigin\),[\s\S]*?localStatusId: selection\.entitySelector\.localStatusId,[\s\S]*?\)\s*:\s*undefined/
 	)
 	assert.doesNotMatch(activityPubNoteSource, /href=\{resolve\('\/activitypub\/notes'\)\}/)
 	assert.doesNotMatch(activityPubNoteSource, /resolve\(\s*`/)
@@ -2422,6 +3449,23 @@ test('keeps schema-construction imports out of generated view display dependenci
 		assert.match(source, /import \{ bridgeRouteTagByTag \} from '\$\/constants\/Bridge\.ts'/)
 		assert.doesNotMatch(source, /from '\$\/schema\/BridgeRouteTag\.ts'/)
 	}
+})
+
+test('imports every enum referenced by generated schema construction', () => {
+	const mismatches = baselineCompiledApp.generatedFiles
+		.filter(({ path: filePath }) => filePath.startsWith('src/schema/') && filePath.endsWith('.ts'))
+		.flatMap((generatedFile) => {
+			const source = renderGeneratedFile(generatedFile)
+			return [...source.matchAll(/Object\.values\(([A-Za-z_$][\w$]*)\)/g)].flatMap((match) => {
+				const enumName = match[1]
+				return enumName != null && !new RegExp(`import \\{[^}]*\\b${enumName}\\b[^}]*\\} from`).test(source) ?
+					[`${generatedFile.path}: ${enumName}`]
+				:
+					[]
+			})
+		})
+
+	assert.deepEqual(mismatches, [])
 })
 
 test('renders ActivityPub content warnings as selector-scoped native disclosure', () => {
@@ -2893,17 +3937,24 @@ test('returns discriminated route identity for detail dispatch', () => {
 	const routePath = 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]'
 	const routeModule = baselineCompiledApp.generatedFiles.find(({ path }) => path === `${routePath}/+layout.ts`)
 	const detailPage = baselineCompiledApp.generatedFiles.find(({ path }) => path === `${routePath}/+page.svelte`)
+	const detailLayout = baselineCompiledApp.generatedFiles.find(({ path }) => path === `${routePath}/(selection)/+layout.svelte`)
 	assert(routeModule)
 	assert(detailPage)
+	assert(detailLayout)
+	const routeModuleSource = renderGeneratedFile(routeModule)
+	const detailPageSource = renderGeneratedFile(detailPage)
+	const detailLayoutSource = renderGeneratedFile(detailLayout)
 
 	assert.match(
-		renderGeneratedFile(routeModule),
+		routeModuleSource,
 		/routeCandidates\.push\(\{[\s\S]*?entityType: EntityType\.EvmTransaction,[\s\S]*?selectorName: 'EvmNetworkTxHash'/
 	)
-	assert.match(
-		renderGeneratedFile(detailPage),
-		/data\.entityType === EntityType\.EvmTransaction && data\.selectorName === 'EvmNetworkTxHash'/
-	)
+	assert.match(routeModuleSource, /parseEntitySelector\([\s\S]*?'EvmNetworkTxHash'\s*\)/)
+	assert.doesNotMatch(routeModuleSource, /'(?:\$network|txHash)' in [A-Za-z0-9]+Selector/)
+	assert.match(detailPageSource, /data\.entityType === EntityType\.EvmTransaction \?/)
+	assert.doesNotMatch(detailPageSource, /data\.selectorName/)
+	assert.match(detailLayoutSource, /data\.entityType === EntityType\.EvmTransaction \? EvmTransactionView/)
+	assert.doesNotMatch(detailLayoutSource, /data\.selectorName/)
 })
 
 test('groups inherited selector fields under one route mapping', () => {
@@ -3193,7 +4244,8 @@ test('keeps complex route selectors, inverse href metadata, and projected-route 
 			/:\s+select\(EntityType\.UtxoOutput, data\.selector/
 		)
 		assert.match(transactionOutputPage, /\[EntityType\.UtxoOutput\]: UtxoOutputView,/)
-		assert.match(transactionOutputPage, /\{entityDefinitionByType\[data\.entityType\]\.labels\.singular\}/)
+		assert.doesNotMatch(transactionOutputPage, /entityDefinitionByType/)
+		assert.match(transactionOutputPage, /data\.entityType === EntityType\.CardanoTxOutput[\s\S]*?'Cardano transaction output'[\s\S]*?'UTXO output'/)
 
 		const activityPubActorLayout = readFileSync(
 			path.join(generatedOutputRoot, 'src/routes/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/+layout.ts'),
@@ -3205,7 +4257,7 @@ test('keeps complex route selectors, inverse href metadata, and projected-route 
 			path.join(generatedOutputRoot, 'src/routes/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/+layout.svelte'),
 			'utf8'
 		)
-		assert.match(activityPubParentLayout, /selection=\{\s*select\(EntityType\._GlobalActivityPubNetwork, data\.selector, \{ sources: \[[\s\S]*?Source\.Constants_Internal,[\s\S]*?Source\.Mastodon_Rest,[\s\S]*?\] \}\)\s*\}/)
+		assert.match(activityPubParentLayout, /selection=\{\s*select\(EntityType\._GlobalActivityPubNetwork, data\.selector, \{\s*sources: \[[\s\S]*?Source\.Constants_Internal,[\s\S]*?Source\.Mastodon_Rest,[\s\S]*?\],\s*\}\)\s*\}/)
 		assert.doesNotMatch(activityPubParentLayout, /data\.entityType|data\.selectorName/)
 
 		const proposalView = readFileSync(
@@ -3698,65 +4750,76 @@ test('carries field-conditioned view sources into initial route selections', () 
 	assert.doesNotMatch(renderedProposalPage, /String\([^)]*\)\]\.join\(':'\)/)
 })
 
-test('correlates generated source-selection and binding index keys at definition time', () => {
+test('correlates generated source, binding, and resolver selector keys at definition time', () => {
 	const typeTestRoot = createFreshRoot('blockhead-generated-source-key-types-')
 
 	try {
 		const fixturePath = path.join(typeTestRoot, 'generated-source-key-types.ts')
-		const tsconfigPath = path.join(typeTestRoot, 'tsconfig.json')
-		writeFileSync(fixturePath, `import specificationProposalSources from '$/sources/specificationProposalSources.ts'
-import lightningLndBindings from '$/sources/LightningLnd/bindings.ts'
-	import { Source } from '$/sources/Source.ts'
-import type { SourceBindingIndex } from '$/sources/SourceBinding.ts'
-
+		writeFileSync(fixturePath, `import specificationProposalSources from '${root}/src/sources/specificationProposalSources.ts'
+import acrossBindings from '${root}/src/sources/Across/bindings.ts'
+import blockscoutBindings from '${root}/src/sources/Blockscout/bindings.ts'
+import lightningLndBindings from '${root}/src/sources/LightningLnd/bindings.ts'
+import xrplClioBindings from '${root}/src/sources/XrplClio/bindings.ts'
+import { defineResolver } from '${root}/src/resolvers/defineResolver.ts'
+import { EntityType } from '${root}/src/schema/EntityType.ts'
+import { Source } from '${root}/src/sources/Source.ts'
+import {
+	indexSourceBindings,
+	type SourceBinding,
+	type SourceBindingIndex,
+} from '${root}/src/sources/SourceBinding.ts'
 specificationProposalSources({
 	realm: 'Bitcoin',
 	category: 'Bip',
 })
-
 // @ts-expect-error Source-selection field values accept only values represented by authored conditions.
 specificationProposalSources({ realm: 'missing' })
-
 // @ts-expect-error Source-selection inputs accept only their authored condition fields.
 specificationProposalSources({ missing: 'Bitcoin' })
-
+defineResolver(Source.Constants_Internal, {
+	entityType: EntityType.Network,
+	resolve: {
+		Caip2: {
+			resolve: async (networkSelector) => ({
+				caip2: networkSelector.caip2,
+				// @ts-expect-error A named resolver receives only that selector's fields.
+				slug: networkSelector.slug,
+			}),
+		},
+	},
+})({})
+defineResolver(Source.Constants_Internal, {
+	entityType: EntityType.Network,
+	resolve: {
+		// @ts-expect-error Resolver keys accept only selectors declared by the entity.
+		Unknown: {
+			resolve: async () => ({}),
+		},
+	},
+})({})
 const validBindings = lightningLndBindings satisfies SourceBindingIndex
-const mismatchedBindings = {
-	// @ts-expect-error A binding index key must equal the binding's source.
-	[Source.LightningLnd_Grpc]: lightningLndBindings[Source.LightningLnd_Rest],
-} satisfies SourceBindingIndex
-
-void validBindings
-void mismatchedBindings
+const acrossBinding = acrossBindings[Source.Across_Rest]
+const acrossSource: Source.Across_Rest = acrossBinding.source
+const xrplClioBindingsForSource: readonly SourceBinding<Source.XrplClio_JsonRpc>[] = xrplClioBindings[Source.XrplClio_JsonRpc]
+const repeatedAcrossBindings = indexSourceBindings([
+	acrossBinding,
+	acrossBinding,
+] as const)
+const repeatedAcrossBindingsForSource: readonly SourceBinding<Source.Across_Rest>[] = repeatedAcrossBindings[Source.Across_Rest]
+// @ts-expect-error Repeating a structurally identical binding still produces an array at runtime.
+const repeatedAcrossBinding: SourceBinding<Source.Across_Rest> = repeatedAcrossBindings[Source.Across_Rest]
+const computedAcrossBindings = indexSourceBindings([acrossBinding, acrossBinding].flatMap((binding) => [binding]))
+const computedAcrossBindingsForSource: readonly SourceBinding<Source.Across_Rest>[] = computedAcrossBindings[Source.Across_Rest]
+const blockscoutBindingsForSource = blockscoutBindings[Source.Blockscout_Rest]
+const blockscoutTargetKey: '1' | '10' | '100' | '137' | '8453' | '42161' | '11155111' = blockscoutBindingsForSource[0].target.key
+// @ts-expect-error Compact generated binding targets retain their authored key union.
+const invalidBlockscoutTargetKey: '999' = blockscoutBindingsForSource[0].target.key
+// @ts-expect-error Inferred binding indexes expose only source keys present in their row tuple.
+acrossBindings[Source.Erigon_JsonRpc]
+// @ts-expect-error A binding index key must equal the binding's source.
+const mismatchedBindings = { [Source.LightningMempoolSpace_Rest]: lightningLndBindings[Source.LightningLnd_Rest] } satisfies SourceBindingIndex
 `)
-		writeFileSync(tsconfigPath, JSON.stringify({
-			compilerOptions: {
-				allowImportingTsExtensions: true,
-				module: 'preserve',
-				moduleResolution: 'bundler',
-				noEmit: true,
-				paths: {
-					'$/*': [`${root}/src/*`],
-				},
-				skipLibCheck: true,
-				strict: true,
-				target: 'esnext',
-			},
-			files: [fixturePath],
-		}))
-		const result = runTestProcess(
-			'generated-source-keys:typecheck',
-			process.execPath,
-			[
-				'--max-old-space-size=2048',
-				process.env.TSC_PATH ?? path.join(root, 'node_modules/@typescript/native/bin/tsc'),
-				'--project',
-				tsconfigPath,
-			],
-			{}
-		)
-
-		assert.equal(result.status, 0, result.failure)
+		assertTypeChecks('generated-source-keys:typecheck', [fixturePath], true)
 	} finally {
 		removeFreshRoot(typeTestRoot)
 	}
@@ -3767,7 +4830,6 @@ test('indexes row href parameter names from the route at definition time', () =>
 
 	try {
 		const fixturePath = path.join(typeTestRoot, 'row-href-key-types.ts')
-		const tsconfigPath = path.join(typeTestRoot, 'tsconfig.json')
 		const appSource = readFileSync(path.join(root, 'APP.ts'), 'utf8')
 		const helperStart = appSource.indexOf('type _RouteParameterName')
 		const helperEnd = appSource.indexOf('\nconst routeTemplate', helperStart)
@@ -3788,31 +4850,7 @@ defineRowHref('/items/[itemId]/[...contentPath=stringSegment]', { itemId: 'item'
 // @ts-expect-error Parameters not declared by the route are rejected.
 defineRowHref('/items/[itemId]', { itemId: 'item', other: 'other' })
 `)
-		writeFileSync(tsconfigPath, JSON.stringify({
-			compilerOptions: {
-				allowImportingTsExtensions: true,
-				module: 'preserve',
-				moduleResolution: 'bundler',
-				noEmit: true,
-				skipLibCheck: true,
-				strict: true,
-				target: 'esnext',
-			},
-			files: [fixturePath],
-		}))
-		const result = runTestProcess(
-			'row-href-keys:typecheck',
-			process.execPath,
-			[
-				'--max-old-space-size=2048',
-				process.env.TSC_PATH ?? path.join(root, 'node_modules/@typescript/native/bin/tsc'),
-				'--project',
-				tsconfigPath,
-			],
-			{}
-		)
-
-		assert.equal(result.status, 0, result.failure)
+		assertTypeChecks('row-href-keys:typecheck', [fixturePath], true)
 	} finally {
 		removeFreshRoot(typeTestRoot)
 	}
@@ -3913,26 +4951,7 @@ test('rejects invalid entity view field references at every captured view level'
 			path.join(typeTestRoot, 'src/constants/Network.ts')
 		)
 		writeFileSync(typeTestPath, `${appSource.slice(0, facetStatement.end)}\n${fixtureSource.slice(fixtureImport.end)}`)
-		const typeTestResult = runTestProcess(
-			'entity-view-field-references:typecheck',
-			process.env.TSC_PATH ?? path.join(root, 'node_modules/@typescript/native/bin/tsc'),
-			[
-				'--noEmit',
-				'--ignoreConfig',
-				'--allowImportingTsExtensions',
-				'--skipLibCheck',
-				'--module',
-				'preserve',
-				'--moduleResolution',
-				'bundler',
-				'--target',
-				'esnext',
-				typeTestPath,
-			],
-			{}
-		)
-
-		assert.equal(typeTestResult.status, 0, typeTestResult.failure)
+		assertTypeChecks('entity-view-field-references:typecheck', [typeTestPath])
 	} finally {
 		removeFreshRoot(typeTestRoot)
 	}
@@ -3981,7 +5000,7 @@ test('isolates replacement-managed output and preserves unchanged generated file
 	}
 })
 
-test('renders empty public env schemas with the shared string index contract', () => {
+test('omits empty public env schemas and keeps explicit public keys', () => {
 	const sourceProviderDefinitions = [
 		...globSync('src/sources/**/index.ts'),
 		...globSync('src/sources/**/bindings.ts'),
@@ -3990,7 +5009,7 @@ test('renders empty public env schemas with the shared string index contract', (
 		'utf8'
 	)).join('\n')
 
-	assert.match(sourceProviderDefinitions, /env: arktype\(\{\n\s+'\[string\]': 'string',\n\s+\}\)/)
+	assert.doesNotMatch(sourceProviderDefinitions, /env: arktype\(\{\n\s+'\[string\]': 'string',\n\s+\}\)/)
 	assert.doesNotMatch(sourceProviderDefinitions, /env: arktype\(\{\n\s*\}\)/)
 	assert.match(sourceProviderDefinitions, /'PUBLIC_ALLIUM_API_KEY': 'string > 0'/)
 })
@@ -4141,6 +5160,11 @@ test('loads sibling facet row fields only after eligibility through projection-o
 		singularView.indexOf('{#snippet Title()}'),
 		singularView.indexOf('{#snippet Value()}')
 	)
+	const contentMarkup = singularView.slice(
+		singularView.indexOf('{#snippet Content('),
+		singularView.indexOf('{#snippet Details(')
+	)
+	const detailsMarkup = singularView.slice(singularView.indexOf('{#snippet Details('))
 
 	for (const generatedView of [singularView, pluralView]) {
 		assert.match(generatedView, /<ProjectionBoundary\s+resource=\{selection\.NativeCurrency\}/)
@@ -4148,7 +5172,7 @@ test('loads sibling facet row fields only after eligibility through projection-o
 		assert.doesNotMatch(generatedView, /resolvedEntity\.symbol/)
 		assert.doesNotMatch(generatedView, /selection\.symbol/)
 	}
-	assert.equal((singularView.match(/resource=\{projection\.symbol\}/g) ?? []).length, 6)
+	assert.equal((singularView.match(/resource=\{projection\.symbol\}/g) ?? []).length, 5)
 	assert.doesNotMatch(singularView, /projection\s*\.symbol\(\{/)
 	assert.match(pluralView, /resource=\{evmCoinInstanceProjection0\.symbol\}[\s\S]*?resource=\{evmCoinInstanceProjection0\.name\}/)
 	assert.match(pluralView, /resource=\{evmCoinInstanceProjection1\.symbol\}[\s\S]*?resource=\{evmCoinInstanceProjection1\.name\}/)
@@ -4162,14 +5186,67 @@ test('loads sibling facet row fields only after eligibility through projection-o
 	assert.match(singularView, /\{#snippet Title\(\)\}[\s\S]*?resource=\{selection\.Erc20Token\}[\s\S]*?projection\s*\.symbol/)
 	assert.match(singularView, /resource=\{selection\.NativeCurrency\}[\s\S]*?projection\.\$icon/)
 	assert.match(singularView, /resource=\{selection\.Erc20Token\}[\s\S]*?projection\.\$icon/)
-	assert.match(singularView, /resource=\{selection\.NativeCurrency\}[\s\S]*?projection\.\$\$marketsWithInstanceAsBase/)
-	assert.match(singularView, /resource=\{selection\.Erc20Token\}[\s\S]*?projection\.\$\$marketsWithInstanceAsBase/)
 	assert.equal((titleMarkup.match(/resource=\{selection\.NativeCurrency\}/g) ?? []).length, 1)
 	assert.equal((titleMarkup.match(/resource=\{selection\.Erc20Token\}/g) ?? []).length, 1)
 	assert.match(titleMarkup, /resource=\{selection\.NativeCurrency\}[\s\S]*?resource=\{projection\.symbol\}[\s\S]*?resource=\{projection\.name\}/)
-	assert.equal((singularView.match(/\.\$\$outboundBridgeCapabilities\(/g) ?? []).length, 2)
+	for (const markup of [contentMarkup, detailsMarkup])
+		assert.match(markup, /resource=\{\s*selection\.entitySelector\.type === 'NativeCurrency' \?\s*selection\.NativeCurrency\s*:\s*selection\.Erc20Token\s*\}/)
+	assert.equal((singularView.match(/resource=\{selection\.(?:NativeCurrency|Erc20Token)\}/g) ?? []).length, 4)
+	assert.equal((singularView.match(/\.\$\$outboundBridgeCapabilities\(/g) ?? []).length, 1)
 	assert.doesNotMatch(singularView, /\{@const [^=\n]*\.[^=\n]* =/)
 	assert.doesNotMatch(rootResource, /NativeCurrency|Erc20Token|Blockscout_Rest|Constants_Internal|symbol|name/)
+})
+
+test('omits props bypassed by static entity and collection layouts', () => {
+	for (const [filePath, source] of generatedViewSources) {
+		assert.doesNotMatch(
+			source,
+			/layout=\{EntityLayout\.(?:Value|Title|SummaryInline)\}\n(?:(?!\s*\/>)[^\n]*\n){0,8}\s+open=\{false\}/,
+			filePath
+		)
+		assert.doesNotMatch(
+			source,
+			/CollapsibleProps=\{\{ canToggle: false \}\}\n(?:(?!\s*\/>)[^\n]*\n){0,8}\s+collapsible=\{false\}/,
+			filePath
+		)
+		assert.doesNotMatch(
+			source,
+			/collapsible=\{false\}\n(?:(?!\s*\/>)[^\n]*\n){0,8}\s+open=\{open\}/,
+			filePath
+		)
+	}
+
+	const networksView = generatedSource('src/views/NetworksView.svelte')
+	assert.match(networksView, /open = \$bindable\(true\)/)
+	assert.match(networksView, /<EntitiesList[\s\S]*?\bbind:open\b/)
+	const networksPageSource = generatedSource('src/routes/(explore)/networks/+page.svelte')
+	const networksPageList = networksPageSource.slice(
+		networksPageSource.indexOf('<NetworksView'),
+		networksPageSource.indexOf('/>', networksPageSource.indexOf('<NetworksView')) + 2
+	)
+	assert.doesNotMatch(networksPageList, /collapsible=|open=/)
+
+	const openLayoutApp = structuredClone(app)
+	const evmTransaction = openLayoutApp.schema.entities.find((entity) => (
+		entity.entityType === EntityType.EvmTransaction
+	))
+	assert.ok(evmTransaction?.views.singular)
+	evmTransaction.views.singular.lists = [
+		...(evmTransaction.views.singular.lists ?? []),
+		{
+			field: '$network',
+			component: 'NetworkView',
+			label: 'Network',
+		},
+	]
+	const evmTransactionView = compileApp(openLayoutApp).generatedFiles.find((file) => (
+		file.path === 'src/views/EvmTransactionView.svelte'
+	))
+	assert.ok(evmTransactionView)
+	assert.match(
+		renderGeneratedFile(evmTransactionView),
+		/layout=\{EntityLayout\.Summary\}\n\s+open=\{false\}/
+	)
 })
 
 test('emits absence guards only for schema-optional singular fields', () => {
@@ -4215,6 +5292,16 @@ test('emits absence guards only for schema-optional singular fields', () => {
 	assert.doesNotMatch(accountsView, /\{#if emptyText != null\}/)
 	assert.doesNotMatch(accountsView, /No EVM accounts yet\./)
 	assert.doesNotMatch(accountsView, /\{emptyText\}/)
+	for (const globalViewPath of [
+		'src/views/_GlobalActivityPubNetworkView.svelte',
+		'src/views/_GlobalArweaveNetworkView.svelte',
+		'src/views/_GlobalEvmAbiCatalogView.svelte',
+		'src/views/_GlobalXNetworkView.svelte',
+	]) {
+		const globalView = renderedView(globalViewPath)
+		assert.match(globalView, /\{selection\.entitySelector\.scope\}/)
+		assert.doesNotMatch(globalView, /scope \|\||const titleFallback =/)
+	}
 })
 
 test('defaults Network base sources without widening protocol facet sources', () => {
@@ -4566,14 +5653,37 @@ test('keeps list sources scoped without re-emitting relationship field defaults'
 	const castsFile = generatedFiles.find((file) => file.path === 'src/views/FarcasterCastsView.svelte')
 	const castFile = generatedFiles.find((file) => file.path === 'src/views/FarcasterCastView.svelte')
 	const channelFile = generatedFiles.find((file) => file.path === 'src/views/FarcasterChannelView.svelte')
+	const feedFile = generatedFiles.find((file) => file.path === 'src/views/FarcasterFeedView.svelte')
 
 	assert.ok(farcasterCast)
 	assert.ok(castsFile)
 	assert.ok(castFile)
 	assert.ok(channelFile)
+	assert.ok(feedFile)
 	const castsView = renderGeneratedFile(castsFile)
 	const castView = renderGeneratedFile(castFile)
 	const channelView = renderGeneratedFile(channelFile)
+	const feedView = renderGeneratedFile(feedFile)
+	const feedDetails = feedView.slice(feedView.indexOf('{#snippet Details'))
+	assert.match(
+		feedDetails,
+		/selection\.entitySelector\.variant === 'byUser'\s*&& 'fid' in selection\.entitySelector \?[\s\S]*?feed\/user\/\[userId=farcasterFid\]'[\s\S]*?userId: String\(selection\.entitySelector\.fid\),/
+	)
+	assert.match(
+		feedDetails,
+		/selection\.entitySelector\.variant === 'byChannel'\s*&& 'channelId' in selection\.entitySelector \?[\s\S]*?feed\/channel\/\[channelId=stringSegment\]'[\s\S]*?channelId: selection\.entitySelector\.channelId,/
+	)
+	assert.match(
+		feedDetails,
+		/selection\.entitySelector\.variant === 'following'\s*&& 'viewerFid' in selection\.entitySelector \?[\s\S]*?feed\/following\/\[userId=farcasterFid\]'[\s\S]*?userId: String\(selection\.entitySelector\.viewerFid\),/
+	)
+	assert.match(
+		feedDetails,
+		/selection\.entitySelector\.variant === 'trending' \?\s*resolve\('\/\(social\)\/\(farcaster\)\/farcaster\/\(farcasterNetwork\)\/feed\/trending'\)\s*:\s*undefined/
+	)
+	assert.equal((feedDetails.match(/\bresolve\(/g) ?? []).length, 4)
+	assert.doesNotMatch(feedDetails, /href=\{resolve\([^)]*feed\/trending/)
+	assert.doesNotMatch(feedDetails, /\bentity\.(?:variant|fid|channelId|viewerFid)\b/)
 	assert.match(castView, /const directRepliesResource = selection\.\$\$directReplies/)
 	assert.doesNotMatch(castView, /farcasterCastFarcasterCastsViewDirectRepliesResource/)
 	assert.doesNotMatch(castView, /\$\$directReplies\(\{[\s\S]*?Source\.(?:Neynar_Rest|Farcaster_Rest)/)
@@ -4757,7 +5867,10 @@ test('preserves facet syntax and paths and unwraps primitive-list resources', ()
 		const networkView = readFileSync(path.join(generatedOutputRoot, 'src/views/NetworkView.svelte'), 'utf8')
 		assert.match(networkView, /<ProjectionBoundary\s+resource=\{selection\.Evm\}/)
 		assert.match(networkView, /\{#snippet Applicable\(projection\)\}/)
-		assert.match(networkView, /<ResourceBoundary[\s\S]*?resource=\{selection\.Evm\.consensusEndpoints\}/)
+		assert.match(
+			networkView,
+			/<ResourceBoundary[\s\S]*?resource=\{\s*selection\.Evm\s*\.consensusEndpoints\(\{\s*sources: beaconRestSources,\s*\}\)\s*\}/
+		)
 		assert.doesNotMatch(networkView, /projection\.Evm\.consensusEndpoints/)
 		assert.doesNotMatch(
 			networkView,
@@ -4765,6 +5878,14 @@ test('preserves facet syntax and paths and unwraps primitive-list resources', ()
 		)
 		assert.match(networkView, /\{#snippet children\(consensusEndpointsField\)\}[\s\S]*?\{#each consensusEndpointsField\.values as consensusEndpoint/)
 		assert.doesNotMatch(networkView, /entity\.consensusEndpoints(?:\.values)?/)
+		assert.doesNotMatch(networkView, /import .*BeaconConsensus\.ts|beaconRestBaseByExecutionChainId/)
+		assert.doesNotMatch(
+			networkView.slice(
+				networkView.indexOf('const pendingEntity = $derived('),
+				networkView.indexOf('const voltaireJsonRpcSources = $derived(')
+			),
+			/beacon|consensusProtocol|consensusEndpoints/
+		)
 
 		const networkBlocksPage = readFileSync(path.join(
 			generatedOutputRoot,
@@ -4809,8 +5930,8 @@ test('preserves facet syntax and paths and unwraps primitive-list resources', ()
 		const networkTimestampView = readFileSync(path.join(generatedOutputRoot, 'src/views/Network_TimestampView.svelte'), 'utf8')
 		assert.equal(
 			[...networkTimestampView.matchAll(/resource=\{selection\.Cosmos\}/g)].length,
-			2,
-			'projection fields in each modeled <dl> row must share one boundary'
+			1,
+			'adjacent modeled <dl> rows with one projection owner must share one boundary'
 		)
 	} finally {
 		removeFreshRoot(generatedOutputRoot)
@@ -4853,4 +5974,21 @@ test('guards only schema-optional generated entity references', () => {
 	} finally {
 		removeFreshRoot(generatedOutputRoot)
 	}
+})
+
+test('derives every view item field dependency from one canonical primitive', () => {
+	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
+
+	assert.equal(
+		(generatorSource.match(/\.\.\.itemFieldReferences\(viewEntry\)/g) ?? []).length,
+		1
+	)
+	assert.equal(
+		(generatorSource.match(/\.\.\.viewItemDisplayFieldReferences\(viewEntry\)/g) ?? []).length,
+		1
+	)
+	assert.equal(
+		(generatorSource.match(/viewItemEntityFieldsExpression\(entity, viewEntry, /g) ?? []).length,
+		2
+	)
 })

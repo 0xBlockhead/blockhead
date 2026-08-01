@@ -117,7 +117,6 @@
 								selection={select(EntityType.SpecificationRealm, specificationRealm[EntityMetaKey.Selector])}
 								prefetched={specificationRealm}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

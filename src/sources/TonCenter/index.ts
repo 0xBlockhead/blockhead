@@ -10,12 +10,8 @@ export default {
 	label: 'TON Center',
 	sources: [
 		{
-			source: Source.TonCenter_V2_Rest,
-			label: 'TON Center v2 REST',
-		},
-		{
-			source: Source.TonCenter_V3_Rest,
-			label: 'TON Center v3 REST',
+			source: Source.TonCenter,
+			label: 'TON Center',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

@@ -45,10 +45,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.peerId || 'bit torrent peer timestamp'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentPeerTimestamp}>
 			{#snippet children(entity)}
@@ -71,7 +67,6 @@
 					<BitTorrentMetainfoView
 						selection={select(EntityType.BitTorrentMetainfo, selection.entitySelector.$torrent)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

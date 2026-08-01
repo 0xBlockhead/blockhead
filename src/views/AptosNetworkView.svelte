@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -28,7 +27,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import AptosNetwork_TimestampsView from '$/views/AptosNetwork_TimestampsView.svelte'
 	import AptosBlocksView from '$/views/AptosBlocksView.svelte'
@@ -53,7 +51,6 @@
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -65,7 +62,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -108,12 +104,7 @@
 			{#snippet SectionAptosChainObservations({ id, label, open })}
 				<AptosNetwork_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Aptos network observations.'
 					id={`${id}-list`}
@@ -123,12 +114,7 @@
 			{#snippet SectionAptosChainBlocks({ id, label, open })}
 				<AptosBlocksView
 					selection={selection.$$blocks}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Aptos blocks.'
 					id={`${id}-list`}
@@ -138,12 +124,7 @@
 			{#snippet SectionAptosChainTransactions({ id, label, open })}
 				<AptosTransactionsView
 					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Aptos transactions.'
 					id={`${id}-list`}
@@ -153,12 +134,7 @@
 			{#snippet SectionAptosChainEvents({ id, label, open })}
 				<AptosEventsView
 					selection={selection.$$events}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Aptos events.'
 					id={`${id}-list`}
@@ -190,12 +166,7 @@
 			{#snippet SectionAptosAccounts({ id, label, open })}
 				<AptosAccountsView
 					selection={selection.$$accounts}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Aptos accounts.'
 					id={`${id}-list`}
@@ -227,12 +198,7 @@
 			{#snippet SectionAptosCoinBalances({ id, label, open })}
 				<AptosCoinBalance_TimestampsView
 					selection={selection.$$coinBalanceTimestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Aptos coin balance observations.'
 					id={`${id}-list`}

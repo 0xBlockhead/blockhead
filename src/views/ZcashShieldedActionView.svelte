@@ -70,10 +70,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{[selection.entitySelector.actionKind, String(selection.entitySelector.indexInTransaction)].filter(Boolean).join(' ') || 'Zcash shielded action'}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.pool || [selection.entitySelector.actionKind, String(selection.entitySelector.indexInTransaction)].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
@@ -136,7 +132,6 @@
 									selection={select(EntityType.ZcashShieldedPool, zcashShieldedPool[EntityMetaKey.Selector])}
 									prefetched={zcashShieldedPool}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -204,7 +199,6 @@
 					<UtxoTransactionView
 						selection={select(EntityType.UtxoTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

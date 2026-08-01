@@ -41,6 +41,10 @@
 			{#snippet Title()}
 				{arweaveNetwork.$network.name || (arweaveNetworkSelector.$network.caip2 == null ? '' : `${arweaveNetworkSelector.$network.caip2.namespace}:${arweaveNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
+
+			{#snippet Value()}
+				Arweave
+			{/snippet}
 		</EntityView>
 	{/snippet}
 </EntitiesList>

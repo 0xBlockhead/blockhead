@@ -10,7 +10,6 @@ const lotusJsonRpcArtifacts = [
 	{
 		kind: SourceArtifactKind.HandwrittenTypes,
 		path: 'src/sources/Lotus/JsonRpc/types.ts',
-		generated: false,
 	},
 ] as const
 
@@ -25,7 +24,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.node.glif.io',
-				origin: 'https://api.node.glif.io',
 				corsEnabled: true,
 			},
 		],
@@ -33,11 +31,7 @@ const bindings = [
 		apiFamily: ApiFamily.FilecoinLotusJsonRpc,
 		operationGroups: lotusJsonRpcGenericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 		artifacts: lotusJsonRpcArtifacts,
 	},
 	{
@@ -50,7 +44,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'http://127.0.0.1:1234',
-				origin: 'http://127.0.0.1:1234',
 				corsEnabled: false,
 			},
 		],
@@ -67,4 +60,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Lotus_JsonRpc]: readonly [typeof bindings[0], typeof bindings[1]] }>(bindings)
+export default indexSourceBindings(bindings)

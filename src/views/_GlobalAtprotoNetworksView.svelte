@@ -11,7 +11,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['AT Protocol is a DID-based social protocol. This hub shows bounded actor and post windows from declared Bluesky-compatible appview sources, not a claim about every repository on the network.'],
 		open = $bindable(true),
 		id = 'GlobalAtprotoNetworks-list',
 		...EntitiesListProps
@@ -28,7 +27,6 @@
 	entityType={EntityType._GlobalAtprotoNetwork}
 	{id}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {

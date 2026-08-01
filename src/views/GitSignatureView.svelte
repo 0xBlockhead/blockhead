@@ -40,10 +40,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.signatureId || 'Git signature'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={gitSignature}>
 			{#snippet children(entity)}

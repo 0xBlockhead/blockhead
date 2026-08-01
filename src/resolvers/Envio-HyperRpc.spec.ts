@@ -27,7 +27,6 @@ const {
 		endpoints: [{
 			endpointKind: 'HttpUrl',
 			locator: 'https://eth.rpc.hypersync.xyz/{ENVIO_API_TOKEN}',
-			origin: 'https://eth.rpc.hypersync.xyz',
 			corsEnabled: false,
 		}],
 		wireProtocol: 'JsonRpc2',
@@ -41,12 +40,10 @@ const {
 			{
 				kind: 'OpenRpcSpec',
 				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
-				generated: false,
 			},
 			{
 				kind: 'GenerationManifest',
 				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
-				generated: false,
 			},
 		],
 	},
@@ -208,19 +205,31 @@ describe('Envio HyperRPC resolver', () => {
 		))).toBe(true)
 	})
 
-	it.each([
-		['eip155', '137'],
-		['solana', '1'],
-	])('rejects unsupported %s:%s before either RPC call', async (namespace, reference) => {
-		await expect(envioHyperRpc.resolvers[0].resolve['EvmNetworkTxHash'].resolve({
-			$network: {
-				caip2: {
-					namespace,
-					reference,
+	it('preserves a Slug network selector through referenced entities', async () => {
+		jsonRpc2
+			.mockResolvedValueOnce(transaction)
+			.mockResolvedValueOnce(transactionReceipt)
+		const slugNetwork = {
+			slug: 'ethereum',
+		}
+		const resolved = await envioHyperRpc.resolvers[0].resolve['EvmNetworkTxHash'].resolve({
+			$network: slugNetwork,
+			txHash: transaction.hash,
+		}, context)
+
+		expect(resolved).toMatchObject({
+			$block: {
+				[EntityMetaKey.Selector]: {
+					$network: slugNetwork,
 				},
 			},
-			txHash: transaction.hash,
-		}, context)).rejects.toThrow('unsupported network')
-		expect(jsonRpc2).not.toHaveBeenCalled()
+			logs: [{
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network: slugNetwork,
+					},
+				},
+			}],
+		})
 	})
 })

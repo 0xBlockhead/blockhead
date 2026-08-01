@@ -68,10 +68,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.source || 'Polkadot account timestamp'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={polkadotAccountTimestamp}>
 			{#snippet children(entity)}
@@ -151,7 +147,6 @@
 					<PolkadotAccountView
 						selection={select(EntityType.PolkadotAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

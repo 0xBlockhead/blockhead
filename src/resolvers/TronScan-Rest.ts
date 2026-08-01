@@ -889,24 +889,6 @@ export default {
 				}),
 
 		defineResolver(Source.TronScan_Rest, {
-			entityType: EntityType.TronContract,
-			resolve: {
-				NetworkAddress: {
-					appliesTo: tronNetworkReferenceApplicability,
-					resolve: async ({ $network, address }) => {
-						assertTronMainnet($network)
-						const { getContract } = await import('$/sources/TronScan/Rest/queries.ts')
-						const contract = (await getContract(address)).data.at(0)
-						if (contract == null) throw new Error(`TronScan_Rest: contract not found for ${address}`)
-						return contractFieldsFromTronScanContract($network, address, contract).$$tokens
-					},
-				}
-			},
-		})({
-				$$tokens: (tokens) => tokens,
-			}),
-
-		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronTransaction,
 			resolve: {
 				NetworkTransactionId: {

@@ -36,10 +36,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Sui dynamic field edge timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +44,6 @@
 					<SuiDynamicFieldEdgeView
 						selection={select(EntityType.SuiDynamicFieldEdge, selection.entitySelector.$edge)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

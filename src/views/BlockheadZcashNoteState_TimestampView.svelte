@@ -88,7 +88,6 @@
 					<BlockheadZcashNoteStateView
 						selection={select(EntityType.BlockheadZcashNoteState, selection.entitySelector.$noteState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

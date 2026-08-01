@@ -52,10 +52,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.callPath || 'blockhead session simulation call'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadSessionSimulationCall}>
 			{#snippet children(entity)}
@@ -89,7 +85,6 @@
 								selection={select(EntityType.BlockheadSessionSimulation, blockheadSessionSimulation[EntityMetaKey.Selector])}
 								prefetched={blockheadSessionSimulation}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

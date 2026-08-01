@@ -1,31 +1,10 @@
 import { fileTypeFromBuffer } from 'file-type'
 
-export type ContentDisplayType =
-	| 'text'
-	| 'image'
-	| 'video'
-	| 'audio'
-	| 'json'
-	| 'xml'
-	| 'pdf'
-	| 'iframe'
-	| 'binary'
-
-export type ParsedContentResponse = {
-	contentLength?: number
-	contentType?: string
-	displayType: ContentDisplayType
-	extension?: string
-	fileName?: string
-	isContentTypeInferred: boolean
-	text?: string
-}
-
-const trimContentType = (value: string | null): string | undefined => (
+const trimContentType = (value: string | null) => (
 	value?.split(';')[0]?.trim() || undefined
 )
 
-const maybeText = (bytes: Uint8Array): string | undefined => {
+const maybeText = (bytes: Uint8Array) => {
 	try {
 		return new TextDecoder().decode(bytes)
 	} catch {
@@ -33,7 +12,7 @@ const maybeText = (bytes: Uint8Array): string | undefined => {
 	}
 }
 
-const contentTypeFromText = (text: string | undefined): string | undefined => {
+const contentTypeFromText = (text: string | undefined) => {
 	const trimmed = text?.trim()
 	if (trimmed == null || trimmed === '') return undefined
 
@@ -77,7 +56,7 @@ export const displayTypeFromContent = ({
 }: {
 	contentType?: string
 	text?: string
-}): ContentDisplayType => (
+}) => (
 	contentType == null || contentType.startsWith('text/plain') ?
 		'text'
 	:
@@ -117,7 +96,7 @@ export const parseContentResponse = async ({
 }: {
 	response: Response
 	fileName?: string
-}): Promise<ParsedContentResponse> => {
+}) => {
 	const bytes = new Uint8Array(await response.clone().arrayBuffer())
 	const sniffedType = await fileTypeFromBuffer(bytes)
 	const text = maybeText(bytes)

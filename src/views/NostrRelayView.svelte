@@ -63,12 +63,6 @@
 		<TruncatedValue value={selection.entitySelector.relayUrl} />
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A Nostr relay is a WebSocket endpoint that can publish, store, and serve signed events; relay metadata is optional NIP-11 source data.
-		</p>
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -104,7 +98,6 @@
 									}
 									prefetched={{ ...nostrRelayTimestampSelector, ...nostrRelayTimestamp }}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							{:else}
 								<p data-text="muted" data-section-state="resolved-empty">No latest observation available.</p>
@@ -172,12 +165,7 @@
 			{#snippet SectionNostrRelayLiveNotes({ id, label, open })}
 				<NostrNotesView
 					selection={selection.$$notes}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No live notes received.'
 					id={`${id}-list`}

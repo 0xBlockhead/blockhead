@@ -51,10 +51,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.source || 'EVM network actor coin balance timestamp'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={evmNetworkActorCoinBalanceTimestamp}>
 			{#snippet children(entity)}
@@ -187,7 +183,6 @@
 					<EvmNetworkActorCoinBalanceView
 						selection={select(EntityType.EvmNetworkActorCoinBalance, selection.entitySelector.$actorCoin)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

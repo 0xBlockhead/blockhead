@@ -78,7 +78,6 @@
 					selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
 					prefetched={blockheadWallet}
 					layout={EntityLayout.Title}
-					open={false}
 				/>
 			{/snippet}
 		</ResourceBoundary>
@@ -122,7 +121,6 @@
 								selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
 								prefetched={blockheadWallet}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -305,7 +303,6 @@
 									selection={select(EntityType.Account, account[EntityMetaKey.Selector])}
 									prefetched={account}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

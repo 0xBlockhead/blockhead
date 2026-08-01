@@ -43,10 +43,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.path || 'Git tree path resolution'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={gitTreePathResolution}>
 			{#snippet children(entity)}
@@ -69,7 +65,6 @@
 					<GitRepositoryView
 						selection={select(EntityType.GitRepository, selection.entitySelector.$repository)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

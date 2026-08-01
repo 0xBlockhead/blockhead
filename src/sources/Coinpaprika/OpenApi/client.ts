@@ -1,24 +1,29 @@
 import { throwHttpError } from '$/lib/http.ts'
 import { optionalPublicEnvString } from '$/sources/$sources.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import { sourceFetch } from '$/sources/_runtime/http.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/Coinpaprika/bindings.ts'
-import {
-	freeBaseUrl,
-	proBaseUrl,
-} from '$/sources/Coinpaprika/OpenApi/constants.ts'
 
-const binding = bindings[Source.Coinpaprika_OpenApi]
+const bindingByTargetKey = Object.fromEntries(
+	bindings[Source.Coinpaprika_Rest].map((binding) => ([
+		binding.target.key,
+		binding,
+	] as const))
+)
 
 export const getCoinpaprikaJson = async <_Response>(
 	publicEnv: SourcePublicEnv,
 	pathAndQuery: string
-): Promise<_Response> => {
+) => {
 	const apiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_COINPAPRIKA_API_KEY')
+	const binding = bindingByTargetKey[apiKey == null ? 'free-api' : 'pro-api']
 	const response = await sourceFetch(
 		binding,
-		`${apiKey == null ? freeBaseUrl : proBaseUrl}${pathAndQuery}`,
+		`${firstHttpUrlForBinding(binding)}${pathAndQuery}`,
 		{
 			headers: {
 				Accept: 'application/json',

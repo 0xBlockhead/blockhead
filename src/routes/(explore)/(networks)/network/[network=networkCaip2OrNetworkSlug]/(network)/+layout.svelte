@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]',
+			{
+				network: params.network,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,30 +38,18 @@
 
 {#key params.network}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]',
-				{
-					network: params.network,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<NetworkView
 				selection={
-					select(EntityType.Network, data.selector, { sources: [
-						Source.Constants_Internal,
-					] })
+					select(EntityType.Network, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]',
-						{
-							network: params.network,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

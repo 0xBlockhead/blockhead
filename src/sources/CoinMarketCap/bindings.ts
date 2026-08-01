@@ -15,7 +15,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://pro-api.coinmarketcap.com',
-				origin: 'https://pro-api.coinmarketcap.com',
 				corsEnabled: false,
 			},
 		],
@@ -31,19 +30,15 @@ const bindings = [
 				env: arktype({
 					'PUBLIC_COINMARKETCAP_API_KEY': 'string > 0',
 				}),
-				keys: [
-					'PUBLIC_COINMARKETCAP_API_KEY',
-				],
 			},
 		],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/CoinMarketCap/Rest/types.ts',
-				generated: false,
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.CoinMarketCap_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

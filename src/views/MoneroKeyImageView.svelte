@@ -60,7 +60,6 @@
 							selection={select(EntityType.MoneroRing, moneroRing[EntityMetaKey.Selector])}
 							prefetched={moneroRing}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -76,7 +75,6 @@
 					<MoneroTransactionView
 						selection={select(EntityType.MoneroTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -109,7 +107,6 @@
 									selection={select(EntityType.MoneroRing, moneroRing[EntityMetaKey.Selector])}
 									prefetched={moneroRing}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

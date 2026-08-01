@@ -75,13 +75,6 @@ export type GoldRushTransactionExpansions = {
 	withInputData?: boolean
 }
 
-export type GoldRushTransactionResult = {
-	transaction: GoldRushTransactionItem
-	updatedAt: string
-	chainId: number
-	chainName: string
-}
-
 export type GoldRushTokenBalancesResponse = {
 	data: GoldRushTokenBalancesData | null
 	error: boolean
@@ -122,16 +115,6 @@ export type GoldRushTokenBalanceItem = {
 	pretty_quote_24h: string | null
 }
 
-export type GoldRushTokenBalancesResult = {
-	balances: GoldRushTokenBalanceItem[]
-	address: string
-	updatedAt: string
-	chainTipHeight: number
-	chainTipSignedAt: string
-	chainId: number
-	chainName: string
-}
-
 export type GoldRushAddressTransactionsResponse = {
 	data: GoldRushAddressTransactionsData | null
 	error: boolean
@@ -153,17 +136,4 @@ export type GoldRushAddressTransactionsData = {
 		next: string | null
 	}
 	items: GoldRushTransactionItem[]
-}
-
-export type GoldRushAddressTransactionsResult = {
-	transactions: GoldRushTransactionItem[]
-	address: string
-	page: number
-	previousPageUrl: string | null
-	nextPageUrl: string | null
-	updatedAt: string
-	chainTipHeight: number
-	chainTipSignedAt: string
-	chainId: number
-	chainName: string
 }

@@ -76,7 +76,6 @@
 					<BlockheadActionOutcomeView
 						selection={select(EntityType.BlockheadActionOutcome, selection.entitySelector.$outcome)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

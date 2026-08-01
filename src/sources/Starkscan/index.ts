@@ -10,8 +10,8 @@ export default {
 	label: 'Starkscan',
 	sources: [
 		{
-			source: Source.Starkscan_Rest,
-			label: 'Starkscan REST',
+			source: Source.Starkscan,
+			label: 'Starkscan',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

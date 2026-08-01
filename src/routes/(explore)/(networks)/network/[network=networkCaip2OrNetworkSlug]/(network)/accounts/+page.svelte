@@ -40,8 +40,5 @@
 		title='Solana accounts'
 		selection={select(EntityType.Network, data.selector).Solana.$$accounts}
 		id='accounts'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

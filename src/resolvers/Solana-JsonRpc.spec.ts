@@ -12,15 +12,18 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 
 vi.mock('$/sources/Solana/JsonRpc/queries.ts', () => ({
-	solanaRpcEndpoints: [{
-		url: 'https://solana-rpc.publicnode.com',
-		transportType: 'Http',
-		providerName: 'PublicNode',
-	}, {
-		url: 'wss://solana-rpc.publicnode.com',
-		transportType: 'WebSocket',
-		providerName: 'PublicNode',
-	}],
+	solanaRpcEndpoints: [
+		{
+			url: 'https://solana-rpc.publicnode.com',
+			transportType: 'Http',
+			providerName: 'PublicNode',
+		},
+		{
+			url: 'wss://solana-rpc.publicnode.com',
+			transportType: 'WebSocket',
+			providerName: 'PublicNode',
+		},
+	],
 	getSlot: vi.fn().mockResolvedValue(100),
 	getVoteAccounts: vi.fn().mockResolvedValue({
 		current: [{
@@ -192,5 +195,11 @@ describe('Solana JSON-RPC network state lists', () => {
 			EntityMetaKey.Selector,
 			EntityMetaKey.Fields,
 		])
+		const timestampFields = validators[0][EntityMetaKey.Fields][
+			entityFieldAddressKey(EntityType.SolanaValidator, [], '$$timestamps')
+		][0][EntityMetaKey.Fields]
+		expect(timestampFields).not.toHaveProperty(entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], '$validator'))
+		expect(timestampFields).not.toHaveProperty(entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'slot'))
+		expect(timestampFields).not.toHaveProperty(entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'source'))
 	})
 })

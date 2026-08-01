@@ -297,7 +297,7 @@ export default entity({
 				}),
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Constants_Internal,
+					Source.Beacon_Rest,
 				],
 			},
 			$$beaconFinalityTimestamps: {
@@ -1359,7 +1359,7 @@ export default entity({
 				}),
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Hyperliquid_JsonRpc,
+					Source.Hyperliquid,
 				],
 			},
 			restEndpoints: {
@@ -1372,7 +1372,7 @@ export default entity({
 				}),
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Hyperliquid_Rest,
+					Source.Hyperliquid,
 				],
 			},
 			$$timestamps: {
@@ -1381,7 +1381,7 @@ export default entity({
 				entityType: EntityType.HyperliquidNetwork_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Hyperliquid_Rest,
+					Source.Hyperliquid,
 				],
 			},
 			$$blocks: {
@@ -1390,7 +1390,7 @@ export default entity({
 				entityType: EntityType.HyperliquidBlock,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Hyperliquid_JsonRpc,
+					Source.Hyperliquid,
 				],
 			},
 			$$transactions: {
@@ -1399,7 +1399,7 @@ export default entity({
 				entityType: EntityType.HyperliquidTransaction,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Hyperliquid_JsonRpc,
+					Source.Hyperliquid,
 				],
 			},
 			$$validators: {
@@ -1408,7 +1408,7 @@ export default entity({
 				entityType: EntityType.HyperliquidValidator,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Hyperliquid_Rest,
+					Source.Hyperliquid,
 				],
 			},
 			$$spotAssets: {
@@ -1417,7 +1417,7 @@ export default entity({
 				entityType: EntityType.HyperliquidSpotAsset,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Hyperliquid_Rest,
+					Source.Hyperliquid,
 				],
 			},
 			$$perpMarkets: {
@@ -1426,7 +1426,7 @@ export default entity({
 				entityType: EntityType.HyperliquidPerpMarket,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Hyperliquid_Rest,
+					Source.Hyperliquid,
 				],
 			},
 		}),

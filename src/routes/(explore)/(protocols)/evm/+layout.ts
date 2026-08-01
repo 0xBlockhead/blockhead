@@ -13,7 +13,8 @@ export const load: LayoutLoad = ({ params }) => {
 		EvmProtocolSchema,
 		{
 			scope: 'EvmProtocol',
-		}
+		},
+		'Scope'
 	)
 	if (evmProtocolScopeSelector instanceof arktype.errors)
 		error(404, 'Invalid EvmProtocol selector')

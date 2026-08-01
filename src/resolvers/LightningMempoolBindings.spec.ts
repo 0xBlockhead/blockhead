@@ -5,7 +5,7 @@ import {
 	vi,
 } from 'vitest'
 
-import { bitcoinNetworkBySlug } from '$/constants/BitcoinNetwork.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
 const {
@@ -98,7 +98,7 @@ describe('Lightning and mempool resolver bindings', () => {
 			.find((resolver) => resolver.entityType === EntityType.UtxoBlock)!
 			.resolve['NetworkHeightHash'].resolve({
 				$network: {
-					caip2: bitcoinNetworkBySlug.bitcoin.caip2,
+					caip2: networkBySlug.bitcoin.caip2,
 				},
 				height: 1n,
 				hash: 'block',

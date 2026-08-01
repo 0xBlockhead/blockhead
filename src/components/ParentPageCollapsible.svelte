@@ -21,7 +21,6 @@
 		href,
 
 		open = $bindable(true),
-		ontoggle,
 
 		Summary: _Summary,
 		children: _children,
@@ -33,7 +32,6 @@
 			href?: ResolvedPathname
 
 			open?: boolean
-			ontoggle?: (e: Event) => void
 
 			Summary?: Snippet<[{
 				open?: boolean,
@@ -66,7 +64,6 @@
 
 <Collapsible
 	bind:open
-	{ontoggle}
 	onclose={(id) => onNestedCollapsibleClose?.(id ?? undefined)}
 	data-card
 	data-column-item="flexible"

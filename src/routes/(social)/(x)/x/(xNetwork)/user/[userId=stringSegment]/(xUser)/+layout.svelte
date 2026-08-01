@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]',
+			{
+				userId: params.userId,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,31 +38,19 @@
 
 {#key params.userId}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]',
-				{
-					userId: params.userId,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<XUserView
 				selection={
-					select(EntityType.XUser, data.selector, { sources: [
-						Source.X_Rest,
-						Source.X_FxEmbed_Rest,
-					] })
+					select(EntityType.XUser, data.selector, {
+						sources: [
+							Source.X_Rest,
+							Source.X_FxEmbed_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]',
-						{
-							userId: params.userId,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

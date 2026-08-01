@@ -20,10 +20,9 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Juno_JsonRpc,
-			Source.Pathfinder_JsonRpc,
-			Source.Starknet_JsonRpc,
-			Source.Starkscan_Rest,
-			Source.Voyager_Rest,
+			Source.Pathfinder,
+			Source.Starkscan,
+			Source.Voyager,
 		],
 	}))
 	const starknetBlock = $derived(viewSelection({

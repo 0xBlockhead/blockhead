@@ -1,5 +1,4 @@
 import { networkBySlug } from '$/constants/Network.ts'
-import { TransportType } from '$/constants/TransportType.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { cardanoGovernanceActionFields } from '$/resolvers/CardanoGovernance.ts'
 import { defineResolver, type SourceResolverContext } from '$/resolvers/defineResolver.ts'
@@ -10,8 +9,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
-import bindings from '$/sources/CardanoKoios/bindings.ts'
 import type { CardanoKoiosTransactionProposalProcedure } from '$/sources/CardanoKoios/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -72,12 +69,8 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
 				assertCardanoMainnet(network)
-
-				return [{
-					url: firstHttpUrlForBinding(bindings[Source.CardanoKoios_Rest]),
-					transportType: TransportType.Http,
-					providerName: 'Koios',
-				}]
+				const { getRestEndpoints } = await import('$/sources/CardanoKoios/Rest/queries.ts')
+				return getRestEndpoints()
 			}
 			),
 		})({
@@ -100,28 +93,19 @@ export default {
 						timestampMs: tip.block_time * 1_000,
 						source: Source.CardanoKoios_Rest,
 					},
-					timestampMs: tip.block_time * 1_000,
-					latestSlot: BigInt(tip.abs_slot),
-					latestBlockNo: BigInt(tip.block_height),
-					latestBlockHash: tip.hash,
-					latestBlockTimeMs: tip.block_time * 1_000,
-					epoch: tip.epoch_no,
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestSlot')]: BigInt(tip.abs_slot),
+						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockNo')]: BigInt(tip.block_height),
+						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockHash')]: tip.hash,
+						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockTimeMs')]: tip.block_time * 1_000,
+						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'epoch')]: tip.epoch_no,
+					},
 				}]
 			}
 			),
 		})({
 			Cardano: {
-				$$timestamps: (timestamps) => timestamps.map((timestamp) => ({
-					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'timestampMs')]: timestamp.timestampMs,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestSlot')]: timestamp.latestSlot,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockNo')]: timestamp.latestBlockNo,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockHash')]: timestamp.latestBlockHash,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockTimeMs')]: timestamp.latestBlockTimeMs,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'epoch')]: timestamp.epoch,
-					},
-				})),
+				$$timestamps: (timestamps) => timestamps,
 			},
 		}),
 
@@ -137,26 +121,18 @@ export default {
 						$network: network,
 						hash: block.hash,
 					},
-					hash: block.hash,
-					slot: BigInt(block.abs_slot),
-					blockNo: BigInt(block.block_height),
-					epoch: block.epoch_no,
-					era: block.era,
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.CardanoBlock, [], 'slot')]: BigInt(block.abs_slot),
+						[entityFieldAddressKey(EntityType.CardanoBlock, [], 'blockNo')]: BigInt(block.block_height),
+						[entityFieldAddressKey(EntityType.CardanoBlock, [], 'epoch')]: block.epoch_no,
+						[entityFieldAddressKey(EntityType.CardanoBlock, [], 'era')]: block.era,
+					},
 				}))
 			}
 			),
 		})({
 			Cardano: {
-				$$blocks: (blocks) => blocks.map((block) => ({
-					[EntityMetaKey.Selector]: block[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoBlock, [], 'hash')]: block.hash,
-						[entityFieldAddressKey(EntityType.CardanoBlock, [], 'slot')]: block.slot,
-						[entityFieldAddressKey(EntityType.CardanoBlock, [], 'blockNo')]: block.blockNo,
-						[entityFieldAddressKey(EntityType.CardanoBlock, [], 'epoch')]: block.epoch,
-						[entityFieldAddressKey(EntityType.CardanoBlock, [], 'era')]: block.era,
-					},
-				})),
+				$$blocks: (blocks) => blocks,
 			},
 		}),
 
@@ -172,18 +148,12 @@ export default {
 						$network: network,
 						hash: tx_hash,
 					},
-					hash: tx_hash,
 				}))
 			}
 			),
 		})({
 			Cardano: {
-				$$transactions: (transactions) => transactions.map((transaction) => ({
-					[EntityMetaKey.Selector]: transaction[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoTransaction, [], 'hash')]: transaction.hash,
-					},
-				})),
+				$$transactions: (transactions) => transactions,
 			},
 		}),
 
@@ -202,22 +172,17 @@ export default {
 						$network: network,
 						poolId: pool_id_bech32,
 					},
-					poolId: pool_id_bech32,
-					...(ticker != null && { ticker }),
+					...(ticker != null && {
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.CardanoStakePool, [], 'ticker')]: ticker,
+						},
+					}),
 				}))
 			}
 			),
 		})({
 			Cardano: {
-				$$stakePools: (stakePools) => stakePools.map((stakePool) => ({
-					[EntityMetaKey.Selector]: stakePool[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoStakePool, [], 'poolId')]: stakePool.poolId,
-						...(stakePool.ticker != null && {
-							[entityFieldAddressKey(EntityType.CardanoStakePool, [], 'ticker')]: stakePool.ticker,
-						}),
-					},
-				})),
+				$$stakePools: (stakePools) => stakePools,
 			},
 		}),
 
@@ -228,24 +193,20 @@ export default {
 					assertCardanoMainnet(network)
 					const { listDReps } = await import('$/sources/CardanoKoios/Rest/queries.ts')
 
-					return {
-						network,
-						dReps: await listDReps(listLimit(context)),
-					}
+					return (await listDReps(listLimit(context))).map((dRep) => ({
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							drepCredential: dRep.drep_id,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.CardanoDRep, [], 'credentialKind')]: dRep.has_script ? 'script' : 'key',
+						},
+					}))
 				}
 			),
 		})({
 			Cardano: {
-				$$dReps: ({ network, dReps }) => dReps.map((dRep) => ({
-					[EntityMetaKey.Selector]: {
-						$network: network,
-						drepCredential: dRep.drep_id,
-					},
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoDRep, [], 'drepCredential')]: dRep.drep_id,
-						[entityFieldAddressKey(EntityType.CardanoDRep, [], 'credentialKind')]: dRep.has_script ? 'script' : 'key',
-					},
-				})),
+				$$dReps: (dReps) => dReps,
 			},
 		}),
 
@@ -317,8 +278,6 @@ export default {
 							proposalIndex: proposal.proposal_index,
 						},
 						[EntityMetaKey.Fields]: {
-							[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'proposalTxHash')]: proposal.proposal_tx_hash,
-							[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'proposalIndex')]: proposal.proposal_index,
 							[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'proposalKind')]: proposal.proposal_type,
 						},
 					})),
@@ -351,25 +310,18 @@ export default {
 					assertCardanoMainnet(network)
 					const { listAssets } = await import('$/sources/CardanoKoios/Rest/queries.ts')
 
-					return {
-						network,
-						assets: await listAssets(listLimit(context)),
-					}
+					return (await listAssets(listLimit(context))).map((asset) => ({
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							policyId: asset.policy_id,
+							assetName: asset.asset_name,
+						},
+					}))
 				}
 			),
 		})({
 			Cardano: {
-				$$assets: ({ network, assets }) => assets.map((asset) => ({
-					[EntityMetaKey.Selector]: {
-						$network: network,
-						policyId: asset.policy_id,
-						assetName: asset.asset_name,
-					},
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoNativeAsset, [], 'policyId')]: asset.policy_id,
-						[entityFieldAddressKey(EntityType.CardanoNativeAsset, [], 'assetName')]: asset.asset_name,
-					},
-				})),
+				$$assets: (assets) => assets,
 			},
 		}),
 
@@ -396,8 +348,6 @@ export default {
 						source: Source.CardanoKoios_Rest,
 					},
 					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'epoch')]: parameters.epoch_no,
-						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'source')]: Source.CardanoKoios_Rest,
 						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'minFeeA')]: BigInt(parameters.min_fee_a),
 						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'minFeeB')]: BigInt(parameters.min_fee_b),
 						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxBlockBodySize')]: parameters.max_block_size,
@@ -452,8 +402,6 @@ export default {
 						source: Source.CardanoKoios_Rest,
 					},
 					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'epoch')]: tip.epoch_no,
-						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'source')]: Source.CardanoKoios_Rest,
 						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'quorumNumerator')]: committee.quorum_numerator,
 						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'quorumDenominator')]: committee.quorum_denominator,
 						[entityFieldAddressKey(EntityType.CardanoCommittee_Epoch, [], 'memberCount')]: committee.members.length,
@@ -575,7 +523,9 @@ export default {
 						[EntityMetaKey.Fields]: {
 							[entityFieldAddressKey(EntityType.CardanoScriptWitness, [], 'scriptKind')]: 'plutus',
 							[entityFieldAddressKey(EntityType.CardanoScriptWitness, [], 'scriptHash')]: plutusContract.script_hash,
-							[entityFieldAddressKey(EntityType.CardanoScriptWitness, [], 'datum')]: plutusContract.input.datum ?? undefined,
+							...(plutusContract.input.datum != null && {
+								[entityFieldAddressKey(EntityType.CardanoScriptWitness, [], 'datum')]: plutusContract.input.datum,
+							}),
 							[entityFieldAddressKey(EntityType.CardanoScriptWitness, [], 'redeemer')]: plutusContract.input.redeemer,
 							[entityFieldAddressKey(EntityType.CardanoScriptWitness, [], 'executionUnits')]: plutusContract.input.redeemer.unit,
 						},

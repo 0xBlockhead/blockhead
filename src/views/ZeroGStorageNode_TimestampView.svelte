@@ -48,7 +48,6 @@
 		<ZeroGStorageNodeView
 			selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -64,7 +63,6 @@
 					<ZeroGStorageNodeView
 						selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

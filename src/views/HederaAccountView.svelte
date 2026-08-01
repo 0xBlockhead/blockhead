@@ -31,7 +31,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import HederaAllowancesView from '$/views/HederaAllowancesView.svelte'
@@ -68,16 +67,11 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.accountId || 'hedera account'}
-	{/snippet}
-
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -89,7 +83,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -131,12 +124,7 @@
 			{#snippet SectionHederaAccountAllowances({ id, label, open })}
 				<HederaAllowancesView
 					selection={selection.$$allowances}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No allowances.'
 					id={`${id}-list`}
@@ -146,12 +134,7 @@
 			{#snippet SectionHederaAccountTokens({ id, label, open })}
 				<HederaTokenAssociationsView
 					selection={selection.$$tokens}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No tokens.'
 					id={`${id}-list`}
@@ -187,12 +170,7 @@
 			{#snippet SectionHederaAccountNfts({ id, label, open })}
 				<HederaNftsView
 					selection={selection.$$nfts}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No NFTs.'
 					id={`${id}-list`}
@@ -202,12 +180,7 @@
 			{#snippet SectionHederaAccountTransactions({ id, label, open })}
 				<HederaTransactionsView
 					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No transactions.'
 					id={`${id}-list`}
@@ -239,12 +212,7 @@
 			{#snippet SectionHederaAccountTimestamps({ id, label, open })}
 				<HederaAccount_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No timestamps.'
 					id={`${id}-list`}

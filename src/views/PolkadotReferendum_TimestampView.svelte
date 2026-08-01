@@ -71,7 +71,6 @@
 					<PolkadotReferendumView
 						selection={select(EntityType.PolkadotReferendum, selection.entitySelector.$referendum)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

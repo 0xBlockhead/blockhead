@@ -32,7 +32,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 				txHash: params.transactionId,
 			},
 			indexInTransaction: Number(params.indexInTransaction),
-		}
+		},
+		'TransactionIndexInTransaction'
 	)
 	if (evmBlobTransactionIndexInTransactionSelector instanceof arktype.errors)
 		error(404, 'Invalid EvmBlob selector')

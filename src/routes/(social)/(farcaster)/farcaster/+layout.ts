@@ -13,7 +13,8 @@ export const load: LayoutLoad = ({ params }) => {
 		FarcasterNetworkSchema,
 		{
 			scope: 'FarcasterNetwork',
-		}
+		},
+		'Scope'
 	)
 	if (farcasterNetworkScopeSelector instanceof arktype.errors)
 		error(404, 'Invalid FarcasterNetwork selector')

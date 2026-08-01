@@ -6,7 +6,14 @@ import {
 
 import constantsResolvers from '$/resolvers/Constants.ts'
 import { CoinId } from '$/constants/Coin.ts'
-import { NetworkNamespace, networkBySlug } from '$/constants/Network.ts'
+import {
+	ConsensusProtocol,
+} from '$/schema/NetworkUpgradeProtocols.ts'
+import {
+	NetworkNamespace,
+	networkBySlug,
+	networks,
+} from '$/constants/Network.ts'
 import { networkNamespaceByNamespace } from '$/constants/NetworkNamespace.ts'
 import { NetworkStackId } from '$/constants/NetworkStack.ts'
 import {
@@ -44,6 +51,15 @@ const networkConsensusUpgradesResolver = constantsResolvers.resolvers.find((reso
 	&& 'Evm' in resolver.projections
 	&& '$$consensusUpgrades' in resolver.projections.Evm
 ))
+const ethereumNetworkUpgradeResolver = constantsResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EthereumNetworkUpgrade
+))
+const ethereumExecutionUpgradeResolver = constantsResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EthereumExecutionUpgrade
+))
+const ethereumConsensusUpgradeResolver = constantsResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EthereumConsensusUpgrade
+))
 const networkNativeAssetsResolver = constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& '$$nativeAssets' in resolver.projections
@@ -52,6 +68,11 @@ const networkMevRelaysResolver = constantsResolvers.resolvers.find((resolver) =>
 	resolver.entityType === EntityType.Network
 	&& 'Evm' in resolver.projections
 	&& '$$mevRelays' in resolver.projections.Evm
+))
+const networkConsensusProtocolResolver = constantsResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Evm' in resolver.projections
+	&& 'consensusProtocol' in resolver.projections.Evm
 ))
 const globalIpfsAccessResolver = constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType._GlobalIpfsAccess
@@ -78,11 +99,23 @@ if (networkExecutionUpgradesResolver == null)
 if (networkConsensusUpgradesResolver == null)
 	throw new Error('Constants spec missing Network.Evm.$$consensusUpgrades resolver')
 
+if (ethereumNetworkUpgradeResolver == null)
+	throw new Error('Constants spec missing EthereumNetworkUpgrade resolver')
+
+if (ethereumExecutionUpgradeResolver == null)
+	throw new Error('Constants spec missing EthereumExecutionUpgrade resolver')
+
+if (ethereumConsensusUpgradeResolver == null)
+	throw new Error('Constants spec missing EthereumConsensusUpgrade resolver')
+
 if (networkNativeAssetsResolver == null)
 	throw new Error('Constants spec missing Network.$$nativeAssets resolver')
 
 if (networkMevRelaysResolver == null)
 	throw new Error('Constants spec missing Network.Evm.$$mevRelays resolver')
+
+if (networkConsensusProtocolResolver == null)
+	throw new Error('Constants spec missing Network.Evm.consensusProtocol resolver')
 
 if (globalIpfsAccessResolver == null)
 	throw new Error('Constants spec missing _GlobalIpfsAccess resolver')
@@ -100,6 +133,16 @@ if (nostrProfileResolver == null)
 	throw new Error('Constants spec missing NostrProfile resolver')
 
 describe('Constants resolver projections', () => {
+	it('keeps beacon consensus domain facts without materializing transport endpoints', async () => {
+		const network = await networkConsensusProtocolResolver.resolve.Caip2.resolve({
+			caip2: networkBySlug.ethereum.caip2,
+		}, resolverContext)
+
+		expect(network.evmConsensusProtocol).toBe(ConsensusProtocol.EthereumBeacon)
+		expect(network).not.toHaveProperty('consensusEndpoints')
+		expect(networkConsensusProtocolResolver.projections.Evm).not.toHaveProperty('consensusEndpoints')
+	})
+
 	it('keeps unsigned Nostr seeds on stable identity and note relationships only', async () => {
 		expect(nostrNetworkSeedNotes.every((note) => !Object.hasOwn(note, 'signature'))).toBe(true)
 		expect(Object.keys(nostrProfileResolver.projections).toSorted()).toEqual([
@@ -486,6 +529,48 @@ describe('Constants resolver projections', () => {
 		])
 	})
 
+	it('keeps native-asset facts equivalent across slug and CAIP-2 selectors', async () => {
+		for (const network of networks) {
+			if (
+				!('caip2' in network)
+				|| networkNamespaceByNamespace[network.namespace].nativeAssetCoinId == null
+			)
+				continue
+
+			const bySlug = await networkNativeAssetsResolver.resolve['Slug'].resolve({
+				slug: network.slug,
+			}, resolverContext)
+			const byCaip2 = await networkNativeAssetsResolver.resolve['Caip2'].resolve({
+				caip2: network.caip2,
+			}, resolverContext)
+
+			expect(bySlug.nativeCoin).toEqual(byCaip2.nativeCoin)
+			expect(bySlug.nativeCoinInstance).toEqual(byCaip2.nativeCoinInstance)
+			expect(bySlug.nativeAssets[0][EntityMetaKey.Selector]).toEqual({
+				$network: {
+					slug: network.slug,
+				},
+				kind: byCaip2.nativeAssets[0][EntityMetaKey.Selector].kind,
+				assetKey: byCaip2.nativeAssets[0][EntityMetaKey.Selector].assetKey,
+			})
+		}
+	})
+
+	it('preserves explicit unsupported native-asset resolution', async () => {
+		for (const slug of [
+			'avail',
+			'lightning',
+			'logos-testnet',
+		])
+			await expect(
+				networkNativeAssetsResolver.resolve['Slug'].resolve({
+					slug,
+				}, resolverContext)
+			).rejects.toThrow(
+				`Constants_Internal: native asset not cataloged for ${networkBySlug[slug].namespace}`
+			)
+	})
+
 	it('materializes Network.Evm.$$upgrades with only declared child fields', async () => {
 		const upgrades = await networkUpgradesResolver.resolve['Caip2'].resolve({
 			caip2: {
@@ -509,6 +594,62 @@ describe('Constants resolver projections', () => {
 				entityFieldAddressKey(EntityType.EthereumNetworkUpgrade, [], '$$proposals'),
 			]).has(fieldAddress))
 		))).toBe(true)
+	})
+
+	it('keeps upgrade ID, route alias, network slug, and CAIP-2 resolution equivalent', async () => {
+		const networkSelector = {
+			caip2: {
+				namespace: 'eip155',
+				reference: '1',
+			},
+		}
+
+		await expect(
+			ethereumNetworkUpgradeResolver.resolve['EvmNetworkSlug'].resolve({
+				$network: networkSelector,
+				slug: 'paris',
+			}, resolverContext)
+		).resolves.toEqual(
+			await ethereumNetworkUpgradeResolver.resolve['EvmNetworkUpgradeId'].resolve({
+				$network: networkSelector,
+				upgradeId: 'Merge',
+			}, resolverContext)
+		)
+		await expect(
+			ethereumExecutionUpgradeResolver.resolve['EvmNetworkSlug'].resolve({
+				$network: networkSelector,
+				slug: 'paris',
+			}, resolverContext)
+		).resolves.toEqual(
+			await ethereumExecutionUpgradeResolver.resolve['EvmNetworkUpgradeId'].resolve({
+				$network: networkSelector,
+				upgradeId: 'Paris',
+			}, resolverContext)
+		)
+		await expect(
+			ethereumConsensusUpgradeResolver.resolve['EvmNetworkSlug'].resolve({
+				$network: networkSelector,
+				slug: 'bellatrix',
+			}, resolverContext)
+		).resolves.toEqual(
+			await ethereumConsensusUpgradeResolver.resolve['EvmNetworkUpgradeId'].resolve({
+				$network: networkSelector,
+				upgradeId: 'Bellatrix',
+			}, resolverContext)
+		)
+
+		for (const resolver of [
+			networkUpgradesResolver,
+			networkExecutionUpgradesResolver,
+			networkConsensusUpgradesResolver,
+		])
+			await expect(
+				resolver.resolve['Slug'].resolve({
+					slug: 'ethereum',
+				}, resolverContext)
+			).resolves.toEqual(
+				await resolver.resolve['Caip2'].resolve(networkSelector, resolverContext)
+			)
 	})
 
 	it('materializes Network.Evm.$$executionUpgrades with only declared child fields', async () => {

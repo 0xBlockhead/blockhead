@@ -27,7 +27,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import MoveFunctionsView from '$/views/MoveFunctionsView.svelte'
@@ -45,10 +44,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.moduleName || 'move module'}
-	{/snippet}
-
 	{#snippet Value()}
 		<TruncatedValue value={selection.entitySelector.address} />
 	{/snippet}
@@ -58,7 +53,6 @@
 			<NetworkView
 				selection={select(EntityType.Network, selection.entitySelector.$network)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -71,7 +65,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -120,12 +113,7 @@
 			{#snippet SectionMoveModuleFunctions({ id, label, open })}
 				<MoveFunctionsView
 					selection={selection.$$functions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No functions found.'
 					id={`${id}-list`}
@@ -135,12 +123,7 @@
 			{#snippet SectionMoveModuleStructs({ id, label, open })}
 				<MoveStructsView
 					selection={selection.$$structs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No structs found.'
 					id={`${id}-list`}
@@ -172,12 +155,7 @@
 			{#snippet SectionMoveModuleTimestamps({ id, label, open })}
 				<MoveModule_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No observations yet.'
 					id={`${id}-list`}

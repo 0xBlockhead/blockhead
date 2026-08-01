@@ -164,7 +164,6 @@
 					<Erc4337AccountFactoryView
 						selection={select(EntityType.Erc4337AccountFactory, selection.entitySelector.$factory)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

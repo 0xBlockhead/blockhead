@@ -1,17 +1,18 @@
-import { getGithubContents, getGithubRawText } from '$/sources/_shared/hosts/Github/Http/client.ts'
 import {
-	litecoinLipsGithubRepo,
-} from '$/sources/LitecoinLips/Github/constants.ts'
+	getGithubContents,
+	getGithubRawText,
+	githubRepositoryTargetFromKey,
+} from '$/sources/_shared/hosts/Github/Http/client.ts'
 import bindings from '$/sources/LitecoinLips/bindings.ts'
-import type { LitecoinLipsGithubContents } from '$/sources/LitecoinLips/Github/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.LitecoinLips_Github]
+const target = githubRepositoryTargetFromKey(binding.target.key)
 
-export const getContents = (): Promise<LitecoinLipsGithubContents> => (
+export const getContents = () => (
 	getGithubContents({
 		binding,
-		target: litecoinLipsGithubRepo,
+		target,
 	})
 )
 
@@ -23,7 +24,7 @@ export const getMediaWikiText = ({
 	getGithubRawText({
 		binding,
 		target: {
-			...litecoinLipsGithubRepo,
+			...target,
 			path: `lip-${number.toString().padStart(4, '0')}.mediawiki`,
 		},
 	})

@@ -31,7 +31,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
@@ -74,7 +73,6 @@
 			selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -83,7 +81,6 @@
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -95,7 +92,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -106,7 +102,6 @@
 					<EvmAccountView
 						selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -145,12 +140,7 @@
 			{#snippet SectionEvmNetworkAccountTransactions({ id, label, open })}
 				<EvmTransactionsView
 					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No transactions yet.'
 					id={`${id}-list`}
@@ -160,12 +150,7 @@
 			{#snippet SectionEvmNetworkAccountTokenTransfers({ id, label, open })}
 				<EvmTokenTransfersView
 					selection={selection.$$tokenTransfers}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No token transfers yet.'
 					id={`${id}-list`}
@@ -175,12 +160,7 @@
 			{#snippet SectionEvmNetworkAccountInternalTransfers({ id, label, open })}
 				<EvmInternalTransfersView
 					selection={selection.$$internalTransfers}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No internal transfers yet.'
 					id={`${id}-list`}
@@ -216,12 +196,7 @@
 			{#snippet SectionEvmNetworkAccountOwnedCoins({ id, label, open })}
 				<EvmNetworkActorCoinBalancesView
 					selection={selection.$$ownedCoins}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No owned coins yet.'
 					id={`${id}-list`}
@@ -231,12 +206,7 @@
 			{#snippet SectionEvmNetworkAccountAllowances({ id, label, open })}
 				<EvmActorCoinAllowancesView
 					selection={selection.$$erc20TokenAllowances}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No allowances yet.'
 					id={`${id}-list`}
@@ -268,12 +238,7 @@
 			{#snippet SectionEvmNetworkAccountTimestamps({ id, label, open })}
 				<EvmNetworkAccount_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No account observations yet.'
 					id={`${id}-list`}

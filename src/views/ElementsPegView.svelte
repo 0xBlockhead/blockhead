@@ -46,10 +46,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{[selection.entitySelector.direction, selection.entitySelector.pegTransactionId].filter(Boolean).join(' ') || 'Elements peg'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={elementsPeg}>
 			{#snippet children(entity)}
@@ -71,7 +67,6 @@
 					<ElementsNetworkView
 						selection={select(EntityType.ElementsNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -120,7 +115,6 @@
 									selection={select(EntityType.UtxoTransaction, utxoTransaction[EntityMetaKey.Selector])}
 									prefetched={utxoTransaction}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -140,7 +134,6 @@
 									selection={select(EntityType.UtxoTransaction, utxoTransaction[EntityMetaKey.Selector])}
 									prefetched={utxoTransaction}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

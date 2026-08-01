@@ -36,15 +36,10 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.storageKey || 'starknet storage entry'}
-	{/snippet}
-
 	{#snippet Value()}
 		<StarknetContractView
 			selection={select(EntityType.StarknetContract, selection.entitySelector.$contract)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -56,7 +51,6 @@
 					<StarknetContractView
 						selection={select(EntityType.StarknetContract, selection.entitySelector.$contract)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

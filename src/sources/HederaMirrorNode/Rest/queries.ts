@@ -69,7 +69,7 @@ const decimalIntegerFromJsonNumberSource = (source: string) => {
 
 const sourceGetHederaJson = <_Response>(
 	url: string
-): Promise<_Response> => sourceGetText(binding, url).then((text) => JSON.parse(
+) => sourceGetText(binding, url).then((text) => JSON.parse(
 	text,
 	(key, value, context) => ((integer) => (
 		key === 'associated_registered_nodes' ?
@@ -159,7 +159,7 @@ const accountCollectionUrl = (
 
 export const getAccount = (
 	accountId: string
-): Promise<HederaMirrorNodeAccount> => {
+) => {
 	if (!accountIdPattern.test(accountId))
 		throw new Error('HederaMirrorNode_Rest: invalid account selector')
 
@@ -175,7 +175,7 @@ export const getAccount = (
 export const getAccounts = (
 	limit: number,
 	continuationToken?: string
-): Promise<HederaMirrorNodeAccounts> => {
+) => {
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
 		throw new Error('HederaMirrorNode_Rest: invalid account list limit')
 
@@ -205,7 +205,7 @@ export const getAccountTransactions = (
 	accountId: string,
 	limit: number,
 	continuationToken?: string
-): Promise<HederaMirrorNodeTransactions> => {
+) => {
 	if (!accountIdPattern.test(accountId))
 		throw new Error('HederaMirrorNode_Rest: invalid account selector')
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
@@ -242,7 +242,7 @@ export const getAccountTransactions = (
 
 export const getTransactionByConsensusTimestamp = (
 	consensusTimestamp: string
-): Promise<HederaMirrorNodeTransactions> => {
+) => {
 	if (!/^\d{1,10}(?:\.\d{1,9})?$/.test(consensusTimestamp))
 		throw new Error('HederaMirrorNode_Rest: invalid transaction consensus timestamp')
 
@@ -257,7 +257,7 @@ export const getTransactionByConsensusTimestamp = (
 export const getTransactionByIdNonce = (
 	transactionId: string,
 	nonce: number
-): Promise<HederaMirrorNodeTransactionResponse> => {
+) => {
 	if (!/^\d{1,10}\.\d{1,10}\.\d{1,10}-\d{1,10}-\d{1,9}$/.test(transactionId))
 		throw new Error('HederaMirrorNode_Rest: invalid transaction ID')
 	if (!Number.isSafeInteger(nonce) || nonce < 0)
@@ -275,7 +275,7 @@ export const getTransactionByIdNonce = (
 export const getTransactions = (
 	limit: number,
 	continuationToken?: string
-): Promise<HederaMirrorNodeTransactions> => {
+) => {
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
 		throw new Error('HederaMirrorNode_Rest: invalid transaction list limit')
 
@@ -306,7 +306,7 @@ export const getTransactions = (
 export const getNodes = (
 	limit: number,
 	continuationToken?: string
-): Promise<HederaMirrorNodeNodes> => {
+) => {
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
 		throw new Error('HederaMirrorNode_Rest: invalid node list limit')
 
@@ -413,7 +413,7 @@ export const getAccountTokens = (
 	accountId: string,
 	limit: number,
 	continuationToken?: string
-): Promise<HederaMirrorNodeAccountTokens> => sourceGetHederaJson<HederaMirrorNodeAccountTokens>(
+) => sourceGetHederaJson<HederaMirrorNodeAccountTokens>(
 	accountCollectionUrl(
 		accountId,
 		`/api/v1/accounts/${encodeURIComponent(accountId)}/tokens`,
@@ -431,7 +431,7 @@ export const getAccountNfts = (
 	accountId: string,
 	limit: number,
 	continuationToken?: string
-): Promise<HederaMirrorNodeNfts> => sourceGetHederaJson<HederaMirrorNodeNfts>(
+) => sourceGetHederaJson<HederaMirrorNodeNfts>(
 	accountCollectionUrl(
 		accountId,
 		`/api/v1/accounts/${encodeURIComponent(accountId)}/nfts`,
@@ -449,7 +449,7 @@ export const getAccountNfts = (
 
 export const getBlocks = (
 	limit: number
-): Promise<HederaMirrorNodeBlocks> => {
+) => {
 	const url = new URL('/api/v1/blocks', firstHttpUrlForBinding(binding))
 	url.searchParams.set('limit', String(limit))
 	url.searchParams.set('order', 'desc')
@@ -459,7 +459,7 @@ export const getBlocks = (
 
 export const getBlock = (
 	hashOrNumber: string
-): Promise<HederaMirrorNodeBlock> => {
+) => {
 	if (!/^(?:\d{1,10}|(?:0x)?(?:[A-Fa-f0-9]{64}|[A-Fa-f0-9]{96}))$/.test(hashOrNumber))
 		throw new Error('HederaMirrorNode_Rest: invalid block selector')
 

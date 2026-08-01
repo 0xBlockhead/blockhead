@@ -22,7 +22,6 @@
 
 
 	// Components
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import IcpCanisterView from '$/views/IcpCanisterView.svelte'
 </script>
 
@@ -35,10 +34,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		ICP canister method
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -47,7 +42,6 @@
 					<IcpCanisterView
 						selection={select(EntityType.IcpCanister, selection.entitySelector.$canister)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -65,7 +65,6 @@
 			selection={select(EntityType.RssFeed, selection.entitySelector.$feed)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -81,7 +80,6 @@
 					<RssFeedView
 						selection={select(EntityType.RssFeed, selection.entitySelector.$feed)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

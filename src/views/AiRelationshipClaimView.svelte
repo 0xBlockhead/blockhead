@@ -49,10 +49,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.relationshipKind || 'AI relationship claim'}
-	{/snippet}
-
 	{#snippet Value()}
 		{[selection.entitySelector.subjectKind, selection.entitySelector.objectKind].filter(Boolean).join(' ') || selection.entitySelector.relationshipKind || titleFallback}
 	{/snippet}
@@ -138,7 +134,6 @@
 									selection={select(EntityType.AiDocument, aiDocument[EntityMetaKey.Selector])}
 									prefetched={aiDocument}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -158,7 +153,6 @@
 									selection={select(EntityType.AiDocumentClaim, aiDocumentClaim[EntityMetaKey.Selector])}
 									prefetched={aiDocumentClaim}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

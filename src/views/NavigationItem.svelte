@@ -2,7 +2,6 @@
 	// Types/constants
 	import type { NavigationItem } from '$/routes/NavigationItem.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { Snippet } from 'svelte'
 	import { SvelteMap } from 'svelte/reactivity'
 
 
@@ -15,13 +14,9 @@
 	let {
 		items,
 		currentPathname,
-		LabelSnippet,
 	}: {
 		items: NavigationItem[]
 		currentPathname?: string
-		LabelSnippet?: Snippet<[context?: {
-			node?: NavigationItem,
-		}]>
 	} = $props()
 
 
@@ -145,9 +140,7 @@
 						data-row="start inline"
 						data-row-item="flexible"
 					>
-						{#if LabelSnippet}
-							{@render LabelSnippet({ node })}
-						{:else if address.network}
+						{#if address.network}
 							<EntityId
 								entityType={EntityType.EvmNetworkAccount}
 								entitySelector={{
@@ -226,21 +219,17 @@
 						data-row="start inline"
 						data-row-item="flexible"
 					>
-						{#if LabelSnippet}
-							{@render LabelSnippet({ node })}
-						{:else}
-							{#if node.icon}
-								<Icon
-									{...navIconProps(node.icon)}
-									size="1em"
-								/>
-							{/if}
-
-							<SearchableText
-								text={node.title}
-								query={searchFilter}
+						{#if node.icon}
+							<Icon
+								{...navIconProps(node.icon)}
+								size="1em"
 							/>
 						{/if}
+
+						<SearchableText
+							text={node.title}
+							query={searchFilter}
+						/>
 					</span>
 
 					{#if node.tag || node.manualWatch}
@@ -278,48 +267,44 @@
 						data-row="start inline"
 						data-row-item="flexible"
 					>
-						{#if LabelSnippet}
-							{@render LabelSnippet({ node })}
-						{:else}
-							{#if address?.network}
-								<EntityId
-									entityType={EntityType.EvmNetworkAccount}
-									entitySelector={{
-										$network: {
-											caip2: {
-												namespace: 'eip155',
-												reference: String(address.network.chainId),
-											},
+						{#if address?.network}
+							<EntityId
+								entityType={EntityType.EvmNetworkAccount}
+								entitySelector={{
+									$network: {
+										caip2: {
+											namespace: 'eip155',
+											reference: String(address.network.chainId),
 										},
-										$actor: { address: address.address },
-									}}
-								>
-									{#snippet children()}
-										<TruncatedValue value={address.address} />
-									{/snippet}
-								</EntityId>
-							{:else if address}
-								<EntityId
-									entityType={EntityType.EvmAccount}
-									entitySelector={{ address: address.address }}
-								>
-									{#snippet children()}
-										<TruncatedValue value={address.address} />
-									{/snippet}
-								</EntityId>
-							{:else if node.icon}
-								<Icon
-									{...navIconProps(node.icon)}
-									size="1em"
-								/>
-							{/if}
+									},
+									$actor: { address: address.address },
+								}}
+							>
+								{#snippet children()}
+									<TruncatedValue value={address.address} />
+								{/snippet}
+							</EntityId>
+						{:else if address}
+							<EntityId
+								entityType={EntityType.EvmAccount}
+								entitySelector={{ address: address.address }}
+							>
+								{#snippet children()}
+									<TruncatedValue value={address.address} />
+								{/snippet}
+							</EntityId>
+						{:else if node.icon}
+							<Icon
+								{...navIconProps(node.icon)}
+								size="1em"
+							/>
+						{/if}
 
-							{#if !address}
-								<SearchableText
-									text={node.title}
-									query={searchFilter}
-								/>
-							{/if}
+						{#if !address}
+							<SearchableText
+								text={node.title}
+								query={searchFilter}
+							/>
 						{/if}
 					</span>
 

@@ -15,7 +15,6 @@ vi.mock('$/sources/Reddit/Rest/client.ts', () => ({
 }))
 
 import {
-	listPopularLinks,
 	listSubredditLinks,
 } from '$/sources/Reddit/Rest/queries.ts'
 
@@ -54,8 +53,9 @@ describe('Reddit OAuth listing requests', () => {
 	})
 
 	it('preserves the popular listing sort partition independently of pagination', async () => {
-		await listPopularLinks(
+		await listSubredditLinks(
 			{},
+			'popular',
 			25,
 			undefined,
 			'rising'

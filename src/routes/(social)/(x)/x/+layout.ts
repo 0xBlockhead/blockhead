@@ -13,7 +13,8 @@ export const load: LayoutLoad = ({ params }) => {
 		XNetworkSchema,
 		{
 			scope: 'XNetwork',
-		}
+		},
+		'Scope'
 	)
 	if (xNetworkScopeSelector instanceof arktype.errors)
 		error(404, 'Invalid XNetwork selector')

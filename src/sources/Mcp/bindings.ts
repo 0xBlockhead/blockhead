@@ -39,7 +39,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://registry.modelcontextprotocol.io/v0.1/servers',
-				origin: 'https://registry.modelcontextprotocol.io',
 				corsEnabled: false,
 			},
 		],
@@ -51,15 +50,8 @@ const bindings = [
 			SourceOperationGroup.RepositoryMetadata,
 		],
 		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.McpDeclared_Protocol]: typeof bindings[0]
-	readonly [Source.McpPackageRegistry_Rest]: typeof bindings[1]
-}>(bindings)
+export default indexSourceBindings(bindings)

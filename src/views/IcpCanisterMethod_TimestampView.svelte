@@ -37,10 +37,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		ICP canister method timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -49,7 +45,6 @@
 					<IcpCanisterMethodView
 						selection={select(EntityType.IcpCanisterMethod, selection.entitySelector.$method)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

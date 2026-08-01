@@ -20,7 +20,7 @@ export const getContractLookup = async ({
 }: {
 	chainId: number
 	address: `0x${string}`
-}): Promise<SourcifyContractLookup | null> => {
+}) => {
 	const json = await sourcifyGetJsonOrNull<SourcifyContractLookup>({
 		path: getContractLookupPath({
 			chainId,

@@ -11,7 +11,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['Farcaster profiles, channels, and casts: FID plus cast-hash identity with hub feeds from declared Farcaster sources.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.FarcasterNetwork> = $props()
@@ -26,7 +25,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.FarcasterNetwork}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {
@@ -43,6 +41,10 @@
 		>
 			{#snippet Title()}
 				{farcasterNetwork.protocolName || 'Farcaster'}
+			{/snippet}
+
+			{#snippet Value()}
+				Farcaster
 			{/snippet}
 		</EntityView>
 	{/snippet}

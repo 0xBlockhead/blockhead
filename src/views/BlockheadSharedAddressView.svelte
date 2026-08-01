@@ -62,7 +62,6 @@
 					prefetched={evmAccount}
 					href={null}
 					layout={EntityLayout.Title}
-					open={false}
 				/>
 			{/snippet}
 		</ResourceBoundary>
@@ -96,7 +95,6 @@
 								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 								prefetched={network}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -114,7 +112,6 @@
 								selection={select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector])}
 								prefetched={blockheadRoom}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -145,7 +142,6 @@
 								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 								prefetched={evmAccount}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

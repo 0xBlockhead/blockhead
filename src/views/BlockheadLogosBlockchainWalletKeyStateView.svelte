@@ -36,15 +36,10 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.publicKey || 'blockhead Logos blockchain wallet key state'}
-	{/snippet}
-
 	{#snippet Value()}
 		<BlockheadLogosBlockchainNodeStateView
 			selection={select(EntityType.BlockheadLogosBlockchainNodeState, selection.entitySelector.$nodeState)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -56,7 +51,6 @@
 					<BlockheadLogosBlockchainNodeStateView
 						selection={select(EntityType.BlockheadLogosBlockchainNodeState, selection.entitySelector.$nodeState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

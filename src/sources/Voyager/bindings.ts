@@ -1,35 +1,51 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
 const bindings = [
 	{
-		source: Source.Voyager_Rest,
+		source: Source.Voyager,
 		target: {
-			kind: SourceTargetKind.Global,
-			key: 'voyager-api',
+			kind: SourceTargetKind.NetworkSlug,
+			key: 'starknet',
 		},
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://{voyager-api-host}',
-				origin: 'https://{voyager-api-host}',
-				corsEnabled: false,
+				locator: 'https://api.voyager.online/beta',
+				corsEnabled: true,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
+		apiFamily: ApiFamily.OpenApiHttp,
 		operationGroups: [
 			SourceOperationGroup.GenericRead,
 		],
-		delivery: SourceDelivery.RemoteQuery,
+		delivery: SourceDelivery.HttpProxy,
 		credentials: [
 			{
-				scope: SourceCredentialScope.None,
+				scope: SourceCredentialScope.RuntimeSecret,
+			},
+		],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/Voyager/OpenApi/openapi.json',
+				generated: true,
+				officialUrl: 'https://docs.voyager.online/api-reference/openapi.json',
+			},
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/Voyager/OpenApi/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiTypes,
+				path: 'src/sources/Voyager/OpenApi/openapi.d.ts',
+				generated: true,
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Voyager_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

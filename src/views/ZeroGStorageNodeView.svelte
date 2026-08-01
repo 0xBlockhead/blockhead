@@ -16,7 +16,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -27,11 +26,11 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
-	import ZeroGDataChunksView from '$/views/ZeroGDataChunksView.svelte'
 	import ZeroGStorageProofsView from '$/views/ZeroGStorageProofsView.svelte'
 	import ZeroGStorageNode_TimestampsView from '$/views/ZeroGStorageNode_TimestampsView.svelte'
 </script>
@@ -41,15 +40,10 @@
 	entityType={EntityType.ZeroGStorageNode}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? 'zero g storage node'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		zero g storage node
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -58,7 +52,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -82,7 +75,6 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -140,29 +132,28 @@
 			{/snippet}
 
 			{#snippet SectionZeroGstorageNodeStoredChunks({ id, label, open })}
-				<ZeroGDataChunksView
-					selection={selection.$$storedChunks}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.ZeroGDataChunk}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No stored chunks.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$storedChunks()}
+				>
+					{#snippet Item({ item: zeroGDataChunk })}
+						<EntityView
+							entityType={EntityType.ZeroGDataChunk}
+							entitySelector={zeroGDataChunk[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionZeroGstorageNodeProofs({ id, label, open })}
 				<ZeroGStorageProofsView
 					selection={selection.$$proofs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No proofs.'
 					id={`${id}-list`}
@@ -194,12 +185,7 @@
 			{#snippet SectionZeroGstorageNodeTimestamps({ id, label, open })}
 				<ZeroGStorageNode_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No timestamps.'
 					id={`${id}-list`}

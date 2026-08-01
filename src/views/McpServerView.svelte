@@ -62,10 +62,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.serverKey || 'mcp server'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={mcpServer}>
 			{#snippet children(entity)}
@@ -114,7 +110,6 @@
 									selection={select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector])}
 									prefetched={blockheadSource}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -134,7 +129,6 @@
 									selection={select(EntityType.McpServerPackageVersion, mcpServerPackageVersion[EntityMetaKey.Selector])}
 									prefetched={mcpServerPackageVersion}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -210,12 +204,7 @@
 			{#snippet SectionMcpTools({ id, label, open })}
 				<McpToolsView
 					selection={selection.$$tools}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No MCP tools.'
 					id={`${id}-list`}
@@ -225,12 +214,7 @@
 			{#snippet SectionMcpPrompts({ id, label, open })}
 				<McpPromptsView
 					selection={selection.$$prompts}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No MCP prompts.'
 					id={`${id}-list`}
@@ -266,12 +250,7 @@
 			{#snippet SectionMcpResourceList({ id, label, open })}
 				<McpResourcesView
 					selection={selection.$$resources}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No MCP resources.'
 					id={`${id}-list`}
@@ -281,12 +260,7 @@
 			{#snippet SectionMcpResourceTemplates({ id, label, open })}
 				<McpResourceTemplatesView
 					selection={selection.$$resourceTemplates}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No MCP resource templates.'
 					id={`${id}-list`}
@@ -318,12 +292,7 @@
 			{#snippet SectionMcpServerObservations({ id, label, open })}
 				<McpServer_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No MCP server observations.'
 					id={`${id}-list`}

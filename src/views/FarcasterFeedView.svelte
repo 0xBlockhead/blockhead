@@ -181,7 +181,39 @@
 						selection={entriesResource}
 						countResource={entriesResource.count}
 						title='Entries'
-						href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/trending')}
+						href={
+							selection.entitySelector.variant === 'byUser'
+							&& 'fid' in selection.entitySelector ?
+								resolve(
+									'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/user/[userId=farcasterFid]',
+									{
+										userId: String(selection.entitySelector.fid),
+									}
+								)
+							:
+								selection.entitySelector.variant === 'byChannel'
+								&& 'channelId' in selection.entitySelector ?
+									resolve(
+										'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/channel/[channelId=stringSegment]',
+										{
+											channelId: selection.entitySelector.channelId,
+										}
+									)
+								:
+									selection.entitySelector.variant === 'following'
+									&& 'viewerFid' in selection.entitySelector ?
+										resolve(
+											'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/following/[userId=farcasterFid]',
+											{
+												userId: String(selection.entitySelector.viewerFid),
+											}
+										)
+									:
+										selection.entitySelector.variant === 'trending' ?
+											resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/trending')
+										:
+											undefined
+						}
 						id='entries'
 					/>
 				{/if}

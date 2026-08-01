@@ -1,40 +1,9 @@
-import type { components } from '$/sources/OpenSea/OpenApi/openapi.d.ts'
+import type { operations } from '$/sources/OpenSea/OpenApi/openapi.d.ts'
 
-export type OpenSeaChain = Exclude<
-	components['schemas']['ChainIdentifier'],
-	'flow' | 'solana'
->
+export type OpenSeaAccountNftsPath = operations['get_nfts_by_account']['parameters']['path']
+export type OpenSeaAccountNftsQuery = NonNullable<operations['get_nfts_by_account']['parameters']['query']>
+export type OpenSeaAccountNftsResponse = operations['get_nfts_by_account']['responses'][200]['content']['*/*']
 
-export type OpenSeaNft = components['schemas']['Nft']
-export type OpenSeaNftPage = components['schemas']['NftListResponse']
-
-type OpenSeaEventBase = {
-	event_timestamp: number
-	transaction?: string
-	chain: OpenSeaChain
-	nft?: OpenSeaNft
-	quantity: number
-}
-
-export type OpenSeaSaleEvent = OpenSeaEventBase & {
-	event_type: 'sale'
-	closing_date: number
-	seller: string
-	buyer: string
-}
-
-export type OpenSeaTransferEvent = OpenSeaEventBase & {
-	event_type: 'transfer' | 'mint'
-	transfer_type: string
-	from_address: string
-	to_address: string
-}
-
-export type OpenSeaAccountEvent =
-	| OpenSeaSaleEvent
-	| OpenSeaTransferEvent
-
-export type OpenSeaAccountEventPage = {
-	asset_events: OpenSeaAccountEvent[]
-	next?: string
-}
+export type OpenSeaAccountEventsPath = operations['list_events_by_account']['parameters']['path']
+export type OpenSeaAccountEventsQuery = NonNullable<operations['list_events_by_account']['parameters']['query']>
+export type OpenSeaAccountEventsResponse = operations['list_events_by_account']['responses'][200]['content']['*/*']

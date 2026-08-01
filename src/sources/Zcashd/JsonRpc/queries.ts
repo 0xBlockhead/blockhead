@@ -23,11 +23,11 @@ export const getBlockHash = ({
 	)
 }
 
-export const getBlock = async ({
+export const getBlock = ({
 	blockHash,
 }: {
 	blockHash: string
-}): Promise<ZcashBlock> => {
+}) => {
 	return jsonRpc2<ZcashBlock>(
 		binding,
 		'getblock',
@@ -38,11 +38,11 @@ export const getBlock = async ({
 	)
 }
 
-export const getRawTransaction = async ({
+export const getRawTransaction = ({
 	txId,
 }: {
 	txId: string
-}): Promise<ZcashTransaction> => {
+}) => {
 	return jsonRpc2<ZcashTransaction>(
 		binding,
 		'getrawtransaction',

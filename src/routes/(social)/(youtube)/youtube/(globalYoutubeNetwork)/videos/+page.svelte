@@ -38,8 +38,5 @@
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='observed-videos'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

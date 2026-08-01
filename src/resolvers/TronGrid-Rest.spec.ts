@@ -8,6 +8,11 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 
 vi.mock('$/sources/TronGrid/Rest/queries.ts', () => ({
+	getRestEndpoints: () => [{
+		url: 'https://api.trongrid.io',
+		transportType: 'Http',
+		providerName: 'TronGrid',
+	}],
 	getAccount: vi.fn().mockResolvedValue({
 		latest_opration_time: 1_720_000_000_123,
 	}),
@@ -27,6 +32,58 @@ vi.mock('$/sources/TronGrid/Rest/queries.ts', () => ({
 const { default: tronGridRest } = await import('$/resolvers/TronGrid-Rest.ts')
 
 describe('TronGrid REST network relationships', () => {
+	it('shares each network projection across exact CAIP-2 and slug applicability', async () => {
+		const pairedResolvers = tronGridRest.resolvers.filter((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& 'Caip2' in resolver.resolve
+			&& 'Slug' in resolver.resolve
+		))
+
+		expect(pairedResolvers).toHaveLength(4)
+		for (const resolver of pairedResolvers) {
+			if (!('Caip2' in resolver.resolve) || !('Slug' in resolver.resolve))
+				throw new Error('TronGrid paired network resolver is incomplete')
+
+			expect(resolver.resolve.Caip2.resolve).toBe(resolver.resolve.Slug.resolve)
+			expect(resolver.resolve.Caip2.appliesTo).toEqual([{
+				caip2: networkBySlug.tron.caip2,
+			}])
+			expect(resolver.resolve.Slug.appliesTo).toEqual([{
+				slug: networkBySlug.tron.slug,
+			}])
+		}
+
+		const endpointResolver = pairedResolvers.find((resolver) => (
+			'Tron' in resolver.projections
+			&& 'restEndpoints' in resolver.projections.Tron
+		))
+		if (
+			endpointResolver == null
+			|| !('Caip2' in endpointResolver.resolve)
+			|| !('Slug' in endpointResolver.resolve)
+		)
+			throw new Error('TronGrid endpoint resolver selector pair is missing')
+
+		const context = {
+			filters: [],
+			sorts: [],
+			pagination: {},
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		}
+		expect(
+			await endpointResolver.resolve.Caip2.resolve({
+				caip2: networkBySlug.tron.caip2,
+			}, context)
+		).toEqual(
+			await endpointResolver.resolve.Slug.resolve({
+				slug: networkBySlug.tron.slug,
+			}, context)
+		)
+	})
+
 	it('uses the upstream account observation clock', async () => {
 		const resolver = tronGridRest.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.TronAccount

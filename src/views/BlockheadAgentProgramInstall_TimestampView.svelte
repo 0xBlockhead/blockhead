@@ -75,7 +75,6 @@
 					<BlockheadAgentProgramInstallView
 						selection={select(EntityType.BlockheadAgentProgramInstall, selection.entitySelector.$install)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -36,9 +36,9 @@
 
 
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import AgentPaymentRequirement_TimestampsView from '$/views/AgentPaymentRequirement_TimestampsView.svelte'
 	import Eip8004AgentRegistrationFileView from '$/views/Eip8004AgentRegistrationFileView.svelte'
 	import McpServerView from '$/views/McpServerView.svelte'
 </script>
@@ -87,7 +87,6 @@
 					<Eip8004AgentRegistrationFileView
 						selection={select(EntityType.Eip8004AgentRegistrationFile, selection.entitySelector.$registrationFile)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -208,7 +207,6 @@
 									selection={select(EntityType.McpServer, mcpServer[EntityMetaKey.Selector])}
 									prefetched={mcpServer}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -225,12 +223,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<AgentPaymentRequirement_TimestampsView
-						selection={paymentRequirementsResource}
+					<EntitiesList
+						entityType={EntityType.AgentPaymentRequirement_Timestamp}
 						countResource={paymentRequirementsResource.count}
 						title='Payment requirements'
+						open={true}
 						id='payment-requirements'
-					/>
+						resource={paymentRequirementsResource()}
+					>
+						{#snippet Item({ item: agentPaymentRequirementTimestamp })}
+							<EntityView
+								entityType={EntityType.AgentPaymentRequirement_Timestamp}
+								entitySelector={agentPaymentRequirementTimestamp[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

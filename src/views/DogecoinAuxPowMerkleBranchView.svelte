@@ -43,15 +43,10 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.branchKind || 'dogecoin aux pow merkle branch'}
-	{/snippet}
-
 	{#snippet Value()}
 		<DogecoinBlockAuxPowView
 			selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -63,7 +58,6 @@
 					<DogecoinBlockAuxPowView
 						selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

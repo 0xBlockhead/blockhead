@@ -39,10 +39,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		TON message
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -56,7 +52,6 @@
 								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 								prefetched={network}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -94,7 +89,6 @@
 									selection={select(EntityType.TonTransaction, tonTransaction[EntityMetaKey.Selector])}
 									prefetched={tonTransaction}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -375,7 +369,6 @@
 									selection={select(EntityType.TonTrace, tonTrace[EntityMetaKey.Selector])}
 									prefetched={tonTrace}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -395,7 +388,6 @@
 									selection={select(EntityType.TonTransaction, tonTransaction[EntityMetaKey.Selector])}
 									prefetched={tonTransaction}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

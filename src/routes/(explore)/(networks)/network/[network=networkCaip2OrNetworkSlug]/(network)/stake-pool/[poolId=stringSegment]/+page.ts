@@ -21,7 +21,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			poolId: params.poolId,
-		}
+		},
+		'NetworkPoolId'
 	)
 	if (cardanoStakePoolNetworkPoolIdSelector instanceof arktype.errors)
 		error(404, 'Invalid CardanoStakePool selector')

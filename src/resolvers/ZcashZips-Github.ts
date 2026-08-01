@@ -1,6 +1,6 @@
 import {
-	ProposalCategory as OwnedProposalCategory,
-	SpecificationRealm as OwnedSpecificationRealm,
+	ProposalCategory,
+	SpecificationRealm,
 } from '$/constants/SpecificationProposal.ts'
 import {
 	defineResolver,
@@ -15,36 +15,6 @@ const zipMetadataValue = (text: string, key: string) => (
 	new RegExp(`^:${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim()
 )
 
-const githubZipProposalIndexRows = async (
-	data: {
-		type: string
-		name: string
-	}[]
-) => {
-	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-	return data
-		.flatMap((githubContent) => {
-			const proposalNumberRaw = (
-				githubContent.type === 'file' ?
-					regex('^zip-(?<proposalNumber>\\d{4})\\.rst$').exec(githubContent.name)?.groups.proposalNumber
-				:
-					null
-			)
-			return proposalNumberRaw == null ?
-				[]
-			:
-				[
-					{
-						[EntityMetaKey.Selector]: {
-							realm: SpecificationRealm.Zcash,
-							category: ProposalCategory.Zip,
-							number: parseInt(proposalNumberRaw, 10),
-						},
-					},
-				]
-		})
-}
-
 export default {
 	source: Source.ZcashZips_Github,
 
@@ -55,35 +25,36 @@ export default {
 				RealmCategoryNumber: {
 					appliesTo: [
 						{
-							realm: OwnedSpecificationRealm.Zcash,
-							category: OwnedProposalCategory.Zip,
+							realm: SpecificationRealm.Zcash,
+							category: ProposalCategory.Zip,
 						},
 					],
 					resolve: async ({ category, number, realm }) => {
-					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-					const { getProposalRstText } = await import('$/sources/ZcashZips/Github/queries.ts')
-					if (realm !== SpecificationRealm.Zcash || category !== ProposalCategory.Zip) {
-						throw new Error('ZcashZips_Github: proposal resolver only supports Zcash ZIPs')
-					}
-					const text = await getProposalRstText({
-						number: number,
-					})
-					if (text.trim() === '') throw new Error('ZcashZips_Github: empty proposal text')
-					return {
-						documentCategory: zipMetadataValue(text, 'Category'),
-						documentTitle: zipMetadataValue(text, 'Title'),
-						documentStatus: zipMetadataValue(text, 'Status'),
-						documentBody: text,
-					}
+						const { getProposalRstText } = await import('$/sources/ZcashZips/Github/queries.ts')
+						if (realm !== SpecificationRealm.Zcash || category !== ProposalCategory.Zip)
+							throw new Error('ZcashZips_Github: proposal resolver only supports Zcash ZIPs')
+
+						const text = await getProposalRstText({
+							number,
+						})
+						if (text.trim() === '')
+							throw new Error('ZcashZips_Github: empty proposal text')
+
+						return {
+							documentCategory: zipMetadataValue(text, 'Category'),
+							documentTitle: zipMetadataValue(text, 'Title'),
+							documentStatus: zipMetadataValue(text, 'Status'),
+							documentBody: text,
+						}
+					},
 				},
-				}
-			}
+			},
 		})({
-			documentCategory: (snapshot) => snapshot.documentCategory,
-			documentTitle: (snapshot) => snapshot.documentTitle,
-			documentStatus: (snapshot) => snapshot.documentStatus,
-			documentBody: (snapshot) => snapshot.documentBody,
-		}),
+				documentCategory: (snapshot) => snapshot.documentCategory,
+				documentTitle: (snapshot) => snapshot.documentTitle,
+				documentStatus: (snapshot) => snapshot.documentStatus,
+				documentBody: (snapshot) => snapshot.documentBody,
+			}),
 
 		defineResolver(Source.ZcashZips_Github, {
 			entityType: EntityType._Global,
@@ -91,12 +62,32 @@ export default {
 				Scope: {
 					resolve: async () => {
 						const { getContents } = await import('$/sources/ZcashZips/Github/queries.ts')
-						return githubZipProposalIndexRows(await getContents())
+						return (await getContents())
+							.flatMap((githubContent) => {
+								const proposalNumberRaw = (
+									githubContent.type === 'file' ?
+										regex('^zip-(?<proposalNumber>\\d{4})\\.rst$').exec(githubContent.name)?.groups.proposalNumber
+									:
+										null
+								)
+								return proposalNumberRaw == null ?
+									[]
+								:
+									[
+										{
+											[EntityMetaKey.Selector]: {
+												realm: SpecificationRealm.Zcash,
+												category: ProposalCategory.Zip,
+												number: parseInt(proposalNumberRaw, 10),
+											},
+										},
+									]
+							})
 					},
-				}
-			}
+				},
+			},
 		})({
-			$$proposals: (snapshot) => snapshot,
-		}),
+				$$proposals: (snapshot) => snapshot,
+			}),
 	],
 }

@@ -2,15 +2,13 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import BlockheadRoomPeersView from '$/views/BlockheadRoomPeersView.svelte'
 	import BlockheadRoomsView from '$/views/BlockheadRoomsView.svelte'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
 
 
 	// Components

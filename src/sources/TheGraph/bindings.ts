@@ -15,7 +15,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://gateway.thegraph.com/api/subgraphs/id/5XqPmWe6gjyrJtFn9cLy237i4cWw2j9HcUJEXsP5qGtH',
-				origin: 'https://gateway.thegraph.com',
 				corsEnabled: false,
 			},
 		],
@@ -31,26 +30,20 @@ const bindings = [
 				env: arktype({
 					'PUBLIC_THEGRAPH_API_KEY': 'string',
 				}),
-				keys: [
-					'PUBLIC_THEGRAPH_API_KEY',
-				],
 			},
 		],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.GraphqlSchema,
 				path: 'src/sources/TheGraph/Graphql/Ens/schema.graphql',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.GraphqlSchema,
 				path: 'src/sources/TheGraph/Graphql/Ens/schema.patch.graphql',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/TheGraph/Graphql/Ens/schema-source.ts',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.GraphqlTypes,
@@ -61,4 +54,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.TheGraph_Graphql]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

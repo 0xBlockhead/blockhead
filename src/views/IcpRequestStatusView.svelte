@@ -37,10 +37,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		ICP request status
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -49,7 +45,6 @@
 					<IcpNetworkView
 						selection={select(EntityType.IcpNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -73,7 +68,6 @@
 									selection={select(EntityType.IcpCanister, icpCanister[EntityMetaKey.Selector])}
 									prefetched={icpCanister}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

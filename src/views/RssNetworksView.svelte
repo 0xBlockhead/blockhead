@@ -11,7 +11,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['RSS and Atom syndication feeds publish ordered item streams keyed by feed URL.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.RssNetwork> = $props()
@@ -26,7 +25,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.RssNetwork}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {
@@ -49,6 +47,10 @@
 		>
 			{#snippet Title()}
 				{rssNetwork.protocolName || 'RSS / Atom'}
+			{/snippet}
+
+			{#snippet Value()}
+				RSS / Atom
 			{/snippet}
 		</EntityView>
 	{/snippet}

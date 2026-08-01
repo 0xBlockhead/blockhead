@@ -62,7 +62,6 @@
 					<Erc4626VaultView
 						selection={select(EntityType.Erc4626Vault, selection.entitySelector.$vault)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

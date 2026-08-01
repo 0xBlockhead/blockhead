@@ -48,13 +48,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			{
 				$network: parentData.selector,
 				indexInNetwork: Number(params.validatorId),
-			}
+			},
+			'NetworkIndexInNetwork'
 		)
-		if (
-			!(beaconValidatorNetworkIndexInNetworkSelector instanceof arktype.errors)
-			&& '$network' in beaconValidatorNetworkIndexInNetworkSelector
-			&& 'indexInNetwork' in beaconValidatorNetworkIndexInNetworkSelector
-		)
+		if (!(beaconValidatorNetworkIndexInNetworkSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.BeaconValidator,
 				selectorName: 'NetworkIndexInNetwork',
@@ -75,13 +72,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			{
 				$network: parentData.selector,
 				votePubkey: params.validatorId,
-			}
+			},
+			'NetworkVotePubkey'
 		)
-		if (
-			!(solanaValidatorNetworkVotePubkeySelector instanceof arktype.errors)
-			&& '$network' in solanaValidatorNetworkVotePubkeySelector
-			&& 'votePubkey' in solanaValidatorNetworkVotePubkeySelector
-		)
+		if (!(solanaValidatorNetworkVotePubkeySelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.SolanaValidator,
 				selectorName: 'NetworkVotePubkey',

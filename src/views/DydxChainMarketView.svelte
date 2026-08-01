@@ -23,8 +23,8 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.DydxIndexer_Rest,
-			Source.DydxValidator_Rest,
+			Source.DydxIndexer,
+			Source.KingnodesDydxNode,
 		],
 	}))
 	const dydxChainMarket = $derived(viewSelection({
@@ -51,10 +51,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.ticker || 'dydx chain market'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={dydxChainMarket}>
 			{#snippet children(entity)}
@@ -84,7 +80,6 @@
 					<DydxChainNetworkView
 						selection={select(EntityType.DydxChainNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

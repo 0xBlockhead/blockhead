@@ -85,7 +85,6 @@
 					<BlockheadLitecoinMwebOutputStateView
 						selection={select(EntityType.BlockheadLitecoinMwebOutputState, selection.entitySelector.$outputState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

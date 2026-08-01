@@ -40,8 +40,5 @@
 		title='Contracts'
 		selection={select(EntityType.Network, data.selector).Evm.$$contracts}
 		id='contracts'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

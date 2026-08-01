@@ -40,8 +40,5 @@
 		title='Precompiles'
 		selection={select(EntityType.Network, data.selector).Evm.$$precompiles}
 		id='precompiles'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

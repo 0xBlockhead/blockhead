@@ -57,9 +57,10 @@ export enum WireProtocol {
 
 export enum ApiFamily {
 	AcpProtocol = 'AcpProtocol',
+	AlgodRestApi = 'AlgodRestApi',
+	AlgorandIndexerRestApi = 'AlgorandIndexerRestApi',
 	ArweaveGateway = 'ArweaveGateway',
 	AtprotoSync = 'AtprotoSync',
-	AvailExplorerApi = 'AvailExplorerApi',
 	BitcoinJsonRpc = 'BitcoinJsonRpc',
 	BitTorrentClient = 'BitTorrentClient',
 	BitTorrentDht = 'BitTorrentDht',
@@ -70,7 +71,6 @@ export enum ApiFamily {
 	CelestiaNodeJsonRpc = 'CelestiaNodeJsonRpc',
 	CertifiedHttpGateway = 'CertifiedHttpGateway',
 	CosmosLcdApi = 'CosmosLcdApi',
-	DydxIndexerRest = 'DydxIndexerRest',
 	EthereumBeaconRest = 'EthereumBeaconRest',
 	EtherscanModuleAction = 'EtherscanModuleAction',
 	EnvioHyperSyncApi = 'EnvioHyperSyncApi',
@@ -92,6 +92,7 @@ export enum ApiFamily {
 	KaspaWrpcApi = 'KaspaWrpcApi',
 	LocalParser = 'LocalParser',
 	LocalStateStore = 'LocalStateStore',
+	MetaplexDasJsonRpc = 'MetaplexDasJsonRpc',
 	McpProtocol = 'McpProtocol',
 	MoneroDaemonJsonRpc = 'MoneroDaemonJsonRpc',
 	NostrRelay = 'NostrRelay',
@@ -101,7 +102,6 @@ export enum ApiFamily {
 	PrometheusText = 'PrometheusText',
 	RestJson = 'RestJson',
 	RosettaApi = 'RosettaApi',
-	SigstoreRekorApi = 'SigstoreRekorApi',
 	SolanaJsonRpc = 'SolanaJsonRpc',
 	SourcifyRestV2 = 'SourcifyRestV2',
 	SqdPortalStream = 'SqdPortalStream',
@@ -164,7 +164,6 @@ export enum SourceDelivery {
 
 export enum SourceCredentialScope {
 	LocalSecret = 'LocalSecret',
-	None = 'None',
 	PublicConfig = 'PublicConfig',
 	RuntimeSecret = 'RuntimeSecret',
 	UserDelegated = 'UserDelegated',
@@ -202,14 +201,25 @@ export type SourceTarget =
 export type SourceEndpoint = {
 	endpointKind: SourceEndpointKind
 	locator: string
-	origin?: string
 	corsEnabled?: boolean
 }
+
+export const sourceEndpointOrigin = ({
+	endpointKind,
+	locator,
+}: SourceEndpoint) => (
+	endpointKind === SourceEndpointKind.HttpUrl
+	&& !locator.startsWith('env:')
+	&& URL.canParse(locator) ?
+		new URL(locator).origin
+	:
+		undefined
+)
 
 type SourceArtifactBase = {
 	kind: SourceArtifactKind
 	path: string
-	generated: boolean
+	generated?: true
 }
 
 export type SourceArtifact =
@@ -224,11 +234,17 @@ export type SourceArtifact =
 		referenceUrl?: never
 	}
 
-export type SourceCredentialRequirement = {
-	scope: SourceCredentialScope
-	env?: Type<SourcePublicEnv>
-	keys?: readonly string[]
-}
+export type SourceCredentialRequirement =
+	| {
+		scope: SourceCredentialScope.PublicConfig
+		env?: Type<SourcePublicEnv>
+		keys?: never
+	}
+	| {
+		scope: Exclude<SourceCredentialScope, SourceCredentialScope.PublicConfig>
+		env?: Type<SourcePublicEnv>
+		keys?: readonly string[]
+	}
 
 export type SourceServerCredentialInjection =
 	| {
@@ -298,14 +314,50 @@ export type SourceBindingIndex = {
 		| readonly SourceBinding<_Source>[]
 }
 
-export const indexSourceBindings = <
-	_Index extends SourceBindingIndex,
+type SourceBindingsFor<
+	_Bindings extends readonly SourceBinding[],
+	_Source extends Source,
+	_Matches extends readonly SourceBinding[] = [],
+> = number extends _Bindings['length'] ?
+	readonly Extract<_Bindings[number], SourceBinding<_Source>>[]
+: _Bindings extends readonly [
+	infer _Binding extends SourceBinding,
+	...infer _Remaining extends readonly SourceBinding[],
+] ?
+	SourceBindingsFor<
+		_Remaining,
+		_Source,
+		_Binding['source'] extends _Source ?
+			readonly [..._Matches, _Binding]
+		:
+			_Matches
+	>
+:
+	_Matches extends readonly [infer _Binding extends SourceBinding] ?
+		_Binding
+	:
+		_Matches
+
+type SourceBindingIndexFrom<
+	_Bindings extends readonly SourceBinding[],
+> = {
+	readonly [_Source in _Bindings[number]['source']]:
+		SourceBindingsFor<_Bindings, _Source>
+}
+
+export function indexSourceBindings<
+	const _Bindings extends readonly SourceBinding[],
 >(
+	bindings: _Bindings
+): SourceBindingIndexFrom<_Bindings>
+export function indexSourceBindings(
 	bindings: readonly SourceBinding[]
-) => Object.fromEntries(
-	Object.entries(Object.groupBy(bindings, ({ source }) => source))
-		.map(([source, sourceBindings]) => [
-			source,
-			sourceBindings.length === 1 ? sourceBindings[0] : sourceBindings,
-		])
-) as _Index
+): SourceBindingIndex {
+	return Object.fromEntries(
+		Object.entries(Object.groupBy(bindings, ({ source }) => source))
+			.map(([source, sourceBindings]) => [
+				source,
+				sourceBindings.length === 1 ? sourceBindings[0] : sourceBindings,
+			])
+	)
+}

@@ -18,6 +18,18 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]',
+			{
+				network: params.network,
+				transactionId: params.transactionId,
+				instructionKind: params.instructionKind,
+				indexInTransaction: params.indexInTransaction,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -28,32 +40,12 @@
 
 {#key [params.network, params.transactionId, params.instructionKind, params.indexInTransaction].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]',
-				{
-					network: params.network,
-					transactionId: params.transactionId,
-					instructionKind: params.instructionKind,
-					indexInTransaction: params.indexInTransaction,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<SolanaInstructionView
 				selection={select(EntityType.SolanaInstruction, data.selector)}
-				href={
-					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]',
-						{
-							network: params.network,
-							transactionId: params.transactionId,
-							instructionKind: params.instructionKind,
-							indexInTransaction: params.indexInTransaction,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

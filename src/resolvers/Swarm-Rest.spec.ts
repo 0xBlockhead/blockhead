@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import bindings from '$/sources/Swarm/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -35,13 +36,14 @@ describe('Swarm access timestamp resolver', () => {
 			.mockResolvedValueOnce({ ok: true })
 			.mockResolvedValueOnce({ ok: true })
 
-		await expect(resolveAccessTimestamp({
+		const snapshot = await resolveAccessTimestamp({
 			$hub: {
 				scope: '_GlobalSwarmAccess',
 			},
 			timestampMs: 1_750_000_000_000,
 			source: Source.Swarm_Rest,
-		}, {})).resolves.toEqual({
+		})
+		expect(snapshot).toEqual({
 			$hub: {
 				scope: '_GlobalSwarmAccess',
 			},
@@ -50,6 +52,11 @@ describe('Swarm access timestamp resolver', () => {
 			declaredAccessEndpointCount: 2,
 			reachableAccessEndpointCount: 2,
 			reachable: true,
+		})
+		expect(accessTimestampResolver.projections.$hub(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				scope: '_GlobalSwarmAccess',
+			},
 		})
 		expect(corsFetch).toHaveBeenCalledTimes(2)
 		expect(corsFetch.mock.calls.map(([url]) => url)).toEqual(
@@ -68,7 +75,7 @@ describe('Swarm access timestamp resolver', () => {
 			},
 			timestampMs: 1_750_000_000_001,
 			source: Source.Swarm_Rest,
-		}, {})).resolves.toMatchObject({
+		})).resolves.toMatchObject({
 			declaredAccessEndpointCount: 2,
 			reachableAccessEndpointCount: 0,
 			reachable: false,
@@ -82,7 +89,7 @@ describe('Swarm access timestamp resolver', () => {
 			},
 			timestampMs: 1_750_000_000_002,
 			source: Source.Constants_Internal,
-		}, {})).rejects.toThrow('unsupported source')
+		})).rejects.toThrow('unsupported source')
 
 		expect(corsFetch).not.toHaveBeenCalled()
 	})

@@ -76,7 +76,6 @@
 					<BlockheadWalletRequestView
 						selection={select(EntityType.BlockheadWalletRequest, selection.entitySelector.$walletRequest)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

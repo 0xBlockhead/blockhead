@@ -52,10 +52,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.toolCallId || 'ACP tool call'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={acpToolCall}>
 			{#snippet children(entity)}
@@ -85,7 +81,6 @@
 					<AcpPromptTurnView
 						selection={select(EntityType.AcpPromptTurn, selection.entitySelector.$promptTurn)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

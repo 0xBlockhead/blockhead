@@ -1,7 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
 const bindings = [
 	{
@@ -14,13 +14,11 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://arweave.net',
-				origin: 'https://arweave.net',
 				corsEnabled: true,
 			},
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://ar-io.net',
-				origin: 'https://ar-io.net',
 				corsEnabled: true,
 			},
 		],
@@ -30,16 +28,11 @@ const bindings = [
 			SourceOperationGroup.ContentGatewayRead,
 		],
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/Arweave/Rest/types.ts',
-				generated: false,
 			},
 		],
 	},
@@ -53,7 +46,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://arweave.net/graphql',
-				origin: 'https://arweave.net',
 				corsEnabled: true,
 			},
 		],
@@ -63,15 +55,25 @@ const bindings = [
 			SourceOperationGroup.GenericRead,
 		],
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
+		credentials: [],
+		artifacts: [
 			{
-				scope: SourceCredentialScope.None,
+				kind: SourceArtifactKind.GraphqlSchema,
+				path: 'src/sources/Arweave/Graphql/schema.graphql',
+				generated: true,
+				officialUrl: 'https://arweave.net/graphql',
+			},
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/Arweave/Graphql/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.GraphqlTypes,
+				path: 'src/sources/Arweave/Graphql/graphql-env.d.ts',
+				generated: true,
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.Arweave_Rest]: typeof bindings[0]
-	readonly [Source.Arweave_Graphql]: typeof bindings[1]
-}>(bindings)
+export default indexSourceBindings(bindings)

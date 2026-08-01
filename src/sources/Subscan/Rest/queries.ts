@@ -93,20 +93,10 @@ export const listAccountExtrinsics = async ({
 		throw new Error('Subscan account ID must not be empty')
 	if (!Number.isSafeInteger(page) || page < 0)
 		throw new Error('Subscan extrinsic page must be a nonnegative safe integer')
-	if (!Number.isSafeInteger(row) || row < 0 || row > 100)
-		throw new Error('Subscan extrinsic row limit must be a safe integer from 0 through 100')
+	if (!Number.isSafeInteger(row) || row < 1 || row > 100)
+		throw new Error('Subscan extrinsic row limit must be a safe integer from 1 through 100')
 	if (!Number.isSafeInteger(page * row))
 		throw new Error('Subscan extrinsic page offset must be a safe integer')
-	if (row === 0)
-		return {
-			extrinsics: [],
-			pagination: {
-				page,
-				row,
-				offset: 0,
-				count: 0,
-			},
-		}
 
 	const response = await post<SubscanExtrinsicList>({
 		path: '/api/scan/extrinsics',
@@ -151,25 +141,13 @@ export const listAccountExtrinsics = async ({
 		extrinsicIdentities.add(extrinsic.extrinsic_index)
 	}
 
-	const offset = page * row
 	if (
 		response.data.extrinsics.length > 0
-		&& offset + response.data.extrinsics.length > response.data.count
+		&& page * row + response.data.extrinsics.length > response.data.count
 	)
 		throw new Error('Subscan account extrinsics exceeded its reported count')
 
-	return {
-		extrinsics: response.data.extrinsics,
-		pagination: {
-			page,
-			row,
-			offset,
-			count: response.data.count,
-			...((page + 1) * row < response.data.count && {
-				nextPage: page + 1,
-			}),
-		},
-	}
+	return response
 }
 
 export const getReferendum = ({
@@ -208,8 +186,8 @@ export const listReferenda = async ({
 }) => {
 	if (!Number.isSafeInteger(page) || page < 0)
 		throw new Error('Subscan referendum page must be a nonnegative safe integer')
-	if (!Number.isSafeInteger(row) || row < 0 || row > 100)
-		throw new Error('Subscan referendum row limit must be a safe integer from 0 through 100')
+	if (!Number.isSafeInteger(row) || row < 1 || row > 100)
+		throw new Error('Subscan referendum row limit must be a safe integer from 1 through 100')
 	if (!Number.isSafeInteger(page * row))
 		throw new Error('Subscan referendum page offset must be a safe integer')
 	if (status === '')
@@ -222,17 +200,6 @@ export const listReferenda = async ({
 		throw new Error('Subscan referendum status filters are ambiguous')
 
 	const distinctStatuses = statuses == null ? undefined : [...new Set(statuses)]
-	if (row === 0)
-		return {
-			referenda: [],
-			pagination: {
-				page,
-				row,
-				offset: 0,
-				count: 0,
-			},
-		}
-
 	const response = await post<SubscanReferendumList>({
 		path: '/api/scan/referenda/referendums',
 		body: {
@@ -263,20 +230,11 @@ export const listReferenda = async ({
 		referendumIndexes.add(referendum.referendum_index)
 	}
 
-	const offset = page * row
-	if (response.data.list.length > 0 && offset + response.data.list.length > response.data.count)
+	if (
+		response.data.list.length > 0
+		&& page * row + response.data.list.length > response.data.count
+	)
 		throw new Error('Subscan referendum list exceeded its reported count')
 
-	return {
-		referenda: response.data.list,
-		pagination: {
-			page,
-			row,
-			offset,
-			count: response.data.count,
-			...((page + 1) * row < response.data.count && {
-				nextPage: page + 1,
-			}),
-		},
-	}
+	return response
 }

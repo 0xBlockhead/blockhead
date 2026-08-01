@@ -13,7 +13,8 @@ export const load: LayoutLoad = ({ params }) => {
 		_GlobalRedditNetworkSchema,
 		{
 			scope: '_GlobalRedditNetwork',
-		}
+		},
+		'Scope'
 	)
 	if (globalRedditNetworkScopeSelector instanceof arktype.errors)
 		error(404, 'Invalid _GlobalRedditNetwork selector')

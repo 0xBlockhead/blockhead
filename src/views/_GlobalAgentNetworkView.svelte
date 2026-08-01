@@ -11,7 +11,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -37,15 +36,10 @@
 	entityType={EntityType._GlobalAgentNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? 'global agent network'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		global agent network
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -133,12 +127,7 @@
 			{#snippet SectionAgentAcpPrograms({ id, label, open })}
 				<AcpAgentProgramsView
 					selection={selection.$$acpPrograms}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No ACP programs.'
 					id={`${id}-list`}
@@ -148,12 +137,7 @@
 			{#snippet SectionAgentA2aCards({ id, label, open })}
 				<A2aAgentCardsView
 					selection={selection.$$a2aCards}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No A2A cards.'
 					id={`${id}-list`}
@@ -163,12 +147,7 @@
 			{#snippet SectionAgentMcpServers({ id, label, open })}
 				<McpServersView
 					selection={selection.$$mcpServers}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No MCP servers.'
 					id={`${id}-list`}
@@ -204,12 +183,7 @@
 			{#snippet SectionAgentEip8004({ id, label, open })}
 				<Eip8004AgentRegistrationsView
 					selection={selection.$$eip8004Registrations}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No EIP-8004 registrations.'
 					id={`${id}-list`}
@@ -219,12 +193,7 @@
 			{#snippet SectionAgentBlockheadProfiles({ id, label, open })}
 				<BlockheadAgentProfilesView
 					selection={selection.$$blockheadProfiles}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Blockhead agent profiles.'
 					id={`${id}-list`}
@@ -256,12 +225,7 @@
 			{#snippet SectionAgentHubObservations({ id, label, open })}
 				<GlobalAgentNetwork_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No agent network observations.'
 					id={`${id}-list`}

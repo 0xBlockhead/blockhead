@@ -53,10 +53,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.authenticationId || 'blockhead wallet authentication'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadWalletAuthentication}>
 			{#snippet children(entity)}
@@ -86,7 +82,6 @@
 									selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector])}
 									prefetched={blockheadWalletConnection}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -106,7 +101,6 @@
 									selection={select(EntityType.Account, account[EntityMetaKey.Selector])}
 									prefetched={account}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

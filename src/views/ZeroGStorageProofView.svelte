@@ -51,15 +51,10 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.proofId || 'zero g storage proof'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ZeroGStorageNodeView
 			selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -84,7 +79,6 @@
 					<ZeroGStorageNodeView
 						selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -148,7 +142,6 @@
 									selection={select(EntityType.ZeroGDataBlob, zeroGDataBlob[EntityMetaKey.Selector])}
 									prefetched={zeroGDataBlob}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -168,7 +161,6 @@
 									selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector])}
 									prefetched={zeroGConsensusNetwork}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

@@ -8,7 +8,10 @@
  */
 
 import { throwHttpError } from '$/lib/http.ts'
-import { sourceFetch } from '$/sources/_runtime/http.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/ThreeXpl/bindings.ts'
 import type {
@@ -18,7 +21,12 @@ import type {
 	ThreeXplServer,
 } from '$/sources/ThreeXpl/Rest/types.ts'
 
-const binding = bindings[Source.ThreeXpl_Rest]
+const bindingByServer = Object.fromEntries(
+	bindings[Source.ThreeXpl_Rest].map((binding) => ([
+		binding.target.key,
+		binding,
+	] as const))
+)
 
 export const threeXplUrl = ({
 	pathSegments = [],
@@ -30,21 +38,19 @@ export const threeXplUrl = ({
 	searchParams?: Record<string, ThreeXplSearchParamValue>
 	repeatedSearchParams?: Record<string, readonly ThreeXplSearchParamScalar[] | undefined>
 	server?: ThreeXplServer
-}): string => {
-	const endpoint = binding.endpoints[server === 'production' ? 1 : 0]
-
+}) => {
 	const url = new URL(
 		pathSegments
 			.map((pathSegment) => encodeURIComponent(pathSegment))
 			.join('/'),
-		`${endpoint.locator}/`
+		`${firstHttpUrlForBinding(bindingByServer[server])}/`
 	)
 	for (const [key, value] of Object.entries(searchParams ?? {})) {
 		if (value == null) continue
 		url.searchParams.set(key, String(value))
 	}
 	for (const [key, values] of Object.entries(repeatedSearchParams ?? {})) {
-		for (const value of values ) {
+		for (const value of values) {
 			url.searchParams.append(key, String(value))
 		}
 	}
@@ -61,14 +67,15 @@ export const threeXplGetJson = async <T>({
 	searchParams?: Record<string, ThreeXplSearchParamValue>
 	repeatedSearchParams?: Record<string, readonly ThreeXplSearchParamScalar[] | undefined>
 	options?: ThreeXplClientOptions
-}): Promise<T> => {
+}) => {
+	const server = options?.server ?? 'sandbox'
 	const response = await sourceFetch(
-		binding,
+		bindingByServer[server],
 		threeXplUrl({
 			pathSegments,
 			searchParams,
 			repeatedSearchParams,
-			server: options?.server,
+			server,
 		}),
 		(options?.token != null && options.token !== '' ?
 			{

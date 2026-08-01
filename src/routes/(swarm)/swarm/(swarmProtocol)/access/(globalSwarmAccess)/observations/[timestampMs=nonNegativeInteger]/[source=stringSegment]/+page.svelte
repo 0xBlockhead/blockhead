@@ -15,29 +15,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType._GlobalSwarmAccess_Timestamp, {
-		$hub: {
-			scope: '_GlobalSwarmAccess',
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [({
-			$hub: {
-				scope: '_GlobalSwarmAccess',
-			},
-			timestampMs: Number(params.timestampMs),
-			source: params.source,
-		}).source],
-		fields: {
-			declaredAccessEndpointCount: true,
-			reachableAccessEndpointCount: true,
-			observedResourceCount: true,
-			seededExampleCount: true,
-			reachable: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -52,6 +29,29 @@
 
 <Page>
 	<GlobalSwarmAccess_TimestampView
-		selection={pageSelection}
+		selection={
+			select(EntityType._GlobalSwarmAccess_Timestamp, {
+				$hub: {
+					scope: '_GlobalSwarmAccess',
+				},
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [({
+					$hub: {
+						scope: '_GlobalSwarmAccess',
+					},
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}).source],
+				fields: {
+					declaredAccessEndpointCount: true,
+					reachableAccessEndpointCount: true,
+					observedResourceCount: true,
+					seededExampleCount: true,
+					reachable: true,
+				},
+			})
+		}
 	/>
 </Page>

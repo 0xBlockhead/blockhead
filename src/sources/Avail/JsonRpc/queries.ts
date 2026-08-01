@@ -1,12 +1,12 @@
 import { type as arktype } from 'arktype'
 
+import {
+	resolveEnvLocator,
+	type SourcePublicEnv,
+} from '$/sources/$sources.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
-import type {
-	AvailHeader,
-	AvailNetworkIdentity,
-	AvailRuntimeVersion,
-} from '$/sources/Avail/JsonRpc/types.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Avail/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 const mainnetChainName = 'Avail DA Mainnet'
@@ -24,35 +24,31 @@ const headerWire = arktype({
 	},
 })
 
-const runtimeVersionWire = arktype({
-	specName: 'string',
-	implName: 'string',
-	authoringVersion: 'number.integer >= 0',
-	specVersion: 'number.integer >= 0',
-	implVersion: 'number.integer >= 0',
-	transactionVersion: 'number.integer >= 0',
-	stateVersion: 'number.integer >= 0',
-})
+const binding = bindings[Source.Avail]
 
 const request = <_Result extends JsonValue>(
-	binding: SourceBinding,
+	publicEnv: SourcePublicEnv,
 	method: string,
 	params: readonly JsonValue[] = []
-) => {
-	return jsonRpc2<_Result>(binding, method, params)
-}
+) => jsonRpc2<_Result>({
+	...binding,
+	endpoints: binding.endpoints.map((endpoint) => ({
+		...endpoint,
+		locator: resolveEnvLocator(endpoint.locator, publicEnv),
+	})),
+}, method, params)
 
 const assertHash = (
 	hash: string,
 	label: string
 ) => {
 	if (!hashPattern.test(hash))
-		throw new Error(`Avail_JsonRpc: invalid ${label}`)
+		throw new Error(`Avail: invalid ${label}`)
 }
 
 const assertBlockNumber = (blockNumber: bigint) => {
 	if (blockNumber < 0n || blockNumber > 4_294_967_295n)
-		throw new Error('Avail_JsonRpc: block number must be an unsigned 32-bit integer')
+		throw new Error('Avail: block number must be an unsigned 32-bit integer')
 }
 
 const headerFromWire = ({
@@ -63,7 +59,7 @@ const headerFromWire = ({
 	wire: typeof headerWire.infer
 	hash?: string
 	finalized: boolean
-}): AvailHeader => {
+}) => {
 	for (const [value, label] of [
 		[wire.parentHash, 'parent block hash'],
 		[wire.stateRoot, 'state root'],
@@ -71,10 +67,10 @@ const headerFromWire = ({
 	])
 		assertHash(value, label)
 	if (!quantityPattern.test(wire.number))
-		throw new Error('Avail_JsonRpc: invalid block number')
+		throw new Error('Avail: invalid block number')
 	for (const digestLog of wire.digest.logs)
 		if (!/^0x(?:[0-9a-fA-F]{2})*$/.test(digestLog))
-			throw new Error('Avail_JsonRpc: invalid header digest log')
+			throw new Error('Avail: invalid header digest log')
 	return {
 		...(hash != null && {
 			hash: hash.toLowerCase(),
@@ -89,24 +85,24 @@ const headerFromWire = ({
 }
 
 export const getNetworkIdentity = async (
-	binding: SourceBinding
-): Promise<AvailNetworkIdentity> => {
+	publicEnv: SourcePublicEnv
+) => {
 	const [
 		chainName,
 		genesisHash,
 	] = await Promise.all([
-		request<string>(binding, 'system_chain'),
+		request<string>(publicEnv, 'system_chain'),
 		request<string>(
-			binding,
+			publicEnv,
 			'chain_getBlockHash',
 			[0]
 		),
 	])
 	if (chainName !== mainnetChainName)
-		throw new Error('Avail_JsonRpc: foreign chain name')
+		throw new Error('Avail: foreign chain name')
 	assertHash(genesisHash, 'genesis block hash')
 	if (genesisHash.toLowerCase() !== mainnetGenesisHash)
-		throw new Error('Avail_JsonRpc: foreign genesis block')
+		throw new Error('Avail: foreign genesis block')
 	return {
 		chainName,
 		genesisHash: genesisHash.toLowerCase(),
@@ -114,13 +110,13 @@ export const getNetworkIdentity = async (
 }
 
 export const getFinalizedHead = async (
-	binding: SourceBinding
-): Promise<AvailHeader> => {
-	const hash = await request<string>(binding, 'chain_getFinalizedHead')
+	publicEnv: SourcePublicEnv
+) => {
+	const hash = await request<string>(publicEnv, 'chain_getFinalizedHead')
 	assertHash(hash, 'finalized block hash')
 	return headerFromWire({
 		wire: headerWire.assert(await request<JsonValue>(
-			binding,
+			publicEnv,
 			'chain_getHeader',
 			[hash]
 		)),
@@ -130,63 +126,33 @@ export const getFinalizedHead = async (
 }
 
 export const getBlockHash = async (
-	binding: SourceBinding,
-	blockNumber: bigint
+	publicEnv: SourcePublicEnv,
+	blockNumber?: bigint
 ) => {
-	assertBlockNumber(blockNumber)
+	if (blockNumber != null)
+		assertBlockNumber(blockNumber)
 	const hash = await request<string>(
-		binding,
+		publicEnv,
 		'chain_getBlockHash',
-		[Number(blockNumber)]
+		blockNumber == null ? [] : [Number(blockNumber)]
 	)
 	assertHash(hash, 'block hash')
 	return hash.toLowerCase()
 }
 
 export const getHeader = async (
-	binding: SourceBinding,
+	publicEnv: SourcePublicEnv,
 	blockHash?: string
-): Promise<AvailHeader> => {
+) => {
 	if (blockHash != null)
 		assertHash(blockHash, 'block hash')
 	return headerFromWire({
 		wire: headerWire.assert(await request<JsonValue>(
-			binding,
+			publicEnv,
 			'chain_getHeader',
 			blockHash == null ? [] : [blockHash]
 		)),
 		hash: blockHash,
 		finalized: false,
 	})
-}
-
-export const getRuntimeVersion = async (
-	binding: SourceBinding,
-	blockHash?: string
-): Promise<AvailRuntimeVersion> => {
-	if (blockHash != null)
-		assertHash(blockHash, 'runtime block hash')
-	const wire = runtimeVersionWire.assert(await request<JsonValue>(
-		binding,
-		'state_getRuntimeVersion',
-		blockHash == null ? [] : [blockHash]
-	))
-	for (const [value, label] of [
-		[wire.authoringVersion, 'authoring version'],
-		[wire.specVersion, 'spec version'],
-		[wire.implVersion, 'implementation version'],
-		[wire.transactionVersion, 'transaction version'],
-		[wire.stateVersion, 'state version'],
-	])
-		if (!Number.isSafeInteger(value))
-			throw new Error(`Avail_JsonRpc: ${label} exceeds lossless JSON integer range`)
-	return {
-		specName: wire.specName,
-		implName: wire.implName,
-		authoringVersion: BigInt(wire.authoringVersion),
-		specVersion: BigInt(wire.specVersion),
-		implVersion: BigInt(wire.implVersion),
-		transactionVersion: BigInt(wire.transactionVersion),
-		stateVersion: BigInt(wire.stateVersion),
-	}
 }

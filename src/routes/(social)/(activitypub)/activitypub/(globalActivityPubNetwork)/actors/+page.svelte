@@ -34,12 +34,8 @@
 
 	<ActivityPubActorsView
 		href={resolve('/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actors')}
-		title='ActivityPub actors'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='observed-actors'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

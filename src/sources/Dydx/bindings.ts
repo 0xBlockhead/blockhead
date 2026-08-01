@@ -1,64 +1,47 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
 const bindings = [
 	{
-		source: Source.DydxIndexer_Rest,
+		source: Source.DydxIndexer,
 		target: {
-			kind: SourceTargetKind.NetworkSlug,
-			key: 'dydx',
+			kind: SourceTargetKind.Caip2Network,
+			key: 'cosmos:dydx-mainnet-1',
 		},
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://{dydx-indexer-host}',
-				origin: 'https://{dydx-indexer-host}',
+				locator: 'https://indexer.dydx.trade',
 				corsEnabled: false,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.DydxIndexerRest,
+		apiFamily: ApiFamily.OpenApiHttp,
 		operationGroups: [
 			SourceOperationGroup.GenericRead,
 		],
-		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
 			{
-				scope: SourceCredentialScope.None,
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/Dydx/OpenApi/openapi.json',
+				generated: true,
+				officialUrl: 'https://raw.githubusercontent.com/dydxprotocol/v4-chain/main/indexer/services/comlink/public/swagger.json',
 			},
-		],
-	},
-	{
-		source: Source.DydxValidator_Rest,
-		target: {
-			kind: SourceTargetKind.NetworkSlug,
-			key: 'dydx',
-		},
-		endpoints: [
 			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://{dydx-validator-rest-host}',
-				origin: 'https://{dydx-validator-rest-host}',
-				corsEnabled: false,
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/Dydx/OpenApi/schema-source.ts',
 			},
-		],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.CosmosLcdApi,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
-		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
 			{
-				scope: SourceCredentialScope.None,
+				kind: SourceArtifactKind.OpenApiTypes,
+				path: 'src/sources/Dydx/OpenApi/openapi.d.ts',
+				generated: true,
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.DydxIndexer_Rest]: typeof bindings[0]
-	readonly [Source.DydxValidator_Rest]: typeof bindings[1]
-}>(bindings)
+export default indexSourceBindings(bindings)

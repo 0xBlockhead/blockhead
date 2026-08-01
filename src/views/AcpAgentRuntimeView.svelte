@@ -54,10 +54,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.runtimeId || 'ACP agent runtime'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary
 			resource={selection.$programVersion}
@@ -68,7 +64,6 @@
 						selection={select(EntityType.AcpAgentProgramVersion, acpAgentProgramVersion[EntityMetaKey.Selector])}
 						prefetched={acpAgentProgramVersion}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -109,7 +104,6 @@
 									selection={select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector])}
 									prefetched={blockheadSource}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -129,7 +123,6 @@
 									selection={select(EntityType.AcpAgentProgramVersion, acpAgentProgramVersion[EntityMetaKey.Selector])}
 									prefetched={acpAgentProgramVersion}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -149,7 +142,6 @@
 									selection={select(EntityType.BlockheadAgentProgramInstall, blockheadAgentProgramInstall[EntityMetaKey.Selector])}
 									prefetched={blockheadAgentProgramInstall}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

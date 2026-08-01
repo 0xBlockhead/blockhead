@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -36,15 +35,10 @@
 <EntityView
 	entityType={EntityType.TezosTokenTransfer}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'tezos token transfer'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		tezos token transfer
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -53,7 +47,6 @@
 					<TezosNetworkView
 						selection={select(EntityType.TezosNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -84,7 +77,6 @@
 									selection={select(EntityType.TezosToken, tezosToken[EntityMetaKey.Selector])}
 									prefetched={tezosToken}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -104,7 +96,6 @@
 									selection={select(EntityType.TezosAccount, tezosAccount[EntityMetaKey.Selector])}
 									prefetched={tezosAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -124,7 +115,6 @@
 									selection={select(EntityType.TezosAccount, tezosAccount[EntityMetaKey.Selector])}
 									prefetched={tezosAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -144,7 +134,6 @@
 									selection={select(EntityType.TezosOperation, tezosOperation[EntityMetaKey.Selector])}
 									prefetched={tezosOperation}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

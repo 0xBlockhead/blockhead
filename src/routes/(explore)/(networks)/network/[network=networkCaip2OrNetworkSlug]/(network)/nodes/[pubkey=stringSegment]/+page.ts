@@ -21,7 +21,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			publicKey: params.pubkey,
-		}
+		},
+		'NetworkPublicKey'
 	)
 	if (lightningNodeNetworkPublicKeySelector instanceof arktype.errors)
 		error(404, 'Invalid LightningNode selector')

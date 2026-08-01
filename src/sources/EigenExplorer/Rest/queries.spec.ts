@@ -50,7 +50,7 @@ beforeEach(() => {
 })
 
 describe('EigenExplorer REST queries', () => {
-	it('authenticates and validates exact staker shares', async () => {
+	it('uses binding-driven transport and validates exact staker shares', async () => {
 		respond({
 			address: stakerAddress,
 			operatorAddress,
@@ -65,8 +65,6 @@ describe('EigenExplorer REST queries', () => {
 		})
 
 		await expect(getStaker(
-			binding,
-			'secret',
 			stakerAddress
 		)).resolves.toMatchObject({
 			address: stakerAddress,
@@ -80,7 +78,6 @@ describe('EigenExplorer REST queries', () => {
 			{
 				headers: {
 					accept: 'application/json',
-					'x-api-token': 'secret',
 				},
 			}
 		)
@@ -105,8 +102,6 @@ describe('EigenExplorer REST queries', () => {
 		})
 
 		await expect(getStakerDeposits(
-			binding,
-			'secret',
 			stakerAddress,
 			{
 				skip: 10,
@@ -138,8 +133,6 @@ describe('EigenExplorer REST queries', () => {
 			},
 		})
 		await expect(getStakerDeposits(
-			binding,
-			'secret',
 			stakerAddress
 		)).rejects.toThrow('foreign deposit')
 	})
@@ -170,8 +163,6 @@ describe('EigenExplorer REST queries', () => {
 		})
 
 		await expect(getStakerWithdrawals(
-			binding,
-			'secret',
 			stakerAddress,
 			{
 				take: 1,
@@ -195,13 +186,9 @@ describe('EigenExplorer REST queries', () => {
 		})
 
 		await expect(getOperatorRewardInfo(
-			binding,
-			'secret',
 			operatorAddress
 		)).rejects.toThrow('duplicate reward information')
 		await expect(getStakerDeposits(
-			binding,
-			'secret',
 			stakerAddress,
 			{
 				take: 101,

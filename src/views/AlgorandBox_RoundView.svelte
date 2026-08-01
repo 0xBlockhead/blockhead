@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -31,15 +30,10 @@
 <EntityView
 	entityType={EntityType.AlgorandBox_Round}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'algorand box round'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		algorand box round
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +42,6 @@
 					<AlgorandBoxView
 						selection={select(EntityType.AlgorandBox, selection.entitySelector.$box)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

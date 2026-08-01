@@ -35,7 +35,7 @@
 			entitySelector={globalEnsNetwork[EntityMetaKey.Selector]}
 			href={resolve('/(explore)/(ens)/ens')}
 		>
-			{#snippet Title()}
+			{#snippet Value()}
 				ENS
 			{/snippet}
 		</EntityView>

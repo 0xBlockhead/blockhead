@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -31,7 +30,6 @@
 			Source.Constants_Internal,
 		],
 	}))
-	const evmAccount = $derived(viewSelection)
 	const viewDomId = $derived('evm-account-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -40,6 +38,7 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EnsNameView from '$/views/EnsNameView.svelte'
 	import EnsNamesView from '$/views/EnsNamesView.svelte'
 </script>
@@ -70,10 +69,17 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={evmAccount}>
+		<ResourceBoundary
+			resource={
+				selection({
+					sources: selection.sources ?? [
+						Source.Constants_Internal,
+					],
+				})
+			}
+		>
 			{#snippet Pending()}
 				<TruncatedValue
-					format={TruncatedValueFormat.Visual}
 					value={selection.entitySelector.address}
 				/>
 			{/snippet}
@@ -85,24 +91,16 @@
 						{primaryName}
 					{:else}
 						<TruncatedValue
-							format={TruncatedValueFormat.Visual}
 							value={selection.entitySelector.address}
 						/>
 					{/if}
 				{:else}
 					<TruncatedValue
-						format={TruncatedValueFormat.Visual}
 						value={selection.entitySelector.address}
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			An account address in the EVM address space, independent of any one chain.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -178,7 +176,6 @@
 									selection={select(EntityType.EnsName, ensName[EntityMetaKey.Selector])}
 									prefetched={ensName}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -206,7 +203,7 @@
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
 					<HeadingComponent>Identity</HeadingComponent>
-					<Tooltip contentProps={{ side: 'top' }}>
+					<Tooltip>
 						{#snippet Content()}
 							<p>
 								Primary label and owned ENS names are resolver-backed identity evidence for this account.
@@ -224,12 +221,7 @@
 			{#snippet SectionActorEns({ id, label, open })}
 				<EnsNamesView
 					selection={selection.$$ensNamesOwned}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No ENS names owned by this account yet.'
 					id={`${id}-list`}

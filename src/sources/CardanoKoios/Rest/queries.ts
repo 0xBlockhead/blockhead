@@ -1,9 +1,13 @@
 import bindings from '$/sources/CardanoKoios/bindings.ts'
+import { TransportType } from '$/constants/TransportType.ts'
 import {
 	httpUrl,
 	postJson,
 } from '$/sources/_shared/wire/HttpRest/client.ts'
-import { sourceGetJson } from '$/sources/_runtime/http.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceGetJson,
+} from '$/sources/_runtime/http.ts'
 import type {
 	CardanoKoiosGovernanceProposal,
 	CardanoKoiosTransactionInfo,
@@ -24,6 +28,12 @@ import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.CardanoKoios_Rest]
+
+export const getRestEndpoints = () => [{
+	url: firstHttpUrlForBinding(binding),
+	transportType: TransportType.Http,
+	providerName: 'Koios',
+}]
 
 export const query = <_Response>(
 	path: string

@@ -115,7 +115,15 @@ export default {
 						const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 						const postView = (await getPosts([uri])).posts.at(0)
 						if (postView == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
-						return atprotoPostFieldsFromPostView(postView)
+						return {
+							...atprotoPostFieldsFromPostView(postView),
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$post: { uri },
+									timestampMs: Date.now(),
+								},
+							}],
+						}
 					},
 				}
 			},
@@ -129,42 +137,7 @@ export default {
 				selfLabelValues: (post) => post.selfLabelValues,
 				$parent: (post) => post.$parent,
 				$root: (post) => post.$root,
-			}),
-
-		defineResolver(Source.Atproto_BskySocial_Xrpc, {
-			entityType: EntityType.AtprotoActor_Timestamp,
-			resolve: {
-				AtprotoActorTimestampMsSource: {
-					resolve: async ({ source }): Promise<{
-						source: string
-						handle: string
-						displayName?: string
-						description?: string
-						indexedAt?: number
-						$icon?: ReturnType<typeof mediaFromUrl>
-						$banner?: ReturnType<typeof mediaFromUrl>
-						followersCount?: number
-						followsCount?: number
-						postsCount?: number
-					}> => {
-						if (source !== Source.Atproto_BskySocial_Xrpc)
-							throw new Error(`Atproto_BskySocial_Xrpc: observation source mismatch ${source}`)
-
-						throw new Error('Atproto_BskySocial_Xrpc: historical actor observation is unavailable from the current appview')
-					},
-				}
-			},
-		})({
-				source: (timestamp) => timestamp.source,
-				handle: (timestamp) => timestamp.handle,
-				displayName: (timestamp) => timestamp.displayName,
-				description: (timestamp) => timestamp.description,
-				indexedAt: (timestamp) => timestamp.indexedAt,
-				$icon: (timestamp) => timestamp.$icon,
-				$banner: (timestamp) => timestamp.$banner,
-				followersCount: (timestamp) => timestamp.followersCount,
-				followsCount: (timestamp) => timestamp.followsCount,
-				postsCount: (timestamp) => timestamp.postsCount,
+				$$timestamps: (post) => post.$$timestamps,
 			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
@@ -312,29 +285,6 @@ export default {
 			},
 		})({
 				$$posts: (posts) => posts,
-			}),
-
-		defineResolver(Source.Atproto_BskySocial_Xrpc, {
-			entityType: EntityType.AtprotoPost,
-			resolve: {
-				Uri: {
-					resolve: async ({ uri }) => {
-						const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
-						const postView = (await getPosts([uri])).posts.at(0)
-						if (postView == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$post: { uri },
-									timestampMs: Date.now(),
-								},
-							},
-						]
-					},
-				}
-			},
-		})({
-				$$timestamps: (timestamps) => timestamps,
 			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {

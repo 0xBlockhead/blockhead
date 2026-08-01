@@ -6,7 +6,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -43,6 +42,7 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NostrProfileView from '$/views/NostrProfileView.svelte'
 	import NostrNoteView from '$/views/NostrNoteView.svelte'
 	import NostrArticleView from '$/views/NostrArticleView.svelte'
@@ -76,7 +76,6 @@
 			{#snippet Pending()}
 				<TruncatedValue
 					value={selection.entitySelector.eventId}
-					format={TruncatedValueFormat.Visual}
 				/>
 			{/snippet}
 
@@ -87,10 +86,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue
-			value={selection.entitySelector.eventId}
-			format={TruncatedValueFormat.Visual}
-		/>
+		<TruncatedValue value={selection.entitySelector.eventId} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -104,12 +100,6 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A Nostr reaction is a kind-7 event keyed by event id and scoped to the note or article it reacts to.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -180,7 +170,6 @@
 										selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
 										prefetched={nostrProfile}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>
@@ -202,7 +191,6 @@
 										selection={select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector])}
 										prefetched={nostrNote}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>
@@ -224,7 +212,6 @@
 										selection={select(EntityType.NostrArticle, nostrArticle[EntityMetaKey.Selector])}
 										prefetched={nostrArticle}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>

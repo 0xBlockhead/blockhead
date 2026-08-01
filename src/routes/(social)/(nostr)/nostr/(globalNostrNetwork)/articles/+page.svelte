@@ -28,12 +28,8 @@
 
 	<NostrArticlesView
 		href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/articles')}
-		title='Nostr articles'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='observed-articles'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

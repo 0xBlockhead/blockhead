@@ -81,7 +81,6 @@
 			<NetworkView
 				selection={select(EntityType.Network, selection.entitySelector.$network)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -106,7 +105,6 @@
 								selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 								prefetched={evmContract}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -119,7 +117,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -154,12 +151,7 @@
 			{#snippet SectionErc4337FactorySmartAccounts({ id, label, open })}
 				<Erc4337SmartAccountsView
 					selection={selection.$$smartAccounts}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No ERC-4337 smart accounts.'
 					id={`${id}-list`}
@@ -169,12 +161,7 @@
 			{#snippet SectionErc4337FactoryUserOperations({ id, label, open })}
 				<EvmUserOperationsView
 					selection={selection.$$userOperations}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No ERC-4337 user operations.'
 					id={`${id}-list`}
@@ -206,12 +193,7 @@
 			{#snippet SectionErc4337FactoryTimestamps({ id, label, open })}
 				<Erc4337AccountFactory_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No ERC-4337 account factory observations.'
 					id={`${id}-list`}

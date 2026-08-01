@@ -74,7 +74,6 @@
 							selection={select(EntityType.ArweaveBlock, arweaveBlock[EntityMetaKey.Selector])}
 							prefetched={arweaveBlock}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -91,7 +90,6 @@
 							selection={select(EntityType.ArweaveResource, arweaveResource[EntityMetaKey.Selector])}
 							prefetched={arweaveResource}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -107,7 +105,6 @@
 					<ArweaveNetworkView
 						selection={select(EntityType.ArweaveNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -131,7 +128,6 @@
 									selection={select(EntityType.ArweaveBlock, arweaveBlock[EntityMetaKey.Selector])}
 									prefetched={arweaveBlock}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -151,7 +147,6 @@
 									selection={select(EntityType.ArweaveResource, arweaveResource[EntityMetaKey.Selector])}
 									prefetched={arweaveResource}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

@@ -28,12 +28,8 @@
 
 	<YoutubePlaylistsView
 		href={resolve('/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlists')}
-		title='YouTube playlists'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='observed-playlists'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

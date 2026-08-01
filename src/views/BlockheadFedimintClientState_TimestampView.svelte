@@ -74,7 +74,6 @@
 					<BlockheadFedimintClientStateView
 						selection={select(EntityType.BlockheadFedimintClientState, selection.entitySelector.$clientState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

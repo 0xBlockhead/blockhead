@@ -15,28 +15,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.XUser_Timestamp, {
-		$user: {
-			id: params.userId,
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [({
-			$user: {
-				id: params.userId,
-			},
-			timestampMs: Number(params.timestampMs),
-			source: params.source,
-		}).source],
-		fields: {
-			followerCount: true,
-			followingCount: true,
-			tweetCount: true,
-			listedCount: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -51,6 +29,28 @@
 
 <Page>
 	<XUser_TimestampView
-		selection={pageSelection}
+		selection={
+			select(EntityType.XUser_Timestamp, {
+				$user: {
+					id: params.userId,
+				},
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [({
+					$user: {
+						id: params.userId,
+					},
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}).source],
+				fields: {
+					followerCount: true,
+					followingCount: true,
+					tweetCount: true,
+					listedCount: true,
+				},
+			})
+		}
 	/>
 </Page>

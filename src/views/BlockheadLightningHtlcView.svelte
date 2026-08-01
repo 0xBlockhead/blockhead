@@ -24,7 +24,6 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.LightningLnd_Grpc,
 			Source.LightningLnd_Rest,
 			Source.Local_Internal,
 		],
@@ -52,10 +51,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{'HTLC ' + String(selection.entitySelector.htlcIndex)}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary
 			resource={selection.$channel}
@@ -66,7 +61,6 @@
 					prefetched={lightningChannel}
 					href={null}
 					layout={EntityLayout.Value}
-					open={false}
 				/>
 			{/snippet}
 		</ResourceBoundary>
@@ -93,7 +87,6 @@
 					<BlockheadLightningChannelStateView
 						selection={select(EntityType.BlockheadLightningChannelState, selection.entitySelector.$channelState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -109,7 +102,6 @@
 								selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
 								prefetched={lightningChannel}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

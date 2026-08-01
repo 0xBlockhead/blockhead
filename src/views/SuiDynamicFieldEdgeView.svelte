@@ -22,7 +22,6 @@
 
 
 	// Components
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import SuiObjectView from '$/views/SuiObjectView.svelte'
 </script>
@@ -36,10 +35,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Sui dynamic field edge
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +43,6 @@
 					<SuiObjectView
 						selection={select(EntityType.SuiObject, selection.entitySelector.$parentObject)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

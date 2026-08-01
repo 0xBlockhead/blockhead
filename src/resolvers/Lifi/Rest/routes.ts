@@ -8,7 +8,7 @@ import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { bridgeRouteStepEntityFieldsFromLifiQuoteStep } from '$/resolvers/Lifi/Rest/bridgeRouteSteps.ts'
+import { bridgeRouteStepSnapshotFromLifiQuoteStep } from '$/resolvers/Lifi/Rest/bridgeRouteSteps.ts'
 import { fetchQuote } from '$/sources/Lifi/Rest/queries.ts'
 import type {
 	LifiQuoteRequest,
@@ -17,7 +17,7 @@ import type {
 } from '$/sources/Lifi/Rest/types.ts'
 type BridgeRouteQuoteId = EntitySelector<typeof schema, EntityType.BridgeRoute>
 
-export type BridgeRouteStepFields = ReturnType<typeof bridgeRouteStepEntityFieldsFromLifiQuoteStep>
+type BridgeRouteStepSnapshot = ReturnType<typeof bridgeRouteStepSnapshotFromLifiQuoteStep>
 
 export type BridgeRouteResolverBundle = {
 	routeFields: {
@@ -30,7 +30,7 @@ export type BridgeRouteResolverBundle = {
 		estimatedDurationSeconds: number
 		tags: BridgeRouteTag[]
 	}
-	steps: BridgeRouteStepFields[]
+	steps: BridgeRouteStepSnapshot[]
 }
 
 const bridgeRouteResolverBundleByQuoteId = new Map<string, Promise<BridgeRouteResolverBundle>>()
@@ -60,10 +60,6 @@ const bridgeRouteQuoteIdToRequest = (
 	slippage: quoteId.slippage,
 	toAddress: quoteId.toAddress,
 })
-
-export const fetchLifiQuoteStep = async (
-	params: LifiQuoteRequest
-): Promise<LifiQuoteStep> => fetchQuote(params)
 
 const parseLifiQuoteAmountBigInt = (
 	value: string | undefined,
@@ -135,20 +131,20 @@ const bridgeRouteBundleFromQuoteStep = (
 			tags: [],
 		},
 		steps: lifiQuoteStepsForRoute(step).map((routeStep, index) => (
-			bridgeRouteStepEntityFieldsFromLifiQuoteStep(quoteId, index, routeStep)
+			bridgeRouteStepSnapshotFromLifiQuoteStep(quoteId, index, routeStep)
 		)),
 	}
 }
 
 export const fetchBridgeRouteBundleForQuoteId = async (
 	quoteId: BridgeRouteQuoteId
-): Promise<BridgeRouteResolverBundle> => {
+) => {
 	const quoteIdKey = bridgeRouteQuoteIdKey(quoteId)
 	const existingBundle = bridgeRouteResolverBundleByQuoteId.get(quoteIdKey)
 	if (existingBundle != null)
 		return existingBundle
 
-	const bundle = fetchLifiQuoteStep(bridgeRouteQuoteIdToRequest(quoteId))
+	const bundle = fetchQuote(bridgeRouteQuoteIdToRequest(quoteId))
 		.then((step) => bridgeRouteBundleFromQuoteStep(quoteId, step))
 		.catch((error) => {
 			bridgeRouteResolverBundleByQuoteId.delete(quoteIdKey)

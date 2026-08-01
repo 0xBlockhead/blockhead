@@ -46,10 +46,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.query || 'blockhead ENS name search'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadEnsNameSearch}>
 			{#snippet children(entity)}

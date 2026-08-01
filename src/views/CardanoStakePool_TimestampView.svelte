@@ -37,10 +37,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Cardano stake pool timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -49,7 +45,6 @@
 					<CardanoStakePoolView
 						selection={select(EntityType.CardanoStakePool, selection.entitySelector.$pool)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

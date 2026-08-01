@@ -37,10 +37,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		TON shard timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -49,7 +45,6 @@
 					<TonWorkchainView
 						selection={select(EntityType.TonWorkchain, selection.entitySelector.$workchain)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

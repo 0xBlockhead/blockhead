@@ -16,18 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType._GlobalEnsNetwork, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-		],
-		fields: {
-			$registryContract: true,
-			$ethRegistrarController: true,
-			$reverseRegistrar: true,
-			$nameWrapper: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -42,6 +30,18 @@
 
 <Page>
 	<GlobalEnsNetworkView
-		selection={pageSelection}
+		selection={
+			select(EntityType._GlobalEnsNetwork, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					$registryContract: true,
+					$ethRegistrarController: true,
+					$reverseRegistrar: true,
+					$nameWrapper: true,
+				},
+			})
+		}
 	/>
 </Page>

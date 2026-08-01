@@ -11,14 +11,11 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalSwarmAccess> = $props()
-
-	const titleFallback = 'global Swarm access'
 
 
 	// Components
@@ -31,7 +28,6 @@
 <EntityView
 	entityType={EntityType._GlobalSwarmAccess}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
 	href={
 		href === undefined ?
 			resolve('/(swarm)/swarm/(swarmProtocol)/access')
@@ -42,12 +38,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		global Swarm access
-	{/snippet}
-
 	{#snippet Value()}
-		{titleFallback}
+		Swarm gateway access
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}

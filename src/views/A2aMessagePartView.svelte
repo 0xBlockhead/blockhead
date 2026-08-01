@@ -49,10 +49,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{String(selection.entitySelector.partIndex)}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={a2aMessagePart}>
 			{#snippet children(entity)}
@@ -88,7 +84,6 @@
 									selection={select(EntityType.A2aMessage, a2aMessage[EntityMetaKey.Selector])}
 									prefetched={a2aMessage}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -108,7 +103,6 @@
 									selection={select(EntityType.A2aArtifact, a2aArtifact[EntityMetaKey.Selector])}
 									prefetched={a2aArtifact}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -214,7 +208,6 @@
 									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
 									prefetched={aiArtifact}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

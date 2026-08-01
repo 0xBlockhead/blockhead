@@ -20,7 +20,6 @@
 
 
 	// Components
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 </script>
 
@@ -56,12 +55,6 @@
 
 	{#snippet Value()}
 		<TruncatedValue value={selection.entitySelector.url} />
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A web URL that is modeled as a referenced resource rather than an inline string.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}

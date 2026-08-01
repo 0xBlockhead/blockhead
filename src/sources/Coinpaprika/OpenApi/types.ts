@@ -1,13 +1,24 @@
-import type { components } from '$/sources/Coinpaprika/OpenApi/openapi.d.ts'
+import type { paths } from '$/sources/Coinpaprika/OpenApi/openapi.d.ts'
 
-export type CoinpaprikaCurrency = components['schemas']['currency']
+export type CoinpaprikaCurrencies = paths['/coins']['get']['responses'][200]['content']['application/json']
+export type CoinpaprikaCurrency = CoinpaprikaCurrencies[number]
 
-export type CoinpaprikaCoin = components['schemas']['coin_extended']
+export type CoinpaprikaCoin = paths['/coins/{coin_id}']['get']['responses'][200]['content']['application/json']
+export type CoinpaprikaCoinPath = paths['/coins/{coin_id}']['get']['parameters']['path']
 
-export type CoinpaprikaTicker = components['schemas']['tick']
+export type CoinpaprikaCoinMarkets = paths['/coins/{coin_id}/markets']['get']['responses'][200]['content']['application/json']
+export type CoinpaprikaCoinMarket = CoinpaprikaCoinMarkets[number]
 
-/** `components.schemas.coins_ohlcv` — today, latest, and historical OHLCV. */
-export type CoinpaprikaOhlcv = components['schemas']['coins_ohlcv']
+export type CoinpaprikaExchangeMarkets = paths['/exchanges/{exchange_id}/markets']['get']['responses'][200]['content']['application/json']
+export type CoinpaprikaExchangeMarket = CoinpaprikaExchangeMarkets[number]
+export type CoinpaprikaExchangeMarketsPath = paths['/exchanges/{exchange_id}/markets']['get']['parameters']['path']
 
-/** `GET /coins/{coin_id}/markets` row. */
-export type CoinpaprikaMarket = components['schemas']['market']
+/** Common input accepted by the resolver's market normalization. */
+export type CoinpaprikaMarket = CoinpaprikaCoinMarket | CoinpaprikaExchangeMarket
+
+export type CoinpaprikaOhlcvTodayRows = paths['/coins/{coin_id}/ohlcv/today']['get']['responses'][200]['content']['application/json']
+export type CoinpaprikaOhlcvHistoricalRows = paths['/coins/{coin_id}/ohlcv/historical']['get']['responses'][200]['content']['application/json']
+export type CoinpaprikaOhlcvHistoricalQuery = paths['/coins/{coin_id}/ohlcv/historical']['get']['parameters']['query']
+export type CoinpaprikaOhlcv = CoinpaprikaOhlcvTodayRows[number] | CoinpaprikaOhlcvHistoricalRows[number]
+
+export type CoinpaprikaTicker = paths['/tickers/{coin_id}']['get']['responses'][200]['content']['application/json']

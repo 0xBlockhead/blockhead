@@ -19,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 		{
 			reference: swarmResourceReferenceFromRouteParam(params.reference),
 			contentPath: '',
-		}
+		},
+		'ResourceAddress'
 	)
 	if (swarmResourceResourceAddressSelector instanceof arktype.errors)
 		error(404, 'Invalid SwarmResource selector')

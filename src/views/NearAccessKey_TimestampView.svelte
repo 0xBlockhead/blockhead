@@ -86,7 +86,6 @@
 					<NearAccessKeyView
 						selection={select(EntityType.NearAccessKey, selection.entitySelector.$accessKey)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

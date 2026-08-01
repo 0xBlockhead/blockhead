@@ -92,7 +92,6 @@
 					<AptosNetworkView
 						selection={select(EntityType.AptosNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -189,12 +188,7 @@
 			{#snippet SectionAptosTxStateChanges({ id, label, open })}
 				<AptosStateChangesView
 					selection={selection.$$stateChanges}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No state changes found.'
 					id={`${id}-list`}
@@ -204,12 +198,7 @@
 			{#snippet SectionAptosTxEvents({ id, label, open })}
 				<AptosEventsView
 					selection={selection.$$events}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No events found.'
 					id={`${id}-list`}
@@ -241,12 +230,7 @@
 			{#snippet SectionAptosTxTimestamps({ id, label, open })}
 				<AptosTransaction_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No observations yet.'
 					id={`${id}-list`}

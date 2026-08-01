@@ -108,7 +108,6 @@
 									selection={select(EntityType.XUser, xUser[EntityMetaKey.Selector])}
 									prefetched={xUser}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -172,7 +171,6 @@
 									selection={select(EntityType.XPost, xPost[EntityMetaKey.Selector])}
 									prefetched={xPost}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -194,7 +192,6 @@
 									selection={select(EntityType.XPost, xPost[EntityMetaKey.Selector])}
 									prefetched={xPost}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

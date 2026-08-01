@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { entityDefinitionByType } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -17,9 +16,47 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(
+	const documentTitle = $derived(
 		(
-			data.entityType === EntityType.EvmTransaction && data.selectorName === 'EvmNetworkTxHash' ?
+			data.entityType === EntityType.EvmTransaction ?
+				(data.selector.txHash || 'EVM transaction') + ' • EVM transaction • Blockhead'
+			:
+			data.entityType === EntityType.SolanaTransaction ?
+				(data.selector.signature || 'solana transaction') + ' • solana transaction • Blockhead'
+			:
+			data.entityType === EntityType.CardanoTransaction ?
+				(data.selector.hash || 'Cardano transaction') + ' • Cardano transaction • Blockhead'
+			:
+				(data.selector.txId || 'UTXO transaction') + ' • UTXO transaction • Blockhead'
+		)
+	)
+	const entityViewByType = {
+		[EntityType.EvmTransaction]: EvmTransactionView,
+		[EntityType.SolanaTransaction]: SolanaTransactionView,
+		[EntityType.CardanoTransaction]: CardanoTransactionView,
+		[EntityType.UtxoTransaction]: UtxoTransactionView,
+	}
+
+	// Components
+	import Page from '$/components/Page.svelte'
+	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
+	import SolanaTransactionView from '$/views/SolanaTransactionView.svelte'
+	import CardanoTransactionView from '$/views/CardanoTransactionView.svelte'
+	import UtxoTransactionView from '$/views/UtxoTransactionView.svelte'
+</script>
+
+
+<svelte:head>
+	<title>{documentTitle}</title>
+</svelte:head>
+
+
+<Page>
+	{@const EntityView = entityViewByType[data.entityType]}
+
+	<EntityView
+		selection={
+			data.entityType === EntityType.EvmTransaction ?
 				select(EntityType.EvmTransaction, data.selector, {
 					sources: [
 						Source.Blockscout_Rest,
@@ -64,7 +101,7 @@
 					},
 				})
 			:
-			data.entityType === EntityType.SolanaTransaction && data.selectorName === 'NetworkSignature' ?
+			data.entityType === EntityType.SolanaTransaction ?
 				select(EntityType.SolanaTransaction, data.selector, {
 					fields: {
 						status: true,
@@ -76,7 +113,7 @@
 					},
 				})
 			:
-			data.entityType === EntityType.CardanoTransaction && data.selectorName === 'NetworkHash' ?
+			data.entityType === EntityType.CardanoTransaction ?
 				select(EntityType.CardanoTransaction, data.selector, {
 					sources: [
 						Source.Blockfrost_Rest,
@@ -103,47 +140,6 @@
 						$block: true,
 					},
 				})
-		)
-	)
-	const pageTitle = $derived(
-		(
-			data.entityType === EntityType.EvmTransaction && data.selectorName === 'EvmNetworkTxHash' ?
-				data.selector.txHash || 'EVM transaction'
-			:
-			data.entityType === EntityType.SolanaTransaction && data.selectorName === 'NetworkSignature' ?
-				data.selector.signature || 'solana transaction'
-			:
-			data.entityType === EntityType.CardanoTransaction && data.selectorName === 'NetworkHash' ?
-				data.selector.hash || 'Cardano transaction'
-			:
-				data.selector.txId || 'UTXO transaction'
-		)
-	)
-	const entityViewByType = {
-		[EntityType.EvmTransaction]: EvmTransactionView,
-		[EntityType.SolanaTransaction]: SolanaTransactionView,
-		[EntityType.CardanoTransaction]: CardanoTransactionView,
-		[EntityType.UtxoTransaction]: UtxoTransactionView,
-	}
-
-	// Components
-	import Page from '$/components/Page.svelte'
-	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
-	import SolanaTransactionView from '$/views/SolanaTransactionView.svelte'
-	import CardanoTransactionView from '$/views/CardanoTransactionView.svelte'
-	import UtxoTransactionView from '$/views/UtxoTransactionView.svelte'
-</script>
-
-
-<svelte:head>
-	<title>{pageTitle} • {entityDefinitionByType[data.entityType].labels.singular} • Blockhead</title>
-</svelte:head>
-
-
-<Page>
-	{@const EntityView = entityViewByType[data.entityType]}
-
-	<EntityView
-		selection={pageSelection}
+		}
 	/>
 </Page>

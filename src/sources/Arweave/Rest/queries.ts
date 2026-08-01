@@ -5,12 +5,12 @@ import {
 	getText,
 } from '$/sources/_shared/wire/HttpRest/client.ts'
 import type {
-	ArweaveBrowseResult,
 	ArweaveTransactionStatus,
 	ArweaveTransactionWire,
 } from '$/sources/Arweave/Rest/types.ts'
 import {
 	SourceEndpointKind,
+	sourceEndpointOrigin,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 import { type as arktype } from 'arktype'
@@ -26,7 +26,7 @@ const trimSlashes = (value: string) => value.replace(/^\/+|\/+$/g, '')
 const arweaveGatewayEndpoints = (binding: SourceBinding) => {
 	const endpoints = binding.endpoints.filter((endpoint) => (
 		endpoint.endpointKind === SourceEndpointKind.HttpUrl
-		&& endpoint.origin != null
+		&& sourceEndpointOrigin(endpoint) != null
 	))
 	if (endpoints.length === 0)
 		throw new Error('Arweave_Rest: canonical gateway binding has no HTTP endpoints')
@@ -124,7 +124,7 @@ export const getGatewayUrl = ({
 	transactionId: string
 	contentPath?: string
 	gatewayOrigin: string
-}): string => {
+}) => {
 	const trimmedTransactionId = trimSlashes(transactionId.trim())
 	const trimmedPath = trimSlashes(contentPath?.trim() ?? '')
 	return `${gatewayOrigin}/${trimmedTransactionId}${trimmedPath ? `/${trimmedPath}` : ''}`
@@ -142,7 +142,7 @@ export const fetchBrowseResult = async ({
 	contentPath?: string
 	maxContentBytes?: number
 	signal?: AbortSignal
-}): Promise<ArweaveBrowseResult> => {
+}) => {
 	const trimmedTransactionId = trimSlashes(transactionId.trim())
 	const trimmedPath = trimSlashes(contentPath?.trim() ?? '')
 	assertBase64UrlId(trimmedTransactionId, 'transaction ID')
@@ -254,7 +254,7 @@ export const fetchBrowseResult = async ({
 		return {
 			transactionId: trimmedTransactionId,
 			contentPath: trimmedPath,
-			gatewayOrigin: endpoint.origin,
+			gatewayOrigin: sourceEndpointOrigin(endpoint),
 			gatewayUrl,
 			fileName: parsedContent.fileName,
 			extension: parsedContent.extension,

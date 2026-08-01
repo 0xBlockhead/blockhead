@@ -28,12 +28,8 @@
 
 	<XPostsView
 		href={resolve('/(social)/(x)/x/(xNetwork)/posts')}
-		title='X posts'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='x-posts'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

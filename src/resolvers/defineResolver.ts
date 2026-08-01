@@ -115,9 +115,12 @@ type ResolverFacetFieldsForDefinition<
 		ResolverSnapshot<_Resolve>,
 		SourceResolverContext<_Source>
 	>
-}> & (
-	_Facet['facets'] extends readonly EntityFacetDefinition[] ? ResolverFacetFields<_Source, _EntityType, _Resolve, _Facet['facets'][number]> : {}
-)
+}> & ResolverFacetFields<
+	_Source,
+	_EntityType,
+	_Resolve,
+	NonNullable<_Facet['facets']>[number]
+>
 
 type DefineResolverResult<
 	_Source extends Source,

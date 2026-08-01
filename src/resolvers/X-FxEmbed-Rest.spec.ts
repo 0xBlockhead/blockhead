@@ -44,14 +44,12 @@ describe('X FxEmbed reading materialization', () => {
 			}],
 		})
 
-		const users = await fxEmbedResolvers.resolvers[2].resolve['Scope'].resolve(
+		const snapshot = await fxEmbedResolvers.resolvers[2].resolve['Scope'].resolve(
 			{ scope: 'XNetwork' },
 			resolverContext
 		)
-		const posts = await fxEmbedResolvers.resolvers[3].resolve['Scope'].resolve(
-			{ scope: 'XNetwork' },
-			resolverContext
-		)
+		const users = fxEmbedResolvers.resolvers[2].projections.$$xUsers(snapshot)
+		const posts = fxEmbedResolvers.resolvers[2].projections.$$xPosts(snapshot)
 
 		expect(users).toEqual([{
 			[EntityMetaKey.Selector]: { id: 'user-1' },
@@ -76,14 +74,8 @@ describe('X FxEmbed reading materialization', () => {
 				},
 			},
 		}])
-		expect(fxEmbedQueries.searchStatuses).toHaveBeenNthCalledWith(
-			1,
-			64
-		)
-		expect(fxEmbedQueries.searchStatuses).toHaveBeenNthCalledWith(
-			2,
-			64
-		)
+		expect(fxEmbedQueries.searchStatuses).toHaveBeenCalledOnce()
+		expect(fxEmbedQueries.searchStatuses).toHaveBeenCalledWith(64)
 	})
 
 	it('prefills profile posts without leaking tombstones into the reading list', async () => {
@@ -112,7 +104,7 @@ describe('X FxEmbed reading materialization', () => {
 			],
 		})
 
-		const posts = await fxEmbedResolvers.resolvers[6].resolve['Id'].resolve(
+		const posts = await fxEmbedResolvers.resolvers[3].resolve['Id'].resolve(
 			{ id: 'user-1' },
 			resolverContext
 		)

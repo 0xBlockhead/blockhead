@@ -51,14 +51,10 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{String(selection.entitySelector.version)}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadStateChannelState}>
 			{#snippet children(entity)}
-				{String(entity.isFinal) || String(selection.entitySelector.version)}
+				{String(entity.isFinal)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -81,7 +77,6 @@
 					<BlockheadStateChannelView
 						selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

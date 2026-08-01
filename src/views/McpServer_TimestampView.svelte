@@ -83,7 +83,6 @@
 					<McpServerView
 						selection={select(EntityType.McpServer, selection.entitySelector.$server)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

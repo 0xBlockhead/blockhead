@@ -15,7 +15,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://polkadot.api.subscan.io',
-				origin: 'https://polkadot.api.subscan.io',
 				corsEnabled: false,
 			},
 		],
@@ -31,19 +30,15 @@ const bindings = [
 				env: arktype({
 					'PUBLIC_SUBSCAN_API_KEY': 'string',
 				}),
-				keys: [
-					'PUBLIC_SUBSCAN_API_KEY',
-				],
 			},
 		],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/Subscan/Rest/types.ts',
-				generated: false,
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Subscan_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

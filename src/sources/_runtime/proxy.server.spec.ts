@@ -51,21 +51,18 @@ vi.mock('$/sources/index.server.ts', () => ({
 			endpoints: [{
 				endpointKind: 'HttpUrl',
 				locator: 'https://api.example.test/v1',
-				origin: 'https://api.example.test',
 			}],
 		}],
 		['query', {
 			endpoints: [{
 				endpointKind: 'HttpUrl',
 				locator: 'https://api.example.test/v1',
-				origin: 'https://api.example.test',
 			}],
 		}],
 		['template', {
 			endpoints: [{
 				endpointKind: 'HttpUrl',
 				locator: 'https://api.example.test/tenant/{token}/v1',
-				origin: 'https://api.example.test',
 			}],
 		}],
 		['fallback', {
@@ -73,12 +70,10 @@ vi.mock('$/sources/index.server.ts', () => ({
 				{
 					endpointKind: 'HttpUrl',
 					locator: 'https://primary.example.test/v1',
-					origin: 'https://primary.example.test',
 				},
 				{
 					endpointKind: 'HttpUrl',
 					locator: 'https://fallback.example.test/api',
-					origin: 'https://fallback.example.test',
 				},
 			],
 		}],

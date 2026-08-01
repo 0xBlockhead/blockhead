@@ -53,10 +53,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.accountId || 'near account'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={nearAccount}>
 			{#snippet children(entity)}
@@ -75,7 +71,6 @@
 			<NetworkView
 				selection={select(EntityType.Network, selection.entitySelector.$network)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -88,7 +83,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -154,7 +148,6 @@
 									selection={select(EntityType.NearContract, nearContract[EntityMetaKey.Selector])}
 									prefetched={nearContract}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

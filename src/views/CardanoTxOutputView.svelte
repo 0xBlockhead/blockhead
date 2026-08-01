@@ -79,10 +79,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{String(selection.entitySelector.outputIndex)}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={cardanoTxOutput}>
 			{#snippet children(entity)}
@@ -112,7 +108,6 @@
 					<CardanoTransactionView
 						selection={select(EntityType.CardanoTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -152,7 +147,6 @@
 									selection={select(EntityType.CardanoAddress, cardanoAddress[EntityMetaKey.Selector])}
 									prefetched={cardanoAddress}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -247,12 +241,7 @@
 			{#snippet SectionCardanoTransactionOutputAssetsList({ id, label, open })}
 				<CardanoTxOutputAssetsView
 					selection={selection.$$assets}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>

@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { entityDefinitionByType } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -19,7 +18,7 @@
 
 	const pageSelection = $derived(
 		(
-			data.entityType === EntityType.EvmBlock && data.selectorName === 'EvmNetworkBlockNumber' ?
+			data.entityType === EntityType.EvmBlock ?
 				select(EntityType.EvmBlock, data.selector, {
 					sources: [
 						Source.SqdPortal_RawHttp,
@@ -39,7 +38,7 @@
 					},
 				})
 			:
-			data.entityType === EntityType.SolanaBlock && data.selectorName === 'Slot' ?
+			data.entityType === EntityType.SolanaBlock ?
 				select(EntityType.SolanaBlock, data.selector, {
 					fields: {
 						blockHeight: true,
@@ -52,7 +51,7 @@
 					},
 				})
 			:
-			data.entityType === EntityType.UtxoBlock && data.selectorName === 'NetworkHeight' ?
+			data.entityType === EntityType.UtxoBlock ?
 				select(EntityType.UtxoBlock, data.selector, {
 					fields: {
 						hash: true,
@@ -77,18 +76,18 @@
 				})
 		)
 	)
-	const pageTitle = $derived(
+	const documentTitle = $derived(
 		(
-			data.entityType === EntityType.EvmBlock && data.selectorName === 'EvmNetworkBlockNumber' ?
-				pageSelection.entity == null ? `Block #${data.selector.blockNumber}` : (String(data.selector.blockNumber ?? '') ? 'Block #' + String(data.selector.blockNumber ?? '') : '') || (pageSelection.entity.hash ?? '') || 'EVM block'
+			data.entityType === EntityType.EvmBlock ?
+				(pageSelection.entity == null ? `Block #${data.selector.blockNumber}` : (String(data.selector.blockNumber ?? '') ? 'Block #' + String(data.selector.blockNumber ?? '') : '') || (pageSelection.entity.hash ?? '') || 'EVM block') + ' • EVM block • Blockhead'
 			:
-			data.entityType === EntityType.SolanaBlock && data.selectorName === 'Slot' ?
-				(String(data.selector.slot ?? '') ? 'Slot #' + String(data.selector.slot ?? '') : '') || 'solana block'
+			data.entityType === EntityType.SolanaBlock ?
+				((String(data.selector.slot ?? '') ? 'Slot #' + String(data.selector.slot ?? '') : '') || 'solana block') + ' • solana block • Blockhead'
 			:
-			data.entityType === EntityType.UtxoBlock && data.selectorName === 'NetworkHeight' ?
-				pageSelection.entity == null ? `Block #${data.selector.height}` : (String(data.selector.height ?? '') ? 'Block #' + String(data.selector.height ?? '') : '') || (pageSelection.entity.hash ?? '') || 'UTXO block'
+			data.entityType === EntityType.UtxoBlock ?
+				(pageSelection.entity == null ? `Block #${data.selector.height}` : (String(data.selector.height ?? '') ? 'Block #' + String(data.selector.height ?? '') : '') || (pageSelection.entity.hash ?? '') || 'UTXO block') + ' • UTXO block • Blockhead'
 			:
-				pageSelection.entity == null ? `Block #${data.selector.blockNumber}` : (String(data.selector.blockNumber ?? '') ? 'Block #' + String(data.selector.blockNumber ?? '') : '') || (pageSelection.entity.hash ?? '') || 'Polkadot block'
+				(pageSelection.entity == null ? `Block #${data.selector.blockNumber}` : (String(data.selector.blockNumber ?? '') ? 'Block #' + String(data.selector.blockNumber ?? '') : '') || (pageSelection.entity.hash ?? '') || 'Polkadot block') + ' • Polkadot block • Blockhead'
 		)
 	)
 	const entityViewByType = {
@@ -108,7 +107,7 @@
 
 
 <svelte:head>
-	<title>{pageTitle} • {entityDefinitionByType[data.entityType].labels.singular} • Blockhead</title>
+	<title>{documentTitle}</title>
 </svelte:head>
 
 

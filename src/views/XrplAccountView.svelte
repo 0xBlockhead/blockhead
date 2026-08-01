@@ -31,7 +31,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import XrplLedgerEntriesView from '$/views/XrplLedgerEntriesView.svelte'
@@ -67,16 +66,11 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.account || 'XRPL account'}
-	{/snippet}
-
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -88,7 +82,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -134,12 +127,7 @@
 			{#snippet SectionXrplAccountLedgerEntries({ id, label, open })}
 				<XrplLedgerEntriesView
 					selection={selection.$$ledgerEntries}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No ledger entries.'
 					id={`${id}-list`}
@@ -149,12 +137,7 @@
 			{#snippet SectionXrplAccountTransactions({ id, label, open })}
 				<XrplTransactionsView
 					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No transactions.'
 					id={`${id}-list`}
@@ -164,12 +147,7 @@
 			{#snippet SectionXrplAccountTrustlines({ id, label, open })}
 				<XrplTrustlinesView
 					selection={selection.$$trustlines}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No trustlines.'
 					id={`${id}-list`}
@@ -201,12 +179,7 @@
 			{#snippet SectionXrplAccountTimestamps({ id, label, open })}
 				<XrplAccount_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No timestamps.'
 					id={`${id}-list`}

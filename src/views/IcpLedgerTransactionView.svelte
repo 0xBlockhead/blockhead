@@ -38,10 +38,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		ICP ledger transaction
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -50,7 +46,6 @@
 					<IcpLedgerBlockView
 						selection={select(EntityType.IcpLedgerBlock, selection.entitySelector.$block)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -272,7 +267,6 @@
 									selection={select(EntityType.IcpLedgerCanister, icpLedgerCanister[EntityMetaKey.Selector])}
 									prefetched={icpLedgerCanister}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

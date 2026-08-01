@@ -501,9 +501,6 @@
 		:
 			[]
 	)
-	const rowLimit = $derived(
-		limit ?? (onLoadMorePlaceholders ? 200 : 100)
-	)
 	const itemKeys = $derived(
 		new Set(sortedItems.map((item) => getKey(item)))
 	)

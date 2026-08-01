@@ -1,11 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
 const bindings = [
 	{
-		source: Source.Wormholescan_Rest,
+		source: Source.Wormholescan,
 		target: {
 			kind: SourceTargetKind.Global,
 			key: 'wormholescan-api',
@@ -13,23 +13,35 @@ const bindings = [
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://{wormholescan-api-host}',
-				origin: 'https://{wormholescan-api-host}',
+				locator: 'https://api.wormholescan.io/api/v1/',
 				corsEnabled: false,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
+		apiFamily: ApiFamily.OpenApiHttp,
 		operationGroups: [
 			SourceOperationGroup.GenericRead,
 		],
-		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
 			{
-				scope: SourceCredentialScope.None,
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/Wormholescan/OpenApi/openapi.json',
+				generated: true,
+				officialUrl: 'https://api.wormholescan.io/swagger.json',
+			},
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/Wormholescan/OpenApi/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiTypes,
+				path: 'src/sources/Wormholescan/OpenApi/openapi.d.ts',
+				generated: true,
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Wormholescan_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

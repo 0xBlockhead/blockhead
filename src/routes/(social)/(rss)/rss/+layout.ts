@@ -13,7 +13,8 @@ export const load: LayoutLoad = ({ params }) => {
 		RssNetworkSchema,
 		{
 			scope: 'RssNetwork',
-		}
+		},
+		'Scope'
 	)
 	if (rssNetworkScopeSelector instanceof arktype.errors)
 		error(404, 'Invalid RssNetwork selector')

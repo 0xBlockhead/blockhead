@@ -62,10 +62,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.walletId || 'blockhead zcash wallet state'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary
 			resource={selection.$network}
@@ -76,7 +72,6 @@
 					prefetched={network}
 					href={null}
 					layout={EntityLayout.Value}
-					open={false}
 				/>
 			{/snippet}
 		</ResourceBoundary>
@@ -116,7 +111,6 @@
 									selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
 									prefetched={blockheadWallet}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -135,7 +129,6 @@
 								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 								prefetched={network}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -306,12 +299,7 @@
 			{#snippet SectionZcashViewingKeys({ id, label, open })}
 				<BlockheadZcashViewingKeysView
 					selection={selection.$$viewingKeys}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Zcash viewing keys.'
 					id={`${id}-list`}
@@ -321,12 +309,7 @@
 			{#snippet SectionZcashNotes({ id, label, open })}
 				<BlockheadZcashNoteStatesView
 					selection={selection.$$notes}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Zcash notes.'
 					id={`${id}-list`}
@@ -358,12 +341,7 @@
 			{#snippet SectionZcashWalletTimestamps({ id, label, open })}
 				<BlockheadZcashWalletState_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Zcash wallet observations.'
 					id={`${id}-list`}

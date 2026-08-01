@@ -8,7 +8,6 @@ import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import type {
 	TonApiAccount,
 	TonApiAccountTransactionWire,
-	TonApiAccountTransactionsPage,
 	TonApiAccountTransactionsWire,
 	TonApiMasterchainHead,
 } from '$/sources/TonApi/Rest/types.ts'
@@ -105,7 +104,7 @@ export const getBlockchainAccountTransactions = async (
 		limit: number
 		beforeLt?: bigint
 	}
-): Promise<TonApiAccountTransactionsPage> => {
+) => {
 	const canonicalAccountId = rawTonAddressCoordinates(accountId)
 	if (!Number.isSafeInteger(limit) || limit < 0 || limit > 1_000)
 		throw new Error('TonApi_Rest: transaction limit must be an integer from 0 through 1000')

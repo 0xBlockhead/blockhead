@@ -80,7 +80,6 @@
 					<A2aAgentServiceView
 						selection={select(EntityType.A2aAgentService, selection.entitySelector.$service)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

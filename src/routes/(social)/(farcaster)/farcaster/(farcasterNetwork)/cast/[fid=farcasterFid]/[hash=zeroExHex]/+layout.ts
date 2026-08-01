@@ -19,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 		{
 			fid: Number(params.fid),
 			hash: params.hash,
-		}
+		},
+		'FidHash'
 	)
 	if (farcasterCastFidHashSelector instanceof arktype.errors)
 		error(404, 'Invalid FarcasterCast selector')

@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -15,7 +16,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -26,12 +26,10 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TezosContractView from '$/views/TezosContractView.svelte'
-	import TezosBigMapKeysView from '$/views/TezosBigMapKeysView.svelte'
-	import TezosBigMapDiffsView from '$/views/TezosBigMapDiffsView.svelte'
-	import TezosBigMap_TimestampsView from '$/views/TezosBigMap_TimestampsView.svelte'
 </script>
 
 
@@ -39,15 +37,10 @@
 	entityType={EntityType.TezosBigMap}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? 'tezos big map'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		tezos big map
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -56,7 +49,6 @@
 					<TezosContractView
 						selection={select(EntityType.TezosContract, selection.entitySelector.$contract)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -118,33 +110,41 @@
 			{/snippet}
 
 			{#snippet SectionTezosBigMapKeys({ id, label, open })}
-				<TezosBigMapKeysView
-					selection={selection.$$keys}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.TezosBigMapKey}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No keys.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$keys()}
+				>
+					{#snippet Item({ item: tezosBigMapKey })}
+						<EntityView
+							entityType={EntityType.TezosBigMapKey}
+							entitySelector={tezosBigMapKey[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionTezosBigMapUpdates({ id, label, open })}
-				<TezosBigMapDiffsView
-					selection={selection.$$updates}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.TezosBigMapDiff}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No updates.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$updates()}
+				>
+					{#snippet Item({ item: tezosBigMapDiff })}
+						<EntityView
+							entityType={EntityType.TezosBigMapDiff}
+							entitySelector={tezosBigMapDiff[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -170,18 +170,22 @@
 			{/snippet}
 
 			{#snippet SectionTezosBigMapTimestamps({ id, label, open })}
-				<TezosBigMap_TimestampsView
-					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.TezosBigMap_Timestamp}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No timestamps.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$timestamps()}
+				>
+					{#snippet Item({ item: tezosBigMapTimestamp })}
+						<EntityView
+							entityType={EntityType.TezosBigMap_Timestamp}
+							entitySelector={tezosBigMapTimestamp[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>

@@ -24,12 +24,6 @@
 	}: EntitySelectionViewProps<EntityType.EnsRecord_Timestamp> = $props()
 
 	const record = $derived(selection.entitySelector.$record)
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.TheGraph_Graphql,
-			Source.Voltaire_JsonRpc,
-		],
-	}))
 
 
 	// Components
@@ -67,7 +61,6 @@
 			selection={select(EntityType.EnsRecord, selection.entitySelector.$record)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -83,7 +76,6 @@
 					<EnsRecordView
 						selection={select(EntityType.EnsRecord, selection.entitySelector.$record)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -110,7 +102,12 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
+						sources: selection.sources ?? [
+							Source.TheGraph_Graphql,
+							Source.Voltaire_JsonRpc,
+						],
+					})({
 						fields: {
 							value: true,
 						},

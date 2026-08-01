@@ -33,7 +33,7 @@ export default entity({
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	$quoteToken: {
@@ -42,7 +42,7 @@ export default entity({
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	fee: {
@@ -75,7 +75,7 @@ export default entity({
 		entityType: EntityType.LiquidityPool_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	$$blocks: {

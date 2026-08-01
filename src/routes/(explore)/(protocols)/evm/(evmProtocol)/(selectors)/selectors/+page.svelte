@@ -34,12 +34,8 @@
 
 	<EvmSelectorsView
 		href={resolve('/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selectors')}
-		title='EVM selectors'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='evm-selectors'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(assets)/coin/[coinId=stringSegment]',
+			{
+				coinId: params.coinId,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,30 +38,18 @@
 
 {#key params.coinId}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(assets)/coin/[coinId=stringSegment]',
-				{
-					coinId: params.coinId,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<CoinView
 				selection={
-					select(EntityType.Coin, data.selector, { sources: [
-						Source.Constants_Internal,
-					] })
+					select(EntityType.Coin, data.selector, {
+						sources: [
+							Source.Constants_Internal,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(assets)/coin/[coinId=stringSegment]',
-						{
-							coinId: params.coinId,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

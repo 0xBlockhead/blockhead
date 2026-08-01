@@ -34,6 +34,19 @@ export type PrimalNostrEvent = {
 	sig?: string
 }
 
+export type PrimalSearchRequestByEndpoint = {
+	events: {
+		query?: string
+		'#e'?: readonly string[]
+		kinds?: readonly number[]
+		limit: number
+	}
+	users: {
+		query: string
+		limit: number
+	}
+}
+
 export type PrimalPostBody =
 	| {
 		pubkey: string
@@ -44,12 +57,7 @@ export type PrimalPostBody =
 		kind?: number
 		limit: number
 	}
-	| {
-		query?: string
-		'#e'?: readonly string[]
-		kinds?: readonly number[]
-		limit: number
-	}
+	| PrimalSearchRequestByEndpoint[keyof PrimalSearchRequestByEndpoint]
 
 /** GET /v1/profile/{id} */
 export type PrimalProfile = {
@@ -83,6 +91,11 @@ export type PrimalSearchUsers =
 		profiles?: PrimalNostrEvent[]
 		events?: PrimalNostrEvent[]
 	}
+
+export type PrimalSearchResponseByEndpoint = {
+	events: PrimalSearchEvents
+	users: PrimalSearchUsers
+}
 
 /** GET /v1/events/{id} */
 export type PrimalEventById = {

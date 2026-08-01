@@ -116,7 +116,6 @@
 									selection={select(EntityType.A2aAgentService, a2aAgentService[EntityMetaKey.Selector])}
 									prefetched={a2aAgentService}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -274,12 +273,7 @@
 			{#snippet SectionA2aTaskEvents({ id, label, open })}
 				<A2aTaskEventsView
 					selection={selection.$$events}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No A2A task events.'
 					id={`${id}-list`}
@@ -289,12 +283,7 @@
 			{#snippet SectionA2aTaskMessages({ id, label, open })}
 				<A2aMessagesView
 					selection={selection.$$messages}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No A2A messages.'
 					id={`${id}-list`}
@@ -304,12 +293,7 @@
 			{#snippet SectionA2aTaskArtifacts({ id, label, open })}
 				<A2aArtifactsView
 					selection={selection.$$artifacts}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No A2A artifacts.'
 					id={`${id}-list`}
@@ -345,12 +329,7 @@
 			{#snippet SectionA2aTaskPush({ id, label, open })}
 				<A2aPushNotificationConfigsView
 					selection={selection.$$pushNotificationConfigs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No A2A push notification configs.'
 					id={`${id}-list`}
@@ -360,12 +339,7 @@
 			{#snippet SectionA2aTaskObservations({ id, label, open })}
 				<A2aTask_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No A2A task observations.'
 					id={`${id}-list`}

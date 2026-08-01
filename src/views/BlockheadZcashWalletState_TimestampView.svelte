@@ -91,7 +91,6 @@
 					<BlockheadZcashWalletStateView
 						selection={select(EntityType.BlockheadZcashWalletState, selection.entitySelector.$walletState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

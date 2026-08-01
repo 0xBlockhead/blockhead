@@ -18,7 +18,8 @@ export const load: LayoutLoad = ({ params }) => {
 		{
 			videoId: decodeURIComponent(params.videoId),
 			commentId: decodeURIComponent(params.commentId),
-		}
+		},
+		'VideoIdCommentId'
 	)
 	if (youtubeCommentVideoIdCommentIdSelector instanceof arktype.errors)
 		error(404, 'Invalid YoutubeComment selector')

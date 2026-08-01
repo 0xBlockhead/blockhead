@@ -6,13 +6,10 @@
 import { getDexscreenerJson } from '$/sources/Dexscreener/OpenApi/client.ts'
 import type {
 	DexscreenerPair,
-	DexscreenerPairObservation,
-	DexscreenerPairObservationsResponse,
 	DexscreenerPairsResponse,
 	DexscreenerSearchResponse,
 	DexscreenerTokenPairsResponse,
 } from '$/sources/Dexscreener/OpenApi/types.ts'
-import { Source } from '$/sources/Source.ts'
 
 
 const maximumPairs = 100
@@ -32,7 +29,7 @@ const optionalFiniteNumber = (
 		|| (nonnegative && value < 0)
 		|| (integer && !Number.isSafeInteger(value))
 	)
-		throw new Error(`Dexscreener_OpenApi: invalid ${label}`)
+		throw new Error(`Dexscreener_Rest: invalid ${label}`)
 	return value
 }
 
@@ -40,23 +37,18 @@ const normalizeTimeframeNumbers = (
 	values: Record<string, number> | undefined,
 	label: string,
 	nonnegative = true
-) => {
+): Partial<Record<string, number>> => {
 	const entries = Object.entries(values ?? {})
 	if (entries.length > maximumTimeframes)
-		throw new Error(`Dexscreener_OpenApi: excessive ${label} timeframes`)
+		throw new Error(`Dexscreener_Rest: excessive ${label} timeframes`)
 	for (const [timeframe, value] of entries) {
 		if (!Number.isFinite(value) || (nonnegative && value < 0))
-			throw new Error(`Dexscreener_OpenApi: invalid ${label} ${timeframe}`)
+			throw new Error(`Dexscreener_Rest: invalid ${label} ${timeframe}`)
 	}
 	return Object.fromEntries(entries)
 }
 
-const normalizePair = (
-	pair: DexscreenerPair,
-	resolvedAtMs: number
-): DexscreenerPairObservation => {
-	if (!Number.isSafeInteger(resolvedAtMs) || resolvedAtMs < 0)
-		throw new Error('Dexscreener_OpenApi: invalid observation time')
+const normalizePair = (pair: DexscreenerPair) => {
 	if (
 		pair.chainId == null
 		|| pair.chainId === ''
@@ -74,18 +66,18 @@ const normalizePair = (
 		|| pair.quoteToken.symbol == null
 		|| (pair.labels?.length ?? 0) > maximumLabels
 	)
-		throw new Error('Dexscreener_OpenApi: incomplete pair identity')
+		throw new Error('Dexscreener_Rest: incomplete pair identity')
 
 	const txns = Object.entries(pair.txns ?? {})
 	if (txns.length > maximumTimeframes)
-		throw new Error('Dexscreener_OpenApi: excessive transaction timeframes')
+		throw new Error('Dexscreener_Rest: excessive transaction timeframes')
 
 	for (const value of [
 		pair.priceNative,
 		pair.priceUsd,
 	]) {
 		if (value != null && !unsignedDecimalPattern.test(value))
-			throw new Error('Dexscreener_OpenApi: invalid price units')
+			throw new Error('Dexscreener_Rest: invalid price units')
 	}
 	const liquidityUsd = optionalFiniteNumber(pair.liquidity?.usd, 'USD liquidity')
 	const liquidityBase = optionalFiniteNumber(pair.liquidity?.base, 'base liquidity')
@@ -93,10 +85,18 @@ const normalizePair = (
 	const fdv = optionalFiniteNumber(pair.fdv, 'FDV')
 	const marketCap = optionalFiniteNumber(pair.marketCap, 'market cap')
 	const pairCreatedAt = optionalFiniteNumber(pair.pairCreatedAt, 'pair creation time', true)
+	const normalizedTransactions: Partial<Record<string, {
+		buys: number
+		sells: number
+	}>> = Object.fromEntries(txns.map(([timeframe, counts]) => [
+		timeframe,
+		{
+			buys: optionalFiniteNumber(counts.buys ?? 0, `${timeframe} buys`, true) ?? 0,
+			sells: optionalFiniteNumber(counts.sells ?? 0, `${timeframe} sells`, true) ?? 0,
+		},
+	]))
 
 	return {
-		source: Source.Dexscreener_OpenApi,
-		resolvedAtMs,
 		chainId: pair.chainId,
 		dexId: pair.dexId,
 		pairAddress: pair.pairAddress,
@@ -114,13 +114,7 @@ const normalizePair = (
 		},
 		...(pair.priceNative != null && { priceNative: pair.priceNative }),
 		...(pair.priceUsd != null && { priceUsd: pair.priceUsd }),
-		txns: Object.fromEntries(txns.map(([timeframe, counts]) => [
-			timeframe,
-			{
-				buys: optionalFiniteNumber(counts.buys ?? 0, `${timeframe} buys`, true) ?? 0,
-				sells: optionalFiniteNumber(counts.sells ?? 0, `${timeframe} sells`, true) ?? 0,
-			},
-		])),
+		txns: normalizedTransactions,
 		volume: normalizeTimeframeNumbers(pair.volume, 'volume'),
 		priceChange: normalizeTimeframeNumbers(pair.priceChange ?? undefined, 'price change', false),
 		...(pair.liquidity != null && {
@@ -148,58 +142,50 @@ const normalizePair = (
 	}
 }
 
-const normalizePairs = (
-	pairs: DexscreenerPair[] | null | undefined,
-	resolvedAtMs: number
-): DexscreenerPairObservation[] => {
+const normalizePairs = (pairs: DexscreenerPair[] | null | undefined) => {
 	const rows = pairs ?? []
 	if (
 		rows.length > maximumPairs
 		|| new Set(rows.map((pair) => `${pair.chainId}:${pair.pairAddress?.toLowerCase()}`)).size !== rows.length
 	)
-		throw new Error('Dexscreener_OpenApi: malformed pair cardinality')
-	return rows.map((pair) => normalizePair(pair, resolvedAtMs))
+		throw new Error('Dexscreener_Rest: malformed pair cardinality')
+	return rows.map(normalizePair)
 }
 
 export const getLatestPairs = async ({
 	chainId,
 	pairId,
-	resolvedAtMs = Date.now(),
 }: {
 	chainId: string
 	pairId: string
-	resolvedAtMs?: number
-}): Promise<DexscreenerPairObservationsResponse> => {
+}) => {
 	if (chainId === '' || pairId === '')
-		throw new Error('Dexscreener_OpenApi: empty requested pair identity')
+		throw new Error('Dexscreener_Rest: empty requested pair identity')
 	const response = await getDexscreenerJson<DexscreenerPairsResponse>(
 		`/latest/dex/pairs/${encodeURIComponent(chainId)}/${encodeURIComponent(pairId)}`
 	)
-	const pairs = normalizePairs(response.pairs, resolvedAtMs)
+	const pairs = normalizePairs(response.pairs)
 	if (pairs.some((pair) => (
 		pair.chainId !== chainId
 		|| pair.pairAddress.toLowerCase() !== pairId.toLowerCase()
 	)))
-		throw new Error('Dexscreener_OpenApi: pair response does not match requested identity')
+		throw new Error('Dexscreener_Rest: pair response does not match requested identity')
 	return { pairs }
 }
 
 export const getTokenPairs = async ({
 	chainId,
 	tokenAddress,
-	resolvedAtMs = Date.now(),
 }: {
 	chainId: string
 	tokenAddress: string
-	resolvedAtMs?: number
-}): Promise<DexscreenerPairObservation[]> => {
+}) => {
 	if (chainId === '' || tokenAddress === '')
-		throw new Error('Dexscreener_OpenApi: empty requested token identity')
+		throw new Error('Dexscreener_Rest: empty requested token identity')
 	const pairs = normalizePairs(
 		await getDexscreenerJson<DexscreenerTokenPairsResponse>(
 			`/token-pairs/v1/${encodeURIComponent(chainId)}/${encodeURIComponent(tokenAddress)}`
-		),
-		resolvedAtMs
+		)
 	)
 	if (pairs.some((pair) => (
 		pair.chainId !== chainId
@@ -208,23 +194,21 @@ export const getTokenPairs = async ({
 			&& pair.quoteToken.address.toLowerCase() !== tokenAddress.toLowerCase()
 		)
 	)))
-		throw new Error('Dexscreener_OpenApi: token pair response does not match requested identity')
+		throw new Error('Dexscreener_Rest: token pair response does not match requested identity')
 	return pairs
 }
 
 export const getPairSearch = async ({
 	q,
-	resolvedAtMs = Date.now(),
 }: {
 	q: string
-	resolvedAtMs?: number
-}): Promise<DexscreenerPairObservationsResponse> => {
+}) => {
 	if (q.trim() === '')
-		throw new Error('Dexscreener_OpenApi: empty pair search')
+		throw new Error('Dexscreener_Rest: empty pair search')
 	const response = await getDexscreenerJson<DexscreenerSearchResponse>(
 		`/latest/dex/search?q=${encodeURIComponent(q)}`
 	)
 	return {
-		pairs: normalizePairs(response.pairs, resolvedAtMs),
+		pairs: normalizePairs(response.pairs),
 	}
 }

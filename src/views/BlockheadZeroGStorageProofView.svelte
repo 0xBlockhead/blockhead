@@ -34,7 +34,6 @@
 			proofKind: true,
 		},
 	}))
-	const titleFallback = $derived(selection.entitySelector.proofId || 'blockhead zero g storage proof')
 
 
 	// Components
@@ -50,19 +49,15 @@
 <EntityView
 	entityType={EntityType.BlockheadZeroGStorageProof}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.proofId || 'blockhead zero g storage proof')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.proofId || 'blockhead zero g storage proof'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadZeroGStorageProof}>
 			{#snippet children(entity)}
-				{String(entity.verified) || selection.entitySelector.proofId || titleFallback}
+				{String(entity.verified)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -88,7 +83,6 @@
 					<BlockheadZeroGStorageNodeStateView
 						selection={select(EntityType.BlockheadZeroGStorageNodeState, selection.entitySelector.$nodeState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -128,7 +122,6 @@
 									selection={select(EntityType.ZeroGDataBlob, zeroGDataBlob[EntityMetaKey.Selector])}
 									prefetched={zeroGDataBlob}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -148,7 +141,6 @@
 									selection={select(EntityType.BlockheadZeroGStoredChunk, blockheadZeroGStoredChunk[EntityMetaKey.Selector])}
 									prefetched={blockheadZeroGStoredChunk}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

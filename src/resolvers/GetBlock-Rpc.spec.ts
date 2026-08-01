@@ -12,7 +12,6 @@ import { EntityMetaKey } from '$/schema/$schema.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
@@ -35,7 +34,6 @@ const resolverBinding = vi.hoisted(() => ({
 	endpoints: [{
 		endpointKind: 'HttpUrl',
 		locator: 'https://go.getblock.io/{GETBLOCK_API_KEY}/',
-		origin: 'https://go.getblock.io',
 		corsEnabled: false,
 	}],
 	wireProtocol: 'JsonRpc2',
@@ -49,12 +47,10 @@ const resolverBinding = vi.hoisted(() => ({
 		{
 			kind: 'OpenRpcSpec',
 			path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
-			generated: false,
 		},
 		{
 			kind: 'GenerationManifest',
 			path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
-			generated: false,
 		},
 	],
 }))
@@ -102,7 +98,7 @@ const queryBinding = {
 	apiFamily: ApiFamily.EvmExecutionJsonRpc,
 	operationGroups: [SourceOperationGroup.EvmRpcCore],
 	delivery: SourceDelivery.HttpProxy,
-	credentials: [{ scope: SourceCredentialScope.None }],
+	credentials: [],
 } as const satisfies SourceBinding
 
 describe('GetBlock RPC transaction source', () => {
@@ -119,10 +115,12 @@ describe('GetBlock RPC transaction source', () => {
 			status: '0x1',
 		})
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toMatchObject({
+			id: 1,
 			method: 'eth_getTransactionByHash',
 			params: ['0xaaaa'],
 		})
 		expect(JSON.parse(sourceFetch.mock.calls[1][2].body)).toMatchObject({
+			id: 1,
 			method: 'eth_getTransactionReceipt',
 			params: ['0xaaaa'],
 		})

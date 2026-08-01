@@ -5,14 +5,15 @@ import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
-const assertNearMainnet = (network: { caip2: {
-	namespace: string
-	reference: string
-} } | { slug: string }) => {
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const assertNearMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug.near.slug)
 		throw new Error('NearBlocks_Rest: unsupported network')
 }
@@ -128,10 +129,12 @@ export default {
 									},
 									actionIndex,
 								},
-								actionKind: action.action ?? 'Unknown',
-								...(action.method != null && {
-									methodName: action.method,
-								}),
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.NearAction, [], 'actionKind')]: action.action ?? 'Unknown',
+									...(action.method != null && {
+										[entityFieldAddressKey(EntityType.NearAction, [], 'methodName')]: action.method,
+									}),
+								},
 							})) ?? [],
 							...(transaction.outcomes != null && {
 								$$executionOutcomes: [
@@ -146,9 +149,11 @@ export default {
 											},
 											outcomeId: hash,
 										},
-										...(transaction.outcomes.status != null && {
-											status: transaction.outcomes.status ? 'SuccessValue' : 'Failure',
-										}),
+										[EntityMetaKey.Fields]: {
+											...(transaction.outcomes.status != null && {
+												[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'status')]: transaction.outcomes.status ? 'SuccessValue' : 'Failure',
+											}),
+										},
 									},
 								],
 							}),
@@ -157,26 +162,11 @@ export default {
 				}
 			},
 		})({
-				$signer: (snapshot) => snapshot.$signer,
-				$receiver: (snapshot) => snapshot.$receiver,
-				nonce: (snapshot) => snapshot.nonce,
-				$$actions: (snapshot) => snapshot.$$actions.map((action) => ({
-					[EntityMetaKey.Selector]: action[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.NearAction, [], 'actionKind')]: action.actionKind,
-						...(action.methodName != null && {
-							[entityFieldAddressKey(EntityType.NearAction, [], 'methodName')]: action.methodName,
-						}),
-					},
-				})),
-				$$executionOutcomes: (snapshot) => (snapshot.$$executionOutcomes ?? []).map((outcome) => ({
-					[EntityMetaKey.Selector]: outcome[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						...(outcome.status != null && {
-							[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'status')]: outcome.status,
-						}),
-					},
-				})),
-			}),
+			$signer: (snapshot) => snapshot.$signer,
+			$receiver: (snapshot) => snapshot.$receiver,
+			nonce: (snapshot) => snapshot.nonce,
+			$$actions: (snapshot) => snapshot.$$actions,
+			$$executionOutcomes: (snapshot) => snapshot.$$executionOutcomes,
+		}),
 	],
 }

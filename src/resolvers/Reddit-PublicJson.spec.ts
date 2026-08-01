@@ -11,7 +11,7 @@ import { Source } from '$/sources/Source.ts'
 import {
 	getCommentsByArticleId,
 	getInfo,
-	listSubredditHot,
+	listSubredditLinks,
 	getSubredditAbout,
 } from '$/sources/RedditPublic/Rest/queries.ts'
 import redditPublicJson from '$/resolvers/Reddit-PublicJson.ts'
@@ -19,7 +19,7 @@ import redditPublicJson from '$/resolvers/Reddit-PublicJson.ts'
 vi.mock('$/sources/RedditPublic/Rest/queries.ts', () => ({
 	getCommentsByArticleId: vi.fn(),
 	getInfo: vi.fn(),
-	listSubredditHot: vi.fn(),
+	listSubredditLinks: vi.fn(),
 	getSubredditAbout: vi.fn(),
 }))
 
@@ -50,12 +50,20 @@ describe('Reddit_PublicJson timestamp relationships', () => {
 			candidate.entityType === EntityType.RedditSubreddit
 			&& '$$timestamps' in candidate.projections
 		))
-		if (resolver == null)
+		if (
+			resolver == null
+			|| typeof resolver.projections.$$timestamps !== 'function'
+		)
 			throw new Error('Reddit_PublicJson spec missing RedditSubreddit.$$timestamps resolver')
 
-		await expect(resolver.resolve['Name'].resolve({
+		const snapshot = await resolver.resolve['Name'].resolve({
 			name: 'ethereum',
-		}, resolverContext)).resolves.toEqual([{
+		}, resolverContext)
+		expect(resolver.projections.$$timestamps(
+			snapshot,
+			{ name: 'ethereum' },
+			resolverContext
+		)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$subreddit: { name: 'ethereum' },
 				timestampMs: 1_750_000_000_000,
@@ -126,10 +134,18 @@ describe('Reddit_PublicJson timestamp relationships', () => {
 			candidate.entityType === entityType
 			&& '$$timestamps' in candidate.projections
 		))
-		if (resolver == null)
+		if (
+			resolver == null
+			|| typeof resolver.projections.$$timestamps !== 'function'
+		)
 			throw new Error(`Reddit_PublicJson spec missing ${entityType}.$$timestamps resolver`)
 
-		const rows = await resolver.resolve[selectorName].resolve({ fullname }, resolverContext)
+		const snapshot = await resolver.resolve[selectorName].resolve({ fullname }, resolverContext)
+		const rows = resolver.projections.$$timestamps(
+			snapshot,
+			{ fullname },
+			resolverContext
+		)
 		expect(rows).toEqual([{
 			[EntityMetaKey.Selector]: {
 				[parentField]: { fullname },
@@ -507,7 +523,7 @@ describe('Reddit_PublicJson listing continuation', () => {
 				}],
 			},
 		}
-		vi.mocked(listSubredditHot).mockResolvedValue(page)
+		vi.mocked(listSubredditLinks).mockResolvedValue(page)
 		const resolver = redditPublicJson.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.RedditSubreddit
 			&& '$$links' in candidate.projections
@@ -526,10 +542,13 @@ describe('Reddit_PublicJson listing continuation', () => {
 			...resolverContext,
 			providerContinuationToken: 't3_previous',
 		})).resolves.toEqual(page)
-		expect(listSubredditHot).toHaveBeenCalledWith(
+		expect(listSubredditLinks).toHaveBeenCalledWith(
 			'ethereum',
-			64,
-			't3_previous'
+			{
+				after: 't3_previous',
+				limit: 64,
+				sort: 'hot',
+			}
 		)
 		expect(resolver.projections.$$links.select(
 			page,

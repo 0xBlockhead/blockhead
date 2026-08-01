@@ -1,6 +1,6 @@
 import {
-	ProposalCategory as OwnedProposalCategory,
-	SpecificationRealm as OwnedSpecificationRealm,
+	ProposalCategory,
+	SpecificationRealm,
 } from '$/constants/SpecificationProposal.ts'
 import {
 	defineResolver,
@@ -15,23 +15,6 @@ const metadataValue = (text: string, key: string) => (
 	new RegExp(`^\\s*${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim()
 )
 
-const litecoinLipRows = async (entries: { type: string, name: string }[]) => {
-	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-	return entries.flatMap((githubContent) => {
-		const proposalNumberRaw = regex('^lip-(?<proposalNumber>\\d{4})\\.mediawiki$').exec(githubContent.name)?.groups.proposalNumber
-		return githubContent.type !== 'file' || proposalNumberRaw == null ?
-			[]
-		:
-			[{
-				[EntityMetaKey.Selector]: {
-					realm: SpecificationRealm.Litecoin,
-					category: ProposalCategory.Lip,
-					number: parseInt(proposalNumberRaw, 10),
-				},
-			}]
-	})
-}
-
 export default {
 	source: Source.LitecoinLips_Github,
 
@@ -42,47 +25,58 @@ export default {
 				RealmCategoryNumber: {
 					appliesTo: [
 						{
-							realm: OwnedSpecificationRealm.Litecoin,
-							category: OwnedProposalCategory.Lip,
+							realm: SpecificationRealm.Litecoin,
+							category: ProposalCategory.Lip,
 						},
 					],
 					resolve: async ({ category, number, realm }) => {
-					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-					if (realm !== SpecificationRealm.Litecoin || category !== ProposalCategory.Lip) {
-						throw new Error('LitecoinLips_Github: proposal resolver only supports Litecoin LIPs')
-					}
-					const { getMediaWikiText } = await import('$/sources/LitecoinLips/Github/queries.ts')
-					const text = await getMediaWikiText({
-						number: number,
-					})
-					return {
-						documentCategory: metadataValue(text, 'Type') ?? 'LIP',
-						documentTitle: metadataValue(text, 'Title'),
-						documentStatus: metadataValue(text, 'Status'),
-						documentBody: text,
-					}
+						if (realm !== SpecificationRealm.Litecoin || category !== ProposalCategory.Lip)
+							throw new Error('LitecoinLips_Github: proposal resolver only supports Litecoin LIPs')
+
+						const { getMediaWikiText } = await import('$/sources/LitecoinLips/Github/queries.ts')
+						const text = await getMediaWikiText({
+							number,
+						})
+						return {
+							documentCategory: metadataValue(text, 'Type') ?? 'LIP',
+							documentTitle: metadataValue(text, 'Title'),
+							documentStatus: metadataValue(text, 'Status'),
+							documentBody: text,
+						}
+					},
 				},
-				}
-			}
+			},
 		})({
-			documentCategory: (snapshot) => snapshot.documentCategory,
-			documentTitle: (snapshot) => snapshot.documentTitle,
-			documentStatus: (snapshot) => snapshot.documentStatus,
-			documentBody: (snapshot) => snapshot.documentBody,
-		}),
+				documentCategory: (snapshot) => snapshot.documentCategory,
+				documentTitle: (snapshot) => snapshot.documentTitle,
+				documentStatus: (snapshot) => snapshot.documentStatus,
+				documentBody: (snapshot) => snapshot.documentBody,
+			}),
 
 		defineResolver(Source.LitecoinLips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
 					resolve: async () => {
-					const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
-					return litecoinLipRows(await getContents())
+						const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
+						return (await getContents()).flatMap((githubContent) => {
+							const proposalNumberRaw = regex('^lip-(?<proposalNumber>\\d{4})\\.mediawiki$').exec(githubContent.name)?.groups.proposalNumber
+							return githubContent.type !== 'file' || proposalNumberRaw == null ?
+								[]
+							:
+								[{
+									[EntityMetaKey.Selector]: {
+										realm: SpecificationRealm.Litecoin,
+										category: ProposalCategory.Lip,
+										number: parseInt(proposalNumberRaw, 10),
+									},
+								}]
+						})
+					},
 				},
-				}
-			}
+			},
 		})({
-			$$proposals: (snapshot) => snapshot,
-		}),
+				$$proposals: (snapshot) => snapshot,
+			}),
 	],
 }

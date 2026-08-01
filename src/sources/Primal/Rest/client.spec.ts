@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { primalPost } from '$/sources/Primal/Rest/client.ts'
 import bindings from '$/sources/Primal/bindings.ts'
+import {
+	getNoteActions,
+	search,
+} from '$/sources/Primal/Rest/queries.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceBindingId } from '$/sources/SourceBinding.ts'
 
@@ -39,13 +42,61 @@ describe('Primal REST binding authority', () => {
 			})
 		})
 
-		await expect(primalPost('/search/events', {
-			query: 'nostr',
+		await expect(search('events', {
+			query: ' nostr ',
 			kinds: [
 				1,
 				30023,
 			],
 			limit: 2,
 		})).resolves.toEqual([])
+	})
+
+	it('normalizes and bounds endpoint-native note actions', async () => {
+		vi.stubGlobal('window', {})
+		vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+			expect(String(input)).toBe(
+				`/api-proxy/${encodeURIComponent(sourceBindingId(primalBinding))}/0/${encodeURIComponent(`${primalBinding.endpoints[0].locator}/v1/timeline/event/actions`)}`
+			)
+			expect(init?.body).toBe(JSON.stringify({
+				event_id: 'abcdef',
+				kind: 7,
+				limit: 1000,
+			}))
+			return new Response(JSON.stringify({ actions: [] }), {
+				headers: {
+					'content-type': 'application/json',
+				},
+			})
+		})
+
+		await expect(getNoteActions('ABCDEF', 7, 2000)).resolves.toEqual({
+			actions: [],
+		})
+	})
+
+	it('preserves the typed users search endpoint', async () => {
+		vi.stubGlobal('window', {})
+		vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+			expect(String(input)).toBe(
+				`/api-proxy/${encodeURIComponent(sourceBindingId(primalBinding))}/0/${encodeURIComponent(`${primalBinding.endpoints[0].locator}/v1/search/users`)}`
+			)
+			expect(init?.body).toBe(JSON.stringify({
+				query: 'alice',
+				limit: 1,
+			}))
+			return new Response(JSON.stringify({ users: [] }), {
+				headers: {
+					'content-type': 'application/json',
+				},
+			})
+		})
+
+		await expect(search('users', {
+			query: ' alice ',
+			limit: 0,
+		})).resolves.toEqual({
+			users: [],
+		})
 	})
 })

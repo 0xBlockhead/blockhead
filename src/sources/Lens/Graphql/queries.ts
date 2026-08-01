@@ -662,75 +662,74 @@ const LensNamespacesDocument = graphql(`
 	}
 `, [LensUsernameNamespace])
 
-export const queryAccount = async (
+export const queryAccountByAddress = async (
 	publicEnv: SourcePublicEnv,
-	entitySelector: (
-		| { address: `0x${string}` }
-		| { localName: string }
-		| { legacyProfileId: string }
-	)
+	address: `0x${string}`
 ) => {
-	if (
-		('address' in entitySelector && entitySelector.address === '')
-		|| ('localName' in entitySelector && entitySelector.localName.trim() === '')
-		|| ('legacyProfileId' in entitySelector && entitySelector.legacyProfileId.trim() === '')
-	)
+	if (address === '')
 		throw new Error('Lens_Graphql: account identity must not be empty')
 
-	const accountResponse = await (
-		'address' in entitySelector ?
-			queryLens(
-				publicEnv,
-				LensAccountByAddressDocument,
-				{
-					address: entitySelector.address,
-				}
-			)
-		: 'localName' in entitySelector ?
-			queryLens(
-				publicEnv,
-				LensAccountByLocalNameDocument,
-				{
-					localName: entitySelector.localName,
-				}
-			)
-		:
-			queryLens(
-				publicEnv,
-				LensAccountByLegacyProfileIdDocument,
-				{
-					legacyProfileId: entitySelector.legacyProfileId,
-				}
-			)
+	const response = await queryLens(
+		publicEnv,
+		LensAccountByAddressDocument,
+		{ address }
 	)
 	if (
-		accountResponse.account != null
-		&& (
-			('address' in entitySelector && (
-				accountResponse.account.address.toLowerCase() !== entitySelector.address.toLowerCase()
-			))
-			|| ('localName' in entitySelector && (
-				accountResponse.account.username?.localName !== entitySelector.localName
-			))
-		)
+		response.account != null
+		&& response.account.address.toLowerCase() !== address.toLowerCase()
 	)
 		throw new Error('Lens_Graphql: account response does not match request')
 
-	return {
-		...accountResponse,
-		...(
-			accountResponse.account?.address != null ?
-				await queryLens(
-					publicEnv,
-					LensAccountStatsDocument,
-					{
-						address: accountResponse.account.address,
-					}
-				)
-			:
-				{}
-		),
-	}
+	return response
+}
+
+export const queryAccountByLocalName = async (
+	publicEnv: SourcePublicEnv,
+	localName: string
+) => {
+	if (localName.trim() === '')
+		throw new Error('Lens_Graphql: account identity must not be empty')
+
+	const response = await queryLens(
+		publicEnv,
+		LensAccountByLocalNameDocument,
+		{ localName }
+	)
+	if (
+		response.account != null
+		&& response.account.username?.localName !== localName
+	)
+		throw new Error('Lens_Graphql: account response does not match request')
+
+	return response
+}
+
+export const queryAccountByLegacyProfileId = async (
+	publicEnv: SourcePublicEnv,
+	legacyProfileId: string
+) => {
+	if (legacyProfileId.trim() === '')
+		throw new Error('Lens_Graphql: account identity must not be empty')
+
+	return queryLens(
+		publicEnv,
+		LensAccountByLegacyProfileIdDocument,
+		{ legacyProfileId }
+	)
+}
+
+export const queryAccountStats = async (
+	publicEnv: SourcePublicEnv,
+	address: `0x${string}`
+) => {
+	if (address === '')
+		throw new Error('Lens_Graphql: account identity must not be empty')
+
+	return queryLens(
+		publicEnv,
+		LensAccountStatsDocument,
+		{ address }
+	)
 }
 
 export const queryPost = async (
@@ -898,36 +897,35 @@ export const queryFeeds = async (
 	),
 })
 
-export const queryUsername = async (
+export const queryUsernameById = async (
 	publicEnv: SourcePublicEnv,
-	entitySelector: (
-		| { id: string }
-		| {
-			namespace: `0x${string}`
-			localName: string
-		}
-	)
+	id: string
 ) => {
-	if (
-		('id' in entitySelector && entitySelector.id.trim() === '')
-		|| ('localName' in entitySelector && entitySelector.localName.trim() === '')
-		|| ('namespace' in entitySelector && entitySelector.namespace === '')
-	)
+	if (id.trim() === '')
 		throw new Error('Lens_Graphql: username identity must not be empty')
 
-	return (
-		'id' in entitySelector ?
-			queryLens(
-				publicEnv,
-				LensUsernameByIdDocument,
-				{ id: entitySelector.id }
-			)
-		:
-			queryLens(
-				publicEnv,
-				LensUsernameByLocalNameDocument,
-				entitySelector
-			)
+	return queryLens(
+		publicEnv,
+		LensUsernameByIdDocument,
+		{ id }
+	)
+}
+
+export const queryUsernameByLocalName = async (
+	publicEnv: SourcePublicEnv,
+	namespace: `0x${string}`,
+	localName: string
+) => {
+	if (namespace === '' || localName.trim() === '')
+		throw new Error('Lens_Graphql: username identity must not be empty')
+
+	return queryLens(
+		publicEnv,
+		LensUsernameByLocalNameDocument,
+		{
+			namespace,
+			localName,
+		}
 	)
 }
 

@@ -68,7 +68,6 @@
 			<BnbBeaconTransactionView
 				selection={select(EntityType.BnbBeaconTransaction, selection.entitySelector.$transaction)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -81,7 +80,6 @@
 					<BnbBeaconTransactionView
 						selection={select(EntityType.BnbBeaconTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

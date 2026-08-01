@@ -1,13 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
-
-const xrplClioJsonRpcCredentials = [
-	{
-		scope: SourceCredentialScope.None,
-	},
-] as const
+import { ApiFamily, indexSourceBindings, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
 const bindings = [
 	{
@@ -20,7 +14,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://{xrpl-clio-host}',
-				origin: 'https://{xrpl-clio-host}',
 				corsEnabled: false,
 			},
 		],
@@ -30,7 +23,7 @@ const bindings = [
 			SourceOperationGroup.GenericRead,
 		],
 		delivery: SourceDelivery.RemoteQuery,
-		credentials: xrplClioJsonRpcCredentials,
+		credentials: [],
 	},
 	{
 		source: Source.XrplClio_JsonRpc,
@@ -51,8 +44,8 @@ const bindings = [
 			SourceOperationGroup.GenericSubscribe,
 		],
 		delivery: SourceDelivery.RemoteLive,
-		credentials: xrplClioJsonRpcCredentials,
+		credentials: [],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.XrplClio_JsonRpc]: readonly [typeof bindings[0], typeof bindings[1]] }>(bindings)
+export default indexSourceBindings(bindings)

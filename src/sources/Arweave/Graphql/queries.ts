@@ -1,13 +1,26 @@
-import { postJson } from '$/sources/_shared/wire/HttpRest/client.ts'
-import type {
-	ArweaveGraphqlTransaction,
-	ArweaveGraphqlTransactionPage,
-	ArweaveGraphqlTransactionsResponse,
+import {
+	ArweaveGraphqlTransactionFragment,
+	type ArweaveGraphqlTransaction,
 } from '$/sources/Arweave/Graphql/types.ts'
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
-const transactionsQuery = `
-	query Transactions(
+import {
+	graphql,
+	queryArweave,
+} from './client.ts'
+
+const ArweaveTransaction = graphql(`
+	query ArweaveTransaction($id: ID!) {
+		transaction(id: $id) {
+			...ArweaveGraphqlTransaction
+		}
+	}
+`, [
+	ArweaveGraphqlTransactionFragment,
+])
+
+const ArweaveTransactions = graphql(`
+	query ArweaveTransactions(
 		$first: Int!
 		$after: String
 		$ids: [ID!]
@@ -28,39 +41,14 @@ const transactionsQuery = `
 			edges {
 				cursor
 				node {
-					id
-					anchor
-					signature
-					recipient
-					owner {
-						address
-						key
-					}
-					fee {
-						winston
-					}
-					quantity {
-						winston
-					}
-					data {
-						size
-						type
-					}
-					tags {
-						name
-						value
-					}
-					block {
-						id
-						timestamp
-						height
-						previous
-					}
+					...ArweaveGraphqlTransaction
 				}
 			}
 		}
 	}
-`
+`, [
+	ArweaveGraphqlTransactionFragment,
+])
 
 const assertAddress = (
 	value: string,
@@ -97,6 +85,13 @@ const assertTransaction = (
 	assertUnsignedDecimal(transaction.quantity.winston, 'quantity winston')
 	assertUnsignedDecimal(transaction.data.size, 'data size')
 	if (transaction.block != null) {
+		if (
+			transaction.block.id == null
+			|| transaction.block.timestamp == null
+			|| transaction.block.previous == null
+		)
+			throw new Error('Arweave_Graphql: incomplete confirmed block coordinates')
+
 		assertBlockHash(transaction.block.id, 'block ID')
 		if (transaction.block.previous !== '')
 			assertBlockHash(transaction.block.previous, 'previous block ID')
@@ -124,7 +119,7 @@ const getTransactionPage = async ({
 	ids?: string[]
 	owners?: string[]
 	recipients?: string[]
-}): Promise<ArweaveGraphqlTransactionPage> => {
+}) => {
 	if (!Number.isSafeInteger(first) || first < 1 || first > 100)
 		throw new Error('Arweave_Graphql: page size must be an integer from 1 through 100')
 	if (after === '')
@@ -135,24 +130,14 @@ const getTransactionPage = async ({
 		assertAddress(owner, 'owner address')
 	for (const recipient of recipients ?? [])
 		assertAddress(recipient, 'recipient address')
-	const response = await postJson<ArweaveGraphqlTransactionsResponse>({
-		binding,
-		body: {
-			query: transactionsQuery,
-			variables: {
-				first,
-				after,
-				ids,
-				owners,
-				recipients,
-			},
-		},
+	const { transactions } = await queryArweave(binding, ArweaveTransactions, {
+		first,
+		after,
+		ids,
+		owners,
+		recipients,
 	})
-	if (response.errors?.[0] != null)
-		throw new Error(`Arweave_Graphql: ${response.errors[0].message}`)
-	if (response.data == null)
-		throw new Error('Arweave_Graphql: response is missing transaction data')
-	const { edges, pageInfo } = response.data.transactions
+	const { edges, pageInfo } = transactions
 	if (edges.length > first)
 		throw new Error('Arweave_Graphql: transaction page exceeds requested size')
 	const transactionIds = new Set<string>()
@@ -177,26 +162,25 @@ const getTransactionPage = async ({
 		throw new Error('Arweave_Graphql: next page has no cursor')
 	if (pageInfo.hasNextPage && nextCursor === after)
 		throw new Error('Arweave_Graphql: cursor did not advance')
-	return {
-		edges,
-		nextCursor,
-	}
+	return transactions
 }
 
 export const getTransactionById = async (
 	binding: SourceBinding,
 	transactionId: string
 ) => {
-	const page = await getTransactionPage({
-		binding,
-		first: 1,
-		ids: [
-			transactionId,
-		],
+	assertAddress(transactionId, 'transaction ID')
+	const { transaction } = await queryArweave(binding, ArweaveTransaction, {
+		id: transactionId,
 	})
-	if (page.edges.length !== 1)
+	if (transaction == null)
 		throw new Error('Arweave_Graphql: transaction was not found')
-	return page.edges[0].node
+
+	assertTransaction(transaction)
+	if (transaction.id !== transactionId)
+		throw new Error('Arweave_Graphql: returned a foreign transaction')
+
+	return transaction
 }
 
 export const getAccountTransactionsPage = (

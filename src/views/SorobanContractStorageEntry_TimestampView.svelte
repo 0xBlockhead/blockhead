@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -30,15 +29,10 @@
 <EntityView
 	entityType={EntityType.SorobanContractStorageEntry_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'soroban contract storage entry timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		soroban contract storage entry timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -47,7 +41,6 @@
 					<SorobanContractStorageEntryView
 						selection={select(EntityType.SorobanContractStorageEntry, selection.entitySelector.$entry)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -134,7 +134,12 @@
 		Empty,
 		body,
 		TypeAnnotationTooltip,
-		typeAnnotationParagraphs = [],
+		typeAnnotationParagraphs = (
+			TypeAnnotationTooltip == null && entityDefinitionByType[entityType].description != null ?
+				[entityDefinitionByType[entityType].description]
+			:
+				[]
+		),
 		collapsible: _collapsible = true,
 		layout = EntitiesListLayout.Default,
 		showTypeAnnotation = true,
@@ -316,7 +321,7 @@
 
 	{#snippet SummaryAnnotation()}
 		{#if showTypeAnnotation && (typeAnnotationParagraphs.length > 0 || TypeAnnotationTooltip)}
-			<Tooltip contentProps={{ side: 'top' }}>
+			<Tooltip>
 				{#snippet Content()}
 					{#if typeAnnotationParagraphs.length > 0}
 						{#each typeAnnotationParagraphs as paragraph (paragraph)}

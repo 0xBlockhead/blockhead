@@ -10,7 +10,6 @@ const moneroDaemonRpcJsonRpcArtifacts = [
 	{
 		kind: SourceArtifactKind.HandwrittenTypes,
 		path: 'src/sources/MoneroDaemonRpc/JsonRpc/types.ts',
-		generated: false,
 	},
 ] as const
 
@@ -25,13 +24,11 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://xmr-node.cakewallet.com:18081/json_rpc',
-				origin: 'https://xmr-node.cakewallet.com:18081',
 				corsEnabled: false,
 			},
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'http://nodes.hashvault.pro:18081/json_rpc',
-				origin: 'http://nodes.hashvault.pro:18081',
 				corsEnabled: false,
 			},
 		],
@@ -39,11 +36,7 @@ const bindings = [
 		apiFamily: ApiFamily.MoneroDaemonJsonRpc,
 		operationGroups: moneroDaemonRpcJsonRpcGenericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 		artifacts: moneroDaemonRpcJsonRpcArtifacts,
 	},
 	{
@@ -56,7 +49,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'http://127.0.0.1:18081/json_rpc',
-				origin: 'http://127.0.0.1:18081',
 				corsEnabled: false,
 			},
 		],
@@ -73,4 +65,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.MoneroDaemonRpc_JsonRpc]: readonly [typeof bindings[0], typeof bindings[1]] }>(bindings)
+export default indexSourceBindings(bindings)

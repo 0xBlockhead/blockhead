@@ -5,20 +5,20 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
+	type EntitySelector,
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import type { SidecarBlock } from '$/sources/SubstrateSidecar/Rest/types.ts'
 
 type SidecarBlockEvent = {
 	method: string
 	extrinsicIndex?: number
 }
 
-type PolkadotNetworkId = { caip2: {
-	namespace: string
-	reference: string
-} } | { slug: string }
+type PolkadotNetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 type NetworkId = PolkadotNetworkId | { $network: PolkadotNetworkId }
 
@@ -39,6 +39,77 @@ const assertPolkadotMainnet = (network: NetworkId) => {
 		|| network.caip2.reference !== networkBySlug.polkadot.caip2.reference
 	) {
 		throw new Error('SubstrateSidecar_Rest: unsupported network')
+	}
+}
+
+const polkadotExtrinsicFields = (
+	network: PolkadotNetworkId,
+	extrinsic: SidecarBlock['extrinsics'][number]
+) => ({
+	...(extrinsic.hash != null && {
+		hash: extrinsic.hash,
+	}),
+	...(extrinsic.signature?.signer != null && {
+		$signer: {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				accountId: extrinsic.signature.signer,
+			},
+		},
+	}),
+	$pallet: {
+		[EntityMetaKey.Selector]: {
+			$network: network,
+			palletName: extrinsic.method.pallet,
+		},
+	},
+	callName: extrinsic.method.method,
+	...(extrinsic.success != null && {
+		success: extrinsic.success,
+	}),
+})
+
+const polkadotBlockEvents = (block: SidecarBlock) => [
+	...(block.onInitialize?.events ?? []),
+	...block.extrinsics.flatMap((extrinsic, extrinsicIndex) => (
+		(extrinsic.events ?? []).map((event) => ({
+			...event,
+			extrinsicIndex,
+		}))
+	)),
+	...(block.onFinalize?.events ?? []),
+]
+
+const polkadotEventFields = (
+	network: PolkadotNetworkId,
+	block: SidecarBlock,
+	event: SidecarBlockEvent
+) => {
+	const [
+		palletName,
+		eventName,
+	] = event.method.split('.')
+
+	return {
+		...(event.extrinsicIndex != null && {
+			$extrinsic: {
+				[EntityMetaKey.Selector]: {
+					$block: {
+						$network: network,
+						blockNumber: BigInt(block.number),
+						hash: block.hash,
+					},
+					indexInBlock: event.extrinsicIndex,
+				},
+			},
+		}),
+		$pallet: {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				palletName,
+			},
+		},
+		eventName,
 	}
 }
 
@@ -118,107 +189,57 @@ export default {
 							$$extrinsics: block.extrinsics.map((extrinsic, extrinsicIndex) => ({
 								[EntityMetaKey.Selector]: {
 									$block: {
-										$network: $network,
+										$network,
 										blockNumber: BigInt(block.number),
 										hash: block.hash,
 									},
 									indexInBlock: extrinsicIndex,
 								},
-								...(extrinsic.hash != null && {
-									hash: extrinsic.hash,
-								}),
-								...(extrinsic.signature?.signer != null && {
-									$signer: {
-										[EntityMetaKey.Selector]: {
-											$network: $network,
-											accountId: extrinsic.signature.signer,
-										},
-									},
-								}),
-								$pallet: {
-									[EntityMetaKey.Selector]: {
-										$network: $network,
-										palletName: extrinsic.method.pallet,
-									},
-								},
-								callName: extrinsic.method.method,
-								...(extrinsic.success != null && {
-									success: extrinsic.success,
-								}),
+								...polkadotExtrinsicFields($network, extrinsic),
 							})),
-							$$events: ([
-								...(block.onInitialize?.events ?? []),
-								...block.extrinsics.flatMap((extrinsic, extrinsicIndex) => (
-								(extrinsic.events ?? []).map((event) => ({
-									...event,
-									extrinsicIndex,
-								}))
-								)),
-								...(block.onFinalize?.events ?? []),
-							]).map((event: SidecarBlockEvent, eventIndex) => {
-							const [
-								palletName,
-								eventName,
-							] = event.method.split('.')
-
-							return {
+							$$events: polkadotBlockEvents(block).map((event, eventIndex) => ({
 								[EntityMetaKey.Selector]: {
 									$block: {
-										$network: $network,
+										$network,
 										blockNumber: BigInt(block.number),
 										hash: block.hash,
 									},
 									indexInBlock: eventIndex,
 								},
-								...(event.extrinsicIndex != null && {
-									$extrinsic: {
-										[EntityMetaKey.Selector]: {
-											$block: {
-											$network: $network,
-											blockNumber: BigInt(block.number),
-											hash: block.hash,
-										},
-											indexInBlock: event.extrinsicIndex,
-										},
-									},
-								}),
-								$pallet: {
-									[EntityMetaKey.Selector]: {
-										$network: $network,
-										palletName,
-									},
-								},
-								eventName: eventName,
-							}
-							}),
+								...polkadotEventFields(
+									$network,
+									block,
+									event
+								),
+							})),
 						}
 					},
-				}
+				},
 			},
 		})({
-				hash: (block) => block.hash,
-				$parent: (block) => block.$parent,
-				stateRoot: (block) => block.stateRoot,
-				extrinsicsRoot: (block) => block.extrinsicsRoot,
-				$$extrinsics: (block) => block.$$extrinsics.map((extrinsic) => ({
-					[EntityMetaKey.Selector]: extrinsic[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'hash')]: extrinsic.hash,
-						[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], '$signer')]: extrinsic.$signer,
-						[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], '$pallet')]: extrinsic.$pallet,
-						[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'callName')]: extrinsic.callName,
-						[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'success')]: extrinsic.success,
-					},
-				})),
-				$$events: (block) => block.$$events.map((event) => ({
-					[EntityMetaKey.Selector]: event[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.PolkadotEvent, [], '$extrinsic')]: event.$extrinsic,
-						[entityFieldAddressKey(EntityType.PolkadotEvent, [], '$pallet')]: event.$pallet,
-						[entityFieldAddressKey(EntityType.PolkadotEvent, [], 'eventName')]: event.eventName,
-					},
-				})),
-			}),
+			hash: (block) => block.hash,
+			$parent: (block) => block.$parent,
+			stateRoot: (block) => block.stateRoot,
+			extrinsicsRoot: (block) => block.extrinsicsRoot,
+			$$extrinsics: (block) => block.$$extrinsics.map((extrinsic) => ({
+				[EntityMetaKey.Selector]: extrinsic[EntityMetaKey.Selector],
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'hash')]: extrinsic.hash,
+					[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], '$signer')]: extrinsic.$signer,
+					[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], '$pallet')]: extrinsic.$pallet,
+					[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'callName')]: extrinsic.callName,
+					[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'success')]: extrinsic.success,
+				},
+			})),
+			$$events: (block) => block.$$events.map((event) => ({
+				[EntityMetaKey.Selector]: event[EntityMetaKey.Selector],
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.PolkadotEvent, [], '$extrinsic')]: event.$extrinsic,
+					[entityFieldAddressKey(EntityType.PolkadotEvent, [], '$pallet')]: event.$pallet,
+					[entityFieldAddressKey(EntityType.PolkadotEvent, [], 'eventName')]: event.eventName,
+				},
+			})),
+		}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotExtrinsic,
@@ -233,39 +254,20 @@ export default {
 						const extrinsic = block.extrinsics.at(indexInBlock)
 						if (extrinsic == null)
 							throw new Error(`SubstrateSidecar_Rest: missing extrinsic ${indexInBlock}`)
-						return {
-							...(extrinsic.hash != null && {
-								hash: extrinsic.hash,
-							}),
-							...(extrinsic.signature?.signer != null && {
-								$signer: {
-									[EntityMetaKey.Selector]: {
-										$network: $block.$network,
-										accountId: extrinsic.signature.signer,
-									},
-								},
-							}),
-							$pallet: {
-								[EntityMetaKey.Selector]: {
-									$network: $block.$network,
-									palletName: extrinsic.method.pallet,
-								},
-							},
-							callName: extrinsic.method.method,
-							...(extrinsic.success != null && {
-								success: extrinsic.success,
-							}),
-						}
+						return polkadotExtrinsicFields(
+							$block.$network,
+							extrinsic
+						)
 					},
-				}
+				},
 			},
 		})({
-				hash: (extrinsic) => extrinsic.hash,
-				$signer: (extrinsic) => extrinsic.$signer,
-				$pallet: (extrinsic) => extrinsic.$pallet,
-				callName: (extrinsic) => extrinsic.callName,
-				success: (extrinsic) => extrinsic.success,
-			}),
+			hash: (extrinsic) => extrinsic.hash,
+			$signer: (extrinsic) => extrinsic.$signer,
+			$pallet: (extrinsic) => extrinsic.$pallet,
+			callName: (extrinsic) => extrinsic.callName,
+			success: (extrinsic) => extrinsic.success,
+		}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotEvent,
@@ -277,51 +279,22 @@ export default {
 						const block = await getBlock({
 							blockId: $block.blockNumber.toString(),
 						})
-						const event: SidecarBlockEvent | undefined = [
-							...(block.onInitialize?.events ?? []),
-							...block.extrinsics.flatMap((extrinsic, extrinsicIndex) => (
-							(extrinsic.events ?? []).map((extrinsicEvent) => ({
-								...extrinsicEvent,
-								extrinsicIndex,
-							}))
-							)),
-							...(block.onFinalize?.events ?? []),
-						].at(indexInBlock)
+						const event = polkadotBlockEvents(block).at(indexInBlock)
 						if (event == null)
 							throw new Error(`SubstrateSidecar_Rest: missing event ${indexInBlock}`)
-						const [
-							palletName,
-						eventName,
-						] = event.method.split('.')
-						return {
-							...(event.extrinsicIndex != null && {
-								$extrinsic: {
-									[EntityMetaKey.Selector]: {
-										$block: {
-											$network: $block.$network,
-											blockNumber: BigInt(block.number),
-											hash: block.hash,
-										},
-										indexInBlock: event.extrinsicIndex,
-									},
-								},
-							}),
-							$pallet: {
-								[EntityMetaKey.Selector]: {
-									$network: $block.$network,
-									palletName,
-								},
-							},
-							eventName: eventName,
-						}
+						return polkadotEventFields(
+							$block.$network,
+							block,
+							event
+						)
 					},
-				}
+				},
 			},
 		})({
-				$extrinsic: (event) => event.$extrinsic,
-				$pallet: (event) => event.$pallet,
-				eventName: (event) => event.eventName,
-			}),
+			$extrinsic: (event) => event.$extrinsic,
+			$pallet: (event) => event.$pallet,
+			eventName: (event) => event.eventName,
+		}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotAccount,
@@ -469,155 +442,5 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.SubstrateSidecar_Rest, {
-			entityType: EntityType.PolkadotBlock,
-			resolve: {
-				NetworkBlockNumberHash: {
-					resolve: async ({ $network, hash }) => {
-						assertPolkadotMainnet($network)
-						const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-						const block = await getBlock({
-							blockId: hash,
-						})
-						if (BigInt(block.number) === 0n) return undefined
-						return {
-							[EntityMetaKey.Selector]: {
-								$network: $network,
-								blockNumber: BigInt(block.number) - 1n,
-								hash: block.parentHash,
-							},
-						}
-					},
-				}
-			},
-		})({
-				$parent: (parent) => parent,
-			}),
-
-		defineResolver(Source.SubstrateSidecar_Rest, {
-			entityType: EntityType.PolkadotBlock,
-			resolve: {
-				NetworkBlockNumberHash: {
-					resolve: async ({ $network, hash }) => {
-						assertPolkadotMainnet($network)
-						const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-						const block = await getBlock({
-							blockId: hash,
-						})
-						return block.extrinsics.map((extrinsic, extrinsicIndex) => ({
-							[EntityMetaKey.Selector]: {
-									$block: {
-										$network: $network,
-										blockNumber: BigInt(block.number),
-										hash: block.hash,
-									},
-								indexInBlock: extrinsicIndex,
-							},
-							...(extrinsic.hash != null && {
-								hash: extrinsic.hash,
-							}),
-							...(extrinsic.signature?.signer != null && {
-								$signer: {
-									[EntityMetaKey.Selector]: {
-										$network: $network,
-										accountId: extrinsic.signature.signer,
-									},
-								},
-							}),
-							$pallet: {
-								[EntityMetaKey.Selector]: {
-									$network: $network,
-									palletName: extrinsic.method.pallet,
-								},
-							},
-							callName: extrinsic.method.method,
-							...(extrinsic.success != null && {
-								success: extrinsic.success,
-							}),
-						}))
-					},
-				}
-			},
-		})({
-				$$extrinsics: (extrinsics) => extrinsics.map((extrinsic) => ({
-					[EntityMetaKey.Selector]: extrinsic[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'hash')]: extrinsic.hash,
-						[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], '$signer')]: extrinsic.$signer,
-						[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], '$pallet')]: extrinsic.$pallet,
-						[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'callName')]: extrinsic.callName,
-						[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'success')]: extrinsic.success,
-					},
-				})),
-			}),
-
-		defineResolver(Source.SubstrateSidecar_Rest, {
-			entityType: EntityType.PolkadotBlock,
-			resolve: {
-				NetworkBlockNumberHash: {
-					resolve: async ({ $network, hash }) => {
-						assertPolkadotMainnet($network)
-						const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-						const block = await getBlock({
-							blockId: hash,
-						})
-						return ([
-							...(block.onInitialize?.events ?? []),
-							...block.extrinsics.flatMap((extrinsic, extrinsicIndex) => (
-							(extrinsic.events ?? []).map((event) => ({
-								...event,
-								extrinsicIndex,
-							}))
-							)),
-							...(block.onFinalize?.events ?? []),
-						]).map((event: SidecarBlockEvent, eventIndex) => {
-							const [
-								palletName,
-							eventName,
-						] = event.method.split('.')
-
-							return {
-								[EntityMetaKey.Selector]: {
-									$block: {
-										$network: $network,
-										blockNumber: BigInt(block.number),
-										hash: block.hash,
-									},
-									indexInBlock: eventIndex,
-								},
-								...(event.extrinsicIndex != null && {
-									$extrinsic: {
-										[EntityMetaKey.Selector]: {
-											$block: {
-											$network: $network,
-											blockNumber: BigInt(block.number),
-											hash: block.hash,
-										},
-											indexInBlock: event.extrinsicIndex,
-										},
-									},
-								}),
-								$pallet: {
-									[EntityMetaKey.Selector]: {
-										$network: $network,
-										palletName,
-									},
-								},
-								eventName: eventName,
-							}
-						})
-					},
-				}
-			},
-		})({
-				$$events: (events) => events.map((event) => ({
-					[EntityMetaKey.Selector]: event[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.PolkadotEvent, [], '$extrinsic')]: event.$extrinsic,
-						[entityFieldAddressKey(EntityType.PolkadotEvent, [], '$pallet')]: event.$pallet,
-						[entityFieldAddressKey(EntityType.PolkadotEvent, [], 'eventName')]: event.eventName,
-					},
-				})),
-			}),
 	],
 }

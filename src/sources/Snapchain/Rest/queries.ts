@@ -247,7 +247,7 @@ export const getLikeAndRecastCountsForCast = async ({
 	targetHash: `0x${string}`
 	likeReactionType: number | string
 	recastReactionType: number | string
-}): Promise<{ likeCount: number; recastCount: number }> => {
+}) => {
 	const [likeCount, recastCount] = await Promise.all([
 		countReactionsForCastTarget({ targetFid, targetHash, reactionType: likeReactionType }),
 		countReactionsForCastTarget({ targetFid, targetHash, reactionType: recastReactionType }),
@@ -373,12 +373,3 @@ export const getOnChainIdRegisterEventsByFid = ({
 		reverse,
 	})
 )
-
-export const getUserBundleByFid = async ({ fid }: { fid: number }) => {
-	const [userData, usernameProofs, verifications] = await Promise.all([
-		getUserDataByFid({ fid }),
-		getUsernameProofsByFid({ fid }),
-		getVerificationsByFid({ fid }),
-	])
-	return { userData, usernameProofs, verifications }
-}

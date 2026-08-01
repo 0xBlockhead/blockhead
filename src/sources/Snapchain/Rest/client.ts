@@ -24,10 +24,10 @@ const toQueryString = (params?: Record<string, string | number | boolean | undef
 	return queryString ? `?${queryString}` : ''
 }
 
-export async function snapchainGet<T>(
+export function snapchainGet<T>(
 	path: string,
 	params?: Record<string, string | number | boolean | undefined>
-): Promise<T> {
+) {
 	return sourceGetJson<T>(
 		snapchainBinding,
 		`${firstHttpUrlForBinding(snapchainBinding)}${path}${toQueryString(params)}`

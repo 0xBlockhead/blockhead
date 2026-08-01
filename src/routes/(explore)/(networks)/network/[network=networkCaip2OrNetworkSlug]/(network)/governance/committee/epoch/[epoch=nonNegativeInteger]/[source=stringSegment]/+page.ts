@@ -27,7 +27,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 			$network: parentData.selector,
 			epoch: Number(params.epoch),
 			source: params.source,
-		}
+		},
+		'NetworkEpochSource'
 	)
 	if (cardanoCommitteeEpochNetworkEpochSourceSelector instanceof arktype.errors)
 		error(404, 'Invalid CardanoCommittee_Epoch selector')

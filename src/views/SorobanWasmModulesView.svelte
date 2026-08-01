@@ -32,10 +32,6 @@
 		<EntityView
 			entityType={EntityType.SorobanWasm}
 			entitySelector={sorobanWasm[EntityMetaKey.Selector]}
-		>
-			{#snippet Title()}
-				soroban Wasm
-			{/snippet}
-		</EntityView>
+		/>
 	{/snippet}
 </EntitiesList>

@@ -13,7 +13,7 @@ const binding = bindings[Source.CoinMarketCap_Rest]
 export const coinMarketCapFetch = async <_Response>(
 	publicEnv: SourcePublicEnv,
 	pathAndQuery: string
-): Promise<_Response> => {
+) => {
 	const response = await sourceFetch(
 		binding,
 		new URL(pathAndQuery, firstHttpUrlForBinding(binding)).toString(),
@@ -25,5 +25,5 @@ export const coinMarketCapFetch = async <_Response>(
 		}
 	)
 	if (!response.ok) await throwHttpError('CoinMarketCap API', response)
-	return response.json()
+	return response.json<_Response>()
 }

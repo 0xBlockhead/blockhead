@@ -4,11 +4,19 @@
  */
 
 import { fetchFailedMessage } from '$/lib/http.ts'
-import { sourceFetch } from '$/sources/_runtime/http.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/Farcaster/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Farcaster_Rest]
+const bindingByTargetKey = Object.fromEntries(
+	bindings[Source.Farcaster_Rest].map((binding) => ([
+		binding.target.key,
+		binding,
+	] as const))
+)
 
 const toQueryString = (params?: Record<string, string | number | boolean | undefined>) => {
 	const searchParams = new URLSearchParams()
@@ -25,14 +33,14 @@ const toQueryString = (params?: Record<string, string | number | boolean | undef
 export async function farcasterGet<T>(
 	path: string,
 	params?: Record<string, string | number | boolean | undefined>
-): Promise<T> {
-	const baseUrl = (
+) {
+	const binding = (
 		path.startsWith('/~api/') ?
-			binding.endpoints[1].locator
-			:
-			binding.endpoints[0].locator
+			bindingByTargetKey['web-api']
+		:
+			bindingByTargetKey['client-api']
 	)
-	const url = `${baseUrl}${path}${toQueryString(params)}`
+	const url = `${firstHttpUrlForBinding(binding)}${path}${toQueryString(params)}`
 	const response = await sourceFetch(binding, url)
 	if (!response.ok)
 		throw new Error(await fetchFailedMessage(url, response))

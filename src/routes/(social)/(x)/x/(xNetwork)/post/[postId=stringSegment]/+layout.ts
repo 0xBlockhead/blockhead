@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		XPostSchema,
 		{
 			id: params.postId,
-		}
+		},
+		'Id'
 	)
 	if (xPostIdSelector instanceof arktype.errors)
 		error(404, 'Invalid XPost selector')

@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -22,7 +21,6 @@
 
 
 	// Components
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import TezosBigMapView from '$/views/TezosBigMapView.svelte'
 </script>
@@ -31,15 +29,10 @@
 <EntityView
 	entityType={EntityType.TezosBigMapKey}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'tezos big map key'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		tezos big map key
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +41,6 @@
 					<TezosBigMapView
 						selection={select(EntityType.TezosBigMap, selection.entitySelector.$bigMap)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -4445,6 +4445,31 @@ export interface components {
          *           }
          *         },
          *         {
+         *           "key": "out",
+         *           "name": "Robinhood Chain",
+         *           "coin": "ETH",
+         *           "id": 4663,
+         *           "mainnet": true,
+         *           "logoURI": "https://raw.githubusercontent.com/lifinance/types/main/src/assets/icons/chains/robinhood.svg",
+         *           "multicallAddress": "0xcA11bde05977b3631167028862bE2a173976CA11",
+         *           "diamondAddress": "0xB477751B76CF82d00a686A1232f5fCD772414Af3",
+         *           "metamask": {
+         *             "chainId": "0x1237",
+         *             "blockExplorerUrls": [
+         *               "https://robinhoodchain.blockscout.com/"
+         *             ],
+         *             "chainName": "Robinhood Chain",
+         *             "nativeCurrency": {
+         *               "name": "ETH",
+         *               "symbol": "ETH",
+         *               "decimals": 18
+         *             },
+         *             "rpcUrls": [
+         *               "https://rpc.mainnet.chain.robinhood.com/"
+         *             ]
+         *           }
+         *         },
+         *         {
          *           "key": "pol",
          *           "name": "Polygon",
          *           "coin": "MATIC",

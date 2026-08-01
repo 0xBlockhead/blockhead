@@ -29,7 +29,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 			$network: parentData.selector,
 			kind: params.kind,
 			assetKey: params.assetKey,
-		}
+		},
+		'NetworkKindAssetKey'
 	)
 	if (assetInstanceNetworkKindAssetKeySelector instanceof arktype.errors)
 		error(404, 'Invalid AssetInstance selector')

@@ -38,10 +38,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Sui package version
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -50,7 +46,6 @@
 					<SuiNetworkView
 						selection={select(EntityType.SuiNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -67,7 +62,6 @@
 									selection={select(EntityType.SuiPackage, suiPackage[EntityMetaKey.Selector])}
 									prefetched={suiPackage}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

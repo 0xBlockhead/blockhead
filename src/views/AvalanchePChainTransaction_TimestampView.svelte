@@ -71,7 +71,6 @@
 					<AvalanchePChainTransactionView
 						selection={select(EntityType.AvalanchePChainTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

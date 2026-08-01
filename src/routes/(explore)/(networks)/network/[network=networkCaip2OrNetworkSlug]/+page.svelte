@@ -18,97 +18,50 @@
 	}: PageProps = $props()
 
 	const pageSelection = $derived(
-		(
-			data.entityType === EntityType.Network && data.selectorName === 'Caip2' ?
-				select(EntityType.Network, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-					],
+		select(EntityType.Network, data.selector, {
+			sources: [
+				Source.Constants_Internal,
+			],
+			fields: {
+				$icon: true,
+				name: true,
+				namespace: true,
+				ledgerModels: true,
+				executionModels: true,
+				$networkStack: true,
+				environment: true,
+				Evm: {
 					fields: {
-						$icon: true,
-						name: true,
-						namespace: true,
-						ledgerModels: true,
-						executionModels: true,
-						$networkStack: true,
-						environment: true,
-						Evm: {
-							fields: {
-								consensusProtocol: true,
-								registryStatus: true,
-								shortName: true,
-								peeringId: true,
-								slip44: true,
-								$nativeCoinInstance: true,
-								$nativeCoin: true,
-								$parent: true,
-								$mainnet: true,
-							},
-						},
-						ZeroG: {
-							fields: {
-								chainId: true,
-							},
-						},
-						Lightning: {
-							fields: {
-								$settlementNetwork: true,
-							},
-						},
-						Hedera: {
-							fields: {
-								shard: true,
-								realm: true,
-							},
-						},
+						consensusProtocol: true,
+						registryStatus: true,
+						shortName: true,
+						peeringId: true,
+						slip44: true,
+						$nativeCoinInstance: true,
+						$nativeCoin: true,
+						$parent: true,
+						$mainnet: true,
 					},
-				})
-			:
-				select(EntityType.Network, data.selector, {
-					sources: [
-						Source.Constants_Internal,
-					],
+				},
+				ZeroG: {
 					fields: {
-						$icon: true,
-						name: true,
-						caip2: true,
-						namespace: true,
-						ledgerModels: true,
-						executionModels: true,
-						$networkStack: true,
-						environment: true,
-						Evm: {
-							fields: {
-								consensusProtocol: true,
-								registryStatus: true,
-								shortName: true,
-								peeringId: true,
-								slip44: true,
-								$nativeCoinInstance: true,
-								$nativeCoin: true,
-								$parent: true,
-								$mainnet: true,
-							},
-						},
-						ZeroG: {
-							fields: {
-								chainId: true,
-							},
-						},
-						Lightning: {
-							fields: {
-								$settlementNetwork: true,
-							},
-						},
-						Hedera: {
-							fields: {
-								shard: true,
-								realm: true,
-							},
-						},
+						chainId: true,
 					},
-				})
-		)
+				},
+				Lightning: {
+					fields: {
+						$settlementNetwork: true,
+					},
+				},
+				Hedera: {
+					fields: {
+						shard: true,
+						realm: true,
+					},
+				},
+				caip2: true,
+			},
+		})
 	)
 	const pageTitle = $derived(
 		(

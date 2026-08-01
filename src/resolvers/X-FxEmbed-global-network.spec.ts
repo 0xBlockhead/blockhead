@@ -71,21 +71,17 @@ describe('X FxEmbed global network', () => {
 			],
 		})
 
-		const users = await globalNetworkResolvers[0]
+		const snapshot = await globalNetworkResolvers[0]
 			.resolve['Scope']
 			.resolve(
 				{ scope: EntityType._GlobalXNetwork },
 				resolverContext
 			)
-		const posts = await globalNetworkResolvers[1]
-			.resolve['Scope']
-			.resolve(
-				{ scope: EntityType._GlobalXNetwork },
-				resolverContext
-			)
+		const users = globalNetworkResolvers[0].projections.$$observedUsers(snapshot)
+		const posts = globalNetworkResolvers[0].projections.$$observedPosts(snapshot)
 
-		expect(fxEmbedQueries.searchStatuses).toHaveBeenNthCalledWith(1, 2)
-		expect(fxEmbedQueries.searchStatuses).toHaveBeenNthCalledWith(2, 2)
+		expect(fxEmbedQueries.searchStatuses).toHaveBeenCalledOnce()
+		expect(fxEmbedQueries.searchStatuses).toHaveBeenCalledWith(2)
 		expect(users).toEqual([
 			{
 				[EntityMetaKey.Selector]: { id: 'user-1' },
@@ -135,18 +131,6 @@ describe('X FxEmbed global network', () => {
 		])
 	})
 
-	it('rejects unrelated scopes before calling the provider', async () => {
-		for (const resolver of globalNetworkResolvers)
-			await expect(
-				resolver.resolve['Scope'].resolve(
-					{ scope: 'youtube' },
-					resolverContext
-				)
-			).rejects.toThrow('unsupported global X scope youtube')
-
-		expect(fxEmbedQueries.searchStatuses).not.toHaveBeenCalled()
-	})
-
 	it('drops malformed typed rows instead of fabricating selectors', async () => {
 		fxEmbedQueries.searchStatuses.mockResolvedValue({
 			results: [
@@ -168,18 +152,14 @@ describe('X FxEmbed global network', () => {
 			],
 		})
 
-		expect(await globalNetworkResolvers[0]
+		const snapshot = await globalNetworkResolvers[0]
 			.resolve['Scope']
 			.resolve(
 				{ scope: EntityType._GlobalXNetwork },
 				resolverContext
-			)).toEqual([])
-		expect(await globalNetworkResolvers[1]
-			.resolve['Scope']
-			.resolve(
-				{ scope: EntityType._GlobalXNetwork },
-				resolverContext
-			)).toEqual([{
+			)
+		expect(globalNetworkResolvers[0].projections.$$observedUsers(snapshot)).toEqual([])
+		expect(globalNetworkResolvers[0].projections.$$observedPosts(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: { id: 'valid-post' },
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:

@@ -156,7 +156,6 @@
 					<RedditLinkView
 						selection={select(EntityType.RedditLink, selection.entitySelector.$link)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

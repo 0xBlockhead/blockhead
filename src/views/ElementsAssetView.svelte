@@ -83,7 +83,6 @@
 					<ElementsNetworkView
 						selection={select(EntityType.ElementsNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -3,35 +3,73 @@
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
+const tonCenterGenericReadOperationGroups = [
+	SourceOperationGroup.GenericRead,
+] as const
+const tonCenterCredentials = [
+	{
+		scope: SourceCredentialScope.RuntimeSecret,
+	},
+] as const
+
 const bindings = [
 	{
-		source: Source.TonCenter_V2_Rest,
+		source: Source.TonCenter,
 		target: {
-			kind: SourceTargetKind.Global,
-			key: 'toncenter-v2',
+			kind: SourceTargetKind.Caip2Network,
+			key: 'ton:-239',
 		},
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://{toncenter-v2-api-host}',
-				origin: 'https://{toncenter-v2-api-host}',
-				corsEnabled: false,
+				locator: 'https://toncenter.com/api/v2/',
+				corsEnabled: true,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
-		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
+		apiFamily: ApiFamily.OpenApiHttp,
+		operationGroups: tonCenterGenericReadOperationGroups,
+		delivery: SourceDelivery.HttpProxy,
+		credentials: tonCenterCredentials,
+		artifacts: [
 			{
-				scope: SourceCredentialScope.None,
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/TonCenter/OpenApi/openapi.json',
+				generated: true,
+				officialUrl: 'https://toncenter.com/api/v2/openapi.json',
+			},
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/TonCenter/OpenApi/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiTypes,
+				path: 'src/sources/TonCenter/OpenApi/openapi.d.ts',
+				generated: true,
 			},
 		],
 	},
 	{
-		source: Source.TonCenter_V3_Rest,
+		source: Source.TonCenter,
+		target: {
+			kind: SourceTargetKind.Caip2Network,
+			key: 'ton:-3',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://testnet.toncenter.com/api/v2/',
+				corsEnabled: true,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.OpenApiHttp,
+		operationGroups: tonCenterGenericReadOperationGroups,
+		delivery: SourceDelivery.HttpProxy,
+		credentials: tonCenterCredentials,
+	},
+	{
+		source: Source.TonCenter,
 		target: {
 			kind: SourceTargetKind.Caip2Network,
 			key: 'ton:-239',
@@ -40,32 +78,21 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://toncenter.com/api/v3/',
-				origin: 'https://toncenter.com',
 				corsEnabled: false,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.TonCenterV3Api,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: tonCenterGenericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/TonCenter/V3/Rest/types.ts',
-				generated: false,
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.TonCenter_V2_Rest]: typeof bindings[0]
-	readonly [Source.TonCenter_V3_Rest]: typeof bindings[1]
-}>(bindings)
+export default indexSourceBindings(bindings)

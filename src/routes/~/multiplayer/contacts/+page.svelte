@@ -28,12 +28,8 @@
 
 	<BlockheadRoomPeersView
 		href={resolve('/~/multiplayer/contacts')}
-		title='Contacts'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='blockhead-room-peers'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

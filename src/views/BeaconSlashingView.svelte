@@ -29,7 +29,6 @@
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
@@ -62,10 +61,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{`Slashing #${selection.entitySelector.indexInSlot}`}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.kind || [selection.entitySelector.kind, ' #' + String(selection.entitySelector.indexInSlot)].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
@@ -112,7 +107,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

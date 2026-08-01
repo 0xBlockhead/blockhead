@@ -15,7 +15,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.lens.xyz/graphql',
-				origin: 'https://api.lens.xyz',
 				corsEnabled: true,
 			},
 		],
@@ -31,21 +30,16 @@ const bindings = [
 				env: arktype({
 					'PUBLIC_LENS_API_KEY': 'string > 0?',
 				}),
-				keys: [
-					'PUBLIC_LENS_API_KEY',
-				],
 			},
 		],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.GraphqlSchema,
 				path: 'src/sources/Lens/Graphql/schema.graphql',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/Lens/Graphql/schema-source.ts',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.GraphqlTypes,
@@ -56,4 +50,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Lens_Graphql]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

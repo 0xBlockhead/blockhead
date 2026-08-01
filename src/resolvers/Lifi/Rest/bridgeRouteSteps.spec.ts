@@ -5,7 +5,7 @@ import {
 } from 'vitest'
 
 import { materializeResolverOutput, ResolverOutputMaterialization } from '$/collections/assertLoadedCollectionRows.ts'
-import { bridgeRouteStepEntityFieldsFromLifiQuoteStep } from '$/resolvers/Lifi/Rest/bridgeRouteSteps.ts'
+import { bridgeRouteStepSnapshotFromLifiQuoteStep } from '$/resolvers/Lifi/Rest/bridgeRouteSteps.ts'
 import { EntityMetaKey, entitySelectorKey, indexSchema } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
@@ -13,7 +13,7 @@ import { schema } from '$/schema/index.ts'
 
 describe('LI.FI bridge route step references', () => {
 	it('uses schema-valid CAIP-2 selectors for nested network and token references', () => {
-		const step = bridgeRouteStepEntityFieldsFromLifiQuoteStep(
+		const step = bridgeRouteStepSnapshotFromLifiQuoteStep(
 			{
 				fromChainId: 1,
 				toChainId: 10,

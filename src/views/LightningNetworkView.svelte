@@ -23,16 +23,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LightningNetwork> = $props()
 
-	const lightningNetwork = $derived(selection({
-		sources: selection.sources ?? [
-			Source.LightningMempoolSpace_Rest,
-			Source.LightningLnd_Rest,
-		],
-	})({
-		fields: {
-			name: true,
-		},
-	}))
 	const titleFallback = $derived((prefetched.name ?? '') || 'Lightning network')
 	const viewDomId = $derived('lightning-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
@@ -60,7 +50,20 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={lightningNetwork}>
+		<ResourceBoundary
+			resource={
+				selection({
+					sources: selection.sources ?? [
+						Source.LightningMempoolSpace_Rest,
+						Source.LightningLnd_Rest,
+					],
+				})({
+					fields: {
+						name: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
 				{(entity.name ?? '') || title || titleFallback}
 			{/snippet}
@@ -79,7 +82,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -96,7 +98,6 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -138,12 +139,7 @@
 			{#snippet SectionLightningObservations({ id, label, open })}
 				<LightningNetwork_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No observations yet.'
 					id={`${id}-list`}
@@ -153,12 +149,7 @@
 			{#snippet SectionLightningNodes({ id, label, open })}
 				<LightningNodesView
 					selection={selection.$$nodes}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No nodes yet.'
 					id={`${id}-list`}
@@ -168,12 +159,7 @@
 			{#snippet SectionLightningChannels({ id, label, open })}
 				<LightningChannelsView
 					selection={selection.$$channels}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No channels yet.'
 					id={`${id}-list`}
@@ -209,12 +195,7 @@
 			{#snippet SectionLightningInvoices({ id, label, open })}
 				<BlockheadLightningInvoicesView
 					selection={selection.$$invoices}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No invoices yet.'
 					id={`${id}-list`}
@@ -224,12 +205,7 @@
 			{#snippet SectionLightningPaymentList({ id, label, open })}
 				<BlockheadLightningPaymentsView
 					selection={selection.$$payments}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No payments yet.'
 					id={`${id}-list`}

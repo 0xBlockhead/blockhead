@@ -40,12 +40,8 @@
 				}
 			)
 		}
-		title='Zcash shielded actions'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='zcash-shielded-actions'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

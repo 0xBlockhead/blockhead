@@ -87,7 +87,6 @@
 					<BlockheadKaspaNodeStateView
 						selection={select(EntityType.BlockheadKaspaNodeState, selection.entitySelector.$nodeState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

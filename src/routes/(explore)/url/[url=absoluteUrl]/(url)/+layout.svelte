@@ -18,6 +18,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/url/[url=absoluteUrl]',
+			{
+				url: params.url,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -28,26 +37,12 @@
 
 {#key params.url}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/url/[url=absoluteUrl]',
-				{
-					url: params.url,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<UrlView
 				selection={select(EntityType.Url, data.selector)}
-				href={
-					resolve(
-						'/(explore)/url/[url=absoluteUrl]',
-						{
-							url: params.url,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

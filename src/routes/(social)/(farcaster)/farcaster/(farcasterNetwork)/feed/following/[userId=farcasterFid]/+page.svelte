@@ -53,8 +53,5 @@
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='entries'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

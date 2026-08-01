@@ -32,8 +32,5 @@
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='observed-subreddits'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

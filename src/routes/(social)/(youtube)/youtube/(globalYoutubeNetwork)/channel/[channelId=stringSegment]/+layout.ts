@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		YoutubeChannelSchema,
 		{
 			channelId: decodeURIComponent(params.channelId),
-		}
+		},
+		'ChannelId'
 	)
 	if (youtubeChannelChannelIdSelector instanceof arktype.errors)
 		error(404, 'Invalid YoutubeChannel selector')

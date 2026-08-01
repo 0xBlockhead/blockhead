@@ -81,7 +81,6 @@
 					<BlockheadCashuWalletStateView
 						selection={select(EntityType.BlockheadCashuWalletState, selection.entitySelector.$walletState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

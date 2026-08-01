@@ -36,10 +36,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		XRPL trustline timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +44,6 @@
 					<XrplTrustlineView
 						selection={select(EntityType.XrplTrustline, selection.entitySelector.$trustline)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

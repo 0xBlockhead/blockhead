@@ -34,10 +34,6 @@
 		<EntityView
 			entityType={EntityType._GlobalAiModelCatalog}
 			entitySelector={globalAiModelCatalog[EntityMetaKey.Selector]}
-		>
-			{#snippet Title()}
-				global AI model catalog
-			{/snippet}
-		</EntityView>
+		/>
 	{/snippet}
 </EntitiesList>

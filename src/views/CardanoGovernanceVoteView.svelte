@@ -68,7 +68,6 @@
 					<CardanoGovernanceProposalView
 						selection={select(EntityType.CardanoGovernanceProposal, selection.entitySelector.$proposal)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -121,7 +120,6 @@
 									selection={select(EntityType.CardanoDRep, cardanoDRep[EntityMetaKey.Selector])}
 									prefetched={cardanoDRep}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -141,7 +139,6 @@
 									selection={select(EntityType.CardanoStakePool, cardanoStakePool[EntityMetaKey.Selector])}
 									prefetched={cardanoStakePool}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -161,7 +158,6 @@
 									selection={select(EntityType.CardanoTransaction, cardanoTransaction[EntityMetaKey.Selector])}
 									prefetched={cardanoTransaction}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

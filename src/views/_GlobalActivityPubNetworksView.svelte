@@ -11,7 +11,6 @@
 	// State
 	let {
 		selection,
-		title = 'ActivityPub observeds',
 		open = $bindable(true),
 		id = 'GlobalActivityPubNetworks-list',
 		...EntitiesListProps
@@ -27,7 +26,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType._GlobalActivityPubNetwork}
 	{id}
-	{title}
 	bind:open
 	resource={
 		selection({
@@ -44,10 +42,6 @@
 			entitySelector={globalActivityPubNetworkSelector}
 			href={resolve('/(social)/(activitypub)/activitypub')}
 		>
-			{#snippet Title()}
-				global ActivityPub network
-			{/snippet}
-
 			{#snippet Value()}
 				{globalActivityPubNetworkSelector.scope}
 			{/snippet}

@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		XUserSchema,
 		{
 			id: params.userId,
-		}
+		},
+		'Id'
 	)
 	if (xUserIdSelector instanceof arktype.errors)
 		error(404, 'Invalid XUser selector')

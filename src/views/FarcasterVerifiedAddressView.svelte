@@ -61,7 +61,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{[selection.entitySelector.protocol, String(selection.entitySelector.fid)].filter(Boolean).join(' ') || selection.entitySelector.address || titleFallback}
+		{[selection.entitySelector.protocol, ' / FID ', String(selection.entitySelector.fid)].filter(Boolean).join(' ') || selection.entitySelector.address || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -77,7 +77,6 @@
 								selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
 								prefetched={farcasterUser}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -116,7 +115,6 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -138,7 +136,6 @@
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
 									prefetched={solanaAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

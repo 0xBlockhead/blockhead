@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]',
+			{
+				postId: params.postId,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,30 +38,18 @@
 
 {#key params.postId}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]',
-				{
-					postId: params.postId,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<LensPostView
 				selection={
-					select(EntityType.LensPost, data.selector, { sources: [
-						Source.Lens_Graphql,
-					] })
+					select(EntityType.LensPost, data.selector, {
+						sources: [
+							Source.Lens_Graphql,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]',
-						{
-							postId: params.postId,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

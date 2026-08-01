@@ -70,7 +70,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{[String(farcasterCastSelector.fid), farcasterCastSelector.hash].filter(Boolean).join(' ')}
+				{['FID ', String(farcasterCastSelector.fid), ' / ', farcasterCastSelector.hash].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

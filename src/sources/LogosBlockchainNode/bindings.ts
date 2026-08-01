@@ -1,7 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
 const bindings = [
 	{
@@ -13,7 +13,7 @@ const bindings = [
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'env:LOGOS_BLOCKCHAIN_NODE_URL',
+				locator: 'http://127.0.0.1:8080',
 				corsEnabled: false,
 			},
 		],
@@ -22,13 +22,15 @@ const bindings = [
 		operationGroups: [
 			SourceOperationGroup.GenericRead,
 		],
-		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
+		delivery: SourceDelivery.LocalOnly,
+		credentials: [],
+		artifacts: [
 			{
-				scope: SourceCredentialScope.None,
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/LogosBlockchainNode/Rest/types.ts',
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.LogosBlockchainNode_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

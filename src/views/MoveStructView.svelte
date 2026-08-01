@@ -43,10 +43,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.structName || 'move struct'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={moveStruct}>
 			{#snippet children(entity)}
@@ -60,7 +56,6 @@
 			<MoveModuleView
 				selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -73,7 +68,6 @@
 					<MoveModuleView
 						selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

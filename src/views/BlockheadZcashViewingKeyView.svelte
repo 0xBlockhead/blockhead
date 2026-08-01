@@ -59,10 +59,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.keyFingerprint || 'blockhead zcash viewing key'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadZcashViewingKey}>
 			{#snippet children(entity)}
@@ -81,7 +77,6 @@
 						selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 						prefetched={network}
 						layout={EntityLayout.Title}
-						open={false}
 					/>
 				</span>
 			{/snippet}
@@ -109,7 +104,6 @@
 									selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
 									prefetched={blockheadWallet}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -128,7 +122,6 @@
 								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 								prefetched={network}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

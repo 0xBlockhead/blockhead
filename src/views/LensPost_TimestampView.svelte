@@ -63,7 +63,6 @@
 			selection={select(EntityType.LensPost, selection.entitySelector.$post)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -79,7 +78,6 @@
 					<LensPostView
 						selection={select(EntityType.LensPost, selection.entitySelector.$post)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

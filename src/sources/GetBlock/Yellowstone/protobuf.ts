@@ -140,7 +140,7 @@ const optionalVarint = (
 	return field == null || field.wireType !== 0 ? 0n : field.value
 }
 
-const bytesToBase64 = (bytes: Uint8Array): string => {
+const bytesToBase64 = (bytes: Uint8Array) => {
 	let binary = ''
 	for (const byte of bytes)
 		binary += String.fromCharCode(byte)

@@ -47,10 +47,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.refName || 'Git ref update'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={gitRefUpdate}>
 			{#snippet children(entity)}
@@ -80,7 +76,6 @@
 					<GitRepositoryView
 						selection={select(EntityType.GitRepository, selection.entitySelector.$repository)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -147,7 +142,6 @@
 									selection={select(EntityType.GitSignature, gitSignature[EntityMetaKey.Selector])}
 									prefetched={gitSignature}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

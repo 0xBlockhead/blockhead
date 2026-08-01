@@ -11,21 +11,6 @@ for (const base of Object.values(bases)) {
 
 const dnsLabelMaxLength = 63
 
-export type DecodedIpfsCid = {
-	version: number
-	multibase: string
-	multicodecCode: number
-	multihashCode: number
-	multihashDigestHex: `0x${string}`
-	isSubdomainSafe: boolean
-}
-
-export type IpfsCidEncodingRow = {
-	version: number
-	baseName: string
-	cidString: string
-}
-
 export const parseIpfsCid = (value: string): CID | null => {
 	const trimmed = value.trim()
 	if (trimmed === '') return null
@@ -44,7 +29,7 @@ export const parseIpfsCid = (value: string): CID | null => {
 	}
 }
 
-export const decodeIpfsCid = (value: string): DecodedIpfsCid | null => {
+export const decodeIpfsCid = (value: string) => {
 	const cid = parseIpfsCid(value)
 	if (cid == null) return null
 
@@ -82,48 +67,3 @@ export const canonicalIpfsCidString = (value: string): string | null => {
 		return cid.toString()
 	}
 }
-
-export const getAllIpfsCidEncodings = (cid: CID): IpfsCidEncodingRow[] => (
-	[
-		{
-			version: 0,
-			baseName: 'base58btc',
-			getCidString: () => cid.toV0().toString(),
-		},
-		...Object.values(bases).map((base) => ({
-			version: 1 as const,
-			baseName: base.name,
-			getCidString: () => cid.toV1().toString(base),
-		})),
-	].flatMap((row) => {
-		try {
-			return [{
-				version: row.version,
-				baseName: row.baseName,
-				cidString: row.getCidString(),
-			}]
-		} catch {
-			return []
-		}
-	})
-)
-
-export const checkIpfsCidIsValidSubdomain = ({
-	baseName,
-	cidString,
-}: {
-	baseName: string
-	cidString: string
-}): boolean | undefined => (
-	baseName === 'base32' || baseName === 'base36' ?
-		cidString.length <= dnsLabelMaxLength
-	:
-		undefined
-)
-
-export const currentMultibaseNameForCidTarget = (target: string, cid: CID): string => (
-	cid.version === 0 ?
-		'base58btc'
-	:
-		multibaseCodecTable[target.trim().slice(0, 1)]?.name ?? ''
-)

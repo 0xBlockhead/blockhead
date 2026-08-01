@@ -22,12 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LitecoinMwebPegIn> = $props()
 
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.LitecoinCore_JsonRpc,
-		],
-	}))
-
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
@@ -49,7 +43,6 @@
 		<LitecoinMwebTransactionView
 			selection={select(EntityType.LitecoinMwebTransaction, selection.entitySelector.$transaction)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -70,7 +63,6 @@
 							selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
 							prefetched={utxoOutput}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -86,7 +78,6 @@
 					<LitecoinMwebTransactionView
 						selection={select(EntityType.LitecoinMwebTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -112,7 +103,6 @@
 									selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
 									prefetched={utxoOutput}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -122,7 +112,11 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
+						sources: selection.sources ?? [
+							Source.LitecoinCore_JsonRpc,
+						],
+					})({
 						fields: {
 							amountLitoshis: true,
 						},

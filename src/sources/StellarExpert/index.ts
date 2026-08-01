@@ -10,8 +10,8 @@ export default {
 	label: 'StellarExpert',
 	sources: [
 		{
-			source: Source.StellarExpert_Rest,
-			label: 'StellarExpert REST',
+			source: Source.StellarExpert,
+			label: 'StellarExpert',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

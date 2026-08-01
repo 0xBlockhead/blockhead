@@ -76,13 +76,12 @@ describe('Subscan referendum list', () => {
 			origin: 'Root',
 			publicEnv,
 		})).resolves.toEqual({
-			referenda: [referendum],
-			pagination: {
-				page: 2,
-				row: 10,
-				offset: 20,
+			code: 0,
+			message: 'Success',
+			generated_at: 1_753_000_100,
+			data: {
 				count: 35,
-				nextPage: 3,
+				list: [referendum],
 			},
 		})
 		expect(corsFetch).toHaveBeenCalledWith(
@@ -132,11 +131,11 @@ describe('Subscan referendum list', () => {
 			],
 			publicEnv,
 		})).resolves.toMatchObject({
-			pagination: {
-				page: 3,
-				row: 10,
-				offset: 30,
+			data: {
 				count: 31,
+				list: [{
+					referendum_index: 23,
+				}],
 			},
 		})
 		expect(JSON.parse(corsFetch.mock.calls[0][1].init.body)).toEqual({
@@ -155,12 +154,12 @@ describe('Subscan referendum list', () => {
 			row: 10,
 			publicEnv,
 		})).resolves.toEqual({
-			referenda: [],
-			pagination: {
-				page: 4,
-				row: 10,
-				offset: 40,
+			code: 0,
+			message: 'Success',
+			generated_at: 1_753_000_100,
+			data: {
 				count: 35,
+				list: [],
 			},
 		})
 	})
@@ -210,10 +209,11 @@ describe('Subscan referendum list', () => {
 		}
 	})
 
-	it('rejects invalid requests and returns zero rows without transport', async () => {
+	it('rejects invalid requests without transport', async () => {
 		const invalidRequests = [
 			{ page: -1, row: 10 },
 			{ page: 0.5, row: 10 },
+			{ page: 0, row: 0 },
 			{ page: 0, row: 101 },
 			{ page: Number.MAX_SAFE_INTEGER, row: 2 },
 			{ page: 0, row: 10, status: '' },
@@ -229,21 +229,6 @@ describe('Subscan referendum list', () => {
 				publicEnv,
 			})).rejects.toThrow()
 
-		expect(corsFetch).not.toHaveBeenCalled()
-		await expect(listReferenda({
-			binding,
-			page: 12,
-			row: 0,
-			publicEnv,
-		})).resolves.toEqual({
-			referenda: [],
-			pagination: {
-				page: 12,
-				row: 0,
-				offset: 0,
-				count: 0,
-			},
-		})
 		expect(corsFetch).not.toHaveBeenCalled()
 	})
 
@@ -296,13 +281,12 @@ describe('Subscan account extrinsic list', () => {
 			row: 10,
 			publicEnv,
 		})).resolves.toEqual({
-			extrinsics: [accountExtrinsic],
-			pagination: {
-				page: 1,
-				row: 10,
-				offset: 10,
+			code: 0,
+			message: 'Success',
+			generated_at: 1_753_000_100,
+			data: {
 				count: 21,
-				nextPage: 2,
+				extrinsics: [accountExtrinsic],
 			},
 		})
 		expect(JSON.parse(corsFetch.mock.calls[0][1].init.body)).toEqual({
@@ -340,10 +324,11 @@ describe('Subscan account extrinsic list', () => {
 		}
 	})
 
-	it('rejects unsafe pagination and resolves zero rows without transport', async () => {
+	it('rejects unsafe pagination without transport', async () => {
 		for (const request of [
 			{ accountId: '', page: 0, row: 10 },
 			{ accountId, page: -1, row: 10 },
+			{ accountId, page: 0, row: 0 },
 			{ accountId, page: 0, row: 101 },
 			{ accountId, page: Number.MAX_SAFE_INTEGER, row: 2 },
 		])
@@ -353,19 +338,6 @@ describe('Subscan account extrinsic list', () => {
 				publicEnv,
 			})).rejects.toThrow()
 
-		expect(corsFetch).not.toHaveBeenCalled()
-		await expect(listAccountExtrinsics({
-			binding,
-			accountId,
-			page: 7,
-			row: 0,
-			publicEnv,
-		})).resolves.toMatchObject({
-			extrinsics: [],
-			pagination: {
-				count: 0,
-			},
-		})
 		expect(corsFetch).not.toHaveBeenCalled()
 	})
 })

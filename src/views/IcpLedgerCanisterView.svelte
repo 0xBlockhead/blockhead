@@ -45,10 +45,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		ICP ledger canister
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -57,7 +53,6 @@
 					<IcpCanisterView
 						selection={select(EntityType.IcpCanister, selection.entitySelector.$canister)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -111,12 +106,7 @@
 			{#snippet SectionIcpLedgerCanisterBlocks({ id, label, open })}
 				<IcpLedgerBlocksView
 					selection={selection.$$blocks}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No blocks.'
 					id={`${id}-list`}
@@ -126,12 +116,7 @@
 			{#snippet SectionIcpLedgerCanisterTransactions({ id, label, open })}
 				<IcpLedgerTransactionsView
 					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No transactions.'
 					id={`${id}-list`}
@@ -167,12 +152,7 @@
 			{#snippet SectionIcpLedgerCanisterTimestamps({ id, label, open })}
 				<IcpLedgerCanister_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No timestamps.'
 					id={`${id}-list`}
@@ -182,12 +162,7 @@
 			{#snippet SectionIcpLedgerCanisterAccountTimestamps({ id, label, open })}
 				<IcpLedgerAccount_TimestampsView
 					selection={selection.$$accountTimestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No account timestamps.'
 					id={`${id}-list`}

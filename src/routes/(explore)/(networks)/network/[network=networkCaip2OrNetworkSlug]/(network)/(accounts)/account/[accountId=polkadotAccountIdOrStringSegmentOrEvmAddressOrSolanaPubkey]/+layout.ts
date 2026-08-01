@@ -113,13 +113,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			{
 				$network: parentData.selector,
 				accountId: params.accountId,
-			}
+			},
+			'NetworkAccountId'
 		)
-		if (
-			!(polkadotAccountNetworkAccountIdSelector instanceof arktype.errors)
-			&& '$network' in polkadotAccountNetworkAccountIdSelector
-			&& 'accountId' in polkadotAccountNetworkAccountIdSelector
-		)
+		if (!(polkadotAccountNetworkAccountIdSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.PolkadotAccount,
 				selectorName: 'NetworkAccountId',
@@ -143,13 +140,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			{
 				$network: parentData.selector,
 				address: params.accountId,
-			}
+			},
+			'NetworkAddress'
 		)
-		if (
-			!(cosmosAccountNetworkAddressSelector instanceof arktype.errors)
-			&& '$network' in cosmosAccountNetworkAddressSelector
-			&& 'address' in cosmosAccountNetworkAddressSelector
-		)
+		if (!(cosmosAccountNetworkAddressSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.CosmosAccount,
 				selectorName: 'NetworkAddress',
@@ -164,13 +158,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			{
 				$network: parentData.selector,
 				accountId: params.accountId,
-			}
+			},
+			'NetworkAccountId'
 		)
-		if (
-			!(hederaAccountNetworkAccountIdSelector instanceof arktype.errors)
-			&& '$network' in hederaAccountNetworkAccountIdSelector
-			&& 'accountId' in hederaAccountNetworkAccountIdSelector
-		)
+		if (!(hederaAccountNetworkAccountIdSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.HederaAccount,
 				selectorName: 'NetworkAccountId',
@@ -185,13 +176,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			{
 				$network: parentData.selector,
 				address: params.accountId,
-			}
+			},
+			'NetworkAddress'
 		)
-		if (
-			!(cardanoAddressNetworkAddressSelector instanceof arktype.errors)
-			&& '$network' in cardanoAddressNetworkAddressSelector
-			&& 'address' in cardanoAddressNetworkAddressSelector
-		)
+		if (!(cardanoAddressNetworkAddressSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.CardanoAddress,
 				selectorName: 'NetworkAddress',
@@ -217,13 +205,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				$actor: {
 					address: params.accountId,
 				},
-			}
+			},
+			'EvmNetworkEvmAccount'
 		)
-		if (
-			!(evmNetworkAccountEvmNetworkEvmAccountSelector instanceof arktype.errors)
-			&& '$network' in evmNetworkAccountEvmNetworkEvmAccountSelector
-			&& '$actor' in evmNetworkAccountEvmNetworkEvmAccountSelector
-		)
+		if (!(evmNetworkAccountEvmNetworkEvmAccountSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.EvmNetworkAccount,
 				selectorName: 'EvmNetworkEvmAccount',
@@ -247,13 +232,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			{
 				$network: parentData.selector,
 				pubkey: params.accountId,
-			}
+			},
+			'NetworkPubkey'
 		)
-		if (
-			!(solanaAccountNetworkPubkeySelector instanceof arktype.errors)
-			&& '$network' in solanaAccountNetworkPubkeySelector
-			&& 'pubkey' in solanaAccountNetworkPubkeySelector
-		)
+		if (!(solanaAccountNetworkPubkeySelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.SolanaAccount,
 				selectorName: 'NetworkPubkey',
@@ -268,13 +250,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			{
 				$network: parentData.selector,
 				address: params.accountId,
-			}
+			},
+			'NetworkAddress'
 		)
-		if (
-			!(tonAccountNetworkAddressSelector instanceof arktype.errors)
-			&& '$network' in tonAccountNetworkAddressSelector
-			&& 'address' in tonAccountNetworkAddressSelector
-		)
+		if (!(tonAccountNetworkAddressSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.TonAccount,
 				selectorName: 'NetworkAddress',
@@ -289,13 +268,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			{
 				$network: parentData.selector,
 				account: params.accountId,
-			}
+			},
+			'NetworkAccount'
 		)
-		if (
-			!(xrplAccountNetworkAccountSelector instanceof arktype.errors)
-			&& '$network' in xrplAccountNetworkAccountSelector
-			&& 'account' in xrplAccountNetworkAccountSelector
-		)
+		if (!(xrplAccountNetworkAccountSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.XrplAccount,
 				selectorName: 'NetworkAccount',

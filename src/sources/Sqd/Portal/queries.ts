@@ -4,7 +4,6 @@ import bindings from '$/sources/Sqd/bindings.ts'
 import {
 	SqdPortalEvmBlock,
 	type SqdPortalEvmBlockRequest,
-	type SqdPortalEvmBlockResult,
 	type SqdPortalFinalizedHead,
 	SqdPortalReorg,
 	SqdPortalResolution,
@@ -40,7 +39,7 @@ const ndjsonBlocks = async (response: Response) => (
 export const getEvmBlock = async (
 	blockNumber: bigint,
 	parentBlockHash?: string
-): Promise<SqdPortalEvmBlockResult> => {
+) => {
 	const numericBlockNumber = Number(blockNumber)
 	if (!Number.isSafeInteger(numericBlockNumber) || numericBlockNumber < 0)
 		throw new Error(`SQD Portal cannot address block ${blockNumber.toString()}`)

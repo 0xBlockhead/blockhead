@@ -44,7 +44,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(bittensorSubnetSelector.netuid)}
+				{['netuid ', String(bittensorSubnetSelector.netuid)].filter(Boolean).join(' ')}
 			{/snippet}
 		</EntityView>
 	{/snippet}

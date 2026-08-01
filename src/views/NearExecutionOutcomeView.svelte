@@ -86,7 +86,6 @@
 					<NearTransactionView
 						selection={select(EntityType.NearTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

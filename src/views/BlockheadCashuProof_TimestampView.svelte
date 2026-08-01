@@ -68,7 +68,6 @@
 					<BlockheadCashuProofView
 						selection={select(EntityType.BlockheadCashuProof, selection.entitySelector.$proof)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

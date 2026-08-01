@@ -1,60 +1,28 @@
 <script
 	lang="ts"
-	generics="_Item, _SortId extends string = string"
+	generics="
+		_Item,
+		_SortId extends string = string
+	"
 >
 	// Types/constants
 	import type { Sort } from '$/components/RefinableList.svelte'
 
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { SvelteHTMLElements } from 'svelte/elements'
 
 	// State
 	let {
-		items,
 		sortOptions,
-		activeSortId = $bindable<_SortId | ''>(''),
-		sortedItems = $bindable(items),
-		defaultSortId,
-		setSortById = $bindable(),
-		...divProps
-	}: WithRest<
-		{
-			items: _Item[]
-			sortOptions: Sort<_Item, _SortId>[]
-			activeSortId?: _SortId | ''
-			sortedItems?: _Item[]
-			defaultSortId?: _SortId
-			setSortById?: (sortId: _SortId | '') => void
-		},
-		SvelteHTMLElements['div']
-	> = $props()
+		value,
+		onchange,
+	}: {
+		sortOptions: Sort<_Item, _SortId>[]
+		value: _SortId
+		onchange: (sortId: _SortId) => void
+	} = $props()
 
-	const effectiveSortId = $derived(
-		(activeSortId === '' ? (defaultSortId ?? sortOptions[0]?.id) : activeSortId) ?? ''
-	)
 	const sortById = $derived(
-		new Map(sortOptions.map((s) => [s.id, s]))
+		new Map(sortOptions.map((sort) => [sort.id, sort]))
 	)
-
-
-	// Functions
-
-	const sortItems = (sortId: _SortId | '') => {
-		const sort = sortId && sortById.get(sortId)
-		return sort ? [...items].sort(sort.compare) : items
-	}
-
-	const _setSortById = (sortId: _SortId | '') => {
-		activeSortId = sortId
-	}
-	setSortById = _setSortById
-
-
-	// Actions
-
-	$effect(() => {
-		sortedItems = sortItems(effectiveSortId)
-	})
 
 
 	// Components
@@ -62,36 +30,34 @@
 </script>
 
 
-{#if sortOptions.length > 1}
-	<div
-		class="sorts"
-		data-card="padding-5 radius-4"
-		data-row="gap-6 wrap"
-		{...divProps}
+<div
+	class="sorts"
+	data-card="padding-5 radius-4"
+	data-row="gap-6 wrap"
+>
+	<fieldset
+		data-sort-group
+		data-column="gap-1"
 	>
-		<fieldset
-			data-sort-group
-			data-column="gap-1"
-		>
-			<legend>
-				Sort
-			</legend>
+		<legend>
+			Sort
+		</legend>
 
-			<Select
-				items={sortOptions}
-				bind:value={
-					() => sortById.get(effectiveSortId) ?? undefined,
-					(sort: Sort<_Item, _SortId> | undefined) => {
-						activeSortId = (sort?.id ?? '') as _SortId | ''
-					}
+		<Select
+			items={sortOptions}
+			bind:value={
+				() => sortById.get(value),
+				(sort) => {
+					if (sort != null)
+						onchange(sort.id)
 				}
-				getItemId={(s) => s.id}
-				getItemLabel={(s) => s.label}
-				ariaLabel="Sort by"
-			/>
-		</fieldset>
-	</div>
-{/if}
+			}
+			getItemId={(sort) => sort.id}
+			getItemLabel={(sort) => sort.label}
+			ariaLabel="Sort by"
+		/>
+	</fieldset>
+</div>
 
 
 <style>

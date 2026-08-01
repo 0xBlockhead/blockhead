@@ -75,7 +75,6 @@
 			<TronAccountView
 				selection={select(EntityType.TronAccount, selection.entitySelector.$account)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -88,7 +87,6 @@
 					<TronTokenView
 						selection={select(EntityType.TronToken, selection.entitySelector.$token)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

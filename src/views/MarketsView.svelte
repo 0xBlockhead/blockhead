@@ -80,10 +80,6 @@
 					}
 				)
 			}
-		>
-			{#snippet Title()}
-				Market
-			{/snippet}
-		</EntityView>
+		/>
 	{/snippet}
 </EntitiesList>

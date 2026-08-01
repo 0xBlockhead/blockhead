@@ -27,16 +27,6 @@
 	}: EntitySelectionViewProps<EntityType.EvmLog> = $props()
 
 	const transaction = $derived(selection.entitySelector.$transaction)
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.Blockscout_Rest,
-		],
-	}))
-	const evmLog = $derived(viewSelection({
-		fields: {
-			data: true,
-		},
-	}))
 
 
 	// Components
@@ -89,7 +79,6 @@
 						prefetched={evmContract}
 						href={null}
 						layout={EntityLayout.Title}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -103,12 +92,6 @@
 		<span data-badge="small">
 			#{selection.entitySelector.indexInTransaction}
 		</span>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			An event log emitted by an EVM transaction receipt.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -127,7 +110,6 @@
 					<EvmTransactionView
 						selection={select(EntityType.EvmTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -145,7 +127,6 @@
 										selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
 										prefetched={evmBlock}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>
@@ -166,7 +147,6 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -177,7 +157,17 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={evmLog}
+				resource={
+					selection({
+						sources: selection.sources ?? [
+							Source.Blockscout_Rest,
+						],
+					})({
+						fields: {
+							data: true,
+						},
+					})
+				}
 			>
 				{#snippet children(entity)}
 					{@const data = entity.data}
@@ -195,7 +185,11 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						viewSelection({
+						selection({
+							sources: selection.sources ?? [
+								Source.Blockscout_Rest,
+							],
+						})({
 							fields: {
 								removed: true,
 							},

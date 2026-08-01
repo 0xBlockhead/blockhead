@@ -11,7 +11,7 @@ import type {
 	AlliumToken,
 } from '$/sources/Allium/Rest/types.ts'
 
-export const getLatestWalletBalances = async ({
+export const getLatestWalletBalances = ({
 	publicEnv,
 	address,
 	apiChain,
@@ -22,7 +22,7 @@ export const getLatestWalletBalances = async ({
 	apiChain: string
 	withLiquidityInfo?: boolean
 }) => (
-	await alliumFetch<AlliumLatestWalletBalancesEnvelope>(
+	alliumFetch<AlliumLatestWalletBalancesEnvelope>(
 		publicEnv,
 		`/api/v1/developer/wallet/balances?with_liquidity_info=${String(withLiquidityInfo)}`,
 		{
@@ -37,7 +37,7 @@ export const getLatestWalletBalances = async ({
 	)
 )
 
-export const getTokensByChainAddress = async ({
+export const getTokensByChainAddress = ({
 	publicEnv,
 	apiChain,
 	tokenAddress,
@@ -46,7 +46,7 @@ export const getTokensByChainAddress = async ({
 	apiChain: string
 	tokenAddress: string
 }) => (
-	await alliumFetch<(AlliumToken | {
+	alliumFetch<(AlliumToken | {
 		error: string
 		address: string
 		chain: string

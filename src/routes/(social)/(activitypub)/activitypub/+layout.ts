@@ -13,7 +13,8 @@ export const load: LayoutLoad = ({ params }) => {
 		_GlobalActivityPubNetworkSchema,
 		{
 			scope: '_GlobalActivityPubNetwork',
-		}
+		},
+		'Scope'
 	)
 	if (globalActivityPubNetworkScopeSelector instanceof arktype.errors)
 		error(404, 'Invalid _GlobalActivityPubNetwork selector')

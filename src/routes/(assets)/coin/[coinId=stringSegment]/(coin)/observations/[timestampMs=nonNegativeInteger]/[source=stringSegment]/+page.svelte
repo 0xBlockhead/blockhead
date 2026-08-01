@@ -15,31 +15,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.Coin_Timestamp, {
-		$coin: {
-			coinId: params.coinId,
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [({
-			$coin: {
-				coinId: params.coinId,
-			},
-			timestampMs: Number(params.timestampMs),
-			source: params.source,
-		}).source],
-		fields: {
-			marketCap: true,
-			marketCapUsd: true,
-			change24hPercent: true,
-			marketCapRank: true,
-			totalSupply: true,
-			transport: true,
-			providerAssetId: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -54,6 +29,31 @@
 
 <Page>
 	<Coin_TimestampView
-		selection={pageSelection}
+		selection={
+			select(EntityType.Coin_Timestamp, {
+				$coin: {
+					coinId: params.coinId,
+				},
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [({
+					$coin: {
+						coinId: params.coinId,
+					},
+					timestampMs: Number(params.timestampMs),
+					source: params.source,
+				}).source],
+				fields: {
+					marketCap: true,
+					marketCapUsd: true,
+					change24hPercent: true,
+					marketCapRank: true,
+					totalSupply: true,
+					transport: true,
+					providerAssetId: true,
+				},
+			})
+		}
 	/>
 </Page>

@@ -32,10 +32,6 @@
 		<EntityView
 			entityType={EntityType.RadicleRepository}
 			entitySelector={radicleRepository[EntityMetaKey.Selector]}
-		>
-			{#snippet Title()}
-				radicle repository
-			{/snippet}
-		</EntityView>
+		/>
 	{/snippet}
 </EntitiesList>

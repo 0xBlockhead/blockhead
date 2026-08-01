@@ -14,7 +14,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://proxy.api.makeinfinite.dev',
-				origin: 'https://proxy.api.makeinfinite.dev',
 				corsEnabled: false,
 			},
 		],
@@ -33,10 +32,9 @@ const bindings = [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/SpaceAndTime/MakeInfinite/types.ts',
-				generated: false,
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.SpaceAndTime_MakeInfinite]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

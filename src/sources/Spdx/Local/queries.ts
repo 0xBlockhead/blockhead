@@ -1,5 +1,5 @@
-import type { SpdxDocument } from '$/sources/Spdx/Local/types.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-export const parseDocument = (text: string): SpdxDocument => (
+export const parseDocument = (text: string): JsonValue => (
 	JSON.parse(text)
 )

@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -30,15 +29,10 @@
 <EntityView
 	entityType={EntityType.ZeroGDataChunk}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'zero g data chunk'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		zero g data chunk
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -47,7 +41,6 @@
 					<ZeroGDataBlobView
 						selection={select(EntityType.ZeroGDataBlob, selection.entitySelector.$dataBlob)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

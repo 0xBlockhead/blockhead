@@ -10,8 +10,8 @@ export default {
 	label: 'Waku node',
 	sources: [
 		{
-			source: Source.WakuNode_Rest,
-			label: 'Waku node REST',
+			source: Source.WakuNode,
+			label: 'Waku node',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

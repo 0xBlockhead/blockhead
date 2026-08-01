@@ -27,7 +27,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import SuiNetwork_TimestampsView from '$/views/SuiNetwork_TimestampsView.svelte'
 	import SuiCheckpointsView from '$/views/SuiCheckpointsView.svelte'
@@ -54,7 +53,6 @@
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -66,7 +64,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -105,12 +102,7 @@
 			{#snippet SectionSuiChainObservations({ id, label, open })}
 				<SuiNetwork_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Sui network observations.'
 					id={`${id}-list`}
@@ -120,12 +112,7 @@
 			{#snippet SectionSuiChainCheckpoints({ id, label, open })}
 				<SuiCheckpointsView
 					selection={selection.$$checkpoints}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Sui checkpoints.'
 					id={`${id}-list`}
@@ -135,12 +122,7 @@
 			{#snippet SectionSuiChainTransactions({ id, label, open })}
 				<SuiTransactionsView
 					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Sui transactions.'
 					id={`${id}-list`}
@@ -176,12 +158,7 @@
 			{#snippet SectionSuiObjects({ id, label, open })}
 				<SuiObjectsView
 					selection={selection.$$objects}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Sui objects.'
 					id={`${id}-list`}
@@ -191,12 +168,7 @@
 			{#snippet SectionSuiPackages({ id, label, open })}
 				<SuiPackagesView
 					selection={selection.$$packages}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Sui packages.'
 					id={`${id}-list`}
@@ -236,12 +208,7 @@
 			{#snippet SectionSuiAccounts({ id, label, open })}
 				<SuiAccountsView
 					selection={selection.$$accounts}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Sui accounts.'
 					id={`${id}-list`}
@@ -251,12 +218,7 @@
 			{#snippet SectionSuiCoinTypes({ id, label, open })}
 				<SuiCoinTypesView
 					selection={selection.$$coinTypes}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Sui coin types.'
 					id={`${id}-list`}
@@ -266,12 +228,7 @@
 			{#snippet SectionSuiCoinBalances({ id, label, open })}
 				<SuiCoinBalance_TimestampsView
 					selection={selection.$$coinBalanceTimestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Sui coin balance observations.'
 					id={`${id}-list`}

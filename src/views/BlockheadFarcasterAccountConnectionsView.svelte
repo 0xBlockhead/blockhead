@@ -49,7 +49,7 @@
 			}
 		>
 			{#snippet Title()}
-				Blockhead Farcaster account connection
+				Verified Farcaster connection
 			{/snippet}
 
 			{#snippet Value()}

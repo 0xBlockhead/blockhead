@@ -6,26 +6,29 @@ import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	NearRpcAccessKey,
+	NearRpcAccount,
 	NearRpcAction,
 	NearRpcBlock,
 	NearRpcExecutionOutcome,
 	NearRpcGasPrice,
 	NearRpcReceipt,
 	NearRpcStatus,
+	NearRpcTransaction,
 	NearRpcTransactionStatus,
 	NearRpcValidator,
 	NearRpcValidators,
 } from '$/sources/NearRpc/JsonRpc/types.ts'
 
-const assertNearMainnet = (network: { caip2: {
-	namespace: string
-	reference: string
-} } | { slug: string }) => {
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const assertNearMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug.near.slug)
 		throw new Error('NearRpc_JsonRpc: unsupported network')
 }
@@ -77,10 +80,7 @@ const nearActionFields = (action: NearRpcAction) => ({
 
 const nearActionReference = (
 	transaction: {
-		$network: { caip2: {
-			namespace: string
-			reference: string
-		} } | { slug: string }
+		$network: NetworkId
 		hash: string
 		signerAccountId: string
 	},
@@ -113,11 +113,14 @@ const nearAccessKeyFields = (accessKey: NearRpcAccessKey) => ({
 	}),
 })
 
+const nearAccountFields = (account: NearRpcAccount) => ({
+	amountYoctoNear: BigInt(account.amount),
+	storageUsageBytes: BigInt(account.storage_usage),
+	codeHash: account.code_hash,
+})
+
 const nearExecutionOutcomeFields = (
-	network: { caip2: {
-		namespace: string
-		reference: string
-	} } | { slug: string },
+	network: NetworkId,
 	executionOutcome: NearRpcExecutionOutcome
 ) => ({
 	status: (
@@ -144,10 +147,7 @@ const nearExecutionOutcomeFields = (
 })
 
 const nearReceiptFields = (
-	network: { caip2: {
-		namespace: string
-		reference: string
-	} } | { slug: string },
+	network: NetworkId,
 	receipt: NearRpcReceipt
 ) => ({
 	$predecessor: {
@@ -183,60 +183,33 @@ const nearValidatorFields = (validator: NearRpcValidator) => ({
 })
 
 const nearTransactionFields = (
-	network: { caip2: {
-		namespace: string
-		reference: string
-	} } | { slug: string },
-	transactionStatus: NearRpcTransactionStatus
+	network: NetworkId,
+	transaction: NearRpcTransaction
 ) => ({
 	$signer: {
 		[EntityMetaKey.Selector]: {
 			$network: network,
-			accountId: transactionStatus.transaction.signer_id,
+			accountId: transaction.signer_id,
 		},
 	},
 	$receiver: {
 		[EntityMetaKey.Selector]: {
 			$network: network,
-			accountId: transactionStatus.transaction.receiver_id,
+			accountId: transaction.receiver_id,
 		},
 	},
-	nonce: BigInt(transactionStatus.transaction.nonce),
-	$$actions: transactionStatus.transaction.actions.map((action, actionIndex) => (
+	nonce: BigInt(transaction.nonce),
+	$$actions: transaction.actions.map((action, actionIndex) => (
 		nearActionReference({
-				$network: network,
-				hash: transactionStatus.transaction.hash,
-				signerAccountId: transactionStatus.transaction.signer_id,
-			}, action, actionIndex)
+			$network: network,
+			hash: transaction.hash,
+			signerAccountId: transaction.signer_id,
+		}, action, actionIndex)
 	)),
-	$$executionOutcomes: [
-		transactionStatus.transaction_outcome,
-		...transactionStatus.receipts_outcome,
-	].map((executionOutcome) => {
-		const fields = nearExecutionOutcomeFields(network, executionOutcome)
-		return {
-		[EntityMetaKey.Selector]: {
-			$transaction: {
-				$network: network,
-				hash: transactionStatus.transaction.hash,
-				signerAccountId: transactionStatus.transaction.signer_id,
-			},
-			outcomeId: executionOutcome.id,
-		},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'status')]: fields.status,
-				[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'gasBurnt')]: fields.gasBurnt,
-				[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], '$$receipts')]: fields.$$receipts,
-			},
-		}
-	}),
 })
 
 const getNearTransactionStatus = async ({ $network, hash, signerAccountId }: {
-	$network: { caip2: {
-		namespace: string
-		reference: string
-	} } | { slug: string }
+	$network: NetworkId
 	hash: string
 	signerAccountId?: string
 }) => {
@@ -247,6 +220,30 @@ const getNearTransactionStatus = async ({ $network, hash, signerAccountId }: {
 	return getTxStatus({
 		txHash: hash,
 		senderAccountId: signerAccountId,
+	})
+}
+
+const getNearAccount = async (
+	network: NetworkId,
+	accountId: string
+) => {
+	assertNearMainnet(network)
+	const { viewAccount } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+	return viewAccount({
+		accountId,
+	})
+}
+
+const getNearAccessKey = async (
+	network: NetworkId,
+	accountId: string,
+	publicKey: string
+) => {
+	assertNearMainnet(network)
+	const { viewAccessKey } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+	return viewAccessKey({
+		accountId,
+		publicKey,
 	})
 }
 
@@ -295,10 +292,7 @@ const nearNetworkTimestampFieldResolvers = {
 }
 
 const nearNetworkTimestampReference = (
-	network: { caip2: {
-		namespace: string
-		reference: string
-	} } | { slug: string },
+	network: NetworkId,
 	timestamp: ReturnType<typeof nearNetworkTimestampFields> & { timestampMs: number }
 ) => ({
 	[EntityMetaKey.Selector]: {
@@ -354,6 +348,87 @@ const getNearNetworkTimestampFields = async () => {
 			nodeStatus,
 			validatorSet,
 		}),
+	}
+}
+
+const getNearBlockReferences = async (
+	network: NetworkId,
+	limit: number
+) => {
+	assertNearMainnet(network)
+	const { getBlock } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+	const headBlock = await getBlock({
+		blockId: 'final',
+	})
+	const headBlockHeight = BigInt(headBlock.header.height)
+	return Array.from({
+		length: Math.min(
+			Number(headBlockHeight + 1n),
+			limit
+		),
+	}, (_value, blockOffset) => ({
+		[EntityMetaKey.Selector]: {
+			$network: network,
+			height: headBlockHeight - BigInt(blockOffset),
+			...(blockOffset === 0 && {
+				hash: headBlock.header.hash,
+			}),
+		},
+	}))
+}
+
+const getNearValidatorReferences = async (
+	network: NetworkId,
+	limit: number
+) => {
+	assertNearMainnet(network)
+	const { getValidators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+	return (await getValidators()).current_validators
+		.slice(0, limit)
+		.map((validator) => {
+			const fields = nearValidatorFields(validator)
+			return {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					accountId: validator.account_id,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.NearValidator, [], 'publicKey')]: fields.publicKey,
+					[entityFieldAddressKey(EntityType.NearValidator, [], 'stakeYoctoNear')]: fields.stakeYoctoNear,
+					[entityFieldAddressKey(EntityType.NearValidator, [], 'isSlashed')]: fields.isSlashed,
+					...(fields.expectedBlocks != null && {
+						[entityFieldAddressKey(EntityType.NearValidator, [], 'expectedBlocks')]: fields.expectedBlocks,
+					}),
+					...(fields.producedBlocks != null && {
+						[entityFieldAddressKey(EntityType.NearValidator, [], 'producedBlocks')]: fields.producedBlocks,
+					}),
+					...(fields.expectedChunks != null && {
+						[entityFieldAddressKey(EntityType.NearValidator, [], 'expectedChunks')]: fields.expectedChunks,
+					}),
+					...(fields.producedChunks != null && {
+						[entityFieldAddressKey(EntityType.NearValidator, [], 'producedChunks')]: fields.producedChunks,
+					}),
+				},
+			}
+		})
+}
+
+const getNearCurrentValidator = async (
+	network: NetworkId,
+	accountId: string
+) => {
+	assertNearMainnet(network)
+	const { getValidators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+	const validatorSet = await getValidators()
+	const validator = validatorSet.current_validators.find((candidate) => (
+		candidate.account_id === accountId
+	))
+	if (validator == null)
+		throw new Error(`NearRpc_JsonRpc: validator ${accountId} not found`)
+
+	return {
+		validator,
+		validatorSet,
 	}
 }
 
@@ -426,35 +501,22 @@ export default {
 						return {
 							shardId: BigInt(wireChunk.header.shard_id),
 							gasUsed: BigInt(wireChunk.header.gas_used),
-							$$transactions: wireChunk.transactions.map((transaction) => ({
-								[EntityMetaKey.Selector]: {
-									$network,
-									hash: transaction.hash,
-									signerAccountId: transaction.signer_id,
-								},
-								[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.NearTransaction, [], '$signer')]: {
+							$$transactions: wireChunk.transactions.map((transaction) => {
+								const fields = nearTransactionFields($network, transaction)
+								return {
 									[EntityMetaKey.Selector]: {
 										$network,
-										accountId: transaction.signer_id,
+										hash: transaction.hash,
+										signerAccountId: transaction.signer_id,
 									},
-								},
-								[entityFieldAddressKey(EntityType.NearTransaction, [], '$receiver')]: {
-									[EntityMetaKey.Selector]: {
-										$network,
-										accountId: transaction.receiver_id,
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.NearTransaction, [], '$signer')]: fields.$signer,
+										[entityFieldAddressKey(EntityType.NearTransaction, [], '$receiver')]: fields.$receiver,
+										[entityFieldAddressKey(EntityType.NearTransaction, [], 'nonce')]: fields.nonce,
+										[entityFieldAddressKey(EntityType.NearTransaction, [], '$$actions')]: fields.$$actions,
 									},
-								},
-								[entityFieldAddressKey(EntityType.NearTransaction, [], 'nonce')]: BigInt(transaction.nonce),
-								[entityFieldAddressKey(EntityType.NearTransaction, [], '$$actions')]: transaction.actions.map((action, actionIndex) => (
-									nearActionReference({
-											$network,
-											hash: transaction.hash,
-											signerAccountId: transaction.signer_id,
-										}, action, actionIndex)
-								)),
-								},
-							})),
+								}
+							}),
 						}
 					},
 				}
@@ -469,12 +531,35 @@ export default {
 			entityType: EntityType.NearTransaction,
 			resolve: {
 				NetworkHashSignerAccountId: {
-					resolve: async (entitySelector) => (
-						nearTransactionFields(
+					resolve: async (entitySelector) => {
+						const transactionStatus = await getNearTransactionStatus(entitySelector)
+						return {
+							...nearTransactionFields(
 							entitySelector.$network,
-							await getNearTransactionStatus(entitySelector)
-						)
-					),
+								transactionStatus.transaction
+							),
+							$$executionOutcomes: [
+								transactionStatus.transaction_outcome,
+								...transactionStatus.receipts_outcome,
+							].map((executionOutcome) => {
+								const fields = nearExecutionOutcomeFields(
+									entitySelector.$network,
+									executionOutcome
+								)
+								return {
+									[EntityMetaKey.Selector]: {
+										$transaction: entitySelector,
+										outcomeId: executionOutcome.id,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'status')]: fields.status,
+										[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'gasBurnt')]: fields.gasBurnt,
+										[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], '$$receipts')]: fields.$$receipts,
+									},
+								}
+							}),
+						}
+					},
 				}
 			},
 		})({
@@ -560,14 +645,9 @@ export default {
 			resolve: {
 				NetworkAccountId: {
 					resolve: async ({ $network, accountId }) => {
-						assertNearMainnet($network)
-						const { viewAccount } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-						const account = await viewAccount({
-							accountId: accountId,
-						})
+						const account = await getNearAccount($network, accountId)
 						return {
-							amountYoctoNear: BigInt(account.amount),
-							storageUsageBytes: BigInt(account.storage_usage),
+							...nearAccountFields(account),
 							...(account.code_hash !== '11111111111111111111111111111111' && {
 								$contract: {
 									[EntityMetaKey.Selector]: {
@@ -591,16 +671,10 @@ export default {
 			resolve: {
 				NetworkAccountId: {
 					resolve: async ({ $network, accountId }) => {
-						assertNearMainnet($network)
-						const { viewAccount } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-						const account = await viewAccount({
-							accountId: accountId,
-						})
+						const account = await getNearAccount($network, accountId)
 						if (account.code_hash === '11111111111111111111111111111111')
 							throw new Error(`NearRpc_JsonRpc: account ${accountId} has no deployed contract code`)
-						return {
-							codeHash: account.code_hash,
-						}
+						return nearAccountFields(account)
 					},
 				}
 			},
@@ -658,16 +732,10 @@ export default {
 			resolve: {
 				AccountTimestampMsSource: {
 					resolve: async ({ $account }) => {
-						assertNearMainnet($account.$network)
-						const { viewAccount } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-						const account = await viewAccount({
-							accountId: $account.accountId,
-						})
-						return {
-							amountYoctoNear: BigInt(account.amount),
-							storageUsageBytes: BigInt(account.storage_usage),
-							codeHash: account.code_hash,
-						}
+						return nearAccountFields(await getNearAccount(
+							$account.$network,
+							$account.accountId
+						))
 					},
 				}
 			},
@@ -682,16 +750,13 @@ export default {
 			resolve: {
 				ContractTimestampMsSource: {
 					resolve: async ({ $contract }) => {
-						assertNearMainnet($contract.$network)
-						const { viewAccount } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-						const account = await viewAccount({
-							accountId: $contract.accountId,
-						})
+						const account = await getNearAccount(
+							$contract.$network,
+							$contract.accountId
+						)
 						if (account.code_hash === '11111111111111111111111111111111')
 							throw new Error(`NearRpc_JsonRpc: account ${$contract.accountId} has no deployed contract code`)
-						return {
-							codeHash: account.code_hash,
-						}
+						return nearAccountFields(account)
 					},
 				}
 			},
@@ -704,12 +769,11 @@ export default {
 			resolve: {
 				NearAccountPublicKey: {
 					resolve: async ({ $account, publicKey }) => {
-						assertNearMainnet($account.$network)
-						const { viewAccessKey } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-						return nearAccessKeyFields(await viewAccessKey({
-							accountId: $account.accountId,
-							publicKey: publicKey,
-						}))
+						return nearAccessKeyFields(await getNearAccessKey(
+							$account.$network,
+							$account.accountId,
+							publicKey
+						))
 					},
 				}
 			},
@@ -723,12 +787,11 @@ export default {
 			resolve: {
 				AccessKeyTimestampMsSource: {
 					resolve: async ({ $accessKey }) => {
-						assertNearMainnet($accessKey.$account.$network)
-						const { viewAccessKey } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-						return nearAccessKeyFields(await viewAccessKey({
-							accountId: $accessKey.$account.accountId,
-							publicKey: $accessKey.publicKey,
-						}))
+						return nearAccessKeyFields(await getNearAccessKey(
+							$accessKey.$account.$network,
+							$accessKey.$account.accountId,
+							$accessKey.publicKey
+						))
 					},
 				}
 			},
@@ -745,11 +808,9 @@ export default {
 			resolve: {
 				NetworkAccountId: {
 					resolve: async ({ $network, accountId }) => {
-						assertNearMainnet($network)
-						const { getValidators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-						const validator = (await getValidators()).current_validators.find((nearValidator) => nearValidator.account_id === accountId)
-						if (validator == null) throw new Error(`NearRpc_JsonRpc: validator ${accountId} not found`)
-						return nearValidatorFields(validator)
+						return nearValidatorFields((
+							await getNearCurrentValidator($network, accountId)
+						).validator)
 					},
 				}
 			},
@@ -768,13 +829,13 @@ export default {
 			resolve: {
 				ValidatorEpochIdSource: {
 					resolve: async ({ $validator }) => {
-						assertNearMainnet($validator.$network)
-						const { getValidators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-						const validatorSet = await getValidators()
-						const validator = validatorSet.current_validators.find((nearValidator) => (
-							nearValidator.account_id === $validator.accountId
-						))
-						if (validator == null) throw new Error(`NearRpc_JsonRpc: validator ${$validator.accountId} not found`)
+						const {
+							validator,
+							validatorSet,
+						} = await getNearCurrentValidator(
+							$validator.$network,
+							$validator.accountId
+						)
 						return {
 							epochHeight: BigInt(validatorSet.epoch_height),
 							epochStartHeight: BigInt(validatorSet.epoch_start_height),
@@ -846,26 +907,10 @@ export default {
 			resolve: {
 				Slug: {
 					resolve: async (entitySelector, context) => {
-						assertNearMainnet(entitySelector)
-						const { getBlock } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-						const headBlock = await getBlock({
-							blockId: 'final',
-						})
-						const headBlockHeight = BigInt(headBlock.header.height)
-						return Array.from({
-							length: Math.min(
-								Number(headBlockHeight + 1n),
-								resolverContextRowLimit(context)
-						),
-						}, (_value, blockOffset) => ({
-							[EntityMetaKey.Selector]: {
-								$network: entitySelector,
-								height: headBlockHeight - BigInt(blockOffset),
-								...(blockOffset === 0 && {
-									hash: headBlock.header.hash,
-								}),
-							},
-						}))
+						return getNearBlockReferences(
+							entitySelector,
+							resolverContextRowLimit(context)
+						)
 					},
 				}
 			},
@@ -878,26 +923,10 @@ export default {
 			resolve: {
 				Slug: {
 					resolve: async (network, context) => {
-						assertNearMainnet(network)
-						const { getBlock } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-						const headBlock = await getBlock({
-							blockId: 'final',
-						})
-						const headBlockHeight = BigInt(headBlock.header.height)
-						return Array.from({
-							length: Math.min(
-								Number(headBlockHeight + 1n),
-								resolverContextRowLimit(context)
-							),
-						}, (_value, blockOffset) => ({
-							[EntityMetaKey.Selector]: {
-								$network: network,
-								height: headBlockHeight - BigInt(blockOffset),
-								...(blockOffset === 0 && {
-									hash: headBlock.header.hash,
-								}),
-							},
-						}))
+						return getNearBlockReferences(
+							network,
+							resolverContextRowLimit(context)
+						)
 					},
 				}
 			},
@@ -912,25 +941,10 @@ export default {
 			resolve: {
 				Slug: {
 					resolve: async (entitySelector, context) => {
-						assertNearMainnet(entitySelector)
-						const { getValidators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-						return (await getValidators()).current_validators
-							.slice(0, resolverContextRowLimit(context))
-							.map((validator) => ({
-								[EntityMetaKey.Selector]: {
-									$network: entitySelector,
-									accountId: validator.account_id,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.NearValidator, [], 'publicKey')]: validator.public_key,
-									[entityFieldAddressKey(EntityType.NearValidator, [], 'stakeYoctoNear')]: BigInt(validator.stake),
-									[entityFieldAddressKey(EntityType.NearValidator, [], 'isSlashed')]: validator.is_slashed,
-									[entityFieldAddressKey(EntityType.NearValidator, [], 'expectedBlocks')]: validator.num_expected_blocks,
-									[entityFieldAddressKey(EntityType.NearValidator, [], 'producedBlocks')]: validator.num_produced_blocks,
-									[entityFieldAddressKey(EntityType.NearValidator, [], 'expectedChunks')]: validator.num_expected_chunks,
-									[entityFieldAddressKey(EntityType.NearValidator, [], 'producedChunks')]: validator.num_produced_chunks,
-								},
-							}))
+						return getNearValidatorReferences(
+							entitySelector,
+							resolverContextRowLimit(context)
+						)
 					},
 				}
 			},
@@ -943,25 +957,10 @@ export default {
 			resolve: {
 				Slug: {
 					resolve: async (network, context) => {
-						assertNearMainnet(network)
-						const { getValidators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-						return (await getValidators()).current_validators
-							.slice(0, resolverContextRowLimit(context))
-							.map((validator) => ({
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									accountId: validator.account_id,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.NearValidator, [], 'publicKey')]: validator.public_key,
-									[entityFieldAddressKey(EntityType.NearValidator, [], 'stakeYoctoNear')]: BigInt(validator.stake),
-									[entityFieldAddressKey(EntityType.NearValidator, [], 'isSlashed')]: validator.is_slashed,
-									[entityFieldAddressKey(EntityType.NearValidator, [], 'expectedBlocks')]: validator.num_expected_blocks,
-									[entityFieldAddressKey(EntityType.NearValidator, [], 'producedBlocks')]: validator.num_produced_blocks,
-									[entityFieldAddressKey(EntityType.NearValidator, [], 'expectedChunks')]: validator.num_expected_chunks,
-									[entityFieldAddressKey(EntityType.NearValidator, [], 'producedChunks')]: validator.num_produced_chunks,
-								},
-							}))
+						return getNearValidatorReferences(
+							network,
+							resolverContextRowLimit(context)
+						)
 					},
 				}
 			},

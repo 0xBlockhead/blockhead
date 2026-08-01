@@ -4,7 +4,6 @@ import bindings from '$/sources/Blobscan/bindings.ts'
 import type {
 	BlobscanBlobDetail,
 	BlobscanTransaction,
-	BlobscanTransactionBlob,
 } from '$/sources/Blobscan/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -16,7 +15,7 @@ export const getTransaction = async (chainId: string, {
 	txHash,
 }: {
 	txHash: string
-}): Promise<BlobscanTransaction | undefined> => {
+}) => {
 	const binding = bindingByChainId[chainId]
 	if (binding == null)
 		throw new Error(`Blobscan_Rest: no binding for chain ${chainId}`)
@@ -38,7 +37,7 @@ export const getBlobDetail = async (chainId: string, {
 }: {
 	txHash: string
 	blobIndex: number
-}): Promise<BlobscanBlobDetail | undefined> => {
+}) => {
 	const binding = bindingByChainId[chainId]
 	if (binding == null)
 		throw new Error(`Blobscan_Rest: no binding for chain ${chainId}`)
@@ -64,16 +63,4 @@ export const getBlobDetail = async (chainId: string, {
 	}
 
 	return detail
-}
-
-export const getTransactionBlob = async (chainId: string, {
-	txHash,
-	blobIndex,
-}: {
-	txHash: string
-	blobIndex: number
-}): Promise<BlobscanTransactionBlob | undefined> => {
-	return (await getTransaction(chainId, {
-		txHash,
-	}))?.blobs?.[blobIndex]
 }

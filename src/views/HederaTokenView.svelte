@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -33,13 +34,13 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import HederaTokenAssociationsView from '$/views/HederaTokenAssociationsView.svelte'
 	import HederaNftsView from '$/views/HederaNftsView.svelte'
-	import HederaToken_TimestampsView from '$/views/HederaToken_TimestampsView.svelte'
 </script>
 
 
@@ -52,10 +53,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.tokenId || 'hedera token'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={hederaToken}>
 			{#snippet children(entity)}
@@ -87,7 +84,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -184,12 +180,7 @@
 			{#snippet SectionHederaTokenAssociations({ id, label, open })}
 				<HederaTokenAssociationsView
 					selection={selection.$$associations}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No associations.'
 					id={`${id}-list`}
@@ -199,12 +190,7 @@
 			{#snippet SectionHederaTokenNfts({ id, label, open })}
 				<HederaNftsView
 					selection={selection.$$nfts}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No NFTs.'
 					id={`${id}-list`}
@@ -234,18 +220,22 @@
 			{/snippet}
 
 			{#snippet SectionHederaTokenTimestamps({ id, label, open })}
-				<HederaToken_TimestampsView
-					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.HederaToken_Timestamp}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No timestamps.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$timestamps()}
+				>
+					{#snippet Item({ item: hederaTokenTimestamp })}
+						<EntityView
+							entityType={EntityType.HederaToken_Timestamp}
+							entitySelector={hederaTokenTimestamp[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>

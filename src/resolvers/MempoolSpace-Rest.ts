@@ -4,9 +4,7 @@ import {
 	type SourceResolverContext,
 } from '$/resolvers/defineResolver.ts'
 import {
-	bitcoinNetworkBySlug,
-} from '$/constants/BitcoinNetwork.ts'
-import {
+	networkBySlug,
 	NetworkExecutionModel,
 	NetworkLedgerModel,
 } from '$/constants/Network.ts'
@@ -23,7 +21,7 @@ type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const bitcoinNetworkApplicability = [
 	{
-		caip2: bitcoinNetworkBySlug.bitcoin.caip2,
+		caip2: networkBySlug.bitcoin.caip2,
 	},
 	{
 		slug: 'bitcoin',
@@ -74,8 +72,8 @@ const assertBitcoinMainnet = (network: NetworkId) => {
 	if (
 		(
 			!('caip2' in network)
-			|| network.caip2.namespace !== bitcoinNetworkBySlug.bitcoin.caip2.namespace
-			|| network.caip2.reference !== bitcoinNetworkBySlug.bitcoin.caip2.reference
+			|| network.caip2.namespace !== networkBySlug.bitcoin.caip2.namespace
+			|| network.caip2.reference !== networkBySlug.bitcoin.caip2.reference
 		)
 		&& (
 			!('slug' in network)
@@ -86,7 +84,7 @@ const assertBitcoinMainnet = (network: NetworkId) => {
 }
 
 const bitcoinMainnet = {
-	caip2: bitcoinNetworkBySlug.bitcoin.caip2,
+	caip2: networkBySlug.bitcoin.caip2,
 } as const
 
 const bitcoinNetworkSelectors = <
@@ -120,19 +118,6 @@ export default {
 	source: Source.MempoolSpace_Rest,
 
 	resolvers: [
-		defineResolver(Source.MempoolSpace_Rest, {
-			entityType: EntityType.Network,
-			resolve: bitcoinNetworkSelectors(async (network) => {
-				assertBitcoinMainnet(network)
-				return {
-					[EntityMetaKey.Selector]: network,
-					slug: 'bitcoin',
-				}
-			}),
-		})({
-				slug: (network) => network.slug,
-			}),
-
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
@@ -210,6 +195,18 @@ export default {
 								feeSats: BigInt(transaction.fee),
 							}),
 							isCoinbase: transaction.vin.some((input) => input.is_coinbase),
+							$$inputs: transaction.vin.map((_input, indexInTransaction) => ({
+								[EntityMetaKey.Selector]: {
+									$transaction: entitySelector,
+									indexInTransaction,
+								},
+							})),
+							$$outputs: transaction.vout.map((_output, indexInTransaction) => ({
+								[EntityMetaKey.Selector]: {
+									$transaction: entitySelector,
+									indexInTransaction,
+								},
+							})),
 						}
 					},
 				}
@@ -223,6 +220,8 @@ export default {
 				virtualSizeBytes: (transaction) => transaction.virtualSizeBytes,
 				feeSats: (transaction) => transaction.feeSats,
 				isCoinbase: (transaction) => transaction.isCoinbase,
+				$$inputs: (transaction) => transaction.$$inputs,
+				$$outputs: (transaction) => transaction.$$outputs,
 			}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
@@ -625,46 +624,5 @@ export default {
 				$$transactions: (transactions) => transactions,
 			}),
 
-		defineResolver(Source.MempoolSpace_Rest, {
-			entityType: EntityType.UtxoTransaction,
-			resolve: {
-				NetworkTxId: {
-					appliesTo: bitcoinNetworkReferenceApplicability,
-					resolve: async (entitySelector) => (
-						(await getTransaction(entitySelector)).vin.map((input, indexInTransaction) => (
-							{
-								[EntityMetaKey.Selector]: {
-									$transaction: entitySelector,
-									indexInTransaction,
-								},
-							}
-						))
-					),
-				}
-			},
-		})({
-				$$inputs: (inputs) => inputs,
-			}),
-
-		defineResolver(Source.MempoolSpace_Rest, {
-			entityType: EntityType.UtxoTransaction,
-			resolve: {
-				NetworkTxId: {
-					appliesTo: bitcoinNetworkReferenceApplicability,
-					resolve: async (entitySelector) => (
-						(await getTransaction(entitySelector)).vout.map((output, indexInTransaction) => (
-							{
-								[EntityMetaKey.Selector]: {
-									$transaction: entitySelector,
-									indexInTransaction,
-								},
-							}
-						))
-					),
-				}
-			},
-		})({
-				$$outputs: (outputs) => outputs,
-			}),
 	],
 }

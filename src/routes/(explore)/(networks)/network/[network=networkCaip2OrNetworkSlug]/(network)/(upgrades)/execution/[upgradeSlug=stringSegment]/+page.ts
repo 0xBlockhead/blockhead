@@ -27,7 +27,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			slug: params.upgradeSlug,
-		}
+		},
+		'EvmNetworkSlug'
 	)
 	if (ethereumExecutionUpgradeEvmNetworkSlugSelector instanceof arktype.errors)
 		error(404, 'Invalid EthereumExecutionUpgrade selector')

@@ -11,7 +11,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -34,15 +33,10 @@
 	entityType={EntityType._GlobalAiArtifactCatalog}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? 'global AI artifact catalog'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		global AI artifact catalog
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -126,12 +120,7 @@
 			{#snippet SectionAiArtifactCatalogArtifacts({ id, label, open })}
 				<AiArtifactsView
 					selection={selection.$$artifacts}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No AI artifacts.'
 					id={`${id}-list`}
@@ -141,12 +130,7 @@
 			{#snippet SectionAiArtifactCatalogDocuments({ id, label, open })}
 				<AiDocumentsView
 					selection={selection.$$documents}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No AI documents.'
 					id={`${id}-list`}
@@ -178,12 +162,7 @@
 			{#snippet SectionAiArtifactCatalogTimestamps({ id, label, open })}
 				<GlobalAiArtifactCatalog_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No AI artifact catalog observations.'
 					id={`${id}-list`}

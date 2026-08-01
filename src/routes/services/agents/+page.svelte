@@ -28,12 +28,8 @@
 
 	<EvmNftsView
 		href={resolve('/services/agents')}
-		title='ERC-8004 Registrations'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='eip8004-services'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

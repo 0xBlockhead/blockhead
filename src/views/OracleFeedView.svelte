@@ -74,7 +74,6 @@
 								prefetched={market}
 								href={null}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/if}
 					{/snippet}
@@ -91,7 +90,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -115,7 +113,6 @@
 									selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
 									prefetched={market}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

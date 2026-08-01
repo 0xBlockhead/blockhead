@@ -50,11 +50,14 @@ describe('EIP-8004 Scan registration ownership', () => {
 
 	it('materializes the exact canonical registration and NFT reference', async () => {
 		fetchAgentDetail.mockResolvedValueOnce({
-			chainId: 1,
-			tokenId: '42',
-			contractAddress: identityRegistry,
-			agentUri: 'ipfs://agent',
-			fetchedAt: 1_720_000_000_000,
+			data: {
+				chain_id: 1,
+				token_id: '42',
+				contract_address: identityRegistry,
+				raw_metadata: {
+					offchain_uri: 'ipfs://agent',
+				},
+			},
 		})
 
 		await expect(eip8004Scan.resolvers[0].resolve[
@@ -120,7 +123,7 @@ describe('EIP-8004 Scan registration ownership', () => {
 	})
 
 	it('rejects absent and mismatched provider registrations', async () => {
-		fetchAgentDetail.mockResolvedValueOnce(undefined)
+		fetchAgentDetail.mockResolvedValueOnce({})
 		await expect(eip8004Scan.resolvers[0].resolve[
 			'NamespaceChainIdIdentityRegistryAgentId'
 		].resolve({
@@ -132,25 +135,28 @@ describe('EIP-8004 Scan registration ownership', () => {
 
 		for (const mismatchedDetail of [
 			{
-				chainId: 10,
-				tokenId: '42',
-				contractAddress: identityRegistry,
+				chain_id: 10,
+				token_id: '42',
+				contract_address: identityRegistry,
 			},
 			{
-				chainId: 1,
-				tokenId: '43',
-				contractAddress: identityRegistry,
+				chain_id: 1,
+				token_id: '43',
+				contract_address: identityRegistry,
 			},
 			{
-				chainId: 1,
-				tokenId: '42',
-				contractAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+				chain_id: 1,
+				token_id: '42',
+				contract_address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
 			},
 		]) {
 			fetchAgentDetail.mockResolvedValueOnce({
-				...mismatchedDetail,
-				agentUri: 'ipfs://agent',
-				fetchedAt: 1_720_000_000_000,
+				data: {
+					...mismatchedDetail,
+					raw_metadata: {
+						offchain_uri: 'ipfs://agent',
+					},
+				},
 			})
 			await expect(eip8004Scan.resolvers[0].resolve[
 				'NamespaceChainIdIdentityRegistryAgentId'
@@ -171,19 +177,23 @@ describe('EIP-8004 Scan service endpoint ownership', () => {
 
 	it('materializes only the exact typed service from its registration file', async () => {
 		fetchAgentDetail.mockResolvedValueOnce({
-			chainId: 1,
-			tokenId: '42',
-			contractAddress: identityRegistry,
-			agentUri: registrationFile.fileUrl,
-			fetchedAt: 1_720_000_000_000,
-			services: [{
-				endpointKind: 'a2a',
-				endpointUrl: 'https://agents.example/a2a',
-				name: 'Trading agent',
-				version: '1.2.0',
-				protocolKind: 'https',
-				active: true,
-			}],
+			data: {
+				chain_id: 1,
+				token_id: '42',
+				contract_address: identityRegistry,
+				raw_metadata: {
+					offchain_uri: registrationFile.fileUrl,
+				},
+				services: {
+					a2a: {
+						endpoint: 'https://agents.example/a2a',
+						name: 'Trading agent',
+						version: '1.2.0',
+						protocol: 'https',
+						active: true,
+					},
+				},
+			},
 		})
 		const endpointResolver = resolver(EntityType.Eip8004AgentServiceEndpoint)
 
@@ -259,31 +269,38 @@ describe('EIP-8004 Scan service endpoint ownership', () => {
 			endpointUrl: 'https://agents.example/a2a',
 		} as const
 
-		fetchAgentDetail.mockResolvedValueOnce(undefined)
+		fetchAgentDetail.mockResolvedValueOnce({})
 		await expect(resolve(selector, context)).rejects.toThrow('service endpoint registration not found')
 
 		fetchAgentDetail.mockResolvedValueOnce({
-			chainId: 1,
-			tokenId: '42',
-			contractAddress: identityRegistry,
-			agentUri: 'https://agents.example/other.json',
-			fetchedAt: 1_720_000_000_000,
-			services: [],
+			data: {
+				chain_id: 1,
+				token_id: '42',
+				contract_address: identityRegistry,
+				raw_metadata: {
+					offchain_uri: 'https://agents.example/other.json',
+				},
+				services: {},
+			},
 		})
 		await expect(resolve(selector, context)).rejects.toThrow(
 			'service endpoint registration does not match request'
 		)
 
 		fetchAgentDetail.mockResolvedValueOnce({
-			chainId: 1,
-			tokenId: '42',
-			contractAddress: identityRegistry,
-			agentUri: registrationFile.fileUrl,
-			fetchedAt: 1_720_000_000_000,
-			services: [{
-				endpointKind: 'mcp',
-				endpointUrl: 'https://agents.example/mcp',
-			}],
+			data: {
+				chain_id: 1,
+				token_id: '42',
+				contract_address: identityRegistry,
+				raw_metadata: {
+					offchain_uri: registrationFile.fileUrl,
+				},
+				services: {
+					mcp: {
+						endpoint: 'https://agents.example/mcp',
+					},
+				},
+			},
 		})
 		await expect(resolve(selector, context)).rejects.toThrow('service endpoint not found')
 	})

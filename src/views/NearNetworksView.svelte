@@ -11,7 +11,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['NEAR network catalog row with RPC endpoints, runtime observations, blocks, and validator sets from declared NEAR sources.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.NearNetwork> = $props()
@@ -26,7 +25,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.NearNetwork}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			sources: selection.sources ?? [

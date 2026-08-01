@@ -59,7 +59,7 @@ export const request = async <_Response>(
 	binding: SourceBinding,
 	path: string,
 	body: Readonly<Record<string, unknown>>
-): Promise<_Response> => {
+) => {
 	const response = await sourceFetch(
 		binding,
 		new URL(path, firstHttpUrlForBinding(binding)).toString(),
@@ -73,7 +73,7 @@ export const request = async <_Response>(
 	)
 	if (!response.ok)
 		await throwHttpError(`${binding.source} ${path}`, response)
-	return response.json()
+	return response.json<_Response>()
 }
 
 export const getAccountBalance = async (

@@ -46,7 +46,6 @@ describe('Zebra transparent-address transport', () => {
 			endpoints: [{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'http://127.0.0.1:8232',
-				origin: 'http://127.0.0.1:8232',
 				corsEnabled: false,
 			}],
 			wireProtocol: WireProtocol.JsonRpc2,

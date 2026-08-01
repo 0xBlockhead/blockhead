@@ -50,10 +50,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.peerNodeId || 'blockhead radicle peer'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadRadiclePeer}>
 			{#snippet children(entity)}
@@ -83,7 +79,6 @@
 					<BlockheadRadicleNodeStateView
 						selection={select(EntityType.BlockheadRadicleNodeState, selection.entitySelector.$node)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

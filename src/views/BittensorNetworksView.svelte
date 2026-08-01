@@ -10,7 +10,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['Bittensor network-specific view over a canonical Network row, with runtime observations, finalized blocks, and subnets from declared Bittensor JSON-RPC sources.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.BittensorNetwork> = $props()
@@ -25,7 +24,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.BittensorNetwork}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {
@@ -42,6 +40,10 @@
 		>
 			{#snippet Title()}
 				{bittensorNetwork.$network.name || (bittensorNetworkSelector.$network.caip2 == null ? '' : `${bittensorNetworkSelector.$network.caip2.namespace}:${bittensorNetworkSelector.$network.caip2.reference}`) || 'Network'}
+			{/snippet}
+
+			{#snippet Value()}
+				Bittensor
 			{/snippet}
 		</EntityView>
 	{/snippet}

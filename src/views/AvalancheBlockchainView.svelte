@@ -83,7 +83,6 @@
 								selection={select(EntityType.AvalancheSubnet, avalancheSubnet[EntityMetaKey.Selector])}
 								prefetched={avalancheSubnet}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -147,7 +146,6 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

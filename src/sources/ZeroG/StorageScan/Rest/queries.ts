@@ -15,20 +15,6 @@ import type {
 
 const binding = bindings[Source.ZeroGStorageScan_Rest]
 
-const storageScanUrl = ({
-	path,
-	searchParams,
-}: {
-	path: string
-	searchParams?: Record<string, string | number | undefined>
-}) => {
-	const url = new URL(path, firstHttpUrlForBinding(binding))
-	for (const [key, value] of Object.entries(searchParams ?? {})) {
-		if (value != null) url.searchParams.set(key, String(value))
-	}
-	return url.toString()
-}
-
 const getStorageScanData = async <_Data>({
 	path,
 	searchParams,
@@ -36,14 +22,18 @@ const getStorageScanData = async <_Data>({
 	path: string
 	searchParams?: Record<string, string | number | undefined>
 }) => {
+	const url = new URL(path, firstHttpUrlForBinding(binding))
+	for (const [key, value] of Object.entries(searchParams ?? {}))
+		if (value != null)
+			url.searchParams.set(key, String(value))
+
 	const response = await sourceGetJson<ZeroGStorageScanResponse<_Data>>(
 		binding,
-		storageScanUrl({
-			path,
-			searchParams,
-		})
+		url.toString()
 	)
-	if (response.code !== 0) throw new Error(`ZeroGStorageScan_Rest: ${response.message}`)
+	if (response.code !== 0)
+		throw new Error(`ZeroGStorageScan_Rest: ${response.message}`)
+
 	return response.data
 }
 

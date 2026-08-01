@@ -25,10 +25,9 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Juno_JsonRpc,
-			Source.Pathfinder_JsonRpc,
-			Source.Starknet_JsonRpc,
-			Source.Starkscan_Rest,
-			Source.Voyager_Rest,
+			Source.Pathfinder,
+			Source.Starkscan,
+			Source.Voyager,
 		],
 	}))
 	const starknetTransaction = $derived(viewSelection({
@@ -56,10 +55,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.transactionHash || 'starknet transaction'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={starknetTransaction}>
 			{#snippet children(entity)}
@@ -79,7 +74,6 @@
 							selection={select(EntityType.StarknetBlock, starknetBlock[EntityMetaKey.Selector])}
 							prefetched={starknetBlock}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -124,7 +118,6 @@
 									selection={select(EntityType.StarknetBlock, starknetBlock[EntityMetaKey.Selector])}
 									prefetched={starknetBlock}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

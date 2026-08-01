@@ -89,7 +89,6 @@
 					<NearNetworkView
 						selection={select(EntityType.NearNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

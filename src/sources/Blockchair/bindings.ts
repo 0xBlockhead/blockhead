@@ -15,7 +15,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.blockchair.com',
-				origin: 'https://api.blockchair.com',
 				corsEnabled: false,
 			},
 		],
@@ -31,12 +30,9 @@ const bindings = [
 				env: arktype({
 					'PUBLIC_BLOCKCHAIR_API_KEY': 'string',
 				}),
-				keys: [
-					'PUBLIC_BLOCKCHAIR_API_KEY',
-				],
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Blockchair_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

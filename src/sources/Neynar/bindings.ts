@@ -15,7 +15,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.neynar.com',
-				origin: 'https://api.neynar.com',
 				corsEnabled: false,
 			},
 		],
@@ -31,21 +30,16 @@ const bindings = [
 				env: arktype({
 					'PUBLIC_NEYNAR_API_KEY': 'string > 0?',
 				}),
-				keys: [
-					'PUBLIC_NEYNAR_API_KEY',
-				],
 			},
 		],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.OpenApiSpec,
 				path: 'src/sources/Neynar/OpenApi/openapi.yaml',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/Neynar/OpenApi/schema-source.ts',
-				generated: false,
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,
@@ -56,4 +50,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Neynar_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

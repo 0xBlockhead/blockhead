@@ -89,7 +89,6 @@
 			<MevRelayView
 				selection={select(EntityType.MevRelay, selection.entitySelector.$relay)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -294,7 +293,6 @@
 					<MevRelayView
 						selection={select(EntityType.MevRelay, selection.entitySelector.$relay)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

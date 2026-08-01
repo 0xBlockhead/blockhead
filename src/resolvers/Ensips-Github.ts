@@ -1,6 +1,6 @@
 import {
-	ProposalCategory as OwnedProposalCategory,
-	SpecificationRealm as OwnedSpecificationRealm,
+	ProposalCategory,
+	SpecificationRealm,
 } from '$/constants/SpecificationProposal.ts'
 import {
 	defineResolver,
@@ -12,35 +12,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-const githubEnsipProposalIndexRows = async (
-	data: {
-		type: string
-		name: string
-	}[]
-) => {
-	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-	const markdownFiles = data.filter((githubContent) => githubContent.type === 'file' && githubContent.name.endsWith('.md'))
-	const ensips = []
-	for (const markdownFile of markdownFiles) {
-		const proposalNumberRaw = regex('^(?<proposalNumber>\\d+)\\.md$').exec(markdownFile.name)?.groups.proposalNumber
-		const proposalNumber = proposalNumberRaw != null ?
-			parseInt(proposalNumberRaw, 10)
-		:
-			null
-
-		if (proposalNumber == null) continue
-
-		ensips.push({
-			[EntityMetaKey.Selector]: {
-				realm: SpecificationRealm.Ens,
-				category: ProposalCategory.Ensip,
-				number: proposalNumber,
-			},
-		})
-	}
-	return ensips
-}
-
 export default {
 	source: Source.Ensips_Github,
 
@@ -51,12 +22,11 @@ export default {
 				RealmCategoryNumber: {
 					appliesTo: [
 						{
-							realm: OwnedSpecificationRealm.Ens,
-							category: OwnedProposalCategory.Ensip,
+							realm: SpecificationRealm.Ens,
+							category: ProposalCategory.Ensip,
 						},
 					],
 					resolve: async ({ category, number, realm }) => {
-						const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 						const {
 							getProposalMarkdownText,
 						} = await import('$/sources/Ensips/Github/queries.ts')
@@ -65,7 +35,7 @@ export default {
 							throw new Error('Ensips_Github: proposal resolver only supports ENSIPs')
 						}
 						const text = await getProposalMarkdownText({
-							number: number,
+							number,
 						})
 						const body = stripFrontmatter(text)
 						const fm = parseFrontmatter(text)
@@ -95,7 +65,24 @@ export default {
 				Scope: {
 					resolve: async () => {
 						const { getContents } = await import('$/sources/Ensips/Github/queries.ts')
-						return githubEnsipProposalIndexRows(await getContents())
+						return (await getContents()).flatMap((githubContent) => {
+							const proposalNumberRaw = (
+								githubContent.type === 'file' && githubContent.name.endsWith('.md') ?
+									regex('^(?<proposalNumber>\\d+)\\.md$').exec(githubContent.name)?.groups.proposalNumber
+								:
+									undefined
+							)
+							return proposalNumberRaw == null ?
+								[]
+							:
+								[{
+									[EntityMetaKey.Selector]: {
+										realm: SpecificationRealm.Ens,
+										category: ProposalCategory.Ensip,
+										number: parseInt(proposalNumberRaw, 10),
+									},
+								}]
+						})
 					},
 				},
 			},

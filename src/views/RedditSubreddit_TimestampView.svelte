@@ -156,7 +156,6 @@
 					<RedditSubredditView
 						selection={select(EntityType.RedditSubreddit, selection.entitySelector.$subreddit)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

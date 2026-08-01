@@ -19,6 +19,8 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = resolve('/(social)/(farcaster)/farcaster')
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -28,16 +30,18 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/(social)/(farcaster)/farcaster')}
+	href={detailHref}
 >
 	{#snippet Summary()}
 		<FarcasterNetworkView
 			selection={
-				select(EntityType.FarcasterNetwork, data.selector, { sources: [
-					Source.Constants_Internal,
-				] })
+				select(EntityType.FarcasterNetwork, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
 			}
-			href={resolve('/(social)/(farcaster)/farcaster')}
+			href={detailHref}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

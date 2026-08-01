@@ -5,9 +5,54 @@ import { NetworkNamespace } from '$/constants/Network.ts'
 import { NetworkStackId } from '$/constants/NetworkStack.ts'
 
 
+// Types
+
+type NetworkNamespaceRow = {
+	namespace: NetworkNamespace
+	nativeAssetCoinId: CoinId | undefined
+} & (
+	| {
+		networkStackId: NetworkStackId
+		executionEnvironmentIds: readonly ExecutionEnvironmentId[]
+		consensusMechanismIds: readonly ConsensusMechanismId[]
+	}
+	| {
+		networkStackId: undefined
+		executionEnvironmentIds: undefined
+		consensusMechanismIds: undefined
+	}
+)
+
+
 // Constants
 
-const networkNamespaces = [
+const unregisteredNetworkStack = {
+	networkStackId: undefined,
+	executionEnvironmentIds: undefined,
+	consensusMechanismIds: undefined,
+} as const
+
+export const networkNamespaces = [
+	{
+		namespace: NetworkNamespace.Algorand,
+		...unregisteredNetworkStack,
+		nativeAssetCoinId: CoinId.ALGO,
+	},
+	{
+		namespace: NetworkNamespace.Aptos,
+		...unregisteredNetworkStack,
+		nativeAssetCoinId: CoinId.APT,
+	},
+	{
+		namespace: NetworkNamespace.Avail,
+		...unregisteredNetworkStack,
+		nativeAssetCoinId: undefined,
+	},
+	{
+		namespace: NetworkNamespace.Avalanche,
+		...unregisteredNetworkStack,
+		nativeAssetCoinId: CoinId.AVAX,
+	},
 	{
 		namespace: NetworkNamespace.Bittensor,
 		networkStackId: NetworkStackId.Bittensor,
@@ -49,6 +94,11 @@ const networkNamespaces = [
 		nativeAssetCoinId: CoinId.ADA,
 	},
 	{
+		namespace: NetworkNamespace.Celestia,
+		...unregisteredNetworkStack,
+		nativeAssetCoinId: CoinId.TIA,
+	},
+	{
 		namespace: NetworkNamespace.Cosmos,
 		networkStackId: NetworkStackId.CosmosSdkCometBft,
 		executionEnvironmentIds: [
@@ -58,6 +108,11 @@ const networkNamespaces = [
 			ConsensusMechanismId.CometBft,
 		],
 		nativeAssetCoinId: CoinId.ATOM,
+	},
+	{
+		namespace: NetworkNamespace.Dydx,
+		...unregisteredNetworkStack,
+		nativeAssetCoinId: CoinId.DYDX,
 	},
 	{
 		namespace: NetworkNamespace.Dogecoin,
@@ -102,6 +157,11 @@ const networkNamespaces = [
 		nativeAssetCoinId: CoinId.FIL,
 	},
 	{
+		namespace: NetworkNamespace.Hedera,
+		...unregisteredNetworkStack,
+		nativeAssetCoinId: CoinId.HBAR,
+	},
+	{
 		namespace: NetworkNamespace.Hyperliquid,
 		networkStackId: NetworkStackId.Hyperliquid,
 		executionEnvironmentIds: [
@@ -113,12 +173,23 @@ const networkNamespaces = [
 		nativeAssetCoinId: CoinId.HYPE,
 	},
 	{
+		namespace: NetworkNamespace.InternetComputer,
+		...unregisteredNetworkStack,
+		nativeAssetCoinId: CoinId.ICP,
+	},
+	{
+		namespace: NetworkNamespace.Kaspa,
+		...unregisteredNetworkStack,
+		nativeAssetCoinId: CoinId.KAS,
+	},
+	{
 		namespace: NetworkNamespace.Lightning,
 		networkStackId: NetworkStackId.Lightning,
 		executionEnvironmentIds: [
 			ExecutionEnvironmentId.LightningProtocol,
 		],
 		consensusMechanismIds: [],
+		nativeAssetCoinId: undefined,
 	},
 	{
 		namespace: NetworkNamespace.Litecoin,
@@ -140,6 +211,7 @@ const networkNamespaces = [
 		consensusMechanismIds: [
 			ConsensusMechanismId.LogosBedrock,
 		],
+		nativeAssetCoinId: undefined,
 	},
 	{
 		namespace: NetworkNamespace.Monero,
@@ -195,6 +267,21 @@ const networkNamespaces = [
 		nativeAssetCoinId: CoinId.SOL,
 	},
 	{
+		namespace: NetworkNamespace.Starknet,
+		...unregisteredNetworkStack,
+		nativeAssetCoinId: CoinId.STRK,
+	},
+	{
+		namespace: NetworkNamespace.Stellar,
+		...unregisteredNetworkStack,
+		nativeAssetCoinId: CoinId.XLM,
+	},
+	{
+		namespace: NetworkNamespace.Sui,
+		...unregisteredNetworkStack,
+		nativeAssetCoinId: CoinId.SUI,
+	},
+	{
 		namespace: NetworkNamespace.Tron,
 		networkStackId: NetworkStackId.Tron,
 		executionEnvironmentIds: [
@@ -209,12 +296,22 @@ const networkNamespaces = [
 		namespace: NetworkNamespace.Tezos,
 		networkStackId: NetworkStackId.Tezos,
 		executionEnvironmentIds: [
-		ExecutionEnvironmentId.Michelson,
-	],
+			ExecutionEnvironmentId.Michelson,
+		],
 		consensusMechanismIds: [
 			ConsensusMechanismId.TezosLiquidProofOfStake,
 		],
 		nativeAssetCoinId: CoinId.XTZ,
+	},
+	{
+		namespace: NetworkNamespace.Ton,
+		...unregisteredNetworkStack,
+		nativeAssetCoinId: CoinId.TON,
+	},
+	{
+		namespace: NetworkNamespace.Xrpl,
+		...unregisteredNetworkStack,
+		nativeAssetCoinId: CoinId.XRP,
 	},
 	{
 		namespace: NetworkNamespace.Zcash,
@@ -239,13 +336,7 @@ const networkNamespaces = [
 		],
 		nativeAssetCoinId: CoinId._0G,
 	},
-] as const satisfies readonly {
-	namespace: NetworkNamespace
-	networkStackId: NetworkStackId
-	executionEnvironmentIds: readonly ExecutionEnvironmentId[]
-	consensusMechanismIds: readonly ConsensusMechanismId[]
-	nativeAssetCoinId?: CoinId
-}[]
+] as const satisfies readonly NetworkNamespaceRow[]
 
 
 // Lookups

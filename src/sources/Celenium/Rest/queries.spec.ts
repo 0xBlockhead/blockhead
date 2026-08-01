@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/Celenium/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import {
 	getAddress,
 	getBlock,
@@ -47,8 +46,8 @@ describe('Celenium mainnet public indexer contracts', () => {
 		vi.restoreAllMocks()
 	})
 
-	it('preserves head heights, aggregate sizes, fees, and supply losslessly', async () => {
-		vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue({
+	it('validates and preserves the endpoint-native head row', async () => {
+		const head = {
 			chain_id: 'celestia',
 			last_height: 12_424_720,
 			hash,
@@ -59,14 +58,10 @@ describe('Celenium mainnet public indexer contracts', () => {
 			total_blobs_size: 4_403_903_879_869,
 			total_supply: '11734771038079209007199254740993',
 			synced: true,
-		})
+		}
+		vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue(head)
 
-		await expect(getHead(binding)).resolves.toMatchObject({
-			chainId: 'celestia',
-			latestHeight: 12_424_720n,
-			totalFeeUtia: 4_276_859_431_859_007_199_254_740_993n,
-			totalSupplyUtia: 11_734_771_038_079_209_007_199_254_740_993n,
-		})
+		await expect(getHead()).resolves.toEqual(head)
 	})
 
 	it('rejects foreign head and substituted block identities', async () => {
@@ -83,23 +78,31 @@ describe('Celenium mainnet public indexer contracts', () => {
 			total_supply: '1',
 			synced: true,
 		})
-		await expect(getHead(binding)).rejects.toThrow('foreign chain head')
+		await expect(getHead()).rejects.toThrow('foreign chain head')
 
 		sourceGetJson.mockResolvedValueOnce(blockWire)
-		await expect(getBlock(
-			binding,
-			1n
-		)).rejects.toThrow('mismatched height')
+		await expect(getBlock(1n)).rejects.toThrow('mismatched height')
+	})
+
+	it('validates and preserves the endpoint-native block row', async () => {
+		vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue(blockWire)
+
+		await expect(getBlock(BigInt(blockWire.height))).resolves.toEqual(blockWire)
 	})
 
 	it('enforces bounded block and namespace pages', async () => {
 		const sourceGetJson = vi.spyOn(sourceHttp, 'sourceGetJson')
 		await expect(listBlocks({
-			binding,
 			limit: 101,
 			offset: 0,
 		})).rejects.toThrow('limit must be from 1 through 100')
 		expect(sourceGetJson).not.toHaveBeenCalled()
+
+		sourceGetJson.mockResolvedValueOnce([blockWire])
+		await expect(listBlocks({
+			limit: 1,
+			offset: 2,
+		})).resolves.toEqual([blockWire])
 
 		sourceGetJson.mockResolvedValueOnce([
 			{
@@ -113,49 +116,46 @@ describe('Celenium mainnet public indexer contracts', () => {
 			},
 		])
 		await expect(listNamespaces({
-			binding,
 			limit: 1,
 			offset: 0,
 		})).resolves.toEqual([
-			expect.objectContaining({
-				namespaceId,
-				sizeBytes: 9_007_199_254_740_991n,
-				lastHeight: 9_007_199_254_740_991n,
-			}),
+			{
+				size: 9_007_199_254_740_991,
+				blobs_count: 2,
+				version: 0,
+				namespace_id: namespaceId,
+				hash: namespaceHash,
+				last_height: 9_007_199_254_740_991,
+				reserved: false,
+			},
 		])
 	})
 
 	it('returns bounded blob metadata without downloading blob bodies', async () => {
+		const blobMetadata = {
+			commitment,
+			size: 24_857,
+			share_version: 1,
+			height: 12_424_743,
+			time: '2026-07-23T04:49:13Z',
+			content_type: 'application/octet-stream',
+			namespace: namespaceHash,
+			tx_hash: hash,
+			signer: {
+				hash: address,
+			},
+		}
 		const sourceGetJson = vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue([
 			{
-				commitment,
-				size: 24_857,
-				share_version: 1,
-				height: 12_424_743,
-				time: '2026-07-23T04:49:13Z',
-				content_type: 'application/octet-stream',
-				namespace: namespaceHash,
-				tx_hash: hash,
-				signer: {
-					hash: address,
-				},
+				...blobMetadata,
 				data: 'must not enter the public metadata result',
 			},
 		])
 
-		const result = await listBlobMetadata({
-			binding,
+		await expect(listBlobMetadata({
 			limit: 1,
 			offset: 0,
-		})
-		expect(result).toEqual([
-			expect.objectContaining({
-				height: 12_424_743n,
-				sizeBytes: 24_857n,
-				transactionHash: hash,
-			}),
-		])
-		expect(result[0]).not.toHaveProperty('data')
+		})).resolves.toEqual([blobMetadata])
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
 			'https://api.celenium.io/v1/blob?limit=1&offset=0&sort=desc&joins=true'
@@ -176,25 +176,17 @@ describe('Celenium mainnet public indexer contracts', () => {
 			},
 		])
 		await expect(listNamespaces({
-			binding,
 			limit: 1,
 			offset: 0,
 		})).rejects.toThrow('invalid namespace ID')
 
-		await expect(getAddress(
-			binding,
-			'not-an-address'
-		)).rejects.toThrow('invalid Celestia account address')
-		await expect(getTransaction(
-			binding,
-			'short'
-		)).rejects.toThrow('invalid transaction hash')
+		await expect(getAddress('not-an-address')).rejects.toThrow('invalid Celestia account address')
+		await expect(getTransaction('short')).rejects.toThrow('invalid transaction hash')
 		expect(sourceGetJson).toHaveBeenCalledTimes(1)
 	})
 
-	it('preserves account balances and transaction fees as integer units', async () => {
-		const sourceGetJson = vi.spyOn(sourceHttp, 'sourceGetJson')
-		sourceGetJson.mockResolvedValueOnce({
+	it('validates and preserves the endpoint-native address row', async () => {
+		const addressWire = {
 			first_height: 10_143_589,
 			last_height: 12_424_748,
 			hash: address,
@@ -204,16 +196,34 @@ describe('Celenium mainnet public indexer contracts', () => {
 				delegated: '2',
 				unbonding: '3',
 			},
-		})
-		await expect(getAddress(
+		}
+		vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue(addressWire)
+
+		await expect(getAddress(address)).resolves.toEqual(addressWire)
+		expect(sourceHttp.sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			address
-		)).resolves.toMatchObject({
-			address,
-			spendableAmount: 900_719_925_474_099_312_345n,
+			`https://api.celenium.io/v1/address/${address}`
+		)
+	})
+
+	it('rejects substituted address identities', async () => {
+		vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue({
+			first_height: 10_143_589,
+			last_height: 12_424_748,
+			hash: 'celestia1l50j7c8fpdallag58y3g4q9tw7kppruhvga2lq',
+			balance: {
+				currency: 'utia',
+				spendable: '1',
+				delegated: '2',
+				unbonding: '3',
+			},
 		})
 
-		sourceGetJson.mockResolvedValueOnce({
+		await expect(getAddress(address)).rejects.toThrow('mismatched identity')
+	})
+
+	it('validates and preserves the endpoint-native transaction row', async () => {
+		const transactionWire = {
 			height: 12_424_743,
 			position: 3,
 			gas_wanted: 289_167,
@@ -228,14 +238,30 @@ describe('Celenium mainnet public indexer contracts', () => {
 				},
 			],
 			message_types: ['MsgPayForBlobs'],
-		})
-		await expect(getTransaction(
+		}
+		vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue(transactionWire)
+
+		await expect(getTransaction(hash)).resolves.toEqual(transactionWire)
+		expect(sourceHttp.sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			hash
-		)).resolves.toMatchObject({
-			hash,
-			feeUtia: 900_719_925_474_099_312_345n,
-			messageTypes: ['MsgPayForBlobs'],
+			`https://api.celenium.io/v1/tx/${hash}`
+		)
+	})
+
+	it('rejects substituted transaction identities', async () => {
+		vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue({
+			height: 12_424_743,
+			position: 3,
+			gas_wanted: 289_167,
+			gas_used: 262_979,
+			hash: parentHash,
+			fee: '1',
+			time: '2026-07-23T04:49:13Z',
+			status: 'success',
+			signers: [],
+			message_types: [],
 		})
+
+		await expect(getTransaction(hash)).rejects.toThrow('mismatched identity')
 	})
 })

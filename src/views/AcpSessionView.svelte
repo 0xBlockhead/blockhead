@@ -51,10 +51,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.sessionId || 'ACP session'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary
 			resource={selection.$runtime}
@@ -65,7 +61,6 @@
 						selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector])}
 						prefetched={acpAgentRuntime}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -112,7 +107,6 @@
 									selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector])}
 									prefetched={acpAgentRuntime}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

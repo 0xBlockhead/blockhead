@@ -21,7 +21,7 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 	getJson,
 }))
 
-const binding = bindings[Source.Dexscreener_OpenApi]
+const binding = bindings[Source.Dexscreener_Rest]
 
 const pair = {
 	chainId: 'ethereum',
@@ -72,19 +72,14 @@ describe('Dexscreener public pair observations', () => {
 		getJson.mockReset()
 	})
 
-	it('preserves exact pair/token/dex identity and metric units with provenance', async () => {
+	it('preserves the endpoint pair shape, exact identity, and metric units', async () => {
 		getJson.mockResolvedValue({ pairs: [pair] })
 
 		await expect(getLatestPairs({
 			chainId: pair.chainId,
 			pairId: pair.pairAddress,
-			resolvedAtMs: 1_725_000_000_000,
 		})).resolves.toEqual({
-			pairs: [{
-				source: Source.Dexscreener_OpenApi,
-				resolvedAtMs: 1_725_000_000_000,
-				...pair,
-			}],
+			pairs: [pair],
 		})
 		expect(getJson).toHaveBeenCalledWith(
 			binding,

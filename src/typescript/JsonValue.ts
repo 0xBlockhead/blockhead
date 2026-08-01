@@ -23,17 +23,6 @@ export const isJsonNumber = (value: JsonValue | undefined): value is number => (
 	typeof value === 'number'
 )
 
-export const isJsonBoolean = (value: JsonValue | undefined): value is boolean => (
-	typeof value === 'boolean'
-)
-
 export const isJsonArray = (value: JsonValue | undefined): value is readonly JsonValue[] => (
 	Array.isArray(value)
 )
-
-export const jsonMessage = (value: JsonValue | undefined): string | undefined => {
-	if (!isJsonObject(value) || !isJsonString(value.message))
-		return undefined
-
-	return value.message === '' ? undefined : value.message
-}

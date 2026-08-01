@@ -21,6 +21,7 @@ import {
 } from '$/sources/_runtime/http.ts'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/Etherscan/bindings.ts'
+import { supportedChainIds } from '$/sources/Etherscan/Rest/constants.ts'
 
 const binding = bindings[Source.Etherscan_Rest]
 
@@ -71,14 +72,14 @@ export const etherscanResolvedApiKey = (
 	chainId: number,
 	publicEnv: SourcePublicEnv,
 	options?: { apiKey?: string }
-): string | undefined => (
+) => (
 	options?.apiKey?.trim()
 		?? optionalPublicEnvString(publicEnv, 'PUBLIC_ETHERSCAN_API_KEY')
 )
 
 /**
 	* **`GET`** V2 API with **`chainid`** merged into query string.
-	* Returns **`null`** when **`chainId`** is not in **`supportedChains`**.
+	* Rejects chain ids outside the binding-owned support catalog.
 	*/
 export const etherscanV2GetJson = async <T>({
 	chainId,
@@ -90,7 +91,10 @@ export const etherscanV2GetJson = async <T>({
 	query: Record<string, string | undefined>
 	publicEnv: SourcePublicEnv
 	options?: { apiKey?: string }
-}): Promise<T | null> => {
+}) => {
+	if (!supportedChainIds.some((supportedChainId) => supportedChainId === chainId))
+		throw new Error(`Etherscan_Rest: unsupported chain ${String(chainId)}`)
+
 	const search = new URLSearchParams()
 	search.set('chainid', String(chainId))
 	for (const [key, value] of Object.entries(query)) {

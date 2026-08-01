@@ -1,56 +1,38 @@
-export type ArweaveGraphqlTag = {
-	name: string
-	value: string
-}
+import type { FragmentOf } from 'gql.tada'
 
-export type ArweaveGraphqlTransaction = {
-	id: string
-	anchor: string
-	signature: string
-	recipient: string
-	owner: {
-		address: string
-		key: string
-	}
-	fee: {
-		winston: string
-	}
-	quantity: {
-		winston: string
-	}
-	data: {
-		size: string
-		type: string | null
-	}
-	tags: ArweaveGraphqlTag[]
-	block: {
-		id: string
-		timestamp: number
-		height: number
-		previous: string
-	} | null
-}
+import { graphql } from './client.ts'
 
-export type ArweaveGraphqlTransactionEdge = {
-	cursor: string
-	node: ArweaveGraphqlTransaction
-}
-
-export type ArweaveGraphqlTransactionsResponse = {
-	data?: {
-		transactions: {
-			pageInfo: {
-				hasNextPage: boolean
-			}
-			edges: ArweaveGraphqlTransactionEdge[]
+export const ArweaveGraphqlTransactionFragment = graphql(`
+	fragment ArweaveGraphqlTransaction on Transaction @_unmask {
+		id
+		anchor
+		signature
+		recipient
+		owner {
+			address
+			key
+		}
+		fee {
+			winston
+		}
+		quantity {
+			winston
+		}
+		data {
+			size
+			type
+		}
+		tags {
+			name
+			value
+		}
+		block {
+			id
+			timestamp
+			height
+			previous
 		}
 	}
-	errors?: {
-		message: string
-	}[]
-}
+`)
 
-export type ArweaveGraphqlTransactionPage = {
-	edges: ArweaveGraphqlTransactionEdge[]
-	nextCursor?: string
-}
+export type ArweaveGraphqlTransaction = FragmentOf<typeof ArweaveGraphqlTransactionFragment>

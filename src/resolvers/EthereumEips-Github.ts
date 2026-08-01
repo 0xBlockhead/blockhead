@@ -1,6 +1,6 @@
 import {
-	ProposalCategory as OwnedProposalCategory,
-	SpecificationRealm as OwnedSpecificationRealm,
+	ProposalCategory,
+	SpecificationRealm,
 } from '$/constants/SpecificationProposal.ts'
 import {
 	defineResolver,
@@ -16,15 +16,10 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { ethereumEipSpecGithubRepoByLedger } from '$/sources/EthereumEips/Github/constants.ts'
-const ethereumProposalMarkdownBody = async (
+const ethereumProposalMarkdownBody = (
 	text: string,
-	ledger: 'eip' | 'erc'
+	markdownPageUrl: string
 ) => {
-	const target = ethereumEipSpecGithubRepoByLedger[ledger]
-	const githubBlobBase = `https://github.com/${target.owner}/${target.repo}/blob/${target.ref}`
-	const githubBlobPathBase = `${githubBlobBase}/${target.path}/`
-
 	return stripFrontmatter(text)
 		.replace(
 			/\]\((?:\.\/)?(eip|erc)-(\d+)\.md(#[^)]+)?\)/g,
@@ -35,13 +30,13 @@ const ethereumProposalMarkdownBody = async (
 		.replace(
 			/\]\(\.\.\/LICENSE\.md(#[^)]+)?\)/g,
 			(_match, hash: string | undefined) => (
-				`](${githubBlobBase}/LICENSE.md${hash ?? ''})`
+				`](${new URL('../LICENSE.md', markdownPageUrl).href}${hash ?? ''})`
 			)
 		)
 		.replace(
 			/\]\((?![a-z][a-z0-9+.-]*:|\/|#)([^)\s]+)(#[^)]+)?\)/gi,
 			(_match, href: string, hash: string | undefined) => (
-				`](${new URL(href, githubBlobPathBase).href}${hash ?? ''})`
+				`](${new URL(href, markdownPageUrl).href}${hash ?? ''})`
 			)
 		)
 }
@@ -51,8 +46,8 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 	getContents,
 	context,
 }: {
-	category?: typeof import('$/constants/SpecificationProposal.ts').ProposalCategory.Eip
-	| typeof import('$/constants/SpecificationProposal.ts').ProposalCategory.Erc
+	category?: typeof ProposalCategory.Eip
+	| typeof ProposalCategory.Erc
 	getContents: (input: { ledger: 'eip' | 'erc' }) => Promise<{
 		type: string
 		name: string
@@ -60,7 +55,6 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 	}[]>
 	context: SourceResolverContext<Source.EthereumEips_Github>
 }) => {
-	const { ProposalCategory } = await import('$/constants/SpecificationProposal.ts')
 	const ledgers = (
 		category === ProposalCategory.Erc ?
 			[{ ledger: 'erc', category: ProposalCategory.Erc }] as const
@@ -72,7 +66,6 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 				{ ledger: 'erc', category: ProposalCategory.Erc },
 			] as const
 	)
-	const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 	const byLedger = await Promise.all(
 		ledgers.map(async ({ ledger, category: cat }) => ({
 			ledger,
@@ -110,10 +103,9 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 	const sortedProposals = specificationProposals
 		.toSorted((left, right) => left[EntityMetaKey.Selector].number - right[EntityMetaKey.Selector].number)
 	const offset = context.pagination.offset ?? 0
-	const limit = resolverContextRowLimit(context)
 
 	return {
-		rows: sortedProposals.slice(offset, offset + limit),
+		rows: sortedProposals.slice(offset, offset + resolverContextRowLimit(context)),
 		totalCount: sortedProposals.length,
 	}
 }
@@ -128,17 +120,17 @@ export default {
 				RealmCategoryNumber: {
 					appliesTo: [
 						{
-							realm: OwnedSpecificationRealm.Ethereum,
-							category: OwnedProposalCategory.Eip,
+							realm: SpecificationRealm.Ethereum,
+							category: ProposalCategory.Eip,
 						},
 						{
-							realm: OwnedSpecificationRealm.Ethereum,
-							category: OwnedProposalCategory.Erc,
+							realm: SpecificationRealm.Ethereum,
+							category: ProposalCategory.Erc,
 						},
 					],
 					resolve: async ({ category, number, realm }) => {
-						const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 						const {
+							getProposalMarkdownPageUrl,
 							getProposalMarkdownText,
 						} = await import('$/sources/EthereumEips/Github/queries.ts')
 
@@ -150,12 +142,15 @@ export default {
 						}
 						const text = await getProposalMarkdownText({
 							ledger: category === ProposalCategory.Erc ? 'erc' : 'eip',
-							number: number,
+							number,
 						})
 						if (text.trim() === '') throw new Error('EthereumEips_Github: empty proposal markdown')
-						const body = await ethereumProposalMarkdownBody(
+						const body = ethereumProposalMarkdownBody(
 							text,
-							category === ProposalCategory.Erc ? 'erc' : 'eip'
+							getProposalMarkdownPageUrl({
+								ledger: category === ProposalCategory.Erc ? 'erc' : 'eip',
+								number,
+							})
 						)
 						const fm = parseFrontmatter(text)
 						return {
@@ -202,7 +197,6 @@ export default {
 				RealmCategory: {
 					resolve: async ({ category, realm }, context) => {
 						const { getContents } = await import('$/sources/EthereumEips/Github/queries.ts')
-						const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 						if (
 							realm !== SpecificationRealm.Ethereum
 							|| (category !== ProposalCategory.Eip && category !== ProposalCategory.Erc)

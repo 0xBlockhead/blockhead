@@ -30,7 +30,8 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			$transaction: parentData.selector,
 			instructionKind: params.instructionKind,
 			indexInTransaction: Number(params.indexInTransaction),
-		}
+		},
+		'SolanaTransactionIndexInTransaction'
 	)
 	if (solanaInstructionSolanaTransactionIndexInTransactionSelector instanceof arktype.errors)
 		error(404, 'Invalid SolanaInstruction selector')

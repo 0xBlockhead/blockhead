@@ -33,7 +33,7 @@ export default entity({
 		entityType: EntityType.LiquidityPool,
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	sqrtPriceX96: {

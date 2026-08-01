@@ -64,7 +64,6 @@
 					<GitForgeMirrorView
 						selection={select(EntityType.GitForgeMirror, selection.entitySelector.$forgeMirror)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

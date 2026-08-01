@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -15,7 +16,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -26,16 +26,10 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import StellarNetworkView from '$/views/StellarNetworkView.svelte'
-	import StellarTrustlinesView from '$/views/StellarTrustlinesView.svelte'
-	import StellarOffersView from '$/views/StellarOffersView.svelte'
-	import StellarTradesView from '$/views/StellarTradesView.svelte'
-	import StellarTransactionsView from '$/views/StellarTransactionsView.svelte'
-	import StellarAccountSignersView from '$/views/StellarAccountSignersView.svelte'
-	import StellarAccount_TimestampsView from '$/views/StellarAccount_TimestampsView.svelte'
 </script>
 
 
@@ -43,15 +37,10 @@
 	entityType={EntityType.StellarAccount}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? 'stellar account'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		stellar account
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -60,7 +49,6 @@
 					<StellarNetworkView
 						selection={select(EntityType.StellarNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -104,48 +92,60 @@
 			{/snippet}
 
 			{#snippet SectionStellarAccountTrustlines({ id, label, open })}
-				<StellarTrustlinesView
-					selection={selection.$$trustlines}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.StellarTrustline}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No trustlines.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$trustlines()}
+				>
+					{#snippet Item({ item: stellarTrustline })}
+						<EntityView
+							entityType={EntityType.StellarTrustline}
+							entitySelector={stellarTrustline[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionStellarAccountOffers({ id, label, open })}
-				<StellarOffersView
-					selection={selection.$$offers}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.StellarOffer}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No offers.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$offers()}
+				>
+					{#snippet Item({ item: stellarOffer })}
+						<EntityView
+							entityType={EntityType.StellarOffer}
+							entitySelector={stellarOffer[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionStellarAccountTrades({ id, label, open })}
-				<StellarTradesView
-					selection={selection.$$trades}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.StellarTrade}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No trades.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$trades()}
+				>
+					{#snippet Item({ item: stellarTrade })}
+						<EntityView
+							entityType={EntityType.StellarTrade}
+							entitySelector={stellarTrade[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -175,33 +175,41 @@
 			{/snippet}
 
 			{#snippet SectionStellarAccountTransactions({ id, label, open })}
-				<StellarTransactionsView
-					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.StellarTransaction}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No transactions.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$transactions()}
+				>
+					{#snippet Item({ item: stellarTransaction })}
+						<EntityView
+							entityType={EntityType.StellarTransaction}
+							entitySelector={stellarTransaction[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionStellarAccountSigners({ id, label, open })}
-				<StellarAccountSignersView
-					selection={selection.$$signers}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.StellarAccountSigner}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No signers.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$signers()}
+				>
+					{#snippet Item({ item: stellarAccountSigner })}
+						<EntityView
+							entityType={EntityType.StellarAccountSigner}
+							entitySelector={stellarAccountSigner[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -227,18 +235,22 @@
 			{/snippet}
 
 			{#snippet SectionStellarAccountTimestamps({ id, label, open })}
-				<StellarAccount_TimestampsView
-					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.StellarAccount_Timestamp}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No timestamps.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$timestamps()}
+				>
+					{#snippet Item({ item: stellarAccountTimestamp })}
+						<EntityView
+							entityType={EntityType.StellarAccount_Timestamp}
+							entitySelector={stellarAccountTimestamp[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>

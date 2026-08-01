@@ -6,17 +6,8 @@ import {
 	vi,
 } from 'vitest'
 
+import bindings from '$/sources/Axelarscan/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceCredentialScope,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	SourceTargetKind,
-	WireProtocol,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 import type { AxelarscanGmpMessage } from '$/sources/Axelarscan/Rest/types.ts'
 
 const getJson = vi.hoisted(() => vi.fn())
@@ -30,24 +21,7 @@ const {
 	getGmpMessagesByTransaction,
 } = await import('$/sources/Axelarscan/Rest/queries.ts')
 
-const binding = {
-	source: Source.Axelarscan_Rest,
-	target: {
-		kind: SourceTargetKind.Global,
-		key: 'axelarscan-api',
-	},
-	endpoints: [{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://api.axelarscan.io',
-		origin: 'https://api.axelarscan.io',
-		corsEnabled: false,
-	}],
-	wireProtocol: WireProtocol.HttpRest,
-	apiFamily: ApiFamily.RestJson,
-	operationGroups: [SourceOperationGroup.GenericRead],
-	delivery: SourceDelivery.HttpProxy,
-	credentials: [{ scope: SourceCredentialScope.None }],
-} as const satisfies SourceBinding
+const binding = bindings[Source.Axelarscan_Rest]
 
 const sourceTransactionHash = `0x${'1'.repeat(64)}`
 const gasTransactionHash = `0x${'2'.repeat(64)}`
@@ -153,9 +127,8 @@ describe('Axelarscan GMP queries', () => {
 		getJson.mockResolvedValue(response())
 	})
 
-	it('observes bounded, filtered public messages with lossless units and provenance', async () => {
-		const observation = await getGmpMessages({
-			binding,
+	it('returns bounded, filtered public messages with lossless units', async () => {
+		const result = await getGmpMessages({
 			size: 1,
 			from: 7,
 			sourceChain: 'moonbeam',
@@ -166,8 +139,7 @@ describe('Axelarscan GMP queries', () => {
 			binding,
 			'/gmp/searchGMP?size=1&from=7&sourceChain=moonbeam&destinationChain=base'
 		)
-		expect(observation).toMatchObject({
-			observedBy: 'Axelarscan_Rest',
+		expect(result).toMatchObject({
 			data: [{
 				message_id: `${sourceTransactionHash}-1`,
 				command_id: commandId,
@@ -178,7 +150,6 @@ describe('Axelarscan GMP queries', () => {
 				},
 			}],
 		})
-		expect(observation.resolvedAtMs).toBeTypeOf('number')
 	})
 
 	it.each([
@@ -186,7 +157,6 @@ describe('Axelarscan GMP queries', () => {
 		['offset', { from: -1 }],
 	])('rejects an invalid page %s', (_name, options) => {
 		expect(() => getGmpMessages({
-			binding,
 			...options,
 		})).toThrow('invalid page')
 		expect(getJson).not.toHaveBeenCalled()
@@ -195,13 +165,11 @@ describe('Axelarscan GMP queries', () => {
 	it('rejects oversized and foreign filtered responses', async () => {
 		getJson.mockResolvedValueOnce(response([message, message]))
 		await expect(getGmpMessages({
-			binding,
 			size: 1,
 		})).rejects.toThrow('response exceeds requested size')
 
 		getJson.mockResolvedValueOnce(response())
 		await expect(getGmpMessages({
-			binding,
 			sourceChain: 'ethereum',
 		})).rejects.toThrow('foreign chain message')
 	})
@@ -236,13 +204,11 @@ describe('Axelarscan GMP queries', () => {
 		mutate(value)
 		getJson.mockResolvedValue(response([value]))
 		await expect(getGmpMessages({
-			binding,
 		})).rejects.toThrow()
 	})
 
 	it('looks up only messages belonging to the requested transaction', async () => {
 		await getGmpMessagesByTransaction({
-			binding,
 			transactionHash: executionTransactionHash,
 		})
 		expect(getJson).toHaveBeenCalledWith(
@@ -251,7 +217,6 @@ describe('Axelarscan GMP queries', () => {
 		)
 
 		await expect(getGmpMessagesByTransaction({
-			binding,
 			transactionHash: `0x${'9'.repeat(64)}`,
 		})).rejects.toThrow('foreign transaction message')
 	})

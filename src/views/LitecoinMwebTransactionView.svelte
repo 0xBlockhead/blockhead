@@ -59,7 +59,6 @@
 		<LitecoinMwebBlockView
 			selection={select(EntityType.LitecoinMwebBlock, selection.entitySelector.$mwebBlock)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -90,7 +89,6 @@
 					<LitecoinMwebBlockView
 						selection={select(EntityType.LitecoinMwebBlock, selection.entitySelector.$mwebBlock)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -150,12 +148,7 @@
 			{#snippet SectionLitecoinMwebTransactionOutputs({ id, label, open })}
 				<LitecoinMwebOutputsView
 					selection={selection.$$outputs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No outputs.'
 					id={`${id}-list`}
@@ -165,12 +158,7 @@
 			{#snippet SectionLitecoinMwebTransactionPegIns({ id, label, open })}
 				<LitecoinMwebPegInsView
 					selection={selection.$$pegIns}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No peg ins.'
 					id={`${id}-list`}
@@ -202,12 +190,7 @@
 			{#snippet SectionLitecoinMwebTransactionPegOuts({ id, label, open })}
 				<LitecoinMwebPegOutsView
 					selection={selection.$$pegOuts}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No peg outs.'
 					id={`${id}-list`}

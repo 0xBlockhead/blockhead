@@ -91,12 +91,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A Bluesky feed post record addressed by an at-URI inside an actor repository. Text, author, reply edges, labels, languages, and engagement counts resolve through appview sources.
-		</p>
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -119,7 +113,6 @@
 										selection={select(EntityType.AtprotoActor, atprotoActor[EntityMetaKey.Selector])}
 										prefetched={atprotoActor}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>
@@ -141,7 +134,6 @@
 										selection={select(EntityType.AtprotoPost, atprotoPost[EntityMetaKey.Selector])}
 										prefetched={atprotoPost}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>
@@ -163,7 +155,6 @@
 										selection={select(EntityType.AtprotoPost, atprotoPost[EntityMetaKey.Selector])}
 										prefetched={atprotoPost}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>

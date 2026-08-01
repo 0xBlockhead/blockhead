@@ -16,7 +16,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -27,15 +26,12 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import HyperliquidAccountView from '$/views/HyperliquidAccountView.svelte'
-	import HyperliquidOrdersView from '$/views/HyperliquidOrdersView.svelte'
-	import HyperliquidFillsView from '$/views/HyperliquidFillsView.svelte'
-	import HyperliquidVaultEquity_TimestampsView from '$/views/HyperliquidVaultEquity_TimestampsView.svelte'
-	import HyperliquidAccount_TimestampsView from '$/views/HyperliquidAccount_TimestampsView.svelte'
 </script>
 
 
@@ -43,15 +39,10 @@
 	entityType={EntityType.HyperliquidAccount}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? 'hyperliquid account'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		hyperliquid account
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -60,7 +51,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -103,7 +93,6 @@
 									selection={select(EntityType.HyperliquidAccount, hyperliquidAccount[EntityMetaKey.Selector])}
 									prefetched={hyperliquidAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -123,7 +112,6 @@
 									selection={select(EntityType.HyperliquidAccount, hyperliquidAccount[EntityMetaKey.Selector])}
 									prefetched={hyperliquidAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -163,48 +151,60 @@
 			{/snippet}
 
 			{#snippet SectionHyperliquidAccountOrders({ id, label, open })}
-				<HyperliquidOrdersView
-					selection={selection.$$orders}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.HyperliquidOrder}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No orders.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$orders()}
+				>
+					{#snippet Item({ item: hyperliquidOrder })}
+						<EntityView
+							entityType={EntityType.HyperliquidOrder}
+							entitySelector={hyperliquidOrder[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionHyperliquidAccountFills({ id, label, open })}
-				<HyperliquidFillsView
-					selection={selection.$$fills}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.HyperliquidFill}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No fills.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$fills()}
+				>
+					{#snippet Item({ item: hyperliquidFill })}
+						<EntityView
+							entityType={EntityType.HyperliquidFill}
+							entitySelector={hyperliquidFill[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionHyperliquidAccountVaultEquities({ id, label, open })}
-				<HyperliquidVaultEquity_TimestampsView
-					selection={selection.$$vaultEquities}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.HyperliquidVaultEquity_Timestamp}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No vault equities.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$vaultEquities()}
+				>
+					{#snippet Item({ item: hyperliquidVaultEquityTimestamp })}
+						<EntityView
+							entityType={EntityType.HyperliquidVaultEquity_Timestamp}
+							entitySelector={hyperliquidVaultEquityTimestamp[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -230,18 +230,22 @@
 			{/snippet}
 
 			{#snippet SectionHyperliquidAccountTimestamps({ id, label, open })}
-				<HyperliquidAccount_TimestampsView
-					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.HyperliquidAccount_Timestamp}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No timestamps.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$timestamps()}
+				>
+					{#snippet Item({ item: hyperliquidAccountTimestamp })}
+						<EntityView
+							entityType={EntityType.HyperliquidAccount_Timestamp}
+							entitySelector={hyperliquidAccountTimestamp[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>

@@ -50,7 +50,6 @@
 		<PolkadotAssetView
 			selection={select(EntityType.PolkadotAsset, selection.entitySelector.$asset)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -88,7 +87,6 @@
 					<PolkadotAccountView
 						selection={select(EntityType.PolkadotAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -99,7 +97,6 @@
 					<PolkadotAssetView
 						selection={select(EntityType.PolkadotAsset, selection.entitySelector.$asset)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

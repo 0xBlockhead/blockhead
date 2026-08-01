@@ -27,7 +27,7 @@
 			Source.CircleCctpContracts_Evm,
 			Source.CircleCctpContracts_Solana,
 			Source.CircleCctpContracts_Stellar,
-			Source.CircleCctp_IrisApi,
+			Source.CircleCctpIris,
 		],
 	}))
 	const cctpMessage = $derived(viewSelection({
@@ -35,7 +35,6 @@
 			messageHash: true,
 		},
 	}))
-	const titleFallback = $derived(selection.entitySelector.nonce || 'CCTP message')
 
 
 	// Components
@@ -50,17 +49,13 @@
 <EntityView
 	entityType={EntityType.CctpMessage}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.nonce || 'CCTP message')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.nonce || 'CCTP message'}
-	{/snippet}
-
 	{#snippet Value()}
-		{String(selection.entitySelector.sourceDomain) || selection.entitySelector.nonce || titleFallback}
+		{String(selection.entitySelector.sourceDomain)}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -210,7 +205,6 @@
 									selection={select(EntityType.CctpDomainSupport, cctpDomainSupport[EntityMetaKey.Selector])}
 									prefetched={cctpDomainSupport}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -230,7 +224,6 @@
 									selection={select(EntityType.CctpDomainSupport, cctpDomainSupport[EntityMetaKey.Selector])}
 									prefetched={cctpDomainSupport}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

@@ -10,7 +10,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['A reusable asset classification used to group related asset instances and objects.'],
 		open = $bindable(true),
 		id = 'AssetClasses-list',
 		...EntitiesListProps
@@ -27,7 +26,6 @@
 	entityType={EntityType.AssetClass}
 	{id}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {

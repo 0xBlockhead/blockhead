@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -33,15 +32,10 @@
 <EntityView
 	entityType={EntityType.TezosBigMapDiff}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'tezos big map diff'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		tezos big map diff
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -50,7 +44,6 @@
 					<TezosOperationView
 						selection={select(EntityType.TezosOperation, selection.entitySelector.$operation)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -100,7 +93,6 @@
 									selection={select(EntityType.TezosBigMap, tezosBigMap[EntityMetaKey.Selector])}
 									prefetched={tezosBigMap}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

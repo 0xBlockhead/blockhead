@@ -56,10 +56,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.txHash || 'blockhead monero transfer state'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadMoneroTransferState}>
 			{#snippet children(entity)}
@@ -104,7 +100,6 @@
 									selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
 									prefetched={blockheadWallet}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -123,7 +118,6 @@
 								selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector])}
 								prefetched={moneroNetwork}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -142,7 +136,6 @@
 									selection={select(EntityType.MoneroTransaction, moneroTransaction[EntityMetaKey.Selector])}
 									prefetched={moneroTransaction}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

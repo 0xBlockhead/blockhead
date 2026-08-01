@@ -18,7 +18,8 @@ export const load: LayoutLoad = ({ params }) => {
 		SpecificationRealmSchema,
 		{
 			realm: specificationRealmBySlug[params.specificationRealmSlug].id,
-		}
+		},
+		'Realm'
 	)
 	if (specificationRealmRealmSelector instanceof arktype.errors)
 		error(404, 'Invalid SpecificationRealm selector')

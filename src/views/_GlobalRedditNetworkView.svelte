@@ -12,7 +12,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -25,7 +24,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import RedditSubredditsView from '$/views/RedditSubredditsView.svelte'
 	import RedditLinksView from '$/views/RedditLinksView.svelte'
 </script>
@@ -35,7 +33,6 @@
 	entityType={EntityType._GlobalRedditNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? 'Reddit'}
 	href={
 		href === undefined ?
 			resolve('/(social)/(reddit)/reddit')
@@ -46,10 +43,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Reddit
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -90,12 +83,7 @@
 				<RedditSubredditsView
 					selection={selection.$$observedSubreddits}
 					href={resolve('/(social)/(reddit)/reddit/(globalRedditNetwork)/subreddits')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>
@@ -105,12 +93,7 @@
 				<RedditLinksView
 					selection={selection.$$observedLinks}
 					href={resolve('/(social)/(reddit)/reddit/(globalRedditNetwork)/links')}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					id={`${id}-list`}
 				/>

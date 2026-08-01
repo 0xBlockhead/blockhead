@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]',
+			{
+				ensName: params.ensName,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,31 +38,19 @@
 
 {#key params.ensName}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]',
-				{
-					ensName: params.ensName,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<EnsNameView
 				selection={
-					select(EntityType.EnsName, data.selector, { sources: [
-						Source.TheGraph_Graphql,
-						Source.Voltaire_JsonRpc,
-					] })
+					select(EntityType.EnsName, data.selector, {
+						sources: [
+							Source.TheGraph_Graphql,
+							Source.Voltaire_JsonRpc,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]',
-						{
-							ensName: params.ensName,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

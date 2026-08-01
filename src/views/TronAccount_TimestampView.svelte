@@ -20,12 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TronAccount_Timestamp> = $props()
 
-	const tronAccountTimestamp = $derived(selection({
-		fields: {
-			balanceSun: true,
-		},
-	}))
-
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
@@ -48,12 +42,19 @@
 		<TronAccountView
 			selection={select(EntityType.TronAccount, selection.entitySelector.$account)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={tronAccountTimestamp}>
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						balanceSun: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
 				{@const balanceSun = entity.balanceSun}
 				{#if balanceSun != null}

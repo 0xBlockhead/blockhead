@@ -69,10 +69,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.toolKey || 'Coin bridge capability'}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.toolKey || titleFallback}
 	{/snippet}
@@ -85,12 +81,6 @@
 				</span>
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A supported bridge path between two EVM coin instances through a specific bridge tool.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -180,7 +170,6 @@
 					<EvmCoinInstanceView
 						selection={select(EntityType.EvmCoinInstance, selection.entitySelector.$fromInstance)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -191,7 +180,6 @@
 					<EvmCoinInstanceView
 						selection={select(EntityType.EvmCoinInstance, selection.entitySelector.$toInstance)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -14,11 +14,11 @@ import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.Chainlist_Rest]
 
-export const fetchRpcsJson = async (): Promise<ChainlistRpcsJsonChain[]> => {
+export const fetchRpcsJson = async () => {
 	const url = new URL('/rpcs.json', firstHttpUrlForBinding(binding)).toString()
 	const response = await sourceFetch(binding, url, {
 		cache: 'no-store',
 	})
 	if (!response.ok) await throwHttpError('Chainlist rpcs.json', response)
-	return response.json()
+	return response.json<ChainlistRpcsJsonChain[]>()
 }

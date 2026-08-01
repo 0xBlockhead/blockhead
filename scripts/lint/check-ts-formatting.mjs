@@ -57,8 +57,26 @@ const removeTrailingComma = (edits, nodeArray) => {
 	})
 }
 
+// The generator assembles every TypeScript and Svelte artifact, so misplaced
+// statements there multiply into hard-to-review output even when syntax parses.
+const checkGeneratorStatementIndentation = (file, sourceFile, node) => {
+	if (file !== 'scripts/app/generate.ts' || !typeScriptAst.isBlock(node))
+		return
+
+	const blockPosition = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile))
+	const blockIndentation = sourceFile.text
+		.slice(sourceFile.getPositionOfLineAndCharacter(blockPosition.line, 0), node.getStart(sourceFile))
+		.match(/^\t*/)[0].length
+	for (const statement of node.statements) {
+		const position = sourceFile.getLineAndCharacterOfPosition(statement.getStart(sourceFile))
+		if (position.line !== blockPosition.line && position.character !== blockIndentation + 1)
+			report(file, position, `Indent this statement ${blockIndentation + 1} tabs inside its block.`)
+	}
+}
+
 const checkNode = (file, sourceFile, node) => {
 	const edits = editsByFile.get(file)
+	checkGeneratorStatementIndentation(file, sourceFile, node)
 	if (
 		typeScriptAst.isImportDeclaration(node)
 		&& node.importClause?.namedBindings != null

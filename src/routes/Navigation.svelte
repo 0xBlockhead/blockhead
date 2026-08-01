@@ -1,6 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import type { Snippet } from 'svelte'
 	import type { NavigationItem } from '$/routes/NavigationItem.ts'
 
 
@@ -11,14 +10,8 @@
 	// State
 	let {
 		navigationItems,
-		HeaderActions,
-		LabelSnippet,
 	}: {
 		navigationItems: NavigationItem[]
-		HeaderActions?: Snippet
-		LabelSnippet?: Snippet<[context?: {
-			node?: NavigationItem,
-		}]>
 	} = $props()
 
 
@@ -64,36 +57,16 @@
 		</div>
 
 		<menu data-row>
-			{#if HeaderActions}
-				<li>
-					{@render HeaderActions()}
-				</li>
-			{/if}
-
 			<li>
 				<button
 					type="button"
 					id="menu-toggle"
-					aria-label="Open menu"
+					aria-label="Skip to main content"
+					onclick={() => globalThis.location.assign('#main')}
 				>
-					<a href="#main">
-						☰
-					</a>
+					☰
 				</button>
 			</li>
-
-			<!-- <li>
-				<button
-					type="button"
-					id="menu-toggle"
-					aria-label="Open menu"
-					popovertarget="nav"
-				>
-					<span aria-hidden="true">
-						☰
-					</span>
-				</button>
-			</li> -->
 		</menu>
 	</header>
 
@@ -104,7 +77,6 @@
 		<NavigationItems
 			items={navigationItems}
 			currentPathname={page.url.pathname}
-			{LabelSnippet}
 		/>
 	</div>
 
@@ -202,30 +174,4 @@
 		}
 	}
 
-	/* @media (width >= 60rem) {
-		li:has(#menu-toggle) {
-			display: none;
-		}
-	} */
-
-	/* @media (width < 60rem) {
-		nav {
-			transition-property: block-size;
-
-			block-size: auto;
-
-			&[popover]:not(:popover-open) {
-				block-size: var(--navigation-mobile-blockSize);
-				overflow: hidden;
-				overscroll-behavior: none;
-
-				header ~ * {
-					display: none;
-					interactivity: inert;
-					opacity: 0;
-					pointer-events: none;
-				}
-			}
-		}
-	} */
 </style>

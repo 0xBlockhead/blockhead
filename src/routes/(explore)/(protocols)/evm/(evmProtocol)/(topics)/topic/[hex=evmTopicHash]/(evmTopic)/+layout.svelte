@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
+			{
+				hex: params.hex,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,30 +38,18 @@
 
 {#key params.hex}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
-				{
-					hex: params.hex,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<EvmTopicView
 				selection={
-					select(EntityType.EvmTopic, data.selector, { sources: [
-						Source.Openchain_Rest,
-					] })
+					select(EntityType.EvmTopic, data.selector, {
+						sources: [
+							Source.Openchain_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
-						{
-							hex: params.hex,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

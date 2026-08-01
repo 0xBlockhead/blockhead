@@ -136,7 +136,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$fromNetwork)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -147,7 +146,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$toNetwork)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

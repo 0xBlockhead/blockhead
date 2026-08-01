@@ -68,7 +68,6 @@
 					<BlockheadCashuMintQuoteView
 						selection={select(EntityType.BlockheadCashuMintQuote, selection.entitySelector.$mintQuote)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -27,7 +27,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			tokenAccountPubkey: params.tokenAccountPubkey,
-		}
+		},
+		'NetworkTokenAccountPubkey'
 	)
 	if (solanaTokenAccountNetworkTokenAccountPubkeySelector instanceof arktype.errors)
 		error(404, 'Invalid SolanaTokenAccount selector')

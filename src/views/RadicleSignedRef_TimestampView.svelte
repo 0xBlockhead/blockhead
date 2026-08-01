@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -31,15 +30,10 @@
 <EntityView
 	entityType={EntityType.RadicleSignedRef_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'radicle signed ref timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		radicle signed ref timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +42,6 @@
 					<RadicleSignedRefView
 						selection={select(EntityType.RadicleSignedRef, selection.entitySelector.$signedRef)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

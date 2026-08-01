@@ -11,7 +11,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['Monero-specific view over a canonical Network row, with daemon RPC endpoints, node observations, and recent blocks.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.MoneroNetwork> = $props()
@@ -26,7 +25,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.MoneroNetwork}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			sources: selection.sources ?? [
@@ -46,6 +44,10 @@
 		>
 			{#snippet Title()}
 				{moneroNetwork.$network.name || (moneroNetworkSelector.$network.caip2 == null ? '' : `${moneroNetworkSelector.$network.caip2.namespace}:${moneroNetworkSelector.$network.caip2.reference}`) || 'Network'}
+			{/snippet}
+
+			{#snippet Value()}
+				Monero
 			{/snippet}
 		</EntityView>
 	{/snippet}

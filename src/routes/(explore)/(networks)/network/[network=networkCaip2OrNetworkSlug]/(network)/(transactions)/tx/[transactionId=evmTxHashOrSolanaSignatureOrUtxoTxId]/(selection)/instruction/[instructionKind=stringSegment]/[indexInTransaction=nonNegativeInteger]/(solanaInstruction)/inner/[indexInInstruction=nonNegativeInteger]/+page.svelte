@@ -16,20 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.SolanaInstruction, {
-		$transaction: data.selector.$transaction,
-		instructionKind: params.instructionKind,
-		indexInTransaction: Number(params.indexInTransaction),
-		indexInInstruction: Number(params.indexInInstruction),
-	}, {
-		fields: {
-			parsedType: true,
-			stackHeight: true,
-			$program: true,
-			data: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -44,6 +30,20 @@
 
 <Page>
 	<SolanaInstructionView
-		selection={pageSelection}
+		selection={
+			select(EntityType.SolanaInstruction, {
+				$transaction: data.selector.$transaction,
+				instructionKind: params.instructionKind,
+				indexInTransaction: Number(params.indexInTransaction),
+				indexInInstruction: Number(params.indexInInstruction),
+			}, {
+				fields: {
+					parsedType: true,
+					stackHeight: true,
+					$program: true,
+					data: true,
+				},
+			})
+		}
 	/>
 </Page>

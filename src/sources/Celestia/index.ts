@@ -10,8 +10,8 @@ export default {
 	label: 'Celestia',
 	sources: [
 		{
-			source: Source.Celestia_JsonRpc,
-			label: 'Celestia JSON-RPC',
+			source: Source.CelestiaNode,
+			label: 'Celestia Node',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

@@ -52,10 +52,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.tipsetKey || 'filecoin message receipt'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={filecoinMessageReceipt}>
 			{#snippet children(entity)}
@@ -92,7 +88,6 @@
 					<FilecoinMessageView
 						selection={select(EntityType.FilecoinMessage, selection.entitySelector.$message)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -123,7 +118,6 @@
 									selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
 									prefetched={filecoinTipset}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

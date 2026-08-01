@@ -88,7 +88,6 @@
 					<BlockheadMoneroSubaddressStateView
 						selection={select(EntityType.BlockheadMoneroSubaddressState, selection.entitySelector.$subaddressState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

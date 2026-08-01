@@ -1,6 +1,6 @@
 import {
-	ProposalCategory as OwnedProposalCategory,
-	SpecificationRealm as OwnedSpecificationRealm,
+	ProposalCategory,
+	SpecificationRealm,
 } from '$/constants/SpecificationProposal.ts'
 import {
 	defineResolver,
@@ -11,30 +11,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-const markdownTitle = (text: string) => text.match(/^#\s*(.+)$/m)?.[1]?.trim()
-
-const markdownStatus = (text: string) => (
-	text.match(/^##\s*Status\s*\n+(.+)$/im)?.[1]?.trim()
-	?? text.match(/^Status:\s*(.+)$/im)?.[1]?.trim()
-)
-
-const cosmosAdrRows = async (entries: { type: string, name: string }[]) => {
-	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-	return entries.flatMap((githubContent) => {
-		const proposalNumberRaw = regex('^adr-(?<proposalNumber>\\d{3})\\.md$').exec(githubContent.name)?.groups.proposalNumber
-		return githubContent.type !== 'file' || proposalNumberRaw == null ?
-			[]
-		:
-			[{
-				[EntityMetaKey.Selector]: {
-					realm: SpecificationRealm.Cosmos,
-					category: ProposalCategory.Adr,
-					number: parseInt(proposalNumberRaw, 10),
-				},
-			}]
-	})
-}
-
 export default {
 	source: Source.CosmosAdrs_Github,
 
@@ -45,23 +21,25 @@ export default {
 				RealmCategoryNumber: {
 					appliesTo: [
 						{
-							realm: OwnedSpecificationRealm.Cosmos,
-							category: OwnedProposalCategory.Adr,
+							realm: SpecificationRealm.Cosmos,
+							category: ProposalCategory.Adr,
 						},
 					],
 					resolve: async ({ category, number, realm }) => {
-						const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 						if (realm !== SpecificationRealm.Cosmos || category !== ProposalCategory.Adr) {
 							throw new Error('CosmosAdrs_Github: proposal resolver only supports Cosmos SDK ADRs')
 						}
 						const { getMarkdownText } = await import('$/sources/CosmosAdrs/Github/queries.ts')
 						const text = await getMarkdownText({
-							number: number,
+							number,
 						})
 						return {
 							documentCategory: 'ADR',
-							documentTitle: markdownTitle(text),
-							documentStatus: markdownStatus(text),
+							documentTitle: text.match(/^#\s*(.+)$/m)?.[1]?.trim(),
+							documentStatus: (
+								text.match(/^##\s*Status\s*\n+(.+)$/im)?.[1]?.trim()
+								?? text.match(/^Status:\s*(.+)$/im)?.[1]?.trim()
+							),
 							documentBody: text,
 						}
 					},
@@ -80,7 +58,19 @@ export default {
 				Scope: {
 					resolve: async () => {
 						const { getContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
-						return cosmosAdrRows(await getContents())
+						return (await getContents()).flatMap((githubContent) => {
+							const proposalNumberRaw = regex('^adr-(?<proposalNumber>\\d{3})\\.md$').exec(githubContent.name)?.groups.proposalNumber
+							return githubContent.type !== 'file' || proposalNumberRaw == null ?
+								[]
+							:
+								[{
+									[EntityMetaKey.Selector]: {
+										realm: SpecificationRealm.Cosmos,
+										category: ProposalCategory.Adr,
+										number: parseInt(proposalNumberRaw, 10),
+									},
+								}]
+						})
 					},
 				},
 			},

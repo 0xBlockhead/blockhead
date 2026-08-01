@@ -1,888 +1,670 @@
 /**
-	* Blockscout REST v2 reads. `queries.ts` is the entry resolvers use; it composes
-	* `$/sources/Blockscout/Rest/client.ts` and wire normalization.
-	* @see https://docs.blockscout.com/devs/apis/rest
-	*/
-
+ * Blockscout REST v2 reads and the Blockscout-hosted execution RPC facade.
+ * @see https://docs.blockscout.com/devs/apis/rest
+ * @see https://docs.blockscout.com/devs/apis/rpc/eth-rpc
+ */
+import { throwIfHttpNotOk } from '$/lib/http.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-import { getBlockscoutJson } from '$/sources/Blockscout/Rest/client.ts'
+import bindings from '$/sources/Blockscout/bindings.ts'
 import {
-	blockscoutV2ItemsCountMax,
-} from '$/sources/Blockscout/Rest/constants.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
-import { type Type, type as arktype } from 'arktype'
-
+	getBlockscoutJson,
+	getBlockscoutResponse,
+} from '$/sources/Blockscout/Rest/client.ts'
+import { blockscoutV2ItemsCountMax } from '$/sources/Blockscout/Rest/constants.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	ApiFamily,
+	SourceOperationGroup,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
 import type {
-	BlockscoutErrorEnvelope,
-	BlockscoutErc4337RegistryEntry,
 	BlockscoutAddressCounters,
 	BlockscoutAddressDetails,
-	BlockscoutBlock,
-	BlockscoutInternalTransaction,
-	BlockscoutPaginated,
+	BlockscoutAddressInternalTransactionsPage,
+	BlockscoutAddressTokenTransfersPage,
+	BlockscoutAddressTransactionsPage,
+	BlockscoutBlockDetails,
+	BlockscoutBlocksPage,
+	BlockscoutBlockTransactionsPage,
+	BlockscoutErc4337Account,
+	BlockscoutErc4337AccountsPage,
+	BlockscoutErc4337AccountFactory,
+	BlockscoutErc4337Bundler,
+	BlockscoutErc4337BundlersPage,
+	BlockscoutErc4337FactoriesPage,
+	BlockscoutErc4337Paymaster,
+	BlockscoutErc4337PaymastersPage,
+	BlockscoutSmartContract,
 	BlockscoutSmartContractForList,
+	BlockscoutSmartContractsPage,
 	BlockscoutStats,
-	BlockscoutTokenTransfer,
-	BlockscoutTransactionLog,
+	BlockscoutTokenTransfersPage,
 	BlockscoutTransaction,
+	BlockscoutTransactionInternalTransactionsPage,
+	BlockscoutTransactionLogsPage,
+	BlockscoutTransactionsPage,
+	BlockscoutTransactionTokenTransfersPage,
 	BlockscoutUserOperationDetail,
-	BlockscoutUserOperationListItem,
+	BlockscoutUserOperationsPage,
 } from '$/sources/Blockscout/Rest/types.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-const blockscoutStatsWireSchema = arktype({
-	'average_block_time?': 'number',
-	'coin_price?': 'string',
-	'coin_price_change_percentage?': 'number',
-	'gas_price_updated_at?': 'string',
-	'gas_prices?': {
-		'slow?': 'number',
-		'average?': 'number',
-		'fast?': 'number',
-	},
-	'gas_used_today?': 'string',
-	'market_cap?': 'string',
-	'network_utilization_percentage?': 'number',
-	'total_addresses?': 'string',
-	'total_blocks?': 'string',
-	'total_transactions?': 'string',
-	'transactions_today?': 'string',
-}) satisfies Type<BlockscoutStats>
-import type {
-	RpcBlockHeader,
-	RpcLog,
-	RpcReceipt,
-	RpcTransaction,
-} from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
+type BlockscoutErc4337RegistryPage =
+	| BlockscoutErc4337AccountsPage
+	| BlockscoutErc4337BundlersPage
+	| BlockscoutErc4337PaymastersPage
+	| BlockscoutErc4337FactoriesPage
 
-const quantityHex = (value: string | number | bigint | undefined) => (
-	value != null && `${value}` !== '' ?
-		`0x${BigInt(value).toString(16)}`
-	:
-		undefined
+const bindingByApiFamilyAndChainId: Partial<Record<string, SourceBinding<Source.Blockscout_Rest>>> = Object.fromEntries(
+	bindings[Source.Blockscout_Rest].map((binding) => [
+		`${binding.apiFamily}:${binding.target.key}`,
+		binding,
+	] as const)
 )
+const requireBlockscoutBinding = (chainId: number, apiFamily: ApiFamily) => {
+	const binding = bindingByApiFamilyAndChainId[`${apiFamily}:${chainId}`]
+	if (binding == null)
+		throw new Error(`Blockscout_Rest: no ${apiFamily} binding for chain ${chainId}`)
 
-const timestampHex = (timestamp: string | undefined) => {
-	if (timestamp == null) return undefined
-	const ts = Math.floor(new Date(timestamp).getTime() / 1000)
-	return Number.isFinite(ts) ? `0x${BigInt(ts).toString(16)}` : undefined
+	return binding
 }
 
-const blockscoutItemsCount = (limit: number) => (
-	Math.min(
-		Math.max(Number.isFinite(limit) ? limit : 0, 0),
-		blockscoutV2ItemsCountMax
-	)
-)
-
-const addressHash = (
-	wire: string | BlockscoutBlock['miner']   | BlockscoutTransaction['to']   | BlockscoutTransactionLog['address_hash'] | BlockscoutSmartContractForList['address_hash'] | undefined
-) => (
-	typeof wire === 'string' ?
-		wire
+export const blockscoutGenericReadChainIds = bindings[Source.Blockscout_Rest].flatMap((binding) => (
+	binding.operationGroups.some((operationGroup) => operationGroup === SourceOperationGroup.GenericRead) ?
+		[Number(binding.target.key)]
 	:
-		wire?.hash
+		[]
+))
+export const blockscoutAccountAbstractionChainIds = new Set(
+	bindings[Source.Blockscout_Rest].flatMap((binding) => (
+		binding.operationGroups.some((operationGroup) => operationGroup === SourceOperationGroup.BlockscoutAccountAbstraction) ?
+			[Number(binding.target.key)]
+		:
+			[]
+	))
 )
 
-const blockscoutBlockWireAsRpcBlockHeader = (
-	wire: BlockscoutBlock
-): RpcBlockHeader => ({
-	number: `0x${wire.height.toString(16)}`,
-	hash: wire.hash,
-	parentHash: wire.parent_hash,
-	timestamp: timestampHex(wire.timestamp),
-	gasUsed: quantityHex(wire.gas_used),
-	gasLimit: quantityHex(wire.gas_limit),
-	baseFeePerGas: quantityHex(wire.base_fee_per_gas),
-	miner: addressHash(wire.miner),
-	transactions: new Array(wire.transactions_count ?? 0),
-	...(wire.blob_gas_used != null && { blobGasUsed: quantityHex(wire.blob_gas_used) }),
-	...(wire.excess_blob_gas != null && { excessBlobGas: quantityHex(wire.excess_blob_gas) }),
-})
+const validatedBlockscoutTransactionWire = (wire: BlockscoutTransaction) => {
+	for (const quantity of [
+		wire.gas_limit,
+		wire.gas_price,
+		wire.max_fee_per_gas,
+		wire.max_priority_fee_per_gas,
+	])
+		if (quantity != null && quantity !== '')
+			BigInt(quantity)
 
-export const blockscoutTransactionWireAsRpcTransaction = (
-	wire: BlockscoutTransaction
-): RpcTransaction => ({
-	blockHash: wire.block_hash,
-	blockNumber: wire.block_number != null ? `0x${wire.block_number.toString(16)}` : undefined,
-	hash: wire.hash,
-	from: addressHash(wire.from),
-	to: addressHash(wire.to) ?? null,
-	gas: quantityHex(wire.gas_limit),
-	gasPrice: quantityHex(wire.gas_price),
-	maxFeePerGas: quantityHex(wire.max_fee_per_gas),
-	maxPriorityFeePerGas: quantityHex(wire.max_priority_fee_per_gas),
-	input: wire.raw_input,
-	nonce: wire.nonce != null ? `0x${wire.nonce.toString(16)}` : undefined,
-	transactionIndex: wire.position != null ? `0x${wire.position.toString(16)}` : undefined,
-	type: wire.type != null ? `0x${wire.type.toString(16)}` : undefined,
-	value: wire.value,
-})
-
-export const blockscoutTransactionWireAsRpcReceipt = (
-	tx: BlockscoutTransaction,
-	logs: NonNullable<RpcReceipt['logs']>
-): RpcReceipt => ({
-	status: tx.status === 'ok' ? '0x1' : tx.status === 'error' ? '0x0' : undefined,
-	gasUsed: quantityHex(tx.gas_used),
-	effectiveGasPrice: quantityHex(tx.gas_price),
-	logs,
-	contractAddress: addressHash(tx.created_contract),
-	cumulativeGasUsed: quantityHex(tx.cumulative_gas_used),
-})
-
-const blockscoutTransactionLogWiresAsRpcReceiptLogs = (
-	logs: BlockscoutTransactionLog[]
-): RpcLog[] => (
-	logs.map((log) => {
-		const logAddress = addressHash(log.address_hash)
-		return {
-			...(logAddress != null && { address: logAddress }),
-			...(log.topics != null && { topics: log.topics.flatMap((topic) => topic == null ? [] : [topic]) }),
-			...(log.data != null && { data: log.data }),
-			...(log.block_number != null && { blockNumber: `0x${log.block_number.toString(16)}` }),
-			...(log.transaction_hash != null && { transactionHash: log.transaction_hash }),
-			...(log.index != null && { logIndex: `0x${log.index.toString(16)}` }),
-		}
-	})
+	return wire
+}
+const blockscoutItemsCount = (limit: number) => Math.min(
+	Math.max(Number.isFinite(limit) ? limit : 0, 0),
+	blockscoutV2ItemsCountMax
 )
 
 /**
-	* Blockscout REST **`GET …/api/v2/stats`** — aggregated UI/market stats when enabled on the instance.
-	* Not every deployment exposes this route; callers treat failures as optional enrichment.
-	*
-	* @see https://docs.blockscout.com/devs/apis/rest/stats-api
-	*/
-export const getStats = async ({
-	binding,
-}: {
-	binding: SourceBinding
-}): Promise<BlockscoutStats | null> => {
-	try {
-		const validated = blockscoutStatsWireSchema(await getBlockscoutJson({
-			binding,
-			path: '/stats',
-		}))
-		return validated instanceof arktype.errors ?
-			null
-		:
-			validated
-	} catch {
-		return null
-	}
-}
-
-export const getBlockByNumber = async ({
-	binding,
-	blockNumber,
-}: {
-	binding: SourceBinding
-	blockNumber: bigint
-}): Promise<RpcBlockHeader | null> => {
-	const wire = await getBlockscoutJson<BlockscoutBlock | null>({
-		binding,
-		path: `/blocks/${blockNumber}`,
+ * Optional aggregate stats are not enabled by every Blockscout deployment.
+ * @see https://docs.blockscout.com/devs/apis/rest/stats-api
+ */
+export const getStats = async ({ chainId }: {
+	chainId: number
+}) => {
+	const response = await getBlockscoutResponse({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+		path: '/stats',
 	})
-	return wire != null ? blockscoutBlockWireAsRpcBlockHeader(wire) : null
+	if (response.status === 404 || response.status === 501)
+		return null
+	await throwIfHttpNotOk(response, response.url)
+
+	return response.json<BlockscoutStats>()
 }
 
-export const getBlocks = async ({
-	binding,
-	limit,
-}: {
-	binding: SourceBinding
+export const getBlockByNumber = ({ chainId, blockNumber }: {
+	chainId: number
+	blockNumber: bigint
+}) => getBlockscoutJson<BlockscoutBlockDetails>({
+	binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+	path: `/blocks/${blockNumber}`,
+})
+
+export const getBlocks = async ({ chainId, limit }: {
+	chainId: number
 	limit: number
-}): Promise<RpcBlockHeader[]> => {
-	if (limit <= 0) return []
-	const wire = await getBlockscoutJson<BlockscoutPaginated<BlockscoutBlock>>({
-		binding,
+}) => {
+	if (limit <= 0)
+		return []
+
+	const wire = await getBlockscoutJson<BlockscoutBlocksPage>({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
 		path: '/blocks',
 		searchParams: {
 			items_count: blockscoutItemsCount(limit),
 		},
 	})
-	return wire.items.map(blockscoutBlockWireAsRpcBlockHeader)
+
+	return wire.items
 }
 
-export const getBlockTransactions = async ({
-	binding,
-	blockNumber,
-	limit,
-}: {
-	binding: SourceBinding
+export const getBlockTransactions = async ({ chainId, blockNumber, limit }: {
+	chainId: number
 	blockNumber: bigint
 	limit: number
-}): Promise<RpcTransaction[]> => {
-	if (limit <= 0) return []
-	const wire = await getBlockscoutJson<BlockscoutPaginated<BlockscoutTransaction>>({
-		binding,
+}) => {
+	if (limit <= 0)
+		return []
+
+	const wire = await getBlockscoutJson<BlockscoutBlockTransactionsPage>({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
 		path: `/blocks/${blockNumber}/transactions`,
 		searchParams: {
 			items_count: blockscoutItemsCount(limit),
 		},
 	})
-	return wire.items.map(blockscoutTransactionWireAsRpcTransaction)
+
+	return wire.items.map(validatedBlockscoutTransactionWire)
 }
 
-export const getTransactionWireByHash = async ({
-	binding,
-	txHash,
-}: {
-	binding: SourceBinding
-	txHash: `0x${string}`
-}): Promise<BlockscoutTransaction | null> => (
-	await getBlockscoutJson<BlockscoutTransaction | null>({
-		binding,
-		path: `/transactions/${txHash}`,
-	})
-)
+export const getTransactionByHash = async ({ chainId, txHash }: {
+	chainId: number
+	txHash: string
+}) => {
+	const normalized = hexLowerOfByteSize(txHash, 32)
+	if (normalized == null)
+		return null
 
-export const getTransactionByHash = async ({
-	binding,
-	txHash,
-}: {
-	binding: SourceBinding
-	txHash: `0x${string}`
-}): Promise<RpcTransaction | null> => {
-	const wire = await getTransactionWireByHash({
-		binding,
-		txHash,
+	const wire = await getBlockscoutJson<BlockscoutTransaction>({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+		path: `/transactions/${normalized}`,
 	})
-	return wire != null ? blockscoutTransactionWireAsRpcTransaction(wire) : null
+
+	return validatedBlockscoutTransactionWire(wire)
 }
 
-export const getTransactions = async ({
-	binding,
-	limit,
-}: {
-	binding: SourceBinding
+export const getTransactions = async ({ chainId, limit }: {
+	chainId: number
 	limit: number
-}): Promise<RpcTransaction[]> => {
-	if (limit <= 0) return []
-	const wire = await getBlockscoutJson<BlockscoutPaginated<BlockscoutTransaction>>({
-		binding,
+}) => {
+	if (limit <= 0)
+		return []
+
+	const wire = await getBlockscoutJson<BlockscoutTransactionsPage>({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
 		path: '/transactions',
 		searchParams: {
 			items_count: blockscoutItemsCount(limit),
 		},
 	})
-	return wire.items.map(blockscoutTransactionWireAsRpcTransaction)
+
+	return wire.items.map(validatedBlockscoutTransactionWire)
 }
 
-/** REST v2: transactions where this wallet participates on the configured explorer (`0x`-prefixed **`address`** normalized to 20-byte lower-case hex). */
-export const getAddressTransactions = async ({
-	binding,
-	address,
-	limit,
-}: {
-	binding: SourceBinding
+export const getAddressTransactions = async ({ chainId, address, limit }: {
+	chainId: number
 	address: `0x${string}`
 	limit: number
-}): Promise<RpcTransaction[]> => {
-	if (limit <= 0) return []
+}) => {
+	if (limit <= 0)
+		return []
+
 	const normalized = hexLowerOfByteSize(address, 20)
-	if (normalized == null) return []
-	let wire: BlockscoutPaginated<BlockscoutTransaction>
-	try {
-		wire = await getBlockscoutJson<BlockscoutPaginated<BlockscoutTransaction>>({
-			binding,
-			path: `/addresses/${normalized}/transactions`,
-			searchParams: {
-				items_count: blockscoutItemsCount(limit),
-			},
-		})
-	}
-	catch (error) {
-		if (String(error).includes('Fetch failed (404 Not Found)')) return []
-		throw error
-	}
-	return wire.items.map(blockscoutTransactionWireAsRpcTransaction)
+	if (normalized == null)
+		return []
+
+	const response = await getBlockscoutResponse({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+		path: `/addresses/${normalized}/transactions`,
+		searchParams: {
+			items_count: blockscoutItemsCount(limit),
+		},
+	})
+	if (response.status === 404)
+		return []
+	await throwIfHttpNotOk(response, response.url)
+
+	return (
+		(await response.json<BlockscoutAddressTransactionsPage>())
+			.items.map(validatedBlockscoutTransactionWire)
+	)
 }
 
-/** Unique normalized tx hashes (`32`-byte lower-case `0x` hex) from transfer/internal wires. */
-export const getUniqueTransactionHashesFromWires = (
-	items: readonly { transaction_hash?: string | undefined }[]
-): `0x${string}`[] => {
-	const seen = new Set<string>()
-	const out: `0x${string}`[] = []
-	for (const item of items) {
-		const raw = item.transaction_hash
-		if (raw == null || raw === '') continue
-		const withPrefix = raw.startsWith('0x') ? raw : `0x${raw}`
-		const normalized = hexLowerOfByteSize(withPrefix, 32)
-		if (normalized == null || seen.has(normalized)) continue
-		seen.add(normalized)
-		out.push(normalized)
-	}
-	return out
-}
-
-/** REST v2 **`GET /addresses/{address}`** — normalized **`address`** (`hexLowerOfByteSize`, 20 bytes). */
-export const getAddressDetails = async ({
-	binding,
-	address,
-}: {
-	binding: SourceBinding
+export const getAddressDetails = ({ chainId, address }: {
+	chainId: number
 	address: `0x${string}`
-}): Promise<BlockscoutAddressDetails> => {
+}) => {
 	const normalized = hexLowerOfByteSize(address, 20)
 	if (normalized == null)
 		throw new Error('Blockscout address detail: invalid address')
+
 	return getBlockscoutJson<BlockscoutAddressDetails>({
-		binding,
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
 		path: `/addresses/${normalized}`,
 	})
 }
 
-/** REST v2 **`GET /addresses/{address}/counters`**. */
-export const getAddressCounters = async ({
-	binding,
-	address,
-}: {
-	binding: SourceBinding
+export const getAddressCounters = ({ chainId, address }: {
+	chainId: number
 	address: `0x${string}`
-}): Promise<BlockscoutAddressCounters> => {
+}) => {
 	const normalized = hexLowerOfByteSize(address, 20)
 	if (normalized == null)
 		throw new Error('Blockscout address counters: invalid address')
+
 	return getBlockscoutJson<BlockscoutAddressCounters>({
-		binding,
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
 		path: `/addresses/${normalized}/counters`,
 	})
 }
 
-/** REST v2 **`GET /addresses/{address}/token-transfers`** — paginated **`items`**. */
-export const getAddressTokenTransfers = async ({
-	binding,
-	address,
-	limit,
-	searchParams,
-}: {
-	binding: SourceBinding
+export const getAddressTokenTransfers = async ({ chainId, address, limit }: {
+	chainId: number
 	address: `0x${string}`
 	limit: number
-	searchParams?: Record<string, string | number | undefined>
-}): Promise<BlockscoutTokenTransfer[]> => {
-	if (limit <= 0) return []
+}) => {
+	if (limit <= 0)
+		return []
+
 	const normalized = hexLowerOfByteSize(address, 20)
-	if (normalized == null) return []
-	let wire: BlockscoutPaginated<BlockscoutTokenTransfer>
-	try {
-		wire = await getBlockscoutJson<BlockscoutPaginated<BlockscoutTokenTransfer>>({
-			binding,
-			path: `/addresses/${normalized}/token-transfers`,
-			searchParams: {
-				...searchParams,
-				items_count: blockscoutItemsCount(limit),
-			},
-		})
-	}
-	catch (error) {
-		if (String(error).includes('Fetch failed (404 Not Found)')) return []
-		throw error
-	}
-	return wire.items
+	if (normalized == null)
+		return []
+
+	const response = await getBlockscoutResponse({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+		path: `/addresses/${normalized}/token-transfers`,
+		searchParams: {
+			items_count: blockscoutItemsCount(limit),
+		},
+	})
+	if (response.status === 404)
+		return []
+	await throwIfHttpNotOk(response, response.url)
+
+	return (await response.json<BlockscoutAddressTokenTransfersPage>()).items
 }
 
-/** REST v2 **`GET /token-transfers`** — latest network token transfers. */
-export const getTokenTransfers = async ({
-	binding,
-	limit,
-}: {
-	binding: SourceBinding
+export const getTokenTransfers = async ({ chainId, limit }: {
+	chainId: number
 	limit: number
-}): Promise<BlockscoutTokenTransfer[]> => {
-	if (limit <= 0) return []
+}) => {
+	if (limit <= 0)
+		return []
+
+	return (await getBlockscoutJson<BlockscoutTokenTransfersPage>({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+		path: '/token-transfers',
+		searchParams: {
+			limit: blockscoutItemsCount(limit),
+		},
+	})).items
+}
+
+export const getTransactionTokenTransfers = async ({ chainId, txHash, limit }: {
+	chainId: number
+	txHash: string
+	limit: number
+}) => {
+	if (limit <= 0)
+		return []
+
+	const normalized = hexLowerOfByteSize(txHash, 32)
+	if (normalized == null)
+		return []
+
+	const response = await getBlockscoutResponse({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+		path: `/transactions/${normalized}/token-transfers`,
+	})
+	if (response.status === 422)
+		return []
+	await throwIfHttpNotOk(response, response.url)
+
 	return (
-		await getBlockscoutJson<BlockscoutPaginated<BlockscoutTokenTransfer>>({
-			binding,
-			path: '/token-transfers',
-		})
-	).items.slice(0, limit)
+		(await response.json<BlockscoutTransactionTokenTransfersPage>())
+			.items.slice(0, limit)
+	)
 }
 
-/** REST v2 **`GET /transactions/{txHash}/token-transfers`** — paginated **`items`**. */
-export const getTransactionTokenTransfers = async ({
-	binding,
-	txHash,
-	limit,
-}: {
-	binding: SourceBinding
-	txHash: `0x${string}`
+export const getTransactionInternalTransactions = async ({ chainId, txHash, limit }: {
+	chainId: number
+	txHash: string
 	limit: number
-}): Promise<BlockscoutTokenTransfer[]> => {
-	if (limit <= 0) return []
-	const normalized = hexLowerOfByteSize(txHash, 32)
-	if (normalized == null) return []
-	let wire: BlockscoutPaginated<BlockscoutTokenTransfer>
-	try {
-		wire = await getBlockscoutJson<BlockscoutPaginated<BlockscoutTokenTransfer>>({
-			binding,
-			path: `/transactions/${normalized}/token-transfers`,
-		})
-	} catch (error) {
-		if (String(error).includes('422 Unprocessable Entity')) return []
-		throw error
-	}
-	return wire.items
-}
+}) => {
+	if (limit <= 0)
+		return []
 
-/** REST v2 **`GET /transactions/{txHash}/internal-transactions`** — paginated **`items`**. */
-export const getTransactionInternalTransactions = async ({
-	binding,
-	txHash,
-	limit,
-}: {
-	binding: SourceBinding
-	txHash: `0x${string}`
-	limit: number
-}): Promise<BlockscoutInternalTransaction[]> => {
-	if (limit <= 0) return []
 	const normalized = hexLowerOfByteSize(txHash, 32)
-	if (normalized == null) return []
-	const wire = await getBlockscoutJson<BlockscoutPaginated<BlockscoutInternalTransaction>>({
-		binding,
+	if (normalized == null)
+		return []
+
+	const wire = await getBlockscoutJson<BlockscoutTransactionInternalTransactionsPage>({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
 		path: `/transactions/${normalized}/internal-transactions`,
 		searchParams: {
 			items_count: blockscoutItemsCount(limit),
 		},
 	})
+
 	return wire.items
 }
 
-/** REST v2 **`GET /addresses/{address}/internal-transactions`** — paginated **`items`**. */
-export const getAddressInternalTransactions = async ({
-	binding,
-	address,
-	limit,
-	searchParams,
-}: {
-	binding: SourceBinding
+export const getAddressInternalTransactions = async ({ chainId, address, limit }: {
+	chainId: number
 	address: `0x${string}`
 	limit: number
-	searchParams?: Record<string, string | number | undefined>
-}): Promise<BlockscoutInternalTransaction[]> => {
-	if (limit <= 0) return []
+}) => {
+	if (limit <= 0)
+		return []
+
 	const normalized = hexLowerOfByteSize(address, 20)
-	if (normalized == null) return []
-	let wire: BlockscoutPaginated<BlockscoutInternalTransaction>
-	try {
-		wire = await getBlockscoutJson<BlockscoutPaginated<BlockscoutInternalTransaction>>({
-			binding,
-			path: `/addresses/${normalized}/internal-transactions`,
-			searchParams: {
-				...searchParams,
-				items_count: blockscoutItemsCount(limit),
-			},
-		})
-	}
-	catch (error) {
-		if (String(error).includes('Fetch failed (404 Not Found)')) return []
-		throw error
-	}
-	return wire.items
-}
+	if (normalized == null)
+		return []
 
-export const getTransactionLogs = async ({
-	binding,
-	txHash,
-}: {
-	binding: SourceBinding
-	txHash: `0x${string}`
-}): Promise<NonNullable<RpcReceipt['logs']>> => {
-	const logs: NonNullable<RpcReceipt['logs']> = []
-	let nextPageParams: Record<string, string | number> | undefined
-	do {
-		const wire = await getBlockscoutJson<BlockscoutPaginated<BlockscoutTransactionLog>>({
-			binding,
-			path: `/transactions/${txHash}/logs`,
-			searchParams: nextPageParams,
-		})
-		logs.push(...blockscoutTransactionLogWiresAsRpcReceiptLogs(wire.items))
-		nextPageParams = wire.next_page_params
-	} while (nextPageParams != null)
-	return logs
-}
-
-export const getTransactionReceipt = async ({
-	binding,
-	txHash,
-}: {
-	binding: SourceBinding
-	txHash: `0x${string}`
-}): Promise<RpcReceipt | null> => {
-	const tx = await getTransactionWireByHash({
-		binding,
-		txHash,
-	})
-	if (tx == null) return null
-	const logs = await getTransactionLogs({
-		binding,
-		txHash,
-	})
-	return blockscoutTransactionWireAsRpcReceipt(tx, logs)
-}
-
-export const normalizeAddressFromContractListWire = (
-	w: BlockscoutSmartContractForList
-): `0x${string}` | null => {
-	const h = addressHash(w.address ?? w.address_hash)
-	if (h == null || h === '') return null
-	const normalized = h.startsWith('0x') ? h : `0x${h}`
-	return hexLowerOfByteSize(normalized, 20) ?? null
-}
-
-export const getSmartContracts = async ({
-	binding,
-	limit,
-}: {
-	binding: SourceBinding
-	limit: number
-}): Promise<BlockscoutSmartContractForList[]> => {
-	if (limit <= 0) return []
-	const wire = await getBlockscoutJson<BlockscoutPaginated<BlockscoutSmartContractForList>>({
-		binding,
-		path: '/smart-contracts',
+	const response = await getBlockscoutResponse({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+		path: `/addresses/${normalized}/internal-transactions`,
 		searchParams: {
 			items_count: blockscoutItemsCount(limit),
 		},
 	})
+	if (response.status === 404)
+		return []
+	await throwIfHttpNotOk(response, response.url)
+
+	return (await response.json<BlockscoutAddressInternalTransactionsPage>()).items
+}
+
+export const getTransactionLogs = async ({ chainId, txHash }: {
+	chainId: number
+	txHash: string
+}) => {
+	const normalized = hexLowerOfByteSize(txHash, 32)
+	if (normalized == null)
+		return []
+
+	const logs: BlockscoutTransactionLogsPage['items'] = []
+	let nextPageParams: NonNullable<BlockscoutTransactionLogsPage['next_page_params']> | undefined
+	do {
+		const wire = await getBlockscoutJson<BlockscoutTransactionLogsPage>({
+			binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+			path: `/transactions/${normalized}/logs`,
+			searchParams: nextPageParams,
+		})
+		logs.push(...wire.items)
+		nextPageParams = wire.next_page_params ?? undefined
+	} while (nextPageParams != null)
+
+	return logs
+}
+
+export const normalizeAddressFromContractListWire = (wire: BlockscoutSmartContractForList) => {
+	const address = wire.address.hash
+	if (address === '')
+		return null
+
+	const normalized = address.startsWith('0x') ? address : `0x${address}`
+	return hexLowerOfByteSize(normalized, 20) ?? null
+}
+
+export const getSmartContracts = async ({ chainId, limit }: {
+	chainId: number
+	limit: number
+}) => {
+	if (limit <= 0)
+		return []
+
+	const wire = await getBlockscoutJson<BlockscoutSmartContractsPage>({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+		path: '/smart-contracts/',
+		searchParams: {
+			items_count: blockscoutItemsCount(limit),
+		},
+	})
+
 	return wire.items
 }
 
-const blockscoutLegacyAbiFromWire = (
-	wire: import('$/sources/Blockscout/Rest/types.ts').BlockscoutLegacyContractStatus
-): string | null => {
-	if (wire.status === '1' && typeof wire.result === 'string' && wire.result.trim())
-		return wire.result
-	if (wire.status !== '1' || !Array.isArray(wire.result)) return null
-	const row = wire.result[0]
-	const abi = row.ABI
-	return typeof abi === 'string' && abi.trim() ? abi : null
-}
-
-/** Legacy `module=contract` **`getabi`**, fallback **`getsourcecode`**. */
-export const getContractAbiJsonString = async ({
-	binding,
+export const getSmartContract = ({
+	chainId,
 	address,
 }: {
-	binding: SourceBinding
+	chainId: number
 	address: `0x${string}`
-}): Promise<string | null> => {
-	const { getBlockscoutLegacyJson } = await import('$/sources/Blockscout/Rest/client.ts')
+}) => {
 	const normalized = hexLowerOfByteSize(address, 20)
-	if (normalized == null) return null
-	const abiWire = await getBlockscoutLegacyJson<import('$/sources/Blockscout/Rest/types.ts').BlockscoutLegacyContractStatus>({
-		binding,
-		query: {
-			module: 'contract',
-			action: 'getabi',
-			address: normalized,
-		},
+	if (normalized == null)
+		throw new Error('Blockscout smart contract: invalid address')
+
+	return getBlockscoutJson<BlockscoutSmartContract>({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+		path: `/smart-contracts/${normalized}`,
 	})
-	const abiFromGetAbi = blockscoutLegacyAbiFromWire(abiWire)
-	if (abiFromGetAbi != null) return abiFromGetAbi
-	const sourceWire = await getBlockscoutLegacyJson<import('$/sources/Blockscout/Rest/types.ts').BlockscoutLegacyContractStatus>({
-		binding,
-		query: {
-			module: 'contract',
-			action: 'getsourcecode',
-			address: normalized,
-		},
-	})
-	return blockscoutLegacyAbiFromWire(sourceWire)
 }
 
-/** Legacy **`getsourcecode`** row (proxy **`Implementation`**, etc.). */
-export const getContractSourceCodeRow = async ({
-	binding,
-	address,
-}: {
-	binding: SourceBinding
+export const getCode = async ({ chainId, address }: {
+	chainId: number
 	address: `0x${string}`
-}): Promise<import('$/sources/Blockscout/Rest/types.ts').BlockscoutLegacyContractSource | null> => {
-	const { getBlockscoutLegacyJson } = await import('$/sources/Blockscout/Rest/client.ts')
+}) => {
+	const {
+		getCode: getCodeFromExecutionRpc,
+	} = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
 	const normalized = hexLowerOfByteSize(address, 20)
-	if (normalized == null) return null
-	const wire = await getBlockscoutLegacyJson<import('$/sources/Blockscout/Rest/types.ts').BlockscoutLegacyContractStatus>({
-		binding,
-		query: {
-			module: 'contract',
-			action: 'getsourcecode',
-			address: normalized,
-		},
+	if (normalized == null)
+		return null
+
+	return getCodeFromExecutionRpc({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.EvmExecutionJsonRpc),
+		address: normalized,
 	})
-	if (wire.status !== '1' || !Array.isArray(wire.result)) return null
-	return wire.result[0] ?? null
 }
 
-export const getCode = async ({
-	binding,
-	address,
-}: {
-	binding: SourceBinding
-	address: `0x${string}`
-}): Promise<`0x${string}` | null> => {
-	const { postBlockscoutEthRpc } = await import('$/sources/Blockscout/Rest/client.ts')
-	const normalized = hexLowerOfByteSize(address, 20)
-	if (normalized == null) return null
-	const result = await postBlockscoutEthRpc<`0x${string}`>({
-		binding,
-		method: 'eth_getCode',
-		params: [
-			normalized,
-			'latest',
-		],
-	})
-	return result ?? null
-}
-
-export const getStorageAt = async ({
-	binding,
-	address,
-	slotQuantityHex,
-}: {
-	binding: SourceBinding
+export const getStorageAt = async ({ chainId, address, slotQuantityHex }: {
+	chainId: number
 	address: `0x${string}`
 	slotQuantityHex: `0x${string}`
-}): Promise<`0x${string}` | null> => {
-	const { postBlockscoutEthRpc } = await import('$/sources/Blockscout/Rest/client.ts')
+}) => {
+	const {
+		getStorageAt: getStorageAtFromExecutionRpc,
+	} = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
 	const normalized = hexLowerOfByteSize(address, 20)
-	if (normalized == null) return null
-	const result = await postBlockscoutEthRpc<`0x${string}`>({
-		binding,
-		method: 'eth_getStorageAt',
-		params: [
-			normalized,
-			slotQuantityHex,
-			'latest',
-		],
+	if (normalized == null)
+		return null
+
+	return getStorageAtFromExecutionRpc({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.EvmExecutionJsonRpc),
+		address: normalized,
+		slotQuantityHex,
 	})
-	return result ?? null
 }
 
-const blockscoutErrorText = (error: JsonValue | undefined) => (
-	error == null || error === false || String(error).length === 0 ?
-		undefined
-	:
-		typeof error === 'string' ?
-			error
-		:
-			typeof error === 'number' || typeof error === 'bigint' || typeof error === 'boolean' ?
-				String(error)
-			:
-				JSON.stringify(error)
-)
-
-const assertBlockscoutWireNoErrorPayload = (wire: BlockscoutErrorEnvelope, debugLabel: string) => {
-	const error = blockscoutErrorText(wire.error)
-	if (error != null)
-		throw new Error(`${debugLabel}: ${error}`)
-
-	const errors = blockscoutErrorText(wire.errors)
-	if (errors != null)
-		throw new Error(`${debugLabel}: errors ${errors}`)
-}
-
-/**
-	* ERC-4337 registry on Blockscout (`/proxy/account-abstraction/*`).
-	* Detail paths require a `0x`-prefixed hash.
-	*/
-const blockscoutErc4337PathHash = (
-	value: `0x${string}`,
-	byteSize: 20 | 32,
-	label: string
-) => {
+const blockscoutErc4337PathHash = (value: string, byteSize: 20 | 32, label: string) => {
 	const normalized = hexLowerOfByteSize(value, byteSize)
 	if (normalized == null)
 		throw new Error(`${label}: invalid hash`)
+
 	return normalized
 }
 
-const getBlockscoutErc4337TopRegistryList = async ({
-	binding,
-	limit,
-	relativePath,
-}: {
-	binding: SourceBinding
-	limit: number
-	relativePath: string
-}): Promise<BlockscoutErc4337RegistryEntry[]> => {
-	if (limit <= 0)
-		throw new Error(`Blockscout GET ${relativePath}: limit must be positive`)
-	const raw = await getBlockscoutJson<
-		BlockscoutPaginated<BlockscoutErc4337RegistryEntry> & BlockscoutErrorEnvelope
-		>({
-			binding,
-			path: relativePath,
-			searchParams: {
-				page_size: blockscoutItemsCount(limit),
-			},
-		})
-	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${relativePath}`)
-	return raw.items
-}
-
-const getBlockscoutErc4337RegistryDetail = async ({
-	binding,
-	address,
-	relativePath,
-}: {
-	binding: SourceBinding
-	address: `0x${string}`
-	relativePath: string
-}): Promise<BlockscoutErc4337RegistryEntry> => {
-	const normalized = blockscoutErc4337PathHash(address, 20, 'Blockscout ERC-4337 registry detail')
-	const path = `${relativePath}/${normalized}`
-	const raw = await getBlockscoutJson<BlockscoutErc4337RegistryEntry & BlockscoutErrorEnvelope>({
-		binding,
-		path,
-	})
-	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${path}`)
-	return raw
-}
-
 export const getUserOperationsPage = async ({
-	binding,
+	chainId,
 	limit,
 }: {
-	binding: SourceBinding
+	chainId: number
 	limit: number
-}): Promise<BlockscoutUserOperationListItem[]> => {
-	const relativePath = '/proxy/account-abstraction/operations'
-	const raw = await getBlockscoutJson<
-		BlockscoutPaginated<BlockscoutUserOperationListItem> & BlockscoutErrorEnvelope
-		>({
-			binding,
-			path: relativePath,
-			searchParams: {
-				page_size: blockscoutItemsCount(limit),
-			},
-		})
-	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${relativePath}`)
-	return raw.items
+}) => {
+	if (limit <= 0)
+		return []
+
+	return (await getBlockscoutJson<BlockscoutUserOperationsPage>({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+		path: '/proxy/account-abstraction/operations',
+		searchParams: {
+			page_size: blockscoutItemsCount(limit),
+		},
+	})).items
 }
 
 export const getUserOperationsByTransaction = async ({
-	binding,
+	chainId,
 	txHash,
 	limit,
 }: {
-	binding: SourceBinding
-	txHash: `0x${string}`
+	chainId: number
+	txHash: string
 	limit: number
-}): Promise<BlockscoutUserOperationListItem[]> => {
-	const normalized = blockscoutErc4337PathHash(txHash, 32, 'Blockscout user operations by transaction')
-	const relativePath = '/proxy/account-abstraction/operations'
-	const raw = await getBlockscoutJson<
-		BlockscoutPaginated<BlockscoutUserOperationListItem> & BlockscoutErrorEnvelope
-		>({
-			binding,
-			path: relativePath,
-			searchParams: {
-				page_size: blockscoutItemsCount(limit),
-				transaction_hash: normalized,
-			},
-		})
-	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${relativePath}`)
-	return raw.items
+}) => {
+	if (limit <= 0)
+		return []
+
+	return (await getBlockscoutJson<BlockscoutUserOperationsPage>({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+		path: '/proxy/account-abstraction/operations',
+		searchParams: {
+			page_size: blockscoutItemsCount(limit),
+			transaction_hash: blockscoutErc4337PathHash(
+				txHash,
+				32,
+				'Blockscout user operations by transaction'
+			),
+		},
+	})).items
 }
 
-export const getUserOperationDetail = async ({
-	binding,
+export const getUserOperationDetail = ({
+	chainId,
 	hash,
 }: {
-	binding: SourceBinding
-	hash: `0x${string}`
-}): Promise<BlockscoutUserOperationDetail> => {
-	const normalized = blockscoutErc4337PathHash(hash, 32, 'Blockscout user operation detail')
-	const path = `/proxy/account-abstraction/operations/${normalized}`
-	const raw = await getBlockscoutJson<
-		BlockscoutUserOperationDetail & BlockscoutErrorEnvelope
-		>({
-			binding,
-			path,
-		})
-	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${path}`)
-	return raw
+	chainId: number
+	hash: string
+}) => getBlockscoutJson<BlockscoutUserOperationDetail>({
+	binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+	path: `/proxy/account-abstraction/operations/${blockscoutErc4337PathHash(
+		hash,
+		32,
+		'Blockscout user operation detail'
+	)}`,
+})
+
+const erc4337RegistryPath = {
+	smartAccount: '/proxy/account-abstraction/accounts',
+	bundler: '/proxy/account-abstraction/bundlers',
+	paymaster: '/proxy/account-abstraction/paymasters',
+	accountFactory: '/proxy/account-abstraction/factories',
+} as const
+const getErc4337RegistryList = async ({
+	chainId,
+	limit,
+	path,
+}: {
+	chainId: number
+	limit: number
+	path: (typeof erc4337RegistryPath)[keyof typeof erc4337RegistryPath]
+}) => {
+	if (limit <= 0)
+		return []
+
+	return (await getBlockscoutJson<BlockscoutErc4337RegistryPage>({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+		path,
+		searchParams: {
+			page_size: blockscoutItemsCount(limit),
+		},
+	})).items
 }
 
-export const getErc4337SmartAccountList = async (args: {
-	binding: SourceBinding
+export const getErc4337SmartAccountList = ({
+	chainId,
+	limit,
+}: {
+	chainId: number
 	limit: number
-}) => (
-	getBlockscoutErc4337TopRegistryList({
-		...args,
-		relativePath: '/proxy/account-abstraction/accounts',
-	})
-)
+}) => getErc4337RegistryList({
+	chainId,
+	limit,
+	path: erc4337RegistryPath.smartAccount,
+})
 
-export const getErc4337BundlerList = async (args: {
-	binding: SourceBinding
+export const getErc4337BundlerList = ({
+	chainId,
+	limit,
+}: {
+	chainId: number
 	limit: number
-}) => (
-	getBlockscoutErc4337TopRegistryList({
-		...args,
-		relativePath: '/proxy/account-abstraction/bundlers',
-	})
-)
+}) => getErc4337RegistryList({
+	chainId,
+	limit,
+	path: erc4337RegistryPath.bundler,
+})
 
-export const getErc4337PaymasterList = async (args: {
-	binding: SourceBinding
+export const getErc4337PaymasterList = ({
+	chainId,
+	limit,
+}: {
+	chainId: number
 	limit: number
-}) => (
-	getBlockscoutErc4337TopRegistryList({
-		...args,
-		relativePath: '/proxy/account-abstraction/paymasters',
-	})
-)
+}) => getErc4337RegistryList({
+	chainId,
+	limit,
+	path: erc4337RegistryPath.paymaster,
+})
 
-export const getErc4337AccountFactoryList = async (args: {
-	binding: SourceBinding
+export const getErc4337AccountFactoryList = ({
+	chainId,
+	limit,
+}: {
+	chainId: number
 	limit: number
-}) => (
-	getBlockscoutErc4337TopRegistryList({
-		...args,
-		relativePath: '/proxy/account-abstraction/factories',
-	})
-)
+}) => getErc4337RegistryList({
+	chainId,
+	limit,
+	path: erc4337RegistryPath.accountFactory,
+})
 
-export const getErc4337SmartAccountDetail = async (args: {
-	binding: SourceBinding
+export const getErc4337SmartAccountDetail = ({
+	chainId,
+	address,
+}: {
+	chainId: number
 	address: `0x${string}`
-}) => (
-	getBlockscoutErc4337RegistryDetail({
-		...args,
-		relativePath: '/proxy/account-abstraction/accounts',
-	})
-)
+}) => getBlockscoutJson<BlockscoutErc4337Account>({
+	binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+	path: `${erc4337RegistryPath.smartAccount}/${
+		blockscoutErc4337PathHash(address, 20, 'Blockscout ERC-4337 account')
+	}`,
+})
 
-export const getErc4337BundlerDetail = async (args: {
-	binding: SourceBinding
+export const getErc4337BundlerDetail = ({
+	chainId,
+	address,
+}: {
+	chainId: number
 	address: `0x${string}`
-}) => (
-	getBlockscoutErc4337RegistryDetail({
-		...args,
-		relativePath: '/proxy/account-abstraction/bundlers',
-	})
-)
+}) => getBlockscoutJson<BlockscoutErc4337Bundler>({
+	binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+	path: `${erc4337RegistryPath.bundler}/${
+		blockscoutErc4337PathHash(address, 20, 'Blockscout ERC-4337 bundler')
+	}`,
+})
 
-export const getErc4337PaymasterDetail = async (args: {
-	binding: SourceBinding
+export const getErc4337PaymasterDetail = ({
+	chainId,
+	address,
+}: {
+	chainId: number
 	address: `0x${string}`
-}) => (
-	getBlockscoutErc4337RegistryDetail({
-		...args,
-		relativePath: '/proxy/account-abstraction/paymasters',
-	})
-)
+}) => getBlockscoutJson<BlockscoutErc4337Paymaster>({
+	binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+	path: `${erc4337RegistryPath.paymaster}/${
+		blockscoutErc4337PathHash(address, 20, 'Blockscout ERC-4337 paymaster')
+	}`,
+})
 
-export const getErc4337AccountFactoryDetail = async (args: {
-	binding: SourceBinding
+export const getErc4337AccountFactoryDetail = ({
+	chainId,
+	address,
+}: {
+	chainId: number
 	address: `0x${string}`
-}) => (
-	getBlockscoutErc4337RegistryDetail({
-		...args,
-		relativePath: '/proxy/account-abstraction/factories',
-	})
-)
+}) => getBlockscoutJson<BlockscoutErc4337AccountFactory>({
+	binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+	path: `${erc4337RegistryPath.accountFactory}/${
+		blockscoutErc4337PathHash(address, 20, 'Blockscout ERC-4337 factory')
+	}`,
+})

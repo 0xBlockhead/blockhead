@@ -302,7 +302,6 @@
 					<GlobalNostrNetworkView
 						selection={select(EntityType._GlobalNostrNetwork, selection.entitySelector.$hub)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

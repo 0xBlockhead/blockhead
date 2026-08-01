@@ -24,7 +24,6 @@
 
 
 	// Components
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import YoutubePlaylistView from '$/views/YoutubePlaylistView.svelte'
 </script>
@@ -56,7 +55,6 @@
 			selection={select(EntityType.YoutubePlaylist, selection.entitySelector.$playlist)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 
 		<Timestamp timestamp={selection.entitySelector.timestampMs} />

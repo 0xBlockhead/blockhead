@@ -10,7 +10,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['ActivityPub is the W3C federation protocol. This hub shows bounded Mastodon-compatible actor and note windows from declared instance sources.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.ActivityPubNetwork> = $props()
@@ -25,7 +24,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.ActivityPubNetwork}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {
@@ -41,6 +39,10 @@
 		>
 			{#snippet Title()}
 				{activityPubNetwork.protocolName || 'ActivityPub'}
+			{/snippet}
+
+			{#snippet Value()}
+				ActivityPub
 			{/snippet}
 		</EntityView>
 	{/snippet}

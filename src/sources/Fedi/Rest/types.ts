@@ -1,7 +1,3 @@
-import type { JsonValue } from '$/typescript/JsonValue.ts'
-
-export type FediJson = JsonValue
-
 export type FediAccount = {
 	id: string
 	name: string

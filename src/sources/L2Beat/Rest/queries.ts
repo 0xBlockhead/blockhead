@@ -11,7 +11,7 @@ import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.L2Beat_Rest]
 
-export const fetchScalingSummary = async (): Promise<L2BeatScalingSummaryResponse> => (
+export const fetchScalingSummary = () => (
 	getJson<L2BeatScalingSummaryResponse>(
 		binding,
 		scalingSummaryPath

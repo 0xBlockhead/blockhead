@@ -1,24 +1,18 @@
-import type { NearNepsGithubContents } from '$/sources/NearNeps/Github/types.ts'
 import bindings from '$/sources/NearNeps/bindings.ts'
 import {
 	getGithubContents,
 	getGithubRawText,
+	githubRepositoryTargetFromKey,
 } from '$/sources/_shared/hosts/Github/Http/client.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.NearNeps_Github]
+const target = githubRepositoryTargetFromKey(binding.target.key)
 
-const nearNepsGithubRepo = {
-	owner: 'near',
-	repo: 'NEPs',
-	path: 'neps',
-	ref: 'master',
-}
-
-export const getContents = (): Promise<NearNepsGithubContents> => (
+export const getContents = () => (
 	getGithubContents({
 		binding,
-		target: nearNepsGithubRepo,
+		target,
 	})
 )
 
@@ -30,8 +24,8 @@ export const getMarkdownText = ({
 	getGithubRawText({
 		binding,
 		target: {
-			...nearNepsGithubRepo,
-			path: `${nearNepsGithubRepo.path}/nep-${number.toString().padStart(4, '0')}.md`,
+			...target,
+			path: `${target.path}/nep-${number.toString().padStart(4, '0')}.md`,
 		},
 	})
 )

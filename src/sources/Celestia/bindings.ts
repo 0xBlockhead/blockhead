@@ -1,11 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { type as arktype } from 'arktype'
 
 const bindings = [
 	{
-		source: Source.Celestia_JsonRpc,
+		source: Source.CelestiaNode,
 		target: {
 			kind: SourceTargetKind.NetworkSlug,
 			key: 'celestia',
@@ -13,8 +14,7 @@ const bindings = [
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://{celestia-rpc-host}',
-				origin: 'https://{celestia-rpc-host}',
+				locator: 'env:PUBLIC_CELESTIA_NODE_RPC_URL',
 				corsEnabled: false,
 			},
 		],
@@ -26,10 +26,25 @@ const bindings = [
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [
 			{
-				scope: SourceCredentialScope.None,
+				scope: SourceCredentialScope.PublicConfig,
+				env: arktype({
+					'PUBLIC_CELESTIA_NODE_RPC_URL': 'string.url',
+				}),
+			},
+		],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/Celestia/JsonRpc/openrpc.json',
+				generated: true,
+				officialUrl: 'https://docs.celestia.org/specs/openrpc-v0.28.4.json',
+			},
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/Celestia/JsonRpc/schema-source.ts',
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Celestia_JsonRpc]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

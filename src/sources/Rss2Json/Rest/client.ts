@@ -8,7 +8,7 @@ import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.Rss2Json_Rest]
 
-export const rss2JsonGet = async (path: string) => (
+export const rss2JsonGet = (path: string) => (
 	sourceGetJson<Rss2JsonResponse>(
 		binding,
 		`${firstHttpUrlForBinding(binding)}${path.startsWith('/') ? path : `/${path}`}`

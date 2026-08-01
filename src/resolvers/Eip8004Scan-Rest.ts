@@ -2,16 +2,98 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
+import { evmChainIdFromNetworkSelector } from '$/resolvers/evm.ts'
 import {
 	EvmNftFormat,
 	EvmNftStandard,
 } from '$/constants/Evm.ts'
+import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import type {
+	Eip8004ScanAgentDetail,
+	Eip8004ScanAgentListItem,
+} from '$/sources/Eip8004Scan/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
+
+const agentFromWire = (row: Eip8004ScanAgentListItem) => {
+	const tokenId = row.token_id.trim()
+	const contractAddress = hexLowerOfByteSize(row.contract_address, 20)
+	const agentWallet = hexLowerOfByteSize(row.agent_wallet ?? '', 20)
+	if (tokenId === '' || contractAddress == null)
+		return
+
+	return {
+		chainId: row.chain_id,
+		tokenId,
+		contractAddress,
+		...(agentWallet != null && { agentWallet }),
+	}
+}
+
+const agentDetailFromWire = (row: Eip8004ScanAgentDetail | undefined) => {
+	if (row == null)
+		return
+
+	const agent = agentFromWire(row)
+	const contactEndpoint = (
+		Object.values(row.services ?? {})
+			.map((service) => service.endpoint?.trim())
+			.find((endpoint) => endpoint != null && endpoint !== '')
+	)
+	const offchainUri = row.raw_metadata?.offchain_uri?.trim()
+	const agentUri = (
+		offchainUri != null && offchainUri !== '' ?
+			offchainUri
+		:
+			contactEndpoint
+	)
+	if (agent == null || agentUri == null)
+		return
+
+	return {
+		...agent,
+		agentUri,
+		fetchedAt: Date.now(),
+		services: Object.entries(row.services ?? {}).flatMap(([wireKind, service]) => {
+			const endpointKind = wireKind.trim()
+			const endpointUrl = service.endpoint?.trim()
+			if (endpointKind === '' || endpointUrl == null || endpointUrl === '')
+				return []
+
+			return [{
+				endpointKind,
+				endpointUrl,
+				...(service.name != null && service.name.trim() !== '' && {
+					name: service.name.trim(),
+				}),
+				...(service.version != null && service.version.trim() !== '' && {
+					version: service.version.trim(),
+				}),
+				...(service.protocol != null && service.protocol.trim() !== '' && {
+					protocolKind: service.protocol.trim(),
+				}),
+				...(service.active != null && { active: service.active }),
+			}]
+		}),
+		...(row.name != null && row.name !== '' && { name: row.name }),
+		...(row.description != null && row.description !== '' && { description: row.description }),
+		...(row.image_url != null && row.image_url !== '' && { image: row.image_url }),
+		...(row.raw_metadata?.offchain_content?.type != null && {
+			registrationTypeIri: row.raw_metadata.offchain_content.type,
+		}),
+		...(row.x402_supported != null && { x402Support: row.x402_supported }),
+		...(row.is_active != null && { active: row.is_active }),
+		...(row.supported_trust_models != null && row.supported_trust_models.length > 0 && {
+			supportedTrust: row.supported_trust_models,
+		}),
+		...(contactEndpoint != null && { contactEndpoint }),
+	}
+}
+
 export default {
 	source: Source.Eip8004Scan_Rest,
 
@@ -34,11 +116,13 @@ export default {
 						const { fetchAgentDetail } = await import(
 							'$/sources/Eip8004Scan/Rest/queries.ts'
 						)
-						const detail = await fetchAgentDetail(
-							{
-								chainId,
-								tokenId: agentId,
-							}
+						const detail = agentDetailFromWire(
+							(await fetchAgentDetail(
+								{
+									chainId,
+									tokenId: agentId,
+								}
+							)).data
 						)
 						if (detail == null)
 							throw new Error('Eip8004Scan_Rest: agent registration not found')
@@ -103,11 +187,13 @@ export default {
 						const { fetchAgentDetail } = await import(
 							'$/sources/Eip8004Scan/Rest/queries.ts'
 						)
-						const detail = await fetchAgentDetail(
-							{
-								chainId,
-								tokenId: agentId,
-							}
+						const detail = agentDetailFromWire(
+							(await fetchAgentDetail(
+								{
+									chainId,
+									tokenId: agentId,
+								}
+							)).data
 						)
 						if (detail == null)
 							throw new Error('Eip8004Scan_Rest: service endpoint registration not found')
@@ -134,7 +220,9 @@ export default {
 				},
 			},
 		})({
-			$registrationFile: (endpoint) => endpoint.$registrationFile,
+			$registrationFile: (endpoint) => ({
+				[EntityMetaKey.Selector]: endpoint.$registrationFile,
+			}),
 			endpointKind: (endpoint) => endpoint.endpointKind,
 			endpointUrl: (endpoint) => endpoint.endpointUrl,
 			name: (endpoint) => endpoint.name,
@@ -148,23 +236,26 @@ export default {
 			resolve: {
 				EvmContractTokenId: {
 					resolve: async ({ $contract, tokenId }) => {
+						const chainId = evmChainIdFromNetworkSelector($contract.$network)
 						const { fetchAgentDetail } = await import(
 							'$/sources/Eip8004Scan/Rest/queries.ts'
 						)
-						const detail = await fetchAgentDetail(
-							{
-								chainId: Number($contract.$network.caip2.reference),
-								tokenId,
-							}
+						const detail = agentDetailFromWire(
+							(await fetchAgentDetail(
+								{
+									chainId,
+									tokenId,
+								}
+							)).data
 						)
 						if (detail == null) {
 							throw new Error(
-								`Eip8004Scan_Rest: agent ${$contract.$network.caip2.reference}/${tokenId} not found`
+								`Eip8004Scan_Rest: agent ${chainId}/${tokenId} not found`
 							)
 						}
 						if (detail.contractAddress !== $contract.address.toLowerCase()) {
 							throw new Error(
-								`Eip8004Scan_Rest: agent ${$contract.$network.caip2.reference}/${$contract.address}/${tokenId} not found`
+								`Eip8004Scan_Rest: agent ${chainId}/${$contract.address}/${tokenId} not found`
 							)
 						}
 						return {
@@ -226,21 +317,31 @@ export default {
 							'$/sources/Eip8004Scan/Rest/queries.ts'
 						)
 						const limit = resolverContextRowLimit(context)
-						const agents = await fetchAgentList(
-							{ limit }
-						)
 						return (
-							agents.map((agent) => ({
-								[EntityMetaKey.Selector]: {
-									$contract: {
-										$network: {
-											caip2: { namespace: 'eip155' as const, reference: String(agent.chainId) },
-										},
-										address: EvmAddress.assert(agent.contractAddress),
-									},
-									tokenId: agent.tokenId,
-								},
-							}))
+							(await fetchAgentList(
+								{ limit }
+							)).data?.flatMap((row) => {
+								const agent = agentFromWire(row)
+								return (
+									agent == null ?
+										[]
+									:
+										[{
+											[EntityMetaKey.Selector]: {
+												$contract: {
+													$network: {
+														caip2: {
+															namespace: 'eip155' as const,
+															reference: String(agent.chainId),
+														},
+													},
+													address: EvmAddress.assert(agent.contractAddress),
+												},
+												tokenId: agent.tokenId,
+											},
+										}]
+								)
+							}) ?? []
 						)
 					},
 				},

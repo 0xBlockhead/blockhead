@@ -1,29 +1,29 @@
-import { ensipsGithubRepo } from '$/sources/Ensips/Github/constants.ts'
 import bindings from '$/sources/Ensips/bindings.ts'
-import type { EnsipsGithubContents } from '$/sources/Ensips/Github/types.ts'
 import {
 	getGithubContents,
 	getGithubRawText,
 	githubContentsUrl,
 	githubRawUrl,
+	githubRepositoryTargetFromKey,
 } from '$/sources/_shared/hosts/Github/Http/client.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.Ensips_Github]
+const target = githubRepositoryTargetFromKey(binding.target.key)
 
-export const getContentsUrl = () => githubContentsUrl(ensipsGithubRepo)
+export const getContentsUrl = () => githubContentsUrl(target)
 
 export const getProposalMarkdownUrl = ({ number }: { number: number }) => (
 	githubRawUrl({
-		...ensipsGithubRepo,
-		path: `${ensipsGithubRepo.path}/${number}.md`,
+		...target,
+		path: `${target.path}/${number}.md`,
 	})
 )
 
-export const getContents = (): Promise<EnsipsGithubContents> => (
+export const getContents = () => (
 	getGithubContents({
 		binding,
-		target: ensipsGithubRepo,
+		target,
 	})
 )
 
@@ -35,8 +35,8 @@ export const getProposalMarkdownText = ({
 	getGithubRawText({
 		binding,
 		target: {
-			...ensipsGithubRepo,
-			path: `${ensipsGithubRepo.path}/${number}.md`,
+			...target,
+			path: `${target.path}/${number}.md`,
 		},
 	})
 )

@@ -15,12 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.XrplAmendment, data.selector, {
-		fields: {
-			name: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -35,6 +29,12 @@
 
 <Page>
 	<XrplAmendmentView
-		selection={pageSelection}
+		selection={
+			select(EntityType.XrplAmendment, data.selector, {
+				fields: {
+					name: true,
+				},
+			})
+		}
 	/>
 </Page>

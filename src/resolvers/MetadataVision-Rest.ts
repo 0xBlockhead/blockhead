@@ -38,40 +38,22 @@ export default {
 			entityType: EntityType.Url,
 			resolve: {
 				Url: {
-					resolve: async ({ url }) => {
-						const { getOpenGraphWireForPublicHttpUrl } = await import('$/sources/MetadataVision/Rest/queries.ts')
-						try {
-							return {
-								$$previewTimestamps: [
-									{
-										[EntityMetaKey.Selector]: {
-											$url: { url },
-											timestampMs: Date.now(),
-											source: Source.MetadataVision_Rest,
-										},
-										...urlPreviewFieldsFromWire(
-											await getOpenGraphWireForPublicHttpUrl(
-												url
-											)
-										),
-									},
-								],
-							}
-						}
-						catch (error) {
-							throw new Error(
-								`MetadataVision_Rest: Open Graph fetch failed for ${url}`,
-								{ cause: error }
-						)
-						}
-					},
+					resolve: async ({ url }) => ({
+						$$previewTimestamps: [
+							{
+								[EntityMetaKey.Selector]: {
+									$url: { url },
+									timestampMs: Date.now(),
+									source: Source.MetadataVision_Rest,
+								},
+							},
+						],
+					}),
 				}
 			},
 		})({
-				$$previewTimestamps: (snapshot) => snapshot.$$previewTimestamps.map((timestamp) => ({
-					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-				})),
-			}),
+			$$previewTimestamps: (snapshot) => snapshot.$$previewTimestamps,
+		}),
 
 		defineResolver(Source.MetadataVision_Rest, {
 			entityType: EntityType.UrlPreview_Timestamp,
@@ -91,12 +73,12 @@ export default {
 				}
 			},
 		})({
-				title: (snapshot) => snapshot.title,
-				description: (snapshot) => snapshot.description,
-				siteName: (snapshot) => snapshot.siteName,
-				imageUrl: (snapshot) => snapshot.imageUrl,
-				$image: (snapshot) => snapshot.$image,
-				previewStatus: (snapshot) => snapshot.previewStatus,
-			}),
+			title: (snapshot) => snapshot.title,
+			description: (snapshot) => snapshot.description,
+			siteName: (snapshot) => snapshot.siteName,
+			imageUrl: (snapshot) => snapshot.imageUrl,
+			$image: (snapshot) => snapshot.$image,
+			previewStatus: (snapshot) => snapshot.previewStatus,
+		}),
 	],
 }

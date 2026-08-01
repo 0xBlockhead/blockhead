@@ -33,7 +33,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 				caip2: caip2SelectorValueFromString(params.toCaip2),
 			},
 			url: decodeURIComponent(params.url),
-		}
+		},
+		'FromToUrl'
 	)
 	if (evmNetworkBridgeFromToUrlSelector instanceof arktype.errors)
 		error(404, 'Invalid EvmNetworkBridge selector')

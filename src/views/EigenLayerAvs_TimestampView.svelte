@@ -25,7 +25,6 @@
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
 			Source.EigenLayerContracts_Evm,
-			Source.EigenLayerSubgraph_Graphql,
 			Source.Etherscan_Rest,
 			Source.Voltaire_JsonRpc,
 		],
@@ -57,7 +56,6 @@
 		<EigenLayerAvsView
 			selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -88,7 +86,6 @@
 					<EigenLayerAvsView
 						selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

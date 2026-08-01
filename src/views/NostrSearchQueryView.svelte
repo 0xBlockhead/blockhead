@@ -46,7 +46,7 @@
 	entityType={EntityType.NostrSearchQuery}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? (selection.entitySelector.query || 'Nostr profile search')}
+	title={title ?? (['Search: ', selection.entitySelector.query].filter(Boolean).join(' ') || 'Nostr profile search')}
 	href={
 		href === undefined ?
 			resolve(
@@ -62,10 +62,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.query || 'Nostr profile search'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={nostrSearchQuery}>
 			{#snippet children(entity)}
@@ -74,12 +70,6 @@
 				/>
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A bounded NostrBand profile search addressed by its normalized query.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -145,12 +135,7 @@
 			{#snippet SectionNostrSearchProfiles({ id, label, open })}
 				<NostrProfilesView
 					selection={selection.$$profiles}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No matching Nostr profiles.'
 					id={`${id}-list`}

@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -31,15 +30,10 @@
 <EntityView
 	entityType={EntityType.HyperliquidSpotPair_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'hyperliquid spot pair timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		hyperliquid spot pair timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +42,6 @@
 					<HyperliquidSpotPairView
 						selection={select(EntityType.HyperliquidSpotPair, selection.entitySelector.$spotPair)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

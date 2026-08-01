@@ -28,12 +28,8 @@
 
 	<NostrProfilesView
 		href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/profiles')}
-		title='Nostr profiles'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='observed-profiles'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

@@ -1,7 +1,4 @@
-import {
-	initGraphQLTada,
-	type ResultOf,
-} from 'gql.tada'
+import { initGraphQLTada } from 'gql.tada'
 
 import { executeAptosIndexer } from './client.ts'
 import type {
@@ -136,7 +133,7 @@ export const getAccountTransactions = (
 	accountAddress: string,
 	limit = 100,
 	offset = 0
-): Promise<ResultOf<typeof accountTransactionsDocument>['account_transactions']> => {
+) => {
 	if (accountAddress.length === 0)
 		throw new Error('AptosIndexer_Graphql: account address must not be empty')
 	if (!Number.isSafeInteger(limit) || limit < 0 || limit > 100)
@@ -180,7 +177,7 @@ export const getAccountTransactions = (
 
 export const getTransaction = (
 	version: bigint
-): Promise<ResultOf<typeof transactionDocument>['user_transactions'][number] | undefined> => (
+) => (
 	executeAptosIndexer(transactionDocument, {
 		version: version.toString(),
 	}).then((data) => data.user_transactions.at(0))
@@ -190,7 +187,7 @@ export const getCurrentFungibleAssetBalances = (
 	ownerAddress: string,
 	limit = 100,
 	offset = 0
-): Promise<ResultOf<typeof currentFungibleAssetBalancesDocument>['current_fungible_asset_balances']> => {
+) => {
 	if (ownerAddress.length === 0)
 		throw new Error('AptosIndexer_Graphql: owner address must not be empty')
 	if (!Number.isSafeInteger(limit) || limit < 0 || limit > 100)
@@ -234,7 +231,7 @@ export const getCurrentFungibleAssetBalances = (
 
 export const getCurrentFungibleAssetBalance = (
 	storageId: string
-): Promise<ResultOf<typeof currentFungibleAssetBalanceDocument>['current_fungible_asset_balances_by_pk']> => (
+) => (
 	executeAptosIndexer(currentFungibleAssetBalanceDocument, {
 		storageId,
 	}).then((data) => data.current_fungible_asset_balances_by_pk)

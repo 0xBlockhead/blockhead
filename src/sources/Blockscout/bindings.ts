@@ -1,261 +1,118 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-const blockscoutRestEip155Chain1Endpoints = [
+const blockscoutRestV2HttpProxyBindingAxes = {
+	source: Source.Blockscout_Rest,
+	wireProtocol: WireProtocol.HttpRest,
+	apiFamily: ApiFamily.BlockscoutRestV2,
+	operationGroups: [
+		SourceOperationGroup.GenericRead,
+		SourceOperationGroup.BlockscoutAccountAbstraction,
+	],
+	delivery: SourceDelivery.HttpProxy,
+	credentials: [],
+	artifacts: [
+		{
+			kind: SourceArtifactKind.OpenApiSpec,
+			path: 'src/sources/Blockscout/OpenApi/openapi.yaml',
+		},
+		{
+			kind: SourceArtifactKind.GenerationManifest,
+			path: 'src/sources/Blockscout/OpenApi/schema-source.ts',
+		},
+		{
+			kind: SourceArtifactKind.OpenApiTypes,
+			path: 'src/sources/Blockscout/OpenApi/openapi.d.ts',
+			generated: true,
+		},
+	],
+} as const
+const blockscoutRestEvmExecutionJsonRpcHttpProxyBindingAxes = {
+	source: Source.Blockscout_Rest,
+	wireProtocol: WireProtocol.JsonRpc2,
+	apiFamily: ApiFamily.EvmExecutionJsonRpc,
+	operationGroups: [
+		SourceOperationGroup.EvmRpcCore,
+	],
+	delivery: SourceDelivery.HttpProxy,
+	credentials: [],
+	artifacts: [
+		{
+			kind: SourceArtifactKind.OpenRpcSpec,
+			path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+		},
+		{
+			kind: SourceArtifactKind.GenerationManifest,
+			path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+		},
+	],
+} as const
+
+const blockscoutRestTargets = [
 	{
-		endpointKind: SourceEndpointKind.HttpUrl,
+		key: '1',
 		locator: 'https://eth.blockscout.com',
-		origin: 'https://eth.blockscout.com',
-		corsEnabled: false,
 	},
-] as const
-const blockscoutRestEip155Chain10Endpoints = [
 	{
-		endpointKind: SourceEndpointKind.HttpUrl,
+		key: '10',
 		locator: 'https://optimism.blockscout.com',
-		origin: 'https://optimism.blockscout.com',
-		corsEnabled: false,
 	},
-] as const
-const blockscoutRestEip155Chain100Endpoints = [
 	{
-		endpointKind: SourceEndpointKind.HttpUrl,
+		key: '100',
 		locator: 'https://gnosis.blockscout.com',
-		origin: 'https://gnosis.blockscout.com',
-		corsEnabled: false,
 	},
-] as const
-const blockscoutRestEip155Chain137Endpoints = [
 	{
-		endpointKind: SourceEndpointKind.HttpUrl,
+		key: '137',
 		locator: 'https://polygon.blockscout.com',
-		origin: 'https://polygon.blockscout.com',
-		corsEnabled: false,
 	},
-] as const
-const blockscoutRestEip155Chain8453Endpoints = [
 	{
-		endpointKind: SourceEndpointKind.HttpUrl,
+		key: '8453',
 		locator: 'https://base.blockscout.com',
-		origin: 'https://base.blockscout.com',
-		corsEnabled: false,
 	},
-] as const
-const blockscoutRestEip155Chain42161Endpoints = [
 	{
-		endpointKind: SourceEndpointKind.HttpUrl,
+		key: '42161',
 		locator: 'https://arbitrum.blockscout.com',
-		origin: 'https://arbitrum.blockscout.com',
-		corsEnabled: false,
 	},
-] as const
-const blockscoutRestEip155Chain11155111Endpoints = [
 	{
-		endpointKind: SourceEndpointKind.HttpUrl,
+		key: '11155111',
 		locator: 'https://eth-sepolia.blockscout.com',
-		origin: 'https://eth-sepolia.blockscout.com',
-		corsEnabled: false,
-	},
-] as const
-const blockscoutRestGenericReadBlockscoutAccountAbstractionOperationGroups = [
-	SourceOperationGroup.GenericRead,
-	SourceOperationGroup.BlockscoutAccountAbstraction,
-] as const
-const blockscoutRestEtherscanAccountModuleEtherscanContractModuleOperationGroups = [
-	SourceOperationGroup.EtherscanAccountModule,
-	SourceOperationGroup.EtherscanContractModule,
-] as const
-const blockscoutRestCredentials = [
-	{
-		scope: SourceCredentialScope.None,
 	},
 ] as const
 
-const bindings = [
+const bindings = blockscoutRestTargets.flatMap(({
+	key,
+	locator,
+}) => [
 	{
-		source: Source.Blockscout_Rest,
+		...blockscoutRestV2HttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
-			key: '1',
+			key,
 		},
-		endpoints: blockscoutRestEip155Chain1Endpoints,
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.BlockscoutRestV2,
-		operationGroups: blockscoutRestGenericReadBlockscoutAccountAbstractionOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: blockscoutRestCredentials,
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator,
+				corsEnabled: false,
+			},
+		],
 	},
 	{
-		source: Source.Blockscout_Rest,
+		...blockscoutRestEvmExecutionJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
-			key: '1',
+			key,
 		},
-		endpoints: blockscoutRestEip155Chain1Endpoints,
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.EtherscanModuleAction,
-		operationGroups: blockscoutRestEtherscanAccountModuleEtherscanContractModuleOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: blockscoutRestCredentials,
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: `${locator}/api/eth-rpc`,
+				corsEnabled: false,
+			},
+		],
 	},
-	{
-		source: Source.Blockscout_Rest,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '10',
-		},
-		endpoints: blockscoutRestEip155Chain10Endpoints,
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.BlockscoutRestV2,
-		operationGroups: blockscoutRestGenericReadBlockscoutAccountAbstractionOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: blockscoutRestCredentials,
-	},
-	{
-		source: Source.Blockscout_Rest,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '10',
-		},
-		endpoints: blockscoutRestEip155Chain10Endpoints,
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.EtherscanModuleAction,
-		operationGroups: blockscoutRestEtherscanAccountModuleEtherscanContractModuleOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: blockscoutRestCredentials,
-	},
-	{
-		source: Source.Blockscout_Rest,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '100',
-		},
-		endpoints: blockscoutRestEip155Chain100Endpoints,
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.BlockscoutRestV2,
-		operationGroups: blockscoutRestGenericReadBlockscoutAccountAbstractionOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: blockscoutRestCredentials,
-	},
-	{
-		source: Source.Blockscout_Rest,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '100',
-		},
-		endpoints: blockscoutRestEip155Chain100Endpoints,
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.EtherscanModuleAction,
-		operationGroups: blockscoutRestEtherscanAccountModuleEtherscanContractModuleOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: blockscoutRestCredentials,
-	},
-	{
-		source: Source.Blockscout_Rest,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '137',
-		},
-		endpoints: blockscoutRestEip155Chain137Endpoints,
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.BlockscoutRestV2,
-		operationGroups: blockscoutRestGenericReadBlockscoutAccountAbstractionOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: blockscoutRestCredentials,
-	},
-	{
-		source: Source.Blockscout_Rest,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '137',
-		},
-		endpoints: blockscoutRestEip155Chain137Endpoints,
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.EtherscanModuleAction,
-		operationGroups: blockscoutRestEtherscanAccountModuleEtherscanContractModuleOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: blockscoutRestCredentials,
-	},
-	{
-		source: Source.Blockscout_Rest,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '8453',
-		},
-		endpoints: blockscoutRestEip155Chain8453Endpoints,
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.BlockscoutRestV2,
-		operationGroups: blockscoutRestGenericReadBlockscoutAccountAbstractionOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: blockscoutRestCredentials,
-	},
-	{
-		source: Source.Blockscout_Rest,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '8453',
-		},
-		endpoints: blockscoutRestEip155Chain8453Endpoints,
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.EtherscanModuleAction,
-		operationGroups: blockscoutRestEtherscanAccountModuleEtherscanContractModuleOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: blockscoutRestCredentials,
-	},
-	{
-		source: Source.Blockscout_Rest,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '42161',
-		},
-		endpoints: blockscoutRestEip155Chain42161Endpoints,
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.BlockscoutRestV2,
-		operationGroups: blockscoutRestGenericReadBlockscoutAccountAbstractionOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: blockscoutRestCredentials,
-	},
-	{
-		source: Source.Blockscout_Rest,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '42161',
-		},
-		endpoints: blockscoutRestEip155Chain42161Endpoints,
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.EtherscanModuleAction,
-		operationGroups: blockscoutRestEtherscanAccountModuleEtherscanContractModuleOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: blockscoutRestCredentials,
-	},
-	{
-		source: Source.Blockscout_Rest,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '11155111',
-		},
-		endpoints: blockscoutRestEip155Chain11155111Endpoints,
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.BlockscoutRestV2,
-		operationGroups: blockscoutRestGenericReadBlockscoutAccountAbstractionOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: blockscoutRestCredentials,
-	},
-	{
-		source: Source.Blockscout_Rest,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '11155111',
-		},
-		endpoints: blockscoutRestEip155Chain11155111Endpoints,
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.EtherscanModuleAction,
-		operationGroups: blockscoutRestEtherscanAccountModuleEtherscanContractModuleOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: blockscoutRestCredentials,
-	},
-] as const satisfies readonly SourceBinding[]
+]) satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Blockscout_Rest]: readonly [typeof bindings[0], typeof bindings[1], typeof bindings[2], typeof bindings[3], typeof bindings[4], typeof bindings[5], typeof bindings[6], typeof bindings[7], typeof bindings[8], typeof bindings[9], typeof bindings[10], typeof bindings[11], typeof bindings[12], typeof bindings[13]] }>(bindings)
+export default indexSourceBindings(bindings)

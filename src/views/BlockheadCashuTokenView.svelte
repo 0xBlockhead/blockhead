@@ -48,10 +48,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.id || 'blockhead Cashu token'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadCashuToken}>
 			{#snippet children(entity)}
@@ -189,7 +185,6 @@
 									selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
 									prefetched={cashuMint}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

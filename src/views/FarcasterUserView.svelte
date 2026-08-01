@@ -74,7 +74,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Icon()}
 		<ResourceBoundary resource={farcasterUser}>
 			{#snippet children(entity)}
@@ -84,7 +83,6 @@
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -100,7 +98,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{String(selection.entitySelector.fid) || [(prefetched.displayName ?? ''), (prefetched.username ?? ''), String(selection.entitySelector.fid)].filter(Boolean).join(' ') || titleFallback}
+		{['FID ', String(selection.entitySelector.fid)].filter(Boolean).join(' ') || [(prefetched.displayName ?? ''), (prefetched.username ?? ''), String(selection.entitySelector.fid)].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -191,7 +189,6 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -254,12 +251,7 @@
 							}
 						)
 					}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Farcaster casts for this user.'
 					id={`${id}-list`}
@@ -269,12 +261,7 @@
 			{#snippet SectionFarcasterUserVerifiedAddresses({ id, label, open })}
 				<FarcasterVerifiedAddressesView
 					selection={selection.$$verifiedAddresses}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Farcaster verified addresses for this user.'
 					id={`${id}-list`}
@@ -306,12 +293,7 @@
 			{#snippet SectionFarcasterUserTimestamps({ id, label, open })}
 				<FarcasterUser_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Farcaster user observations yet.'
 					id={`${id}-list`}

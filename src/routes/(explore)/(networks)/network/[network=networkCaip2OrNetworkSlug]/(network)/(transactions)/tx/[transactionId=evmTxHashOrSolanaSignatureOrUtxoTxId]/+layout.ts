@@ -72,13 +72,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			{
 				$network: parentData.selector,
 				txHash: params.transactionId,
-			}
+			},
+			'EvmNetworkTxHash'
 		)
-		if (
-			!(evmTransactionEvmNetworkTxHashSelector instanceof arktype.errors)
-			&& '$network' in evmTransactionEvmNetworkTxHashSelector
-			&& 'txHash' in evmTransactionEvmNetworkTxHashSelector
-		)
+		if (!(evmTransactionEvmNetworkTxHashSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.EvmTransaction,
 				selectorName: 'EvmNetworkTxHash',
@@ -102,13 +99,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			{
 				$network: parentData.selector,
 				signature: params.transactionId,
-			}
+			},
+			'NetworkSignature'
 		)
-		if (
-			!(solanaTransactionNetworkSignatureSelector instanceof arktype.errors)
-			&& '$network' in solanaTransactionNetworkSignatureSelector
-			&& 'signature' in solanaTransactionNetworkSignatureSelector
-		)
+		if (!(solanaTransactionNetworkSignatureSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.SolanaTransaction,
 				selectorName: 'NetworkSignature',
@@ -123,13 +117,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			{
 				$network: parentData.selector,
 				hash: params.transactionId,
-			}
+			},
+			'NetworkHash'
 		)
-		if (
-			!(cardanoTransactionNetworkHashSelector instanceof arktype.errors)
-			&& '$network' in cardanoTransactionNetworkHashSelector
-			&& 'hash' in cardanoTransactionNetworkHashSelector
-		)
+		if (!(cardanoTransactionNetworkHashSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.CardanoTransaction,
 				selectorName: 'NetworkHash',
@@ -160,13 +151,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			{
 				$network: parentData.selector,
 				txId: params.transactionId,
-			}
+			},
+			'NetworkTxId'
 		)
-		if (
-			!(utxoTransactionNetworkTxIdSelector instanceof arktype.errors)
-			&& '$network' in utxoTransactionNetworkTxIdSelector
-			&& 'txId' in utxoTransactionNetworkTxIdSelector
-		)
+		if (!(utxoTransactionNetworkTxIdSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.UtxoTransaction,
 				selectorName: 'NetworkTxId',

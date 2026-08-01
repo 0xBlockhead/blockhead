@@ -1,5 +1,5 @@
-import type { CycloneDxDocument } from '$/sources/CycloneDx/Local/types.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-export const parseDocument = (text: string): CycloneDxDocument => (
+export const parseDocument = (text: string): JsonValue => (
 	JSON.parse(text)
 )

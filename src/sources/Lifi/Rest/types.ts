@@ -1,171 +1,106 @@
-/**
- * Subset of OpenAPI `Token` / `Chain` for `GET /v1/chains` and `GET /v1/tokens`.
- * @see https://docs.li.fi/openapi.yaml
- */
+import type {
+	components,
+	paths,
+} from '$/sources/Lifi/OpenApi/openapi.d.ts'
 
-export type LifiToken = {
-	address: string
-	decimals: number
-	symbol: string
-	chainId: number
-	name: string
-	coinKey?: string
-	logoURI?: string
-	priceUSD?: string
-}
+export type LifiToken = components['schemas']['Token']
+export type LifiChain = components['schemas']['Chain']
 
-export type LifiChainMetamask = {
-	chainId?: string
-	blockExplorerUrls?: string[]
-	chainName?: string
-	nativeCurrency?: {
-		name?: string
-		symbol?: string
-		decimals?: number
+type GeneratedChainsResponse = (
+	paths['/v1/chains']['get']['responses'][200]['content']['application/json']
+)
+
+/** The documented successful response always contains the catalog array. */
+export type LifiChainsResponse = (
+	Omit<GeneratedChainsResponse, 'chains'>
+	& {
+		chains: NonNullable<GeneratedChainsResponse['chains']>
 	}
-	rpcUrls?: string[]
-}
+)
 
-/** Metamask `blockExplorerUrls` entries mapped before `Url` catalog normalization. */
-export type LifiBlockExplorerUrlLike = {
-	name: string
-	url: string
-	standard?: string | null
-	icon?: string | null
-}
-
-export type LifiChain = {
-	key: string
-	name: string
-	coin: string
-	id: number
-	mainnet: boolean
-	chainType?: string
-	logoURI?: string
-	tokenlistUrl?: string
-	faucetUrls?: string[]
-	multicallAddress?: string
-	metamask?: LifiChainMetamask
-	nativeToken?: LifiToken
-	relayerSupported?: boolean
-}
-
-export type LifiChainsResponse = {
-	chains: LifiChain[]
-}
-
-/** Live `li.quest` wraps per-chain token arrays under `tokens`. */
+/**
+ * The published OpenAPI still describes the pre-wrapper token map. The live
+ * endpoint wraps that map in `tokens` and adds the `extended` mode flag.
+ */
 export type LifiTokensResponse = {
 	tokens: Record<string, LifiToken[]>
+	extended?: boolean
 }
 
-export type FetchLifiChainsOptions = {
-	chainTypes?: string
-	baseUrl?: string
-}
+export type FetchLifiChainsOptions = NonNullable<
+	paths['/v1/chains']['get']['parameters']['query']
+>
 
-export type FetchLifiTokensOptions = {
-	chains?: string
-	tags?: string
-	chainTypes?: string
-	minPriceUSD?: number
-	baseUrl?: string
-}
+export type FetchLifiTokensOptions = NonNullable<
+	paths['/v1/tokens']['get']['parameters']['query']
+>
 
-export type LifiToolChainPair = {
-	fromChainId: string
-	toChainId: string
-}
+export type LifiStatusRequest = (
+	paths['/v1/status']['get']['parameters']['query']
+)
 
-export type LifiToolChainPairWire = {
-	fromChainId?: number | string
-	toChainId?: number | string
-}
+export type LifiStatusResponse = (
+	paths['/v1/status']['get']['responses'][200]['content']['application/json']
+)
 
-export type LifiBridgeTool = {
-	key: string
-	name: string
-	logoURI?: string
-	supportedChains: LifiToolChainPair[]
-}
+type GeneratedBridge = components['schemas']['Bridge']
+type GeneratedExchange = components['schemas']['Exchange']
 
-export type LifiBridgeToolWire = {
-	key?: string
-	name?: string
-	logoURI?: string
-	supportedChains?: LifiToolChainPairWire[]
-}
-
+/**
+ * LI.FI's OpenAPI declares bridge chain ids as strings and exchange chains as
+ * one string. Current responses use numeric bridge pairs and numeric exchange
+ * arrays; LI.FI's API-reference exchange example still shows string members.
+ */
 export type LifiToolsResponse = {
-	bridges: LifiBridgeTool[]
-	exchanges?: {
-		key: string
-		name: string
-		logoURI?: string
-		supportedChains: (number | string)[]
-	}[]
+	bridges?: (
+		Omit<GeneratedBridge, 'supportedChains'>
+		& {
+			supportedChains?: {
+				fromChainId?: number
+				toChainId?: number
+			}[]
+		}
+	)[]
+	exchanges?: (
+		Omit<GeneratedExchange, 'supportedChains'>
+		& {
+			supportedChains?: number[]
+		}
+	)[]
 }
 
-export type LifiToolsWireResponse = {
-	bridges?: LifiBridgeToolWire[]
-	exchanges?: {
-		key?: string
-		name?: string
-		logoURI?: string
-		supportedChains?: (number | string)[]
-	}[]
-}
+type LifiQuoteQuery = paths['/v1/quote']['get']['parameters']['query']
 
-/** `GET /v1/quote` — single-step quote (tool + estimate). */
-export type LifiQuoteRequest = {
-	fromChain: number
-	toChain: number
-	fromToken: string
-	toToken: string
-	fromAmount: string
-	fromAddress: string
-	toAddress?: string
-	slippage?: number
-}
-
-export type LifiQuoteStepLike = {
-	id: string
-	type: string
-	tool: string
-	toolDetails?: {
-		name?: string
-		key?: string
+/** The source currently exposes the numeric-chain quote subset used by resolvers. */
+export type LifiQuoteRequest = (
+	Pick<
+		LifiQuoteQuery,
+		| 'fromToken'
+		| 'toToken'
+		| 'fromAmount'
+		| 'fromAddress'
+		| 'toAddress'
+		| 'slippage'
+	>
+	& {
+		fromChain: number
+		toChain: number
 	}
-	action: {
-		fromChainId: number
-		toChainId: number
-		fromAmount: string
-		toAmount?: string
-		fromToken: LifiToken
-		toToken: LifiToken
-		fromAddress?: string
-		toAddress?: string
-		slippage?: number
-	}
-	estimate: {
-		tool: string
-		fromAmount: string
-		toAmount: string
-		toAmountMin: string
-		approvalAddress?: string
-		executionDuration: number
-		gasCosts?: {
-			amount: string
-			amountUSD: string
-		}[]
-		feeCosts?: {
-			amount?: string
-			amountUSD: string
-			percentage?: string
-		}[]
-	}
-}
+)
 
-export type LifiQuoteStep = LifiQuoteStepLike & {
-	includedSteps?: LifiQuoteStepLike[]
-}
+type GeneratedQuoteStep = (
+	paths['/v1/quote']['get']['responses'][200]['content']['application/json']
+)
+
+/** A successful quote always carries the estimate shown by the endpoint docs. */
+export type LifiQuoteStep = (
+	Omit<GeneratedQuoteStep, 'estimate'>
+	& {
+		estimate: NonNullable<GeneratedQuoteStep['estimate']>
+	}
+)
+
+export type LifiQuoteStepLike = (
+	| LifiQuoteStep
+	| components['schemas']['IncludedStep']
+)

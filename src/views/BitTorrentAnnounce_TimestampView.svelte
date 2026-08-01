@@ -70,7 +70,6 @@
 					<BitTorrentMetainfoView
 						selection={select(EntityType.BitTorrentMetainfo, selection.entitySelector.$torrent)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -81,7 +80,6 @@
 					<BitTorrentTrackerView
 						selection={select(EntityType.BitTorrentTracker, selection.entitySelector.$tracker)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

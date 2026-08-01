@@ -41,13 +41,11 @@
 
 
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TokenMetadataDocumentsView from '$/views/TokenMetadataDocumentsView.svelte'
 	import TokenProgramExtension_TimestampsView from '$/views/TokenProgramExtension_TimestampsView.svelte'
 	import RegulatedAssetProfilesView from '$/views/RegulatedAssetProfilesView.svelte'
-	import TransferRestrictionsView from '$/views/TransferRestrictionsView.svelte'
-	import NftCollectionsView from '$/views/NftCollectionsView.svelte'
-	import PayoutsView from '$/views/PayoutsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import MediaView from '$/views/MediaView.svelte'
 </script>
@@ -93,12 +91,6 @@
 				{entity.symbol || [entity.symbol, entity.name].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A concrete asset on a specific network or venue, such as a native coin, token, share, or collectible.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -195,7 +187,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -212,7 +203,6 @@
 									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 									prefetched={media}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -274,12 +264,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<TransferRestrictionsView
-						selection={transferRestrictionsResource}
+					<EntitiesList
+						entityType={EntityType.TransferRestriction}
 						countResource={transferRestrictionsResource.count}
 						title='Transfer restrictions'
+						open={true}
 						id='transfer-restrictions'
-					/>
+						resource={transferRestrictionsResource()}
+					>
+						{#snippet Item({ item: transferRestriction })}
+							<EntityView
+								entityType={EntityType.TransferRestriction}
+								entitySelector={transferRestriction[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -289,12 +288,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<NftCollectionsView
-						selection={nftCollectionsResource}
+					<EntitiesList
+						entityType={EntityType.NftCollection}
 						countResource={nftCollectionsResource.count}
 						title='NFT collections'
+						open={true}
 						id='nft-collections'
-					/>
+						resource={nftCollectionsResource()}
+					>
+						{#snippet Item({ item: nftCollection })}
+							<EntityView
+								entityType={EntityType.NftCollection}
+								entitySelector={nftCollection[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -304,12 +312,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<PayoutsView
-						selection={payoutsResource}
+					<EntitiesList
+						entityType={EntityType.Payout}
 						countResource={payoutsResource.count}
 						title='Payouts'
+						open={true}
 						id='payouts'
-					/>
+						resource={payoutsResource()}
+					>
+						{#snippet Item({ item: payout })}
+							<EntityView
+								entityType={EntityType.Payout}
+								entitySelector={payout[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

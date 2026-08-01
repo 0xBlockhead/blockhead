@@ -73,7 +73,6 @@
 		<AiModelProviderView
 			selection={select(EntityType.AiModelProvider, selection.entitySelector.$provider)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -98,7 +97,6 @@
 					<AiModelProviderView
 						selection={select(EntityType.AiModelProvider, selection.entitySelector.$provider)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -262,12 +260,7 @@
 			{#snippet SectionAiModelVersions({ id, label, open })}
 				<AiModelVersionsView
 					selection={selection.$$versions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No AI model versions.'
 					id={`${id}-list`}
@@ -277,12 +270,7 @@
 			{#snippet SectionAiModelDocuments({ id, label, open })}
 				<AiDocumentsView
 					selection={selection.$$documents}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No linked documents.'
 					id={`${id}-list`}
@@ -314,12 +302,7 @@
 			{#snippet SectionAiModelTimestamps({ id, label, open })}
 				<AiModel_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No AI model observations.'
 					id={`${id}-list`}

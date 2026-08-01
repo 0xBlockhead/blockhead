@@ -34,12 +34,8 @@
 
 	<EvmErrorsView
 		href={resolve('/(explore)/(protocols)/evm/(evmProtocol)/(errors)/errors')}
-		title='EVM errors'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='evm-errors'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

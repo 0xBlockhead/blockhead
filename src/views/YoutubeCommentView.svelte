@@ -6,7 +6,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -43,6 +42,7 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import YoutubeCommentsView from '$/views/YoutubeCommentsView.svelte'
 	import YoutubeComment_TimestampsView from '$/views/YoutubeComment_TimestampsView.svelte'
 	import YoutubeChannelView from '$/views/YoutubeChannelView.svelte'
@@ -79,7 +79,6 @@
 			{#snippet Pending()}
 				<TruncatedValue
 					value={selection.entitySelector.commentId}
-					format={TruncatedValueFormat.Visual}
 				/>
 			{/snippet}
 
@@ -88,19 +87,13 @@
 					value={(entity.text ?? '').replaceAll('\n', ' ') || selection.entitySelector.commentId}
 					startLength={64}
 					endLength={16}
-					format={TruncatedValueFormat.Visual}
 				/>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<span>
-			<TruncatedValue
-				value={selection.entitySelector.commentId}
-				format={TruncatedValueFormat.Visual}
-			/>
-		</span>
+		<TruncatedValue value={selection.entitySelector.commentId} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -182,7 +175,6 @@
 										selection={select(EntityType.YoutubeChannel, youtubeChannel[EntityMetaKey.Selector])}
 										prefetched={youtubeChannel}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>
@@ -204,7 +196,6 @@
 										selection={select(EntityType.YoutubeVideo, youtubeVideo[EntityMetaKey.Selector])}
 										prefetched={youtubeVideo}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>
@@ -226,7 +217,6 @@
 										selection={select(EntityType.YoutubeComment, youtubeComment[EntityMetaKey.Selector])}
 										prefetched={youtubeComment}
 										layout={EntityLayout.Value}
-										open={false}
 									/>
 								</dd>
 							</div>

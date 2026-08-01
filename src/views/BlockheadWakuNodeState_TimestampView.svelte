@@ -86,7 +86,6 @@
 					<BlockheadWakuNodeStateView
 						selection={select(EntityType.BlockheadWakuNodeState, selection.entitySelector.$nodeState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

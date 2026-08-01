@@ -131,7 +131,6 @@
 					<Erc4337PaymasterView
 						selection={select(EntityType.Erc4337Paymaster, selection.entitySelector.$paymaster)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

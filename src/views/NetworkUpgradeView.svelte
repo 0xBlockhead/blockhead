@@ -62,14 +62,7 @@
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A generic network-upgrade compatibility row keyed by network and upgrade id. Rich Ethereum-specific upgrade modeling remains on EthereumNetworkUpgrade and related execution/consensus rows.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -80,7 +73,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -13,7 +13,6 @@
 	let {
 		selection,
 		title = 'Spot stream',
-		typeAnnotationParagraphs = ['A point-in-time market quote or metric observation.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.Market_Timestamp> = $props()
@@ -29,7 +28,6 @@
 	entityType={EntityType.Market_Timestamp}
 	{title}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {

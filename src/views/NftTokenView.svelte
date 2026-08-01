@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -23,8 +22,8 @@
 
 
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import UsageRight_TimestampsView from '$/views/UsageRight_TimestampsView.svelte'
 	import NftCollectionView from '$/views/NftCollectionView.svelte'
 	import AssetObjectView from '$/views/AssetObjectView.svelte'
 	import TokenMetadataDocumentView from '$/views/TokenMetadataDocumentView.svelte'
@@ -34,15 +33,10 @@
 <EntityView
 	entityType={EntityType.NftToken}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'NFT token'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		NFT token
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -51,7 +45,6 @@
 					<NftCollectionView
 						selection={select(EntityType.NftCollection, selection.entitySelector.$collection)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -99,7 +92,6 @@
 									selection={select(EntityType.AssetObject, assetObject[EntityMetaKey.Selector])}
 									prefetched={assetObject}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -119,7 +111,6 @@
 									selection={select(EntityType.TokenMetadataDocument, tokenMetadataDocument[EntityMetaKey.Selector])}
 									prefetched={tokenMetadataDocument}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -136,12 +127,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<UsageRight_TimestampsView
-						selection={usageRightTimestampsResource}
+					<EntitiesList
+						entityType={EntityType.UsageRight_Timestamp}
 						countResource={usageRightTimestampsResource.count}
 						title='usage right timestamps'
+						open={true}
 						id='usage-right-timestamps'
-					/>
+						resource={usageRightTimestampsResource()}
+					>
+						{#snippet Item({ item: usageRightTimestamp })}
+							<EntityView
+								entityType={EntityType.UsageRight_Timestamp}
+								entitySelector={usageRightTimestamp[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

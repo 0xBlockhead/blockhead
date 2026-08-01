@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -41,15 +40,10 @@
 <EntityView
 	entityType={EntityType.KaspaAcceptedTransaction}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'kaspa accepted transaction'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		kaspa accepted transaction
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -58,7 +52,6 @@
 					<KaspaBlockView
 						selection={select(EntityType.KaspaBlock, selection.entitySelector.$acceptingBlock)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -69,7 +62,6 @@
 					<KaspaTransactionView
 						selection={select(EntityType.KaspaTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

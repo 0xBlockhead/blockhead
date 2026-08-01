@@ -215,7 +215,6 @@
 					<CosmosGovernanceProposalView
 						selection={select(EntityType.CosmosGovernanceProposal, selection.entitySelector.$proposal)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

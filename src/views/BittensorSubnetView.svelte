@@ -61,7 +61,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{String(selection.entitySelector.netuid) || [(prefetched.name ?? ''), String(selection.entitySelector.netuid)].filter(Boolean).join(' ') || titleFallback}
+		{['netuid ', String(selection.entitySelector.netuid)].filter(Boolean).join(' ') || [(prefetched.name ?? ''), String(selection.entitySelector.netuid)].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -72,7 +72,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

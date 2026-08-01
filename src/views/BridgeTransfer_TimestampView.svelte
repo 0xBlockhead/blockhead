@@ -23,7 +23,7 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.LifiStatus_Rest,
+			Source.Lifi_Rest,
 			Source.Allium_Rest,
 			Source.Dune_Rest,
 			Source.Voltaire_JsonRpc,
@@ -80,7 +80,6 @@
 					<BridgeTransferView
 						selection={select(EntityType.BridgeTransfer, selection.entitySelector.$transfer)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

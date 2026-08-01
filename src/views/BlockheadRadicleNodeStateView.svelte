@@ -53,10 +53,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.nodeId || 'blockhead radicle node state'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadRadicleNodeState}>
 			{#snippet children(entity)}
@@ -177,12 +173,7 @@
 			{#snippet SectionRadiclePeers({ id, label, open })}
 				<BlockheadRadiclePeersView
 					selection={selection.$$peers}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No peers.'
 					id={`${id}-list`}
@@ -192,12 +183,7 @@
 			{#snippet SectionRadicleSyncSessions({ id, label, open })}
 				<BlockheadRadicleSyncSessionsView
 					selection={selection.$$syncSessions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No sync sessions.'
 					id={`${id}-list`}
@@ -233,12 +219,7 @@
 			{#snippet SectionRadicleInventory({ id, label, open })}
 				<BlockheadRadicleNodeInventory_TimestampsView
 					selection={selection.$$inventoryTimestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No inventory observations.'
 					id={`${id}-list`}
@@ -248,12 +229,7 @@
 			{#snippet SectionRadicleSeeds({ id, label, open })}
 				<BlockheadRadicleSeedObservation_TimestampsView
 					selection={selection.$$seedObservations}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No seed observations.'
 					id={`${id}-list`}
@@ -285,12 +261,7 @@
 			{#snippet SectionRadicleNodeTimestamps({ id, label, open })}
 				<BlockheadRadicleNodeState_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Radicle node-state observations.'
 					id={`${id}-list`}

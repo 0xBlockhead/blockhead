@@ -40,8 +40,5 @@
 		title='Gas estimates'
 		selection={select(EntityType.Network, data.selector).Evm.$$gasEstimateTimestamps}
 		id='gas-estimate-timestamps'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

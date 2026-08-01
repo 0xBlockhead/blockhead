@@ -24,7 +24,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import CashuKeysetsView from '$/views/CashuKeysetsView.svelte'
 	import CashuMint_TimestampsView from '$/views/CashuMint_TimestampsView.svelte'
@@ -40,10 +39,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.mintUrl || 'Cashu mint'}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.mintUrl || titleFallback}
 	{/snippet}
@@ -89,12 +84,7 @@
 			{#snippet SectionCashuMintKeysetList({ id, label, open })}
 				<CashuKeysetsView
 					selection={selection.$$keysets}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No keysets found.'
 					id={`${id}-list`}
@@ -126,12 +116,7 @@
 			{#snippet SectionCashuMintTimestamps({ id, label, open })}
 				<CashuMint_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No mint observations.'
 					id={`${id}-list`}

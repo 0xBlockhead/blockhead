@@ -21,7 +21,6 @@ vi.mock('$/sources/RedditPublic/Rest/client.ts', () => ({
 
 import {
 	getCommentsByArticleId,
-	listSubredditHot,
 	listSubredditLinks,
 } from '$/sources/RedditPublic/Rest/queries.ts'
 
@@ -46,7 +45,10 @@ describe('Reddit Public RSS fallback', () => {
 			</feed>
 		`)
 
-		await expect(listSubredditHot('ethereum', 25)).resolves.toEqual({
+		await expect(listSubredditLinks('ethereum', {
+			limit: 25,
+			sort: 'hot',
+		})).resolves.toEqual({
 			kind: 'Listing',
 			data: {
 				children: [
@@ -77,7 +79,10 @@ describe('Reddit Public RSS fallback', () => {
 			</feed>
 		`)
 
-		expect((await listSubredditHot('ethereum', 25)).data.children).toEqual([
+		expect((await listSubredditLinks('ethereum', {
+			limit: 25,
+			sort: 'hot',
+		})).data.children).toEqual([
 			{
 				kind: 't3',
 				data: {
@@ -108,7 +113,11 @@ describe('Reddit Public listing continuation', () => {
 		})
 
 		await expect(
-			listSubredditHot('ethereum', 25, 't3_opaque+/=')
+			listSubredditLinks('ethereum', {
+				after: 't3_opaque+/=',
+				limit: 25,
+				sort: 'hot',
+			})
 		).resolves.toEqual({
 			kind: 'Listing',
 			data: {
@@ -126,9 +135,23 @@ describe('Reddit Public listing continuation', () => {
 		redditJsonGet.mockRejectedValue(new Error('JSON unavailable'))
 
 		await expect(
-			listSubredditHot('ethereum', 25, 't3_previous')
+			listSubredditLinks('ethereum', {
+				after: 't3_previous',
+				limit: 25,
+				sort: 'hot',
+			})
 		).rejects.toThrow('JSON unavailable')
 
+		expect(redditTextGet).not.toHaveBeenCalled()
+	})
+
+	it('does not use the hot RSS fallback for another sort', async () => {
+		redditJsonGet.mockRejectedValue(new Error('JSON unavailable'))
+
+		await expect(listSubredditLinks('ethereum', {
+			limit: 25,
+			sort: 'new',
+		})).rejects.toThrow('JSON unavailable')
 		expect(redditTextGet).not.toHaveBeenCalled()
 	})
 
@@ -153,12 +176,18 @@ describe('Reddit Public listing continuation', () => {
 	})
 
 	it('rejects invalid limits and performs no transport for an exact zero window', async () => {
-		await expect(listSubredditHot('ethereum', -1)).rejects.toThrow('listing limit must be a nonnegative safe integer')
+		await expect(listSubredditLinks('ethereum', {
+			limit: -1,
+			sort: 'hot',
+		})).rejects.toThrow('listing limit must be a nonnegative safe integer')
 		await expect(listSubredditLinks('ethereum', {
 			limit: 1.5,
 			sort: 'new',
 		})).rejects.toThrow('listing limit must be a nonnegative safe integer')
-		await expect(listSubredditHot('ethereum', 0)).resolves.toEqual({
+		await expect(listSubredditLinks('ethereum', {
+			limit: 0,
+			sort: 'hot',
+		})).resolves.toEqual({
 			kind: 'Listing',
 			data: { children: [] },
 		})

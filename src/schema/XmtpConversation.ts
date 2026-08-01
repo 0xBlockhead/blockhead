@@ -42,7 +42,7 @@ export default entity({
 	consentState: {
 		label: 'Consent',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
+		primitiveType: type.enumerated(...Object.values(XmtpConversationConsentState)),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({

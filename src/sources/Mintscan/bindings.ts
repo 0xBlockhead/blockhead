@@ -2,10 +2,11 @@
 
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { type as arktype } from 'arktype'
 
 const bindings = [
 	{
-		source: Source.Mintscan_Rest,
+		source: Source.Mintscan,
 		target: {
 			kind: SourceTargetKind.Global,
 			key: 'mintscan-api',
@@ -13,9 +14,8 @@ const bindings = [
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://{mintscan-api-host}',
-				origin: 'https://{mintscan-api-host}',
-				corsEnabled: false,
+				locator: 'https://apis.mintscan.io',
+				corsEnabled: true,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
@@ -23,13 +23,16 @@ const bindings = [
 		operationGroups: [
 			SourceOperationGroup.GenericRead,
 		],
-		delivery: SourceDelivery.RemoteQuery,
+		delivery: SourceDelivery.BrowserDirect,
 		credentials: [
 			{
-				scope: SourceCredentialScope.None,
+				scope: SourceCredentialScope.PublicConfig,
+				env: arktype({
+					'PUBLIC_MINTSCAN_API_KEY': 'string > 0',
+				}),
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Mintscan_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

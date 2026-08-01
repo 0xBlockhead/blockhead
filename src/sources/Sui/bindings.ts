@@ -1,11 +1,15 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+
+const suiGenericReadOperationGroups = [
+	SourceOperationGroup.GenericRead,
+] as const
 
 const bindings = [
 	{
-		source: Source.Sui_Graphql,
+		source: Source.Sui,
 		target: {
 			kind: SourceTargetKind.NetworkSlug,
 			key: 'sui',
@@ -13,56 +17,35 @@ const bindings = [
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://{sui-graphql-host}',
-				origin: 'https://{sui-graphql-host}',
+				locator: 'https://graphql.mainnet.sui.io/graphql',
 				corsEnabled: false,
 			},
 		],
 		wireProtocol: WireProtocol.Graphql,
 		apiFamily: ApiFamily.GraphqlHttp,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: suiGenericReadOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 		artifacts: [
 			{
-				kind: SourceArtifactKind.HandwrittenTypes,
-				path: 'src/sources/Sui/Graphql/types.ts',
-				generated: false,
+				kind: SourceArtifactKind.GraphqlSchema,
+				path: 'src/sources/Sui/Graphql/schema.graphql',
+				generated: true,
+				officialUrl: 'https://graphql.mainnet.sui.io/graphql',
+			},
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/Sui/Graphql/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.GraphqlTypes,
+				path: 'src/sources/Sui/Graphql/graphql-env.d.ts',
+				generated: true,
 			},
 		],
 	},
 	{
-		source: Source.Sui_Grpc,
-		target: {
-			kind: SourceTargetKind.NetworkSlug,
-			key: 'sui',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.TcpAddress,
-				locator: 'env:SUI_GRPC_ENDPOINT',
-			},
-		],
-		wireProtocol: WireProtocol.Grpc,
-		apiFamily: ApiFamily.GrpcService,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
-		delivery: SourceDelivery.ServerOnly,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
-	},
-	{
-		source: Source.Sui_JsonRpc,
+		source: Source.Sui,
 		target: {
 			kind: SourceTargetKind.NetworkSlug,
 			key: 'sui',
@@ -70,27 +53,16 @@ const bindings = [
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://{sui-rpc-host}',
-				origin: 'https://{sui-rpc-host}',
+				locator: 'https://fullnode.mainnet.sui.io:443',
 				corsEnabled: false,
 			},
 		],
-		wireProtocol: WireProtocol.JsonRpc2,
-		apiFamily: ApiFamily.JsonRpcApi,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
-		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		wireProtocol: WireProtocol.Grpc,
+		apiFamily: ApiFamily.GrpcService,
+		operationGroups: suiGenericReadOperationGroups,
+		delivery: SourceDelivery.ServerOnly,
+		credentials: [],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.Sui_Graphql]: typeof bindings[0]
-	readonly [Source.Sui_Grpc]: typeof bindings[1]
-	readonly [Source.Sui_JsonRpc]: typeof bindings[2]
-}>(bindings)
+export default indexSourceBindings(bindings)

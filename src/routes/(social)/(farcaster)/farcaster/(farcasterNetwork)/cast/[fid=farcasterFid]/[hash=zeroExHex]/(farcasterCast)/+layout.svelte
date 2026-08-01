@@ -19,6 +19,16 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]',
+			{
+				fid: params.fid,
+				hash: params.hash,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,34 +39,20 @@
 
 {#key [params.fid, params.hash].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]',
-				{
-					fid: params.fid,
-					hash: params.hash,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<FarcasterCastView
 				selection={
-					select(EntityType.FarcasterCast, data.selector, { sources: [
-						Source.Snapchain_Rest,
-						Source.Neynar_Rest,
-						Source.Farcaster_Rest,
-					] })
+					select(EntityType.FarcasterCast, data.selector, {
+						sources: [
+							Source.Snapchain_Rest,
+							Source.Neynar_Rest,
+							Source.Farcaster_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]',
-						{
-							fid: params.fid,
-							hash: params.hash,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

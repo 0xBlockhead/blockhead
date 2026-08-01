@@ -45,10 +45,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.remoteName || 'Git fetch observation'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={gitFetchObservation}>
 			{#snippet children(entity)}
@@ -75,7 +71,6 @@
 					<GitRepositoryView
 						selection={select(EntityType.GitRepository, selection.entitySelector.$repository)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

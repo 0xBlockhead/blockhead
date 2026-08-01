@@ -25,7 +25,6 @@ import {
 	materializeResolverOutput,
 	ResolverOutputMaterialization,
 } from '$/collections/assertLoadedCollectionRows.ts'
-import { cosmosNetworkBySlug } from '$/constants/CosmosNetwork.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
 	indexResolvers,
@@ -124,9 +123,12 @@ const fixtureSchema = [
 
 
 describe('source applicability planning contract', () => {
-	it('eip155 excludes Cosmos and Superchain', () => {
+	it('non-Superchain EIP-155 networks exclude Superchain', () => {
 		expect(networkSources({
 			caip2: networkBySlug.ethereum.caip2,
+		})).toEqual([])
+		expect(networkSources({
+			caip2: networkBySlug.arbitrum.caip2,
 		})).toEqual([])
 	})
 
@@ -140,7 +142,7 @@ describe('source applicability planning contract', () => {
 
 	it('cosmoshub includes Cosmos', () => {
 		expect(networkSources({
-			caip2: cosmosNetworkBySlug.cosmos.caip2,
+			caip2: networkBySlug.cosmos.caip2,
 		})).toEqual([
 			Source.CosmosSdk_Rest,
 		])
@@ -635,6 +637,9 @@ describe('source applicability planning contract', () => {
 			})).toBe(true)
 			expect(resolver.appliesTo('Caip2', {
 				caip2: networkBySlug.ethereum.caip2,
+			})).toBe(false)
+			expect(resolver.appliesTo('Caip2', {
+				caip2: networkBySlug.arbitrum.caip2,
 			})).toBe(false)
 		}
 	})

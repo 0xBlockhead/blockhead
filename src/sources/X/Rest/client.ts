@@ -13,7 +13,7 @@ const binding = bindings[Source.X_Rest]
 export const xApiV2Get = async <T>(
 	publicEnv: SourcePublicEnv,
 	path: `/${string}`
-): Promise<T> => {
+) => {
 	const url = `${firstHttpUrlForBinding(binding)}/2${path}`
 	const response = await sourceFetch(
 		binding,
@@ -27,5 +27,5 @@ export const xApiV2Get = async <T>(
 	if (!response.ok)
 		throw new Error(await fetchFailedMessage(url, response))
 
-	return response.json()
+	return response.json<T>()
 }

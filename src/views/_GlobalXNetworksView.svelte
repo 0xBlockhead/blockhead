@@ -40,10 +40,6 @@
 			entityType={EntityType._GlobalXNetwork}
 			entitySelector={globalXNetworkSelector}
 		>
-			{#snippet Title()}
-				global X network
-			{/snippet}
-
 			{#snippet Value()}
 				{globalXNetworkSelector.scope}
 			{/snippet}

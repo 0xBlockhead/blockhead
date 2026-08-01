@@ -14,7 +14,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.cohere.com',
-				origin: 'https://api.cohere.com',
 				corsEnabled: false,
 			},
 		],
@@ -37,4 +36,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Cohere_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

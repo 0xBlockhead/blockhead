@@ -32,10 +32,6 @@
 		<EntityView
 			entityType={EntityType.AlgorandTealProgram_Timestamp}
 			entitySelector={algorandTealProgramTimestamp[EntityMetaKey.Selector]}
-		>
-			{#snippet Title()}
-				algorand teal program timestamp
-			{/snippet}
-		</EntityView>
+		/>
 	{/snippet}
 </EntitiesList>

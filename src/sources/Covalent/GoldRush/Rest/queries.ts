@@ -5,12 +5,9 @@ import {
 } from '$/sources/_runtime/http.ts'
 import type {
 	GoldRushAddressTransactionsResponse,
-	GoldRushAddressTransactionsResult,
 	GoldRushTransactionExpansions,
 	GoldRushTransactionResponse,
-	GoldRushTransactionResult,
 	GoldRushTokenBalancesResponse,
-	GoldRushTokenBalancesResult,
 } from '$/sources/Covalent/GoldRush/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -41,7 +38,7 @@ export const getTransaction = async ({
 	chainName: string
 	txHash: string
 	expansions?: GoldRushTransactionExpansions
-}): Promise<GoldRushTransactionResult> => {
+}) => {
 	if (chainName.trim() === '')
 		throw new Error('GoldRushFoundational_Rest: unsupported chain')
 
@@ -77,12 +74,7 @@ export const getTransaction = async ({
 	if (envelope.data.items[0].tx_hash.toLowerCase() !== txHash.toLowerCase())
 		throw new Error('GoldRushFoundational_Rest: response transaction does not match request')
 
-	return {
-		transaction: envelope.data.items[0],
-		updatedAt: envelope.data.updated_at,
-		chainId: envelope.data.chain_id,
-		chainName: envelope.data.chain_name,
-	}
+	return envelope.data
 }
 
 export const getTokenBalances = async ({
@@ -95,7 +87,7 @@ export const getTokenBalances = async ({
 	chainName: string
 	address: string
 	noSpam?: boolean
-}): Promise<GoldRushTokenBalancesResult> => {
+}) => {
 	if (chainName.trim() === '')
 		throw new Error('GoldRushFoundational_Rest: unsupported chain')
 
@@ -170,15 +162,7 @@ export const getTokenBalances = async ({
 		balanceIdentities.add(balanceIdentity)
 	}
 
-	return {
-		balances: envelope.data.items,
-		address: envelope.data.address,
-		updatedAt: envelope.data.updated_at,
-		chainTipHeight: envelope.data.chain_tip_height,
-		chainTipSignedAt: envelope.data.chain_tip_signed_at,
-		chainId: envelope.data.chain_id,
-		chainName: envelope.data.chain_name,
-	}
+	return envelope.data
 }
 
 export const getAddressTransactions = async ({
@@ -195,7 +179,7 @@ export const getAddressTransactions = async ({
 	page: number
 	noLogs?: boolean
 	ascending?: boolean
-}): Promise<GoldRushAddressTransactionsResult> => {
+}) => {
 	if (chainName.trim() === '')
 		throw new Error('GoldRushFoundational_Rest: unsupported chain')
 
@@ -280,16 +264,5 @@ export const getAddressTransactions = async ({
 		transactionHashes.add(transactionHash)
 	}
 
-	return {
-		transactions: envelope.data.items,
-		address: envelope.data.address,
-		page: envelope.data.current_page,
-		previousPageUrl: envelope.data.links.prev,
-		nextPageUrl: envelope.data.links.next,
-		updatedAt: envelope.data.updated_at,
-		chainTipHeight: envelope.data.chain_tip_height,
-		chainTipSignedAt: envelope.data.chain_tip_signed_at,
-		chainId: envelope.data.chain_id,
-		chainName: envelope.data.chain_name,
-	}
+	return envelope.data
 }

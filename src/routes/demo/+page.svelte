@@ -2,11 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
-	import { EntityType } from '$/schema/EntityType.ts'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
+	import { resolve } from '$app/paths'
 
 
 	// Components

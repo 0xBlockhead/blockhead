@@ -50,15 +50,10 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.cid || 'blockhead codex stored data'}
-	{/snippet}
-
 	{#snippet Value()}
 		<BlockheadCodexStorageNodeStateView
 			selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -83,7 +78,6 @@
 					<BlockheadCodexStorageNodeStateView
 						selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -107,7 +101,6 @@
 									selection={select(EntityType.CodexDataset, codexDataset[EntityMetaKey.Selector])}
 									prefetched={codexDataset}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

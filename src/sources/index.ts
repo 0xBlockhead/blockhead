@@ -30,9 +30,8 @@ export const sourceBindings = allSourceBindings
 			binding.delivery === SourceDelivery.RemoteQuery
 			|| binding.delivery === SourceDelivery.RemoteLive
 			|| binding.credentials.every((credential) => (
-				credential.scope === SourceCredentialScope.None
-				|| credential.scope === SourceCredentialScope.PublicConfig
-				|| credential.scope === SourceCredentialScope.UserDelegated
+				credential.scope === SourceCredentialScope.PublicConfig
+					|| credential.scope === SourceCredentialScope.UserDelegated
 				|| (
 					binding.delivery === SourceDelivery.HttpProxy
 					&& credential.scope === SourceCredentialScope.RuntimeSecret

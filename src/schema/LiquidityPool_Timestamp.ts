@@ -40,7 +40,7 @@ export default entity({
 		entityType: EntityType.LiquidityPool,
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	baseTokenSymbol: {
@@ -49,7 +49,7 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	quoteTokenSymbol: {
@@ -58,7 +58,7 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	baseTokenDecimals: {
@@ -79,7 +79,7 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	dexscreenerLabels: {
@@ -88,7 +88,7 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	dexId: {
@@ -97,7 +97,7 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	dexscreenerPairUrl: {
@@ -106,7 +106,7 @@ export default entity({
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	priceUsd: {
@@ -115,7 +115,7 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	priceNative: {
@@ -124,7 +124,7 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	liquidityUsd: {
@@ -133,7 +133,7 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	volumeUsd24h: {
@@ -142,7 +142,7 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	priceChangePercent24h: {
@@ -151,7 +151,7 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	transactionBuys24h: {
@@ -160,7 +160,7 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	transactionSells24h: {
@@ -169,7 +169,7 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	marketCapUsd: {
@@ -178,7 +178,7 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	fdvUsd: {
@@ -187,7 +187,7 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 	transport: {
@@ -196,7 +196,7 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 	},
 })({

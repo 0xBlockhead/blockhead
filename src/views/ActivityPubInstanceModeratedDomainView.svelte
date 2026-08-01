@@ -61,14 +61,7 @@
 			selection={select(EntityType.ActivityPubInstance_Timestamp, selection.entitySelector.$observation)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A domain that a declared ActivityPub instance reports in its public moderation-domain list.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -79,7 +72,6 @@
 					<ActivityPubInstance_TimestampView
 						selection={select(EntityType.ActivityPubInstance_Timestamp, selection.entitySelector.$observation)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

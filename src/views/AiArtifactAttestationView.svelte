@@ -51,15 +51,10 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.attestationKind || 'AI artifact attestation'}
-	{/snippet}
-
 	{#snippet Value()}
 		<AiArtifactView
 			selection={select(EntityType.AiArtifact, selection.entitySelector.$artifact)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -84,7 +79,6 @@
 					<AiArtifactView
 						selection={select(EntityType.AiArtifact, selection.entitySelector.$artifact)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

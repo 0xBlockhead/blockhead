@@ -37,15 +37,10 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.resourceType || 'aptos account resource'}
-	{/snippet}
-
 	{#snippet Value()}
 		<AptosAccountView
 			selection={select(EntityType.AptosAccount, selection.entitySelector.$account)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -57,7 +52,6 @@
 					<AptosAccountView
 						selection={select(EntityType.AptosAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

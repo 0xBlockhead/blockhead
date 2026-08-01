@@ -24,7 +24,7 @@ vi.mock('$/sources/Mastodon/Rest/client.ts', () => ({
 	],
 }))
 
-const { listAccountStatusesPageByLocalAccountId, listPublicTimeline, listPublicTimelinePage } = await import('$/sources/Mastodon/Rest/queries.ts')
+const { listAccountStatusesPageByLocalAccountId, listPublicTimelinePage } = await import('$/sources/Mastodon/Rest/queries.ts')
 
 describe('Mastodon public timeline', () => {
 	beforeEach(() => {
@@ -36,20 +36,20 @@ describe('Mastodon public timeline', () => {
 	it('requests the public federated timeline without requiring a token', async () => {
 		mastodonFetchPublicTimelineUrl.mockResolvedValueOnce(new Response('[{"id":"114000000000000001"}]'))
 
-		await expect(listPublicTimeline(
-			{},
+		await expect(listPublicTimelinePage(
 			'https://fosstodon.org',
 			20
-		)).resolves.toEqual([{ id: '114000000000000001' }])
+		)).resolves.toEqual({
+			statuses: [{ id: '114000000000000001' }],
+			continuationToken: undefined,
+		})
 		expect(mastodonFetchPublicTimelineUrl).toHaveBeenCalledWith(
-			{},
 			'https://fosstodon.org/api/v1/timelines/public?limit=20'
 		)
 	})
 
 	it('does not call an instance binding that lacks anonymous public timeline authority', async () => {
-		await expect(listPublicTimeline(
-			{},
+		await expect(listPublicTimelinePage(
 			'https://mastodon.social',
 			20
 		)).rejects.toThrow('public timeline binding is missing')
@@ -63,10 +63,9 @@ describe('Mastodon public timeline', () => {
 	])('bounds the requested page size %s to %s', async (limit, expectedLimit) => {
 		mastodonFetchPublicTimelineUrl.mockResolvedValueOnce(new Response('[]'))
 
-		await listPublicTimeline({}, 'https://fosstodon.org', limit)
+		await listPublicTimelinePage('https://fosstodon.org', limit)
 
 		expect(mastodonFetchPublicTimelineUrl).toHaveBeenCalledWith(
-			{},
 			`https://fosstodon.org/api/v1/timelines/public?limit=${expectedLimit}`
 		)
 	})
@@ -79,7 +78,6 @@ describe('Mastodon public timeline', () => {
 		}))
 
 		await expect(listPublicTimelinePage(
-			{},
 			'https://fosstodon.org',
 			2
 		)).resolves.toEqual({
@@ -87,13 +85,11 @@ describe('Mastodon public timeline', () => {
 			continuationToken: 'https://fosstodon.org/api/v1/timelines/public?limit=2&max_id=opaque%2B%2F%3D',
 		})
 		expect(mastodonFetchPublicTimelineUrl).toHaveBeenCalledWith(
-			{},
 			'https://fosstodon.org/api/v1/timelines/public?limit=2'
 		)
 
 		mastodonFetchPublicTimelineUrl.mockResolvedValueOnce(new Response('[]'))
 		await expect(listPublicTimelinePage(
-			{},
 			'https://fosstodon.org',
 			2,
 			'https://fosstodon.org/api/v1/timelines/public?limit=2&max_id=opaque%2B%2F%3D'
@@ -102,7 +98,6 @@ describe('Mastodon public timeline', () => {
 			continuationToken: undefined,
 		})
 		expect(mastodonFetchPublicTimelineUrl).toHaveBeenLastCalledWith(
-			{},
 			'https://fosstodon.org/api/v1/timelines/public?limit=2&max_id=opaque%2B%2F%3D'
 		)
 	})
@@ -116,7 +111,6 @@ describe('Mastodon public timeline', () => {
 		}))
 
 		await expect(listPublicTimelinePage(
-			{},
 			'https://fosstodon.org',
 			2,
 			continuationToken
@@ -125,7 +119,6 @@ describe('Mastodon public timeline', () => {
 			continuationToken: undefined,
 		})
 		expect(mastodonFetchPublicTimelineUrl).toHaveBeenCalledWith(
-			{},
 			continuationToken
 		)
 	})
@@ -137,7 +130,6 @@ describe('Mastodon public timeline', () => {
 		'https://fosstodon.org/api/v1/timelines/public?max_id=1#fragment',
 	])('rejects invalid continuation %s before transport', async (continuationToken) => {
 		await expect(listPublicTimelinePage(
-			{},
 			'https://fosstodon.org',
 			2,
 			continuationToken
@@ -154,8 +146,8 @@ describe('Mastodon public timeline', () => {
 				headers: { Link: '<https://evil.example/api/v1/timelines/public?max_id=1>; rel="next"' },
 			}))
 
-		await expect(listPublicTimelinePage({}, 'https://fosstodon.org', 2)).rejects.toThrow('malformed public timeline continuation')
-		await expect(listPublicTimelinePage({}, 'https://fosstodon.org', 2)).rejects.toThrow('invalid public timeline continuation')
+		await expect(listPublicTimelinePage('https://fosstodon.org', 2)).rejects.toThrow('malformed public timeline continuation')
+		await expect(listPublicTimelinePage('https://fosstodon.org', 2)).rejects.toThrow('invalid public timeline continuation')
 	})
 
 	it('rejects ambiguous next Links', async () => {
@@ -165,7 +157,7 @@ describe('Mastodon public timeline', () => {
 			},
 		}))
 
-		await expect(listPublicTimelinePage({}, 'https://fosstodon.org', 2)).rejects.toThrow('ambiguous public timeline continuation')
+		await expect(listPublicTimelinePage('https://fosstodon.org', 2)).rejects.toThrow('ambiguous public timeline continuation')
 	})
 
 	it('continues one actor status collection with the shared opaque Link contract', async () => {
@@ -178,7 +170,6 @@ describe('Mastodon public timeline', () => {
 			.mockResolvedValueOnce(new Response('[]'))
 
 		const firstPage = await listAccountStatusesPageByLocalAccountId(
-			{},
 			'https://mastodon.social',
 			'actor/id',
 			3
@@ -186,11 +177,9 @@ describe('Mastodon public timeline', () => {
 		expect(firstPage.continuationToken).toBe('https://mastodon.social/api/v1/accounts/actor%2Fid/statuses?limit=3&max_id=opaque%2B%2F%3D')
 		expect(mastodonFetchUrl).toHaveBeenNthCalledWith(
 			1,
-			{},
 			'https://mastodon.social/api/v1/accounts/actor%2Fid/statuses?limit=3'
 		)
 		await expect(listAccountStatusesPageByLocalAccountId(
-			{},
 			'https://mastodon.social',
 			'actor/id',
 			3,
@@ -201,7 +190,6 @@ describe('Mastodon public timeline', () => {
 		})
 		expect(mastodonFetchUrl).toHaveBeenNthCalledWith(
 			2,
-			{},
 			firstPage.continuationToken
 		)
 	})
@@ -212,7 +200,6 @@ describe('Mastodon public timeline', () => {
 		'https://mastodon.social/api/v1/accounts/13179/statuses?max_id=1#fragment',
 	])('rejects invalid authored-notes continuation %s before transport', async (continuationToken) => {
 		await expect(listAccountStatusesPageByLocalAccountId(
-			{},
 			'https://mastodon.social',
 			'13179',
 			2,

@@ -20,7 +20,6 @@
 
 
 	// Components
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 </script>
 
@@ -49,9 +48,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<span data-text="font-monospace">
-			{selection.entitySelector.hex}
-		</span>
+		<span data-text="font-monospace">{selection.entitySelector.hex}</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}

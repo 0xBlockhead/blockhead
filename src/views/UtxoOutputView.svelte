@@ -98,7 +98,6 @@
 									selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
 									prefetched={utxoAddress}
 									layout={EntityLayout.Title}
-									open={false}
 								/>
 							</span>
 						{/if}
@@ -161,7 +160,6 @@
 									selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
 									prefetched={utxoAddress}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -399,7 +397,6 @@
 									selection={select(EntityType.BitcoinCashCashTokenFungibleAmount, bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector])}
 									prefetched={bitcoinCashCashTokenFungibleAmount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -419,7 +416,6 @@
 									selection={select(EntityType.BitcoinCashCashTokenNft, bitcoinCashCashTokenNft[EntityMetaKey.Selector])}
 									prefetched={bitcoinCashCashTokenNft}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -433,7 +429,6 @@
 					<UtxoTransactionView
 						selection={select(EntityType.UtxoTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

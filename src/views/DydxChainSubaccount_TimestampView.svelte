@@ -23,8 +23,8 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.DydxIndexer_Rest,
-			Source.DydxValidator_Rest,
+			Source.DydxIndexer,
+			Source.KingnodesDydxNode,
 		],
 	}))
 
@@ -54,7 +54,6 @@
 		<DydxChainSubaccountView
 			selection={select(EntityType.DydxChainSubaccount, selection.entitySelector.$subaccount)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -66,7 +65,6 @@
 					<DydxChainSubaccountView
 						selection={select(EntityType.DydxChainSubaccount, selection.entitySelector.$subaccount)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

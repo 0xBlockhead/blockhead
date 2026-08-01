@@ -1,7 +1,7 @@
 import { jsonErrorHintFromResponse } from '$/lib/http.ts'
 import { Source } from '$/sources/Source.ts'
+import { sourceEndpointOrigin } from '$/sources/SourceBinding.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
-import type { SwarmBrowseResult } from '$/sources/Swarm/Rest/types.ts'
 import bindings from '$/sources/Swarm/bindings.ts'
 
 const binding = bindings[Source.Swarm_Rest]
@@ -41,7 +41,7 @@ const getGatewayUrl = ({
 	reference: string
 	contentPath?: string
 	gatewayOrigin: string
-}): string => {
+}) => {
 	const trimmedReference = normalizeReference(reference)
 	const trimmedPath = trimSlashes(contentPath?.trim() ?? '')
 	return `${gatewayOrigin}/bzz/${trimmedReference}${trimmedPath ? `/${trimmedPath}` : ''}`
@@ -55,7 +55,7 @@ export const fetchBrowseResult = async ({
 	reference: string
 	contentPath?: string
 	signal?: AbortSignal
-}): Promise<SwarmBrowseResult> => {
+}) => {
 	const trimmedReference = normalizeReference(reference)
 	const trimmedPath = trimSlashes(contentPath?.trim() ?? '')
 	const failures: string[] = []
@@ -93,7 +93,7 @@ export const fetchBrowseResult = async ({
 		return {
 			reference: trimmedReference,
 			contentPath: trimmedPath,
-			gatewayOrigin: endpoint.origin,
+			gatewayOrigin: sourceEndpointOrigin(endpoint),
 			gatewayUrl,
 			fileName: parsedContent.fileName,
 			extension: parsedContent.extension,

@@ -3,6 +3,11 @@
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
+const gitRepositoryContentsRepositoryMetadataOperationGroups = [
+	SourceOperationGroup.GitRepositoryContents,
+	SourceOperationGroup.RepositoryMetadata,
+] as const
+
 const bindings = [
 	{
 		source: Source.Git_Local,
@@ -18,10 +23,7 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.Git,
 		apiFamily: ApiFamily.GitObject,
-		operationGroups: [
-			SourceOperationGroup.GitRepositoryContents,
-			SourceOperationGroup.RepositoryMetadata,
-		],
+		operationGroups: gitRepositoryContentsRepositoryMetadataOperationGroups,
 		delivery: SourceDelivery.LocalOnly,
 		credentials: [
 			{
@@ -39,16 +41,12 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://{host}/{owner}/{repo}.git',
-				origin: 'https://{host}',
 				corsEnabled: false,
 			},
 		],
 		wireProtocol: WireProtocol.Git,
 		apiFamily: ApiFamily.GitObject,
-		operationGroups: [
-			SourceOperationGroup.GitRepositoryContents,
-			SourceOperationGroup.RepositoryMetadata,
-		],
+		operationGroups: gitRepositoryContentsRepositoryMetadataOperationGroups,
 		delivery: SourceDelivery.ServerOnly,
 		credentials: [
 			{
@@ -58,7 +56,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.Git_Local]: typeof bindings[0]
-	readonly [Source.Git_Remote]: typeof bindings[1]
-}>(bindings)
+export default indexSourceBindings(bindings)

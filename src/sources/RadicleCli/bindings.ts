@@ -30,4 +30,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.RadicleCli_Local]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

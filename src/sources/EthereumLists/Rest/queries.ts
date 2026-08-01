@@ -5,13 +5,21 @@
 import { throwHttpError } from '$/lib/http.ts'
 import type { EthereumListsChainJson } from '$/sources/EthereumLists/Rest/types.ts'
 import {
+	firstHttpUrlForBinding,
 	sourceFetch,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/EthereumLists/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.EthereumLists_Rest]
+const bindingByTargetKey = Object.fromEntries(
+	bindings[Source.EthereumLists_Rest].map((binding) => ([
+		binding.target.key,
+		binding,
+	] as const))
+)
+const chainsBinding = bindingByTargetKey['chains-json']
+const githubTreeBinding = bindingByTargetKey['github-tree']
 
 type EthereumListsIconJson = {
 	url?: string
@@ -23,28 +31,21 @@ type GithubTreeResponse = {
 	}[]
 }
 
-const httpUrlForBindingAtIndex = (
-	endpointIndex: 0 | 1
-) => {
-	const endpoint = binding.endpoints[endpointIndex]
-	return endpoint.locator
-}
-
-export const fetchChainsJson = async (): Promise<EthereumListsChainJson[]> => {
-	const url = new URL('/chains.json', httpUrlForBindingAtIndex(0)).toString()
-	const response = await sourceFetch(binding, url, {
+export const fetchChainsJson = async () => {
+	const url = new URL('/chains.json', firstHttpUrlForBinding(chainsBinding)).toString()
+	const response = await sourceFetch(chainsBinding, url, {
 		cache: 'no-store',
 	})
 	if (!response.ok) await throwHttpError('EthereumLists chains.json', response)
-	return response.json()
+	return response.json<EthereumListsChainJson[]>()
 }
 
-export const fetchIconSlugs = async (): Promise<Set<string>> => {
+export const fetchIconSlugs = async () => {
 	const result = await sourceGetJson<GithubTreeResponse>(
-		binding,
+		githubTreeBinding,
 		new URL(
 			'/repos/ethereum-lists/chains/git/trees/master?recursive=1',
-			httpUrlForBindingAtIndex(1)
+			firstHttpUrlForBinding(githubTreeBinding)
 		).toString()
 	)
 	return new Set(
@@ -60,15 +61,15 @@ export const fetchIconSlugs = async (): Promise<Set<string>> => {
 
 export const fetchIconJsonBySlug = async (
 	slug: string
-): Promise<EthereumListsIconJson | undefined> => {
+) => {
 	const trimmed = slug.trim()
 	if (trimmed.length === 0) return undefined
 	if (!(await fetchIconSlugs()).has(trimmed)) return undefined
 	return sourceGetJson<EthereumListsIconJson>(
-		binding,
+		chainsBinding,
 		new URL(
 			`/icons/${encodeURIComponent(trimmed)}.json`,
-			httpUrlForBindingAtIndex(0)
+			firstHttpUrlForBinding(chainsBinding)
 		).toString()
 	)
 }

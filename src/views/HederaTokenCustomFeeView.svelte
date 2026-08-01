@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -34,15 +33,10 @@
 <EntityView
 	entityType={EntityType.HederaTokenCustomFee}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'hedera token custom fee'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		hedera token custom fee
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -51,7 +45,6 @@
 					<HederaToken_TimestampView
 						selection={select(EntityType.HederaToken_Timestamp, selection.entitySelector.$tokenTimestamp)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -292,7 +285,6 @@
 									selection={select(EntityType.HederaAccount, hederaAccount[EntityMetaKey.Selector])}
 									prefetched={hederaAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -312,7 +304,6 @@
 									selection={select(EntityType.HederaToken, hederaToken[EntityMetaKey.Selector])}
 									prefetched={hederaToken}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

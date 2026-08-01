@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import {
-	queryAccount,
+	queryAccountByAddress,
+	queryAccountByLegacyProfileId,
+	queryAccountByLocalName,
+	queryAccountStats,
 	queryAccounts,
 	queryFeed,
 	queryFeedPosts,
@@ -9,7 +12,8 @@ import {
 	queryNamespace,
 	queryNamespaces,
 	queryPost,
-	queryUsername,
+	queryUsernameById,
+	queryUsernameByLocalName,
 	queryUsernames,
 } from '$/sources/Lens/Graphql/queries.ts'
 import bindings from '$/sources/Lens/bindings.ts'
@@ -60,8 +64,8 @@ it('requests complete public account and post reading fields', async () => {
 		},
 	}
 	fetchMock
-		.mockResolvedValueOnce(response({ account }))
 		.mockResolvedValueOnce(response({
+			account,
 			accountStats: {
 				graphFollowStats: {
 					followers: 5,
@@ -84,7 +88,7 @@ it('requests complete public account and post reading fields', async () => {
 			},
 		}))
 
-	await expect(queryAccount({}, { address: account.address })).resolves.toMatchObject({
+	await expect(queryAccountByAddress({}, account.address)).resolves.toMatchObject({
 		account,
 		accountStats: {
 			graphFollowStats: {
@@ -104,8 +108,41 @@ it('requests complete public account and post reading fields', async () => {
 	})
 	expect(requestBody(0).query).toMatch(/owner[\s\S]*score[\s\S]*username[\s\S]*linkedTo[\s\S]*ownedBy/)
 	expect(requestBody(0).variables).toEqual({ address: account.address })
-	expect(requestBody(2).query).toMatch(/contentUri[\s\S]*feed[\s\S]*address[\s\S]*metadata/)
-	expect(requestBody(2).variables).toEqual({ post: 'post-1' })
+	expect(requestBody(1).query).toMatch(/contentUri[\s\S]*feed[\s\S]*address[\s\S]*metadata/)
+	expect(requestBody(1).variables).toEqual({ post: 'post-1' })
+})
+
+it('keeps account lookup and observation documents independently addressable', async () => {
+	const address = '0x1111111111111111111111111111111111111111'
+	fetchMock
+		.mockResolvedValueOnce(response({
+			account: {
+				address,
+				username: { localName: 'alice' },
+			},
+		}))
+		.mockResolvedValueOnce(response({ account: null }))
+		.mockResolvedValueOnce(response({
+			accountStats: {
+				graphFollowStats: {
+					followers: 5,
+					following: 3,
+				},
+			},
+		}))
+
+	await queryAccountByLocalName({}, 'alice')
+	await queryAccountByLegacyProfileId({}, '0x01')
+	await queryAccountStats({}, address)
+
+	expect(fetchMock.mock.calls.map((_call, index) => requestBody(index).variables)).toEqual([
+		{ localName: 'alice' },
+		{ legacyProfileId: '0x01' },
+		{ address },
+	])
+	expect(requestBody(0).query).toMatch(/query LensAccountByLocalName/)
+	expect(requestBody(1).query).toMatch(/query LensAccountByLegacyProfileId/)
+	expect(requestBody(2).query).toMatch(/query LensAccountStats/)
 })
 
 it('continues public directories by cursor, dedupes identities, and stops at exhaustion', async () => {
@@ -192,8 +229,8 @@ it('issues typed unsigned feed, username, and namespace detail and directory ope
 
 	await queryFeed({}, address)
 	await queryFeeds({}, 1)
-	await queryUsername({}, { id: 'username-1' })
-	await queryUsername({}, { namespace: address, localName: 'alice' })
+	await queryUsernameById({}, 'username-1')
+	await queryUsernameByLocalName({}, address, 'alice')
 	await queryUsernames({}, 1, { linkedTo: address })
 	await queryNamespace({}, address)
 	await queryNamespaces({}, 1)
@@ -322,9 +359,10 @@ it('rejects foreign account and post response identities before enrichment', asy
 			},
 		},
 	}))
-	await expect(queryAccount({}, {
-		address: '0x1111111111111111111111111111111111111111',
-	})).rejects.toThrow('account response does not match request')
+	await expect(queryAccountByAddress(
+		{},
+		'0x1111111111111111111111111111111111111111'
+	)).rejects.toThrow('account response does not match request')
 
 	fetchMock.mockResolvedValueOnce(response({
 		account: {
@@ -334,9 +372,10 @@ it('rejects foreign account and post response identities before enrichment', asy
 			},
 		},
 	}))
-	await expect(queryAccount({}, {
-		localName: 'alice',
-	})).rejects.toThrow('account response does not match request')
+	await expect(queryAccountByLocalName(
+		{},
+		'alice'
+	)).rejects.toThrow('account response does not match request')
 
 	fetchMock.mockResolvedValueOnce(response({
 		post: {
@@ -349,8 +388,8 @@ it('rejects foreign account and post response identities before enrichment', asy
 
 it('rejects malformed identities and invalid directory limits before transport', async () => {
 	await expect(queryPost({}, ' ')).rejects.toThrow('post identity must not be empty')
-	await expect(queryAccount({}, { localName: ' ' })).rejects.toThrow('account identity must not be empty')
-	await expect(queryUsername({}, { id: '' })).rejects.toThrow('username identity must not be empty')
+	await expect(queryAccountByLocalName({}, ' ')).rejects.toThrow('account identity must not be empty')
+	await expect(queryUsernameById({}, '')).rejects.toThrow('username identity must not be empty')
 	await expect(queryAccounts({}, -1)).rejects.toThrow('page limit must be a nonnegative safe integer')
 	await expect(queryFeeds({}, 1.5)).rejects.toThrow('page limit must be a nonnegative safe integer')
 	await expect(queryFeedPosts({}, '0x1111111111111111111111111111111111111111', -1)).rejects.toThrow('page limit must be a nonnegative safe integer')

@@ -23,7 +23,6 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.LightningLnd_Grpc,
 			Source.LightningLnd_Rest,
 			Source.Local_Internal,
 		],
@@ -57,7 +56,6 @@
 			selection={select(EntityType.LightningChannel, selection.entitySelector.$channel)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -65,7 +63,6 @@
 		<BlockheadLightningNodeStateView
 			selection={select(EntityType.BlockheadLightningNodeState, selection.entitySelector.$localNodeState)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -90,7 +87,6 @@
 					<BlockheadLightningNodeStateView
 						selection={select(EntityType.BlockheadLightningNodeState, selection.entitySelector.$localNodeState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -101,7 +97,6 @@
 					<LightningChannelView
 						selection={select(EntityType.LightningChannel, selection.entitySelector.$channel)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

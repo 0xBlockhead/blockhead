@@ -92,7 +92,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -109,7 +108,6 @@
 									selection={select(EntityType.CardanoTransaction, cardanoTransaction[EntityMetaKey.Selector])}
 									prefetched={cardanoTransaction}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -158,7 +156,6 @@
 									selection={select(EntityType.CardanoGovernanceProposal, cardanoGovernanceProposal[EntityMetaKey.Selector])}
 									prefetched={cardanoGovernanceProposal}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

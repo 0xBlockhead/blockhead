@@ -61,8 +61,8 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrMany,
 		defaultSources: [
 			Source.Constants_Internal,
-			Source.Coingecko_OpenApi,
-			Source.Coinpaprika_OpenApi,
+			Source.Coingecko_Rest,
+			Source.Coinpaprika_Rest,
 		],
 	},
 	$$marketsWithCoinAsQuote: {

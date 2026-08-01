@@ -43,8 +43,5 @@
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='faucet-urls'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

@@ -10,7 +10,7 @@ const binding = bindings[Source.EnvioHyperRpc_JsonRpc]
 
 export const getEvmTransactionByHash = (
 	txHash: string
-): Promise<EnvioHyperRpcTransaction | null> => (
+) => (
 	request<EnvioHyperRpcTransaction | null>(
 		binding,
 		'eth_getTransactionByHash',
@@ -20,7 +20,7 @@ export const getEvmTransactionByHash = (
 
 export const getEvmTransactionReceipt = (
 	txHash: string
-): Promise<EnvioHyperRpcTransactionReceipt | null> => (
+) => (
 	request<EnvioHyperRpcTransactionReceipt | null>(
 		binding,
 		'eth_getTransactionReceipt',

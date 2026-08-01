@@ -79,7 +79,6 @@
 					<PythPriceFeedView
 						selection={select(EntityType.PythPriceFeed, selection.entitySelector.$feed)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

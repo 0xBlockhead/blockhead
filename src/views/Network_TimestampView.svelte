@@ -70,12 +70,6 @@
 		{selection.entitySelector.source || String(selection.entitySelector.timestampMs)}
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A point-in-time observation of network status or metrics.
-		</p>
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -84,7 +78,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -142,11 +135,11 @@
 			</div>
 		</dl>
 
-		<dl data-column-item="center">
-			<ProjectionBoundary
-				resource={selection.Cosmos}
-			>
-				{#snippet Applicable(projection)}
+		<ProjectionBoundary
+			resource={selection.Cosmos}
+		>
+			{#snippet Applicable(projection)}
+				<dl data-column-item="center">
 					<ResourceBoundary
 						resource={projection.latestBlockHeight}
 					>
@@ -210,15 +203,9 @@
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
-				{/snippet}
-			</ProjectionBoundary>
-		</dl>
+				</dl>
 
-		<dl data-column-item="center">
-			<ProjectionBoundary
-				resource={selection.Cosmos}
-			>
-				{#snippet Applicable(projection)}
+				<dl data-column-item="center">
 					<ResourceBoundary
 						resource={projection.chainId}
 					>
@@ -353,15 +340,15 @@
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
-				{/snippet}
-			</ProjectionBoundary>
-		</dl>
+				</dl>
+			{/snippet}
+		</ProjectionBoundary>
 
-		<dl data-column-item="center">
-			<ProjectionBoundary
-				resource={selection.Polkadot}
-			>
-				{#snippet Applicable(projection)}
+		<ProjectionBoundary
+			resource={selection.Polkadot}
+		>
+			{#snippet Applicable(projection)}
+				<dl data-column-item="center">
 					<ResourceBoundary
 						resource={projection.finalizedBlockNumber}
 					>
@@ -515,15 +502,15 @@
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
-				{/snippet}
-			</ProjectionBoundary>
-		</dl>
+				</dl>
+			{/snippet}
+		</ProjectionBoundary>
 
-		<dl data-column-item="center">
-			<ProjectionBoundary
-				resource={selection.Solana}
-			>
-				{#snippet Applicable(projection)}
+		<ProjectionBoundary
+			resource={selection.Solana}
+		>
+			{#snippet Applicable(projection)}
+				<dl data-column-item="center">
 					<ResourceBoundary
 						resource={projection.health}
 					>
@@ -709,15 +696,15 @@
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
-				{/snippet}
-			</ProjectionBoundary>
-		</dl>
+				</dl>
+			{/snippet}
+		</ProjectionBoundary>
 
-		<dl data-column-item="center">
-			<ProjectionBoundary
-				resource={selection.Utxo}
-			>
-				{#snippet Applicable(projection)}
+		<ProjectionBoundary
+			resource={selection.Utxo}
+		>
+			{#snippet Applicable(projection)}
+				<dl data-column-item="center">
 					<ResourceBoundary
 						resource={projection.bestBlockHeight}
 					>
@@ -929,8 +916,8 @@
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
-				{/snippet}
-			</ProjectionBoundary>
-		</dl>
+				</dl>
+			{/snippet}
+		</ProjectionBoundary>
 	{/snippet}
 </EntityView>

@@ -24,10 +24,9 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Juno_JsonRpc,
-			Source.Pathfinder_JsonRpc,
-			Source.Starknet_JsonRpc,
-			Source.Starkscan_Rest,
-			Source.Voyager_Rest,
+			Source.Pathfinder,
+			Source.Starkscan,
+			Source.Voyager,
 		],
 	}))
 	const starknetClass = $derived(viewSelection({
@@ -56,10 +55,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.classHash || 'starknet class'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={starknetClass}>
 			{#snippet children(entity)}
@@ -91,7 +86,6 @@
 					<StarknetNetworkView
 						selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

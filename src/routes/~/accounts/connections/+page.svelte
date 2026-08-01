@@ -34,12 +34,8 @@
 
 	<BlockheadWalletConnectionsView
 		href={resolve('/~/accounts/connections')}
-		title='Wallet connections'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='account-blockhead-wallet-connection'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

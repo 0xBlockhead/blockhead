@@ -6,7 +6,6 @@ import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/AptosFullnode/bindings.ts'
 import {
 	ApiFamily,
-	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
@@ -234,9 +233,7 @@ describe('Aptos Fullnode typed operations', () => {
 			apiFamily: ApiFamily.OpenApiHttp,
 			operationGroups: [SourceOperationGroup.GenericRead],
 			delivery: SourceDelivery.HttpProxy,
-			credentials: [{
-				scope: SourceCredentialScope.None,
-			}],
+			credentials: [],
 		})
 		expect(sourceFetch.mock.calls.map((call) => call[1])).toEqual([
 			'https://fullnode.test/v1/',
@@ -399,8 +396,8 @@ describe('Aptos Fullnode resolver materialization', () => {
 	it('converges block and transaction selector paths and materializes event and change children', async () => {
 		vi.spyOn(queries, 'getBlockByHeight').mockResolvedValue(response(block))
 		vi.spyOn(queries, 'getBlockByVersion').mockResolvedValue(response(block))
-		vi.spyOn(queries, 'getTransactionByHash').mockResolvedValue(response(transaction))
-		vi.spyOn(queries, 'getTransactionByVersion').mockResolvedValue(response(transaction))
+		const getTransactionByHash = vi.spyOn(queries, 'getTransactionByHash').mockResolvedValue(response(transaction))
+		const getTransactionByVersion = vi.spyOn(queries, 'getTransactionByVersion').mockResolvedValue(response(transaction))
 
 		const blockResolver = resolverFor(EntityType.AptosBlock)
 		const heightBlock = await blockResolver.resolve['NetworkHeight'].resolve({
@@ -429,6 +426,8 @@ describe('Aptos Fullnode resolver materialization', () => {
 			hash: '0x42',
 		}, resolverContext)
 		expect(byVersion).toEqual(byHash)
+		expect(getTransactionByVersion).toHaveBeenCalledWith(42n)
+		expect(getTransactionByHash).toHaveBeenCalledWith('0x42')
 		expect(byVersion.stateChanges[0][EntityMetaKey.Selector]).toEqual({
 			$transaction: aptosTransaction,
 			changeIndex: 0,
@@ -490,6 +489,27 @@ describe('Aptos Fullnode resolver materialization', () => {
 				stateKeyHash: '0xdeleted-table-state',
 			},
 		])
+	})
+
+	it('rejects transaction responses that mismatch either exact selector arm', async () => {
+		const transactionResolver = resolverFor(EntityType.AptosTransaction)
+		vi.spyOn(queries, 'getTransactionByVersion').mockResolvedValue(response({
+			...transaction,
+			version: '43',
+		}))
+		await expect(transactionResolver.resolve['NetworkVersion'].resolve(
+			aptosTransaction,
+			resolverContext
+		)).rejects.toThrow('transaction version mismatch')
+
+		vi.spyOn(queries, 'getTransactionByHash').mockResolvedValue(response({
+			...transaction,
+			hash: '0x43',
+		}))
+		await expect(transactionResolver.resolve['NetworkHash'].resolve({
+			$network: aptosNetwork,
+			hash: '0x42',
+		}, resolverContext)).rejects.toThrow('transaction hash mismatch')
 	})
 
 	it('resolves resource and transaction observations without inventing clocks', async () => {

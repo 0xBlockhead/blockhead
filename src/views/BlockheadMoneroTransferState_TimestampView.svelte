@@ -85,7 +85,6 @@
 					<BlockheadMoneroTransferStateView
 						selection={select(EntityType.BlockheadMoneroTransferState, selection.entitySelector.$transferState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

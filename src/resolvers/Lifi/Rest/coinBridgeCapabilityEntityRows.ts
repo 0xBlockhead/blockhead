@@ -1,11 +1,9 @@
 import { bridgeToolByKey } from '$/constants/Bridge.ts'
-import type { CoinInstanceEntitySelector } from '$/sources/Coingecko/Rest/coinInstances.ts'
-import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
+import type { CoinInstanceEntitySelector } from '$/resolvers/Coingecko/Rest/coinInstances.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import type { LifiBridgeTool } from '$/sources/Lifi/Rest/types.ts'
-
 
 type CoinBridgeCapabilityEntitySelector = (
 	Omit<
@@ -18,11 +16,7 @@ type CoinBridgeCapabilityEntitySelector = (
 	}
 )
 
-const bridgeToolsCatalogKeys = new Set<string>(
-	Object.keys(bridgeToolByKey).map((key) => String(key))
-)
-
-const coinInstanceEntitySelectorKey = (instanceId: CoinInstanceEntitySelector) => (
+export const coinInstanceEntitySelectorKey = (instanceId: CoinInstanceEntitySelector) => (
 	[
 		instanceId.$network.caip2.namespace,
 		instanceId.$network.caip2.reference,
@@ -46,26 +40,28 @@ const coinBridgeCapabilityEntitySelectorKey = (
 
 export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
 	instanceIds: readonly { [EntityMetaKey.Selector]: CoinInstanceEntitySelector }[],
-	tools: readonly LifiBridgeTool[]
+	tools: readonly {
+		key: string
+		supportedChains: readonly {
+			fromChainId: string
+			toChainId: string
+		}[]
+	}[]
 ) => {
 	const instanceByChainId: Partial<Record<string, CoinInstanceEntitySelector>> = {}
 
 	for (const row of instanceIds) {
-			const instanceId = row[EntityMetaKey.Selector]
+		const instanceId = row[EntityMetaKey.Selector]
 		instanceByChainId[instanceId.$network.caip2.reference] = instanceId
 	}
 
 	const seenKeys = new Set<string>()
 	const rows: {
 		[EntityMetaKey.Selector]: CoinBridgeCapabilityEntitySelector
-		[EntityMetaKey.Fields]: Record<string, string>
 	}[] = []
 
 	for (const tool of tools) {
-		if (!bridgeToolsCatalogKeys.has(tool.key)) continue
-
-		const mechanics = bridgeToolByKey[tool.key]
-		if (mechanics == null) continue
+		if (bridgeToolByKey[tool.key] == null) continue
 
 		for (const { fromChainId, toChainId } of tool.supportedChains) {
 			const fromInstance = instanceByChainId[fromChainId]
@@ -88,13 +84,6 @@ export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
 
 			rows.push({
 				[EntityMetaKey.Selector]: capabilityId,
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.CoinBridgeCapability, [], 'toolKey')]: tool.key,
-					[entityFieldAddressKey(EntityType.CoinBridgeCapability, [], 'railId')]: mechanics.railId,
-					[entityFieldAddressKey(EntityType.CoinBridgeCapability, [], 'settlementModel')]: mechanics.settlementModel,
-					[entityFieldAddressKey(EntityType.CoinBridgeCapability, [], 'verificationModel')]: mechanics.verificationModel,
-					[entityFieldAddressKey(EntityType.CoinBridgeCapability, [], 'assetOutcome')]: mechanics.assetOutcome,
-				},
 			})
 		}
 	}

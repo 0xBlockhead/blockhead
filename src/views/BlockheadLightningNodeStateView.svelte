@@ -25,7 +25,6 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.LightningLnd_Grpc,
 			Source.LightningLnd_Rest,
 			Source.Local_Internal,
 		],
@@ -74,7 +73,6 @@
 		<LightningNetworkView
 			selection={select(EntityType.LightningNetwork, selection.entitySelector.$network)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -89,7 +87,6 @@
 							selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
 							prefetched={lightningNode}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -112,7 +109,6 @@
 					<LightningNetworkView
 						selection={select(EntityType.LightningNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -167,7 +163,6 @@
 									selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
 									prefetched={lightningNode}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -205,12 +200,7 @@
 			{#snippet SectionLightningNodeChannelStates({ id, label, open })}
 				<BlockheadLightningChannelStatesView
 					selection={selection.$$channelStates}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No local channel states.'
 					id={`${id}-list`}
@@ -220,12 +210,7 @@
 			{#snippet SectionLightningNodeChannels({ id, label, open })}
 				<LightningChannelsView
 					selection={selection.$$channels}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No public channel refs.'
 					id={`${id}-list`}
@@ -261,12 +246,7 @@
 			{#snippet SectionLightningNodeInvoices({ id, label, open })}
 				<BlockheadLightningInvoicesView
 					selection={selection.$$invoices}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No invoices.'
 					id={`${id}-list`}
@@ -276,12 +256,7 @@
 			{#snippet SectionLightningNodePaymentList({ id, label, open })}
 				<BlockheadLightningPaymentsView
 					selection={selection.$$payments}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No payments.'
 					id={`${id}-list`}
@@ -313,12 +288,7 @@
 			{#snippet SectionLightningNodeTimestamps({ id, label, open })}
 				<BlockheadLightningNodeState_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No node-state observations.'
 					id={`${id}-list`}

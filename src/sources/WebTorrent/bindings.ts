@@ -1,7 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
 const bindings = [
 	{
@@ -23,11 +23,7 @@ const bindings = [
 			SourceOperationGroup.BitTorrentAnnounce,
 		],
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
 		source: Source.WebTorrent_Dht,
@@ -47,11 +43,7 @@ const bindings = [
 			SourceOperationGroup.BitTorrentDhtLookup,
 		],
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
 		source: Source.WebTorrent_Tracker,
@@ -72,16 +64,8 @@ const bindings = [
 			SourceOperationGroup.GenericSubscribe,
 		],
 		delivery: SourceDelivery.RemoteLive,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.WebTorrent_Client]: typeof bindings[0]
-	readonly [Source.WebTorrent_Dht]: typeof bindings[1]
-	readonly [Source.WebTorrent_Tracker]: typeof bindings[2]
-}>(bindings)
+export default indexSourceBindings(bindings)

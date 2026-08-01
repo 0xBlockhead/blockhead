@@ -12,7 +12,6 @@ import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
 	SourceArtifactKind,
-	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
@@ -180,7 +179,6 @@ describe('XRPL rippled queries', () => {
 			endpoints: [{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://s1.ripple.com:51234',
-				origin: 'https://s1.ripple.com:51234',
 				corsEnabled: false,
 			}],
 			wireProtocol: WireProtocol.JsonRpc2,
@@ -189,13 +187,10 @@ describe('XRPL rippled queries', () => {
 				SourceOperationGroup.GenericRead,
 			],
 			delivery: SourceDelivery.HttpProxy,
-			credentials: [{
-				scope: SourceCredentialScope.None,
-			}],
+			credentials: [],
 			artifacts: [{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/Xrpl/JsonRpc/types.ts',
-				generated: false,
 			}],
 		})
 	})

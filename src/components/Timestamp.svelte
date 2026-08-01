@@ -1,35 +1,32 @@
-<script module lang="ts">
-	// Types/constants
-	export enum TimestampFormat {
-		Auto = 'auto',
-		Absolute = 'absolute',
-		Relative = 'relative',
-		Both = 'both',
-	}
-</script>
-
-
 <script lang="ts">
+	// Types/constants
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { SvelteHTMLElements } from 'svelte/elements'
+
+
 	// State
 	let {
 		timestamp,
-		format = TimestampFormat.Auto,
-	}: {
-		timestamp: number | null | undefined
-		format?: TimestampFormat
-	} = $props()
+		...timeProps
+	}: WithRest<
+		{
+			timestamp: number | null | undefined
+		},
+		SvelteHTMLElements['time']
+	> = $props()
 
 
 	// Inner context
 	$effect(() => {
-		if (displayFormat === TimestampFormat.Relative || displayFormat === TimestampFormat.Both) {
-			const interval = setInterval(() => {
-				now = Date.now()
-			}, 1000)
+		if (!recent)
+			return
 
-			return () => {
-				clearInterval(interval)
-			}
+		const interval = setInterval(() => {
+			now = Date.now()
+		}, 1000)
+
+		return () => {
+			clearInterval(interval)
 		}
 	})
 
@@ -41,9 +38,16 @@
 	)
 
 
+	const finiteTimestamp = $derived(
+		timestamp !== null && timestamp !== undefined && Number.isFinite(timestamp) ?
+			timestamp
+		:
+			undefined
+	)
+
 	const date = $derived(
-		timestamp !== undefined && typeof timestamp === 'number' && Number.isFinite(timestamp) ?
-			new Date(timestamp)
+		finiteTimestamp !== undefined ?
+			new Date(finiteTimestamp)
 		:
 			undefined
 	)
@@ -57,45 +61,33 @@
 	)
 
 	const relativeTime = $derived(
-		timestamp !== undefined && typeof timestamp === 'number' && Number.isFinite(timestamp) ?
-			formatRelativeTime(now - timestamp)
+		finiteTimestamp !== undefined ?
+			formatRelativeTime(now - finiteTimestamp)
 		:
 			undefined
 	)
 
-	const displayFormat = $derived(
-		format === TimestampFormat.Auto ?
-			(
-				timestamp !== undefined && typeof timestamp === 'number' && Number.isFinite(timestamp)
-				&& Math.abs(now - timestamp) <= TIMESTAMP_RECENT_MAX_MS ?
-					TimestampFormat.Relative
-				:
-					TimestampFormat.Absolute
-			)
-		:
-			format
+	const recent = $derived(
+		finiteTimestamp !== undefined
+		&& Math.abs(now - finiteTimestamp) <= TIMESTAMP_RECENT_MAX_MS
 	)
 </script>
 
 
-{#if timestamp === undefined || typeof timestamp !== 'number' || !Number.isFinite(timestamp)}
+{#if finiteTimestamp === undefined}
 	–
 
-{:else if displayFormat === TimestampFormat.Absolute}
+{:else if recent}
 	<time
-		datetime={isoString}
-		title={relativeTime}
-	>{absoluteTime}</time>
-
-{:else if displayFormat === TimestampFormat.Relative}
-	<time
+		{...timeProps}
 		datetime={isoString}
 		title={absoluteTime}
 	>{relativeTime}</time>
 
-{:else if displayFormat === TimestampFormat.Both}
+{:else}
 	<time
+		{...timeProps}
 		datetime={isoString}
-		title={`${absoluteTime} (${relativeTime})`}
-	>{absoluteTime} ({relativeTime})</time>
+		title={relativeTime}
+	>{absoluteTime}</time>
 {/if}

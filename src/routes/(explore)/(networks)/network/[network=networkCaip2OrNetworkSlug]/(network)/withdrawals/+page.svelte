@@ -40,8 +40,5 @@
 		title='Beacon withdrawals'
 		selection={select(EntityType.Network, data.selector).Evm.$$beaconWithdrawals}
 		id='beacon-withdrawals'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

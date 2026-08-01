@@ -6,9 +6,9 @@ import {
 	SourceDelivery,
 	SourceEndpointKind,
 	sourceBindingId,
+	sourceEndpointOrigin,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-import type { SourceOrigin } from '$/sources/SourceProviderDefinition.ts'
 
 const sourceFetchQueueByEndpoint = new Map<string, {
 	activeCount: number
@@ -19,21 +19,22 @@ const sourceFetchConcurrency = 4
 
 export const httpOriginsForBinding = (
 	binding: SourceBinding
-): readonly SourceOrigin[] => (
-	binding.endpoints.flatMap((endpoint) => (
-		endpoint.endpointKind !== SourceEndpointKind.HttpUrl || endpoint.origin == null ?
-			[]
-		:
-			[{
-				origin: endpoint.origin,
-				corsEnabled: endpoint.corsEnabled === true,
-			}]
-	))
+) => (
+	binding.endpoints.flatMap((endpoint) => {
+		if (endpoint.endpointKind !== SourceEndpointKind.HttpUrl)
+			return []
+
+		const origin = sourceEndpointOrigin(endpoint)
+		return origin == null ? [] : [{
+			origin,
+			corsEnabled: endpoint.corsEnabled === true,
+		}]
+	})
 )
 
 export const firstHttpUrlForBinding = (
 	binding: SourceBinding
-): string => {
+) => {
 	const endpoint = binding.endpoints.find((candidate) => (
 		candidate.endpointKind === SourceEndpointKind.HttpUrl
 	))
@@ -47,10 +48,10 @@ export const sourceFetch = async (
 	binding: SourceBinding,
 	url: string,
 	init?: RequestInit
-): Promise<Response> => {
+) => {
 	const endpointIndex = binding.endpoints.findIndex((endpoint) => (
 		endpoint.endpointKind === SourceEndpointKind.HttpUrl
-		&& endpoint.origin === new URL(url).origin
+		&& sourceEndpointOrigin(endpoint) === new URL(url).origin
 		&& (
 			url.startsWith(endpoint.locator)
 			|| (endpoint.locator.includes('{') && url.startsWith(endpoint.locator.slice(0, endpoint.locator.indexOf('{'))))
@@ -98,17 +99,17 @@ export const sourceFetch = async (
 export const sourceGetJson = <_Json>(
 	binding: SourceBinding,
 	url: string
-): Promise<_Json> => sourceFetch(binding, url).then(async (response) => {
+) => sourceFetch(binding, url).then(async (response) => {
 	if (!response.ok)
 		throw new Error(await fetchFailedMessage(url, response))
 
-	return response.json()
+	return response.json<_Json>()
 })
 
 export const sourceGetText = (
 	binding: SourceBinding,
 	url: string
-): Promise<string> => sourceFetch(binding, url).then(async (response) => {
+) => sourceFetch(binding, url).then(async (response) => {
 	if (!response.ok)
 		throw new Error(await fetchFailedMessage(url, response))
 

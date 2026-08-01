@@ -66,7 +66,7 @@ describe('0G transport binding authority', () => {
 			address: '0x0000000000000000000000000000000000000000',
 		})
 
-	expect(sourceGetJson).toHaveBeenCalledWith(
+		expect(sourceGetJson).toHaveBeenCalledWith(
 			bindings[Source.ZeroGStorageScan_Rest],
 			'https://storagescan.0g.ai/api/miners/0x0000000000000000000000000000000000000000'
 		)

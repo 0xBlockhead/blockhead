@@ -16,6 +16,7 @@ export enum BridgeRailId {
 	Glacis = 'Glacis',
 	GnosisCanonical = 'GnosisCanonical',
 	Hyperliquid = 'Hyperliquid',
+	Layerswap = 'Layerswap',
 	LifiIntents = 'LifiIntents',
 	Mayan = 'Mayan',
 	MegaEth = 'MegaEth',
@@ -27,6 +28,7 @@ export enum BridgeRailId {
 	Relay = 'Relay',
 	Squid = 'Squid',
 	Stargate = 'Stargate',
+	SmartDeposits = 'SmartDeposits',
 	Superset = 'Superset',
 	Symbiosis = 'Symbiosis',
 	Unit = 'Unit',
@@ -326,6 +328,22 @@ export const bridgeTools = [
 		assetOutcome: BridgeAssetOutcome.SameNative,
 	},
 	{
+		key: 'smartDeposits',
+		label: 'Smart Deposits',
+		railId: BridgeRailId.SmartDeposits,
+		settlementModel: BridgeSettlementModel.ChainAbstraction,
+		verificationModel: BridgeVerificationModel.External,
+		assetOutcome: BridgeAssetOutcome.SameNative,
+	},
+	{
+		key: 'layerswap',
+		label: 'Layerswap',
+		railId: BridgeRailId.Layerswap,
+		settlementModel: BridgeSettlementModel.LiquidityNetwork,
+		verificationModel: BridgeVerificationModel.External,
+		assetOutcome: BridgeAssetOutcome.MappedSwap,
+	},
+	{
 		key: 'garden',
 		label: 'Garden',
 		railId: BridgeRailId.Garden,
@@ -591,6 +609,10 @@ export const bridgeRails = [
 		label: 'Hyperliquid',
 	},
 	{
+		railId: BridgeRailId.Layerswap,
+		label: 'Layerswap',
+	},
+	{
 		railId: BridgeRailId.LifiIntents,
 		label: 'LI.FI Intents',
 	},
@@ -629,6 +651,14 @@ export const bridgeRails = [
 	{
 		railId: BridgeRailId.Stargate,
 		label: 'Stargate',
+	},
+	{
+		railId: BridgeRailId.SmartDeposits,
+		label: 'Smart Deposits',
+	},
+	{
+		railId: BridgeRailId.Superset,
+		label: 'Superset',
 	},
 	{
 		railId: BridgeRailId.Symbiosis,

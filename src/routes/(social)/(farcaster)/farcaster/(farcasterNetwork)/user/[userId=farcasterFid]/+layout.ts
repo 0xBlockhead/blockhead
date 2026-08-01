@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		FarcasterUserSchema,
 		{
 			fid: Number(params.userId),
-		}
+		},
+		'Fid'
 	)
 	if (farcasterUserFidSelector instanceof arktype.errors)
 		error(404, 'Invalid FarcasterUser selector')

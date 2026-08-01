@@ -19,6 +19,8 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = resolve('/(explore)/(protocols)/evm')
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -28,16 +30,18 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/(explore)/(protocols)/evm')}
+	href={detailHref}
 >
 	{#snippet Summary()}
 		<EvmProtocolView
 			selection={
-				select(EntityType.EvmProtocol, data.selector, { sources: [
-					Source.Constants_Internal,
-				] })
+				select(EntityType.EvmProtocol, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
 			}
-			href={resolve('/(explore)/(protocols)/evm')}
+			href={detailHref}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

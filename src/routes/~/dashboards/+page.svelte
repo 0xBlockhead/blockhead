@@ -34,12 +34,8 @@
 
 	<BlockheadPanelTreesView
 		href={resolve('/~/dashboards')}
-		title='Dashboards'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='blockhead-panel-trees'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

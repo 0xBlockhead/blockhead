@@ -99,7 +99,6 @@
 								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 								prefetched={network}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -119,7 +118,6 @@
 								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 								prefetched={evmAccount}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -139,7 +137,6 @@
 								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 								prefetched={evmAccount}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -159,7 +156,6 @@
 								selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 								prefetched={evmCoinInstance}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -180,7 +176,6 @@
 									selection={select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector])}
 									prefetched={blockheadRoom}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -237,12 +232,7 @@
 			{#snippet SectionStateChannelTransfers({ id, label, open })}
 				<BlockheadStateChannelTransfersView
 					selection={selection.$$transfers}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No transfers yet.'
 					id={`${id}-list`}
@@ -252,12 +242,7 @@
 			{#snippet SectionStateChannelStates({ id, label, open })}
 				<BlockheadStateChannelStatesView
 					selection={selection.$$states}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No states yet.'
 					id={`${id}-list`}
@@ -267,12 +252,7 @@
 			{#snippet SectionStateChannelDeposits({ id, label, open })}
 				<BlockheadStateChannelDepositsView
 					selection={selection.$$deposits}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No deposits yet.'
 					id={`${id}-list`}
@@ -304,12 +284,7 @@
 			{#snippet SectionStateChannelTimestamps({ id, label, open })}
 				<BlockheadStateChannel_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No observations yet.'
 					id={`${id}-list`}

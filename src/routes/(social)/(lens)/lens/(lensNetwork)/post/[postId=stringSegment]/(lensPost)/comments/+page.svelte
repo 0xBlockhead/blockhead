@@ -50,8 +50,5 @@
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='comments'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

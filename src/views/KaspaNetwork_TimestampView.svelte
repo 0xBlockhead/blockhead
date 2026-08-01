@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -23,7 +22,7 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.KaspaExplorer_Rest,
+			Source.KaspaExplorer,
 			Source.KaspaNode_Grpc,
 			Source.KaspaNode_Rest,
 			Source.KaspaNode_Wrpc,
@@ -43,15 +42,10 @@
 <EntityView
 	entityType={EntityType.KaspaNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'kaspa network timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		kaspa network timestamp
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -60,7 +54,6 @@
 					<KaspaNetworkView
 						selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

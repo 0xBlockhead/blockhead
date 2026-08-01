@@ -41,10 +41,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.agentId || 'EIP-8004 agent registration'}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.namespace || selection.entitySelector.agentId || titleFallback}
 	{/snippet}
@@ -101,7 +97,6 @@
 									selection={select(EntityType.EvmNft, evmNft[EntityMetaKey.Selector])}
 									prefetched={evmNft}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

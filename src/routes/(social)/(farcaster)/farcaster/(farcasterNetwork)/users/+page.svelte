@@ -34,12 +34,8 @@
 
 	<FarcasterUsersView
 		href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/users')}
-		title='Farcaster users'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='users'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

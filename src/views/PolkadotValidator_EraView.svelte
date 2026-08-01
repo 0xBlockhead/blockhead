@@ -43,10 +43,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{String(selection.entitySelector.eraIndex)}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={polkadotValidatorEra}>
 			{#snippet children(entity)}
@@ -69,7 +65,6 @@
 					<PolkadotValidatorView
 						selection={select(EntityType.PolkadotValidator, selection.entitySelector.$validator)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -100,7 +95,6 @@
 									selection={select(EntityType.PolkadotAccount, polkadotAccount[EntityMetaKey.Selector])}
 									prefetched={polkadotAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

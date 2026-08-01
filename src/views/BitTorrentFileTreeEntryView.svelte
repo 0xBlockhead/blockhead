@@ -45,10 +45,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.path || 'bit torrent file tree entry'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentFileTreeEntry}>
 			{#snippet children(entity)}
@@ -65,7 +61,6 @@
 					<BitTorrentMetainfoView
 						selection={select(EntityType.BitTorrentMetainfo, selection.entitySelector.$torrent)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -148,7 +143,6 @@
 									selection={select(EntityType.BitTorrentFile, bitTorrentFile[EntityMetaKey.Selector])}
 									prefetched={bitTorrentFile}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

@@ -1,32 +1,31 @@
-import { getGithubContents, getGithubRawText, githubContentsUrl, githubRawUrl } from '$/sources/_shared/hosts/Github/Http/client.ts'
+import {
+	getGithubContents,
+	getGithubRawText,
+	githubContentsUrl,
+	githubRawUrl,
+	githubRepositoryTargetFromKey,
+} from '$/sources/_shared/hosts/Github/Http/client.ts'
 import bindings from '$/sources/FilecoinFips/bindings.ts'
-import type { FilecoinFipsGithubContents } from '$/sources/FilecoinFips/Github/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.FilecoinFips_Github]
-
-const filecoinFipsGithubRepo = {
-	owner: 'filecoin-project',
-	repo: 'FIPs',
-	path: 'FIPS',
-	ref: 'master',
-}
+const target = githubRepositoryTargetFromKey(binding.target.key)
 
 export const getContentsUrl = () => (
-	githubContentsUrl(filecoinFipsGithubRepo)
+	githubContentsUrl(target)
 )
 
 export const getMarkdownUrl = ({ number }: { number: number }) => (
 	githubRawUrl({
-		...filecoinFipsGithubRepo,
-		path: `${filecoinFipsGithubRepo.path}/fip-${number.toString().padStart(4, '0')}.md`,
+		...target,
+		path: `${target.path}/fip-${number.toString().padStart(4, '0')}.md`,
 	})
 )
 
-export const getContents = (): Promise<FilecoinFipsGithubContents> => (
+export const getContents = () => (
 	getGithubContents({
 		binding,
-		target: filecoinFipsGithubRepo,
+		target,
 	})
 )
 
@@ -38,8 +37,8 @@ export const getMarkdownText = ({
 	getGithubRawText({
 		binding,
 		target: {
-			...filecoinFipsGithubRepo,
-			path: `${filecoinFipsGithubRepo.path}/fip-${number.toString().padStart(4, '0')}.md`,
+			...target,
+			path: `${target.path}/fip-${number.toString().padStart(4, '0')}.md`,
 		},
 	})
 )

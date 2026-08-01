@@ -23,7 +23,7 @@ export const getProposerPayloadDeliveredForRelayHost = async (
 	options: {
 		limit: number
 	}
-): Promise<readonly ProposerPayloadDelivered[]> => {
+) => {
 	const binding = mevRelayBindingByHost.get(relayHost)
 	if (binding == null)
 		throw new Error(`MevRelay_Rest: no canonical relay binding for ${relayHost}`)

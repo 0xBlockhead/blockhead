@@ -54,10 +54,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.requestHash || 'EIP-8004 validation timestamp'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={eip8004ValidationTimestamp}>
 			{#snippet children(entity)}
@@ -107,7 +103,6 @@
 									selection={select(EntityType.Eip8004AgentRegistration, eip8004AgentRegistration[EntityMetaKey.Selector])}
 									prefetched={eip8004AgentRegistration}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

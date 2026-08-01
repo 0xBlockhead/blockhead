@@ -66,7 +66,6 @@
 			selection={select(EntityType.Coin, selection.entitySelector.$coin)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -259,7 +258,6 @@
 					<CoinView
 						selection={select(EntityType.Coin, selection.entitySelector.$coin)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -54,7 +54,6 @@
 		<ZeroGNetworkView
 			selection={select(EntityType.ZeroGNetwork, selection.entitySelector.$network)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -85,7 +84,6 @@
 					<ZeroGNetworkView
 						selection={select(EntityType.ZeroGNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

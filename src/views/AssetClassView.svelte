@@ -20,11 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AssetClass> = $props()
 
-	const assetClass = $derived(selection({
-		fields: {
-			label: true,
-		},
-	}))
 	const titleFallback = $derived([(prefetched.label ?? ''), selection.entitySelector.classKey].filter(Boolean).join(' ') || 'asset class')
 
 
@@ -43,7 +38,15 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={assetClass}>
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						label: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
 				{[(entity.label ?? ''), selection.entitySelector.classKey].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
@@ -59,15 +62,8 @@
 			<AssetInstanceView
 				selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A reusable asset classification used to group related asset instances and objects.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -204,7 +200,6 @@
 					<AssetInstanceView
 						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

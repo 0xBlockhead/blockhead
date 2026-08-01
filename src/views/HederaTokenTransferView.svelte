@@ -15,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -35,15 +34,10 @@
 <EntityView
 	entityType={EntityType.HederaTokenTransfer}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'hedera token transfer'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		hedera token transfer
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -52,7 +46,6 @@
 					<HederaTransactionView
 						selection={select(EntityType.HederaTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -156,7 +149,6 @@
 									selection={select(EntityType.HederaToken, hederaToken[EntityMetaKey.Selector])}
 									prefetched={hederaToken}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -176,7 +168,6 @@
 									selection={select(EntityType.HederaAccount, hederaAccount[EntityMetaKey.Selector])}
 									prefetched={hederaAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -196,7 +187,6 @@
 									selection={select(EntityType.HederaNft, hederaNft[EntityMetaKey.Selector])}
 									prefetched={hederaNft}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

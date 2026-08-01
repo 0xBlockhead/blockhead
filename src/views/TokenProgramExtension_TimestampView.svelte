@@ -39,10 +39,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.extensionKind || 'token program extension timestamp'}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.extensionScope || selection.entitySelector.extensionKind || titleFallback}
 	{/snippet}
@@ -137,7 +133,6 @@
 					<AssetInstanceView
 						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

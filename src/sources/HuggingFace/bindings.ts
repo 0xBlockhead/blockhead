@@ -14,7 +14,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://huggingface.co/api',
-				origin: 'https://huggingface.co',
 				corsEnabled: false,
 			},
 		],
@@ -34,4 +33,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.HuggingFaceHub_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

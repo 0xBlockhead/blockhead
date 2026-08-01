@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import bindings from '$/sources/Helius/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
+	ApiFamily,
 	SourceEndpointKind,
 	SourceTargetKind,
 } from '$/sources/SourceBinding.ts'
@@ -16,7 +17,12 @@ vi.mock('$/lib/http.ts', () => ({
 
 const { getEnhancedTransactions } = await import('$/sources/Helius/Rest/queries.ts')
 
-const binding = bindings[Source.Helius_Rest]
+const binding = bindings[Source.Helius].find(
+	({ apiFamily }) => apiFamily === ApiFamily.RestJson
+)
+
+if (binding == null)
+	throw new Error('Helius REST test binding is missing')
 
 describe('Helius enhanced transaction transport', () => {
 	beforeEach(() => {

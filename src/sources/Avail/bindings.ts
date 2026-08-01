@@ -2,10 +2,11 @@
 
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { type as arktype } from 'arktype'
 
 const bindings = [
 	{
-		source: Source.Avail_JsonRpc,
+		source: Source.Avail,
 		target: {
 			kind: SourceTargetKind.NetworkSlug,
 			key: 'avail',
@@ -13,8 +14,7 @@ const bindings = [
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://{avail-rpc-host}',
-				origin: 'https://{avail-rpc-host}',
+				locator: 'env:PUBLIC_AVAIL_RPC_URL',
 				corsEnabled: false,
 			},
 		],
@@ -26,10 +26,13 @@ const bindings = [
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [
 			{
-				scope: SourceCredentialScope.None,
+				scope: SourceCredentialScope.PublicConfig,
+				env: arktype({
+					'PUBLIC_AVAIL_RPC_URL': 'string.url',
+				}),
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Avail_JsonRpc]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

@@ -73,10 +73,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{[String(selection.entitySelector.fromChainId), 'to', String(selection.entitySelector.toChainId)].filter(Boolean).join(' ') || 'bridge route'}
-	{/snippet}
-
 	{#snippet Value()}
 		LI.FI quote
 	{/snippet}
@@ -108,7 +104,6 @@
 								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 								prefetched={network}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -126,7 +121,6 @@
 								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 								prefetched={network}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

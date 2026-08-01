@@ -16,15 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EvmTopic, data.selector, {
-		sources: [
-			Source.Openchain_Rest,
-		],
-		fields: {
-			signatures: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -39,6 +30,15 @@
 
 <Page>
 	<EvmTopicView
-		selection={pageSelection}
+		selection={
+			select(EntityType.EvmTopic, data.selector, {
+				sources: [
+					Source.Openchain_Rest,
+				],
+				fields: {
+					signatures: true,
+				},
+			})
+		}
 	/>
 </Page>

@@ -10,7 +10,6 @@ import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
 	SourceArtifactKind,
-	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
@@ -31,7 +30,12 @@ const {
 	getTransactionReceipt,
 } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
 
-const binding = bindings[Source.Hyperliquid_JsonRpc]
+const binding = bindings[Source.Hyperliquid].find(
+	({ apiFamily }) => apiFamily === ApiFamily.EvmExecutionJsonRpc
+)
+
+if (binding == null)
+	throw new Error('Hyperliquid EVM binding is missing')
 
 describe('Hyperliquid JSON-RPC transport', () => {
 	beforeEach(() => {
@@ -51,24 +55,19 @@ describe('Hyperliquid JSON-RPC transport', () => {
 			endpoints: [{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://rpc.hyperliquid.xyz/evm',
-				origin: 'https://rpc.hyperliquid.xyz',
 				corsEnabled: true,
 			}],
 			wireProtocol: WireProtocol.JsonRpc2,
 			apiFamily: ApiFamily.EvmExecutionJsonRpc,
 			operationGroups: [SourceOperationGroup.EvmRpcCore],
 			delivery: SourceDelivery.BrowserDirect,
-			credentials: [{
-				scope: SourceCredentialScope.None,
-			}],
+			credentials: [],
 			artifacts: [{
 				kind: SourceArtifactKind.OpenRpcSpec,
 				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
-				generated: false,
 			}, {
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
-				generated: false,
 			}],
 		})
 	})

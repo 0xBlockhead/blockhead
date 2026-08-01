@@ -70,13 +70,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			{
 				$network: parentData.selector,
 				blockNumber: BigInt(params.blockNumber),
-			}
+			},
+			'EvmNetworkBlockNumber'
 		)
-		if (
-			!(evmBlockEvmNetworkBlockNumberSelector instanceof arktype.errors)
-			&& '$network' in evmBlockEvmNetworkBlockNumberSelector
-			&& 'blockNumber' in evmBlockEvmNetworkBlockNumberSelector
-		)
+		if (!(evmBlockEvmNetworkBlockNumberSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.EvmBlock,
 				selectorName: 'EvmNetworkBlockNumber',
@@ -100,13 +97,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			{
 				$network: parentData.selector,
 				slot: BigInt(params.blockNumber),
-			}
+			},
+			'Slot'
 		)
-		if (
-			!(solanaBlockSlotSelector instanceof arktype.errors)
-			&& '$network' in solanaBlockSlotSelector
-			&& 'slot' in solanaBlockSlotSelector
-		)
+		if (!(solanaBlockSlotSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.SolanaBlock,
 				selectorName: 'Slot',
@@ -138,13 +132,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			{
 				$network: parentData.selector,
 				height: BigInt(params.blockNumber),
-			}
+			},
+			'NetworkHeight'
 		)
-		if (
-			!(utxoBlockNetworkHeightSelector instanceof arktype.errors)
-			&& '$network' in utxoBlockNetworkHeightSelector
-			&& 'height' in utxoBlockNetworkHeightSelector
-		)
+		if (!(utxoBlockNetworkHeightSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.UtxoBlock,
 				selectorName: 'NetworkHeight',
@@ -168,13 +159,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			{
 				$network: parentData.selector,
 				blockNumber: BigInt(params.blockNumber),
-			}
+			},
+			'NetworkBlockNumber'
 		)
-		if (
-			!(polkadotBlockNetworkBlockNumberSelector instanceof arktype.errors)
-			&& '$network' in polkadotBlockNetworkBlockNumberSelector
-			&& 'blockNumber' in polkadotBlockNetworkBlockNumberSelector
-		)
+		if (!(polkadotBlockNetworkBlockNumberSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.PolkadotBlock,
 				selectorName: 'NetworkBlockNumber',

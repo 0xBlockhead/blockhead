@@ -180,7 +180,6 @@
 									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 									prefetched={media}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

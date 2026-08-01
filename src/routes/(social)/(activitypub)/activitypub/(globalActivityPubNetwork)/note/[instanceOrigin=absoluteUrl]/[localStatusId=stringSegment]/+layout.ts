@@ -19,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 		{
 			instanceOrigin: decodeURIComponent(params.instanceOrigin),
 			localStatusId: params.localStatusId,
-		}
+		},
+		'InstanceOriginLocalStatusId'
 	)
 	if (activityPubNoteInstanceOriginLocalStatusIdSelector instanceof arktype.errors)
 		error(404, 'Invalid ActivityPubNote selector')

@@ -16,27 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadWalletConnection, {
-		connectionKey: params.connectionKey,
-	}, {
-		sources: [
-			Source.Local_Internal,
-		],
-		fields: {
-			$wallet: true,
-			status: true,
-			protocol: true,
-			transportKind: true,
-			selected: true,
-			connectedAt: true,
-			disconnectedAt: true,
-			sessionId: true,
-			sessionTopic: true,
-			error: true,
-			$activeAccount: true,
-		},
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -45,12 +24,33 @@
 
 
 <svelte:head>
-	<title>{pageSelection.entity == null ? 'wallet connection' : 'wallet connection'} • wallet connection • Blockhead</title>
+	<title>{'wallet connection'} • wallet connection • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BlockheadWalletConnectionView
-		selection={pageSelection}
+		selection={
+			select(EntityType.BlockheadWalletConnection, {
+				connectionKey: params.connectionKey,
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					$wallet: true,
+					status: true,
+					protocol: true,
+					transportKind: true,
+					selected: true,
+					connectedAt: true,
+					disconnectedAt: true,
+					sessionId: true,
+					sessionTopic: true,
+					error: true,
+					$activeAccount: true,
+				},
+			})
+		}
 	/>
 </Page>

@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -22,7 +21,6 @@
 
 
 	// Components
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import StellarAccountView from '$/views/StellarAccountView.svelte'
 	import StellarAssetView from '$/views/StellarAssetView.svelte'
@@ -32,15 +30,10 @@
 <EntityView
 	entityType={EntityType.StellarTrustline}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'stellar trustline'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		stellar trustline
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -49,7 +42,6 @@
 					<StellarAccountView
 						selection={select(EntityType.StellarAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -60,7 +52,6 @@
 					<StellarAssetView
 						selection={select(EntityType.StellarAsset, selection.entitySelector.$asset)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

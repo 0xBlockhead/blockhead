@@ -1,7 +1,5 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import {
-	defineResolver,
-} from '$/resolvers/defineResolver.ts'
+import { defineResolver } from '$/resolvers/defineResolver.ts'
 import { type } from 'arktype'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
@@ -130,23 +128,49 @@ export default {
 							bannerMedia != null && {
 								$profileBanner: bannerMedia,
 							}
-						))(mediaFromUrl(xUser.profile_banner_url, MediaType.Image)),
+							))(mediaFromUrl(xUser.profile_banner_url, MediaType.Image)),
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$user: { id },
+									timestampMs: Date.now(),
+									source: Source.X_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									...(xUser.public_metrics?.followers_count != null && {
+										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followerCount')]:
+											xUser.public_metrics.followers_count,
+									}),
+									...(xUser.public_metrics?.following_count != null && {
+										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followingCount')]:
+											xUser.public_metrics.following_count,
+									}),
+									...(xUser.public_metrics?.tweet_count != null && {
+										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'tweetCount')]:
+											xUser.public_metrics.tweet_count,
+									}),
+									...(xUser.public_metrics?.listed_count != null && {
+										[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'listedCount')]:
+											xUser.public_metrics.listed_count,
+									}),
+								},
+							}],
 						}
 					},
 				},
 			},
 		})({
-				id: (user) => user.id,
-				username: (user) => user.username,
-				name: (user) => user.name,
-				description: (user) => user.description,
-				location: (user) => user.location,
-				verified: (user) => user.verified,
-				createdAt: (user) => user.createdAt,
-				websiteUrl: (user) => user.websiteUrl,
-				$icon: (user) => user.$icon,
-				$profileBanner: (user) => user.$profileBanner,
-			}),
+			id: (user) => user.id,
+			username: (user) => user.username,
+			name: (user) => user.name,
+			description: (user) => user.description,
+			location: (user) => user.location,
+			verified: (user) => user.verified,
+			createdAt: (user) => user.createdAt,
+			websiteUrl: (user) => user.websiteUrl,
+			$icon: (user) => user.$icon,
+			$profileBanner: (user) => user.$profileBanner,
+			$$timestamps: (user) => user.$$timestamps,
+		}),
 
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XPost,
@@ -201,129 +225,63 @@ export default {
 							$$media: (
 								tweet.attachments?.media_keys ?? []
 							).flatMap((mediaKey) => {
-							const wireMedia = mediaByKey.get(mediaKey)
-							const media = mediaFromUrl(
-								wireMedia?.preview_image_url ?? wireMedia?.url,
-								wireMedia?.type === 'video' ?
-									MediaType.Video
-								:
-									MediaType.Image
-							)
-							return media == null ? [] : [media]
+								const wireMedia = mediaByKey.get(mediaKey)
+								const media = mediaFromUrl(
+									wireMedia?.preview_image_url ?? wireMedia?.url,
+									wireMedia?.type === 'video' ?
+										MediaType.Video
+									:
+										MediaType.Image
+								)
+								return media == null ? [] : [media]
 							}),
-							$author: (
-								tweet.author_id == null ?
-									undefined
-								:
-									xUserReference(tweet.author_id, response.includes?.users)
-							),
-						}
-					},
-				}
-			},
-		})({
-				id: (post) => post.id,
-				text: (post) => post.text,
-				createdAt: (post) => post.createdAt,
-				conversationId: (post) => post.conversationId,
-				$replyToPost: (post) => post.$replyToPost,
-				$quotedPost: (post) => post.$quotedPost,
-				postUrl: (post) => post.postUrl,
-				$$media: (post) => post.$$media,
-				$author: (post) => post.$author,
-			}),
-
-		defineResolver(Source.X_Rest, {
-			entityType: EntityType.XPost,
-			resolve: {
-				Id: {
-					resolve: async ({ id }, context) => {
-						const { getTweet } = await import('$/sources/X/Rest/queries.ts')
-						const tweet = (await getTweet(context.publicEnv, id)).data
-						if (tweet == null) throw new Error('X_Rest: post not found')
-						if (tweet.id !== id) throw new Error('X_Rest: post id mismatch')
-						return [
-							{
+							...(tweet.author_id != null && {
+								$author: xUserReference(
+									tweet.author_id,
+									response.includes?.users
+								),
+							}),
+							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$post: { id },
 									timestampMs: Date.now(),
 									source: Source.X_Rest,
 								},
-								likeCount: tweet.public_metrics?.like_count,
-								retweetCount: tweet.public_metrics?.retweet_count,
-								replyCount: tweet.public_metrics?.reply_count,
-								quoteCount: tweet.public_metrics?.quote_count,
-							},
-						]
+								[EntityMetaKey.Fields]: {
+									...(tweet.public_metrics?.like_count != null && {
+										[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'likeCount')]:
+											tweet.public_metrics.like_count,
+									}),
+									...(tweet.public_metrics?.retweet_count != null && {
+										[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'retweetCount')]:
+											tweet.public_metrics.retweet_count,
+									}),
+									...(tweet.public_metrics?.reply_count != null && {
+										[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'replyCount')]:
+											tweet.public_metrics.reply_count,
+									}),
+									...(tweet.public_metrics?.quote_count != null && {
+										[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'quoteCount')]:
+											tweet.public_metrics.quote_count,
+									}),
+								},
+							}],
+						}
 					},
 				}
 			},
 		})({
-				$$timestamps: (timestamps) => timestamps.map((timestamp) => ({
-					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						...(timestamp.likeCount != null && {
-							[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'likeCount')]: timestamp.likeCount,
-						}),
-						...(timestamp.retweetCount != null && {
-							[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'retweetCount')]: timestamp.retweetCount,
-						}),
-						...(timestamp.replyCount != null && {
-							[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'replyCount')]: timestamp.replyCount,
-						}),
-						...(timestamp.quoteCount != null && {
-							[entityFieldAddressKey(EntityType.XPost_Timestamp, [], 'quoteCount')]: timestamp.quoteCount,
-						}),
-					},
-				})),
-			}),
-
-		defineResolver(Source.X_Rest, {
-			entityType: EntityType.XUser,
-			resolve: {
-				Id: {
-					resolve: async ({ id }, context) => {
-						const { getUser } = await import('$/sources/X/Rest/queries.ts')
-						const user = (await getUser(context.publicEnv, id)).data
-						if (user == null) throw new Error('X_Rest: user not found')
-						if (user.id !== id) throw new Error('X_Rest: user id mismatch')
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$user: {
-										id,
-									},
-									timestampMs: Date.now(),
-									source: Source.X_Rest,
-								},
-								followerCount: user.public_metrics?.followers_count,
-								followingCount: user.public_metrics?.following_count,
-								tweetCount: user.public_metrics?.tweet_count,
-								listedCount: user.public_metrics?.listed_count,
-							},
-						]
-					},
-				},
-			},
-		})({
-				$$timestamps: (timestamps) => timestamps.map((timestamp) => ({
-					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-					[EntityMetaKey.Fields]: {
-						...(timestamp.followerCount != null && {
-							[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followerCount')]: timestamp.followerCount,
-						}),
-						...(timestamp.followingCount != null && {
-							[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'followingCount')]: timestamp.followingCount,
-						}),
-						...(timestamp.tweetCount != null && {
-							[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'tweetCount')]: timestamp.tweetCount,
-						}),
-						...(timestamp.listedCount != null && {
-							[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'listedCount')]: timestamp.listedCount,
-						}),
-					},
-				})),
-			}),
+			id: (post) => post.id,
+			text: (post) => post.text,
+			createdAt: (post) => post.createdAt,
+			conversationId: (post) => post.conversationId,
+			$replyToPost: (post) => post.$replyToPost,
+			$quotedPost: (post) => post.$quotedPost,
+			postUrl: (post) => post.postUrl,
+			$$media: (post) => post.$$media,
+			$author: (post) => post.$author,
+			$$timestamps: (post) => post.$$timestamps,
+		}),
 
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XUser,
@@ -332,59 +290,62 @@ export default {
 					resolve: async ({ id }, context) => {
 						const { listUserTweets } = await import('$/sources/X/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
-						return listUserTweets(
-							context.publicEnv,
-							id,
-							limit,
-							context.providerContinuationToken
-						)
+						return {
+							userId: id,
+							page: await listUserTweets(
+								context.publicEnv,
+								id,
+								limit,
+								context.providerContinuationToken
+							),
+						}
 					},
 				},
 			},
 		})({
-				$$posts: {
-					select: (page, { id }) => (
-						(page.data ?? [])
-							.flatMap((wirePost) => (
-								wirePost.id == null
-								|| wirePost.author_id !== id ?
-									[]
-								:
-									[{
-										[EntityMetaKey.Selector]: { id: wirePost.id },
-										[EntityMetaKey.Fields]: {
-											...(optionalNonemptyString(wirePost.text) != null && {
-												[entityFieldAddressKey(EntityType.XPost, [], 'text')]:
-													optionalNonemptyString(wirePost.text),
-											}),
-											...(Number.isFinite(Date.parse(wirePost.created_at ?? '')) && {
-												[entityFieldAddressKey(EntityType.XPost, [], 'createdAt')]:
-													Date.parse(wirePost.created_at ?? ''),
-											}),
-											[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:
-												UrlString.assert(`https://x.com/i/web/status/${wirePost.id}`),
-											[entityFieldAddressKey(EntityType.XPost, [], '$author')]:
-												xUserReference(id, page.includes?.users),
-										},
-									}]
-								))
-					),
-					continuation: (page, { id }) => (
-						page.meta?.next_token == null || page.meta.next_token === '' ?
-							{
-								operation: 'users/:id/tweets',
-								target: id,
-								terminal: true,
-							}
-						:
-							{
-								operation: 'users/:id/tweets',
-								target: id,
-								terminal: false,
-								token: page.meta.next_token,
-							}
-					),
-				},
-			}),
+			$$posts: {
+				select: ({ page, userId }) => (
+					(page.data ?? [])
+						.flatMap((wirePost) => (
+							wirePost.id == null
+							|| wirePost.author_id !== userId ?
+								[]
+							:
+								[{
+									[EntityMetaKey.Selector]: { id: wirePost.id },
+									[EntityMetaKey.Fields]: {
+										...(optionalNonemptyString(wirePost.text) != null && {
+											[entityFieldAddressKey(EntityType.XPost, [], 'text')]:
+												optionalNonemptyString(wirePost.text),
+										}),
+										...(Number.isFinite(Date.parse(wirePost.created_at ?? '')) && {
+											[entityFieldAddressKey(EntityType.XPost, [], 'createdAt')]:
+												Date.parse(wirePost.created_at ?? ''),
+										}),
+										[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:
+											UrlString.assert(`https://x.com/i/web/status/${wirePost.id}`),
+										[entityFieldAddressKey(EntityType.XPost, [], '$author')]:
+											xUserReference(userId, page.includes?.users),
+									},
+								}]
+							))
+				),
+				continuation: ({ page, userId }) => (
+					page.meta?.next_token == null || page.meta.next_token === '' ?
+						{
+							operation: 'users/:id/tweets',
+							target: userId,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'users/:id/tweets',
+							target: userId,
+							terminal: false,
+							token: page.meta.next_token,
+						}
+				),
+			},
+		}),
 	],
 }

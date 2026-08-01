@@ -41,6 +41,10 @@
 			{#snippet Title()}
 				{moneroRingSelector.$keyImage.keyImage || 'monero key image'}
 			{/snippet}
+
+			{#snippet Value()}
+				Ring
+			{/snippet}
 		</EntityView>
 	{/snippet}
 </EntitiesList>

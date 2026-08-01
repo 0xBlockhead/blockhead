@@ -20,17 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SpecificationRealm> = $props()
 
-	const specificationRealm = $derived(selection({
-		sources: selection.sources ?? [
-			Source.Constants_Internal,
-		],
-	})({
-		fields: {
-			label: true,
-			labelPlural: true,
-			slug: true,
-		},
-	}))
 	const titleFallback = $derived((prefetched.label ?? '') || selection.entitySelector.realm || 'Specification realm')
 
 
@@ -60,7 +49,21 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={specificationRealm}>
+		<ResourceBoundary
+			resource={
+				selection({
+					sources: selection.sources ?? [
+						Source.Constants_Internal,
+					],
+				})({
+					fields: {
+						label: true,
+						labelPlural: true,
+						slug: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
 				{entity.label || title || titleFallback}
 			{/snippet}
@@ -80,7 +83,19 @@
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={specificationRealm}
+				resource={
+					selection({
+						sources: selection.sources ?? [
+							Source.Constants_Internal,
+						],
+					})({
+						fields: {
+							label: true,
+							labelPlural: true,
+							slug: true,
+						},
+					})
+				}
 			>
 				{#snippet children(entity)}
 					{@const labelPlural = entity.labelPlural}
@@ -99,7 +114,19 @@
 				<dt>Slug</dt>
 				<dd>
 					<ResourceBoundary
-						resource={specificationRealm}
+						resource={
+							selection({
+								sources: selection.sources ?? [
+									Source.Constants_Internal,
+								],
+							})({
+								fields: {
+									label: true,
+									labelPlural: true,
+									slug: true,
+								},
+							})
+						}
 					>
 						{#snippet children(entity)}
 							{entity.slug}

@@ -1,21 +1,21 @@
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
+import bindings from '$/sources/Across/bindings.ts'
 import type {
 	AcrossDeposit,
 	AcrossDepositResponse,
 	AcrossDepositStatusResponse,
-	AcrossObservation,
 	AcrossSuggestedFees,
 } from '$/sources/Across/Rest/types.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
 
+const binding = bindings[Source.Across_Rest]
 const integerStringPattern = /^(?:0|[1-9]\d*)$/
 const decimalStringPattern = /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/
 
-const fetchAcrossJson = <_Json>(
-	binding: SourceBinding,
-	path: string
-) => sourceGetJson<_Json>(binding, httpUrl(binding, path))
+const fetchAcrossJson = <_Json>(path: string) => (
+	sourceGetJson<_Json>(binding, httpUrl(binding, path))
+)
 
 const assertChainId = (chainId: number) => {
 	if (!Number.isSafeInteger(chainId) || chainId < 1)
@@ -75,12 +75,6 @@ const assertDeposit = (deposit: AcrossDeposit) => {
 	}
 }
 
-const observe = <_Value>(value: _Value): AcrossObservation<_Value> => ({
-	value,
-	observedBy: 'Across_Rest',
-	resolvedAtMs: Date.now(),
-})
-
 const depositIdentityQuery = ({
 	originChainId,
 	depositId,
@@ -97,12 +91,10 @@ const depositIdentityQuery = ({
 }
 
 export const getDeposit = async ({
-	binding,
 	originChainId,
 	depositId,
 	index = 0,
 }: {
-	binding: SourceBinding
 	originChainId: number
 	depositId: string
 	index?: number
@@ -114,7 +106,7 @@ export const getDeposit = async ({
 		depositId,
 	})
 	query.set('index', String(index))
-	const response = await fetchAcrossJson<AcrossDepositResponse>(binding, `/api/deposit?${query}`)
+	const response = await fetchAcrossJson<AcrossDepositResponse>(`/api/deposit?${query}`)
 	assertDeposit(response.deposit)
 	if (
 		response.deposit.originChainId !== originChainId
@@ -122,15 +114,13 @@ export const getDeposit = async ({
 		|| response.pagination.currentIndex !== index
 	)
 		throw new Error('Across_Rest: mismatched deposit identity')
-	return observe(response)
+	return response
 }
 
 export const getDepositByTransaction = async ({
-	binding,
 	depositTxnRef,
 	index = 0,
 }: {
-	binding: SourceBinding
 	depositTxnRef: string
 	index?: number
 }) => {
@@ -138,7 +128,6 @@ export const getDepositByTransaction = async ({
 	if (!Number.isSafeInteger(index) || index < 0)
 		throw new Error(`Across_Rest: invalid deposit index ${index}`)
 	const response = await fetchAcrossJson<AcrossDepositResponse>(
-		binding,
 		`/api/deposit?${new URLSearchParams({
 			depositTxnRef,
 			index: String(index),
@@ -150,15 +139,13 @@ export const getDepositByTransaction = async ({
 		|| response.pagination.currentIndex !== index
 	)
 		throw new Error('Across_Rest: mismatched deposit transaction identity')
-	return observe(response)
+	return response
 }
 
 export const getDepositStatus = async ({
-	binding,
 	originChainId,
 	depositId,
 }: {
-	binding: SourceBinding
 	originChainId: number
 	depositId: string
 }) => {
@@ -167,7 +154,6 @@ export const getDepositStatus = async ({
 		depositId,
 	})
 	const status = await fetchAcrossJson<AcrossDepositStatusResponse>(
-		binding,
 		`/api/deposit/status?${query}`
 	)
 	if (status.originChainId !== originChainId || status.depositId !== depositId)
@@ -176,16 +162,14 @@ export const getDepositStatus = async ({
 	assertOpaqueIdentity(status.depositTxnRef, 'deposit transaction reference')
 	if (status.fillTxnRef != null)
 		assertOpaqueIdentity(status.fillTxnRef, 'fill transaction reference')
-	return observe(status)
+	return status
 }
 
 export const getDeposits = async ({
-	binding,
 	depositor,
 	limit = 50,
 	skip = 0,
 }: {
-	binding: SourceBinding
 	depositor: string
 	limit?: number
 	skip?: number
@@ -196,7 +180,6 @@ export const getDeposits = async ({
 	if (!Number.isSafeInteger(skip) || skip < 0 || skip > 100_000)
 		throw new Error(`Across_Rest: invalid page offset ${skip}`)
 	const deposits = await fetchAcrossJson<AcrossDeposit[]>(
-		binding,
 		`/api/deposits?${new URLSearchParams({
 			depositor,
 			limit: String(limit),
@@ -210,18 +193,16 @@ export const getDeposits = async ({
 		if (deposit.depositor.toLowerCase() !== depositor.toLowerCase())
 			throw new Error('Across_Rest: foreign depositor deposit')
 	}
-	return observe(deposits)
+	return deposits
 }
 
 export const getSuggestedFees = async ({
-	binding,
 	inputToken,
 	outputToken,
 	originChainId,
 	destinationChainId,
 	amount,
 }: {
-	binding: SourceBinding
 	inputToken: string
 	outputToken: string
 	originChainId: number
@@ -234,7 +215,6 @@ export const getSuggestedFees = async ({
 	assertChainId(destinationChainId)
 	assertIntegerString(amount, 'quote amount')
 	const fees = await fetchAcrossJson<AcrossSuggestedFees>(
-		binding,
 		`/api/suggested-fees?${new URLSearchParams({
 			inputToken,
 			outputToken,
@@ -264,5 +244,5 @@ export const getSuggestedFees = async ({
 		assertIntegerString(value, name)
 	if (BigInt(fees.outputAmount) > BigInt(amount))
 		throw new Error('Across_Rest: quote output exceeds input')
-	return observe(fees)
+	return fees
 }

@@ -62,7 +62,6 @@
 		<A2aTaskView
 			selection={select(EntityType.A2aTask, selection.entitySelector.$task)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -87,7 +86,6 @@
 					<A2aTaskView
 						selection={select(EntityType.A2aTask, selection.entitySelector.$task)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -165,7 +163,6 @@
 									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
 									prefetched={aiArtifact}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

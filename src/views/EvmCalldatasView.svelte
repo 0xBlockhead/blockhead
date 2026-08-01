@@ -50,6 +50,10 @@
 			{#snippet Title()}
 				{evmCalldataSelector.hex || 'EVM calldata'}
 			{/snippet}
+
+			{#snippet Value()}
+				{evmCalldataSelector.hex}
+			{/snippet}
 		</EntityView>
 	{/snippet}
 </EntitiesList>

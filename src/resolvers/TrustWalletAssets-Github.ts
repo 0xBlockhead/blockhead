@@ -2,7 +2,9 @@ import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
+import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstanceKind.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -88,20 +90,14 @@ const trustWalletChainsByEip155Reference = [
 const eip155Namespace = 'eip155'
 const solanaNamespace = 'solana'
 
-const trustWalletChainByNetworkSlug = new Map(trustWalletChainsByNetworkSlug)
-const trustWalletChainByEip155Reference = new Map(trustWalletChainsByEip155Reference)
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
-const trustWalletChain = (
-	network: { caip2: {
-		namespace: string
-		reference: string
-	} } | { slug: string }
-) => (
+const trustWalletChain = (network: NetworkId) => (
 	'slug' in network ?
-		trustWalletChainByNetworkSlug.get(network.slug)
+		trustWalletChainsByNetworkSlug.find(([slug]) => slug === network.slug)?.[1]
 	:
 		network.caip2.namespace === eip155Namespace ?
-			trustWalletChainByEip155Reference.get(network.caip2.reference)
+			trustWalletChainsByEip155Reference.find(([reference]) => reference === network.caip2.reference)?.[1]
 		:
 			network.caip2.namespace === solanaNamespace ?
 				'solana'

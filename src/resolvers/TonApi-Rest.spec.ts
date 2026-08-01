@@ -10,7 +10,6 @@ import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
 	SourceArtifactKind,
-	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
@@ -78,7 +77,6 @@ describe('TonAPI masterchain-head transport', () => {
 			endpoints: [{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://tonapi.io',
-				origin: 'https://tonapi.io',
 				corsEnabled: false,
 			}],
 			wireProtocol: WireProtocol.HttpRest,
@@ -87,13 +85,10 @@ describe('TonAPI masterchain-head transport', () => {
 				SourceOperationGroup.GenericRead,
 			],
 			delivery: SourceDelivery.HttpProxy,
-			credentials: [{
-				scope: SourceCredentialScope.None,
-			}],
+			credentials: [],
 			artifacts: [{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/TonApi/Rest/types.ts',
-				generated: false,
 			}],
 		})
 	})

@@ -1,27 +1,23 @@
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import {
-	bitcoinNetworkBySlug,
-} from '$/constants/BitcoinNetwork.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
-type NetworkId = { caip2: {
-	namespace: string
-	reference: string
-} } | { slug: string }
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertBitcoinCashMainnet = (network: NetworkId) => {
 	if (
 		'caip2' in network ?
 			(
-				network.caip2.namespace !== bitcoinNetworkBySlug['bitcoin-cash'].caip2.namespace
-				|| network.caip2.reference !== bitcoinNetworkBySlug['bitcoin-cash'].caip2.reference
+				network.caip2.namespace !== networkBySlug['bitcoin-cash'].caip2.namespace
+				|| network.caip2.reference !== networkBySlug['bitcoin-cash'].caip2.reference
 			)
 		:
 			network.slug !== networkBySlug['bitcoin-cash'].slug

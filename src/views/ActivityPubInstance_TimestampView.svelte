@@ -82,7 +82,6 @@
 					selection={select(EntityType.ActivityPubInstance, selection.entitySelector.$instance)}
 					href={null}
 					layout={EntityLayout.Value}
-					open={false}
 				/>
 				{selection.entitySelector.source}
 				{@const version = entity.version}
@@ -101,7 +100,6 @@
 					<ActivityPubInstanceView
 						selection={select(EntityType.ActivityPubInstance, selection.entitySelector.$instance)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -52,25 +52,3 @@ export type ChainlistRpcsJsonChain = {
 	isTestnet?: boolean
 	testnet?: boolean
 }
-
-/** Subset of `ChainlistRpcsJsonChain` used for mainnet/testnet pairing in resolvers. */
-export type ChainlistChainPairing = Pick<
-	ChainlistRpcsJsonChain,
-	| 'chainId'
-	| 'name'
-	| 'title'
-	| 'shortName'
-	| 'chainSlug'
-	| 'parent'
-	| 'nativeCurrency'
-	| 'isTestnet'
-	| 'testnet'
->
-
-/** Explorer row (+ optional `infoURL`) normalized into `Url` catalog entities. */
-export type ChainlistExplorerLike = {
-	name: string
-	url: string
-	standard?: string | null
-	icon?: string | null
-}

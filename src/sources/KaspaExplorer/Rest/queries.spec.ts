@@ -12,8 +12,9 @@ import {
 	getCompleteAddressUtxos,
 } from '$/sources/KaspaExplorer/Rest/queries.ts'
 import * as httpRestClient from '$/sources/_shared/wire/HttpRest/client.ts'
+import * as sourceHttp from '$/sources/_runtime/http.ts'
 
-const registeredBinding = bindings[Source.KaspaExplorer_Rest]
+const registeredBinding = bindings[Source.KaspaExplorer]
 
 const binding = registeredBinding
 
@@ -25,9 +26,9 @@ describe('Kaspa Explorer address queries', () => {
 		const getJson = vi.spyOn(httpRestClient, 'getJson')
 		getJson.mockClear()
 
-		await expect(getAddressBalance(
-			`${address.slice(0, -1)}q`
-		)).rejects.toThrow('invalid Kaspa mainnet address')
+		await expect(getAddressBalance({
+			kaspaAddress: `${address.slice(0, -1)}q`,
+		})).rejects.toThrow('invalid Kaspa mainnet address')
 		expect(getJson).not.toHaveBeenCalled()
 	})
 
@@ -37,7 +38,7 @@ describe('Kaspa Explorer address queries', () => {
 			balance: Number.MAX_SAFE_INTEGER + 1,
 		})
 
-		await expect(getAddressBalance(address)).rejects.toThrow(
+		await expect(getAddressBalance({ kaspaAddress: address })).rejects.toThrow(
 			'exceeds lossless JSON integer range'
 		)
 		expect(httpRestClient.getJson).toHaveBeenCalledWith(
@@ -69,7 +70,7 @@ describe('Kaspa Explorer address queries', () => {
 				count: 1,
 			})
 
-		await expect(getCompleteAddressUtxos(address)).resolves.toMatchObject([
+		await expect(getCompleteAddressUtxos({ kaspaAddress: address })).resolves.toMatchObject([
 			{
 				utxoEntry: {
 					amount: '28700000000000000',
@@ -86,13 +87,13 @@ describe('Kaspa Explorer address queries', () => {
 				count: 501,
 			})
 
-		await expect(getCompleteAddressUtxos(address)).rejects.toThrow(
+		await expect(getCompleteAddressUtxos({ kaspaAddress: address })).rejects.toThrow(
 			'address UTXO response is incomplete'
 		)
 	})
 
 	it('uses bounded time cursors and validates every transaction belongs to the address', async () => {
-		vi.spyOn(httpRestClient, 'getJson').mockResolvedValue([
+		vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(JSON.stringify([
 			{
 				transaction_id: transactionId,
 				mass: '12345678901234567',
@@ -105,21 +106,28 @@ describe('Kaspa Explorer address queries', () => {
 					},
 				],
 			},
-		])
+		]), {
+			headers: {
+				'x-next-page-before': '1720000000000',
+			},
+		}))
 
 		await expect(getAddressTransactionsPage({
-			address,
+			kaspaAddress: address,
 			limit: 25,
 			before: 1_720_000_000_001,
-		})).resolves.toHaveLength(1)
-		expect(httpRestClient.getJson).toHaveBeenCalledWith(
+		})).resolves.toMatchObject({
+			nextBefore: 1_720_000_000_000,
+			transactions: [{ transaction_id: transactionId }],
+		})
+		expect(sourceHttp.sourceFetch).toHaveBeenCalledWith(
 			binding,
-			`/addresses/${encodeURIComponent(address)}/full-transactions-page?limit=25&resolve_previous_outpoints=light&before=1720000000001`
+			`https://api.kaspa.org/addresses/${encodeURIComponent(address)}/full-transactions-page?limit=25&resolve_previous_outpoints=light&before=1720000000001`
 		)
 	})
 
 	it('rejects unsafe transaction amounts and incompatible cursor directions', async () => {
-		vi.spyOn(httpRestClient, 'getJson').mockResolvedValue([
+		vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(JSON.stringify([
 			{
 				transaction_id: transactionId,
 				block_time: 1,
@@ -130,14 +138,14 @@ describe('Kaspa Explorer address queries', () => {
 					},
 				],
 			},
-		])
+		])))
 
 		await expect(getAddressTransactionsPage({
-			address,
+			kaspaAddress: address,
 			limit: 1,
 		})).rejects.toThrow('exceeds lossless JSON integer range')
 		await expect(getAddressTransactionsPage({
-			address,
+			kaspaAddress: address,
 			limit: 1,
 			before: 2,
 			after: 1,

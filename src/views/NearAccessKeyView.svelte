@@ -85,7 +85,6 @@
 					<NearAccountView
 						selection={select(EntityType.NearAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -53,14 +53,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				$network: parentData.selector.$network,
 				blockNumber: BigInt(params.blockNumber),
 				hash: params.hash,
-			}
+			},
+			'NetworkBlockNumberHash'
 		)
-		if (
-			!(polkadotBlockNetworkBlockNumberHashSelector instanceof arktype.errors)
-			&& '$network' in polkadotBlockNetworkBlockNumberHashSelector
-			&& 'blockNumber' in polkadotBlockNetworkBlockNumberHashSelector
-			&& 'hash' in polkadotBlockNetworkBlockNumberHashSelector
-		)
+		if (!(polkadotBlockNetworkBlockNumberHashSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.PolkadotBlock,
 				selectorName: 'NetworkBlockNumberHash',
@@ -94,14 +90,10 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				$network: parentData.selector.$network,
 				height: BigInt(params.blockNumber),
 				hash: params.hash,
-			}
+			},
+			'NetworkHeightHash'
 		)
-		if (
-			!(utxoBlockNetworkHeightHashSelector instanceof arktype.errors)
-			&& '$network' in utxoBlockNetworkHeightHashSelector
-			&& 'height' in utxoBlockNetworkHeightHashSelector
-			&& 'hash' in utxoBlockNetworkHeightHashSelector
-		)
+		if (!(utxoBlockNetworkHeightHashSelector instanceof arktype.errors))
 			routeCandidates.push({
 				entityType: EntityType.UtxoBlock,
 				selectorName: 'NetworkHeightHash',

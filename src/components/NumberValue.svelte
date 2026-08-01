@@ -1,33 +1,29 @@
 <script lang="ts">
 	// Types/constants
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import { Tween, prefersReducedMotion } from 'svelte/motion'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { SvelteHTMLElements } from 'svelte/elements'
 
 
 	// State
 	let {
 		value,
-		resource,
-		locales,
 		options = {},
-		tween = false,
-		tweenDuration = 1000,
 		formatValueOptions,
 		decimalPlaces,
-	}: {
-		value?: number | bigint
-		resource?: SvelteKitResource<number | bigint | undefined>
-		locales?: string | string[]
-		options?: Intl.NumberFormatOptions
-		tween?: boolean
-		tweenDuration?: number
-		formatValueOptions?: NonNullable<Parameters<typeof formatValue>[1]>
-		decimalPlaces?: number
-	} = $props()
+		class: className,
+		...outputProps
+	}: WithRest<
+		{
+			value?: number | bigint
+			options?: Intl.NumberFormatOptions
+			formatValueOptions?: NonNullable<Parameters<typeof formatValue>[1]>
+			decimalPlaces?: number
+		},
+		SvelteHTMLElements['output']
+	> = $props()
 
 
 	// Functions
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	const indexParts = (parts: Intl.NumberFormatPart[]) => {
 		const decimalIndex = parts.findIndex(
 			(part) => (part.type === 'decimal' || part.type === 'exponentSeparator'),
@@ -86,7 +82,7 @@
 				type: 'minusSign' as const,
 				value: '-',
 			}] : []),
-			...new Intl.NumberFormat(locales, {
+			...new Intl.NumberFormat(undefined, {
 				...options,
 				minimumFractionDigits: 0,
 				maximumFractionDigits: 0,
@@ -95,7 +91,7 @@
 				{
 					type: 'decimal' as const,
 					value: (
-						new Intl.NumberFormat(locales)
+						new Intl.NumberFormat()
 							.formatToParts(1.1)
 							.find((part) => part.type === 'decimal')
 							?.value
@@ -112,121 +108,31 @@
 
 
 	import { formatValue } from '$/lib/number.ts'
-
-	let isFirstTweenSet = $state(
-		true,
-	)
-
-	const tweenedNumber = new Tween(0, {
-		duration: 0,
-		easing: quintOut,
-		interpolate: (from, to) => (step) => {
-			const dec = (
-				formatValueOptions?.showDecimalPlaces
-				?? options.maximumFractionDigits
-				?? options.minimumFractionDigits
-				?? 0
-			)
-			const logFrom = (
-				from != 0 ?
-					Math.log10(from)
-				:
-					-dec - 1
-			)
-			const interpolated = (
-				10
-				** (
-					logFrom
-					+ step * (
-						(to != 0 ?
-							Math.log10(to)
-						:
-							-dec - 1)
-						- logFrom
-					)
-				)
-			)
-			return (
-				to >= 100 && step < 0.9994 ?
-					from < to ?
-						Math.floor(interpolated)
-					:
-						Math.ceil(interpolated)
-				:
-					interpolated
-			)
-		},
-	})
-
-
-	const dPad = $derived(
-		formatValueOptions?.showDecimalPlaces
-			?? options.maximumFractionDigits
-			?? options.minimumFractionDigits
-			?? 0
-	)
-
-	const displayNumber = $derived(
-		tween ?
-			tweenedNumber.current
-		:
-			(Number(value ?? 0) || 0)
-	)
-
-	$effect(() => {
-		if (!tween) {
-			return
-		}
-		const instant = (
-			prefersReducedMotion.current
-			|| isFirstTweenSet
-		)
-		void tweenedNumber.set(
-			Number(value ?? 0) || 0,
-			{
-				duration: (instant ?
-					0
-				:
-					tweenDuration),
-				delay: (instant ?
-					0
-				:
-					1),
-			},
-		)
-		isFirstTweenSet = false
-	})
-
-
-	// Transitions/animations
-	import { quintOut } from 'svelte/easing'
 </script>
 
 
-{#snippet RenderValue(renderedValue: number | bigint)}
-	<output class="number-value">
+{#if value !== undefined}
+	<output
+		class={[
+			'number-value',
+			className,
+		]}
+		{...outputProps}
+	>
 		{#each indexParts(
 			decimalPlaces !== undefined ?
-				scaledIntegerParts(renderedValue, decimalPlaces)
+				scaledIntegerParts(value, decimalPlaces)
 			: formatValueOptions ?
 				(formatValue(
-					tween && resource === undefined ?
-						displayNumber
-					:
-						Number(renderedValue) || 0,
+					Number(value) || 0,
 					{ ...formatValueOptions, toParts: true },
 				))
 			:
 				(new Intl.NumberFormat(
-					locales,
+					undefined,
 					options,
 				)
-					.formatToParts(
-						tween && resource === undefined ?
-							displayNumber
-						:
-							renderedValue
-					)
+					.formatToParts(value)
 			)
 		) as indexed (indexed.key)}
 			<span
@@ -236,21 +142,6 @@
 			</span>
 		{/each}
 	</output>
-{/snippet}
-
-{#if resource !== undefined}
-	<ResourceBoundary
-		{resource}
-		placeholderText="Loading number…"
-	>
-		{#snippet children(value)}
-			{#if value !== undefined}
-				{@render RenderValue(value)}
-			{/if}
-		{/snippet}
-	</ResourceBoundary>
-{:else if value !== undefined}
-	{@render RenderValue(value)}
 {/if}
 
 

@@ -55,7 +55,6 @@
 			selection={select(EntityType.EvmBlock, selection.entitySelector.$block)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -81,7 +80,6 @@
 			<EvmNetworkActorCoinBalanceView
 				selection={select(EntityType.EvmNetworkActorCoinBalance, selection.entitySelector.$actorCoin)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -94,7 +92,6 @@
 					<EvmBlockView
 						selection={select(EntityType.EvmBlock, selection.entitySelector.$block)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -105,7 +102,6 @@
 					<EvmNetworkActorCoinBalanceView
 						selection={select(EntityType.EvmNetworkActorCoinBalance, selection.entitySelector.$actorCoin)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

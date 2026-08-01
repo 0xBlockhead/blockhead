@@ -18,7 +18,7 @@
 <div data-column="gap-4">
 	<AccountEnrollmentControl />
 
-	<WalletConnectionsControl id="wallet-connections" />
+	<WalletConnectionsControl />
 
 	{@render children()}
 </div>

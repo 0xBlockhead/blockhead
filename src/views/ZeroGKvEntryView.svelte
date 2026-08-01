@@ -22,12 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGKvEntry> = $props()
 
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.ZeroGStorageNode_JsonRpc,
-			Source.ZeroGStorageScan_Rest,
-		],
-	}))
 	const titleFallback = $derived(selection.entitySelector.key || 'zero g kv entry')
 
 
@@ -48,10 +42,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.key || 'zero g kv entry'}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.namespace || selection.entitySelector.key || titleFallback}
 	{/snippet}
@@ -61,7 +51,6 @@
 			<NetworkView
 				selection={select(EntityType.Network, selection.entitySelector.$network)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -74,7 +63,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -95,7 +83,12 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
+						sources: selection.sources ?? [
+							Source.ZeroGStorageNode_JsonRpc,
+							Source.ZeroGStorageScan_Rest,
+						],
+					})({
 						fields: {
 							valueHash: true,
 						},
@@ -127,7 +120,6 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -147,7 +139,6 @@
 									selection={select(EntityType.ZeroGStorageLogEntry, zeroGStorageLogEntry[EntityMetaKey.Selector])}
 									prefetched={zeroGStorageLogEntry}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

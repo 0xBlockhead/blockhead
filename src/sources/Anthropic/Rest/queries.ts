@@ -1,15 +1,16 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { sourceFetch, firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import { throwHttpError } from '$/lib/http.ts'
-import type { AnthropicJson } from '$/sources/Anthropic/Rest/types.ts'
+import bindings from '$/sources/Anthropic/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
+
+const binding = bindings[Source.Anthropic_Rest]
 
 const requestAnthropicJson = async ({
-	binding,
 	path,
 	credential,
 	anthropicVersion,
 }: {
-	binding: SourceBinding
 	path: string
 	credential: string
 	anthropicVersion: string
@@ -24,36 +25,30 @@ const requestAnthropicJson = async ({
 	if (!response.ok)
 		await throwHttpError(binding.source, response)
 
-	return response.json<AnthropicJson>()
+	return response.json<JsonValue>()
 }
 
 export const listModels = ({
-	binding,
 	credential,
 	anthropicVersion,
 }: {
-	binding: SourceBinding
 	credential: string
 	anthropicVersion: string
 }) => requestAnthropicJson({
-	binding,
 	path: '/v1/models',
 	credential,
 	anthropicVersion,
 })
 
 export const retrieveModel = ({
-	binding,
 	modelId,
 	credential,
 	anthropicVersion,
 }: {
-	binding: SourceBinding
 	modelId: string
 	credential: string
 	anthropicVersion: string
 }) => requestAnthropicJson({
-	binding,
 	path: `/v1/models/${encodeURIComponent(modelId)}`,
 	credential,
 	anthropicVersion,

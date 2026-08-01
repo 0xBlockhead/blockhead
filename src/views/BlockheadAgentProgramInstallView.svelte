@@ -53,10 +53,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.installId || 'blockhead agent program install'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAgentProgramInstall}>
 			{#snippet children(entity)}
@@ -99,7 +95,6 @@
 									selection={select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector])}
 									prefetched={blockheadSource}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

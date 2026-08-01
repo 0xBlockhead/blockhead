@@ -183,7 +183,6 @@
 									selection={select(EntityType.BlockheadAgentProfile, blockheadAgentProfile[EntityMetaKey.Selector])}
 									prefetched={blockheadAgentProfile}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -203,7 +202,7 @@
 		>
 			{#snippet children(entity)}
 				{@const systemPrompt = entity.systemPrompt}
-				{#if systemPrompt != null && systemPrompt !== ''}
+				{#if systemPrompt !== ''}
 					<p data-text="long-text">{systemPrompt}</p>
 				{/if}
 			{/snippet}

@@ -16,13 +16,17 @@ import { Source } from '$/sources/Source.ts'
 const getCastsByParent = vi.hoisted(() => vi.fn())
 const getCastById = vi.hoisted(() => vi.fn())
 const getCastsByFid = vi.hoisted(() => vi.fn())
-const getUserBundleByFid = vi.hoisted(() => vi.fn())
+const getUserDataByFid = vi.hoisted(() => vi.fn())
+const getUsernameProofsByFid = vi.hoisted(() => vi.fn())
+const getVerificationsByFid = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Snapchain/Rest/queries.ts', () => ({
 	getCastById,
 	getCastsByFid,
 	getCastsByParent,
-	getUserBundleByFid,
+	getUserDataByFid,
+	getUsernameProofsByFid,
+	getVerificationsByFid,
 }))
 
 const { default: snapchainResolvers } = await import('$/resolvers/Snapchain-Rest.ts')
@@ -205,44 +209,42 @@ describe('Snapchain Farcaster cast identity', () => {
 
 describe('Snapchain Farcaster account ownership', () => {
 	it('excludes foreign account facts and cast rows', async () => {
-		getUserBundleByFid.mockResolvedValueOnce({
-			userData: {
-				messages: [
-					{
-						data: {
-							fid: 42,
-							userDataBody: {
-								type: 'USER_DATA_TYPE_DISPLAY',
-								value: 'Alice',
-							},
-						},
-					},
-					{
-						data: {
-							fid: 99,
-							userDataBody: {
-								type: 'USER_DATA_TYPE_BIO',
-								value: 'Foreign bio',
-							},
-						},
-					},
-				],
-			},
-			usernameProofs: {
-				proofs: [
-					{
-						fid: 99,
-						name: 'mallory',
-					},
-					{
+		getUserDataByFid.mockResolvedValueOnce({
+			messages: [
+				{
+					data: {
 						fid: 42,
-						name: 'alice',
+						userDataBody: {
+							type: 'USER_DATA_TYPE_DISPLAY',
+							value: 'Alice',
+						},
 					},
-				],
-			},
-			verifications: {
-				messages: [],
-			},
+				},
+				{
+					data: {
+						fid: 99,
+						userDataBody: {
+							type: 'USER_DATA_TYPE_BIO',
+							value: 'Foreign bio',
+						},
+					},
+				},
+			],
+		})
+		getUsernameProofsByFid.mockResolvedValueOnce({
+			proofs: [
+				{
+					fid: 99,
+					name: 'mallory',
+				},
+				{
+					fid: 42,
+					name: 'alice',
+				},
+			],
+		})
+		getVerificationsByFid.mockResolvedValueOnce({
+			messages: [],
 		})
 		await expect(userResolver.resolve['Fid'].resolve({
 			fid: 42,
@@ -250,6 +252,9 @@ describe('Snapchain Farcaster account ownership', () => {
 			username: 'alice',
 			displayName: 'Alice',
 		})
+		expect(getUserDataByFid).toHaveBeenCalledWith({ fid: 42 })
+		expect(getUsernameProofsByFid).toHaveBeenCalledWith({ fid: 42 })
+		expect(getVerificationsByFid).toHaveBeenCalledWith({ fid: 42 })
 
 		getCastsByFid.mockResolvedValueOnce({
 			messages: [

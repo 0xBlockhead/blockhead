@@ -86,7 +86,6 @@
 					<BlockheadAgentConversationTurnView
 						selection={select(EntityType.BlockheadAgentConversationTurn, selection.entitySelector.$turn)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -112,7 +111,6 @@
 									selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
 									prefetched={blockheadAgentConnection}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -132,7 +130,6 @@
 									selection={select(EntityType.AiModelProvider, aiModelProvider[EntityMetaKey.Selector])}
 									prefetched={aiModelProvider}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -152,7 +149,6 @@
 									selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
 									prefetched={aiModel}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -172,7 +168,6 @@
 									selection={select(EntityType.AiProviderApiOperation, aiProviderApiOperation[EntityMetaKey.Selector])}
 									prefetched={aiProviderApiOperation}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -194,7 +189,6 @@
 									selection={select(EntityType.McpToolCall, mcpToolCall[EntityMetaKey.Selector])}
 									prefetched={mcpToolCall}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -214,7 +208,6 @@
 									selection={select(EntityType.A2aTask, a2aTask[EntityMetaKey.Selector])}
 									prefetched={a2aTask}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -234,7 +227,6 @@
 									selection={select(EntityType.AcpSession, acpSession[EntityMetaKey.Selector])}
 									prefetched={acpSession}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -254,7 +246,6 @@
 									selection={select(EntityType.AcpPromptTurn, acpPromptTurn[EntityMetaKey.Selector])}
 									prefetched={acpPromptTurn}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

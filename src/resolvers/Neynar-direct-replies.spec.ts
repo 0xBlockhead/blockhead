@@ -68,19 +68,8 @@ describe('Neynar Farcaster direct replies', () => {
 						}],
 					},
 					{
-						hash: '0x3333',
-						parent_hash: '0xabcdef',
-						parent_author: { fid: 42 },
-					},
-					{
 						hash: '0xnot-hex',
 						author: { fid: 9 },
-						parent_hash: '0xabcdef',
-						parent_author: { fid: 42 },
-					},
-					{
-						hash: undefined,
-						author: { fid: 10 },
 						parent_hash: '0xabcdef',
 						parent_author: { fid: 42 },
 					},
@@ -144,7 +133,7 @@ describe('Neynar Farcaster direct replies', () => {
 	})
 
 	it('fails closed when the focal conversation row is missing', async () => {
-		getCastConversation.mockResolvedValueOnce({})
+		getCastConversation.mockResolvedValueOnce(undefined)
 
 		await expect(directRepliesResolve.FidHash.resolve({
 			fid: 42,

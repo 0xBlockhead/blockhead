@@ -18,7 +18,7 @@
 
 	const pageSelection = $derived(select(EntityType.LiquidityPool, data.selector, {
 		sources: [
-			Source.Dexscreener_OpenApi,
+			Source.Dexscreener_Rest,
 		],
 		fields: {
 			$baseToken: true,

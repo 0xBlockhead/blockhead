@@ -88,7 +88,6 @@
 					<EasAttestationView
 						selection={select(EntityType.EasAttestation, selection.entitySelector.$attestation)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

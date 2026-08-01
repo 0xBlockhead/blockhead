@@ -11,18 +11,20 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 	sourceGetJson,
 }))
 
-const { fetchAgentDetail } = await import('$/sources/Eip8004Scan/Rest/queries.ts')
+const {
+	fetchAgentDetail,
+	fetchAgentList,
+} = await import('$/sources/Eip8004Scan/Rest/queries.ts')
 
 const binding = bindings[Source.Eip8004Scan_Rest]
 
-describe('EIP-8004 Scan detail normalization', () => {
+describe('EIP-8004 Scan endpoints', () => {
 	beforeEach(() => {
 		sourceGetJson.mockReset()
 	})
 
-	it('preserves typed service metadata and drops unusable service rows', async () => {
-		vi.spyOn(Date, 'now').mockReturnValueOnce(1_720_000_000_000)
-		sourceGetJson.mockResolvedValueOnce({
+	it('returns the detail response envelope without projecting it', async () => {
+		const response = {
 			data: {
 				chain_id: 1,
 				token_id: '42',
@@ -46,62 +48,42 @@ describe('EIP-8004 Scan detail normalization', () => {
 					},
 				},
 			},
-		})
+		}
+		sourceGetJson.mockResolvedValueOnce(response)
 
 		await expect(fetchAgentDetail(
 			{
 				chainId: 1,
 				tokenId: '42',
 			}
-		)).resolves.toMatchObject({
-			agentUri: 'https://agents.example/42.json',
-			fetchedAt: 1_720_000_000_000,
-			services: [{
-				endpointKind: 'a2a',
-				endpointUrl: 'https://agents.example/a2a',
-				name: 'Trading agent',
-				version: '1.2.0',
-				protocolKind: 'https',
-				active: false,
-			}],
-		})
+		)).resolves.toBe(response)
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
 			'https://8004scan.test/api/v1/public/agents/1/42'
 		)
 	})
 
-	it('does not materialize detail without canonical registration identity and URI', async () => {
-		sourceGetJson
-			.mockResolvedValueOnce({
-				data: {
-					chain_id: 1,
-					token_id: '42',
-					contract_address: 'invalid',
-					raw_metadata: {
-						offchain_uri: 'https://agents.example/42.json',
-					},
-				},
-			})
-			.mockResolvedValueOnce({
-				data: {
-					chain_id: 1,
-					token_id: '42',
-					contract_address: '0x1234567890abcdef1234567890abcdef12345678',
-				},
-			})
+	it('returns the list response envelope without projecting it', async () => {
+		const response = {
+			success: true,
+			data: [{
+				chain_id: 1,
+				token_id: '42',
+				contract_address: 'invalid',
+				name: 'Agent 42',
+			}],
+		}
+		sourceGetJson.mockResolvedValueOnce(response)
 
-		await expect(fetchAgentDetail(
+		await expect(fetchAgentList(
 			{
-				chainId: 1,
-				tokenId: '42',
+				limit: 20,
+				page: 3,
 			}
-		)).resolves.toBeUndefined()
-		await expect(fetchAgentDetail(
-			{
-				chainId: 1,
-				tokenId: '42',
-			}
-		)).resolves.toBeUndefined()
+		)).resolves.toBe(response)
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			'https://8004scan.test/api/v1/public/agents?limit=20&page=3'
+		)
 	})
 })

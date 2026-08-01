@@ -1,6 +1,7 @@
 import { throwHttpError } from '$/lib/http.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { Source } from '$/sources/Source.ts'
+import { ApiFamily } from '$/sources/SourceBinding.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
@@ -19,7 +20,12 @@ import type {
 } from '$/sources/Hyperliquid/Rest/types.ts'
 import bindings from '$/sources/Hyperliquid/bindings.ts'
 
-const binding = bindings[Source.Hyperliquid_Rest]
+const binding = bindings[Source.Hyperliquid].find(
+	({ apiFamily }) => apiFamily === ApiFamily.RestJson
+)
+
+if (binding == null)
+	throw new Error('Hyperliquid Info binding is missing')
 
 export const hyperliquidRestEndpoints = binding.endpoints.map((endpoint) => ({
 	url: endpoint.locator,
@@ -112,10 +118,10 @@ export const getUserFillsByTime = ({
 	endTime?: number
 }) => {
 	if (!Number.isSafeInteger(startTime) || startTime < 0)
-		throw new Error(`Hyperliquid_Rest: invalid fill start time ${startTime}`)
+		throw new Error(`Hyperliquid Info: invalid fill start time ${startTime}`)
 
 	if (endTime != null && (!Number.isSafeInteger(endTime) || endTime < startTime))
-		throw new Error(`Hyperliquid_Rest: invalid fill end time ${endTime}`)
+		throw new Error(`Hyperliquid Info: invalid fill end time ${endTime}`)
 
 	return info<HyperliquidFill[]>({
 		body: {

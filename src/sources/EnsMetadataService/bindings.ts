@@ -1,11 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
 const bindings = [
 	{
-		source: Source.EnsMetadataService_Rest,
+		source: Source.EnsMetadataService,
 		target: {
 			kind: SourceTargetKind.Global,
 			key: 'ens-metadata-service',
@@ -13,23 +13,35 @@ const bindings = [
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://{ens-metadata-service-host}',
-				origin: 'https://{ens-metadata-service-host}',
-				corsEnabled: false,
+				locator: 'https://metadata.ens.domains',
+				corsEnabled: true,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
+		apiFamily: ApiFamily.OpenApiHttp,
 		operationGroups: [
 			SourceOperationGroup.GenericRead,
 		],
-		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
+		delivery: SourceDelivery.BrowserDirect,
+		credentials: [],
+		artifacts: [
 			{
-				scope: SourceCredentialScope.None,
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/EnsMetadataService/OpenApi/openapi.json',
+				generated: true,
+				officialUrl: 'https://metadata.ens.domains/assets/doc_output.json',
+			},
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/EnsMetadataService/OpenApi/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiTypes,
+				path: 'src/sources/EnsMetadataService/OpenApi/openapi.d.ts',
+				generated: true,
 			},
 		],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.EnsMetadataService_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

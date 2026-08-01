@@ -75,7 +75,6 @@
 					<BlockheadRadicleNodeStateView
 						selection={select(EntityType.BlockheadRadicleNodeState, selection.entitySelector.$nodeState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

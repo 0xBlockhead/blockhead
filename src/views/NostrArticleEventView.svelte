@@ -116,12 +116,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			One cryptographically signed kind-30023 version of a stable Nostr article coordinate.
-		</p>
-	{/snippet}
-
 	{#snippet ContentWarningContent(content)}
 		{#if content != null && content !== ''}
 			<Markdown content={content} />
@@ -141,7 +135,6 @@
 								selection={select(EntityType.NostrArticle, nostrArticle[EntityMetaKey.Selector])}
 								prefetched={nostrArticle}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -159,7 +152,6 @@
 								selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
 								prefetched={nostrProfile}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

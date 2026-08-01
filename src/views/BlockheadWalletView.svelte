@@ -143,7 +143,6 @@
 									selection={select(EntityType.WalletConnectionMethod, walletConnectionMethod[EntityMetaKey.Selector])}
 									prefetched={walletConnectionMethod}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

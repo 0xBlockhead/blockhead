@@ -34,12 +34,8 @@
 
 	<NetworksView
 		href={resolve('/(explore)/networks')}
-		title='Networks'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='networks'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

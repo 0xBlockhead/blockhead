@@ -70,7 +70,6 @@
 					<BnbValidatorView
 						selection={select(EntityType.BnbValidator, selection.entitySelector.$validator)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

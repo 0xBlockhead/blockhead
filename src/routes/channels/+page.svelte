@@ -28,12 +28,8 @@
 
 	<BlockheadStateChannelsView
 		href={resolve('/channels')}
-		title='Channels'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='blockhead-state-channels'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

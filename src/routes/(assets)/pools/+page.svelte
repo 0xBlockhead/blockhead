@@ -28,19 +28,15 @@
 	})
 		.$$liquidityPools({
 			sources: [
-				Source.Dexscreener_OpenApi,
+				Source.Dexscreener_Rest,
 			],
 			limit: 300,
 		})}
 
 	<LiquidityPoolsView
 		href={resolve('/(assets)/pools')}
-		title='Liquidity pools'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='liquidity-pools'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

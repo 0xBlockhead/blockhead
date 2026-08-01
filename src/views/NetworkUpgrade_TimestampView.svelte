@@ -79,7 +79,6 @@
 					<NetworkUpgradeView
 						selection={select(EntityType.NetworkUpgrade, selection.entitySelector.$upgrade)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -29,9 +29,9 @@
 
 
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import HederaAllowance_TimestampsView from '$/views/HederaAllowance_TimestampsView.svelte'
 	import HederaAccountView from '$/views/HederaAccountView.svelte'
 	import HederaTokenView from '$/views/HederaTokenView.svelte'
 	import HederaNftView from '$/views/HederaNftView.svelte'
@@ -46,16 +46,11 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.allowanceKind || 'hedera allowance'}
-	{/snippet}
-
 	{#snippet Value()}
 		<HederaAccountView
 			selection={select(EntityType.HederaAccount, selection.entitySelector.$spender)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -72,7 +67,6 @@
 									selection={select(EntityType.HederaToken, hederaToken[EntityMetaKey.Selector])}
 									prefetched={hederaToken}
 									layout={EntityLayout.Title}
-									open={false}
 								/>
 							</span>
 						{/if}
@@ -98,7 +92,6 @@
 					<HederaAccountView
 						selection={select(EntityType.HederaAccount, selection.entitySelector.$owner)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -109,7 +102,6 @@
 					<HederaAccountView
 						selection={select(EntityType.HederaAccount, selection.entitySelector.$spender)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -135,7 +127,6 @@
 									selection={select(EntityType.HederaToken, hederaToken[EntityMetaKey.Selector])}
 									prefetched={hederaToken}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -173,7 +164,6 @@
 									selection={select(EntityType.HederaNft, hederaNft[EntityMetaKey.Selector])}
 									prefetched={hederaNft}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -190,12 +180,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<HederaAllowance_TimestampsView
-						selection={timestampsResource}
+					<EntitiesList
+						entityType={EntityType.HederaAllowance_Timestamp}
 						countResource={timestampsResource.count}
 						title='Observations'
+						open={true}
 						id='timestamps'
-					/>
+						resource={timestampsResource()}
+					>
+						{#snippet Item({ item: hederaAllowanceTimestamp })}
+							<EntityView
+								entityType={EntityType.HederaAllowance_Timestamp}
+								entitySelector={hederaAllowanceTimestamp[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

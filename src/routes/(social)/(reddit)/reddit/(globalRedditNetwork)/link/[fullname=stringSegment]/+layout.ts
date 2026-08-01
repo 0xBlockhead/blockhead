@@ -17,7 +17,8 @@ export const load: LayoutLoad = ({ params }) => {
 		RedditLinkSchema,
 		{
 			fullname: decodeURIComponent(params.fullname),
-		}
+		},
+		'Fullname'
 	)
 	if (redditLinkFullnameSelector instanceof arktype.errors)
 		error(404, 'Invalid RedditLink selector')

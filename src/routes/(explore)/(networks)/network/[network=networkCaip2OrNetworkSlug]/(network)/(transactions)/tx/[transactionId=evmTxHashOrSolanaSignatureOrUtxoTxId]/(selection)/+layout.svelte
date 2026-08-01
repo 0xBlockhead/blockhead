@@ -18,6 +18,16 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]',
+			{
+				network: params.network,
+				transactionId: params.transactionId,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -31,30 +41,14 @@
 
 {#key [params.network, params.transactionId].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]',
-				{
-					network: params.network,
-					transactionId: params.transactionId,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
-			{@const DetailView = data.entityType === EntityType.EvmTransaction && data.selectorName === 'EvmNetworkTxHash' ? EvmTransactionView : data.entityType === EntityType.SolanaTransaction && data.selectorName === 'NetworkSignature' ? SolanaTransactionView : data.entityType === EntityType.CardanoTransaction && data.selectorName === 'NetworkHash' ? CardanoTransactionView : UtxoTransactionView}
+			{@const DetailView = data.entityType === EntityType.EvmTransaction ? EvmTransactionView : data.entityType === EntityType.SolanaTransaction ? SolanaTransactionView : data.entityType === EntityType.CardanoTransaction ? CardanoTransactionView : UtxoTransactionView}
 
 			<DetailView
 				selection={select(data.entityType, data.selector)}
-				href={
-					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]',
-						{
-							network: params.network,
-							transactionId: params.transactionId,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

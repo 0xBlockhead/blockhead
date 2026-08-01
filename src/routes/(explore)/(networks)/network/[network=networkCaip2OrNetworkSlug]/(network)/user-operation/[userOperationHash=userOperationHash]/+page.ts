@@ -27,7 +27,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			hash: params.userOperationHash,
-		}
+		},
+		'EvmNetworkHash'
 	)
 	if (evmUserOperationEvmNetworkHashSelector instanceof arktype.errors)
 		error(404, 'Invalid EvmUserOperation selector')

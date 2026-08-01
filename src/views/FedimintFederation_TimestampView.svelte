@@ -71,7 +71,6 @@
 					<FedimintFederationView
 						selection={select(EntityType.FedimintFederation, selection.entitySelector.$federation)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

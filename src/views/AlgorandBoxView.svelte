@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
@@ -14,7 +15,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -22,8 +22,8 @@
 
 
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import AlgorandBox_RoundsView from '$/views/AlgorandBox_RoundsView.svelte'
 	import AlgorandApplicationView from '$/views/AlgorandApplicationView.svelte'
 </script>
 
@@ -31,15 +31,10 @@
 <EntityView
 	entityType={EntityType.AlgorandBox}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'algorand box'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		algorand box
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -48,7 +43,6 @@
 					<AlgorandApplicationView
 						selection={select(EntityType.AlgorandApplication, selection.entitySelector.$application)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -69,12 +63,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<AlgorandBox_RoundsView
-						selection={roundsResource}
+					<EntitiesList
+						entityType={EntityType.AlgorandBox_Round}
 						countResource={roundsResource.count}
 						title='rounds'
+						open={true}
 						id='rounds'
-					/>
+						resource={roundsResource()}
+					>
+						{#snippet Item({ item: algorandBoxRound })}
+							<EntityView
+								entityType={EntityType.AlgorandBox_Round}
+								entitySelector={algorandBoxRound[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

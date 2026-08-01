@@ -14,7 +14,7 @@ export const alliumFetch = async <_Response>(
 	publicEnv: SourcePublicEnv,
 	pathAndQuery: string,
 	init?: RequestInit
-): Promise<_Response> => {
+) => {
 	const response = await sourceFetch(
 		binding,
 		new URL(pathAndQuery, firstHttpUrlForBinding(binding)).toString(),

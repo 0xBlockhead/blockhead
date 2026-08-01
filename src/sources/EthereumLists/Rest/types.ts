@@ -35,22 +35,3 @@ export type EthereumListsChainJson = {
 	}
 	redFlags?: string[]
 }
-
-/** Subset of `EthereumListsChainJson` used for mainnet/testnet pairing in resolvers. */
-export type EthereumListsChainPairing = Pick<
-	EthereumListsChainJson,
-	| 'chainId'
-	| 'name'
-	| 'title'
-	| 'shortName'
-	| 'parent'
-	| 'nativeCurrency'
->
-
-/** Explorer row (+ optional `infoURL`) normalized into `Url` catalog entities. */
-export type EthereumListsExplorerLike = {
-	name: string
-	url: string
-	standard?: string | null
-	icon?: string | null
-}

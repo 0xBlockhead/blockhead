@@ -51,15 +51,10 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.traceId || 'zero g settlement trace'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ZeroGServiceRequestView
 			selection={select(EntityType.ZeroGServiceRequest, selection.entitySelector.$serviceRequest)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -84,7 +79,6 @@
 					<ZeroGServiceRequestView
 						selection={select(EntityType.ZeroGServiceRequest, selection.entitySelector.$serviceRequest)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

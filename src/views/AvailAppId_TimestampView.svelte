@@ -74,7 +74,6 @@
 					<AvailAppIdView
 						selection={select(EntityType.AvailAppId, selection.entitySelector.$appId)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

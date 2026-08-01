@@ -1,192 +1,46 @@
-import { base58 } from '@scure/base'
-
 import { throwHttpError } from '$/lib/http.ts'
+import type { operations } from '$/sources/CircleCctp/OpenApi/openapi.d.ts'
+import bindings from '$/sources/CircleCctp/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
-import type {
-	CircleCctpMessage,
-	CircleCctpMessageSubject,
-	CircleCctpMessagesResponse,
-} from '$/sources/CircleCctp/Rest/types.ts'
 
-const unsignedIntegerPattern = /^(0|[1-9][0-9]*)$/
-const hexPattern = /^0x(?:[0-9a-fA-F]{2})+$/
-const hex32Pattern = /^0x[0-9a-fA-F]{64}$/
-const addressHexPattern = /^0x(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})$/
+const binding = bindings[Source.CircleCctpIris]
+
+type GetMessagesV2 = operations['getMessagesV2']
+type GetMessagesV2Query = NonNullable<GetMessagesV2['parameters']['query']>
+type GetMessagesV2Response = GetMessagesV2['responses'][200]['content']['application/json']
+type CircleCctpMessageSubject =
+	| {
+		transactionHash: NonNullable<GetMessagesV2Query['transactionHash']>
+		nonce?: never
+	}
+	| {
+		transactionHash?: never
+		nonce: NonNullable<GetMessagesV2Query['nonce']>
+	}
 
 const assertDomain = (
 	value: number,
 	label: string
 ) => {
-	if (!Number.isSafeInteger(value) || value < 0 || value > 0xffff_ffff)
-		throw new Error(`CircleCctp_IrisApi: invalid ${label}`)
-}
-
-const assertUnsignedInteger = (
-	value: string,
-	label: string
-) => {
-	if (!unsignedIntegerPattern.test(value))
-		throw new Error(`CircleCctp_IrisApi: invalid ${label}`)
-}
-
-const assertTransactionHash = (
-	value: string,
-	label: string
-) => {
-	if (hex32Pattern.test(value))
-		return
-
-	try {
-		if (base58.decode(value).length === 64)
-			return
-	} catch {
-		// Continue to the domain error below.
-	}
-
-	throw new Error(`CircleCctp_IrisApi: invalid ${label}`)
-}
-
-const assertCrosschainAddress = (
-	value: string,
-	label: string
-) => {
-	if (addressHexPattern.test(value))
-		return
-
-	try {
-		if (base58.decode(value).length === 32)
-			return
-	} catch {
-		// Continue to the domain error below.
-	}
-
-	throw new Error(`CircleCctp_IrisApi: invalid ${label}`)
-}
-
-const assertMessage = (
-	message: CircleCctpMessage,
-	sourceDomain: number,
-	expectedNonce?: string,
-	expectedDestinationDomain?: number
-) => {
-	if (
-		message.cctpVersion !== 2
-		|| !hexPattern.test(message.message)
-		|| !hexPattern.test(message.decodedMessage.messageBody)
-	)
-		throw new Error('CircleCctp_IrisApi: malformed CCTP V2 message')
-
-	assertUnsignedInteger(message.eventNonce, 'event nonce')
-	assertUnsignedInteger(message.decodedMessage.sourceDomain, 'decoded source domain')
-	assertUnsignedInteger(message.decodedMessage.destinationDomain, 'decoded destination domain')
-	assertUnsignedInteger(message.decodedMessage.nonce, 'decoded nonce')
-	if (Number(message.decodedMessage.sourceDomain) !== sourceDomain)
-		throw new Error('CircleCctp_IrisApi: decoded source domain does not match request')
-	if (
-		expectedDestinationDomain != null
-		&& Number(message.decodedMessage.destinationDomain) !== expectedDestinationDomain
-	)
-		throw new Error('CircleCctp_IrisApi: decoded destination domain does not match request')
-	if (
-		expectedNonce != null
-		&& message.decodedMessage.nonce !== expectedNonce
-		&& message.eventNonce !== expectedNonce
-	)
-		throw new Error('CircleCctp_IrisApi: nonce does not match request')
-
-	assertCrosschainAddress(message.decodedMessage.sender, 'sender')
-	assertCrosschainAddress(message.decodedMessage.recipient, 'recipient')
-	assertCrosschainAddress(message.decodedMessage.destinationCaller, 'destination caller')
-	assertCrosschainAddress(message.decodedMessage.decodedMessageBody.burnToken, 'burn token')
-	assertCrosschainAddress(message.decodedMessage.decodedMessageBody.mintRecipient, 'mint recipient')
-	assertCrosschainAddress(message.decodedMessage.decodedMessageBody.messageSender, 'message sender')
-
-	assertUnsignedInteger(message.decodedMessage.decodedMessageBody.amount, 'burn amount')
-	for (const [label, value] of [
-		['maximum fee', message.decodedMessage.decodedMessageBody.maxFee],
-		['executed fee', message.decodedMessage.decodedMessageBody.feeExecuted],
-		['expiration block', message.decodedMessage.decodedMessageBody.expirationBlock],
-	])
-		if (value != null)
-			assertUnsignedInteger(value, label)
-
-	if (
-		message.decodedMessage.decodedMessageBody.maxFee != null
-		&& message.decodedMessage.decodedMessageBody.feeExecuted != null
-		&& BigInt(message.decodedMessage.decodedMessageBody.feeExecuted) > BigInt(message.decodedMessage.decodedMessageBody.maxFee)
-	)
-		throw new Error('CircleCctp_IrisApi: executed fee exceeds maximum fee')
-	if (
-		message.decodedMessage.decodedMessageBody.hookData != null
-		&& !hexPattern.test(message.decodedMessage.decodedMessageBody.hookData)
-	)
-		throw new Error('CircleCctp_IrisApi: invalid hook data')
-
-	const minimumFinality = message.decodedMessage.minFinalityThreshold
-	const executedFinality = message.decodedMessage.finalityThresholdExecuted
-	if (
-		minimumFinality != null
-		&& minimumFinality !== 1_000
-		&& minimumFinality !== 2_000
-	)
-		throw new Error('CircleCctp_IrisApi: invalid minimum finality threshold')
-	if (
-		executedFinality != null
-		&& executedFinality !== 1_000
-		&& executedFinality !== 2_000
-	)
-		throw new Error('CircleCctp_IrisApi: invalid executed finality threshold')
-	if (
-		minimumFinality != null
-		&& executedFinality != null
-		&& executedFinality < minimumFinality
-	)
-		throw new Error('CircleCctp_IrisApi: executed finality is below requested finality')
-
-	if (
-		message.status === 'complete'
-		&& (message.attestation == null || !hexPattern.test(message.attestation))
-	)
-		throw new Error('CircleCctp_IrisApi: completed message is missing its attestation')
-	if (
-		message.status === 'pending'
-		&& message.attestation != null
-	)
-		throw new Error('CircleCctp_IrisApi: pending message unexpectedly has an attestation')
-	if (message.forwardTxHash != null)
-		assertTransactionHash(message.forwardTxHash, 'forward transaction hash')
+	if (!Number.isSafeInteger(value) || value < 0)
+		throw new Error(`Circle CCTP Iris: invalid ${label}`)
 }
 
 export const getMessages = async ({
-	binding,
 	sourceDomain,
 	subject,
 	expectedDestinationDomain,
 	maximumMessages = 1_000,
 }: {
-	binding: SourceBinding
-	sourceDomain: number
+	sourceDomain: GetMessagesV2['parameters']['path']['sourceDomainId']
 	subject: CircleCctpMessageSubject
-	expectedDestinationDomain?: number
+	expectedDestinationDomain?: GetMessagesV2['parameters']['path']['sourceDomainId']
 	maximumMessages?: number
 }) => {
-	if (
-		binding.source !== Source.CircleCctp_IrisApi
-		|| binding.target.kind !== SourceTargetKind.Global
-		|| binding.target.key !== 'circle-cctp-iris-api'
-	)
-		throw new Error('CircleCctp_IrisApi: expected canonical Iris API binding')
-	if (firstHttpUrlForBinding(binding).includes('{'))
-		throw new Error('CircleCctp_IrisApi: executable Iris API endpoint is not configured')
-
 	assertDomain(sourceDomain, 'source domain')
 	if (expectedDestinationDomain != null)
 		assertDomain(expectedDestinationDomain, 'destination domain')
@@ -195,12 +49,7 @@ export const getMessages = async ({
 		|| maximumMessages < 1
 		|| maximumMessages > 1_000
 	)
-		throw new Error('CircleCctp_IrisApi: message bound must be an integer from 1 through 1000')
-
-	if ('transactionHash' in subject)
-		assertTransactionHash(subject.transactionHash, 'source transaction hash')
-	else
-		assertUnsignedInteger(subject.nonce, 'nonce')
+		throw new Error('Circle CCTP Iris: message bound must be an integer from 1 through 1000')
 
 	const url = new URL(
 		`/v2/messages/${String(sourceDomain)}`,
@@ -212,64 +61,56 @@ export const getMessages = async ({
 		url.searchParams.set('nonce', subject.nonce)
 
 	const response = await sourceFetch(binding, url.toString())
-	const resolvedAtMs = Date.now()
 	if (response.status === 404)
-		return {
-			messages: [],
-			...('transactionHash' in subject && {
-				sourceTxHash: subject.transactionHash,
-			}),
-			sourceDomain,
-			...(expectedDestinationDomain != null && {
-				destinationDomain: expectedDestinationDomain,
-			}),
-			source: binding.source,
-			resolvedAtMs,
-			lifecycleStatus: 'not_observed',
-		}
-	if (!response.ok)
-		await throwHttpError('CircleCctp_IrisApi get messages', response)
+		return undefined
 
-	const result = await response.json<CircleCctpMessagesResponse>()
-	assertTransactionHash(result.sourceTxHash, 'response source transaction hash')
+	if (!response.ok)
+		await throwHttpError('Circle CCTP Iris get messages', response)
+
+	const result = await response.json<GetMessagesV2Response>()
 	if (
 		'transactionHash' in subject
 		&& result.sourceTxHash !== subject.transactionHash
 	)
-		throw new Error('CircleCctp_IrisApi: response transaction does not match request')
+		throw new Error('Circle CCTP Iris: response transaction does not match request')
 	if (result.messages.length > maximumMessages)
-		throw new Error('CircleCctp_IrisApi: response exceeds the requested message bound')
+		throw new Error('Circle CCTP Iris: response exceeds the requested message bound')
 
 	const messageIdentities = new Set<string>()
 	for (const message of result.messages) {
-		assertMessage(
-			message,
-			sourceDomain,
-			'nonce' in subject ? subject.nonce : undefined,
-			expectedDestinationDomain
+		if (message.decodedMessage == null)
+			continue
+
+		if (
+			message.decodedMessage.sourceDomain != null
+			&& Number(message.decodedMessage.sourceDomain) !== sourceDomain
 		)
+			throw new Error('Circle CCTP Iris: decoded source domain does not match request')
+		if (
+			expectedDestinationDomain != null
+			&& message.decodedMessage.destinationDomain != null
+			&& Number(message.decodedMessage.destinationDomain) !== expectedDestinationDomain
+		)
+			throw new Error('Circle CCTP Iris: decoded destination domain does not match request')
+		if (
+			'nonce' in subject
+			&& message.decodedMessage.nonce != null
+			&& message.decodedMessage.nonce !== subject.nonce
+			&& message.eventNonce !== subject.nonce
+		)
+			throw new Error('Circle CCTP Iris: nonce does not match request')
+		if (
+			message.decodedMessage.sourceDomain == null
+			|| message.decodedMessage.nonce == null
+		)
+			continue
+
 		const identity = `${message.decodedMessage.sourceDomain}:${message.decodedMessage.nonce}`
 		if (messageIdentities.has(identity))
-			throw new Error('CircleCctp_IrisApi: duplicate source-domain nonce identity')
+			throw new Error('Circle CCTP Iris: duplicate source-domain nonce identity')
 
 		messageIdentities.add(identity)
 	}
 
-	return {
-		...result,
-		sourceDomain,
-		...(expectedDestinationDomain != null && {
-			destinationDomain: expectedDestinationDomain,
-		}),
-		source: binding.source,
-		resolvedAtMs,
-		lifecycleStatus: (
-			result.messages.length === 0 ?
-				'observed_unprocessed'
-			: result.messages.every((message) => message.status === 'complete') ?
-				'attested'
-			:
-				'pending_confirmations'
-		),
-	}
+	return result
 }

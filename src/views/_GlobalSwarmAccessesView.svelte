@@ -35,8 +35,8 @@
 			entitySelector={globalSwarmAccess[EntityMetaKey.Selector]}
 			href={resolve('/(swarm)/swarm/(swarmProtocol)/access')}
 		>
-			{#snippet Title()}
-				global Swarm access
+			{#snippet Value()}
+				Swarm gateway access
 			{/snippet}
 		</EntityView>
 	{/snippet}

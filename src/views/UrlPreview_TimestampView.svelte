@@ -63,7 +63,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Icon()}
 		<ResourceBoundary resource={urlPreviewTimestamp}>
 			{#snippet children(entity)}
@@ -73,7 +72,6 @@
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -92,7 +90,6 @@
 					selection={select(EntityType.Url, selection.entitySelector.$url)}
 					href={null}
 					layout={EntityLayout.Title}
-					open={false}
 				/>
 			{/snippet}
 		</ResourceBoundary>
@@ -247,7 +244,6 @@
 									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 									prefetched={media}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -261,7 +257,6 @@
 					<UrlView
 						selection={select(EntityType.Url, selection.entitySelector.$url)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

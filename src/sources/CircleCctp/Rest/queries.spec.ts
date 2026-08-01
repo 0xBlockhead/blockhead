@@ -6,32 +6,18 @@ import {
 	vi,
 } from 'vitest'
 
+import type { components } from '$/sources/CircleCctp/OpenApi/openapi.d.ts'
 import bindings from '$/sources/CircleCctp/bindings.ts'
-import { Source } from '$/sources/Source.ts'
-import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
-import { sourceFetch } from '$/sources/_runtime/http.ts'
 import { getMessages } from '$/sources/CircleCctp/Rest/queries.ts'
-import type {
-	CircleCctpMessage,
-	CircleCctpMessagesResponse,
-} from '$/sources/CircleCctp/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
+import { sourceFetch } from '$/sources/_runtime/http.ts'
 
-vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
-	...await importOriginal(),
+vi.mock('$/sources/_runtime/http.ts', () => ({
+	firstHttpUrlForBinding: () => 'https://iris-api.circle.com',
 	sourceFetch: vi.fn(),
 }))
 
-const placeholderBinding = bindings[Source.CircleCctp_IrisApi]
-
-const binding = {
-	...placeholderBinding,
-	endpoints: [{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://iris-api.circle.test',
-		origin: 'https://iris-api.circle.test',
-		corsEnabled: false,
-	}],
-}
+const binding = bindings[Source.CircleCctpIris]
 const transactionHash = `0x${'11'.repeat(32)}`
 const forwardTransactionHash = `0x${'22'.repeat(32)}`
 const address = (value: string) => `0x${value.repeat(20)}`
@@ -46,8 +32,8 @@ const message = {
 		sender: address('11'),
 		recipient: address('22'),
 		destinationCaller: address('33'),
-		minFinalityThreshold: 1_000,
-		finalityThresholdExecuted: 2_000,
+		minFinalityThreshold: '1000',
+		finalityThresholdExecuted: '2000',
 		messageBody: `0x${'ef'.repeat(200)}`,
 		decodedMessageBody: {
 			burnToken: address('44'),
@@ -64,166 +50,104 @@ const message = {
 	status: 'complete',
 	forwardState: 'PENDING',
 	forwardTxHash: forwardTransactionHash,
-	requestId: 'iris-request-1',
-} as const satisfies CircleCctpMessage
+} as const satisfies components['schemas']['MessageV2']
 
 const result = {
 	messages: [message],
 	sourceTxHash: transactionHash,
-} satisfies CircleCctpMessagesResponse
+} satisfies components['schemas']['MessagesV2Response']
 
 const respond = (
-	responseResult: CircleCctpMessagesResponse = result
+	responseResult: components['schemas']['MessagesV2Response'] = result
 ) => {
 	vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(JSON.stringify(responseResult)))
 }
 
 beforeEach(() => {
 	vi.clearAllMocks()
-	vi.spyOn(Date, 'now').mockReturnValue(1_772_323_200_000)
 })
 
-describe('Circle CCTP Iris messages', () => {
-	it('preserves exact burn, mint, domain, transaction, attestation, finality, lifecycle, and provenance facts', async () => {
+describe('Circle CCTP Iris V2 messages', () => {
+	it('uses the canonical binding and preserves the official message response', async () => {
 		respond()
 
 		await expect(getMessages({
-			binding,
 			sourceDomain: 0,
 			expectedDestinationDomain: 5,
 			subject: {
 				transactionHash,
 			},
-		})).resolves.toMatchObject({
-			source: Source.CircleCctp_IrisApi,
-			sourceDomain: 0,
-			destinationDomain: 5,
-			sourceTxHash: transactionHash,
-			resolvedAtMs: 1_772_323_200_000,
-			lifecycleStatus: 'attested',
-			messages: [{
-				eventNonce: '9682',
-				attestation: message.attestation,
-				status: 'complete',
-				forwardTxHash: forwardTransactionHash,
-				decodedMessage: {
-					sourceDomain: '0',
-					destinationDomain: '5',
-					nonce: '569',
-					minFinalityThreshold: 1_000,
-					finalityThresholdExecuted: 2_000,
-					decodedMessageBody: {
-						amount: '900719925474099312345',
-						maxFee: '500000',
-						feeExecuted: '400000',
-						expirationBlock: '900719925474099312346',
-					},
-				},
-			}],
-		})
+		})).resolves.toEqual(result)
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
-			`https://iris-api.circle.test/v2/messages/0?transactionHash=${transactionHash}`
+			`https://iris-api.circle.com/v2/messages/0?transactionHash=${transactionHash}`
 		)
 	})
 
-	it('supports the exact nonce lookup and not-observed lifecycle without inventing pagination', async () => {
-		respond()
+	it('preserves pending and undecoded responses allowed by the official schema', async () => {
+		respond({
+			messages: [{
+				message: '0x',
+				eventNonce: '569',
+				attestation: null,
+				decodedMessage: null,
+				cctpVersion: 2,
+				status: 'pending_confirmations',
+			}],
+			sourceTxHash: transactionHash,
+		})
 
 		await expect(getMessages({
-			binding,
 			sourceDomain: 0,
 			subject: {
 				nonce: '569',
 			},
-			maximumMessages: 1,
 		})).resolves.toMatchObject({
 			messages: [{
-				decodedMessage: {
-					nonce: '569',
-				},
+				attestation: null,
+				decodedMessage: null,
+				status: 'pending_confirmations',
 			}],
 		})
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
-			'https://iris-api.circle.test/v2/messages/0?nonce=569'
+			'https://iris-api.circle.com/v2/messages/0?nonce=569'
 		)
+	})
 
+	it('represents a 404 as no response and enforces the local result bound', async () => {
 		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(null, {
 			status: 404,
 		}))
 		await expect(getMessages({
-			binding,
 			sourceDomain: 0,
 			subject: {
 				transactionHash,
 			},
-		})).resolves.toMatchObject({
-			messages: [],
-			sourceTxHash: transactionHash,
-			lifecycleStatus: 'not_observed',
-		})
+		})).resolves.toBeUndefined()
 
 		await expect(getMessages({
-			binding,
 			sourceDomain: 0,
 			subject: {
 				nonce: '569',
 			},
 			maximumMessages: 1_001,
 		})).rejects.toThrow('message bound must be an integer')
+		expect(sourceFetch).toHaveBeenCalledOnce()
 	})
 
-	it('rejects placeholder bindings, foreign domains, transactions, and nonce identities', async () => {
-		await expect(getMessages({
-			binding: placeholderBinding,
-			sourceDomain: 0,
-			subject: {
-				transactionHash,
-			},
-		})).rejects.toThrow('endpoint is not configured')
-
-		respond({
-			...result,
-			messages: [{
-				...message,
-				decodedMessage: {
-					...message.decodedMessage,
-					sourceDomain: '3',
-				},
-			}],
-		})
-		await expect(getMessages({
-			binding,
-			sourceDomain: 0,
-			subject: {
-				transactionHash,
-			},
-		})).rejects.toThrow('source domain does not match')
-
+	it('rejects response identities that contradict the request', async () => {
 		respond({
 			...result,
 			sourceTxHash: forwardTransactionHash,
 		})
 		await expect(getMessages({
-			binding,
 			sourceDomain: 0,
 			subject: {
 				transactionHash,
 			},
 		})).rejects.toThrow('transaction does not match')
 
-		respond()
-		await expect(getMessages({
-			binding,
-			sourceDomain: 0,
-			subject: {
-				nonce: '570',
-			},
-		})).rejects.toThrow('nonce does not match')
-	})
-
-	it('rejects duplicate identities, malformed lifecycle/finality, and invalid lossless units', async () => {
 		respond({
 			...result,
 			messages: [
@@ -232,65 +156,10 @@ describe('Circle CCTP Iris messages', () => {
 			],
 		})
 		await expect(getMessages({
-			binding,
 			sourceDomain: 0,
 			subject: {
 				transactionHash,
 			},
 		})).rejects.toThrow('duplicate source-domain nonce')
-
-		respond({
-			...result,
-			messages: [{
-				...message,
-				status: 'pending',
-			}],
-		})
-		await expect(getMessages({
-			binding,
-			sourceDomain: 0,
-			subject: {
-				transactionHash,
-			},
-		})).rejects.toThrow('pending message unexpectedly has an attestation')
-
-		respond({
-			...result,
-			messages: [{
-				...message,
-				decodedMessage: {
-					...message.decodedMessage,
-					finalityThresholdExecuted: 500,
-				},
-			}],
-		})
-		await expect(getMessages({
-			binding,
-			sourceDomain: 0,
-			subject: {
-				transactionHash,
-			},
-		})).rejects.toThrow('invalid executed finality')
-
-		respond({
-			...result,
-			messages: [{
-				...message,
-				decodedMessage: {
-					...message.decodedMessage,
-					decodedMessageBody: {
-						...message.decodedMessage.decodedMessageBody,
-						amount: '1.5',
-					},
-				},
-			}],
-		})
-		await expect(getMessages({
-			binding,
-			sourceDomain: 0,
-			subject: {
-				transactionHash,
-			},
-		})).rejects.toThrow('invalid burn amount')
 	})
 })

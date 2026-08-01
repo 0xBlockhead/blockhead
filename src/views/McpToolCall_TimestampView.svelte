@@ -84,7 +84,6 @@
 					<McpToolCallView
 						selection={select(EntityType.McpToolCall, selection.entitySelector.$toolCall)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

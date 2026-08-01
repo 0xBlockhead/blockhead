@@ -74,7 +74,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-
 	{#snippet Icon()}
 		<ResourceBoundary resource={farcasterCastEmbed}>
 			{#snippet children(entity)}
@@ -84,7 +83,6 @@
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -113,7 +111,6 @@
 								prefetched={farcasterCast}
 								href={null}
 								layout={EntityLayout.Title}
-								open={false}
 							/>
 						{/if}
 					{/snippet}
@@ -136,7 +133,6 @@
 					<FarcasterCastView
 						selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -190,7 +186,6 @@
 									selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
 									prefetched={farcasterCast}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

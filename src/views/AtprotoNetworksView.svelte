@@ -10,7 +10,6 @@
 	// State
 	let {
 		selection,
-		typeAnnotationParagraphs = ['AT Protocol catalog identity for DID, repository, PDS, and appview protocol metadata. Product observeds live on the global AT Protocol hub.'],
 		open = $bindable(true),
 		...EntitiesListProps
 	}: EntityListViewProps<EntityType.AtprotoNetwork> = $props()
@@ -25,7 +24,6 @@
 	{...EntitiesListProps}
 	entityType={EntityType.AtprotoNetwork}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {
@@ -41,6 +39,10 @@
 		>
 			{#snippet Title()}
 				{atprotoNetwork.protocolName || 'AT Protocol'}
+			{/snippet}
+
+			{#snippet Value()}
+				AT Protocol
 			{/snippet}
 		</EntityView>
 	{/snippet}

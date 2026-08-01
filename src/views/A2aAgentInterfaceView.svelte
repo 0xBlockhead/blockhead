@@ -46,10 +46,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.protocolBinding || 'A2A agent interface'}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.url || selection.entitySelector.protocolBinding || titleFallback}
 	{/snippet}
@@ -75,7 +71,6 @@
 					<A2aAgentCard_SnapshotView
 						selection={select(EntityType.A2aAgentCard_Snapshot, selection.entitySelector.$cardSnapshot)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

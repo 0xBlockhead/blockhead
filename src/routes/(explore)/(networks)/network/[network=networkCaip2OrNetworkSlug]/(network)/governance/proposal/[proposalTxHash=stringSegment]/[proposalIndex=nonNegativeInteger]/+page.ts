@@ -27,7 +27,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 			$network: parentData.selector,
 			proposalTxHash: params.proposalTxHash,
 			proposalIndex: Number(params.proposalIndex),
-		}
+		},
+		'NetworkProposalTxHashProposalIndex'
 	)
 	if (cardanoGovernanceProposalNetworkProposalTxHashProposalIndexSelector instanceof arktype.errors)
 		error(404, 'Invalid CardanoGovernanceProposal selector')

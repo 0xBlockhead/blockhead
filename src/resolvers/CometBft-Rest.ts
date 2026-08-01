@@ -1,23 +1,22 @@
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import { cosmosNetworkBySlug } from '$/constants/CosmosNetwork.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
-type NetworkId = { caip2: {
-	namespace: string
-	reference: string
-} } | { slug: string }
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertCosmosHub = (network: NetworkId) => {
 	if (
 		!('caip2' in network)
-		|| network.caip2.namespace !== cosmosNetworkBySlug.cosmos.caip2.namespace
-		|| network.caip2.reference !== cosmosNetworkBySlug.cosmos.caip2.reference
+		|| network.caip2.namespace !== networkBySlug.cosmos.caip2.namespace
+		|| network.caip2.reference !== networkBySlug.cosmos.caip2.reference
 	) {
 		throw new Error('CometBft_Rest: unsupported network')
 	}

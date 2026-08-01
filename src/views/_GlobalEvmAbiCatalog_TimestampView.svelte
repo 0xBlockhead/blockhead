@@ -48,7 +48,6 @@
 		<GlobalEvmAbiCatalogView
 			selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -64,7 +63,6 @@
 					<GlobalEvmAbiCatalogView
 						selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

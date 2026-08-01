@@ -75,7 +75,6 @@
 								selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
 								prefetched={gitObject}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>

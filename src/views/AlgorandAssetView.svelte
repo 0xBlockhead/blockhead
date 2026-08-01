@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
@@ -28,9 +29,8 @@
 
 
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import AlgorandAssetHolding_RoundsView from '$/views/AlgorandAssetHolding_RoundsView.svelte'
-	import AlgorandAsset_TimestampsView from '$/views/AlgorandAsset_TimestampsView.svelte'
 	import AlgorandNetworkView from '$/views/AlgorandNetworkView.svelte'
 </script>
 
@@ -43,15 +43,10 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{String(selection.entitySelector.assetId)}
-	{/snippet}
-
 	{#snippet Value()}
 		<AlgorandNetworkView
 			selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -76,7 +71,6 @@
 					<AlgorandNetworkView
 						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -113,12 +107,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<AlgorandAssetHolding_RoundsView
-						selection={holdingRoundsResource}
+					<EntitiesList
+						entityType={EntityType.AlgorandAssetHolding_Round}
 						countResource={holdingRoundsResource.count}
 						title='holding rounds'
+						open={true}
 						id='holding-rounds'
-					/>
+						resource={holdingRoundsResource()}
+					>
+						{#snippet Item({ item: algorandAssetHoldingRound })}
+							<EntityView
+								entityType={EntityType.AlgorandAssetHolding_Round}
+								entitySelector={algorandAssetHoldingRound[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -128,12 +131,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<AlgorandAsset_TimestampsView
-						selection={timestampsResource}
+					<EntitiesList
+						entityType={EntityType.AlgorandAsset_Timestamp}
 						countResource={timestampsResource.count}
 						title='timestamps'
+						open={true}
 						id='timestamps'
-					/>
+						resource={timestampsResource()}
+					>
+						{#snippet Item({ item: algorandAssetTimestamp })}
+							<EntityView
+								entityType={EntityType.AlgorandAsset_Timestamp}
+								entitySelector={algorandAssetTimestamp[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

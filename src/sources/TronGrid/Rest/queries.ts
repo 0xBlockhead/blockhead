@@ -1,4 +1,5 @@
 import { throwHttpError } from '$/lib/http.ts'
+import { TransportType } from '$/constants/TransportType.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
@@ -20,6 +21,12 @@ import bindings from '$/sources/TronGrid/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.TronGrid_Rest]
+
+export const getRestEndpoints = () => [{
+	url: firstHttpUrlForBinding(binding),
+	transportType: TransportType.Http,
+	providerName: 'TronGrid',
+}]
 
 const tronGridPost = async <_Result>({
 	path,

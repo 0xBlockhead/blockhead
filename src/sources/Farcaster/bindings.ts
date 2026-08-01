@@ -1,7 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+
+const farcasterRestGenericReadOperationGroups = [
+	SourceOperationGroup.GenericRead,
+] as const
 
 const bindings = [
 	{
@@ -14,41 +18,40 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.farcaster.xyz',
-				origin: 'https://api.farcaster.xyz',
-				corsEnabled: false,
-			},
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://farcaster.xyz',
-				origin: 'https://farcaster.xyz',
-				corsEnabled: false,
-			},
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://haatz.quilibrium.com',
-				origin: 'https://haatz.quilibrium.com',
 				corsEnabled: false,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: farcasterRestGenericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/Farcaster/Rest/types.ts',
-				generated: false,
 			},
 		],
 	},
+	{
+		source: Source.Farcaster_Rest,
+		target: {
+			kind: SourceTargetKind.Global,
+			key: 'web-api',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://farcaster.xyz',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: farcasterRestGenericReadOperationGroups,
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Farcaster_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

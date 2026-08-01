@@ -96,7 +96,6 @@
 			<MevBuilderView
 				selection={select(EntityType.MevBuilder, selection.entitySelector.$builder)}
 				layout={EntityLayout.Title}
-				open={false}
 			/>
 		</span>
 	{/snippet}
@@ -261,7 +260,6 @@
 					<MevBuilderView
 						selection={select(EntityType.MevBuilder, selection.entitySelector.$builder)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -65,10 +65,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.feedKey || 'market timestamp'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={marketTimestamp}>
 			{#snippet children(entity)}
@@ -84,12 +80,6 @@
 		<span data-text="muted">
 			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A point-in-time market quote or metric observation.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -198,7 +188,6 @@
 					<MarketView
 						selection={select(EntityType.Market, selection.entitySelector.$market)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -11,7 +11,6 @@
 	let {
 		selection,
 		title = 'Accounts',
-		typeAnnotationParagraphs = ['A locally enrolled public account included in Blockhead account-wide views.'],
 		emptyText = 'No accounts enrolled.',
 		open = $bindable(true),
 		...EntitiesListProps
@@ -28,7 +27,6 @@
 	entityType={EntityType.BlockheadAccount}
 	{title}
 	bind:open
-	{typeAnnotationParagraphs}
 	resource={
 		selection({
 			fields: {

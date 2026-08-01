@@ -57,7 +57,6 @@
 		<McpPromptView
 			selection={select(EntityType.McpPrompt, selection.entitySelector.$prompt)}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -82,7 +81,6 @@
 					<McpPromptView
 						selection={select(EntityType.McpPrompt, selection.entitySelector.$prompt)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

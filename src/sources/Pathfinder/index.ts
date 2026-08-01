@@ -10,8 +10,8 @@ export default {
 	label: 'Pathfinder',
 	sources: [
 		{
-			source: Source.Pathfinder_JsonRpc,
-			label: 'Pathfinder JSON-RPC',
+			source: Source.Pathfinder,
+			label: 'Pathfinder',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

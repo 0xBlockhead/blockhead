@@ -40,8 +40,5 @@
 		title='Fee market'
 		selection={select(EntityType.Network, data.selector).Evm.$$gasFeeBlocks}
 		id='gas-fee-blocks'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

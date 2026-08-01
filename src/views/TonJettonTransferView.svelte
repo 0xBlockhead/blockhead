@@ -42,10 +42,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		TON jetton transfer
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -54,7 +50,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -85,7 +80,6 @@
 									selection={select(EntityType.TonJetton, tonJetton[EntityMetaKey.Selector])}
 									prefetched={tonJetton}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -105,7 +99,6 @@
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
 									prefetched={tonAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -125,7 +118,6 @@
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
 									prefetched={tonAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -145,7 +137,6 @@
 									selection={select(EntityType.TonTrace, tonTrace[EntityMetaKey.Selector])}
 									prefetched={tonTrace}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -165,7 +156,6 @@
 									selection={select(EntityType.TonMessage, tonMessage[EntityMetaKey.Selector])}
 									prefetched={tonMessage}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

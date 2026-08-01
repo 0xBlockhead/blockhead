@@ -101,7 +101,6 @@
 							selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector])}
 							prefetched={polkadotPallet}
 							layout={EntityLayout.Title}
-							open={false}
 						/>
 					</span>
 				{/if}
@@ -143,7 +142,6 @@
 									selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector])}
 									prefetched={polkadotPallet}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -163,7 +161,6 @@
 									selection={select(EntityType.PolkadotExtrinsic, polkadotExtrinsic[EntityMetaKey.Selector])}
 									prefetched={polkadotExtrinsic}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -177,7 +174,6 @@
 					<PolkadotBlockView
 						selection={select(EntityType.PolkadotBlock, selection.entitySelector.$block)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -1,11 +1,15 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+
+const circleCctpGenericReadOperationGroups = [
+	SourceOperationGroup.GenericRead,
+] as const
 
 const bindings = [
 	{
-		source: Source.CircleCctp_IrisApi,
+		source: Source.CircleCctpIris,
 		target: {
 			kind: SourceTargetKind.Global,
 			key: 'circle-cctp-iris-api',
@@ -13,20 +17,30 @@ const bindings = [
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://{circle-iris-api-host}',
-				origin: 'https://{circle-iris-api-host}',
-				corsEnabled: false,
+				locator: 'https://iris-api.circle.com',
+				corsEnabled: true,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
-		delivery: SourceDelivery.RemoteQuery,
-		credentials: [
+		apiFamily: ApiFamily.OpenApiHttp,
+		operationGroups: circleCctpGenericReadOperationGroups,
+		delivery: SourceDelivery.BrowserDirect,
+		credentials: [],
+		artifacts: [
 			{
-				scope: SourceCredentialScope.None,
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/CircleCctp/OpenApi/openapi.yaml',
+				generated: true,
+				officialUrl: 'https://developers.circle.com/openapi/cctp.yaml',
+			},
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/CircleCctp/OpenApi/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiTypes,
+				path: 'src/sources/CircleCctp/OpenApi/openapi.d.ts',
+				generated: true,
 			},
 		],
 	},
@@ -44,15 +58,9 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.CatalogRows,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: circleCctpGenericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
 		source: Source.CircleCctpContracts_Solana,
@@ -68,15 +76,9 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.CatalogRows,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: circleCctpGenericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 	{
 		source: Source.CircleCctpContracts_Stellar,
@@ -92,21 +94,10 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.CatalogRows,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: circleCctpGenericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
-			{
-				scope: SourceCredentialScope.None,
-			},
-		],
+		credentials: [],
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.CircleCctp_IrisApi]: typeof bindings[0]
-	readonly [Source.CircleCctpContracts_Evm]: typeof bindings[1]
-	readonly [Source.CircleCctpContracts_Solana]: typeof bindings[2]
-	readonly [Source.CircleCctpContracts_Stellar]: typeof bindings[3]
-}>(bindings)
+export default indexSourceBindings(bindings)

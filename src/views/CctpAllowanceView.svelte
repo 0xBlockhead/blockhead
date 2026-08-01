@@ -39,10 +39,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.apiHost || 'CCTP allowance'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={cctpAllowance}>
 			{#snippet children(entity)}

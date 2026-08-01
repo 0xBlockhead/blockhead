@@ -49,7 +49,6 @@ it('uses the proxied X origin with the configured bearer', async () => {
 		endpoints: [{
 			endpointKind: SourceEndpointKind.HttpUrl,
 			locator: 'https://api.x.com',
-			origin: 'https://api.x.com',
 			corsEnabled: false,
 		}],
 		wireProtocol: WireProtocol.HttpRest,

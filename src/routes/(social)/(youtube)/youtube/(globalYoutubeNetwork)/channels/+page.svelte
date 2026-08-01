@@ -28,12 +28,8 @@
 
 	<YoutubeChannelsView
 		href={resolve('/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channels')}
-		title='YouTube channels'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='observed-channels'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

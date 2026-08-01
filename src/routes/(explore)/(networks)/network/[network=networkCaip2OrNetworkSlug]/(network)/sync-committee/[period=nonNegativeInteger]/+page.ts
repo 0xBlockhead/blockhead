@@ -27,7 +27,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			period: Number(params.period),
-		}
+		},
+		'EvmNetworkPeriod'
 	)
 	if (beaconSyncCommitteeEvmNetworkPeriodSelector instanceof arktype.errors)
 		error(404, 'Invalid BeaconSyncCommittee selector')

@@ -19,6 +19,16 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]',
+			{
+				instanceOrigin: params.instanceOrigin,
+				localStatusId: params.localStatusId,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,32 +39,18 @@
 
 {#key [params.instanceOrigin, params.localStatusId].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]',
-				{
-					instanceOrigin: params.instanceOrigin,
-					localStatusId: params.localStatusId,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<ActivityPubNoteView
 				selection={
-					select(EntityType.ActivityPubNote, data.selector, { sources: [
-						Source.Mastodon_Rest,
-					] })
+					select(EntityType.ActivityPubNote, data.selector, {
+						sources: [
+							Source.Mastodon_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]',
-						{
-							instanceOrigin: params.instanceOrigin,
-							localStatusId: params.localStatusId,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

@@ -11,14 +11,11 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalIpfsAccess> = $props()
-
-	const titleFallback = 'global IPFS access'
 
 
 	// Components
@@ -30,7 +27,6 @@
 <EntityView
 	entityType={EntityType._GlobalIpfsAccess}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
 	href={
 		href === undefined ?
 			resolve('/(explore)/(ipfs)/ipfs/(ipfsProtocol)/access')
@@ -41,12 +37,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		global IPFS access
-	{/snippet}
-
 	{#snippet Value()}
-		{titleFallback}
+		IPFS gateway access
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}

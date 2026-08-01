@@ -10,20 +10,8 @@ export default {
 	label: 'Forgejo',
 	sources: [
 		{
-			source: Source.ForgejoRepos_Rest,
-			label: 'Forgejo repositories REST',
-		},
-		{
-			source: Source.ForgejoIssues_Rest,
-			label: 'Forgejo issues REST',
-		},
-		{
-			source: Source.ForgejoPulls_Rest,
-			label: 'Forgejo pulls REST',
-		},
-		{
-			source: Source.ForgejoReleases_Rest,
-			label: 'Forgejo releases REST',
+			source: Source.Forgejo_Rest,
+			label: 'Forgejo REST',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

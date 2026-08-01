@@ -14,7 +14,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'http://127.0.0.1:22555',
-				origin: 'http://127.0.0.1:22555',
 				corsEnabled: false,
 			},
 		],
@@ -32,4 +31,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.DogecoinCore_JsonRpc]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

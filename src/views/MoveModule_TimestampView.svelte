@@ -73,7 +73,6 @@
 					<MoveModuleView
 						selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

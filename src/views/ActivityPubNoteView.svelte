@@ -150,12 +150,7 @@
 			{#snippet SectionActivitypubNoteMediaSensitiveMedia({ id, label, open })}
 				<MediaListView
 					selection={selection.$$media}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No ActivityPub note media.'
 					id={`${id}-list`}
@@ -179,7 +174,6 @@
 									selection={select(EntityType.ActivityPubActor, activityPubActor[EntityMetaKey.Selector])}
 									prefetched={activityPubActor}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -315,20 +309,19 @@
 				<ActivityPubNotesView
 					selection={selection.$$thread}
 					href={
-						selection.entitySelector.instanceOrigin != null && selection.entitySelector.localStatusId != null ? resolve(
-							'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/thread',
-							{
-								instanceOrigin: encodeURIComponent(selection.entitySelector.instanceOrigin),
-								localStatusId: selection.entitySelector.localStatusId,
-							}
-						) : undefined
+						'instanceOrigin' in selection.entitySelector
+						&& 'localStatusId' in selection.entitySelector ?
+							resolve(
+								'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/thread',
+								{
+									instanceOrigin: encodeURIComponent(selection.entitySelector.instanceOrigin),
+									localStatusId: selection.entitySelector.localStatusId,
+								}
+							)
+						:
+							undefined
 					}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No ActivityPub thread notes.'
 					id={`${id}-list`}
@@ -360,12 +353,7 @@
 			{#snippet SectionActivitypubNoteTimestamps({ id, label, open })}
 				<ActivityPubNote_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No ActivityPub note observations yet.'
 					id={`${id}-list`}

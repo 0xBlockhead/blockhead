@@ -2,8 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { select } from '$/routes/+layout.svelte'
 	import { calldataExamples, type CalldataExample } from '$/constants/calldata-examples.ts'
 	import { decodeCalldataWithSignature, decodeEventDataWithSignature, formatDecodedParamValue } from '$/lib/calldata-decode.ts'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
@@ -20,16 +21,6 @@
 	import Select from '$/components/Select.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
-
-
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-
-
-	// State
-	let {
-		params,
-	}: PageProps = $props()
 
 
 	const hexFromParam = (value: string | null) => {

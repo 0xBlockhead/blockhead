@@ -1,24 +1,25 @@
 import {
-	caipNamespacesGithubRepo,
 	caipNamespacesHumanBaseUrl,
 } from '$/sources/Caips/Namespaces/Github/constants.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
-import type { CaipNamespacesGithubContents } from '$/sources/Caips/Namespaces/Github/types.ts'
+import bindings from '$/sources/Caips/bindings.ts'
 import {
 	getGithubContents,
 	githubContentsUrl,
+	githubRepositoryTargetFromKey,
 } from '$/sources/_shared/hosts/Github/Http/client.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.CaipNamespaces_Github]
+const target = githubRepositoryTargetFromKey(binding.target.key)
 
 export const getContentsUrl = () => (
-	githubContentsUrl(caipNamespacesGithubRepo)
+	githubContentsUrl(target)
 )
 
-export const getContents = (
-	binding: SourceBinding
-): Promise<CaipNamespacesGithubContents> => (
+export const getContents = () => (
 	getGithubContents({
 		binding,
-		target: caipNamespacesGithubRepo,
+		target,
 	})
 )
 

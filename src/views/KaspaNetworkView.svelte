@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -21,20 +22,15 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.KaspaNetwork> = $props()
 
-	const titleFallback = 'kaspa network'
 	const viewDomId = $derived('kaspa-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
-	import KaspaNetwork_TimestampsView from '$/views/KaspaNetwork_TimestampsView.svelte'
 	import KaspaVirtualChain_TimestampsView from '$/views/KaspaVirtualChain_TimestampsView.svelte'
-	import KaspaBlocksView from '$/views/KaspaBlocksView.svelte'
-	import KaspaTransactionsView from '$/views/KaspaTransactionsView.svelte'
-	import KaspaAcceptedTransactionsView from '$/views/KaspaAcceptedTransactionsView.svelte'
 	import KaspaAddressesView from '$/views/KaspaAddressesView.svelte'
 </script>
 
@@ -43,7 +39,7 @@
 	entityType={EntityType.KaspaNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'kaspa network'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -53,12 +49,11 @@
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{titleFallback}
+		Kaspa
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -69,7 +64,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -114,29 +108,28 @@
 			{/snippet}
 
 			{#snippet SectionKaspaChainObservations({ id, label, open })}
-				<KaspaNetwork_TimestampsView
-					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.KaspaNetwork_Timestamp}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Kaspa network observations.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$timestamps()}
+				>
+					{#snippet Item({ item: kaspaNetworkTimestamp })}
+						<EntityView
+							entityType={EntityType.KaspaNetwork_Timestamp}
+							entitySelector={kaspaNetworkTimestamp[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionKaspaVirtualChain({ id, label, open })}
 				<KaspaVirtualChain_TimestampsView
 					selection={selection.$$virtualChainTimestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Kaspa virtual-chain observations.'
 					id={`${id}-list`}
@@ -144,48 +137,60 @@
 			{/snippet}
 
 			{#snippet SectionKaspaChainBlocks({ id, label, open })}
-				<KaspaBlocksView
-					selection={selection.$$blocks}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.KaspaBlock}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Kaspa blocks.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$blocks()}
+				>
+					{#snippet Item({ item: kaspaBlock })}
+						<EntityView
+							entityType={EntityType.KaspaBlock}
+							entitySelector={kaspaBlock[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionKaspaChainTransactions({ id, label, open })}
-				<KaspaTransactionsView
-					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.KaspaTransaction}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Kaspa transactions.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$transactions()}
+				>
+					{#snippet Item({ item: kaspaTransaction })}
+						<EntityView
+							entityType={EntityType.KaspaTransaction}
+							entitySelector={kaspaTransaction[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionKaspaAcceptedTransactions({ id, label, open })}
-				<KaspaAcceptedTransactionsView
-					selection={selection.$$acceptedTransactions}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.KaspaAcceptedTransaction}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Kaspa accepted transactions.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$acceptedTransactions()}
+				>
+					{#snippet Item({ item: kaspaAcceptedTransaction })}
+						<EntityView
+							entityType={EntityType.KaspaAcceptedTransaction}
+							entitySelector={kaspaAcceptedTransaction[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -213,12 +218,7 @@
 			{#snippet SectionKaspaAddressList({ id, label, open })}
 				<KaspaAddressesView
 					selection={selection.$$addresses}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No Kaspa addresses.'
 					id={`${id}-list`}

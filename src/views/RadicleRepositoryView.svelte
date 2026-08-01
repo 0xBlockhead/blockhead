@@ -16,7 +16,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -27,12 +26,10 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import GitRepositoryView from '$/views/GitRepositoryView.svelte'
-	import RadicleDelegatesView from '$/views/RadicleDelegatesView.svelte'
-	import RadicleSignedRefsView from '$/views/RadicleSignedRefsView.svelte'
-	import RadicleIssuesView from '$/views/RadicleIssuesView.svelte'
 	import RadiclePatchesView from '$/views/RadiclePatchesView.svelte'
 	import BlockheadRadicleSeedObservation_TimestampsView from '$/views/BlockheadRadicleSeedObservation_TimestampsView.svelte'
 </script>
@@ -42,15 +39,10 @@
 	entityType={EntityType.RadicleRepository}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? 'radicle repository'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		radicle repository
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -71,7 +63,6 @@
 								selection={select(EntityType.GitRepository, gitRepository[EntityMetaKey.Selector])}
 								prefetched={gitRepository}
 								layout={EntityLayout.Value}
-								open={false}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -191,33 +182,41 @@
 			{/snippet}
 
 			{#snippet SectionRadicleRepositoryDelegates({ id, label, open })}
-				<RadicleDelegatesView
-					selection={selection.$$delegates}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.RadicleDelegate}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No delegates.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$delegates()}
+				>
+					{#snippet Item({ item: radicleDelegate })}
+						<EntityView
+							entityType={EntityType.RadicleDelegate}
+							entitySelector={radicleDelegate[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionRadicleRepositorySignedRefs({ id, label, open })}
-				<RadicleSignedRefsView
-					selection={selection.$$signedRefs}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.RadicleSignedRef}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No signed refs.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$signedRefs()}
+				>
+					{#snippet Item({ item: radicleSignedRef })}
+						<EntityView
+							entityType={EntityType.RadicleSignedRef}
+							entitySelector={radicleSignedRef[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -247,29 +246,28 @@
 			{/snippet}
 
 			{#snippet SectionRadicleRepositoryIssues({ id, label, open })}
-				<RadicleIssuesView
-					selection={selection.$$issues}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.RadicleIssue}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No issues.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$issues()}
+				>
+					{#snippet Item({ item: radicleIssue })}
+						<EntityView
+							entityType={EntityType.RadicleIssue}
+							entitySelector={radicleIssue[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionRadicleRepositoryPatches({ id, label, open })}
 				<RadiclePatchesView
 					selection={selection.$$patches}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No patches.'
 					id={`${id}-list`}
@@ -301,12 +299,7 @@
 			{#snippet SectionRadicleRepositorySeedObservations({ id, label, open })}
 				<BlockheadRadicleSeedObservation_TimestampsView
 					selection={selection.$$seedObservations}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No seed observations.'
 					id={`${id}-list`}

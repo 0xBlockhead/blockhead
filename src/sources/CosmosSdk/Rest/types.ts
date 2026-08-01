@@ -169,21 +169,6 @@ export type CosmosSdkTallyResponse = {
 	tally: CosmosSdkTally
 }
 
-export type CosmosSdkDenomMetadataResponse = {
-	metadata: {
-		name: string
-		description: string
-		base: string
-		display: string
-		symbol: string
-		denom_units: {
-			denom: string
-			exponent: number
-			aliases: string[]
-		}[]
-	}
-}
-
 export type CosmosSdkModuleAccountResponse = {
 	account?: {
 		name?: string

@@ -14,7 +14,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.anthropic.com',
-				origin: 'https://api.anthropic.com',
 				corsEnabled: false,
 			},
 		],
@@ -37,4 +36,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.Anthropic_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

@@ -1,38 +1,89 @@
+import type { VariablesOf } from 'gql.tada'
+
+import {
+	EasScanAttestationFragment,
+	EasScanSchemaFragment,
+	type EasScanAttestation,
+	type EasScanSchema,
+} from '$/sources/EasScan/Graphql/types.ts'
+import bindings from '$/sources/EasScan/bindings.ts'
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { SourceTargetKind } from '$/sources/SourceBinding.ts'
-import { graphql } from '$/sources/_shared/wire/Graphql/client.ts'
-import type {
-	EasScanAttestation,
-	EasScanAttestationResponse,
-	EasScanAttestationsResponse,
-} from '$/sources/EasScan/Graphql/types.ts'
+
+import {
+	graphql,
+	queryEasScan,
+} from './client.ts'
 
 const bytesPattern = /^0x(?:[0-9a-f]{2})*$/i
 const bytes32Pattern = /^0x[0-9a-f]{64}$/i
 const evmAddressPattern = /^0x[0-9a-f]{40}$/i
 
-const attestationFields = `
-	id
-	schemaId
-	attester
-	recipient
-	refUID
-	revocable
-	revocationTime
-	expirationTime
-	time
-	data
-`
+const easScanBindingByNetwork = new Map(
+	Object.values(bindings)
+		.flat()
+		.map((binding) => [
+			`eip155:${binding.target.key}`,
+			binding,
+		])
+)
+
+export const easScanBindingForNetwork = (network: string) => {
+	const binding = easScanBindingByNetwork.get(network)
+	if (binding == null)
+		throw new Error('EasScan GraphQL has no exact network binding')
+
+	return binding
+}
+
+const EasScanAttestation = graphql(`
+	query EasScanAttestation($where: AttestationWhereUniqueInput!) {
+		attestation(where: $where) {
+			...EasScanAttestation
+		}
+	}
+`, [
+	EasScanAttestationFragment,
+])
+
+const EasScanAttestations = graphql(`
+	query EasScanAttestations(
+		$where: AttestationWhereInput!
+		$skip: Int!
+		$take: Int!
+	) {
+		attestations(
+			where: $where
+			skip: $skip
+			take: $take
+			orderBy: { time: desc }
+		) {
+			...EasScanAttestation
+		}
+	}
+`, [
+	EasScanAttestationFragment,
+])
+
+const EasScanSchema = graphql(`
+	query EasScanSchema($where: SchemaWhereUniqueInput!) {
+		schema(where: $where) {
+			...EasScanSchema
+		}
+	}
+`, [
+	EasScanSchemaFragment,
+])
 
 const assertNetworkBinding = (
 	binding: SourceBinding,
 	network: string
 ) => {
 	if (
-		binding.target.kind !== SourceTargetKind.Caip2Network
-		|| binding.target.key !== network
+		binding.target.kind !== SourceTargetKind.Eip155Chain
+		|| `eip155:${binding.target.key}` !== network
 	)
-		throw new Error('EasScan GraphQL requires an exact CAIP-2 network binding')
+		throw new Error('EasScan GraphQL requires an exact EIP-155 chain binding')
 }
 
 const assertUid = (
@@ -57,6 +108,7 @@ const assertAttestation = (
 	assertUid(attestation.id, 'attestation UID')
 	assertUid(attestation.schemaId, 'schema UID')
 	assertUid(attestation.refUID, 'reference UID')
+	assertUid(attestation.txid, 'attestation transaction hash')
 	assertAddress(attestation.attester, 'attester')
 	assertAddress(attestation.recipient, 'recipient')
 
@@ -69,8 +121,25 @@ const assertAttestation = (
 		|| !Number.isSafeInteger(attestation.revocationTime)
 		|| attestation.revocationTime < 0
 		|| (!attestation.revocable && attestation.revocationTime !== 0)
+		|| attestation.revoked !== (attestation.revocationTime !== 0)
 	)
 		throw new Error('EasScan returned invalid attestation lifecycle')
+}
+
+const assertSchema = (
+	schema: EasScanSchema
+) => {
+	assertUid(schema.id, 'schema UID')
+	assertAddress(schema.creator, 'schema creator')
+	assertAddress(schema.resolver, 'schema resolver')
+	assertUid(schema.txid, 'schema transaction hash')
+
+	if (
+		!Number.isSafeInteger(schema.time)
+		|| schema.time < 0
+		|| !/^(0|[1-9][0-9]*)$/.test(schema.index)
+	)
+		throw new Error('EasScan returned invalid schema registration')
 }
 
 const listAttestations = async ({
@@ -82,22 +151,7 @@ const listAttestations = async ({
 }: {
 	binding: SourceBinding
 	network: string
-	where:
-		| {
-			attester: {
-				equals: string
-			}
-		}
-		| {
-			recipient: {
-				equals: string
-			}
-		}
-		| {
-			schemaId: {
-				equals: string
-			}
-		}
+	where: VariablesOf<typeof EasScanAttestations>['where']
 	skip: number
 	take: number
 }) => {
@@ -109,23 +163,10 @@ const listAttestations = async ({
 	if (!Number.isSafeInteger(take) || take < 1 || take > 100)
 		throw new Error('EasScan take must be between 1 and 100')
 
-	const response = await graphql<EasScanAttestationsResponse>({
-		binding,
-		query: `query Attestations($where: AttestationWhereInput!, $skip: Int!, $take: Int!) {
-			attestations(
-				where: $where
-				skip: $skip
-				take: $take
-				orderBy: { time: desc }
-			) {
-				${attestationFields}
-			}
-		}`,
-		variables: {
-			where,
-			skip,
-			take,
-		},
+	const response = await queryEasScan(binding, EasScanAttestations, {
+		where,
+		skip,
+		take,
 	})
 
 	if (response === undefined || response.attestations.length > take)
@@ -159,17 +200,9 @@ export const getAttestation = async ({
 	assertNetworkBinding(binding, network)
 	assertUid(uid, 'requested attestation UID')
 
-	const response = await graphql<EasScanAttestationResponse>({
-		binding,
-		query: `query Attestation($where: AttestationWhereUniqueInput!) {
-			attestation(where: $where) {
-				${attestationFields}
-			}
-		}`,
-		variables: {
-			where: {
-				id: uid,
-			},
+	const response = await queryEasScan(binding, EasScanAttestation, {
+		where: {
+			id: uid,
 		},
 	})
 
@@ -185,6 +218,38 @@ export const getAttestation = async ({
 		throw new Error('EasScan returned a foreign attestation')
 
 	return response.attestation
+}
+
+export const getSchema = async ({
+	binding,
+	network,
+	schemaUid,
+}: {
+	binding: SourceBinding
+	network: string
+	schemaUid: string
+}) => {
+	assertNetworkBinding(binding, network)
+	assertUid(schemaUid, 'requested schema UID')
+
+	const response = await queryEasScan(binding, EasScanSchema, {
+		where: {
+			id: schemaUid,
+		},
+	})
+
+	if (response === undefined)
+		throw new Error('EasScan returned no schema response')
+
+	if (response.schema === null)
+		return null
+
+	assertSchema(response.schema)
+
+	if (response.schema.id.toLowerCase() !== schemaUid.toLowerCase())
+		throw new Error('EasScan returned a foreign schema')
+
+	return response.schema
 }
 
 export const getAttestationsByAttester = ({

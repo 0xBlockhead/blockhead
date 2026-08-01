@@ -14,7 +14,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -32,15 +31,10 @@
 <EntityView
 	entityType={EntityType.AlgorandApplicationLocalState_Round}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'algorand application local state round'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		algorand application local state round
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -49,7 +43,6 @@
 					<AlgorandAccountView
 						selection={select(EntityType.AlgorandAccount, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -60,7 +53,6 @@
 					<AlgorandApplicationView
 						selection={select(EntityType.AlgorandApplication, selection.entitySelector.$application)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

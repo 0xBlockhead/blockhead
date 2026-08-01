@@ -5,8 +5,10 @@ import { evmAbiFromJsonValue } from '$/lib/evmAbi.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	EntityMetaKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { SourcifyContractLookup } from '$/sources/Sourcify/Rest/types.ts'
 import {
@@ -70,10 +72,10 @@ const sourcifySourceFilesFromLookup = (
 	)
 )
 
-const getSourcifyContractLookupForEntitySelector = async ({ $network, address }: {
-	$network: { caip2: { namespace: string, reference: string } }
-	address: `0x${string}`
-}) => {
+const getSourcifyContractLookupForEntitySelector = async ({
+	$network,
+	address,
+}: EntitySelector<typeof schema, EntityType.EvmContract>) => {
 	const { getContractLookup } = await import('$/sources/Sourcify/Rest/queries.ts')
 	return getContractLookup({
 		chainId: Number($network.caip2.reference),

@@ -292,7 +292,6 @@
 					<UtxoAddressView
 						selection={select(EntityType.UtxoAddress, selection.entitySelector.$address)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

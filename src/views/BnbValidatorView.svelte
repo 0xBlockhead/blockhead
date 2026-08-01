@@ -69,7 +69,6 @@
 					<BnbBeaconNetworkView
 						selection={select(EntityType.BnbBeaconNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -19,6 +19,16 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]',
+			{
+				ensName: params.ensName,
+				recordId: params.recordId,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,33 +39,19 @@
 
 {#key [params.ensName, params.recordId].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]',
-				{
-					ensName: params.ensName,
-					recordId: params.recordId,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<EnsRecordView
 				selection={
-					select(EntityType.EnsRecord, data.selector, { sources: [
-						Source.TheGraph_Graphql,
-						Source.Voltaire_JsonRpc,
-					] })
+					select(EntityType.EnsRecord, data.selector, {
+						sources: [
+							Source.TheGraph_Graphql,
+							Source.Voltaire_JsonRpc,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]',
-						{
-							ensName: params.ensName,
-							recordId: params.recordId,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

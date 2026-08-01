@@ -38,10 +38,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		hedera HBAR transfer
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -50,7 +46,6 @@
 					<HederaTransactionView
 						selection={select(EntityType.HederaTransaction, selection.entitySelector.$transaction)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -122,7 +117,6 @@
 									selection={select(EntityType.HederaAccount, hederaAccount[EntityMetaKey.Selector])}
 									prefetched={hederaAccount}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

@@ -53,10 +53,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.dataRoot || 'blockhead zero g stored chunk'}
-	{/snippet}
-
 	{#snippet Value()}
 		<NumberValue
 			value={selection.entitySelector.chunkIndex}
@@ -81,7 +77,6 @@
 					<BlockheadZeroGStorageNodeStateView
 						selection={select(EntityType.BlockheadZeroGStorageNodeState, selection.entitySelector.$nodeState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -114,7 +109,6 @@
 									selection={select(EntityType.ZeroGDataBlob, zeroGDataBlob[EntityMetaKey.Selector])}
 									prefetched={zeroGDataBlob}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -134,7 +128,6 @@
 									selection={select(EntityType.ZeroGDataChunk, zeroGDataChunk[EntityMetaKey.Selector])}
 									prefetched={zeroGDataChunk}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

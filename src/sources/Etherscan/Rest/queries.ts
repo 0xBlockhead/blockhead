@@ -24,12 +24,18 @@ import type {
 	RpcReceipt,
 	RpcTransaction,
 } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
+import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import {
 	etherscanV2GetJson,
 	etherscanV2UnwrapAccountResultArray,
 	etherscanV2UnwrapProxyResult,
 } from '$/sources/Etherscan/Rest/client.ts'
+import { supportedChainIds } from '$/sources/Etherscan/Rest/constants.ts'
+
+export const supportsChainId = (chainId: number) => (
+	supportedChainIds.some((supportedChainId) => supportedChainId === chainId)
+)
 
 /** Etherscan account list endpoints cap at 10_000 rows per request. */
 export const getAccountListMaxOffset = 10_000
@@ -60,7 +66,7 @@ const etherscanAccountListRows = async <T>({
 	chainId: number
 	query: Record<string, string | undefined>
 	options?: { apiKey?: string }
-}): Promise<T[] | null> => (
+}) => (
 	etherscanV2UnwrapAccountResultArray(
 		await etherscanV2GetJson<EtherscanAccountArray<T>>({
 			chainId,
@@ -87,22 +93,25 @@ export const getTransactionByHash = async ({
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
-	txHash: `0x${string}`
+	txHash: string
 	options?: { apiKey?: string }
-}): Promise<RpcTransaction | null> => (
-	etherscanV2UnwrapProxyResult(
+}) => {
+	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
+	if (normalizedTxHash == null) return null
+
+	return etherscanV2UnwrapProxyResult(
 		await etherscanV2GetJson<EtherscanProxyJsonRpc<RpcTransaction>>({
 			chainId,
 			publicEnv,
 			query: {
 				module: 'proxy',
 				action: 'eth_getTransactionByHash',
-				txhash: txHash,
+				txhash: normalizedTxHash,
 			},
 			options,
 		})
 	)
-)
+}
 
 /**
  * **`module=proxy`**, **`action=eth_getTransactionReceipt`**, **`txhash`**.
@@ -116,22 +125,25 @@ export const getTransactionReceipt = async ({
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
-	txHash: `0x${string}`
+	txHash: string
 	options?: { apiKey?: string }
-}): Promise<RpcReceipt | null> => (
-	etherscanV2UnwrapProxyResult(
+}) => {
+	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
+	if (normalizedTxHash == null) return null
+
+	return etherscanV2UnwrapProxyResult(
 		await etherscanV2GetJson<EtherscanProxyJsonRpc<RpcReceipt>>({
 			chainId,
 			publicEnv,
 			query: {
 				module: 'proxy',
 				action: 'eth_getTransactionReceipt',
-				txhash: txHash,
+				txhash: normalizedTxHash,
 			},
 			options,
 		})
 	)
-)
+}
 
 /**
  * **`module=proxy`**, **`action=eth_blockNumber`**.
@@ -145,7 +157,7 @@ export const getBlockNumber = async ({
 	publicEnv: SourcePublicEnv
 	chainId: number
 	options?: { apiKey?: string }
-}): Promise<string | null> => {
+}) => {
 	const blockNumberHex = etherscanV2UnwrapProxyResult(
 		await etherscanV2GetJson<EtherscanProxyJsonRpc<string>>({
 			chainId,
@@ -176,7 +188,7 @@ export const getBlockByNumber = async ({
 	tag: string
 	boolean: boolean
 	options?: { apiKey?: string }
-}): Promise<RpcBlockHeader | null> => (
+}) => (
 	etherscanV2UnwrapProxyResult(
 		await etherscanV2GetJson<EtherscanProxyJsonRpc<RpcBlockHeader>>({
 			chainId,
@@ -207,7 +219,7 @@ export const getContractAbiJsonString = async ({
 	chainId: number
 	address: `0x${string}`
 	options?: { apiKey?: string }
-}): Promise<string | null> => {
+}) => {
 	const wire = await etherscanV2GetJson<EtherscanStringStatus>({
 		chainId,
 		publicEnv,
@@ -306,7 +318,7 @@ export const getCode = async ({
 	chainId: number
 	address: `0x${string}`
 	options?: { apiKey?: string }
-}): Promise<`0x${string}` | null> => (
+}) => (
 	etherscanV2UnwrapProxyResult(
 		await etherscanV2GetJson<EtherscanProxyJsonRpc<`0x${string}`>>({
 			chainId,
@@ -335,7 +347,7 @@ export const getStorageAt = async ({
 	address: `0x${string}`
 	slotQuantityHex: `0x${string}`
 	options?: { apiKey?: string }
-}): Promise<`0x${string}` | null> => (
+}) => (
 	etherscanV2UnwrapProxyResult(
 		await etherscanV2GetJson<EtherscanProxyJsonRpc<`0x${string}`>>({
 			chainId,
@@ -382,7 +394,7 @@ export const getGasOracle = async ({
  * **`module=account`**, **`action=tokentx`** — ERC-20 token transfers by address.
  * @see https://docs.etherscan.io/api-reference/endpoint/tokentx
  */
-export const getErc20TokenTransfersByAddress = async ({
+export const getErc20TokenTransfersByAddress = ({
 	publicEnv,
 	chainId,
 	address,
@@ -394,7 +406,7 @@ export const getErc20TokenTransfersByAddress = async ({
 	address: `0x${string}`
 	offset: number
 	options?: { apiKey?: string }
-}): Promise<EtherscanErc20TokenTransfer[] | null> => (
+}) => (
 	etherscanAccountListRows<EtherscanErc20TokenTransfer>({
 		publicEnv,
 		chainId,
@@ -413,7 +425,7 @@ export const getErc20TokenTransfersByAddress = async ({
  * **`module=account`**, **`action=tokennfttx`** — ERC-721 token transfers by address.
  * @see https://docs.etherscan.io/api-reference/endpoint/tokennfttx
  */
-export const getErc721TokenTransfersByAddress = async ({
+export const getErc721TokenTransfersByAddress = ({
 	publicEnv,
 	chainId,
 	address,
@@ -425,7 +437,7 @@ export const getErc721TokenTransfersByAddress = async ({
 	address: `0x${string}`
 	offset: number
 	options?: { apiKey?: string }
-}): Promise<EtherscanErc721TokenTransfer[] | null> => (
+}) => (
 	etherscanAccountListRows<EtherscanErc721TokenTransfer>({
 		publicEnv,
 		chainId,
@@ -444,7 +456,7 @@ export const getErc721TokenTransfersByAddress = async ({
  * **`module=account`**, **`action=token1155tx`** — ERC-1155 token transfers by address.
  * @see https://docs.etherscan.io/api-reference/endpoint/token1155tx
  */
-export const getErc1155TokenTransfersByAddress = async ({
+export const getErc1155TokenTransfersByAddress = ({
 	publicEnv,
 	chainId,
 	address,
@@ -456,7 +468,7 @@ export const getErc1155TokenTransfersByAddress = async ({
 	address: `0x${string}`
 	offset: number
 	options?: { apiKey?: string }
-}): Promise<EtherscanErc1155TokenTransfer[] | null> => (
+}) => (
 	etherscanAccountListRows<EtherscanErc1155TokenTransfer>({
 		publicEnv,
 		chainId,
@@ -486,7 +498,7 @@ export const getTokenTransfersByAddress = async ({
 	address: `0x${string}`
 	offset: number
 	options?: { apiKey?: string }
-}): Promise<EtherscanTokenTransferTagged[] | null> => {
+}) => {
 	const [
 		erc20Rows,
 		erc721Rows,
@@ -563,27 +575,17 @@ export const getTokenTransfersByTransaction = async ({
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
-	txHash: `0x${string}`
+	txHash: string
 	offset: number
 	options?: { apiKey?: string }
-}): Promise<(
-	| {
-		standard: 'erc20'
-		row: EtherscanErc20TokenTransfer
-	}
-	| {
-		standard: 'erc721'
-		row: EtherscanErc721TokenTransfer
-	}
-	| {
-		standard: 'erc1155'
-		row: EtherscanErc1155TokenTransfer
-	}
-)[] | null> => {
+}) => {
+	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
+	if (normalizedTxHash == null) return null
+
 	const tx = await getTransactionByHash({
 		publicEnv,
 		chainId,
-		txHash,
+		txHash: normalizedTxHash,
 		options,
 	})
 	if (tx == null) return null
@@ -612,7 +614,6 @@ export const getTokenTransfersByTransaction = async ({
 	)
 	if (participantRows.some((rows) => rows == null)) return null
 	const merged = participantRows.flatMap((rows) => rows ?? [])
-	const normalizedTxHash = txHash.toLowerCase()
 	const seen = new Set<string>()
 	return merged.filter(({ standard, row }) => {
 		if (row.hash?.toLowerCase() !== normalizedTxHash) return false
@@ -639,7 +640,7 @@ export const getTokenTransfersByTransaction = async ({
  * **`module=account`**, **`action=txlistinternal`** — internal transactions by address.
  * @see https://docs.etherscan.io/api-reference/endpoint/txlistinternal
  */
-export const getInternalTransactionsByAddress = async ({
+export const getInternalTransactionsByAddress = ({
 	publicEnv,
 	chainId,
 	address,
@@ -651,7 +652,7 @@ export const getInternalTransactionsByAddress = async ({
 	address: `0x${string}`
 	offset: number
 	options?: { apiKey?: string }
-}): Promise<EtherscanInternalTransaction[] | null> => (
+}) => (
 	etherscanAccountListRows<EtherscanInternalTransaction>({
 		publicEnv,
 		chainId,
@@ -678,17 +679,20 @@ export const getInternalTransactionsByTxHash = async ({
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
-	txHash: `0x${string}`
+	txHash: string
 	options?: { apiKey?: string }
-}): Promise<EtherscanInternalTransaction[] | null> => (
-	etherscanAccountListRows<EtherscanInternalTransaction>({
+}) => {
+	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
+	if (normalizedTxHash == null) return null
+
+	return etherscanAccountListRows<EtherscanInternalTransaction>({
 		publicEnv,
 		chainId,
 		query: {
 			module: 'account',
 			action: 'txlistinternal',
-			txhash: txHash,
+			txhash: normalizedTxHash,
 		},
 		options,
 	})
-)
+}

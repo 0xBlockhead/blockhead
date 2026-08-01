@@ -22,7 +22,7 @@ export const substrateJsonRpc = async <_Result>({
 	method: string
 	params?: readonly unknown[]
 	label: string
-}): Promise<_Result> => {
+}) => {
 	const response = await sourceFetch(
 		binding,
 		firstHttpUrlForBinding(binding),

@@ -21,11 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Eip8004CrossRegistration> = $props()
 
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.Eip8004Scan_Rest,
-		],
-	}))
 	const titleFallback = $derived(selection.entitySelector.targetKind || 'EIP-8004 cross registration')
 
 
@@ -44,10 +39,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.targetKind || 'EIP-8004 cross registration'}
-	{/snippet}
-
 	{#snippet Value()}
 		{selection.entitySelector.targetSelectorHash || selection.entitySelector.targetKind || titleFallback}
 	{/snippet}
@@ -66,7 +57,6 @@
 					<Eip8004AgentRegistrationFileView
 						selection={select(EntityType.Eip8004AgentRegistrationFile, selection.entitySelector.$registrationFile)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -96,7 +86,11 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
+						sources: selection.sources ?? [
+							Source.Eip8004Scan_Rest,
+						],
+					})({
 						fields: {
 							evidenceUri: true,
 						},

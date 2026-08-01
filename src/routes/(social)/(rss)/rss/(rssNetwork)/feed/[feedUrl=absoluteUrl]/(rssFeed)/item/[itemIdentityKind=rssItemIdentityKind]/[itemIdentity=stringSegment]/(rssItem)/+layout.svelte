@@ -19,6 +19,17 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]',
+			{
+				feedUrl: params.feedUrl,
+				itemIdentityKind: params.itemIdentityKind,
+				itemIdentity: params.itemIdentity,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,35 +40,19 @@
 
 {#key [params.feedUrl, params.itemIdentityKind, params.itemIdentity].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]',
-				{
-					feedUrl: params.feedUrl,
-					itemIdentityKind: params.itemIdentityKind,
-					itemIdentity: params.itemIdentity,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<RssItemView
 				selection={
-					select(EntityType.RssItem, data.selector, { sources: [
-						Source.Rss_Rest,
-						Source.Rss2Json_Rest,
-					] })
+					select(EntityType.RssItem, data.selector, {
+						sources: [
+							Source.Rss_Rest,
+							Source.Rss2Json_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]',
-						{
-							feedUrl: params.feedUrl,
-							itemIdentityKind: params.itemIdentityKind,
-							itemIdentity: params.itemIdentity,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

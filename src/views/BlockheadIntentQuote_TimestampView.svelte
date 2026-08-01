@@ -85,7 +85,6 @@
 					<BlockheadIntentQuoteView
 						selection={select(EntityType.BlockheadIntentQuote, selection.entitySelector.$quote)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

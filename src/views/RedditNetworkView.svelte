@@ -56,13 +56,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(prefetched.protocolName ?? '') || titleFallback}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Reddit protocol catalog identity for public API and listing metadata. Product observeds live on the global Reddit hub.
-		</p>
+		Reddit
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}

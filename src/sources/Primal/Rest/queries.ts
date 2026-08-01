@@ -2,11 +2,10 @@ import { primalGet, primalPost } from '$/sources/Primal/Rest/client.ts'
 import type {
 	PrimalEventById,
 	PrimalProfile,
-	PrimalSearchEvents,
-	PrimalSearchUsers,
+	PrimalSearchRequestByEndpoint,
+	PrimalSearchResponseByEndpoint,
 	PrimalTimelineEvents,
 } from '$/sources/Primal/Rest/types.ts'
-import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 const clampPrimalLimit = (limit: number) => (
 	Math.min(1000, Math.max(1, limit))
@@ -38,8 +37,7 @@ const profileTimelinePost = (
 /**
  * GET /v1/profile/{id}
  */
-export const getProfile = async (
-	_publicEnv: SourcePublicEnv,
+export const getProfile = (
 	pubkeyOrNpub: string
 ) => (
 	primalGet<PrimalProfile>(`/profile/${encodeProfileId(pubkeyOrNpub)}`)
@@ -48,8 +46,7 @@ export const getProfile = async (
 /**
  * POST /v1/timeline/profile/notes
  */
-export const getProfileNotes = async (
-	_publicEnv: SourcePublicEnv,
+export const getProfileNotes = (
 	pubkey: string,
 	limit: number
 ) => (
@@ -59,8 +56,7 @@ export const getProfileNotes = async (
 /**
  * POST /v1/timeline/profile/reposts
  */
-export const getProfileReposts = async (
-	_publicEnv: SourcePublicEnv,
+export const getProfileReposts = (
 	pubkey: string,
 	limit: number
 ) => (
@@ -70,8 +66,7 @@ export const getProfileReposts = async (
 /**
  * POST /v1/timeline/profile/articles
  */
-export const getProfileArticles = async (
-	_publicEnv: SourcePublicEnv,
+export const getProfileArticles = (
 	pubkey: string,
 	limit: number
 ) => (
@@ -81,8 +76,7 @@ export const getProfileArticles = async (
 /**
  * POST /v1/timeline/thread
  */
-export const getNoteThread = async (
-	_publicEnv: SourcePublicEnv,
+export const getNoteThread = (
 	eventId: string,
 	limit: number
 ) => (
@@ -92,84 +86,42 @@ export const getNoteThread = async (
 	})
 )
 
-/** POST /v1/timeline/event/actions — kind-1 direct replies for a note. */
-export const getNoteReplies = async (
-	_publicEnv: SourcePublicEnv,
+/** POST /v1/timeline/event/actions */
+export const getNoteActions = (
 	eventId: string,
+	kind: number,
 	limit: number
 ) => (
 	primalPost<PrimalTimelineEvents>('/timeline/event/actions', {
 		event_id: normalizeEventId(eventId),
-		kind: 1,
+		kind,
 		limit: clampPrimalLimit(limit),
 	})
 )
 
-/**
- * POST /v1/timeline/event/actions — kind-7 reactions for a note.
- */
-export const getNoteReactions = async (
-	_publicEnv: SourcePublicEnv,
-	eventId: string,
-	limit: number
-) => (
-	primalPost<PrimalTimelineEvents>('/timeline/event/actions', {
-		event_id: normalizeEventId(eventId),
-		kind: 7,
-		limit: clampPrimalLimit(limit),
-	})
-)
-
-/**
- * POST /v1/search/events
- */
-export const searchEvents = async (
-	_publicEnv: SourcePublicEnv,
-	query: string,
-	limit: number,
-	kinds?: readonly number[]
-) => (
-	primalPost<PrimalSearchEvents>('/search/events', {
-		query: query.trim(),
+/** POST /v1/search/{endpoint} */
+export const search = <
+	_Endpoint extends keyof PrimalSearchRequestByEndpoint
+>(
+	endpoint: _Endpoint,
+	request: PrimalSearchRequestByEndpoint[_Endpoint]
+) => {
+	const eventIds = '#e' in request ? request['#e'] : undefined
+	const kinds = 'kinds' in request ? request.kinds : undefined
+	return primalPost<PrimalSearchResponseByEndpoint[_Endpoint]>(`/search/${endpoint}`, {
+		...(request.query != null && { query: request.query.trim() }),
+		...(eventIds != null && eventIds.length > 0 && {
+			'#e': eventIds.map(normalizeEventId),
+		}),
 		...(kinds != null && kinds.length > 0 && { kinds: [...kinds] }),
-		limit: clampPrimalLimit(limit),
+		limit: clampPrimalLimit(request.limit),
 	})
-)
-
-/**
- * POST /v1/search/events — kind-7 reactions referencing an event (NIP-50-style `#e`).
- */
-export const searchEventReactions = async (
-	_publicEnv: SourcePublicEnv,
-	eventId: string,
-	limit: number
-) => (
-	primalPost<PrimalSearchEvents>('/search/events', {
-		'#e': [normalizeEventId(eventId)],
-		kinds: [7],
-		limit: clampPrimalLimit(limit),
-	})
-)
-
-/**
- * POST /v1/search/users
- */
-export const searchUsers = async (
-	_publicEnv: SourcePublicEnv,
-	query: string,
-	limit: number
-) => (
-	primalPost<PrimalSearchUsers>('/search/users', {
-		query: query.trim(),
-		limit: clampPrimalLimit(limit),
-	})
-)
+}
 
 /**
  * GET /v1/events/{id}
  */
-export const getEventById = async (
-	_publicEnv: SourcePublicEnv,
+export const getEventById = (
 	eventId: string
 ) => (
 	primalGet<PrimalEventById>(`/events/${encodeURIComponent(normalizeEventId(eventId))}`)

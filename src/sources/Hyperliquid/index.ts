@@ -10,12 +10,8 @@ export default {
 	label: 'Hyperliquid',
 	sources: [
 		{
-			source: Source.Hyperliquid_Rest,
-			label: 'Hyperliquid REST',
-		},
-		{
-			source: Source.Hyperliquid_JsonRpc,
-			label: 'HyperEVM JSON-RPC',
+			source: Source.Hyperliquid,
+			label: 'Hyperliquid',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

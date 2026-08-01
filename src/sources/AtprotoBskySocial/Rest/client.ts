@@ -22,10 +22,10 @@ const toQuery = (params: Record<string, string | number | readonly string[] | un
 	return s ? `?${s}` : ''
 }
 
-export const bskySocialXrpcGet = async <T>(
+export const bskySocialXrpcGet = <T>(
 	path: `/${string}`,
 	params: Record<string, string | number | readonly string[] | undefined>
-): Promise<T> => (
+) => (
 	sourceGetJson<T>(
 		binding,
 		`${firstHttpUrlForBinding(binding)}/xrpc${path}${toQuery(params)}`

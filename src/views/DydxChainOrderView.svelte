@@ -24,8 +24,8 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.DydxIndexer_Rest,
-			Source.DydxValidator_Rest,
+			Source.DydxIndexer,
+			Source.KingnodesDydxNode,
 		],
 	}))
 	const dydxChainOrder = $derived(viewSelection({
@@ -55,10 +55,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.orderId || 'dydx chain order'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={dydxChainOrder}>
 			{#snippet children(entity)}
@@ -88,7 +84,6 @@
 					<DydxChainSubaccountView
 						selection={select(EntityType.DydxChainSubaccount, selection.entitySelector.$subaccount)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -112,7 +107,6 @@
 									selection={select(EntityType.DydxChainMarket, dydxChainMarket[EntityMetaKey.Selector])}
 									prefetched={dydxChainMarket}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

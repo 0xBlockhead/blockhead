@@ -31,7 +31,7 @@ type EvmExecutionJsonRpcRequest = {
 export const getBlockNumber = async (
 	binding: SourceBinding,
 	endpoint?: SourceEndpoint
-): Promise<number> => Number.parseInt(
+) => Number.parseInt(
 	await jsonRpc2<`0x${string}`>(
 		binding,
 		'eth_blockNumber',
@@ -44,7 +44,7 @@ export const getBlockNumber = async (
 export const getGasPrice = (
 	binding: SourceBinding,
 	endpoint?: SourceEndpoint
-): Promise<`0x${string}`> => (
+) => (
 	jsonRpc2<`0x${string}`>(
 		binding,
 		'eth_gasPrice',
@@ -56,7 +56,7 @@ export const getGasPrice = (
 export const getMaxPriorityFeePerGas = (
 	binding: SourceBinding,
 	endpoint?: SourceEndpoint
-): Promise<`0x${string}`> => (
+) => (
 	jsonRpc2<`0x${string}`>(
 		binding,
 		'eth_maxPriorityFeePerGas',

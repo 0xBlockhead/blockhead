@@ -14,7 +14,6 @@ const bindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://generativelanguage.googleapis.com',
-				origin: 'https://generativelanguage.googleapis.com',
 				corsEnabled: false,
 			},
 		],
@@ -37,4 +36,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{ readonly [Source.GoogleAi_Rest]: typeof bindings[0] }>(bindings)
+export default indexSourceBindings(bindings)

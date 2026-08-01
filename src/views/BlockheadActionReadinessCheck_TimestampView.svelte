@@ -77,7 +77,6 @@
 					<BlockheadActionReadinessCheckView
 						selection={select(EntityType.BlockheadActionReadinessCheck, selection.entitySelector.$readinessCheck)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -28,12 +28,8 @@
 
 	<NostrReactionsView
 		href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/reactions')}
-		title='Nostr reactions'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='observed-reactions'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

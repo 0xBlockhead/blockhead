@@ -21,12 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadCashuMeltQuote> = $props()
 
-	const blockheadCashuMeltQuote = $derived(selection({
-		fields: {
-			amount: true,
-		},
-	}))
-
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
@@ -46,12 +40,16 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.quoteId || 'blockhead Cashu melt quote'}
-	{/snippet}
-
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadCashuMeltQuote}>
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						amount: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
 				{@const amount = entity.amount}
 				{#if amount != null}
@@ -71,7 +69,6 @@
 					<CashuMintView
 						selection={select(EntityType.CashuMint, selection.entitySelector.$mint)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -121,7 +118,6 @@
 									selection={select(EntityType.BlockheadCashuWalletState, blockheadCashuWalletState[EntityMetaKey.Selector])}
 									prefetched={blockheadCashuWalletState}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

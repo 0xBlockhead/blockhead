@@ -1,6 +1,6 @@
 import {
-	ProposalCategory as OwnedProposalCategory,
-	SpecificationRealm as OwnedSpecificationRealm,
+	ProposalCategory,
+	SpecificationRealm,
 } from '$/constants/SpecificationProposal.ts'
 import {
 	defineResolver,
@@ -16,8 +16,7 @@ const chipMetadataValue = (text: string, key: string) => (
 	new RegExp(`^>\\s*${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim()
 )
 
-const chipRowsByNumber = async (tree: BitcoinCashChipsGitlabTree) => {
-	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+const chipRowsByNumber = (tree: BitcoinCashChipsGitlabTree) => {
 	return Object.fromEntries(
 		tree
 			.filter((gitlabTreeEntry) => gitlabTreeEntry.type === 'blob' && gitlabTreeEntry.name.endsWith('.md') && gitlabTreeEntry.name.startsWith('CHIP-'))
@@ -49,10 +48,6 @@ const chipRowsByNumber = async (tree: BitcoinCashChipsGitlabTree) => {
 	)
 }
 
-const chipProposalIndexRows = async (tree: BitcoinCashChipsGitlabTree) => (
-	Object.values(await chipRowsByNumber(tree)).map(({ path: _path, ...chip }) => chip)
-)
-
 export default {
 	source: Source.BitcoinCashChips_Gitlab,
 
@@ -63,43 +58,40 @@ export default {
 				RealmCategoryNumber: {
 					appliesTo: [
 						{
-							realm: OwnedSpecificationRealm.BitcoinCash,
-							category: OwnedProposalCategory.Chip,
+							realm: SpecificationRealm.BitcoinCash,
+							category: ProposalCategory.Chip,
 						},
 					],
 					resolve: async ({ category, number, realm }) => {
-					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-					if (realm !== SpecificationRealm.BitcoinCash || category !== ProposalCategory.Chip) {
-						throw new Error('BitcoinCashChips_Gitlab: proposal resolver only supports Bitcoin Cash CHIPs')
-					}
-					const {
-						getChipMarkdownText,
-						getTree,
-					} = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
-					const chip = (
-						await chipRowsByNumber(
-							await getTree()
+						if (realm !== SpecificationRealm.BitcoinCash || category !== ProposalCategory.Chip)
+							throw new Error('BitcoinCashChips_Gitlab: proposal resolver only supports Bitcoin Cash CHIPs')
+
+						const {
+							getChipMarkdownText,
+							getTree,
+						} = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
+						const chip = chipRowsByNumber(await getTree())[number]
+						const text = await getChipMarkdownText(
+							{ path: chip.path }
 						)
-					)[number]
-					const text = await getChipMarkdownText(
-						{ path: chip.path }
-					)
-					if (text.trim() === '') throw new Error('BitcoinCashChips_Gitlab: empty proposal text')
-					return {
-						documentCategory: chipMetadataValue(text, 'Type'),
-						documentTitle: chipMetadataValue(text, 'Title') ?? /^#\s+(.+)$/m.exec(text)?.[1]?.trim(),
-						documentStatus: chipMetadataValue(text, 'Status'),
-						documentBody: text,
-					}
+						if (text.trim() === '')
+							throw new Error('BitcoinCashChips_Gitlab: empty proposal text')
+
+						return {
+							documentCategory: chipMetadataValue(text, 'Type'),
+							documentTitle: chipMetadataValue(text, 'Title') ?? /^#\s+(.+)$/m.exec(text)?.[1]?.trim(),
+							documentStatus: chipMetadataValue(text, 'Status'),
+							documentBody: text,
+						}
+					},
 				},
-				}
-			}
+			},
 		})({
-			documentCategory: (snapshot) => snapshot.documentCategory,
-			documentTitle: (snapshot) => snapshot.documentTitle,
-			documentStatus: (snapshot) => snapshot.documentStatus,
-			documentBody: (snapshot) => snapshot.documentBody,
-		}),
+				documentCategory: (snapshot) => snapshot.documentCategory,
+				documentTitle: (snapshot) => snapshot.documentTitle,
+				documentStatus: (snapshot) => snapshot.documentStatus,
+				documentBody: (snapshot) => snapshot.documentBody,
+			}),
 
 		defineResolver(Source.BitcoinCashChips_Gitlab, {
 			entityType: EntityType._Global,
@@ -107,14 +99,13 @@ export default {
 				Scope: {
 					resolve: async () => {
 						const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
-						return chipProposalIndexRows(
-							await getTree()
-						)
+						return Object.values(chipRowsByNumber(await getTree()))
+							.map(({ path: _path, ...chip }) => chip)
 					},
-				}
-			}
+				},
+			},
 		})({
-			$$proposals: (snapshot) => snapshot,
-		}),
+				$$proposals: (snapshot) => snapshot,
+			}),
 	],
 }

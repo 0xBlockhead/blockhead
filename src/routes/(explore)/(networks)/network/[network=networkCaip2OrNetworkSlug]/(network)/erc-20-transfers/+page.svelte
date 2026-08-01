@@ -40,8 +40,5 @@
 		title='ERC-20 transfers'
 		selection={select(EntityType.Network, data.selector).Evm.$$erc20TokenTransfers}
 		id='erc20-token-transfers'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

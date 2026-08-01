@@ -43,7 +43,6 @@
 			selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -57,7 +56,6 @@
 						selection={select(EntityType.DogecoinAuxPowParentBlockHeader, dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector])}
 						prefetched={dogecoinAuxPowParentBlockHeader}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				{/if}
 			{/snippet}
@@ -72,7 +70,6 @@
 					<UtxoBlockView
 						selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -89,7 +86,6 @@
 									selection={select(EntityType.DogecoinAuxPowParentBlockHeader, dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector])}
 									prefetched={dogecoinAuxPowParentBlockHeader}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -109,7 +105,6 @@
 									selection={select(EntityType.DogecoinAuxPowMerkleBranch, dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector])}
 									prefetched={dogecoinAuxPowMerkleBranch}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -129,7 +124,6 @@
 									selection={select(EntityType.DogecoinAuxPowMerkleBranch, dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector])}
 									prefetched={dogecoinAuxPowMerkleBranch}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

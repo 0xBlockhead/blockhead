@@ -202,7 +202,6 @@
 									selection={select(EntityType.BitTorrentMetainfo, bitTorrentMetainfo[EntityMetaKey.Selector])}
 									prefetched={bitTorrentMetainfo}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

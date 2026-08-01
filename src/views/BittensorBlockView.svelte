@@ -86,7 +86,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -119,7 +118,6 @@
 									selection={select(EntityType.BittensorBlock, bittensorBlock[EntityMetaKey.Selector])}
 									prefetched={bittensorBlock}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

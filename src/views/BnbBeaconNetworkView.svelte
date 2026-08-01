@@ -58,7 +58,6 @@
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
 			href={null}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
 	{/snippet}
 
@@ -81,7 +80,6 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -158,12 +156,7 @@
 			{#snippet SectionBnbBeaconChainObservations({ id, label, open })}
 				<BnbBeaconNetwork_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No observations yet.'
 					id={`${id}-list`}
@@ -173,12 +166,7 @@
 			{#snippet SectionBnbBeaconChainBlocks({ id, label, open })}
 				<BnbBeaconBlocksView
 					selection={selection.$$blocks}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No blocks found.'
 					id={`${id}-list`}
@@ -188,12 +176,7 @@
 			{#snippet SectionBnbBeaconChainTransactions({ id, label, open })}
 				<BnbBeaconTransactionsView
 					selection={selection.$$transactions}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No transactions found.'
 					id={`${id}-list`}
@@ -225,12 +208,7 @@
 			{#snippet SectionBnbBeaconValidatorList({ id, label, open })}
 				<BnbValidatorsView
 					selection={selection.$$validators}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No validators found.'
 					id={`${id}-list`}
@@ -266,12 +244,7 @@
 			{#snippet SectionBnbBeaconTokens({ id, label, open })}
 				<BnbBeaconTokensView
 					selection={selection.$$tokens}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No tokens found.'
 					id={`${id}-list`}
@@ -281,12 +254,7 @@
 			{#snippet SectionBnbBeaconMigrations({ id, label, open })}
 				<BnbBeaconTokenMigrationsView
 					selection={selection.$$migrationRecords}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No migration records found.'
 					id={`${id}-list`}

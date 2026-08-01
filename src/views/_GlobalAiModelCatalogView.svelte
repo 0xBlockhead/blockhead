@@ -11,7 +11,6 @@
 	let {
 		selection,
 		prefetched = {},
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -38,15 +37,10 @@
 	entityType={EntityType._GlobalAiModelCatalog}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? 'global AI model catalog'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		global AI model catalog
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -134,12 +128,7 @@
 			{#snippet SectionAiProviders({ id, label, open })}
 				<AiModelProvidersView
 					selection={selection.$$providers}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No AI model providers.'
 					id={`${id}-list`}
@@ -149,12 +138,7 @@
 			{#snippet SectionAiCatalogEntries({ id, label, open })}
 				<AiProviderCatalogEntriesView
 					selection={selection.$$catalogEntries}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No AI provider catalog entries.'
 					id={`${id}-list`}
@@ -164,12 +148,7 @@
 			{#snippet SectionAiModels({ id, label, open })}
 				<AiModelsView
 					selection={selection.$$models}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No AI models.'
 					id={`${id}-list`}
@@ -209,12 +188,7 @@
 			{#snippet SectionAiDatasets({ id, label, open })}
 				<AiDatasetsView
 					selection={selection.$$datasets}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No AI datasets.'
 					id={`${id}-list`}
@@ -224,12 +198,7 @@
 			{#snippet SectionAiBenchmarks({ id, label, open })}
 				<AiBenchmarksView
 					selection={selection.$$benchmarks}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No AI benchmarks.'
 					id={`${id}-list`}
@@ -239,12 +208,7 @@
 			{#snippet SectionAiEvaluations({ id, label, open })}
 				<AiEvaluation_TimestampsView
 					selection={selection.$$evaluations}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No AI evaluation observations.'
 					id={`${id}-list`}
@@ -276,12 +240,7 @@
 			{#snippet SectionAiCatalogTimestamps({ id, label, open })}
 				<GlobalAiModelCatalog_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No AI model catalog observations.'
 					id={`${id}-list`}

@@ -2,6 +2,10 @@ import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$reso
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
+import type {
+	NormalizedStateChannel,
+	NormalizedStateChannelDeposit,
+} from '$/resolvers/Local/Internal/catalog.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -34,13 +38,6 @@ const globalEvmAbiCatalogTimestampFields = async ({
 }) => {
 	const normalizedLocalInternal = await readNormalizedLocalInternal()
 	return {
-		[EntityMetaKey.Selector]: {
-			$hub: {
-				scope,
-			},
-			timestampMs,
-			source: Source.Local_Internal,
-		},
 		$hub: {
 			[EntityMetaKey.Selector]: {
 				scope,
@@ -62,22 +59,7 @@ const blockheadConnectionStatusByLocalStatus = {
 	error: BlockheadConnectionStatus.Error,
 } as const
 
-const stateChannelTimestampFields = (stateChannel: {
-	id: string
-	totalDeposited: bigint
-	balance0: bigint
-	balance1: bigint
-	turnNum: number
-	status: string
-	updatedAt: number
-}) => ({
-	[EntityMetaKey.Selector]: {
-		$channel: {
-			id: stateChannel.id,
-		},
-		timestampMs: stateChannel.updatedAt,
-		source: Source.Local_Internal,
-	},
+const stateChannelTimestampFields = (stateChannel: NormalizedStateChannel) => ({
 	$channel: {
 		[EntityMetaKey.Selector]: {
 			id: stateChannel.id,
@@ -92,25 +74,7 @@ const stateChannelTimestampFields = (stateChannel: {
 	status: stateChannel.status,
 })
 
-const stateChannelDepositTimestampFields = (stateChannelDeposit: {
-	channelId: string
-	accountAddress: string
-	availableBalance: bigint
-	lockedBalance: bigint
-	lastUpdated: number
-}) => ({
-	[EntityMetaKey.Selector]: {
-		$deposit: {
-			$channel: {
-				id: stateChannelDeposit.channelId,
-			},
-			$account: {
-				address: EvmAddress.assert(stateChannelDeposit.accountAddress),
-			},
-		},
-		timestampMs: stateChannelDeposit.lastUpdated,
-		source: Source.Local_Internal,
-	},
+const stateChannelDepositTimestampFields = (stateChannelDeposit: NormalizedStateChannelDeposit) => ({
 	$deposit: {
 		[EntityMetaKey.Selector]: {
 			$channel: {
@@ -760,118 +724,143 @@ export default {
 			resolve: {
 				Id: {
 					resolve: async ({ id }) => {
-					const catalog = await readNormalizedLocalInternal()
-					const stateChannel = catalog.stateChannels.find((candidate) => candidate.id === id)
-						if (stateChannel == null) throw new Error('Local_Internal: BlockheadStateChannel not present in local catalog')
+						const catalog = await readNormalizedLocalInternal()
+						const stateChannel = catalog.stateChannels.find((candidate) => candidate.id === id)
+						if (stateChannel == null)
+							throw new Error('Local_Internal: BlockheadStateChannel not present in local catalog')
+
 						const assetId = await coinInstanceIdForNormalizedStateChannelRow(stateChannel)
 						return {
-								$network: { [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(stateChannel.chainId) } } },
+							$network: { [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(stateChannel.chainId) } } },
 							$participant0: { [EntityMetaKey.Selector]: { address: EvmAddress.assert(stateChannel.participant0) } },
 							$participant1: { [EntityMetaKey.Selector]: { address: EvmAddress.assert(stateChannel.participant1) } },
 							$asset: { [EntityMetaKey.Selector]: assetId },
-						...(stateChannel.roomId != null && { $room: { [EntityMetaKey.Selector]: { id: stateChannel.roomId } } }),
-						createdAt: stateChannel.createdAt,
-						$$timestamps: [
-							stateChannelTimestampFields(stateChannel),
-						],
+							...(stateChannel.roomId != null && { $room: { [EntityMetaKey.Selector]: { id: stateChannel.roomId } } }),
+							createdAt: stateChannel.createdAt,
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$channel: {
+											id: stateChannel.id,
+										},
+										timestampMs: stateChannel.updatedAt,
+										source: Source.Local_Internal,
+									},
+								},
+							],
+						}
 					}
-				},
 				}
 			},
 		})({
-				$network: (channel) => channel.$network,
-				$participant0: (channel) => channel.$participant0,
-				$participant1: (channel) => channel.$participant1,
-				$asset: (channel) => channel.$asset,
-				$room: (channel) => channel.$room,
-				createdAt: (channel) => channel.createdAt,
-				$$timestamps: (channel) => channel.$$timestamps.map((timestamp) => ({
-					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-				})),
-			}),
+			$network: (channel) => channel.$network,
+			$participant0: (channel) => channel.$participant0,
+			$participant1: (channel) => channel.$participant1,
+			$asset: (channel) => channel.$asset,
+			$room: (channel) => channel.$room,
+			createdAt: (channel) => channel.createdAt,
+			$$timestamps: (channel) => channel.$$timestamps,
+		}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadStateChannel_Timestamp,
 			resolve: {
 				ChannelTimestampMsSource: {
 					resolve: async ({ $channel, source }) => {
-					if (source !== Source.Local_Internal) throw new Error(`Local_Internal: unsupported source ${source}`)
-					const catalog = await readNormalizedLocalInternal()
-					const stateChannel = catalog.stateChannels.find((candidate) => candidate.id === $channel.id)
-						if (stateChannel == null) throw new Error('Local_Internal: BlockheadStateChannel not present in local catalog')
+						if (source !== Source.Local_Internal)
+							throw new Error(`Local_Internal: unsupported source ${source}`)
+
+						const catalog = await readNormalizedLocalInternal()
+						const stateChannel = catalog.stateChannels.find((candidate) => candidate.id === $channel.id)
+						if (stateChannel == null)
+							throw new Error('Local_Internal: BlockheadStateChannel not present in local catalog')
+
 						return stateChannelTimestampFields(stateChannel)
-				},
+					}
 				}
 			},
 		})({
-				$channel: (timestamp) => timestamp.$channel,
-				timestampMs: (timestamp) => timestamp.timestampMs,
-				source: (timestamp) => timestamp.source,
-				totalDeposited: (timestamp) => timestamp.totalDeposited,
-				balance0: (timestamp) => timestamp.balance0,
-				balance1: (timestamp) => timestamp.balance1,
-				turnNum: (timestamp) => timestamp.turnNum,
-				status: (timestamp) => timestamp.status,
-			}),
+			$channel: (timestamp) => timestamp.$channel,
+			timestampMs: (timestamp) => timestamp.timestampMs,
+			source: (timestamp) => timestamp.source,
+			totalDeposited: (timestamp) => timestamp.totalDeposited,
+			balance0: (timestamp) => timestamp.balance0,
+			balance1: (timestamp) => timestamp.balance1,
+			turnNum: (timestamp) => timestamp.turnNum,
+			status: (timestamp) => timestamp.status,
+		}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadStateChannelDeposit,
 			resolve: {
 				ChannelAccount: {
 					resolve: async ({ $channel, $account }) => {
-					const catalog = await readNormalizedLocalInternal()
-					const stateChannelDeposit = catalog.stateChannelDeposits.find((candidate) => (
-						candidate.channelId === $channel.id
-						&& candidate.accountAddress === $account.address
-					))
-					if (stateChannelDeposit == null) {
-						throw new Error('Local_Internal: BlockheadStateChannelDeposit not present in local catalog')
-						}
+						const catalog = await readNormalizedLocalInternal()
+						const stateChannelDeposit = catalog.stateChannelDeposits.find((candidate) => (
+							candidate.channelId === $channel.id
+							&& candidate.accountAddress === $account.address
+						))
+						if (stateChannelDeposit == null)
+							throw new Error('Local_Internal: BlockheadStateChannelDeposit not present in local catalog')
+
 						return {
 							$channel: { [EntityMetaKey.Selector]: { id: stateChannelDeposit.channelId } },
-								$network: { [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(stateChannelDeposit.chainId) } } },
+							$network: { [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(stateChannelDeposit.chainId) } } },
 							$account: { [EntityMetaKey.Selector]: { address: EvmAddress.assert(stateChannelDeposit.accountAddress) } },
 							$$timestamps: [
-								stateChannelDepositTimestampFields(stateChannelDeposit),
+								{
+									[EntityMetaKey.Selector]: {
+										$deposit: {
+											$channel: {
+												id: stateChannelDeposit.channelId,
+											},
+											$account: {
+												address: EvmAddress.assert(stateChannelDeposit.accountAddress),
+											},
+										},
+										timestampMs: stateChannelDeposit.lastUpdated,
+										source: Source.Local_Internal,
+									},
+								},
 							],
+						}
 					}
-				},
 				}
 			},
 		})({
-				$channel: (deposit) => deposit.$channel,
-				$network: (deposit) => deposit.$network,
-				$account: (deposit) => deposit.$account,
-				$$timestamps: (deposit) => deposit.$$timestamps.map((timestamp) => ({
-					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-				})),
-			}),
+			$channel: (deposit) => deposit.$channel,
+			$network: (deposit) => deposit.$network,
+			$account: (deposit) => deposit.$account,
+			$$timestamps: (deposit) => deposit.$$timestamps,
+		}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadStateChannelDeposit_Timestamp,
 			resolve: {
 				DepositTimestampMsSource: {
 					resolve: async ({ $deposit, source }) => {
-					if (source !== Source.Local_Internal) throw new Error(`Local_Internal: unsupported source ${source}`)
-					const catalog = await readNormalizedLocalInternal()
-					const stateChannelDeposit = catalog.stateChannelDeposits.find((candidate) => (
-						candidate.channelId === $deposit.$channel.id
-						&& candidate.accountAddress === $deposit.$account.address
-					))
-					if (stateChannelDeposit == null) {
-						throw new Error('Local_Internal: BlockheadStateChannelDeposit not present in local catalog')
-						}
+						if (source !== Source.Local_Internal)
+							throw new Error(`Local_Internal: unsupported source ${source}`)
+
+						const catalog = await readNormalizedLocalInternal()
+						const stateChannelDeposit = catalog.stateChannelDeposits.find((candidate) => (
+							candidate.channelId === $deposit.$channel.id
+							&& candidate.accountAddress === $deposit.$account.address
+						))
+						if (stateChannelDeposit == null)
+							throw new Error('Local_Internal: BlockheadStateChannelDeposit not present in local catalog')
+
 						return stateChannelDepositTimestampFields(stateChannelDeposit)
-				},
+					}
 				}
 			},
 		})({
-				$deposit: (timestamp) => timestamp.$deposit,
-				timestampMs: (timestamp) => timestamp.timestampMs,
-				source: (timestamp) => timestamp.source,
-				availableBalance: (timestamp) => timestamp.availableBalance,
-				lockedBalance: (timestamp) => timestamp.lockedBalance,
-			}),
+			$deposit: (timestamp) => timestamp.$deposit,
+			timestampMs: (timestamp) => timestamp.timestampMs,
+			source: (timestamp) => timestamp.source,
+			availableBalance: (timestamp) => timestamp.availableBalance,
+			lockedBalance: (timestamp) => timestamp.lockedBalance,
+		}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadStateChannelTransfer,
@@ -1862,18 +1851,21 @@ export default {
 			resolve: {
 				Scope: {
 					resolve: async ({ scope }) => [
-						await globalEvmAbiCatalogTimestampFields({
-							scope,
-							timestampMs: Date.now(),
-						}),
+						{
+							[EntityMetaKey.Selector]: {
+								$hub: {
+									scope,
+								},
+								timestampMs: Date.now(),
+								source: Source.Local_Internal,
+							},
+						},
 					],
 				},
 			},
 		})({
-				$$timestamps: (timestamps) => timestamps.map((timestamp) => ({
-					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
-				})),
-			}),
+			$$timestamps: (timestamps) => timestamps,
+		}),
 
 		defineResolver(Source.Local_Internal, {
 			entityType: EntityType._GlobalEvmAbiCatalog_Timestamp,
@@ -1895,13 +1887,13 @@ export default {
 				},
 			},
 		})({
-				$hub: (timestamp) => timestamp.$hub,
-				timestampMs: (timestamp) => timestamp.timestampMs,
-				source: (timestamp) => timestamp.source,
-				seededSelectorCount: (timestamp) => timestamp.seededSelectorCount,
-				seededTopicCount: (timestamp) => timestamp.seededTopicCount,
-				seededErrorCount: (timestamp) => timestamp.seededErrorCount,
-				reachable: (timestamp) => timestamp.reachable,
-			}),
+			$hub: (timestamp) => timestamp.$hub,
+			timestampMs: (timestamp) => timestamp.timestampMs,
+			source: (timestamp) => timestamp.source,
+			seededSelectorCount: (timestamp) => timestamp.seededSelectorCount,
+			seededTopicCount: (timestamp) => timestamp.seededTopicCount,
+			seededErrorCount: (timestamp) => timestamp.seededErrorCount,
+			reachable: (timestamp) => timestamp.reachable,
+		}),
 	],
 }

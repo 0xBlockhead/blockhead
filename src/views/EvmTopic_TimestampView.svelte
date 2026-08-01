@@ -28,11 +28,6 @@
 			Source.Openchain_Rest,
 		],
 	}))
-	const evmTopicTimestamp = $derived(viewSelection({
-		fields: {
-			signatures: true,
-		},
-	}))
 	const titleFallback = $derived(prefetched.signatures.values.join(', ') || 'EVM topic observation')
 
 
@@ -66,7 +61,19 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmTopicTimestamp}>
+		<ResourceBoundary
+			resource={
+				selection({
+					sources: selection.sources ?? [
+						Source.Openchain_Rest,
+					],
+				})({
+					fields: {
+						signatures: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
 				{entity.signatures.values.join(', ') || title || titleFallback}
 			{/snippet}
@@ -91,7 +98,6 @@
 					<EvmTopicView
 						selection={select(EntityType.EvmTopic, selection.entitySelector.$topic)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

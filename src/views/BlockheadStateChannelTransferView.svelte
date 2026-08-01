@@ -49,10 +49,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{String(selection.entitySelector.amount)}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadStateChannelTransfer}>
 			{#snippet children(entity)}
@@ -79,7 +75,6 @@
 					<BlockheadStateChannelView
 						selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -97,7 +92,6 @@
 					<EvmAccountView
 						selection={select(EntityType.EvmAccount, selection.entitySelector.$from)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -108,7 +102,6 @@
 					<EvmAccountView
 						selection={select(EntityType.EvmAccount, selection.entitySelector.$to)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

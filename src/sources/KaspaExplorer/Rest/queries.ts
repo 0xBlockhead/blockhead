@@ -1,15 +1,11 @@
-import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
+import { throwHttpError } from '$/lib/http.ts'
+import { sourceFetch } from '$/sources/_runtime/http.ts'
+import { getJson, httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
+import type { paths } from '$/sources/KaspaExplorer/OpenApi/openapi.d.ts'
 import bindings from '$/sources/KaspaExplorer/bindings.ts'
-import type {
-	KaspaExplorerBalance,
-	KaspaExplorerTransaction,
-	KaspaExplorerTransactionCount,
-	KaspaExplorerUtxo,
-	KaspaExplorerUtxoCount,
-} from '$/sources/KaspaExplorer/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.KaspaExplorer_Rest]
+const binding = bindings[Source.KaspaExplorer]
 
 const kaspaAddressCharset = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l'
 
@@ -49,7 +45,7 @@ const assertAddress = (address: string) => {
 			...payloadValues,
 		]) !== 0n
 	)
-		throw new Error('KaspaExplorer_Rest: invalid Kaspa mainnet address')
+		throw new Error('Kaspa Explorer: invalid Kaspa mainnet address')
 }
 
 const assertSafeUnsigned = (
@@ -57,7 +53,7 @@ const assertSafeUnsigned = (
 	label: string
 ) => {
 	if (!Number.isSafeInteger(value) || value < 0)
-		throw new Error(`KaspaExplorer_Rest: ${label} exceeds lossless JSON integer range`)
+		throw new Error(`Kaspa Explorer: ${label} exceeds lossless JSON integer range`)
 }
 
 const assertUnsignedDecimal = (
@@ -65,83 +61,79 @@ const assertUnsignedDecimal = (
 	label: string
 ) => {
 	if (!/^(0|[1-9][0-9]*)$/.test(value))
-		throw new Error(`KaspaExplorer_Rest: invalid ${label}`)
+		throw new Error(`Kaspa Explorer: invalid ${label}`)
 }
 
-export const query = <_Json>(
-	path: string
-) => (
-	getJson<_Json>(binding, path)
-)
-
 export const getAddressBalance = async (
-	address: string
+	{ kaspaAddress }: paths['/addresses/{kaspaAddress}/balance']['get']['parameters']['path']
 ) => {
-	assertAddress(address)
-	const balance = await query<KaspaExplorerBalance>(
-		`/addresses/${encodeURIComponent(address)}/balance`
+	assertAddress(kaspaAddress)
+	const balance = await getJson<paths['/addresses/{kaspaAddress}/balance']['get']['responses'][200]['content']['application/json']>(
+		binding,
+		`/addresses/${encodeURIComponent(kaspaAddress)}/balance`
 	)
-	if (balance.address !== address)
-		throw new Error('KaspaExplorer_Rest: balance response belongs to a different address')
+	if (balance.address !== kaspaAddress)
+		throw new Error('Kaspa Explorer: balance response belongs to a different address')
 	assertSafeUnsigned(balance.balance, 'balance')
 	return balance
 }
 
 export const getAddressUtxos = async (
-	address: string
+	{ kaspaAddress }: paths['/addresses/{kaspaAddress}/utxos']['get']['parameters']['path']
 ) => {
-	assertAddress(address)
-	const utxos = await query<KaspaExplorerUtxo[]>(
-		`/addresses/${encodeURIComponent(address)}/utxos`
+	assertAddress(kaspaAddress)
+	const utxos = await getJson<paths['/addresses/{kaspaAddress}/utxos']['get']['responses'][200]['content']['application/json']>(
+		binding,
+		`/addresses/${encodeURIComponent(kaspaAddress)}/utxos`
 	)
 	const outpoints = new Set<string>()
 	for (const utxo of utxos) {
-		if (utxo.address !== address)
-			throw new Error('KaspaExplorer_Rest: UTXO response contains a foreign address')
+		if (utxo.address !== kaspaAddress)
+			throw new Error('Kaspa Explorer: UTXO response contains a foreign address')
 		if (!/^[0-9a-f]{64}$/.test(utxo.outpoint.transactionId))
-			throw new Error('KaspaExplorer_Rest: invalid UTXO transaction ID')
+			throw new Error('Kaspa Explorer: invalid UTXO transaction ID')
 		assertSafeUnsigned(utxo.outpoint.index, 'UTXO outpoint index')
-		if (utxo.utxoEntry.amount != null)
-			assertUnsignedDecimal(utxo.utxoEntry.amount, 'UTXO amount')
-		if (utxo.utxoEntry.blockDaaScore != null)
-			assertUnsignedDecimal(utxo.utxoEntry.blockDaaScore, 'UTXO block DAA score')
+		assertUnsignedDecimal(utxo.utxoEntry.amount, 'UTXO amount')
+		assertUnsignedDecimal(utxo.utxoEntry.blockDaaScore, 'UTXO block DAA score')
 		const outpoint = `${utxo.outpoint.transactionId}:${utxo.outpoint.index}`
 		if (outpoints.has(outpoint))
-			throw new Error('KaspaExplorer_Rest: duplicate UTXO outpoint')
+			throw new Error('Kaspa Explorer: duplicate UTXO outpoint')
 		outpoints.add(outpoint)
 	}
 	return utxos
 }
 
 export const getAddressUtxoCount = async (
-	address: string
+	{ kaspaAddress }: paths['/addresses/{kaspaAddress}/utxos/count']['get']['parameters']['path']
 ) => {
-	assertAddress(address)
-	const count = await query<KaspaExplorerUtxoCount>(
-		`/addresses/${encodeURIComponent(address)}/utxos/count`
+	assertAddress(kaspaAddress)
+	const count = await getJson<paths['/addresses/{kaspaAddress}/utxos/count']['get']['responses'][200]['content']['application/json']>(
+		binding,
+		`/addresses/${encodeURIComponent(kaspaAddress)}/utxos/count`
 	)
 	assertSafeUnsigned(count.count, 'UTXO count')
 	return count
 }
 
 export const getCompleteAddressUtxos = async (
-	address: string
+	parameters: paths['/addresses/{kaspaAddress}/utxos']['get']['parameters']['path']
 ) => {
 	const [utxos, { count }] = await Promise.all([
-		getAddressUtxos(address),
-		getAddressUtxoCount(address),
+		getAddressUtxos(parameters),
+		getAddressUtxoCount(parameters),
 	])
 	if (utxos.length !== count)
-		throw new Error('KaspaExplorer_Rest: address UTXO response is incomplete')
+		throw new Error('Kaspa Explorer: address UTXO response is incomplete')
 	return utxos
 }
 
 export const getAddressTransactionCount = async (
-	address: string
+	{ kaspaAddress }: paths['/addresses/{kaspaAddress}/transactions-count']['get']['parameters']['path']
 ) => {
-	assertAddress(address)
-	const count = await query<KaspaExplorerTransactionCount>(
-		`/addresses/${encodeURIComponent(address)}/transactions-count`
+	assertAddress(kaspaAddress)
+	const count = await getJson<paths['/addresses/{kaspaAddress}/transactions-count']['get']['responses'][200]['content']['application/json']>(
+		binding,
+		`/addresses/${encodeURIComponent(kaspaAddress)}/transactions-count`
 	)
 	assertSafeUnsigned(count.total, 'transaction count')
 	return count
@@ -149,26 +141,24 @@ export const getAddressTransactionCount = async (
 
 export const getAddressTransactionsPage = async (
 	{
-		address,
-		limit,
+		kaspaAddress,
+		limit = 50,
 		before,
 		after,
-	}: {
-		address: string
-		limit: number
-		before?: number
-		after?: number
-	}
+	}: (
+		paths['/addresses/{kaspaAddress}/full-transactions-page']['get']['parameters']['path']
+		& NonNullable<paths['/addresses/{kaspaAddress}/full-transactions-page']['get']['parameters']['query']>
+	)
 ) => {
-	assertAddress(address)
+	assertAddress(kaspaAddress)
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 500)
-		throw new Error('KaspaExplorer_Rest: transaction page limit must be an integer from 1 through 500')
+		throw new Error('Kaspa Explorer: transaction page limit must be an integer from 1 through 500')
 	if (before != null)
 		assertSafeUnsigned(before, 'before cursor')
 	if (after != null)
 		assertSafeUnsigned(after, 'after cursor')
 	if (before != null && after != null)
-		throw new Error('KaspaExplorer_Rest: transaction page cannot use both before and after cursors')
+		throw new Error('Kaspa Explorer: transaction page cannot use both before and after cursors')
 	const parameters = new URLSearchParams({
 		limit: limit.toString(),
 		resolve_previous_outpoints: 'light',
@@ -177,32 +167,35 @@ export const getAddressTransactionsPage = async (
 		parameters.set('before', before.toString())
 	if (after != null)
 		parameters.set('after', after.toString())
-	const transactions = await query<KaspaExplorerTransaction[]>(
-		`/addresses/${encodeURIComponent(address)}/full-transactions-page?${parameters.toString()}`
-	)
+	const path = `/addresses/${encodeURIComponent(kaspaAddress)}/full-transactions-page?${parameters.toString()}`
+	const response = await sourceFetch(binding, httpUrl(binding, path))
+	if (!response.ok)
+		await throwHttpError(`${binding.source} ${path}`, response)
+
+	const transactions = await response.json<paths['/addresses/{kaspaAddress}/full-transactions-page']['get']['responses'][200]['content']['application/json']>()
 	if (transactions.length > limit)
-		throw new Error('KaspaExplorer_Rest: transaction page exceeds requested limit')
+		throw new Error('Kaspa Explorer: transaction page exceeds requested limit')
 	const transactionIds = new Set<string>()
 	let previousBlockTime: number | undefined
 	const validatedTransactions = []
 	for (const transaction of transactions) {
 		if (transaction.transaction_id == null || !/^[0-9a-f]{64}$/.test(transaction.transaction_id))
-			throw new Error('KaspaExplorer_Rest: invalid transaction ID')
+			throw new Error('Kaspa Explorer: invalid transaction ID')
 		if (transactionIds.has(transaction.transaction_id))
-			throw new Error('KaspaExplorer_Rest: duplicate transaction ID')
+			throw new Error('Kaspa Explorer: duplicate transaction ID')
 		transactionIds.add(transaction.transaction_id)
 		if (transaction.mass != null)
 			assertUnsignedDecimal(transaction.mass, 'transaction mass')
 		if (transaction.block_time == null)
-			throw new Error('KaspaExplorer_Rest: transaction is missing its pagination clock')
+			throw new Error('Kaspa Explorer: transaction is missing its pagination clock')
 		assertSafeUnsigned(transaction.block_time, 'transaction block time')
 		if (
 			previousBlockTime != null
 			&& transaction.block_time > previousBlockTime
 		)
-			throw new Error('KaspaExplorer_Rest: transaction page is not newest-first')
+			throw new Error('Kaspa Explorer: transaction page is not newest-first')
 		if (before != null && transaction.block_time >= before)
-			throw new Error('KaspaExplorer_Rest: transaction page did not respect its before cursor')
+			throw new Error('Kaspa Explorer: transaction page did not respect its before cursor')
 		previousBlockTime = transaction.block_time
 		for (const input of transaction.inputs ?? [])
 			if (input.previous_outpoint_amount != null)
@@ -210,15 +203,33 @@ export const getAddressTransactionsPage = async (
 		for (const output of transaction.outputs ?? [])
 			assertSafeUnsigned(output.amount, 'transaction output amount')
 		if (
-			transaction.inputs?.some((input) => input.previous_outpoint_address === address) !== true
-			&& transaction.outputs?.some((output) => output.script_public_key_address === address) !== true
+			transaction.inputs?.some((input) => input.previous_outpoint_address === kaspaAddress) !== true
+			&& transaction.outputs?.some((output) => output.script_public_key_address === kaspaAddress) !== true
 		)
-			throw new Error('KaspaExplorer_Rest: transaction page contains a foreign address row')
+			throw new Error('Kaspa Explorer: transaction page contains a foreign address row')
 		validatedTransactions.push({
 			...transaction,
 			block_time: transaction.block_time,
 			transaction_id: transaction.transaction_id,
 		})
 	}
-	return validatedTransactions
+	const nextBeforeHeader = response.headers.get('x-next-page-before')
+	const nextBefore = nextBeforeHeader == null ?
+		undefined
+	:
+		Number(nextBeforeHeader)
+	if (
+		nextBefore != null
+		&& (
+			!Number.isSafeInteger(nextBefore)
+			|| nextBefore < 0
+			|| nextBefore.toString() !== nextBeforeHeader
+		)
+	)
+		throw new Error('Kaspa Explorer: invalid next-page-before header')
+
+	return {
+		transactions: validatedTransactions,
+		nextBefore,
+	}
 }

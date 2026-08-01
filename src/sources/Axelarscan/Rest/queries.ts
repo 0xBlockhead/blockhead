@@ -1,12 +1,13 @@
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
+import bindings from '$/sources/Axelarscan/bindings.ts'
 import type {
 	AxelarscanEvent,
 	AxelarscanGmpMessage,
-	AxelarscanGmpObservation,
 	AxelarscanGmpResponse,
 } from '$/sources/Axelarscan/Rest/types.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
 
+const binding = bindings[Source.Axelarscan_Rest]
 const integerStringPattern = /^(?:0|[1-9]\d*)$/
 const bytes32Pattern = /^0x[0-9a-fA-F]{64}$/
 
@@ -153,11 +154,10 @@ const assertMessage = (message: AxelarscanGmpMessage) => {
 		assertSafeNonnegativeInteger(value, `time spent ${name}`)
 }
 
-const observe = async (
-	binding: SourceBinding,
+const getMessages = async (
 	path: string,
 	size: number
-): Promise<AxelarscanGmpObservation> => {
+) => {
 	const response = await getJson<AxelarscanGmpResponse>(binding, path)
 	assertSafeNonnegativeInteger(response.total, 'total')
 	assertSafeNonnegativeInteger(response.time_spent, 'query time')
@@ -165,11 +165,7 @@ const observe = async (
 		throw new Error('Axelarscan_Rest: response exceeds requested size')
 	for (const message of response.data)
 		assertMessage(message)
-	return {
-		...response,
-		observedBy: 'Axelarscan_Rest',
-		resolvedAtMs: Date.now(),
-	}
+	return response
 }
 
 const assertPage = (size: number, from: number) => {
@@ -180,13 +176,11 @@ const assertPage = (size: number, from: number) => {
 }
 
 export const getGmpMessages = ({
-	binding,
 	size = 50,
 	from = 0,
 	sourceChain,
 	destinationChain,
 }: {
-	binding: SourceBinding
 	size?: number
 	from?: number
 	sourceChain?: string
@@ -197,8 +191,7 @@ export const getGmpMessages = ({
 		assertOpaqueIdentity(sourceChain, 'source chain')
 	if (destinationChain != null)
 		assertOpaqueIdentity(destinationChain, 'destination chain')
-	return observe(
-		binding,
+	return getMessages(
 		`/gmp/searchGMP?${new URLSearchParams({
 			size: String(size),
 			from: String(from),
@@ -220,15 +213,12 @@ export const getGmpMessages = ({
 }
 
 export const getGmpMessagesByTransaction = ({
-	binding,
 	transactionHash,
 }: {
-	binding: SourceBinding
 	transactionHash: string
 }) => {
 	assertOpaqueIdentity(transactionHash, 'transaction hash')
-	return observe(
-		binding,
+	return getMessages(
 		`/gmp/searchGMP?${new URLSearchParams({
 			txHash: transactionHash,
 			size: '100',

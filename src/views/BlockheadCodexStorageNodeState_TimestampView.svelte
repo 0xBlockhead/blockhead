@@ -85,7 +85,6 @@
 					<BlockheadCodexStorageNodeStateView
 						selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

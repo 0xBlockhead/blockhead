@@ -32,10 +32,6 @@
 		<EntityView
 			entityType={EntityType.KaspaAddress}
 			entitySelector={kaspaAddress[EntityMetaKey.Selector]}
-		>
-			{#snippet Title()}
-				kaspa address
-			{/snippet}
-		</EntityView>
+		/>
 	{/snippet}
 </EntitiesList>

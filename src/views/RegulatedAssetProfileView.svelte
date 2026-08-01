@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -32,15 +33,10 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
-	import ClaimTopicRequirementsView from '$/views/ClaimTopicRequirementsView.svelte'
-	import TrustedIssuersView from '$/views/TrustedIssuersView.svelte'
-	import ComplianceModulesView from '$/views/ComplianceModulesView.svelte'
-	import IssuerPowersView from '$/views/IssuerPowersView.svelte'
-	import TransferRestrictionsView from '$/views/TransferRestrictionsView.svelte'
-	import RegulatedAssetProfile_TimestampsView from '$/views/RegulatedAssetProfile_TimestampsView.svelte'
 </script>
 
 
@@ -66,7 +62,6 @@
 			selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 			href={null}
 			layout={EntityLayout.Value}
-			open={false}
 		/>
 	{/snippet}
 
@@ -78,7 +73,6 @@
 					<AssetInstanceView
 						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -128,48 +122,60 @@
 			{/snippet}
 
 			{#snippet SectionRegulatedAssetClaimRequirements({ id, label, open })}
-				<ClaimTopicRequirementsView
-					selection={selection.$$claimRequirements}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.ClaimTopicRequirement}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No claim topic requirements.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$claimRequirements()}
+				>
+					{#snippet Item({ item: claimTopicRequirement })}
+						<EntityView
+							entityType={EntityType.ClaimTopicRequirement}
+							entitySelector={claimTopicRequirement[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionRegulatedAssetTrustedIssuers({ id, label, open })}
-				<TrustedIssuersView
-					selection={selection.$$trustedIssuers}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.TrustedIssuer}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No trusted issuers.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$trustedIssuers()}
+				>
+					{#snippet Item({ item: trustedIssuer })}
+						<EntityView
+							entityType={EntityType.TrustedIssuer}
+							entitySelector={trustedIssuer[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionRegulatedAssetComplianceModules({ id, label, open })}
-				<ComplianceModulesView
-					selection={selection.$$complianceModules}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.ComplianceModule}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No compliance modules.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$complianceModules()}
+				>
+					{#snippet Item({ item: complianceModule })}
+						<EntityView
+							entityType={EntityType.ComplianceModule}
+							entitySelector={complianceModule[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -199,33 +205,41 @@
 			{/snippet}
 
 			{#snippet SectionRegulatedAssetIssuerPowers({ id, label, open })}
-				<IssuerPowersView
-					selection={selection.$$issuerPowers}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.IssuerPower}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No issuer powers.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$issuerPowers()}
+				>
+					{#snippet Item({ item: issuerPower })}
+						<EntityView
+							entityType={EntityType.IssuerPower}
+							entitySelector={issuerPower[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionRegulatedAssetRestrictions({ id, label, open })}
-				<TransferRestrictionsView
-					selection={selection.$$restrictions}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.TransferRestriction}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No transfer restrictions.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$restrictions()}
+				>
+					{#snippet Item({ item: transferRestriction })}
+						<EntityView
+							entityType={EntityType.TransferRestriction}
+							entitySelector={transferRestriction[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -251,18 +265,22 @@
 			{/snippet}
 
 			{#snippet SectionRegulatedAssetTimestamps({ id, label, open })}
-				<RegulatedAssetProfile_TimestampsView
-					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
+				<EntitiesList
+					entityType={EntityType.RegulatedAssetProfile_Timestamp}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No regulated asset profile observations.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$timestamps()}
+				>
+					{#snippet Item({ item: regulatedAssetProfileTimestamp })}
+						<EntityView
+							entityType={EntityType.RegulatedAssetProfile_Timestamp}
+							entitySelector={regulatedAssetProfileTimestamp[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>

@@ -1,7 +1,7 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { sourceFetch, firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import { throwHttpError } from '$/lib/http.ts'
-import type { AzureAiFoundryJson } from '$/sources/AzureAiFoundry/Rest/types.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 const requestAzureAiFoundryJson = async ({
 	binding,
@@ -21,7 +21,7 @@ const requestAzureAiFoundryJson = async ({
 	if (!response.ok)
 		await throwHttpError(binding.source, response)
 
-	return response.json<AzureAiFoundryJson>()
+	return response.json<JsonValue>()
 }
 
 export const listDeployments = ({

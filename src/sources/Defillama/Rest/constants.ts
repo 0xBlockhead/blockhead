@@ -1,6 +1,6 @@
 import { CoinId } from '$/constants/Coin.ts'
 
-export const defillamaCurrentPriceIds = [
+const defillamaCurrentPriceIds = [
 	{
 		coinId: CoinId.AAVE,
 		providerCoinId: 'coingecko:aave',

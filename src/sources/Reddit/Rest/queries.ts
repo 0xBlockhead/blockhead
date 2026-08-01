@@ -7,7 +7,7 @@ import type {
 } from '$/sources/Reddit/Rest/types.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
-export const getInfo = async (publicEnv: SourcePublicEnv, id: string) => (
+export const getInfo = (publicEnv: SourcePublicEnv, id: string) => (
 	oauthGetJson<RedditApiInfoResponse>(
 		publicEnv,
 		`/api/info?${(
@@ -16,17 +16,17 @@ export const getInfo = async (publicEnv: SourcePublicEnv, id: string) => (
 	)
 )
 
-export const getSubredditAbout = async (publicEnv: SourcePublicEnv, name: string) => (
+export const getSubredditAbout = (publicEnv: SourcePublicEnv, name: string) => (
 	oauthGetJson<RedditApiSubredditAbout>(publicEnv, `/r/${encodeURIComponent(name)}/about?raw_json=1`)
 )
 
-export const listSubredditLinks = async (
+export const listSubredditLinks = (
 	publicEnv: SourcePublicEnv,
 	name: string,
 	limit: number,
 	after?: string,
 	sort: RedditApiListingRequest['sort'] = 'hot'
-): Promise<RedditApiListing> => (
+) => (
 	oauthGetJson<RedditApiListing>(
 		publicEnv,
 		`/r/${encodeURIComponent(name)}/${sort}?${(
@@ -41,27 +41,7 @@ export const listSubredditLinks = async (
 	)
 )
 
-export const listPopularLinks = async (
-	publicEnv: SourcePublicEnv,
-	limit: number,
-	after?: string,
-	sort: RedditApiListingRequest['sort'] = 'hot'
-): Promise<RedditApiListing> => (
-	oauthGetJson<RedditApiListing>(
-		publicEnv,
-		`/r/popular/${sort}?${(
-			new URLSearchParams({
-				...(after !== undefined && {
-					after,
-				}),
-				limit: String(limit),
-				raw_json: '1',
-			}).toString()
-		)}`
-	)
-)
-
-export const getLinkComments = async (
+export const getLinkComments = (
 	publicEnv: SourcePublicEnv,
 	permalink: string,
 	limit: number
@@ -77,7 +57,7 @@ export const getLinkComments = async (
 	)
 )
 
-export const getLinkCommentsByArticleId = async (
+export const getLinkCommentsByArticleId = (
 	publicEnv: SourcePublicEnv,
 	articleId: string,
 	limit: number

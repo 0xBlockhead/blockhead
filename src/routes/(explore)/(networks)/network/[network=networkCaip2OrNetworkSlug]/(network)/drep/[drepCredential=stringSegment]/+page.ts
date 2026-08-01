@@ -21,7 +21,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 		{
 			$network: parentData.selector,
 			drepCredential: params.drepCredential,
-		}
+		},
+		'NetworkDrepCredential'
 	)
 	if (cardanoDRepNetworkDrepCredentialSelector instanceof arktype.errors)
 		error(404, 'Invalid CardanoDRep selector')

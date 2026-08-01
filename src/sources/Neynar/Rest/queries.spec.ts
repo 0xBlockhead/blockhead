@@ -12,9 +12,67 @@ vi.mock('$/sources/Neynar/Rest/client.ts', () => ({
 }))
 
 const {
+	getBulkUsers,
 	getCastConversation,
 	getFeed,
 } = await import('$/sources/Neynar/Rest/queries.ts')
+
+describe('Neynar FID request limits', () => {
+	it('accepts and serializes 100 bulk-user FIDs', async () => {
+		const fids = Array.from({ length: 100 }, (_, index) => index + 1)
+
+		await getBulkUsers({
+			publicEnv: {},
+			fids,
+		})
+
+		expect(neynarFetch).toHaveBeenLastCalledWith(
+			{},
+			`/v2/farcaster/user/bulk/?fids=${fids.join('%2C')}`
+		)
+	})
+
+	it('rejects more than 100 bulk-user FIDs before transport', async () => {
+		neynarFetch.mockClear()
+
+		await expect(getBulkUsers({
+			publicEnv: {},
+			fids: Array.from({ length: 101 }, (_, index) => index + 1),
+		})).rejects.toThrow('Neynar bulk users accepts at most 100 FIDs')
+		expect(neynarFetch).not.toHaveBeenCalled()
+	})
+
+	it('accepts 100 feed-filter FIDs', async () => {
+		const fids = Array.from({ length: 100 }, (_, index) => index + 1)
+
+		await getFeed({}, {
+			feedType: 'filter',
+			filterType: 'fids',
+			fids,
+		})
+
+		expect(neynarFetch).toHaveBeenLastCalledWith(
+			{},
+			`/v2/farcaster/feed/?feed_type=filter&filter_type=fids&fids=${fids.join('%2C')}&limit=25`
+		)
+	})
+
+	it('rejects empty and oversized feed-filter FID lists before transport', async () => {
+		neynarFetch.mockClear()
+
+		expect(() => getFeed({}, {
+			feedType: 'filter',
+			filterType: 'fids',
+			fids: [],
+		})).toThrow('Neynar FID feed filter requires at least one FID')
+		expect(() => getFeed({}, {
+			feedType: 'filter',
+			filterType: 'fids',
+			fids: Array.from({ length: 101 }, (_, index) => index + 1),
+		})).toThrow('Neynar FID feed filter accepts at most 100 FIDs')
+		expect(neynarFetch).not.toHaveBeenCalled()
+	})
+})
 
 describe('Neynar feed request identity', () => {
 	it.each([

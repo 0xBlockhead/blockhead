@@ -86,7 +86,6 @@
 					<BlockheadMoneroOutputStateView
 						selection={select(EntityType.BlockheadMoneroOutputState, selection.entitySelector.$outputState)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

@@ -19,6 +19,16 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]',
+			{
+				network: params.network,
+				minerAddress: params.minerAddress,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,32 +39,18 @@
 
 {#key [params.network, params.minerAddress].join(':')}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]',
-				{
-					network: params.network,
-					minerAddress: params.minerAddress,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<FilecoinMinerView
 				selection={
-					select(EntityType.FilecoinMiner, data.selector, { sources: [
-						Source.Lotus_JsonRpc,
-					] })
+					select(EntityType.FilecoinMiner, data.selector, {
+						sources: [
+							Source.Lotus_JsonRpc,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]',
-						{
-							network: params.network,
-							minerAddress: params.minerAddress,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

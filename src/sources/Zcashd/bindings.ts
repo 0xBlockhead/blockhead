@@ -3,6 +3,19 @@
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
+const zcashdEndpoints = [
+	{
+		endpointKind: SourceEndpointKind.HttpUrl,
+		locator: 'http://127.0.0.1:8232',
+		corsEnabled: false,
+	},
+] as const
+const zcashdCredentials = [
+	{
+		scope: SourceCredentialScope.LocalSecret,
+	},
+] as const
+
 const bindings = [
 	{
 		source: Source.Zcashd_JsonRpc,
@@ -10,25 +23,14 @@ const bindings = [
 			kind: SourceTargetKind.Caip2Network,
 			key: 'bip122:00040fe8ec8471911baa1db1266ea15',
 		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'http://127.0.0.1:8232',
-				origin: 'http://127.0.0.1:8232',
-				corsEnabled: false,
-			},
-		],
+		endpoints: zcashdEndpoints,
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.BitcoinJsonRpc,
 		operationGroups: [
 			SourceOperationGroup.GenericRead,
 		],
 		delivery: SourceDelivery.LocalOnly,
-		credentials: [
-			{
-				scope: SourceCredentialScope.LocalSecret,
-			},
-		],
+		credentials: zcashdCredentials,
 	},
 	{
 		source: Source.ZcashdWallet_JsonRpc,
@@ -36,14 +38,7 @@ const bindings = [
 			kind: SourceTargetKind.LocalDevice,
 			key: 'wallet-rpc',
 		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'http://127.0.0.1:8232',
-				origin: 'http://127.0.0.1:8232',
-				corsEnabled: false,
-			},
-		],
+		endpoints: zcashdEndpoints,
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.JsonRpcApi,
 		operationGroups: [
@@ -51,15 +46,8 @@ const bindings = [
 			SourceOperationGroup.WalletSign,
 		],
 		delivery: SourceDelivery.LocalOnly,
-		credentials: [
-			{
-				scope: SourceCredentialScope.LocalSecret,
-			},
-		],
+		credentials: zcashdCredentials,
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.Zcashd_JsonRpc]: typeof bindings[0]
-	readonly [Source.ZcashdWallet_JsonRpc]: typeof bindings[1]
-}>(bindings)
+export default indexSourceBindings(bindings)

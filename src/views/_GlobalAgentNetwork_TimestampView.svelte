@@ -70,7 +70,6 @@
 					<GlobalAgentNetworkView
 						selection={select(EntityType._GlobalAgentNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

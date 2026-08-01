@@ -34,12 +34,8 @@
 
 	<BlockheadAgentConversationsView
 		href={resolve('/~/agents')}
-		title='Agent conversations'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='blockhead-agent-conversations'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

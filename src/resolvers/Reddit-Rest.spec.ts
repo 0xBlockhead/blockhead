@@ -16,7 +16,6 @@ vi.mock('$/sources/Reddit/Rest/queries.ts', () => ({
 	getInfo: vi.fn(),
 	getLinkCommentsByArticleId: vi.fn(),
 	getSubredditAbout: vi.fn(),
-	listPopularLinks: vi.fn(),
 	listSubredditLinks: vi.fn(),
 }))
 
@@ -34,6 +33,30 @@ const resolverContext = {
 }
 
 describe('Reddit_Rest listing continuation', () => {
+	it('uses the canonical subreddit owner for popular discovery', async () => {
+		vi.mocked(listSubredditLinks).mockResolvedValue({
+			kind: 'Listing',
+			data: {
+				children: [],
+			},
+		})
+		const resolver = redditRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType._GlobalRedditNetwork
+			&& '$$observedLinks' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Reddit_Rest spec missing global discovery resolver')
+
+		await resolver.resolve['Scope'].resolve({}, resolverContext)
+		expect(listSubredditLinks).toHaveBeenCalledWith(
+			resolverContext.publicEnv,
+			'popular',
+			64,
+			undefined,
+			'hot'
+		)
+	})
+
 	it('keeps rows and opaque after metadata in the same source, parent, sort, and request partition', async () => {
 		const page = {
 			kind: 'Listing' as const,

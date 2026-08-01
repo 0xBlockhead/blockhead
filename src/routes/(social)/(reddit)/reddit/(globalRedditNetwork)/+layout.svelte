@@ -19,6 +19,8 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = resolve('/(social)/(reddit)/reddit')
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -28,16 +30,18 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/(social)/(reddit)/reddit')}
+	href={detailHref}
 >
 	{#snippet Summary()}
 		<GlobalRedditNetworkView
 			selection={
-				select(EntityType._GlobalRedditNetwork, data.selector, { sources: [
-					Source.Reddit_PublicJson,
-				] })
+				select(EntityType._GlobalRedditNetwork, data.selector, {
+					sources: [
+						Source.Reddit_PublicJson,
+					],
+				})
 			}
-			href={resolve('/(social)/(reddit)/reddit')}
+			href={detailHref}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

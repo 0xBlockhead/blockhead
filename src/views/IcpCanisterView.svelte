@@ -27,7 +27,6 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import IcpNetworkView from '$/views/IcpNetworkView.svelte'
 	import IcpCanisterMethodsView from '$/views/IcpCanisterMethodsView.svelte'
 	import IcpCanisterMetadataEntriesView from '$/views/IcpCanisterMetadataEntriesView.svelte'
@@ -47,10 +46,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		ICP canister
-	{/snippet}
-
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
@@ -59,7 +54,6 @@
 					<IcpNetworkView
 						selection={select(EntityType.IcpNetwork, selection.entitySelector.$network)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>
@@ -105,12 +99,7 @@
 			{#snippet SectionIcpCanisterMethods({ id, label, open })}
 				<IcpCanisterMethodsView
 					selection={selection.$$methods}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No methods.'
 					id={`${id}-list`}
@@ -120,12 +109,7 @@
 			{#snippet SectionIcpCanisterMetadata({ id, label, open })}
 				<IcpCanisterMetadataEntriesView
 					selection={selection.$$metadata}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No metadata.'
 					id={`${id}-list`}
@@ -135,12 +119,7 @@
 			{#snippet SectionIcpCanisterLogs({ id, label, open })}
 				<IcpCanisterLog_TimestampsView
 					selection={selection.$$logs}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No logs.'
 					id={`${id}-list`}
@@ -176,12 +155,7 @@
 			{#snippet SectionIcpCanisterCertifiedStates({ id, label, open })}
 				<IcpCertifiedStatesView
 					selection={selection.$$certifiedStates}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No certified states.'
 					id={`${id}-list`}
@@ -191,12 +165,7 @@
 			{#snippet SectionIcpCanisterRequestStatuses({ id, label, open })}
 				<IcpRequestStatusesView
 					selection={selection.$$requestStatuses}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No request statuses.'
 					id={`${id}-list`}
@@ -228,12 +197,7 @@
 			{#snippet SectionIcpCanisterTimestamps({ id, label, open })}
 				<IcpCanister_TimestampsView
 					selection={selection.$$timestamps}
-					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
-					data-column-item="flexible"
-					data-card
-					data-scroll-container
-					open={open}
 					title={label}
 					emptyText='No timestamps.'
 					id={`${id}-list`}

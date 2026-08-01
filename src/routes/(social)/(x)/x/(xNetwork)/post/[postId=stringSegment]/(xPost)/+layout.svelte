@@ -19,6 +19,15 @@
 		params,
 	}: LayoutProps = $props()
 
+	const detailHref = $derived(
+		resolve(
+			'/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]',
+			{
+				postId: params.postId,
+			}
+		)
+	)
+
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -29,31 +38,19 @@
 
 {#key params.postId}
 	<ParentPageCollapsible
-		href={
-			resolve(
-				'/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]',
-				{
-					postId: params.postId,
-				}
-			)
-		}
+		href={detailHref}
 	>
 		{#snippet Summary()}
 			<XPostView
 				selection={
-					select(EntityType.XPost, data.selector, { sources: [
-						Source.X_Rest,
-						Source.X_FxEmbed_Rest,
-					] })
+					select(EntityType.XPost, data.selector, {
+						sources: [
+							Source.X_Rest,
+							Source.X_FxEmbed_Rest,
+						],
+					})
 				}
-				href={
-					resolve(
-						'/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]',
-						{
-							postId: params.postId,
-						}
-					)
-				}
+				href={detailHref}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

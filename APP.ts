@@ -53,9 +53,10 @@ export enum WireProtocol {
 
 export enum ApiFamily {
 	AcpProtocol = "AcpProtocol",
+	AlgodRestApi = "AlgodRestApi",
+	AlgorandIndexerRestApi = "AlgorandIndexerRestApi",
 	ArweaveGateway = "ArweaveGateway",
 	AtprotoSync = "AtprotoSync",
-	AvailExplorerApi = "AvailExplorerApi",
 	BitcoinJsonRpc = "BitcoinJsonRpc",
 	BitTorrentClient = "BitTorrentClient",
 	BitTorrentDht = "BitTorrentDht",
@@ -66,7 +67,6 @@ export enum ApiFamily {
 	CelestiaNodeJsonRpc = "CelestiaNodeJsonRpc",
 	CertifiedHttpGateway = "CertifiedHttpGateway",
 	CosmosLcdApi = "CosmosLcdApi",
-	DydxIndexerRest = "DydxIndexerRest",
 	EthereumBeaconRest = "EthereumBeaconRest",
 	EtherscanModuleAction = "EtherscanModuleAction",
 	EnvioHyperSyncApi = "EnvioHyperSyncApi",
@@ -88,6 +88,7 @@ export enum ApiFamily {
 	KaspaWrpcApi = "KaspaWrpcApi",
 	LocalParser = "LocalParser",
 	LocalStateStore = "LocalStateStore",
+	MetaplexDasJsonRpc = "MetaplexDasJsonRpc",
 	McpProtocol = "McpProtocol",
 	MoneroDaemonJsonRpc = "MoneroDaemonJsonRpc",
 	NostrRelay = "NostrRelay",
@@ -97,7 +98,6 @@ export enum ApiFamily {
 	PrometheusText = "PrometheusText",
 	RestJson = "RestJson",
 	RosettaApi = "RosettaApi",
-	SigstoreRekorApi = "SigstoreRekorApi",
 	SolanaJsonRpc = "SolanaJsonRpc",
 	SourcifyRestV2 = "SourcifyRestV2",
 	SqdPortalStream = "SqdPortalStream",
@@ -160,7 +160,6 @@ export enum SourceDelivery {
 
 export enum SourceCredentialScope {
 	LocalSecret = "LocalSecret",
-	None = "None",
 	PublicConfig = "PublicConfig",
 	RuntimeSecret = "RuntimeSecret",
 	UserDelegated = "UserDelegated",
@@ -185,8 +184,6 @@ export enum Source {
 	AcpLocal_JsonRpc = "AcpLocal_JsonRpc",
 	AcpRegistry_Rest = "AcpRegistry_Rest",
 	Across_Rest = "Across_Rest",
-	Algod_Rest = "Algod_Rest",
-	AlgorandIndexer_Rest = "AlgorandIndexer_Rest",
 	AlgorandWallet_WalletApi = "AlgorandWallet_WalletApi",
 	Allium_Rest = "Allium_Rest",
 	Amboss_Graphql = "Amboss_Graphql",
@@ -199,39 +196,26 @@ export enum Source {
 	Atproto_Xrpc = "Atproto_Xrpc",
 	Atproto_BskySocial_Xrpc = "Atproto_BskySocial_Xrpc",
 	AtprotoSync_Xrpc = "AtprotoSync_Xrpc",
-	Avail_JsonRpc = "Avail_JsonRpc",
-	AvailExplorer_Rest = "AvailExplorer_Rest",
+	Avail = "Avail",
 	AvalancheInfo_JsonRpc = "AvalancheInfo_JsonRpc",
 	AvalanchePlatformVm_JsonRpc = "AvalanchePlatformVm_JsonRpc",
-	Avascan_Rest = "Avascan_Rest",
 	AwsBedrock_Rest = "AwsBedrock_Rest",
 	Axelarscan_Rest = "Axelarscan_Rest",
 	AzureAiFoundry_Rest = "AzureAiFoundry_Rest",
 	Beacon_Rest = "Beacon_Rest",
 	BeaconchaIn_Rest = "BeaconchaIn_Rest",
-	BetterCallDev_Rest = "BetterCallDev_Rest",
-	BigDipper_Rest = "BigDipper_Rest",
-	BinanceChainApi_Rest = "BinanceChainApi_Rest",
-	BinanceChainExplorer_Rest = "BinanceChainExplorer_Rest",
 	BitcoinBips_Github = "BitcoinBips_Github",
 	BitcoinCashBcmr_Github = "BitcoinCashBcmr_Github",
 	BitcoinCashChips_Gitlab = "BitcoinCashChips_Gitlab",
 	BitcoinCashNode_JsonRpc = "BitcoinCashNode_JsonRpc",
 	BitcoinCore_JsonRpc = "BitcoinCore_JsonRpc",
-	Bithomp_Rest = "Bithomp_Rest",
+	Bithomp = "Bithomp",
 	Bittensor_JsonRpc = "Bittensor_JsonRpc",
-	BitTorrentMetainfo_File = "BitTorrentMetainfo_File",
-	BitTorrent_HttpTracker = "BitTorrent_HttpTracker",
-	BitTorrent_UdpTracker = "BitTorrent_UdpTracker",
-	BitTorrent_MainlineDht = "BitTorrent_MainlineDht",
-	BitTorrent_MetadataExchange = "BitTorrent_MetadataExchange",
-	BitTorrent_PeerWire = "BitTorrent_PeerWire",
+	BitTorrent = "BitTorrent",
 	Blobscan_Rest = "Blobscan_Rest",
 	Blockchair_Rest = "Blockchair_Rest",
 	Blockfrost_Rest = "Blockfrost_Rest",
 	Blockscout_Rest = "Blockscout_Rest",
-	BnbBeaconArchive_Rest = "BnbBeaconArchive_Rest",
-	BnbChainFusion_Rest = "BnbChainFusion_Rest",
 	Caips_Github = "Caips_Github",
 	CaipNamespaces_Github = "CaipNamespaces_Github",
 	CardanoCip30_WalletApi = "CardanoCip30_WalletApi",
@@ -241,52 +225,47 @@ export enum Source {
 	Cardanoscan_Rest = "Cardanoscan_Rest",
 	CashuMint_Rest = "CashuMint_Rest",
 	Celenium_Rest = "Celenium_Rest",
-	Celestia_JsonRpc = "Celestia_JsonRpc",
+	CelestiaNode = "CelestiaNode",
 	ChainlinkDataFeeds_AddressCatalog = "ChainlinkDataFeeds_AddressCatalog",
 	ChainlinkDataFeeds_Contracts = "ChainlinkDataFeeds_Contracts",
 	Chainlist_Rest = "Chainlist_Rest",
-	CircleCctp_IrisApi = "CircleCctp_IrisApi",
+	CircleCctpIris = "CircleCctpIris",
 	CircleCctpContracts_Evm = "CircleCctpContracts_Evm",
 	CircleCctpContracts_Solana = "CircleCctpContracts_Solana",
 	CircleCctpContracts_Stellar = "CircleCctpContracts_Stellar",
 	CodexNetworkPresets_Github = "CodexNetworkPresets_Github",
-	CodexNode_Rest = "CodexNode_Rest",
 	Cohere_Rest = "Cohere_Rest",
-	Coingecko_OpenApi = "Coingecko_OpenApi",
 	Coingecko_Rest = "Coingecko_Rest",
 	CoinMarketCap_Rest = "CoinMarketCap_Rest",
-	Coinpaprika_OpenApi = "Coinpaprika_OpenApi",
+	Coinpaprika_Rest = "Coinpaprika_Rest",
 	CometBft_Rest = "CometBft_Rest",
 	Conseil_Postgres = "Conseil_Postgres",
 	Constants_Internal = "Constants_Internal",
 	CosmosAdrs_Github = "CosmosAdrs_Github",
 	CosmosChainRegistry_Github = "CosmosChainRegistry_Github",
 	CosmosSdk_Rest = "CosmosSdk_Rest",
-	CronosExplorer_Rest = "CronosExplorer_Rest",
+	CronosExplorer = "CronosExplorer",
 	CycloneDxDocument_Local = "CycloneDxDocument_Local",
-	Defillama_OpenApi = "Defillama_OpenApi",
 	Defillama_Rest = "Defillama_Rest",
-	Dexscreener_OpenApi = "Dexscreener_OpenApi",
+	Dexscreener_Rest = "Dexscreener_Rest",
 	DogecoinCore_JsonRpc = "DogecoinCore_JsonRpc",
 	DogecoinDips_Github = "DogecoinDips_Github",
 	Dune_Rest = "Dune_Rest",
-	DydxIndexer_Rest = "DydxIndexer_Rest",
-	DydxValidator_Rest = "DydxValidator_Rest",
+	DydxIndexer = "DydxIndexer",
+	KingnodesDydxNode = "KingnodesDydxNode",
 	EasContracts_Evm = "EasContracts_Evm",
 	EasScan_Graphql = "EasScan_Graphql",
 	EigenExplorer_Rest = "EigenExplorer_Rest",
 	EigenLayerContracts_Evm = "EigenLayerContracts_Evm",
-	EigenLayerSubgraph_Graphql = "EigenLayerSubgraph_Graphql",
 	Eip8004Scan_Rest = "Eip8004Scan_Rest",
 	Ensips_Github = "Ensips_Github",
-	EnsMetadataService_Rest = "EnsMetadataService_Rest",
+	EnsMetadataService = "EnsMetadataService",
 	Erigon_JsonRpc = "Erigon_JsonRpc",
 	Esplora_Rest = "Esplora_Rest",
 	EthereumEips_Github = "EthereumEips_Github",
 	EthereumLists_Rest = "EthereumLists_Rest",
 	EthereumSpecs_Github = "EthereumSpecs_Github",
 	Etherscan_Rest = "Etherscan_Rest",
-	EthForks_Rest = "EthForks_Rest",
 	EnvioHyperRpc_JsonRpc = "EnvioHyperRpc_JsonRpc",
 	EnvioHyperSync_RawHttp = "EnvioHyperSync_RawHttp",
 	Farcaster_Rest = "Farcaster_Rest",
@@ -294,29 +273,23 @@ export enum Source {
 	FedimintGatewayd_Rest = "FedimintGatewayd_Rest",
 	FilecoinFips_Github = "FilecoinFips_Github",
 	Filfox_Rest = "Filfox_Rest",
-	ForgejoRepos_Rest = "ForgejoRepos_Rest",
-	ForgejoIssues_Rest = "ForgejoIssues_Rest",
-	ForgejoPulls_Rest = "ForgejoPulls_Rest",
-	ForgejoReleases_Rest = "ForgejoReleases_Rest",
+	Forgejo_Rest = "Forgejo_Rest",
 	Freighter_WalletApi = "Freighter_WalletApi",
 	X_FxEmbed_Rest = "X_FxEmbed_Rest",
+	GetBlockRpc_JsonRpc = "GetBlockRpc_JsonRpc",
+	GetBlockYellowstone_Grpc = "GetBlockYellowstone_Grpc",
 	Git_Local = "Git_Local",
 	Git_Remote = "Git_Remote",
-	Github_Rest = "Github_Rest",
-	Github_Git = "Github_Git",
 	Gitlab_Rest = "Gitlab_Rest",
 	GoldRushFoundational_Rest = "GoldRushFoundational_Rest",
 	GoogleAi_Rest = "GoogleAi_Rest",
-	GetBlockRpc_JsonRpc = "GetBlockRpc_JsonRpc",
-	GetBlockYellowstone_Grpc = "GetBlockYellowstone_Grpc",
 	HashConnect_WalletApi = "HashConnect_WalletApi",
 	HederaMirrorNode_Rest = "HederaMirrorNode_Rest",
 	HederaSdk_Grpc = "HederaSdk_Grpc",
 	HederaWalletConnect_SignClient = "HederaWalletConnect_SignClient",
-	Helius_Rest = "Helius_Rest",
+	Helius = "Helius",
 	HuggingFaceHub_Rest = "HuggingFaceHub_Rest",
-	Hyperliquid_Rest = "Hyperliquid_Rest",
-	Hyperliquid_JsonRpc = "Hyperliquid_JsonRpc",
+	Hyperliquid = "Hyperliquid",
 	HyperliquidDocs_Rest = "HyperliquidDocs_Rest",
 	IcDashboard_Canister = "IcDashboard_Canister",
 	InternetComputer_Canister = "InternetComputer_Canister",
@@ -327,7 +300,7 @@ export enum Source {
 	Ipfs_Rest = "Ipfs_Rest",
 	Juno_JsonRpc = "Juno_JsonRpc",
 	Kabila_WalletConnect = "Kabila_WalletConnect",
-	KaspaExplorer_Rest = "KaspaExplorer_Rest",
+	KaspaExplorer = "KaspaExplorer",
 	KaspaNode_Grpc = "KaspaNode_Grpc",
 	KaspaNode_Rest = "KaspaNode_Rest",
 	KaspaNode_Wrpc = "KaspaNode_Wrpc",
@@ -341,10 +314,7 @@ export enum Source {
 	Leap_WalletApi = "Leap_WalletApi",
 	LedgerFilecoin_WalletApi = "LedgerFilecoin_WalletApi",
 	Lens_Graphql = "Lens_Graphql",
-	LibtorrentSession_Rest = "LibtorrentSession_Rest",
-	LifiStatus_Rest = "LifiStatus_Rest",
 	Lifi_Rest = "Lifi_Rest",
-	LightningLnd_Grpc = "LightningLnd_Grpc",
 	LightningLnd_Rest = "LightningLnd_Rest",
 	LightningMempoolSpace_Rest = "LightningMempoolSpace_Rest",
 	LitecoinCore_JsonRpc = "LitecoinCore_JsonRpc",
@@ -362,9 +332,8 @@ export enum Source {
 	McpPackageRegistry_Rest = "McpPackageRegistry_Rest",
 	MempoolSpace_Rest = "MempoolSpace_Rest",
 	MetadataVision_Rest = "MetadataVision_Rest",
-	MetaplexDAS_Rest = "MetaplexDAS_Rest",
 	MevRelay_Rest = "MevRelay_Rest",
-	Mintscan_Rest = "Mintscan_Rest",
+	Mintscan = "Mintscan",
 	MistralAi_Rest = "MistralAi_Rest",
 	CroissantDocument_Local = "CroissantDocument_Local",
 	Mlflow_Rest = "Mlflow_Rest",
@@ -377,23 +346,17 @@ export enum Source {
 	NearWalletSelector_WalletApi = "NearWalletSelector_WalletApi",
 	Neynar_Rest = "Neynar_Rest",
 	Nfid_WalletApi = "Nfid_WalletApi",
-	Nitro_ClientStore = "Nitro_ClientStore",
-	Nitro_NodeRpc = "Nitro_NodeRpc",
-	Nodely_Algod_Rest = "Nodely_Algod_Rest",
-	Nodely_AlgorandIndexer_Rest = "Nodely_AlgorandIndexer_Rest",
+	Nodely = "Nodely",
 	NostrBand_Rest = "NostrBand_Rest",
 	NostrRelay_Nip11_Http = "NostrRelay_Nip11_Http",
 	NostrRelay_WebSocket = "NostrRelay_WebSocket",
 	OciRegistry_Distribution = "OciRegistry_Distribution",
 	Ogmios_JsonRpc = "Ogmios_JsonRpc",
-	OneInchSwap_Rest = "OneInchSwap_Rest",
 	OnnxArtifact_Local = "OnnxArtifact_Local",
 	OpenAI_Rest = "OpenAI_Rest",
 	Openchain_Rest = "Openchain_Rest",
 	OpenSea_Rest = "OpenSea_Rest",
-	Osmosis_LCD_Rest = "Osmosis_LCD_Rest",
-	Paraswap_Rest = "Paraswap_Rest",
-	Pathfinder_JsonRpc = "Pathfinder_JsonRpc",
+	Pathfinder = "Pathfinder",
 	PayjoinOhttpRelay_Http = "PayjoinOhttpRelay_Http",
 	PayjoinReceiver_Http = "PayjoinReceiver_Http",
 	PayjoinDirectory_Rest = "PayjoinDirectory_Rest",
@@ -409,7 +372,6 @@ export enum Source {
 	Pyth_SolanaProgram = "Pyth_SolanaProgram",
 	PythHermes_Rest = "PythHermes_Rest",
 	PythBenchmarks_Rest = "PythBenchmarks_Rest",
-	PythPriceFeedsCatalog_Rest = "PythPriceFeedsCatalog_Rest",
 	qBittorrentWebUi_Rest = "qBittorrentWebUi_Rest",
 	QuilibriumDocs_Rest = "QuilibriumDocs_Rest",
 	QuilibriumNode_Grpc = "QuilibriumNode_Grpc",
@@ -421,14 +383,13 @@ export enum Source {
 	RadicleNode_Control = "RadicleNode_Control",
 	Reddit_Rest = "Reddit_Rest",
 	Reddit_PublicJson = "Reddit_PublicJson",
-	Reservoir_Rest = "Reservoir_Rest",
 	Reth_JsonRpc = "Reth_JsonRpc",
 	Rss_Rest = "Rss_Rest",
 	Rss2Json_Rest = "Rss2Json_Rest",
 	SafeTransactionService_Rest = "SafeTransactionService_Rest",
-	SigstoreRekor_Rest = "SigstoreRekor_Rest",
-	Snapchain_Rest = "Snapchain_Rest",
+	SigstoreRekor = "SigstoreRekor",
 	SnapshotHub_Graphql = "SnapshotHub_Graphql",
+	Snapchain_Rest = "Snapchain_Rest",
 	SpaceAndTime_MakeInfinite = "SpaceAndTime_MakeInfinite",
 	Solana_JsonRpc = "Solana_JsonRpc",
 	SolanaMobileWalletAdapter_WalletApi = "SolanaMobileWalletAdapter_WalletApi",
@@ -436,32 +397,27 @@ export enum Source {
 	Sourcify_Rest = "Sourcify_Rest",
 	SpdxDocument_Local = "SpdxDocument_Local",
 	SqdPortal_RawHttp = "SqdPortal_RawHttp",
-	Starknet_JsonRpc = "Starknet_JsonRpc",
-	Starkscan_Rest = "Starkscan_Rest",
-	StellarExpert_Rest = "StellarExpert_Rest",
+	Starkscan = "Starkscan",
+	StellarExpert = "StellarExpert",
 	StellarHorizon_Rest = "StellarHorizon_Rest",
 	StellarRpc_JsonRpc = "StellarRpc_JsonRpc",
 	StellarToml_Rest = "StellarToml_Rest",
 	StoicWallet_WalletApi = "StoicWallet_WalletApi",
 	Subscan_Rest = "Subscan_Rest",
 	SubstrateSidecar_Rest = "SubstrateSidecar_Rest",
-	Sui_Graphql = "Sui_Graphql",
-	Sui_Grpc = "Sui_Grpc",
-	Sui_JsonRpc = "Sui_JsonRpc",
+	Sui = "Sui",
 	Superchain_Github = "Superchain_Github",
 	Swarm_Rest = "Swarm_Rest",
-	Tally_Graphql = "Tally_Graphql",
+	Tally = "Tally",
 	TezosDappetizer_Postgres = "TezosDappetizer_Postgres",
-	TezosNode_Rpc = "TezosNode_Rpc",
+	OctezNode = "OctezNode",
 	TheGraph_Graphql = "TheGraph_Graphql",
 	ThreeXpl_Rest = "ThreeXpl_Rest",
 	TonApi_Rest = "TonApi_Rest",
-	TonCenter_V2_Rest = "TonCenter_V2_Rest",
-	TonCenter_V3_Rest = "TonCenter_V3_Rest",
+	TonCenter = "TonCenter",
 	TonConnect_WalletApi = "TonConnect_WalletApi",
 	Tonlib_JsonRpc = "Tonlib_JsonRpc",
 	TonLiteServer_Adnl = "TonLiteServer_Adnl",
-	TonVerifier_Rest = "TonVerifier_Rest",
 	TradingView_Rest = "TradingView_Rest",
 	TransmissionRpc_JsonRpc = "TransmissionRpc_JsonRpc",
 	TronFullNode_Rest = "TronFullNode_Rest",
@@ -474,14 +430,14 @@ export enum Source {
 	TrustWalletAssets_Github = "TrustWalletAssets_Github",
 	Tzkt_Rest = "Tzkt_Rest",
 	Voltaire_JsonRpc = "Voltaire_JsonRpc",
-	Voyager_Rest = "Voyager_Rest",
-	WakuNode_Rest = "WakuNode_Rest",
+	Voyager = "Voyager",
+	WakuNode = "WakuNode",
 	WalletConnect_SignClient = "WalletConnect_SignClient",
 	WalletStandard_WalletApi = "WalletStandard_WalletApi",
 	WebTorrent_Client = "WebTorrent_Client",
 	WebTorrent_Dht = "WebTorrent_Dht",
 	WebTorrent_Tracker = "WebTorrent_Tracker",
-	Wormholescan_Rest = "Wormholescan_Rest",
+	Wormholescan = "Wormholescan",
 	X_Rest = "X_Rest",
 	Xaman_Api = "Xaman_Api",
 	Xmtp_BrowserSdk = "Xmtp_BrowserSdk",
@@ -496,7 +452,6 @@ export enum Source {
 	ZcashLightwalletd_Grpc = "ZcashLightwalletd_Grpc",
 	ZcashZips_Github = "ZcashZips_Github",
 	Zebra_JsonRpc = "Zebra_JsonRpc",
-	ZeroExSwap_Rest = "ZeroExSwap_Rest",
 	ZeroGChain_JsonRpc = "ZeroGChain_JsonRpc",
 	ZeroGStorageNode_JsonRpc = "ZeroGStorageNode_JsonRpc",
 	ZeroGChainScan_Rest = "ZeroGChainScan_Rest",
@@ -504,11 +459,8 @@ export enum Source {
 }
 
 export enum SourceProvider {
-	_Constants = "_Constants",
 	Acp = "Acp",
 	Across = "Across",
-	Algod = "Algod",
-	AlgorandIndexer = "AlgorandIndexer",
 	AlgorandWallet = "AlgorandWallet",
 	Allium = "Allium",
 	Amboss = "Amboss",
@@ -521,19 +473,13 @@ export enum SourceProvider {
 	AtprotoBskySocial = "AtprotoBskySocial",
 	AtprotoSync = "AtprotoSync",
 	Avail = "Avail",
-	AvailExplorer = "AvailExplorer",
 	AvalancheInfo = "AvalancheInfo",
 	AvalanchePlatformVm = "AvalanchePlatformVm",
-	Avascan = "Avascan",
 	AwsBedrock = "AwsBedrock",
 	Axelarscan = "Axelarscan",
 	AzureAiFoundry = "AzureAiFoundry",
 	Beacon = "Beacon",
 	BeaconchaIn = "BeaconchaIn",
-	BetterCallDev = "BetterCallDev",
-	BigDipper = "BigDipper",
-	BinanceChainApi = "BinanceChainApi",
-	BinanceChainExplorer = "BinanceChainExplorer",
 	BitcoinBips = "BitcoinBips",
 	BitcoinCashBcmr = "BitcoinCashBcmr",
 	BitcoinCashChips = "BitcoinCashChips",
@@ -546,8 +492,6 @@ export enum SourceProvider {
 	Blockchair = "Blockchair",
 	Blockfrost = "Blockfrost",
 	Blockscout = "Blockscout",
-	BnbBeaconArchive = "BnbBeaconArchive",
-	BnbChainFusion = "BnbChainFusion",
 	Caips = "Caips",
 	CardanoCip30 = "CardanoCip30",
 	CardanoDbSync = "CardanoDbSync",
@@ -561,7 +505,6 @@ export enum SourceProvider {
 	Chainlist = "Chainlist",
 	CircleCctp = "CircleCctp",
 	CodexNetworkPresets = "CodexNetworkPresets",
-	CodexNode = "CodexNode",
 	Cohere = "Cohere",
 	Coingecko = "Coingecko",
 	CoinMarketCap = "CoinMarketCap",
@@ -569,6 +512,7 @@ export enum SourceProvider {
 	CometBft = "CometBft",
 	Conseil = "Conseil",
 	Covalent = "Covalent",
+	_Constants = "_Constants",
 	CosmosAdrs = "CosmosAdrs",
 	CosmosChainRegistry = "CosmosChainRegistry",
 	CosmosSdk = "CosmosSdk",
@@ -584,7 +528,6 @@ export enum SourceProvider {
 	EasScan = "EasScan",
 	EigenExplorer = "EigenExplorer",
 	EigenLayer = "EigenLayer",
-	EigenLayerSubgraph = "EigenLayerSubgraph",
 	Eip8004Scan = "Eip8004Scan",
 	Ensips = "Ensips",
 	EnsMetadataService = "EnsMetadataService",
@@ -594,7 +537,6 @@ export enum SourceProvider {
 	EthereumLists = "EthereumLists",
 	EthereumSpecs = "EthereumSpecs",
 	Etherscan = "Etherscan",
-	EthForks = "EthForks",
 	Envio = "Envio",
 	Farcaster = "Farcaster",
 	FedimintClient = "FedimintClient",
@@ -606,7 +548,6 @@ export enum SourceProvider {
 	FxEmbed = "FxEmbed",
 	GetBlock = "GetBlock",
 	Git = "Git",
-	Github = "Github",
 	Gitlab = "Gitlab",
 	GoogleAi = "GoogleAi",
 	HashConnect = "HashConnect",
@@ -628,13 +569,13 @@ export enum SourceProvider {
 	KaspaWalletSdk = "KaspaWalletSdk",
 	KaswareWallet = "KaswareWallet",
 	Keplr = "Keplr",
+	Kingnodes = "Kingnodes",
 	Koios = "Koios",
 	L2Beat = "L2Beat",
 	LayerZeroScan = "LayerZeroScan",
 	Leap = "Leap",
 	LedgerFilecoin = "LedgerFilecoin",
 	Lens = "Lens",
-	LibtorrentSession = "LibtorrentSession",
 	Lifi = "Lifi",
 	LightningLnd = "LightningLnd",
 	LightningMempoolSpace = "LightningMempoolSpace",
@@ -652,7 +593,6 @@ export enum SourceProvider {
 	Mcp = "Mcp",
 	MempoolSpace = "MempoolSpace",
 	MetadataVision = "MetadataVision",
-	MetaplexDAS = "MetaplexDAS",
 	MevRelay = "MevRelay",
 	Mintscan = "Mintscan",
 	MistralAi = "MistralAi",
@@ -667,19 +607,15 @@ export enum SourceProvider {
 	NearWalletSelector = "NearWalletSelector",
 	Neynar = "Neynar",
 	Nfid = "Nfid",
-	Nitro = "Nitro",
 	Nodely = "Nodely",
 	NostrBand = "NostrBand",
 	NostrRelay = "NostrRelay",
 	OciRegistry = "OciRegistry",
 	Ogmios = "Ogmios",
-	OneInchSwap = "OneInchSwap",
 	Onnx = "Onnx",
 	OpenAI = "OpenAI",
 	Openchain = "Openchain",
 	OpenSea = "OpenSea",
-	OsmosisLCD = "OsmosisLCD",
-	Paraswap = "Paraswap",
 	Pathfinder = "Pathfinder",
 	Payjoin = "Payjoin",
 	Petra = "Petra",
@@ -702,7 +638,6 @@ export enum SourceProvider {
 	RadicleNode = "RadicleNode",
 	Reddit = "Reddit",
 	RedditPublic = "RedditPublic",
-	Reservoir = "Reservoir",
 	Reth = "Reth",
 	Rss = "Rss",
 	Rss2Json = "Rss2Json",
@@ -716,7 +651,6 @@ export enum SourceProvider {
 	Sourcify = "Sourcify",
 	Spdx = "Spdx",
 	Sqd = "Sqd",
-	Starknet = "Starknet",
 	Starkscan = "Starkscan",
 	StellarExpert = "StellarExpert",
 	StellarHorizon = "StellarHorizon",
@@ -730,7 +664,7 @@ export enum SourceProvider {
 	Swarm = "Swarm",
 	Tally = "Tally",
 	TezosDappetizer = "TezosDappetizer",
-	TezosNode = "TezosNode",
+	Octez = "Octez",
 	TheGraph = "TheGraph",
 	ThreeXpl = "ThreeXpl",
 	TonApi = "TonApi",
@@ -738,7 +672,6 @@ export enum SourceProvider {
 	TonConnect = "TonConnect",
 	Tonlib = "Tonlib",
 	TonLiteServer = "TonLiteServer",
-	TonVerifier = "TonVerifier",
 	TradingView = "TradingView",
 	Transmission = "Transmission",
 	TronFullNode = "TronFullNode",
@@ -769,7 +702,6 @@ export enum SourceProvider {
 	ZcashLightwalletd = "ZcashLightwalletd",
 	ZcashZips = "ZcashZips",
 	Zebra = "Zebra",
-	ZeroExSwap = "ZeroExSwap",
 	ZeroG = "ZeroG",
 }
 
@@ -783,7 +715,6 @@ type _SourceEnv = {
 type _SourceEndpoint<_Kind extends SourceEndpointKind = SourceEndpointKind> = {
 	endpointKind: _Kind
 	locator: string
-	origin?: string
 	corsEnabled?: boolean
 }
 
@@ -791,7 +722,7 @@ type _SourceArtifact<_Kind extends SourceArtifactKind = SourceArtifactKind> = (
 	_Kind extends SourceArtifactKind ? {
 		kind: _Kind
 		path: string
-		generated: boolean
+		generated?: true
 	} & (
 		_Kind extends SourceArtifactKind.HandwrittenTypes ? {
 			referenceUrl?: string
@@ -859,12 +790,12 @@ export const sourceBindingCompatibility = [
 	{ wireProtocol: WireProtocol.Git, apiFamilies: [ApiFamily.GitObject], endpointKinds: [SourceEndpointKind.HttpUrl, SourceEndpointKind.LocalFilePath], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.Graphql, apiFamilies: [ApiFamily.GraphqlHttp], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: [SourceOperationGroup.GenericRead], artifactKinds: [SourceArtifactKind.GenerationManifest, SourceArtifactKind.GraphqlSchema, SourceArtifactKind.GraphqlTypes, SourceArtifactKind.HandwrittenTypes] },
 	{ wireProtocol: WireProtocol.Grpc, apiFamilies: [ApiFamily.GrpcService], endpointKinds: [SourceEndpointKind.HttpUrl, SourceEndpointKind.TcpAddress], operationGroups: true, artifactKinds: true },
-	{ wireProtocol: WireProtocol.HttpRest, apiFamilies: [ApiFamily.ArweaveGateway, ApiFamily.AvailExplorerApi, ApiFamily.BitTorrentClient, ApiFamily.BlockscoutRestV2, ApiFamily.CosmosLcdApi, ApiFamily.DydxIndexerRest, ApiFamily.EthereumBeaconRest, ApiFamily.EtherscanModuleAction, ApiFamily.FedimintGatewaydApi, ApiFamily.ForgejoRestApi, ApiFamily.GitObject, ApiFamily.GithubContentsApi, ApiFamily.GithubRestApi, ApiFamily.GitlabRestApi, ApiFamily.GoldRushFoundationalApi, ApiFamily.IpfsGateway, ApiFamily.KaspaRestApi, ApiFamily.NostrRelay, ApiFamily.RestJson, ApiFamily.RosettaApi, ApiFamily.SigstoreRekorApi, ApiFamily.SourcifyRestV2, ApiFamily.SwarmGateway, ApiFamily.TezosNodeRpc, ApiFamily.TonCenterV3Api], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: true, artifactKinds: true },
-	{ wireProtocol: WireProtocol.HttpRest, apiFamilies: [ApiFamily.OpenApiHttp], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: [SourceOperationGroup.GenericRead], artifactKinds: [SourceArtifactKind.GenerationManifest, SourceArtifactKind.OpenApiSpec, SourceArtifactKind.OpenApiTypes] },
-	{ wireProtocol: WireProtocol.InProcess, apiFamilies: [ApiFamily.BitTorrentDht, ApiFamily.CatalogRows, ApiFamily.LocalStateStore, ApiFamily.WebTorrentApi, ApiFamily.XmtpClientApi], endpointKinds: [SourceEndpointKind.InProcess], operationGroups: true, artifactKinds: true },
+	{ wireProtocol: WireProtocol.HttpRest, apiFamilies: [ApiFamily.AlgodRestApi, ApiFamily.AlgorandIndexerRestApi, ApiFamily.ArweaveGateway, ApiFamily.BitTorrentClient, ApiFamily.BlockscoutRestV2, ApiFamily.CosmosLcdApi, ApiFamily.EthereumBeaconRest, ApiFamily.EtherscanModuleAction, ApiFamily.FedimintGatewaydApi, ApiFamily.ForgejoRestApi, ApiFamily.GitObject, ApiFamily.GithubContentsApi, ApiFamily.GithubRestApi, ApiFamily.GitlabRestApi, ApiFamily.GoldRushFoundationalApi, ApiFamily.IpfsGateway, ApiFamily.KaspaRestApi, ApiFamily.NostrRelay, ApiFamily.RestJson, ApiFamily.RosettaApi, ApiFamily.SourcifyRestV2, ApiFamily.SwarmGateway, ApiFamily.TezosNodeRpc, ApiFamily.TonCenterV3Api], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: true, artifactKinds: true },
+	{ wireProtocol: WireProtocol.HttpRest, apiFamilies: [ApiFamily.OpenApiHttp], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: [SourceOperationGroup.GenericRead, SourceOperationGroup.SoftwareArtifactRegistry], artifactKinds: [SourceArtifactKind.GenerationManifest, SourceArtifactKind.OpenApiSpec, SourceArtifactKind.OpenApiTypes] },
+	{ wireProtocol: WireProtocol.InProcess, apiFamilies: [ApiFamily.BitTorrentDht, ApiFamily.CatalogRows, ApiFamily.WebTorrentApi, ApiFamily.XmtpClientApi], endpointKinds: [SourceEndpointKind.InProcess], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.InProcess, apiFamilies: [ApiFamily.CardanoLocalStateQuery, ApiFamily.LocalParser], endpointKinds: [SourceEndpointKind.LocalProcess], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.AcpProtocol, ApiFamily.McpProtocol], endpointKinds: [SourceEndpointKind.LocalProcess], operationGroups: true, artifactKinds: true },
-	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.BitcoinJsonRpc, ApiFamily.CelestiaNodeJsonRpc, ApiFamily.FilecoinLotusJsonRpc, ApiFamily.MoneroDaemonJsonRpc, ApiFamily.StarknetJsonRpc, ApiFamily.SubstrateJsonRpc], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: true, artifactKinds: true },
+	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.BitcoinJsonRpc, ApiFamily.CelestiaNodeJsonRpc, ApiFamily.FilecoinLotusJsonRpc, ApiFamily.MetaplexDasJsonRpc, ApiFamily.MoneroDaemonJsonRpc, ApiFamily.StarknetJsonRpc, ApiFamily.SubstrateJsonRpc], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.JsonRpcApi, ApiFamily.SolanaJsonRpc], endpointKinds: [SourceEndpointKind.HttpUrl, SourceEndpointKind.WebSocketUrl], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.WebSocketMessages, apiFamilies: [ApiFamily.NostrRelay], endpointKinds: [SourceEndpointKind.WebSocketUrl], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.EvmExecutionJsonRpc], endpointKinds: [SourceEndpointKind.HttpUrl, SourceEndpointKind.WebSocketUrl], operationGroups: [SourceOperationGroup.EvmRpcCore, SourceOperationGroup.EvmRpcSubscribe, SourceOperationGroup.EvmRpcTrace, SourceOperationGroup.EvmRpcTxpool], artifactKinds: [SourceArtifactKind.GenerationManifest, SourceArtifactKind.OpenRpcSpec, SourceArtifactKind.OpenRpcTypes] },
@@ -898,13 +829,13 @@ type _SourceBindingDelivery =
 			| (_SourceEndpoint<SourceEndpointKind.HttpUrl> & { corsEnabled: true })
 			| _SourceEndpoint<SourceEndpointKind.BrowserWalletProvider | SourceEndpointKind.InProcess>
 		)[]
-		credentials: _SourceCredential<SourceCredentialScope.None | SourceCredentialScope.PublicConfig | SourceCredentialScope.UserDelegated>[]
+		credentials: _SourceCredential<SourceCredentialScope.PublicConfig | SourceCredentialScope.UserDelegated>[]
 	}
 	| {
 		delivery: SourceDelivery.HttpProxy
-		endpoints: (_SourceEndpoint<SourceEndpointKind.HttpUrl> & { origin: string })[]
+		endpoints: _SourceEndpoint<SourceEndpointKind.HttpUrl>[]
 		credentials:
-			| _SourceCredential<SourceCredentialScope.None | SourceCredentialScope.PublicConfig | SourceCredentialScope.UserDelegated>[]
+			| _SourceCredential<SourceCredentialScope.PublicConfig | SourceCredentialScope.UserDelegated>[]
 			| [_SourceRuntimeSecret]
 	}
 	| {
@@ -913,7 +844,7 @@ type _SourceBindingDelivery =
 		apiFamily: ApiFamily.GrpcService
 		endpoints: [_SourceEndpoint<SourceEndpointKind.HttpUrl>, ..._SourceEndpoint<SourceEndpointKind.HttpUrl>[]]
 		credentials:
-			| _SourceCredential<SourceCredentialScope.None | SourceCredentialScope.PublicConfig | SourceCredentialScope.UserDelegated>[]
+			| _SourceCredential<SourceCredentialScope.PublicConfig | SourceCredentialScope.UserDelegated>[]
 			| [_SourceRuntimeSecret]
 	}
 	| {
@@ -923,7 +854,7 @@ type _SourceBindingDelivery =
 			| [_SourceEndpoint<SourceEndpointKind.WebSocketUrl>, ..._SourceEndpoint<SourceEndpointKind.WebSocketUrl>[]]
 			| [_SourceEndpoint<SourceEndpointKind.HttpUrl>, _SourceEndpoint<SourceEndpointKind.WebSocketUrl>, ..._SourceEndpoint<SourceEndpointKind.WebSocketUrl>[]]
 		credentials:
-			| _SourceCredential<SourceCredentialScope.None | SourceCredentialScope.PublicConfig | SourceCredentialScope.UserDelegated>[]
+			| _SourceCredential<SourceCredentialScope.PublicConfig | SourceCredentialScope.UserDelegated>[]
 			| [_SourceRuntimeSecret]
 	}
 	| {
@@ -939,13 +870,15 @@ type _SourceBindingDelivery =
 
 export type _SourceBinding = _SourceBindingBase & _SourceBindingCompatibility & _SourceBindingDelivery
 
+type _SourceProvider = `${SourceProvider}`
+
 type _SourceProviderDefinition = {
-	provider: string
+	provider: _SourceProvider
 	label: string
 	env?: _SourceEnv
 }
 
-type _SourceDefinition<_Provider extends string> = {
+type _SourceDefinition<_Provider extends _SourceProvider> = {
 	source: Source
 	provider: _Provider
 	label: string
@@ -1010,8 +943,20 @@ enum _ListFilterComparison {
 	TimeInterval = "timeInterval",
 }
 
+export const rawSnippetReference = {
+	params: "params",
+	pendingEntity: "pendingEntity",
+	resolvedEntity: {
+		source: "__appRawSnippetResolvedEntity__",
+	},
+	titleFallback: "titleFallback",
+	viewSelection: "viewSelection",
+} as const
+
 export type _RawSnippet = string | {
 	raw: string
+	imports?: readonly _Import[]
+	references?: readonly (keyof typeof rawSnippetReference)[]
 }
 
 export type _SourceSelection<
@@ -2358,10 +2303,8 @@ export type _ViewItem<
 > =
 	| _EntityFieldReference
 	| {
-			kind?: _ViewItemKind.Text
-			label?: string
-			text?: string
-			value?: string
+			kind: _ViewItemKind.Text
+			label: string
 			description?: string
 			when?: _ViewWhen
 		}
@@ -2637,6 +2580,23 @@ type _ValueTypeType =
 		raw: _RawSnippet
 	}
 
+type _ValueTypeRouteParam = {
+	matcher: string
+	decode?: _ExpressionDecode | _RouteParamTransform
+	encode?: _RouteParamTransform
+	encoding?: _RouteParamEncoding
+}
+
+type _AppEnum = {
+	name: string
+	members: readonly {
+		name: string
+		value: _Literal
+		label?: string
+	}[]
+	routeParam?: _ValueTypeRouteParam
+}
+
 type _EntityField = {
 	name: string
 	label?: string
@@ -2749,6 +2709,7 @@ type _EntityMeta = {
 	}
 	icon?: string
 	description?: string
+	enums?: readonly _AppEnum[]
 }
 
 type _SelectorFieldName<
@@ -3547,7 +3508,7 @@ type _RouteDefinitionsForSchema<_Schema> = Omit<_RouteDefinitions, 'children' | 
 }
 
 type _SchemaRouteParamValueTypeName<_Schema> = Extract<
-	_Schema extends {
+	| (_Schema extends {
 		valueTypes: readonly (infer _ValueType)[]
 	} ?
 		_ValueType extends {
@@ -3558,9 +3519,29 @@ type _SchemaRouteParamValueTypeName<_Schema> = Extract<
 		} ?
 			_ValueTypeName
 		:
+		never
+	:
+		never
+	)
+	| (_Schema extends {
+		entities: readonly (infer _Entity)[]
+	} ?
+		_Entity extends {
+			enums: readonly (infer _Enum)[]
+		} ?
+			_Enum extends {
+				name: infer _EnumName
+				routeParam: {
+					matcher: string
+				}
+			} ?
+				_EnumName
+			:
+				never
+		:
 			never
 	:
-		never,
+		never),
 	string
 >
 
@@ -3587,12 +3568,7 @@ type _RouteDefinitions = {
 const defineRoutes = <const _Schema extends {
 	valueTypes: readonly {
 		id?: string
-		routeParam?: {
-			matcher: string
-			decode?: _ExpressionDecode | _RouteParamTransform
-			encode?: _RouteParamTransform
-			encoding?: _RouteParamEncoding
-		}
+		routeParam?: _ValueTypeRouteParam
 	}[]
 	entities: readonly {
 		entityType: EntityType
@@ -3612,24 +3588,11 @@ export type App = {
 		items: _NavigationItem[]
 	}
 	schema: {
-		enums?: readonly {
-			id?: string
-			name?: string
-			members: readonly {
-				name: string
-				value: _Literal
-			}[]
-		}[]
 		valueTypes: readonly {
 			id?: string
 			name?: string
 			displayImports?: readonly _Import[]
-			routeParam?: {
-				matcher: string
-				decode?: _ExpressionDecode | _RouteParamTransform
-				encode?: _RouteParamTransform
-				encoding?: _RouteParamEncoding
-			}
+			routeParam?: _ValueTypeRouteParam
 			type: _ValueTypeType
 		}[]
 		entities: readonly {
@@ -3640,14 +3603,7 @@ export type App = {
 			}
 			icon?: string
 			description?: string
-			enums?: readonly {
-				name: string
-				members: readonly {
-					name: string
-					value: string
-					label?: string
-				}[]
-			}[]
+			enums?: readonly _AppEnum[]
 			selectors: readonly {
 				name: string
 				fields: readonly string[]
@@ -3666,7 +3622,7 @@ export type App = {
 	}
 	sources: {
 		providers: readonly _SourceProviderDefinition[]
-		sources: readonly _SourceDefinition<string>[]
+		sources: readonly _SourceDefinition<_SourceProvider>[]
 	},
 	resolvers: {
 		modules: {
@@ -3716,16 +3672,6 @@ const specificationProposalSourceSelection = {
 } as const satisfies _SourceSelection
 
 export const schema = {
-		enums: [
-			{
-				name: "YoutubeLiveBroadcastContent",
-				members: [
-					{ name: "None", value: "none" },
-					{ name: "Live", value: "live" },
-					{ name: "Upcoming", value: "upcoming" },
-				],
-			},
-		],
 		valueTypes: [
 			{
 				id: "CardanoGovernanceTreasuryWithdrawal",
@@ -3763,10 +3709,6 @@ export const schema = {
 						{ name: "expiration_epoch", type: { primitive: "number" } },
 					],
 				},
-			},
-			{
-				id: "OptimisticProviderResult",
-				type: { enum: "OptimisticProviderResult" },
 			},
 			{
 				id: "_GlobalAtprotoNetworkScope",
@@ -3821,12 +3763,6 @@ export const schema = {
 			},
 			{
 				id: "BridgeRouteTagArray",
-				imports: [
-					{
-						from: "$/schema/BridgeRouteTag.ts",
-						names: ["BridgeRouteTag"],
-					},
-				],
 				displayImports: [
 					{
 						from: "$/constants/Bridge.ts",
@@ -4129,54 +4065,11 @@ export const schema = {
 				type: { enum: "CoinId" },
 			},
 			{
-				id: "CoinInstanceType",
-				imports: [
-					{
-						from: "$/schema/CoinInstanceType.ts",
-						names: ["CoinInstanceType"],
-					},
-				],
-				type: { enum: "CoinInstanceType" },
-			},
-			{
 				id: "NativeCurrencySlug",
 				routeParam: {
 					matcher: "nativeCurrencySlug",
 				},
 				type: { unit: "native" },
-			},
-			{
-				id: "MediaType",
-				imports: [
-					{
-						from: "$/schema/MediaType.ts",
-						names: ["MediaType"],
-					},
-				],
-				type: { enum: "MediaType" },
-			},
-			{
-				id: "MediaTransport",
-				imports: [
-					{
-						from: "$/schema/MediaTransport.ts",
-						names: ["MediaTransport"],
-					},
-				],
-				type: { enum: "MediaTransport" },
-			},
-			{
-				id: "AssetInstanceKind",
-				routeParam: {
-					matcher: "stringSegment",
-				},
-				imports: [
-					{
-						from: "$/schema/AssetInstanceKind.ts",
-						names: ["AssetInstanceKind"],
-					},
-				],
-				type: { enum: "AssetInstanceKind" },
 			},
 			{
 				id: "MarketAssetKind",
@@ -4205,36 +4098,6 @@ export const schema = {
 				type: { enum: "MarketKind" },
 			},
 			{
-				id: "YoutubeLiveBroadcastContent",
-				type: { enum: "YoutubeLiveBroadcastContent" },
-			},
-			{
-				id: "ZcashShieldedPoolKind",
-				routeParam: {
-					matcher: "stringSegment",
-				},
-				imports: [
-					{
-						from: "$/schema/ZcashShieldedPoolKind.ts",
-						names: ["ZcashShieldedPoolKind"],
-					},
-				],
-				type: { enum: "ZcashShieldedPoolKind" },
-			},
-			{
-				id: "ZcashShieldedActionKind",
-				routeParam: {
-					matcher: "stringSegment",
-				},
-				imports: [
-					{
-						from: "$/schema/ZcashShieldedActionKind.ts",
-						names: ["ZcashShieldedActionKind"],
-					},
-				],
-				type: { enum: "ZcashShieldedActionKind" },
-			},
-			{
 				id: "ZcashCommitmentTree",
 				displayExpression: "`${value.finalRoot} / ${value.finalState}`",
 				type: {
@@ -4244,10 +4107,6 @@ export const schema = {
 					],
 				},
 			},
-				{
-					id: "BlockheadFarcasterConnectionAuthMethod",
-					type: { enum: "BlockheadFarcasterConnectionAuthMethod" },
-				},
 				{
 					id: "FarcasterVerifiedAddressProtocol",
 					routeParam: {
@@ -4552,37 +4411,6 @@ export const schema = {
 				type: { primitive: "string" },
 			},
 			{
-				id: "BlockheadAgentConversationTurnStatus",
-				type: { enum: "BlockheadAgentConversationTurnStatus" },
-			},
-			{
-				id: "BlockheadSessionStatus",
-				type: { enum: "BlockheadSessionStatus" },
-			},
-			{
-				id: "BlockheadSocialPostSessionStatus",
-				type: { enum: "BlockheadSocialPostSessionStatus" },
-			},
-			{
-				id: "SocialProtocol",
-				type: { enum: "SocialProtocol" },
-			},
-			{
-				id: "BlockheadConnectionStatus",
-				type: { enum: "BlockheadConnectionStatus" },
-			},
-			{
-				id: "LightningChannelStatus",
-				type: { enum: "LightningChannelStatus" },
-			},
-			{
-				id: "SolanaInstructionKind",
-				routeParam: {
-					matcher: "stringSegment",
-				},
-				type: { enum: "SolanaInstructionKind" },
-			},
-			{
 				id: "unknown",
 				type: { primitive: "unknown" },
 			},
@@ -4828,7 +4656,6 @@ export const schema = {
 							openFields: ["$$observedActors", "$$observedNotes", "$$instances", "$$timestamps"],
 						},
 						summary: {
-							title: [{ text: "ActivityPub observeds" }],
 							value: ["scope"],
 						},
 						closed: ["scope"],
@@ -4865,7 +4692,6 @@ export const schema = {
 					},
 					plural: {
 						component: "_GlobalActivityPubNetworksView",
-						title: "ActivityPub observeds",
 					},
 				},
 			}),
@@ -5256,7 +5082,6 @@ export const schema = {
 							openFields: ["$$observedNetworks", "$$observedBlocks", "$$observedTransactions", "$$observedResources"],
 						},
 						summary: {
-							title: [{ text: "Arweave observeds" }],
 							value: ["scope"],
 						},
 						closed: ["scope"],
@@ -5283,7 +5108,6 @@ export const schema = {
 						],
 					},
 					plural: { component: "_GlobalArweaveNetworksView",
-						title: "Arweave observeds",
 					},
 				},
 			}),
@@ -5563,8 +5387,7 @@ export const schema = {
 							openFields: ["$registryContract", "$ethRegistrarController", "$reverseRegistrar", "$nameWrapper", "$$timestamps"],
 						},
 						summary: {
-							title: [{ text: "ENS" }],
-							value: [{ text: "ENS" }],
+							value: [{ kind: _ViewItemKind.Text, label: "ENS" }],
 						},
 						content: {
 							dl: [
@@ -5639,7 +5462,7 @@ export const schema = {
 					plural: "global EVM ABI catalogs",
 				},
 			})({
-				"scope": { label: "Scope", description: "The fixed scope value that identifies this hub row.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"scope": { label: "Scope", description: "The fixed scope value that identifies this hub row.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, primitiveType: { unit: "_GlobalEvmAbiCatalog" } },
 				"$$observedTopics": { label: "observed topics", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTopic, defaultSources: [Source.Local_Internal] },
 				"$$observedSelectors": { label: "observed selectors", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmSelector, defaultSources: [Source.Local_Internal] },
 				"$$observedErrors": { label: "observed errors", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmError, defaultSources: [Source.Local_Internal] },
@@ -5656,7 +5479,6 @@ export const schema = {
 							openFields: ["$$observedTopics", "$$observedSelectors", "$$observedErrors", "$$timestamps"],
 						},
 						summary: {
-							title: [{ text: "EVM ABI catalog" }],
 							value: [{ field: "scope" }],
 						},
 						carousels: [
@@ -5743,8 +5565,7 @@ export const schema = {
 					singular: {
 						query: { sources: [Source.Constants_Internal], openFields: ["$$observedResources"] },
 						summary: {
-							title: [{ text: "IPFS access" }],
-							value: [{ text: "IPFS gateway access" }],
+							value: [{ kind: _ViewItemKind.Text, label: "IPFS gateway access" }],
 						},
 						lists: [
 							{ field: "$$observedResources", component: "IpfsResourcesView", emptyText: "No IPFS resources yet." },
@@ -6085,8 +5906,7 @@ export const schema = {
 					singular: {
 						query: { sources: [Source.Constants_Internal], openFields: ["$$observedResources", "$$timestamps"] },
 						summary: {
-							title: [{ text: "Swarm access" }],
-							value: [{ text: "Swarm gateway access" }],
+							value: [{ kind: _ViewItemKind.Text, label: "Swarm gateway access" }],
 						},
 						lists: [
 							{ field: "$$observedResources", component: "SwarmResourcesView", emptyText: "No Swarm resources yet." },
@@ -6152,7 +5972,7 @@ export const schema = {
 					plural: "global X networks",
 				},
 			})({
-				"scope": { label: "Scope", description: "The fixed scope value that identifies this hub row.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"scope": { label: "Scope", description: "The fixed scope value that identifies this hub row.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, primitiveType: { unit: "_GlobalXNetwork" } },
 				"$$observedUsers": { label: "observed users", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XUser },
 				"$$observedPosts": { label: "observed posts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XPost },
 			})({
@@ -6167,7 +5987,6 @@ export const schema = {
 							openFields: ["$$observedUsers", "$$observedPosts"],
 						},
 						summary: {
-							title: [{ text: "X observed" }],
 							value: [{ field: "scope" }],
 						},
 						carousels: [
@@ -7861,7 +7680,7 @@ export const schema = {
 						},
 						summary: {
 							title: [{ field: "protocolName" }],
-							value: [{ text: "ActivityPub" }],
+							value: [{ kind: _ViewItemKind.Text, label: "ActivityPub" }],
 						},
 						content: {
 							dl: [
@@ -10076,7 +9895,7 @@ export const schema = {
 					singular: {
 						summary: {
 							title: ["$network"],
-							value: [{ text: "Arweave" }],
+							value: [{ kind: _ViewItemKind.Text, label: "Arweave" }],
 						},
 						content: {
 							dl: [
@@ -10479,6 +10298,9 @@ export const schema = {
 				enums: [
 					{
 						name: "AssetInstanceKind",
+						routeParam: {
+							matcher: "stringSegment",
+						},
 						members: [
 							{ name: "Native", value: "Native" },
 							{ name: "Token", value: "Token" },
@@ -10858,7 +10680,8 @@ export const schema = {
 									format: "truncated",
 								},
 							],
-							Title: dedent `
+							Title: {
+								raw: dedent `
 								<ResourceBoundary
 									resource={
 										selection.$$timestamps({
@@ -10892,7 +10715,15 @@ export const schema = {
 										{/if}
 									{/snippet}
 								</ResourceBoundary>
-							`,
+								`.raw,
+								imports: [
+									{ from: "$/components/ResourceBoundary.svelte", default: "ResourceBoundary" },
+									{ from: "$/components/TruncatedValue.svelte", default: "TruncatedValue" },
+									{ from: "$/schema/$schema.ts", names: ["EntityMetaKey"] },
+									{ from: "$/sources/Source.ts", names: ["Source"] },
+								],
+								references: ["pendingEntity"],
+							},
 						},
 						closed: ["did"],
 						content: {
@@ -10993,21 +10824,18 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					valueType: "number",
-					defaultSources: [Source.Atproto_Xrpc],
 				},
 				"followsCount": {
 					label: "Following",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					valueType: "number",
-					defaultSources: [Source.Atproto_Xrpc],
 				},
 				"postsCount": {
 					label: "Posts",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					valueType: "number",
-					defaultSources: [Source.Atproto_Xrpc],
 				},
 			})({
 				selectors: {
@@ -11101,7 +10929,7 @@ export const schema = {
 						},
 						summary: {
 							title: [{ field: "protocolName" }],
-							value: [{ text: "AT Protocol" }],
+							value: [{ kind: _ViewItemKind.Text, label: "AT Protocol" }],
 						},
 						content: {
 							dl: [
@@ -11632,7 +11460,7 @@ export const schema = {
 					singular: {
 						summary: {
 							title: ["$network"],
-							value: [{ text: "Avail" }],
+							value: [{ kind: _ViewItemKind.Text, label: "Avail" }],
 						},
 						content: {
 							dl: [
@@ -13093,7 +12921,7 @@ export const schema = {
 						},
 						summary: {
 							title: ["$network"],
-							value: [{ text: "Bittensor" }],
+							value: [{ kind: _ViewItemKind.Text, label: "Bittensor" }],
 						},
 						content: {
 							dl: [
@@ -13273,7 +13101,7 @@ export const schema = {
 						},
 						summary: {
 							title: ["name", { field: "netuid", format: "number" }],
-							value: [{ text: "netuid " }, { field: "netuid", format: "number" }],
+							value: [{ kind: _ViewItemKind.Text, label: "netuid " }, { field: "netuid", format: "number" }],
 						},
 						content: {
 							dl: [
@@ -15441,7 +15269,7 @@ export const schema = {
 							openFields: ["signerAddress", "verifiedAt", "expiresAt", "associationFingerprint"],
 						},
 						summary: {
-							title: [{ text: "Verified Farcaster connection" }],
+							title: [{ kind: _ViewItemKind.Text, label: "Verified Farcaster connection" }],
 							value: [{ field: "$user" }],
 							HeadingAfter: [{ field: "authMethod" }],
 						},
@@ -15902,7 +15730,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.LightningLnd_Grpc, Source.LightningLnd_Rest, Source.Local_Internal],
+							sources: [Source.LightningLnd_Rest, Source.Local_Internal],
 							fields: ["$localNodeState", "$channel"],
 							openFields: ["private", "initiator", "$$timestamps", "$$htlcs"],
 						},
@@ -15948,7 +15776,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.LightningLnd_Grpc, Source.LightningLnd_Rest, Source.Local_Internal],
+							sources: [Source.LightningLnd_Rest, Source.Local_Internal],
 							fields: ["$channelState", "timestampMs", "source"],
 							openFields: ["localBalanceSats", "remoteBalanceSats", "unsettledBalanceSats", "active", "commitFeeSats", "commitWeight", "feePerKw", "numUpdates", "lastSyncedAt"],
 						},
@@ -15989,7 +15817,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.LightningLnd_Grpc, Source.LightningLnd_Rest, Source.Local_Internal],
+							sources: [Source.LightningLnd_Rest, Source.Local_Internal],
 							fields: ["$channelState", "htlcIndex"],
 							openFields: ["$channel", "direction", "amountMsat", "expiryHeight", "hashLock", "state"],
 						},
@@ -16109,7 +15937,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.LightningLnd_Grpc, Source.LightningLnd_Rest, Source.Local_Internal],
+							sources: [Source.LightningLnd_Rest, Source.Local_Internal],
 							fields: ["connectionId", "$network"],
 							openFields: ["lndPubkey", "alias", "macaroonPermissions", "$node", "$$timestamps", "$$channelStates", "$$channels", "$$invoices", "$$payments"],
 						},
@@ -16181,7 +16009,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.LightningLnd_Grpc, Source.LightningLnd_Rest, Source.Local_Internal],
+							sources: [Source.LightningLnd_Rest, Source.Local_Internal],
 							fields: ["$localNodeState", "timestampMs", "source"],
 							openFields: ["syncedToChain", "syncedToGraph", "blockHeight", "bestHeaderTimestampMs", "walletBalanceSats", "channelBalanceSats", "pendingChannelBalanceSats", "peerCount", "activeChannelCount", "inactiveChannelCount", "pendingChannelCount"],
 						},
@@ -20519,7 +20347,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.LifiStatus_Rest, Source.Allium_Rest, Source.Dune_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.Lifi_Rest, Source.Allium_Rest, Source.Dune_Rest, Source.Voltaire_JsonRpc],
 							fields: ["source", "transferId"],
 							openFields: ["$sourceTx", "logIndex", "$destinationTx", "$sender", "$recipient", "$fromNetwork", "$toNetwork", "$fromToken", "$toToken", "amountIn", "amountOut", "railId", "settlementModel", "verificationModel", "assetOutcome", "$$timestamps"],
 						},
@@ -20571,7 +20399,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.LifiStatus_Rest, Source.Allium_Rest, Source.Dune_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.Lifi_Rest, Source.Allium_Rest, Source.Dune_Rest, Source.Voltaire_JsonRpc],
 							fields: ["$transfer", "timestampMs", "source"],
 							openFields: ["status", "substatus", "sourceConfirmations", "requiredConfirmations", "destinationTxHash", "relayer", "refundTxHash", "estimatedCompletionMs", "completedAt", "error"],
 						},
@@ -23282,7 +23110,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.CircleCctp_IrisApi],
+							sources: [Source.CircleCctpIris],
 							fields: ["$message", "timestampMs", "source"],
 							openFields: ["status", "attestation", "delayReason", "forwardState", "forwardTxHash", "requestId"],
 						},
@@ -23333,7 +23161,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.CircleCctp_IrisApi],
+							sources: [Source.CircleCctpIris],
 							fields: ["$sourceDomain", "$destinationDomain", "timestampMs", "source"],
 							openFields: ["forward", "hyperCoreDeposit"],
 						},
@@ -23377,7 +23205,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.CircleCctpContracts_Evm, Source.CircleCctpContracts_Solana, Source.CircleCctpContracts_Stellar, Source.CircleCctp_IrisApi],
+							sources: [Source.CircleCctpContracts_Evm, Source.CircleCctpContracts_Solana, Source.CircleCctpContracts_Stellar, Source.CircleCctpIris],
 							fields: ["cctpVersion", "domainId", "name"],
 							openFields: ["$network", "standardTransferSource", "fastTransferSource", "forwardingDestination", "supportedTokens", "tokenMessengerAddress", "messageTransmitterAddress", "tokenMinterAddress", "$$messages", "$$burnFeeTimestamps"],
 						},
@@ -23496,7 +23324,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.CircleCctpContracts_Evm, Source.CircleCctpContracts_Solana, Source.CircleCctpContracts_Stellar, Source.CircleCctp_IrisApi],
+							sources: [Source.CircleCctpContracts_Evm, Source.CircleCctpContracts_Solana, Source.CircleCctpContracts_Stellar, Source.CircleCctpIris],
 							fields: ["sourceDomain", "nonce"],
 							openFields: ["cctpVersion", "messageHash", "messageBytes", "sourceTransactionHash", "sourceLogIndex", "$sourceDomain", "$destinationDomain", "destinationDomain", "sender", "recipient", "destinationCaller", "burnToken", "mintRecipient", "amount", "messageSender", "maxFee", "feeExecuted", "expirationBlock", "hookData", "minFinalityThreshold", "finalityThresholdExecuted", "$$attestationTimestamps"],
 						},
@@ -23905,8 +23733,8 @@ export const schema = {
 					entityType: EntityType.Market,
 					defaultSources: [
 						Source.Constants_Internal,
-						Source.Coingecko_OpenApi,
-						Source.Coinpaprika_OpenApi,
+						Source.Coingecko_Rest,
+						Source.Coinpaprika_Rest,
 					],
 				},
 				"$$marketsWithCoinAsQuote": {
@@ -23942,7 +23770,7 @@ export const schema = {
 								Source.Constants_Internal,
 								Source.Coingecko_Rest,
 								Source.CoinMarketCap_Rest,
-								Source.Coinpaprika_OpenApi,
+								Source.Coinpaprika_Rest,
 							],
 							fields: ["symbol"],
 							openFields: [
@@ -23962,7 +23790,7 @@ export const schema = {
 										Source.Constants_Internal,
 										Source.Coingecko_Rest,
 										Source.CoinMarketCap_Rest,
-										Source.Coinpaprika_OpenApi,
+										Source.Coinpaprika_Rest,
 									],
 									limit: 16,
 								},
@@ -23991,8 +23819,9 @@ export const schema = {
 						summary: {
 							icon: "$logo",
 							title: ["symbol", "name"],
-							Title: dedent `
-																										<ResourceBoundary resource={coin}>
+							Title: {
+								raw: dedent `
+																										<ResourceBoundary resource={${rawSnippetReference.resolvedEntity.source}}>
 																											{#snippet Pending()}
 																												{selection.entitySelector.coinId}
 																											{/snippet}
@@ -24000,7 +23829,9 @@ export const schema = {
 																												{entity.name && entity.symbol && entity.name !== entity.symbol ? \`\${entity.name} (\${entity.symbol})\` : entity.symbol || entity.name || titleFallback}
 																											{/snippet}
 																										</ResourceBoundary>
-																									`,
+																									`.raw,
+								references: ["resolvedEntity", "titleFallback"],
+							},
 							value: ["symbol"],
 							Value: dedent `
 																										<span>
@@ -24300,7 +24131,7 @@ export const schema = {
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$$timestamps": { label: "Timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosAccount_Timestamp, defaultSources: [Source.CosmosSdk_Rest] },
+				"$$timestamps": { label: "Timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosAccount_Timestamp, defaultSources: [Source.CosmosSdk_Rest, Source.Mintscan] },
 				"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosTransaction, defaultSources: [Source.CosmosSdk_Rest] },
 			})({
 				selectors: {
@@ -25070,7 +24901,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.DydxIndexer_Rest, Source.DydxValidator_Rest],
+							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
 							fields: ["$network", "ticker"],
 							openFields: ["baseAsset", "quoteAsset", "marketKind", "$$timestamps"],
 						},
@@ -25105,7 +24936,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.DydxIndexer_Rest, Source.DydxValidator_Rest],
+							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
 							fields: ["$market", "timestampMs", "source"],
 							openFields: ["oraclePrice", "fundingRate", "openInterest", "status", "nextFundingAtMs"],
 						},
@@ -25137,7 +24968,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.DydxIndexer_Rest, Source.DydxValidator_Rest],
+							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
 							fields: ["$network"],
 							openFields: ["$$timestamps", "$$markets", "$$subaccounts", "$$orders", "$$positions"],
 						},
@@ -25201,7 +25032,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.DydxIndexer_Rest, Source.DydxValidator_Rest],
+							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
 							fields: ["$network", "timestampMs", "source"],
 							openFields: ["blockHeight", "indexerHeight", "marketCount", "subaccountCount", "openOrderCount", "openPositionCount", "health"],
 						},
@@ -25237,7 +25068,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.DydxIndexer_Rest, Source.DydxValidator_Rest],
+							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
 							fields: ["$subaccount", "orderId"],
 							openFields: ["$market", "side", "orderType", "timeInForce", "clientId", "goodTilBlock", "goodTilBlockTimeMs", "$$timestamps"],
 						},
@@ -25274,7 +25105,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.DydxIndexer_Rest, Source.DydxValidator_Rest],
+							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
 							fields: ["$order", "timestampMs", "source"],
 							openFields: ["blockHeight", "status", "price", "size", "remainingSize", "filledSize", "totalFilled"],
 						},
@@ -25311,7 +25142,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.DydxIndexer_Rest, Source.DydxValidator_Rest],
+							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
 							fields: ["$subaccount", "$market", "timestampMs", "source"],
 							openFields: ["blockHeight", "side", "size", "entryPrice", "unrealizedPnl", "realizedPnl", "fundingIndex"],
 						},
@@ -25343,7 +25174,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.DydxIndexer_Rest, Source.DydxValidator_Rest],
+							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
 							fields: ["$network", "$account", "subaccountNumber"],
 							openFields: ["$$positions", "$$orders", "$$timestamps"],
 						},
@@ -25397,7 +25228,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.DydxIndexer_Rest, Source.DydxValidator_Rest],
+							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
 							fields: ["$subaccount", "timestampMs", "source"],
 							openFields: ["blockHeight", "equity", "freeCollateral", "marginUsage", "openPositionCount", "openOrderCount"],
 						},
@@ -25572,7 +25403,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.EigenLayerSubgraph_Graphql, Source.Etherscan_Rest, Source.Voltaire_JsonRpc] },
+						query: { sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc] },
 						summary: { title: ["$operator"], value: ["$avs"], HeadingAfter: ["$strategy"] },
 						closed: ["$operator", "$avs", "$strategy"],
 						content: {
@@ -25611,7 +25442,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.EigenLayerSubgraph_Graphql, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
 							fields: ["$network", "avsAddress"],
 							openFields: ["$avsAccount", "metadataUri", "name", "website", "description", "$$timestamps", "$$operators", "$$allocations", "$$slashingEvents"],
 						},
@@ -25668,7 +25499,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.EigenLayerSubgraph_Graphql, Source.Etherscan_Rest, Source.Voltaire_JsonRpc] },
+						query: { sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc] },
 						summary: { title: ["$avs"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: [{ field: "operatorCount", format: "number" }] },
 						closed: ["$avs", { field: "timestampMs", format: "timestamp" }, { field: "operatorCount", format: "number" }],
 						content: {
@@ -25705,7 +25536,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.EigenLayerSubgraph_Graphql, Source.Etherscan_Rest, Source.Voltaire_JsonRpc] },
+						query: { sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc] },
 						summary: { title: ["$staker"], value: ["$operator"], HeadingAfter: ["$strategy"] },
 						closed: ["$staker", "$operator", "$strategy"],
 						content: {
@@ -25747,7 +25578,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.EigenLayerSubgraph_Graphql, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
 							fields: ["$network", "operatorAddress"],
 							openFields: ["$operatorAccount", "earningsReceiver", "delegationApprover", "stakerOptOutWindowBlocks", "metadataUri", "name", "website", "description", "$$delegations", "$$allocations", "$$rewards", "$$slashingEvents"],
 						},
@@ -25811,7 +25642,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Constants_Internal, Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.EigenLayerSubgraph_Graphql, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.Constants_Internal, Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
 							fields: ["$network"],
 							openFields: ["protocolName", "$delegationManager", "$strategyManager", "$avsDirectory", "$allocationManager", "$rewardsCoordinator", "$slasher", "$$operators", "$$avss", "$$strategies", "$$rewards", "$$slashingEvents"],
 						},
@@ -25875,7 +25706,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.EigenLayerSubgraph_Graphql, Source.Etherscan_Rest, Source.Voltaire_JsonRpc] },
+						query: { sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc] },
 						summary: { title: ["$earner"], value: ["rewardContextKey"], HeadingAfter: ["rewardToken"] },
 						closed: ["$earner", "rewardContextKey", "rewardToken"],
 						content: {
@@ -25917,7 +25748,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.EigenLayerSubgraph_Graphql, Source.Etherscan_Rest, Source.Voltaire_JsonRpc] },
+						query: { sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc] },
 						summary: { title: ["$operator"], value: ["$avs"], HeadingAfter: [{ field: "slashedShares", format: "number" }] },
 						closed: ["$operator", "$avs", { field: "slashedShares", format: "number" }],
 						content: {
@@ -25955,7 +25786,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.EigenLayerSubgraph_Graphql, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
 							fields: ["$network", "strategyAddress"],
 							openFields: ["$strategyContract", "underlyingToken", "$underlyingCoin", "strategyKind", "$$timestamps", "$$delegations", "$$allocations"],
 						},
@@ -26012,7 +25843,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.EigenLayerSubgraph_Graphql, Source.Etherscan_Rest, Source.Voltaire_JsonRpc] },
+						query: { sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc] },
 						summary: { title: ["$strategy"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: [{ field: "totalShares", format: "number" }] },
 						closed: ["$strategy", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: {
@@ -26593,7 +26424,7 @@ export const schema = {
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.ElementsNetwork },
 				"pegTransactionId": { label: "Peg transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"direction": { label: "Direction", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"direction": { label: "Direction", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "ElementsPegDirection" },
 				"$bitcoinTransaction": { label: "Bitcoin transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.UtxoTransaction },
 				"$elementsTransaction": { label: "Elements transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.UtxoTransaction },
 				"amountSats": { label: "Amount sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
@@ -27522,7 +27353,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Blockscout_Rest, Source.Defillama_OpenApi, Source.Etherscan_Rest, Source.Sourcify_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.Blockscout_Rest, Source.Defillama_Rest, Source.Etherscan_Rest, Source.Sourcify_Rest, Source.Voltaire_JsonRpc],
 							fields: ["$contract", "$network"],
 							openFields: ["$asset", "$shareToken", "name", "symbol", "decimals", "$$blocks", "$$timestamps"],
 						},
@@ -27624,7 +27455,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Defillama_OpenApi],
+							sources: [Source.Defillama_Rest],
 							fields: ["$vault", "timestampMs", "source"],
 							openFields: ["apyBase", "apyReward", "apyTotal", "tvlUsd", "rewardTokens", "poolId", "projectSlug", "chainLabel"],
 						},
@@ -28287,19 +28118,13 @@ export const schema = {
 							sources: [Source.Constants_Internal],
 							fields: ["address"],
 						},
-						imports: [
-							{
-								from: "$/components/TruncatedValue.svelte",
-								names: ["TruncatedValueFormat"],
-							},
-						],
 						summary: {
 							title: [{ field: "address", format: "truncated" }],
-							Value: dedent `
-																										<ResourceBoundary resource={evmAccount}>
+							Value: {
+								raw: dedent `
+																										<ResourceBoundary resource={${rawSnippetReference.resolvedEntity.source}}>
 																											{#snippet Pending()}
 																												<TruncatedValue
-																													format={TruncatedValueFormat.Visual}
 																													value={selection.entitySelector.address}
 																												/>
 																											{/snippet}
@@ -28311,19 +28136,19 @@ export const schema = {
 																														{primaryName}
 																													{:else}
 																														<TruncatedValue
-																															format={TruncatedValueFormat.Visual}
 																															value={selection.entitySelector.address}
 																														/>
 																													{/if}
 																												{:else}
 																													<TruncatedValue
-																														format={TruncatedValueFormat.Visual}
 																														value={selection.entitySelector.address}
 																													/>
 																												{/if}
 																											{/snippet}
 																										</ResourceBoundary>
-																									`,
+																									`.raw,
+								references: ["resolvedEntity"],
+							},
 						},
 						closed: [{ field: "address", format: "truncated" }],
 						content: {
@@ -28795,11 +28620,7 @@ export const schema = {
 					singular: {
 						summary: {
 							title: [{ field: "hex", format: "truncated" }],
-							Value: dedent `
-																									<span data-text="font-monospace">
-																										{selection.entitySelector.hex}
-																									</span>
-																								`,
+							value: [{ field: "hex", format: "monospace" }],
 						},
 						closed: [
 							{
@@ -29296,9 +29117,10 @@ export const schema = {
 							openFields: ["$$timestamps"],
 						},
 						summary: {
-							Title: dedent `
+							Title: {
+								raw: dedent `
 																									<ResourceBoundary
-																										resource={evmError}
+																										resource={${rawSnippetReference.resolvedEntity.source}}
 																										placeholderText="Loading decoded error selector..."
 																									>
 																										{#snippet Pending()}
@@ -29309,12 +29131,10 @@ export const schema = {
 																											{entity.signatures.values[0] ?? selection.entitySelector.hex}
 																										{/snippet}
 																									</ResourceBoundary>
-																								`,
-							Value: dedent `
-																									<span data-text="font-monospace">
-																										{selection.entitySelector.hex}
-																									</span>
-																								`,
+																								`.raw,
+								references: ["resolvedEntity"],
+							},
+							value: [{ field: "hex", format: "monospace" }],
 						},
 						closed: [
 							{
@@ -30628,8 +30448,9 @@ export const schema = {
 							],
 						},
 						summary: {
-							Icon: dedent `
-																									<ResourceBoundary resource={evmNft}>
+							Icon: {
+								raw: dedent `
+																									<ResourceBoundary resource={${rawSnippetReference.resolvedEntity.source}}>
 																										{#snippet children(entity)}
 																											{@const image = entity.image}
 																											{#if image}
@@ -30640,13 +30461,10 @@ export const schema = {
 																											{/if}
 																										{/snippet}
 																									</ResourceBoundary>
-																								`,
-							value: [{ field: "tokenId", format: "truncated" }],
-							Value: dedent `
-																									<span data-text="font-monospace">
-																										{selection.entitySelector.tokenId}
-																									</span>
-																								`,
+																								`.raw,
+								references: ["resolvedEntity"],
+							},
+							value: [{ field: "tokenId", format: "monospace" }],
 							title: ["name"],
 							titleFallback: [{ field: "tokenId", format: "truncated" }],
 						},
@@ -31059,9 +30877,10 @@ export const schema = {
 							openFields: ["$$timestamps"],
 						},
 						summary: {
-							Title: dedent `
+							Title: {
+								raw: dedent `
 																									<ResourceBoundary
-																										resource={evmSelector}
+																										resource={${rawSnippetReference.resolvedEntity.source}}
 																										placeholderText="Loading decoded function selector..."
 																									>
 																										{#snippet Pending()}
@@ -31072,12 +30891,10 @@ export const schema = {
 																											{entity.signatures.values[0] ?? selection.entitySelector.hex}
 																										{/snippet}
 																									</ResourceBoundary>
-																								`,
-							Value: dedent `
-																									<span data-text="font-monospace">
-																										{selection.entitySelector.hex}
-																									</span>
-																								`,
+																								`.raw,
+								references: ["resolvedEntity"],
+							},
+							value: [{ field: "hex", format: "monospace" }],
 						},
 						closed: [
 							{
@@ -31601,9 +31418,10 @@ export const schema = {
 							openFields: ["$$timestamps"],
 						},
 						summary: {
-							Title: dedent `
+							Title: {
+								raw: dedent `
 																									<ResourceBoundary
-																										resource={evmTopic}
+																										resource={${rawSnippetReference.resolvedEntity.source}}
 																										placeholderText="Loading log topic..."
 																									>
 																										{#snippet Pending()}
@@ -31614,12 +31432,10 @@ export const schema = {
 																											{entity.signatures.values[0] ?? selection.entitySelector.hex}
 																										{/snippet}
 																									</ResourceBoundary>
-																								`,
-							Value: dedent `
-																									<span data-text="font-monospace">
-																										{selection.entitySelector.hex}
-																									</span>
-																								`,
+																								`.raw,
+								references: ["resolvedEntity"],
+							},
+							value: [{ field: "hex", format: "monospace" }],
 						},
 						closed: [
 							{
@@ -32790,7 +32606,7 @@ export const schema = {
 						},
 						summary: {
 							title: [{ field: "text", format: "truncated" }, { field: "hash", format: "truncated" }],
-							value: [{ text: "FID " }, { field: "fid" }, { text: " / " }, { field: "hash", format: "truncated" }],
+							value: [{ kind: _ViewItemKind.Text, label: "FID " }, { field: "fid" }, { kind: _ViewItemKind.Text, label: " / " }, { field: "hash", format: "truncated" }],
 							HeadingAfter: [{ field: "timestamp", format: "timestamp" }],
 						},
 						content: {
@@ -32937,7 +32753,7 @@ export const schema = {
 						summary: {
 							icon: "$icon",
 							title: [{ field: "name" }, { field: "id" }],
-							value: [{ text: "/" }, { field: "id" }],
+							value: [{ kind: _ViewItemKind.Text, label: "/" }, { field: "id" }],
 							HeadingAfter: [{ field: "createdAt", format: "timestamp" }],
 						},
 						content: {
@@ -33093,7 +32909,7 @@ export const schema = {
 						},
 						summary: {
 							title: [{ field: "protocolName" }],
-							value: [{ text: "Farcaster" }],
+							value: [{ kind: _ViewItemKind.Text, label: "Farcaster" }],
 						},
 						content: {
 							dl: [
@@ -33153,7 +32969,7 @@ export const schema = {
 						summary: {
 							icon: "$icon",
 							title: [{ field: "displayName" }, { field: "username" }, { field: "fid" }],
-							value: [{ text: "FID " }, { field: "fid" }],
+							value: [{ kind: _ViewItemKind.Text, label: "FID " }, { field: "fid" }],
 							HeadingAfter: [{ field: "username", prefix: "@" }],
 						},
 						content: {
@@ -33246,7 +33062,7 @@ export const schema = {
 					singular: {
 						summary: {
 							title: [{ field: "address", format: "truncated" }],
-							value: [{ field: "protocol" }, { text: " / FID " }, { field: "fid" }],
+							value: [{ field: "protocol" }, { kind: _ViewItemKind.Text, label: " / FID " }, { field: "fid" }],
 						},
 						content: {
 							dl: [
@@ -33967,7 +33783,7 @@ export const schema = {
 						},
 						summary: {
 							title: ["$network"],
-							value: [{ text: "Filecoin" }],
+							value: [{ kind: _ViewItemKind.Text, label: "Filecoin" }],
 						},
 						content: {
 							dl: [
@@ -38414,7 +38230,7 @@ export const schema = {
 					singular: {
 						summary: {
 							title: ["$network"],
-							value: [{ text: "Hyperliquid" }],
+							value: [{ kind: _ViewItemKind.Text, label: "Hyperliquid" }],
 						},
 						content: {
 							dl: [
@@ -38949,21 +38765,21 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "string" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid_Rest],
+					defaultSources: [Source.Hyperliquid],
 				},
 				"szDecimals": {
 					label: "sz decimals",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid_Rest],
+					defaultSources: [Source.Hyperliquid],
 				},
 				"weiDecimals": {
 					label: "wei decimals",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid_Rest],
+					defaultSources: [Source.Hyperliquid],
 				},
 				"tokenId": {
 					label: "Token ID",
@@ -38971,7 +38787,7 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "string" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid_Rest],
+					defaultSources: [Source.Hyperliquid],
 				},
 				"$$basePairs": {
 					label: "base pairs",
@@ -38995,7 +38811,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Hyperliquid_Rest],
+							sources: [Source.Hyperliquid],
 							fields: ["name", "szDecimals", "weiDecimals", "tokenId"],
 						},
 						summary: {
@@ -41563,7 +41379,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.KaspaExplorer_Rest, Source.KaspaNode_Grpc, Source.KaspaNode_Rest, Source.KaspaNode_Wrpc] },
+					query: { sources: [Source.KaspaExplorer, Source.KaspaNode_Grpc, Source.KaspaNode_Rest, Source.KaspaNode_Wrpc] },
 						closed: ["$network", "address", "$$timestamps"],
 						content: { dl: [["$network", "address", "$$timestamps", "$$transactions", "$$utxos"]] },
 						carousels: [
@@ -41609,7 +41425,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.KaspaExplorer_Rest, Source.KaspaNode_Grpc, Source.KaspaNode_Rest, Source.KaspaNode_Wrpc] },
+					query: { sources: [Source.KaspaExplorer, Source.KaspaNode_Grpc, Source.KaspaNode_Rest, Source.KaspaNode_Wrpc] },
 						closed: ["$address", { field: "timestampMs", format: "timestamp" }, "source", { field: "balanceSompi", format: "number" }],
 						content: { dl: [["$address", { field: "timestampMs", format: "timestamp" }, "source", { field: "balanceSompi", format: "number" }, { field: "utxoCount", format: "number" }, { field: "transactionCount", format: "number" }]] },
 					},
@@ -41641,7 +41457,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.KaspaExplorer_Rest, Source.KaspaNode_Grpc, Source.KaspaNode_Rest, Source.KaspaNode_Wrpc] },
+					query: { sources: [Source.KaspaExplorer, Source.KaspaNode_Grpc, Source.KaspaNode_Rest, Source.KaspaNode_Wrpc] },
 						closed: ["$address", "outpointTransactionId", { field: "outpointIndex", format: "number" }],
 						content: {
 							dl: [
@@ -41683,7 +41499,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.KaspaExplorer_Rest, Source.KaspaNode_Grpc, Source.KaspaNode_Rest, Source.KaspaNode_Wrpc] },
+					query: { sources: [Source.KaspaExplorer, Source.KaspaNode_Grpc, Source.KaspaNode_Rest, Source.KaspaNode_Wrpc] },
 						closed: ["$network", "blockHash", { field: "timestampMs", format: "timestamp" }],
 						content: {
 							dl: [
@@ -41719,10 +41535,10 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.KaspaExplorer_Rest, Source.KaspaNode_Grpc, Source.KaspaNode_Rest, Source.KaspaNode_Wrpc] },
+					query: { sources: [Source.KaspaExplorer, Source.KaspaNode_Grpc, Source.KaspaNode_Rest, Source.KaspaNode_Wrpc] },
 						summary: {
 							title: ["$network"],
-							value: [{ text: "Kaspa" }],
+							value: [{ kind: _ViewItemKind.Text, label: "Kaspa" }],
 						},
 						content: {
 							dl: [
@@ -41782,7 +41598,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.KaspaExplorer_Rest, Source.KaspaNode_Grpc, Source.KaspaNode_Rest, Source.KaspaNode_Wrpc] },
+					query: { sources: [Source.KaspaExplorer, Source.KaspaNode_Grpc, Source.KaspaNode_Rest, Source.KaspaNode_Wrpc] },
 						closed: ["$network", { field: "timestampMs", format: "timestamp" }, "source", { field: "virtualDaaScore", format: "number" }],
 						content: {
 							dl: [
@@ -41822,7 +41638,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.KaspaExplorer_Rest, Source.KaspaNode_Grpc, Source.KaspaNode_Rest, Source.KaspaNode_Wrpc] },
+					query: { sources: [Source.KaspaExplorer, Source.KaspaNode_Grpc, Source.KaspaNode_Rest, Source.KaspaNode_Wrpc] },
 						closed: ["$network", "transactionId", "version"],
 						content: { dl: [["$network", "transactionId", "version", "subnetworkId", { field: "mass", format: "number" }], ["payloadLength", "blockHashes"]] },
 						carousels: [
@@ -42121,7 +41937,7 @@ export const schema = {
 						},
 						summary: {
 							title: [{ field: "protocolName" }],
-							value: [{ text: "Lens" }],
+							value: [{ kind: _ViewItemKind.Text, label: "Lens" }],
 						},
 						content: {
 							dl: [
@@ -42458,7 +42274,7 @@ export const schema = {
 				"$channel": { label: "Channel", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LightningChannel },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"status": { label: "Status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
+				"status": { label: "Status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "LightningChannelStatus", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
 				"capacitySats": { label: "Capacity sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
 				"feeRatePpm": { label: "Fee rate ppm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest] },
 				"updatedAtMs": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest] },
@@ -42695,14 +42511,14 @@ export const schema = {
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.EvmContract,
-					defaultSources: [Source.Dexscreener_OpenApi],
+					defaultSources: [Source.Dexscreener_Rest],
 				},
 				"$quoteToken": {
 					label: "Quote token",
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.EvmContract,
-					defaultSources: [Source.Dexscreener_OpenApi],
+					defaultSources: [Source.Dexscreener_Rest],
 				},
 				"fee": { label: "Fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"tickSpacing": { label: "Tick spacing", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -42718,7 +42534,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.LiquidityPool_Timestamp,
-					defaultSources: [Source.Dexscreener_OpenApi],
+					defaultSources: [Source.Dexscreener_Rest],
 				},
 				"$$blocks": {
 					label: "Blocks",
@@ -42739,7 +42555,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Dexscreener_OpenApi],
+							sources: [Source.Dexscreener_Rest],
 							fields: [
 								"$network",
 								"id",
@@ -42812,7 +42628,7 @@ export const schema = {
 																							`,
 						query: {
 							selection: { limit: 300 },
-							sources: { default: [Source.Dexscreener_OpenApi] },
+							sources: { default: [Source.Dexscreener_Rest] },
 						},
 					},
 				},
@@ -42837,7 +42653,7 @@ export const schema = {
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.One,
 					entityType: EntityType.LiquidityPool,
-					defaultSources: [Source.Dexscreener_OpenApi],
+					defaultSources: [Source.Dexscreener_Rest],
 				},
 				"sqrtPriceX96": { label: "Sqrt price X96", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"liquidity": { label: "Liquidity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
@@ -42853,7 +42669,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Dexscreener_OpenApi] },
+						query: { sources: [Source.Dexscreener_Rest] },
 						summary: {
 							title: [{ field: "blockNumber", format: "numberValue" }],
 							value: [{ field: "tick", format: "number" }],
@@ -42912,33 +42728,33 @@ export const schema = {
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.One,
 					entityType: EntityType.LiquidityPool,
-					defaultSources: [Source.Dexscreener_OpenApi],
+					defaultSources: [Source.Dexscreener_Rest],
 				},
-				"baseTokenSymbol": { label: "Base token symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Dexscreener_OpenApi] },
-				"quoteTokenSymbol": { label: "Quote token symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Dexscreener_OpenApi] },
+				"baseTokenSymbol": { label: "Base token symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Dexscreener_Rest] },
+				"quoteTokenSymbol": { label: "Quote token symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Dexscreener_Rest] },
 				"baseTokenDecimals": { label: "Base token decimals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"quoteTokenDecimals": { label: "Quote token decimals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"pairCreatedAtMs": { label: "Pair created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Dexscreener_OpenApi] },
-				"dexscreenerLabels": { label: "Dexscreener labels", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.Dexscreener_OpenApi] },
-				"dexId": { label: "DEX", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Dexscreener_OpenApi] },
-				"dexscreenerPairUrl": { label: "Dexscreener", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString", defaultSources: [Source.Dexscreener_OpenApi] },
-				"priceUsd": { label: "Price USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Dexscreener_OpenApi] },
-				"priceNative": { label: "Price native", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Dexscreener_OpenApi] },
-				"liquidityUsd": { label: "Liquidity USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Dexscreener_OpenApi] },
-				"volumeUsd24h": { label: "Volume USD 24h", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Dexscreener_OpenApi] },
-				"priceChangePercent24h": { label: "Price change 24h", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Dexscreener_OpenApi] },
-				"transactionBuys24h": { label: "Buys 24h", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Dexscreener_OpenApi] },
-				"transactionSells24h": { label: "Sells 24h", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Dexscreener_OpenApi] },
-				"marketCapUsd": { label: "Market cap USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Dexscreener_OpenApi] },
-				"fdvUsd": { label: "FDV USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Dexscreener_OpenApi] },
-				"transport": { label: "Transport", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Dexscreener_OpenApi] },
+				"pairCreatedAtMs": { label: "Pair created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Dexscreener_Rest] },
+				"dexscreenerLabels": { label: "Dexscreener labels", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.Dexscreener_Rest] },
+				"dexId": { label: "DEX", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Dexscreener_Rest] },
+				"dexscreenerPairUrl": { label: "Dexscreener", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString", defaultSources: [Source.Dexscreener_Rest] },
+				"priceUsd": { label: "Price USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Dexscreener_Rest] },
+				"priceNative": { label: "Price native", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Dexscreener_Rest] },
+				"liquidityUsd": { label: "Liquidity USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Dexscreener_Rest] },
+				"volumeUsd24h": { label: "Volume USD 24h", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Dexscreener_Rest] },
+				"priceChangePercent24h": { label: "Price change 24h", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Dexscreener_Rest] },
+				"transactionBuys24h": { label: "Buys 24h", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Dexscreener_Rest] },
+				"transactionSells24h": { label: "Sells 24h", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Dexscreener_Rest] },
+				"marketCapUsd": { label: "Market cap USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Dexscreener_Rest] },
+				"fdvUsd": { label: "FDV USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Dexscreener_Rest] },
+				"transport": { label: "Transport", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Dexscreener_Rest] },
 			})({
 				selectors: {
 					"LiquidityPoolTimestampMsFeedKey": ["$liquidityPool", "timestampMs", "feedKey"],
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Dexscreener_OpenApi] },
+						query: { sources: [Source.Dexscreener_Rest] },
 						summary: {
 							title: [
 								{ field: "baseTokenSymbol" },
@@ -43457,6 +43273,7 @@ export const schema = {
 					defaultSources: [
 						Source.Constants_Internal,
 						Source.Coingecko_Rest,
+						Source.TradingView_Rest,
 					],
 				},
 				"$$marketTimeIntervalTimestamps": {
@@ -43465,8 +43282,7 @@ export const schema = {
 					entityType: EntityType.Market_TimeInterval_Timestamp,
 					defaultSources: [
 						Source.Coingecko_Rest,
-						Source.Coingecko_OpenApi,
-						Source.Coinpaprika_OpenApi,
+						Source.Coinpaprika_Rest,
 						Source.CoinMarketCap_Rest,
 					],
 				},
@@ -43474,7 +43290,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.Market_Derivative_Timestamp,
-					defaultSources: [Source.Coingecko_OpenApi],
+					defaultSources: [Source.Coingecko_Rest],
 				},
 			})({
 				selectors: {
@@ -43526,6 +43342,18 @@ export const schema = {
 									"MarketKind",
 									"marketKindByMarketKind",
 								],
+							},
+							{
+								from: "$/schema/$schema.ts",
+								names: ["EntityMetaKey"],
+							},
+							{
+								from: "$/routes/+layout.svelte",
+								names: ["select"],
+							},
+							{
+								from: "$/components/ResourceBoundary.svelte",
+								default: "ResourceBoundary",
 							},
 							{
 								from: "$/sources/Source.ts",
@@ -43582,7 +43410,6 @@ export const schema = {
 					selection={select(EntityType.MarketVenue, selection.entitySelector.$marketVenue)}
 					layout={EntityLayout.Value}
 					showTypeAnnotation={false}
-					open={false}
 				/>
 			</dd>
 		</div>
@@ -43597,7 +43424,7 @@ export const schema = {
 					<ResourceBoundary
 						resource={selection.$$derivativeTimestamps({
 							sources: [
-								Source.Coingecko_OpenApi,
+								Source.Coingecko_Rest,
 							],
 							limit: 64,
 						})}
@@ -43624,7 +43451,6 @@ export const schema = {
 					selection={select(EntityType.MarketAsset, selection.entitySelector.$base)}
 					layout={EntityLayout.Value}
 					showTypeAnnotation={false}
-					open={false}
 				/>
 			</dd>
 		</div>
@@ -43636,7 +43462,6 @@ export const schema = {
 					selection={select(EntityType.MarketAsset, selection.entitySelector.$quote)}
 					layout={EntityLayout.Value}
 					showTypeAnnotation={false}
-					open={false}
 				/>
 			</dd>
 		</div>
@@ -43785,8 +43610,7 @@ export const schema = {
 					defaultSources: [
 						Source.Constants_Internal,
 						Source.Coingecko_Rest,
-						Source.Coingecko_OpenApi,
-						Source.Coinpaprika_OpenApi,
+					Source.Coinpaprika_Rest,
 						Source.CoinMarketCap_Rest,
 					],
 				},
@@ -43796,8 +43620,7 @@ export const schema = {
 					valueType: "bigint",
 					defaultSources: [
 						Source.Coingecko_Rest,
-						Source.Coingecko_OpenApi,
-						Source.Coinpaprika_OpenApi,
+					Source.Coinpaprika_Rest,
 						Source.CoinMarketCap_Rest,
 					],
 				},
@@ -43807,8 +43630,7 @@ export const schema = {
 					valueType: "bigint",
 					defaultSources: [
 						Source.Coingecko_Rest,
-						Source.Coingecko_OpenApi,
-						Source.Coinpaprika_OpenApi,
+					Source.Coinpaprika_Rest,
 						Source.CoinMarketCap_Rest,
 					],
 				},
@@ -43818,8 +43640,7 @@ export const schema = {
 					valueType: "bigint",
 					defaultSources: [
 						Source.Coingecko_Rest,
-						Source.Coingecko_OpenApi,
-						Source.Coinpaprika_OpenApi,
+					Source.Coinpaprika_Rest,
 						Source.CoinMarketCap_Rest,
 					],
 				},
@@ -43829,8 +43650,7 @@ export const schema = {
 					valueType: "bigint",
 					defaultSources: [
 						Source.Coingecko_Rest,
-						Source.Coingecko_OpenApi,
-						Source.Coinpaprika_OpenApi,
+					Source.Coinpaprika_Rest,
 						Source.CoinMarketCap_Rest,
 					],
 				},
@@ -43841,7 +43661,7 @@ export const schema = {
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					valueType: "bigint",
 					defaultSources: [
-						Source.Coinpaprika_OpenApi,
+						Source.Coinpaprika_Rest,
 						Source.CoinMarketCap_Rest,
 					],
 				},
@@ -43890,8 +43710,7 @@ export const schema = {
 							sources: {
 								default: [
 									Source.Coingecko_Rest,
-									Source.Coingecko_OpenApi,
-									Source.Coinpaprika_OpenApi,
+									Source.Coinpaprika_Rest,
 									Source.CoinMarketCap_Rest,
 								],
 							},
@@ -43995,11 +43814,10 @@ export const schema = {
 					defaultSources: [
 						Source.Constants_Internal,
 						Source.Coingecko_Rest,
-						Source.Coingecko_OpenApi,
 						Source.CoinMarketCap_Rest,
-						Source.Coinpaprika_OpenApi,
-						Source.Defillama_OpenApi,
+					Source.Coinpaprika_Rest,
 						Source.Defillama_Rest,
+						Source.TradingView_Rest,
 					],
 				},
 				"$$quotes": {
@@ -44009,11 +43827,10 @@ export const schema = {
 					defaultSources: [
 						Source.Blockscout_Rest,
 						Source.Coingecko_Rest,
-						Source.Coingecko_OpenApi,
 						Source.CoinMarketCap_Rest,
-						Source.Coinpaprika_OpenApi,
-						Source.Defillama_OpenApi,
+					Source.Coinpaprika_Rest,
 						Source.Defillama_Rest,
+						Source.TradingView_Rest,
 					],
 				},
 			})({
@@ -44037,15 +43854,6 @@ export const schema = {
 								label: "Latest quote",
 								query: {
 									limit: 32,
-									sources: [
-										Source.Coingecko_Rest,
-										Source.Coingecko_OpenApi,
-										Source.CoinMarketCap_Rest,
-										Source.Coinpaprika_OpenApi,
-										Source.Defillama_OpenApi,
-										Source.Blockscout_Rest,
-										Source.Defillama_Rest,
-									],
 								},
 								sort: "timestampMs",
 								direction: "desc",
@@ -44072,15 +43880,6 @@ export const schema = {
 								emptyText: "No market quotes yet.",
 								query: {
 									limit: 64,
-									sources: [
-										Source.Coingecko_Rest,
-										Source.Coingecko_OpenApi,
-										Source.CoinMarketCap_Rest,
-										Source.Coinpaprika_OpenApi,
-										Source.Defillama_OpenApi,
-										Source.Blockscout_Rest,
-										Source.Defillama_Rest,
-									],
 								},
 							},
 						],
@@ -44769,8 +44568,9 @@ export const schema = {
 				views: {
 					singular: {
 						summary: {
-							Icon: dedent `
-																										<ResourceBoundary resource={media}>
+							Icon: {
+								raw: dedent `
+																										<ResourceBoundary resource={${rawSnippetReference.resolvedEntity.source}}>
 																											{#snippet Pending()}
 																												{@const url = prefetched.url ?? selection.entitySelector.url}
 																												{#if url != null}
@@ -44814,11 +44614,14 @@ export const schema = {
 																												{/if}
 																											{/snippet}
 																										</ResourceBoundary>
-																									`,
+																									`.raw,
+								references: ["resolvedEntity"],
+							},
 							title: [{ field: "url", format: "url" }],
 							value: [{ field: "url", format: "truncated" }],
-							Value: dedent `
-																										<ResourceBoundary resource={media}>
+							Value: {
+								raw: dedent `
+																										<ResourceBoundary resource={${rawSnippetReference.resolvedEntity.source}}>
 																											{#snippet Pending()}
 																												{@const url = prefetched.url ?? selection.entitySelector.url}
 																												{#if url != null}
@@ -44858,7 +44661,9 @@ export const schema = {
 																												{/if}
 																											{/snippet}
 																										</ResourceBoundary>
-																									`,
+																									`.raw,
+								references: ["resolvedEntity"],
+							},
 						},
 						closed: [{ field: "url", format: "truncated" }, "type", "transport"],
 						content: {
@@ -45500,7 +45305,7 @@ export const schema = {
 						},
 						summary: {
 							title: ["$network"],
-							value: [{ text: "Monero" }],
+							value: [{ kind: _ViewItemKind.Text, label: "Monero" }],
 						},
 						content: {
 							dl: [
@@ -45647,7 +45452,7 @@ export const schema = {
 						},
 						summary: {
 							title: ["$keyImage"],
-							value: [{ text: "Ring" }],
+							value: [{ kind: _ViewItemKind.Text, label: "Ring" }],
 						},
 						content: {
 							dl: [
@@ -46992,7 +46797,7 @@ export const schema = {
 						"$$gasEstimateTimestamps": { label: "Gas estimate timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.EvmNetwork_GasEstimate_Timestamp, defaultSources: [Source.Blockscout_Rest, Source.Etherscan_Rest] },
 						"$$activityDays": { label: "Activity days", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Network_Activity_Day, defaultSources: [Source.SpaceAndTime_MakeInfinite] },
 						"$$rpcUrls": { label: "RPC URLs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Url },
-						"consensusEndpoints": { label: "Consensus endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "BeaconConsensusEndpoint", defaultSources: [Source.Constants_Internal] },
+						"consensusEndpoints": { label: "Consensus endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "BeaconConsensusEndpoint", defaultSources: [Source.Beacon_Rest] },
 						"$$beaconFinalityTimestamps": { label: "Beacon finality timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EthereumBeaconFinality_Timestamp, defaultSources: [Source.Beacon_Rest] },
 						"$$beaconEpochs": { label: "Beacon epochs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconEpoch, defaultSources: [Source.Beacon_Rest] },
 						"$$beaconSlots": { label: "Beacon slots", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BeaconSlot, defaultSources: [Source.Beacon_Rest] },
@@ -47903,14 +47708,14 @@ export const schema = {
 						path: ["namespace"],
 						is: "Hyperliquid",
 					})({
-						"rpcEndpoints": { label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Hyperliquid_JsonRpc] },
-						"restEndpoints": { label: "REST endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Hyperliquid_Rest] },
-						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidNetwork_Timestamp, defaultSources: [Source.Hyperliquid_Rest] },
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidBlock, defaultSources: [Source.Hyperliquid_JsonRpc] },
-						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidTransaction, defaultSources: [Source.Hyperliquid_JsonRpc] },
-						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidValidator, defaultSources: [Source.Hyperliquid_Rest] },
-						"$$spotAssets": { label: "Spot assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidSpotAsset, defaultSources: [Source.Hyperliquid_Rest] },
-						"$$perpMarkets": { label: "Perp markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidPerpMarket, defaultSources: [Source.Hyperliquid_Rest] }
+						"rpcEndpoints": { label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Hyperliquid] },
+						"restEndpoints": { label: "REST endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Hyperliquid] },
+						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidNetwork_Timestamp, defaultSources: [Source.Hyperliquid] },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidBlock, defaultSources: [Source.Hyperliquid] },
+						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidTransaction, defaultSources: [Source.Hyperliquid] },
+						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidValidator, defaultSources: [Source.Hyperliquid] },
+						"$$spotAssets": { label: "Spot assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidSpotAsset, defaultSources: [Source.Hyperliquid] },
+						"$$perpMarkets": { label: "Perp markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidPerpMarket, defaultSources: [Source.Hyperliquid] }
 					})({
 						singularView: {
 							carousels: [
@@ -47919,9 +47724,9 @@ export const schema = {
 									label: "Chain activity",
 									className: "network-view-collapsible-chain-activity",
 									sections: [
-										{ id: "hyperliquid-chain-observations", field: ["Hyperliquid", "$$timestamps"], List: "HyperliquidNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.Hyperliquid_Rest, Source.Hyperliquid_JsonRpc], limit: 16 } },
-										{ id: "hyperliquid-chain-blocks", field: ["Hyperliquid", "$$blocks"], List: "HyperliquidBlocksView", label: "Blocks", selection: { sources: [Source.Hyperliquid_JsonRpc], limit: 16 } },
-										{ id: "hyperliquid-chain-transactions", field: ["Hyperliquid", "$$transactions"], List: "HyperliquidTransactionsView", label: "Transactions", selection: { sources: [Source.Hyperliquid_JsonRpc], limit: 16 } },
+										{ id: "hyperliquid-chain-observations", field: ["Hyperliquid", "$$timestamps"], List: "HyperliquidNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.Hyperliquid], limit: 16 } },
+										{ id: "hyperliquid-chain-blocks", field: ["Hyperliquid", "$$blocks"], List: "HyperliquidBlocksView", label: "Blocks", selection: { sources: [Source.Hyperliquid], limit: 16 } },
+										{ id: "hyperliquid-chain-transactions", field: ["Hyperliquid", "$$transactions"], List: "HyperliquidTransactionsView", label: "Transactions", selection: { sources: [Source.Hyperliquid], limit: 16 } },
 									],
 								},
 								{
@@ -47929,7 +47734,7 @@ export const schema = {
 									label: "Consensus and validators",
 									className: "network-view-collapsible-consensus",
 									sections: [
-										{ id: "hyperliquid-consensus-validators", field: ["Hyperliquid", "$$validators"], List: "HyperliquidValidatorsView", label: "Validators", selection: { sources: [Source.Hyperliquid_Rest], limit: 16 } },
+										{ id: "hyperliquid-consensus-validators", field: ["Hyperliquid", "$$validators"], List: "HyperliquidValidatorsView", label: "Validators", selection: { sources: [Source.Hyperliquid], limit: 16 } },
 									],
 								},
 								{
@@ -47937,8 +47742,8 @@ export const schema = {
 									label: "Markets",
 									className: "network-view-collapsible-markets",
 									sections: [
-										{ id: "hyperliquid-markets-perps", field: ["Hyperliquid", "$$perpMarkets"], List: "HyperliquidPerpMarketsView", label: "Perps", selection: { sources: [Source.Hyperliquid_Rest], limit: 16 } },
-										{ id: "hyperliquid-markets-spot-assets", field: ["Hyperliquid", "$$spotAssets"], List: "HyperliquidSpotAssetsView", label: "Spot assets", selection: { sources: [Source.Hyperliquid_Rest], limit: 16 } },
+										{ id: "hyperliquid-markets-perps", field: ["Hyperliquid", "$$perpMarkets"], List: "HyperliquidPerpMarketsView", label: "Perps", selection: { sources: [Source.Hyperliquid], limit: 16 } },
+										{ id: "hyperliquid-markets-spot-assets", field: ["Hyperliquid", "$$spotAssets"], List: "HyperliquidSpotAssetsView", label: "Spot assets", selection: { sources: [Source.Hyperliquid], limit: 16 } },
 									],
 								},
 								{
@@ -47978,10 +47783,6 @@ export const schema = {
 						pending: {
 							imports: [
 								{
-									from: "$/constants/BeaconConsensus.ts",
-									names: ["beaconRestBaseByExecutionChainId"],
-								},
-								{
 									from: "$/constants/Network.ts",
 									names: ["networkByCaip2", "networkBySlug"],
 								},
@@ -48004,13 +47805,6 @@ export const schema = {
 											undefined
 									)
 									const caip2 = base.caip2 ?? catalog?.caip2
-									const beacon = (
-										caip2 == null ?
-											undefined
-										:
-											beaconRestBaseByExecutionChainId[Number(caip2.reference)]
-									)
-
 									return {
 										...base,
 										...(base.caip2 == null && caip2 != null && { caip2 }),
@@ -48026,19 +47820,6 @@ export const schema = {
 										...(base.ledgerModels == null && catalog != null && {
 											ledgerModels: {
 												values: catalog.ledgerModels,
-											},
-										}),
-										...(base.consensusProtocol == null && beacon != null && {
-											consensusProtocol: beacon.consensusProtocol,
-										}),
-										...(base.consensusEndpoints == null && beacon != null && {
-											consensusEndpoints: {
-												values: [
-													{
-														restBaseUrl: beacon.restBaseUrl,
-														consensusProtocol: beacon.consensusProtocol,
-													},
-												],
 											},
 										}),
 									}
@@ -49087,12 +48868,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						imports: [
-							{
-								from: "$/components/TruncatedValue.svelte",
-								names: ["TruncatedValueFormat"],
-							},
-						],
 						query: {
 							sources: [Source.Primal_Rest, Source.NostrBand_Rest],
 							fields: [
@@ -49108,30 +48883,26 @@ export const schema = {
 						},
 						summary: {
 							title: [{ field: "content" }],
-							Title: dedent `
+							Title: {
+								raw: dedent `
 																									<ResourceBoundary
-																										resource={nostrReaction}
+																										resource={${rawSnippetReference.resolvedEntity.source}}
 																										placeholderText="Loading reaction..."
 																									>
 																										{#snippet Pending()}
 																											<TruncatedValue
 																												value={selection.entitySelector.eventId}
-																												format={TruncatedValueFormat.Visual}
 																											/>
 																										{/snippet}
 																										{#snippet children(entity)}
 																											{entity.content || '+'}
 																										{/snippet}
 																									</ResourceBoundary>
-																								`,
+																								`.raw,
+								references: ["resolvedEntity"],
+							},
 							titleFallback: [{ field: "eventId", format: "truncated" }],
 							value: [{ field: "eventId", format: "truncated" }],
-							Value: dedent `
-																									<TruncatedValue
-																										value={selection.entitySelector.eventId}
-																										format={TruncatedValueFormat.Visual}
-																									/>
-																								`,
 							HeadingAfter: [{ field: "createdAt", format: "timestamp" }],
 						},
 						closed: [
@@ -49220,7 +48991,7 @@ export const schema = {
 							openFields: ["$$profiles"],
 						},
 						summary: {
-							title: [{ text: "Search: " }, { field: "query" }],
+							title: [{ kind: _ViewItemKind.Text, label: "Search: " }, { field: "query" }],
 							value: [{ field: "resultCount", format: "number" }],
 						},
 						content: {
@@ -49526,12 +49297,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						imports: [
-							{
-								from: "$/components/TruncatedValue.svelte",
-								names: ["TruncatedValueFormat"],
-							},
-						],
 						query: {
 							sources: [Source.Primal_Rest, Source.NostrBand_Rest],
 							fields: [
@@ -49548,12 +49313,6 @@ export const schema = {
 						summary: {
 							title: [{ field: "repostedEventId", format: "truncated" }],
 							value: [{ field: "eventId", format: "truncated" }],
-							Value: dedent `
-																									<TruncatedValue
-																										value={selection.entitySelector.eventId}
-																										format={TruncatedValueFormat.Visual}
-																									/>
-																								`,
 							HeadingAfter: [{ field: "createdAt", format: "timestamp" }],
 						},
 						closed: [
@@ -50385,7 +50144,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.PythBenchmarks_Rest, Source.PythHermes_Rest, Source.PythPriceFeedsCatalog_Rest, Source.Pyth_EvmContract, Source.Pyth_SolanaProgram],
+							sources: [Source.PythBenchmarks_Rest, Source.PythHermes_Rest, Source.Pyth_EvmContract, Source.Pyth_SolanaProgram],
 							fields: ["priceFeedId", "channel"],
 							openFields: ["symbol", "assetClass", "baseAsset", "quoteAsset", "$market", "$$timestamps"],
 						},
@@ -51883,7 +51642,7 @@ export const schema = {
 						},
 						summary: {
 							title: [{ field: "protocolName" }],
-							value: [{ text: "Reddit" }],
+							value: [{ kind: _ViewItemKind.Text, label: "Reddit" }],
 						},
 						content: {
 							dl: [
@@ -52497,7 +52256,7 @@ export const schema = {
 						},
 						summary: {
 							title: [{ field: "protocolName" }],
-							value: [{ text: "RSS / Atom" }],
+							value: [{ kind: _ViewItemKind.Text, label: "RSS / Atom" }],
 						},
 						content: {
 							dl: [
@@ -52953,6 +52712,9 @@ export const schema = {
 				enums: [
 					{
 						name: "SolanaInstructionKind",
+						routeParam: {
+							matcher: "stringSegment",
+						},
 						members: [
 							{ name: "Instruction", value: "Instruction" },
 							{ name: "InnerInstruction", value: "InnerInstruction" },
@@ -53226,12 +52988,12 @@ export const schema = {
 				"$transaction": { label: "Transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.SolanaTransaction },
 				"slot": { label: "Slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Solana_JsonRpc, Source.Helius_Rest] },
-				"feeLamports": { label: "Fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Solana_JsonRpc, Source.Helius_Rest] },
+				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Solana_JsonRpc, Source.Helius] },
+				"feeLamports": { label: "Fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Solana_JsonRpc, Source.Helius] },
 				"computeUnitsConsumed": { label: "Compute units consumed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Solana_JsonRpc] },
-				"status": { label: "Status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Solana_JsonRpc, Source.Helius_Rest] },
+				"status": { label: "Status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Solana_JsonRpc, Source.Helius] },
 				"confirmationStatus": { label: "Confirmation status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Solana_JsonRpc] },
-				"err": { label: "Error", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown", defaultSources: [Source.Solana_JsonRpc, Source.Helius_Rest] },
+				"err": { label: "Error", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown", defaultSources: [Source.Solana_JsonRpc, Source.Helius] },
 			})({
 				selectors: {
 					"TransactionSlotSource": ["$transaction", "slot", "source"],
@@ -53801,20 +53563,24 @@ export const schema = {
 							],
 						},
 						summary: {
-							Value: dedent `
-																									<ResourceBoundary resource={specificationProposal}>
+							Value: {
+								raw: dedent `
+																									<ResourceBoundary resource={${rawSnippetReference.resolvedEntity.source}}>
 																										{#snippet children(entity)}
 																											<span>
 																												{\`\${entity.categoryLabel ?? proposalCategoryById[selection.entitySelector.category].label ?? selection.entitySelector.category}-\${selection.entitySelector.number}\`}
 																											</span>
 																										{/snippet}
 																									</ResourceBoundary>
-																								`,
-							Title: dedent `
+																								`.raw,
+								references: ["resolvedEntity"],
+							},
+							Title: {
+								raw: dedent `
 																									{#if layout === EntityLayout.SummaryInline}
 																										{\`\${proposalCategoryById[selection.entitySelector.category].label ?? selection.entitySelector.category}-\${selection.entitySelector.number}\`}
 																									{:else}
-																										<ResourceBoundary resource={specificationProposal}>
+																										<ResourceBoundary resource={${rawSnippetReference.resolvedEntity.source}}>
 																											{#snippet children(entity)}
 																												{@const proposalIdentifier = \`\${entity.categoryLabel ?? proposalCategoryById[selection.entitySelector.category].label ?? selection.entitySelector.category}-\${selection.entitySelector.number}\`}
 																												{@const documentTitle = (entity.documentTitle ?? '').trim()}
@@ -53829,7 +53595,9 @@ export const schema = {
 																											{/snippet}
 																										</ResourceBoundary>
 																									{/if}
-																								`,
+																								`.raw,
+								references: ["resolvedEntity"],
+							},
 							value: [
 								{
 									field: "number",
@@ -54203,7 +53971,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Juno_JsonRpc, Source.Pathfinder_JsonRpc, Source.Starknet_JsonRpc, Source.Starkscan_Rest, Source.Voyager_Rest] },
+						query: { sources: [Source.Juno_JsonRpc, Source.Pathfinder, Source.Starkscan, Source.Voyager] },
 						summary: { title: ["$contract"], value: [{ field: "blockNumber", format: "number" }], HeadingAfter: ["source"] },
 						closed: ["$contract", { field: "blockNumber", format: "number" }, "source"],
 						content: {
@@ -54241,7 +54009,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Juno_JsonRpc, Source.Pathfinder_JsonRpc, Source.Starknet_JsonRpc, Source.Starkscan_Rest, Source.Voyager_Rest] },
+						query: { sources: [Source.Juno_JsonRpc, Source.Pathfinder, Source.Starkscan, Source.Voyager] },
 						summary: { title: [{ field: "blockNumber", format: "number" }], value: ["blockHash"], HeadingAfter: ["status"] },
 						closed: [{ field: "blockNumber", format: "number" }, "blockHash", "status"],
 						content: {
@@ -54280,7 +54048,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Juno_JsonRpc, Source.Pathfinder_JsonRpc, Source.Starknet_JsonRpc, Source.Starkscan_Rest, Source.Voyager_Rest] },
+						query: { sources: [Source.Juno_JsonRpc, Source.Pathfinder, Source.Starkscan, Source.Voyager] },
 						summary: { title: ["classHash"], value: ["contractClassVersion"], HeadingAfter: [{ field: "declaredAtBlockNumber", format: "number" }] },
 						closed: ["classHash", "contractClassVersion", { field: "declaredAtBlockNumber", format: "number" }],
 						content: {
@@ -54316,7 +54084,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Juno_JsonRpc, Source.Pathfinder_JsonRpc, Source.Starknet_JsonRpc, Source.Starkscan_Rest, Source.Voyager_Rest] },
+						query: { sources: [Source.Juno_JsonRpc, Source.Pathfinder, Source.Starkscan, Source.Voyager] },
 						summary: { title: ["address"], value: ["$network"] },
 						closed: ["address", "$$accountStates", "$$transactions"],
 						content: {
@@ -54367,7 +54135,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Starknet_JsonRpc, Source.Starkscan_Rest, Source.Voyager_Rest] },
+						query: { sources: [Source.Starkscan, Source.Voyager] },
 						summary: { title: [{ field: "eventIndex", format: "number" }], value: ["$transaction"], HeadingAfter: ["$fromContract"] },
 						closed: ["$transaction", { field: "eventIndex", format: "number" }, "$fromContract"],
 						content: {
@@ -54401,7 +54169,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Constants_Internal, Source.Juno_JsonRpc, Source.L2Beat_Rest, Source.Pathfinder_JsonRpc, Source.Starknet_JsonRpc, Source.Starkscan_Rest, Source.Voyager_Rest],
+							sources: [Source.Constants_Internal, Source.Juno_JsonRpc, Source.L2Beat_Rest, Source.Pathfinder, Source.Starkscan, Source.Voyager],
 							fields: ["$network"],
 							openFields: ["chainId", "$$timestamps", "$$blocks", "$$transactions", "$$contracts", "$$classes"],
 						},
@@ -54459,7 +54227,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Juno_JsonRpc, Source.Pathfinder_JsonRpc, Source.Starknet_JsonRpc, Source.Starkscan_Rest, Source.Voyager_Rest] },
+						query: { sources: [Source.Juno_JsonRpc, Source.Pathfinder, Source.Starkscan, Source.Voyager] },
 						summary: { title: ["$network"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: [{ field: "latestBlockNumber", format: "number" }] },
 						closed: ["$network", { field: "timestampMs", format: "timestamp" }, { field: "latestBlockNumber", format: "number" }, "latestBlockHash"],
 						content: {
@@ -54489,7 +54257,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Juno_JsonRpc, Source.Pathfinder_JsonRpc, Source.Starknet_JsonRpc] },
+						query: { sources: [Source.Juno_JsonRpc, Source.Pathfinder] },
 						summary: { title: ["storageKey"], value: ["$contract"] },
 						closed: ["$contract", "storageKey", "$$timestamps"],
 						content: {
@@ -54523,7 +54291,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Juno_JsonRpc, Source.Pathfinder_JsonRpc, Source.Starknet_JsonRpc] },
+						query: { sources: [Source.Juno_JsonRpc, Source.Pathfinder] },
 						summary: { title: ["$entry"], value: [{ field: "blockNumber", format: "number" }], HeadingAfter: ["source"] },
 						closed: ["$entry", { field: "blockNumber", format: "number" }, "source"],
 						content: {
@@ -54563,7 +54331,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Juno_JsonRpc, Source.Pathfinder_JsonRpc, Source.Starknet_JsonRpc, Source.Starkscan_Rest, Source.Voyager_Rest] },
+						query: { sources: [Source.Juno_JsonRpc, Source.Pathfinder, Source.Starkscan, Source.Voyager] },
 						summary: { title: ["transactionHash"], value: ["transactionKind"], HeadingAfter: ["$block"] },
 						closed: ["transactionHash", "transactionKind", "$$timestamps"],
 						content: {
@@ -54604,7 +54372,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Juno_JsonRpc, Source.Pathfinder_JsonRpc, Source.Starknet_JsonRpc, Source.Starkscan_Rest, Source.Voyager_Rest] },
+						query: { sources: [Source.Juno_JsonRpc, Source.Pathfinder, Source.Starkscan, Source.Voyager] },
 						summary: { title: ["$transaction"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: ["executionStatus"] },
 						closed: ["$transaction", { field: "timestampMs", format: "timestamp" }],
 						content: {
@@ -55158,6 +54926,7 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					valueType: "number",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.StellarExpert],
 				},
 				"protocolVersion": {
 					label: 'protocol version',
@@ -63612,7 +63381,7 @@ export const schema = {
 				"peerInboxId": { label: "Peer inbox ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"topic": { label: "Topic", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"createdAtMs": { label: "Created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"consentState": { label: "Consent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"consentState": { label: "Consent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "XmtpConversationConsentState" },
 			})({
 				selectors: {
 					"Id": ["id"],
@@ -63682,7 +63451,7 @@ export const schema = {
 						},
 						summary: {
 							title: [{ field: "protocolName" }],
-							value: [{ text: "XMTP" }],
+							value: [{ kind: _ViewItemKind.Text, label: "XMTP" }],
 						},
 						content: {
 							dl: [
@@ -63752,7 +63521,7 @@ export const schema = {
 						},
 						summary: {
 							title: [{ field: "protocolName" }],
-							value: [{ text: "X" }],
+							value: [{ kind: _ViewItemKind.Text, label: "X" }],
 						},
 						content: {
 							dl: [
@@ -63938,7 +63707,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.XrplAccount_Timestamp,
 					cardinality: EntityFieldCardinality.Many,
-					defaultSources: [Source.Xrpl_Rippled],
+					defaultSources: [Source.Bithomp, Source.Xrpl_Rippled],
 				},
 			})({
 				selectors: {
@@ -65221,12 +64990,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						imports: [
-							{
-								from: "$/components/TruncatedValue.svelte",
-								names: ["TruncatedValueFormat"],
-							},
-						],
 						query: {
 							sources: [
 								Source.Youtube_Rest,
@@ -65256,15 +65019,15 @@ export const schema = {
 																							`,
 						summary: {
 							title: ["text"],
-							Title: dedent `
+							Title: {
+								raw: dedent `
 																									<ResourceBoundary
-																										resource={youtubeComment}
+																										resource={${rawSnippetReference.resolvedEntity.source}}
 																										placeholderText="Loading YouTube comment..."
 																									>
 																										{#snippet Pending()}
 																											<TruncatedValue
 																												value={selection.entitySelector.commentId}
-																												format={TruncatedValueFormat.Visual}
 																											/>
 																										{/snippet}
 																										{#snippet children(entity)}
@@ -65272,20 +65035,13 @@ export const schema = {
 																												value={(entity.text ?? '').replaceAll('\\n', ' ') || selection.entitySelector.commentId}
 																												startLength={64}
 																												endLength={16}
-																												format={TruncatedValueFormat.Visual}
 																											/>
 																										{/snippet}
 																									</ResourceBoundary>
-																								`,
+																								`.raw,
+								references: ["resolvedEntity"],
+							},
 							value: [{ field: "commentId", format: "truncated" }],
-							Value: dedent `
-																									<span>
-																										<TruncatedValue
-																											value={selection.entitySelector.commentId}
-																											format={TruncatedValueFormat.Visual}
-																										/>
-																									</span>
-																								`,
 							HeadingAfter: [
 								{
 									field: "publishedAtMs",
@@ -65956,6 +65712,9 @@ export const schema = {
 				enums: [
 					{
 						name: "ZcashShieldedActionKind",
+						routeParam: {
+							matcher: "stringSegment",
+						},
 						members: [
 							{ name: "JoinSplit", value: "joinSplit" },
 							{ name: "Spend", value: "spend" },
@@ -66013,6 +65772,9 @@ export const schema = {
 				enums: [
 					{
 						name: "ZcashShieldedPoolKind",
+						routeParam: {
+							matcher: "stringSegment",
+						},
 						members: [
 							{ name: "Sprout", value: "sprout" },
 							{ name: "Sapling", value: "sapling" },
@@ -73046,6 +72808,9 @@ export const routes = defineRoutes(schema)({
 					page: {
 						view: {
 							imports: [
+								{ from: "$app/paths", names: ["resolve"] },
+								{ from: "$/schema/EntityType.ts", names: ["EntityType"] },
+								{ from: "$/routes/+layout.svelte", names: ["select"] },
 								{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 								{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 								{ from: "$/views/BlockheadSourcesView.svelte", default: "BlockheadSourcesView" },
@@ -73127,6 +72892,9 @@ export const routes = defineRoutes(schema)({
 					page: {
 						view: {
 							imports: [
+								{ from: "$app/paths", names: ["resolve"] },
+								{ from: "$/schema/EntityType.ts", names: ["EntityType"] },
+								{ from: "$/routes/+layout.svelte", names: ["select"] },
 								{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 								{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 								{ from: "$/views/BlockheadRoomPeersView.svelte", default: "BlockheadRoomPeersView" },
@@ -73424,6 +73192,9 @@ export const routes = defineRoutes(schema)({
 			page: {
 				view: {
 					imports: [
+						{ from: "$app/paths", names: ["resolve"] },
+						{ from: "$/schema/EntityType.ts", names: ["EntityType"] },
+						{ from: "$/routes/+layout.svelte", names: ["select"] },
 						{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 						{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 						{ from: "$/views/CoinsView.svelte", default: "CoinsView" },
@@ -73510,6 +73281,9 @@ export const routes = defineRoutes(schema)({
 		"demo": {
 			page: {
 				view: {
+					imports: [
+						{ from: "$app/paths", names: ["resolve"] },
+					],
 					Content: dedent `
 									<main data-column>
 										<section data-card>
@@ -73644,6 +73418,9 @@ export const routes = defineRoutes(schema)({
 			page: {
 				view: {
 					imports: [
+						{ from: "$app/paths", names: ["resolve"] },
+						{ from: "$/schema/EntityType.ts", names: ["EntityType"] },
+						{ from: "$/routes/+layout.svelte", names: ["select"] },
 						{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 						{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 						{ from: "$/views/EthereumNetworkUpgradesView.svelte", default: "EthereumNetworkUpgradesView" },
@@ -73726,6 +73503,9 @@ export const routes = defineRoutes(schema)({
 			page: {
 				view: {
 					imports: [
+						{ from: "$app/paths", names: ["resolve"] },
+						{ from: "$/schema/EntityType.ts", names: ["EntityType"] },
+						{ from: "$/routes/+layout.svelte", names: ["select"] },
 						{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 						{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 						{ from: "$/views/EvmNftsView.svelte", default: "EvmNftsView" },
@@ -73976,6 +73756,9 @@ export const routes = defineRoutes(schema)({
 			page: {
 				view: {
 					imports: [
+						{ from: "$app/paths", names: ["resolve"] },
+						{ from: "$/schema/EntityType.ts", names: ["EntityType"] },
+						{ from: "$/routes/+layout.svelte", names: ["select"] },
 						{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 						{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 						{ from: "$/views/FarcasterNetworkView.svelte", default: "FarcasterNetworkView" },
@@ -74329,6 +74112,9 @@ export const routes = defineRoutes(schema)({
 									page: {
 										view: {
 											imports: [
+												{ from: "$app/paths", names: ["resolve"] },
+												{ from: "$/schema/EntityType.ts", names: ["EntityType"] },
+												{ from: "$/routes/+layout.svelte", names: ["select"] },
 												{ from: "$/constants/calldata-examples.ts", typeNames: ["CalldataExample"], names: ["calldataExamples"] },
 												{ from: "$/lib/calldata-decode.ts", names: ["decodeCalldataWithSignature", "decodeEventDataWithSignature", "formatDecodedParamValue"] },
 												{ from: "$/schema/ZeroExHex.ts", names: ["EvmAddress", "ZeroExHex"] },
@@ -78997,7 +78783,7 @@ export const routes = defineRoutes(schema)({
 								"$$coins"
 							],
 							query: {
-								sources: [Source.Constants_Internal, Source.Coinpaprika_OpenApi],
+							sources: [Source.Constants_Internal, Source.Coinpaprika_Rest],
 								limit: 8,
 							},
 							derivations: {
@@ -79025,10 +78811,9 @@ export const routes = defineRoutes(schema)({
 										sources: [
 											Source.Constants_Internal,
 											Source.Coingecko_Rest,
-											Source.Coingecko_OpenApi,
 											Source.CoinMarketCap_Rest,
-											Source.Coinpaprika_OpenApi,
-											Source.Defillama_OpenApi,
+										Source.Coinpaprika_Rest,
+											Source.Defillama_Rest,
 										],
 										limit: 96,
 									},
@@ -79081,7 +78866,7 @@ export const routes = defineRoutes(schema)({
 								"$$liquidityPools"
 							],
 							query: {
-								sources: [Source.Dexscreener_OpenApi],
+								sources: [Source.Dexscreener_Rest],
 								limit: 300,
 							},
 							derivations: {
@@ -81504,6 +81289,7 @@ export const routes = defineRoutes(schema)({
 									page: {
 										view: {
 											imports: [
+												{ from: "$app/paths", names: ["resolve"] },
 												{ from: "$app/navigation", names: ["goto"] },
 											],
 											script: `
@@ -83258,28 +83044,12 @@ export const app = {
 				label: "Across",
 			},
 			{
-				provider: "Algod",
-				label: "Algod",
-			},
-			{
-				provider: "AlgorandIndexer",
-				label: "Algorand Indexer",
-			},
-			{
 				provider: "AlgorandWallet",
 				label: "Algorand wallet",
 			},
 			{
 				provider: "Allium",
 				label: "Allium",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_ALLIUM_API_KEY",
-							type: "string > 0",
-						},
-					],
-				},
 			},
 			{
 				provider: "Amboss",
@@ -83322,20 +83092,12 @@ export const app = {
 				label: "Avail",
 			},
 			{
-				provider: "AvailExplorer",
-				label: "Avail Explorer",
-			},
-			{
 				provider: "AvalancheInfo",
 				label: "Avalanche Info API",
 			},
 			{
 				provider: "AvalanchePlatformVm",
 				label: "Avalanche PlatformVM",
-			},
-			{
-				provider: "Avascan",
-				label: "Avascan",
 			},
 			{
 				provider: "AwsBedrock",
@@ -83356,30 +83118,6 @@ export const app = {
 			{
 				provider: "BeaconchaIn",
 				label: "Beaconcha.in",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_BEACONCHAIN_API_KEY",
-							type: "string > 0",
-						},
-					],
-				},
-			},
-			{
-				provider: "BetterCallDev",
-				label: "Better Call Dev",
-			},
-			{
-				provider: "BigDipper",
-				label: "Big Dipper",
-			},
-			{
-				provider: "BinanceChainApi",
-				label: "Binance Chain API",
-			},
-			{
-				provider: "BinanceChainExplorer",
-				label: "Binance Chain Explorer",
 			},
 			{
 				provider: "BitcoinBips",
@@ -83428,14 +83166,6 @@ export const app = {
 			{
 				provider: "Blockscout",
 				label: "Blockscout",
-			},
-			{
-				provider: "BnbBeaconArchive",
-				label: "BNB Beacon archive",
-			},
-			{
-				provider: "BnbChainFusion",
-				label: "BNB Chain Fusion",
 			},
 			{
 				provider: "Caips",
@@ -83490,10 +83220,6 @@ export const app = {
 				label: "Codex network presets",
 			},
 			{
-				provider: "CodexNode",
-				label: "Codex node",
-			},
-			{
 				provider: "Cohere",
 				label: "Cohere",
 			},
@@ -83504,26 +83230,10 @@ export const app = {
 			{
 				provider: "CoinMarketCap",
 				label: "Coin Market Cap",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_COINMARKETCAP_API_KEY",
-							type: "string > 0",
-						},
-					],
-				},
 			},
 			{
 				provider: "Coinpaprika",
 				label: "Coinpaprika",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_COINPAPRIKA_API_KEY",
-							type: "string > 0?",
-						},
-					],
-				},
 			},
 			{
 				provider: "CometBft",
@@ -83564,14 +83274,6 @@ export const app = {
 			{
 				provider: "Defillama",
 				label: "Defillama",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_DEFILLAMA_PRO_API_KEY",
-							type: "string > 0?",
-						},
-					],
-				},
 			},
 			{
 				provider: "Dexscreener",
@@ -83588,14 +83290,6 @@ export const app = {
 			{
 				provider: "Dune",
 				label: "Dune",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_DUNE_API_KEY",
-							type: "string > 0",
-						},
-					],
-				},
 			},
 			{
 				provider: "Dydx",
@@ -83616,10 +83310,6 @@ export const app = {
 			{
 				provider: "EigenLayer",
 				label: "EigenLayer",
-			},
-			{
-				provider: "EigenLayerSubgraph",
-				label: "EigenLayer subgraph",
 			},
 			{
 				provider: "Eip8004Scan",
@@ -83656,10 +83346,6 @@ export const app = {
 			{
 				provider: "Etherscan",
 				label: "Etherscan",
-			},
-			{
-				provider: "EthForks",
-				label: "EthForks",
 			},
 			{
 				provider: "Envio",
@@ -83704,10 +83390,6 @@ export const app = {
 			{
 				provider: "Git",
 				label: "Git",
-			},
-			{
-				provider: "Github",
-				label: "GitHub",
 			},
 			{
 				provider: "Gitlab",
@@ -83794,6 +83476,10 @@ export const app = {
 				label: "Keplr",
 			},
 			{
+				provider: "Kingnodes",
+				label: "Kingnodes",
+			},
+			{
 				provider: "Koios",
 				label: "Koios",
 			},
@@ -83816,10 +83502,6 @@ export const app = {
 			{
 				provider: "Lens",
 				label: "Lens Protocol",
-			},
-			{
-				provider: "LibtorrentSession",
-				label: "libtorrent session",
 			},
 			{
 				provider: "Lifi",
@@ -83890,10 +83572,6 @@ export const app = {
 				label: "Metadata Vision",
 			},
 			{
-				provider: "MetaplexDAS",
-				label: "Metaplex DAS",
-			},
-			{
 				provider: "MevRelay",
 				label: "MEV-Boost relay",
 			},
@@ -83944,22 +83622,10 @@ export const app = {
 			{
 				provider: "Neynar",
 				label: "Neynar",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_NEYNAR_API_KEY",
-							type: "string > 0?",
-						},
-					],
-				},
 			},
 			{
 				provider: "Nfid",
 				label: "NFID",
-			},
-			{
-				provider: "Nitro",
-				label: "Nitro",
 			},
 			{
 				provider: "Nodely",
@@ -83982,10 +83648,6 @@ export const app = {
 				label: "Ogmios",
 			},
 			{
-				provider: "OneInchSwap",
-				label: "1inch Swap",
-			},
-			{
 				provider: "Onnx",
 				label: "ONNX",
 			},
@@ -84000,14 +83662,6 @@ export const app = {
 			{
 				provider: "OpenSea",
 				label: "OpenSea",
-			},
-			{
-				provider: "OsmosisLCD",
-				label: "Osmosis LCD",
-			},
-			{
-				provider: "Paraswap",
-				label: "ParaSwap",
 			},
 			{
 				provider: "Pathfinder",
@@ -84092,26 +83746,10 @@ export const app = {
 			{
 				provider: "Reddit",
 				label: "Reddit",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_REDDIT_CLIENT_ID",
-							type: "string > 0",
-						},
-						{
-							name: "PUBLIC_REDDIT_CLIENT_SECRET",
-							type: "string > 0",
-						},
-					],
-				},
 			},
 			{
 				provider: "RedditPublic",
 				label: "Reddit public JSON",
-			},
-			{
-				provider: "Reservoir",
-				label: "Reservoir",
 			},
 			{
 				provider: "Reth",
@@ -84166,10 +83804,6 @@ export const app = {
 				label: "SQD",
 			},
 			{
-				provider: "Starknet",
-				label: "Starknet",
-			},
-			{
 				provider: "Starkscan",
 				label: "Starkscan",
 			},
@@ -84196,21 +83830,10 @@ export const app = {
 			{
 				provider: "Subscan",
 				label: "Subscan",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_SUBSCAN_API_KEY",
-							type: "string",
-						},
-					],
-				},
 			},
 			{
 				provider: "SubstrateSidecar",
 				label: "Substrate API Sidecar",
-				env: {
-					keys: [],
-				},
 			},
 			{
 				provider: "Sui",
@@ -84233,8 +83856,8 @@ export const app = {
 				label: "Tezos Dappetizer",
 			},
 			{
-				provider: "TezosNode",
-				label: "Tezos node RPC",
+				provider: "Octez",
+				label: "Octez",
 			},
 			{
 				provider: "TheGraph",
@@ -84265,10 +83888,6 @@ export const app = {
 				label: "TON Lite Server",
 			},
 			{
-				provider: "TonVerifier",
-				label: "TON Verifier",
-			},
-			{
 				provider: "TradingView",
 				label: "TradingView",
 			},
@@ -84279,9 +83898,6 @@ export const app = {
 			{
 				provider: "TronFullNode",
 				label: "TRON FullNode",
-				env: {
-					keys: [],
-				},
 			},
 			{
 				provider: "TronGrid",
@@ -84298,9 +83914,6 @@ export const app = {
 			{
 				provider: "TronSolidityNode",
 				label: "TRON SolidityNode",
-				env: {
-					keys: [],
-				},
 			},
 			{
 				provider: "TronTip1193",
@@ -84349,14 +83962,6 @@ export const app = {
 			{
 				provider: "X",
 				label: "X",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_X_API_BEARER",
-							type: "string > 0",
-						},
-					],
-				},
 			},
 			{
 				provider: "Xaman",
@@ -84381,14 +83986,6 @@ export const app = {
 			{
 				provider: "Youtube",
 				label: "YouTube",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_YOUTUBE_API_KEY",
-							type: "string > 0",
-						},
-					],
-				},
 			},
 			{
 				provider: "ZcashClientBackend",
@@ -84409,10 +84006,6 @@ export const app = {
 			{
 				provider: "Zebra",
 				label: "Zebra",
-			},
-			{
-				provider: "ZeroExSwap",
-				label: "0x Swap",
 			},
 			{
 				provider: "ZeroG",
@@ -84461,7 +84054,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json",
-							origin: "https://cdn.agentclientprotocol.com",
 							corsEnabled: false,
 						},
 					],
@@ -84473,16 +84065,11 @@ export const app = {
 						SourceOperationGroup.RepositoryMetadata,
 					],
 					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Acp/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -84500,7 +84087,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://app.across.to",
-							origin: "https://app.across.to",
 							corsEnabled: false,
 						},
 					],
@@ -84510,71 +84096,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.Algod_Rest,
-				provider: "Algod",
-				label: "Algod REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.NetworkSlug,
-						key: "algorand",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{algod-api-host}",
-							origin: "https://{algod-api-host}",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.AlgorandIndexer_Rest,
-				provider: "AlgorandIndexer",
-				label: "Algorand Indexer REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.NetworkSlug,
-						key: "algorand",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{algorand-indexer-api-host}",
-							origin: "https://{algorand-indexer-api-host}",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -84610,14 +84132,6 @@ export const app = {
 				source: Source.Allium_Rest,
 				provider: "Allium",
 				label: "Allium REST",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_ALLIUM_API_KEY",
-							type: "string > 0",
-						},
-					],
-				},
 				binding: {
 					target: {
 						kind: SourceTargetKind.Global,
@@ -84627,7 +84141,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.allium.so",
-							origin: "https://api.allium.so",
 							corsEnabled: false,
 						},
 					],
@@ -84648,16 +84161,12 @@ export const app = {
 									},
 								],
 							},
-							keys: [
-								"PUBLIC_ALLIUM_API_KEY",
-							],
 						},
 					],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Allium/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -84675,7 +84184,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.amboss.space/graphql",
-							origin: "https://api.amboss.space",
 							corsEnabled: false,
 						},
 					],
@@ -84706,7 +84214,6 @@ export const app = {
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/Amboss/Graphql/schema-source.ts",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GraphqlTypes,
@@ -84729,7 +84236,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.anthropic.com",
-							origin: "https://api.anthropic.com",
 							corsEnabled: false,
 						},
 					],
@@ -84793,7 +84299,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://fullnode.mainnet.aptoslabs.com/v1/",
-							origin: "https://fullnode.mainnet.aptoslabs.com",
 							corsEnabled: false,
 						},
 					],
@@ -84803,21 +84308,15 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/AptosFullnode/OpenApi/spec.yaml",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/AptosFullnode/OpenApi/schema-source.ts",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -84840,7 +84339,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.mainnet.aptoslabs.com/v1/graphql",
-							origin: "https://api.mainnet.aptoslabs.com",
 							corsEnabled: false,
 						},
 					],
@@ -84850,11 +84348,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.GraphqlSchema,
@@ -84865,7 +84359,6 @@ export const app = {
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/AptosIndexer/Graphql/schema-source.ts",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GraphqlTypes,
@@ -84888,13 +84381,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://arweave.net",
-							origin: "https://arweave.net",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://ar-io.net",
-							origin: "https://ar-io.net",
 							corsEnabled: true,
 						},
 					],
@@ -84904,16 +84395,11 @@ export const app = {
 						SourceOperationGroup.ContentGatewayRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Arweave/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -84931,7 +84417,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://arweave.net/graphql",
-							origin: "https://arweave.net",
 							corsEnabled: true,
 						},
 					],
@@ -84941,9 +84426,22 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
+					credentials: [],
+					artifacts: [
 						{
-							scope: SourceCredentialScope.None,
+							kind: SourceArtifactKind.GraphqlSchema,
+							path: "src/sources/Arweave/Graphql/schema.graphql",
+							generated: true,
+							officialUrl: "https://arweave.net/graphql",
+						},
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Arweave/Graphql/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.GraphqlTypes,
+							path: "src/sources/Arweave/Graphql/graphql-env.d.ts",
+							generated: true,
 						},
 					],
 				},
@@ -84961,7 +84459,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://public.api.bsky.app",
-							origin: "https://public.api.bsky.app",
 							corsEnabled: false,
 						},
 					],
@@ -84971,21 +84468,15 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.Lexicon,
 							path: "src/sources/AtprotoBsky/Lexicon",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/AtprotoBsky/Lexicon/schema-source.ts",
-							generated: false,
 						},
 					],
 				},
@@ -85003,7 +84494,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://bsky.social",
-							origin: "https://bsky.social",
 							corsEnabled: false,
 						},
 					],
@@ -85013,21 +84503,15 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.Lexicon,
 							path: "src/sources/AtprotoBskySocial/Lexicon",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/AtprotoBskySocial/Lexicon/schema-source.ts",
-							generated: false,
 						},
 					],
 				},
@@ -85045,7 +84529,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://{pds-host}",
-							origin: "https://{pds-host}",
 							corsEnabled: false,
 						},
 						{
@@ -85060,17 +84543,13 @@ export const app = {
 						SourceOperationGroup.GenericSubscribe,
 					],
 					delivery: SourceDelivery.RemoteLive,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
-				source: Source.Avail_JsonRpc,
+				source: Source.Avail,
 				provider: "Avail",
-				label: "Avail JSON-RPC",
+				label: "Avail",
 				binding: {
 					target: {
 						kind: SourceTargetKind.NetworkSlug,
@@ -85079,8 +84558,7 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{avail-rpc-host}",
-							origin: "https://{avail-rpc-host}",
+							locator: "env:PUBLIC_AVAIL_RPC_URL",
 							corsEnabled: false,
 						},
 					],
@@ -85092,37 +84570,15 @@ export const app = {
 					delivery: SourceDelivery.RemoteQuery,
 					credentials: [
 						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.AvailExplorer_Rest,
-				provider: "AvailExplorer",
-				label: "Avail Explorer REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.NetworkSlug,
-						key: "avail",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{avail-explorer-api-host}",
-							origin: "https://{avail-explorer-api-host}",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.AvailExplorerApi,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
+							scope: SourceCredentialScope.PublicConfig,
+							env: {
+								keys: [
+									{
+										name: "PUBLIC_AVAIL_RPC_URL",
+										type: "string.url",
+									},
+								],
+							},
 						},
 					],
 				},
@@ -85140,7 +84596,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.avax.network/ext/info",
-							origin: "https://api.avax.network",
 							corsEnabled: false,
 						},
 					],
@@ -85150,11 +84605,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -85170,7 +84621,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.avax.network/ext/bc/P",
-							origin: "https://api.avax.network",
 							corsEnabled: false,
 						},
 					],
@@ -85180,41 +84630,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.Avascan_Rest,
-				provider: "Avascan",
-				label: "Avascan REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "avascan-api",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.avascan.info",
-							origin: "https://api.avascan.info",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -85264,7 +84680,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.axelarscan.io",
-							origin: "https://api.axelarscan.io",
 							corsEnabled: false,
 						},
 					],
@@ -85274,11 +84689,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -85327,7 +84738,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://ethereum-beacon-api.publicnode.com",
-								origin: "https://ethereum-beacon-api.publicnode.com",
 								corsEnabled: true,
 							},
 						],
@@ -85337,21 +84747,15 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.BrowserDirect,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenApiSpec,
 								path: "src/sources/Beacon/OpenApi/beacon-node-oapi.yaml",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/Beacon/OpenApi/schema-source.ts",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -85369,7 +84773,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://ethereum-sepolia-beacon-api.publicnode.com",
-								origin: "https://ethereum-sepolia-beacon-api.publicnode.com",
 								corsEnabled: true,
 							},
 						],
@@ -85379,21 +84782,15 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.BrowserDirect,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenApiSpec,
 								path: "src/sources/Beacon/OpenApi/beacon-node-oapi.yaml",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/Beacon/OpenApi/schema-source.ts",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -85411,7 +84808,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://ethereum-holesky-beacon-api.publicnode.com",
-								origin: "https://ethereum-holesky-beacon-api.publicnode.com",
 								corsEnabled: true,
 							},
 						],
@@ -85421,21 +84817,15 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.BrowserDirect,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenApiSpec,
 								path: "src/sources/Beacon/OpenApi/beacon-node-oapi.yaml",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/Beacon/OpenApi/schema-source.ts",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -85450,14 +84840,6 @@ export const app = {
 				source: Source.BeaconchaIn_Rest,
 				provider: "BeaconchaIn",
 				label: "Beaconcha.in REST",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_BEACONCHAIN_API_KEY",
-							type: "string > 0",
-						},
-					],
-				},
 				bindings: [
 					{
 						target: {
@@ -85468,7 +84850,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://beaconcha.in/api/v1",
-								origin: "https://beaconcha.in",
 								corsEnabled: false,
 							},
 						],
@@ -85489,16 +84870,12 @@ export const app = {
 										},
 									],
 								},
-								keys: [
-									"PUBLIC_BEACONCHAIN_API_KEY",
-								],
 							},
 						],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/BeaconchaIn/Rest/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -85511,7 +84888,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://holesky.beaconcha.in/api/v1",
-								origin: "https://holesky.beaconcha.in",
 								corsEnabled: false,
 							},
 						],
@@ -85532,16 +84908,12 @@ export const app = {
 										},
 									],
 								},
-								keys: [
-									"PUBLIC_BEACONCHAIN_API_KEY",
-								],
 							},
 						],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/BeaconchaIn/Rest/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -85554,7 +84926,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://hoodi.beaconcha.in/api/v1",
-								origin: "https://hoodi.beaconcha.in",
 								corsEnabled: false,
 							},
 						],
@@ -85575,140 +84946,16 @@ export const app = {
 										},
 									],
 								},
-								keys: [
-									"PUBLIC_BEACONCHAIN_API_KEY",
-								],
 							},
 						],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/BeaconchaIn/Rest/types.ts",
-								generated: false,
 							},
 						],
 					},
 				],
-			},
-			{
-				source: Source.BetterCallDev_Rest,
-				provider: "BetterCallDev",
-				label: "Better Call Dev REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "better-call-dev-api",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.better-call.dev",
-							origin: "https://api.better-call.dev",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.BigDipper_Rest,
-				provider: "BigDipper",
-				label: "Big Dipper REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "big-dipper-api",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.bigdipper.live",
-							origin: "https://api.bigdipper.live",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.BinanceChainApi_Rest,
-				provider: "BinanceChainApi",
-				label: "Binance Chain API REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "binance-chain-api",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://dex.binance.org",
-							origin: "https://dex.binance.org",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.BinanceChainExplorer_Rest,
-				provider: "BinanceChainExplorer",
-				label: "Binance Chain Explorer REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "binance-chain-explorer",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://explorer.binance.org",
-							origin: "https://explorer.binance.org",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
 			},
 			{
 				source: Source.BitcoinBips_Github,
@@ -85723,13 +84970,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.github.com",
-							origin: "https://api.github.com",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
 							corsEnabled: true,
 						},
 					],
@@ -85739,11 +84984,7 @@ export const app = {
 						SourceOperationGroup.GithubRepositoryContents,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -85759,13 +85000,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.github.com",
-							origin: "https://api.github.com",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
 							corsEnabled: true,
 						},
 					],
@@ -85775,11 +85014,7 @@ export const app = {
 						SourceOperationGroup.GithubRepositoryContents,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -85795,7 +85030,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://gitlab.com",
-							origin: "https://gitlab.com",
 							corsEnabled: false,
 						},
 					],
@@ -85805,11 +85039,7 @@ export const app = {
 						SourceOperationGroup.GithubRepositoryContents,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -85825,7 +85055,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:8332",
-							origin: "http://127.0.0.1:8332",
 							corsEnabled: false,
 						},
 					],
@@ -85855,7 +85084,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:8332",
-							origin: "http://127.0.0.1:8332",
 							corsEnabled: false,
 						},
 					],
@@ -85873,31 +85101,55 @@ export const app = {
 				},
 			},
 			{
-				source: Source.Bithomp_Rest,
+				source: Source.Bithomp,
 				provider: "Bithomp",
-				label: "Bithomp REST",
+				label: "Bithomp",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Global,
-						key: "bithomp-api",
+						kind: SourceTargetKind.Caip2Network,
+						key: "xrpl:0",
 					},
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://bithomp.com",
-							origin: "https://bithomp.com",
-							corsEnabled: false,
+							locator: "https://bithomp.com/api/v2/",
+							corsEnabled: true,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
+					apiFamily: ApiFamily.OpenApiHttp,
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.HttpProxy,
+					delivery: SourceDelivery.BrowserDirect,
 					credentials: [
 						{
-							scope: SourceCredentialScope.None,
+							scope: SourceCredentialScope.PublicConfig,
+							env: {
+								keys: [
+									{
+										name: "PUBLIC_BITHOMP_API_KEY",
+										type: "string > 0",
+									},
+								],
+							},
+						},
+					],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/Bithomp/OpenApi/openapi.yaml",
+							generated: true,
+							officialUrl: "https://raw.githubusercontent.com/Bithomp/slate/master/source/bithomp-dhali.yaml",
+						},
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Bithomp/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiTypes,
+							path: "src/sources/Bithomp/OpenApi/openapi.d.ts",
+							generated: true,
 						},
 					],
 				},
@@ -85915,13 +85167,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://entrypoint-finney.opentensor.ai",
-							origin: "https://entrypoint-finney.opentensor.ai",
 							corsEnabled: false,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://lite.chain.opentensor.ai",
-							origin: "https://lite.chain.opentensor.ai",
 							corsEnabled: false,
 						},
 					],
@@ -85931,189 +85181,136 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Bittensor/JsonRpc/types.ts",
-							generated: false,
 						},
 					],
 				},
 			},
 			{
-				source: Source.BitTorrentMetainfo_File,
+				source: Source.BitTorrent,
 				provider: "BitTorrent",
-				label: "BitTorrent metainfo file",
-				binding: {
-					target: {
-						kind: SourceTargetKind.TorrentSwarm,
-						key: "metainfo-file",
+				label: "BitTorrent",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.TorrentSwarm,
+							key: "metainfo-file",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.LocalFilePath,
+								locator: "{torrent-file-path}",
+							},
+						],
+						wireProtocol: WireProtocol.Bencode,
+						apiFamily: ApiFamily.BitTorrentClient,
+						operationGroups: [
+							SourceOperationGroup.RepositoryMetadata,
+						],
+						delivery: SourceDelivery.LocalOnly,
+						credentials: [],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.LocalFilePath,
-							locator: "{torrent-file-path}",
+					{
+						target: {
+							kind: SourceTargetKind.TorrentSwarm,
+							key: "http-tracker",
 						},
-					],
-					wireProtocol: WireProtocol.Bencode,
-					apiFamily: ApiFamily.BitTorrentClient,
-					operationGroups: [
-						SourceOperationGroup.RepositoryMetadata,
-					],
-					delivery: SourceDelivery.LocalOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.BitTorrent_HttpTracker,
-				provider: "BitTorrent",
-				label: "BitTorrent HTTP tracker",
-				binding: {
-					target: {
-						kind: SourceTargetKind.TorrentSwarm,
-						key: "http-tracker",
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://{tracker-host}/announce",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.RawHttp,
+						apiFamily: ApiFamily.BitTorrentTracker,
+						operationGroups: [
+							SourceOperationGroup.BitTorrentAnnounce,
+						],
+						delivery: SourceDelivery.RemoteQuery,
+						credentials: [],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{tracker-host}/announce",
-							origin: "https://{tracker-host}",
-							corsEnabled: false,
+					{
+						target: {
+							kind: SourceTargetKind.TorrentSwarm,
+							key: "udp-tracker",
 						},
-					],
-					wireProtocol: WireProtocol.RawHttp,
-					apiFamily: ApiFamily.BitTorrentTracker,
-					operationGroups: [
-						SourceOperationGroup.BitTorrentAnnounce,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.BitTorrent_UdpTracker,
-				provider: "BitTorrent",
-				label: "BitTorrent UDP tracker",
-				binding: {
-					target: {
-						kind: SourceTargetKind.TorrentSwarm,
-						key: "udp-tracker",
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.UdpAddress,
+								locator: "udp://{tracker-host}:{port}",
+							},
+						],
+						wireProtocol: WireProtocol.Bencode,
+						apiFamily: ApiFamily.BitTorrentTracker,
+						operationGroups: [
+							SourceOperationGroup.BitTorrentAnnounce,
+						],
+						delivery: SourceDelivery.ServerOnly,
+						credentials: [],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.UdpAddress,
-							locator: "udp://{tracker-host}:{port}",
+					{
+						target: {
+							kind: SourceTargetKind.TorrentSwarm,
+							key: "mainline-dht",
 						},
-					],
-					wireProtocol: WireProtocol.Bencode,
-					apiFamily: ApiFamily.BitTorrentTracker,
-					operationGroups: [
-						SourceOperationGroup.BitTorrentAnnounce,
-					],
-					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.BitTorrent_MainlineDht,
-				provider: "BitTorrent",
-				label: "BitTorrent Mainline DHT",
-				binding: {
-					target: {
-						kind: SourceTargetKind.TorrentSwarm,
-						key: "mainline-dht",
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.UdpAddress,
+								locator: "udp://{bootstrap-node}:{port}",
+							},
+						],
+						wireProtocol: WireProtocol.Bencode,
+						apiFamily: ApiFamily.BitTorrentDht,
+						operationGroups: [
+							SourceOperationGroup.BitTorrentDhtLookup,
+						],
+						delivery: SourceDelivery.ServerOnly,
+						credentials: [],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.UdpAddress,
-							locator: "udp://{bootstrap-node}:{port}",
+					{
+						target: {
+							kind: SourceTargetKind.TorrentSwarm,
+							key: "metadata-exchange",
 						},
-					],
-					wireProtocol: WireProtocol.Bencode,
-					apiFamily: ApiFamily.BitTorrentDht,
-					operationGroups: [
-						SourceOperationGroup.BitTorrentDhtLookup,
-					],
-					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.BitTorrent_MetadataExchange,
-				provider: "BitTorrent",
-				label: "BitTorrent metadata exchange",
-				binding: {
-					target: {
-						kind: SourceTargetKind.TorrentSwarm,
-						key: "metadata-exchange",
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.TcpAddress,
+								locator: "{peer-host}:{port}",
+							},
+						],
+						wireProtocol: WireProtocol.Bencode,
+						apiFamily: ApiFamily.BitTorrentClient,
+						operationGroups: [
+							SourceOperationGroup.RepositoryMetadata,
+						],
+						delivery: SourceDelivery.ServerOnly,
+						credentials: [],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.TcpAddress,
-							locator: "{peer-host}:{port}",
+					{
+						target: {
+							kind: SourceTargetKind.TorrentSwarm,
+							key: "peer-wire",
 						},
-					],
-					wireProtocol: WireProtocol.Bencode,
-					apiFamily: ApiFamily.BitTorrentClient,
-					operationGroups: [
-						SourceOperationGroup.RepositoryMetadata,
-					],
-					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.BitTorrent_PeerWire,
-				provider: "BitTorrent",
-				label: "BitTorrent peer wire",
-				binding: {
-					target: {
-						kind: SourceTargetKind.TorrentSwarm,
-						key: "peer-wire",
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.TcpAddress,
+								locator: "{peer-host}:{port}",
+							},
+						],
+						wireProtocol: WireProtocol.Bencode,
+						apiFamily: ApiFamily.BitTorrentClient,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.ServerOnly,
+						credentials: [],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.TcpAddress,
-							locator: "{peer-host}:{port}",
-						},
-					],
-					wireProtocol: WireProtocol.Bencode,
-					apiFamily: ApiFamily.BitTorrentClient,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
+				],
 			},
 			{
 				source: Source.Blobscan_Rest,
@@ -86129,7 +85326,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://api.blobscan.com",
-								origin: "https://api.blobscan.com",
 								corsEnabled: false,
 							},
 						],
@@ -86139,16 +85335,11 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/Blobscan/Rest/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -86161,7 +85352,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://api.sepolia.blobscan.com",
-								origin: "https://api.sepolia.blobscan.com",
 								corsEnabled: false,
 							},
 						],
@@ -86171,16 +85361,11 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/Blobscan/Rest/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -86193,7 +85378,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://api.gnosis.blobscan.com",
-								origin: "https://api.gnosis.blobscan.com",
 								corsEnabled: false,
 							},
 						],
@@ -86203,16 +85387,11 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/Blobscan/Rest/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -86225,7 +85404,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://api.hoodi.blobscan.com",
-								origin: "https://api.hoodi.blobscan.com",
 								corsEnabled: false,
 							},
 						],
@@ -86235,16 +85413,11 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/Blobscan/Rest/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -86263,7 +85436,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.blockchair.com",
-							origin: "https://api.blockchair.com",
 							corsEnabled: false,
 						},
 					],
@@ -86284,9 +85456,6 @@ export const app = {
 									},
 								],
 							},
-							keys: [
-								"PUBLIC_BLOCKCHAIR_API_KEY",
-							],
 						},
 					],
 				},
@@ -86304,7 +85473,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://cardano-mainnet.blockfrost.io/api/v0/",
-							origin: "https://cardano-mainnet.blockfrost.io",
 							corsEnabled: false,
 						},
 					],
@@ -86329,12 +85497,10 @@ export const app = {
 						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/Blockfrost/OpenApi/openapi.yaml",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/Blockfrost/OpenApi/schema-source.ts",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -86358,7 +85524,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://eth.blockscout.com",
-								origin: "https://eth.blockscout.com",
 								corsEnabled: false,
 							},
 						],
@@ -86369,9 +85534,20 @@ export const app = {
 							SourceOperationGroup.BlockscoutAccountAbstraction,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
+						credentials: [],
+						artifacts: [
 							{
-								scope: SourceCredentialScope.None,
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/Blockscout/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiTypes,
+								path: "src/sources/Blockscout/OpenApi/openapi.d.ts",
+								generated: true,
 							},
 						],
 					},
@@ -86383,21 +85559,25 @@ export const app = {
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "https://eth.blockscout.com",
-								origin: "https://eth.blockscout.com",
+								locator: "https://eth.blockscout.com/api/eth-rpc",
 								corsEnabled: false,
 							},
 						],
-						wireProtocol: WireProtocol.HttpRest,
-						apiFamily: ApiFamily.EtherscanModuleAction,
+						wireProtocol: WireProtocol.JsonRpc2,
+						apiFamily: ApiFamily.EvmExecutionJsonRpc,
 						operationGroups: [
-							SourceOperationGroup.EtherscanAccountModule,
-							SourceOperationGroup.EtherscanContractModule,
+							SourceOperationGroup.EvmRpcCore,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
+						credentials: [],
+						artifacts: [
 							{
-								scope: SourceCredentialScope.None,
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
 							},
 						],
 					},
@@ -86410,7 +85590,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://optimism.blockscout.com",
-								origin: "https://optimism.blockscout.com",
 								corsEnabled: false,
 							},
 						],
@@ -86421,9 +85600,20 @@ export const app = {
 							SourceOperationGroup.BlockscoutAccountAbstraction,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
+						credentials: [],
+						artifacts: [
 							{
-								scope: SourceCredentialScope.None,
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/Blockscout/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiTypes,
+								path: "src/sources/Blockscout/OpenApi/openapi.d.ts",
+								generated: true,
 							},
 						],
 					},
@@ -86435,21 +85625,25 @@ export const app = {
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "https://optimism.blockscout.com",
-								origin: "https://optimism.blockscout.com",
+								locator: "https://optimism.blockscout.com/api/eth-rpc",
 								corsEnabled: false,
 							},
 						],
-						wireProtocol: WireProtocol.HttpRest,
-						apiFamily: ApiFamily.EtherscanModuleAction,
+						wireProtocol: WireProtocol.JsonRpc2,
+						apiFamily: ApiFamily.EvmExecutionJsonRpc,
 						operationGroups: [
-							SourceOperationGroup.EtherscanAccountModule,
-							SourceOperationGroup.EtherscanContractModule,
+							SourceOperationGroup.EvmRpcCore,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
+						credentials: [],
+						artifacts: [
 							{
-								scope: SourceCredentialScope.None,
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
 							},
 						],
 					},
@@ -86462,7 +85656,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://gnosis.blockscout.com",
-								origin: "https://gnosis.blockscout.com",
 								corsEnabled: false,
 							},
 						],
@@ -86473,9 +85666,20 @@ export const app = {
 							SourceOperationGroup.BlockscoutAccountAbstraction,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
+						credentials: [],
+						artifacts: [
 							{
-								scope: SourceCredentialScope.None,
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/Blockscout/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiTypes,
+								path: "src/sources/Blockscout/OpenApi/openapi.d.ts",
+								generated: true,
 							},
 						],
 					},
@@ -86487,21 +85691,25 @@ export const app = {
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "https://gnosis.blockscout.com",
-								origin: "https://gnosis.blockscout.com",
+								locator: "https://gnosis.blockscout.com/api/eth-rpc",
 								corsEnabled: false,
 							},
 						],
-						wireProtocol: WireProtocol.HttpRest,
-						apiFamily: ApiFamily.EtherscanModuleAction,
+						wireProtocol: WireProtocol.JsonRpc2,
+						apiFamily: ApiFamily.EvmExecutionJsonRpc,
 						operationGroups: [
-							SourceOperationGroup.EtherscanAccountModule,
-							SourceOperationGroup.EtherscanContractModule,
+							SourceOperationGroup.EvmRpcCore,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
+						credentials: [],
+						artifacts: [
 							{
-								scope: SourceCredentialScope.None,
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
 							},
 						],
 					},
@@ -86514,7 +85722,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://polygon.blockscout.com",
-								origin: "https://polygon.blockscout.com",
 								corsEnabled: false,
 							},
 						],
@@ -86525,9 +85732,20 @@ export const app = {
 							SourceOperationGroup.BlockscoutAccountAbstraction,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
+						credentials: [],
+						artifacts: [
 							{
-								scope: SourceCredentialScope.None,
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/Blockscout/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiTypes,
+								path: "src/sources/Blockscout/OpenApi/openapi.d.ts",
+								generated: true,
 							},
 						],
 					},
@@ -86539,21 +85757,25 @@ export const app = {
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "https://polygon.blockscout.com",
-								origin: "https://polygon.blockscout.com",
+								locator: "https://polygon.blockscout.com/api/eth-rpc",
 								corsEnabled: false,
 							},
 						],
-						wireProtocol: WireProtocol.HttpRest,
-						apiFamily: ApiFamily.EtherscanModuleAction,
+						wireProtocol: WireProtocol.JsonRpc2,
+						apiFamily: ApiFamily.EvmExecutionJsonRpc,
 						operationGroups: [
-							SourceOperationGroup.EtherscanAccountModule,
-							SourceOperationGroup.EtherscanContractModule,
+							SourceOperationGroup.EvmRpcCore,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
+						credentials: [],
+						artifacts: [
 							{
-								scope: SourceCredentialScope.None,
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
 							},
 						],
 					},
@@ -86566,7 +85788,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://base.blockscout.com",
-								origin: "https://base.blockscout.com",
 								corsEnabled: false,
 							},
 						],
@@ -86577,9 +85798,20 @@ export const app = {
 							SourceOperationGroup.BlockscoutAccountAbstraction,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
+						credentials: [],
+						artifacts: [
 							{
-								scope: SourceCredentialScope.None,
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/Blockscout/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiTypes,
+								path: "src/sources/Blockscout/OpenApi/openapi.d.ts",
+								generated: true,
 							},
 						],
 					},
@@ -86591,21 +85823,25 @@ export const app = {
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "https://base.blockscout.com",
-								origin: "https://base.blockscout.com",
+								locator: "https://base.blockscout.com/api/eth-rpc",
 								corsEnabled: false,
 							},
 						],
-						wireProtocol: WireProtocol.HttpRest,
-						apiFamily: ApiFamily.EtherscanModuleAction,
+						wireProtocol: WireProtocol.JsonRpc2,
+						apiFamily: ApiFamily.EvmExecutionJsonRpc,
 						operationGroups: [
-							SourceOperationGroup.EtherscanAccountModule,
-							SourceOperationGroup.EtherscanContractModule,
+							SourceOperationGroup.EvmRpcCore,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
+						credentials: [],
+						artifacts: [
 							{
-								scope: SourceCredentialScope.None,
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
 							},
 						],
 					},
@@ -86618,7 +85854,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://arbitrum.blockscout.com",
-								origin: "https://arbitrum.blockscout.com",
 								corsEnabled: false,
 							},
 						],
@@ -86629,9 +85864,20 @@ export const app = {
 							SourceOperationGroup.BlockscoutAccountAbstraction,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
+						credentials: [],
+						artifacts: [
 							{
-								scope: SourceCredentialScope.None,
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/Blockscout/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiTypes,
+								path: "src/sources/Blockscout/OpenApi/openapi.d.ts",
+								generated: true,
 							},
 						],
 					},
@@ -86643,21 +85889,25 @@ export const app = {
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "https://arbitrum.blockscout.com",
-								origin: "https://arbitrum.blockscout.com",
+								locator: "https://arbitrum.blockscout.com/api/eth-rpc",
 								corsEnabled: false,
 							},
 						],
-						wireProtocol: WireProtocol.HttpRest,
-						apiFamily: ApiFamily.EtherscanModuleAction,
+						wireProtocol: WireProtocol.JsonRpc2,
+						apiFamily: ApiFamily.EvmExecutionJsonRpc,
 						operationGroups: [
-							SourceOperationGroup.EtherscanAccountModule,
-							SourceOperationGroup.EtherscanContractModule,
+							SourceOperationGroup.EvmRpcCore,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
+						credentials: [],
+						artifacts: [
 							{
-								scope: SourceCredentialScope.None,
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
 							},
 						],
 					},
@@ -86670,7 +85920,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://eth-sepolia.blockscout.com",
-								origin: "https://eth-sepolia.blockscout.com",
 								corsEnabled: false,
 							},
 						],
@@ -86681,9 +85930,20 @@ export const app = {
 							SourceOperationGroup.BlockscoutAccountAbstraction,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
+						credentials: [],
+						artifacts: [
 							{
-								scope: SourceCredentialScope.None,
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/Blockscout/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiTypes,
+								path: "src/sources/Blockscout/OpenApi/openapi.d.ts",
+								generated: true,
 							},
 						],
 					},
@@ -86695,85 +85955,29 @@ export const app = {
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "https://eth-sepolia.blockscout.com",
-								origin: "https://eth-sepolia.blockscout.com",
+								locator: "https://eth-sepolia.blockscout.com/api/eth-rpc",
 								corsEnabled: false,
 							},
 						],
-						wireProtocol: WireProtocol.HttpRest,
-						apiFamily: ApiFamily.EtherscanModuleAction,
+						wireProtocol: WireProtocol.JsonRpc2,
+						apiFamily: ApiFamily.EvmExecutionJsonRpc,
 						operationGroups: [
-							SourceOperationGroup.EtherscanAccountModule,
-							SourceOperationGroup.EtherscanContractModule,
+							SourceOperationGroup.EvmRpcCore,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
+						credentials: [],
+						artifacts: [
 							{
-								scope: SourceCredentialScope.None,
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
 							},
 						],
 					},
 				],
-			},
-			{
-				source: Source.BnbBeaconArchive_Rest,
-				provider: "BnbBeaconArchive",
-				label: "BNB Beacon archive REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "bnb-beacon-archive",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://archive-api.binance.org",
-							origin: "https://archive-api.binance.org",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.BnbChainFusion_Rest,
-				provider: "BnbChainFusion",
-				label: "BNB Chain Fusion REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "bnb-chain-fusion",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.binance.org",
-							origin: "https://api.binance.org",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
 			},
 			{
 				source: Source.Caips_Github,
@@ -86788,13 +85992,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.github.com",
-							origin: "https://api.github.com",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
 							corsEnabled: true,
 						},
 					],
@@ -86804,11 +86006,7 @@ export const app = {
 						SourceOperationGroup.GithubRepositoryContents,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -86824,13 +86022,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.github.com",
-							origin: "https://api.github.com",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
 							corsEnabled: true,
 						},
 					],
@@ -86840,11 +86036,7 @@ export const app = {
 						SourceOperationGroup.GithubRepositoryContents,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -86917,7 +86109,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.koios.rest",
-							origin: "https://api.koios.rest",
 							corsEnabled: false,
 						},
 					],
@@ -86927,11 +86118,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -86975,7 +86162,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.cardanoscan.io",
-							origin: "https://api.cardanoscan.io",
 							corsEnabled: false,
 						},
 					],
@@ -86985,11 +86171,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -87005,7 +86187,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://8333.space:3338",
-							origin: "https://8333.space:3338",
 							corsEnabled: false,
 						},
 					],
@@ -87015,16 +86196,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Cashu/Mint/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -87042,7 +86218,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.celenium.io",
-							origin: "https://api.celenium.io",
 							corsEnabled: false,
 						},
 					],
@@ -87052,17 +86227,13 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
-				source: Source.Celestia_JsonRpc,
+				source: Source.CelestiaNode,
 				provider: "Celestia",
-				label: "Celestia JSON-RPC",
+				label: "Celestia Node",
 				binding: {
 					target: {
 						kind: SourceTargetKind.NetworkSlug,
@@ -87071,8 +86242,7 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{celestia-rpc-host}",
-							origin: "https://{celestia-rpc-host}",
+							locator: "env:PUBLIC_CELESTIA_NODE_RPC_URL",
 							corsEnabled: false,
 						},
 					],
@@ -87084,7 +86254,27 @@ export const app = {
 					delivery: SourceDelivery.RemoteQuery,
 					credentials: [
 						{
-							scope: SourceCredentialScope.None,
+							scope: SourceCredentialScope.PublicConfig,
+							env: {
+								keys: [
+									{
+										name: "PUBLIC_CELESTIA_NODE_RPC_URL",
+										type: "string.url",
+									},
+								],
+							},
+						},
+					],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.OpenRpcSpec,
+							path: "src/sources/Celestia/JsonRpc/openrpc.json",
+							generated: true,
+							officialUrl: "https://docs.celestia.org/specs/openrpc-v0.28.4.json",
+						},
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Celestia/JsonRpc/schema-source.ts",
 						},
 					],
 				},
@@ -87110,11 +86300,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -87138,11 +86324,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -87158,7 +86340,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://chainlist.org",
-							origin: "https://chainlist.org",
 							corsEnabled: false,
 						},
 					],
@@ -87168,24 +86349,19 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Chainlist/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
 			},
 			{
-				source: Source.CircleCctp_IrisApi,
+				source: Source.CircleCctpIris,
 				provider: "CircleCctp",
-				label: "Circle CCTP Iris API",
+				label: "Circle CCTP Iris",
 				binding: {
 					target: {
 						kind: SourceTargetKind.Global,
@@ -87194,20 +86370,32 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{circle-iris-api-host}",
-							origin: "https://{circle-iris-api-host}",
-							corsEnabled: false,
+							locator: "https://iris-api.circle.com",
+							corsEnabled: true,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
+					apiFamily: ApiFamily.OpenApiHttp,
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
+					delivery: SourceDelivery.BrowserDirect,
+					credentials: [],
+					artifacts: [
 						{
-							scope: SourceCredentialScope.None,
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/CircleCctp/OpenApi/openapi.yaml",
+							generated: true,
+							officialUrl: "https://developers.circle.com/openapi/cctp.yaml",
+						},
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/CircleCctp/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiTypes,
+							path: "src/sources/CircleCctp/OpenApi/openapi.d.ts",
+							generated: true,
 						},
 					],
 				},
@@ -87233,11 +86421,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -87261,11 +86445,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -87289,11 +86469,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -87303,19 +86479,17 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.GitRepository,
-						key: "codex-storage-network/codex-network-presets@master",
+						key: "codex-storage-network/codex-network-presets@master:",
 					},
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.github.com",
-							origin: "https://api.github.com",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
 							corsEnabled: true,
 						},
 					],
@@ -87326,40 +86500,7 @@ export const app = {
 						SourceOperationGroup.RepositoryMetadata,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.CodexNode_Rest,
-				provider: "CodexNode",
-				label: "Codex node REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "codex-node-api",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "http://{codex-node-host}:{port}",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -87375,7 +86516,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.cohere.com",
-							origin: "https://api.cohere.com",
 							corsEnabled: false,
 						},
 					],
@@ -87398,99 +86538,110 @@ export const app = {
 				},
 			},
 			{
-				source: Source.Coingecko_OpenApi,
-				provider: "Coingecko",
-				label: "Coingecko OpenAPI",
-				bindings: ([
-					["coingecko-demo", "https://api.coingecko.com/api/v3", "https://api.coingecko.com", "PUBLIC_COINGECKO_DEMO_API_KEY"],
-					["coingecko-pro", "https://pro-api.coingecko.com/api/v3", "https://pro-api.coingecko.com", "PUBLIC_COINGECKO_PRO_API_KEY"],
-				] as const).map(([key, locator, origin, envKey]) => ({
-					target: {
-						kind: SourceTargetKind.Global,
-						key,
-					},
-					endpoints: [{
-						endpointKind: SourceEndpointKind.HttpUrl,
-						locator,
-						origin,
-						corsEnabled: false,
-					}],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.OpenApiHttp,
-					operationGroups: [SourceOperationGroup.GenericRead],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [{
-						scope: SourceCredentialScope.PublicConfig,
-						env: { keys: [{ name: envKey, type: "string" }] },
-						keys: [envKey],
-					}],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.OpenApiSpec,
-							path: "src/sources/Coingecko/OpenApi/coingecko-demo.json",
-							generated: false,
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/Coingecko/OpenApi/schema-source.ts",
-							generated: false,
-						},
-						{
-							kind: SourceArtifactKind.OpenApiTypes,
-							path: "src/sources/Coingecko/OpenApi/openapi.d.ts",
-							generated: true,
-						},
-					],
-				})),
-			},
-			{
 				source: Source.Coingecko_Rest,
 				provider: "Coingecko",
 				label: "Coingecko REST",
-				bindings: ([
-					["coingecko-demo", "https://api.coingecko.com/api/v3", "https://api.coingecko.com", "PUBLIC_COINGECKO_DEMO_API_KEY"],
-					["coingecko-pro", "https://pro-api.coingecko.com/api/v3", "https://pro-api.coingecko.com", "PUBLIC_COINGECKO_PRO_API_KEY"],
-				] as const).map(([key, locator, origin, envKey]) => ({
-					target: {
-						kind: SourceTargetKind.Global,
-						key,
-					},
-					endpoints: [{
-						endpointKind: SourceEndpointKind.HttpUrl,
-						locator,
-						origin,
-						corsEnabled: false,
-					}],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [SourceOperationGroup.GenericRead],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [{
-						scope: SourceCredentialScope.PublicConfig,
-						env: { keys: [{ name: envKey, type: "string" }] },
-						keys: [envKey],
-					}],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/Coingecko/Rest/types.ts",
-							generated: false,
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "coingecko-demo",
 						},
-					],
-				})),
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://api.coingecko.com/api/v3",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.OpenApiHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [
+							{
+								scope: SourceCredentialScope.PublicConfig,
+								env: {
+									keys: [
+										{
+											name: "PUBLIC_COINGECKO_DEMO_API_KEY",
+											type: "string",
+										},
+									],
+								},
+							},
+						],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Coingecko/OpenApi/demo-api.json",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/Coingecko/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiTypes,
+								path: "src/sources/Coingecko/OpenApi/openapi.d.ts",
+								generated: true,
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "coingecko-pro",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://pro-api.coingecko.com/api/v3",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.OpenApiHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [
+							{
+								scope: SourceCredentialScope.PublicConfig,
+								env: {
+									keys: [
+										{
+											name: "PUBLIC_COINGECKO_PRO_API_KEY",
+											type: "string",
+										},
+									],
+								},
+							},
+						],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Coingecko/OpenApi/Pro/pro-api.json",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/Coingecko/OpenApi/Pro/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiTypes,
+								path: "src/sources/Coingecko/OpenApi/Pro/openapi.d.ts",
+								generated: true,
+							},
+						],
+					},
+				],
 			},
 			{
 				source: Source.CoinMarketCap_Rest,
 				provider: "CoinMarketCap",
 				label: "Coin Market Cap REST",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_COINMARKETCAP_API_KEY",
-							type: "string > 0",
-						},
-					],
-				},
 				binding: {
 					target: {
 						kind: SourceTargetKind.Global,
@@ -87500,7 +86651,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://pro-api.coinmarketcap.com",
-							origin: "https://pro-api.coinmarketcap.com",
 							corsEnabled: false,
 						},
 					],
@@ -87521,83 +86671,89 @@ export const app = {
 									},
 								],
 							},
-							keys: [
-								"PUBLIC_COINMARKETCAP_API_KEY",
-							],
 						},
 					],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/CoinMarketCap/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
 			},
 			{
-				source: Source.Coinpaprika_OpenApi,
+				source: Source.Coinpaprika_Rest,
 				provider: "Coinpaprika",
-				label: "Coinpaprika OpenAPI",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "coinpaprika-openapi",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.coinpaprika.com/v1",
-							origin: "https://api.coinpaprika.com",
-							corsEnabled: false,
+				label: "Coinpaprika REST",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "free-api",
 						},
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api-pro.coinpaprika.com/v1",
-							origin: "https://api-pro.coinpaprika.com",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.OpenApiHttp,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.PublicConfig,
-							env: {
-								keys: [
-									{
-										name: "PUBLIC_COINPAPRIKA_API_KEY",
-										type: "string > 0?",
-									},
-								],
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://api.coinpaprika.com/v1",
+								corsEnabled: false,
 							},
-							keys: [
-								"PUBLIC_COINPAPRIKA_API_KEY",
-							],
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.OpenApiHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Coinpaprika/OpenApi/openapi.yml",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/Coinpaprika/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiTypes,
+								path: "src/sources/Coinpaprika/OpenApi/openapi.d.ts",
+								generated: true,
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "pro-api",
 						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.OpenApiSpec,
-							path: "src/sources/Coinpaprika/OpenApi/openapi.yml",
-							generated: false,
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/Coinpaprika/OpenApi/schema-source.ts",
-							generated: false,
-						},
-						{
-							kind: SourceArtifactKind.OpenApiTypes,
-							path: "src/sources/Coinpaprika/OpenApi/openapi.d.ts",
-							generated: true,
-						},
-					],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://api-pro.coinpaprika.com/v1",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.OpenApiHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [
+							{
+								scope: SourceCredentialScope.PublicConfig,
+								env: {
+									keys: [
+										{
+											name: "PUBLIC_COINPAPRIKA_API_KEY",
+											type: "string > 0?",
+										},
+									],
+								},
+							},
+						],
+					},
+				],
 			},
 			{
 				source: Source.CometBft_Rest,
@@ -87612,7 +86768,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://cosmos-rpc.publicnode.com",
-							origin: "https://cosmos-rpc.publicnode.com",
 							corsEnabled: true,
 						},
 					],
@@ -87622,16 +86777,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/CometBft/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -87685,11 +86835,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -87705,13 +86851,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.github.com",
-							origin: "https://api.github.com",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
 							corsEnabled: true,
 						},
 					],
@@ -87721,11 +86865,7 @@ export const app = {
 						SourceOperationGroup.GithubRepositoryContents,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -87741,13 +86881,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.github.com",
-							origin: "https://api.github.com",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
 							corsEnabled: true,
 						},
 					],
@@ -87757,11 +86895,7 @@ export const app = {
 						SourceOperationGroup.GithubRepositoryContents,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -87777,7 +86911,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://rest.cosmos.directory/cosmoshub",
-							origin: "https://rest.cosmos.directory",
 							corsEnabled: true,
 						},
 					],
@@ -87787,24 +86920,19 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/CosmosSdk/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
 			},
 			{
-				source: Source.CronosExplorer_Rest,
+				source: Source.CronosExplorer,
 				provider: "CronosExplorer",
-				label: "Cronos Explorer REST",
+				label: "Cronos Explorer",
 				binding: {
 					target: {
 						kind: SourceTargetKind.Global,
@@ -87813,22 +86941,17 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{cronos-explorer-api-host}",
-							origin: "https://{cronos-explorer-api-host}",
+							locator: "https://cronos.org/explorer/api",
 							corsEnabled: false,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
+					apiFamily: ApiFamily.EtherscanModuleAction,
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					delivery: SourceDelivery.HttpProxy,
+					credentials: [],
 				},
 			},
 			{
@@ -87853,126 +86976,122 @@ export const app = {
 						SourceOperationGroup.DocumentClaimExtraction,
 					],
 					delivery: SourceDelivery.LocalOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.Defillama_OpenApi,
-				provider: "Defillama",
-				label: "Defillama OpenAPI",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "coins-openapi",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://coins.llama.fi",
-							origin: "https://coins.llama.fi",
-							corsEnabled: false,
-						},
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://icons.llama.fi",
-							origin: "https://icons.llama.fi",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.OpenApiHttp,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.OpenApiSpec,
-							path: "src/sources/Defillama/OpenApi/openapi.json",
-							generated: false,
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/Defillama/OpenApi/schema-source.ts",
-							generated: false,
-						},
-						{
-							kind: SourceArtifactKind.OpenApiTypes,
-							path: "src/sources/Defillama/OpenApi/openapi.d.ts",
-							generated: true,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
 				source: Source.Defillama_Rest,
 				provider: "Defillama",
 				label: "Defillama REST",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_DEFILLAMA_PRO_API_KEY",
-							type: "string > 0?",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "coins-public",
 						},
-					],
-				},
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "coins-pro-rest",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://pro-api.llama.fi",
-							origin: "https://pro-api.llama.fi",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.PublicConfig,
-							env: {
-								keys: [
-									{
-										name: "PUBLIC_DEFILLAMA_PRO_API_KEY",
-										type: "string > 0?",
-									},
-								],
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://coins.llama.fi",
+								corsEnabled: false,
 							},
-							keys: [
-								"PUBLIC_DEFILLAMA_PRO_API_KEY",
-							],
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.OpenApiHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Defillama/OpenApi/openapi.json",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/Defillama/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiTypes,
+								path: "src/sources/Defillama/OpenApi/openapi.d.ts",
+								generated: true,
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "chain-icons",
 						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/Defillama/Rest/types.ts",
-							generated: false,
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://icons.llama.fi",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.RawHttp,
+						apiFamily: ApiFamily.StaticWebsite,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "coins-pro",
 						},
-					],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://pro-api.llama.fi",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.OpenApiHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [
+							{
+								scope: SourceCredentialScope.PublicConfig,
+								env: {
+									keys: [
+										{
+											name: "PUBLIC_DEFILLAMA_PRO_API_KEY",
+											type: "string > 0?",
+										},
+									],
+								},
+							},
+						],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Defillama/OpenApi/Pro/openapi.json",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/Defillama/OpenApi/Pro/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiTypes,
+								path: "src/sources/Defillama/OpenApi/Pro/openapi.d.ts",
+								generated: true,
+							},
+						],
+					},
+				],
 			},
 			{
-				source: Source.Dexscreener_OpenApi,
+				source: Source.Dexscreener_Rest,
 				provider: "Dexscreener",
-				label: "Dexscreener OpenAPI",
+				label: "Dexscreener REST",
 				binding: {
 					target: {
 						kind: SourceTargetKind.Global,
@@ -87982,7 +87101,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.dexscreener.com",
-							origin: "https://api.dexscreener.com",
 							corsEnabled: false,
 						},
 					],
@@ -87992,21 +87110,15 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/Dexscreener/OpenApi/openapi.yml",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/Dexscreener/OpenApi/schema-source.ts",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -88029,7 +87141,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:22555",
-							origin: "http://127.0.0.1:22555",
 							corsEnabled: false,
 						},
 					],
@@ -88059,13 +87170,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.github.com",
-							origin: "https://api.github.com",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
 							corsEnabled: true,
 						},
 					],
@@ -88075,25 +87184,13 @@ export const app = {
 						SourceOperationGroup.GithubRepositoryContents,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
 				source: Source.Dune_Rest,
 				provider: "Dune",
 				label: "Dune REST",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_DUNE_API_KEY",
-							type: "string > 0",
-						},
-					],
-				},
 				binding: {
 					target: {
 						kind: SourceTargetKind.Global,
@@ -88103,7 +87200,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.dune.com",
-							origin: "https://api.dune.com",
 							corsEnabled: false,
 						},
 					],
@@ -88124,64 +87220,71 @@ export const app = {
 									},
 								],
 							},
-							keys: [
-								"PUBLIC_DUNE_API_KEY",
-							],
 						},
 					],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Dune/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
 			},
 			{
-				source: Source.DydxIndexer_Rest,
+				source: Source.DydxIndexer,
 				provider: "Dydx",
-				label: "dYdX Indexer REST",
+				label: "dYdX Indexer",
 				binding: {
 					target: {
-						kind: SourceTargetKind.NetworkSlug,
-						key: "dydx",
+						kind: SourceTargetKind.Caip2Network,
+						key: "cosmos:dydx-mainnet-1",
 					},
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{dydx-indexer-host}",
-							origin: "https://{dydx-indexer-host}",
+							locator: "https://indexer.dydx.trade",
 							corsEnabled: false,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.DydxIndexerRest,
+					apiFamily: ApiFamily.OpenApiHttp,
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
+					delivery: SourceDelivery.HttpProxy,
+					credentials: [],
+					artifacts: [
 						{
-							scope: SourceCredentialScope.None,
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/Dydx/OpenApi/openapi.json",
+							generated: true,
+							officialUrl: "https://raw.githubusercontent.com/dydxprotocol/v4-chain/main/indexer/services/comlink/public/swagger.json",
+						},
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Dydx/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiTypes,
+							path: "src/sources/Dydx/OpenApi/openapi.d.ts",
+							generated: true,
 						},
 					],
 				},
 			},
 			{
-				source: Source.DydxValidator_Rest,
-				provider: "Dydx",
-				label: "dYdX Validator REST",
+				source: Source.KingnodesDydxNode,
+				provider: "Kingnodes",
+				label: "Kingnodes dYdX node",
 				binding: {
 					target: {
-						kind: SourceTargetKind.NetworkSlug,
-						key: "dydx",
+						kind: SourceTargetKind.Caip2Network,
+						key: "cosmos:dydx-mainnet-1",
 					},
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{dydx-validator-rest-host}",
-							origin: "https://{dydx-validator-rest-host}",
+							locator: "https://dydx-rest.kingnodes.com",
 							corsEnabled: false,
 						},
 					],
@@ -88190,12 +87293,8 @@ export const app = {
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					delivery: SourceDelivery.HttpProxy,
+					credentials: [],
 				},
 			},
 			{
@@ -88219,49 +87318,435 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
 				source: Source.EasScan_Graphql,
 				provider: "EasScan",
 				label: "EAS Scan GraphQL",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "eas-scan",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: "1",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://easscan.org/graphql",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.Graphql,
+						apiFamily: ApiFamily.GraphqlHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.RemoteQuery,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/EasScan/Graphql/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlSchema,
+								path: "src/sources/EasScan/Graphql/schema.graphql",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlTypes,
+								path: "src/sources/EasScan/Graphql/graphql-env.d.ts",
+								generated: true,
+							},
+						],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{eas-scan-graphql-host}",
-							origin: "https://{eas-scan-graphql-host}",
-							corsEnabled: false,
+					{
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: "10",
 						},
-					],
-					wireProtocol: WireProtocol.Graphql,
-					apiFamily: ApiFamily.GraphqlHttp,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://optimism.easscan.org/graphql",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.Graphql,
+						apiFamily: ApiFamily.GraphqlHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.RemoteQuery,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/EasScan/Graphql/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlSchema,
+								path: "src/sources/EasScan/Graphql/schema.graphql",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlTypes,
+								path: "src/sources/EasScan/Graphql/graphql-env.d.ts",
+								generated: true,
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: "137",
 						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/EasScan/Graphql/types.ts",
-							generated: false,
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://polygon.easscan.org/graphql",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.Graphql,
+						apiFamily: ApiFamily.GraphqlHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.RemoteQuery,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/EasScan/Graphql/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlSchema,
+								path: "src/sources/EasScan/Graphql/schema.graphql",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlTypes,
+								path: "src/sources/EasScan/Graphql/graphql-env.d.ts",
+								generated: true,
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: "8453",
 						},
-					],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://base.easscan.org/graphql",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.Graphql,
+						apiFamily: ApiFamily.GraphqlHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.RemoteQuery,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/EasScan/Graphql/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlSchema,
+								path: "src/sources/EasScan/Graphql/schema.graphql",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlTypes,
+								path: "src/sources/EasScan/Graphql/graphql-env.d.ts",
+								generated: true,
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: "42161",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://arbitrum.easscan.org/graphql",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.Graphql,
+						apiFamily: ApiFamily.GraphqlHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.RemoteQuery,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/EasScan/Graphql/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlSchema,
+								path: "src/sources/EasScan/Graphql/schema.graphql",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlTypes,
+								path: "src/sources/EasScan/Graphql/graphql-env.d.ts",
+								generated: true,
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: "42170",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://arbitrum-nova.easscan.org/graphql",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.Graphql,
+						apiFamily: ApiFamily.GraphqlHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.RemoteQuery,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/EasScan/Graphql/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlSchema,
+								path: "src/sources/EasScan/Graphql/schema.graphql",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlTypes,
+								path: "src/sources/EasScan/Graphql/graphql-env.d.ts",
+								generated: true,
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: "42220",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://celo.easscan.org/graphql",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.Graphql,
+						apiFamily: ApiFamily.GraphqlHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.RemoteQuery,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/EasScan/Graphql/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlSchema,
+								path: "src/sources/EasScan/Graphql/schema.graphql",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlTypes,
+								path: "src/sources/EasScan/Graphql/graphql-env.d.ts",
+								generated: true,
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: "59144",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://linea.easscan.org/graphql",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.Graphql,
+						apiFamily: ApiFamily.GraphqlHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.RemoteQuery,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/EasScan/Graphql/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlSchema,
+								path: "src/sources/EasScan/Graphql/schema.graphql",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlTypes,
+								path: "src/sources/EasScan/Graphql/graphql-env.d.ts",
+								generated: true,
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: "84532",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://base-sepolia.easscan.org/graphql",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.Graphql,
+						apiFamily: ApiFamily.GraphqlHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.RemoteQuery,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/EasScan/Graphql/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlSchema,
+								path: "src/sources/EasScan/Graphql/schema.graphql",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlTypes,
+								path: "src/sources/EasScan/Graphql/graphql-env.d.ts",
+								generated: true,
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: "534352",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://scroll.easscan.org/graphql",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.Graphql,
+						apiFamily: ApiFamily.GraphqlHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.RemoteQuery,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/EasScan/Graphql/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlSchema,
+								path: "src/sources/EasScan/Graphql/schema.graphql",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlTypes,
+								path: "src/sources/EasScan/Graphql/graphql-env.d.ts",
+								generated: true,
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: "11155111",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://sepolia.easscan.org/graphql",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.Graphql,
+						apiFamily: ApiFamily.GraphqlHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.RemoteQuery,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/EasScan/Graphql/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlSchema,
+								path: "src/sources/EasScan/Graphql/schema.graphql",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlTypes,
+								path: "src/sources/EasScan/Graphql/graphql-env.d.ts",
+								generated: true,
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: "11155420",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://optimism-sepolia-bedrock.easscan.org/graphql",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.Graphql,
+						apiFamily: ApiFamily.GraphqlHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.RemoteQuery,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/EasScan/Graphql/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlSchema,
+								path: "src/sources/EasScan/Graphql/schema.graphql",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlTypes,
+								path: "src/sources/EasScan/Graphql/graphql-env.d.ts",
+								generated: true,
+							},
+						],
+					},
+				],
 			},
 			{
 				source: Source.EigenExplorer_Rest,
@@ -88275,8 +87760,7 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{eigen-explorer-api-host}",
-							origin: "https://{eigen-explorer-api-host}",
+							locator: "https://api.eigenexplorer.com",
 							corsEnabled: false,
 						},
 					],
@@ -88285,10 +87769,22 @@ export const app = {
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
+					delivery: SourceDelivery.HttpProxy,
 					credentials: [
 						{
-							scope: SourceCredentialScope.None,
+							scope: SourceCredentialScope.RuntimeSecret,
+							envKey: "EIGEN_EXPLORER_API_TOKEN",
+							injection: {
+								header: {
+									name: "x-api-token",
+								},
+							},
+						},
+					],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/EigenExplorer/Rest/types.ts",
 						},
 					],
 				},
@@ -88314,48 +87810,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.EigenLayerSubgraph_Graphql,
-				provider: "EigenLayerSubgraph",
-				label: "EigenLayer subgraph GraphQL",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "eigenlayer-subgraph",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{eigenlayer-subgraph-host}",
-							origin: "https://{eigenlayer-subgraph-host}",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.Graphql,
-					apiFamily: ApiFamily.GraphqlHttp,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/EigenLayerSubgraph/Graphql/types.ts",
-							generated: false,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -88371,7 +87826,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://8004scan.io/api/v1/public",
-							origin: "https://8004scan.io",
 							corsEnabled: true,
 						},
 					],
@@ -88381,16 +87835,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Eip8004Scan/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -88408,13 +87857,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.github.com",
-							origin: "https://api.github.com",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
 							corsEnabled: true,
 						},
 					],
@@ -88424,17 +87871,13 @@ export const app = {
 						SourceOperationGroup.GithubRepositoryContents,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
-				source: Source.EnsMetadataService_Rest,
+				source: Source.EnsMetadataService,
 				provider: "EnsMetadataService",
-				label: "ENS metadata service REST",
+				label: "ENS metadata service",
 				binding: {
 					target: {
 						kind: SourceTargetKind.Global,
@@ -88443,20 +87886,32 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{ens-metadata-service-host}",
-							origin: "https://{ens-metadata-service-host}",
-							corsEnabled: false,
+							locator: "https://metadata.ens.domains",
+							corsEnabled: true,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
+					apiFamily: ApiFamily.OpenApiHttp,
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
+					delivery: SourceDelivery.BrowserDirect,
+					credentials: [],
+					artifacts: [
 						{
-							scope: SourceCredentialScope.None,
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/EnsMetadataService/OpenApi/openapi.json",
+							generated: true,
+							officialUrl: "https://metadata.ens.domains/assets/doc_output.json",
+						},
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/EnsMetadataService/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiTypes,
+							path: "src/sources/EnsMetadataService/OpenApi/openapi.d.ts",
+							generated: true,
 						},
 					],
 				},
@@ -88474,7 +87929,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:8545",
-							origin: "http://127.0.0.1:8545",
 							corsEnabled: false,
 						},
 					],
@@ -88495,12 +87949,10 @@ export const app = {
 						{
 							kind: SourceArtifactKind.OpenRpcSpec,
 							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-							generated: false,
 						},
 					],
 				},
@@ -88519,7 +87971,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://blockstream.info/api",
-								origin: "https://blockstream.info",
 								corsEnabled: true,
 							},
 						],
@@ -88529,11 +87980,7 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.BrowserDirect,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 					},
 					{
 						target: {
@@ -88544,7 +87991,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://blockstream.info/liquid/api",
-								origin: "https://blockstream.info",
 								corsEnabled: true,
 							},
 						],
@@ -88554,11 +88000,7 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.BrowserDirect,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 					},
 				],
 			},
@@ -88576,13 +88018,11 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://api.github.com",
-								origin: "https://api.github.com",
 								corsEnabled: true,
 							},
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://raw.githubusercontent.com",
-								origin: "https://raw.githubusercontent.com",
 								corsEnabled: true,
 							},
 						],
@@ -88592,11 +88032,7 @@ export const app = {
 							SourceOperationGroup.GithubRepositoryContents,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 					},
 					{
 						target: {
@@ -88607,13 +88043,11 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://api.github.com",
-								origin: "https://api.github.com",
 								corsEnabled: true,
 							},
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://raw.githubusercontent.com",
-								origin: "https://raw.githubusercontent.com",
 								corsEnabled: true,
 							},
 						],
@@ -88623,11 +88057,7 @@ export const app = {
 							SourceOperationGroup.GithubRepositoryContents,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 					},
 				],
 			},
@@ -88635,44 +88065,54 @@ export const app = {
 				source: Source.EthereumLists_Rest,
 				provider: "EthereumLists",
 				label: "ethereum-lists REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "chains",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "chains-json",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://chainid.network",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/EthereumLists/Rest/types.ts",
+							},
+						],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://chainid.network",
-							origin: "https://chainid.network",
-							corsEnabled: false,
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "github-tree",
 						},
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.github.com",
-							origin: "https://api.github.com",
-							corsEnabled: true,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/EthereumLists/Rest/types.ts",
-							generated: false,
-						},
-					],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://api.github.com",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.GithubRestApi,
+						operationGroups: [
+							SourceOperationGroup.GithubRepositoryContents,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [],
+					},
+				],
 			},
 			{
 				source: Source.EthereumSpecs_Github,
@@ -88688,7 +88128,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://raw.githubusercontent.com/ethereum/consensus-specs/master/configs/",
-								origin: "https://raw.githubusercontent.com",
 								corsEnabled: true,
 							},
 						],
@@ -88698,11 +88137,7 @@ export const app = {
 							SourceOperationGroup.GithubRepositoryContents,
 						],
 						delivery: SourceDelivery.BrowserDirect,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 					},
 					{
 						target: {
@@ -88713,7 +88148,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://raw.githubusercontent.com/ethereum/go-ethereum/master/params/config.go",
-								origin: "https://raw.githubusercontent.com",
 								corsEnabled: true,
 							},
 						],
@@ -88723,11 +88157,7 @@ export const app = {
 							SourceOperationGroup.GithubRepositoryContents,
 						],
 						delivery: SourceDelivery.BrowserDirect,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 					},
 					{
 						target: {
@@ -88738,7 +88168,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://raw.githubusercontent.com/ethereum/execution-specs/8dbde99b65d519ea4c96084d784f85957e9314d0/network-upgrades/mainnet-upgrades/",
-								origin: "https://raw.githubusercontent.com",
 								corsEnabled: true,
 							},
 						],
@@ -88748,11 +88177,7 @@ export const app = {
 							SourceOperationGroup.GithubRepositoryContents,
 						],
 						delivery: SourceDelivery.BrowserDirect,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 					},
 				],
 			},
@@ -88769,7 +88194,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.etherscan.io/v2/api",
-							origin: "https://api.etherscan.io",
 							corsEnabled: false,
 						},
 					],
@@ -88792,47 +88216,12 @@ export const app = {
 									},
 								],
 							},
-							keys: [
-								"PUBLIC_ETHERSCAN_API_KEY",
-							],
 						},
 					],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Etherscan/Rest/types.ts",
-							generated: false,
-						},
-					],
-				},
-			},
-			{
-				source: Source.EthForks_Rest,
-				provider: "EthForks",
-				label: "EthForks REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "eth-forks",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://eth-forks.github.io",
-							origin: "https://eth-forks.github.io",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-						SourceOperationGroup.RepositoryMetadata,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
 						},
 					],
 				},
@@ -88850,7 +88239,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://eth.rpc.hypersync.xyz/{ENVIO_API_TOKEN}",
-							origin: "https://eth.rpc.hypersync.xyz",
 							corsEnabled: false,
 						},
 					],
@@ -88875,12 +88263,10 @@ export const app = {
 						{
 							kind: SourceArtifactKind.OpenRpcSpec,
 							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-							generated: false,
 						},
 					],
 				},
@@ -88898,7 +88284,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://eth.hypersync.xyz",
-							origin: "https://eth.hypersync.xyz",
 							corsEnabled: false,
 						},
 					],
@@ -88924,7 +88309,6 @@ export const app = {
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Envio/HyperSync/types.ts",
-							generated: false,
 							referenceUrl: "https://docs.envio.dev/docs/HyperSync/overview",
 						},
 					],
@@ -88934,50 +88318,54 @@ export const app = {
 				source: Source.Farcaster_Rest,
 				provider: "Farcaster",
 				label: "Farcaster REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "client-api",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "client-api",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://api.farcaster.xyz",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/Farcaster/Rest/types.ts",
+							},
+						],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.farcaster.xyz",
-							origin: "https://api.farcaster.xyz",
-							corsEnabled: false,
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "web-api",
 						},
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://farcaster.xyz",
-							origin: "https://farcaster.xyz",
-							corsEnabled: false,
-						},
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://haatz.quilibrium.com",
-							origin: "https://haatz.quilibrium.com",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/Farcaster/Rest/types.ts",
-							generated: false,
-						},
-					],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://farcaster.xyz",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
+					},
+				],
 			},
 			{
 				source: Source.FedimintClient_Rpc,
@@ -89050,13 +88438,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.github.com",
-							origin: "https://api.github.com",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
 							corsEnabled: true,
 						},
 					],
@@ -89066,11 +88452,7 @@ export const app = {
 						SourceOperationGroup.GithubRepositoryContents,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -89086,7 +88468,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://filfox.info",
-							origin: "https://filfox.info",
 							corsEnabled: true,
 						},
 					],
@@ -89096,34 +88477,28 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Filfox/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
 			},
 			{
-				source: Source.ForgejoRepos_Rest,
+				source: Source.Forgejo_Rest,
 				provider: "Forgejo",
-				label: "Forgejo repositories REST",
+				label: "Forgejo REST",
 				binding: {
 					target: {
 						kind: SourceTargetKind.Global,
-						key: "forgejo-repositories",
+						key: "forgejo-instance",
 					},
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://{forgejo-host}/api/v1",
-							origin: "https://{forgejo-host}",
 							corsEnabled: false,
 						},
 					],
@@ -89131,97 +88506,10 @@ export const app = {
 					apiFamily: ApiFamily.ForgejoRestApi,
 					operationGroups: [
 						SourceOperationGroup.GitRepositoryContents,
-						SourceOperationGroup.RepositoryMetadata,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.UserDelegated,
-						},
-					],
-				},
-			},
-			{
-				source: Source.ForgejoIssues_Rest,
-				provider: "Forgejo",
-				label: "Forgejo issues REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "forgejo-issues",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{forgejo-host}/api/v1",
-							origin: "https://{forgejo-host}",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.ForgejoRestApi,
-					operationGroups: [
 						SourceOperationGroup.IssueTracking,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.UserDelegated,
-						},
-					],
-				},
-			},
-			{
-				source: Source.ForgejoPulls_Rest,
-				provider: "Forgejo",
-				label: "Forgejo pulls REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "forgejo-pulls",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{forgejo-host}/api/v1",
-							origin: "https://{forgejo-host}",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.ForgejoRestApi,
-					operationGroups: [
 						SourceOperationGroup.PullRequestReview,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.UserDelegated,
-						},
-					],
-				},
-			},
-			{
-				source: Source.ForgejoReleases_Rest,
-				provider: "Forgejo",
-				label: "Forgejo releases REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "forgejo-releases",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{forgejo-host}/api/v1",
-							origin: "https://{forgejo-host}",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.ForgejoRestApi,
-					operationGroups: [
 						SourceOperationGroup.ReleaseMetadata,
+						SourceOperationGroup.RepositoryMetadata,
 					],
 					delivery: SourceDelivery.RemoteQuery,
 					credentials: [
@@ -89273,7 +88561,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.fxtwitter.com",
-							origin: "https://api.fxtwitter.com",
 							corsEnabled: false,
 						},
 					],
@@ -89283,16 +88570,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/FxEmbed/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -89310,7 +88592,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://go.getblock.io/{GETBLOCK_API_KEY}/",
-							origin: "https://go.getblock.io",
 							corsEnabled: false,
 						},
 					],
@@ -89335,12 +88616,10 @@ export const app = {
 						{
 							kind: SourceArtifactKind.OpenRpcSpec,
 							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-							generated: false,
 						},
 					],
 				},
@@ -89358,7 +88637,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://go.getblock.io/{GETBLOCK_API_KEY}/",
-							origin: "https://go.getblock.io",
 							corsEnabled: false,
 						},
 					],
@@ -89383,7 +88661,6 @@ export const app = {
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/GetBlock/Yellowstone/types.ts",
-							generated: false,
 							referenceUrl: "https://getblock.io/docs/yellowstone-grpc/",
 						},
 					],
@@ -89431,78 +88708,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://{host}/{owner}/{repo}.git",
-							origin: "https://{host}",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.Git,
-					apiFamily: ApiFamily.GitObject,
-					operationGroups: [
-						SourceOperationGroup.GitRepositoryContents,
-						SourceOperationGroup.RepositoryMetadata,
-					],
-					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.UserDelegated,
-						},
-					],
-				},
-			},
-			{
-				source: Source.Github_Rest,
-				provider: "Github",
-				label: "GitHub REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "github-rest",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.github.com",
-							origin: "https://api.github.com",
-							corsEnabled: true,
-						},
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
-							corsEnabled: true,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.GithubRestApi,
-					operationGroups: [
-						SourceOperationGroup.GitRepositoryContents,
-						SourceOperationGroup.IssueTracking,
-						SourceOperationGroup.PullRequestReview,
-						SourceOperationGroup.ReleaseMetadata,
-						SourceOperationGroup.RepositoryMetadata,
-					],
-					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.UserDelegated,
-						},
-					],
-				},
-			},
-			{
-				source: Source.Github_Git,
-				provider: "Github",
-				label: "GitHub Git",
-				binding: {
-					target: {
-						kind: SourceTargetKind.GitRepository,
-						key: "github-git",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://github.com/{owner}/{repo}.git",
-							origin: "https://github.com",
 							corsEnabled: false,
 						},
 					],
@@ -89533,7 +88738,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://gitlab.com",
-							origin: "https://gitlab.com",
 							corsEnabled: false,
 						},
 					],
@@ -89567,7 +88771,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.covalenthq.com",
-							origin: "https://api.covalenthq.com",
 							corsEnabled: false,
 						},
 					],
@@ -89593,7 +88796,6 @@ export const app = {
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Covalent/GoldRush/Rest/types.ts",
-							generated: false,
 							referenceUrl: "https://goldrush.dev/docs/skills/goldrush-foundational-api/references/endpoints-transactions/",
 						},
 					],
@@ -89612,7 +88814,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://generativelanguage.googleapis.com",
-							origin: "https://generativelanguage.googleapis.com",
 							corsEnabled: false,
 						},
 					],
@@ -89676,7 +88877,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://mainnet-public.mirrornode.hedera.com",
-							origin: "https://mainnet-public.mirrornode.hedera.com",
 							corsEnabled: false,
 						},
 					],
@@ -89686,11 +88886,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -89714,21 +88910,15 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.Proto,
 							path: "src/sources/HederaSdk/Grpc/proto",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/HederaSdk/Grpc/schema-source.ts",
-							generated: false,
 						},
 					],
 				},
@@ -89763,52 +88953,91 @@ export const app = {
 				},
 			},
 			{
-				source: Source.Helius_Rest,
+				source: Source.Helius,
 				provider: "Helius",
-				label: "Helius REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api-mainnet.helius-rpc.com",
-							origin: "https://api-mainnet.helius-rpc.com",
-							corsEnabled: true,
+				label: "Helius",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Caip2Network,
+							key: "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
 						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.PublicConfig,
-							env: {
-								keys: [
-									{
-										name: "PUBLIC_HELIUS_API_KEY",
-										type: "string",
-									},
-								],
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://api-mainnet.helius-rpc.com",
+								corsEnabled: true,
 							},
-							keys: [
-								"PUBLIC_HELIUS_API_KEY",
-							],
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [
+							{
+								scope: SourceCredentialScope.PublicConfig,
+								env: {
+									keys: [
+										{
+											name: "PUBLIC_HELIUS_API_KEY",
+											type: "string",
+										},
+									],
+								},
+							},
+						],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/Helius/Rest/types.ts",
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Caip2Network,
+							key: "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
 						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/Helius/Rest/types.ts",
-							generated: false,
-						},
-					],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://mainnet.helius-rpc.com",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.JsonRpc2,
+						apiFamily: ApiFamily.MetaplexDasJsonRpc,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [
+							{
+								scope: SourceCredentialScope.PublicConfig,
+								env: {
+									keys: [
+										{
+											name: "PUBLIC_HELIUS_API_KEY",
+											type: "string",
+										},
+									],
+								},
+							},
+						],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/metaplex-das-api.json",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/schema-source.ts",
+							},
+						],
+					},
+				],
 			},
 			{
 				source: Source.HuggingFaceHub_Rest,
@@ -89823,7 +89052,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://huggingface.co/api",
-							origin: "https://huggingface.co",
 							corsEnabled: false,
 						},
 					],
@@ -89843,83 +89071,67 @@ export const app = {
 				},
 			},
 			{
-				source: Source.Hyperliquid_Rest,
+				source: Source.Hyperliquid,
 				provider: "Hyperliquid",
-				label: "Hyperliquid REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.NetworkSlug,
-						key: "hyperliquid",
+				label: "Hyperliquid",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.NetworkSlug,
+							key: "hyperliquid",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://api.hyperliquid.xyz/info",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/Hyperliquid/Rest/types.ts",
+							},
+						],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.hyperliquid.xyz/info",
-							origin: "https://api.hyperliquid.xyz",
-							corsEnabled: true,
+					{
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: "999",
 						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/Hyperliquid/Rest/types.ts",
-							generated: false,
-						},
-					],
-				},
-			},
-			{
-				source: Source.Hyperliquid_JsonRpc,
-				provider: "Hyperliquid",
-				label: "HyperEVM JSON-RPC",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Eip155Chain,
-						key: "999",
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://rpc.hyperliquid.xyz/evm",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.JsonRpc2,
+						apiFamily: ApiFamily.EvmExecutionJsonRpc,
+						operationGroups: [
+							SourceOperationGroup.EvmRpcCore,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+						],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://rpc.hyperliquid.xyz/evm",
-							origin: "https://rpc.hyperliquid.xyz",
-							corsEnabled: true,
-						},
-					],
-					wireProtocol: WireProtocol.JsonRpc2,
-					apiFamily: ApiFamily.EvmExecutionJsonRpc,
-					operationGroups: [
-						SourceOperationGroup.EvmRpcCore,
-					],
-					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.OpenRpcSpec,
-							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							generated: false,
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-							generated: false,
-						},
-					],
-				},
+				],
 			},
 			{
 				source: Source.HyperliquidDocs_Rest,
@@ -89934,7 +89146,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://hyperliquid.gitbook.io",
-							origin: "https://hyperliquid.gitbook.io",
 							corsEnabled: true,
 						},
 					],
@@ -89944,11 +89155,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -89972,11 +89179,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -90000,11 +89203,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -90029,11 +89228,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -90058,11 +89253,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -90136,19 +89327,16 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://ipfs.io",
-							origin: "https://ipfs.io",
 							corsEnabled: false,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://dweb.link",
-							origin: "https://dweb.link",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://cloudflare-ipfs.com",
-							origin: "https://cloudflare-ipfs.com",
 							corsEnabled: false,
 						},
 					],
@@ -90158,11 +89346,7 @@ export const app = {
 						SourceOperationGroup.ContentGatewayRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -90178,7 +89362,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://{juno-rpc-host}",
-							origin: "https://{juno-rpc-host}",
 							corsEnabled: false,
 						},
 					],
@@ -90188,11 +89371,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -90225,31 +89404,43 @@ export const app = {
 				},
 			},
 			{
-				source: Source.KaspaExplorer_Rest,
+				source: Source.KaspaExplorer,
 				provider: "KaspaExplorer",
-				label: "Kaspa Explorer REST",
+				label: "Kaspa Explorer",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Global,
-						key: "kaspa-explorer-api",
+						kind: SourceTargetKind.NetworkSlug,
+						key: "kaspa",
 					},
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{kaspa-explorer-api-host}",
-							origin: "https://{kaspa-explorer-api-host}",
-							corsEnabled: false,
+							locator: "https://api.kaspa.org",
+							corsEnabled: true,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
+					apiFamily: ApiFamily.OpenApiHttp,
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
+					delivery: SourceDelivery.BrowserDirect,
+					credentials: [],
+					artifacts: [
 						{
-							scope: SourceCredentialScope.None,
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/KaspaExplorer/OpenApi/openapi.json",
+							generated: true,
+							officialUrl: "https://api.kaspa.org/openapi.json",
+						},
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/KaspaExplorer/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiTypes,
+							path: "src/sources/KaspaExplorer/OpenApi/openapi.d.ts",
+							generated: true,
 						},
 					],
 				},
@@ -90275,21 +89466,15 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.Proto,
 							path: "src/sources/KaspaNode/Grpc/proto",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/KaspaNode/Grpc/schema-source.ts",
-							generated: false,
 						},
 					],
 				},
@@ -90316,11 +89501,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -90345,11 +89526,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -90481,7 +89658,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.koios.rest",
-							origin: "https://api.koios.rest",
 							corsEnabled: false,
 						},
 					],
@@ -90491,11 +89667,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -90511,7 +89683,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://l2beat.com",
-							origin: "https://l2beat.com",
 							corsEnabled: false,
 						},
 					],
@@ -90521,16 +89692,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/L2Beat/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -90547,20 +89713,32 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{layerzero-scan-api-host}",
-							origin: "https://{layerzero-scan-api-host}",
+							locator: "https://scan.layerzero-api.com",
 							corsEnabled: false,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
+					apiFamily: ApiFamily.OpenApiHttp,
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
+					credentials: [],
+					artifacts: [
 						{
-							scope: SourceCredentialScope.None,
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/LayerZeroScan/OpenApi/openapi.json",
+							generated: true,
+							officialUrl: "https://scan.layerzero-api.com/v1/openapi",
+						},
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/LayerZeroScan/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiTypes,
+							path: "src/sources/LayerZeroScan/OpenApi/openapi.d.ts",
+							generated: true,
 						},
 					],
 				},
@@ -90636,7 +89814,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.lens.xyz/graphql",
-							origin: "https://api.lens.xyz",
 							corsEnabled: true,
 						},
 					],
@@ -90657,85 +89834,21 @@ export const app = {
 									},
 								],
 							},
-							keys: [
-								"PUBLIC_LENS_API_KEY",
-							],
 						},
 					],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.GraphqlSchema,
 							path: "src/sources/Lens/Graphql/schema.graphql",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/Lens/Graphql/schema-source.ts",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GraphqlTypes,
 							path: "src/sources/Lens/Graphql/graphql-env.d.ts",
 							generated: true,
-						},
-					],
-				},
-			},
-			{
-				source: Source.LibtorrentSession_Rest,
-				provider: "LibtorrentSession",
-				label: "libtorrent session REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.LocalDevice,
-						key: "libtorrent-session",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "env:LIBTORRENT_SESSION_API_URL",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.BitTorrentClient,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.LocalSecret,
-						},
-					],
-				},
-			},
-			{
-				source: Source.LifiStatus_Rest,
-				provider: "Lifi",
-				label: "LI.FI status REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "lifi-status",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://li.quest",
-							origin: "https://li.quest",
-							corsEnabled: true,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.OpenApiHttp,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
 						},
 					],
 				},
@@ -90753,13 +89866,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://li.quest",
-							origin: "https://li.quest",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://staging.li.quest",
-							origin: "https://staging.li.quest",
 							corsEnabled: true,
 						},
 					],
@@ -90769,16 +89880,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/Lifi/OpenApi/openapi.yaml",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -90788,36 +89894,6 @@ export const app = {
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/Lifi/OpenApi/schema-source.ts",
-							generated: false,
-						},
-					],
-				},
-			},
-			{
-				source: Source.LightningLnd_Grpc,
-				provider: "LightningLnd",
-				label: "LND gRPC",
-				binding: {
-					target: {
-						kind: SourceTargetKind.LocalDevice,
-						key: "lnd",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.TcpAddress,
-							locator: "env:LIGHTNING_LND_GRPC_ENDPOINT",
-						},
-					],
-					wireProtocol: WireProtocol.Grpc,
-					apiFamily: ApiFamily.GrpcService,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-						SourceOperationGroup.WalletAccountRead,
-					],
-					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.LocalSecret,
 						},
 					],
 				},
@@ -90835,25 +89911,21 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://127.0.0.1:8080",
-							origin: "https://127.0.0.1:8080",
 							corsEnabled: false,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:8080",
-							origin: "http://127.0.0.1:8080",
 							corsEnabled: false,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://localhost:8080",
-							origin: "https://localhost:8080",
 							corsEnabled: false,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://localhost:8080",
-							origin: "http://localhost:8080",
 							corsEnabled: false,
 						},
 					],
@@ -90874,16 +89946,12 @@ export const app = {
 									},
 								],
 							},
-							keys: [
-								"PUBLIC_LND_MACAROON_HEX",
-							],
 						},
 					],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/LightningLnd/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -90901,7 +89969,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://mempool.space",
-							origin: "https://mempool.space",
 							corsEnabled: true,
 						},
 					],
@@ -90911,16 +89978,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/LightningMempoolSpace/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -90938,7 +90000,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:9332",
-							origin: "http://127.0.0.1:9332",
 							corsEnabled: false,
 						},
 					],
@@ -90968,13 +90029,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.github.com",
-							origin: "https://api.github.com",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
 							corsEnabled: true,
 						},
 					],
@@ -90984,11 +90043,7 @@ export const app = {
 						SourceOperationGroup.GithubRepositoryContents,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -91004,7 +90059,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:9332",
-							origin: "http://127.0.0.1:9332",
 							corsEnabled: false,
 						},
 					],
@@ -91043,11 +90097,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -91062,7 +90112,7 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "env:LOGOS_BLOCKCHAIN_NODE_URL",
+							locator: "http://127.0.0.1:8080",
 							corsEnabled: false,
 						},
 					],
@@ -91071,10 +90121,12 @@ export const app = {
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
+					delivery: SourceDelivery.LocalOnly,
+					credentials: [],
+					artifacts: [
 						{
-							scope: SourceCredentialScope.None,
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/LogosBlockchainNode/Rest/types.ts",
 						},
 					],
 				},
@@ -91092,7 +90144,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://docs.logoslabs.io",
-							origin: "https://docs.logoslabs.io",
 							corsEnabled: true,
 						},
 					],
@@ -91102,16 +90153,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/LogosDocs/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -91130,7 +90176,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://api.node.glif.io",
-								origin: "https://api.node.glif.io",
 								corsEnabled: true,
 							},
 						],
@@ -91140,16 +90185,11 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.BrowserDirect,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/Lotus/JsonRpc/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -91162,7 +90202,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "http://127.0.0.1:1234",
-								origin: "http://127.0.0.1:1234",
 								corsEnabled: false,
 							},
 						],
@@ -91181,7 +90220,6 @@ export const app = {
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/Lotus/JsonRpc/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -91237,11 +90275,7 @@ export const app = {
 						SourceOperationGroup.BitTorrentDhtLookup,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -91287,7 +90321,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://mastodon.social",
-								origin: "https://mastodon.social",
 								corsEnabled: false,
 							},
 						],
@@ -91297,16 +90330,11 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/Mastodon/Rest/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -91319,7 +90347,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://fosstodon.org",
-								origin: "https://fosstodon.org",
 								corsEnabled: false,
 							},
 						],
@@ -91329,16 +90356,11 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/Mastodon/Rest/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -91351,7 +90373,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://fosstodon.org",
-								origin: "https://fosstodon.org",
 								corsEnabled: false,
 							},
 						],
@@ -91361,16 +90382,11 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/Mastodon/Rest/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -91418,7 +90434,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://registry.modelcontextprotocol.io/v0.1/servers",
-							origin: "https://registry.modelcontextprotocol.io",
 							corsEnabled: false,
 						},
 					],
@@ -91430,11 +90445,7 @@ export const app = {
 						SourceOperationGroup.RepositoryMetadata,
 					],
 					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -91450,7 +90461,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://mempool.space/api",
-							origin: "https://mempool.space",
 							corsEnabled: true,
 						},
 					],
@@ -91460,11 +90470,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -91480,7 +90486,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://og.metadata.vision",
-							origin: "https://og.metadata.vision",
 							corsEnabled: false,
 						},
 					],
@@ -91490,46 +90495,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/MetadataVision/Rest/types.ts",
-							generated: false,
-						},
-					],
-				},
-			},
-			{
-				source: Source.MetaplexDAS_Rest,
-				provider: "MetaplexDAS",
-				label: "Metaplex DAS REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "metaplex-das-api",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{metaplex-das-api-host}",
-							origin: "https://{metaplex-das-api-host}",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
 						},
 					],
 				},
@@ -91548,7 +90518,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://boost-relay.flashbots.net",
-								origin: "https://boost-relay.flashbots.net",
 								corsEnabled: false,
 							},
 						],
@@ -91558,16 +90527,11 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/MevRelay/Rest/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -91580,7 +90544,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://relay.ultrasound.money",
-								origin: "https://relay.ultrasound.money",
 								corsEnabled: false,
 							},
 						],
@@ -91590,16 +90553,11 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/MevRelay/Rest/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -91612,7 +90570,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://builder-relay-sepolia.flashbots.net",
-								origin: "https://builder-relay-sepolia.flashbots.net",
 								corsEnabled: false,
 							},
 						],
@@ -91622,25 +90579,20 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/MevRelay/Rest/types.ts",
-								generated: false,
 							},
 						],
 					},
 				],
 			},
 			{
-				source: Source.Mintscan_Rest,
+				source: Source.Mintscan,
 				provider: "Mintscan",
-				label: "Mintscan REST",
+				label: "Mintscan",
 				binding: {
 					target: {
 						kind: SourceTargetKind.Global,
@@ -91649,9 +90601,8 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{mintscan-api-host}",
-							origin: "https://{mintscan-api-host}",
-							corsEnabled: false,
+							locator: "https://apis.mintscan.io",
+							corsEnabled: true,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
@@ -91659,10 +90610,18 @@ export const app = {
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
+					delivery: SourceDelivery.BrowserDirect,
 					credentials: [
 						{
-							scope: SourceCredentialScope.None,
+							scope: SourceCredentialScope.PublicConfig,
+							env: {
+								keys: [
+									{
+										name: "PUBLIC_MINTSCAN_API_KEY",
+										type: "string > 0",
+									},
+								],
+							},
 						},
 					],
 				},
@@ -91680,7 +90639,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.mistral.ai",
-							origin: "https://api.mistral.ai",
 							corsEnabled: false,
 						},
 					],
@@ -91724,11 +90682,7 @@ export const app = {
 						SourceOperationGroup.DocumentClaimExtraction,
 					],
 					delivery: SourceDelivery.LocalOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -91774,13 +90728,11 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://xmr-node.cakewallet.com:18081/json_rpc",
-								origin: "https://xmr-node.cakewallet.com:18081",
 								corsEnabled: false,
 							},
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "http://nodes.hashvault.pro:18081/json_rpc",
-								origin: "http://nodes.hashvault.pro:18081",
 								corsEnabled: false,
 							},
 						],
@@ -91790,16 +90742,11 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/MoneroDaemonRpc/JsonRpc/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -91812,7 +90759,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "http://127.0.0.1:18081/json_rpc",
-								origin: "http://127.0.0.1:18081",
 								corsEnabled: false,
 							},
 						],
@@ -91831,7 +90777,6 @@ export const app = {
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/MoneroDaemonRpc/JsonRpc/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -91850,7 +90795,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:18083/json_rpc",
-							origin: "http://127.0.0.1:18083",
 							corsEnabled: false,
 						},
 					],
@@ -91881,7 +90825,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.nearblocks.io",
-							origin: "https://api.nearblocks.io",
 							corsEnabled: true,
 						},
 					],
@@ -91891,16 +90834,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/NearBlocks/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -91947,13 +90885,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.github.com",
-							origin: "https://api.github.com",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
 							corsEnabled: true,
 						},
 					],
@@ -91963,11 +90899,7 @@ export const app = {
 						SourceOperationGroup.GithubRepositoryContents,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -91983,7 +90915,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://rpc.mainnet.near.org",
-							origin: "https://rpc.mainnet.near.org",
 							corsEnabled: false,
 						},
 					],
@@ -91993,16 +90924,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/NearRpc/JsonRpc/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -92040,14 +90966,6 @@ export const app = {
 				source: Source.Neynar_Rest,
 				provider: "Neynar",
 				label: "Neynar REST",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_NEYNAR_API_KEY",
-							type: "string > 0?",
-						},
-					],
-				},
 				binding: {
 					target: {
 						kind: SourceTargetKind.Global,
@@ -92057,7 +90975,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.neynar.com",
-							origin: "https://api.neynar.com",
 							corsEnabled: false,
 						},
 					],
@@ -92078,21 +90995,16 @@ export const app = {
 									},
 								],
 							},
-							keys: [
-								"PUBLIC_NEYNAR_API_KEY",
-							],
 						},
 					],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/Neynar/OpenApi/openapi.yaml",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/Neynar/OpenApi/schema-source.ts",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -92132,121 +91044,51 @@ export const app = {
 				},
 			},
 			{
-				source: Source.Nitro_ClientStore,
-				provider: "Nitro",
-				label: "Nitro client store",
-				binding: {
-					target: {
-						kind: SourceTargetKind.LocalDevice,
-						key: "nitro-client-store",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.InProcess,
-							locator: "nitro-client-store",
-						},
-					],
-					wireProtocol: WireProtocol.InProcess,
-					apiFamily: ApiFamily.LocalStateStore,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.LocalOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.LocalSecret,
-						},
-					],
-				},
-			},
-			{
-				source: Source.Nitro_NodeRpc,
-				provider: "Nitro",
-				label: "Nitro node RPC",
-				binding: {
-					target: {
-						kind: SourceTargetKind.LocalDevice,
-						key: "nitro-node",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "env:NITRO_NODE_RPC_URL",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.LocalSecret,
-						},
-					],
-				},
-			},
-			{
-				source: Source.Nodely_Algod_Rest,
+				source: Source.Nodely,
 				provider: "Nodely",
-				label: "Nodely Algod REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.NetworkSlug,
-						key: "algorand",
+				label: "Nodely",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.NetworkSlug,
+							key: "algorand",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://mainnet-api.4160.nodely.dev",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.AlgodRestApi,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://mainnet-api.4160.nodely.dev",
-							origin: "https://mainnet-api.4160.nodely.dev",
-							corsEnabled: false,
+					{
+						target: {
+							kind: SourceTargetKind.NetworkSlug,
+							key: "algorand",
 						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.Nodely_AlgorandIndexer_Rest,
-				provider: "Nodely",
-				label: "Nodely Algorand Indexer REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.NetworkSlug,
-						key: "algorand",
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://mainnet-idx.4160.nodely.dev",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.AlgorandIndexerRestApi,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://mainnet-idx.4160.nodely.dev",
-							origin: "https://mainnet-idx.4160.nodely.dev",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
+				],
 			},
 			{
 				source: Source.NostrBand_Rest,
@@ -92261,7 +91103,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.nostr.band",
-							origin: "https://api.nostr.band",
 							corsEnabled: false,
 						},
 					],
@@ -92271,16 +91112,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/NostrBand/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -92290,20 +91126,15 @@ export const app = {
 				provider: "NostrRelay",
 				label: "Nostr relay NIP-11 HTTP",
 				bindings: [
-					...[
-						["wss://relay.damus.io", "https://relay.damus.io"],
-						["wss://nos.lol", "https://nos.lol"],
-						["wss://relay.primal.net", "https://relay.primal.net"],
-					].map(([relayUrl, endpoint]) => ({
+					{
 						target: {
 							kind: SourceTargetKind.Feed,
-							key: relayUrl,
+							key: "wss://relay.damus.io",
 						},
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: endpoint,
-								origin: endpoint,
+								locator: "https://relay.damus.io",
 								corsEnabled: false,
 							},
 						],
@@ -92313,19 +91144,66 @@ export const app = {
 							SourceOperationGroup.NostrRelayRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/NostrRelay/Http/types.ts",
-								generated: false,
 							},
 						],
-					})),
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Feed,
+							key: "wss://nos.lol",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://nos.lol",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.NostrRelay,
+						operationGroups: [
+							SourceOperationGroup.NostrRelayRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/NostrRelay/Http/types.ts",
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Feed,
+							key: "wss://relay.primal.net",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://relay.primal.net",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.NostrRelay,
+						operationGroups: [
+							SourceOperationGroup.NostrRelayRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/NostrRelay/Http/types.ts",
+							},
+						],
+					},
 				],
 			},
 			{
@@ -92333,19 +91211,15 @@ export const app = {
 				provider: "NostrRelay",
 				label: "Nostr relay WebSocket",
 				bindings: [
-					...[
-						"wss://relay.damus.io",
-						"wss://nos.lol",
-						"wss://relay.primal.net",
-					].map((relayUrl) => ({
+					{
 						target: {
 							kind: SourceTargetKind.Feed,
-							key: relayUrl,
+							key: "wss://relay.damus.io",
 						},
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.WebSocketUrl,
-								locator: relayUrl,
+								locator: "wss://relay.damus.io",
 							},
 						],
 						wireProtocol: WireProtocol.WebSocketMessages,
@@ -92355,19 +91229,66 @@ export const app = {
 							SourceOperationGroup.GenericSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/NostrRelay/WebSocket/types.ts",
-								generated: false,
 							},
 						],
-					})),
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Feed,
+							key: "wss://nos.lol",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.WebSocketUrl,
+								locator: "wss://nos.lol",
+							},
+						],
+						wireProtocol: WireProtocol.WebSocketMessages,
+						apiFamily: ApiFamily.NostrRelay,
+						operationGroups: [
+							SourceOperationGroup.NostrRelayRead,
+							SourceOperationGroup.GenericSubscribe,
+						],
+						delivery: SourceDelivery.RemoteLive,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/NostrRelay/WebSocket/types.ts",
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Feed,
+							key: "wss://relay.primal.net",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.WebSocketUrl,
+								locator: "wss://relay.primal.net",
+							},
+						],
+						wireProtocol: WireProtocol.WebSocketMessages,
+						apiFamily: ApiFamily.NostrRelay,
+						operationGroups: [
+							SourceOperationGroup.NostrRelayRead,
+							SourceOperationGroup.GenericSubscribe,
+						],
+						delivery: SourceDelivery.RemoteLive,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/NostrRelay/WebSocket/types.ts",
+							},
+						],
+					},
 				],
 			},
 			{
@@ -92383,7 +91304,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://{registry}/v2",
-							origin: "https://{registry}",
 							corsEnabled: false,
 						},
 					],
@@ -92423,41 +91343,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.OneInchSwap_Rest,
-				provider: "OneInchSwap",
-				label: "1inch Swap REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "one-inch-swap-api",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.1inch.dev",
-							origin: "https://api.1inch.dev",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.RuntimeSecret,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -92482,11 +91368,7 @@ export const app = {
 						SourceOperationGroup.DocumentClaimExtraction,
 					],
 					delivery: SourceDelivery.LocalOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -92502,7 +91384,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.openai.com",
-							origin: "https://api.openai.com",
 							corsEnabled: false,
 						},
 					],
@@ -92532,44 +91413,54 @@ export const app = {
 				source: Source.Openchain_Rest,
 				provider: "Openchain",
 				label: "Openchain REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "evm-signatures",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "openchain-signatures",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://api.4byte.sourcify.dev/signature-database/v1",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/Openchain/Rest/types.ts",
+							},
+						],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.4byte.sourcify.dev/signature-database/v1",
-							origin: "https://api.4byte.sourcify.dev",
-							corsEnabled: false,
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "fourbyte-directory",
 						},
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://www.4byte.directory/api/v1",
-							origin: "https://www.4byte.directory",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/Openchain/Rest/types.ts",
-							generated: false,
-						},
-					],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://www.4byte.directory/api/v1",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
+					},
+				],
 			},
 			{
 				source: Source.OpenSea_Rest,
@@ -92584,7 +91475,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.opensea.io",
-							origin: "https://api.opensea.io",
 							corsEnabled: false,
 						},
 					],
@@ -92603,12 +91493,10 @@ export const app = {
 						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/OpenSea/OpenApi/openapi.json",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/OpenSea/OpenApi/schema-source.ts",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -92619,69 +91507,9 @@ export const app = {
 				},
 			},
 			{
-				source: Source.Osmosis_LCD_Rest,
-				provider: "OsmosisLCD",
-				label: "Osmosis LCD REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "cosmos:cosmoshub-4",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{osmosis-lcd-host}",
-							origin: "https://{osmosis-lcd-host}",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.CosmosLcdApi,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.Paraswap_Rest,
-				provider: "Paraswap",
-				label: "ParaSwap REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "paraswap-api",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://apiv5.paraswap.io",
-							origin: "https://apiv5.paraswap.io",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.Pathfinder_JsonRpc,
+				source: Source.Pathfinder,
 				provider: "Pathfinder",
-				label: "Pathfinder JSON-RPC",
+				label: "Pathfinder",
 				binding: {
 					target: {
 						kind: SourceTargetKind.NetworkSlug,
@@ -92690,8 +91518,7 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{pathfinder-rpc-host}",
-							origin: "https://{pathfinder-rpc-host}",
+							locator: "http://127.0.0.1:9545/rpc/v0_10",
 							corsEnabled: false,
 						},
 					],
@@ -92700,10 +91527,16 @@ export const app = {
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
+					delivery: SourceDelivery.LocalOnly,
+					credentials: [],
+					artifacts: [
 						{
-							scope: SourceCredentialScope.None,
+							kind: SourceArtifactKind.OpenRpcSpec,
+							path: "src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/openrpc.json",
+						},
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/schema-source.ts",
 						},
 					],
 				},
@@ -92721,7 +91554,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://{payjoin-ohttp-relay-host}",
-							origin: "https://{payjoin-ohttp-relay-host}",
 							corsEnabled: false,
 						},
 					],
@@ -92731,11 +91563,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -92751,7 +91579,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://{payjoin-receiver-host}",
-							origin: "https://{payjoin-receiver-host}",
 							corsEnabled: false,
 						},
 					],
@@ -92761,11 +91588,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -92781,19 +91604,16 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://payjo.in",
-							origin: "https://payjo.in",
 							corsEnabled: false,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:8080",
-							origin: "http://127.0.0.1:8080",
 							corsEnabled: false,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://localhost:8080",
-							origin: "http://localhost:8080",
 							corsEnabled: false,
 						},
 					],
@@ -92803,16 +91623,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Payjoin/Directory/Rest/queries.ts",
-							generated: false,
 						},
 					],
 				},
@@ -92859,7 +91674,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.piped.private.coffee",
-							origin: "https://api.piped.private.coffee",
 							corsEnabled: true,
 						},
 					],
@@ -92869,16 +91683,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Piped/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -92925,7 +91734,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://rpc.polkadot.io",
-							origin: "https://rpc.polkadot.io",
 							corsEnabled: true,
 						},
 					],
@@ -92935,16 +91743,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Polkadot/JsonRpc/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -92991,13 +91794,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.github.com",
-							origin: "https://api.github.com",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
 							corsEnabled: true,
 						},
 					],
@@ -93007,11 +91808,7 @@ export const app = {
 						SourceOperationGroup.GithubRepositoryContents,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -93056,7 +91853,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.primal.net",
-							origin: "https://api.primal.net",
 							corsEnabled: false,
 						},
 					],
@@ -93066,16 +91862,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Primal/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -93101,11 +91892,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -93129,11 +91916,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -93148,20 +91931,43 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://hermes.pyth.network",
-							origin: "https://hermes.pyth.network",
+							locator: "https://pyth.dourolabs.app/hermes",
 							corsEnabled: false,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
+					apiFamily: ApiFamily.OpenApiHttp,
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
 					credentials: [
 						{
-							scope: SourceCredentialScope.None,
+							scope: SourceCredentialScope.RuntimeSecret,
+							envKey: "PYTH_API_KEY",
+							injection: {
+								header: {
+									name: "authorization",
+									prefix: "Bearer ",
+								},
+							},
+						},
+					],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/Pyth/OpenApi/openapi.json",
+							generated: true,
+							officialUrl: "https://hermes.pyth.network/docs/openapi.json",
+						},
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Pyth/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiTypes,
+							path: "src/sources/Pyth/OpenApi/openapi.d.ts",
+							generated: true,
 						},
 					],
 				},
@@ -93179,7 +91985,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://benchmarks.pyth.network",
-							origin: "https://benchmarks.pyth.network",
 							corsEnabled: false,
 						},
 					],
@@ -93189,41 +91994,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.PythPriceFeedsCatalog_Rest,
-				provider: "Pyth",
-				label: "Pyth price feeds catalog REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "pyth-price-feeds-catalog",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://benchmarks.pyth.network",
-							origin: "https://benchmarks.pyth.network",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -93239,7 +92010,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:8080",
-							origin: "http://127.0.0.1:8080",
 							corsEnabled: false,
 						},
 					],
@@ -93269,13 +92039,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://docs.quilibrium.com",
-							origin: "https://docs.quilibrium.com",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://quilibrium.com",
-							origin: "https://quilibrium.com",
 							corsEnabled: true,
 						},
 					],
@@ -93285,11 +92053,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -93313,16 +92077,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/QuilibriumNode/Grpc/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -93377,16 +92136,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/QuilibriumNodeRpc/Grpc/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -93442,11 +92196,7 @@ export const app = {
 						SourceOperationGroup.RepositoryMetadata,
 					],
 					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -93510,72 +92260,70 @@ export const app = {
 				source: Source.Reddit_Rest,
 				provider: "Reddit",
 				label: "Reddit OAuth REST",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_REDDIT_CLIENT_ID",
-							type: "string > 0",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "oauth-api",
 						},
-						{
-							name: "PUBLIC_REDDIT_CLIENT_SECRET",
-							type: "string > 0",
-						},
-					],
-				},
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "oauth-api",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://oauth.reddit.com",
-							origin: "https://oauth.reddit.com",
-							corsEnabled: false,
-						},
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://www.reddit.com",
-							origin: "https://www.reddit.com",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.PublicConfig,
-							env: {
-								keys: [
-									{
-										name: "PUBLIC_REDDIT_CLIENT_ID",
-										type: "string > 0",
-									},
-									{
-										name: "PUBLIC_REDDIT_CLIENT_SECRET",
-										type: "string > 0",
-									},
-								],
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://oauth.reddit.com",
+								corsEnabled: false,
 							},
-							keys: [
-								"PUBLIC_REDDIT_CLIENT_ID",
-								"PUBLIC_REDDIT_CLIENT_SECRET",
-							],
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/Reddit/Rest/types.ts",
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "oauth-token",
 						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/Reddit/Rest/types.ts",
-							generated: false,
-						},
-					],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://www.reddit.com",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [
+							{
+								scope: SourceCredentialScope.PublicConfig,
+								env: {
+									keys: [
+										{
+											name: "PUBLIC_REDDIT_CLIENT_ID",
+											type: "string > 0",
+										},
+										{
+											name: "PUBLIC_REDDIT_CLIENT_SECRET",
+											type: "string > 0",
+										},
+									],
+								},
+							},
+						],
+					},
+				],
 			},
 			{
 				source: Source.Reddit_PublicJson,
@@ -93590,7 +92338,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://www.reddit.com",
-							origin: "https://www.reddit.com",
 							corsEnabled: false,
 						},
 					],
@@ -93600,46 +92347,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/RedditPublic/Rest/types.ts",
-							generated: false,
-						},
-					],
-				},
-			},
-			{
-				source: Source.Reservoir_Rest,
-				provider: "Reservoir",
-				label: "Reservoir REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "reservoir-api",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{reservoir-api-host}",
-							origin: "https://{reservoir-api-host}",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.RuntimeSecret,
 						},
 					],
 				},
@@ -93657,7 +92369,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:8545",
-							origin: "http://127.0.0.1:8545",
 							corsEnabled: false,
 						},
 					],
@@ -93678,12 +92389,10 @@ export const app = {
 						{
 							kind: SourceArtifactKind.OpenRpcSpec,
 							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-							generated: false,
 						},
 					],
 				},
@@ -93702,7 +92411,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://hnrss.org",
-								origin: "https://hnrss.org",
 								corsEnabled: false,
 							},
 						],
@@ -93712,16 +92420,11 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/Rss/Rest/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -93734,7 +92437,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://feeds.bbci.co.uk",
-								origin: "https://feeds.bbci.co.uk",
 								corsEnabled: false,
 							},
 						],
@@ -93744,16 +92446,11 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/Rss/Rest/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -93772,7 +92469,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.rss2json.com",
-							origin: "https://api.rss2json.com",
 							corsEnabled: false,
 						},
 					],
@@ -93782,16 +92478,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Rss2Json/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -93801,20 +92492,15 @@ export const app = {
 				provider: "SafeTransactionService",
 				label: "Safe Transaction Service REST",
 				bindings: [
-					...([
-						["1", "eth"],
-						["100", "gno"],
-						["8453", "base"],
-					] as const).map(([chainId, chainPrefix]) => ({
+					{
 						target: {
 							kind: SourceTargetKind.Eip155Chain,
-							key: chainId,
+							key: "1",
 						},
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: `https://api.safe.global/tx-service/${chainPrefix}`,
-								origin: "https://api.safe.global",
+								locator: "https://api.safe.global/tx-service/eth",
 								corsEnabled: false,
 							},
 						],
@@ -93840,16 +92526,89 @@ export const app = {
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/SafeTransactionService/Rest/types.ts",
-								generated: false,
 							},
 						],
-					})),
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: "100",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://api.safe.global/tx-service/gno",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [
+							{
+								scope: SourceCredentialScope.RuntimeSecret,
+								envKey: "SAFE_TRANSACTION_SERVICE_API_KEY",
+								injection: {
+									header: {
+										name: "authorization",
+										prefix: "Bearer ",
+									},
+								},
+							},
+						],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/SafeTransactionService/Rest/types.ts",
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: "8453",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://api.safe.global/tx-service/base",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [
+							{
+								scope: SourceCredentialScope.RuntimeSecret,
+								envKey: "SAFE_TRANSACTION_SERVICE_API_KEY",
+								injection: {
+									header: {
+										name: "authorization",
+										prefix: "Bearer ",
+									},
+								},
+							},
+						],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/SafeTransactionService/Rest/types.ts",
+							},
+						],
+					},
 				],
 			},
 			{
-				source: Source.SigstoreRekor_Rest,
+				source: Source.SigstoreRekor,
 				provider: "SigstoreRekor",
-				label: "Sigstore Rekor REST",
+				label: "Sigstore Rekor",
 				binding: {
 					target: {
 						kind: SourceTargetKind.Global,
@@ -93858,21 +92617,33 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://rekor.sigstore.dev",
-							origin: "https://rekor.sigstore.dev",
-							corsEnabled: false,
+							locator: "https://rekor.sigstore.dev/",
+							corsEnabled: true,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.SigstoreRekorApi,
+					apiFamily: ApiFamily.OpenApiHttp,
 					operationGroups: [
-						SourceOperationGroup.AiArtifactCatalog,
+						SourceOperationGroup.SoftwareArtifactRegistry,
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
+					delivery: SourceDelivery.BrowserDirect,
+					credentials: [],
+					artifacts: [
 						{
-							scope: SourceCredentialScope.None,
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/SigstoreRekor/OpenApi/openapi.yaml",
+							generated: true,
+							officialUrl: "https://raw.githubusercontent.com/sigstore/rekor/main/openapi.yaml",
+						},
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/SigstoreRekor/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiTypes,
+							path: "src/sources/SigstoreRekor/OpenApi/openapi.d.ts",
+							generated: true,
 						},
 					],
 				},
@@ -93890,7 +92661,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://hub.snapshot.org/graphql",
-							origin: "https://hub.snapshot.org",
 							corsEnabled: true,
 						},
 					],
@@ -93900,16 +92670,22 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/SnapshotHub/Graphql/types.ts",
-							generated: false,
+							kind: SourceArtifactKind.GraphqlSchema,
+							path: "src/sources/SnapshotHub/Graphql/schema.graphql",
+							generated: true,
+							officialUrl: "https://hub.snapshot.org/graphql",
+						},
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/SnapshotHub/Graphql/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.GraphqlTypes,
+							path: "src/sources/SnapshotHub/Graphql/graphql-env.d.ts",
+							generated: true,
 						},
 					],
 				},
@@ -93927,25 +92703,52 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://hub.pinata.cloud",
-							origin: "https://hub.pinata.cloud",
 							corsEnabled: false,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://snap.farcaster.xyz:3381",
-							origin: "https://snap.farcaster.xyz:3381",
 							corsEnabled: false,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://pop.farcaster.xyz:3381",
-							origin: "https://pop.farcaster.xyz:3381",
 							corsEnabled: false,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://haatz.quilibrium.com",
-							origin: "https://haatz.quilibrium.com",
+							corsEnabled: false,
+						},
+					],
+					wireProtocol: WireProtocol.HttpRest,
+					apiFamily: ApiFamily.RestJson,
+					operationGroups: [
+						SourceOperationGroup.GenericRead,
+					],
+					delivery: SourceDelivery.HttpProxy,
+					credentials: [],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/Snapchain/Rest/types.ts",
+						},
+					],
+				},
+			},
+			{
+				source: Source.SpaceAndTime_MakeInfinite,
+				provider: "SpaceAndTime",
+				label: "Space and Time MakeInfinite",
+				binding: {
+					target: {
+						kind: SourceTargetKind.Caip2Network,
+						key: "eip155:1",
+					},
+					endpoints: [
+						{
+							endpointKind: SourceEndpointKind.HttpUrl,
+							locator: "https://proxy.api.makeinfinite.dev",
 							corsEnabled: false,
 						},
 					],
@@ -93957,31 +92760,21 @@ export const app = {
 					delivery: SourceDelivery.HttpProxy,
 					credentials: [
 						{
-							scope: SourceCredentialScope.None,
+							scope: SourceCredentialScope.RuntimeSecret,
+							envKey: "MAKEINFINITE_API_KEY",
+							injection: {
+								header: {
+									name: "apikey",
+								},
+							},
 						},
 					],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/Snapchain/Rest/types.ts",
-							generated: false,
+							path: "src/sources/SpaceAndTime/MakeInfinite/types.ts",
 						},
 					],
-				},
-			},
-			{
-				source: Source.SpaceAndTime_MakeInfinite,
-				provider: "SpaceAndTime",
-				label: "Space and Time MakeInfinite",
-				binding: {
-					target: { kind: SourceTargetKind.Caip2Network, key: "eip155:1" },
-					endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: "https://proxy.api.makeinfinite.dev", origin: "https://proxy.api.makeinfinite.dev", corsEnabled: false }],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [SourceOperationGroup.GenericRead],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [{ scope: SourceCredentialScope.RuntimeSecret, envKey: "MAKEINFINITE_API_KEY", injection: { header: { name: "apikey" } } }],
-					artifacts: [{ kind: SourceArtifactKind.HandwrittenTypes, path: "src/sources/SpaceAndTime/MakeInfinite/types.ts", generated: false }],
 				},
 			},
 			{
@@ -93998,7 +92791,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://solana-rpc.publicnode.com",
-								origin: "https://solana-rpc.publicnode.com",
 								corsEnabled: false,
 							},
 						],
@@ -94008,16 +92800,11 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/Solana/JsonRpc/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -94038,16 +92825,11 @@ export const app = {
 							SourceOperationGroup.GenericSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.HandwrittenTypes,
 								path: "src/sources/Solana/JsonRpc/types.ts",
-								generated: false,
 							},
 						],
 					},
@@ -94095,13 +92877,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.github.com",
-							origin: "https://api.github.com",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
 							corsEnabled: true,
 						},
 					],
@@ -94111,11 +92891,7 @@ export const app = {
 						SourceOperationGroup.GithubRepositoryContents,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -94131,7 +92907,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://sourcify.dev/server/v2",
-							origin: "https://sourcify.dev",
 							corsEnabled: false,
 						},
 					],
@@ -94141,16 +92916,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Sourcify/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -94177,11 +92947,7 @@ export const app = {
 						SourceOperationGroup.DocumentClaimExtraction,
 					],
 					delivery: SourceDelivery.LocalOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -94197,7 +92963,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://portal.sqd.dev/datasets/ethereum-mainnet",
-							origin: "https://portal.sqd.dev",
 							corsEnabled: false,
 						},
 					],
@@ -94207,24 +92972,19 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Sqd/Portal/types.ts",
-							generated: false,
 						},
 					],
 				},
 			},
 			{
-				source: Source.Starknet_JsonRpc,
-				provider: "Starknet",
-				label: "Starknet JSON-RPC",
+				source: Source.Starkscan,
+				provider: "Starkscan",
+				label: "Starkscan",
 				binding: {
 					target: {
 						kind: SourceTargetKind.NetworkSlug,
@@ -94233,65 +92993,48 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{starknet-rpc-host}",
-							origin: "https://{starknet-rpc-host}",
-							corsEnabled: false,
+							locator: "https://api.starkscan.co",
+							corsEnabled: true,
 						},
 					],
-					wireProtocol: WireProtocol.JsonRpc2,
-					apiFamily: ApiFamily.StarknetJsonRpc,
+					wireProtocol: WireProtocol.HttpRest,
+					apiFamily: ApiFamily.OpenApiHttp,
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
+					delivery: SourceDelivery.HttpProxy,
 					credentials: [
 						{
-							scope: SourceCredentialScope.None,
+							scope: SourceCredentialScope.RuntimeSecret,
+							envKey: "STARKSCAN_API_KEY",
+							injection: {
+								header: {
+									name: "X-Starkscan-Api-Key",
+								},
+							},
 						},
 					],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/Starknet/JsonRpc/types.ts",
-							generated: false,
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/Starkscan/OpenApi/openapi.yaml",
+						},
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Starkscan/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiTypes,
+							path: "src/sources/Starkscan/OpenApi/openapi.d.ts",
+							generated: true,
 						},
 					],
 				},
 			},
 			{
-				source: Source.Starkscan_Rest,
-				provider: "Starkscan",
-				label: "Starkscan REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "starkscan-api",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{starkscan-api-host}",
-							origin: "https://{starkscan-api-host}",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.StellarExpert_Rest,
+				source: Source.StellarExpert,
 				provider: "StellarExpert",
-				label: "StellarExpert REST",
+				label: "StellarExpert",
 				binding: {
 					target: {
 						kind: SourceTargetKind.Global,
@@ -94301,19 +93044,31 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.stellar.expert",
-							origin: "https://api.stellar.expert",
-							corsEnabled: false,
+							corsEnabled: true,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
+					apiFamily: ApiFamily.OpenApiHttp,
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
+					delivery: SourceDelivery.BrowserDirect,
+					credentials: [],
+					artifacts: [
 						{
-							scope: SourceCredentialScope.None,
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/StellarExpert/OpenApi/openapi.yml",
+							generated: true,
+							officialUrl: "https://raw.githubusercontent.com/stellar-expert/stellar-expert-explorer/master/ui/open-api/openapi.yml",
+						},
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/StellarExpert/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiTypes,
+							path: "src/sources/StellarExpert/OpenApi/openapi.d.ts",
+							generated: true,
 						},
 					],
 				},
@@ -94331,7 +93086,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://horizon.stellar.org",
-							origin: "https://horizon.stellar.org",
 							corsEnabled: false,
 						},
 					],
@@ -94341,11 +93095,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -94370,11 +93120,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -94390,7 +93136,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://{domain}/.well-known/stellar.toml",
-							origin: "https://{domain}",
 							corsEnabled: false,
 						},
 					],
@@ -94400,11 +93145,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -94440,14 +93181,6 @@ export const app = {
 				source: Source.Subscan_Rest,
 				provider: "Subscan",
 				label: "Subscan REST",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_SUBSCAN_API_KEY",
-							type: "string",
-						},
-					],
-				},
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
@@ -94457,7 +93190,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://polkadot.api.subscan.io",
-							origin: "https://polkadot.api.subscan.io",
 							corsEnabled: false,
 						},
 					],
@@ -94478,16 +93210,12 @@ export const app = {
 									},
 								],
 							},
-							keys: [
-								"PUBLIC_SUBSCAN_API_KEY",
-							],
 						},
 					],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Subscan/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -94496,9 +93224,6 @@ export const app = {
 				source: Source.SubstrateSidecar_Rest,
 				provider: "SubstrateSidecar",
 				label: "Substrate API Sidecar REST",
-				env: {
-					keys: [],
-				},
 				binding: {
 					target: {
 						kind: SourceTargetKind.LocalDevice,
@@ -94508,7 +93233,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:8080",
-							origin: "http://127.0.0.1:8080",
 							corsEnabled: false,
 						},
 					],
@@ -94518,114 +93242,78 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/SubstrateSidecar/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
 			},
 			{
-				source: Source.Sui_Graphql,
+				source: Source.Sui,
 				provider: "Sui",
-				label: "Sui GraphQL",
-				binding: {
-					target: {
-						kind: SourceTargetKind.NetworkSlug,
-						key: "sui",
+				label: "Sui",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.NetworkSlug,
+							key: "sui",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://graphql.mainnet.sui.io/graphql",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.Graphql,
+						apiFamily: ApiFamily.GraphqlHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.RemoteQuery,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.GraphqlSchema,
+								path: "src/sources/Sui/Graphql/schema.graphql",
+								generated: true,
+								officialUrl: "https://graphql.mainnet.sui.io/graphql",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/Sui/Graphql/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.GraphqlTypes,
+								path: "src/sources/Sui/Graphql/graphql-env.d.ts",
+								generated: true,
+							},
+						],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{sui-graphql-host}",
-							origin: "https://{sui-graphql-host}",
-							corsEnabled: false,
+					{
+						target: {
+							kind: SourceTargetKind.NetworkSlug,
+							key: "sui",
 						},
-					],
-					wireProtocol: WireProtocol.Graphql,
-					apiFamily: ApiFamily.GraphqlHttp,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/Sui/Graphql/types.ts",
-							generated: false,
-						},
-					],
-				},
-			},
-			{
-				source: Source.Sui_Grpc,
-				provider: "Sui",
-				label: "Sui gRPC",
-				binding: {
-					target: {
-						kind: SourceTargetKind.NetworkSlug,
-						key: "sui",
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://fullnode.mainnet.sui.io:443",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.Grpc,
+						apiFamily: ApiFamily.GrpcService,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.ServerOnly,
+						credentials: [],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.TcpAddress,
-							locator: "env:SUI_GRPC_ENDPOINT",
-						},
-					],
-					wireProtocol: WireProtocol.Grpc,
-					apiFamily: ApiFamily.GrpcService,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.Sui_JsonRpc,
-				provider: "Sui",
-				label: "Sui JSON-RPC",
-				binding: {
-					target: {
-						kind: SourceTargetKind.NetworkSlug,
-						key: "sui",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{sui-rpc-host}",
-							origin: "https://{sui-rpc-host}",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.JsonRpc2,
-					apiFamily: ApiFamily.JsonRpcApi,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
+				],
 			},
 			{
 				source: Source.Superchain_Github,
@@ -94640,13 +93328,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.github.com",
-							origin: "https://api.github.com",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
 							corsEnabled: true,
 						},
 					],
@@ -94656,11 +93342,7 @@ export const app = {
 						SourceOperationGroup.GithubRepositoryContents,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -94676,13 +93358,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://gateway.ethswarm.org",
-							origin: "https://gateway.ethswarm.org",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://bzz.link",
-							origin: "https://bzz.link",
 							corsEnabled: true,
 						},
 					],
@@ -94692,17 +93372,13 @@ export const app = {
 						SourceOperationGroup.ContentGatewayRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
-				source: Source.Tally_Graphql,
+				source: Source.Tally,
 				provider: "Tally",
-				label: "Tally GraphQL",
+				label: "Tally",
 				binding: {
 					target: {
 						kind: SourceTargetKind.Global,
@@ -94712,7 +93388,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.tally.xyz/query",
-							origin: "https://api.tally.xyz",
 							corsEnabled: false,
 						},
 					],
@@ -94731,13 +93406,6 @@ export const app = {
 									name: "Api-Key",
 								},
 							},
-						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/Tally/Graphql/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -94782,9 +93450,9 @@ export const app = {
 				},
 			},
 			{
-				source: Source.TezosNode_Rpc,
-				provider: "TezosNode",
-				label: "Tezos node RPC",
+				source: Source.OctezNode,
+				provider: "Octez",
+				label: "Octez Mainnet node",
 				binding: {
 					target: {
 						kind: SourceTargetKind.Caip2Network,
@@ -94793,9 +93461,8 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{tezos-node-rpc-host}",
-							origin: "https://{tezos-node-rpc-host}",
-							corsEnabled: false,
+							locator: "https://tezos-mainnet.octez.io",
+							corsEnabled: true,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
@@ -94803,10 +93470,23 @@ export const app = {
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
+					delivery: SourceDelivery.BrowserDirect,
+					credentials: [],
+					artifacts: [
 						{
-							scope: SourceCredentialScope.None,
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/Octez/OpenApi/openapi.json",
+							generated: true,
+							officialUrl: "https://gitlab.com/tezos/tezos/-/raw/master/docs/api/rpc-openapi.json",
+						},
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Octez/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiTypes,
+							path: "src/sources/Octez/OpenApi/openapi.d.ts",
+							generated: true,
 						},
 					],
 				},
@@ -94824,7 +93504,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://gateway.thegraph.com/api/subgraphs/id/5XqPmWe6gjyrJtFn9cLy237i4cWw2j9HcUJEXsP5qGtH",
-							origin: "https://gateway.thegraph.com",
 							corsEnabled: false,
 						},
 					],
@@ -94845,26 +93524,20 @@ export const app = {
 									},
 								],
 							},
-							keys: [
-								"PUBLIC_THEGRAPH_API_KEY",
-							],
 						},
 					],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.GraphqlSchema,
 							path: "src/sources/TheGraph/Graphql/Ens/schema.graphql",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GraphqlSchema,
 							path: "src/sources/TheGraph/Graphql/Ens/schema.patch.graphql",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/TheGraph/Graphql/Ens/schema-source.ts",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GraphqlTypes,
@@ -94878,44 +93551,61 @@ export const app = {
 				source: Source.ThreeXpl_Rest,
 				provider: "ThreeXpl",
 				label: "3xpl REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "json-api",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "sandbox",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://sandbox-api.3xpl.com",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/ThreeXpl/Rest/types.ts",
+							},
+						],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://sandbox-api.3xpl.com",
-							origin: "https://sandbox-api.3xpl.com",
-							corsEnabled: true,
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "production",
 						},
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.3xpl.com",
-							origin: "https://api.3xpl.com",
-							corsEnabled: true,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/ThreeXpl/Rest/types.ts",
-							generated: false,
-						},
-					],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://api.3xpl.com",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [
+							{
+								scope: SourceCredentialScope.UserDelegated,
+								keys: [
+									"Xpl-Token",
+								],
+							},
+						],
+					},
+				],
 			},
 			{
 				source: Source.TonApi_Rest,
@@ -94930,7 +93620,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://tonapi.io",
-							origin: "https://tonapi.io",
 							corsEnabled: false,
 						},
 					],
@@ -94940,86 +93629,124 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/TonApi/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
 			},
 			{
-				source: Source.TonCenter_V2_Rest,
+				source: Source.TonCenter,
 				provider: "TonCenter",
-				label: "TON Center v2 REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "toncenter-v2",
+				label: "TON Center",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Caip2Network,
+							key: "ton:-239",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://toncenter.com/api/v2/",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.OpenApiHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [
+							{
+								scope: SourceCredentialScope.RuntimeSecret,
+								envKey: "TONCENTER_MAINNET_API_KEY",
+								injection: {
+									header: {
+										name: "X-API-Key",
+									},
+								},
+							},
+						],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/TonCenter/OpenApi/openapi.json",
+								generated: true,
+								officialUrl: "https://toncenter.com/api/v2/openapi.json",
+							},
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/TonCenter/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiTypes,
+								path: "src/sources/TonCenter/OpenApi/openapi.d.ts",
+								generated: true,
+							},
+						],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{toncenter-v2-api-host}",
-							origin: "https://{toncenter-v2-api-host}",
-							corsEnabled: false,
+					{
+						target: {
+							kind: SourceTargetKind.Caip2Network,
+							key: "ton:-3",
 						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.TonCenter_V3_Rest,
-				provider: "TonCenter",
-				label: "TON Center v3 REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "ton:-239",
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://testnet.toncenter.com/api/v2/",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.OpenApiHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [
+							{
+								scope: SourceCredentialScope.RuntimeSecret,
+								envKey: "TONCENTER_TESTNET_API_KEY",
+								injection: {
+									header: {
+										name: "X-API-Key",
+									},
+								},
+							},
+						],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://toncenter.com/api/v3/",
-							origin: "https://toncenter.com",
-							corsEnabled: false,
+					{
+						target: {
+							kind: SourceTargetKind.Caip2Network,
+							key: "ton:-239",
 						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.TonCenterV3Api,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/TonCenter/V3/Rest/types.ts",
-							generated: false,
-						},
-					],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://toncenter.com/api/v3/",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.TonCenterV3Api,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/TonCenter/V3/Rest/types.ts",
+							},
+						],
+					},
+				],
 			},
 			{
 				source: Source.TonConnect_WalletApi,
@@ -95072,11 +93799,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -95100,41 +93823,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
-			},
-			{
-				source: Source.TonVerifier_Rest,
-				provider: "TonVerifier",
-				label: "TON Verifier REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "ton-verifier",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{ton-verifier-api-host}",
-							origin: "https://{ton-verifier-api-host}",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -95150,7 +93839,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://scanner.tradingview.com",
-							origin: "https://scanner.tradingview.com",
 							corsEnabled: false,
 						},
 					],
@@ -95160,16 +93848,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/TradingView/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -95187,7 +93870,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:9091/transmission/rpc",
-							origin: "http://127.0.0.1:9091",
 							corsEnabled: false,
 						},
 					],
@@ -95208,9 +93890,6 @@ export const app = {
 				source: Source.TronFullNode_Rest,
 				provider: "TronFullNode",
 				label: "TRON FullNode REST",
-				env: {
-					keys: [],
-				},
 				binding: {
 					target: {
 						kind: SourceTargetKind.LocalDevice,
@@ -95220,7 +93899,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:8090",
-							origin: "http://127.0.0.1:8090",
 							corsEnabled: false,
 						},
 					],
@@ -95230,16 +93908,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/TronGrid/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -95257,7 +93930,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.trongrid.io",
-							origin: "https://api.trongrid.io",
 							corsEnabled: false,
 						},
 					],
@@ -95267,16 +93939,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/TronGrid/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -95323,7 +93990,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://apilist.tronscanapi.com",
-							origin: "https://apilist.tronscanapi.com",
 							corsEnabled: true,
 						},
 					],
@@ -95333,16 +93999,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/TronScan/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -95351,9 +94012,6 @@ export const app = {
 				source: Source.TronSolidityNode_Rest,
 				provider: "TronSolidityNode",
 				label: "TRON SolidityNode REST",
-				env: {
-					keys: [],
-				},
 				binding: {
 					target: {
 						kind: SourceTargetKind.LocalDevice,
@@ -95363,7 +94021,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:8091",
-							origin: "http://127.0.0.1:8091",
 							corsEnabled: false,
 						},
 					],
@@ -95373,16 +94030,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/TronGrid/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -95457,14 +94109,7 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.github.com",
-							origin: "https://api.github.com",
-							corsEnabled: true,
-						},
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
 							corsEnabled: true,
 						},
 					],
@@ -95474,11 +94119,7 @@ export const app = {
 						SourceOperationGroup.GithubRepositoryContents,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -95494,7 +94135,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.tzkt.io",
-							origin: "https://api.tzkt.io",
 							corsEnabled: false,
 						},
 					],
@@ -95504,11 +94144,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -95525,31 +94161,26 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://ethereum.publicnode.com",
-								origin: "https://ethereum.publicnode.com",
 								corsEnabled: false,
 							},
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://eth.drpc.org",
-								origin: "https://eth.drpc.org",
 								corsEnabled: true,
 							},
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://eth.llamarpc.com",
-								origin: "https://eth.llamarpc.com",
 								corsEnabled: false,
 							},
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://mainnet.rpc.buidlguidl.com",
-								origin: "https://mainnet.rpc.buidlguidl.com",
 								corsEnabled: false,
 							},
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://evm.stupidtech.net",
-								origin: "https://evm.stupidtech.net",
 								corsEnabled: false,
 							},
 						],
@@ -95560,21 +94191,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTrace,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -95607,21 +94232,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -95634,7 +94253,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://mainnet.optimism.io",
-								origin: "https://mainnet.optimism.io",
 								corsEnabled: false,
 							},
 						],
@@ -95646,21 +94264,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -95681,21 +94293,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -95708,7 +94314,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://erpc.xinfin.network",
-								origin: "https://erpc.xinfin.network",
 								corsEnabled: false,
 							},
 						],
@@ -95720,21 +94325,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -95755,21 +94354,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -95782,7 +94375,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://rpc.apothem.network",
-								origin: "https://rpc.apothem.network",
 								corsEnabled: false,
 							},
 						],
@@ -95794,21 +94386,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -95829,21 +94415,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -95856,7 +94436,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://binance.llamarpc.com",
-								origin: "https://binance.llamarpc.com",
 								corsEnabled: false,
 							},
 						],
@@ -95868,21 +94447,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -95903,21 +94476,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -95930,7 +94497,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://unichain-rpc.publicnode.com",
-								origin: "https://unichain-rpc.publicnode.com",
 								corsEnabled: false,
 							},
 						],
@@ -95942,21 +94508,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -95977,21 +94537,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96004,7 +94558,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://polygon-rpc.com",
-								origin: "https://polygon-rpc.com",
 								corsEnabled: false,
 							},
 						],
@@ -96016,21 +94569,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96051,21 +94598,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96078,7 +94619,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://rpc.monad.xyz",
-								origin: "https://rpc.monad.xyz",
 								corsEnabled: false,
 							},
 						],
@@ -96090,21 +94630,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96125,21 +94659,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96152,7 +94680,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://rpc.soniclabs.com",
-								origin: "https://rpc.soniclabs.com",
 								corsEnabled: false,
 							},
 						],
@@ -96164,21 +94691,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96199,21 +94720,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96226,7 +94741,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://sepolia.era.zksync.dev",
-								origin: "https://sepolia.era.zksync.dev",
 								corsEnabled: false,
 							},
 						],
@@ -96238,21 +94752,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96273,21 +94781,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96300,7 +94802,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://mainnet.era.zksync.io",
-								origin: "https://mainnet.era.zksync.io",
 								corsEnabled: false,
 							},
 						],
@@ -96312,21 +94813,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96347,21 +94842,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96374,7 +94863,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://worldchain-mainnet.g.alchemy.com/public",
-								origin: "https://worldchain-mainnet.g.alchemy.com",
 								corsEnabled: false,
 							},
 						],
@@ -96386,21 +94874,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96421,21 +94903,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96448,7 +94924,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://hyperliquid-testnet.drpc.org",
-								origin: "https://hyperliquid-testnet.drpc.org",
 								corsEnabled: true,
 							},
 						],
@@ -96460,21 +94935,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.BrowserDirect,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96495,21 +94964,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96522,7 +94985,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://hyperliquid.drpc.org",
-								origin: "https://hyperliquid.drpc.org",
 								corsEnabled: true,
 							},
 						],
@@ -96534,21 +94996,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.BrowserDirect,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96569,21 +95025,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96596,7 +95046,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://sepolia.unichain.org",
-								origin: "https://sepolia.unichain.org",
 								corsEnabled: false,
 							},
 						],
@@ -96608,21 +95057,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96643,21 +95086,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96670,7 +95107,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://evm-rpc-testnet.sei-apis.com",
-								origin: "https://evm-rpc-testnet.sei-apis.com",
 								corsEnabled: false,
 							},
 						],
@@ -96682,21 +95118,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96717,21 +95147,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96744,7 +95168,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://evm-rpc.sei-apis.com",
-								origin: "https://evm-rpc.sei-apis.com",
 								corsEnabled: false,
 							},
 						],
@@ -96756,21 +95179,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96791,21 +95208,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96818,7 +95229,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://worldchain-sepolia.g.alchemy.com/public",
-								origin: "https://worldchain-sepolia.g.alchemy.com",
 								corsEnabled: false,
 							},
 						],
@@ -96830,21 +95240,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96865,21 +95269,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96892,13 +95290,11 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://mainnet.base.org",
-								origin: "https://mainnet.base.org",
 								corsEnabled: false,
 							},
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://base.llamarpc.com",
-								origin: "https://base.llamarpc.com",
 								corsEnabled: false,
 							},
 						],
@@ -96910,21 +95306,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96949,21 +95339,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -96976,7 +95360,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://testnet-rpc.monad.xyz",
-								origin: "https://testnet-rpc.monad.xyz",
 								corsEnabled: false,
 							},
 						],
@@ -96988,21 +95371,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97023,21 +95400,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97050,7 +95421,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://rpc.testnet.soniclabs.com",
-								origin: "https://rpc.testnet.soniclabs.com",
 								corsEnabled: false,
 							},
 						],
@@ -97062,21 +95432,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97097,21 +95461,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97124,7 +95482,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://arb1.arbitrum.io/rpc",
-								origin: "https://arb1.arbitrum.io",
 								corsEnabled: false,
 							},
 						],
@@ -97136,21 +95493,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97171,21 +95522,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97198,7 +95543,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://forno.celo.org",
-								origin: "https://forno.celo.org",
 								corsEnabled: false,
 							},
 						],
@@ -97210,21 +95554,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97245,21 +95583,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97272,7 +95604,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://api.avax-test.network/ext/bc/C/rpc",
-								origin: "https://api.avax-test.network",
 								corsEnabled: false,
 							},
 						],
@@ -97284,21 +95615,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97319,21 +95644,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97346,7 +95665,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://api.avax.network/ext/bc/C/rpc",
-								origin: "https://api.avax.network",
 								corsEnabled: false,
 							},
 						],
@@ -97358,21 +95676,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97393,21 +95705,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97420,7 +95726,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://rpc-gel.inkonchain.com",
-								origin: "https://rpc-gel.inkonchain.com",
 								corsEnabled: false,
 							},
 						],
@@ -97432,21 +95737,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97467,21 +95766,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97494,7 +95787,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://rpc.sepolia.linea.build",
-								origin: "https://rpc.sepolia.linea.build",
 								corsEnabled: false,
 							},
 						],
@@ -97506,21 +95798,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97541,21 +95827,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97568,7 +95848,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://rpc.linea.build",
-								origin: "https://rpc.linea.build",
 								corsEnabled: false,
 							},
 						],
@@ -97580,21 +95859,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97615,21 +95888,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97642,7 +95909,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://rpc-amoy.polygon.technology",
-								origin: "https://rpc-amoy.polygon.technology",
 								corsEnabled: false,
 							},
 						],
@@ -97654,21 +95920,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97689,21 +95949,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97716,7 +95970,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://rpc.codex.xyz",
-								origin: "https://rpc.codex.xyz",
 								corsEnabled: false,
 							},
 						],
@@ -97728,21 +95981,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97763,21 +96010,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97790,7 +96031,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://sepolia.base.org",
-								origin: "https://sepolia.base.org",
 								corsEnabled: false,
 							},
 						],
@@ -97802,21 +96042,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97837,21 +96071,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97864,7 +96092,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://rpc.plume.org",
-								origin: "https://rpc.plume.org",
 								corsEnabled: false,
 							},
 						],
@@ -97876,21 +96103,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97911,21 +96132,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97938,7 +96153,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://testnet-rpc.plume.org",
-								origin: "https://testnet-rpc.plume.org",
 								corsEnabled: false,
 							},
 						],
@@ -97950,21 +96164,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -97985,21 +96193,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -98012,7 +96214,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://sepolia-rollup.arbitrum.io/rpc",
-								origin: "https://sepolia-rollup.arbitrum.io",
 								corsEnabled: false,
 							},
 						],
@@ -98024,21 +96225,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -98059,21 +96254,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -98086,7 +96275,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://rpc-gel-sepolia.inkonchain.com",
-								origin: "https://rpc-gel-sepolia.inkonchain.com",
 								corsEnabled: false,
 							},
 						],
@@ -98098,21 +96286,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -98133,21 +96315,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -98160,7 +96336,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://rpc.codex-stg.xyz",
-								origin: "https://rpc.codex-stg.xyz",
 								corsEnabled: false,
 							},
 						],
@@ -98172,21 +96347,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -98207,21 +96376,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -98234,7 +96397,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://rpc.testnet.arc.network",
-								origin: "https://rpc.testnet.arc.network",
 								corsEnabled: false,
 							},
 						],
@@ -98246,21 +96408,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -98281,21 +96437,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -98308,7 +96458,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://forno.celo-sepolia.celo-testnet.org",
-								origin: "https://forno.celo-sepolia.celo-testnet.org",
 								corsEnabled: false,
 							},
 						],
@@ -98320,21 +96469,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -98355,21 +96498,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -98382,7 +96519,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://ethereum-sepolia-rpc.publicnode.com",
-								origin: "https://ethereum-sepolia-rpc.publicnode.com",
 								corsEnabled: false,
 							},
 						],
@@ -98394,21 +96530,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -98429,21 +96559,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -98456,7 +96580,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://sepolia.optimism.io",
-								origin: "https://sepolia.optimism.io",
 								corsEnabled: false,
 							},
 						],
@@ -98468,21 +96591,15 @@ export const app = {
 							SourceOperationGroup.EvmRpcTxpool,
 						],
 						delivery: SourceDelivery.HttpProxy,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
@@ -98503,60 +96620,76 @@ export const app = {
 							SourceOperationGroup.EvmRpcSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 						artifacts: [
 							{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-								generated: false,
 							},
 							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-								generated: false,
 							},
 						],
 					},
 				],
 			},
 			{
-				source: Source.Voyager_Rest,
+				source: Source.Voyager,
 				provider: "Voyager",
-				label: "Voyager REST",
+				label: "Voyager",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Global,
-						key: "voyager-api",
+						kind: SourceTargetKind.NetworkSlug,
+						key: "starknet",
 					},
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{voyager-api-host}",
-							origin: "https://{voyager-api-host}",
-							corsEnabled: false,
+							locator: "https://api.voyager.online/beta",
+							corsEnabled: true,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
+					apiFamily: ApiFamily.OpenApiHttp,
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
+					delivery: SourceDelivery.HttpProxy,
 					credentials: [
 						{
-							scope: SourceCredentialScope.None,
+							scope: SourceCredentialScope.RuntimeSecret,
+							envKey: "VOYAGER_API_KEY",
+							injection: {
+								header: {
+									name: "x-api-key",
+								},
+							},
+						},
+					],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/Voyager/OpenApi/openapi.json",
+							generated: true,
+							officialUrl: "https://docs.voyager.online/api-reference/openapi.json",
+						},
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Voyager/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiTypes,
+							path: "src/sources/Voyager/OpenApi/openapi.d.ts",
+							generated: true,
 						},
 					],
 				},
 			},
 			{
-				source: Source.WakuNode_Rest,
+				source: Source.WakuNode,
 				provider: "WakuNode",
-				label: "Waku node REST",
+				label: "Waku node",
 				binding: {
 					target: {
 						kind: SourceTargetKind.LocalDevice,
@@ -98566,7 +96699,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:8645",
-							origin: "http://127.0.0.1:8645",
 							corsEnabled: false,
 						},
 					],
@@ -98574,14 +96706,9 @@ export const app = {
 					apiFamily: ApiFamily.RestJson,
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
-						SourceOperationGroup.GenericSubscribe,
 					],
 					delivery: SourceDelivery.LocalOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.LocalSecret,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -98664,11 +96791,7 @@ export const app = {
 						SourceOperationGroup.BitTorrentAnnounce,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -98692,11 +96815,7 @@ export const app = {
 						SourceOperationGroup.BitTorrentDhtLookup,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -98721,17 +96840,13 @@ export const app = {
 						SourceOperationGroup.GenericSubscribe,
 					],
 					delivery: SourceDelivery.RemoteLive,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
-				source: Source.Wormholescan_Rest,
+				source: Source.Wormholescan,
 				provider: "Wormholescan",
-				label: "Wormholescan REST",
+				label: "Wormholescan",
 				binding: {
 					target: {
 						kind: SourceTargetKind.Global,
@@ -98740,20 +96855,32 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{wormholescan-api-host}",
-							origin: "https://{wormholescan-api-host}",
+							locator: "https://api.wormholescan.io/api/v1/",
 							corsEnabled: false,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
+					apiFamily: ApiFamily.OpenApiHttp,
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
+					delivery: SourceDelivery.HttpProxy,
+					credentials: [],
+					artifacts: [
 						{
-							scope: SourceCredentialScope.None,
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/Wormholescan/OpenApi/openapi.json",
+							generated: true,
+							officialUrl: "https://api.wormholescan.io/swagger.json",
+						},
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Wormholescan/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiTypes,
+							path: "src/sources/Wormholescan/OpenApi/openapi.d.ts",
+							generated: true,
 						},
 					],
 				},
@@ -98762,14 +96889,6 @@ export const app = {
 				source: Source.X_Rest,
 				provider: "X",
 				label: "X API v2",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_X_API_BEARER",
-							type: "string > 0",
-						},
-					],
-				},
 				binding: {
 					target: {
 						kind: SourceTargetKind.Global,
@@ -98779,7 +96898,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.x.com",
-							origin: "https://api.x.com",
 							corsEnabled: false,
 						},
 					],
@@ -98800,16 +96918,12 @@ export const app = {
 									},
 								],
 							},
-							keys: [
-								"PUBLIC_X_API_BEARER",
-							],
 						},
 					],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/X/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -98914,7 +97028,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://s1.ripple.com:51234",
-							origin: "https://s1.ripple.com:51234",
 							corsEnabled: false,
 						},
 					],
@@ -98924,16 +97037,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Xrpl/JsonRpc/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -98952,7 +97060,6 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://{xrpl-clio-host}",
-								origin: "https://{xrpl-clio-host}",
 								corsEnabled: false,
 							},
 						],
@@ -98962,11 +97069,7 @@ export const app = {
 							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.RemoteQuery,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 					},
 					{
 						target: {
@@ -98986,11 +97089,7 @@ export const app = {
 							SourceOperationGroup.GenericSubscribe,
 						],
 						delivery: SourceDelivery.RemoteLive,
-						credentials: [
-							{
-								scope: SourceCredentialScope.None,
-							},
-						],
+						credentials: [],
 					},
 				],
 			},
@@ -99007,7 +97106,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.xrpscan.com",
-							origin: "https://api.xrpscan.com",
 							corsEnabled: false,
 						},
 					],
@@ -99017,25 +97115,13 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
 				source: Source.Youtube_Rest,
 				provider: "Youtube",
 				label: "YouTube Data API v3",
-				env: {
-					keys: [
-						{
-							name: "PUBLIC_YOUTUBE_API_KEY",
-							type: "string > 0",
-						},
-					],
-				},
 				binding: {
 					target: {
 						kind: SourceTargetKind.Global,
@@ -99045,7 +97131,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://www.googleapis.com",
-							origin: "https://www.googleapis.com",
 							corsEnabled: false,
 						},
 					],
@@ -99066,21 +97151,16 @@ export const app = {
 									},
 								],
 							},
-							keys: [
-								"PUBLIC_YOUTUBE_API_KEY",
-							],
 						},
 					],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.GoogleDiscovery,
 							path: "src/sources/Youtube/Discovery/youtube-v3.json",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/Youtube/Discovery/schema-source.ts",
-							generated: false,
 						},
 					],
 				},
@@ -99126,7 +97206,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:8232",
-							origin: "http://127.0.0.1:8232",
 							corsEnabled: false,
 						},
 					],
@@ -99156,7 +97235,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:8232",
-							origin: "http://127.0.0.1:8232",
 							corsEnabled: false,
 						},
 					],
@@ -99195,21 +97273,15 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.Proto,
 							path: "src/sources/ZcashLightwalletd/Grpc/proto",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/ZcashLightwalletd/Grpc/schema-source.ts",
-							generated: false,
 						},
 					],
 				},
@@ -99227,13 +97299,11 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.github.com",
-							origin: "https://api.github.com",
 							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
 							corsEnabled: true,
 						},
 					],
@@ -99243,11 +97313,7 @@ export const app = {
 						SourceOperationGroup.GithubRepositoryContents,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 				},
 			},
 			{
@@ -99263,7 +97329,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:8232",
-							origin: "http://127.0.0.1:8232",
 							corsEnabled: false,
 						},
 					],
@@ -99281,36 +97346,6 @@ export const app = {
 				},
 			},
 			{
-				source: Source.ZeroExSwap_Rest,
-				provider: "ZeroExSwap",
-				label: "0x Swap REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "zero-ex-swap-api",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.0x.org",
-							origin: "https://api.0x.org",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.RuntimeSecret,
-						},
-					],
-				},
-			},
-			{
 				source: Source.ZeroGChain_JsonRpc,
 				provider: "ZeroG",
 				label: "0G Chain JSON-RPC",
@@ -99323,7 +97358,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://evmrpc.0g.ai",
-							origin: "https://evmrpc.0g.ai",
 							corsEnabled: false,
 						},
 					],
@@ -99333,21 +97367,15 @@ export const app = {
 						SourceOperationGroup.EvmRpcCore,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.OpenRpcSpec,
 							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							generated: false,
 						},
 						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
-							generated: false,
 						},
 					],
 				},
@@ -99365,7 +97393,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "http://127.0.0.1:5678",
-							origin: "http://127.0.0.1:5678",
 							corsEnabled: true,
 						},
 					],
@@ -99384,7 +97411,6 @@ export const app = {
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/ZeroG/StorageNode/JsonRpc/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -99402,7 +97428,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://chainscan.0g.ai",
-							origin: "https://chainscan.0g.ai",
 							corsEnabled: true,
 						},
 					],
@@ -99412,16 +97437,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/ZeroG/ChainScan/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -99439,7 +97459,6 @@ export const app = {
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://storagescan.0g.ai",
-							origin: "https://storagescan.0g.ai",
 							corsEnabled: true,
 						},
 					],
@@ -99449,16 +97468,11 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/ZeroG/StorageScan/Rest/types.ts",
-							generated: false,
 						},
 					],
 				},
@@ -99481,6 +97495,10 @@ export const app = {
 			{
 				source: Source.Allium_Rest,
 				path: "src/resolvers/Allium-Rest.ts",
+			},
+			{
+				source: Source.Nodely,
+				path: "src/resolvers/AlgorandIndexer-Rest.ts",
 			},
 			{
 				source: Source.AcpRegistry_Rest,
@@ -99523,6 +97541,10 @@ export const app = {
 				path: "src/resolvers/BitcoinCore-JsonRpc.ts",
 			},
 			{
+				source: Source.Bithomp,
+				path: "src/resolvers/Bithomp.ts",
+			},
+			{
 				source: Source.Bittensor_JsonRpc,
 				path: "src/resolvers/Bittensor-JsonRpc.ts",
 			},
@@ -99559,6 +97581,10 @@ export const app = {
 				path: "src/resolvers/CashuMint-Rest.ts",
 			},
 			{
+				source: Source.Celenium_Rest,
+				path: "src/resolvers/Celenium-Rest.ts",
+			},
+			{
 				source: Source.Constants_Internal,
 				path: "src/resolvers/Constants.ts",
 			},
@@ -99583,24 +97609,16 @@ export const app = {
 				path: "src/resolvers/CoinMarketCap-Rest.ts",
 			},
 			{
-				source: Source.Coingecko_OpenApi,
-				path: "src/resolvers/Coingecko-OpenApi.ts",
-			},
-			{
 				source: Source.Coingecko_Rest,
 				path: "src/resolvers/Coingecko-Rest.ts",
 			},
 			{
-				source: Source.Coinpaprika_OpenApi,
-				path: "src/resolvers/Coinpaprika-OpenApi.ts",
+				source: Source.Coinpaprika_Rest,
+				path: "src/resolvers/Coinpaprika-Rest.ts",
 			},
 			{
-				source: Source.Dexscreener_OpenApi,
-				path: "src/resolvers/Dexscreener-OpenApi.ts",
-			},
-			{
-				source: Source.Defillama_OpenApi,
-				path: "src/resolvers/Defillama-OpenApi.ts",
+				source: Source.Dexscreener_Rest,
+				path: "src/resolvers/Dexscreener-Rest.ts",
 			},
 			{
 				source: Source.Defillama_Rest,
@@ -99619,6 +97637,10 @@ export const app = {
 				path: "src/resolvers/Dune-Rest.ts",
 			},
 			{
+				source: Source.EasScan_Graphql,
+				path: "src/resolvers/EasScan-Graphql.ts",
+			},
+			{
 				source: Source.EthereumEips_Github,
 				path: "src/resolvers/EthereumEips-Github.ts",
 			},
@@ -99629,6 +97651,10 @@ export const app = {
 			{
 				source: Source.Eip8004Scan_Rest,
 				path: "src/resolvers/Eip8004Scan-Rest.ts",
+			},
+			{
+				source: Source.EigenExplorer_Rest,
+				path: "src/resolvers/EigenExplorer-Rest.ts",
 			},
 			{
 				source: Source.Ensips_Github,
@@ -99659,20 +97685,16 @@ export const app = {
 				path: "src/resolvers/HederaMirrorNode-Rest.ts",
 			},
 			{
-				source: Source.Helius_Rest,
-				path: "src/resolvers/Helius-Rest.ts",
+				source: Source.Helius,
+				path: "src/resolvers/Helius.ts",
 			},
 			{
 				source: Source.HuggingFaceHub_Rest,
 				path: "src/resolvers/HuggingFaceHub-Rest.ts",
 			},
 			{
-				source: Source.Hyperliquid_JsonRpc,
-				path: "src/resolvers/Hyperliquid-JsonRpc.ts",
-			},
-			{
-				source: Source.Hyperliquid_Rest,
-				path: "src/resolvers/Hyperliquid-Rest.ts",
+				source: Source.Hyperliquid,
+				path: "src/resolvers/Hyperliquid.ts",
 			},
 			{
 				source: Source.HyperliquidDocs_Rest,
@@ -99689,6 +97711,10 @@ export const app = {
 			{
 				source: Source.Ipfs_Rest,
 				path: "src/resolvers/Ipfs-Rest.ts",
+			},
+			{
+				source: Source.KaspaExplorer,
+				path: "src/resolvers/KaspaExplorer.ts",
 			},
 			{
 				source: Source.L2Beat_Rest,
@@ -99719,12 +97745,12 @@ export const app = {
 				path: "src/resolvers/Lotus-JsonRpc.ts",
 			},
 			{
-				source: Source.LogosDocs_Rest,
-				path: "src/resolvers/LogosDocs-Rest.ts",
-			},
-			{
 				source: Source.MempoolSpace_Rest,
 				path: "src/resolvers/MempoolSpace-Rest.ts",
+			},
+			{
+				source: Source.Mintscan,
+				path: "src/resolvers/Mintscan.ts",
 			},
 			{
 				source: Source.Mlflow_Rest,
@@ -99741,6 +97767,10 @@ export const app = {
 			{
 				source: Source.Local_Internal,
 				path: "src/resolvers/Local.ts",
+			},
+			{
+				source: Source.LogosBlockchainNode_Rest,
+				path: "src/resolvers/LogosBlockchainNode-Rest.ts",
 			},
 			{
 				source: Source.Mastodon_Rest,
@@ -99879,8 +97909,24 @@ export const app = {
 				path: "src/resolvers/Sqd-Portal.ts",
 			},
 			{
-				source: Source.Starknet_JsonRpc,
-				path: "src/resolvers/Starknet-JsonRpc.ts",
+				source: Source.Pathfinder,
+				path: "src/resolvers/Pathfinder.ts",
+			},
+			{
+				source: Source.Starkscan,
+				path: "src/resolvers/Starkscan.ts",
+			},
+			{
+				source: Source.StellarExpert,
+				path: "src/resolvers/StellarExpert.ts",
+			},
+			{
+				source: Source.StellarHorizon_Rest,
+				path: "src/resolvers/StellarHorizon-Rest.ts",
+			},
+			{
+				source: Source.Sui,
+				path: "src/resolvers/Sui.ts",
 			},
 			{
 				source: Source.Reddit_Rest,
@@ -99905,6 +97951,10 @@ export const app = {
 			{
 				source: Source.Superchain_Github,
 				path: "src/resolvers/Superchain-Github.ts",
+			},
+			{
+				source: Source.TonCenter,
+				path: "src/resolvers/TonCenter.ts",
 			},
 			{
 				source: Source.TonApi_Rest,

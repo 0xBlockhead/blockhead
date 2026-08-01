@@ -52,10 +52,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{selection.entitySelector.epochId || 'near validator timestamp'}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={nearValidatorTimestamp}>
 			{#snippet children(entity)}
@@ -85,7 +81,6 @@
 					<NearValidatorView
 						selection={select(EntityType.NearValidator, selection.entitySelector.$validator)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

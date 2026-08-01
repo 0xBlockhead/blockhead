@@ -3,6 +3,11 @@
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
+const xmtpGenericReadGenericSubscribeOperationGroups = [
+	SourceOperationGroup.GenericRead,
+	SourceOperationGroup.GenericSubscribe,
+] as const
+
 const bindings = [
 	{
 		source: Source.Xmtp_BrowserSdk,
@@ -18,10 +23,7 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.XmtpClientApi,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-			SourceOperationGroup.GenericSubscribe,
-		],
+		operationGroups: xmtpGenericReadGenericSubscribeOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [
 			{
@@ -43,10 +45,7 @@ const bindings = [
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.XmtpClientApi,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-			SourceOperationGroup.GenericSubscribe,
-		],
+		operationGroups: xmtpGenericReadGenericSubscribeOperationGroups,
 		delivery: SourceDelivery.ServerOnly,
 		credentials: [
 			{
@@ -56,7 +55,4 @@ const bindings = [
 	},
 ] as const satisfies readonly SourceBinding[]
 
-export default indexSourceBindings<{
-	readonly [Source.Xmtp_BrowserSdk]: typeof bindings[0]
-	readonly [Source.Xmtp_NodeSdk]: typeof bindings[1]
-}>(bindings)
+export default indexSourceBindings(bindings)

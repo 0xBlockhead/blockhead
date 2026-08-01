@@ -22,7 +22,6 @@
 
 
 	// Components
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import AccountView from '$/views/AccountView.svelte'
 </script>
@@ -40,14 +39,7 @@
 		<AccountView
 			selection={select(EntityType.Account, selection.entitySelector.$account)}
 			layout={EntityLayout.Title}
-			open={false}
 		/>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A locally enrolled public account included in Blockhead account-wide views.
-		</p>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -58,7 +50,6 @@
 					<AccountView
 						selection={select(EntityType.Account, selection.entitySelector.$account)}
 						layout={EntityLayout.Value}
-						open={false}
 					/>
 				</dd>
 			</div>

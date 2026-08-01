@@ -28,12 +28,8 @@
 
 	<NostrRepostsView
 		href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/reposts')}
-		title='Nostr reposts'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
 		id='observed-reposts'
-		data-column-item="flexible"
-		data-card
-		data-scroll-container
 	/>
 </Page>

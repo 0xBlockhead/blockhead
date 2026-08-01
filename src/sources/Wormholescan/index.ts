@@ -10,8 +10,8 @@ export default {
 	label: 'Wormholescan',
 	sources: [
 		{
-			source: Source.Wormholescan_Rest,
-			label: 'Wormholescan REST',
+			source: Source.Wormholescan,
+			label: 'Wormholescan',
 		},
 	],
 	bindings: Object.values(bindings).flat(),

@@ -17,17 +17,14 @@ import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
-
-type CastHash = `0x${string}`
-
-const normalizeMediaUrl = (value: string | null | undefined): string | undefined => {
+const normalizeMediaUrl = (value: string | null | undefined) => {
 	const raw = value ?? ''
 	if (raw.length === 0) return undefined
 	if (farcasterPlaceholderIconUrlFragments.some((fragment) => raw.toLowerCase().includes(fragment))) return undefined
 	return resolveMediaUrlTransport(raw)?.url
 }
 
-const zeroXLowerHexCastHash = (hash: string): CastHash => {
+const zeroXLowerHexCastHash = (hash: string) => {
 	const hex = (
 		hash.startsWith('0x')
 		|| hash.startsWith('0X') ?
@@ -47,8 +44,23 @@ const farcasterCastTimestampMs = (timestamp: number | undefined) => (
 				timestamp * 1000
 		)
 	:
-		undefined
+	undefined
 )
+
+const getFarcasterChannelCounts = async (channelId: string) => {
+	const {
+		getChannelFollowersCount,
+		getChannelMembersCount,
+	} = await import('$/sources/Farcaster/Rest/queries.ts')
+	const [followerCount, memberCount] = await Promise.all([
+		getChannelFollowersCount({ channelId }),
+		getChannelMembersCount({ channelId }),
+	])
+	return {
+		followerCount,
+		memberCount,
+	}
+}
 
 export default {
 	source: Source.Farcaster_Rest,
@@ -237,24 +249,7 @@ export default {
 			entityType: EntityType.FarcasterChannel_Timestamp,
 			resolve: {
 				FarcasterChannelTimestampMs: {
-					resolve: async ({ $channel }) => {
-						const {
-							getChannelFollowersCount,
-							getChannelMembersCount,
-						} = await import('$/sources/Farcaster/Rest/queries.ts')
-						const [followerCount, memberCount] = await Promise.all([
-							getChannelFollowersCount({
-								channelId: $channel.id,
-							}),
-							getChannelMembersCount({
-								channelId: $channel.id,
-							}),
-						])
-						return {
-							followerCount,
-							memberCount,
-						}
-					},
+					resolve: async ({ $channel }) => getFarcasterChannelCounts($channel.id),
 				}
 			},
 		})({
@@ -267,11 +262,12 @@ export default {
 			resolve: {
 				UsernameHashPrefix: {
 					resolve: async ({ username, hashPrefix }) => {
-						const { getCastAndDirectRepliesByUsernameAndHashPrefix } = await import('$/sources/Farcaster/Rest/queries.ts')
-						const { cast, directReplies } = await getCastAndDirectRepliesByUsernameAndHashPrefix({
+						const { getUserThreadCasts } = await import('$/sources/Farcaster/Rest/queries.ts')
+						const casts = (await getUserThreadCasts({
 							username,
 							castHashPrefix: hashPrefix,
-						})
+						})).result?.casts ?? []
+						const cast = casts.at(0)
 						const hash = optionalNonemptyString(cast?.hash)
 						if (
 						cast == null
@@ -330,46 +326,56 @@ export default {
 									} satisfies Entity<typeof schema, EntityType.FarcasterChannel>)
 							),
 							timestamp,
-							$$directReplies: directReplies.flatMap((reply) => {
-								const replyHash = optionalNonemptyString(reply.hash)
-								if (replyHash == null || reply.author?.fid == null)
-									return []
-								const replyTimestamp = farcasterCastTimestampMs(reply.timestamp)
-								const replyUsername = optionalNonemptyString(reply.author.username)
-								const replyChannelId = optionalNonemptyString(reply.channel?.id)
+							$$directReplies: casts
+								.filter((reply) => (
+									reply.hash != null
+									&& reply.author != null
+									&& Number.isSafeInteger(reply.author.fid)
+									&& reply.author.fid >= 0
+									&& reply.parentHash != null
+									&& reply.parentAuthor?.fid === cast.author.fid
+									&& zeroXLowerHexCastHash(reply.parentHash) === castHash
+								))
+								.flatMap((reply) => {
+									const replyHash = optionalNonemptyString(reply.hash)
+									if (replyHash == null || reply.author?.fid == null)
+										return []
+									const replyTimestamp = farcasterCastTimestampMs(reply.timestamp)
+									const replyUsername = optionalNonemptyString(reply.author.username)
+									const replyChannelId = optionalNonemptyString(reply.channel?.id)
 
-								return [{
-									[EntityMetaKey.Selector]: {
-										fid: reply.author.fid,
-										hash: zeroXLowerHexCastHash(replyHash),
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.FarcasterCast, [], 'fid')]: reply.author.fid,
-										[entityFieldAddressKey(EntityType.FarcasterCast, [], 'hash')]: zeroXLowerHexCastHash(replyHash),
-										[entityFieldAddressKey(EntityType.FarcasterCast, [], '$author')]: {
-											[EntityMetaKey.Selector]: { fid: reply.author.fid },
+									return [{
+										[EntityMetaKey.Selector]: {
+											fid: reply.author.fid,
+											hash: zeroXLowerHexCastHash(replyHash),
 										},
-										[entityFieldAddressKey(EntityType.FarcasterCast, [], 'text')]: optionalNonemptyString(reply.text),
-										[entityFieldAddressKey(EntityType.FarcasterCast, [], '$parentCast')]: {
-											[EntityMetaKey.Selector]: {
-												fid: cast.author.fid,
-												hash: castHash,
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.FarcasterCast, [], 'fid')]: reply.author.fid,
+											[entityFieldAddressKey(EntityType.FarcasterCast, [], 'hash')]: zeroXLowerHexCastHash(replyHash),
+											[entityFieldAddressKey(EntityType.FarcasterCast, [], '$author')]: {
+												[EntityMetaKey.Selector]: { fid: reply.author.fid },
 											},
+											[entityFieldAddressKey(EntityType.FarcasterCast, [], 'text')]: optionalNonemptyString(reply.text),
+											[entityFieldAddressKey(EntityType.FarcasterCast, [], '$parentCast')]: {
+												[EntityMetaKey.Selector]: {
+													fid: cast.author.fid,
+													hash: castHash,
+												},
+											},
+											...(replyTimestamp != null && {
+												[entityFieldAddressKey(EntityType.FarcasterCast, [], 'timestamp')]: replyTimestamp,
+											}),
+											...(replyUsername != null && {
+												[entityFieldAddressKey(EntityType.FarcasterCast, [], 'username')]: replyUsername,
+											}),
+											...(replyChannelId != null && {
+												[entityFieldAddressKey(EntityType.FarcasterCast, [], '$channel')]: {
+													[EntityMetaKey.Selector]: { id: replyChannelId },
+												},
+											}),
 										},
-										...(replyTimestamp != null && {
-											[entityFieldAddressKey(EntityType.FarcasterCast, [], 'timestamp')]: replyTimestamp,
-										}),
-										...(replyUsername != null && {
-											[entityFieldAddressKey(EntityType.FarcasterCast, [], 'username')]: replyUsername,
-										}),
-										...(replyChannelId != null && {
-											[entityFieldAddressKey(EntityType.FarcasterCast, [], '$channel')]: {
-												[EntityMetaKey.Selector]: { id: replyChannelId },
-											},
-										}),
-									},
-								}]
-							}),
+									}]
+								}),
 							...(cast.threadHash != null && cast.threadHash !== '' && {
 								threadHash: zeroXLowerHexCastHash(cast.threadHash),
 							}),
@@ -427,17 +433,9 @@ export default {
 				Id: {
 					resolve: async ({ id }) => {
 						const {
-							getChannelFollowersCount,
-							getChannelMembersCount,
-						} = await import('$/sources/Farcaster/Rest/queries.ts')
-						const [followerCount, memberCount] = await Promise.all([
-							getChannelFollowersCount({
-								channelId: id,
-							}),
-							getChannelMembersCount({
-								channelId: id,
-							}),
-						])
+							followerCount,
+							memberCount,
+						} = await getFarcasterChannelCounts(id)
 						return [
 							{
 								[EntityMetaKey.Selector]: {

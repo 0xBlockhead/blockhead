@@ -6,18 +6,9 @@ import {
 	vi,
 } from 'vitest'
 
+import bindings from '$/sources/SnapshotHub/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceArtifactKind,
-	SourceCredentialScope,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	SourceTargetKind,
-	WireProtocol,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
+import { maximumSnapshotHubGraphqlResponseBytes } from '$/sources/SnapshotHub/Graphql/client.ts'
 import {
 	getProposal,
 	getProposalsPage,
@@ -25,37 +16,10 @@ import {
 	getSpacesPage,
 	getVote,
 	getVotesPage,
-	maximumSnapshotHubGraphqlResponseBytes,
 } from '$/sources/SnapshotHub/Graphql/queries.ts'
 import * as runtimeHttp from '$/sources/_runtime/http.ts'
 
-const binding = {
-	source: Source.SnapshotHub_Graphql,
-	target: {
-		kind: SourceTargetKind.Global,
-		key: 'snapshot-hub',
-	},
-	endpoints: [{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://hub.snapshot.org/graphql',
-		origin: 'https://hub.snapshot.org',
-		corsEnabled: true,
-	}],
-	wireProtocol: WireProtocol.Graphql,
-	apiFamily: ApiFamily.GraphqlHttp,
-	operationGroups: [
-		SourceOperationGroup.GenericRead,
-	],
-	delivery: SourceDelivery.BrowserDirect,
-	credentials: [{
-		scope: SourceCredentialScope.None,
-	}],
-	artifacts: [{
-		kind: SourceArtifactKind.HandwrittenTypes,
-		path: 'src/sources/SnapshotHub/Graphql/types.ts',
-		generated: false,
-	}],
-} as const satisfies SourceBinding
+const binding = bindings[Source.SnapshotHub_Graphql]
 
 const spaceId = 'ens.eth'
 const proposalId = `0x${'1'.repeat(64)}`
@@ -197,7 +161,7 @@ describe('Snapshot Hub public governance reads', () => {
 		vi.restoreAllMocks()
 	})
 
-	it('preserves exact space strategies and offset pagination provenance', async () => {
+	it('returns exact space strategies and offset pagination from the endpoint', async () => {
 		const sourceFetch = vi.spyOn(runtimeHttp, 'sourceFetch')
 		sourceFetch
 			.mockResolvedValueOnce(jsonResponse({
@@ -210,28 +174,17 @@ describe('Snapshot Hub public governance reads', () => {
 			}))
 
 		await expect(getSpace({
-			binding,
 			spaceId,
 		})).resolves.toMatchObject({
-			value: {
-				id: spaceId,
-				strategies,
-			},
-			observedBy: 'SnapshotHub_Graphql',
-			endpoint: 'https://hub.snapshot.org/graphql',
+			id: spaceId,
+			strategies,
 		})
 		await expect(getSpacesPage({
-			binding,
 			limit: 1,
 			offset: 40,
-		})).resolves.toMatchObject({
-			value: {
-				items: [
-					space,
-				],
-				nextOffset: 41,
-			},
-		})
+		})).resolves.toEqual([
+			space,
+		])
 		expect(sourceFetch).toHaveBeenNthCalledWith(
 			1,
 			binding,
@@ -271,18 +224,15 @@ describe('Snapshot Hub public governance reads', () => {
 		}))
 
 		await expect(getProposal({
-			binding,
 			proposalId,
 		})).resolves.toMatchObject({
-			value: {
-				id: proposalId,
-				state,
-				snapshot: 19_000_000,
-				quorum: 100_000.25,
-				quorumType: 'default',
-				scores,
-				scores_by_strategy,
-			},
+			id: proposalId,
+			state,
+			snapshot: 19_000_000,
+			quorum: 100_000.25,
+			quorumType: 'default',
+			scores,
+			scores_by_strategy,
 		})
 	})
 
@@ -294,19 +244,13 @@ describe('Snapshot Hub public governance reads', () => {
 		}))
 
 		await expect(getProposalsPage({
-			binding,
 			spaceId,
 			state: 'closed',
 			limit: 1,
 			offset: 8,
-		})).resolves.toMatchObject({
-			value: {
-				items: [
-					proposal,
-				],
-				nextOffset: 9,
-			},
-		})
+		})).resolves.toEqual([
+			proposal,
+		])
 		expect(JSON.parse(
 			String(sourceFetch.mock.calls[0]?.[2]?.body)
 		)).toMatchObject({
@@ -333,33 +277,24 @@ describe('Snapshot Hub public governance reads', () => {
 			}))
 
 		await expect(getVote({
-			binding,
 			voteId,
 		})).resolves.toMatchObject({
-			value: {
-				id: voteId,
-				voter,
-				choice: vote.choice,
-				vp: 123.456,
-				vp_by_strategy: [
-					100.123,
-					23.333,
-				],
-			},
+			id: voteId,
+			voter,
+			choice: vote.choice,
+			vp: 123.456,
+			vp_by_strategy: [
+				100.123,
+				23.333,
+			],
 		})
 		await expect(getVotesPage({
-			binding,
 			proposalId,
 			limit: 1,
 			offset: 0,
-		})).resolves.toMatchObject({
-			value: {
-				items: [
-					vote,
-				],
-				nextOffset: 1,
-			},
-		})
+		})).resolves.toEqual([
+			vote,
+		])
 	})
 
 	it('rejects foreign spaces, proposals, votes, and invalid requested identities', async () => {
@@ -390,24 +325,20 @@ describe('Snapshot Hub public governance reads', () => {
 			}))
 
 		await expect(getSpace({
-			binding,
 			spaceId,
 		})).rejects.toThrow('foreign space')
 		await expect(getProposalsPage({
-			binding,
 			spaceId,
 			state: 'closed',
 			limit: 10,
 			offset: 0,
 		})).rejects.toThrow('foreign space')
 		await expect(getVotesPage({
-			binding,
 			proposalId,
 			limit: 10,
 			offset: 0,
 		})).rejects.toThrow('foreign proposal')
 		await expect(getProposal({
-			binding,
 			proposalId: 'not-a-proposal',
 		})).rejects.toThrow('invalid requested proposal ID')
 		expect(sourceFetch).toHaveBeenCalledTimes(3)
@@ -448,15 +379,12 @@ describe('Snapshot Hub public governance reads', () => {
 			}))
 
 		await expect(getProposal({
-			binding,
 			proposalId,
 		})).rejects.toThrow('invalid proposal lifecycle')
 		await expect(getProposal({
-			binding,
 			proposalId,
 		})).rejects.toThrow('do not align with strategies')
 		await expect(getVote({
-			binding,
 			voteId,
 		})).rejects.toThrow('does not align with strategies')
 	})
@@ -465,7 +393,6 @@ describe('Snapshot Hub public governance reads', () => {
 		const sourceFetch = vi.spyOn(runtimeHttp, 'sourceFetch')
 
 		await expect(getSpacesPage({
-			binding,
 			limit: 101,
 			offset: 0,
 		})).rejects.toThrow('limit must be from 1 through 100')
@@ -480,7 +407,6 @@ describe('Snapshot Hub public governance reads', () => {
 			}
 		))
 		await expect(getSpace({
-			binding,
 			spaceId,
 		})).rejects.toThrow('response exceeds byte limit')
 	})

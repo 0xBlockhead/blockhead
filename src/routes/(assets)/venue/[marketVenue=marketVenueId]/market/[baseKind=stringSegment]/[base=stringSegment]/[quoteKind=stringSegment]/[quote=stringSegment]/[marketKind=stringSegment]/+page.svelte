@@ -15,8 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.Market, data.selector))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -31,6 +29,6 @@
 
 <Page>
 	<MarketView
-		selection={pageSelection}
+		selection={select(EntityType.Market, data.selector)}
 	/>
 </Page>

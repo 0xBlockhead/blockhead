@@ -102,7 +102,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={farcasterCast}>
 			{#snippet children(entity)}
-				{[String(entity.fid), entity.hash].filter(Boolean).join(' ') || [(entity.text ?? ''), entity.hash].filter(Boolean).join(' ') || titleFallback}
+				{['FID ', String(entity.fid), ' / ', entity.hash].filter(Boolean).join(' ') || [(entity.text ?? ''), entity.hash].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -134,7 +134,6 @@
 									selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
 									prefetched={farcasterUser}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -174,7 +173,6 @@
 									selection={select(EntityType.FarcasterChannel, farcasterChannel[EntityMetaKey.Selector])}
 									prefetched={farcasterChannel}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -196,7 +194,6 @@
 									selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
 									prefetched={farcasterCast}
 									layout={EntityLayout.Value}
-									open={false}
 								/>
 							</dd>
 						</div>

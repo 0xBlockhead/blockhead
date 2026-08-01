@@ -10,8 +10,8 @@ export default {
 	label: 'Circle CCTP',
 	sources: [
 		{
-			source: Source.CircleCctp_IrisApi,
-			label: 'Circle CCTP Iris API',
+			source: Source.CircleCctpIris,
+			label: 'Circle CCTP Iris',
 		},
 		{
 			source: Source.CircleCctpContracts_Evm,
