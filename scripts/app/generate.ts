@@ -160,10 +160,12 @@ type RouteParam = {
 	name: string
 	matcher: string
 	matchers: readonly string[]
-	explicitValueTypes: readonly string[]
 	valueTypes: readonly string[]
 	decode?: _ExpressionDecode | _RouteParamTransform
 	encoding?: _RouteParamEncoding
+}
+type RouteParamCompilationContext = RouteParam & {
+	explicitValueTypes: readonly string[]
 }
 type SelectorAncestorBinding = {
 	field: string
@@ -3240,7 +3242,7 @@ const compileRouteTree = (
 	},
 	parentPath = '',
 	ancestorSelectors: readonly RouteAncestorSelector[] = [],
-	ancestorRouteParams: readonly RouteParam[] = [],
+	ancestorRouteParams: readonly RouteParamCompilationContext[] = [],
 	parentSvelteKitPath = ''
 ): RouteNode[] => {
 	const {
@@ -3288,7 +3290,7 @@ const compileRouteTree = (
 		))
 		const routeParams = [
 			...ancestorRouteParams,
-			...routeParamNames(segment).map((name) => {
+			...routeParamNames(segment).map((name): RouteParamCompilationContext => {
 				const explicitValueTypes = node.params?.[name] ?? []
 				const boundValueTypes = indexes.routeParamValueTypesByOwner.get(`${routeId(routePath)}\0${name}`) ?? []
 				const valueTypes = unique([
@@ -4079,7 +4081,10 @@ const compileRouteTree = (
 			internalPath: routeId(routePath),
 			svelteKitPath,
 			publicPath: publicRouteId(routePath),
-			params: routeParams,
+			params: routeParams.map(({
+				explicitValueTypes: _explicitValueTypes,
+				...routeParam
+			}) => routeParam),
 			collectionMappings: collectionMappings.map((collection) => ({
 				entityType: collection.source.entity,
 				field: collection.source.field,
