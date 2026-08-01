@@ -1771,6 +1771,32 @@ test('uses one resource-owned declarative summary path', () => {
 	assert.doesNotMatch(renderGeneratedFile(walletConnectionWithOpaqueChildSummary), /\{#if layout !== EntityLayout\.SummaryDetails/)
 })
 
+test('keeps projection fields resolved when their terminal name matches a selector field', () => {
+	const collisionApp = structuredClone(app)
+	const account = collisionApp.schema.entities.find((entity) => entity.entityType === EntityType.Account)
+	const evm = account?.facets?.find((facet) => facet.name === 'Evm')
+	const caip10 = account?.fields.find((field) => field.name === 'caip10')
+	assert.ok(account?.views.singular && evm?.fields && caip10)
+	Object.defineProperty(evm, 'fields', {
+		enumerable: true,
+		value: [
+			...evm.fields,
+			structuredClone(caip10),
+		],
+	})
+	account.views.singular.summary = {
+		title: [['Evm', 'caip10']],
+	}
+
+	const accountView = compileApp(collisionApp).generatedFiles.find((generatedFile) => (
+		generatedFile.path === 'src/views/AccountView.svelte'
+	))
+	assert.ok(accountView)
+	const renderedAccountView = renderGeneratedFile(accountView)
+	assert.match(renderedAccountView, /<ProjectionBoundary[\s\S]*?resource=\{selection\.Evm\}[\s\S]*?projection\.caip10/)
+	assert.doesNotMatch(renderedAccountView, /selection\.entitySelector\.Evm\.caip10/)
+})
+
 test('renders value display facts and their query dependencies in definition lists', () => {
 	const generatedFiles = baselineCompiledApp.generatedFiles
 	const beaconValidatorView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/BeaconValidatorView.svelte')

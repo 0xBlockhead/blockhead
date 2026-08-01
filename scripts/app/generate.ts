@@ -8179,12 +8179,10 @@ const viewItemEntityFieldsExpression = (
 ) => {
 	const fieldReferences = viewItemFieldReferences(viewEntry)
 	const usesSelectorFields = fieldReferences.some((fieldReference) => (
-		!isProjectionFieldReference(fieldReference)
-		&& entitySelectorOwnsField(entity, fieldNameForReference(fieldReference))
+		entitySelectorOwnsField(entity, fieldReference)
 	))
 	const usesResolvedFields = fieldReferences.some((fieldReference) => (
-		isProjectionFieldReference(fieldReference)
-		|| !entitySelectorOwnsField(entity, fieldNameForReference(fieldReference))
+		!entitySelectorOwnsField(entity, fieldReference)
 	))
 	if (usesSelectorFields && usesResolvedFields)
 		throw new Error(`${entity.entityType} ${context} mixes selector and resolved fields`)
@@ -8754,7 +8752,7 @@ const renderItemExpression = (
 		&& (
 			fieldsAreComplete
 			|| viewEntryFieldsExpression === 'selection.entitySelector'
-				&& entitySelectorOwnsField(entity, fieldNameForReference(fieldReference))
+				&& entitySelectorOwnsField(entity, fieldReference)
 		)
 	)
 	if (typeof viewEntry === 'string' || isProjectionFieldReference(viewEntry)) {
@@ -9032,7 +9030,7 @@ const declarativeSummaryQueryFieldReferences = (entity: Entity, indexes: Generat
 		if (fieldDefinition == null || fieldDefinition.type === EntityFieldType.EntitiesReference)
 			return undefined
 		if (fieldDefinition.type === EntityFieldType.Primitive) {
-			if (!entitySelectorOwnsField(entity, fieldNameForReference(fieldReference)))
+			if (!entitySelectorOwnsField(entity, fieldReference))
 				fields.push(fieldReference)
 			continue
 		}
@@ -9163,7 +9161,7 @@ const compileSummaryPlan = (entity: Entity, indexes: GenerationIndexes) => {
 		viewItemFieldReferences(viewEntry).some((fieldReference) => (
 			fieldDefinitionByReference(entity, fieldReference, indexes)?.type === EntityFieldType.Primitive
 				&& !isProjectionFieldReference(fieldReference)
-				&& !entitySelectorOwnsField(entity, fieldNameForReference(fieldReference))
+				&& !entitySelectorOwnsField(entity, fieldReference)
 		))
 	))
 	const slot = (entries: readonly _ViewItem[], raw: string | undefined, rendersSerial = false, contentWarningAware = false) => ({
@@ -9210,7 +9208,7 @@ const compileSummaryPlan = (entity: Entity, indexes: GenerationIndexes) => {
 				summaryDisplayFieldKeys.has(fieldReferenceKey(fieldReference))
 				|| fieldDefinition?.type === EntityFieldType.Primitive
 				&& !isProjectionFieldReference(fieldReference)
-				&& !entitySelectorOwnsField(entity, fieldNameForReference(fieldReference))
+				&& !entitySelectorOwnsField(entity, fieldReference)
 			)
 		}),
 	}
@@ -9236,8 +9234,7 @@ const compileSingularViewPlan = (entity: Entity, indexes: GenerationIndexes) => 
 	const pendingSummaryItemFieldsExpression = (viewEntry: _ViewItem) => {
 		const fieldReferences = viewItemFieldReferences(viewEntry)
 		const selectorOwned = fieldReferences.filter((fieldReference) => (
-			!isProjectionFieldReference(fieldReference)
-			&& entitySelectorOwnsField(entity, fieldNameForReference(fieldReference))
+			entitySelectorOwnsField(entity, fieldReference)
 		)).length
 		if (selectorOwned === fieldReferences.length)
 			return 'selection.entitySelector'
@@ -9886,7 +9883,7 @@ const generateSingularViewFile = (
 					fieldReference != null
 					&& !isProjectionFieldReference(fieldReference)
 					&& fieldDefinitionByReference(entity, fieldReference, indexes)?.type === EntityFieldType.Primitive
-					&& !entitySelectorOwnsField(entity, fieldNameForReference(fieldReference))
+					&& !entitySelectorOwnsField(entity, fieldReference)
 					&& viewItemFieldReferences(viewEntry).every((field) => queryFieldKeys.has(fieldReferenceKey(field)))
 				)
 			})
@@ -10155,7 +10152,7 @@ const generateSingularViewFile = (
 					fieldReference != null
 					&& !isProjectionFieldReference(fieldReference)
 					&& fieldDefinition?.type === EntityFieldType.Primitive
-					&& !entitySelectorOwnsField(entity, fieldNameForReference(fieldReference))
+					&& !entitySelectorOwnsField(entity, fieldReference)
 					&& !viewItemFieldReferences(viewEntry).every((field) => queryFieldKeys.has(fieldReferenceKey(field)))
 				)
 			})
@@ -10498,7 +10495,7 @@ const generateSingularViewFile = (
 			return (
 				fieldReference != null
 				&& fieldDefinitionByReference(entity, fieldReference, indexes)?.type === EntityFieldType.EntityReference
-				&& !entitySelectorOwnsField(entity, fieldNameForReference(fieldReference))
+				&& !entitySelectorOwnsField(entity, fieldReference)
 			)
 		})
 		|| summaryIconFieldDefinition?.type === EntityFieldType.EntityReference
@@ -10510,7 +10507,7 @@ const generateSingularViewFile = (
 			...contentListRelationshipSections,
 		].some((section) => (
 			fieldDefinitionByReference(entity, section.field, indexes)?.type === EntityFieldType.EntityReference
-			&& !entitySelectorOwnsField(entity, fieldNameForReference(section.field))
+			&& !entitySelectorOwnsField(entity, section.field)
 		))
 		|| carouselsToRender.some((carousel) => carousel.sections.some((section) => (
 			section.field != null
@@ -10535,7 +10532,7 @@ const generateSingularViewFile = (
 			return (
 				fieldDefinition?.type === EntityFieldType.EntitiesReference
 				|| fieldDefinition?.type === EntityFieldType.EntityReference
-					&& !entitySelectorOwnsField(entity, fieldNameForReference(section.field))
+					&& !entitySelectorOwnsField(entity, section.field)
 			)
 		})
 		|| carouselsToRender.some((carousel) => carousel.sections.some((section) => {
@@ -10566,10 +10563,7 @@ const generateSingularViewFile = (
 			return (
 				fieldReference != null
 				&& fieldDefinition?.type !== EntityFieldType.EntitiesReference
-				&& (
-					isProjectionFieldReference(fieldReference)
-					|| !entitySelectorOwnsField(entity, fieldNameForReference(fieldReference))
-				)
+				&& !entitySelectorOwnsField(entity, fieldReference)
 			)
 		})
 	)
@@ -11255,7 +11249,7 @@ const renderIconSnippet = (
 		&& iconFieldDefinition.entityType != null
 	) {
 		const component = singularComponentName(iconFieldDefinition.entityType)
-		const selectorOwnsIcon = entitySelectorOwnsField(entity, fieldNameForReference(iconField))
+		const selectorOwnsIcon = entitySelectorOwnsField(entity, iconField)
 		const referenceSelectorExpression = selectorOwnsIcon ?
 			fieldExpression('selection.entitySelector', fieldNameForReference(iconField))
 		:
@@ -11290,7 +11284,7 @@ const renderIconSnippet = (
 	if (resolvedIconExpression == null)
 		return renderIcon(['<IconComponent />'])
 
-	if (entitySelectorOwnsField(entity, fieldNameForReference(iconField)))
+	if (entitySelectorOwnsField(entity, iconField))
 		return renderIcon([
 			`<IconComponent icon={${renderDisplayExpression(
 				entity,
@@ -11485,7 +11479,7 @@ const renderContentItem = (
 			fieldResourceBase
 		)
 
-	if (!isProjectionFieldReference(fieldReference) && entitySelectorOwnsField(entity, fieldName)) {
+	if (entitySelectorOwnsField(entity, fieldReference)) {
 		const fieldValueExpression = fieldExpression('selection.entitySelector', fieldReference)
 		const valueMarkup = renderDefinitionListItem(level, label, [
 			...renderValueMarkup(
@@ -15010,13 +15004,11 @@ const renderPageEntityTitleExpression = (
 			)))
 	)
 	const pendingOwnsField = (fieldReference: FieldReference) => (
-		!isProjectionFieldReference(fieldReference)
-		&& (
-			pendingSelectorFields == null ?
-				entitySelectorOwnsField(entity, fieldNameForReference(fieldReference))
-			:
-				pendingSelectorFields.has(fieldReferenceKey(fieldReference))
-		)
+		pendingSelectorFields == null ?
+			entitySelectorOwnsField(entity, fieldReference)
+		:
+			!isProjectionFieldReference(fieldReference)
+			&& pendingSelectorFields.has(fieldReferenceKey(fieldReference))
 	)
 	const itemUsesResolvedFields = (viewEntry: _ViewItem) => viewItemFieldReferences(viewEntry)
 		.some((fieldReference) => !pendingOwnsField(fieldReference))
