@@ -1592,13 +1592,10 @@ const renderRouteParamExpression = (
 		)).join('')}\``
 
 	if (expression.kind === 'case') {
-		const valueExpression = renderExpression(expression, {
+		const routeValueExpression = renderExpression(expression, {
 			...context,
 			optional: false,
-		})
-		const parsedValueExpression = parseTypeScriptExpression(valueExpression)
-		const routeValueExpression = unwrapParenthesizedExpression(parsedValueExpression.expression)
-			.getText(parsedValueExpression.sourceFile)
+		}, 'omit')
 		if (appExpressionProducesString(expression, context))
 			return decode === _ExpressionDecode.DecodeURIComponent ?
 				`encodeURIComponent(${routeValueExpression})`
@@ -2410,7 +2407,8 @@ const expressionUsesKind = (expression: _Expression | undefined, kind: _Expressi
 
 const renderExpression = (
 	expression: _Expression,
-	context: ExpressionContext
+	context: ExpressionContext,
+	caseParentheses: 'include' | 'omit' = 'include'
 ): string => {
 	if (typeof expression === 'string')
 		return expression
@@ -2508,20 +2506,26 @@ const renderExpression = (
 		const exhaustive = appCaseIsExhaustive(expression, context)
 		const conditionalCases = exhaustive ? caseExpressions.slice(0, -1) : caseExpressions
 		const fallbackExpression = exhaustive ? caseExpressions.at(-1)?.value ?? defaultExpression : defaultExpression
-		const inlineExpression = `(${conditionalCases.map((item) => `${valueExpression} === ${item.equals} ? ${item.value}`).join(' : ')} : ${fallbackExpression})`
+		const inlineExpression = `${conditionalCases.map((item) => `${valueExpression} === ${item.equals} ? ${item.value}`).join(' : ')} : ${fallbackExpression}`
 		if (!inlineExpression.includes('\n'))
-			return inlineExpression
+			return caseParentheses === 'include' ? `(${inlineExpression})` : inlineExpression
 
-		return [
-			'(',
+		const expressionLines = [
 			...conditionalCases.flatMap((item) => [
 				...indent(`${valueExpression} === ${item.equals} ?`).split('\n'),
 				...indent(item.value, 2).split('\n'),
 				'\t:',
 			]),
 			indent(fallbackExpression, 2),
+		]
+		return (caseParentheses === 'include' ? [
+			'(',
+			...expressionLines,
 			')',
-		].join('\n')
+		] : [
+			expressionLines[0]?.trimStart() ?? '',
+			...expressionLines.slice(1),
+		]).join('\n')
 	}
 
 	throw new Error(`Unsupported expression kind: ${(expression as { kind: string }).kind}`)
