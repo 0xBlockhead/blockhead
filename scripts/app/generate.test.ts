@@ -4397,6 +4397,24 @@ test('groups inherited selector fields under one route mapping', () => {
 	assert.match(generatorSource, /params: routeParams\.map\(\(\{\n\s+explicitValueTypes: _explicitValueTypes,\n\s+\.\.\.routeParam/)
 })
 
+test('retains only physical route file facts consumed by route emitters', () => {
+	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
+	const physicalRoutePlanSource = generatorSource.slice(
+		generatorSource.indexOf('type CompiledPhysicalRouteFileFacts ='),
+		generatorSource.indexOf('const routeProjectionKey =')
+	)
+	const physicalRouteFiles = baselineCompiledApp.generatedFiles.filter(({ path: filePath }) => (
+		filePath.startsWith('src/routes/')
+		&& /\/(?:\+page\.svelte|\+page\.ts|\+layout\.svelte|\+layout\.ts)$/.test(filePath)
+	))
+
+	assert.equal(physicalRouteFiles.length, 565)
+	assert.doesNotMatch(physicalRoutePlanSource, /\bplacement:|\binheritedMappings,|\bprojectionOwnedByAncestor\b|\bpageModuleOwnership:/)
+	assert.match(physicalRoutePlanSource, /const inheritedMappings = [^\n]+[\s\S]*?routeFile: inheritedMappings \? \{[\s\S]*?mappings: pageModule\?\.mappings/)
+	assert.match(physicalRoutePlanSource, /const generatedPageModule = [\s\S]*?plan\.generatedPageModule === true/)
+	assert.match(physicalRoutePlanSource, /routeNeedsPageModule[\s\S]*?!routeProjectionOwnedByAncestor/)
+})
+
 test('rejects undeclared regular and selector-variant route parameters upstream', () => {
 	const regularParamApp = structuredClone(app)
 	const networkMapping = regularParamApp.routes.children['(explore)']?.children?.['(networks)']?.children?.network?.children?.['[network]']?.selectors?.[EntityType.Network]?.Caip2

@@ -365,11 +365,7 @@ type CompiledPhysicalRouteFileFacts = {
 	path: string
 	appRoutePath: string
 	semanticNodeId: string
-	placement: 'layout' | 'page'
 	routeFile: RouteFile
-	inheritedMappings: boolean
-	projectionOwnedByAncestor: boolean
-	pageModuleOwnership: 'layout' | 'page' | 'ancestor' | 'inline' | 'none'
 	generatedPageModule?: boolean
 }
 type CompiledAppFacts = Readonly<{
@@ -14254,22 +14250,14 @@ const compilePhysicalRouteFilePlans = (renderEntries: readonly RouteRenderEntry[
 				path: `${routeDirectory}/+layout.ts`,
 				appRoutePath: entry.routePath,
 				semanticNodeId: entry.internalPath,
-				placement: 'layout' as const,
 				routeFile,
-				inheritedMappings: false,
-				projectionOwnedByAncestor: false,
-				pageModuleOwnership: 'layout' as const,
 			}]
 		if ((routeFile.mappings?.length ?? 0) > 1 || routeNeedsPageModule(routePath, routeFile, renderEntries))
 			return [{
 				path: routePath,
 				appRoutePath: entry.routePath,
 				semanticNodeId: entry.internalPath,
-				placement: 'page' as const,
 				routeFile,
-				inheritedMappings: false,
-				projectionOwnedByAncestor: false,
-				pageModuleOwnership: 'page' as const,
 			}]
 
 		return []
@@ -14277,11 +14265,6 @@ const compilePhysicalRouteFilePlans = (renderEntries: readonly RouteRenderEntry[
 	if (routeFile.kind === RouteFileKind.Page) {
 		const pageModule = entry.files.find((file) => file.kind === RouteFileKind.PageModule)
 		const inheritedMappings = (routeFile.mappings?.length ?? 0) === 0 && (pageModule?.mappings?.length ?? 0) > 0
-		const projectionOwnedByAncestor = pageModule != null && routeProjectionOwnedByAncestor(
-			routePath.replace(/\+page\.svelte$/, '+page.ts'),
-			pageModule,
-			renderEntries
-		)
 		const generatedPageModule = pageModule != null && (
 			pageModule.sharedLayout === true
 			|| (pageModule.mappings?.length ?? 0) > 1
@@ -14291,18 +14274,10 @@ const compilePhysicalRouteFilePlans = (renderEntries: readonly RouteRenderEntry[
 			path: routePath,
 			appRoutePath: entry.routePath,
 			semanticNodeId: entry.internalPath,
-			placement: 'page' as const,
 			routeFile: inheritedMappings ? {
 				...routeFile,
 				mappings: pageModule?.mappings,
 			} : routeFile,
-			inheritedMappings,
-			projectionOwnedByAncestor,
-			pageModuleOwnership: pageModule == null ? 'none' as const
-			: pageModule.sharedLayout === true ? 'layout' as const
-			: generatedPageModule ? 'page' as const
-			: projectionOwnedByAncestor ? 'ancestor' as const
-			: 'inline' as const,
 			generatedPageModule,
 		}]
 	}
@@ -14311,11 +14286,7 @@ const compilePhysicalRouteFilePlans = (renderEntries: readonly RouteRenderEntry[
 		path: routePath,
 		appRoutePath: entry.routePath,
 		semanticNodeId: entry.internalPath,
-		placement: 'layout' as const,
 		routeFile,
-		inheritedMappings: false,
-		projectionOwnedByAncestor: false,
-		pageModuleOwnership: 'none' as const,
 	}]
 }))
 
