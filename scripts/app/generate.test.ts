@@ -1235,6 +1235,12 @@ test('keeps APP compiler registries internally aligned', () => {
 	assert.equal(appResolverModulePaths.length, new Set(appResolverModulePaths).size)
 })
 
+test('retains only consumed generation indexes', () => {
+	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
+
+	assert.doesNotMatch(generatorSource, /routeNodesByPublicPath/)
+})
+
 test('renders compiled source documentation with one ordered section table each', () => {
 	const source = generatedSource('SOURCES.md')
 	assert.equal(source, readFileSync(path.join(root, 'SOURCES.md'), 'utf8'))

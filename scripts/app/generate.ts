@@ -369,7 +369,6 @@ type CompiledAppFacts = Readonly<{
 	sourceBindings: readonly SourceBindingEntry[]
 	resolverModules: readonly App['resolvers']['modules'][number][]
 	navigationItems: readonly App['navigation']['items'][number][]
-	routeNodesByPublicPath: Readonly<Record<string, readonly RouteNode[]>>
 	compositeRouteParams: readonly CompositeRouteParamPlan[]
 	routeFixturePlans: readonly RouteFixturePlan[]
 	physicalRouteFiles: readonly CompiledPhysicalRouteFileFacts[]
@@ -388,7 +387,6 @@ type GenerationIndexes = Readonly<
 		| 'entityRouteLinksByType'
 		| 'facetAncestorConditionsByPath'
 		| 'facetDependencyConditionsByPath'
-		| 'routeNodesByPublicPath'
 		| 'sourceBindings'
 		| 'valueTypeById'
 	>
@@ -5899,7 +5897,6 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	validateNormalizedRouteNodes(indexedRouteNodes)
 	const routeEntryList = Object.freeze(compileRouteEntries(compiledRouteNodes, routeNodeByInternalPath))
 	validateCompiledRoutes(routeNodeByInternalPath, routeEntryList)
-	const routeNodesByPublicPath = Map.groupBy(indexedRouteNodes, (node) => node.publicPath)
 	const routeNodesByPublicShape = Map.groupBy(indexedRouteNodes, (node) => publicRouteShape(node.publicPath))
 	const selectorMappingEntries = indexedRouteNodes.flatMap((node) => node.selectorMappings.map((mapping) => ({
 		node,
@@ -6228,7 +6225,6 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		sourceBindings: compiledSourceBindings,
 		resolverModules,
 		navigationItems,
-		routeNodesByPublicPath: nullPrototypeRecord([...routeNodesByPublicPath]),
 		compositeRouteParams: [...new Map(indexedRouteNodes
 			.flatMap((node) => node.params)
 			.filter((routeParam) => routeParam.matchers.length > 1)
@@ -6268,7 +6264,6 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			entityRouteLinksByType: compiledApp.entityRouteLinksByType,
 			facetAncestorConditionsByPath: compiledApp.facetAncestorConditionsByPath,
 			facetDependencyConditionsByPath: compiledApp.facetDependencyConditionsByPath,
-			routeNodesByPublicPath: compiledApp.routeNodesByPublicPath,
 			sourceBindings: compiledApp.sourceBindings,
 			valueTypeById: compiledApp.valueTypeById,
 		},
