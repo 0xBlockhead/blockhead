@@ -13,7 +13,7 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
-const easScanGraphqlGraphqlHttpRemoteQueryBindingAxes = {
+const easScanGraphqlBindingAxes = {
 	source: Source.EasScan_Graphql,
 	wireProtocol: WireProtocol.Graphql,
 	apiFamily: ApiFamily.GraphqlHttp,
@@ -94,7 +94,7 @@ const bindings = easScanGraphqlTargets.map(({
 	key,
 	locator,
 }) => ({
-		...easScanGraphqlGraphqlHttpRemoteQueryBindingAxes,
+		...easScanGraphqlBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key,

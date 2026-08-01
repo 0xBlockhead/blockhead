@@ -7459,29 +7459,45 @@ const generateSourceProviderBindingsFile = ({
 		const bindingGroupIndexByBindingIndex = new Map(bindingGroups.flatMap((group, groupIndex) => (
 			group.map(({ index }) => [index, groupIndex] as const)
 		)))
+		const repeatedBindingGroups = bindingGroups.filter((group) => group.length > 1)
+		// One repeated group needs only its source name. Multiple groups append the
+		// shortest existing binding axis that distinguishes every emitted object.
+		const bindingBaseDiscriminator = (
+			repeatedBindingGroups.length < 2 ?
+				undefined
+			: new Set(repeatedBindingGroups.map((group) => group[0]?.binding.delivery)).size === repeatedBindingGroups.length ?
+				'delivery'
+			: new Set(repeatedBindingGroups.map((group) => group[0]?.binding.apiFamily)).size === repeatedBindingGroups.length ?
+				'apiFamily'
+			:
+				null
+		)
+		if (bindingBaseDiscriminator === null)
+			throw new Error(`${source}: repeated binding groups need a unique delivery or API-family discriminator`)
+
 		const bindingBaseNames = bindingGroups.map((group) => {
 			const binding = group[0]?.binding
 			return binding == null || group.length < 2 ?
 				undefined
 			:
-				`${camel(source)}${binding.apiFamily.startsWith(sourceTypeName) ? binding.apiFamily.slice(sourceTypeName.length) : binding.apiFamily}${binding.delivery}BindingAxes`
+				`${camel(source)}${
+					bindingBaseDiscriminator === 'delivery' ?
+						binding.delivery
+					: bindingBaseDiscriminator === 'apiFamily' ?
+						binding.apiFamily.startsWith(sourceTypeName) ?
+							binding.apiFamily.slice(sourceTypeName.length)
+						:
+							binding.apiFamily
+					:
+						''
+				}BindingAxes`
 		})
-		const bindingBaseIdentifier = (groupIndex: number) => {
-			const baseName = bindingBaseNames[groupIndex]
-			if (baseName == null)
-				return undefined
-			const matchingBaseNameCount = bindingBaseNames.filter((candidate) => candidate === baseName).length
-			return matchingBaseNameCount === 1 ?
-				baseName
-			:
-				`${baseName}${bindingBaseNames.slice(0, groupIndex + 1).filter((candidate) => candidate === baseName).length}`
-		}
 		return {
 			source,
 			sourceBindingRows,
 			bindingGroups,
 			bindingGroupIndexByBindingIndex,
-			bindingBaseIdentifier,
+			bindingBaseNames,
 		}
 	})
 	const sharedValueScope = providerHasMultipleSources ?
@@ -7490,9 +7506,9 @@ const generateSourceProviderBindingsFile = ({
 		bindingRows[0]?.source ?? provider.provider
 	// A shared binding-axis object is one emitted consumer. Planning repeated
 	// values from those final consumers prevents aliases used only by that object.
-	const bindingAxisRows = sourcePlans.flatMap(({ bindingGroups, bindingBaseIdentifier }) => (
+	const bindingAxisRows = sourcePlans.flatMap(({ bindingGroups, bindingBaseNames }) => (
 		bindingGroups.flatMap((group, groupIndex) => (
-			bindingBaseIdentifier(groupIndex) == null ? group : group.slice(0, 1)
+			bindingBaseNames[groupIndex] == null ? group : group.slice(0, 1)
 		))
 	))
 	const properties = {
@@ -7506,12 +7522,12 @@ const generateSourceProviderBindingsFile = ({
 		sourceBindingRows,
 		bindingGroups,
 		bindingGroupIndexByBindingIndex,
-		bindingBaseIdentifier,
+		bindingBaseNames,
 	}) => ({
 		source,
 		declarations: bindingGroups.flatMap((group, groupIndex) => {
 			const binding = group[0]?.binding
-			const baseIdentifier = bindingBaseIdentifier(groupIndex)
+			const baseIdentifier = bindingBaseNames[groupIndex]
 			if (binding == null || baseIdentifier == null)
 				return []
 			return [`const ${baseIdentifier} = ${emitSourceBindingBase(source, binding, {
@@ -7536,7 +7552,7 @@ const generateSourceProviderBindingsFile = ({
 				operationGroups: properties.operationGroups.reference(operationGroups) ?? '[]',
 				credentials: properties.credentials.reference(credentials) ?? '[]',
 				artifacts: properties.artifacts.reference(artifacts),
-			}, bindingBaseIdentifier(groupIndex))
+			}, bindingBaseNames[groupIndex])
 		}),
 	}))
 	// A source matrix is compact only when it reconstructs the authored binding
@@ -7610,7 +7626,7 @@ const generateSourceProviderBindingsFile = ({
 			variants: sourcePlan.bindingGroups.map((group, groupIndex) => {
 				const binding = group[0]?.binding
 				const endpoint = binding?.endpoints[0]
-				const baseIdentifier = sourcePlan.bindingBaseIdentifier(groupIndex)
+				const baseIdentifier = sourcePlan.bindingBaseNames[groupIndex]
 				const locatorSuffix = locatorSuffixes[groupIndex]
 				if (binding == null || endpoint == null || baseIdentifier == null || locatorSuffix == null)
 					throw new Error(`${sourcePlan.source}: incomplete binding matrix axis ${groupIndex}`)

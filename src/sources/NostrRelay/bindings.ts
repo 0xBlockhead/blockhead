@@ -13,7 +13,7 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
-const nostrRelayNip11HttpNostrRelayHttpProxyBindingAxes = {
+const nostrRelayNip11HttpBindingAxes = {
 	source: Source.NostrRelay_Nip11_Http,
 	wireProtocol: WireProtocol.HttpRest,
 	apiFamily: ApiFamily.NostrRelay,
@@ -30,7 +30,7 @@ const nostrRelayNip11HttpNostrRelayHttpProxyBindingAxes = {
 	],
 } as const
 
-const nostrRelayWebSocketNostrRelayRemoteLiveBindingAxes = {
+const nostrRelayWebSocketBindingAxes = {
 	source: Source.NostrRelay_WebSocket,
 	wireProtocol: WireProtocol.WebSocketMessages,
 	apiFamily: ApiFamily.NostrRelay,
@@ -67,7 +67,7 @@ const nostrRelayNip11HttpBindings = nostrRelayNip11HttpTargets.map(({
 	key,
 	locator,
 }) => ({
-		...nostrRelayNip11HttpNostrRelayHttpProxyBindingAxes,
+		...nostrRelayNip11HttpBindingAxes,
 		target: {
 			kind: SourceTargetKind.Feed,
 			key,
@@ -100,7 +100,7 @@ const nostrRelayWebSocketBindings = nostrRelayWebSocketTargets.map(({
 	key,
 	locator,
 }) => ({
-		...nostrRelayWebSocketNostrRelayRemoteLiveBindingAxes,
+		...nostrRelayWebSocketBindingAxes,
 		target: {
 			kind: SourceTargetKind.Feed,
 			key,

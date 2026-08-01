@@ -13,7 +13,7 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
-const blockscoutRestV2HttpProxyBindingAxes = {
+const blockscoutRestV2BindingAxes = {
 	source: Source.Blockscout_Rest,
 	wireProtocol: WireProtocol.HttpRest,
 	apiFamily: ApiFamily.BlockscoutRestV2,
@@ -39,7 +39,7 @@ const blockscoutRestV2HttpProxyBindingAxes = {
 		},
 	],
 } as const
-const blockscoutRestEvmExecutionJsonRpcHttpProxyBindingAxes = {
+const blockscoutRestEvmExecutionJsonRpcBindingAxes = {
 	source: Source.Blockscout_Rest,
 	wireProtocol: WireProtocol.JsonRpc2,
 	apiFamily: ApiFamily.EvmExecutionJsonRpc,
@@ -96,7 +96,7 @@ const bindings = blockscoutRestTargets.flatMap(({
 	locator,
 }) => ([
 	{
-		...blockscoutRestV2HttpProxyBindingAxes,
+		...blockscoutRestV2BindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key,
@@ -110,7 +110,7 @@ const bindings = blockscoutRestTargets.flatMap(({
 		],
 	},
 	{
-		...blockscoutRestEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...blockscoutRestEvmExecutionJsonRpcBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key,

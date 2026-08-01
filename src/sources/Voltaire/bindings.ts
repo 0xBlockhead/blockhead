@@ -29,7 +29,7 @@ const voltaireJsonRpcArtifacts = [
 	},
 ] as const
 
-const voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes = {
+const voltaireJsonRpcRemoteLiveBindingAxes = {
 	source: Source.Voltaire_JsonRpc,
 	wireProtocol: WireProtocol.JsonRpc2,
 	apiFamily: ApiFamily.EvmExecutionJsonRpc,
@@ -40,7 +40,7 @@ const voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes = {
 	credentials: [],
 	artifacts: voltaireJsonRpcArtifacts,
 } as const
-const voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes = {
+const voltaireJsonRpcHttpProxyBindingAxes = {
 	source: Source.Voltaire_JsonRpc,
 	wireProtocol: WireProtocol.JsonRpc2,
 	apiFamily: ApiFamily.EvmExecutionJsonRpc,
@@ -49,7 +49,7 @@ const voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes = {
 	credentials: [],
 	artifacts: voltaireJsonRpcArtifacts,
 } as const
-const voltaireJsonRpcEvmExecutionJsonRpcBrowserDirectBindingAxes = {
+const voltaireJsonRpcBrowserDirectBindingAxes = {
 	source: Source.Voltaire_JsonRpc,
 	wireProtocol: WireProtocol.JsonRpc2,
 	apiFamily: ApiFamily.EvmExecutionJsonRpc,
@@ -104,7 +104,7 @@ const bindings = [
 		artifacts: voltaireJsonRpcArtifacts,
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '1',
@@ -129,7 +129,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '10',
@@ -143,7 +143,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '10',
@@ -156,7 +156,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '50',
@@ -170,7 +170,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '50',
@@ -183,7 +183,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '51',
@@ -197,7 +197,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '51',
@@ -210,7 +210,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '56',
@@ -224,7 +224,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '56',
@@ -237,7 +237,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '130',
@@ -251,7 +251,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '130',
@@ -264,7 +264,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '137',
@@ -278,7 +278,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '137',
@@ -291,7 +291,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '143',
@@ -305,7 +305,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '143',
@@ -318,7 +318,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '146',
@@ -332,7 +332,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '146',
@@ -345,7 +345,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '300',
@@ -359,7 +359,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '300',
@@ -372,7 +372,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '324',
@@ -386,7 +386,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '324',
@@ -399,7 +399,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '480',
@@ -413,7 +413,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '480',
@@ -426,7 +426,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcBrowserDirectBindingAxes,
+		...voltaireJsonRpcBrowserDirectBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '998',
@@ -440,7 +440,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '998',
@@ -453,7 +453,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcBrowserDirectBindingAxes,
+		...voltaireJsonRpcBrowserDirectBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '999',
@@ -467,7 +467,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '999',
@@ -480,7 +480,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '1301',
@@ -494,7 +494,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '1301',
@@ -507,7 +507,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '1328',
@@ -521,7 +521,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '1328',
@@ -534,7 +534,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '1329',
@@ -548,7 +548,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '1329',
@@ -561,7 +561,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '4801',
@@ -575,7 +575,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '4801',
@@ -588,7 +588,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '8453',
@@ -607,7 +607,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '8453',
@@ -624,7 +624,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '10143',
@@ -638,7 +638,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '10143',
@@ -651,7 +651,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '14601',
@@ -665,7 +665,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '14601',
@@ -678,7 +678,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '42161',
@@ -692,7 +692,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '42161',
@@ -705,7 +705,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '42220',
@@ -719,7 +719,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '42220',
@@ -732,7 +732,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '43113',
@@ -746,7 +746,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '43113',
@@ -759,7 +759,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '43114',
@@ -773,7 +773,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '43114',
@@ -786,7 +786,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '57073',
@@ -800,7 +800,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '57073',
@@ -813,7 +813,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '59141',
@@ -827,7 +827,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '59141',
@@ -840,7 +840,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '59144',
@@ -854,7 +854,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '59144',
@@ -867,7 +867,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '80002',
@@ -881,7 +881,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '80002',
@@ -894,7 +894,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '81224',
@@ -908,7 +908,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '81224',
@@ -921,7 +921,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '84532',
@@ -935,7 +935,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '84532',
@@ -948,7 +948,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '98866',
@@ -962,7 +962,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '98866',
@@ -975,7 +975,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '98867',
@@ -989,7 +989,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '98867',
@@ -1002,7 +1002,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '421614',
@@ -1016,7 +1016,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '421614',
@@ -1029,7 +1029,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '763373',
@@ -1043,7 +1043,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '763373',
@@ -1056,7 +1056,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '812242',
@@ -1070,7 +1070,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '812242',
@@ -1083,7 +1083,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '5042002',
@@ -1097,7 +1097,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '5042002',
@@ -1110,7 +1110,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '11142220',
@@ -1124,7 +1124,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '11142220',
@@ -1137,7 +1137,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '11155111',
@@ -1151,7 +1151,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '11155111',
@@ -1164,7 +1164,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcHttpProxyBindingAxes,
+		...voltaireJsonRpcHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '11155420',
@@ -1178,7 +1178,7 @@ const bindings = [
 		],
 	},
 	{
-		...voltaireJsonRpcEvmExecutionJsonRpcRemoteLiveBindingAxes,
+		...voltaireJsonRpcRemoteLiveBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '11155420',

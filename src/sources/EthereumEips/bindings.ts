@@ -25,7 +25,7 @@ const ethereumEipsGithubEndpoints = [
 	},
 ] as const
 
-const ethereumEipsGithubGithubContentsApiHttpProxyBindingAxes = {
+const ethereumEipsGithubBindingAxes = {
 	source: Source.EthereumEips_Github,
 	wireProtocol: WireProtocol.HttpRest,
 	apiFamily: ApiFamily.GithubContentsApi,
@@ -38,7 +38,7 @@ const ethereumEipsGithubGithubContentsApiHttpProxyBindingAxes = {
 
 const bindings = [
 	{
-		...ethereumEipsGithubGithubContentsApiHttpProxyBindingAxes,
+		...ethereumEipsGithubBindingAxes,
 		target: {
 			kind: SourceTargetKind.GitRepository,
 			key: 'ethereum/EIPs@master:EIPS',
@@ -46,7 +46,7 @@ const bindings = [
 		endpoints: ethereumEipsGithubEndpoints,
 	},
 	{
-		...ethereumEipsGithubGithubContentsApiHttpProxyBindingAxes,
+		...ethereumEipsGithubBindingAxes,
 		target: {
 			kind: SourceTargetKind.GitRepository,
 			key: 'ethereum/ercs@master:ERCS',

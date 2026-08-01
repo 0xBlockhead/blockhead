@@ -12,7 +12,7 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
-const esploraRestRestJsonBrowserDirectBindingAxes = {
+const esploraRestBindingAxes = {
 	source: Source.Esplora_Rest,
 	wireProtocol: WireProtocol.HttpRest,
 	apiFamily: ApiFamily.RestJson,
@@ -25,7 +25,7 @@ const esploraRestRestJsonBrowserDirectBindingAxes = {
 
 const bindings = [
 	{
-		...esploraRestRestJsonBrowserDirectBindingAxes,
+		...esploraRestBindingAxes,
 		target: {
 			kind: SourceTargetKind.Caip2Network,
 			key: 'bip122:000000000019d6689c085ae165831e93',
@@ -39,7 +39,7 @@ const bindings = [
 		],
 	},
 	{
-		...esploraRestRestJsonBrowserDirectBindingAxes,
+		...esploraRestBindingAxes,
 		target: {
 			kind: SourceTargetKind.NetworkSlug,
 			key: 'liquid',

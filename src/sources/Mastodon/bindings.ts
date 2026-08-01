@@ -21,7 +21,7 @@ const mastodonRestEndpoints = [
 	},
 ] as const
 
-const mastodonRestRestJsonHttpProxyBindingAxes = {
+const mastodonRestBindingAxes = {
 	source: Source.Mastodon_Rest,
 	wireProtocol: WireProtocol.HttpRest,
 	apiFamily: ApiFamily.RestJson,
@@ -40,7 +40,7 @@ const mastodonRestRestJsonHttpProxyBindingAxes = {
 
 const bindings = [
 	{
-		...mastodonRestRestJsonHttpProxyBindingAxes,
+		...mastodonRestBindingAxes,
 		target: {
 			kind: SourceTargetKind.Global,
 			key: 'mastodon-instance:https://mastodon.social',
@@ -54,7 +54,7 @@ const bindings = [
 		],
 	},
 	{
-		...mastodonRestRestJsonHttpProxyBindingAxes,
+		...mastodonRestBindingAxes,
 		target: {
 			kind: SourceTargetKind.Global,
 			key: 'mastodon-instance:https://fosstodon.org',
@@ -62,7 +62,7 @@ const bindings = [
 		endpoints: mastodonRestEndpoints,
 	},
 	{
-		...mastodonRestRestJsonHttpProxyBindingAxes,
+		...mastodonRestBindingAxes,
 		target: {
 			kind: SourceTargetKind.Feed,
 			key: 'mastodon-public-timeline:https://fosstodon.org',

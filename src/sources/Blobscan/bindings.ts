@@ -13,7 +13,7 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
-const blobscanRestRestJsonHttpProxyBindingAxes = {
+const blobscanRestBindingAxes = {
 	source: Source.Blobscan_Rest,
 	wireProtocol: WireProtocol.HttpRest,
 	apiFamily: ApiFamily.RestJson,
@@ -53,7 +53,7 @@ const bindings = blobscanRestTargets.map(({
 	key,
 	locator,
 }) => ({
-		...blobscanRestRestJsonHttpProxyBindingAxes,
+		...blobscanRestBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key,

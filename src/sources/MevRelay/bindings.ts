@@ -13,7 +13,7 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
-const mevRelayRestRestJsonHttpProxyBindingAxes = {
+const mevRelayRestBindingAxes = {
 	source: Source.MevRelay_Rest,
 	wireProtocol: WireProtocol.HttpRest,
 	apiFamily: ApiFamily.RestJson,
@@ -49,7 +49,7 @@ const bindings = mevRelayRestTargets.map(({
 	key,
 	locator,
 }) => ({
-		...mevRelayRestRestJsonHttpProxyBindingAxes,
+		...mevRelayRestBindingAxes,
 		target: {
 			kind: SourceTargetKind.Feed,
 			key,

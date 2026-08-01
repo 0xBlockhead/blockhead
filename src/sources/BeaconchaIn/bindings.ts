@@ -15,7 +15,7 @@ import {
 } from '$/sources/SourceBinding.ts'
 import { type as arktype } from 'arktype'
 
-const beaconchaInRestRestJsonHttpProxyBindingAxes = {
+const beaconchaInRestBindingAxes = {
 	source: Source.BeaconchaIn_Rest,
 	wireProtocol: WireProtocol.HttpRest,
 	apiFamily: ApiFamily.RestJson,
@@ -58,7 +58,7 @@ const bindings = beaconchaInRestTargets.map(({
 	key,
 	locator,
 }) => ({
-		...beaconchaInRestRestJsonHttpProxyBindingAxes,
+		...beaconchaInRestBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key,

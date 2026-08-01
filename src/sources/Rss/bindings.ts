@@ -13,7 +13,7 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
-const rssRestRestJsonHttpProxyBindingAxes = {
+const rssRestBindingAxes = {
 	source: Source.Rss_Rest,
 	wireProtocol: WireProtocol.HttpRest,
 	apiFamily: ApiFamily.RestJson,
@@ -45,7 +45,7 @@ const bindings = rssRestTargets.map(({
 	key,
 	locator,
 }) => ({
-		...rssRestRestJsonHttpProxyBindingAxes,
+		...rssRestBindingAxes,
 		target: {
 			kind: SourceTargetKind.Feed,
 			key,

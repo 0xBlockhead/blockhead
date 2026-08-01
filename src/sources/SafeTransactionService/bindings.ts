@@ -14,7 +14,7 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
-const safeTransactionServiceRestRestJsonHttpProxyBindingAxes = {
+const safeTransactionServiceRestBindingAxes = {
 	source: Source.SafeTransactionService_Rest,
 	wireProtocol: WireProtocol.HttpRest,
 	apiFamily: ApiFamily.RestJson,
@@ -54,7 +54,7 @@ const bindings = safeTransactionServiceRestTargets.map(({
 	key,
 	locator,
 }) => ({
-		...safeTransactionServiceRestRestJsonHttpProxyBindingAxes,
+		...safeTransactionServiceRestBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key,

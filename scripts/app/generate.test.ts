@@ -2784,11 +2784,15 @@ test('emits every source-axis enum and only valid enum references in provider ro
 		blockscoutSource.bindings.length / 2
 	)
 	assert.equal((renderedBlockscoutBindings.match(/\.\.\.blockscoutRest[^,]+BindingAxes/g) ?? []).length, 2)
+	assert.match(renderedBlockscoutBindings, /const blockscoutRestV2BindingAxes =/)
+	assert.match(renderedBlockscoutBindings, /const blockscoutRestEvmExecutionJsonRpcBindingAxes =/)
+	assert.doesNotMatch(renderedBlockscoutBindings, /blockscoutRest(?:V2|EvmExecutionJsonRpc)HttpProxyBindingAxes/)
 	assert.match(renderedBlockscoutBindings, /\.flatMap\(/)
 
 	const easScanBindings = generatedFiles.find(({ path }) => path === 'src/sources/EasScan/bindings.ts')
 	assert.ok(easScanBindings)
 	const renderedEasScanBindings = renderGeneratedFile(easScanBindings)
+	assert.match(renderedEasScanBindings, /const easScanGraphqlBindingAxes =/)
 	assert.match(renderedEasScanBindings, /const bindings = easScanGraphqlTargets\.map\(/)
 	assert.doesNotMatch(renderedEasScanBindings, /\.flatMap\(/)
 
@@ -2818,6 +2822,10 @@ test('emits every source-axis enum and only valid enum references in provider ro
 	const voltaireBindingCount = (renderedVoltaireBindings.match(/source: Source\.Voltaire_JsonRpc/g) ?? []).length
 	assert.ok(voltaireBindingCount > 0)
 	assert.doesNotMatch(renderedVoltaireBindings, /const voltaireJsonRpcCredentials =/)
+	assert.match(renderedVoltaireBindings, /const voltaireJsonRpcRemoteLiveBindingAxes =/)
+	assert.match(renderedVoltaireBindings, /const voltaireJsonRpcHttpProxyBindingAxes =/)
+	assert.match(renderedVoltaireBindings, /const voltaireJsonRpcBrowserDirectBindingAxes =/)
+	assert.doesNotMatch(renderedVoltaireBindings, /voltaireJsonRpcEvmExecutionJsonRpc(?:RemoteLive|HttpProxy|BrowserDirect)BindingAxes/)
 	assert.match(renderedVoltaireBindings, /credentials: \[\]/)
 	assert.equal((renderedVoltaireBindings.match(/artifacts: voltaireJsonRpcArtifacts/g) ?? []).length, voltaireBindingCount)
 

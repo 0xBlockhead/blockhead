@@ -13,7 +13,7 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
-const beaconRestEthereumBeaconRestBrowserDirectBindingAxes = {
+const beaconRestBindingAxes = {
 	source: Source.Beacon_Rest,
 	wireProtocol: WireProtocol.HttpRest,
 	apiFamily: ApiFamily.EthereumBeaconRest,
@@ -58,7 +58,7 @@ const bindings = beaconRestTargets.map(({
 	key,
 	locator,
 }) => ({
-		...beaconRestEthereumBeaconRestBrowserDirectBindingAxes,
+		...beaconRestBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key,

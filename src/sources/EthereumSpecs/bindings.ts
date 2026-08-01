@@ -12,7 +12,7 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
-const ethereumSpecsGithubGithubContentsApiBrowserDirectBindingAxes = {
+const ethereumSpecsGithubBindingAxes = {
 	source: Source.EthereumSpecs_Github,
 	wireProtocol: WireProtocol.HttpRest,
 	apiFamily: ApiFamily.GithubContentsApi,
@@ -42,7 +42,7 @@ const bindings = ethereumSpecsGithubTargets.map(({
 	key,
 	locator,
 }) => ({
-		...ethereumSpecsGithubGithubContentsApiBrowserDirectBindingAxes,
+		...ethereumSpecsGithubBindingAxes,
 		target: {
 			kind: SourceTargetKind.GitRepository,
 			key,
