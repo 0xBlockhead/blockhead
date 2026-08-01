@@ -10308,8 +10308,8 @@ const generateSingularViewFile = (
 			const optional = fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne
 			const referenceLevel = level + (optional ? 3 : 2)
 			const targetHasHref = (indexes.entityRouteLinksByType[targetEntity.entityType]?.length ?? 0) > 0
-			if (entitySelectorOwnsField(entity, fieldName)) {
-				const selectorExpression = fieldExpression('selection.entitySelector', fieldName)
+			if (entitySelectorOwnsField(entity, fieldReference)) {
+				const selectorExpression = fieldExpression('selection.entitySelector', fieldReference)
 
 				return [
 					`${'\t'.repeat(level)}<${componentIdentifier(component)}`,
@@ -10340,7 +10340,7 @@ const generateSingularViewFile = (
 			]
 		}
 
-		const selectorOwnsField = entitySelectorOwnsField(entity, fieldName)
+		const selectorOwnsField = entitySelectorOwnsField(entity, fieldReference)
 		const fieldValueExpression = selectorOwnsField ?
 			fieldExpression('selection.entitySelector', fieldReference)
 			:
@@ -11091,7 +11091,7 @@ const renderSummaryAfterItem = (
 	if (fieldName == null)
 		throw new Error(`${entity.entityType} HeadingAfter item is missing a field reference`)
 
-	const selectorOwnsField = entitySelectorOwnsField(entity, fieldName)
+	const selectorOwnsField = entitySelectorOwnsField(entity, fieldReference)
 	const fieldValue = selectorOwnsField ?
 		fieldExpression('selection.entitySelector', fieldReference)
 		:
@@ -11105,7 +11105,7 @@ const renderSummaryAfterItem = (
 			const optional = !selectorOwnsField && fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne
 			const referenceLevel = optional ? level + 3 : level + 2
 			if (selectorOwnsField) {
-				const selectorExpression = fieldExpression('selection.entitySelector', fieldName)
+				const selectorExpression = fieldExpression('selection.entitySelector', fieldReference)
 
 				return [
 					`${'\t'.repeat(level)}<span data-text="muted">`,
@@ -11328,8 +11328,8 @@ const renderEntityReferenceDlItem = (
 	const component = singularComponentIdentifier(targetEntity.entityType)
 	const itemSelection = typeof viewEntry === 'object' && 'selection' in viewEntry ? viewEntry.selection : undefined
 	const query = renderQuery(itemSelection, [])
-	if (entitySelectorOwnsField(entity, fieldName)) {
-		const selectorExpression = fieldExpression('selection.entitySelector', fieldName)
+	if (entitySelectorOwnsField(entity, fieldReference)) {
+		const selectorExpression = fieldExpression('selection.entitySelector', fieldReference)
 
 		return wrapWhen(viewEntry, openExpression, renderDefinitionListItem(level, label, [
 			`${'\t'.repeat(level + 2)}<${component}`,
