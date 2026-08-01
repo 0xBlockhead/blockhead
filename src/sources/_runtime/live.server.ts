@@ -1,16 +1,18 @@
 import {
 	ApiFamily,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	WireProtocol,
 	sourceBindingId,
 } from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
 import sourceServerCredentialsById from '$/sources/$sourceServerCredentials.server.ts'
 import { remoteLiveBindings } from '$/sources/index.server.ts'
 
 export type SourceLiveRequest = {
-	source: string
+	source: Source
 	targetKey: string
-	operationGroup: string
+	operationGroup: SourceOperationGroup
 	grpc?: {
 		service: string
 		method: string

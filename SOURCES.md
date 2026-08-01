@@ -1180,7 +1180,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 188 | 1 | InProcess | src/resolvers/Local/Internal/catalog.ts |  |  |
 | 189 | 1 | HttpUrl | http://127.0.0.1:8080 | http://127.0.0.1:8080 | false |
 | 190 | 1 | HttpUrl | https://docs.logoslabs.io | https://docs.logoslabs.io | true |
-| 191 | 1 | HttpUrl | https://api.node.glif.io | https://api.node.glif.io | true |
+| 191 | 1 | HttpUrl | https://api.node.glif.io/rpc/v1 | https://api.node.glif.io | true |
 | 192 | 1 | HttpUrl | http://127.0.0.1:1234 | http://127.0.0.1:1234 | false |
 | 193 | 1 | BrowserWalletProvider | magic-hedera |  |  |
 | 194 | 1 | InProcess | magnet-uri-parser |  |  |

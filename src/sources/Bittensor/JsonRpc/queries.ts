@@ -12,10 +12,6 @@ import {
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.Bittensor_JsonRpc]
-const bittensorJsonRpc = {
-	binding,
-	label: 'Bittensor',
-}
 
 const scaleBytes = arktype('(number.integer >= 0 <= 255)[]')
 
@@ -39,7 +35,7 @@ const getScaleBytes = async ({
 	maxBytes: number
 }) => {
 	const bytes = scaleBytes.assert(await substrateJsonRpc<unknown>({
-		...bittensorJsonRpc,
+		binding,
 		method,
 		params,
 	}))
@@ -83,7 +79,7 @@ const getSubnetScaleBytes = async ({
 
 export const getFinalizedHead = () => (
 	getSubstrateFinalizedHead({
-		...bittensorJsonRpc,
+		binding,
 	})
 )
 
@@ -93,7 +89,7 @@ export const getBlockHash = ({
 	blockNumber: bigint
 }) => (
 	getSubstrateBlockHash({
-		...bittensorJsonRpc,
+		binding,
 		blockNumber,
 	})
 )
@@ -104,7 +100,7 @@ export const getHeader = ({
 	blockHash?: string
 }) => (
 	getSubstrateHeader({
-		...bittensorJsonRpc,
+		binding,
 		blockHash,
 	})
 )
@@ -115,20 +111,20 @@ export const getBlock = ({
 	blockHash: string
 }) => (
 	getSubstrateBlock({
-		...bittensorJsonRpc,
+		binding,
 		blockHash,
 	})
 )
 
 export const getRuntimeVersion = () => (
 	getSubstrateRuntimeVersion({
-		...bittensorJsonRpc,
+		binding,
 	})
 )
 
 export const getSystemHealth = () => (
 	getSubstrateSystemHealth({
-		...bittensorJsonRpc,
+		binding,
 	})
 )
 

@@ -1,66 +1,19 @@
-import { throwHttpError } from '$/lib/http.ts'
-import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/_shared/wire/JsonRpc2/constants.ts'
+import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import type {
 	ZeroGStorageNodeFileInfo,
 	ZeroGStorageNodeFlowProof,
 	ZeroGStorageNodeStatus,
 } from '$/sources/ZeroG/StorageNode/JsonRpc/types.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	firstHttpUrlForBinding,
-	sourceFetch,
-} from '$/sources/_runtime/http.ts'
+import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/ZeroG/bindings.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 const binding = bindings[Source.ZeroGStorageNode_JsonRpc]
 
 export const endpoint = firstHttpUrlForBinding(binding)
 
-type ZeroGStorageNodeJsonRpcResponse<_Result> = {
-	jsonrpc: typeof jsonRpcVersion
-	id: number | string | null
-	result?: _Result
-	error?: {
-		code: number
-		message: string
-		data?: JsonValue
-	}
-}
-
-const storageNodeJsonRpc = async <_Result>({
-	method,
-	params,
-}: {
-	method: string
-	params: JsonValue[]
-}) => {
-	const response = await sourceFetch(
-		binding,
-		endpoint,
-		{
-			method: 'POST',
-			headers: jsonRpcHeaders,
-			body: JSON.stringify({
-				jsonrpc: jsonRpcVersion,
-				id: 1,
-				method,
-				params,
-			}),
-		}
-	)
-	if (!response.ok) await throwHttpError(`ZeroGStorageNode_JsonRpc ${method}`, response)
-	const json = await response.json<ZeroGStorageNodeJsonRpcResponse<_Result>>()
-	if (json.error != null) throw new Error(`ZeroGStorageNode_JsonRpc ${method}: ${json.error.message}`)
-	if (json.result === undefined) throw new Error(`ZeroGStorageNode_JsonRpc ${method}: missing result`)
-	return json.result
-}
-
 export const getStatus = () => (
-	storageNodeJsonRpc<ZeroGStorageNodeStatus>({
-		method: 'zgs_getStatus',
-		params: [],
-	})
+	jsonRpc2<ZeroGStorageNodeStatus>(binding, 'zgs_getStatus', [])
 )
 
 export const getFileInfo = ({
@@ -70,13 +23,14 @@ export const getFileInfo = ({
 	root: string
 	needAvailable: boolean
 }) => (
-	storageNodeJsonRpc<ZeroGStorageNodeFileInfo | null>({
-		method: 'zgs_getFileInfo',
-		params: [
+	jsonRpc2<ZeroGStorageNodeFileInfo | null>(
+		binding,
+		'zgs_getFileInfo',
+		[
 			root,
 			needAvailable,
-		],
-	})
+		]
+	)
 )
 
 export const getFileInfoByTxSeq = ({
@@ -84,12 +38,13 @@ export const getFileInfoByTxSeq = ({
 }: {
 	txSeq: number | bigint
 }) => (
-	storageNodeJsonRpc<ZeroGStorageNodeFileInfo | null>({
-		method: 'zgs_getFileInfoByTxSeq',
-		params: [
+	jsonRpc2<ZeroGStorageNodeFileInfo | null>(
+		binding,
+		'zgs_getFileInfoByTxSeq',
+		[
 			Number(txSeq),
-		],
-	})
+		]
+	)
 )
 
 export const getSectorProof = ({
@@ -99,11 +54,12 @@ export const getSectorProof = ({
 	sectorIndex: number | bigint
 	root?: string
 }) => (
-	storageNodeJsonRpc<ZeroGStorageNodeFlowProof>({
-		method: 'zgs_getSectorProof',
-		params: [
+	jsonRpc2<ZeroGStorageNodeFlowProof>(
+		binding,
+		'zgs_getSectorProof',
+		[
 			Number(sectorIndex),
 			root ?? null,
-		],
-	})
+		]
+	)
 )

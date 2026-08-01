@@ -9,7 +9,6 @@ import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 type SubstrateJsonRpcRequest = {
 	binding: SourceBinding
-	label: string
 }
 
 export const getBlockHash = ({

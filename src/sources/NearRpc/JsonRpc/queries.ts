@@ -1,11 +1,5 @@
-import { throwHttpError } from '$/lib/http.ts'
 import { TransportType } from '$/constants/TransportType.ts'
-import {
-	firstHttpUrlForBinding,
-	sourceFetch,
-} from '$/sources/_runtime/http.ts'
-import { jsonRpcVersion } from '$/sources/_shared/wire/JsonRpc2/constants.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
+import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import type {
 	NearRpcAccount,
 	NearRpcAccessKey,
@@ -30,55 +24,15 @@ export const nearRpcEndpoints = binding.endpoints.map((endpoint) => ({
 	providerName: 'NEAR',
 }))
 
-type JsonRpcResponse<_Result> = {
-	jsonrpc: typeof jsonRpcVersion
-	id: number | string | null
-	result?: _Result
-	error?: {
-		code: number
-		message: string
-		data?: JsonValue
-	}
-}
-
-const nearJsonRpc = async <_Result>({
-	method,
-	params,
-}: {
-	method: string
-	params: JsonValue
-}) => {
-	const response = await sourceFetch(
-		binding,
-		firstHttpUrlForBinding(binding),
-		{
-			method: 'POST',
-			headers: {
-				'content-type': 'application/json',
-			},
-			body: JSON.stringify({
-				jsonrpc: jsonRpcVersion,
-				id: 'dontcare',
-				method,
-				params,
-			}),
-		}
-	)
-	if (!response.ok) await throwHttpError(`NEAR ${method}`, response)
-	const json = await response.json<JsonRpcResponse<_Result>>()
-	if (json.error != null) throw new Error(`NEAR ${method}: ${json.error.message}`)
-	if (json.result === undefined) throw new Error(`NEAR ${method}: missing result`)
-	return json.result
-}
-
 export const getBlock = ({
 	blockId,
 }: {
 	blockId: bigint | string | 'final'
 }) => (
-	nearJsonRpc<NearRpcBlock>({
-		method: 'block',
-		params: (
+	jsonRpc2<NearRpcBlock>(
+		binding,
+		'block',
+		(
 			blockId === 'final' ?
 				{
 					finality: 'final',
@@ -87,8 +41,8 @@ export const getBlock = ({
 				{
 					block_id: typeof blockId === 'bigint' ? Number(blockId) : blockId,
 				}
-		),
-	})
+		)
+	)
 )
 
 export const getTx = ({
@@ -98,13 +52,10 @@ export const getTx = ({
 	txHash: string
 	senderAccountId: string
 }) => (
-	nearJsonRpc<NearRpcTransactionStatus>({
-		method: 'tx',
-		params: {
-			tx_hash: txHash,
-			sender_account_id: senderAccountId,
-			wait_until: 'FINAL',
-		},
+	jsonRpc2<NearRpcTransactionStatus>(binding, 'tx', {
+		tx_hash: txHash,
+		sender_account_id: senderAccountId,
+		wait_until: 'FINAL',
 	})
 )
 
@@ -115,13 +66,10 @@ export const getTxStatus = ({
 	txHash: string
 	senderAccountId: string
 }) => (
-	nearJsonRpc<NearRpcTransactionStatus>({
-		method: 'EXPERIMENTAL_tx_status',
-		params: {
-			tx_hash: txHash,
-			sender_account_id: senderAccountId,
-			wait_until: 'FINAL',
-		},
+	jsonRpc2<NearRpcTransactionStatus>(binding, 'EXPERIMENTAL_tx_status', {
+		tx_hash: txHash,
+		sender_account_id: senderAccountId,
+		wait_until: 'FINAL',
 	})
 )
 
@@ -130,11 +78,8 @@ export const getReceipt = ({
 }: {
 	receiptId: string
 }) => (
-	nearJsonRpc<NearRpcReceipt>({
-		method: 'EXPERIMENTAL_receipt',
-		params: {
-			receipt_id: receiptId,
-		},
+	jsonRpc2<NearRpcReceipt>(binding, 'EXPERIMENTAL_receipt', {
+		receipt_id: receiptId,
 	})
 )
 
@@ -143,11 +88,8 @@ export const getChunk = ({
 }: {
 	chunkHash: string
 }) => (
-	nearJsonRpc<NearRpcChunk>({
-		method: 'chunk',
-		params: {
-			chunk_id: chunkHash,
-		},
+	jsonRpc2<NearRpcChunk>(binding, 'chunk', {
+		chunk_id: chunkHash,
 	})
 )
 
@@ -156,13 +98,10 @@ export const viewAccount = ({
 }: {
 	accountId: string
 }) => (
-	nearJsonRpc<NearRpcAccount>({
-		method: 'query',
-		params: {
-			request_type: 'view_account',
-			finality: 'final',
-			account_id: accountId,
-		},
+	jsonRpc2<NearRpcAccount>(binding, 'query', {
+		request_type: 'view_account',
+		finality: 'final',
+		account_id: accountId,
 	})
 )
 
@@ -171,13 +110,10 @@ export const viewAccessKeyList = ({
 }: {
 	accountId: string
 }) => (
-	nearJsonRpc<NearRpcAccessKeyList>({
-		method: 'query',
-		params: {
-			request_type: 'view_access_key_list',
-			finality: 'final',
-			account_id: accountId,
-		},
+	jsonRpc2<NearRpcAccessKeyList>(binding, 'query', {
+		request_type: 'view_access_key_list',
+		finality: 'final',
+		account_id: accountId,
 	})
 )
 
@@ -188,14 +124,11 @@ export const viewAccessKey = ({
 	accountId: string
 	publicKey: string
 }) => (
-	nearJsonRpc<NearRpcAccessKey>({
-		method: 'query',
-		params: {
-			request_type: 'view_access_key',
-			finality: 'final',
-			account_id: accountId,
-			public_key: publicKey,
-		},
+	jsonRpc2<NearRpcAccessKey>(binding, 'query', {
+		request_type: 'view_access_key',
+		finality: 'final',
+		account_id: accountId,
+		public_key: publicKey,
 	})
 )
 
@@ -208,34 +141,22 @@ export const viewState = ({
 	prefixBase64: string
 	blockHeight: number
 }) => (
-	nearJsonRpc<NearRpcViewState>({
-		method: 'query',
-		params: {
-			request_type: 'view_state',
-			block_id: blockHeight,
-			account_id: accountId,
-			prefix_base64: prefixBase64,
-		},
+	jsonRpc2<NearRpcViewState>(binding, 'query', {
+		request_type: 'view_state',
+		block_id: blockHeight,
+		account_id: accountId,
+		prefix_base64: prefixBase64,
 	})
 )
 
 export const getValidators = () => (
-	nearJsonRpc<NearRpcValidators>({
-		method: 'validators',
-		params: [null],
-	})
+	jsonRpc2<NearRpcValidators>(binding, 'validators', [null])
 )
 
 export const getGasPrice = () => (
-	nearJsonRpc<NearRpcGasPrice>({
-		method: 'gas_price',
-		params: [null],
-	})
+	jsonRpc2<NearRpcGasPrice>(binding, 'gas_price', [null])
 )
 
 export const getStatus = () => (
-	nearJsonRpc<NearRpcStatus>({
-		method: 'status',
-		params: [],
-	})
+	jsonRpc2<NearRpcStatus>(binding, 'status', [])
 )

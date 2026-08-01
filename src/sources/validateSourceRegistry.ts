@@ -61,9 +61,10 @@ const httpProxyOrigins = new Set(
 		))
 )
 const audit = auditSourceProviders(sourceProviders)
-const sourceMember = (
-	name: string
-) => (Source as Record<string, Source | undefined>)[name]
+const sourceByName = new Map(
+	Object.values(Source).map((source) => [source, source])
+)
+const sourceMember = (name: string) => sourceByName.get(name)
 const artifactPathExists = (path: string) => {
 	try {
 		return statSync(path).isFile() || statSync(path).isDirectory()

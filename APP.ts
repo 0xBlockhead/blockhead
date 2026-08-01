@@ -90182,7 +90182,7 @@ export const app = {
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "https://api.node.glif.io",
+								locator: "https://api.node.glif.io/rpc/v1",
 								corsEnabled: true,
 							},
 						],

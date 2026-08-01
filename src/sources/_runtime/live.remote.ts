@@ -5,11 +5,13 @@ import {
 import { type } from 'arktype'
 
 import { iterateSourceLive } from '$/sources/_runtime/live.server.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceOperationGroup } from '$/sources/SourceBinding.ts'
 
 const sourceLiveRequest = type({
-	source: 'string',
+	source: type.enumerated(...Object.values(Source)),
 	targetKey: 'string',
-	operationGroup: 'string',
+	operationGroup: type.enumerated(...Object.values(SourceOperationGroup)),
 	'grpc?': {
 		service: 'string',
 		method: 'string',

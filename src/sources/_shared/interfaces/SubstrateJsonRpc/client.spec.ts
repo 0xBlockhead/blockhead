@@ -30,7 +30,6 @@ describe('Substrate JSON-RPC binding transport', () => {
 
 		await expect(substrateJsonRpc<string>({
 			binding: bittensorBinding,
-			label: 'Bittensor',
 			method: 'chain_getFinalizedHead',
 		})).resolves.toBe('0x1234')
 		expect(sourceFetch).toHaveBeenCalledWith(
