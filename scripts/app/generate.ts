@@ -12988,10 +12988,35 @@ const renderCarouselSection = (
 	sharedSourceSelectionNames?: ReadonlyMap<string, string>
 ) => {
 	if (section.Content != null) {
-		const contentLines = lines(section.Content.raw)
-		const firstNonConstLineIndex = contentLines.findIndex((line) => !line.trimStart().startsWith('{@const '))
-		const leadingConstLines = firstNonConstLineIndex === -1 ? contentLines : contentLines.slice(0, firstNonConstLineIndex)
-		const articleContentLines = firstNonConstLineIndex === -1 ? [] : contentLines.slice(firstNonConstLineIndex)
+		// ConstTags must remain direct snippet children. Trivia moves with a leading
+		// ConstTag, but otherwise stays inside the generator-owned article.
+		const contentFragmentNodes = parseSvelte(section.Content.raw, { modern: true }).fragment.nodes
+		const firstContentNodeIndex = contentFragmentNodes.findIndex((node) => (
+			node.type !== 'ConstTag'
+			&& node.type !== 'Comment'
+			&& (node.type !== 'Text' || node.data.trim() !== '')
+		))
+		const leadingNodes = (
+			firstContentNodeIndex === -1 ?
+				contentFragmentNodes
+			:
+				contentFragmentNodes.slice(0, firstContentNodeIndex)
+		)
+		if (contentFragmentNodes
+			.slice(firstContentNodeIndex === -1 ? contentFragmentNodes.length : firstContentNodeIndex)
+			.some((node) => node.type === 'ConstTag')
+		)
+			throw new Error(`${entity.entityType} carousel section ${carouselSectionId(section)} raw Content has a top-level {@const} after rendered content`)
+
+		const leadingContentEnd = (
+			leadingNodes.some((node) => node.type === 'ConstTag') ?
+				leadingNodes.at(-1)?.end ?? 0
+			:
+				0
+		)
+		const leadingContentLines = leadingContentEnd === 0 ? [] : lines(section.Content.raw.slice(0, leadingContentEnd))
+		const articleContent = section.Content.raw.slice(leadingContentEnd)
+		const articleContentLines = articleContent === '' ? [] : lines(articleContent)
 
 		return {
 			availability: undefined,
@@ -12999,7 +13024,7 @@ const renderCarouselSection = (
 			resourceDeclaration: [],
 			markup: [
 				`\t\t\t\t{#snippet Section${pascal(carouselSectionId(section))}({ id, label${section.Content.references?.includes('open') === true ? ', open' : ''} })}`,
-				...leadingConstLines.map((line) => `${'\t'.repeat(5)}${line}`),
+				...leadingContentLines.map((line) => `${'\t'.repeat(5)}${line}`),
 				'\t\t\t\t\t<article',
 				'\t\t\t\t\t\tid={`${id}-list`}',
 				'\t\t\t\t\t\tdata-column-item="flexible"',

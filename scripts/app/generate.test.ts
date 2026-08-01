@@ -18,6 +18,7 @@ import { performance } from 'node:perf_hooks'
 import test from 'node:test'
 import ts from 'typescript'
 import { type as arktype } from 'arktype'
+import { compile as compileSvelte } from 'svelte/compiler'
 
 import {
 	ApiFamily,
@@ -481,6 +482,56 @@ test('raw snippet imports are declarative rather than inferred from rendered tex
 	assert.match(
 		specificationProposalView,
 		/<p>\n\t\t\tCatalog entries capture stewarded specification text[\s\S]*?\n\t\t<\/p>/
+	)
+})
+
+test('places complete leading raw-carousel constants before the generated article', () => {
+	const leadingConstApp = structuredClone(app)
+	const blockheadSession = leadingConstApp.schema.entities.find(({ entityType }) => entityType === EntityType.BlockheadSession)
+	const actionsSection = blockheadSession?.views.singular?.carousels
+		?.find(({ id }) => id === 'blockhead-session-work')
+		?.sections.find(({ id }) => id === 'blockhead-session-actions')
+	assert.ok(actionsSection)
+	actionsSection.Content = {
+		raw: [
+			'<!-- Derived section state stays in the section snippet. -->',
+			'{@const state = (',
+			'\topen ?',
+			"\t\t'open'",
+			'\t:',
+			"\t\t'closed'",
+			')}',
+			'<p>{label}: {state}</p>',
+		].join('\n'),
+		references: ['open'],
+	}
+	const leadingConstView = compileApp(leadingConstApp).generatedFiles.find(({ path: filePath }) => (
+		filePath === 'src/views/BlockheadSessionView.svelte'
+	))
+	assert.ok(leadingConstView)
+	const leadingConstSource = renderGeneratedFile(leadingConstView)
+	assert.match(
+		leadingConstSource,
+		/<!-- Derived section state stays in the section snippet\. -->[\s\S]*?\{@const state = \([\s\S]*?\)\}[\s\S]*?<article[\s\S]*?<p>\{label\}: \{state\}<\/p>/
+	)
+	assert.doesNotThrow(() => compileSvelte(leadingConstSource, {
+		filename: leadingConstView.path,
+		generate: false,
+	}))
+
+	const nonLeadingConstApp = structuredClone(app)
+	const nonLeadingBlockheadSession = nonLeadingConstApp.schema.entities.find(({ entityType }) => entityType === EntityType.BlockheadSession)
+	const nonLeadingActionsSection = nonLeadingBlockheadSession?.views.singular?.carousels
+		?.find(({ id }) => id === 'blockhead-session-work')
+		?.sections.find(({ id }) => id === 'blockhead-session-actions')
+	assert.ok(nonLeadingActionsSection)
+	nonLeadingActionsSection.Content = {
+		raw: '<p>Rendered first.</p>\n{@const state = open}',
+		references: ['open'],
+	}
+	assert.throws(
+		() => compileApp(nonLeadingConstApp),
+		/BlockheadSession carousel section blockhead-session-actions raw Content has a top-level \{@const\} after rendered content/
 	)
 })
 
