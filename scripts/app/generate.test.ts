@@ -1910,6 +1910,32 @@ test('renders value display facts and their query dependencies in definition lis
 	assert.doesNotMatch(renderGeneratedFile(networkTimestampView), /Timestamp timestamp=\{Number\(/)
 })
 
+test('requires declared display expressions for every non-scalar value type', () => {
+	const arweaveApp = structuredClone(app)
+	const arweaveTransaction = arweaveApp.schema.entities.find((entity) => entity.entityType === EntityType.ArweaveTransaction)
+	assert.ok(arweaveTransaction?.views.singular?.summary)
+	arweaveTransaction.views.singular.summary.value = ['tags']
+	assert.throws(
+		() => compileApp(arweaveApp),
+		/ArweaveTransaction\.tags needs a valueType displayExpression/
+	)
+
+	const agentCardApp = structuredClone(app)
+	const agentCardSnapshot = agentCardApp.schema.entities.find((entity) => entity.entityType === EntityType.A2aAgentCard_Snapshot)
+	assert.ok(agentCardSnapshot?.views.singular?.summary)
+	agentCardSnapshot.views.singular.summary.value = ['capabilities']
+	assert.throws(
+		() => compileApp(agentCardApp),
+		/A2aAgentCard_Snapshot\.capabilities needs a valueType displayExpression/
+	)
+
+	const arweaveTransactionView = generatedSource('src/views/ArweaveTransactionView.svelte')
+	assert.doesNotMatch(arweaveTransactionView, /<dt>tags<\/dt>/)
+	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
+	assert.equal((generatorSource.match(/valueTypeTypeRequiresDisplayExpression\(/g) ?? []).length, 2)
+	assert.doesNotMatch(generatorSource, /valueTypeTypeIsStructured/)
+})
+
 test('omits Lens relationships without executable source ownership', () => {
 	for (const viewPath of [
 		'src/views/LensNetworkView.svelte',

@@ -6447,15 +6447,13 @@ const emitValueTypeType = (valueTypeType: ValueTypeType | undefined): string => 
 	return typeof valueTypeType.raw === 'string' ? valueTypeType.raw : valueTypeType.raw.raw
 }
 
-const valueTypeTypeIsStructured = (valueTypeType: ValueTypeType | undefined): boolean => (
-	valueTypeType == null ?
-		false
-	: 'object' in valueTypeType ?
-		true
-	: 'array' in valueTypeType ?
-		true
-	:
-		false
+const valueTypeTypeRequiresDisplayExpression = (valueTypeType: ValueTypeType | undefined) => (
+	valueTypeType != null
+	&& (
+		'object' in valueTypeType
+		|| 'array' in valueTypeType
+		|| 'primitive' in valueTypeType && valueTypeType.primitive === 'unknown'
+	)
 )
 
 const valueTypeEnumNames = (valueTypeType: ValueTypeType | undefined): string[] => {
@@ -8160,8 +8158,7 @@ const fieldNeedsExplicitDisplayExpression = (indexes: GenerationIndexes, fieldDe
 	const valueTypeType = fieldValueTypeType(indexes, fieldDefinition)
 
 	return (
-		valueTypeTypeIsStructured(valueTypeType)
-		|| valueTypeType != null && 'primitive' in valueTypeType && valueTypeType.primitive === 'unknown'
+		valueTypeTypeRequiresDisplayExpression(valueTypeType)
 	) && fieldValueType(indexes, fieldDefinition)?.displayExpression == null
 }
 
@@ -8244,10 +8241,7 @@ const renderDisplayExpression = (
 		const valueTypeType = valueTypeTypeOverride ?? (fieldDefinition == null ? undefined : fieldValueTypeType(indexes, fieldDefinition))
 		// Titles and joins require strings; Svelte markup renders typed scalars
 		// directly and must not grow fallback String(...) assertions.
-		if (
-			valueTypeTypeIsStructured(valueTypeType)
-			|| valueTypeType != null && 'primitive' in valueTypeType && valueTypeType.primitive === 'unknown'
-		)
+		if (valueTypeTypeRequiresDisplayExpression(valueTypeType))
 			throw new Error(`${entity.entityType}.${fieldName} needs a valueType displayExpression before it can be rendered`)
 
 		if (fieldDefinition != null && fieldCardinalityIsMany(fieldDefinition))
