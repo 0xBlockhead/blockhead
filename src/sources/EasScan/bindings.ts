@@ -90,11 +90,10 @@ const easScanGraphqlTargets = [
 	},
 ] as const
 
-const bindings = easScanGraphqlTargets.flatMap(({
+const bindings = easScanGraphqlTargets.map(({
 	key,
 	locator,
-}) => [
-	{
+}) => ({
 		...easScanGraphqlGraphqlHttpRemoteQueryBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
@@ -107,7 +106,6 @@ const bindings = easScanGraphqlTargets.flatMap(({
 				corsEnabled: false,
 			},
 		],
-	},
-]) satisfies readonly SourceBinding[]
+})) satisfies readonly SourceBinding[]
 
 export default indexSourceBindings(bindings)

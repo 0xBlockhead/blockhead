@@ -39,49 +39,37 @@ const beaconRestEthereumBeaconRestBrowserDirectBindingAxes = {
 	],
 } as const
 
-const bindings = [
+const beaconRestTargets = [
 	{
+		key: '1',
+		locator: 'https://ethereum-beacon-api.publicnode.com',
+	},
+	{
+		key: '11155111',
+		locator: 'https://ethereum-sepolia-beacon-api.publicnode.com',
+	},
+	{
+		key: '17000',
+		locator: 'https://ethereum-holesky-beacon-api.publicnode.com',
+	},
+] as const
+
+const bindings = beaconRestTargets.map(({
+	key,
+	locator,
+}) => ({
 		...beaconRestEthereumBeaconRestBrowserDirectBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
-			key: '1',
+			key,
 		},
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://ethereum-beacon-api.publicnode.com',
+				locator,
 				corsEnabled: true,
 			},
 		],
-	},
-	{
-		...beaconRestEthereumBeaconRestBrowserDirectBindingAxes,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '11155111',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://ethereum-sepolia-beacon-api.publicnode.com',
-				corsEnabled: true,
-			},
-		],
-	},
-	{
-		...beaconRestEthereumBeaconRestBrowserDirectBindingAxes,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '17000',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://ethereum-holesky-beacon-api.publicnode.com',
-				corsEnabled: true,
-			},
-		],
-	},
-] as const satisfies readonly SourceBinding[]
+})) satisfies readonly SourceBinding[]
 
 export default indexSourceBindings(bindings)

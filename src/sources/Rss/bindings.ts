@@ -30,35 +30,33 @@ const rssRestRestJsonHttpProxyBindingAxes = {
 	],
 } as const
 
-const bindings = [
+const rssRestTargets = [
 	{
+		key: 'https://hnrss.org',
+		locator: 'https://hnrss.org',
+	},
+	{
+		key: 'https://feeds.bbci.co.uk',
+		locator: 'https://feeds.bbci.co.uk',
+	},
+] as const
+
+const bindings = rssRestTargets.map(({
+	key,
+	locator,
+}) => ({
 		...rssRestRestJsonHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Feed,
-			key: 'https://hnrss.org',
+			key,
 		},
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://hnrss.org',
+				locator,
 				corsEnabled: false,
 			},
 		],
-	},
-	{
-		...rssRestRestJsonHttpProxyBindingAxes,
-		target: {
-			kind: SourceTargetKind.Feed,
-			key: 'https://feeds.bbci.co.uk',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://feeds.bbci.co.uk',
-				corsEnabled: false,
-			},
-		],
-	},
-] as const satisfies readonly SourceBinding[]
+})) satisfies readonly SourceBinding[]
 
 export default indexSourceBindings(bindings)

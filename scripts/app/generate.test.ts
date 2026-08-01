@@ -17,6 +17,7 @@ import { spawnSync } from 'node:child_process'
 import { performance } from 'node:perf_hooks'
 import test from 'node:test'
 import ts from 'typescript'
+import { type as arktype } from 'arktype'
 
 import {
 	ApiFamily,
@@ -49,6 +50,7 @@ import {
 	generatedHeader,
 	renderGeneratedFile as renderGeneratedFileUncached,
 } from './render.ts'
+import sourceProviders from '../../src/sources/$sourceProviders.ts'
 
 
 const root = process.cwd()
@@ -2635,7 +2637,9 @@ test('emits every source-axis enum and only valid enum references in provider ro
 		for (const declaration of source.matchAll(/^const ([A-Za-z_$][\w$]*) =/gm))
 			if (declaration[1] !== 'bindings')
 				assert.ok(
-					(source.match(new RegExp(`\\b${declaration[1]}\\b`, 'g')) ?? []).length >= (source.includes('.flatMap(({') ? 2 : 3),
+					(source.match(new RegExp(`\\b${declaration[1]}\\b`, 'g')) ?? []).length >= (
+						source.includes('.flatMap(({') || source.includes('.map(({') ? 2 : 3
+					),
 					`${generatedBindings.path}: ${declaration[1]} must replace at least two repeated values`
 				)
 	}
@@ -2652,6 +2656,33 @@ test('emits every source-axis enum and only valid enum references in provider ro
 		blockscoutSource.bindings.length / 2
 	)
 	assert.equal((renderedBlockscoutBindings.match(/\.\.\.blockscoutRest[^,]+BindingAxes/g) ?? []).length, 2)
+	assert.match(renderedBlockscoutBindings, /\.flatMap\(/)
+
+	const easScanBindings = generatedFiles.find(({ path }) => path === 'src/sources/EasScan/bindings.ts')
+	assert.ok(easScanBindings)
+	const renderedEasScanBindings = renderGeneratedFile(easScanBindings)
+	assert.match(renderedEasScanBindings, /const bindings = easScanGraphqlTargets\.map\(/)
+	assert.doesNotMatch(renderedEasScanBindings, /\.flatMap\(/)
+
+	const mastodonBindings = generatedFiles.find(({ path }) => path === 'src/sources/Mastodon/bindings.ts')
+	const esploraBindings = generatedFiles.find(({ path }) => path === 'src/sources/Esplora/bindings.ts')
+	assert.ok(mastodonBindings && esploraBindings)
+	const renderedMastodonBindings = renderGeneratedFile(mastodonBindings)
+	const renderedEsploraBindings = renderGeneratedFile(esploraBindings)
+	assert.doesNotMatch(renderedMastodonBindings, /mastodonRestTargets/)
+	assert.match(renderedMastodonBindings, /kind: SourceTargetKind\.Feed,\n\s+key: 'mastodon-public-timeline:https:\/\/fosstodon\.org'/)
+	assert.doesNotMatch(renderedEsploraBindings, /esploraRestTargets/)
+	assert.match(renderedEsploraBindings, /kind: SourceTargetKind\.NetworkSlug,\n\s+key: 'liquid'/)
+
+	const nostrRelayBindings = generatedFiles.find(({ path }) => path === 'src/sources/NostrRelay/bindings.ts')
+	assert.ok(nostrRelayBindings)
+	const renderedNostrRelayBindings = renderGeneratedFile(nostrRelayBindings)
+	assert.equal((renderedNostrRelayBindings.match(/Targets\.map\(/g) ?? []).length, 2)
+	assert.match(renderedNostrRelayBindings, /const bindings = \[\n\t\.\.\.nostrRelayNip11HttpBindings,\n\t\.\.\.nostrRelayWebSocketBindings,/)
+	assert.doesNotMatch(
+		readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8'),
+		/bindingRows\.length\s*[<>]=?\s*[0-9]+/
+	)
 
 	const voltaireBindings = generatedFiles.find(({ path }) => path === 'src/sources/Voltaire/bindings.ts')
 	assert.ok(voltaireBindings)
@@ -2691,6 +2722,97 @@ test('emits every source-axis enum and only valid enum references in provider ro
 	assert.equal((renderedBitTorrentBindings.match(/credentials: \[\]/g) ?? []).length, 6)
 	assert.match(renderedGetBlockBindings, /^const getBlockCredentials = \[$/m)
 	assert.equal((renderedGetBlockBindings.match(/credentials: getBlockCredentials/g) ?? []).length, 2)
+})
+
+test('compacts source binding matrices only when their complete semantic order is unchanged', () => {
+	const shuffledApp = structuredClone(app)
+	const blockscout = shuffledApp.sources.sources.find(({ source }) => source === Source.Blockscout_Rest)
+	assert.ok(blockscout?.bindings)
+	Object.defineProperty(blockscout, 'bindings', {
+		value: blockscout.bindings.toSorted((left, right) => (
+			left.apiFamily.localeCompare(right.apiFamily)
+			|| left.target.key.localeCompare(right.target.key, 'en', {
+				numeric: true,
+			})
+		)),
+	})
+
+	const generatedBindings = compileApp(shuffledApp).generatedFiles.find(({ path }) => (
+		path === 'src/sources/Blockscout/bindings.ts'
+	))
+	assert.ok(generatedBindings)
+	const source = renderGeneratedFile(generatedBindings)
+	assert.doesNotMatch(source, /blockscoutRestTargets/)
+	assert.deepEqual(
+		[...source.matchAll(/^\s*key: '([0-9]+)',$/gm)].map((match) => match[1]),
+		blockscout.bindings.map(({ target }) => target.key)
+	)
+})
+
+test('keeps ordered generated provider bindings semantically equal to APP', () => {
+	assert.deepEqual(
+		sourceProviders.map(({ provider, bindings }) => ({
+			provider,
+			bindings: bindings.map((binding) => ({
+				source: binding.source,
+				target: binding.target,
+				endpoints: binding.endpoints,
+				wireProtocol: binding.wireProtocol,
+				apiFamily: binding.apiFamily,
+				operationGroups: binding.operationGroups,
+				delivery: binding.delivery,
+				credentials: binding.credentials.map((credential) => ({
+					scope: credential.scope,
+					...(credential.env == null ? {} : {
+						env: credential.env.json,
+					}),
+					...(credential.keys == null ? {} : {
+						keys: credential.keys,
+					}),
+				})),
+				artifacts: binding.artifacts ?? [],
+			})),
+		})),
+		app.sources.providers.map(({ provider }) => ({
+			provider,
+			bindings: app.sources.sources
+				.filter((source) => source.provider === provider)
+				.flatMap((source) => (
+					(source.bindings ?? (source.binding == null ? [] : [source.binding]))
+						.map((binding) => ({
+							source: source.source,
+							target: binding.target,
+							endpoints: binding.endpoints,
+							wireProtocol: binding.wireProtocol,
+							apiFamily: binding.apiFamily,
+							operationGroups: binding.operationGroups,
+							delivery: binding.delivery,
+							credentials: binding.credentials.map((credential) => ({
+								scope: credential.scope,
+								...('envKey' in credential || credential.env == null ? {} : {
+									env: arktype(credential.env.keys.length === 0 ? {
+										'[string]': 'string',
+									} : Object.fromEntries(credential.env.keys.map(({ name, type }) => [
+										name,
+										type,
+									]))).json,
+								}),
+								...(
+									'envKey' in credential
+									|| credential.scope === SourceCredentialScope.PublicConfig
+									|| credential.keys == null ?
+										{}
+									:
+										{
+											keys: credential.keys,
+										}
+								),
+							})),
+							artifacts: binding.artifacts ?? [],
+						}))
+				)),
+		}))
+	)
 })
 
 test('keeps scope-prefix reduction collision-safe for shared binding values', () => {

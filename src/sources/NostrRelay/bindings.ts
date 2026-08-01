@@ -48,88 +48,74 @@ const nostrRelayWebSocketNostrRelayRemoteLiveBindingAxes = {
 	],
 } as const
 
+const nostrRelayNip11HttpTargets = [
+	{
+		key: 'wss://relay.damus.io',
+		locator: 'https://relay.damus.io',
+	},
+	{
+		key: 'wss://nos.lol',
+		locator: 'https://nos.lol',
+	},
+	{
+		key: 'wss://relay.primal.net',
+		locator: 'https://relay.primal.net',
+	},
+] as const
+
+const nostrRelayNip11HttpBindings = nostrRelayNip11HttpTargets.map(({
+	key,
+	locator,
+}) => ({
+		...nostrRelayNip11HttpNostrRelayHttpProxyBindingAxes,
+		target: {
+			kind: SourceTargetKind.Feed,
+			key,
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator,
+				corsEnabled: false,
+			},
+		],
+})) satisfies readonly SourceBinding[]
+
+const nostrRelayWebSocketTargets = [
+	{
+		key: 'wss://relay.damus.io',
+		locator: 'wss://relay.damus.io',
+	},
+	{
+		key: 'wss://nos.lol',
+		locator: 'wss://nos.lol',
+	},
+	{
+		key: 'wss://relay.primal.net',
+		locator: 'wss://relay.primal.net',
+	},
+] as const
+
+const nostrRelayWebSocketBindings = nostrRelayWebSocketTargets.map(({
+	key,
+	locator,
+}) => ({
+		...nostrRelayWebSocketNostrRelayRemoteLiveBindingAxes,
+		target: {
+			kind: SourceTargetKind.Feed,
+			key,
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator,
+			},
+		],
+})) satisfies readonly SourceBinding[]
+
 const bindings = [
-	{
-		...nostrRelayNip11HttpNostrRelayHttpProxyBindingAxes,
-		target: {
-			kind: SourceTargetKind.Feed,
-			key: 'wss://relay.damus.io',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://relay.damus.io',
-				corsEnabled: false,
-			},
-		],
-	},
-	{
-		...nostrRelayNip11HttpNostrRelayHttpProxyBindingAxes,
-		target: {
-			kind: SourceTargetKind.Feed,
-			key: 'wss://nos.lol',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://nos.lol',
-				corsEnabled: false,
-			},
-		],
-	},
-	{
-		...nostrRelayNip11HttpNostrRelayHttpProxyBindingAxes,
-		target: {
-			kind: SourceTargetKind.Feed,
-			key: 'wss://relay.primal.net',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://relay.primal.net',
-				corsEnabled: false,
-			},
-		],
-	},
-	{
-		...nostrRelayWebSocketNostrRelayRemoteLiveBindingAxes,
-		target: {
-			kind: SourceTargetKind.Feed,
-			key: 'wss://relay.damus.io',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.WebSocketUrl,
-				locator: 'wss://relay.damus.io',
-			},
-		],
-	},
-	{
-		...nostrRelayWebSocketNostrRelayRemoteLiveBindingAxes,
-		target: {
-			kind: SourceTargetKind.Feed,
-			key: 'wss://nos.lol',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.WebSocketUrl,
-				locator: 'wss://nos.lol',
-			},
-		],
-	},
-	{
-		...nostrRelayWebSocketNostrRelayRemoteLiveBindingAxes,
-		target: {
-			kind: SourceTargetKind.Feed,
-			key: 'wss://relay.primal.net',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.WebSocketUrl,
-				locator: 'wss://relay.primal.net',
-			},
-		],
-	},
-] as const satisfies readonly SourceBinding[]
+	...nostrRelayNip11HttpBindings,
+	...nostrRelayWebSocketBindings,
+] satisfies readonly SourceBinding[]
 
 export default indexSourceBindings(bindings)

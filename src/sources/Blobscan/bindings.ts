@@ -30,63 +30,41 @@ const blobscanRestRestJsonHttpProxyBindingAxes = {
 	],
 } as const
 
-const bindings = [
+const blobscanRestTargets = [
 	{
+		key: '1',
+		locator: 'https://api.blobscan.com',
+	},
+	{
+		key: '11155111',
+		locator: 'https://api.sepolia.blobscan.com',
+	},
+	{
+		key: '100',
+		locator: 'https://api.gnosis.blobscan.com',
+	},
+	{
+		key: '560048',
+		locator: 'https://api.hoodi.blobscan.com',
+	},
+] as const
+
+const bindings = blobscanRestTargets.map(({
+	key,
+	locator,
+}) => ({
 		...blobscanRestRestJsonHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
-			key: '1',
+			key,
 		},
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://api.blobscan.com',
+				locator,
 				corsEnabled: false,
 			},
 		],
-	},
-	{
-		...blobscanRestRestJsonHttpProxyBindingAxes,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '11155111',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://api.sepolia.blobscan.com',
-				corsEnabled: false,
-			},
-		],
-	},
-	{
-		...blobscanRestRestJsonHttpProxyBindingAxes,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '100',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://api.gnosis.blobscan.com',
-				corsEnabled: false,
-			},
-		],
-	},
-	{
-		...blobscanRestRestJsonHttpProxyBindingAxes,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '560048',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://api.hoodi.blobscan.com',
-				corsEnabled: false,
-			},
-		],
-	},
-] as const satisfies readonly SourceBinding[]
+})) satisfies readonly SourceBinding[]
 
 export default indexSourceBindings(bindings)

@@ -30,49 +30,37 @@ const mevRelayRestRestJsonHttpProxyBindingAxes = {
 	],
 } as const
 
-const bindings = [
+const mevRelayRestTargets = [
 	{
+		key: 'boost-relay.flashbots.net',
+		locator: 'https://boost-relay.flashbots.net',
+	},
+	{
+		key: 'relay.ultrasound.money',
+		locator: 'https://relay.ultrasound.money',
+	},
+	{
+		key: 'builder-relay-sepolia.flashbots.net',
+		locator: 'https://builder-relay-sepolia.flashbots.net',
+	},
+] as const
+
+const bindings = mevRelayRestTargets.map(({
+	key,
+	locator,
+}) => ({
 		...mevRelayRestRestJsonHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Feed,
-			key: 'boost-relay.flashbots.net',
+			key,
 		},
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://boost-relay.flashbots.net',
+				locator,
 				corsEnabled: false,
 			},
 		],
-	},
-	{
-		...mevRelayRestRestJsonHttpProxyBindingAxes,
-		target: {
-			kind: SourceTargetKind.Feed,
-			key: 'relay.ultrasound.money',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://relay.ultrasound.money',
-				corsEnabled: false,
-			},
-		],
-	},
-	{
-		...mevRelayRestRestJsonHttpProxyBindingAxes,
-		target: {
-			kind: SourceTargetKind.Feed,
-			key: 'builder-relay-sepolia.flashbots.net',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://builder-relay-sepolia.flashbots.net',
-				corsEnabled: false,
-			},
-		],
-	},
-] as const satisfies readonly SourceBinding[]
+})) satisfies readonly SourceBinding[]
 
 export default indexSourceBindings(bindings)

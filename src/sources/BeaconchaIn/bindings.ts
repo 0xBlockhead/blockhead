@@ -39,49 +39,37 @@ const beaconchaInRestRestJsonHttpProxyBindingAxes = {
 	],
 } as const
 
-const bindings = [
+const beaconchaInRestTargets = [
 	{
+		key: '1',
+		locator: 'https://beaconcha.in/api/v1',
+	},
+	{
+		key: '17000',
+		locator: 'https://holesky.beaconcha.in/api/v1',
+	},
+	{
+		key: '560048',
+		locator: 'https://hoodi.beaconcha.in/api/v1',
+	},
+] as const
+
+const bindings = beaconchaInRestTargets.map(({
+	key,
+	locator,
+}) => ({
 		...beaconchaInRestRestJsonHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
-			key: '1',
+			key,
 		},
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://beaconcha.in/api/v1',
+				locator,
 				corsEnabled: false,
 			},
 		],
-	},
-	{
-		...beaconchaInRestRestJsonHttpProxyBindingAxes,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '17000',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://holesky.beaconcha.in/api/v1',
-				corsEnabled: false,
-			},
-		],
-	},
-	{
-		...beaconchaInRestRestJsonHttpProxyBindingAxes,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '560048',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://hoodi.beaconcha.in/api/v1',
-				corsEnabled: false,
-			},
-		],
-	},
-] as const satisfies readonly SourceBinding[]
+})) satisfies readonly SourceBinding[]
 
 export default indexSourceBindings(bindings)

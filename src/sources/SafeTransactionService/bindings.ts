@@ -35,49 +35,37 @@ const safeTransactionServiceRestRestJsonHttpProxyBindingAxes = {
 	],
 } as const
 
-const bindings = [
+const safeTransactionServiceRestTargets = [
 	{
+		key: '1',
+		locator: 'https://api.safe.global/tx-service/eth',
+	},
+	{
+		key: '100',
+		locator: 'https://api.safe.global/tx-service/gno',
+	},
+	{
+		key: '8453',
+		locator: 'https://api.safe.global/tx-service/base',
+	},
+] as const
+
+const bindings = safeTransactionServiceRestTargets.map(({
+	key,
+	locator,
+}) => ({
 		...safeTransactionServiceRestRestJsonHttpProxyBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
-			key: '1',
+			key,
 		},
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://api.safe.global/tx-service/eth',
+				locator,
 				corsEnabled: false,
 			},
 		],
-	},
-	{
-		...safeTransactionServiceRestRestJsonHttpProxyBindingAxes,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '100',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://api.safe.global/tx-service/gno',
-				corsEnabled: false,
-			},
-		],
-	},
-	{
-		...safeTransactionServiceRestRestJsonHttpProxyBindingAxes,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '8453',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://api.safe.global/tx-service/base',
-				corsEnabled: false,
-			},
-		],
-	},
-] as const satisfies readonly SourceBinding[]
+})) satisfies readonly SourceBinding[]
 
 export default indexSourceBindings(bindings)

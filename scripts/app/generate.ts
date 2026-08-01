@@ -7550,94 +7550,6 @@ const generateSourceProviderBindingsFile = ({
 		credentials: planRepeatedBindingValues(sharedValueScope, 'Credentials', bindingAxisRows.map(({ credentials }) => credentials)),
 		artifacts: planRepeatedBindingValues(sharedValueScope, 'Artifacts', bindingAxisRows.map(({ artifacts }) => artifacts)),
 	}
-	// A large, regular source matrix is represented by its targets and binding
-	// axes instead of repeating their cartesian product in generated output.
-	const compactBindingMatrix = (() => {
-		if (providerHasMultipleSources || bindingRows.length < 6)
-			return undefined
-
-		const sourcePlan = sourcePlans[0]
-		const firstBindingGroup = sourcePlan?.bindingGroups[0]
-		if (
-			sourcePlan == null
-			|| firstBindingGroup == null
-			|| sourcePlan.bindingGroups.some((group) => group.length !== firstBindingGroup.length)
-			|| sourcePlan.bindingGroups.some((group) => group.some(({ binding }) => binding.endpoints.length !== 1))
-		)
-			return undefined
-
-		const targetIdentity = ({ binding }: typeof firstBindingGroup[number]) => JSON.stringify([
-			binding.target.kind,
-			binding.target.key,
-		])
-		const targetIdentities = firstBindingGroup.map(targetIdentity)
-		if (
-			new Set(targetIdentities).size !== targetIdentities.length
-			|| sourcePlan.bindingGroups.some((group) => (
-				JSON.stringify(group.map(targetIdentity).sort()) !== JSON.stringify([...targetIdentities].sort())
-			))
-		)
-			return undefined
-
-		const endpointShapesMatch = sourcePlan.bindingGroups.every((group) => {
-			const endpoint = group[0]?.binding.endpoints[0]
-			return endpoint != null && group.every(({ binding }) => (
-				binding.endpoints[0]?.endpointKind === endpoint.endpointKind
-				&& binding.endpoints[0].corsEnabled === endpoint.corsEnabled
-			))
-		})
-		if (!endpointShapesMatch)
-			return undefined
-
-		const locatorSuffixes = sourcePlan.bindingGroups.map((group) => {
-			const suffixes = firstBindingGroup.map((targetRow) => {
-				const bindingRow = group.find((candidate) => targetIdentity(candidate) === targetIdentity(targetRow))
-				const baseLocator = targetRow.binding.endpoints[0]?.locator
-				const locator = bindingRow?.binding.endpoints[0]?.locator
-				return baseLocator != null && locator?.startsWith(baseLocator) === true ?
-					locator.slice(baseLocator.length)
-				:
-					undefined
-			})
-			return suffixes[0] != null && suffixes.every((suffix) => suffix === suffixes[0]) ?
-				suffixes[0]
-			:
-				undefined
-		})
-		if (locatorSuffixes.some((suffix) => suffix == null))
-			return undefined
-
-		return {
-			name: `${camel(sourcePlan.source)}Targets`,
-			rows: firstBindingGroup.map((targetRow) => ({
-				key: targetRow.binding.target.key,
-				locator: targetRow.binding.endpoints[0].locator,
-			})),
-			variants: sourcePlan.bindingGroups.map((group, groupIndex) => {
-				const binding = group[0]?.binding
-				const endpoint = binding?.endpoints[0]
-				const baseIdentifier = sourcePlan.bindingBaseIdentifier(groupIndex)
-				const locatorSuffix = locatorSuffixes[groupIndex]
-				if (binding == null || endpoint == null || baseIdentifier == null || locatorSuffix == null)
-					throw new Error(`${sourcePlan.source}: incomplete compact binding axis ${groupIndex}`)
-
-				return emitObject([
-					{
-						spread: baseIdentifier,
-					},
-					['target', `{
-	kind: ${enumAccess('SourceTargetKind', binding.target.kind)},
-	key,
-}`],
-					['endpoints', emitArray([`{
-	endpointKind: ${enumAccess('SourceEndpointKind', endpoint.endpointKind)},
-	${locatorSuffix === '' ? 'locator' : `locator: \`\${locator}${locatorSuffix}\``},${endpoint.corsEnabled == null ? '' : `
-	corsEnabled: ${String(endpoint.corsEnabled)},`}
-}`])],
-				])
-			}),
-		}
-	})()
 	const renderedSourcePlans = sourcePlans.map(({
 		source,
 		sourceBindingRows,
@@ -7676,10 +7588,171 @@ const generateSourceProviderBindingsFile = ({
 			}, bindingBaseIdentifier(groupIndex))
 		}),
 	}))
-	const indexedBindings = renderedSourcePlans.flatMap(({ source, bindings }) => bindings.map((binding) => ({
-		source,
-		binding,
-	})))
+	// A source matrix is compact only when it reconstructs the authored binding
+	// order exactly. Uniform target kinds keep the target key type correlated;
+	// mixed target domains remain explicit rows.
+	const bindingMatrices = new Map(sourcePlans.flatMap((sourcePlan) => {
+		const firstBindingGroup = sourcePlan.bindingGroups[0]
+		if (
+			firstBindingGroup == null
+			|| firstBindingGroup.length < 2
+			|| sourcePlan.bindingGroups.some((group) => group.length !== firstBindingGroup.length)
+			|| sourcePlan.bindingGroups.some((group) => group.some(({ binding }) => binding.endpoints.length !== 1))
+			|| new Set(firstBindingGroup.map(({ binding }) => binding.target.kind)).size !== 1
+		)
+			return []
+
+		const targetIdentity = ({ binding }: typeof firstBindingGroup[number]) => JSON.stringify([
+			binding.target.kind,
+			binding.target.key,
+		])
+		const targetIdentities = firstBindingGroup.map(targetIdentity)
+		if (
+			new Set(targetIdentities).size !== targetIdentities.length
+			|| sourcePlan.bindingGroups.some((group) => (
+				JSON.stringify(group.map(targetIdentity).sort()) !== JSON.stringify([...targetIdentities].sort())
+			))
+		)
+			return []
+
+		const orderedMatrixRows = firstBindingGroup.flatMap((targetRow) => (
+			sourcePlan.bindingGroups.map((group) => group.find((candidate) => (
+				targetIdentity(candidate) === targetIdentity(targetRow)
+			)))
+		))
+		if (orderedMatrixRows.some((row, index) => (
+			row?.index !== sourcePlan.sourceBindingRows[index]?.index
+		)))
+			return []
+
+		const locatorSuffixes = sourcePlan.bindingGroups.map((group) => {
+			const endpoint = group[0]?.binding.endpoints[0]
+			if (endpoint == null || group.some(({ binding }) => (
+				binding.endpoints[0]?.endpointKind !== endpoint.endpointKind
+				|| binding.endpoints[0].corsEnabled !== endpoint.corsEnabled
+			)))
+				return undefined
+
+			const suffixes = firstBindingGroup.map((targetRow) => {
+				const bindingRow = group.find((candidate) => targetIdentity(candidate) === targetIdentity(targetRow))
+				const baseLocator = targetRow.binding.endpoints[0]?.locator
+				const locator = bindingRow?.binding.endpoints[0]?.locator
+				return baseLocator != null && locator?.startsWith(baseLocator) === true ?
+					locator.slice(baseLocator.length)
+				:
+					undefined
+			})
+			return suffixes[0] != null && suffixes.every((suffix) => suffix === suffixes[0]) ?
+				suffixes[0]
+			:
+				undefined
+		})
+		if (locatorSuffixes.some((suffix) => suffix == null))
+			return []
+
+		return [[sourcePlan.source, {
+			name: `${camel(sourcePlan.source)}Targets`,
+			rows: firstBindingGroup.map((targetRow) => ({
+				key: targetRow.binding.target.key,
+				locator: targetRow.binding.endpoints[0].locator,
+			})),
+			variants: sourcePlan.bindingGroups.map((group, groupIndex) => {
+				const binding = group[0]?.binding
+				const endpoint = binding?.endpoints[0]
+				const baseIdentifier = sourcePlan.bindingBaseIdentifier(groupIndex)
+				const locatorSuffix = locatorSuffixes[groupIndex]
+				if (binding == null || endpoint == null || baseIdentifier == null || locatorSuffix == null)
+					throw new Error(`${sourcePlan.source}: incomplete binding matrix axis ${groupIndex}`)
+
+				return emitObject([
+					{
+						spread: baseIdentifier,
+					},
+					['target', `{
+	kind: ${enumAccess('SourceTargetKind', binding.target.kind)},
+	key,
+}`],
+					['endpoints', emitArray([`{
+	endpointKind: ${enumAccess('SourceEndpointKind', endpoint.endpointKind)},
+	${locatorSuffix === '' ? 'locator' : `locator: \`\${locator}${locatorSuffix}\``},${endpoint.corsEnabled == null ? '' : `
+	corsEnabled: ${String(endpoint.corsEnabled)},`}
+}`])],
+				])
+			}),
+		}] as const]
+	}))
+	const renderBindingMatrix = (
+		bindingName: string,
+		matrix: NonNullable<ReturnType<typeof bindingMatrices.get>>
+	) => {
+		const variant = lines(matrix.variants[0] ?? '')
+		return [
+			`const ${matrix.name} = ${emitArray(matrix.rows.map(({ key, locator }) => emitObject([
+				['key', emitTypeScript(key)],
+				['locator', emitTypeScript(locator)],
+			])))} as const`,
+			'',
+			`const ${bindingName} = ${matrix.name}.${matrix.variants.length === 1 ? 'map' : 'flatMap'}(({`,
+			'\tkey,',
+			'\tlocator,',
+			...(matrix.variants.length === 1 ? [
+				'}) => ({',
+				...variant.slice(1, -1).map((line) => indent(line)),
+				'})) satisfies readonly SourceBinding[]',
+			] : [
+				'}) => [',
+				...matrix.variants.map((binding) => `${indent(binding)},`),
+				']) satisfies readonly SourceBinding[]',
+			]),
+		]
+	}
+	const renderedBindingBody = (() => {
+		const direct = [
+			'const bindings = [',
+			...renderedSourcePlans.flatMap(({ bindings }) => bindings.map((binding) => `${indent(binding)},`)),
+			'] as const satisfies readonly SourceBinding[]',
+		]
+		if (renderedSourcePlans.length === 1) {
+			const sourcePlan = renderedSourcePlans[0]
+			const matrix = sourcePlan == null ? undefined : bindingMatrices.get(sourcePlan.source)
+			if (matrix == null)
+				return direct
+
+			const compact = renderBindingMatrix('bindings', matrix)
+			return compact.join('\n').length < direct.join('\n').length ? compact : direct
+		}
+
+		const compactSources = new Map(renderedSourcePlans.flatMap((sourcePlan) => {
+			const matrix = bindingMatrices.get(sourcePlan.source)
+			return matrix == null ? [] : [[sourcePlan.source, {
+				bindingName: `${camel(sourcePlan.source)}Bindings`,
+				matrix,
+			}] as const]
+		}))
+		if (compactSources.size === 0)
+			return direct
+
+		const compactDeclarations = renderedSourcePlans.flatMap(({ source }) => {
+			const compactSource = compactSources.get(source)
+			return compactSource == null ? [] : [
+				...renderBindingMatrix(compactSource.bindingName, compactSource.matrix),
+				'',
+			]
+		})
+		const compact = [
+			...compactDeclarations,
+			'const bindings = [',
+			...renderedSourcePlans.flatMap((sourcePlan) => {
+				const compactSource = compactSources.get(sourcePlan.source)
+				return compactSource == null ?
+					sourcePlan.bindings.map((binding) => `${indent(binding)},`)
+				:
+					[`\t...${compactSource.bindingName},`]
+			}),
+			'] satisfies readonly SourceBinding[]',
+		]
+		return compact.join('\n').length < direct.join('\n').length ? compact : direct
+	})()
 	const enumNames = [
 		'ApiFamily',
 		'SourceDelivery',
@@ -7724,23 +7797,7 @@ const generateSourceProviderBindingsFile = ({
 				...renderedSourcePlans.flatMap(({ declarations }) => (
 					declarations.length === 0 ? [] : [...declarations, '']
 				)),
-				...(compactBindingMatrix == null ? [
-					'const bindings = [',
-					...indexedBindings.map(({ binding }) => `${indent(binding)},`),
-					'] as const satisfies readonly SourceBinding[]',
-				] : [
-					`const ${compactBindingMatrix.name} = ${emitArray(compactBindingMatrix.rows.map(({ key, locator }) => emitObject([
-						['key', emitTypeScript(key)],
-						['locator', emitTypeScript(locator)],
-					])))} as const`,
-					'',
-					`const bindings = ${compactBindingMatrix.name}.flatMap(({`,
-					'\tkey,',
-					'\tlocator,',
-					'}) => [',
-					...compactBindingMatrix.variants.map((binding) => `${indent(binding)},`),
-					']) satisfies readonly SourceBinding[]',
-				]),
+				...renderedBindingBody,
 				'',
 				'export default indexSourceBindings(bindings)',
 			],
