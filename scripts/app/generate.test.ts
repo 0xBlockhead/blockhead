@@ -3846,6 +3846,57 @@ test('imports every enum referenced by generated schema construction', () => {
 	assert.deepEqual(mismatches, [])
 })
 
+test('imports ArkType only when generated schema construction references it', () => {
+	const schemaImportContracts = app.schema.entities.map((entity) => {
+		const filePath = `src/schema/${entity.entityType}.ts`
+		const sourceFile = ts.createSourceFile(
+			filePath,
+			generatedSource(filePath),
+			ts.ScriptTarget.Latest,
+			true,
+			ts.ScriptKind.TS
+		)
+		const imported = sourceFile.statements.some((statement) => (
+			ts.isImportDeclaration(statement)
+			&& ts.isStringLiteral(statement.moduleSpecifier)
+			&& statement.moduleSpecifier.text === 'arktype'
+			&& statement.importClause?.namedBindings != null
+			&& ts.isNamedImports(statement.importClause.namedBindings)
+			&& statement.importClause.namedBindings.elements.some(({ name }) => name.text === 'type')
+		))
+		let referenced = false
+		const visit = (node: ts.Node) => {
+			if (
+				ts.isIdentifier(node)
+				&& node.text === 'type'
+				&& !(ts.isPropertyAccessExpression(node.parent) && node.parent.name === node)
+				&& !(ts.isPropertyAssignment(node.parent) && node.parent.name === node)
+			)
+				referenced = true
+			else
+				ts.forEachChild(node, visit)
+		}
+		for (const statement of sourceFile.statements)
+			if (!ts.isImportDeclaration(statement))
+				visit(statement)
+
+		return {
+			filePath,
+			imported,
+			referenced,
+		}
+	})
+
+	assert.deepEqual(schemaImportContracts.flatMap(({ filePath, imported, referenced }) => (
+		imported === referenced ? [] : [`${filePath}: imported=${imported} referenced=${referenced}`]
+	)), [])
+	assert.equal(schemaImportContracts.filter(({ imported }) => !imported).length, 36)
+	assert.match(generatedSource('src/schema/A2aAgentCard.ts'), /import \{ UrlString \} from '\$\/schema\/UrlString\.ts'/)
+	assert.doesNotMatch(generatedSource('src/schema/A2aAgentCard.ts'), /from 'arktype'/)
+	assert.match(generatedSource('src/schema/FarcasterVerifiedAddress.ts'), /import \{ type \} from 'arktype'[\s\S]*?primitiveType: type\(/)
+	assert.match(generatedSource('src/schema/EthereumConsensusUpgrade.ts'), /import \{ type \} from 'arktype'[\s\S]*?primitiveType: type\.enumerated\(/)
+})
+
 test('renders ActivityPub content warnings as selector-scoped native disclosure', () => {
 	const noteView = baselineCompiledApp.generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/ActivityPubNoteView.svelte')
 	const notesView = baselineCompiledApp.generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/ActivityPubNotesView.svelte')

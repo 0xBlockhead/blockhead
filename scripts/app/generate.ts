@@ -6625,36 +6625,6 @@ const generateEntitySchemaFile = (entity: Entity, indexes: GenerationIndexes) =>
 					].every((name) => !localEnumNames.has(name))
 				))
 	})
-	const imports: ImportSpec[] = [
-		{
-			from: 'arktype',
-			names: ['type'],
-		},
-		{
-			from: '$/schema/$schema.ts',
-			names: [
-				'entity',
-				...(entity.facets == null || entity.facets.length === 0 ? [] : ['facet']),
-			],
-		},
-		{
-			from: '$/schema/EntityFieldCardinality.ts',
-			names: ['EntityFieldCardinality'],
-		},
-		{
-			from: '$/schema/EntityType.ts',
-			names: ['EntityType'],
-		},
-		...(defaultSources ? [{
-			from: '$/sources/Source.ts',
-			names: ['Source'],
-		}] satisfies ImportSpec[] : []),
-		...(entity.enums ?? []).map((appEnum) => ({
-			from: schemaEnumModulePath(appEnum.name),
-			names: [appEnum.name],
-		})),
-		...valueTypeImports,
-	]
 	const body = [
 		'export default entity({',
 			indent(`entityType: ${enumAccess('EntityType', entity.entityType)},`),
@@ -6680,6 +6650,36 @@ const generateEntitySchemaFile = (entity: Entity, indexes: GenerationIndexes) =>
 				indent('},'),
 			]),
 		`})`,
+	]
+	const imports: ImportSpec[] = [
+		...(typeScriptSourceReferencesBinding(body.join('\n'), 'type') ? [{
+			from: 'arktype',
+			names: ['type'],
+		}] satisfies ImportSpec[] : []),
+		{
+			from: '$/schema/$schema.ts',
+			names: [
+				'entity',
+				...(entity.facets == null || entity.facets.length === 0 ? [] : ['facet']),
+			],
+		},
+		{
+			from: '$/schema/EntityFieldCardinality.ts',
+			names: ['EntityFieldCardinality'],
+		},
+		{
+			from: '$/schema/EntityType.ts',
+			names: ['EntityType'],
+		},
+		...(defaultSources ? [{
+			from: '$/sources/Source.ts',
+			names: ['Source'],
+		}] satisfies ImportSpec[] : []),
+		...(entity.enums ?? []).map((appEnum) => ({
+			from: schemaEnumModulePath(appEnum.name),
+			names: [appEnum.name],
+		})),
+		...valueTypeImports,
 	]
 
 	return tsFile(
