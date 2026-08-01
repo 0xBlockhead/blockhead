@@ -1,13 +1,42 @@
 // Generated from APP.ts.
 
-import type { SourceServerCredentialDefinition } from '$/sources/SourceBinding.ts'
+import sourceProviders from '$/sources/$sourceProviders.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	sourceBindingId,
+	SourceCredentialScope,
+	type SourceBinding,
+	type SourceServerCredentialDefinition,
+} from '$/sources/SourceBinding.ts'
+
+const runtimeSecretBindingCandidates = sourceProviders
+	.flatMap<SourceBinding>(({ bindings }) => bindings)
+	.filter(({ credentials }) => credentials.some(({ scope, keys }) => (
+		scope === SourceCredentialScope.RuntimeSecret
+		&& keys == null
+	)))
+
+const runtimeSecretBinding = (
+	source: Source,
+	targetKey?: string
+) => {
+	const bindings = runtimeSecretBindingCandidates.filter((candidate) => (
+		candidate.source === source
+		&& (targetKey === undefined || candidate.target.key === targetKey)
+	))
+	const binding = bindings.at(0)
+	if (binding == null || bindings.length > 1)
+		throw new Error(`Expected one runtime-secret binding for ${source}${targetKey === undefined ? '' : ` target ${targetKey}`}`)
+
+	return binding
+}
 
 export default new Map<
 	string,
 	SourceServerCredentialDefinition
 >([
 	[
-		'["Amboss_Graphql","Global","amboss-space","HttpProxy","GraphqlHttp"]',
+		sourceBindingId(runtimeSecretBinding(Source.Amboss_Graphql)),
 		{
 			envKey: 'AMBOSS_API_KEY',
 			injection: {
@@ -19,7 +48,7 @@ export default new Map<
 		},
 	],
 	[
-		'["Blockfrost_Rest","Caip2Network","cip34:1-764824073","HttpProxy","OpenApiHttp"]',
+		sourceBindingId(runtimeSecretBinding(Source.Blockfrost_Rest)),
 		{
 			envKey: 'BLOCKFROST_PROJECT_ID',
 			injection: {
@@ -30,7 +59,7 @@ export default new Map<
 		},
 	],
 	[
-		'["EigenExplorer_Rest","Global","eigen-explorer-api","HttpProxy","RestJson"]',
+		sourceBindingId(runtimeSecretBinding(Source.EigenExplorer_Rest)),
 		{
 			envKey: 'EIGEN_EXPLORER_API_TOKEN',
 			injection: {
@@ -41,7 +70,7 @@ export default new Map<
 		},
 	],
 	[
-		'["EnvioHyperRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"]',
+		sourceBindingId(runtimeSecretBinding(Source.EnvioHyperRpc_JsonRpc)),
 		{
 			envKey: 'ENVIO_API_TOKEN',
 			injection: {
@@ -52,7 +81,7 @@ export default new Map<
 		},
 	],
 	[
-		'["EnvioHyperSync_RawHttp","Eip155Chain","1","HttpProxy","EnvioHyperSyncApi"]',
+		sourceBindingId(runtimeSecretBinding(Source.EnvioHyperSync_RawHttp)),
 		{
 			envKey: 'ENVIO_API_TOKEN',
 			injection: {
@@ -64,7 +93,7 @@ export default new Map<
 		},
 	],
 	[
-		'["GetBlockRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"]',
+		sourceBindingId(runtimeSecretBinding(Source.GetBlockRpc_JsonRpc)),
 		{
 			envKey: 'GETBLOCK_API_KEY',
 			injection: {
@@ -75,7 +104,7 @@ export default new Map<
 		},
 	],
 	[
-		'["GetBlockYellowstone_Grpc","Caip2Network","solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp","RemoteLive","GrpcService"]',
+		sourceBindingId(runtimeSecretBinding(Source.GetBlockYellowstone_Grpc)),
 		{
 			envKey: 'GETBLOCK_API_KEY',
 			injection: {
@@ -86,7 +115,7 @@ export default new Map<
 		},
 	],
 	[
-		'["GoldRushFoundational_Rest","Eip155Chain","1","HttpProxy","GoldRushFoundationalApi"]',
+		sourceBindingId(runtimeSecretBinding(Source.GoldRushFoundational_Rest)),
 		{
 			envKey: 'COVALENT_API_KEY',
 			injection: {
@@ -98,7 +127,7 @@ export default new Map<
 		},
 	],
 	[
-		'["OpenAI_Rest","Global","openai-api","HttpProxy","RestJson"]',
+		sourceBindingId(runtimeSecretBinding(Source.OpenAI_Rest)),
 		{
 			envKey: 'OPENAI_API_KEY',
 			injection: {
@@ -110,7 +139,7 @@ export default new Map<
 		},
 	],
 	[
-		'["PythHermes_Rest","Global","pyth-hermes","HttpProxy","OpenApiHttp"]',
+		sourceBindingId(runtimeSecretBinding(Source.PythHermes_Rest)),
 		{
 			envKey: 'PYTH_API_KEY',
 			injection: {
@@ -122,7 +151,7 @@ export default new Map<
 		},
 	],
 	[
-		'["SafeTransactionService_Rest","Eip155Chain","1","HttpProxy","RestJson"]',
+		sourceBindingId(runtimeSecretBinding(Source.SafeTransactionService_Rest, '1')),
 		{
 			envKey: 'SAFE_TRANSACTION_SERVICE_API_KEY',
 			injection: {
@@ -134,7 +163,7 @@ export default new Map<
 		},
 	],
 	[
-		'["SafeTransactionService_Rest","Eip155Chain","100","HttpProxy","RestJson"]',
+		sourceBindingId(runtimeSecretBinding(Source.SafeTransactionService_Rest, '100')),
 		{
 			envKey: 'SAFE_TRANSACTION_SERVICE_API_KEY',
 			injection: {
@@ -146,7 +175,7 @@ export default new Map<
 		},
 	],
 	[
-		'["SafeTransactionService_Rest","Eip155Chain","8453","HttpProxy","RestJson"]',
+		sourceBindingId(runtimeSecretBinding(Source.SafeTransactionService_Rest, '8453')),
 		{
 			envKey: 'SAFE_TRANSACTION_SERVICE_API_KEY',
 			injection: {
@@ -158,7 +187,7 @@ export default new Map<
 		},
 	],
 	[
-		'["SpaceAndTime_MakeInfinite","Caip2Network","eip155:1","HttpProxy","RestJson"]',
+		sourceBindingId(runtimeSecretBinding(Source.SpaceAndTime_MakeInfinite)),
 		{
 			envKey: 'MAKEINFINITE_API_KEY',
 			injection: {
@@ -169,7 +198,7 @@ export default new Map<
 		},
 	],
 	[
-		'["Starkscan","NetworkSlug","starknet","HttpProxy","OpenApiHttp"]',
+		sourceBindingId(runtimeSecretBinding(Source.Starkscan)),
 		{
 			envKey: 'STARKSCAN_API_KEY',
 			injection: {
@@ -180,7 +209,7 @@ export default new Map<
 		},
 	],
 	[
-		'["Tally","Global","tally-api","HttpProxy","GraphqlHttp"]',
+		sourceBindingId(runtimeSecretBinding(Source.Tally)),
 		{
 			envKey: 'TALLY_API_KEY',
 			injection: {
@@ -191,7 +220,7 @@ export default new Map<
 		},
 	],
 	[
-		'["TonCenter","Caip2Network","ton:-239","HttpProxy","OpenApiHttp"]',
+		sourceBindingId(runtimeSecretBinding(Source.TonCenter, 'ton:-239')),
 		{
 			envKey: 'TONCENTER_MAINNET_API_KEY',
 			injection: {
@@ -202,7 +231,7 @@ export default new Map<
 		},
 	],
 	[
-		'["TonCenter","Caip2Network","ton:-3","HttpProxy","OpenApiHttp"]',
+		sourceBindingId(runtimeSecretBinding(Source.TonCenter, 'ton:-3')),
 		{
 			envKey: 'TONCENTER_TESTNET_API_KEY',
 			injection: {
@@ -213,7 +242,7 @@ export default new Map<
 		},
 	],
 	[
-		'["Voyager","NetworkSlug","starknet","HttpProxy","OpenApiHttp"]',
+		sourceBindingId(runtimeSecretBinding(Source.Voyager)),
 		{
 			envKey: 'VOYAGER_API_KEY',
 			injection: {

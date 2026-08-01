@@ -7882,44 +7882,93 @@ const generateSourceProvidersFile = (sourceProviderNames: readonly string[]) => 
 
 const generateSourceServerCredentialsFile = (
 	sourceBindings: readonly SourceBindingEntry[]
-) => tsFile(
-	'src/sources/$sourceServerCredentials.server.ts',
-	{
-		imports: [{
-			from: '$/sources/SourceBinding.ts',
-			typeNames: ['SourceServerCredentialDefinition'],
-		}],
-		body: [
-			'export default new Map<',
-			'\tstring,',
-			'\tSourceServerCredentialDefinition',
-			`>(${emitArray(sourceBindings.flatMap(({ binding, source }) => {
-				const runtimeSecret = binding.credentials.find((credential) => (
-					credential.scope === SourceCredentialScope.RuntimeSecret
-					&& 'envKey' in credential
-				))
-				if (runtimeSecret == null)
-					return []
+) => {
+	const runtimeSecretBindings = sourceBindings.flatMap((sourceBinding) => {
+		const runtimeSecret = sourceBinding.binding.credentials.find((credential) => (
+			credential.scope === SourceCredentialScope.RuntimeSecret
+			&& 'envKey' in credential
+		))
+		return runtimeSecret == null ? [] : [{
+			...sourceBinding,
+			runtimeSecret,
+		}]
+	})
+	const bindingExpression = ({ source, binding }: SourceBindingEntry) => {
+		const sourceRuntimeSecretBindings = runtimeSecretBindings.filter((candidate) => candidate.source === source)
+		const targetKey = sourceRuntimeSecretBindings.length === 1 ? undefined : binding.target.key
+		if (sourceRuntimeSecretBindings.filter((candidate) => (
+			targetKey === undefined
+			|| candidate.binding.target.key === targetKey
+		)).length !== 1)
+			throw new Error(`${source}: target ${binding.target.key} must identify exactly one runtime-secret binding`)
 
-				return [emitArray([
-					emitTypeScript(sourceBindingId({
-						source: String(source),
-						target: binding.target,
-						delivery: binding.delivery,
-						apiFamily: binding.apiFamily,
-					})),
+		return `runtimeSecretBinding(${enumAccess('Source', source)}${targetKey === undefined ? '' : `, ${emitTypeScript(targetKey)}`})`
+	}
+
+	return tsFile(
+		'src/sources/$sourceServerCredentials.server.ts',
+		{
+			imports: [
+				{
+					from: '$/sources/$sourceProviders.ts',
+					defaultName: 'sourceProviders',
+				},
+				{
+					from: '$/sources/Source.ts',
+					names: ['Source'],
+				},
+				{
+					from: '$/sources/SourceBinding.ts',
+					names: [
+						'sourceBindingId',
+						'SourceCredentialScope',
+					],
+					typeNames: [
+						'SourceBinding',
+						'SourceServerCredentialDefinition',
+					],
+				},
+			],
+			body: [
+				'const runtimeSecretBindingCandidates = sourceProviders',
+				'\t.flatMap<SourceBinding>(({ bindings }) => bindings)',
+				'\t.filter(({ credentials }) => credentials.some(({ scope, keys }) => (',
+				'\t\tscope === SourceCredentialScope.RuntimeSecret',
+				'\t\t&& keys == null',
+				'\t)))',
+				'',
+				'const runtimeSecretBinding = (',
+				'\tsource: Source,',
+				'\ttargetKey?: string',
+				') => {',
+				'\tconst bindings = runtimeSecretBindingCandidates.filter((candidate) => (',
+				'\t\tcandidate.source === source',
+				'\t\t&& (targetKey === undefined || candidate.target.key === targetKey)',
+				'\t))',
+				'\tconst binding = bindings.at(0)',
+				'\tif (binding == null || bindings.length > 1)',
+				"\t\tthrow new Error(`Expected one runtime-secret binding for ${source}${targetKey === undefined ? '' : ` target ${targetKey}`}`)",
+				'',
+				'\treturn binding',
+				'}',
+				'',
+				'export default new Map<',
+				'\tstring,',
+				'\tSourceServerCredentialDefinition',
+				`>(${emitArray(runtimeSecretBindings.map((sourceBinding) => emitArray([
+					`sourceBindingId(${bindingExpression(sourceBinding)})`,
 					emitObject([
-						['envKey', emitTypeScript(runtimeSecret.envKey)],
+						['envKey', emitTypeScript(sourceBinding.runtimeSecret.envKey)],
 						['injection', emitTypeScript({
 							kind: 'value',
-							value: runtimeSecret.injection,
+							value: sourceBinding.runtimeSecret.injection,
 						})],
 					]),
-				])]
-			}))})`,
-		],
-	}
-)
+				])))})`,
+			],
+		}
+	)
+}
 
 const generateSourceSelectionFiles = (sourceSelections: readonly NamedSourceSelectionPlan[]) => sourceSelections.map(({
 	selection,

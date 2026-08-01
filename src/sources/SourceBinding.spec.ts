@@ -26,6 +26,7 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 import generatedSourceProviders from '$/sources/$sourceProviders.ts'
+import sourceServerCredentialsById from '$/sources/$sourceServerCredentials.server.ts'
 import { auditSourceProviders } from '$/sources/auditSourceProviders.ts'
 import {
 	networkApplicableSources,
@@ -88,6 +89,12 @@ describe('source binding indexes', () => {
 		expect(audit.bindingSourcesWithoutRows).toEqual([])
 		expect(audit.bindingsOutsideProviderRows).toEqual([])
 		expect(audit.providersWithoutBindings).toEqual([])
+	})
+
+	it('keeps every server credential attached to a registered binding', () => {
+		expect([...sourceServerCredentialsById.keys()].filter((bindingId) => (
+			!sourceBindings.some((binding) => sourceBindingId(binding) === bindingId)
+		))).toEqual([])
 	})
 
 	it('derives browser enabled sources from browser-safe bindings', () => {

@@ -57,7 +57,6 @@ vi.mock('$/sources/$sourceServerCredentials.server.ts', () => ({
 			resolverBinding.source,
 			resolverBinding.target.kind,
 			resolverBinding.target.key,
-			resolverBinding.wireProtocol,
 			resolverBinding.delivery,
 			resolverBinding.apiFamily,
 		]),

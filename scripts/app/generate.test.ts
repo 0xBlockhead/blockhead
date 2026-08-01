@@ -51,6 +51,7 @@ import {
 	renderGeneratedFile as renderGeneratedFileUncached,
 } from './render.ts'
 import sourceProviders from '../../src/sources/$sourceProviders.ts'
+import sourceServerCredentialsById from '../../src/sources/$sourceServerCredentials.server.ts'
 
 
 const root = process.cwd()
@@ -5161,27 +5162,46 @@ test('omits empty public env schemas and keeps explicit public keys', () => {
 })
 
 test('keeps runtime secret configuration in one server projection', () => {
-	const publicBindings = readFileSync(
-		path.join(root, 'src/sources/Covalent/bindings.ts'),
+	const publicBindings = globSync('src/sources/**/bindings.ts').map((bindingPath) => readFileSync(
+		path.join(root, bindingPath),
 		'utf8'
-	)
+	)).join('\n')
 	const serverCredentials = readFileSync(
 		path.join(root, 'src/sources/$sourceServerCredentials.server.ts'),
 		'utf8'
 	)
-	const goldRushSource = app.sources.sources.find(({ source }) => source === Source.GoldRushFoundational_Rest)
-
-	assert.ok(goldRushSource?.binding)
 	assert.doesNotMatch(publicBindings, /(?:proxyId|serverCredentialId):/)
-	assert.doesNotMatch(publicBindings, /COVALENT_API_KEY|injection:/)
+	assert.doesNotMatch(publicBindings, /envKey:|injection:/)
 	assert.match(serverCredentials, /export default new Map<\n\tstring,\n\tSourceServerCredentialDefinition\n>/)
-	assert.ok(serverCredentials.includes(`'${sourceBindingId({
-		source: String(goldRushSource.source),
-		...goldRushSource.binding,
-	})}',`))
+	assert.match(serverCredentials, /import sourceProviders from '\$\/sources\/\$sourceProviders\.ts'/)
+	assert.match(serverCredentials, /const runtimeSecretBindingCandidates = sourceProviders\n\t\.flatMap<SourceBinding>\(\(\{ bindings \}\) => bindings\)[\s\S]*?scope === SourceCredentialScope\.RuntimeSecret[\s\S]*?&& keys == null/)
+	assert.match(serverCredentials, /sourceBindingId\(runtimeSecretBinding\(Source\.GoldRushFoundational_Rest\)\)/)
+	assert.doesNotMatch(serverCredentials, /'\["/)
+	assert.doesNotMatch(serverCredentials, /from '\$\/sources\/[^']+\/bindings\.ts'/)
+	assert.equal(serverCredentials.match(/runtimeSecretBinding\(Source\.[^)]+, /g)?.length, 5)
+	assert.match(serverCredentials, /runtimeSecretBinding\(Source\.SafeTransactionService_Rest, '1'\)/)
+	assert.match(serverCredentials, /runtimeSecretBinding\(Source\.TonCenter, 'ton:-239'\)/)
 	assert.match(serverCredentials, /COVALENT_API_KEY/)
 	assert.match(serverCredentials, /header: \{[\s\S]*?name: 'authorization'[\s\S]*?prefix: 'Bearer '/)
 	assert.doesNotMatch(serverCredentials, /endpoints:|header-secret|literal-secret/)
+	assert.deepEqual([...sourceServerCredentialsById.keys()].sort(), app.sources.sources.flatMap((source) => [
+		...(source.binding == null ? [] : [source.binding]),
+		...(source.bindings ?? []),
+	].flatMap((binding) => binding.credentials.some((credential) => (
+		credential.scope === SourceCredentialScope.RuntimeSecret
+		&& 'envKey' in credential
+	)) ? [sourceBindingId({
+		source: String(source.source),
+		...binding,
+	})] : [])).sort())
+	assert.deepEqual(globSync('src/**/*.ts').filter((sourcePath) => (
+		readFileSync(path.join(root, sourcePath), 'utf8')
+			.includes("from '$/sources/$sourceServerCredentials.server.ts'")
+	)).filter((sourcePath) => !sourcePath.endsWith('.spec.ts')).toSorted(), [
+		'src/sources/_runtime/live.server.ts',
+		'src/sources/_runtime/proxy.server.ts',
+		'src/sources/index.server.ts',
+	].toSorted())
 })
 
 test('roots sibling route groups without leaking internal segments', () => {
