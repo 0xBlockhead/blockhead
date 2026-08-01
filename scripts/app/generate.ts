@@ -11802,8 +11802,14 @@ const renderRelationshipSection = (
 	if (component == null)
 		throw new Error(`${entity.entityType}.${section.field} relationship section must declare a generated component`)
 
-	if (fieldDefinition.entityType == null)
+	const targetEntity = fieldDefinition.entityType
+	if (targetEntity == null)
 		throw new Error(`${entity.entityType}.${section.field} relationship section field must reference an entity`)
+	const query = renderQuery(
+		section.selection,
+		[],
+		renderFieldConditionedSourceSelectionExpression(section.selection?.sources, 'pendingEntity')
+	)
 
 	const renderSection = (
 		fieldResourceBase: string,
@@ -11814,6 +11820,8 @@ const renderRelationshipSection = (
 				entity,
 				section,
 				fieldDefinition,
+				targetEntity,
+				query,
 				component,
 				level,
 				fieldResourceBase,
@@ -11825,6 +11833,8 @@ const renderRelationshipSection = (
 				indexes,
 				section,
 				fieldDefinition,
+				targetEntity,
+				query,
 				component,
 				level,
 				fieldResourceBase,
@@ -13341,20 +13351,13 @@ const renderEntityReferenceSection = (
 	entity: Entity,
 	section: RelationshipSection,
 	fieldDefinition: EntityField,
+	targetEntity: EntityType,
+	query: string,
 	component: string,
 	level: number,
 	fieldResourceBase: string,
 	fieldReference: FieldReference
 ) => {
-	const selectionQuery = section.selection
-	const query = renderQuery(
-		selectionQuery,
-		[],
-		renderFieldConditionedSourceSelectionExpression(selectionQuery?.sources, 'pendingEntity')
-	)
-	const targetEntity = fieldDefinition.entityType
-	if (targetEntity == null)
-		throw new Error(`${entity.entityType}.${section.field} EntityReference section is missing entityType`)
 	const targetEntityName = camel(targetEntity)
 	if (entitySelectorOwnsField(entity, section.field)) {
 		const selectorExpression = fieldExpression('selection.entitySelector', section.field)
@@ -13444,20 +13447,13 @@ const renderEntitiesReferenceSection = (
 	indexes: GenerationIndexes,
 	section: RelationshipSection,
 	fieldDefinition: EntityField,
+	targetEntity: EntityType,
+	query: string,
 	component: string,
 	level: number,
 	fieldResourceBase: string,
 	fieldReference: FieldReference
 ) => {
-	const selectionQuery = section.selection
-	const query = renderQuery(
-		selectionQuery,
-		[],
-		renderFieldConditionedSourceSelectionExpression(selectionQuery?.sources, 'pendingEntity')
-	)
-	const targetEntity = fieldDefinition.entityType
-	if (targetEntity == null)
-		throw new Error(`${entity.entityType}.${section.field} EntitiesReference section is missing entityType`)
 	const hrefFieldNames = unique((
 		indexes.collectionRoutesBySourceField[
 			collectionSourceFieldKey(entity.entityType, section.field, targetEntity)
