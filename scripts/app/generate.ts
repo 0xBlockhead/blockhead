@@ -323,14 +323,8 @@ type SourceDefinition = App['sources']['sources'][number]
 type SourceProviderDefinition = App['sources']['providers'][number]
 type SourceBinding = NonNullable<SourceDefinition['binding']>
 type SourceBindingEntry = {
-	readonly provider: SourceDefinition['provider']
 	readonly source: SourceDefinition['source']
 	readonly binding: SourceBinding
-	readonly bindingIndex: number
-}
-type SourceArtifactEntry = SourceBindingEntry & {
-	readonly artifact: NonNullable<SourceBinding['artifacts']>[number]
-	readonly artifactIndex: number
 }
 type RouteFixtureMetadata = {
 	id: string
@@ -410,7 +404,6 @@ type GenerationIndexes = Readonly<
 	}
 >
 type SourcesMarkdownInput = Readonly<{
-	sourceArtifacts: readonly SourceArtifactEntry[]
 	sourceBindings: readonly SourceBindingEntry[]
 	sourceProviders: readonly SourceProviderDefinition[]
 	sources: readonly SourceDefinition[]
@@ -4872,7 +4865,10 @@ const sourceBindings = (source: App['sources']['sources'][number]) => [
 const sourceIdentityTransportKey = ({
 	provider,
 	binding,
-}: Pick<SourceBindingEntry, 'provider' | 'binding'>) => JSON.stringify([
+}: {
+	provider: SourceDefinition['provider']
+	binding: SourceBinding
+}) => JSON.stringify([
 	provider,
 	[...binding.endpoints]
 		.map(({ endpointKind, locator, corsEnabled }) => JSON.stringify([
@@ -5422,16 +5418,10 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	for (const source of sources)
 		if (!sourceProviderIds.has(source.provider))
 			throw new Error(`${source.source}: unknown source provider ${source.provider}`)
-	const compiledSourceBindings = Object.freeze(sources
-		.flatMap((source) => sourceBindings(source).map((binding) => ({
-			provider: source.provider,
-			source: source.source,
-			binding,
-		})))
-		.map((sourceBinding, bindingIndex) => ({
-			...sourceBinding,
-			bindingIndex,
-		})))
+	const compiledSourceBindings = Object.freeze(sources.flatMap((source) => sourceBindings(source).map((binding) => ({
+		source: source.source,
+		binding,
+	}))))
 	const sourceBindingIds = new Set<string>()
 	for (const { binding, source } of compiledSourceBindings) {
 		const bindingId = sourceBindingId({
@@ -5561,14 +5551,25 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 				throw new Error(`${source}: HttpProxy runtime secret template slot is absent from its endpoints`)
 		}
 	}
+	for (const [source, definitions] of Map.groupBy(sources, (definition) => definition.source))
+		if (definitions.length > 1)
+			throw new Error(`Duplicate source: ${source}`)
+
+	const sourceDefinitionById = nullPrototypeRecord(sources.map((source) => [
+		String(source.source),
+		source,
+	]))
 
 	for (const indistinguishableBindings of Map.groupBy(
 		compiledSourceBindings,
-		sourceIdentityTransportKey
+		({ source, binding }) => sourceIdentityTransportKey({
+			provider: sourceDefinitionById[source].provider,
+			binding,
+		})
 	).values()) {
 		const indistinguishableSources = unique(indistinguishableBindings.map(({ source }) => source))
 		if (indistinguishableSources.length > 1)
-			throw new Error(`${indistinguishableBindings[0]?.provider}: source identities ${indistinguishableSources.join(', ')} share one transport and provenance; combine their operation groups on one source binding`)
+			throw new Error(`${sourceDefinitionById[indistinguishableBindings[0]?.source ?? ''].provider}: source identities ${indistinguishableSources.join(', ')} share one transport and provenance; combine their operation groups on one source binding`)
 	}
 
 	const {
@@ -5580,7 +5581,9 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	} = normalizeApp(sourceApp)
 	const sourceProviderPlans = sourceProviders.map((provider) => {
 		const providerSources = sources.filter((source) => source.provider === provider.provider)
-		const providerBindings = compiledSourceBindings.filter((sourceBinding) => sourceBinding.provider === provider.provider)
+		const providerBindings = compiledSourceBindings.filter((sourceBinding) => (
+			sourceDefinitionById[sourceBinding.source].provider === provider.provider
+		))
 
 		return {
 			provider,
@@ -5770,7 +5773,6 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	expectUnique('entity type', entityTypes)
 	expectUnique('active entity type', activeEntities.map((entity) => entity.entityType))
 	expectUnique('value type', app.schema.valueTypes.map((valueType) => valueType.id))
-	expectUnique('source', sources.map((source) => source.source))
 	expectUnique('source provider', sourceProviders.map((provider) => provider.provider))
 
 	for (const entity of activeEntities) {
@@ -6309,13 +6311,6 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 	const entityTypes = generationInput.entities.map(({ entityType }) => entityType)
 	const sourceProviders = generationInput.sourceProviderPlans.map(({ provider }) => provider)
 	const sourceProviderNames = sourceProviders.map(({ provider }) => provider)
-	const sourceArtifacts = indexes.sourceBindings.flatMap((sourceBinding) => (
-		(sourceBinding.binding.artifacts ?? []).map((artifact, artifactIndex) => ({
-			...sourceBinding,
-			artifact,
-			artifactIndex,
-		}))
-	))
 	const namedSourceSelections = [...new Map(unique(generationInput.entities.flatMap(entityNamedSourceSelections))
 		.map((selection) => [sourceSelectionFunctionName(selection), {
 			selection,
@@ -6392,7 +6387,6 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 			path: 'SOURCES.md',
 			kind: 'text',
 			body: lines(emitCompiledSourcesMarkdown({
-				sourceArtifacts,
 				sourceBindings: indexes.sourceBindings,
 				sourceProviders,
 				sources: generationInput.sources,
@@ -6818,9 +6812,13 @@ const emitMarkdownTable = (
 ]
 
 const emitCompiledSourcesMarkdown = (sourcesMarkdown: SourcesMarkdownInput) => {
-	const sourceBindingRows = sourcesMarkdown.sourceBindings.map((sourceBinding) => ({
+	const sourceDefinitionById = nullPrototypeRecord(sourcesMarkdown.sources.map((source) => [
+		String(source.source),
+		source,
+	]))
+	const sourceBindingRows = sourcesMarkdown.sourceBindings.map((sourceBinding, bindingIndex) => ({
 		...sourceBinding,
-		bindingNumber: String(sourceBinding.bindingIndex + 1),
+		bindingNumber: String(bindingIndex + 1),
 	}))
 	const sections = Object.entries({
 		Providers: emitMarkdownTable(
@@ -6857,9 +6855,9 @@ const emitCompiledSourcesMarkdown = (sourcesMarkdown: SourcesMarkdownInput) => {
 				'Operation groups',
 				'Delivery',
 			],
-			sourceBindingRows.map(({ binding, bindingNumber, provider, source }) => [
+			sourceBindingRows.map(({ binding, bindingNumber, source }) => [
 				bindingNumber,
-				provider,
+				sourceDefinitionById[source].provider,
 				String(source),
 				binding.target.kind,
 				binding.target.key,
@@ -6925,15 +6923,15 @@ const emitCompiledSourcesMarkdown = (sourcesMarkdown: SourcesMarkdownInput) => {
 				'Official URL',
 				'Reference URL',
 			],
-			sourcesMarkdown.sourceArtifacts.map(({ artifact, artifactIndex, bindingIndex }) => [
-				String(bindingIndex + 1),
+			sourceBindingRows.flatMap(({ binding, bindingNumber }) => (binding.artifacts ?? []).map((artifact, artifactIndex) => [
+				bindingNumber,
 				String(artifactIndex + 1),
 				artifact.kind,
 				artifact.path,
 				artifact.generated ? 'yes' : 'no',
 				artifact.officialUrl ?? '',
 				artifact.referenceUrl ?? '',
-			])
+			]))
 		),
 	})
 

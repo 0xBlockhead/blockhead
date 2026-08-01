@@ -149,6 +149,20 @@ test('declares live resolver transport in source bindings', () => {
 	)), true)
 })
 
+test('retains only canonical source binding facts in compiler rows', async () => {
+	const generatorSource = await readFile('scripts/app/generate.ts', 'utf8')
+	const sourceBindingEntry = generatorSource.slice(
+		generatorSource.indexOf('type SourceBindingEntry ='),
+		generatorSource.indexOf('type RouteFixtureMetadata =')
+	)
+
+	assert.match(sourceBindingEntry, /type SourceBindingEntry = \{\n\treadonly source: SourceDefinition\['source'\]\n\treadonly binding: SourceBinding\n\}/)
+	assert.doesNotMatch(sourceBindingEntry, /provider|bindingIndex|artifact/)
+	assert.doesNotMatch(generatorSource, /SourceArtifactEntry|sourceArtifacts/)
+	assert.match(generatorSource, /const sourceDefinitionById = nullPrototypeRecord\(sources\.map/)
+	assert.match(generatorSource, /sourceBindingRows\.flatMap\(\(\{ binding, bindingNumber \}\) => \(binding\.artifacts \?\? \[\]\)\.map/)
+})
+
 test('owns Esplora target identities without object stringification', () => {
 	assert.deepEqual(
 		sourceBindingRows
