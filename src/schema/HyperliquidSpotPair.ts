@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	pairIndex: {
-		label: 'pair index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$baseAsset: {
-		label: 'base asset',
 		entityType: EntityType.HyperliquidSpotAsset,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$quoteAsset: {
-		label: 'quote asset',
 		entityType: EntityType.HyperliquidSpotAsset,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.HyperliquidSpotPair_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

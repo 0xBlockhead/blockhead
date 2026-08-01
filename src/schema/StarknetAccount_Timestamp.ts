@@ -13,34 +13,26 @@ export default entity({
 	},
 })({
 	$contract: {
-		label: 'contract',
 		entityType: EntityType.StarknetContract,
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockNumber: {
-		label: 'Block number',
-		description: 'The block height or number in its network.',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	nonce: {
-		label: 'nonce',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	classHash: {
-		label: 'class hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	found: {
-		label: 'found',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

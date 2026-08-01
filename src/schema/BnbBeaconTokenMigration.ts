@@ -14,47 +14,38 @@ export default entity({
 	},
 })({
 	$token: {
-		label: 'token',
 		entityType: EntityType.BnbBeaconToken,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$targetNetwork: {
-		label: 'target network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	targetAddress: {
-		label: 'target address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	migrationKind: {
-		label: 'migration kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	sourceAddress: {
-		label: 'source address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	targetContractAddress: {
-		label: 'target contract address',
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	amount: {
-		label: 'amount',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	eventTxHash: {
-		label: 'event transaction hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.BnbBeaconTokenMigration_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

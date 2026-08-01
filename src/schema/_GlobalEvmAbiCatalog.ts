@@ -14,13 +14,10 @@ export default entity({
 	},
 })({
 	scope: {
-		label: 'Scope',
-		description: 'The fixed scope value that identifies this hub row.',
 		primitiveType: type.unit('_GlobalEvmAbiCatalog'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$observedTopics: {
-		label: 'observed topics',
 		entityType: EntityType.EvmTopic,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -28,7 +25,6 @@ export default entity({
 		],
 	},
 	$$observedSelectors: {
-		label: 'observed selectors',
 		entityType: EntityType.EvmSelector,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -36,7 +32,6 @@ export default entity({
 		],
 	},
 	$$observedErrors: {
-		label: 'observed errors',
 		entityType: EntityType.EvmError,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -44,7 +39,6 @@ export default entity({
 		],
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType._GlobalEvmAbiCatalog_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

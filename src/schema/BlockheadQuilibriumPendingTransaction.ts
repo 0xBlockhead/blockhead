@@ -13,47 +13,38 @@ export default entity({
 	},
 })({
 	$accountState: {
-		label: 'account state',
 		entityType: EntityType.BlockheadQuilibriumAccountState,
 		cardinality: EntityFieldCardinality.One,
 	},
 	transactionAddress: {
-		label: 'transaction address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$account: {
-		label: 'account',
 		entityType: EntityType.QuilibriumAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$refundAccount: {
-		label: 'refund account',
 		entityType: EntityType.QuilibriumAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	coinAddress: {
-		label: 'coin address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	amount: {
-		label: 'amount',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	deliveryType: {
-		label: 'delivery type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	deliveryAddress: {
-		label: 'delivery address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	observedAt: {
-		label: 'observed AT',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

@@ -14,12 +14,10 @@ export default entity({
 	},
 })({
 	$output: {
-		label: 'Output',
 		entityType: EntityType.UtxoOutput,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$category: {
-		label: 'Category',
 		entityType: EntityType.BitcoinCashCashTokenCategory,
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -27,7 +25,6 @@ export default entity({
 		],
 	},
 	amount: {
-		label: 'Amount',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [

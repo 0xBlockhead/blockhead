@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	mintAddress: {
-		label: 'Mint address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.SolanaTokenMint_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

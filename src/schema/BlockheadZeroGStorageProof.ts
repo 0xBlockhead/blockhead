@@ -13,52 +13,42 @@ export default entity({
 	},
 })({
 	$nodeState: {
-		label: 'node state',
 		entityType: EntityType.BlockheadZeroGStorageNodeState,
 		cardinality: EntityFieldCardinality.One,
 	},
 	proofId: {
-		label: 'proof ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$dataBlob: {
-		label: 'data blob',
 		entityType: EntityType.ZeroGDataBlob,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$chunk: {
-		label: 'chunk',
 		entityType: EntityType.BlockheadZeroGStoredChunk,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	proofKind: {
-		label: 'proof kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	proofBytes: {
-		label: 'proof bytes',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	verified: {
-		label: 'verified',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	verifiedAt: {
-		label: 'verified AT',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	verifiedAtBlock: {
-		label: 'verified AT block',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	error: {
-		label: 'error',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

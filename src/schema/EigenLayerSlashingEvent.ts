@@ -14,70 +14,54 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	transactionHash: {
-		label: 'transaction hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	logIndex: {
-		label: 'log index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	slashId: {
-		label: 'slash ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$operator: {
-		label: 'operator',
 		entityType: EntityType.EigenLayerOperator,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$avs: {
-		label: 'AVS',
 		entityType: EntityType.EigenLayerAvs,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$strategy: {
-		label: 'strategy',
 		entityType: EntityType.EigenLayerStrategy,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	slashedShares: {
-		label: 'slashed shares',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	slashedAmount: {
-		label: 'slashed amount',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	reason: {
-		label: 'reason',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	blockNumber: {
-		label: 'Block number',
-		description: 'The block height or number in its network.',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

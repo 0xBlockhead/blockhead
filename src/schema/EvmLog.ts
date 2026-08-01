@@ -15,42 +15,34 @@ export default entity({
 	description: 'An event log emitted by an EVM transaction receipt.',
 })({
 	indexInTransaction: {
-		label: 'Index in transaction',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$transaction: {
-		label: 'Transaction',
 		entityType: EntityType.EvmTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$block: {
-		label: 'Block',
 		entityType: EntityType.EvmBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$topics: {
-		label: 'Topics',
 		entityType: EntityType.EvmTopic,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	topic0: {
-		label: 'Topic 0',
 		primitiveType: EvmTopicHash,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	data: {
-		label: 'Data',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	removed: {
-		label: 'Removed',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$emitter: {
-		label: 'Emitter contract',
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
@@ -74,7 +66,6 @@ export default entity({
 			],
 		})({
 			signatureHash: {
-				label: 'Signature hash',
 				primitiveType: EvmTopicHash,
 				cardinality: EntityFieldCardinality.One,
 			},
@@ -92,7 +83,6 @@ export default entity({
 					],
 				})({
 					$$tokenTransfers: {
-						label: 'Token transfers',
 						entityType: EntityType.EvmTokenTransfer,
 						cardinality: EntityFieldCardinality.Many,
 					},

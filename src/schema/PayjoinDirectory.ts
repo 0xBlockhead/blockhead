@@ -14,12 +14,10 @@ export default entity({
 	},
 })({
 	directoryUrl: {
-		label: 'directory URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	ohttpGatewayUrl: {
-		label: 'ohttp gateway URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -27,7 +25,6 @@ export default entity({
 		],
 	},
 	ohttpKeyConfig: {
-		label: 'ohttp key config',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -35,12 +32,10 @@ export default entity({
 		],
 	},
 	maxPayloadBytes: {
-		label: 'max payload bytes',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$blockheadSessions: {
-		label: 'blockhead sessions',
 		entityType: EntityType.BlockheadPayjoinSession,
 		cardinality: EntityFieldCardinality.Many,
 	},

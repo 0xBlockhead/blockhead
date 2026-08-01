@@ -13,37 +13,30 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	account: {
-		label: 'account',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	currency: {
-		label: 'currency',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	issuer: {
-		label: 'issuer',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$account: {
-		label: 'account',
 		entityType: EntityType.XrplAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$issuerAccount: {
-		label: 'issuer account',
 		entityType: EntityType.XrplAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.XrplTrustline_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

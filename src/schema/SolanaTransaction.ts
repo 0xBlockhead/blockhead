@@ -14,47 +14,38 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	signature: {
-		label: 'Signature',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$block: {
-		label: 'Block',
 		entityType: EntityType.SolanaBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$feePayer: {
-		label: 'Fee payer',
 		entityType: EntityType.SolanaAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	slot: {
-		label: 'Slot',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	feeLamports: {
-		label: 'Fee',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	computeUnitsConsumed: {
-		label: 'Compute units consumed',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	status: {
-		label: 'Status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.SolanaTransaction_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -62,7 +53,6 @@ export default entity({
 		],
 	},
 	$$instructions: {
-		label: 'Instructions',
 		entityType: EntityType.SolanaInstruction,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

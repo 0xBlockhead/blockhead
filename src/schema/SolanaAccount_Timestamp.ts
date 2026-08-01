@@ -14,24 +14,18 @@ export default entity({
 	},
 })({
 	$account: {
-		label: 'Account',
 		entityType: EntityType.SolanaAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	slot: {
-		label: 'Slot',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -39,7 +33,6 @@ export default entity({
 		],
 	},
 	lamports: {
-		label: 'Lamports',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -48,7 +41,6 @@ export default entity({
 		],
 	},
 	$ownerProgram: {
-		label: 'Owner program',
 		entityType: EntityType.SolanaProgram,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -57,7 +49,6 @@ export default entity({
 		],
 	},
 	executable: {
-		label: 'Executable',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -66,7 +57,6 @@ export default entity({
 		],
 	},
 	rentEpoch: {
-		label: 'Rent epoch',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -75,7 +65,6 @@ export default entity({
 		],
 	},
 	spaceBytes: {
-		label: 'Space bytes',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -83,7 +72,6 @@ export default entity({
 		],
 	},
 	dataEncoding: {
-		label: 'Data encoding',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -92,7 +80,6 @@ export default entity({
 		],
 	},
 	parsedData: {
-		label: 'Parsed data',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

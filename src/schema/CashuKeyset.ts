@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$mint: {
-		label: 'mint',
 		entityType: EntityType.CashuMint,
 		cardinality: EntityFieldCardinality.One,
 	},
 	keysetId: {
-		label: 'keyset ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	unit: {
-		label: 'unit',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 		],
 	},
 	keysByAmountJson: {
-		label: 'keys by amount JSON',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -40,7 +36,6 @@ export default entity({
 		],
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.CashuKeyset_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

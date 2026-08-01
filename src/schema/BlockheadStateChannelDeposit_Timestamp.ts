@@ -13,29 +13,22 @@ export default entity({
 	},
 })({
 	$deposit: {
-		label: 'deposit',
 		entityType: EntityType.BlockheadStateChannelDeposit,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	availableBalance: {
-		label: 'available balance',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	lockedBalance: {
-		label: 'locked balance',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},

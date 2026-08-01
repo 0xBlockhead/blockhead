@@ -13,34 +13,26 @@ export default entity({
 	},
 })({
 	$allowance: {
-		label: 'Allowance',
 		entityType: EntityType.EvmActorCoinAllowance,
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockNumber: {
-		label: 'Block number',
-		description: 'The block height or number in its network.',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	allowance: {
-		label: 'Allowance',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockTag: {
-		label: 'Block tag',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	checkedAt: {
-		label: 'Checked at',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

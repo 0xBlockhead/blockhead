@@ -14,58 +14,46 @@ export default entity({
 	},
 })({
 	id: {
-		label: 'ID',
-		description: 'The identifier assigned by the source domain.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	orderId: {
-		label: 'order ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$quote: {
-		label: 'quote',
 		entityType: EntityType.BlockheadIntentQuote,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$sessionAction: {
-		label: 'session action',
 		entityType: EntityType.BlockheadSessionAction,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	providerProtocol: {
-		label: 'provider protocol',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	submittedAt: {
-		label: 'submitted AT',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	signatureHash: {
-		label: 'signature hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	orderPayloadHash: {
-		label: 'order payload hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	orderSummary: {
-		label: 'order summary',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.BlockheadIntentOrder_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

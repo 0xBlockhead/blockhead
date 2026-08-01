@@ -13,54 +13,42 @@ export default entity({
 	},
 })({
 	$order: {
-		label: 'order',
 		entityType: EntityType.DydxChainOrder,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockHeight: {
-		label: 'block height',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	status: {
-		label: 'status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	price: {
-		label: 'price',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	size: {
-		label: 'size',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	remainingSize: {
-		label: 'remaining size',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	filledSize: {
-		label: 'filled size',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	totalFilled: {
-		label: 'total filled',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

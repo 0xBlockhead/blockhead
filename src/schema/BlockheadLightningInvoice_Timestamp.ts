@@ -14,24 +14,18 @@ export default entity({
 	},
 })({
 	$invoice: {
-		label: 'Invoice',
 		entityType: EntityType.BlockheadLightningInvoice,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	state: {
-		label: 'State',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -39,7 +33,6 @@ export default entity({
 		],
 	},
 	amountPaidMsat: {
-		label: 'Amount paid msat',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -47,7 +40,6 @@ export default entity({
 		],
 	},
 	settledAtMs: {
-		label: 'Settled',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -55,7 +47,6 @@ export default entity({
 		],
 	},
 	settleIndex: {
-		label: 'Settle index',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

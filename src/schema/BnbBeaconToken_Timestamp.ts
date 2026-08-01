@@ -14,45 +14,34 @@ export default entity({
 	},
 })({
 	$token: {
-		label: 'token',
 		entityType: EntityType.BnbBeaconToken,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	totalSupply: {
-		label: 'total supply',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	mintable: {
-		label: 'mintable',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	contractAddress: {
-		label: 'contract address',
-		description: 'The contract address on its network.',
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	holderCount: {
-		label: 'holder count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	transferCount: {
-		label: 'transfer count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

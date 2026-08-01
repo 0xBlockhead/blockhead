@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$profile: {
-		label: 'profile',
 		entityType: EntityType.RegulatedAssetProfile,
 		cardinality: EntityFieldCardinality.One,
 	},
 	topicKey: {
-		label: 'topic key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	claimTopic: {
-		label: 'claim topic',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	requiredIssuerSelector: {
-		label: 'required issuer selector',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	countryScope: {
-		label: 'country scope',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

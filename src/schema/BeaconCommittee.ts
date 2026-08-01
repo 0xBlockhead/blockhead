@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	slot: {
-		label: 'Slot',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	indexInSlot: {
-		label: 'Index in slot',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	validatorIndices: {
-		label: 'Validator indices',
 		primitiveType: type('number').array(),
 		cardinality: EntityFieldCardinality.One,
 	},

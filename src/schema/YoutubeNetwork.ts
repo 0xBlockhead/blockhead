@@ -14,23 +14,18 @@ export default entity({
 	},
 })({
 	scope: {
-		label: 'Scope',
-		description: 'The fixed scope value that identifies this compatibility protocol row.',
 		primitiveType: type.unit('YoutubeNetwork'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	protocolName: {
-		label: 'Protocol',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	homeUrl: {
-		label: 'Home',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	docsUrl: {
-		label: 'Documentation',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

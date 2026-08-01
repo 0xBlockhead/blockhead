@@ -14,24 +14,18 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	headHeight: {
-		label: 'Head height',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -39,7 +33,6 @@ export default entity({
 		],
 	},
 	headTipsetKey: {
-		label: 'Head tipset key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -47,7 +40,6 @@ export default entity({
 		],
 	},
 	headBlockCount: {
-		label: 'Head block count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -55,7 +47,6 @@ export default entity({
 		],
 	},
 	headTimestampMs: {
-		label: 'Head timestamp',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -63,7 +54,6 @@ export default entity({
 		],
 	},
 	$headTipset: {
-		label: 'Head tipset',
 		entityType: EntityType.FilecoinTipset,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -71,7 +61,6 @@ export default entity({
 		],
 	},
 	$$headMiners: {
-		label: 'Head miners',
 		entityType: EntityType.FilecoinMiner,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -79,7 +68,6 @@ export default entity({
 		],
 	},
 	networkVersion: {
-		label: 'Network version',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -87,7 +75,6 @@ export default entity({
 		],
 	},
 	lotusVersion: {
-		label: 'Lotus version',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -95,7 +82,6 @@ export default entity({
 		],
 	},
 	lotusAgent: {
-		label: 'Lotus agent',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -103,7 +89,6 @@ export default entity({
 		],
 	},
 	blockDelaySeconds: {
-		label: 'Block delay seconds',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -111,7 +96,6 @@ export default entity({
 		],
 	},
 	totalRawBytePower: {
-		label: 'Total raw byte power',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -119,7 +103,6 @@ export default entity({
 		],
 	},
 	totalQualityAdjustedPower: {
-		label: 'Total quality adjusted power',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$application: {
-		label: 'application',
 		entityType: EntityType.AlgorandApplication,
 		cardinality: EntityFieldCardinality.One,
 	},
 	boxName: {
-		label: 'box name',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$rounds: {
-		label: 'rounds',
 		entityType: EntityType.AlgorandBox_Round,
 		cardinality: EntityFieldCardinality.Many,
 	},

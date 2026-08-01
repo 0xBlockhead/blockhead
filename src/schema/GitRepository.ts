@@ -14,42 +14,34 @@ export default entity({
 	},
 })({
 	repositoryId: {
-		label: 'repository ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	canonicalRemoteUrl: {
-		label: 'canonical remote URL',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	defaultRefName: {
-		label: 'default ref name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	objectFormat: {
-		label: 'object format',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$refs: {
-		label: 'refs',
 		entityType: EntityType.GitRef,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$objects: {
-		label: 'objects',
 		entityType: EntityType.GitObject,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$remotes: {
-		label: 'remotes',
 		entityType: EntityType.GitRemote,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$fetches: {
-		label: 'fetches',
 		entityType: EntityType.GitFetchObservation,
 		cardinality: EntityFieldCardinality.Many,
 	},

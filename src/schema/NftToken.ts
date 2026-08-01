@@ -13,33 +13,26 @@ export default entity({
 	},
 })({
 	$collection: {
-		label: 'collection',
 		entityType: EntityType.NftCollection,
 		cardinality: EntityFieldCardinality.One,
 	},
 	tokenKey: {
-		label: 'token key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	tokenId: {
-		label: 'Token ID',
-		description: 'The token identifier within its collection or contract.',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$assetObject: {
-		label: 'asset object',
 		entityType: EntityType.AssetObject,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$metadata: {
-		label: 'metadata',
 		entityType: EntityType.TokenMetadataDocument,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$usageRightTimestamps: {
-		label: 'usage right timestamps',
 		entityType: EntityType.UsageRight_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

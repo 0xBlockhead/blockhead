@@ -13,54 +13,42 @@ export default entity({
 	},
 })({
 	$account: {
-		label: 'account',
 		entityType: EntityType.TonAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$jetton: {
-		label: 'jetton',
 		entityType: EntityType.TonJetton,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	jettonWalletAddress: {
-		label: 'jetton wallet address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	balanceNano: {
-		label: 'balance nano',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	ownerAddress: {
-		label: 'owner address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	masterAddress: {
-		label: 'master address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	lastTransactionLt: {
-		label: 'last transaction lt',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	locked: {
-		label: 'locked',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

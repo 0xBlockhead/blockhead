@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	palletName: {
-		label: 'Pallet name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	index: {
-		label: 'Index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

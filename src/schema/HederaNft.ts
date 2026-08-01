@@ -13,32 +13,26 @@ export default entity({
 	},
 })({
 	$token: {
-		label: 'token',
 		entityType: EntityType.HederaToken,
 		cardinality: EntityFieldCardinality.One,
 	},
 	serialNumber: {
-		label: 'serial number',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	metadata: {
-		label: 'metadata',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdTimestamp: {
-		label: 'created timestamp',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$transfers: {
-		label: 'transfers',
 		entityType: EntityType.HederaTokenTransfer,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.HederaNft_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

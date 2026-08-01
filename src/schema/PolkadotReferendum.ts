@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	referendumId: {
-		label: 'Referendum ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	track: {
-		label: 'Track',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	submittedAtBlockNumber: {
-		label: 'Submitted at block number',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'Lifecycle observations',
 		entityType: EntityType.PolkadotReferendum_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

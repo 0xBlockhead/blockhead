@@ -13,48 +13,38 @@ export default entity({
 	},
 })({
 	$contract: {
-		label: 'Contract',
 		entityType: EntityType.NearContract,
 		cardinality: EntityFieldCardinality.One,
 	},
 	keyBase64: {
-		label: 'Key base64',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockHeight: {
-		label: 'Block height',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockHash: {
-		label: 'Block hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	valueBase64: {
-		label: 'Value base64',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	valueHash: {
-		label: 'Value hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	prefixBase64: {
-		label: 'Prefix base64',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	deleted: {
-		label: 'Deleted',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

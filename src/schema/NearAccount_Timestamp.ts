@@ -14,34 +14,26 @@ export default entity({
 	},
 })({
 	$account: {
-		label: 'Account',
 		entityType: EntityType.NearAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockHeight: {
-		label: 'Block height',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	blockHash: {
-		label: 'Block hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	amountYoctoNear: {
-		label: 'Amount yocto near',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -49,12 +41,10 @@ export default entity({
 		],
 	},
 	lockedYoctoNear: {
-		label: 'Locked yocto near',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	storageUsageBytes: {
-		label: 'Storage usage bytes',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -62,7 +52,6 @@ export default entity({
 		],
 	},
 	codeHash: {
-		label: 'Code hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -70,7 +59,6 @@ export default entity({
 		],
 	},
 	deleted: {
-		label: 'Deleted',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

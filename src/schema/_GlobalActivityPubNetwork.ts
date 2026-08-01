@@ -14,13 +14,10 @@ export default entity({
 	},
 })({
 	scope: {
-		label: 'Scope',
-		description: 'The fixed scope value that identifies this hub row.',
 		primitiveType: type.unit('_GlobalActivityPubNetwork'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$observedActors: {
-		label: 'Observed actors',
 		entityType: EntityType.ActivityPubActor,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -28,7 +25,6 @@ export default entity({
 		],
 	},
 	$$observedNotes: {
-		label: 'Observed notes',
 		entityType: EntityType.ActivityPubNote,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -36,12 +32,10 @@ export default entity({
 		],
 	},
 	$$instances: {
-		label: 'Instances',
 		entityType: EntityType.ActivityPubInstance,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'Timestamps',
 		entityType: EntityType._GlobalActivityPubNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

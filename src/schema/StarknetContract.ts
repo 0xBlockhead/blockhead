@@ -13,33 +13,26 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.StarknetNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
-		description: 'The address or account identifier used by the source protocol.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$accountStates: {
-		label: 'account states',
 		entityType: EntityType.StarknetAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$storage: {
-		label: 'storage',
 		entityType: EntityType.StarknetStorageEntry,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$events: {
-		label: 'events',
 		entityType: EntityType.StarknetEvent,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$transactions: {
-		label: 'transactions',
 		entityType: EntityType.StarknetTransaction,
 		cardinality: EntityFieldCardinality.Many,
 	},

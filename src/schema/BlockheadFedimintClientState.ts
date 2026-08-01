@@ -13,57 +13,46 @@ export default entity({
 	},
 })({
 	clientId: {
-		label: 'client ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	clientName: {
-		label: 'client name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	federationId: {
-		label: 'federation ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$federation: {
-		label: 'federation',
 		entityType: EntityType.FedimintFederation,
 		cardinality: EntityFieldCardinality.One,
 	},
 	inviteCode: {
-		label: 'invite code',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	mnemonicSet: {
-		label: 'mnemonic set',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	guardianThreshold: {
-		label: 'guardian threshold',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	moduleConfigJson: {
-		label: 'module config JSON',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	joinedAt: {
-		label: 'joined AT',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	viewingKeyJson: {
-		label: 'viewing key JSON',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.BlockheadFedimintClientState_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

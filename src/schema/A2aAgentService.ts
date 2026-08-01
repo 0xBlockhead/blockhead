@@ -14,37 +14,30 @@ export default entity({
 	},
 })({
 	$card: {
-		label: 'card',
 		entityType: EntityType.A2aAgentCard,
 		cardinality: EntityFieldCardinality.One,
 	},
 	protocolBinding: {
-		label: 'protocol binding',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	endpointUrl: {
-		label: 'endpoint URL',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	transportKind: {
-		label: 'transport kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	authKind: {
-		label: 'auth kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$tasks: {
-		label: 'tasks',
 		entityType: EntityType.A2aTask,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.A2aAgentService_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

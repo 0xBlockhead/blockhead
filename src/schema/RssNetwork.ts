@@ -16,38 +16,30 @@ export default entity({
 	description: 'RSS and Atom syndication feeds publish ordered item streams keyed by feed URL.',
 })({
 	scope: {
-		label: 'Scope',
-		description: 'The fixed scope value that identifies this hub row.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	protocolName: {
-		label: 'Protocol',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	homeUrl: {
-		label: 'Home URL',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	docsUrl: {
-		label: 'Docs URL',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	registryName: {
-		label: 'Registry name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	relationshipModel: {
-		label: 'Connection model',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$rssFeeds: {
-		label: 'Feeds',
 		entityType: EntityType.RssFeed,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

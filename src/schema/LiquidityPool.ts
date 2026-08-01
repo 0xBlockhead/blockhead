@@ -14,18 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	id: {
-		label: 'ID',
-		description: 'The identifier assigned by the source domain.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$baseToken: {
-		label: 'Base token',
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -33,7 +29,6 @@ export default entity({
 		],
 	},
 	$quoteToken: {
-		label: 'Quote token',
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -41,27 +36,22 @@ export default entity({
 		],
 	},
 	fee: {
-		label: 'Fee',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	tickSpacing: {
-		label: 'Tick spacing',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$hooks: {
-		label: 'Hooks',
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	v4PoolId: {
-		label: 'v4 pool ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.LiquidityPool_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -69,12 +59,10 @@ export default entity({
 		],
 	},
 	$$blocks: {
-		label: 'Blocks',
 		entityType: EntityType.LiquidityPool_Block,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$leverages: {
-		label: 'Leverage positions',
 		entityType: EntityType.Leverage,
 		cardinality: EntityFieldCardinality.Many,
 	},

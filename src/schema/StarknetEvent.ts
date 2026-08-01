@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$transaction: {
-		label: 'transaction',
 		entityType: EntityType.StarknetTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	eventIndex: {
-		label: 'event index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$fromContract: {
-		label: 'from contract',
 		entityType: EntityType.StarknetContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	keys: {
-		label: 'keys',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 	},
 	data: {
-		label: 'data',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 	},

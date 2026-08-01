@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	accountId: {
-		label: 'Account ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	amountYoctoNear: {
-		label: 'Amount yocto near',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -33,7 +30,6 @@ export default entity({
 		],
 	},
 	storageUsageBytes: {
-		label: 'Storage usage bytes',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -41,7 +37,6 @@ export default entity({
 		],
 	},
 	$contract: {
-		label: 'Contract',
 		entityType: EntityType.NearContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -49,7 +44,6 @@ export default entity({
 		],
 	},
 	$$accessKeys: {
-		label: 'Access keys',
 		entityType: EntityType.NearAccessKey,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

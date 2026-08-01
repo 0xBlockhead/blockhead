@@ -14,44 +14,34 @@ export default entity({
 	},
 })({
 	$task: {
-		label: 'task',
 		entityType: EntityType.A2aTask,
 		cardinality: EntityFieldCardinality.One,
 	},
 	configId: {
-		label: 'config ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	url: {
-		label: 'URL',
-		description: 'The URL for the source-domain resource.',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	authKind: {
-		label: 'auth kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	authentication: {
-		label: 'authentication',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdAt: {
-		label: 'Created',
-		description: 'The time when the subject was created according to the source.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	deletedAt: {
-		label: 'deleted AT',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	status: {
-		label: 'status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

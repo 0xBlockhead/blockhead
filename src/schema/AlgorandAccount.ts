@@ -13,28 +13,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.AlgorandNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
-		description: 'The address or account identifier used by the source protocol.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$applicationLocalStateRounds: {
-		label: 'application local state rounds',
 		entityType: EntityType.AlgorandApplicationLocalState_Round,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$assetHoldingRounds: {
-		label: 'asset holding rounds',
 		entityType: EntityType.AlgorandAssetHolding_Round,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.AlgorandAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

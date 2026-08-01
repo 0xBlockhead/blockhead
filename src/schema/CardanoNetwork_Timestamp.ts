@@ -14,24 +14,18 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	latestSlot: {
-		label: 'Latest slot',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -39,7 +33,6 @@ export default entity({
 		],
 	},
 	latestBlockNo: {
-		label: 'Latest block number',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -47,7 +40,6 @@ export default entity({
 		],
 	},
 	latestBlockHash: {
-		label: 'Latest block hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -55,7 +47,6 @@ export default entity({
 		],
 	},
 	latestBlockTimeMs: {
-		label: 'Latest block time',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -63,7 +54,6 @@ export default entity({
 		],
 	},
 	latestBlockTransactionCount: {
-		label: 'Latest block transactions',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -71,7 +61,6 @@ export default entity({
 		],
 	},
 	epoch: {
-		label: 'Epoch',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -79,7 +68,6 @@ export default entity({
 		],
 	},
 	epochBlockCount: {
-		label: 'Epoch blocks',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -87,7 +75,6 @@ export default entity({
 		],
 	},
 	epochTransactionCount: {
-		label: 'Epoch transactions',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -95,7 +82,6 @@ export default entity({
 		],
 	},
 	circulatingSupplyLovelace: {
-		label: 'Circulating supply',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -103,7 +89,6 @@ export default entity({
 		],
 	},
 	totalSupplyLovelace: {
-		label: 'Total supply',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -111,7 +96,6 @@ export default entity({
 		],
 	},
 	liveStakeLovelace: {
-		label: 'Live stake',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -119,7 +103,6 @@ export default entity({
 		],
 	},
 	activeStakeLovelace: {
-		label: 'Active stake',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -127,7 +110,6 @@ export default entity({
 		],
 	},
 	backendHealthy: {
-		label: 'Backend healthy',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

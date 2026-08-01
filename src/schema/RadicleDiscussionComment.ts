@@ -13,49 +13,38 @@ export default entity({
 	},
 })({
 	discussionSelector: {
-		label: 'discussion selector',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	commentId: {
-		label: 'comment ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	authorDid: {
-		label: 'author DID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	body: {
-		label: 'body',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	bodyObjectId: {
-		label: 'body object ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdAt: {
-		label: 'Created',
-		description: 'The time when the subject was created according to the source.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	updatedAt: {
-		label: 'Updated',
-		description: 'The time when the subject was last updated according to the source.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	replyToCommentId: {
-		label: 'reply to comment ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$payloadObject: {
-		label: 'payload object',
 		entityType: EntityType.GitObject,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

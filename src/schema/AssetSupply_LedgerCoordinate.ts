@@ -13,58 +13,46 @@ export default entity({
 	},
 })({
 	$assetInstance: {
-		label: 'asset instance',
 		entityType: EntityType.AssetInstance,
 		cardinality: EntityFieldCardinality.One,
 	},
 	supplyScopeKey: {
-		label: 'supply scope key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$class: {
-		label: 'class',
 		entityType: EntityType.AssetClass,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	classKey: {
-		label: 'class key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	ledgerCoordinateKind: {
-		label: 'ledger coordinate kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	ledgerCoordinateValue: {
-		label: 'ledger coordinate value',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	totalSupply: {
-		label: 'total supply',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	maxSupply: {
-		label: 'max supply',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	mintedSupply: {
-		label: 'minted supply',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	burnedSupply: {
-		label: 'burned supply',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

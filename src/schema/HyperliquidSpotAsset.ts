@@ -14,18 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	assetId: {
-		label: 'asset ID',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	name: {
-		label: 'Name',
-		description: 'The human-readable name of the subject.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -33,7 +29,6 @@ export default entity({
 		],
 	},
 	szDecimals: {
-		label: 'sz decimals',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -41,7 +36,6 @@ export default entity({
 		],
 	},
 	weiDecimals: {
-		label: 'wei decimals',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -49,8 +43,6 @@ export default entity({
 		],
 	},
 	tokenId: {
-		label: 'Token ID',
-		description: 'The token identifier within its collection or contract.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -58,12 +50,10 @@ export default entity({
 		],
 	},
 	$$basePairs: {
-		label: 'base pairs',
 		entityType: EntityType.HyperliquidSpotPair,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$quotePairs: {
-		label: 'quote pairs',
 		entityType: EntityType.HyperliquidSpotPair,
 		cardinality: EntityFieldCardinality.Many,
 	},

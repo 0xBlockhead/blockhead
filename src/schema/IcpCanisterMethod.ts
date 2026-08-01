@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$canister: {
-		label: 'canister',
 		entityType: EntityType.IcpCanister,
 		cardinality: EntityFieldCardinality.One,
 	},
 	methodName: {
-		label: 'method name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	methodKind: {
-		label: 'method kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.IcpCanisterMethod_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

@@ -13,38 +13,30 @@ export default entity({
 	},
 })({
 	id: {
-		label: 'ID',
-		description: 'The identifier assigned by the source domain.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$room: {
-		label: 'room',
 		entityType: EntityType.BlockheadRoom,
 		cardinality: EntityFieldCardinality.One,
 	},
 	peerId: {
-		label: 'peer ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$account: {
-		label: 'account',
 		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	targetPeerIds: {
-		label: 'target peer ids',
 		primitiveType: type("string[] | null"),
 		cardinality: EntityFieldCardinality.One,
 	},
 	sharedAt: {
-		label: 'shared AT',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},

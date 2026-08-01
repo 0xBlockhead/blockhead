@@ -13,32 +13,26 @@ export default entity({
 	},
 })({
 	$mwebBlock: {
-		label: 'MWEB block',
 		entityType: EntityType.LitecoinMwebBlock,
 		cardinality: EntityFieldCardinality.One,
 	},
 	transactionIndex: {
-		label: 'transaction index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	kernelOffset: {
-		label: 'kernel offset',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$outputs: {
-		label: 'outputs',
 		entityType: EntityType.LitecoinMwebOutput,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$pegIns: {
-		label: 'peg ins',
 		entityType: EntityType.LitecoinMwebPegIn,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$pegOuts: {
-		label: 'peg outs',
 		entityType: EntityType.LitecoinMwebPegOut,
 		cardinality: EntityFieldCardinality.Many,
 	},

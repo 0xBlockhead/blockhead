@@ -14,27 +14,22 @@ export default entity({
 	},
 })({
 	objectId: {
-		label: 'object ID',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	objectFormat: {
-		label: 'object format',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	objectKind: {
-		label: 'object kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	sizeBytes: {
-		label: 'size bytes',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$repository: {
-		label: 'repository',
 		entityType: EntityType.GitRepository,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

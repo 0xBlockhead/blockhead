@@ -13,32 +13,26 @@ export default entity({
 	},
 })({
 	fid: {
-		label: 'FID',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	protocol: {
-		label: 'Protocol',
 		primitiveType: type('"ethereum" | "solana"'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$user: {
-		label: 'User',
 		entityType: EntityType.FarcasterUser,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$evmAccount: {
-		label: 'EVM account',
 		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$solanaAccount: {
-		label: 'Solana account',
 		entityType: EntityType.SolanaAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

@@ -14,32 +14,26 @@ export default entity({
 	},
 })({
 	connectionId: {
-		label: 'connection ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$network: {
-		label: 'network',
 		entityType: EntityType.KaspaNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	rpcUrl: {
-		label: 'RPC URL',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	encoding: {
-		label: 'encoding',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	networkId: {
-		label: 'network ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.BlockheadKaspaNodeState_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

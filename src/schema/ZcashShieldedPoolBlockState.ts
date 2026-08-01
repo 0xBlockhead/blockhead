@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	$block: {
-		label: 'block',
 		entityType: EntityType.UtxoBlock,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$pool: {
-		label: 'pool',
 		entityType: EntityType.ZcashShieldedPool,
 		cardinality: EntityFieldCardinality.One,
 	},
 	saplingTree: {
-		label: 'Sapling tree',
 		primitiveType: type({
 			finalRoot: type('string'),
 			finalState: type('string'),
@@ -31,7 +28,6 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	orchardTree: {
-		label: 'Orchard tree',
 		primitiveType: type({
 			finalRoot: type('string'),
 			finalState: type('string'),

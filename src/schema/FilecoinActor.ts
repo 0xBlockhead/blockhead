@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.FilecoinActor_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

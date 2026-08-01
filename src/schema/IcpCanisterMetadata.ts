@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	$canister: {
-		label: 'canister',
 		entityType: EntityType.IcpCanister,
 		cardinality: EntityFieldCardinality.One,
 	},
 	metadataName: {
-		label: 'metadata name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.IcpCanisterMetadata_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

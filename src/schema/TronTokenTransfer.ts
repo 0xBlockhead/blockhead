@@ -14,22 +14,18 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	transactionId: {
-		label: 'Transaction ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	transferIndex: {
-		label: 'Transfer index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$transaction: {
-		label: 'Transaction',
 		entityType: EntityType.TronTransaction,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -37,7 +33,6 @@ export default entity({
 		],
 	},
 	$token: {
-		label: 'Token',
 		entityType: EntityType.TronToken,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -45,7 +40,6 @@ export default entity({
 		],
 	},
 	standard: {
-		label: 'Standard',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -53,7 +47,6 @@ export default entity({
 		],
 	},
 	$from: {
-		label: 'From',
 		entityType: EntityType.TronAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -61,7 +54,6 @@ export default entity({
 		],
 	},
 	$to: {
-		label: 'To',
 		entityType: EntityType.TronAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -69,7 +61,6 @@ export default entity({
 		],
 	},
 	amount: {
-		label: 'Amount',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -77,8 +68,6 @@ export default entity({
 		],
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

@@ -13,33 +13,26 @@ export default entity({
 	},
 })({
 	$task: {
-		label: 'task',
 		entityType: EntityType.A2aTask,
 		cardinality: EntityFieldCardinality.One,
 	},
 	messageId: {
-		label: 'message ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	role: {
-		label: 'role',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	contextId: {
-		label: 'context ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdAt: {
-		label: 'Created',
-		description: 'The time when the subject was created according to the source.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$parts: {
-		label: 'parts',
 		entityType: EntityType.A2aMessagePart,
 		cardinality: EntityFieldCardinality.Many,
 	},

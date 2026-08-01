@@ -16,27 +16,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	nodeId: {
-		label: 'node ID',
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$operator: {
-		label: 'operator',
 		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	endpoint: {
-		label: 'endpoint',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.ZeroGStorageNode_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -44,12 +39,10 @@ export default entity({
 		],
 	},
 	$$storedChunks: {
-		label: 'stored chunks',
 		entityType: EntityType.ZeroGDataChunk,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$proofs: {
-		label: 'proofs',
 		entityType: EntityType.ZeroGStorageProof,
 		cardinality: EntityFieldCardinality.Many,
 	},

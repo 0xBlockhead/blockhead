@@ -15,38 +15,30 @@ export default entity({
 	description: 'Farcaster profiles, channels, and casts: FID plus cast-hash identity with hub feeds from declared Farcaster sources.',
 })({
 	scope: {
-		label: 'Scope',
-		description: 'The fixed scope value that identifies this hub row.',
 		primitiveType: type.unit('FarcasterNetwork'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	protocolName: {
-		label: 'Protocol',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	homeUrl: {
-		label: 'Home URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	docsUrl: {
-		label: 'Docs URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	registryName: {
-		label: 'Registry name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	relationshipModel: {
-		label: 'Connection model',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$feeds: {
-		label: 'Feeds',
 		entityType: EntityType.FarcasterFeed,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -55,7 +47,6 @@ export default entity({
 		],
 	},
 	$$users: {
-		label: 'Users',
 		entityType: EntityType.FarcasterUser,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -63,7 +54,6 @@ export default entity({
 		],
 	},
 	$$channels: {
-		label: 'Channels',
 		entityType: EntityType.FarcasterChannel,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

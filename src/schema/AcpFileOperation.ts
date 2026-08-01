@@ -14,58 +14,46 @@ export default entity({
 	},
 })({
 	$session: {
-		label: 'session',
 		entityType: EntityType.AcpSession,
 		cardinality: EntityFieldCardinality.One,
 	},
 	operationId: {
-		label: 'operation ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	operationKind: {
-		label: 'operation kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	path: {
-		label: 'path',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	startLine: {
-		label: 'start line',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	endLine: {
-		label: 'end line',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	contentHashAlgorithm: {
-		label: 'content hash algorithm',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	contentHash: {
-		label: 'content hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	status: {
-		label: 'status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	error: {
-		label: 'error',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

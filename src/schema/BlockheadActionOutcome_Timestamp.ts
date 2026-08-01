@@ -14,52 +14,42 @@ export default entity({
 	},
 })({
 	$outcome: {
-		label: 'outcome',
 		entityType: EntityType.BlockheadActionOutcome,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	status: {
-		label: 'status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	finality: {
-		label: 'finality',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	transactionHash: {
-		label: 'transaction hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	transactionId: {
-		label: 'transaction ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	bridgeTransferId: {
-		label: 'bridge transfer ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	sourcePayloadHash: {
-		label: 'source payload hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	error: {
-		label: 'error',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

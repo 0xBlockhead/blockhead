@@ -13,48 +13,38 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.AptosNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	transactionVersion: {
-		label: 'transaction version',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	eventIndex: {
-		label: 'event index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	eventType: {
-		label: 'event type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	accountAddress: {
-		label: 'account address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	creationNumber: {
-		label: 'creation number',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	sequenceNumber: {
-		label: 'sequence number',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$transaction: {
-		label: 'transaction',
 		entityType: EntityType.AptosTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	value: {
-		label: 'Value',
-		description: 'The source-domain value.',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

@@ -13,37 +13,30 @@ export default entity({
 	},
 })({
 	$provider: {
-		label: 'provider',
 		entityType: EntityType.AiModelProvider,
 		cardinality: EntityFieldCardinality.One,
 	},
 	catalogKind: {
-		label: 'catalog kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	providerEntryId: {
-		label: 'provider entry ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	entryLabel: {
-		label: 'entry label',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	subjectKind: {
-		label: 'subject kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	subjectSelector: {
-		label: 'subject selector',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.AiProviderCatalogEntry_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

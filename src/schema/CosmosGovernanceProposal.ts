@@ -14,32 +14,26 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	proposalId: {
-		label: 'Proposal ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	title: {
-		label: 'Title',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	summary: {
-		label: 'Summary',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	metadata: {
-		label: 'Metadata',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'Timestamps',
 		entityType: EntityType.CosmosGovernanceProposal_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

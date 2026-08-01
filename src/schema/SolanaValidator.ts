@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	votePubkey: {
-		label: 'Vote public key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.SolanaValidator_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

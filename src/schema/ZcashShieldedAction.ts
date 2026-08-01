@@ -15,42 +15,34 @@ export default entity({
 	},
 })({
 	$transaction: {
-		label: 'Transaction',
 		entityType: EntityType.UtxoTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	pool: {
-		label: 'Pool',
 		primitiveType: type.enumerated(...Object.values(ZcashShieldedPoolKind)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	actionKind: {
-		label: 'Action kind',
 		primitiveType: type.enumerated(...Object.values(ZcashShieldedActionKind)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	indexInTransaction: {
-		label: 'Index in transaction',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$pool: {
-		label: 'Pool',
 		entityType: EntityType.ZcashShieldedPool,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	nullifier: {
-		label: 'Nullifier',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	noteCommitment: {
-		label: 'Note commitment',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	valueCommitment: {
-		label: 'Value commitment',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

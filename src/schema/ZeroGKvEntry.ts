@@ -13,33 +13,26 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	namespace: {
-		label: 'Namespace',
-		description: 'The namespace that qualifies the identifier.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	key: {
-		label: 'key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$logEntry: {
-		label: 'log entry',
 		entityType: EntityType.ZeroGStorageLogEntry,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$owner: {
-		label: 'owner',
 		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	valueHash: {
-		label: 'value hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

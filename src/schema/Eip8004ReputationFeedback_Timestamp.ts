@@ -15,86 +15,66 @@ export default entity({
 	},
 })({
 	$registration: {
-		label: 'Registration',
 		entityType: EntityType.Eip8004AgentRegistration,
 		cardinality: EntityFieldCardinality.One,
 	},
 	clientAddress: {
-		label: 'Client address',
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	feedbackIndex: {
-		label: 'Feedback index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	value: {
-		label: 'Value',
-		description: 'The source-domain value.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	valueDecimals: {
-		label: 'Value decimals',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	tag1: {
-		label: 'Tag 1',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	tag2: {
-		label: 'Tag 2',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	endpoint: {
-		label: 'Endpoint',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	feedbackUri: {
-		label: 'Feedback URI',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	feedbackHashAlgorithm: {
-		label: 'Feedback hash algorithm',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	feedbackHash: {
-		label: 'Feedback hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	revoked: {
-		label: 'Revoked',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	blockNumber: {
-		label: 'Block number',
-		description: 'The block height or number in its network.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	transactionHash: {
-		label: 'Transaction hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

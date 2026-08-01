@@ -13,48 +13,38 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.BnbBeaconNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	symbol: {
-		label: 'Symbol',
-		description: 'The short ticker or symbol used for display.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	originalSymbol: {
-		label: 'original symbol',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	tokenName: {
-		label: 'token name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	ownerAddress: {
-		label: 'owner address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	tokenType: {
-		label: 'token type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.BnbBeaconToken_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$transfers: {
-		label: 'transfers',
 		entityType: EntityType.BnbBeaconTokenTransfer,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$migrations: {
-		label: 'migrations',
 		entityType: EntityType.BnbBeaconTokenMigration,
 		cardinality: EntityFieldCardinality.Many,
 	},

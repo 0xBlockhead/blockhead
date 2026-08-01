@@ -13,43 +13,34 @@ export default entity({
 	},
 })({
 	$contract: {
-		label: 'Contract',
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.One,
 	},
 	language: {
-		label: 'Language',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	compiler: {
-		label: 'Compiler',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	compilerVersion: {
-		label: 'Compiler version',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	name: {
-		label: 'Name',
-		description: 'The human-readable name of the subject.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	fullyQualifiedName: {
-		label: 'Fully qualified name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	compilerSettingsJson: {
-		label: 'Compiler settings JSON',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	storageLayoutJson: {
-		label: 'Storage layout JSON',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

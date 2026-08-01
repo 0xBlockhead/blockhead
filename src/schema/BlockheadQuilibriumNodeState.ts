@@ -14,47 +14,38 @@ export default entity({
 	},
 })({
 	connectionId: {
-		label: 'connection ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	endpoint: {
-		label: 'endpoint',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	grpcPort: {
-		label: 'grpc port',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	restPort: {
-		label: 'REST port',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	peerId: {
-		label: 'peer ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$frames: {
-		label: 'frames',
 		entityType: EntityType.QuilibriumFrame,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$provers: {
-		label: 'provers',
 		entityType: EntityType.QuilibriumProver,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.BlockheadQuilibriumNodeState_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

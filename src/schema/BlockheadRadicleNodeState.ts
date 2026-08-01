@@ -13,52 +13,42 @@ export default entity({
 	},
 })({
 	connectionId: {
-		label: 'connection ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	nodeId: {
-		label: 'node ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	did: {
-		label: 'DID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	publicKey: {
-		label: 'public key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	homePath: {
-		label: 'home path',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$peers: {
-		label: 'peers',
 		entityType: EntityType.BlockheadRadiclePeer,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$inventoryTimestamps: {
-		label: 'inventory timestamps',
 		entityType: EntityType.BlockheadRadicleNodeInventory_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$seedObservations: {
-		label: 'seed observations',
 		entityType: EntityType.BlockheadRadicleSeedObservation_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$syncSessions: {
-		label: 'sync sessions',
 		entityType: EntityType.BlockheadRadicleSyncSession,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.BlockheadRadicleNodeState_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

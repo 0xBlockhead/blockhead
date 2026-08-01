@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	nodeId: {
-		label: 'node ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$quorum: {
-		label: 'quorum',
 		entityType: EntityType.ZeroGDaQuorum,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$operator: {
-		label: 'operator',
 		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	endpoint: {
-		label: 'endpoint',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

@@ -13,54 +13,42 @@ export default entity({
 	},
 })({
 	$assetInstance: {
-		label: 'Asset instance',
 		entityType: EntityType.AssetInstance,
 		cardinality: EntityFieldCardinality.One,
 	},
 	supplyScopeKey: {
-		label: 'Supply scope key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$class: {
-		label: 'Class',
 		entityType: EntityType.AssetClass,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	classKey: {
-		label: 'Class key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	totalSupply: {
-		label: 'Total supply',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	circulatingSupply: {
-		label: 'Circulating supply',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	burnedSupply: {
-		label: 'Burned supply',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	methodology: {
-		label: 'Methodology',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

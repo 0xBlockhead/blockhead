@@ -13,34 +13,26 @@ export default entity({
 	},
 })({
 	$mintQuote: {
-		label: 'mint quote',
 		entityType: EntityType.BlockheadCashuMintQuote,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	state: {
-		label: 'state',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	expiryMs: {
-		label: 'expiry ms',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	subscriptionId: {
-		label: 'subscription ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

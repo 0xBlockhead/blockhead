@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.AlgorandNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	group: {
-		label: 'group',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$transactions: {
-		label: 'transactions',
 		entityType: EntityType.AlgorandTransaction,
 		cardinality: EntityFieldCardinality.Many,
 	},

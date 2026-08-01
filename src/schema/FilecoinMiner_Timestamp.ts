@@ -14,35 +14,26 @@ export default entity({
 	},
 })({
 	$miner: {
-		label: 'Miner',
 		entityType: EntityType.FilecoinMiner,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	height: {
-		label: 'Height',
-		description: 'The block height.',
 		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.One,
 	},
 	tipsetKey: {
-		label: 'Tipset key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$tipset: {
-		label: 'Tipset',
 		entityType: EntityType.FilecoinTipset,
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -50,7 +41,6 @@ export default entity({
 		],
 	},
 	$owner: {
-		label: 'Owner',
 		entityType: EntityType.FilecoinActor,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -58,7 +48,6 @@ export default entity({
 		],
 	},
 	$worker: {
-		label: 'Worker',
 		entityType: EntityType.FilecoinActor,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -66,7 +55,6 @@ export default entity({
 		],
 	},
 	peerId: {
-		label: 'Peer ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -74,7 +62,6 @@ export default entity({
 		],
 	},
 	rawBytePower: {
-		label: 'Raw byte power',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -82,7 +69,6 @@ export default entity({
 		],
 	},
 	qualityAdjustedPower: {
-		label: 'Quality adjusted power',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -90,7 +76,6 @@ export default entity({
 		],
 	},
 	networkRawBytePower: {
-		label: 'Network raw byte power',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -98,7 +83,6 @@ export default entity({
 		],
 	},
 	networkQualityAdjustedPower: {
-		label: 'Network quality adjusted power',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -106,7 +90,6 @@ export default entity({
 		],
 	},
 	activeSectorCount: {
-		label: 'Active sectors',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -114,7 +97,6 @@ export default entity({
 		],
 	},
 	liveSectorCount: {
-		label: 'Live sectors',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -122,7 +104,6 @@ export default entity({
 		],
 	},
 	faultySectorCount: {
-		label: 'Faulty sectors',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

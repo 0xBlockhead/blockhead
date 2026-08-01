@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$miner: {
-		label: 'Miner',
 		entityType: EntityType.FilecoinMiner,
 		cardinality: EntityFieldCardinality.One,
 	},
 	sectorNumber: {
-		label: 'Sector number',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	sealedCid: {
-		label: 'Sealed CID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 		],
 	},
 	activationEpoch: {
-		label: 'Activation epoch',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -40,7 +36,6 @@ export default entity({
 		],
 	},
 	expirationEpoch: {
-		label: 'Expiration epoch',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

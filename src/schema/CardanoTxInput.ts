@@ -13,37 +13,30 @@ export default entity({
 	},
 })({
 	$transaction: {
-		label: 'transaction',
 		entityType: EntityType.CardanoTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	inputIndex: {
-		label: 'input index',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	inputKind: {
-		label: 'input kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	spentTxHash: {
-		label: 'spent transaction hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	spentOutputIndex: {
-		label: 'spent output index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$spentOutput: {
-		label: 'spent output',
 		entityType: EntityType.CardanoTxOutput,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	redeemerIndex: {
-		label: 'redeemer index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

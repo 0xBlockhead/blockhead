@@ -13,33 +13,26 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
-		description: 'The address or account identifier used by the source protocol.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	moduleName: {
-		label: 'module name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.MoveModule_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$functions: {
-		label: 'functions',
 		entityType: EntityType.MoveFunction,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$structs: {
-		label: 'structs',
 		entityType: EntityType.MoveStruct,
 		cardinality: EntityFieldCardinality.Many,
 	},

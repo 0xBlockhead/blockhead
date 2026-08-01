@@ -14,24 +14,18 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.NearNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	headHeight: {
-		label: 'Head height',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -39,7 +33,6 @@ export default entity({
 		],
 	},
 	headHash: {
-		label: 'Head hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -47,7 +40,6 @@ export default entity({
 		],
 	},
 	epochId: {
-		label: 'Epoch ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -55,7 +47,6 @@ export default entity({
 		],
 	},
 	epochHeight: {
-		label: 'Epoch height',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -63,7 +54,6 @@ export default entity({
 		],
 	},
 	epochStartHeight: {
-		label: 'Epoch start height',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -71,7 +61,6 @@ export default entity({
 		],
 	},
 	chunkCount: {
-		label: 'Chunk count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -79,7 +68,6 @@ export default entity({
 		],
 	},
 	gasPriceYoctoNear: {
-		label: 'Gas price yocto near',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -87,7 +75,6 @@ export default entity({
 		],
 	},
 	currentValidatorCount: {
-		label: 'Current validators',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -95,7 +82,6 @@ export default entity({
 		],
 	},
 	nextValidatorCount: {
-		label: 'Next validators',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -103,7 +89,6 @@ export default entity({
 		],
 	},
 	currentProposalCount: {
-		label: 'Current proposals',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -111,7 +96,6 @@ export default entity({
 		],
 	},
 	protocolVersion: {
-		label: 'Protocol version',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -119,7 +103,6 @@ export default entity({
 		],
 	},
 	latestProtocolVersion: {
-		label: 'Latest protocol version',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -127,7 +110,6 @@ export default entity({
 		],
 	},
 	nodeVersion: {
-		label: 'Node version',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -135,7 +117,6 @@ export default entity({
 		],
 	},
 	syncing: {
-		label: 'Syncing',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

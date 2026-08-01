@@ -13,30 +13,22 @@ export default entity({
 	},
 })({
 	$contract: {
-		label: 'contract',
 		entityType: EntityType.HederaContract,
 		cardinality: EntityFieldCardinality.One,
 	},
 	slot: {
-		label: 'slot',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	value: {
-		label: 'Value',
-		description: 'The source-domain value.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

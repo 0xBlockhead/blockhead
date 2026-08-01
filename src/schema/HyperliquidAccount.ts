@@ -13,48 +13,38 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
-		description: 'The address or account identifier used by the source protocol.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	accountRole: {
-		label: 'account role',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$masterAccount: {
-		label: 'master account',
 		entityType: EntityType.HyperliquidAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$agentAccount: {
-		label: 'agent account',
 		entityType: EntityType.HyperliquidAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.HyperliquidAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$orders: {
-		label: 'orders',
 		entityType: EntityType.HyperliquidOrder,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$fills: {
-		label: 'fills',
 		entityType: EntityType.HyperliquidFill,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$vaultEquities: {
-		label: 'vault equities',
 		entityType: EntityType.HyperliquidVaultEquity_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	publicKey: {
-		label: 'Public key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.LightningNode_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -33,7 +30,6 @@ export default entity({
 		],
 	},
 	$$channels: {
-		label: 'Channels',
 		entityType: EntityType.LightningChannel,
 		cardinality: EntityFieldCardinality.Many,
 	},

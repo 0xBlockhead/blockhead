@@ -15,12 +15,10 @@ export default entity({
 	description: 'Filecoin-specific view over a canonical Network row, including Lotus endpoints, chain head observations, and tipsets.',
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	rpcEndpoints: {
-		label: 'RPC endpoints',
 		primitiveType: type({
 			url: type('string'),
 			transportType: type('string'),
@@ -32,7 +30,6 @@ export default entity({
 		],
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.FilecoinNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -40,7 +37,6 @@ export default entity({
 		],
 	},
 	$$tipsets: {
-		label: 'Tipsets',
 		entityType: EntityType.FilecoinTipset,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

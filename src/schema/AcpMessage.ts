@@ -13,28 +13,22 @@ export default entity({
 	},
 })({
 	$session: {
-		label: 'session',
 		entityType: EntityType.AcpSession,
 		cardinality: EntityFieldCardinality.One,
 	},
 	messageId: {
-		label: 'message ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	role: {
-		label: 'role',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	createdAt: {
-		label: 'Created',
-		description: 'The time when the subject was created according to the source.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$parts: {
-		label: 'parts',
 		entityType: EntityType.AcpMessagePart,
 		cardinality: EntityFieldCardinality.Many,
 	},

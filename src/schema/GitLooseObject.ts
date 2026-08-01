@@ -14,37 +14,30 @@ export default entity({
 	},
 })({
 	objectId: {
-		label: 'object ID',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	objectFormat: {
-		label: 'object format',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	byteSource: {
-		label: 'byte source',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	path: {
-		label: 'path',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	compressedSizeBytes: {
-		label: 'compressed size bytes',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	observedAtMs: {
-		label: 'observed AT ms',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$object: {
-		label: 'object',
 		entityType: EntityType.GitObject,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

@@ -13,33 +13,26 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	txHash: {
-		label: 'Transaction hash',
-		description: 'The transaction hash in its network.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$block: {
-		label: 'block',
 		entityType: EntityType.HyperliquidBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$account: {
-		label: 'account',
 		entityType: EntityType.HyperliquidAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	actionType: {
-		label: 'action type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.HyperliquidTransaction_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

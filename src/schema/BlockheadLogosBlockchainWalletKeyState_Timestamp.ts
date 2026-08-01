@@ -14,35 +14,26 @@ export default entity({
 	},
 })({
 	$walletKeyState: {
-		label: 'wallet key state',
 		entityType: EntityType.BlockheadLogosBlockchainWalletKeyState,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	tip: {
-		label: 'tip',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	balance: {
-		label: 'balance',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	address: {
-		label: 'Address',
-		description: 'The address or account identifier used by the source protocol.',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

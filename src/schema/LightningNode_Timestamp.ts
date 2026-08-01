@@ -14,24 +14,18 @@ export default entity({
 	},
 })({
 	$node: {
-		label: 'Node',
 		entityType: EntityType.LightningNode,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	alias: {
-		label: 'Alias',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -40,7 +34,6 @@ export default entity({
 		],
 	},
 	color: {
-		label: 'Color',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -48,7 +41,6 @@ export default entity({
 		],
 	},
 	capacitySats: {
-		label: 'Capacity sats',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -56,7 +48,6 @@ export default entity({
 		],
 	},
 	channelCount: {
-		label: 'Channels',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -65,7 +56,6 @@ export default entity({
 		],
 	},
 	firstSeenMs: {
-		label: 'First seen',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -73,7 +63,6 @@ export default entity({
 		],
 	},
 	updatedAtMs: {
-		label: 'Updated',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -81,7 +70,6 @@ export default entity({
 		],
 	},
 	countryCode: {
-		label: 'Country',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -89,7 +77,6 @@ export default entity({
 		],
 	},
 	city: {
-		label: 'City',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -97,7 +84,6 @@ export default entity({
 		],
 	},
 	networkAddresses: {
-		label: 'Network addresses',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

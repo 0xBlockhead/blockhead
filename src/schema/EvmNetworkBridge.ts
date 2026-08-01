@@ -14,23 +14,18 @@ export default entity({
 	},
 })({
 	$fromNetwork: {
-		label: 'From network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$toNetwork: {
-		label: 'To network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	url: {
-		label: 'URL',
-		description: 'The URL for the source-domain resource.',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	relationshipType: {
-		label: 'Relationship type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$transaction: {
-		label: 'Transaction',
 		entityType: EntityType.NearTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	outcomeId: {
-		label: 'Outcome ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	status: {
-		label: 'Status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 		],
 	},
 	gasBurnt: {
-		label: 'Gas burnt',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -40,7 +36,6 @@ export default entity({
 		],
 	},
 	$$receipts: {
-		label: 'Receipts',
 		entityType: EntityType.NearReceipt,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

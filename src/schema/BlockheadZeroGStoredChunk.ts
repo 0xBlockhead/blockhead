@@ -13,52 +13,42 @@ export default entity({
 	},
 })({
 	$nodeState: {
-		label: 'node state',
 		entityType: EntityType.BlockheadZeroGStorageNodeState,
 		cardinality: EntityFieldCardinality.One,
 	},
 	dataRoot: {
-		label: 'data root',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	chunkIndex: {
-		label: 'chunk index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$dataBlob: {
-		label: 'data blob',
 		entityType: EntityType.ZeroGDataBlob,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$publicChunk: {
-		label: 'public chunk',
 		entityType: EntityType.ZeroGDataChunk,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	chunkRoot: {
-		label: 'chunk root',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	sizeBytes: {
-		label: 'size bytes',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	filePath: {
-		label: 'file path',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	present: {
-		label: 'present',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	lastCheckedAt: {
-		label: 'last checked AT',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

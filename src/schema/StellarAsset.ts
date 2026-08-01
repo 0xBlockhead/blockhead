@@ -13,57 +13,46 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.StellarNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	assetKey: {
-		label: 'asset key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	assetKind: {
-		label: 'asset kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	assetCode: {
-		label: 'asset code',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	issuer: {
-		label: 'issuer',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$issuerAccount: {
-		label: 'issuer account',
 		entityType: EntityType.StellarAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$claimableBalances: {
-		label: 'claimable balances',
 		entityType: EntityType.StellarClaimableBalance,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$liquidityPools: {
-		label: 'liquidity pools',
 		entityType: EntityType.StellarLiquidityPool,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$trustlines: {
-		label: 'trustlines',
 		entityType: EntityType.StellarTrustline,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$offers: {
-		label: 'offers',
 		entityType: EntityType.StellarOffer,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$trades: {
-		label: 'trades',
 		entityType: EntityType.StellarTrade,
 		cardinality: EntityFieldCardinality.Many,
 	},

@@ -15,22 +15,18 @@ export default entity({
 	description: 'A Nostr long-form article is a replaceable kind-30023 event addressed by author public key and identifier.',
 })({
 	pubkey: {
-		label: 'Pubkey',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	identifier: {
-		label: 'Identifier',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	kind: {
-		label: 'Kind',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$latestEvent: {
-		label: 'Latest signed version',
 		entityType: EntityType.NostrArticleEvent,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -39,7 +35,6 @@ export default entity({
 		],
 	},
 	$$events: {
-		label: 'Signed versions',
 		entityType: EntityType.NostrArticleEvent,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

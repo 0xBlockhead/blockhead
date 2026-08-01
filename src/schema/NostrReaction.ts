@@ -15,12 +15,10 @@ export default entity({
 	description: 'A Nostr reaction is a kind-7 event keyed by event id and scoped to the note or article it reacts to.',
 })({
 	eventId: {
-		label: 'Event ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	kind: {
-		label: 'Kind',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -28,7 +26,6 @@ export default entity({
 		],
 	},
 	pubkey: {
-		label: 'Pubkey',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -36,7 +33,6 @@ export default entity({
 		],
 	},
 	createdAt: {
-		label: 'Created',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -44,12 +40,10 @@ export default entity({
 		],
 	},
 	tags: {
-		label: 'Tags',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$author: {
-		label: 'Author',
 		entityType: EntityType.NostrProfile,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -57,7 +51,6 @@ export default entity({
 		],
 	},
 	$targetNote: {
-		label: 'Target note',
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -65,7 +58,6 @@ export default entity({
 		],
 	},
 	$targetArticle: {
-		label: 'Target article',
 		entityType: EntityType.NostrArticle,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -73,7 +65,6 @@ export default entity({
 		],
 	},
 	content: {
-		label: 'Reaction',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

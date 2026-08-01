@@ -14,67 +14,54 @@ export default entity({
 	},
 })({
 	$walletRequest: {
-		label: 'wallet request',
 		entityType: EntityType.BlockheadWalletRequest,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	status: {
-		label: 'status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	walletStatusCode: {
-		label: 'wallet status code',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	walletCallBundleStatus: {
-		label: 'wallet call bundle status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	atomic: {
-		label: 'atomic',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	receiptCount: {
-		label: 'receipt count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	transactionHash: {
-		label: 'transaction hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	transactionId: {
-		label: 'transaction ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	signatureHash: {
-		label: 'signature hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	statusPayloadHash: {
-		label: 'status payload hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	error: {
-		label: 'error',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

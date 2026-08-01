@@ -14,12 +14,10 @@ export default entity({
 	},
 })({
 	$transaction: {
-		label: 'Transaction',
 		entityType: EntityType.TronTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	feeSun: {
-		label: 'Fee sun',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -30,7 +28,6 @@ export default entity({
 		],
 	},
 	result: {
-		label: 'Result',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -41,27 +38,22 @@ export default entity({
 		],
 	},
 	resMessageHex: {
-		label: 'Result message hex',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	contractAddress: {
-		label: 'Contract address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	energyUsage: {
-		label: 'Energy usage',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	originEnergyUsage: {
-		label: 'Origin energy usage',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	energyUsageTotal: {
-		label: 'Energy usage total',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -71,17 +63,14 @@ export default entity({
 		],
 	},
 	energyFeeSun: {
-		label: 'Energy fee sun',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	energyPenaltyTotal: {
-		label: 'Energy penalty total',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	netUsage: {
-		label: 'Net usage',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -91,22 +80,18 @@ export default entity({
 		],
 	},
 	netFeeSun: {
-		label: 'Net fee sun',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	logCount: {
-		label: 'Logs',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	internalTransactionCount: {
-		label: 'Internal transactions',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	contractResultHex: {
-		label: 'Contract result hex',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

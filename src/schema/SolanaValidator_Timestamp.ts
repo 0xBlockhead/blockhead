@@ -14,29 +14,22 @@ export default entity({
 	},
 })({
 	$validator: {
-		label: 'Validator',
 		entityType: EntityType.SolanaValidator,
 		cardinality: EntityFieldCardinality.One,
 	},
 	slot: {
-		label: 'Slot',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	nodePubkey: {
-		label: 'Node public key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -44,7 +37,6 @@ export default entity({
 		],
 	},
 	activatedStakeLamports: {
-		label: 'Activated stake',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -52,7 +44,6 @@ export default entity({
 		],
 	},
 	commission: {
-		label: 'Commission',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -60,7 +51,6 @@ export default entity({
 		],
 	},
 	delinquent: {
-		label: 'Delinquent',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -68,7 +58,6 @@ export default entity({
 		],
 	},
 	lastVoteSlot: {
-		label: 'Last vote slot',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -76,7 +65,6 @@ export default entity({
 		],
 	},
 	rootSlot: {
-		label: 'Root slot',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -84,7 +72,6 @@ export default entity({
 		],
 	},
 	epochCredits: {
-		label: 'Epoch credits',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

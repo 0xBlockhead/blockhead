@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	id: {
-		label: 'ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	name: {
-		label: 'Name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdAt: {
-		label: 'Created',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	createdBy: {
-		label: 'Created by',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$peers: {
-		label: 'Peers',
 		entityType: EntityType.BlockheadRoomPeer,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
 	},

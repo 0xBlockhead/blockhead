@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	endpointUrl: {
-		label: 'endpoint URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	protocolVersion: {
-		label: 'protocol version',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$directory: {
-		label: 'directory',
 		entityType: EntityType.PayjoinDirectory,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.PayjoinEndpoint_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$blockheadSessions: {
-		label: 'blockhead sessions',
 		entityType: EntityType.BlockheadPayjoinSession,
 		cardinality: EntityFieldCardinality.Many,
 	},

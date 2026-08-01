@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$channel: {
-		label: 'channel',
 		entityType: EntityType.BlockheadStateChannel,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$account: {
-		label: 'account',
 		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.BlockheadStateChannelDeposit_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

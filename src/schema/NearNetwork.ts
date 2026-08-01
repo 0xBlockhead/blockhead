@@ -15,14 +15,10 @@ export default entity({
 	description: 'NEAR network catalog row with RPC endpoints, runtime observations, blocks, and validator sets from declared NEAR sources.',
 })({
 	slug: {
-		label: 'Slug',
-		description: 'A stable short name used by catalogs and URLs.',
 		primitiveType: type.unit('near'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	name: {
-		label: 'Name',
-		description: 'The human-readable name of the subject.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -30,8 +26,6 @@ export default entity({
 		],
 	},
 	namespace: {
-		label: 'Namespace',
-		description: 'The namespace that qualifies the identifier.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -39,7 +33,6 @@ export default entity({
 		],
 	},
 	environment: {
-		label: 'Environment',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -47,7 +40,6 @@ export default entity({
 		],
 	},
 	rpcEndpoints: {
-		label: 'RPC endpoints',
 		primitiveType: type({
 			url: type('string'),
 			transportType: type('string'),
@@ -59,7 +51,6 @@ export default entity({
 		],
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.NearNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -67,7 +58,6 @@ export default entity({
 		],
 	},
 	$$blocks: {
-		label: 'Blocks',
 		entityType: EntityType.NearBlock,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -75,7 +65,6 @@ export default entity({
 		],
 	},
 	$$validators: {
-		label: 'Validators',
 		entityType: EntityType.NearValidator,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

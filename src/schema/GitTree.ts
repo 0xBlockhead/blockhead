@@ -14,22 +14,18 @@ export default entity({
 	},
 })({
 	objectId: {
-		label: 'object ID',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	objectFormat: {
-		label: 'object format',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$object: {
-		label: 'object',
 		entityType: EntityType.GitObject,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$entries: {
-		label: 'entries',
 		entityType: EntityType.GitTreeEntry,
 		cardinality: EntityFieldCardinality.Many,
 	},

@@ -14,52 +14,42 @@ export default entity({
 	},
 })({
 	$readinessCheck: {
-		label: 'readiness check',
 		entityType: EntityType.BlockheadActionReadinessCheck,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	status: {
-		label: 'status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	observedAmount: {
-		label: 'observed amount',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	requiredAmount: {
-		label: 'required amount',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	deficitAmount: {
-		label: 'deficit amount',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	observedCapabilityStatus: {
-		label: 'observed capability status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	sourcePayloadHash: {
-		label: 'source payload hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	error: {
-		label: 'error',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

@@ -14,42 +14,34 @@ export default entity({
 	},
 })({
 	$session: {
-		label: 'session',
 		entityType: EntityType.AcpSession,
 		cardinality: EntityFieldCardinality.One,
 	},
 	turnId: {
-		label: 'turn ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	startedAt: {
-		label: 'started AT',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	completedAt: {
-		label: 'completed AT',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	cancelledAt: {
-		label: 'cancelled AT',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	stopReason: {
-		label: 'stop reason',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	userPromptHashAlgorithm: {
-		label: 'user prompt hash algorithm',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	userPromptHash: {
-		label: 'user prompt hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

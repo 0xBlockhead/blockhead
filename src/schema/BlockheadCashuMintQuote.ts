@@ -13,42 +13,34 @@ export default entity({
 	},
 })({
 	$mint: {
-		label: 'mint',
 		entityType: EntityType.CashuMint,
 		cardinality: EntityFieldCardinality.One,
 	},
 	method: {
-		label: 'method',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	quoteId: {
-		label: 'quote ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	request: {
-		label: 'request',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	unit: {
-		label: 'unit',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	amount: {
-		label: 'amount',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$walletState: {
-		label: 'wallet state',
 		entityType: EntityType.BlockheadCashuWalletState,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.BlockheadCashuMintQuote_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

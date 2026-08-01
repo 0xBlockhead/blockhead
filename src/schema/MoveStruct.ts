@@ -13,37 +13,30 @@ export default entity({
 	},
 })({
 	$module: {
-		label: 'module',
 		entityType: EntityType.MoveModule,
 		cardinality: EntityFieldCardinality.One,
 	},
 	structName: {
-		label: 'struct name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	isNative: {
-		label: 'is native',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	isEvent: {
-		label: 'is event',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	abilities: {
-		label: 'abilities',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 	},
 	typeParameters: {
-		label: 'type parameters',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.Many,
 	},
 	fields: {
-		label: 'fields',
 		primitiveType: type({
 			name: type('string'),
 			type: type('string'),

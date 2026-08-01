@@ -13,39 +13,30 @@ export default entity({
 	},
 })({
 	$nodeState: {
-		label: 'node state',
 		entityType: EntityType.BlockheadLogosBlockchainNodeState,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	listenAddresses: {
-		label: 'listen addresses',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 	},
 	peerCount: {
-		label: 'peer count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	connectionCount: {
-		label: 'connection count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	pendingConnectionCount: {
-		label: 'pending connection count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

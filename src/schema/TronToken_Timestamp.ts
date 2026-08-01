@@ -14,30 +14,22 @@ export default entity({
 	},
 })({
 	$token: {
-		label: 'Token',
 		entityType: EntityType.TronToken,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockHeight: {
-		label: 'Block height',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	name: {
-		label: 'Name',
-		description: 'The human-readable name of the subject.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -45,7 +37,6 @@ export default entity({
 		],
 	},
 	symbol: {
-		label: 'Symbol',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -53,7 +44,6 @@ export default entity({
 		],
 	},
 	decimals: {
-		label: 'Decimals',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -61,7 +51,6 @@ export default entity({
 		],
 	},
 	totalSupply: {
-		label: 'Total supply',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -69,7 +58,6 @@ export default entity({
 		],
 	},
 	holderCount: {
-		label: 'Holders',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -77,12 +65,10 @@ export default entity({
 		],
 	},
 	transferCount: {
-		label: 'Transfers',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	contractVerified: {
-		label: 'Contract verified',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

@@ -15,47 +15,38 @@ export default entity({
 	},
 })({
 	feedUrl: {
-		label: 'Feed URL',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	title: {
-		label: 'Title',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	description: {
-		label: 'Description',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	link: {
-		label: 'Link',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	siteUrl: {
-		label: 'Site URL',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	language: {
-		label: 'Language',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	lastBuildDate: {
-		label: 'Last build',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	imageUrl: {
-		label: 'Image URL',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$items: {
-		label: 'Items',
 		entityType: EntityType.RssItem,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -64,7 +55,6 @@ export default entity({
 		],
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.RssFeed_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

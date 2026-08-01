@@ -16,67 +16,54 @@ export default entity({
 	},
 })({
 	videoId: {
-		label: 'Video ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	title: {
-		label: 'Title',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	description: {
-		label: 'Description',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	publishedAt: {
-		label: 'Published',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	publishedAtMs: {
-		label: 'Published',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	durationSeconds: {
-		label: 'Duration',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	categoryId: {
-		label: 'Category',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	liveBroadcastContent: {
-		label: 'Live status',
 		primitiveType: type.enumerated(...Object.values(YoutubeLiveBroadcastContent)),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	tags: {
-		label: 'Tags',
 		primitiveType: type('string').array(),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	thumbnailUrl: {
-		label: 'Thumbnail',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$author: {
-		label: 'Author',
 		entityType: EntityType.YoutubeChannel,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$thumbnail: {
-		label: 'Thumbnail',
 		entityType: EntityType.Media,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.YoutubeVideo_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -84,7 +71,6 @@ export default entity({
 		],
 	},
 	$$comments: {
-		label: 'Comments',
 		entityType: EntityType.YoutubeComment,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

@@ -13,48 +13,38 @@ export default entity({
 	},
 })({
 	runtimeId: {
-		label: 'runtime ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		entityType: EntityType.BlockheadSource,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$programVersion: {
-		label: 'program version',
 		entityType: EntityType.AcpAgentProgramVersion,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$programInstall: {
-		label: 'program install',
 		entityType: EntityType.BlockheadAgentProgramInstall,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	transportKind: {
-		label: 'transport kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	processId: {
-		label: 'process ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	initializedAt: {
-		label: 'initialized AT',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$sessions: {
-		label: 'sessions',
 		entityType: EntityType.AcpSession,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.AcpAgentRuntime_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$transaction: {
-		label: 'Transaction',
 		entityType: EntityType.NearTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	actionIndex: {
-		label: 'Action index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	actionKind: {
-		label: 'Action kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 		],
 	},
 	methodName: {
-		label: 'Method name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -40,7 +36,6 @@ export default entity({
 		],
 	},
 	depositYoctoNear: {
-		label: 'Deposit yocto near',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

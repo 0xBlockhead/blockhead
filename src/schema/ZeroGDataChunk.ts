@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$dataBlob: {
-		label: 'data blob',
 		entityType: EntityType.ZeroGDataBlob,
 		cardinality: EntityFieldCardinality.One,
 	},
 	chunkIndex: {
-		label: 'chunk index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	chunkRoot: {
-		label: 'chunk root',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	sizeBytes: {
-		label: 'size bytes',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

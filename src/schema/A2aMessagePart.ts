@@ -14,47 +14,38 @@ export default entity({
 	},
 })({
 	$message: {
-		label: 'message',
 		entityType: EntityType.A2aMessage,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$artifact: {
-		label: 'artifact',
 		entityType: EntityType.A2aArtifact,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	partIndex: {
-		label: 'part index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	partKind: {
-		label: 'part kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	text: {
-		label: 'text',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	uri: {
-		label: 'URI',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	mimeType: {
-		label: 'mime type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	payload: {
-		label: 'payload',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$aiArtifact: {
-		label: 'AI artifact',
 		entityType: EntityType.AiArtifact,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

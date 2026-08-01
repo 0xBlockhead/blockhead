@@ -13,39 +13,30 @@ export default entity({
 	},
 })({
 	$ledger: {
-		label: 'ledger',
 		entityType: EntityType.IcpLedgerCanister,
 		cardinality: EntityFieldCardinality.One,
 	},
 	owner: {
-		label: 'owner',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	subaccount: {
-		label: 'subaccount',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	balance: {
-		label: 'balance',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	allowanceCount: {
-		label: 'allowance count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

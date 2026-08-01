@@ -14,58 +14,46 @@ export default entity({
 	},
 })({
 	id: {
-		label: 'ID',
-		description: 'The identifier assigned by the source domain.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	username: {
-		label: 'Username',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	name: {
-		label: 'Name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	description: {
-		label: 'Description',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	verified: {
-		label: 'Verified',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdAt: {
-		label: 'Created',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	location: {
-		label: 'Location',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	websiteUrl: {
-		label: 'Website URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$icon: {
-		label: 'Icon',
 		entityType: EntityType.Media,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$profileBanner: {
-		label: 'Profile banner',
 		entityType: EntityType.Media,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.XUser_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -74,7 +62,6 @@ export default entity({
 		],
 	},
 	$$posts: {
-		label: 'Posts',
 		entityType: EntityType.XPost,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

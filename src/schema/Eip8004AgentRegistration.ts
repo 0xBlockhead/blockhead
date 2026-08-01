@@ -14,39 +14,30 @@ export default entity({
 	},
 })({
 	namespace: {
-		label: 'Namespace',
-		description: 'The namespace that qualifies the identifier.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	chainId: {
-		label: 'Chain ID',
-		description: 'The chain identifier used by the network family.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	identityRegistry: {
-		label: 'Identity registry',
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	agentId: {
-		label: 'Agent ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$evmNft: {
-		label: 'EVM NFT',
 		entityType: EntityType.EvmNft,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'Timestamps',
 		entityType: EntityType.Eip8004AgentRegistration_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$files: {
-		label: 'Files',
 		entityType: EntityType.Eip8004AgentRegistrationFile,
 		cardinality: EntityFieldCardinality.Many,
 	},

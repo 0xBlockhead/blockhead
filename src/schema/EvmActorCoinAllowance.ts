@@ -13,37 +13,30 @@ export default entity({
 	},
 })({
 	$actor: {
-		label: 'Owner',
 		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$contract: {
-		label: 'Token',
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$actorCoin: {
-		label: 'Balance',
 		entityType: EntityType.EvmNetworkActorCoinBalance,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$spender: {
-		label: 'Spender',
 		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	interopAddress: {
-		label: 'Interop address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$spenderContract: {
-		label: 'Spender contract',
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$blocks: {
-		label: 'Blocks',
 		entityType: EntityType.EvmActorCoinAllowance_Block,
 		cardinality: EntityFieldCardinality.Many,
 	},

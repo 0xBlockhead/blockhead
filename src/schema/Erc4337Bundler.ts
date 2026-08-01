@@ -14,27 +14,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$contract: {
-		label: 'Contract',
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'Timestamps',
 		entityType: EntityType.Erc4337Bundler_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$userOperations: {
-		label: 'User operations',
 		entityType: EntityType.EvmUserOperation,
 		cardinality: EntityFieldCardinality.Many,
 	},

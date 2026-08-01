@@ -14,12 +14,10 @@ export default entity({
 	},
 })({
 	$output: {
-		label: 'Output',
 		entityType: EntityType.UtxoOutput,
 		cardinality: EntityFieldCardinality.One,
 	},
 	commitmentHex: {
-		label: 'Commitment hex',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [

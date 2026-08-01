@@ -13,53 +13,42 @@ export default entity({
 	},
 })({
 	id: {
-		label: 'ID',
-		description: 'The identifier assigned by the source domain.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$author: {
-		label: 'Author',
 		entityType: EntityType.XUser,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	text: {
-		label: 'Text',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdAt: {
-		label: 'Created',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	conversationId: {
-		label: 'Conversation ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$replyToPost: {
-		label: 'Reply to post',
 		entityType: EntityType.XPost,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$quotedPost: {
-		label: 'Quoted post',
 		entityType: EntityType.XPost,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	postUrl: {
-		label: 'Post URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$media: {
-		label: 'Media',
 		entityType: EntityType.Media,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.XPost_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

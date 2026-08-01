@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$cast: {
-		label: 'Cast',
 		entityType: EntityType.FarcasterCast,
 		cardinality: EntityFieldCardinality.One,
 	},
 	indexInCast: {
-		label: 'Index in cast',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	url: {
-		label: 'URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 		],
 	},
 	$embeddedCast: {
-		label: 'Embedded cast',
 		entityType: EntityType.FarcasterCast,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -40,7 +36,6 @@ export default entity({
 		],
 	},
 	title: {
-		label: 'Title',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -48,7 +43,6 @@ export default entity({
 		],
 	},
 	description: {
-		label: 'Description',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -56,7 +50,6 @@ export default entity({
 		],
 	},
 	iconUrl: {
-		label: 'Icon URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -64,7 +57,6 @@ export default entity({
 		],
 	},
 	$icon: {
-		label: 'Icon',
 		entityType: EntityType.Media,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -72,7 +64,6 @@ export default entity({
 		],
 	},
 	quotedPreviewText: {
-		label: 'Quoted preview text',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

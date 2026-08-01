@@ -13,39 +13,30 @@ export default entity({
 	},
 })({
 	$sourceDomain: {
-		label: 'Source domain',
 		entityType: EntityType.CctpDomainSupport,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$destinationDomain: {
-		label: 'Destination domain',
 		entityType: EntityType.CctpDomainSupport,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	forward: {
-		label: 'Forward',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	hyperCoreDeposit: {
-		label: 'HyperCore deposit',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	feeRows: {
-		label: 'Fee rows',
 		primitiveType: type({
 			finalityThreshold: type('number'),
 			minimumFeeBps: type('number'),

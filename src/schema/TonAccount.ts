@@ -14,28 +14,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
-		description: 'The address or account identifier used by the source protocol.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	workchain: {
-		label: 'workchain',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	addressHash: {
-		label: 'address hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.TonAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

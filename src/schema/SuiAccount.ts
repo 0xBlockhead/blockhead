@@ -13,28 +13,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.SuiNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
-		description: 'The address or account identifier used by the source protocol.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$balances: {
-		label: 'balances',
 		entityType: EntityType.SuiCoinBalance_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$objects: {
-		label: 'objects',
 		entityType: EntityType.SuiObject,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$transactions: {
-		label: 'transactions',
 		entityType: EntityType.SuiTransaction,
 		cardinality: EntityFieldCardinality.Many,
 	},

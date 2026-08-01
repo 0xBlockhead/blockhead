@@ -14,38 +14,30 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	netuid: {
-		label: 'Netuid',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	name: {
-		label: 'Name',
-		description: 'The human-readable name of the subject.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	subnetInfoByteLength: {
-		label: 'Subnet info bytes',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	dynamicInfoByteLength: {
-		label: 'Dynamic info bytes',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	hyperparamsByteLength: {
-		label: 'Hyperparameter bytes',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$metagraphTimestamps: {
-		label: 'Metagraph observations',
 		entityType: EntityType.BittensorMetagraph_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -53,7 +45,6 @@ export default entity({
 		],
 	},
 	$$neurons: {
-		label: 'Neurons',
 		entityType: EntityType.BittensorNeuron,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

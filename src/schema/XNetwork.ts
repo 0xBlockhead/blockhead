@@ -15,38 +15,30 @@ export default entity({
 	description: 'X profiles and posts surfaced through declared public HTTP sources.',
 })({
 	scope: {
-		label: 'Scope',
-		description: 'The fixed scope value that identifies this hub row.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	protocolName: {
-		label: 'Protocol',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	homeUrl: {
-		label: 'Home URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	docsUrl: {
-		label: 'Docs URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	registryName: {
-		label: 'Registry name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	relationshipModel: {
-		label: 'Connection model',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$xUsers: {
-		label: 'Users',
 		entityType: EntityType.XUser,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -54,7 +46,6 @@ export default entity({
 		],
 	},
 	$$xPosts: {
-		label: 'Posts',
 		entityType: EntityType.XPost,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

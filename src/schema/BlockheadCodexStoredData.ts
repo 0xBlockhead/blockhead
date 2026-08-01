@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$nodeState: {
-		label: 'node state',
 		entityType: EntityType.BlockheadCodexStorageNodeState,
 		cardinality: EntityFieldCardinality.One,
 	},
 	cid: {
-		label: 'CID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$dataset: {
-		label: 'dataset',
 		entityType: EntityType.CodexDataset,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	firstSeenAt: {
-		label: 'first seen AT',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.BlockheadCodexStoredData_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

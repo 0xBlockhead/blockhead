@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	accountId: {
-		label: 'account ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$allowances: {
-		label: 'allowances',
 		entityType: EntityType.HederaAllowance,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 		],
 	},
 	$$tokens: {
-		label: 'tokens',
 		entityType: EntityType.HederaTokenAssociation,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -40,7 +36,6 @@ export default entity({
 		],
 	},
 	$$nfts: {
-		label: 'nfts',
 		entityType: EntityType.HederaNft,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -48,7 +43,6 @@ export default entity({
 		],
 	},
 	$$transactions: {
-		label: 'transactions',
 		entityType: EntityType.HederaTransaction,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -56,7 +50,6 @@ export default entity({
 		],
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.HederaAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

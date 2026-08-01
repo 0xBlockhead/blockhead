@@ -13,38 +13,30 @@ export default entity({
 	},
 })({
 	$account: {
-		label: 'account',
 		entityType: EntityType.AlgorandAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	round: {
-		label: 'round',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	amount: {
-		label: 'amount',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	pendingRewards: {
-		label: 'pending rewards',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	rewardsBase: {
-		label: 'rewards base',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	status: {
-		label: 'status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

@@ -13,32 +13,26 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.DydxChainNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$account: {
-		label: 'account',
 		entityType: EntityType.CosmosAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	subaccountNumber: {
-		label: 'subaccount number',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$positions: {
-		label: 'positions',
 		entityType: EntityType.DydxChainPerpetualPosition_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$orders: {
-		label: 'orders',
 		entityType: EntityType.DydxChainOrder,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.DydxChainSubaccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

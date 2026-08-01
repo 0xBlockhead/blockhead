@@ -13,34 +13,26 @@ export default entity({
 	},
 })({
 	$subnet: {
-		label: 'subnet',
 		entityType: EntityType.IcpSubnet,
 		cardinality: EntityFieldCardinality.One,
 	},
 	rangeStart: {
-		label: 'range start',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	rangeEnd: {
-		label: 'range end',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	registryVersion: {
-		label: 'registry version',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

@@ -14,57 +14,46 @@ export default entity({
 	},
 })({
 	id: {
-		label: 'ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	name: {
-		label: 'Name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	status: {
-		label: 'Status',
 		primitiveType: type.enumerated(...Object.values(BlockheadSessionStatus)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	createdAt: {
-		label: 'Created',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	updatedAt: {
-		label: 'Updated',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	lockedAt: {
-		label: 'Locked',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$latestSimulation: {
-		label: 'Latest simulation',
 		entityType: EntityType.BlockheadSessionSimulation,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	simulationCount: {
-		label: 'Simulation count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$actions: {
-		label: 'Actions',
 		entityType: EntityType.BlockheadSessionAction,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$intentInvocations: {
-		label: 'intent invocations',
 		entityType: EntityType.BlockheadIntentInvocation,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$simulations: {
-		label: 'Simulations',
 		entityType: EntityType.BlockheadSessionSimulation,
 		cardinality: EntityFieldCardinality.Many,
 	},

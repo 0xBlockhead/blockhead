@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	txHash: {
-		label: 'Transaction hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$block: {
-		label: 'Block',
 		entityType: EntityType.MoneroBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 		],
 	},
 	version: {
-		label: 'Version',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -40,7 +36,6 @@ export default entity({
 		],
 	},
 	unlockTime: {
-		label: 'Unlock time',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -48,7 +43,6 @@ export default entity({
 		],
 	},
 	feeAtomicUnits: {
-		label: 'Fee atomic units',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -56,7 +50,6 @@ export default entity({
 		],
 	},
 	$$keyImages: {
-		label: 'Key images',
 		entityType: EntityType.MoneroKeyImage,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -64,7 +57,6 @@ export default entity({
 		],
 	},
 	$$stealthOutputs: {
-		label: 'Stealth outputs',
 		entityType: EntityType.MoneroStealthOutput,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

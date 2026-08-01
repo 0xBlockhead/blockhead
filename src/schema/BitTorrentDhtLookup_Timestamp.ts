@@ -13,43 +13,34 @@ export default entity({
 	},
 })({
 	infoHash: {
-		label: 'info hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	observerKey: {
-		label: 'observer key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	queriedNodeCount: {
-		label: 'queried node count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	responsiveNodeCount: {
-		label: 'responsive node count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	peerCount: {
-		label: 'peer count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	closestNodeIds: {
-		label: 'closest node ids',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 	},
 	status: {
-		label: 'status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},

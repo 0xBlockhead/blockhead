@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	gatewayId: {
-		label: 'gateway ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	apiUrl: {
-		label: 'API URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	nodePubkey: {
-		label: 'node public key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$federations: {
-		label: 'federations',
 		entityType: EntityType.FedimintFederation,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.FedimintGateway_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

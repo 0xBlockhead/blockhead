@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$bigMap: {
-		label: 'big map',
 		entityType: EntityType.TezosBigMap,
 		cardinality: EntityFieldCardinality.One,
 	},
 	keyHash: {
-		label: 'key hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$updates: {
-		label: 'updates',
 		entityType: EntityType.TezosBigMapDiff,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.TezosBigMapKey_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

@@ -14,52 +14,42 @@ export default entity({
 	},
 })({
 	videoId: {
-		label: 'Video ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	commentId: {
-		label: 'Comment ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	text: {
-		label: 'Text',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	authorDisplayName: {
-		label: 'Author',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$author: {
-		label: 'Author channel',
 		entityType: EntityType.YoutubeChannel,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	publishedAt: {
-		label: 'Published',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	publishedAtMs: {
-		label: 'Published',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$video: {
-		label: 'Video',
 		entityType: EntityType.YoutubeVideo,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$parentComment: {
-		label: 'Parent comment',
 		entityType: EntityType.YoutubeComment,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.YoutubeComment_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -68,7 +58,6 @@ export default entity({
 		],
 	},
 	$$replies: {
-		label: 'Replies',
 		entityType: EntityType.YoutubeComment,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

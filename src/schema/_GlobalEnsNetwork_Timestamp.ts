@@ -13,57 +13,46 @@ export default entity({
 	},
 })({
 	$hub: {
-		label: 'Hub',
 		entityType: EntityType._GlobalEnsNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	observedNameCount: {
-		label: 'Observed names',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	observedRecordCount: {
-		label: 'Observed records',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	observedReverseRecordCount: {
-		label: 'Observed reverse records',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	seededContractCount: {
-		label: 'Seeded contracts',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	discoveredResolverContractCount: {
-		label: 'Discovered resolver contracts',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	subgraphBlockNumber: {
-		label: 'Subgraph block',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	rpcBlockNumber: {
-		label: 'RPC block',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	reachable: {
-		label: 'Reachable',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

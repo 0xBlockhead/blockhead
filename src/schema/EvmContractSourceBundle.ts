@@ -13,12 +13,10 @@ export default entity({
 	},
 })({
 	$contract: {
-		label: 'Contract',
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.One,
 	},
 	files: {
-		label: 'Files',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.One,
 	},

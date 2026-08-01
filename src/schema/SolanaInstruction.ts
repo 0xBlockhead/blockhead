@@ -15,47 +15,38 @@ export default entity({
 	},
 })({
 	$transaction: {
-		label: 'Transaction',
 		entityType: EntityType.SolanaTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	instructionKind: {
-		label: 'Instruction kind',
 		primitiveType: type.enumerated(...Object.values(SolanaInstructionKind)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	indexInTransaction: {
-		label: 'Index in transaction',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	indexInInstruction: {
-		label: 'Index in instruction',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$program: {
-		label: 'Program',
 		entityType: EntityType.SolanaProgram,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	parsedType: {
-		label: 'Parsed type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	data: {
-		label: 'Data',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	stackHeight: {
-		label: 'Stack height',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$accounts: {
-		label: 'Accounts',
 		entityType: EntityType.SolanaAccount,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

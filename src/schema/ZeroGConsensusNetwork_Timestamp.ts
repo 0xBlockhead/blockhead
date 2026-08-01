@@ -14,24 +14,18 @@ export default entity({
 	},
 })({
 	$consensusNetwork: {
-		label: 'consensus network',
 		entityType: EntityType.ZeroGConsensusNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	sharedStakingStatusSource: {
-		label: 'shared staking status source',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

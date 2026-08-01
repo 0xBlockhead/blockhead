@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	id: {
-		label: 'ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$workspace: {
-		label: 'workspace',
 		entityType: EntityType.BlockheadWorkspace,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$panels: {
-		label: 'panels',
 		entityType: EntityType.BlockheadPanel,
 		cardinality: EntityFieldCardinality.Many,
 	},

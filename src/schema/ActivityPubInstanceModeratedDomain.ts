@@ -14,22 +14,18 @@ export default entity({
 	description: 'A domain that a declared ActivityPub instance reports in its public moderation-domain list.',
 })({
 	$observation: {
-		label: 'Observation',
 		entityType: EntityType.ActivityPubInstance_Timestamp,
 		cardinality: EntityFieldCardinality.One,
 	},
 	domain: {
-		label: 'Domain',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	severity: {
-		label: 'Severity',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	comment: {
-		label: 'Comment',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

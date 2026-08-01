@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	$contract: {
-		label: 'contract',
 		entityType: EntityType.StarknetContract,
 		cardinality: EntityFieldCardinality.One,
 	},
 	storageKey: {
-		label: 'storage key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.StarknetStorageEntry_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

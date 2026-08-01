@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$transaction: {
-		label: 'transaction',
 		entityType: EntityType.LitecoinMwebTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	pegInIndex: {
-		label: 'peg in index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$transparentOutput: {
-		label: 'transparent output',
 		entityType: EntityType.UtxoOutput,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	amountLitoshis: {
-		label: 'amount litoshis',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

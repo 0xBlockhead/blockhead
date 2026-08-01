@@ -13,42 +13,34 @@ export default entity({
 	},
 })({
 	$transaction: {
-		label: 'transaction',
 		entityType: EntityType.CardanoTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	witnessIndex: {
-		label: 'witness index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	scriptKind: {
-		label: 'script kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	language: {
-		label: 'language',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	scriptHash: {
-		label: 'script hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	datum: {
-		label: 'datum',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	redeemer: {
-		label: 'redeemer',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	executionUnits: {
-		label: 'execution units',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

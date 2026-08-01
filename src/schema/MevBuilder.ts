@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	builderPubkey: {
-		label: 'Builder public key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'Timestamps',
 		entityType: EntityType.MevBuilder_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 		],
 	},
 	$$deliveredPayloads: {
-		label: 'Delivered payloads',
 		entityType: EntityType.MevRelay_ProposerPayloadDelivered,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

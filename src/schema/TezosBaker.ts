@@ -13,28 +13,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.TezosNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
-		description: 'The address or account identifier used by the source protocol.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$account: {
-		label: 'account',
 		entityType: EntityType.TezosAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$cycleTimestamps: {
-		label: 'cycle timestamps',
 		entityType: EntityType.TezosBaker_Cycle_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.TezosBaker_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

@@ -14,40 +14,30 @@ export default entity({
 	},
 })({
 	$sector: {
-		label: 'Sector',
 		entityType: EntityType.FilecoinSector,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	height: {
-		label: 'Height',
-		description: 'The block height.',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	tipsetKey: {
-		label: 'Tipset key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$tipset: {
-		label: 'Tipset',
 		entityType: EntityType.FilecoinTipset,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	sealedCid: {
-		label: 'Sealed CID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -55,7 +45,6 @@ export default entity({
 		],
 	},
 	activationEpoch: {
-		label: 'Activation epoch',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -63,7 +52,6 @@ export default entity({
 		],
 	},
 	expirationEpoch: {
-		label: 'Expiration epoch',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -71,7 +59,6 @@ export default entity({
 		],
 	},
 	dealIds: {
-		label: 'Deal IDs',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.Many,
 	},

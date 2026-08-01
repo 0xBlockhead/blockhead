@@ -13,38 +13,30 @@ export default entity({
 	},
 })({
 	$block: {
-		label: 'Block',
 		entityType: EntityType.PolkadotBlock,
 		cardinality: EntityFieldCardinality.One,
 	},
 	indexInBlock: {
-		label: 'Index in block',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	hash: {
-		label: 'Hash',
-		description: 'The hash that identifies this object in its protocol.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$signer: {
-		label: 'Signer',
 		entityType: EntityType.PolkadotAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$pallet: {
-		label: 'Pallet',
 		entityType: EntityType.PolkadotPallet,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	callName: {
-		label: 'Call name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	success: {
-		label: 'Success',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

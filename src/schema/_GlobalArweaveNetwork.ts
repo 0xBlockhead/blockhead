@@ -13,28 +13,22 @@ export default entity({
 	},
 })({
 	scope: {
-		label: 'Scope',
-		description: 'The fixed scope value that identifies this hub row.',
 		primitiveType: type.unit('_GlobalArweaveNetwork'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$observedNetworks: {
-		label: 'Observed networks',
 		entityType: EntityType.ArweaveNetwork,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$observedBlocks: {
-		label: 'Observed blocks',
 		entityType: EntityType.ArweaveBlock,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$observedTransactions: {
-		label: 'Observed transactions',
 		entityType: EntityType.ArweaveTransaction,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$observedResources: {
-		label: 'Observed resources',
 		entityType: EntityType.ArweaveResource,
 		cardinality: EntityFieldCardinality.Many,
 	},

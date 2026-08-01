@@ -15,13 +15,10 @@ export default entity({
 	description: 'A web URL that is modeled as a referenced resource rather than an inline string.',
 })({
 	url: {
-		label: 'URL',
-		description: 'The URL for the source-domain resource.',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$previewTimestamps: {
-		label: 'Preview timestamps',
 		entityType: EntityType.UrlPreview_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

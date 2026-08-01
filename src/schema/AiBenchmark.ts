@@ -14,59 +14,46 @@ export default entity({
 	},
 })({
 	benchmarkId: {
-		label: 'benchmark ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	benchmarkUri: {
-		label: 'benchmark URI',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	sourceBenchmarkId: {
-		label: 'source benchmark ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	label: {
-		label: 'Label',
-		description: 'A human-readable name for the subject.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	taskType: {
-		label: 'task type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	metricName: {
-		label: 'metric name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	metricType: {
-		label: 'metric type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	license: {
-		label: 'license',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$dataset: {
-		label: 'dataset',
 		entityType: EntityType.AiDataset,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$documents: {
-		label: 'documents',
 		entityType: EntityType.AiDocument,
 		cardinality: EntityFieldCardinality.Many,
 	},

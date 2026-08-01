@@ -13,64 +13,50 @@ export default entity({
 	},
 })({
 	$clientState: {
-		label: 'client state',
 		entityType: EntityType.BlockheadBitTorrentClientState,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	clientVersion: {
-		label: 'client version',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	listenAddresses: {
-		label: 'listen addresses',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 	},
 	port: {
-		label: 'port',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	downloadRate: {
-		label: 'download rate',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	uploadRate: {
-		label: 'upload rate',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	downloadedBytes: {
-		label: 'downloaded bytes',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	uploadedBytes: {
-		label: 'uploaded bytes',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	activeTorrentCount: {
-		label: 'active torrent count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	lastSyncedAt: {
-		label: 'last synced AT',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

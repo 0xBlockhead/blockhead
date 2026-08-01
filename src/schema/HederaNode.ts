@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	nodeId: {
-		label: 'node ID',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.HederaNode_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

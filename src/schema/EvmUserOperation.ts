@@ -19,7 +19,6 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	hash: {
-		label: 'Operation hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -27,7 +26,6 @@ export default entity({
 		],
 	},
 	$bundledTransaction: {
-		label: 'Bundled transaction',
 		entityType: EntityType.EvmTransaction,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -35,7 +33,6 @@ export default entity({
 		],
 	},
 	$sender: {
-		label: 'Sender',
 		entityType: EntityType.Erc4337SmartAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -43,7 +40,6 @@ export default entity({
 		],
 	},
 	$block: {
-		label: 'Bundled block',
 		entityType: EntityType.EvmBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -51,8 +47,6 @@ export default entity({
 		],
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -60,7 +54,6 @@ export default entity({
 		],
 	},
 	successful: {
-		label: 'Successful',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -68,7 +61,6 @@ export default entity({
 		],
 	},
 	fee: {
-		label: 'Fee',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -76,7 +68,6 @@ export default entity({
 		],
 	},
 	nonce: {
-		label: 'Nonce',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -84,7 +75,6 @@ export default entity({
 		],
 	},
 	callGasLimit: {
-		label: 'Call gas limit',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -92,7 +82,6 @@ export default entity({
 		],
 	},
 	verificationGasLimit: {
-		label: 'Verification gas limit',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -100,7 +89,6 @@ export default entity({
 		],
 	},
 	preVerificationGas: {
-		label: 'Pre-verification gas',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -108,7 +96,6 @@ export default entity({
 		],
 	},
 	maxFeePerGas: {
-		label: 'Max fee per gas',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -116,7 +103,6 @@ export default entity({
 		],
 	},
 	maxPriorityFeePerGas: {
-		label: 'Max priority fee per gas',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -124,7 +110,6 @@ export default entity({
 		],
 	},
 	gas: {
-		label: 'Gas',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -132,7 +117,6 @@ export default entity({
 		],
 	},
 	gasUsed: {
-		label: 'Gas used',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -140,7 +124,6 @@ export default entity({
 		],
 	},
 	gasPrice: {
-		label: 'Gas price',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -148,7 +131,6 @@ export default entity({
 		],
 	},
 	entryPointVersion: {
-		label: 'Entry point version',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -156,7 +138,6 @@ export default entity({
 		],
 	},
 	$entryPoint: {
-		label: 'EntryPoint',
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -164,7 +145,6 @@ export default entity({
 		],
 	},
 	initCode: {
-		label: 'Init code',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -172,7 +152,6 @@ export default entity({
 		],
 	},
 	callData: {
-		label: 'Call data',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -180,7 +159,6 @@ export default entity({
 		],
 	},
 	sponsorType: {
-		label: 'Sponsor type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -188,7 +166,6 @@ export default entity({
 		],
 	},
 	paymasterAndData: {
-		label: 'Paymaster data',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -196,7 +173,6 @@ export default entity({
 		],
 	},
 	signature: {
-		label: 'Signature',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -204,7 +180,6 @@ export default entity({
 		],
 	},
 	$paymaster: {
-		label: 'Paymaster',
 		entityType: EntityType.Erc4337Paymaster,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -212,7 +187,6 @@ export default entity({
 		],
 	},
 	$bundler: {
-		label: 'Bundler',
 		entityType: EntityType.Erc4337Bundler,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

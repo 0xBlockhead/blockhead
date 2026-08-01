@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$actorCoin: {
-		label: 'Actor coin',
 		entityType: EntityType.EvmNetworkActorCoinBalance,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$block: {
-		label: 'Block',
 		entityType: EntityType.EvmBlock,
 		cardinality: EntityFieldCardinality.One,
 	},
 	balance: {
-		label: 'Balance',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	usdValue: {
-		label: 'USD value',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

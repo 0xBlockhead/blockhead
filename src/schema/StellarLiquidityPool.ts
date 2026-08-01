@@ -13,37 +13,30 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.StellarNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	liquidityPoolId: {
-		label: 'liquidity pool ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	poolType: {
-		label: 'pool type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$assetA: {
-		label: 'asset a',
 		entityType: EntityType.StellarAsset,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$assetB: {
-		label: 'asset b',
 		entityType: EntityType.StellarAsset,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	feeBps: {
-		label: 'fee bps',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.StellarLiquidityPool_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

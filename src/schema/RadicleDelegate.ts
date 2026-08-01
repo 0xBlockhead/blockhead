@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$repository: {
-		label: 'repository',
 		entityType: EntityType.RadicleRepository,
 		cardinality: EntityFieldCardinality.One,
 	},
 	did: {
-		label: 'DID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	role: {
-		label: 'role',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	validFromRevision: {
-		label: 'valid from revision',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	validToRevision: {
-		label: 'valid to revision',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

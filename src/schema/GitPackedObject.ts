@@ -14,42 +14,34 @@ export default entity({
 	},
 })({
 	packHash: {
-		label: 'pack hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	objectId: {
-		label: 'object ID',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	objectFormat: {
-		label: 'object format',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	offset: {
-		label: 'offset',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	deltaBaseObjectId: {
-		label: 'delta base object ID',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	storedKind: {
-		label: 'stored kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$packfile: {
-		label: 'packfile',
 		entityType: EntityType.GitPackfile,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$object: {
-		label: 'object',
 		entityType: EntityType.GitObject,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

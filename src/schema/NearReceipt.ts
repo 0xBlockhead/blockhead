@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	receiptId: {
-		label: 'Receipt ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$predecessor: {
-		label: 'Predecessor',
 		entityType: EntityType.NearAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 		],
 	},
 	$receiver: {
-		label: 'Receiver',
 		entityType: EntityType.NearAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

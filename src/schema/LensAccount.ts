@@ -15,67 +15,54 @@ export default entity({
 	},
 })({
 	address: {
-		label: 'Address',
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	localName: {
-		label: 'Local name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	legacyProfileId: {
-		label: 'Legacy profile ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	displayName: {
-		label: 'Display name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	bio: {
-		label: 'Bio',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdAt: {
-		label: 'Created',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	owner: {
-		label: 'Owner',
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	score: {
-		label: 'Score',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	isMemberOf: {
-		label: 'Memberships',
 		primitiveType: type('string').array(),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	iconUrl: {
-		label: 'Icon URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$icon: {
-		label: 'Icon',
 		entityType: EntityType.Media,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.LensAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$posts: {
-		label: 'Posts',
 		entityType: EntityType.LensPost,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

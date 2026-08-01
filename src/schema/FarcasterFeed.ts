@@ -14,32 +14,26 @@ export default entity({
 	},
 })({
 	variant: {
-		label: 'Variant',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	fid: {
-		label: 'FID',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	channelId: {
-		label: 'Channel ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	viewerFid: {
-		label: 'Viewer FID',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	label: {
-		label: 'Label',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$entries: {
-		label: 'Entries',
 		entityType: EntityType.FarcasterCast,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

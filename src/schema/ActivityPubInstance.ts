@@ -16,12 +16,10 @@ export default entity({
 	description: 'A declared Mastodon-compatible ActivityPub server observed through the shared Mastodon REST source.',
 })({
 	instanceOrigin: {
-		label: 'Instance origin',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.ActivityPubInstance_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

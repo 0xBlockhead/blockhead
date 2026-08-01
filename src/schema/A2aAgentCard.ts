@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	agentCardUrl: {
-		label: 'agent card URL',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$snapshots: {
-		label: 'snapshots',
 		entityType: EntityType.A2aAgentCard_Snapshot,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$documents: {
-		label: 'documents',
 		entityType: EntityType.AiDocument,
 		cardinality: EntityFieldCardinality.Many,
 	},

@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.AlgorandNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	assetId: {
-		label: 'asset ID',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	creator: {
-		label: 'creator',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$holdingRounds: {
-		label: 'holding rounds',
 		entityType: EntityType.AlgorandAssetHolding_Round,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.AlgorandAsset_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

@@ -13,12 +13,10 @@ export default entity({
 	},
 })({
 	$subnet: {
-		label: 'Subnet',
 		entityType: EntityType.BittensorSubnet,
 		cardinality: EntityFieldCardinality.One,
 	},
 	uid: {
-		label: 'UID',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},

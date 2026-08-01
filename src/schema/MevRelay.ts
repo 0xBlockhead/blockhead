@@ -15,23 +15,18 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	host: {
-		label: 'Host',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	url: {
-		label: 'URL',
-		description: 'The URL for the source-domain resource.',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'Timestamps',
 		entityType: EntityType.MevRelay_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

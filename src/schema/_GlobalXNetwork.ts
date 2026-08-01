@@ -13,18 +13,14 @@ export default entity({
 	},
 })({
 	scope: {
-		label: 'Scope',
-		description: 'The fixed scope value that identifies this hub row.',
 		primitiveType: type.unit('_GlobalXNetwork'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$observedUsers: {
-		label: 'observed users',
 		entityType: EntityType.XUser,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$observedPosts: {
-		label: 'observed posts',
 		entityType: EntityType.XPost,
 		cardinality: EntityFieldCardinality.Many,
 	},

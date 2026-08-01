@@ -14,53 +14,42 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	hash: {
-		label: 'Hash',
-		description: 'The hash that identifies this object in its protocol.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockSlot: {
-		label: 'block slot',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	fee: {
-		label: 'fee',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	deposit: {
-		label: 'deposit',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	sizeBytes: {
-		label: 'size bytes',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	validityStartSlot: {
-		label: 'validity start slot',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	ttlSlot: {
-		label: 'ttl slot',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	metadata: {
-		label: 'metadata',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$inputs: {
-		label: 'inputs',
 		entityType: EntityType.CardanoTxInput,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -68,7 +57,6 @@ export default entity({
 		],
 	},
 	$$outputs: {
-		label: 'outputs',
 		entityType: EntityType.CardanoTxOutput,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -76,7 +64,6 @@ export default entity({
 		],
 	},
 	$$certificates: {
-		label: 'certificates',
 		entityType: EntityType.CardanoCertificate,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -84,7 +71,6 @@ export default entity({
 		],
 	},
 	$$scripts: {
-		label: 'scripts',
 		entityType: EntityType.CardanoScriptWitness,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -92,7 +78,6 @@ export default entity({
 		],
 	},
 	$$governanceProposals: {
-		label: 'governance proposals',
 		entityType: EntityType.CardanoGovernanceProposal,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -100,7 +85,6 @@ export default entity({
 		],
 	},
 	$$governanceVotes: {
-		label: 'governance votes',
 		entityType: EntityType.CardanoGovernanceVote,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -108,8 +92,6 @@ export default entity({
 		],
 	},
 	$$assets: {
-		label: 'assets',
-		description: 'Native assets touched by transaction inputs or outputs.',
 		entityType: EntityType.CardanoNativeAsset,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

@@ -14,23 +14,18 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.StellarNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	sequence: {
-		label: 'sequence',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	hash: {
-		label: 'Hash',
-		description: 'The hash that identifies this object in its protocol.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	closeTimeMs: {
-		label: 'close time ms',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -38,37 +33,30 @@ export default entity({
 		],
 	},
 	protocolVersion: {
-		label: 'protocol version',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	transactionCount: {
-		label: 'transaction count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	operationCount: {
-		label: 'operation count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	successfulTransactionCount: {
-		label: 'successful transaction count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	failedTransactionCount: {
-		label: 'failed transaction count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$transactions: {
-		label: 'transactions',
 		entityType: EntityType.StellarTransaction,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$operations: {
-		label: 'operations',
 		entityType: EntityType.StellarOperation,
 		cardinality: EntityFieldCardinality.Many,
 	},

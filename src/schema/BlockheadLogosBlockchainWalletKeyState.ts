@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$nodeState: {
-		label: 'node state',
 		entityType: EntityType.BlockheadLogosBlockchainNodeState,
 		cardinality: EntityFieldCardinality.One,
 	},
 	publicKey: {
-		label: 'public key',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

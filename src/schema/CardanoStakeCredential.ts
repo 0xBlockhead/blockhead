@@ -13,32 +13,26 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	credential: {
-		label: 'credential',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	credentialKind: {
-		label: 'credential kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	rewardAddress: {
-		label: 'reward address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$delegationEpochs: {
-		label: 'delegation epochs',
 		entityType: EntityType.CardanoStakeDelegation_Epoch,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$addresses: {
-		label: 'addresses',
 		entityType: EntityType.CardanoAddress,
 		cardinality: EntityFieldCardinality.Many,
 	},

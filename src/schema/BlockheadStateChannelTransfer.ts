@@ -13,37 +13,30 @@ export default entity({
 	},
 })({
 	$channel: {
-		label: 'channel',
 		entityType: EntityType.BlockheadStateChannel,
 		cardinality: EntityFieldCardinality.One,
 	},
 	turnNum: {
-		label: 'turn num',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$from: {
-		label: 'from',
 		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$to: {
-		label: 'to',
 		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	amount: {
-		label: 'amount',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestamp: {
-		label: 'timestamp',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	status: {
-		label: 'status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},

@@ -14,43 +14,34 @@ export default entity({
 	},
 })({
 	connectionId: {
-		label: 'connection ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$profile: {
-		label: 'profile',
 		entityType: EntityType.BlockheadAgentProfile,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		entityType: EntityType.BlockheadSource,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	connectionKind: {
-		label: 'connection kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	endpointUrl: {
-		label: 'endpoint URL',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	authKind: {
-		label: 'auth kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	enabled: {
-		label: 'enabled',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.BlockheadAgentConnection_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

@@ -13,31 +13,22 @@ export default entity({
 	},
 })({
 	$entry: {
-		label: 'entry',
 		entityType: EntityType.StarknetStorageEntry,
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockNumber: {
-		label: 'Block number',
-		description: 'The block height or number in its network.',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	value: {
-		label: 'Value',
-		description: 'The source-domain value.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	blockHash: {
-		label: 'Block hash',
-		description: 'The hash that identifies the block in its network.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

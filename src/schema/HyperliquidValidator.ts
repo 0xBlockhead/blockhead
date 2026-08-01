@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	validator: {
-		label: 'validator',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.HyperliquidValidator_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

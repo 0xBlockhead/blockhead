@@ -14,22 +14,18 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$actor: {
-		label: 'actor',
 		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.EvmNetworkAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$transactions: {
-		label: 'transactions',
 		entityType: EntityType.EvmTransaction,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -37,17 +33,14 @@ export default entity({
 		],
 	},
 	$$tokenTransfers: {
-		label: 'token transfers',
 		entityType: EntityType.EvmTokenTransfer,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$internalTransfers: {
-		label: 'internal transfers',
 		entityType: EntityType.EvmInternalTransfer,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$ownedCoins: {
-		label: 'owned coins',
 		entityType: EntityType.EvmNetworkActorCoinBalance,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -55,7 +48,6 @@ export default entity({
 		],
 	},
 	$$erc20TokenAllowances: {
-		label: 'erc20 token allowances',
 		entityType: EntityType.EvmActorCoinAllowance,
 		cardinality: EntityFieldCardinality.Many,
 	},

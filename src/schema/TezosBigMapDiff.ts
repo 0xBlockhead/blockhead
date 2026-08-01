@@ -13,38 +13,30 @@ export default entity({
 	},
 })({
 	$operation: {
-		label: 'operation',
 		entityType: EntityType.TezosOperation,
 		cardinality: EntityFieldCardinality.One,
 	},
 	bigMapId: {
-		label: 'big map ID',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	keyHash: {
-		label: 'key hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	action: {
-		label: 'action',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	key: {
-		label: 'key',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	value: {
-		label: 'Value',
-		description: 'The source-domain value.',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$bigMap: {
-		label: 'big map',
 		entityType: EntityType.TezosBigMap,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

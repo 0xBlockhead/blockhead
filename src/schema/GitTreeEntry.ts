@@ -14,32 +14,26 @@ export default entity({
 	},
 })({
 	$tree: {
-		label: 'tree',
 		entityType: EntityType.GitTree,
 		cardinality: EntityFieldCardinality.One,
 	},
 	path: {
-		label: 'path',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	mode: {
-		label: 'mode',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	objectId: {
-		label: 'object ID',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	objectKind: {
-		label: 'object kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$object: {
-		label: 'object',
 		entityType: EntityType.GitObject,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

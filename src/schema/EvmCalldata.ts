@@ -14,7 +14,6 @@ export default entity({
 	},
 })({
 	hex: {
-		label: 'Hex',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},

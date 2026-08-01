@@ -14,24 +14,18 @@ export default entity({
 	},
 })({
 	$keyset: {
-		label: 'keyset',
 		entityType: EntityType.CashuKeyset,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	active: {
-		label: 'active',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -39,7 +33,6 @@ export default entity({
 		],
 	},
 	inputFeePpk: {
-		label: 'input fee ppk',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -47,17 +40,14 @@ export default entity({
 		],
 	},
 	finalExpiryMs: {
-		label: 'final expiry ms',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	listedByKeysEndpoint: {
-		label: 'listed by keys endpoint',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	listedByKeysetsEndpoint: {
-		label: 'listed by keysets endpoint',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	accountId: {
-		label: 'Account ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'Account snapshots',
 		entityType: EntityType.PolkadotAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 		],
 	},
 	$$assetBalanceTimestamps: {
-		label: 'Asset balance observations',
 		entityType: EntityType.PolkadotAssetBalance_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

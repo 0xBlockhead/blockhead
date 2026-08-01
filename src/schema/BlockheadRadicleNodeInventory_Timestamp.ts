@@ -13,44 +13,34 @@ export default entity({
 	},
 })({
 	$node: {
-		label: 'node',
 		entityType: EntityType.BlockheadRadicleNodeState,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	repositoryCount: {
-		label: 'repository count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	connectedPeerCount: {
-		label: 'connected peer count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	routingTableSize: {
-		label: 'routing table size',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	advertisedRids: {
-		label: 'advertised rids',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 	},
 	status: {
-		label: 'status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},

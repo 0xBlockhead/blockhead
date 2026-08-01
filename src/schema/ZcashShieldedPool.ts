@@ -15,17 +15,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	pool: {
-		label: 'Pool',
 		primitiveType: type.enumerated(...Object.values(ZcashShieldedPoolKind)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	activationNetworkUpgrade: {
-		label: 'Activation network upgrade',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -33,7 +30,6 @@ export default entity({
 		],
 	},
 	noteProtocol: {
-		label: 'Note protocol',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [

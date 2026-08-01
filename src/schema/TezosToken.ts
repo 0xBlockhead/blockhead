@@ -13,44 +13,34 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.TezosNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	contractAddress: {
-		label: 'contract address',
-		description: 'The contract address on its network.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	tokenId: {
-		label: 'Token ID',
-		description: 'The token identifier within its collection or contract.',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	standard: {
-		label: 'standard',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$contract: {
-		label: 'contract',
 		entityType: EntityType.TezosContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.TezosToken_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$balanceTimestamps: {
-		label: 'balance timestamps',
 		entityType: EntityType.TezosTokenBalance_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$transfers: {
-		label: 'transfers',
 		entityType: EntityType.TezosTokenTransfer,
 		cardinality: EntityFieldCardinality.Many,
 	},

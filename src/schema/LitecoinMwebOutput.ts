@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$transaction: {
-		label: 'transaction',
 		entityType: EntityType.LitecoinMwebTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	outputIndex: {
-		label: 'output index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	commitment: {
-		label: 'commitment',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	senderPubkey: {
-		label: 'sender public key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$localOutputState: {
-		label: 'local output state',
 		entityType: EntityType.BlockheadLitecoinMwebOutputState,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

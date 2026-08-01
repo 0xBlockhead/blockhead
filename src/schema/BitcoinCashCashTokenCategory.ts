@@ -13,12 +13,10 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	categoryId: {
-		label: 'Category ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},

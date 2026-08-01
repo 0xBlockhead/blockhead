@@ -16,33 +16,26 @@ export default entity({
 	description: 'An account address in the EVM address space, independent of any one chain.',
 })({
 	address: {
-		label: 'Address',
-		description: 'The address or account identifier used by the source protocol.',
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	interopAddress: {
-		label: 'Interop address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$primaryName: {
-		label: 'Primary name',
 		entityType: EntityType.EnsName,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	avatarUrl: {
-		label: 'Avatar URL',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$avatar: {
-		label: 'Avatar',
 		entityType: EntityType.Media,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$ensNamesOwned: {
-		label: 'ENS names owned',
 		entityType: EntityType.EnsName,
 		cardinality: EntityFieldCardinality.Many,
 	},

@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$channel: {
-		label: 'Channel',
 		entityType: EntityType.FarcasterChannel,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	followerCount: {
-		label: 'Followers',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	memberCount: {
-		label: 'Members',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

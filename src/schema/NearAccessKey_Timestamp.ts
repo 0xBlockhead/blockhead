@@ -14,34 +14,26 @@ export default entity({
 	},
 })({
 	$accessKey: {
-		label: 'Access key',
 		entityType: EntityType.NearAccessKey,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockHeight: {
-		label: 'Block height',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	blockHash: {
-		label: 'Block hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	nonce: {
-		label: 'Nonce',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -49,7 +41,6 @@ export default entity({
 		],
 	},
 	permission: {
-		label: 'Permission',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -57,7 +48,6 @@ export default entity({
 		],
 	},
 	allowanceYoctoNear: {
-		label: 'Allowance yocto near',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -65,7 +55,6 @@ export default entity({
 		],
 	},
 	receiverId: {
-		label: 'Receiver ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -73,7 +62,6 @@ export default entity({
 		],
 	},
 	methodNames: {
-		label: 'Method names',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

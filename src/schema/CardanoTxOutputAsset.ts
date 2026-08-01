@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	$output: {
-		label: 'output',
 		entityType: EntityType.CardanoTxOutput,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$asset: {
-		label: 'asset',
 		entityType: EntityType.CardanoNativeAsset,
 		cardinality: EntityFieldCardinality.One,
 	},
 	quantity: {
-		label: 'quantity',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},

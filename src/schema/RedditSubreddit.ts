@@ -14,39 +14,30 @@ export default entity({
 	},
 })({
 	name: {
-		label: 'Name',
-		description: 'The human-readable subreddit name.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	title: {
-		label: 'Title',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	publicDescription: {
-		label: 'Public description',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdAt: {
-		label: 'Created',
-		description: 'The time when the subreddit was created according to Reddit.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	over18: {
-		label: 'Over 18',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$icon: {
-		label: 'Icon',
 		entityType: EntityType.Media,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.RedditSubreddit_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -54,7 +45,6 @@ export default entity({
 		],
 	},
 	$$links: {
-		label: 'Submissions',
 		entityType: EntityType.RedditLink,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

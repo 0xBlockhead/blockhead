@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$account: {
-		label: 'Account',
 		entityType: EntityType.NearAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	publicKey: {
-		label: 'Public key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	nonce: {
-		label: 'Nonce',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 		],
 	},
 	permission: {
-		label: 'Permission',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

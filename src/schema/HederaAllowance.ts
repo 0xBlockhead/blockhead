@@ -13,43 +13,34 @@ export default entity({
 	},
 })({
 	$owner: {
-		label: 'owner',
 		entityType: EntityType.HederaAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$spender: {
-		label: 'spender',
 		entityType: EntityType.HederaAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	allowanceKind: {
-		label: 'allowance kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	tokenId: {
-		label: 'Token ID',
-		description: 'The token identifier within its collection or contract.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	serialNumber: {
-		label: 'serial number',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$token: {
-		label: 'token',
 		entityType: EntityType.HederaToken,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$nft: {
-		label: 'NFT',
 		entityType: EntityType.HederaNft,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.HederaAllowance_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

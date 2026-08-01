@@ -13,32 +13,26 @@ export default entity({
 	},
 })({
 	$canister: {
-		label: 'canister',
 		entityType: EntityType.IcpCanister,
 		cardinality: EntityFieldCardinality.One,
 	},
 	ledgerStandard: {
-		label: 'ledger standard',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.IcpLedgerCanister_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$accountTimestamps: {
-		label: 'account timestamps',
 		entityType: EntityType.IcpLedgerAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$blocks: {
-		label: 'blocks',
 		entityType: EntityType.IcpLedgerBlock,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$transactions: {
-		label: 'transactions',
 		entityType: EntityType.IcpLedgerTransaction,
 		cardinality: EntityFieldCardinality.Many,
 	},

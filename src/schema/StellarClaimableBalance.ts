@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.StellarNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	claimableBalanceId: {
-		label: 'claimable balance ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.StellarClaimableBalance_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

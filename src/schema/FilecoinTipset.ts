@@ -14,23 +14,18 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	height: {
-		label: 'Height',
-		description: 'The block height.',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	tipsetKey: {
-		label: 'Tipset key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$parent: {
-		label: 'Parent',
 		entityType: EntityType.FilecoinTipset,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -39,7 +34,6 @@ export default entity({
 		],
 	},
 	parentWeight: {
-		label: 'Parent weight',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -47,8 +41,6 @@ export default entity({
 		],
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -57,7 +49,6 @@ export default entity({
 		],
 	},
 	$$blocks: {
-		label: 'Blocks',
 		entityType: EntityType.FilecoinBlock,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

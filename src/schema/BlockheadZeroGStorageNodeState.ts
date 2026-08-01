@@ -15,42 +15,34 @@ export default entity({
 	},
 })({
 	connectionId: {
-		label: 'connection ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$network: {
-		label: 'network',
 		entityType: EntityType.ZeroGNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	nodeId: {
-		label: 'node ID',
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	endpoint: {
-		label: 'endpoint',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	storagePath: {
-		label: 'storage path',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$localChunks: {
-		label: 'local chunks',
 		entityType: EntityType.BlockheadZeroGStoredChunk,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$localProofs: {
-		label: 'local proofs',
 		entityType: EntityType.BlockheadZeroGStorageProof,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.BlockheadZeroGStorageNodeState_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

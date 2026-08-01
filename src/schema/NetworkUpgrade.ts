@@ -15,18 +15,14 @@ export default entity({
 	description: 'A generic network-upgrade compatibility row keyed by network and upgrade id. Rich Ethereum-specific upgrade modeling remains on EthereumNetworkUpgrade and related execution/consensus rows.',
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	upgradeId: {
-		label: 'Upgrade ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	name: {
-		label: 'Name',
-		description: 'The human-readable name of the subject.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -34,12 +30,10 @@ export default entity({
 		],
 	},
 	$$specificationProposals: {
-		label: 'Specification proposals',
 		entityType: EntityType.SpecificationProposal,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.NetworkUpgrade_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

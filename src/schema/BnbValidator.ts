@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.BnbBeaconNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	operatorAddress: {
-		label: 'operator address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	consensusAddress: {
-		label: 'consensus address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	moniker: {
-		label: 'moniker',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.BnbValidator_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

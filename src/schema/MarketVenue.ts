@@ -16,18 +16,14 @@ export default entity({
 	description: 'A curated exchange or venue identifier used to group markets.',
 })({
 	marketVenueId: {
-		label: 'Market venue ID',
 		primitiveType: type.enumerated(...Object.values(MarketVenueId)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	label: {
-		label: 'Label',
-		description: 'A human-readable name for the subject.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$markets: {
-		label: 'Markets',
 		entityType: EntityType.Market,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

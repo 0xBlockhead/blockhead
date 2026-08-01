@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	apiHost: {
-		label: 'API host',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	allowance: {
-		label: 'Allowance',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	fetchedAt: {
-		label: 'Fetched at',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},

@@ -15,7 +15,6 @@ export default entity({
 	description: 'A locally enrolled public account included in Blockhead account-wide views.',
 })({
 	$account: {
-		label: 'Account',
 		entityType: EntityType.Account,
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [

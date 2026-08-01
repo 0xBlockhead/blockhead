@@ -14,18 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
-		description: 'The address or account identifier used by the source protocol.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	addressKind: {
-		label: 'address kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -33,17 +29,14 @@ export default entity({
 		],
 	},
 	paymentCredential: {
-		label: 'payment credential',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	stakeCredential: {
-		label: 'stake credential',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$stakeCredential: {
-		label: 'stake credential',
 		entityType: EntityType.CardanoStakeCredential,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -51,7 +44,6 @@ export default entity({
 		],
 	},
 	$$utxos: {
-		label: 'utxos',
 		entityType: EntityType.CardanoTxOutput,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -59,8 +51,6 @@ export default entity({
 		],
 	},
 	$$assets: {
-		label: 'native assets',
-		description: 'Native assets present across the current unspent outputs at this address.',
 		entityType: EntityType.CardanoNativeAsset,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -68,7 +58,6 @@ export default entity({
 		],
 	},
 	$$transactions: {
-		label: 'transactions',
 		entityType: EntityType.CardanoTransaction,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -76,7 +65,6 @@ export default entity({
 		],
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.CardanoAddress_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

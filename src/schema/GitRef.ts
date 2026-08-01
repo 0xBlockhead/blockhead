@@ -14,32 +14,26 @@ export default entity({
 	},
 })({
 	$repository: {
-		label: 'repository',
 		entityType: EntityType.GitRepository,
 		cardinality: EntityFieldCardinality.One,
 	},
 	refName: {
-		label: 'ref name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	refKind: {
-		label: 'ref kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	targetObjectId: {
-		label: 'target object ID',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	symbolicTarget: {
-		label: 'symbolic target',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$observations: {
-		label: 'observations',
 		entityType: EntityType.GitRefObservation_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

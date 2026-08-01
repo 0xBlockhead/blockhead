@@ -13,98 +13,78 @@ export default entity({
 	},
 })({
 	$proposal: {
-		label: 'proposal',
 		entityType: EntityType.CardanoGovernanceProposal,
 		cardinality: EntityFieldCardinality.One,
 	},
 	epoch: {
-		label: 'epoch',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	slot: {
-		label: 'slot',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	status: {
-		label: 'status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	enactedEpoch: {
-		label: 'enacted epoch',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	expiredEpoch: {
-		label: 'expired epoch',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	droppedEpoch: {
-		label: 'dropped epoch',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	ratifiedEpoch: {
-		label: 'ratified epoch',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	expirationEpoch: {
-		label: 'expiration epoch',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	yesStakeLovelace: {
-		label: 'yes stake lovelace',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	noStakeLovelace: {
-		label: 'no stake lovelace',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	abstainStakeLovelace: {
-		label: 'abstain stake lovelace',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	drepYesStakeLovelace: {
-		label: 'drep yes stake lovelace',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	drepNoStakeLovelace: {
-		label: 'drep no stake lovelace',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	spoYesStakeLovelace: {
-		label: 'spo yes stake lovelace',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	spoNoStakeLovelace: {
-		label: 'spo no stake lovelace',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	committeeYesCount: {
-		label: 'committee yes count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	committeeNoCount: {
-		label: 'committee no count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

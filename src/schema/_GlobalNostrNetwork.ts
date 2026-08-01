@@ -16,13 +16,10 @@ export default entity({
 	description: 'Nostr is a relay-based social protocol for signed events. Profiles, notes, reposts, and articles are event kinds; relays are transport endpoints and are not global proof that an event exists everywhere.',
 })({
 	scope: {
-		label: 'Scope',
-		description: 'The fixed scope value that identifies this global hub row.',
 		primitiveType: type.unit('_GlobalNostrNetwork'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	protocolName: {
-		label: 'Protocol',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -30,7 +27,6 @@ export default entity({
 		],
 	},
 	registryName: {
-		label: 'Registry name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -38,7 +34,6 @@ export default entity({
 		],
 	},
 	homeUrl: {
-		label: 'Home',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -46,7 +41,6 @@ export default entity({
 		],
 	},
 	docsUrl: {
-		label: 'Docs',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -54,7 +48,6 @@ export default entity({
 		],
 	},
 	relationshipModel: {
-		label: 'Connection model',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -62,7 +55,6 @@ export default entity({
 		],
 	},
 	$$observedProfiles: {
-		label: 'Profiles',
 		entityType: EntityType.NostrProfile,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -71,7 +63,6 @@ export default entity({
 		],
 	},
 	$$observedNotes: {
-		label: 'Notes',
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -80,7 +71,6 @@ export default entity({
 		],
 	},
 	$$observedRelays: {
-		label: 'Relays',
 		entityType: EntityType.NostrRelay,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -89,7 +79,6 @@ export default entity({
 		],
 	},
 	$$observedReposts: {
-		label: 'Reposts',
 		entityType: EntityType.NostrRepost,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -97,12 +86,10 @@ export default entity({
 		],
 	},
 	$$observedReactions: {
-		label: 'Reactions',
 		entityType: EntityType.NostrReaction,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$observedArticles: {
-		label: 'Articles',
 		entityType: EntityType.NostrArticle,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -110,7 +97,6 @@ export default entity({
 		],
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType._GlobalNostrNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

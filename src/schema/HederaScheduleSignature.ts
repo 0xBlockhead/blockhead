@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$schedule: {
-		label: 'schedule',
 		entityType: EntityType.HederaSchedule,
 		cardinality: EntityFieldCardinality.One,
 	},
 	publicKeyPrefix: {
-		label: 'public key prefix',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	consensusTimestamp: {
-		label: 'consensus timestamp',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	signature: {
-		label: 'signature',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$account: {
-		label: 'account',
 		entityType: EntityType.HederaAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

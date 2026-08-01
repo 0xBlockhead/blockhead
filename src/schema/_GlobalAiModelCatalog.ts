@@ -13,53 +13,42 @@ export default entity({
 	},
 })({
 	catalogId: {
-		label: 'catalog ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	label: {
-		label: 'Label',
-		description: 'A human-readable name for the subject.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	catalogKind: {
-		label: 'catalog kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$providers: {
-		label: 'providers',
 		entityType: EntityType.AiModelProvider,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$catalogEntries: {
-		label: 'catalog entries',
 		entityType: EntityType.AiProviderCatalogEntry,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$models: {
-		label: 'models',
 		entityType: EntityType.AiModel,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$datasets: {
-		label: 'datasets',
 		entityType: EntityType.AiDataset,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$benchmarks: {
-		label: 'benchmarks',
 		entityType: EntityType.AiBenchmark,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$evaluations: {
-		label: 'evaluations',
 		entityType: EntityType.AiEvaluation_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType._GlobalAiModelCatalog_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

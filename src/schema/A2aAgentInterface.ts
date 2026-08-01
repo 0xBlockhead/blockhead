@@ -14,38 +14,30 @@ export default entity({
 	},
 })({
 	$cardSnapshot: {
-		label: 'card snapshot',
 		entityType: EntityType.A2aAgentCard_Snapshot,
 		cardinality: EntityFieldCardinality.One,
 	},
 	protocolBinding: {
-		label: 'protocol binding',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	url: {
-		label: 'URL',
-		description: 'The URL for the source-domain resource.',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	protocolVersion: {
-		label: 'protocol version',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	transportKind: {
-		label: 'transport kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	mediaType: {
-		label: 'media type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	serviceParameters: {
-		label: 'service parameters',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

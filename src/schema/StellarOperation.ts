@@ -13,32 +13,26 @@ export default entity({
 	},
 })({
 	$transaction: {
-		label: 'transaction',
 		entityType: EntityType.StellarTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	operationIndex: {
-		label: 'operation index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	operationType: {
-		label: 'operation type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	sourceAccount: {
-		label: 'source account',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	body: {
-		label: 'body',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	resultCode: {
-		label: 'result code',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

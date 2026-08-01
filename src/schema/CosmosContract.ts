@@ -13,28 +13,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
-		description: 'The address or account identifier used by the source protocol.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	codeId: {
-		label: 'Code ID',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$creator: {
-		label: 'Creator',
 		entityType: EntityType.CosmosAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$admin: {
-		label: 'Admin',
 		entityType: EntityType.CosmosAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

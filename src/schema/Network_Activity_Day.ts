@@ -16,22 +16,18 @@ export default entity({
 	description: 'A completed UTC day of provider-reported network activity aggregates.',
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	dayStartTimestampMs: {
-		label: 'Day start',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockCount: {
-		label: 'Block count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -39,7 +35,6 @@ export default entity({
 		],
 	},
 	transactionCount: {
-		label: 'Transaction count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -47,7 +42,6 @@ export default entity({
 		],
 	},
 	endBlockNumber: {
-		label: 'End block number',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -55,7 +49,6 @@ export default entity({
 		],
 	},
 	indexedThroughTimestampMs: {
-		label: 'Indexed through',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -63,7 +56,6 @@ export default entity({
 		],
 	},
 	resolvedAtMs: {
-		label: 'Resolved at',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -71,7 +63,6 @@ export default entity({
 		],
 	},
 	trustModel: {
-		label: 'Trust model',
 		primitiveType: type.enumerated(...Object.values(OptimisticProviderResult)),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [

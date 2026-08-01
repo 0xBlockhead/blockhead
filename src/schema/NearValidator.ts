@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	accountId: {
-		label: 'Account ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	publicKey: {
-		label: 'Public key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 		],
 	},
 	stakeYoctoNear: {
-		label: 'Stake yocto near',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -40,7 +36,6 @@ export default entity({
 		],
 	},
 	isSlashed: {
-		label: 'Slashed',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -48,7 +43,6 @@ export default entity({
 		],
 	},
 	expectedBlocks: {
-		label: 'Expected blocks',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -56,7 +50,6 @@ export default entity({
 		],
 	},
 	producedBlocks: {
-		label: 'Produced blocks',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -64,7 +57,6 @@ export default entity({
 		],
 	},
 	expectedChunks: {
-		label: 'Expected chunks',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -72,7 +64,6 @@ export default entity({
 		],
 	},
 	producedChunks: {
-		label: 'Produced chunks',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

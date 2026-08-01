@@ -15,12 +15,10 @@ export default entity({
 	description: 'A Nostr relay is a WebSocket endpoint that can publish, store, and serve signed events; relay metadata is optional NIP-11 source data.',
 })({
 	relayUrl: {
-		label: 'Relay URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$notes: {
-		label: 'Live notes',
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -28,7 +26,6 @@ export default entity({
 		],
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.NostrRelay_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

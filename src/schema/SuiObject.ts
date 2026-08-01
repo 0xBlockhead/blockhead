@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.SuiNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	objectId: {
-		label: 'object ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$versions: {
-		label: 'versions',
 		entityType: EntityType.SuiObjectVersion,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$dynamicFields: {
-		label: 'dynamic fields',
 		entityType: EntityType.SuiDynamicFieldEdge,
 		cardinality: EntityFieldCardinality.Many,
 	},

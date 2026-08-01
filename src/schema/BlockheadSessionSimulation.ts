@@ -15,79 +15,62 @@ export default entity({
 	},
 })({
 	id: {
-		label: 'ID',
-		description: 'The identifier assigned by the source domain.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$session: {
-		label: 'session',
 		entityType: EntityType.BlockheadSession,
 		cardinality: EntityFieldCardinality.One,
 	},
 	status: {
-		label: 'status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	createdAt: {
-		label: 'Created',
-		description: 'The time when the subject was created according to the source.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	completedAt: {
-		label: 'completed AT',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	paramsHash: {
-		label: 'params hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	forkBlockNumber: {
-		label: 'fork block number',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	forkRpcOrigin: {
-		label: 'fork RPC origin',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	actionCount: {
-		label: 'action count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	gasUsed: {
-		label: 'gas used',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	resultSummary: {
-		label: 'result summary',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	resultPayloadHash: {
-		label: 'result payload hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	error: {
-		label: 'error',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$calls: {
-		label: 'calls',
 		entityType: EntityType.BlockheadSessionSimulationCall,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$logs: {
-		label: 'logs',
 		entityType: EntityType.BlockheadSessionSimulationLog,
 		cardinality: EntityFieldCardinality.Many,
 	},

@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$account: {
-		label: 'account',
 		entityType: EntityType.StellarAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	signerKey: {
-		label: 'signer key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	signerType: {
-		label: 'signer type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.StellarAccountSigner_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

@@ -13,73 +13,58 @@ export default entity({
 	},
 })({
 	$client: {
-		label: 'client',
 		entityType: EntityType.BlockheadBitTorrentClientState,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$torrent: {
-		label: 'torrent',
 		entityType: EntityType.BitTorrentMetainfo,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	status: {
-		label: 'status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	savePath: {
-		label: 'save path',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	selectedFileIndexes: {
-		label: 'selected file indexes',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.Many,
 	},
 	downloadedBytes: {
-		label: 'downloaded bytes',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	uploadedBytes: {
-		label: 'uploaded bytes',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	downloadRate: {
-		label: 'download rate',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	uploadRate: {
-		label: 'upload rate',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	verifiedPieces: {
-		label: 'verified pieces',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	failedPieces: {
-		label: 'failed pieces',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	connectedPeerCount: {
-		label: 'connected peer count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	error: {
-		label: 'error',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

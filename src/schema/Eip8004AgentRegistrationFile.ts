@@ -14,12 +14,10 @@ export default entity({
 	},
 })({
 	$registration: {
-		label: 'Registration',
 		entityType: EntityType.Eip8004AgentRegistration,
 		cardinality: EntityFieldCardinality.One,
 	},
 	fileUrl: {
-		label: 'File URL',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},

@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$serviceRequest: {
-		label: 'service request',
 		entityType: EntityType.ZeroGServiceRequest,
 		cardinality: EntityFieldCardinality.One,
 	},
 	traceId: {
-		label: 'trace ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	settlementTransactionHash: {
-		label: 'settlement transaction hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	acknowledgementSignature: {
-		label: 'acknowledgement signature',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	rewardAmount: {
-		label: 'reward amount',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

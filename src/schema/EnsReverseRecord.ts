@@ -13,18 +13,14 @@ export default entity({
 	},
 })({
 	$account: {
-		label: 'Account',
 		entityType: EntityType.Account,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$name: {
-		label: 'Name',
-		description: 'The human-readable name of the subject.',
 		entityType: EntityType.EnsName,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'Timestamps',
 		entityType: EntityType.EnsReverseRecord_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

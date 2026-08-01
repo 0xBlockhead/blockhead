@@ -14,13 +14,10 @@ export default entity({
 	},
 })({
 	scope: {
-		label: 'Scope',
-		description: 'The fixed scope value that identifies this global hub row.',
 		primitiveType: type.unit('_GlobalYoutubeNetwork'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$observedChannels: {
-		label: 'Channels represented in the bounded popular chart',
 		entityType: EntityType.YoutubeChannel,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -30,7 +27,6 @@ export default entity({
 		],
 	},
 	$$observedVideos: {
-		label: 'Bounded popular videos',
 		entityType: EntityType.YoutubeVideo,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -40,7 +36,6 @@ export default entity({
 		],
 	},
 	$$observedPlaylists: {
-		label: 'Playlists from bounded channel discovery seeds',
 		entityType: EntityType.YoutubePlaylist,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -49,7 +44,6 @@ export default entity({
 		],
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType._GlobalYoutubeNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

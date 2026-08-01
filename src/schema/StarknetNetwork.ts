@@ -13,38 +13,30 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	chainId: {
-		label: 'Chain ID',
-		description: 'The chain identifier used by the network family.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.StarknetNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$blocks: {
-		label: 'blocks',
 		entityType: EntityType.StarknetBlock,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$transactions: {
-		label: 'transactions',
 		entityType: EntityType.StarknetTransaction,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$contracts: {
-		label: 'contracts',
 		entityType: EntityType.StarknetContract,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$classes: {
-		label: 'classes',
 		entityType: EntityType.StarknetClass,
 		cardinality: EntityFieldCardinality.Many,
 	},

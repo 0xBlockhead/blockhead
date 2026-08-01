@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	apiHost: {
-		label: 'API host',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	fromDomain: {
-		label: 'From domain',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	toDomain: {
-		label: 'To domain',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	rows: {
-		label: 'Rows',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.One,
 	},

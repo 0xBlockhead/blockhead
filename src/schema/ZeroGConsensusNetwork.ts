@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	consensusNetworkId: {
-		label: 'consensus network ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.ZeroGConsensusNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.StellarNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	wasmHash: {
-		label: 'Wasm hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.SorobanWasm_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$contracts: {
-		label: 'contracts',
 		entityType: EntityType.SorobanContract,
 		cardinality: EntityFieldCardinality.Many,
 	},

@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.SuiNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	originalPackageId: {
-		label: 'original package ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$versions: {
-		label: 'versions',
 		entityType: EntityType.SuiPackageVersion,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$upgrades: {
-		label: 'upgrades',
 		entityType: EntityType.SuiPackageUpgrade,
 		cardinality: EntityFieldCardinality.Many,
 	},

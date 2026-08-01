@@ -14,34 +14,26 @@ export default entity({
 	},
 })({
 	$box: {
-		label: 'box',
 		entityType: EntityType.AlgorandBox,
 		cardinality: EntityFieldCardinality.One,
 	},
 	round: {
-		label: 'round',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	value: {
-		label: 'Value',
-		description: 'The native asset amount transferred by the call frame.',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	valueHash: {
-		label: 'value hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	deleted: {
-		label: 'deleted',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

@@ -14,22 +14,18 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	chunkHash: {
-		label: 'Chunk hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$block: {
-		label: 'Block',
 		entityType: EntityType.NearBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	shardId: {
-		label: 'Shard ID',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -37,7 +33,6 @@ export default entity({
 		],
 	},
 	gasUsed: {
-		label: 'Gas used',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -45,7 +40,6 @@ export default entity({
 		],
 	},
 	$$transactions: {
-		label: 'Transactions',
 		entityType: EntityType.NearTransaction,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

@@ -14,24 +14,18 @@ export default entity({
 	},
 })({
 	$lightningNetwork: {
-		label: 'Lightning network',
 		entityType: EntityType.LightningNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	nodeCount: {
-		label: 'Nodes',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -39,7 +33,6 @@ export default entity({
 		],
 	},
 	channelCount: {
-		label: 'Channels',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -47,7 +40,6 @@ export default entity({
 		],
 	},
 	totalCapacitySats: {
-		label: 'Total capacity sats',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -55,7 +47,6 @@ export default entity({
 		],
 	},
 	torNodeCount: {
-		label: 'Tor nodes',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -63,7 +54,6 @@ export default entity({
 		],
 	},
 	clearnetNodeCount: {
-		label: 'Clearnet nodes',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -71,7 +61,6 @@ export default entity({
 		],
 	},
 	unannouncedNodeCount: {
-		label: 'Unannounced nodes',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -79,7 +68,6 @@ export default entity({
 		],
 	},
 	averageCapacitySats: {
-		label: 'Average capacity sats',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -87,7 +75,6 @@ export default entity({
 		],
 	},
 	medianCapacitySats: {
-		label: 'Median capacity sats',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -95,7 +82,6 @@ export default entity({
 		],
 	},
 	averageFeeRatePpm: {
-		label: 'Average fee rate ppm',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -103,7 +89,6 @@ export default entity({
 		],
 	},
 	medianFeeRatePpm: {
-		label: 'Median fee rate ppm',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

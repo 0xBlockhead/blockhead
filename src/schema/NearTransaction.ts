@@ -14,23 +14,18 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	hash: {
-		label: 'Hash',
-		description: 'The hash that identifies this object in its protocol.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	signerAccountId: {
-		label: 'Signer account ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$signer: {
-		label: 'Signer',
 		entityType: EntityType.NearAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -39,7 +34,6 @@ export default entity({
 		],
 	},
 	$receiver: {
-		label: 'Receiver',
 		entityType: EntityType.NearAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -47,7 +41,6 @@ export default entity({
 		],
 	},
 	nonce: {
-		label: 'Nonce',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -55,7 +48,6 @@ export default entity({
 		],
 	},
 	$$actions: {
-		label: 'Actions',
 		entityType: EntityType.NearAction,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -63,7 +55,6 @@ export default entity({
 		],
 	},
 	$$executionOutcomes: {
-		label: 'Execution outcomes',
 		entityType: EntityType.NearExecutionOutcome,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

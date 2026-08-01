@@ -14,25 +14,18 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	height: {
-		label: 'Height',
-		description: 'The block height.',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -40,7 +33,6 @@ export default entity({
 		],
 	},
 	targetHeight: {
-		label: 'Target height',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -48,7 +40,6 @@ export default entity({
 		],
 	},
 	topBlockHash: {
-		label: 'Top block hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -56,7 +47,6 @@ export default entity({
 		],
 	},
 	difficulty: {
-		label: 'Difficulty',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -64,7 +54,6 @@ export default entity({
 		],
 	},
 	wideDifficulty: {
-		label: 'Wide difficulty',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -72,7 +61,6 @@ export default entity({
 		],
 	},
 	cumulativeDifficulty: {
-		label: 'Cumulative difficulty',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -80,7 +68,6 @@ export default entity({
 		],
 	},
 	wideCumulativeDifficulty: {
-		label: 'Wide cumulative difficulty',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -88,7 +75,6 @@ export default entity({
 		],
 	},
 	blockSizeLimit: {
-		label: 'Block size limit',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -96,7 +82,6 @@ export default entity({
 		],
 	},
 	blockSizeMedian: {
-		label: 'Block size median',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -104,7 +89,6 @@ export default entity({
 		],
 	},
 	blockWeightLimit: {
-		label: 'Block weight limit',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -112,7 +96,6 @@ export default entity({
 		],
 	},
 	blockWeightMedian: {
-		label: 'Block weight median',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -120,7 +103,6 @@ export default entity({
 		],
 	},
 	databaseSize: {
-		label: 'Database size',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -128,7 +110,6 @@ export default entity({
 		],
 	},
 	freeSpace: {
-		label: 'Free space',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -136,7 +117,6 @@ export default entity({
 		],
 	},
 	greyPeerlistSize: {
-		label: 'Grey peerlist size',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -144,7 +124,6 @@ export default entity({
 		],
 	},
 	whitePeerlistSize: {
-		label: 'White peerlist size',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -152,7 +131,6 @@ export default entity({
 		],
 	},
 	incomingConnections: {
-		label: 'Incoming connections',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -160,7 +138,6 @@ export default entity({
 		],
 	},
 	outgoingConnections: {
-		label: 'Outgoing connections',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -168,7 +145,6 @@ export default entity({
 		],
 	},
 	txCount: {
-		label: 'Transaction count',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -176,7 +152,6 @@ export default entity({
 		],
 	},
 	txPoolSize: {
-		label: 'Transaction pool size',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -184,7 +159,6 @@ export default entity({
 		],
 	},
 	altBlocksCount: {
-		label: 'Alt blocks',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -192,7 +166,6 @@ export default entity({
 		],
 	},
 	targetSeconds: {
-		label: 'Target seconds',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -200,7 +173,6 @@ export default entity({
 		],
 	},
 	rpcConnections: {
-		label: 'RPC connections',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -208,7 +180,6 @@ export default entity({
 		],
 	},
 	mainnet: {
-		label: 'Mainnet',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -216,7 +187,6 @@ export default entity({
 		],
 	},
 	nettype: {
-		label: 'Network type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -224,7 +194,6 @@ export default entity({
 		],
 	},
 	offline: {
-		label: 'Offline',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -232,7 +201,6 @@ export default entity({
 		],
 	},
 	synchronized: {
-		label: 'Synchronized',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -240,7 +208,6 @@ export default entity({
 		],
 	},
 	wasBootstrapEverUsed: {
-		label: 'Bootstrap ever used',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -248,7 +215,6 @@ export default entity({
 		],
 	},
 	version: {
-		label: 'Version',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -256,7 +222,6 @@ export default entity({
 		],
 	},
 	status: {
-		label: 'Status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

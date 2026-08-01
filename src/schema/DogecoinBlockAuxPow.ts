@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$block: {
-		label: 'Block',
 		entityType: EntityType.UtxoBlock,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$parentBlockHeader: {
-		label: 'Parent block header',
 		entityType: EntityType.DogecoinAuxPowParentBlockHeader,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$coinbaseBranch: {
-		label: 'Coinbase branch',
 		entityType: EntityType.DogecoinAuxPowMerkleBranch,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$chainBranch: {
-		label: 'Chain branch',
 		entityType: EntityType.DogecoinAuxPowMerkleBranch,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

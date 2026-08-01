@@ -14,53 +14,42 @@ export default entity({
 	},
 })({
 	$application: {
-		label: 'application',
 		entityType: EntityType.AlgorandApplication,
 		cardinality: EntityFieldCardinality.One,
 	},
 	round: {
-		label: 'round',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	approvalProgramHash: {
-		label: 'approval program hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	clearProgramHash: {
-		label: 'clear program hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	globalState: {
-		label: 'global state',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	globalSchema: {
-		label: 'global schema',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	localSchema: {
-		label: 'local schema',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	boxCount: {
-		label: 'box count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	deleted: {
-		label: 'deleted',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

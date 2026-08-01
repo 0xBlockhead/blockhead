@@ -13,34 +13,26 @@ export default entity({
 	},
 })({
 	$right: {
-		label: 'right',
 		entityType: EntityType.TezosBakingRight,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	status: {
-		label: 'status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	estimatedTimeMs: {
-		label: 'estimated time ms',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$block: {
-		label: 'block',
 		entityType: EntityType.TezosBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

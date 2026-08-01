@@ -16,18 +16,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	type: {
-		label: 'Type',
-		description: 'The source-domain type or category.',
 		primitiveType: type.enumerated(...Object.values(CoinInstanceType)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$contract: {
-		label: 'Contract',
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
@@ -52,7 +48,6 @@ export default entity({
 			is: 'NativeCurrency',
 		})({
 			coinId: {
-				label: 'Coin ID',
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -60,8 +55,6 @@ export default entity({
 				],
 			},
 			name: {
-				label: 'Name',
-				description: 'The human-readable name of the native currency.',
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
@@ -69,8 +62,6 @@ export default entity({
 				],
 			},
 			symbol: {
-				label: 'Symbol',
-				description: 'The native currency ticker used for display.',
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -78,8 +69,6 @@ export default entity({
 				],
 			},
 			decimals: {
-				label: 'Decimals',
-				description: 'The native currency display precision.',
 				primitiveType: type('number'),
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -87,17 +76,14 @@ export default entity({
 				],
 			},
 			iconUrl: {
-				label: 'Icon URL',
 				primitiveType: UrlString,
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 			},
 			$icon: {
-				label: 'Icon',
 				entityType: EntityType.Media,
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 			},
 			caip19: {
-				label: 'CAIP-19',
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
@@ -105,7 +91,6 @@ export default entity({
 				],
 			},
 			representation: {
-				label: 'Representation',
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
@@ -114,7 +99,6 @@ export default entity({
 				],
 			},
 			$canonicalInstance: {
-				label: 'Canonical instance',
 				entityType: EntityType.EvmCoinInstance,
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
@@ -122,7 +106,6 @@ export default entity({
 				],
 			},
 			$$outboundBridgeCapabilities: {
-				label: 'Outbound bridge capabilities',
 				entityType: EntityType.CoinBridgeCapability,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
 				defaultSources: [
@@ -130,7 +113,6 @@ export default entity({
 				],
 			},
 			$$inboundBridgeCapabilities: {
-				label: 'Inbound bridge capabilities',
 				entityType: EntityType.CoinBridgeCapability,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
 				defaultSources: [
@@ -138,12 +120,10 @@ export default entity({
 				],
 			},
 			$$marketsWithInstanceAsBase: {
-				label: 'Markets with instance as base',
 				entityType: EntityType.Market,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
 			},
 			$$marketsWithInstanceAsQuote: {
-				label: 'Markets with instance as quote',
 				entityType: EntityType.Market,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
 			},
@@ -155,7 +135,6 @@ export default entity({
 			is: 'Erc20Token',
 		})({
 			coinId: {
-				label: 'Coin ID',
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -164,8 +143,6 @@ export default entity({
 				],
 			},
 			name: {
-				label: 'Name',
-				description: 'The human-readable ERC-20 token name.',
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
@@ -174,8 +151,6 @@ export default entity({
 				],
 			},
 			symbol: {
-				label: 'Symbol',
-				description: 'The ERC-20 token ticker used for display.',
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -184,8 +159,6 @@ export default entity({
 				],
 			},
 			decimals: {
-				label: 'Decimals',
-				description: 'The ERC-20 token display precision.',
 				primitiveType: type('number'),
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -194,7 +167,6 @@ export default entity({
 				],
 			},
 			iconUrl: {
-				label: 'Icon URL',
 				primitiveType: UrlString,
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
@@ -202,12 +174,10 @@ export default entity({
 				],
 			},
 			$icon: {
-				label: 'Icon',
 				entityType: EntityType.Media,
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 			},
 			caip19: {
-				label: 'CAIP-19',
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
@@ -216,7 +186,6 @@ export default entity({
 				],
 			},
 			representation: {
-				label: 'Representation',
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
@@ -224,7 +193,6 @@ export default entity({
 				],
 			},
 			$canonicalInstance: {
-				label: 'Canonical instance',
 				entityType: EntityType.EvmCoinInstance,
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
@@ -232,7 +200,6 @@ export default entity({
 				],
 			},
 			$$outboundBridgeCapabilities: {
-				label: 'Outbound bridge capabilities',
 				entityType: EntityType.CoinBridgeCapability,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
 				defaultSources: [
@@ -240,7 +207,6 @@ export default entity({
 				],
 			},
 			$$inboundBridgeCapabilities: {
-				label: 'Inbound bridge capabilities',
 				entityType: EntityType.CoinBridgeCapability,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
 				defaultSources: [
@@ -248,12 +214,10 @@ export default entity({
 				],
 			},
 			$$marketsWithInstanceAsBase: {
-				label: 'Markets with instance as base',
 				entityType: EntityType.Market,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
 			},
 			$$marketsWithInstanceAsQuote: {
-				label: 'Markets with instance as quote',
 				entityType: EntityType.Market,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
 			},

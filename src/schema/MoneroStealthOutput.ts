@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$transaction: {
-		label: 'Transaction',
 		entityType: EntityType.MoneroTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	outputIndex: {
-		label: 'Output index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	publicKey: {
-		label: 'Public key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 		],
 	},
 	commitment: {
-		label: 'Commitment',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

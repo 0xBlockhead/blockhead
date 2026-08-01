@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$auxPow: {
-		label: 'AuxPoW',
 		entityType: EntityType.DogecoinBlockAuxPow,
 		cardinality: EntityFieldCardinality.One,
 	},
 	branchKind: {
-		label: 'Branch kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	branchHashes: {
-		label: 'Branch hashes',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 	},
 	index: {
-		label: 'Index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

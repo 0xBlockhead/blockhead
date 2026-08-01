@@ -13,28 +13,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.KaspaNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
-		description: 'The address or account identifier used by the source protocol.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$transactions: {
-		label: 'transactions',
 		entityType: EntityType.KaspaTransaction,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$utxos: {
-		label: 'utxos',
 		entityType: EntityType.KaspaAddressUtxo_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.KaspaAddress_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

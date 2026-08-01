@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	tokenId: {
-		label: 'Token ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	standard: {
-		label: 'Standard',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 		],
 	},
 	$owner: {
-		label: 'Owner',
 		entityType: EntityType.TronAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -40,7 +36,6 @@ export default entity({
 		],
 	},
 	$contract: {
-		label: 'Contract',
 		entityType: EntityType.TronContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -48,7 +43,6 @@ export default entity({
 		],
 	},
 	createdTimestampMs: {
-		label: 'Created',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -56,12 +50,10 @@ export default entity({
 		],
 	},
 	$$accountBalanceTimestamps: {
-		label: 'Account balance observations',
 		entityType: EntityType.TronAccountTokenBalance_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.TronToken_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

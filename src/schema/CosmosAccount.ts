@@ -14,18 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
-		description: 'The address or account identifier used by the source protocol.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'Timestamps',
 		entityType: EntityType.CosmosAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -34,7 +30,6 @@ export default entity({
 		],
 	},
 	$$transactions: {
-		label: 'Transactions',
 		entityType: EntityType.CosmosTransaction,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

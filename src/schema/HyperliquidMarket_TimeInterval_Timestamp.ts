@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	marketKey: {
-		label: 'market key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timeInterval: {
-		label: 'time interval',
 		primitiveType: type({
 			unit: type('string'),
 			value: type('number'),
@@ -31,48 +28,38 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$perpMarket: {
-		label: 'perp market',
 		entityType: EntityType.HyperliquidPerpMarket,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$spotPair: {
-		label: 'spot pair',
 		entityType: EntityType.HyperliquidSpotPair,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	open: {
-		label: 'open',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	high: {
-		label: 'high',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	low: {
-		label: 'low',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	close: {
-		label: 'close',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	volume: {
-		label: 'volume',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	tradeCount: {
-		label: 'trade count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

@@ -15,28 +15,22 @@ export default entity({
 	description: 'ActivityPub is the W3C federation protocol. This hub shows bounded Mastodon-compatible actor and note windows from declared instance sources.',
 })({
 	scope: {
-		label: 'Scope',
-		description: 'The fixed scope value that identifies this hub row.',
 		primitiveType: type.unit('ActivityPubNetwork'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	protocolName: {
-		label: 'Protocol',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	homeUrl: {
-		label: 'Home URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	docsUrl: {
-		label: 'Docs URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$activityPubActors: {
-		label: 'Actors',
 		entityType: EntityType.ActivityPubActor,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -44,7 +38,6 @@ export default entity({
 		],
 	},
 	$$activityPubNotes: {
-		label: 'Notes',
 		entityType: EntityType.ActivityPubNote,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

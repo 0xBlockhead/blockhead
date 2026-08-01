@@ -13,28 +13,22 @@ export default entity({
 	},
 })({
 	$session: {
-		label: 'session',
 		entityType: EntityType.AcpSession,
 		cardinality: EntityFieldCardinality.One,
 	},
 	sequence: {
-		label: 'sequence',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	updateKind: {
-		label: 'update kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	payload: {
-		label: 'payload',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

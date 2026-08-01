@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$ring: {
-		label: 'Ring',
 		entityType: EntityType.MoneroRing,
 		cardinality: EntityFieldCardinality.One,
 	},
 	memberIndex: {
-		label: 'Member index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	globalOutputIndex: {
-		label: 'Global output index',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

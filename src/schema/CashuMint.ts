@@ -14,12 +14,10 @@ export default entity({
 	},
 })({
 	mintUrl: {
-		label: 'mint URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$keysets: {
-		label: 'keysets',
 		entityType: EntityType.CashuKeyset,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -27,7 +25,6 @@ export default entity({
 		],
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.CashuMint_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

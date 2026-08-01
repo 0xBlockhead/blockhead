@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.StellarNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	contractId: {
-		label: 'contract ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.SorobanContract_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$storageEntries: {
-		label: 'storage entries',
 		entityType: EntityType.SorobanContractStorageEntry,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$transactions: {
-		label: 'transactions',
 		entityType: EntityType.StellarTransaction,
 		cardinality: EntityFieldCardinality.Many,
 	},

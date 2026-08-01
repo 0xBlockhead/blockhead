@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	$contract: {
-		label: 'contract',
 		entityType: EntityType.TonContract,
 		cardinality: EntityFieldCardinality.One,
 	},
 	methodName: {
-		label: 'method name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.TonContractGetMethod_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

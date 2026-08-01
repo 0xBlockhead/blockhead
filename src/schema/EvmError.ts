@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	hex: {
-		label: 'Hex',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	signatures: {
-		label: 'Signatures',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.EvmError_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

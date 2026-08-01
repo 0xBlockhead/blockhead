@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	policyId: {
-		label: 'policy ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	assetName: {
-		label: 'asset name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	fingerprint: {
-		label: 'fingerprint',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.CardanoNativeAsset_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

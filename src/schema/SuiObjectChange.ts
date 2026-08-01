@@ -13,42 +13,34 @@ export default entity({
 	},
 })({
 	$transaction: {
-		label: 'transaction',
 		entityType: EntityType.SuiTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	changeIndex: {
-		label: 'change index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	changeKind: {
-		label: 'change kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	objectId: {
-		label: 'object ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	objectType: {
-		label: 'object type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	ownerSelector: {
-		label: 'owner selector',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	version: {
-		label: 'version',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	digest: {
-		label: 'digest',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

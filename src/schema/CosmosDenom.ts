@@ -13,28 +13,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	denom: {
-		label: 'Denom',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	display: {
-		label: 'Display',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	base: {
-		label: 'Base',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	symbol: {
-		label: 'Symbol',
-		description: 'The short ticker or symbol used for display.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

@@ -13,13 +13,10 @@ export default entity({
 	},
 })({
 	scope: {
-		label: 'Scope',
-		description: 'The fixed scope value that identifies this hub row.',
 		primitiveType: type.unit('_GlobalIpfsAccess'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$observedResources: {
-		label: 'Observed resources',
 		entityType: EntityType.IpfsResource,
 		cardinality: EntityFieldCardinality.Many,
 	},

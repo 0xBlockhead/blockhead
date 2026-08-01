@@ -13,37 +13,30 @@ export default entity({
 	},
 })({
 	$torrent: {
-		label: 'torrent',
 		entityType: EntityType.BitTorrentMetainfo,
 		cardinality: EntityFieldCardinality.One,
 	},
 	path: {
-		label: 'path',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	pathSegments: {
-		label: 'path segments',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 	},
 	entryKind: {
-		label: 'entry kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	length: {
-		label: 'length',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	piecesRoot: {
-		label: 'pieces root',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$file: {
-		label: 'file',
 		entityType: EntityType.BitTorrentFile,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

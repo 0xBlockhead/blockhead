@@ -6782,9 +6782,6 @@ const generateEntityEnumFiles = (entity: Entity) => (entity.enums ?? []).map((ap
 const emitSchemaFieldEntry = (fieldDefinition: EntityField, indexes: GenerationIndexes) => [
 	`${objectPropertyKey(fieldDefinition.name)}: {`,
 	...emitObject([
-		['label', fieldDefinition.label == null ? undefined : emitTypeScript(fieldDefinition.label)],
-		['labelPlural', fieldDefinition.labelPlural == null ? undefined : emitTypeScript(fieldDefinition.labelPlural)],
-		['description', fieldDefinition.description == null ? undefined : emitTypeScript(fieldDefinition.description)],
 		[
 			'primitiveType',
 			fieldDefinition.type === EntityFieldType.Primitive ?

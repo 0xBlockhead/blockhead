@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$account: {
-		label: 'Account',
 		entityType: EntityType.TronAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -32,8 +29,6 @@ export default entity({
 		],
 	},
 	name: {
-		label: 'Name',
-		description: 'The human-readable name of the subject.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -41,7 +36,6 @@ export default entity({
 		],
 	},
 	$creator: {
-		label: 'Creator',
 		entityType: EntityType.TronAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -49,7 +43,6 @@ export default entity({
 		],
 	},
 	$creationTransaction: {
-		label: 'Creation transaction',
 		entityType: EntityType.TronTransaction,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -57,7 +50,6 @@ export default entity({
 		],
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.TronContract_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -65,7 +57,6 @@ export default entity({
 		],
 	},
 	$$tokens: {
-		label: 'Tokens',
 		entityType: EntityType.TronToken,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

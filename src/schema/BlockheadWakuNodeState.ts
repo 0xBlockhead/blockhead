@@ -14,27 +14,22 @@ export default entity({
 	},
 })({
 	connectionId: {
-		label: 'connection ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	nodeId: {
-		label: 'node ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	endpoint: {
-		label: 'endpoint',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.BlockheadWakuNodeState_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$messageObservations: {
-		label: 'message observations',
 		entityType: EntityType.BlockheadWakuMessageObservation_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

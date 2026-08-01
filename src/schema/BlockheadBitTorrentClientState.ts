@@ -13,32 +13,26 @@ export default entity({
 	},
 })({
 	clientId: {
-		label: 'client ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	clientName: {
-		label: 'client name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	peerId: {
-		label: 'peer ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	dhtNodeId: {
-		label: 'DHT node ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$transfers: {
-		label: 'transfers',
 		entityType: EntityType.BlockheadBitTorrentTransfer_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.BlockheadBitTorrentClientState_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

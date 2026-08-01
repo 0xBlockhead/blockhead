@@ -14,37 +14,30 @@ export default entity({
 	},
 })({
 	$repository: {
-		label: 'repository',
 		entityType: EntityType.GitRepository,
 		cardinality: EntityFieldCardinality.One,
 	},
 	commitObjectId: {
-		label: 'commit object ID',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	path: {
-		label: 'path',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	treeObjectIds: {
-		label: 'tree object ids',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	blobObjectId: {
-		label: 'blob object ID',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	submoduleCommitId: {
-		label: 'submodule commit ID',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	status: {
-		label: 'status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},

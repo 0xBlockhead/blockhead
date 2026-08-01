@@ -14,13 +14,10 @@ export default entity({
 	},
 })({
 	scope: {
-		label: 'Scope',
-		description: 'The fixed scope value that identifies this global hub row.',
 		primitiveType: type.unit('_GlobalRedditNetwork'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$observedSubreddits: {
-		label: 'Subreddits',
 		entityType: EntityType.RedditSubreddit,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -28,7 +25,6 @@ export default entity({
 		],
 	},
 	$$observedLinks: {
-		label: 'Popular submissions',
 		entityType: EntityType.RedditLink,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -36,7 +32,6 @@ export default entity({
 		],
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType._GlobalRedditNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

@@ -13,41 +13,30 @@ export default entity({
 	},
 })({
 	$tableItem: {
-		label: 'table item',
 		entityType: EntityType.AptosTableItem,
 		cardinality: EntityFieldCardinality.One,
 	},
 	ledgerVersion: {
-		label: 'ledger version',
-		description: 'The transaction version of a versioned table_items row supplied by the source.',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	value: {
-		label: 'Value',
-		description: 'The source-domain value.',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	valueHash: {
-		label: 'value hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	pruned: {
-		label: 'pruned',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

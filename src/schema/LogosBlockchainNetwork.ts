@@ -13,12 +13,10 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'Timestamps',
 		entityType: EntityType.LogosBlockchainNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

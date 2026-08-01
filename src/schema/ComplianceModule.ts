@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$profile: {
-		label: 'profile',
 		entityType: EntityType.RegulatedAssetProfile,
 		cardinality: EntityFieldCardinality.One,
 	},
 	moduleKey: {
-		label: 'module key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	moduleSelector: {
-		label: 'module selector',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	ruleKind: {
-		label: 'rule kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	config: {
-		label: 'config',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

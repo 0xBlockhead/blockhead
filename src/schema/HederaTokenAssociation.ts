@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	$account: {
-		label: 'account',
 		entityType: EntityType.HederaAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$token: {
-		label: 'token',
 		entityType: EntityType.HederaToken,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.HederaTokenAssociation_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

@@ -15,7 +15,6 @@ export default entity({
 	},
 })({
 	$log: {
-		label: 'Log',
 		entityType: EntityType.EvmLog,
 		cardinality: EntityFieldCardinality.One,
 	},
@@ -24,37 +23,30 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	indexInLog: {
-		label: 'Index in log',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$from: {
-		label: 'From',
 		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$to: {
-		label: 'To',
 		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$tokenContract: {
-		label: 'Token contract',
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$coinInstance: {
-		label: 'Token',
 		entityType: EntityType.EvmCoinInstance,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	amount: {
-		label: 'Amount',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	tokenSymbol: {
-		label: 'Token symbol',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -63,7 +55,6 @@ export default entity({
 		],
 	},
 	tokenName: {
-		label: 'Token name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -72,7 +63,6 @@ export default entity({
 		],
 	},
 	tokenDecimals: {
-		label: 'Token decimals',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -99,8 +89,6 @@ export default entity({
 			],
 		})({
 			tokenId: {
-				label: 'Token ID',
-				description: 'The token identifier within its collection or contract.',
 				primitiveType: type('bigint'),
 				cardinality: EntityFieldCardinality.One,
 			},

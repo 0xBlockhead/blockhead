@@ -15,12 +15,10 @@ export default entity({
 	description: 'A Nostr profile is replaceable kind-0 metadata keyed by a 64-character lowercase hex public key.',
 })({
 	pubkey: {
-		label: 'Pubkey',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$latestMetadataEvent: {
-		label: 'Latest signed metadata',
 		entityType: EntityType.NostrProfileMetadataEvent,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -29,7 +27,6 @@ export default entity({
 		],
 	},
 	$$metadataEvents: {
-		label: 'Signed metadata versions',
 		entityType: EntityType.NostrProfileMetadataEvent,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -38,7 +35,6 @@ export default entity({
 		],
 	},
 	$$notes: {
-		label: 'Notes',
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -47,7 +43,6 @@ export default entity({
 		],
 	},
 	$$articles: {
-		label: 'Articles',
 		entityType: EntityType.NostrArticle,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -55,7 +50,6 @@ export default entity({
 		],
 	},
 	$$reposts: {
-		label: 'Reposts',
 		entityType: EntityType.NostrRepost,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

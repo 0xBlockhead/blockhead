@@ -14,12 +14,10 @@ export default entity({
 	},
 })({
 	$keyImage: {
-		label: 'Key image',
 		entityType: EntityType.MoneroKeyImage,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$members: {
-		label: 'Members',
 		entityType: EntityType.MoneroRingMember,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

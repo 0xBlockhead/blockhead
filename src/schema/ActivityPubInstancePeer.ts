@@ -14,12 +14,10 @@ export default entity({
 	description: 'A domain that a declared ActivityPub instance reports as a known connected domain.',
 })({
 	$observation: {
-		label: 'Observation',
 		entityType: EntityType.ActivityPubInstance_Timestamp,
 		cardinality: EntityFieldCardinality.One,
 	},
 	peerDomain: {
-		label: 'Peer domain',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},

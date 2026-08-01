@@ -14,52 +14,42 @@ export default entity({
 	},
 })({
 	$server: {
-		label: 'server',
 		entityType: EntityType.McpServer,
 		cardinality: EntityFieldCardinality.One,
 	},
 	callId: {
-		label: 'call ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$tool: {
-		label: 'tool',
 		entityType: EntityType.McpTool,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	startedAt: {
-		label: 'started AT',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	completedAt: {
-		label: 'completed AT',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	inputHashAlgorithm: {
-		label: 'input hash algorithm',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	inputHash: {
-		label: 'input hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	outputHashAlgorithm: {
-		label: 'output hash algorithm',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	outputHash: {
-		label: 'output hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.McpToolCall_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

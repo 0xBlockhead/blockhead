@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$parentObject: {
-		label: 'parent object',
 		entityType: EntityType.SuiObject,
 		cardinality: EntityFieldCardinality.One,
 	},
 	fieldNameHash: {
-		label: 'field name hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	childObjectId: {
-		label: 'child object ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	fieldName: {
-		label: 'field name',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.SuiDynamicFieldEdge_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

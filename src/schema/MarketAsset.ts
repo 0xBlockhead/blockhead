@@ -15,12 +15,10 @@ export default entity({
 	},
 })({
 	kind: {
-		label: 'Kind',
 		primitiveType: type.enumerated(...Object.values(MarketAssetKind)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	assetKey: {
-		label: 'Asset key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
@@ -40,7 +38,6 @@ export default entity({
 			is: 'Coin',
 		})({
 			$coin: {
-				label: 'Coin',
 				entityType: EntityType.Coin,
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -55,7 +52,6 @@ export default entity({
 			is: 'CoinInstance',
 		})({
 			$coinInstance: {
-				label: 'Coin instance',
 				entityType: EntityType.EvmCoinInstance,
 				cardinality: EntityFieldCardinality.One,
 			},
@@ -67,7 +63,6 @@ export default entity({
 			is: 'Currency',
 		})({
 			$currency: {
-				label: 'Currency',
 				entityType: EntityType.Currency,
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [

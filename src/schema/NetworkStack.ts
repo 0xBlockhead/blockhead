@@ -14,13 +14,10 @@ export default entity({
 	description: 'A curated protocol-stack classification used by network catalog rows.',
 })({
 	networkStackId: {
-		label: 'Network stack ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	label: {
-		label: 'Label',
-		description: 'A human-readable name for the subject.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},

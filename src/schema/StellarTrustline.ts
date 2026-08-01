@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	$account: {
-		label: 'account',
 		entityType: EntityType.StellarAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$asset: {
-		label: 'asset',
 		entityType: EntityType.StellarAsset,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.StellarTrustline_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

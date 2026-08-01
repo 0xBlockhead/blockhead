@@ -25,8 +25,6 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
@@ -77,8 +75,6 @@ export default entity({
 		],
 	},
 	quoteVolume: {
-		label: 'Quote volume',
-		description: 'Quote-leg candle volume, scaled by 1e8 like quote prices.',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

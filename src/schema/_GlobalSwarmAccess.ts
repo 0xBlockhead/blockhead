@@ -13,18 +13,14 @@ export default entity({
 	},
 })({
 	scope: {
-		label: 'Scope',
-		description: 'The fixed scope value that identifies this hub row.',
 		primitiveType: type.unit('_GlobalSwarmAccess'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$observedResources: {
-		label: 'Observed resources',
 		entityType: EntityType.SwarmResource,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType._GlobalSwarmAccess_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

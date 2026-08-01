@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$name: {
-		label: 'Name',
 		entityType: EntityType.EnsName,
 		cardinality: EntityFieldCardinality.One,
 	},
 	recordKey: {
-		label: 'Record key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	recordKind: {
-		label: 'Record kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	coinType: {
-		label: 'Coin type',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.EnsRecord_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

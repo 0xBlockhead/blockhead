@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	$account: {
-		label: 'account',
 		entityType: EntityType.AptosAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	resourceType: {
-		label: 'resource type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.AptosAccountResource_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

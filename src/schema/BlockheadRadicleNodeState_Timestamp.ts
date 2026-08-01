@@ -13,49 +13,38 @@ export default entity({
 	},
 })({
 	$nodeState: {
-		label: 'node state',
 		entityType: EntityType.BlockheadRadicleNodeState,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	alias: {
-		label: 'alias',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	listenAddresses: {
-		label: 'listen addresses',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 	},
 	externalAddresses: {
-		label: 'external addresses',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 	},
 	nodeVersion: {
-		label: 'node version',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	policy: {
-		label: 'policy',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	lastSyncedAt: {
-		label: 'last synced AT',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

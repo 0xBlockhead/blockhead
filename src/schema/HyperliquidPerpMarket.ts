@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	coin: {
-		label: 'coin',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.HyperliquidPerpMarket_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

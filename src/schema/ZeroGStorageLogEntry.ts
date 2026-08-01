@@ -13,32 +13,26 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	logEntryId: {
-		label: 'log entry ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$dataBlob: {
-		label: 'data blob',
 		entityType: EntityType.ZeroGDataBlob,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$consensusNetwork: {
-		label: 'consensus network',
 		entityType: EntityType.ZeroGConsensusNetwork,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	sequenceNumber: {
-		label: 'sequence number',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	commitment: {
-		label: 'commitment',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

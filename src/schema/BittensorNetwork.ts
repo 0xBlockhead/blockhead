@@ -15,12 +15,10 @@ export default entity({
 	description: 'Bittensor network-specific view over a canonical Network row, with runtime observations, finalized blocks, and subnets from declared Bittensor JSON-RPC sources.',
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'Runtime observations',
 		entityType: EntityType.BittensorNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -28,7 +26,6 @@ export default entity({
 		],
 	},
 	$$blocks: {
-		label: 'Blocks',
 		entityType: EntityType.BittensorBlock,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -36,7 +33,6 @@ export default entity({
 		],
 	},
 	$$subnets: {
-		label: 'Subnets',
 		entityType: EntityType.BittensorSubnet,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

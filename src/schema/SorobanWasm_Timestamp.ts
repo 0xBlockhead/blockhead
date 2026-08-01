@@ -13,53 +13,42 @@ export default entity({
 	},
 })({
 	$wasm: {
-		label: 'Wasm',
 		entityType: EntityType.SorobanWasm,
 		cardinality: EntityFieldCardinality.One,
 	},
 	ledgerSequence: {
-		label: 'ledger sequence',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	observedAtMs: {
-		label: 'observed AT ms',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	wasmBytes: {
-		label: 'Wasm bytes',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	byteLength: {
-		label: 'byte length',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	interfaceVersion: {
-		label: 'interface version',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	envMeta: {
-		label: 'env meta',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	specEntries: {
-		label: 'spec entries',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	found: {
-		label: 'found',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

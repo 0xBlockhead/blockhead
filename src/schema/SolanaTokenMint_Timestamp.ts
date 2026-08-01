@@ -14,29 +14,22 @@ export default entity({
 	},
 })({
 	$mint: {
-		label: 'Mint',
 		entityType: EntityType.SolanaTokenMint,
 		cardinality: EntityFieldCardinality.One,
 	},
 	slot: {
-		label: 'Slot',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	supply: {
-		label: 'Supply',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -44,7 +37,6 @@ export default entity({
 		],
 	},
 	decimals: {
-		label: 'Decimals',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -52,7 +44,6 @@ export default entity({
 		],
 	},
 	mintAuthorityPubkey: {
-		label: 'Mint authority public key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -60,7 +51,6 @@ export default entity({
 		],
 	},
 	freezeAuthorityPubkey: {
-		label: 'Freeze authority public key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -68,7 +58,6 @@ export default entity({
 		],
 	},
 	isInitialized: {
-		label: 'Initialized',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

@@ -13,33 +13,26 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.CelestiaNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	namespaceId: {
-		label: 'namespace ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	namespaceVersion: {
-		label: 'namespace version',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	label: {
-		label: 'Label',
-		description: 'A human-readable name for the subject.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$blobs: {
-		label: 'blobs',
 		entityType: EntityType.CelestiaBlob,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.CelestiaNamespace_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

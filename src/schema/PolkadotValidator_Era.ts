@@ -13,63 +13,50 @@ export default entity({
 	},
 })({
 	$validator: {
-		label: 'validator',
 		entityType: EntityType.PolkadotValidator,
 		cardinality: EntityFieldCardinality.One,
 	},
 	eraIndex: {
-		label: 'era index',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$controller: {
-		label: 'controller',
 		entityType: EntityType.PolkadotAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	commissionPerBillion: {
-		label: 'commission per billion',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	totalStakePlancks: {
-		label: 'total stake plancks',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	ownStakePlancks: {
-		label: 'own stake plancks',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	nominatorStakePlancks: {
-		label: 'nominator stake plancks',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	nominatorCount: {
-		label: 'nominator count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	rewardPoints: {
-		label: 'reward points',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	active: {
-		label: 'active',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	slashed: {
-		label: 'slashed',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

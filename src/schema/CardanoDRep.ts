@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	drepCredential: {
-		label: 'drep credential',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	credentialKind: {
-		label: 'credential kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 		],
 	},
 	displayName: {
-		label: 'display name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -40,7 +36,6 @@ export default entity({
 		],
 	},
 	anchorUrl: {
-		label: 'anchor URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -48,7 +43,6 @@ export default entity({
 		],
 	},
 	anchorHash: {
-		label: 'anchor hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -56,12 +50,10 @@ export default entity({
 		],
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.CardanoDRep_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$votes: {
-		label: 'votes',
 		entityType: EntityType.CardanoGovernanceVote,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

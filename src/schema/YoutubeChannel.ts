@@ -14,42 +14,34 @@ export default entity({
 	},
 })({
 	channelId: {
-		label: 'Channel ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	title: {
-		label: 'Title',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	description: {
-		label: 'Description',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	publishedAt: {
-		label: 'Published',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	publishedAtMs: {
-		label: 'Published',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	customUrl: {
-		label: 'Custom URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$icon: {
-		label: 'Icon',
 		entityType: EntityType.Media,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.YoutubeChannel_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -58,7 +50,6 @@ export default entity({
 		],
 	},
 	$$videos: {
-		label: 'Videos',
 		entityType: EntityType.YoutubeVideo,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -67,7 +58,6 @@ export default entity({
 		],
 	},
 	$$playlists: {
-		label: 'Playlists',
 		entityType: EntityType.YoutubePlaylist,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

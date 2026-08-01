@@ -13,33 +13,26 @@ export default entity({
 	},
 })({
 	catalogId: {
-		label: 'catalog ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	label: {
-		label: 'Label',
-		description: 'A human-readable name for the subject.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	catalogKind: {
-		label: 'catalog kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$artifacts: {
-		label: 'artifacts',
 		entityType: EntityType.AiArtifact,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$documents: {
-		label: 'documents',
 		entityType: EntityType.AiDocument,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType._GlobalAiArtifactCatalog_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

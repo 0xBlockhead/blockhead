@@ -14,22 +14,18 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	proposalTxHash: {
-		label: 'proposal transaction hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	proposalIndex: {
-		label: 'proposal index',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	governanceActionId: {
-		label: 'governance action ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -37,7 +33,6 @@ export default entity({
 		],
 	},
 	proposalKind: {
-		label: 'proposal kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -45,7 +40,6 @@ export default entity({
 		],
 	},
 	$transaction: {
-		label: 'transaction',
 		entityType: EntityType.CardanoTransaction,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -53,7 +47,6 @@ export default entity({
 		],
 	},
 	depositLovelace: {
-		label: 'deposit lovelace',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -61,7 +54,6 @@ export default entity({
 		],
 	},
 	returnAddress: {
-		label: 'return address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -69,7 +61,6 @@ export default entity({
 		],
 	},
 	anchorUrl: {
-		label: 'anchor URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -77,7 +68,6 @@ export default entity({
 		],
 	},
 	anchorHash: {
-		label: 'anchor hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -85,7 +75,6 @@ export default entity({
 		],
 	},
 	$previousAction: {
-		label: 'previous action',
 		entityType: EntityType.CardanoGovernanceProposal,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -94,7 +83,6 @@ export default entity({
 		],
 	},
 	policyHash: {
-		label: 'policy hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -103,7 +91,6 @@ export default entity({
 		],
 	},
 	hardForkMajor: {
-		label: 'hard fork major version',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -112,7 +99,6 @@ export default entity({
 		],
 	},
 	hardForkMinor: {
-		label: 'hard fork minor version',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -121,7 +107,6 @@ export default entity({
 		],
 	},
 	treasuryWithdrawals: {
-		label: 'treasury withdrawals',
 		primitiveType: type({
 			recipientNetwork: type('string'),
 			recipientCredential: type('string'),
@@ -134,7 +119,6 @@ export default entity({
 		],
 	},
 	committeeRemovedCredentials: {
-		label: 'committee removals',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -143,7 +127,6 @@ export default entity({
 		],
 	},
 	committeeAdditions: {
-		label: 'committee additions',
 		primitiveType: type({
 			credential: type('string'),
 			expirationEpoch: type('number'),
@@ -155,7 +138,6 @@ export default entity({
 		],
 	},
 	committeeQuorumNumerator: {
-		label: 'committee quorum numerator',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -164,7 +146,6 @@ export default entity({
 		],
 	},
 	committeeQuorumDenominator: {
-		label: 'committee quorum denominator',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -173,7 +154,6 @@ export default entity({
 		],
 	},
 	constitutionAnchorUrl: {
-		label: 'constitution anchor URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -182,7 +162,6 @@ export default entity({
 		],
 	},
 	constitutionAnchorHash: {
-		label: 'constitution anchor hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -191,7 +170,6 @@ export default entity({
 		],
 	},
 	constitutionScript: {
-		label: 'constitution script',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -200,7 +178,6 @@ export default entity({
 		],
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.CardanoGovernanceProposal_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -208,7 +185,6 @@ export default entity({
 		],
 	},
 	$$votes: {
-		label: 'votes',
 		entityType: EntityType.CardanoGovernanceVote,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

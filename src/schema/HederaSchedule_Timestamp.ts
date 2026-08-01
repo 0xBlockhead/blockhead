@@ -13,49 +13,38 @@ export default entity({
 	},
 })({
 	$schedule: {
-		label: 'schedule',
 		entityType: EntityType.HederaSchedule,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	executedTimestamp: {
-		label: 'executed timestamp',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	deleted: {
-		label: 'deleted',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	expirationTime: {
-		label: 'expiration time',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	waitForExpiry: {
-		label: 'wait for expiry',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	signatureCount: {
-		label: 'signature count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$executionTransaction: {
-		label: 'execution transaction',
 		entityType: EntityType.HederaTransaction,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

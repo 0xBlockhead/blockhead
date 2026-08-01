@@ -15,50 +15,38 @@ export default entity({
 	},
 })({
 	$registration: {
-		label: 'Registration',
 		entityType: EntityType.Eip8004AgentRegistration,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	agentUri: {
-		label: 'Agent URI',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	ownerAddress: {
-		label: 'Owner address',
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	agentWalletAddress: {
-		label: 'Agent wallet address',
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	active: {
-		label: 'Active',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	blockNumber: {
-		label: 'Block number',
-		description: 'The block height or number in its network.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	transactionHash: {
-		label: 'Transaction hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

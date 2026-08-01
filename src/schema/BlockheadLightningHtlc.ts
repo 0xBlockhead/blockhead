@@ -13,42 +13,34 @@ export default entity({
 	},
 })({
 	$channelState: {
-		label: 'channel state',
 		entityType: EntityType.BlockheadLightningChannelState,
 		cardinality: EntityFieldCardinality.One,
 	},
 	htlcIndex: {
-		label: 'htlc index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$channel: {
-		label: 'channel',
 		entityType: EntityType.LightningChannel,
 		cardinality: EntityFieldCardinality.One,
 	},
 	direction: {
-		label: 'direction',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	amountMsat: {
-		label: 'amount msat',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	expiryHeight: {
-		label: 'expiry height',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	hashLock: {
-		label: 'hash lock',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	state: {
-		label: 'state',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

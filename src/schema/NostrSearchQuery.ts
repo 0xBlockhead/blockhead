@@ -15,12 +15,10 @@ export default entity({
 	description: 'A bounded NostrBand profile search addressed by its normalized query.',
 })({
 	query: {
-		label: 'Query',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	resultCount: {
-		label: 'Results',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -28,7 +26,6 @@ export default entity({
 		],
 	},
 	completed: {
-		label: 'Completed',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -36,7 +33,6 @@ export default entity({
 		],
 	},
 	$$profiles: {
-		label: 'Profiles',
 		entityType: EntityType.NostrProfile,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

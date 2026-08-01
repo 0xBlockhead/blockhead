@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	topicId: {
-		label: 'topic ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$messages: {
-		label: 'messages',
 		entityType: EntityType.HederaTopicMessage,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.HederaTopic_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

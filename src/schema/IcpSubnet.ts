@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.IcpNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	subnetId: {
-		label: 'subnet ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$canisterRanges: {
-		label: 'canister ranges',
 		entityType: EntityType.IcpSubnetCanisterRange_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$canisters: {
-		label: 'canisters',
 		entityType: EntityType.IcpCanister,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.IcpSubnet_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

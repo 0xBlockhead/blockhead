@@ -14,22 +14,18 @@ export default entity({
 	},
 })({
 	$transaction: {
-		label: 'Transaction',
 		entityType: EntityType.MoneroTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	inputIndex: {
-		label: 'Input index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	keyImage: {
-		label: 'Key image',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$ring: {
-		label: 'Ring',
 		entityType: EntityType.MoneroRing,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

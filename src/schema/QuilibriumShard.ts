@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	shardKey: {
-		label: 'shard key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	shardKind: {
-		label: 'shard kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$applicationAccount: {
-		label: 'application account',
 		entityType: EntityType.QuilibriumAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$frames: {
-		label: 'frames',
 		entityType: EntityType.QuilibriumFrame,
 		cardinality: EntityFieldCardinality.Many,
 	},

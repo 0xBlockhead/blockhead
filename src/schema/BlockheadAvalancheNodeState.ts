@@ -14,32 +14,26 @@ export default entity({
 	},
 })({
 	nodeId: {
-		label: 'node ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	nodeIp: {
-		label: 'node IP',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	nodePopPublicKey: {
-		label: 'node pop public key',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	nodePopProofOfPossession: {
-		label: 'node pop proof of possession',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.BlockheadAvalancheNodeState_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

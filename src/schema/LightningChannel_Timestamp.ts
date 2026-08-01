@@ -15,24 +15,18 @@ export default entity({
 	},
 })({
 	$channel: {
-		label: 'Channel',
 		entityType: EntityType.LightningChannel,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	status: {
-		label: 'Status',
 		primitiveType: type.enumerated(...Object.values(LightningChannelStatus)),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -41,7 +35,6 @@ export default entity({
 		],
 	},
 	capacitySats: {
-		label: 'Capacity sats',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -50,7 +43,6 @@ export default entity({
 		],
 	},
 	feeRatePpm: {
-		label: 'Fee rate ppm',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -58,7 +50,6 @@ export default entity({
 		],
 	},
 	updatedAtMs: {
-		label: 'Updated',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -66,7 +57,6 @@ export default entity({
 		],
 	},
 	closingTransactionId: {
-		label: 'Closing transaction ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -74,7 +64,6 @@ export default entity({
 		],
 	},
 	closingFeeSats: {
-		label: 'Closing fee sats',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -82,7 +71,6 @@ export default entity({
 		],
 	},
 	closingReason: {
-		label: 'Closing reason',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -90,7 +78,6 @@ export default entity({
 		],
 	},
 	closedAtMs: {
-		label: 'Closed',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

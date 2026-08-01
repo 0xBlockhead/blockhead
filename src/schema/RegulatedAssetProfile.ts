@@ -13,42 +13,34 @@ export default entity({
 	},
 })({
 	$assetInstance: {
-		label: 'asset instance',
 		entityType: EntityType.AssetInstance,
 		cardinality: EntityFieldCardinality.One,
 	},
 	standard: {
-		label: 'standard',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.RegulatedAssetProfile_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$issuerPowers: {
-		label: 'issuer powers',
 		entityType: EntityType.IssuerPower,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$claimRequirements: {
-		label: 'claim requirements',
 		entityType: EntityType.ClaimTopicRequirement,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$trustedIssuers: {
-		label: 'trusted issuers',
 		entityType: EntityType.TrustedIssuer,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$complianceModules: {
-		label: 'compliance modules',
 		entityType: EntityType.ComplianceModule,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$restrictions: {
-		label: 'restrictions',
 		entityType: EntityType.TransferRestriction,
 		cardinality: EntityFieldCardinality.Many,
 	},

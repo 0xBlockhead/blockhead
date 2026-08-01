@@ -14,28 +14,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	epoch: {
-		label: 'epoch',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	slot: {
-		label: 'slot',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	govActionId: {
-		label: 'governance action ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -43,7 +37,6 @@ export default entity({
 		],
 	},
 	$seatingProposal: {
-		label: 'seating proposal',
 		entityType: EntityType.CardanoGovernanceProposal,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -51,7 +44,6 @@ export default entity({
 		],
 	},
 	dissolved: {
-		label: 'dissolved',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -59,7 +51,6 @@ export default entity({
 		],
 	},
 	quorumNumerator: {
-		label: 'quorum numerator',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -67,7 +58,6 @@ export default entity({
 		],
 	},
 	quorumDenominator: {
-		label: 'quorum denominator',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -75,7 +65,6 @@ export default entity({
 		],
 	},
 	memberCount: {
-		label: 'member count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -83,7 +72,6 @@ export default entity({
 		],
 	},
 	members: {
-		label: 'members',
 		primitiveType: type({
 			cc_cold_id: type('string'),
 			cc_cold_hex: type('string'),
@@ -100,12 +88,10 @@ export default entity({
 		],
 	},
 	threshold: {
-		label: 'threshold',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$votes: {
-		label: 'votes',
 		entityType: EntityType.CardanoGovernanceVote,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

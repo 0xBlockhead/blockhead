@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$blocks: {
-		label: 'blocks',
 		entityType: EntityType.ArweaveBlock,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$transactions: {
-		label: 'transactions',
 		entityType: EntityType.ArweaveTransaction,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$resources: {
-		label: 'resources',
 		entityType: EntityType.ArweaveResource,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.ArweaveNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

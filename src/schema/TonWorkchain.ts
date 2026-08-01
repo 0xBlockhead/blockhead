@@ -13,43 +13,34 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	workchain: {
-		label: 'workchain',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	label: {
-		label: 'Label',
-		description: 'A human-readable name for the subject.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	addressFormat: {
-		label: 'address format',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	transactionFormat: {
-		label: 'transaction format',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	virtualMachine: {
-		label: 'virtual machine',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$shards: {
-		label: 'shards',
 		entityType: EntityType.TonShard_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$blocks: {
-		label: 'blocks',
 		entityType: EntityType.TonBlock,
 		cardinality: EntityFieldCardinality.Many,
 	},

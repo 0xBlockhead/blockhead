@@ -13,37 +13,30 @@ export default entity({
 	},
 })({
 	$transaction: {
-		label: 'Transaction',
 		entityType: EntityType.UtxoTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	indexInTransaction: {
-		label: 'Index in transaction',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$spentOutput: {
-		label: 'Spent output',
 		entityType: EntityType.UtxoOutput,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	coinbaseScript: {
-		label: 'Coinbase script',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	scriptSigAsm: {
-		label: 'Script sig asm',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	sequence: {
-		label: 'Sequence',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	witness: {
-		label: 'Witness',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 	},

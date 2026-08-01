@@ -15,12 +15,10 @@ export default entity({
 	description: 'Monero-specific view over a canonical Network row, with daemon RPC endpoints, node observations, and recent blocks.',
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	rpcEndpoints: {
-		label: 'RPC endpoints',
 		primitiveType: type({
 			url: type('string'),
 			transportType: type('string'),
@@ -32,7 +30,6 @@ export default entity({
 		],
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.MoneroNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -40,7 +37,6 @@ export default entity({
 		],
 	},
 	$$blocks: {
-		label: 'Blocks',
 		entityType: EntityType.MoneroBlock,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

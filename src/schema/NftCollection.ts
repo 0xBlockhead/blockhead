@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	$assetInstance: {
-		label: 'asset instance',
 		entityType: EntityType.AssetInstance,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$tokens: {
-		label: 'tokens',
 		entityType: EntityType.NftToken,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$royaltyTimestamps: {
-		label: 'royalty timestamps',
 		entityType: EntityType.RoyaltyRight_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

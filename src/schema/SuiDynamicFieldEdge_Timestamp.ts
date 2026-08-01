@@ -13,39 +13,30 @@ export default entity({
 	},
 })({
 	$edge: {
-		label: 'edge',
 		entityType: EntityType.SuiDynamicFieldEdge,
 		cardinality: EntityFieldCardinality.One,
 	},
 	checkpointSequence: {
-		label: 'checkpoint sequence',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	fieldType: {
-		label: 'field type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	childObjectType: {
-		label: 'child object type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	deleted: {
-		label: 'deleted',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

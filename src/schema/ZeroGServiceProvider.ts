@@ -13,32 +13,26 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	providerId: {
-		label: 'provider ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	serviceKind: {
-		label: 'service kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$operator: {
-		label: 'operator',
 		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	verificationMethod: {
-		label: 'verification method',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$requests: {
-		label: 'requests',
 		entityType: EntityType.ZeroGServiceRequest,
 		cardinality: EntityFieldCardinality.Many,
 	},

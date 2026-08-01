@@ -14,37 +14,30 @@ export default entity({
 	},
 })({
 	objectId: {
-		label: 'object ID',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	objectFormat: {
-		label: 'object format',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$object: {
-		label: 'object',
 		entityType: EntityType.GitObject,
 		cardinality: EntityFieldCardinality.One,
 	},
 	mime: {
-		label: 'mime',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	byteSize: {
-		label: 'byte size',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	textSample: {
-		label: 'text sample',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$paths: {
-		label: 'paths',
 		entityType: EntityType.GitTreeEntry,
 		cardinality: EntityFieldCardinality.Many,
 	},

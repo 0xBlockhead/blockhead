@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$playlist: {
-		label: 'Playlist',
 		entityType: EntityType.YoutubePlaylist,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	itemCount: {
-		label: 'Items',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

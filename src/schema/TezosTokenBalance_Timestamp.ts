@@ -13,61 +13,46 @@ export default entity({
 	},
 })({
 	$account: {
-		label: 'account',
 		entityType: EntityType.TezosAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$token: {
-		label: 'token',
 		entityType: EntityType.TezosToken,
 		cardinality: EntityFieldCardinality.One,
 	},
 	level: {
-		label: 'level',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	balance: {
-		label: 'balance',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	tokenId: {
-		label: 'Token ID',
-		description: 'The token identifier within its collection or contract.',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	contractAddress: {
-		label: 'contract address',
-		description: 'The contract address on its network.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	firstLevel: {
-		label: 'first level',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	lastLevel: {
-		label: 'last level',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	transferCount: {
-		label: 'transfer count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

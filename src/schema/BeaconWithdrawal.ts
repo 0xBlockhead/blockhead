@@ -13,37 +13,30 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	slot: {
-		label: 'Slot',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	indexInSlot: {
-		label: 'Index in slot',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	validatorIndex: {
-		label: 'Validator index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$validator: {
-		label: 'Validator',
 		entityType: EntityType.BeaconValidator,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$account: {
-		label: 'Account',
 		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	amountGwei: {
-		label: 'Amount',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

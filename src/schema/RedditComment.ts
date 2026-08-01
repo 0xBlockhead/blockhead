@@ -14,43 +14,34 @@ export default entity({
 	},
 })({
 	fullname: {
-		label: 'Fullname',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	body: {
-		label: 'Body',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	author: {
-		label: 'Author',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdAt: {
-		label: 'Created',
-		description: 'The time when the comment was created according to Reddit.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	depth: {
-		label: 'Depth',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$link: {
-		label: 'Submission',
 		entityType: EntityType.RedditLink,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$parentComment: {
-		label: 'Parent comment',
 		entityType: EntityType.RedditComment,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.RedditComment_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -58,7 +49,6 @@ export default entity({
 		],
 	},
 	$$replies: {
-		label: 'Replies',
 		entityType: EntityType.RedditComment,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

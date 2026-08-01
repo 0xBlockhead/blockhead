@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.IcpNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	canisterId: {
-		label: 'canister ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$methods: {
-		label: 'methods',
 		entityType: EntityType.IcpCanisterMethod,
 		cardinality: EntityFieldCardinality.Many,
 	},
@@ -32,22 +29,18 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$logs: {
-		label: 'logs',
 		entityType: EntityType.IcpCanisterLog_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$certifiedStates: {
-		label: 'certified states',
 		entityType: EntityType.IcpCertifiedState,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$requestStatuses: {
-		label: 'request statuses',
 		entityType: EntityType.IcpRequestStatus,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.IcpCanister_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

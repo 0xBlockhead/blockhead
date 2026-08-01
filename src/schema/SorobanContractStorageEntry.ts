@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$contract: {
-		label: 'contract',
 		entityType: EntityType.SorobanContract,
 		cardinality: EntityFieldCardinality.One,
 	},
 	keyHash: {
-		label: 'key hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	key: {
-		label: 'key',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.SorobanContractStorageEntry_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

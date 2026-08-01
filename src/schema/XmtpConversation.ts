@@ -14,28 +14,22 @@ export default entity({
 	},
 })({
 	id: {
-		label: 'ID',
-		description: 'The identifier assigned by the source domain.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	peerInboxId: {
-		label: 'Peer inbox ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	topic: {
-		label: 'Topic',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdAtMs: {
-		label: 'Created',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	consentState: {
-		label: 'Consent',
 		primitiveType: type.enumerated(...Object.values(XmtpConversationConsentState)),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	walletId: {
-		label: 'wallet ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$wallet: {
-		label: 'wallet',
 		entityType: EntityType.BlockheadWallet,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$outputs: {
-		label: 'outputs',
 		entityType: EntityType.BlockheadLitecoinMwebOutputState,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.BlockheadLitecoinMwebWalletState_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

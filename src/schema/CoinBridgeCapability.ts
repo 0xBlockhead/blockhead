@@ -14,37 +14,30 @@ export default entity({
 	description: 'A supported bridge path between two EVM coin instances through a specific bridge tool.',
 })({
 	$fromInstance: {
-		label: 'From instance',
 		entityType: EntityType.EvmCoinInstance,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$toInstance: {
-		label: 'To instance',
 		entityType: EntityType.EvmCoinInstance,
 		cardinality: EntityFieldCardinality.One,
 	},
 	toolKey: {
-		label: 'Tool key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	railId: {
-		label: 'Rail ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	settlementModel: {
-		label: 'Settlement model',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	verificationModel: {
-		label: 'Verification model',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	assetOutcome: {
-		label: 'Asset outcome',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},

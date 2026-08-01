@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	vaultAddress: {
-		label: 'vault address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$leader: {
-		label: 'leader',
 		entityType: EntityType.HyperliquidAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$equities: {
-		label: 'equities',
 		entityType: EntityType.HyperliquidVaultEquity_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.HyperliquidVault_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

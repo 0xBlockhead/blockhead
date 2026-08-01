@@ -14,49 +14,38 @@ export default entity({
 	},
 })({
 	fullname: {
-		label: 'Fullname',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	title: {
-		label: 'Title',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	selftext: {
-		label: 'Body',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	url: {
-		label: 'URL',
-		description: 'The URL for the linked resource.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	permalink: {
-		label: 'Permalink',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	author: {
-		label: 'Author',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdAt: {
-		label: 'Created',
-		description: 'The time when the submission was created according to Reddit.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$subreddit: {
-		label: 'Subreddit',
 		entityType: EntityType.RedditSubreddit,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.RedditLink_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -64,7 +53,6 @@ export default entity({
 		],
 	},
 	$$comments: {
-		label: 'Comments',
 		entityType: EntityType.RedditComment,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

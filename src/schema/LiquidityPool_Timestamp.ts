@@ -15,23 +15,18 @@ export default entity({
 	},
 })({
 	$liquidityPool: {
-		label: 'Liquidity pool',
 		entityType: EntityType.LiquidityPool,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	feedKey: {
-		label: 'Feed key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$parentLiquidityPool: {
-		label: 'Parent liquidity pool',
 		entityType: EntityType.LiquidityPool,
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -39,7 +34,6 @@ export default entity({
 		],
 	},
 	baseTokenSymbol: {
-		label: 'Base token symbol',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -47,7 +41,6 @@ export default entity({
 		],
 	},
 	quoteTokenSymbol: {
-		label: 'Quote token symbol',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -55,17 +48,14 @@ export default entity({
 		],
 	},
 	baseTokenDecimals: {
-		label: 'Base token decimals',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	quoteTokenDecimals: {
-		label: 'Quote token decimals',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	pairCreatedAtMs: {
-		label: 'Pair created',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -73,7 +63,6 @@ export default entity({
 		],
 	},
 	dexscreenerLabels: {
-		label: 'Dexscreener labels',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -81,7 +70,6 @@ export default entity({
 		],
 	},
 	dexId: {
-		label: 'DEX',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -89,7 +77,6 @@ export default entity({
 		],
 	},
 	dexscreenerPairUrl: {
-		label: 'Dexscreener',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -97,7 +84,6 @@ export default entity({
 		],
 	},
 	priceUsd: {
-		label: 'Price USD',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -105,7 +91,6 @@ export default entity({
 		],
 	},
 	priceNative: {
-		label: 'Price native',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -113,7 +98,6 @@ export default entity({
 		],
 	},
 	liquidityUsd: {
-		label: 'Liquidity USD',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -121,7 +105,6 @@ export default entity({
 		],
 	},
 	volumeUsd24h: {
-		label: 'Volume USD 24h',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -129,7 +112,6 @@ export default entity({
 		],
 	},
 	priceChangePercent24h: {
-		label: 'Price change 24h',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -137,7 +119,6 @@ export default entity({
 		],
 	},
 	transactionBuys24h: {
-		label: 'Buys 24h',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -145,7 +126,6 @@ export default entity({
 		],
 	},
 	transactionSells24h: {
-		label: 'Sells 24h',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -153,7 +133,6 @@ export default entity({
 		],
 	},
 	marketCapUsd: {
-		label: 'Market cap USD',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -161,7 +140,6 @@ export default entity({
 		],
 	},
 	fdvUsd: {
-		label: 'FDV USD',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -169,7 +147,6 @@ export default entity({
 		],
 	},
 	transport: {
-		label: 'Transport',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

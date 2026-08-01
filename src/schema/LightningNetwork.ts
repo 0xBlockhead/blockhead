@@ -13,42 +13,34 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	name: {
-		label: 'Name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$settlementNetwork: {
-		label: 'Settlement network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'Observations',
 		entityType: EntityType.LightningNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
 	},
 	$$nodes: {
-		label: 'Nodes',
 		entityType: EntityType.LightningNode,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
 	},
 	$$channels: {
-		label: 'Channels',
 		entityType: EntityType.LightningChannel,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
 	},
 	$$invoices: {
-		label: 'Invoices',
 		entityType: EntityType.BlockheadLightningInvoice,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$payments: {
-		label: 'Payments',
 		entityType: EntityType.BlockheadLightningPayment,
 		cardinality: EntityFieldCardinality.Many,
 	},

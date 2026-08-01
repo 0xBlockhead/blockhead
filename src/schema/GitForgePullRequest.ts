@@ -14,59 +14,46 @@ export default entity({
 	},
 })({
 	$forgeMirror: {
-		label: 'forge mirror',
 		entityType: EntityType.GitForgeMirror,
 		cardinality: EntityFieldCardinality.One,
 	},
 	pullRequestNumber: {
-		label: 'pull request number',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	title: {
-		label: 'title',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	state: {
-		label: 'state',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	authorSelector: {
-		label: 'author selector',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	baseRef: {
-		label: 'base ref',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	headRef: {
-		label: 'head ref',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	headObjectId: {
-		label: 'head object ID',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdAt: {
-		label: 'Created',
-		description: 'The time when the subject was created according to the source.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	updatedAt: {
-		label: 'Updated',
-		description: 'The time when the subject was last updated according to the source.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	mergedAt: {
-		label: 'merged AT',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

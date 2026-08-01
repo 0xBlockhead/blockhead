@@ -13,32 +13,26 @@ export default entity({
 	},
 })({
 	$transaction: {
-		label: 'transaction',
 		entityType: EntityType.SuiTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	changeIndex: {
-		label: 'change index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	ownerSelector: {
-		label: 'owner selector',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	coinType: {
-		label: 'coin type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$coinType: {
-		label: 'coin type',
 		entityType: EntityType.SuiCoinType,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	amountDelta: {
-		label: 'amount delta',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},

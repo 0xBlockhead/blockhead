@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$block: {
-		label: 'block',
 		entityType: EntityType.UtxoBlock,
 		cardinality: EntityFieldCardinality.One,
 	},
 	hogExTransactionId: {
-		label: 'hog ex transaction ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	kernelRoot: {
-		label: 'kernel root',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$transactions: {
-		label: 'transactions',
 		entityType: EntityType.LitecoinMwebTransaction,
 		cardinality: EntityFieldCardinality.Many,
 	},

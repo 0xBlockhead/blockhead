@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	account: {
-		label: 'account',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$ledgerEntries: {
-		label: 'ledger entries',
 		entityType: EntityType.XrplLedgerEntry,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 		],
 	},
 	$$transactions: {
-		label: 'transactions',
 		entityType: EntityType.XrplTransaction,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -40,7 +36,6 @@ export default entity({
 		],
 	},
 	$$trustlines: {
-		label: 'trustlines',
 		entityType: EntityType.XrplTrustline,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -48,7 +43,6 @@ export default entity({
 		],
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.XrplAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

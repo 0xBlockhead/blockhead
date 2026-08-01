@@ -13,42 +13,34 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.StellarNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	accountId: {
-		label: 'account ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$trustlines: {
-		label: 'trustlines',
 		entityType: EntityType.StellarTrustline,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$offers: {
-		label: 'offers',
 		entityType: EntityType.StellarOffer,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$trades: {
-		label: 'trades',
 		entityType: EntityType.StellarTrade,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$transactions: {
-		label: 'transactions',
 		entityType: EntityType.StellarTransaction,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$signers: {
-		label: 'signers',
 		entityType: EntityType.StellarAccountSigner,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.StellarAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

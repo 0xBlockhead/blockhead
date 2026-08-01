@@ -15,27 +15,22 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$contract: {
-		label: 'Contract',
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$factory: {
-		label: 'Factory',
 		entityType: EntityType.Erc4337AccountFactory,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'Timestamps',
 		entityType: EntityType.Erc4337SmartAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -43,7 +38,6 @@ export default entity({
 		],
 	},
 	$$userOperations: {
-		label: 'User operations',
 		entityType: EntityType.EvmUserOperation,
 		cardinality: EntityFieldCardinality.Many,
 	},

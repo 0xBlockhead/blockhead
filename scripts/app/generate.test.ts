@@ -1052,6 +1052,43 @@ test('derives schema condition plans from the generated schema instead of emitti
 	assert.doesNotMatch(source, /projectionConditionPlanByEntityTypeAndPath|conditionPlan:/)
 })
 
+test('keeps APP field presentation metadata out of runtime schema modules', () => {
+	const presentationPropertyNames = new Set([
+		'label',
+		'labelPlural',
+		'description',
+	])
+	const violations = app.schema.entities.flatMap((entity) => {
+		const filePath = `src/schema/${entity.entityType}.ts`
+		const source = generatedSource(filePath)
+		const sourceFile = ts.createSourceFile(filePath, source, ts.ScriptTarget.Latest, true)
+		const fieldViolations: string[] = []
+		const visit = (node: ts.Node) => {
+			if (ts.isObjectLiteralExpression(node)) {
+				const propertyNames = node.properties.flatMap((property) => (
+					ts.isPropertyAssignment(property) ?
+						[property.name.getText(sourceFile).replace(/^['"]|['"]$/g, '')]
+					:
+						[]
+				))
+				if (propertyNames.includes('cardinality'))
+					fieldViolations.push(...propertyNames.filter((propertyName) => (
+						presentationPropertyNames.has(propertyName)
+					)).map((propertyName) => `${filePath}:${propertyName}`))
+			}
+
+			ts.forEachChild(node, visit)
+		}
+		visit(sourceFile)
+
+		return fieldViolations
+	})
+
+	assert.deepEqual(violations, [])
+	assert.match(generatedSource('src/schema/Network.ts'), /labels: \{[\s\S]*?singular: 'Network',[\s\S]*?plural: 'networks',[\s\S]*?\}/)
+	assert.match(generatedSource('src/schema/Network.ts'), /description: 'A blockchain, ledger, or protocol network with its own identity and supporting metadata\.'/)
+})
+
 test('projects APP field enums and navigation structure into runtime modules', () => {
 	const generatedFileByPath = new Map(baselineCompiledApp.generatedFiles.map((generatedFile) => [
 		generatedFile.path,

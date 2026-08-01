@@ -13,39 +13,30 @@ export default entity({
 	},
 })({
 	$server: {
-		label: 'server',
 		entityType: EntityType.McpServer,
 		cardinality: EntityFieldCardinality.One,
 	},
 	uriTemplate: {
-		label: 'URI template',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	name: {
-		label: 'Name',
-		description: 'The human-readable name of the subject.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	title: {
-		label: 'title',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	description: {
-		label: 'Description',
-		description: 'A human-readable description from the source domain.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	mimeType: {
-		label: 'mime type',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	annotations: {
-		label: 'annotations',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

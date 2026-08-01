@@ -13,18 +13,14 @@ export default entity({
 	},
 })({
 	$currency: {
-		label: 'Currency',
 		entityType: EntityType.Currency,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	marketCap: {
-		label: 'Market cap',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

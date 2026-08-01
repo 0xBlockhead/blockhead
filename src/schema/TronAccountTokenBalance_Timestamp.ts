@@ -14,34 +14,26 @@ export default entity({
 	},
 })({
 	$account: {
-		label: 'Account',
 		entityType: EntityType.TronAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$token: {
-		label: 'Token',
 		entityType: EntityType.TronToken,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockHeight: {
-		label: 'Block height',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	standard: {
-		label: 'Standard',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -49,7 +41,6 @@ export default entity({
 		],
 	},
 	balance: {
-		label: 'Balance',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -57,12 +48,10 @@ export default entity({
 		],
 	},
 	ownedSerialNumbers: {
-		label: 'Owned serial numbers',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.Many,
 	},
 	tokenId: {
-		label: 'Token ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -70,7 +59,6 @@ export default entity({
 		],
 	},
 	tokenName: {
-		label: 'Token name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -78,7 +66,6 @@ export default entity({
 		],
 	},
 	tokenSymbol: {
-		label: 'Token symbol',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -86,12 +73,10 @@ export default entity({
 		],
 	},
 	frozenBalance: {
-		label: 'Frozen balance',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	delegatedBalance: {
-		label: 'Delegated balance',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

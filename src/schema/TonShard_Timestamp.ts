@@ -13,54 +13,42 @@ export default entity({
 	},
 })({
 	$workchain: {
-		label: 'workchain',
 		entityType: EntityType.TonWorkchain,
 		cardinality: EntityFieldCardinality.One,
 	},
 	shardPrefix: {
-		label: 'shard prefix',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	seqno: {
-		label: 'seqno',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	startLt: {
-		label: 'start lt',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	endLt: {
-		label: 'end lt',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	minRefMcSeqno: {
-		label: 'min ref mc seqno',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	rootHash: {
-		label: 'root hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	fileHash: {
-		label: 'file hash',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

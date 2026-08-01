@@ -15,12 +15,10 @@ export default entity({
 	description: 'A Nostr text note is a kind-1 event addressed by event id; author, reply, root, reaction, and relay facets remain separate fields.',
 })({
 	eventId: {
-		label: 'Event ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	kind: {
-		label: 'Kind',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -29,7 +27,6 @@ export default entity({
 		],
 	},
 	pubkey: {
-		label: 'Pubkey',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -38,7 +35,6 @@ export default entity({
 		],
 	},
 	content: {
-		label: 'Text',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -47,7 +43,6 @@ export default entity({
 		],
 	},
 	sensitive: {
-		label: 'Sensitive',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -57,7 +52,6 @@ export default entity({
 		],
 	},
 	contentWarning: {
-		label: 'Content warning',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -67,8 +61,6 @@ export default entity({
 		],
 	},
 	createdAt: {
-		label: 'Created',
-		description: 'The event creation time normalized to Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -77,12 +69,10 @@ export default entity({
 		],
 	},
 	tags: {
-		label: 'Tags',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$author: {
-		label: 'Author',
 		entityType: EntityType.NostrProfile,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -91,7 +81,6 @@ export default entity({
 		],
 	},
 	replyToEventId: {
-		label: 'Reply to event ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -100,7 +89,6 @@ export default entity({
 		],
 	},
 	rootEventId: {
-		label: 'Root event ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -109,7 +97,6 @@ export default entity({
 		],
 	},
 	$replyToNote: {
-		label: 'Reply to note',
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -119,7 +106,6 @@ export default entity({
 		],
 	},
 	$rootNote: {
-		label: 'Root note',
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -129,7 +115,6 @@ export default entity({
 		],
 	},
 	$$replies: {
-		label: 'Replies',
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -138,7 +123,6 @@ export default entity({
 		],
 	},
 	$$reactions: {
-		label: 'Reactions',
 		entityType: EntityType.NostrReaction,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

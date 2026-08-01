@@ -14,39 +14,30 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockNumber: {
-		label: 'Block number',
-		description: 'The block height or number in its network.',
 		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.One,
 	},
 	hash: {
-		label: 'Hash',
-		description: 'The hash that identifies this object in its protocol.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$parent: {
-		label: 'Parent',
 		entityType: EntityType.PolkadotBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	stateRoot: {
-		label: 'State root',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	extrinsicsRoot: {
-		label: 'Extrinsics root',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$extrinsics: {
-		label: 'Extrinsics',
 		entityType: EntityType.PolkadotExtrinsic,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -55,7 +46,6 @@ export default entity({
 		],
 	},
 	$$events: {
-		label: 'Events',
 		entityType: EntityType.PolkadotEvent,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

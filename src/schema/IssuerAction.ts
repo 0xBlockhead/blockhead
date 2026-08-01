@@ -13,32 +13,26 @@ export default entity({
 	},
 })({
 	issuerActionId: {
-		label: 'issuer action ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	actionKind: {
-		label: 'action kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$assetInstance: {
-		label: 'asset instance',
 		entityType: EntityType.AssetInstance,
 		cardinality: EntityFieldCardinality.One,
 	},
 	targetSelector: {
-		label: 'target selector',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	amount: {
-		label: 'amount',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$issuerPower: {
-		label: 'issuer power',
 		entityType: EntityType.IssuerPower,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

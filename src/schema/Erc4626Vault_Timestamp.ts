@@ -14,59 +14,46 @@ export default entity({
 	},
 })({
 	$vault: {
-		label: 'Vault',
 		entityType: EntityType.Erc4626Vault,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	apyBase: {
-		label: 'APY base',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	apyReward: {
-		label: 'APY reward',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	apyTotal: {
-		label: 'APY total',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	tvlUsd: {
-		label: 'TVL USD',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	rewardTokens: {
-		label: 'Reward tokens',
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	poolId: {
-		label: 'Pool ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	projectSlug: {
-		label: 'Project slug',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	chainLabel: {
-		label: 'Chain label',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

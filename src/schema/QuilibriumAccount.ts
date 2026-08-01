@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	accountAddress: {
-		label: 'account address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	accountKind: {
-		label: 'account kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$blockheadAccountStates: {
-		label: 'blockhead account states',
 		entityType: EntityType.BlockheadQuilibriumAccountState,
 		cardinality: EntityFieldCardinality.Many,
 	},

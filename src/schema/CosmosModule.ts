@@ -13,17 +13,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	moduleName: {
-		label: 'Module name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$authority: {
-		label: 'Authority',
 		entityType: EntityType.CosmosAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

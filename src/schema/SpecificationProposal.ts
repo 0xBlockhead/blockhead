@@ -13,52 +13,42 @@ export default entity({
 	},
 })({
 	realm: {
-		label: 'Realm',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	category: {
-		label: 'Category',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	number: {
-		label: 'Number',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	realmLabel: {
-		label: 'Realm label',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	categoryLabel: {
-		label: 'Category label',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	categoryLabelPlural: {
-		label: 'Category label plural',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	documentCategory: {
-		label: 'Document category',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	documentTitle: {
-		label: 'Document title',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	documentStatus: {
-		label: 'Document status',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	documentBody: {
-		label: 'Document body',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

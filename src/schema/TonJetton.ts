@@ -13,32 +13,26 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	masterAddress: {
-		label: 'master address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$masterAccount: {
-		label: 'master account',
 		entityType: EntityType.TonAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$balanceTimestamps: {
-		label: 'balance timestamps',
 		entityType: EntityType.TonJettonBalance_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$transfers: {
-		label: 'transfers',
 		entityType: EntityType.TonJettonTransfer,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.TonJetton_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

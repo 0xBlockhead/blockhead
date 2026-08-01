@@ -13,22 +13,18 @@ export default entity({
 	},
 })({
 	trackerUrl: {
-		label: 'tracker URL',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	trackerKind: {
-		label: 'tracker kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$announces: {
-		label: 'announces',
 		entityType: EntityType.BitTorrentAnnounce_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$scrapes: {
-		label: 'scrapes',
 		entityType: EntityType.BitTorrentTrackerScrape_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

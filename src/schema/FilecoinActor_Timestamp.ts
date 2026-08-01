@@ -14,35 +14,26 @@ export default entity({
 	},
 })({
 	$actor: {
-		label: 'Actor',
 		entityType: EntityType.FilecoinActor,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		label: 'Timestamp',
-		description: 'The observation time in Unix milliseconds.',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	height: {
-		label: 'Height',
-		description: 'The block height.',
 		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.One,
 	},
 	tipsetKey: {
-		label: 'Tipset key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$tipset: {
-		label: 'Tipset',
 		entityType: EntityType.FilecoinTipset,
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -50,7 +41,6 @@ export default entity({
 		],
 	},
 	idAddress: {
-		label: 'ID address',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -58,7 +48,6 @@ export default entity({
 		],
 	},
 	actorCodeCid: {
-		label: 'Actor code CID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -66,7 +55,6 @@ export default entity({
 		],
 	},
 	nonce: {
-		label: 'Nonce',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -74,7 +62,6 @@ export default entity({
 		],
 	},
 	balanceAttoFil: {
-		label: 'Balance attoFIL',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -82,7 +69,6 @@ export default entity({
 		],
 	},
 	stateRootCid: {
-		label: 'State root CID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

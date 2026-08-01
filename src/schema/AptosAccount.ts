@@ -14,18 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.AptosNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
-		description: 'The address or account identifier used by the source protocol.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.AptosAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -33,7 +29,6 @@ export default entity({
 		],
 	},
 	$$balances: {
-		label: 'balances',
 		entityType: EntityType.AptosCoinBalance_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -41,7 +36,6 @@ export default entity({
 		],
 	},
 	$$resources: {
-		label: 'resources',
 		entityType: EntityType.AptosAccountResource,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -49,7 +43,6 @@ export default entity({
 		],
 	},
 	$$transactions: {
-		label: 'transactions',
 		entityType: EntityType.AptosTransaction,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

@@ -14,43 +14,34 @@ export default entity({
 	},
 })({
 	$result: {
-		label: 'result',
 		entityType: EntityType.HederaContractResult,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$contract: {
-		label: 'contract',
 		entityType: EntityType.HederaContract,
 		cardinality: EntityFieldCardinality.One,
 	},
 	consensusTimestamp: {
-		label: 'consensus timestamp',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	logIndex: {
-		label: 'log index',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
-		description: 'The address or account identifier used by the source protocol.',
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	bloom: {
-		label: 'bloom',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	data: {
-		label: 'data',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	topics: {
-		label: 'topics',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 	},

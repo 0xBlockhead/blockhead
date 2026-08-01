@@ -14,37 +14,30 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.AlgorandNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	programHash: {
-		label: 'program hash',
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	programKind: {
-		label: 'program kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	tealVersion: {
-		label: 'teal version',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.AlgorandTealProgram_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$applications: {
-		label: 'applications',
 		entityType: EntityType.AlgorandApplication,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$transactions: {
-		label: 'transactions',
 		entityType: EntityType.AlgorandTransaction,
 		cardinality: EntityFieldCardinality.Many,
 	},

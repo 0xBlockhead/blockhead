@@ -14,28 +14,22 @@ export default entity({
 	},
 })({
 	registryAgentId: {
-		label: 'registry agent ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	packageName: {
-		label: 'package name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	repositoryUrl: {
-		label: 'repository URL',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	label: {
-		label: 'Label',
-		description: 'A human-readable name for the subject.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	authors: {
-		label: 'authors',
 		primitiveType: type('string').array(),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

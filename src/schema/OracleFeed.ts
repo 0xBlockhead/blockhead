@@ -14,39 +14,30 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
-		label: 'Address',
-		description: 'The address or account identifier used by the source protocol.',
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$market: {
-		label: 'market',
 		entityType: EntityType.Market,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	label: {
-		label: 'Label',
-		description: 'A human-readable name for the subject.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	feedKind: {
-		label: 'feed kind',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$rounds: {
-		label: 'rounds',
 		entityType: EntityType.OracleFeed_Round,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.OracleFeed_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

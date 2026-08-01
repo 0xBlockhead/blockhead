@@ -14,32 +14,26 @@ export default entity({
 	},
 })({
 	connectionKey: {
-		label: 'connection key',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$wallet: {
-		label: 'Wallet',
 		entityType: EntityType.BlockheadWallet,
 		cardinality: EntityFieldCardinality.One,
 	},
 	status: {
-		label: 'Status',
 		primitiveType: type.enumerated(...Object.values(BlockheadConnectionStatus)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	protocol: {
-		label: 'Protocol',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	transportKind: {
-		label: 'Transport',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	scopes: {
-		label: 'Scopes',
 		primitiveType: type({
 			namespace: type('string'),
 			reference: type('string'),
@@ -49,42 +43,34 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	selected: {
-		label: 'Selected',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	connectedAt: {
-		label: 'Connected',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	disconnectedAt: {
-		label: 'Disconnected',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	sessionId: {
-		label: 'Session ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	sessionTopic: {
-		label: 'Session topic',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	error: {
-		label: 'Error',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$accounts: {
-		label: 'Accounts',
 		entityType: EntityType.Account,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$activeAccount: {
-		label: 'Active account',
 		entityType: EntityType.Account,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

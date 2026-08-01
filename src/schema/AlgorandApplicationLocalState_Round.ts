@@ -13,38 +13,30 @@ export default entity({
 	},
 })({
 	$account: {
-		label: 'account',
 		entityType: EntityType.AlgorandAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$application: {
-		label: 'application',
 		entityType: EntityType.AlgorandApplication,
 		cardinality: EntityFieldCardinality.One,
 	},
 	round: {
-		label: 'round',
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
-		label: 'Source',
-		description: 'The source that produced this observation.',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	keyValues: {
-		label: 'key values',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	schema: {
-		label: 'schema',
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	deleted: {
-		label: 'deleted',
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

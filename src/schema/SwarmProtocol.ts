@@ -14,33 +14,26 @@ export default entity({
 	},
 })({
 	scope: {
-		label: 'Scope',
-		description: 'The fixed scope value that identifies this hub row.',
 		primitiveType: type.unit('SwarmProtocol'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	protocolName: {
-		label: 'Protocol name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	homeUrl: {
-		label: 'Home URL',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	docsUrl: {
-		label: 'Docs URL',
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	registryName: {
-		label: 'Registry name name',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	relationshipModel: {
-		label: 'Connection model',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},

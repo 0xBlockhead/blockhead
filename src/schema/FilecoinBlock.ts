@@ -14,17 +14,14 @@ export default entity({
 	},
 })({
 	$network: {
-		label: 'Network',
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	cid: {
-		label: 'CID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$tipset: {
-		label: 'Tipset',
 		entityType: EntityType.FilecoinTipset,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -33,7 +30,6 @@ export default entity({
 		],
 	},
 	$miner: {
-		label: 'Miner',
 		entityType: EntityType.FilecoinMiner,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -42,7 +38,6 @@ export default entity({
 		],
 	},
 	ticketVrFProof: {
-		label: 'Ticket VRF proof',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -50,7 +45,6 @@ export default entity({
 		],
 	},
 	winCount: {
-		label: 'Win count',
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -58,7 +52,6 @@ export default entity({
 		],
 	},
 	$$messages: {
-		label: 'Messages',
 		entityType: EntityType.FilecoinMessage,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

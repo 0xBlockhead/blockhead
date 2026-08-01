@@ -13,27 +13,22 @@ export default entity({
 	},
 })({
 	transactionId: {
-		label: 'transaction ID',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	contentPath: {
-		label: 'content path',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	canonicalUri: {
-		label: 'canonical URI',
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$transaction: {
-		label: 'transaction',
 		entityType: EntityType.ArweaveTransaction,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
-		label: 'timestamps',
 		entityType: EntityType.ArweaveResource_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
