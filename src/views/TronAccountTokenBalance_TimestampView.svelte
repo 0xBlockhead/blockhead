@@ -35,7 +35,6 @@
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import TronTokenView from '$/views/TronTokenView.svelte'
 	import TronAccountView from '$/views/TronAccountView.svelte'
 </script>

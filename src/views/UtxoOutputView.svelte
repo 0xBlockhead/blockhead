@@ -34,7 +34,6 @@
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import UtxoAddressView from '$/views/UtxoAddressView.svelte'
 	import BitcoinCashCashTokenFungibleAmountView from '$/views/BitcoinCashCashTokenFungibleAmountView.svelte'
 	import BitcoinCashCashTokenNftView from '$/views/BitcoinCashCashTokenNftView.svelte'

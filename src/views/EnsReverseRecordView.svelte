@@ -22,7 +22,6 @@
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EnsReverseRecord_TimestampsView from '$/views/EnsReverseRecord_TimestampsView.svelte'
 	import AccountView from '$/views/AccountView.svelte'
 	import EnsNameView from '$/views/EnsNameView.svelte'

@@ -23,7 +23,6 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import TransferRestrictionView from '$/views/TransferRestrictionView.svelte'
 	import AccountView from '$/views/AccountView.svelte'
 </script>

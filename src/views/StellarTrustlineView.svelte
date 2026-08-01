@@ -20,7 +20,6 @@
 
 
 	// Components
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import StellarAccountView from '$/views/StellarAccountView.svelte'
 	import StellarAssetView from '$/views/StellarAssetView.svelte'
 </script>

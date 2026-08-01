@@ -32,7 +32,6 @@
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import SolanaAccountView from '$/views/SolanaAccountView.svelte'
 	import SolanaProgramView from '$/views/SolanaProgramView.svelte'
 </script>

@@ -21,7 +21,6 @@
 
 
 	// Components
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import TonAccountView from '$/views/TonAccountView.svelte'
 </script>
 

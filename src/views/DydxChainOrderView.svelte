@@ -39,7 +39,6 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import DydxChainOrder_TimestampsView from '$/views/DydxChainOrder_TimestampsView.svelte'
 	import DydxChainSubaccountView from '$/views/DydxChainSubaccountView.svelte'
 	import DydxChainMarketView from '$/views/DydxChainMarketView.svelte'

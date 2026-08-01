@@ -8417,6 +8417,8 @@ const viewItemFormat = (
 	const valueTypeFormat = fieldDefinition == null ? undefined : fieldValueType(indexes, fieldDefinition)?.format
 	if (valueTypeFormat != null)
 		return valueTypeFormat
+	if (fieldDefinition != null && fieldDefinition.type !== EntityFieldType.Primitive)
+		return undefined
 
 	if (
 		fieldDefinition?.valueType === 'boolean'

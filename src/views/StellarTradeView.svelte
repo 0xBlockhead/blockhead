@@ -22,7 +22,6 @@
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import StellarNetworkView from '$/views/StellarNetworkView.svelte'
 	import StellarAccountView from '$/views/StellarAccountView.svelte'
 	import StellarOfferView from '$/views/StellarOfferView.svelte'

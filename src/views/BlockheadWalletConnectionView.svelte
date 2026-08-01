@@ -42,7 +42,6 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import AccountsView from '$/views/AccountsView.svelte'
 	import BlockheadWalletView from '$/views/BlockheadWalletView.svelte'
 	import AccountView from '$/views/AccountView.svelte'

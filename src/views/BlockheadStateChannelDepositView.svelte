@@ -23,7 +23,6 @@
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BlockheadStateChannelDeposit_TimestampsView from '$/views/BlockheadStateChannelDeposit_TimestampsView.svelte'
 	import BlockheadStateChannelView from '$/views/BlockheadStateChannelView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'

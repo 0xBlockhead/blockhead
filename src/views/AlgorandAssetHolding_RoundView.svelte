@@ -21,7 +21,6 @@
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import AlgorandAccountView from '$/views/AlgorandAccountView.svelte'
 	import AlgorandAssetView from '$/views/AlgorandAssetView.svelte'
 </script>

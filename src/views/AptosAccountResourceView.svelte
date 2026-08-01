@@ -22,7 +22,6 @@
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import AptosAccountResource_TimestampsView from '$/views/AptosAccountResource_TimestampsView.svelte'
 	import AptosAccountView from '$/views/AptosAccountView.svelte'
 </script>

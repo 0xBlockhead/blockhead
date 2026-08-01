@@ -28,7 +28,6 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
 	import BridgeTransferView from '$/views/BridgeTransferView.svelte'

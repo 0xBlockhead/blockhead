@@ -23,7 +23,6 @@
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import CardanoStakeCredentialView from '$/views/CardanoStakeCredentialView.svelte'
 	import CardanoStakePoolView from '$/views/CardanoStakePoolView.svelte'
 	import CardanoDRepView from '$/views/CardanoDRepView.svelte'

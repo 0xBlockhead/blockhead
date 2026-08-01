@@ -21,7 +21,6 @@
 
 
 	// Components
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import AccountView from '$/views/AccountView.svelte'
 </script>
 

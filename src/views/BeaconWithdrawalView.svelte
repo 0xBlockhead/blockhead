@@ -40,7 +40,6 @@
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BeaconValidatorView from '$/views/BeaconValidatorView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'

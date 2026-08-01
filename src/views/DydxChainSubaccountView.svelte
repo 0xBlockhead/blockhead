@@ -27,7 +27,6 @@
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import DydxChainNetworkView from '$/views/DydxChainNetworkView.svelte'
 	import CosmosAccountView from '$/views/CosmosAccountView.svelte'
 	import DydxChainPerpetualPosition_TimestampsView from '$/views/DydxChainPerpetualPosition_TimestampsView.svelte'

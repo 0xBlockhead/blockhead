@@ -24,7 +24,6 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import HederaAccountView from '$/views/HederaAccountView.svelte'
 	import HederaTokenView from '$/views/HederaTokenView.svelte'
 </script>

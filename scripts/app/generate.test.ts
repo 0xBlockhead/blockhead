@@ -2477,6 +2477,17 @@ test('keeps proposal catalog relationships on explicit Constants authority', () 
 	assert.doesNotMatch(renderGeneratedFile(specificationProposalKindView), /String\([^)]*\)\]\.join\(':'\)/)
 })
 
+test('renders entity references without scalar display formatting inferred from their names', () => {
+	const accountTimestampView = baselineCompiledApp.generatedFiles.find((generatedFile) => (
+		generatedFile.path === 'src/views/AlgorandAccount_TimestampView.svelte'
+	))
+
+	assert.ok(accountTimestampView)
+	const source = renderGeneratedFile(accountTimestampView)
+	assert.match(source, /<AlgorandAccountView[\s\S]*?selection=\{select\(EntityType\.AlgorandAccount, selection\.entitySelector\.\$account\)\}/)
+	assert.doesNotMatch(source, /TruncatedValue/)
+})
+
 test('renders every generated entity-list item through a card-backed singular summary', () => {
 	const entityView = readFileSync(path.join(root, 'src/components/EntityView.svelte'), 'utf8')
 	const generatedViews = baselineCompiledApp.generatedFiles

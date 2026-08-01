@@ -22,7 +22,6 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import HyperliquidAccountView from '$/views/HyperliquidAccountView.svelte'
 	import HyperliquidVaultView from '$/views/HyperliquidVaultView.svelte'
 </script>
