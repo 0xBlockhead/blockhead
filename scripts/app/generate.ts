@@ -6318,14 +6318,16 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 		...indexes,
 		summaryPlanByEntityType,
 	}
-	const singularViewPlanByEntityType = new Map(generationInput.entities.map((entity) => [
-		entity.entityType,
-		generateSingularViewFile(entity, summaryPlanningIndexes),
-	]))
-	const prefetchedSingularViewEntityTypes = new Set(generationInput.entities.flatMap((entity) => (
-		singularViewPlanByEntityType.get(entity.entityType)?.consumesPrefetched === true ?
+	// Nested singular views need the target component's exact prefetched prop
+	// contract, so compile that contract before rendering any view file.
+	const singularViewPlans = generationInput.entities.map((entity) => ({
+		entity,
+		plan: compileSingularViewPlan(entity, summaryPlanningIndexes),
+	}))
+	const prefetchedSingularViewEntityTypes = new Set(singularViewPlans.flatMap(({ entity, plan }) => (
+		plan.consumesPrefetched ?
 			[entity.entityType]
-		:
+			:
 			[]
 	)))
 	const pluralViewPlanByEntityType = new Map(generationInput.entities.map((entity) => [
@@ -6343,8 +6345,8 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 		defaultPluralViewEntityTypes,
 		prefetchedSingularViewEntityTypes,
 	}
-	const entityViewFiles = generationInput.entities.flatMap((entity) => [
-		generateSingularViewFile(entity, renderingIndexes).file,
+	const entityViewFiles = singularViewPlans.flatMap(({ entity, plan }) => [
+		generateSingularViewFile(entity, renderingIndexes, plan),
 		...(defaultPluralViewEntityTypes.has(entity.entityType) ? [] : [
 			pluralViewPlanByEntityType.get(entity.entityType)?.file,
 		]),
@@ -8989,6 +8991,194 @@ const summaryPlanFor = (entity: Entity, indexes: GenerationIndexes) => (
 	indexes.summaryPlanByEntityType?.get(entity.entityType) ?? compileSummaryPlan(entity, indexes)
 )
 
+const compileSingularViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
+	const singularView = entitySingularView(entity)
+	const contentWarning = singularView?.contentWarning
+	const summaryPlan = summaryPlanFor(entity, indexes)
+	const {
+		serial,
+		everySelectorOwnsSerial,
+	} = summaryPlan
+	const summaryTitleEntries = summaryPlan.title.entries
+	const summaryValueEntries = summaryPlan.value.entries
+	// Selector-owned summary values read the canonical selector directly. The
+	// prefetched row owns unresolved fields; only mixed expressions need the
+	// merged pending entity.
+	const pendingSummaryItemFieldsExpression = (viewEntry: _ViewItem) => {
+		const fieldReferences = viewItemFieldReferences(viewEntry)
+		const selectorOwned = fieldReferences.filter((fieldReference) => (
+			!isProjectionFieldReference(fieldReference)
+			&& entitySelectorOwnsField(entity, fieldNameForReference(fieldReference))
+		)).length
+		if (selectorOwned === fieldReferences.length)
+			return 'selection.entitySelector'
+		if (selectorOwned === 0 && singularView?.pending == null)
+			return 'prefetched'
+
+		return pendingEntityExpression
+	}
+	const summaryItemEntityFieldsExpression = (viewEntry: _ViewItem) => (
+		viewItemEntityFieldsExpression(entity, viewEntry, 'summary item')
+	)
+	const titleExpression = renderJoinedItemsExpression(
+		entity,
+		indexes,
+		summaryTitleEntries,
+		summaryItemEntityFieldsExpression,
+		' ',
+		true
+	)
+	const valueExpression = renderJoinedItemsExpression(
+		entity,
+		indexes,
+		summaryValueEntries,
+		summaryItemEntityFieldsExpression,
+		' ',
+		true
+	)
+	const pendingTitleExpression = renderJoinedItemsExpression(entity, indexes, summaryTitleEntries, pendingSummaryItemFieldsExpression)
+	const pendingValueExpression = renderJoinedItemsExpression(entity, indexes, summaryValueEntries, pendingSummaryItemFieldsExpression)
+	const warningTextExpression = (entityFieldsExpression: string) => contentWarning == null ? emitTypeScript('') : `(${fieldExpression(entityFieldsExpression, contentWarning.textField)} ?? '').trim()`
+	const warningConditionExpression = (entityFieldsExpression: string) => contentWarning == null ? 'false' : `${fieldExpression(entityFieldsExpression, contentWarning.sensitiveField)} === true || ${warningTextExpression(entityFieldsExpression)} !== ''`
+	const warningIdentityExpression = (entityFieldsExpression: string) => renderJoinedItemsExpression(
+		entity,
+		indexes,
+		entity.selectors[0]?.fields ?? [],
+		entityFieldsExpression
+	)
+	const warningSummaryExpression = (entityFieldsExpression: string) => contentWarning == null ? emitTypeScript('') : `[${warningTextExpression(entityFieldsExpression)} || ${emitTypeScript(contentWarning.fallbackText)}, ${warningIdentityExpression(entityFieldsExpression)}].filter(Boolean).join(' ')`
+	const resolvedWarningTextExpression = warningTextExpression('entity')
+	const resolvedWarningConditionExpression = contentWarning == null ? 'false' : `${fieldExpression('entity', contentWarning.sensitiveField)} === true || ${resolvedWarningTextExpression} !== ''`
+	const resolvedWarningSummaryExpression = contentWarning == null ? emitTypeScript('') : `[${resolvedWarningTextExpression} || ${emitTypeScript(contentWarning.fallbackText)}, ${warningIdentityExpression(pendingEntityExpression)}].filter(Boolean).join(' ')`
+	const fallbackTitleExpression = renderJoinedItemsExpression(
+		entity,
+		indexes,
+		summaryPlan.titleFallback.entries,
+		pendingSummaryItemFieldsExpression
+	)
+	const fallbackTitleEntries = summaryPlan.titleFallback.entries
+	const pendingTitleIsRequiredScalar = (
+		summaryPlan.title.requiredScalar
+		&& summaryTitleEntries[0] != null
+		&& pendingSummaryItemFieldsExpression(summaryTitleEntries[0]) === 'selection.entitySelector'
+	)
+	const fallbackTitleIsRequiredScalar = (
+		summaryPlan.titleFallback.requiredScalar
+		&& fallbackTitleEntries[0] != null
+		&& pendingSummaryItemFieldsExpression(fallbackTitleEntries[0]) === 'selection.entitySelector'
+	)
+	const summaryValueIsRequiredScalar = summaryPlan.value.requiredScalar
+	const serialIsRequiredScalar = (
+		serial != null
+		&& everySelectorOwnsSerial
+		&& viewEntriesRenderRequiredScalar(entity, indexes, [serial.field])
+	)
+	const serialFallbackTitleExpression = serial == null ?
+		pendingTitleIsRequiredScalar ?
+			pendingTitleExpression
+		: pendingTitleExpression === 'undefined' && fallbackTitleIsRequiredScalar ?
+			fallbackTitleExpression
+		:
+			renderFirstDeclaredExpression([pendingTitleExpression, fallbackTitleExpression])
+	:
+		renderSerialTextExpression(
+			entity,
+			indexes,
+			serial,
+			everySelectorOwnsSerial ? 'selection.entitySelector' : pendingEntityExpression
+		)
+	const serialFallbackTitleIsRequiredScalar = (
+		serialIsRequiredScalar
+		|| serial == null
+			&& (
+				pendingTitleIsRequiredScalar
+				|| pendingTitleExpression === 'undefined' && fallbackTitleIsRequiredScalar
+			)
+	)
+	const renderWarningFallbackExpression = (
+		expressions: readonly (string | undefined)[],
+		condition: string,
+		warningExpression: string
+	) => {
+		const fallbackExpression = renderFirstDeclaredExpression(expressions)
+		return contentWarning == null ?
+			fallbackExpression
+			:
+			renderConditionalExpression(
+				[{
+					condition,
+					value: warningExpression,
+				}],
+				fallbackExpression
+			)
+	}
+	const titleFallbackExpression = renderWarningFallbackExpression(
+		[
+			serialFallbackTitleExpression,
+			...(serialFallbackTitleIsRequiredScalar ? [] : [emitTypeScript(displayLabel(entityLabel(entity)))]),
+		],
+		warningConditionExpression(pendingEntityExpression),
+		warningSummaryExpression(pendingEntityExpression)
+	)
+	const entityTitleFallbackExpression = renderWarningFallbackExpression(
+		[
+			titleExpression,
+			'title',
+			...(titleExpression === titleFallbackExpression ? [] : ['titleFallback']),
+		],
+		resolvedWarningConditionExpression,
+		resolvedWarningSummaryExpression
+	)
+	const entityValueFallbackExpression = renderWarningFallbackExpression(
+		summaryValueIsRequiredScalar ? [valueExpression] : [
+			valueExpression,
+			titleExpression,
+			...([valueExpression, titleExpression].includes(titleFallbackExpression) ? [] : ['titleFallback']),
+		],
+		resolvedWarningConditionExpression,
+		resolvedWarningSummaryExpression
+	)
+	const pendingValueFallbackExpression = renderWarningFallbackExpression(
+		summaryValueIsRequiredScalar && summaryValueEntries[0] != null && pendingSummaryItemFieldsExpression(summaryValueEntries[0]) === 'selection.entitySelector' ? [pendingValueExpression] : [
+			pendingValueExpression,
+			pendingTitleExpression,
+			...([pendingValueExpression, pendingTitleExpression].includes(titleFallbackExpression) ? [] : ['titleFallback']),
+		],
+		warningConditionExpression(pendingEntityExpression),
+		warningSummaryExpression(pendingEntityExpression)
+	)
+	const rawSnippetReferences = new Set(singularViewRawSnippets(entity).flatMap((snippet) => snippet.references ?? []))
+	const usesPendingEntity = (
+		singularView?.pending != null
+		|| rawSnippetReferences.has('pendingEntity')
+		|| declaredRelationshipViewSections(entity).some((section) => isFieldConditionedSourceSelection(section.selection?.sources))
+		|| serial != null && !everySelectorOwnsSerial
+		|| typeScriptExpressionReferencesBinding(titleFallbackExpression, pendingEntityExpression)
+		|| typeScriptExpressionReferencesBinding(entityTitleFallbackExpression, pendingEntityExpression)
+		|| typeScriptExpressionReferencesBinding(entityValueFallbackExpression, pendingEntityExpression)
+		|| typeScriptExpressionReferencesBinding(pendingValueFallbackExpression, pendingEntityExpression)
+	)
+
+	return {
+		consumesPrefetched: (
+			rawSnippetReferences.has('prefetched')
+			|| typeScriptExpressionReferencesBinding(titleFallbackExpression, 'prefetched')
+			|| usesPendingEntity
+				&& (
+					singularView?.pending == null
+					|| typeScriptExpressionReferencesBinding(singularView.pending.expression, 'prefetched')
+				)
+		),
+		entityTitleFallbackExpression,
+		entityValueFallbackExpression,
+		pendingValueFallbackExpression,
+		resolvedWarningTextExpression,
+		summaryPlan,
+		titleFallbackExpression,
+		usesPendingEntity,
+	}
+}
+
 const defaultContentDlGroups = (entity: Entity, indexes: GenerationIndexes) => {
 	const singularView = entitySingularView(entity)
 	const content = singularView?.content
@@ -9237,7 +9427,11 @@ const fieldValueNamesForViewEntries = (viewEntries: readonly _ViewItem[]) => {
 	))
 }
 
-const generateSingularViewFile = (entity: Entity, indexes: GenerationIndexes) => {
+const generateSingularViewFile = (
+	entity: Entity,
+	indexes: GenerationIndexes,
+	plan: ReturnType<typeof compileSingularViewPlan>
+) => {
 	const singularView = entitySingularView(entity)
 	const viewQuery = singularView?.query
 	const content = singularView?.content
@@ -9245,7 +9439,16 @@ const generateSingularViewFile = (entity: Entity, indexes: GenerationIndexes) =>
 	const componentName = singularComponentName(entity.entityType)
 	const entityName = camel(entity.entityType)
 	const contentWarning = singularView?.contentWarning
-	const summaryPlan = summaryPlanFor(entity, indexes)
+	const {
+		consumesPrefetched,
+		entityTitleFallbackExpression,
+		entityValueFallbackExpression,
+		pendingValueFallbackExpression,
+		resolvedWarningTextExpression,
+		summaryPlan,
+		titleFallbackExpression,
+		usesPendingEntity,
+	} = plan
 	const {
 		serial,
 		everySelectorOwnsSerial,
@@ -9522,152 +9725,6 @@ const generateSingularViewFile = (entity: Entity, indexes: GenerationIndexes) =>
 		:
 			[renderQuery(section.selection, [])]
 	)))
-	const summaryItemEntityFieldsExpression = (viewEntry: _ViewItem) => (
-		viewItemEntityFieldsExpression(entity, viewEntry, 'summary item')
-	)
-	// Selector-owned summary values read the canonical selector directly. The
-	// prefetched row directly owns unresolved fields. A merged pending object is
-	// reserved for expressions that genuinely combine both shapes.
-	const pendingSummaryItemFieldsExpression = (viewEntry: _ViewItem) => {
-		const fieldReferences = viewItemFieldReferences(viewEntry)
-		const selectorOwned = fieldReferences.filter((fieldReference) => (
-			!isProjectionFieldReference(fieldReference)
-			&& entitySelectorOwnsField(entity, fieldNameForReference(fieldReference))
-		)).length
-		if (selectorOwned === fieldReferences.length)
-			return 'selection.entitySelector'
-		if (selectorOwned === 0 && entitySingularView(entity)?.pending == null)
-			return 'prefetched'
-
-		return pendingEntityExpression
-	}
-	const titleExpression = renderJoinedItemsExpression(
-		entity,
-		indexes,
-		summaryTitleEntries,
-		summaryItemEntityFieldsExpression,
-		' ',
-		true
-	)
-	const valueExpression = renderJoinedItemsExpression(
-		entity,
-		indexes,
-		summaryValueEntries,
-		summaryItemEntityFieldsExpression,
-		' ',
-		true
-	)
-	const pendingTitleExpression = renderJoinedItemsExpression(entity, indexes, summaryTitleEntries, pendingSummaryItemFieldsExpression)
-	const pendingValueExpression = renderJoinedItemsExpression(entity, indexes, summaryValueEntries, pendingSummaryItemFieldsExpression)
-	const warningTextExpression = (entityFieldsExpression: string) => contentWarning == null ? emitTypeScript('') : `(${fieldExpression(entityFieldsExpression, contentWarning.textField)} ?? '').trim()`
-	const warningConditionExpression = (entityFieldsExpression: string) => contentWarning == null ? 'false' : `${fieldExpression(entityFieldsExpression, contentWarning.sensitiveField)} === true || ${warningTextExpression(entityFieldsExpression)} !== ''`
-	const warningIdentityExpression = (entityFieldsExpression: string) => renderJoinedItemsExpression(
-		entity,
-		indexes,
-		entity.selectors[0]?.fields ?? [],
-		entityFieldsExpression
-	)
-	const warningSummaryExpression = (entityFieldsExpression: string) => contentWarning == null ? emitTypeScript('') : `[${warningTextExpression(entityFieldsExpression)} || ${emitTypeScript(contentWarning.fallbackText)}, ${warningIdentityExpression(entityFieldsExpression)}].filter(Boolean).join(' ')`
-	const resolvedWarningTextExpression = warningTextExpression('entity')
-	const resolvedWarningConditionExpression = contentWarning == null ? 'false' : `${fieldExpression('entity', contentWarning.sensitiveField)} === true || ${resolvedWarningTextExpression} !== ''`
-	const resolvedWarningSummaryExpression = contentWarning == null ? emitTypeScript('') : `[${resolvedWarningTextExpression} || ${emitTypeScript(contentWarning.fallbackText)}, ${warningIdentityExpression(pendingEntityExpression)}].filter(Boolean).join(' ')`
-	const fallbackTitleExpression = renderJoinedItemsExpression(
-		entity,
-		indexes,
-		summaryPlan.titleFallback.entries,
-		pendingSummaryItemFieldsExpression
-	)
-	const fallbackTitleEntries = summaryPlan.titleFallback.entries
-	const pendingTitleIsRequiredScalar = (
-		summaryPlan.title.requiredScalar
-		&& summaryTitleEntries[0] != null
-		&& pendingSummaryItemFieldsExpression(summaryTitleEntries[0]) === 'selection.entitySelector'
-	)
-	const fallbackTitleIsRequiredScalar = (
-		summaryPlan.titleFallback.requiredScalar
-		&& fallbackTitleEntries[0] != null
-		&& pendingSummaryItemFieldsExpression(fallbackTitleEntries[0]) === 'selection.entitySelector'
-	)
-	const summaryValueIsRequiredScalar = summaryPlan.value.requiredScalar
-	const serialIsRequiredScalar = (
-		serial != null
-		&& everySelectorOwnsSerial
-		&& viewEntriesRenderRequiredScalar(entity, indexes, [serial.field])
-	)
-	const serialFallbackTitleExpression = serial == null ?
-		pendingTitleIsRequiredScalar ?
-			pendingTitleExpression
-		: pendingTitleExpression === 'undefined' && fallbackTitleIsRequiredScalar ?
-			fallbackTitleExpression
-		:
-			renderFirstDeclaredExpression([pendingTitleExpression, fallbackTitleExpression])
-	:
-		renderSerialTextExpression(
-			entity,
-			indexes,
-			serial,
-			everySelectorOwnsSerial ? 'selection.entitySelector' : pendingEntityExpression
-		)
-	const serialFallbackTitleIsRequiredScalar = (
-		serialIsRequiredScalar
-		|| serial == null
-			&& (
-				pendingTitleIsRequiredScalar
-				|| pendingTitleExpression === 'undefined' && fallbackTitleIsRequiredScalar
-				)
-	)
-	const renderWarningFallbackExpression = (
-		expressions: readonly (string | undefined)[],
-		condition: string,
-		warningExpression: string
-	) => {
-		const fallbackExpression = renderFirstDeclaredExpression(expressions)
-		return contentWarning == null ?
-			fallbackExpression
-		:
-			renderConditionalExpression(
-				[{
-					condition,
-					value: warningExpression,
-				}],
-				fallbackExpression
-			)
-	}
-	const titleFallbackExpression = renderWarningFallbackExpression(
-		[
-			serialFallbackTitleExpression,
-			...(serialFallbackTitleIsRequiredScalar ? [] : [emitTypeScript(displayLabel(entityLabel(entity)))]),
-		],
-		warningConditionExpression(pendingEntityExpression),
-		warningSummaryExpression(pendingEntityExpression)
-	)
-	const entityTitleFallbackExpression = renderWarningFallbackExpression(
-		[
-			titleExpression,
-			'title',
-			...(titleExpression === titleFallbackExpression ? [] : ['titleFallback']),
-		],
-		resolvedWarningConditionExpression,
-		resolvedWarningSummaryExpression
-	)
-	const entityValueFallbackExpression = renderWarningFallbackExpression(
-		summaryValueIsRequiredScalar ? [valueExpression] : [
-				valueExpression,
-				titleExpression,
-				...([valueExpression, titleExpression].includes(titleFallbackExpression) ? [] : ['titleFallback']),
-		],
-		resolvedWarningConditionExpression,
-		resolvedWarningSummaryExpression
-	)
-	const pendingValueFallbackExpression = renderWarningFallbackExpression(
-		summaryValueIsRequiredScalar && summaryValueEntries[0] != null && pendingSummaryItemFieldsExpression(summaryValueEntries[0]) === 'selection.entitySelector' ? [pendingValueExpression] : [
-				pendingValueExpression,
-				pendingTitleExpression,
-				...([pendingValueExpression, pendingTitleExpression].includes(titleFallbackExpression) ? [] : ['titleFallback']),
-		],
-		warningConditionExpression(pendingEntityExpression),
-		warningSummaryExpression(pendingEntityExpression)
-	)
 	const {
 		expression: entityHrefExpression,
 		fieldBindings: hrefFieldBindings,
@@ -10303,25 +10360,6 @@ const generateSingularViewFile = (entity: Entity, indexes: GenerationIndexes) =>
 		viewSelection: declaredViewSourcesExpression != null && !usesViewSelection ? viewSelectionValueExpression : viewSelectionExpression,
 		pendingEntity: pendingEntityExpression,
 	}
-	const usesPendingEntity = (
-		singularView?.pending != null
-		|| rawSnippetReferences.has('pendingEntity')
-		|| sections.some((section) => isFieldConditionedSourceSelection(section.selection?.sources))
-		|| serial != null && !everySelectorOwnsSerial
-		|| typeScriptExpressionReferencesBinding(titleFallbackExpression, viewBindings.pendingEntity)
-		|| typeScriptExpressionReferencesBinding(entityTitleFallbackExpression, viewBindings.pendingEntity)
-		|| typeScriptExpressionReferencesBinding(entityValueFallbackExpression, viewBindings.pendingEntity)
-		|| typeScriptExpressionReferencesBinding(pendingValueFallbackExpression, viewBindings.pendingEntity)
-	)
-	const consumesPrefetched = (
-		rawSnippetReferences.has('prefetched')
-		|| typeScriptExpressionReferencesBinding(titleFallbackExpression, 'prefetched')
-		|| usesPendingEntity
-			&& (
-				singularView?.pending == null
-				|| typeScriptExpressionReferencesBinding(singularView.pending.expression, 'prefetched')
-			)
-	)
 	const usesViewDomId = (
 		carouselsToRender.length > 0
 		|| detailsTabs.length > 0
@@ -10714,20 +10752,17 @@ const generateSingularViewFile = (entity: Entity, indexes: GenerationIndexes) =>
 		'</EntityView>',
 	]
 
-	return {
-		consumesPrefetched,
-		file: svelteFile(
-			viewModulePath(componentName).replace(/^\$\//, 'src/'),
-			{
-				script: [
-					...scriptBeforePendingEntity,
-					...(usesPendingEntity ? renderPendingEntityDerived(entity) : []),
-					...renderScriptAfterPendingEntity(inlineEntityResource),
-				],
-				markup,
-			}
-		),
-	}
+	return svelteFile(
+		viewModulePath(componentName).replace(/^\$\//, 'src/'),
+		{
+			script: [
+				...scriptBeforePendingEntity,
+				...(usesPendingEntity ? renderPendingEntityDerived(entity) : []),
+				...renderScriptAfterPendingEntity(inlineEntityResource),
+			],
+			markup,
+		}
+	)
 }
 
 const renderContentBlock = (
