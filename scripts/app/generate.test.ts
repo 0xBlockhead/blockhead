@@ -4315,6 +4315,34 @@ test('groups inherited selector fields under one route mapping', () => {
 	assert.match(generatorSource, /\.\.\.normalizedSelectorMappings\.map\(\(normalizedMapping\) => \(\{[\s\S]*?routeParamAlternatives: normalizedMapping\.routeParamAlternatives/)
 })
 
+test('rejects undeclared regular and selector-variant route parameters upstream', () => {
+	const regularParamApp = structuredClone(app)
+	const networkMapping = regularParamApp.routes.children['(explore)']?.children?.['(networks)']?.children?.network?.children?.['[network]']?.selectors?.[EntityType.Network]?.Caip2
+
+	assert.ok(networkMapping?.params)
+	Object.defineProperty(networkMapping.params, 'undeclared', {
+		enumerable: true,
+		value: ['slug'],
+	})
+	assert.throws(
+		() => compileApp(regularParamApp),
+		/\/\(explore\)\/\(networks\)\/network\/\[network\] Network\.Caip2 binds undeclared route parameter undeclared/
+	)
+
+	const variantParamApp = structuredClone(app)
+	const selectorVariant = variantParamApp.routes.children['(explore)']?.children?.['(ipfs)']?.children?.['[namespace]']?.children?.['[target]']?.children?.path?.children?.['[...contentPath]']?.selectorVariant
+
+	assert.ok(selectorVariant?.params)
+	Object.defineProperty(selectorVariant.params, 'undeclared', {
+		enumerable: true,
+		value: ['contentPath'],
+	})
+	assert.throws(
+		() => compileApp(variantParamApp),
+		/\/\(explore\)\/\(ipfs\)\/\[namespace\]\/\[target\]\/path\/\[\.\.\.contentPath\] IpfsResource\.ResourceAddress selector variant binds missing route parameter undeclared/
+	)
+})
+
 test('selects nearest ancestors only after reference-path applicability', () => {
 	assert.deepEqual(
 		nearestApplicableSelectorAncestors([

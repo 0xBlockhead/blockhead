@@ -178,13 +178,11 @@ type SelectorRouteMapping = {
 	entityType: string
 	selectorName: string
 	sourceSelection?: readonly string[] | _SourceSelection
-	paramBindings: Readonly<Record<string, readonly string[]>>
 	routeParamMatchers: readonly {
 		param: string
 		matchers: readonly string[]
 		valueTypes: readonly string[]
 	}[]
-	ancestorBindings: readonly SelectorAncestorBinding[]
 	probeCaseId?: string
 	probeAtoms: readonly string[]
 	boundaryLiveOptional?: true
@@ -192,7 +190,6 @@ type SelectorRouteMapping = {
 		entityHref?: false
 		canonicalize?: true
 		conditions?: EntityRouteLink['conditions']
-		params: RouteLink['params']
 	}
 	routeParamAlternatives: readonly RouteLink['params'][]
 	fields: readonly {
@@ -3696,7 +3693,6 @@ const compileRouteTree = (
 					entityHref: mapping.href.entityHref,
 					canonicalize: mapping.href.canonicalize,
 					conditions: mapping.href.conditions,
-					params: mapping.href.params ?? [],
 				},
 				ownRouteParams,
 				selector: {
@@ -3877,9 +3873,7 @@ const compileRouteTree = (
 				...(sourceSelection == null ? {} : {
 					sourceSelection,
 				}),
-				paramBindings: mapping.params ?? {},
 				routeParamMatchers,
-				ancestorBindings,
 				...routeProbeMetadata(
 					routePath,
 					`${entityType}.${selectorName}`,
@@ -4023,10 +4017,6 @@ const compileRouteTree = (
 				svelteKitPath: owner.descendantSvelteKitPath,
 				mapping: {
 					...owner.mapping,
-					paramBindings: {
-						...owner.mapping.paramBindings,
-						...(node.selectorVariant.params ?? {}),
-					},
 					routeParamMatchers: [...new Map([
 						...owner.mapping.routeParamMatchers,
 						...paramBindings.map(({ param, terminalField }) => ({
@@ -4048,9 +4038,9 @@ const compileRouteTree = (
 					),
 					...(node.selectorVariant.boundaryLiveOptional == null ? {} : { boundaryLiveOptional: node.selectorVariant.boundaryLiveOptional }),
 					href: {
-						...owner.mapping.href,
-						...node.selectorVariant.href,
-						params: node.selectorVariant.href?.params ?? [],
+						entityHref: node.selectorVariant.href?.entityHref ?? owner.mapping.href?.entityHref,
+						canonicalize: node.selectorVariant.href?.canonicalize ?? owner.mapping.href?.canonicalize,
+						conditions: node.selectorVariant.href?.conditions ?? owner.mapping.href?.conditions,
 					},
 					routeParamAlternatives: routeParamAlternativesWithDecodes(routeParamAlternatives),
 					fields: variantFields,
@@ -4806,25 +4796,6 @@ const validateNormalizedRouteNodes = (indexedNodes: readonly RouteNode[]) => {
 				[`${node.internalPath} detail mappings do not all reference local selector mappings`]
 		)),
 		...indexedNodes.flatMap((node) => node.selectorMappings.flatMap((mapping) => [
-			...Object.keys(mapping.paramBindings).flatMap((param) => (
-				node.params.some(({ name }) => name === param) ?
-					[]
-				:
-					[`${node.internalPath} ${mapping.entityType}.${mapping.selectorName} binds missing route parameter ${param}`]
-			)),
-			...mapping.ancestorBindings.flatMap((binding) => binding.alternatives.flatMap((alternative) => (
-				indexedNodes.some((ancestor) => (
-					ancestor.internalPath === alternative.ancestorNodeId
-					&& node.internalPath.startsWith(`${ancestor.internalPath}/`)
-					&& ancestor.selectorMappings.some((ancestorMapping) => (
-						ancestorMapping.entityType === alternative.entityType
-						&& ancestorMapping.selectorName === alternative.selectorName
-					))
-				)) ?
-					[]
-				:
-					[`${node.internalPath} ${mapping.entityType}.${mapping.selectorName} references missing ancestor ${alternative.entityType}.${alternative.selectorName} at ${alternative.ancestorNodeId}`]
-			))),
 			...(!selectorMappingOwnsDetailPage(node, mapping) || mapping.href?.entityHref === false ? [] : mapping.routeParamAlternatives.flatMap((routeParams) => node.params.flatMap(({ name }) => (
 				routeParams.some(({ param }) => param === name) ?
 					[]
@@ -4833,12 +4804,6 @@ const validateNormalizedRouteNodes = (indexedNodes: readonly RouteNode[]) => {
 			)))),
 		])),
 		...indexedNodes.flatMap((node) => node.selectorVariant == null ? [] : [
-			...Object.keys(node.selectorVariant.mapping.paramBindings).flatMap((param) => (
-				node.params.some(({ name }) => name === param) ?
-					[]
-				:
-					[`${node.internalPath} ${node.selectorVariant.mapping.entityType}.${node.selectorVariant.mapping.selectorName} selector variant binds missing route parameter ${param}`]
-			)),
 			...(indexedNodes.some((ancestor) => (
 				ancestor.internalPath === node.selectorVariant?.ownerNodeId
 				&& node.internalPath.startsWith(`${ancestor.internalPath}/`)
