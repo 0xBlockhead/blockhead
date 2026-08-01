@@ -3605,6 +3605,29 @@ test('renders ActivityPub syndication HTML through one safe rich-body mode and p
 	assert.doesNotMatch(renderGeneratedFile(mutatedNoteView), /\(prefetched\.content\)\.toUpperCase\(\)/)
 })
 
+test('classifies display-expression bindings from TypeScript syntax', () => {
+	const proposalView = compileApp({
+		...app,
+		schema: {
+			...app.schema,
+			valueTypes: app.schema.valueTypes.map((valueType) => (
+				valueType.id === 'CardanoGovernanceTreasuryWithdrawal' ?
+					{
+						...valueType,
+						displayExpression: "'value'",
+					}
+				:
+					valueType
+			)),
+		},
+	}).generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/CardanoGovernanceProposalView.svelte')
+
+	assert.ok(proposalView)
+	const proposalViewSource = renderGeneratedFile(proposalView)
+	assert.match(proposalViewSource, /<dt>treasury withdrawals<\/dt>[\s\S]*?\{#snippet children\(entity\)\}\s+value\s+\{\/snippet\}/)
+	assert.doesNotMatch(proposalViewSource, /\.values\.map\(\(value\) => 'value'\)/)
+})
+
 test('keeps schema-construction imports out of generated view display dependencies', () => {
 	for (const path of [
 		'src/views/BridgeRouteView.svelte',

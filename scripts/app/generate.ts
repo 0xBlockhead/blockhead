@@ -8392,7 +8392,7 @@ const renderDisplayExpression = (
 		return `String(${valueExpression}${valueIsPresent ? '' : ' ?? \'\''})`
 	}
 
-	if (!/\bvalue\b/.test(expression))
+	if (!typeScriptExpressionReferencesBinding(expression, 'value'))
 		return parenthesizedNullishExpression(expression)
 
 	if (fieldDefinition != null && fieldCardinalityIsMany(fieldDefinition))
