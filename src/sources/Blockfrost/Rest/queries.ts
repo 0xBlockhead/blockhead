@@ -72,11 +72,16 @@ const get = <_Response>(path: string) => (
 )
 
 const getOptional = async <_Response>(path: string) => {
-	try {
-		return await get<_Response>(path)
-	} catch {
+	const response = await sourceFetch(
+		binding,
+		new URL(path, firstHttpUrlForBinding(binding)).toString()
+	)
+	if (response.status === 404)
 		return undefined
-	}
+	if (!response.ok)
+		await throwHttpError('Blockfrost_Rest', response)
+
+	return response.json<_Response>()
 }
 
 const listPage = <_Response>(

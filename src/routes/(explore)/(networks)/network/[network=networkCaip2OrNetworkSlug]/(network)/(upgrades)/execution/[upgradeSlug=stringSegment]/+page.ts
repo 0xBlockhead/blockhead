@@ -1,4 +1,4 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'

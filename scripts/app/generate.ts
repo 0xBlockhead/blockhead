@@ -8,7 +8,6 @@ import ts from 'typescript'
 import {
 	emitTypeScript,
 	generatedHeader,
-	generatedImportSpecFrom,
 	generatedSvelteHeader,
 	importNameKey,
 	indent,
@@ -684,6 +683,31 @@ const typeScriptExpressionWithoutOuterParentheses = (expression: string) => {
 	return unwrapParenthesizedExpression(parsed.expression).getText(parsed.sourceFile)
 }
 
+const isTypeScriptBindingReference = (
+	node: ts.Node,
+	binding: string
+) => (
+	ts.isIdentifier(node)
+	&& node.text === binding
+	&& !(ts.isPropertyAccessExpression(node.parent) && node.parent.name === node)
+	&& !(ts.isPropertyAssignment(node.parent) && node.parent.name === node)
+)
+
+const typeScriptNodeReferenceCount = (
+	root: ts.Node,
+	binding: string
+) => {
+	let referenceCount = 0
+	const visit = (node: ts.Node) => {
+		if (isTypeScriptBindingReference(node, binding))
+			referenceCount += 1
+		else
+			ts.forEachChild(node, visit)
+	}
+	visit(root)
+	return referenceCount
+}
+
 const typeScriptExpressionReferenceCount = (
 	source: string,
 	binding: string
@@ -691,20 +715,7 @@ const typeScriptExpressionReferenceCount = (
 	if (source.trim() === '')
 		return 0
 
-	let referenceCount = 0
-	const visit = (node: ts.Node) => {
-		if (
-			ts.isIdentifier(node)
-			&& node.text === binding
-			&& !(ts.isPropertyAccessExpression(node.parent) && node.parent.name === node)
-			&& !(ts.isPropertyAssignment(node.parent) && node.parent.name === node)
-		)
-			referenceCount += 1
-		else
-			ts.forEachChild(node, visit)
-	}
-	visit(parseTypeScriptExpression(source).expression)
-	return referenceCount
+	return typeScriptNodeReferenceCount(parseTypeScriptExpression(source).expression, binding)
 }
 
 const typeScriptExpressionReferencesBinding = (
@@ -731,20 +742,7 @@ const typeScriptSourceReferencesBinding = (
 	if (sourceFile.parseDiagnostics.length > 0)
 		throw new Error('Cannot parse authored TypeScript script')
 
-	let referencesBinding = false
-	const visit = (node: ts.Node) => {
-		if (
-			ts.isIdentifier(node)
-			&& node.text === binding
-			&& !(ts.isPropertyAccessExpression(node.parent) && node.parent.name === node)
-			&& !(ts.isPropertyAssignment(node.parent) && node.parent.name === node)
-		)
-			referencesBinding = true
-		else if (!referencesBinding)
-			ts.forEachChild(node, visit)
-	}
-	visit(sourceFile)
-	return referencesBinding
+	return typeScriptNodeReferenceCount(sourceFile, binding) > 0
 }
 
 const replaceTypeScriptIdentifier = (
@@ -759,11 +757,7 @@ const replaceTypeScriptIdentifier = (
 	const transformed = ts.transform(parsed.expression, [
 		(context) => {
 			const visit = (node: ts.Node): ts.Node => {
-				if (
-					ts.isIdentifier(node)
-					&& node.text === identifier
-					&& !(ts.isPropertyAccessExpression(node.parent) && node.parent.name === node)
-				)
+				if (isTypeScriptBindingReference(node, identifier))
 					return replacementExpression
 
 				return ts.visitEachChild(node, visit, context)
@@ -1853,12 +1847,7 @@ const renderQueryFields = (
 
 const emitImportObject = (imports: readonly _Import[] | undefined): ImportSpec[] => (imports ?? [])
 	.map((importSpec) => ({
-		from: generatedImportSpecFrom({
-			from: importSpec.from,
-			defaultName: importSpec.default,
-			names: importSpec.names,
-			typeNames: importSpec.typeNames,
-		}),
+		from: importSpec.from,
 		defaultName: importSpec.default,
 		names: importSpec.names,
 		typeNames: importSpec.typeNames,
@@ -5425,6 +5414,8 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			throw new Error(`${source}: unknown Caip2Network target ${binding.target.key}`)
 		if (binding.target.kind === SourceTargetKind.NetworkSlug && !networkSlugs.has(binding.target.key))
 			throw new Error(`${source}: unknown NetworkSlug target ${binding.target.key}`)
+		if (binding.target.kind === SourceTargetKind.Eip155Chain && !/^[1-9]\d*$/.test(binding.target.key))
+			throw new Error(`${source}: invalid Eip155Chain target ${binding.target.key}`)
 		if (binding.endpoints.length === 0)
 			throw new Error(`${source}: source binding requires at least one endpoint`)
 		if (binding.operationGroups.length === 0)
@@ -6296,12 +6287,12 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 			selection,
 			functionName: sourceSelectionFunctionName(selection),
 		}] as const)).values()]
-	const pluralViewFileByEntityType = new Map(generationInput.entities.map((entity) => [
+	const pluralViewPlanByEntityType = new Map(generationInput.entities.map((entity) => [
 		entity.entityType,
-		generatePluralViewFile(entity, indexes),
+		generatePluralViewPlan(entity, indexes),
 	]))
 	const defaultPluralViewEntityTypes = new Set(generationInput.entities.flatMap((entity) => (
-		isExactDefaultPluralViewFile(entity, pluralViewFileByEntityType.get(entity.entityType)) ?
+		pluralViewPlanByEntityType.get(entity.entityType)?.isExactDefault === true ?
 			[entity.entityType]
 		:
 			[]
@@ -6313,7 +6304,7 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 	const entityViewFiles = generationInput.entities.flatMap((entity) => [
 		generateSingularViewFile(entity, renderingIndexes),
 		...(defaultPluralViewEntityTypes.has(entity.entityType) ? [] : [
-			pluralViewFileByEntityType.get(entity.entityType),
+			pluralViewPlanByEntityType.get(entity.entityType)?.file,
 		]),
 	]).filter((file) => file != null)
 	const routeFiles = generationInput.physicalRouteFiles.flatMap((plan) => generateRouteFiles(plan, renderingIndexes))
@@ -6991,7 +6982,10 @@ const generateSourceBindingFile = () => tsFile(
 			'',
 			emitStringEnum('SourceArtifactKind', Object.values(SourceArtifactKind)),
 			'',
-			...lines(`export type SourceTarget =
+			...lines(`type NonZeroDecimalDigit = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+type Eip155ChainKey = \`${'${NonZeroDecimalDigit}'}${'${string}'}\` & \`${'${bigint}'}\`
+
+export type SourceTarget =
 	| {
 		kind: SourceTargetKind.Caip2Network
 		key: Caip2NetworkKey
@@ -7001,7 +6995,11 @@ const generateSourceBindingFile = () => tsFile(
 		key: NetworkSlug
 	}
 	| {
-		kind: Exclude<SourceTargetKind, SourceTargetKind.Caip2Network | SourceTargetKind.NetworkSlug>
+		kind: SourceTargetKind.Eip155Chain
+		key: Eip155ChainKey
+	}
+	| {
+		kind: Exclude<SourceTargetKind, SourceTargetKind.Caip2Network | SourceTargetKind.NetworkSlug | SourceTargetKind.Eip155Chain>
 		key: string
 	}
 
@@ -7240,15 +7238,17 @@ const planRepeatedBindingValues = (
 	scope: string,
 	fallbackValueName: string,
 	rows: readonly {
+		identity: string
 		expression?: string
 		valueName: string
 	}[]
 ) => {
-	const sharedRows = [...Map.groupBy(rows, ({ expression }) => expression).values()]
+	const sharedRows = [...Map.groupBy(rows, ({ identity }) => identity).values()]
 		.flatMap((matchingRows) => {
 			const row = matchingRows[0]
 			return matchingRows.length > 1 && row?.expression != null ?
 				[{
+					identity: row.identity,
 					expression: row.expression,
 					valueName: matchingRows.every(({ valueName }) => valueName === row.valueName) ?
 						row.valueName
@@ -7269,17 +7269,17 @@ const planRepeatedBindingValues = (
 		:
 			row.valueName,
 	}))
-	const nameByExpression = new Map(
+	const nameByIdentity = new Map(
 		[...Map.groupBy(scopedSharedRows, ({ valueName }) => valueName).values()]
-			.flatMap((matchingRows) => matchingRows.map(({ expression, valueName }, index) => [
-				expression,
+			.flatMap((matchingRows) => matchingRows.map(({ identity, valueName }, index) => [
+				identity,
 				`${camel(scope)}${valueName}${matchingRows.length === 1 ? '' : index + 1}`,
 			] as const))
 	)
 
 	return {
-		declarations: sharedRows.map(({ expression }) => `const ${nameByExpression.get(expression)} = ${expression} as const`),
-		expression: (value: string | undefined) => nameByExpression.get(value ?? '') ?? value,
+		declarations: sharedRows.map(({ identity, expression }) => `const ${nameByIdentity.get(identity)} = ${expression} as const`),
+		reference: ({ identity, expression }: typeof rows[number]) => nameByIdentity.get(identity) ?? expression,
 	}
 }
 
@@ -7297,11 +7297,26 @@ const generateSourceProviderBindingsFile = ({
 		const targetName = pascal(binding.target.key.replace(/[^A-Za-z0-9]+/g, '-'))
 		const sourceSuffix = sourceName.startsWith(providerName) ? sourceName.slice(providerName.length) : sourceName
 		const targetSuffix = targetName.startsWith(providerName) ? targetName.slice(providerName.length) : targetName
+		const publicCredentials = binding.credentials.map((credential) => ({
+			scope: credential.scope,
+			...(!('envKey' in credential) && credential.env != null && {
+				env: credential.env,
+			}),
+			...(
+				!('envKey' in credential)
+				&& credential.scope !== SourceCredentialScope.PublicConfig
+				&& credential.keys != null
+				&& {
+					keys: credential.keys,
+				}
+			),
+		}))
 		return {
 			binding,
 			source: String(source),
 			index,
 			endpoints: {
+				identity: JSON.stringify(binding.endpoints),
 				expression: emitArray(binding.endpoints.map((endpoint) => emitObject([
 					['endpointKind', enumAccess('SourceEndpointKind', endpoint.endpointKind)],
 					['locator', emitTypeScript(endpoint.locator)],
@@ -7310,30 +7325,29 @@ const generateSourceProviderBindingsFile = ({
 				valueName: providerHasMultipleSources ? `${targetSuffix}Endpoints` : 'Endpoints',
 			},
 			operationGroups: {
+				identity: JSON.stringify(binding.operationGroups),
 				expression: emitArray(binding.operationGroups.map((group) => enumAccess('SourceOperationGroup', group))),
 				valueName: `${binding.operationGroups.join('')}OperationGroups`,
 			},
 			credentials: {
-				expression: binding.credentials.length === 0 ? undefined : emitArray(binding.credentials.map((credential) => emitObject([
+				identity: JSON.stringify(publicCredentials),
+				expression: publicCredentials.length === 0 ? undefined : emitArray(publicCredentials.map((credential) => emitObject([
 					['scope', enumAccess('SourceCredentialScope', credential.scope)],
-					['env', 'envKey' in credential ? undefined : emitEnvSchema(credential.env)],
-					['keys', (
-						'envKey' in credential
-						|| credential.scope === SourceCredentialScope.PublicConfig
-						|| credential.keys == null
-					) ? undefined : emitArray(credential.keys.map(emitTypeScript))],
+					['env', emitEnvSchema(credential.env)],
+					['keys', credential.keys == null ? undefined : emitArray(credential.keys.map(emitTypeScript))],
 				]))),
 				valueName: providerHasMultipleSources ? `${targetSuffix}Credentials` : 'Credentials',
 			},
 			artifacts: {
+				identity: JSON.stringify(binding.artifacts ?? null),
 				expression: (
 					binding.artifacts == null ?
 						undefined
 					:
-							emitArray(binding.artifacts.map((artifact) => emitObject([
-								['kind', enumAccess('SourceArtifactKind', artifact.kind)],
-								['path', emitTypeScript(artifact.path)],
-								['generated', artifact.generated === true ? 'true' : undefined],
+						emitArray(binding.artifacts.map((artifact) => emitObject([
+							['kind', enumAccess('SourceArtifactKind', artifact.kind)],
+							['path', emitTypeScript(artifact.path)],
+							['generated', artifact.generated === true ? 'true' : undefined],
 							['officialUrl', artifact.officialUrl == null ? undefined : emitTypeScript(artifact.officialUrl)],
 							['referenceUrl', artifact.referenceUrl == null ? undefined : emitTypeScript(artifact.referenceUrl)],
 						])))
@@ -7346,12 +7360,15 @@ const generateSourceProviderBindingsFile = ({
 		Object.groupBy(bindingRows, ({ source }) => source)
 	).map(([source, sourceBindingRows]) => {
 		const sourceTypeName = pascal(source)
-		const bindingGroups = [...Map.groupBy(sourceBindingRows, ({ binding, operationGroups, credentials, artifacts }) => (
-			emitSourceBindingBase(source, binding, {
-				operationGroups: operationGroups.expression ?? '[]',
-				credentials: credentials.expression ?? '[]',
-				artifacts: artifacts.expression,
-			})
+		const bindingGroups = [...Map.groupBy(sourceBindingRows, ({ binding }) => (
+			JSON.stringify([
+				binding.wireProtocol,
+				binding.apiFamily,
+				binding.operationGroups,
+				binding.delivery,
+				binding.credentials,
+				binding.artifacts ?? null,
+			])
 		)).values()]
 		const bindingGroupIndexByBindingIndex = new Map(bindingGroups.flatMap((group, groupIndex) => (
 			group.map(({ index }) => [index, groupIndex] as const)
@@ -7500,9 +7517,9 @@ const generateSourceProviderBindingsFile = ({
 			if (binding == null || baseIdentifier == null)
 				return []
 			return [`const ${baseIdentifier} = ${emitSourceBindingBase(source, binding, {
-				operationGroups: properties.operationGroups.expression(group[0].operationGroups.expression) ?? '[]',
-				credentials: properties.credentials.expression(group[0].credentials.expression) ?? '[]',
-				artifacts: properties.artifacts.expression(group[0].artifacts.expression),
+				operationGroups: properties.operationGroups.reference(group[0].operationGroups) ?? '[]',
+				credentials: properties.credentials.reference(group[0].credentials) ?? '[]',
+				artifacts: properties.artifacts.reference(group[0].artifacts),
 			})} as const`]
 		}),
 		bindings: sourceBindingRows.map(({
@@ -7517,10 +7534,10 @@ const generateSourceProviderBindingsFile = ({
 			if (groupIndex == null)
 				throw new Error(`${source} binding ${index} has no binding-axis group`)
 			return emitSourceBinding(source, binding, {
-				endpoints: properties.endpoints.expression(endpoints.expression) ?? '[]',
-				operationGroups: properties.operationGroups.expression(operationGroups.expression) ?? '[]',
-				credentials: properties.credentials.expression(credentials.expression) ?? '[]',
-				artifacts: properties.artifacts.expression(artifacts.expression),
+				endpoints: properties.endpoints.reference(endpoints) ?? '[]',
+				operationGroups: properties.operationGroups.reference(operationGroups) ?? '[]',
+				credentials: properties.credentials.reference(credentials) ?? '[]',
+				artifacts: properties.artifacts.reference(artifacts),
 			}, bindingBaseIdentifier(groupIndex))
 		}),
 	}))
@@ -10569,6 +10586,18 @@ const generateSingularViewFile = (entity: Entity, indexes: GenerationIndexes) =>
 		:
 			titleSnippetMarkup
 	)
+	const contentMarkup = [
+		...(latestMarkup.length === 0 ? [] : [
+			`\t\t<dl${singularView?.latestDlClassName == null ? '' : ` class=${emitTypeScript(singularView.latestDlClassName)}`} data-column-item="center">`,
+			...latestMarkup,
+			'\t\t</dl>',
+		]),
+		...contentRowMarkup,
+		...contentListSectionsFromDl,
+		...contentBodyMarkup,
+		...contentWarningMarkup,
+		...contentBlockMarkup,
+	]
 	const markup = [
 		'<EntityView',
 		`\tentityType={EntityType.${entity.entityType}}`,
@@ -10612,24 +10641,17 @@ const generateSingularViewFile = (entity: Entity, indexes: GenerationIndexes) =>
 				...renderSvelteSnippet(1, 'TypeAnnotationTooltip()', typeAnnotationTooltipMarkup),
 			]),
 			...contentWarningContentMarkup,
-			...(latestMarkup.length === 0 && contentRowMarkup.length === 0 && contentListSectionsFromDl.length === 0 && contentBodyMarkup.length === 0 && contentWarningMarkup.length === 0 && contentBlockMarkup.length === 0 ? [] : [
+			...(contentMarkup.length === 0 ? [] : [
 				'',
-				'\t{#snippet Content({ open: contentOpen })}',
-				...(latestMarkup.length === 0 ? [] : [
-				`\t\t<dl${singularView?.latestDlClassName == null ? '' : ` class=${emitTypeScript(singularView.latestDlClassName)}`} data-column-item="center">`,
-				...latestMarkup,
-				'\t\t</dl>',
-				]),
-				...contentRowMarkup,
-				...contentListSectionsFromDl,
-				...contentBodyMarkup,
-				...contentWarningMarkup,
-				...contentBlockMarkup,
-				'\t{/snippet}',
+				...renderSvelteSnippet(
+					1,
+					contentMarkup.some((line) => line.includes('contentOpen')) ? 'Content({ open: contentOpen })' : 'Content()',
+					contentMarkup
+				),
 			]),
 			...(detailsMarkup.length === 0 ? [] : [
 				'',
-				...renderSvelteSnippet(1, 'Details({ open: detailsOpen })', detailsMarkup),
+				...renderSvelteSnippet(1, 'Details()', detailsMarkup),
 			]),
 		]),
 		'</EntityView>',
@@ -13223,7 +13245,7 @@ const renderFilterCondition = (
 	], '||')
 }
 
-const generatePluralViewFile = (entity: Entity, indexes: GenerationIndexes) => {
+const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 	const singularView = entitySingularView(entity)
 	const summaryPlan = compileSummaryPlan(entity, indexes)
 	const pluralView: PluralView | undefined = entityPluralView(entity)
@@ -13639,6 +13661,7 @@ const generatePluralViewFile = (entity: Entity, indexes: GenerationIndexes) => {
 		]
 		return {
 			lines,
+			hasCustomContent: directSummaryChildMarkup.length > 0,
 			selectorReferenceCount: [
 				entitySelectorExpression,
 				...(entityHrefExpression == null || itemHrefIsShared ? [] : [entityHrefExpression]),
@@ -13664,6 +13687,14 @@ const generatePluralViewFile = (entity: Entity, indexes: GenerationIndexes) => {
 		:
 			directSummaryRow.lines
 	)
+	const imports = mergeImports([
+		...rowHrefImports.map(([from, names]) => ({
+			from,
+			names: [...names],
+		})),
+		...rowDisplayImports,
+		...emitImportObject(pluralView?.imports),
+	])
 	const script = [
 		'// Types/constants',
 		...(entityHrefExpression != null ? [
@@ -13673,14 +13704,7 @@ const generatePluralViewFile = (entity: Entity, indexes: GenerationIndexes) => {
 		'import { EntityMetaKey } from \'$/schema/$schema.ts\'',
 		'import { EntityType } from \'$/schema/EntityType.ts\'',
 		...(filters.length === 0 ? [] : ['import type { RegisteredEntitySelector } from \'$/schema/index.ts\'']),
-		...mergeImports([
-			...rowHrefImports.map(([from, names]) => ({
-				from,
-				names: [...names],
-			})),
-				...rowDisplayImports,
-			...emitImportObject(pluralView?.imports),
-		]).map(emitImport),
+		...imports.map(emitImport),
 		...(!Array.isArray(sourceSelection) && sourceSelection?.name != null && selectedSourcesExpression != null ? [
 			`import ${sourceSelectionFunctionName(sourceSelection)} from '${sourceSelectionModulePath(sourceSelection)}'`,
 		] : []),
@@ -13814,78 +13838,47 @@ const generatePluralViewFile = (entity: Entity, indexes: GenerationIndexes) => {
 					]
 				}, summaryLines)
 				return [
-				'\t\t<ProjectionBoundary',
-				renderSvelteAttribute(3, 'resource', projectionSelectionExpression),
-				'\t\t>',
-				`\t\t\t{#snippet Applicable(${projectionName})}`,
-				...projectionContentLines,
-				'\t\t\t{/snippet}',
-				'\t\t</ProjectionBoundary>',
+					'\t\t<ProjectionBoundary',
+					renderSvelteAttribute(3, 'resource', projectionSelectionExpression),
+					'\t\t>',
+					`\t\t\t{#snippet Applicable(${projectionName})}`,
+					...projectionContentLines,
+					'\t\t\t{/snippet}',
+					'\t\t</ProjectionBoundary>',
 				]
 			}),
 		]),
 		'\t{/snippet}',
 		'</EntitiesList>',
 	]
-
-	return svelteFile(
-		viewModulePath(componentName).replace(/^\$\//, 'src/'),
-		{
-			script,
-			markup,
-		}
+	// Consumers inline only the semantic zero-customization wrapper. This fact is
+	// computed from the same plan that emits the file, without rendering/parsing a
+	// second copy of every plural view merely to compare formatted output.
+	const isExactDefault = (
+		entityHrefExpression == null
+		&& renderedQuery === '{}'
+		&& filters.length === 0
+		&& modelTypeAnnotationTooltipMarkup.length === 0
+		&& !usesCustomPluralId
+		&& customPluralTitle == null
+		&& pluralView?.placeholderText == null
+		&& pluralView?.emptyText == null
+		&& rowProjectionPaths.length === 0
+		&& imports.length === 0
+		&& hrefFieldBindings.length === 0
+		&& !directSummaryRow.hasCustomContent
 	)
-}
 
-// Only this exact zero-customization wrapper is compiled into its consumers.
-// Any query, row, title, id, filter, href, tooltip, or forwarded default keeps
-// the plural view as an independently editable generated file.
-const isExactDefaultPluralViewFile = (
-	entity: Entity,
-	generatedFile: GeneratedFile | undefined
-) => {
-	if (generatedFile == null)
-		return false
-
-	const entityValueName = camel(entity.entityType)
-	return renderGeneratedFile(generatedFile) === renderGeneratedFile(svelteFile(
-		viewModulePath(pluralComponentName(entity)).replace(/^\$\//, 'src/'),
-		{
-			script: [
-				'// Types/constants',
-				'import EntitiesList, { type EntityListViewProps } from \'$/components/EntitiesList.svelte\'',
-				'import { EntityMetaKey } from \'$/schema/$schema.ts\'',
-				'import { EntityType } from \'$/schema/EntityType.ts\'',
-				'',
-				'',
-				'// State',
-				'let {',
-				'\tselection,',
-				'\topen = $bindable(true),',
-				'\t...EntitiesListProps',
-				`}: EntityListViewProps<EntityType.${entity.entityType}> = $props()`,
-				'',
-				'',
-				'// Components',
-				'import EntityView from \'$/components/EntityView.svelte\'',
-			],
-			markup: [
-				'<EntitiesList',
-				'\t{...EntitiesListProps}',
-				`\tentityType={EntityType.${entity.entityType}}`,
-				'\tbind:open',
-				'\tresource={selection()}',
-				'>',
-				`\t{#snippet Item({ item: ${entityValueName} })}`,
-				'\t\t<EntityView',
-				`\t\t\tentityType={EntityType.${entity.entityType}}`,
-				`\t\t\tentitySelector={${entityValueName}[EntityMetaKey.Selector]}`,
-				'\t\t/>',
-				'\t{/snippet}',
-				'</EntitiesList>',
-			],
-		}
-	))
+	return {
+		file: svelteFile(
+			viewModulePath(componentName).replace(/^\$\//, 'src/'),
+			{
+				script,
+				markup,
+			}
+		),
+		isExactDefault,
+	}
 }
 
 // SvelteKit route output
@@ -15423,13 +15416,13 @@ const renderCollectionPageMarkup = (
 			'',
 		]),
 		...(hideWhenEmpty ? [
-		`${'\t'.repeat(bodyIndent)}<ResourceBoundary resource={${collectionSelectionExpression}}>`,
-		`${'\t'.repeat(bodyIndent + 1)}{#snippet children(entities)}`,
-		`${'\t'.repeat(bodyIndent + 2)}{#if entities.values.length > 0}`,
-		...component,
-		`${'\t'.repeat(bodyIndent + 2)}{/if}`,
-		`${'\t'.repeat(bodyIndent + 1)}{/snippet}`,
-		`${'\t'.repeat(bodyIndent)}</ResourceBoundary>`,
+			`${'\t'.repeat(bodyIndent)}<ResourceBoundary resource={${collectionSelectionExpression}}>`,
+			`${'\t'.repeat(bodyIndent + 1)}{#snippet children(entities)}`,
+			`${'\t'.repeat(bodyIndent + 2)}{#if entities.values.length > 0}`,
+			...component,
+			`${'\t'.repeat(bodyIndent + 2)}{/if}`,
+			`${'\t'.repeat(bodyIndent + 1)}{/snippet}`,
+			`${'\t'.repeat(bodyIndent)}</ResourceBoundary>`,
 		] : component),
 	]
 	if (conditionExpression == null)
@@ -15873,15 +15866,6 @@ export const writeFiles = async (files: readonly GeneratedFile[]) => {
 				throw new Error(`Injected generator publication failure after ${published.length} files`)
 		}
 
-		const epochPath = path.join(generatedOutputRoot, '.blockhead-generator-epoch')
-		const stagedEpochPath = path.join(transactionRoot, 'epoch')
-		await fs.writeFile(stagedEpochPath, `${JSON.stringify({
-			changed: changed.map(({ filePath }) => filePath),
-			completedAt: new Date().toISOString(),
-			removed: stale,
-			transactionId,
-		})}\n`)
-		await fs.rename(stagedEpochPath, epochPath)
 		await removeEmptyRouteDirectories()
 	} catch (error) {
 		for (const publishedFile of published.reverse()) {
@@ -15930,7 +15914,7 @@ const checkGeneratedViewImportsResolve = async (files: readonly GeneratedFile[])
 
 		for (const importPath of (
 			generatedFile.kind === 'ts' ?
-				(generatedFile.ast.imports ?? []).map(generatedImportSpecFrom)
+				(generatedFile.ast.imports ?? []).map(({ from }) => from)
 			: generatedFile.kind === 'svelte' ?
 				[
 					...typeScriptImportPaths(generatedFile.ast.moduleScript ?? []),

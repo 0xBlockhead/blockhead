@@ -1,4 +1,4 @@
-<!-- Generated from APP.ts. Do not edit by hand. -->
+<!-- Generated from APP.ts. -->
 
 <script lang="ts">
 	// Types/constants
@@ -84,7 +84,7 @@
 		{['Proposal ' + selection.entitySelector.proposalTxHash, '#' + String(selection.entitySelector.proposalIndex)].filter(Boolean).join(' ') || [(prefetched.proposalKind ?? ''), (prefetched.governanceActionId ?? '')].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
-	{#snippet Content({ open: contentOpen })}
+	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
 				<dt>network</dt>
@@ -508,7 +508,7 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details({ open: detailsOpen })}
+	{#snippet Details()}
 		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
 			resource={timestampsResource}

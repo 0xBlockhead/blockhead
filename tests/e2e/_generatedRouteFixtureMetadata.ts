@@ -1,4 +1,4 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import { match as matchAbsoluteUrl } from '$/params/absoluteUrl.ts'
 import { match as matchBridgeRouteStepIndex } from '$/params/bridgeRouteStepIndex.ts'
@@ -18,7 +18,9 @@ import { match as matchNonNegativeBigInt } from '$/params/nonNegativeBigInt.ts'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchNonNegativeIntegerOrSolanaPubkey } from '$/params/nonNegativeIntegerOrSolanaPubkey.ts'
 import { match as matchNonNegativeNumber } from '$/params/nonNegativeNumber.ts'
-import { match as matchPolkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey } from '$/params/polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey.ts'
+import {
+	match as matchPolkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey,
+} from '$/params/polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey.ts'
 import { match as matchProposalKindSlug } from '$/params/proposalKindSlug.ts'
 import { match as matchProposalRef } from '$/params/proposalRef.ts'
 import { match as matchRssItemIdentityKind } from '$/params/rssItemIdentityKind.ts'

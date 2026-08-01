@@ -20,12 +20,6 @@ const {
 }))
 
 vi.mock('$/sources/EasScan/Graphql/queries.ts', () => ({
-	easScanBindingForNetwork: (network: string) => {
-		if (network !== 'eip155:1')
-			throw new Error('EasScan_Graphql: no exact network binding')
-
-		return {}
-	},
 	getAttestation,
 	getAttestationsBySchema,
 	getSchema,
@@ -209,18 +203,5 @@ describe('EasScan GraphQL resolvers', () => {
 			skip: 3,
 			take: 2,
 		}))
-	})
-
-	it('rejects networks without an exact chain binding', async () => {
-		await expect(easAttestationResolver.resolve.NetworkUid.resolve({
-			$network: {
-				caip2: {
-					namespace: 'eip155',
-					reference: '10',
-				},
-			},
-			uid,
-		}, context)).rejects.toThrow('EasScan_Graphql: no exact network binding')
-		expect(getAttestation).not.toHaveBeenCalled()
 	})
 })

@@ -1313,7 +1313,7 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 			txHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
 		},
 		timestampMs: 0,
-		source: Source.Hyperliquid_Rest,
+		source: Source.Hyperliquid,
 	},
 	[EntityType.HyperliquidAccount]: {
 		$network: hyperliquidNetwork,
@@ -2292,7 +2292,7 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 				coin: 'BTC',
 			},
 			timestampMs: 0,
-			source: Source.Hyperliquid_Rest,
+			source: Source.Hyperliquid,
 		},
 	},
 	[EntityType.HyperliquidValidator_Timestamp]: {
@@ -2302,7 +2302,7 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 				validator: 'e2e-probe-validator',
 			},
 			timestampMs: 0,
-			source: Source.Hyperliquid_Rest,
+			source: Source.Hyperliquid,
 		},
 	},
 	[EntityType.LensAccount_Timestamp]: {

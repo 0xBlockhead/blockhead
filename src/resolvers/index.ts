@@ -1,4 +1,4 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import type { SourceResolverModule } from '$/resolvers/$resolvers.ts'
 import type { schema } from '$/schema/index.ts'

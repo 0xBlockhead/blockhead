@@ -237,8 +237,8 @@ export const emitTypeScript = (emission: TypeScriptEmission) => {
 	})
 }
 
-export const generatedHeader = '// Generated from APP.ts. Do not edit by hand.'
-export const generatedSvelteHeader = '<!-- Generated from APP.ts. Do not edit by hand. -->'
+export const generatedHeader = '// Generated from APP.ts.'
+export const generatedSvelteHeader = '<!-- Generated from APP.ts. -->'
 export const indent = (source: string, level = 1) => source
 	.split('\n')
 	.map((line) => line === '' ? line : `${'\t'.repeat(level)}${line}`)
@@ -255,17 +255,6 @@ export const uniqueImportNames = (importNames: readonly ImportName[]) => [
 		importName,
 	])).values(),
 ].sort((left, right) => importNameKey(left).localeCompare(importNameKey(right)))
-export const generatedImportSpecFrom = (spec: ImportPlan) => {
-	const schemaMatch = spec.from.match(/^\$\/schema\/([^/]+)\.ts$/)
-	if (schemaMatch?.[1] != null && [
-		spec.defaultName,
-		...(spec.names ?? []).map(importNameKey),
-		...(spec.typeNames ?? []).map(importNameKey),
-	].some((name) => name?.startsWith(`_${schemaMatch[1]}`)))
-		return `$/schema/_${schemaMatch[1]}.ts`
-
-	return spec.from
-}
 const quote = (value: string) => `'${JSON.stringify(value)
 	.slice(1, -1)
 	.replaceAll("'", "\\'")
@@ -284,15 +273,25 @@ export const renderImport = (spec: ImportPlan) => {
 			isTypeOnly: !typeOnlyImport,
 		})),
 	]
-	const namedClause = namedImports.length === 0 ? undefined : `{ ${namedImports.map((name) => (
+	const renderedNamedImports = namedImports.map((name) => (
 		`${name.isTypeOnly ? 'type ' : ''}${name.name}${name.alias == null ? '' : ` as ${name.alias}`}`
-	)).join(', ')} }`
+	))
+	const namedClause = namedImports.length === 0 ? undefined : `{ ${renderedNamedImports.join(', ')} }`
 	const importClause = [
 		spec.defaultName,
 		namedClause,
 	].filter((value) => value != null).join(', ')
+	const singleLine = `import ${typeOnlyImport ? 'type ' : ''}${importClause} from ${quote(spec.from)}`
+	if (singleLine.length <= 120 || renderedNamedImports.length === 0)
+		return singleLine
 
-	return `import ${typeOnlyImport ? 'type ' : ''}${importClause} from ${quote(generatedImportSpecFrom(spec))}`
+	// Long named imports are a structural list, not an unbounded line. The type
+	// modifier stays on the import only when every imported name is type-only.
+	return [
+		`import ${typeOnlyImport ? 'type ' : ''}${spec.defaultName == null ? '' : `${spec.defaultName}, `}{`,
+		...renderedNamedImports.map((name) => `\t${name},`),
+		`} from ${quote(spec.from)}`,
+	].join('\n')
 }
 export const mergeImports = (imports: readonly ImportPlan[]) => {
 	const merged = new Map<string, {
@@ -302,7 +301,7 @@ export const mergeImports = (imports: readonly ImportPlan[]) => {
 		typeNames: ImportName[]
 	}>()
 	for (const spec of imports) {
-		const from = generatedImportSpecFrom(spec)
+		const from = spec.from
 		const existing = merged.get(from)
 		if (existing == null) {
 			merged.set(from, {

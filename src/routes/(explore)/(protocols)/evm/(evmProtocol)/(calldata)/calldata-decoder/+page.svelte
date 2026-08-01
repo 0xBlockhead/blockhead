@@ -1,4 +1,4 @@
-<!-- Generated from APP.ts. Do not edit by hand. -->
+<!-- Generated from APP.ts. -->
 
 <script lang="ts">
 	// Types/constants
@@ -6,7 +6,11 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { select } from '$/routes/+layout.svelte'
 	import { calldataExamples, type CalldataExample } from '$/constants/calldata-examples.ts'
-	import { decodeCalldataWithSignature, decodeEventDataWithSignature, formatDecodedParamValue } from '$/lib/calldata-decode.ts'
+	import {
+		decodeCalldataWithSignature,
+		decodeEventDataWithSignature,
+		formatDecodedParamValue,
+	} from '$/lib/calldata-decode.ts'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { normalizeEvmSelectorHex, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'

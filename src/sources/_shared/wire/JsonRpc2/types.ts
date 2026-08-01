@@ -14,6 +14,13 @@ export type JsonRpc2Error = {
 export type JsonRpc2Response<_Result> = {
 	jsonrpc: '2.0'
 	id: number
-	result?: _Result
-	error?: JsonRpc2Error
-}
+} & (
+	| {
+		result: _Result
+		error?: never
+	}
+	| {
+		result?: never
+		error: JsonRpc2Error
+	}
+)

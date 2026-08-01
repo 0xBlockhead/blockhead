@@ -106,7 +106,7 @@ export const getChainIconUrl = (slug: string) => (
  * Chain icon slugs are provider identifiers rather than EVM chain ids, and are not returned by `/v2/chains`.
  * @see https://github.com/DefiLlama/icons
  */
-export const chainIconSlugByChainId = Object.fromEntries<string | undefined>([
+export const chainIconSlugByChainId = Object.fromEntries([
 	[1, 'ethereum'],
 	[10, 'optimism'],
 	[56, 'bsc'],

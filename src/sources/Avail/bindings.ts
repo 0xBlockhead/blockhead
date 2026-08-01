@@ -1,7 +1,17 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import {
+	ApiFamily,
+	indexSourceBindings,
+	SourceCredentialScope,
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
+	SourceTargetKind,
+	WireProtocol,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
 import { type as arktype } from 'arktype'
 
 const bindings = [

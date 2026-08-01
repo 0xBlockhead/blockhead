@@ -2021,7 +2021,7 @@ const catalog: readonly {
 ] as const
 
 /** CoinGecko coin id strings (`/coins/{id}` path segment). */
-export const idByCoinId: Partial<Record<CoinId, string>> = Object.fromEntries(
+export const idByCoinId = Object.fromEntries(
 	catalog
 		.flatMap((entry) => (
 			entry.wireId == null ?
@@ -2031,7 +2031,7 @@ export const idByCoinId: Partial<Record<CoinId, string>> = Object.fromEntries(
 		))
 )
 
-export const coinIdByWireId: Partial<Record<string, CoinId>> = Object.fromEntries(
+export const coinIdByWireId = new Map(
 	catalog
 		.flatMap((entry) => (
 			entry.wireId == null ?

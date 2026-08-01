@@ -1,4 +1,4 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import { NetworkExecutionModel, NetworkLedgerModel, NetworkNamespace } from '$/constants/Network.ts'
 import { entity, facet } from '$/schema/$schema.ts'
@@ -921,7 +921,7 @@ export default entity({
 				}),
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Constants_Internal,
+					Source.NearRpc_JsonRpc,
 				],
 			},
 			$$timestamps: {

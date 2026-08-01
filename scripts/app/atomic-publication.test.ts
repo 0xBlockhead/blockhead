@@ -37,7 +37,7 @@ test('publishes generated files transactionally', async () => {
 		mkdirSync(path.dirname(staleFilePath), {
 			recursive: true,
 		})
-		writeFileSync(staleFilePath, '<!-- Generated from APP.ts. Do not edit by hand. -->\n<p>stale</p>\n')
+		writeFileSync(staleFilePath, '<!-- Generated from APP.ts. -->\n<p>stale</p>\n')
 		writeFileSync(generatedFilePath, `${generatedSource}\n// incomplete old generation\n`)
 		const beforeFailure = new Map([
 			[generatedFilePath, readFileSync(generatedFilePath, 'utf8')],

@@ -1,4 +1,4 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import _GlobalSchema from '$/schema/_Global.ts'
 import _GlobalActivityPubNetwork_TimestampSchema from '$/schema/_GlobalActivityPubNetwork_Timestamp.ts'
@@ -26,7 +26,13 @@ import _GlobalSwarmAccessSchema from '$/schema/_GlobalSwarmAccess.ts'
 import _GlobalXNetworkSchema from '$/schema/_GlobalXNetwork.ts'
 import _GlobalYoutubeNetwork_TimestampSchema from '$/schema/_GlobalYoutubeNetwork_Timestamp.ts'
 import _GlobalYoutubeNetworkSchema from '$/schema/_GlobalYoutubeNetwork.ts'
-import { indexSchema, type EntityDefinition, type EntityFieldDefinitions, type EntitySelector, type Schema } from '$/schema/$schema.ts'
+import {
+	indexSchema,
+	type EntityDefinition,
+	type EntityFieldDefinitions,
+	type EntitySelector,
+	type Schema,
+} from '$/schema/$schema.ts'
 import A2aAgentCard_SnapshotSchema from '$/schema/A2aAgentCard_Snapshot.ts'
 import A2aAgentCardSchema from '$/schema/A2aAgentCard.ts'
 import A2aAgentInterfaceSchema from '$/schema/A2aAgentInterface.ts'

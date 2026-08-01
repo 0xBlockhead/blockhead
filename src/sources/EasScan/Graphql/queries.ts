@@ -7,8 +7,6 @@ import {
 	type EasScanSchema,
 } from '$/sources/EasScan/Graphql/types.ts'
 import bindings from '$/sources/EasScan/bindings.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
 import {
 	graphql,
@@ -28,7 +26,7 @@ const easScanBindingByNetwork = new Map(
 		])
 )
 
-export const easScanBindingForNetwork = (network: string) => {
+const easScanBindingForNetwork = (network: string) => {
 	const binding = easScanBindingByNetwork.get(network)
 	if (binding == null)
 		throw new Error('EasScan GraphQL has no exact network binding')
@@ -74,17 +72,6 @@ const EasScanSchema = graphql(`
 `, [
 	EasScanSchemaFragment,
 ])
-
-const assertNetworkBinding = (
-	binding: SourceBinding,
-	network: string
-) => {
-	if (
-		binding.target.kind !== SourceTargetKind.Eip155Chain
-		|| `eip155:${binding.target.key}` !== network
-	)
-		throw new Error('EasScan GraphQL requires an exact EIP-155 chain binding')
-}
 
 const assertUid = (
 	uid: string,
@@ -143,27 +130,23 @@ const assertSchema = (
 }
 
 const listAttestations = async ({
-	binding,
 	network,
 	where,
 	skip,
 	take,
 }: {
-	binding: SourceBinding
 	network: string
 	where: VariablesOf<typeof EasScanAttestations>['where']
 	skip: number
 	take: number
 }) => {
-	assertNetworkBinding(binding, network)
-
 	if (!Number.isSafeInteger(skip) || skip < 0)
 		throw new Error('EasScan skip must be a nonnegative safe integer')
 
 	if (!Number.isSafeInteger(take) || take < 1 || take > 100)
 		throw new Error('EasScan take must be between 1 and 100')
 
-	const response = await queryEasScan(binding, EasScanAttestations, {
+	const response = await queryEasScan(easScanBindingForNetwork(network), EasScanAttestations, {
 		where,
 		skip,
 		take,
@@ -189,18 +172,15 @@ const listAttestations = async ({
 }
 
 export const getAttestation = async ({
-	binding,
 	network,
 	uid,
 }: {
-	binding: SourceBinding
 	network: string
 	uid: string
 }) => {
-	assertNetworkBinding(binding, network)
 	assertUid(uid, 'requested attestation UID')
 
-	const response = await queryEasScan(binding, EasScanAttestation, {
+	const response = await queryEasScan(easScanBindingForNetwork(network), EasScanAttestation, {
 		where: {
 			id: uid,
 		},
@@ -221,18 +201,15 @@ export const getAttestation = async ({
 }
 
 export const getSchema = async ({
-	binding,
 	network,
 	schemaUid,
 }: {
-	binding: SourceBinding
 	network: string
 	schemaUid: string
 }) => {
-	assertNetworkBinding(binding, network)
 	assertUid(schemaUid, 'requested schema UID')
 
-	const response = await queryEasScan(binding, EasScanSchema, {
+	const response = await queryEasScan(easScanBindingForNetwork(network), EasScanSchema, {
 		where: {
 			id: schemaUid,
 		},
@@ -253,13 +230,11 @@ export const getSchema = async ({
 }
 
 export const getAttestationsByAttester = ({
-	binding,
 	network,
 	attester,
 	skip = 0,
 	take = 100,
 }: {
-	binding: SourceBinding
 	network: string
 	attester: string
 	skip?: number
@@ -268,7 +243,6 @@ export const getAttestationsByAttester = ({
 	assertAddress(attester, 'requested attester')
 
 	return listAttestations({
-		binding,
 		network,
 		where: {
 			attester: {
@@ -286,13 +260,11 @@ export const getAttestationsByAttester = ({
 }
 
 export const getAttestationsByRecipient = ({
-	binding,
 	network,
 	recipient,
 	skip = 0,
 	take = 100,
 }: {
-	binding: SourceBinding
 	network: string
 	recipient: string
 	skip?: number
@@ -301,7 +273,6 @@ export const getAttestationsByRecipient = ({
 	assertAddress(recipient, 'requested recipient')
 
 	return listAttestations({
-		binding,
 		network,
 		where: {
 			recipient: {
@@ -319,13 +290,11 @@ export const getAttestationsByRecipient = ({
 }
 
 export const getAttestationsBySchema = ({
-	binding,
 	network,
 	schemaUid,
 	skip = 0,
 	take = 100,
 }: {
-	binding: SourceBinding
 	network: string
 	schemaUid: string
 	skip?: number
@@ -334,7 +303,6 @@ export const getAttestationsBySchema = ({
 	assertUid(schemaUid, 'requested schema UID')
 
 	return listAttestations({
-		binding,
 		network,
 		where: {
 			schemaId: {

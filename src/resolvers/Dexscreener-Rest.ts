@@ -157,7 +157,7 @@ export default {
 								q: 'WETH USDC uniswap',
 							})).pairs
 								.flatMap((pair) => {
-									const chainId = numericChainIdByDexscreenerApiChainLabel[pair.chainId]
+									const chainId = numericChainIdByDexscreenerApiChainLabel.get(pair.chainId)
 									const pairId = hexLowerOfByteSize(pair.pairAddress, 20)
 
 									return (

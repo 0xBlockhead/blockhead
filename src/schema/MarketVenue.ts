@@ -1,4 +1,4 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { entity } from '$/schema/$schema.ts'

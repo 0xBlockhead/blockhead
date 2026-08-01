@@ -45,7 +45,10 @@ import {
 	sourceBindingId,
 	validateSourceBindingCompatibility,
 } from './generate.ts'
-import { renderGeneratedFile as renderGeneratedFileUncached } from './render.ts'
+import {
+	generatedHeader,
+	renderGeneratedFile as renderGeneratedFileUncached,
+} from './render.ts'
 
 
 const root = process.cwd()
@@ -1033,7 +1036,7 @@ test('projects APP field enums and navigation structure into runtime modules', (
 	] as const)
 		assert.equal(
 			generatedFileByPath.get(`src/schema/${name}.ts`),
-			`// Generated from APP.ts. Do not edit by hand.
+			`// Generated from APP.ts.
 
 export enum ${name} {
 ${members.map((member) => `\t${member} = '${member}',`).join('\n')}
@@ -1497,7 +1500,7 @@ test('leaves singular schema-default titles to EntityView', () => {
 	const atprotoActorView = generatedSource('src/views/AtprotoActorView.svelte')
 	assert.doesNotMatch(tezosTokenTransferView, /\n\t+title(?:,|=)/)
 	assert.doesNotMatch(tezosTokenTransferView, /\{#snippet Title\(\)\}/)
-	assert.match(tezosTokenTransferView, /\{#snippet Content\(\{ open: contentOpen \}\)\}/)
+	assert.match(tezosTokenTransferView, /\{#snippet Content\(\)\}/)
 	assert.match(icpLedgerAccountTimestampView, /title=\{title \?\? 'ICP ledger account timestamp'\}/)
 	assert.doesNotMatch(icpLedgerAccountTimestampView, /\{#snippet Title\(\)\}/)
 	assert.match(atprotoActorView, /title=\{title \?\?/)
@@ -3726,10 +3729,9 @@ test('emits selector names only in each entity schema selector definition', () =
 		for (const appEnum of entity.enums ?? []) {
 			const enumFile = entitySchemaFiles.find(({ path }) => path === `src/schema/${appEnum.name}.ts`)
 			assert.ok(enumFile)
-			assert.match(
-				renderGeneratedFile(enumFile),
-				new RegExp(`^// Generated from APP\\.ts\\. Do not edit by hand\\.\\n\\nexport enum ${appEnum.name} \\{[\\s\\S]+?\\n\\}\\n$`)
-			)
+			const enumSource = renderGeneratedFile(enumFile)
+			assert.equal(enumSource.startsWith(`${generatedHeader}\n\nexport enum ${appEnum.name} {\n`), true)
+			assert.equal(enumSource.endsWith('\n}\n'), true)
 			assert.match(
 				entitySchemaSource,
 				new RegExp(`import \\{ ${appEnum.name} \\} from '\\$/schema/${appEnum.name}\\.ts'`)
@@ -4969,18 +4971,18 @@ test('isolates replacement-managed output and preserves unchanged generated file
 		mkdirSync(path.dirname(checkedInProviderRoot), {
 			recursive: true,
 		})
-		writeFileSync(checkedInProviderRoot, '// Generated from APP.ts. Do not edit by hand.\nexport const checkedInProvider = true\n')
+		writeFileSync(checkedInProviderRoot, '// Generated from APP.ts.\nexport const checkedInProvider = true\n')
 
 		const generateResult = runGenerator('generate', generatedOutputRoot)
 		assert.equal(generateResult.status, 0, generateResult.failure)
 		assert.equal(existsSync(path.join(generatedOutputRoot, 'src/schema/EntityType.ts')), true)
-		assert.equal(readFileSync(checkedInProviderRoot, 'utf8'), '// Generated from APP.ts. Do not edit by hand.\nexport const checkedInProvider = true\n')
+		assert.equal(readFileSync(checkedInProviderRoot, 'utf8'), '// Generated from APP.ts.\nexport const checkedInProvider = true\n')
 
 		mkdirSync(path.dirname(staleRoute), {
 			recursive: true,
 		})
-		writeFileSync(staleRoute, '<!-- Generated from APP.ts. Do not edit by hand. -->\n<p>stale</p>\n')
-		writeFileSync(staleSourceProjection, '// Generated from APP.ts. Do not edit by hand.\nexport const stale = true\n')
+		writeFileSync(staleRoute, '<!-- Generated from APP.ts. -->\n<p>stale</p>\n')
+		writeFileSync(staleSourceProjection, '// Generated from APP.ts.\nexport const stale = true\n')
 
 		const checkResult = runGenerator('check', generatedOutputRoot)
 		assert.notEqual(checkResult.status, 0)
@@ -4993,7 +4995,7 @@ test('isolates replacement-managed output and preserves unchanged generated file
 		assert.equal(regenerateResult.status, 0, regenerateResult.failure)
 		assert.equal(existsSync(staleRoute), false)
 		assert.equal(existsSync(staleSourceProjection), false)
-		assert.equal(readFileSync(checkedInProviderRoot, 'utf8'), '// Generated from APP.ts. Do not edit by hand.\nexport const checkedInProvider = true\n')
+		assert.equal(readFileSync(checkedInProviderRoot, 'utf8'), '// Generated from APP.ts.\nexport const checkedInProvider = true\n')
 		assert.equal(statSync(generatedSchema).mtimeMs, preservedTimestamp.getTime())
 	} finally {
 		removeFreshRoot(generatedOutputRoot)
@@ -5698,7 +5700,7 @@ test('keeps list sources scoped without re-emitting relationship field defaults'
 		/resolve\([\s\S]*?'\/\(social\)\/\(farcaster\)\/farcaster\/\(farcasterNetwork\)\/user\/\[userId=farcasterFid\]\/\(farcasterUser\)\/casts',[\s\S]*?userId: String\(selection\.entitySelector\.fid\),/
 	)
 	assert.doesNotMatch(userView, /resolve\(\s*`/)
-	assert.match(userView, /\{#snippet Details\(\{ open: detailsOpen \}\)\}[\s\S]*?<FarcasterCastsView[\s\S]*?selection=\{selection\.\$\$casts\}/)
+	assert.match(userView, /\{#snippet Details\(\)\}[\s\S]*?<FarcasterCastsView[\s\S]*?selection=\{selection\.\$\$casts\}/)
 	assert.doesNotMatch(userView, /\n\t{3,}<CollapsibleTabs/)
 	assert.doesNotMatch(userView, /farcasterUserActivityFarcasterUserCastsResource/)
 	const redditLinkTimestampViewFile = generatedFiles.find((file) => file.path === 'src/views/RedditLink_TimestampView.svelte')

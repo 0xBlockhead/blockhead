@@ -1,4 +1,4 @@
-<!-- Generated from APP.ts. Do not edit by hand. -->
+<!-- Generated from APP.ts. -->
 
 <script lang="ts">
 	// Types/constants
@@ -276,7 +276,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({ open: detailsOpen })}
+	{#snippet Details()}
 		{@const repliesResource = selection.$$replies}
 		<ResourceBoundary
 			resource={repliesResource}

@@ -83,9 +83,9 @@ const coingeckoMarketSelectorKey = (
 const coingeckoSpotMarketSelector = (
 	ticker: CoingeckoCoinTicker,
 	catalogCoinId: CoinId,
-	coinIdByWireId: Partial<Record<string, CoinId>>
+	coinIdByWireId: ReadonlyMap<string, CoinId>
 ): EntitySelector<typeof schema, EntityType.Market> | null => {
-	if (coinIdByWireId[ticker.coin_id] !== catalogCoinId)
+	if (coinIdByWireId.get(ticker.coin_id) !== catalogCoinId)
 		return null
 
 	const marketVenueId = Object.values(MarketVenueId).find((candidate) => (
@@ -114,7 +114,7 @@ const coingeckoSpotMarketSelector = (
 			marketKind: MarketKind.Spot,
 		}
 
-	const quoteCoinId = coinIdByWireId[ticker.target_coin_id]
+	const quoteCoinId = coinIdByWireId.get(ticker.target_coin_id)
 	if (quoteCoinId == null)
 		return null
 
@@ -135,9 +135,9 @@ const coingeckoSpotMarketSelector = (
 const coingeckoDerivativeMarketSelector = (
 	ticker: CoingeckoDerivativesExchangeTicker,
 	marketVenueId: MarketVenueId,
-	coinIdByWireId: Partial<Record<string, CoinId>>
+	coinIdByWireId: ReadonlyMap<string, CoinId>
 ): EntitySelector<typeof schema, EntityType.Market> | null => {
-	const baseCoinId = coinIdByWireId[ticker.coin_id]
+	const baseCoinId = coinIdByWireId.get(ticker.coin_id)
 	if (
 		baseCoinId == null
 		|| (
@@ -392,8 +392,6 @@ export default {
 					resolve: async ({ coinId }, context) => {
 						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 						const coingeckoId = idByCoinId[coinId]
-						if (coingeckoId == null)
-							return []
 
 						return [
 							...await coingeckoSpotMarketSelectorsForCoin(
@@ -426,7 +424,6 @@ export default {
 						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 						const { getCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const coingeckoId = idByCoinId[coinId]
-						if (coingeckoId == null) throw new Error('Coingecko_Rest: coin not mapped')
 						const coin = await getCoin({
 							publicEnv: context.publicEnv,
 							id: coingeckoId,
@@ -479,7 +476,6 @@ export default {
 						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 						const { getCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const coingeckoId = idByCoinId[$coin.coinId]
-						if (coingeckoId == null) throw new Error('Coingecko_Rest: coin not mapped')
 						const coin = await getCoin({
 							publicEnv: context.publicEnv,
 							id: coingeckoId,
@@ -544,7 +540,7 @@ export default {
 						if (coin == null)
 							throw new Error('Coingecko_Rest: ERC-20 contract not found on asset platform')
 
-						const coinId = coinIdByWireId[coin.id] ?? CoinId.Unknown
+						const coinId = coinIdByWireId.get(coin.id) ?? CoinId.Unknown
 						const decimals = coin.detail_platforms[assetPlatformId]?.decimal_place
 						const iconUrl = coin.image.large
 						const iconMedia = mediaFromUrl(iconUrl, MediaType.Image)
@@ -591,7 +587,6 @@ export default {
 						const { getCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const coinId = $market.$base.assetKey
 						const coingeckoId = idByCoinId[coinId]
-						if (coingeckoId == null) throw new Error('Coingecko_Rest: coin price not mapped')
 						if (feedKey !== coingeckoId)
 							throw new Error('Coingecko_Rest: Market_Timestamp feedKey does not match Coingecko id')
 
@@ -648,7 +643,6 @@ export default {
 							throw new Error('Coingecko_Rest: OHLC timeInterval must be daily')
 						const coinId = $market.$base.assetKey
 						const coingeckoId = idByCoinId[coinId]
-						if (coingeckoId == null) throw new Error('Coingecko_Rest: OHLC coin not mapped')
 						const ohlcCandles = await getCoinOhlc({
 							publicEnv: context.publicEnv,
 							id: coingeckoId,
@@ -699,7 +693,7 @@ export default {
 						return (
 							markets
 								.flatMap((coinMarket) => {
-								const coinId = coinIdByWireId[coinMarket.id]
+								const coinId = coinIdByWireId.get(coinMarket.id)
 								if (coinId == null) return []
 								return [
 									{
@@ -734,8 +728,6 @@ export default {
 									.slice(0, lim)
 									.map(async (coinId) => {
 										const coingeckoId = idByCoinId[coinId]
-										if (coingeckoId == null)
-											return []
 										const spot = coingeckoMarketSpot(await getCoin({
 											publicEnv: context.publicEnv,
 											id: coingeckoId,
@@ -778,8 +770,6 @@ export default {
 								.map(async (coinId) => {
 									const $market = marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coinId])
 									const coingeckoId = idByCoinId[coinId]
-									if (coingeckoId == null)
-										return []
 
 									const ohlcCandles = await getCoinOhlc({
 										publicEnv: context.publicEnv,
@@ -818,8 +808,6 @@ export default {
 						const { fetchCoinInstanceStubsForCoin } = await import(
 							'$/resolvers/Coingecko/Rest/coinInstances.ts'
 						)
-						if (idByCoinId[coinId] == null)
-							return []
 						return fetchCoinInstanceStubsForCoin(
 							coinId,
 							context.publicEnv
@@ -1022,7 +1010,6 @@ export default {
 						const { getCoinOhlc } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const coinId = entitySelector.$base.assetKey
 						const coingeckoId = idByCoinId[coinId]
-						if (coingeckoId == null) throw new Error('Coingecko_Rest: OHLC coin not mapped')
 						const lim = resolverContextRowLimit(context)
 						return (await getCoinOhlc({
 							publicEnv: context.publicEnv,
@@ -1062,7 +1049,6 @@ export default {
 						const { getCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const coinId = $market.$base.assetKey
 						const coingeckoId = idByCoinId[coinId]
-						if (coingeckoId == null) throw new Error('Coingecko_Rest: coin price not mapped')
 						const spot = coingeckoMarketSpot(await getCoin({
 							publicEnv: context.publicEnv,
 							id: coingeckoId,

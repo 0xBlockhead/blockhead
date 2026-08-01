@@ -7,7 +7,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { schema } from '$/schema/index.ts'
-import { easScanBindingForNetwork } from '$/sources/EasScan/Graphql/queries.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkSelector = EntitySelector<typeof schema, EntityType.Network>
@@ -42,10 +41,7 @@ const easScanNetwork = ($network: NetworkSelector) => {
 	if (networkKey == null)
 		throw new Error('EasScan_Graphql: network has no CAIP-2 identity')
 
-	return {
-		binding: easScanBindingForNetwork(networkKey),
-		network: networkKey,
-	}
+	return networkKey
 }
 
 const evmNetworkAccount = (
@@ -65,13 +61,9 @@ const easAttestationResolver = defineResolver(Source.EasScan_Graphql, {
 	resolve: {
 		NetworkUid: {
 			resolve: async (entitySelector) => {
-				const {
-					binding,
-					network,
-				} = easScanNetwork(entitySelector.$network)
+				const network = easScanNetwork(entitySelector.$network)
 				const { getAttestation } = await import('$/sources/EasScan/Graphql/queries.ts')
 				const attestation = await getAttestation({
-					binding,
 					network,
 					uid: entitySelector.uid,
 				})
@@ -149,13 +141,9 @@ const easAttestationTimestampResolver = defineResolver(Source.EasScan_Graphql, {
 				if (source !== Source.EasScan_Graphql)
 					throw new Error('EasScan_Graphql: observation source mismatch')
 
-				const {
-					binding,
-					network,
-				} = easScanNetwork($attestation.$network)
+				const network = easScanNetwork($attestation.$network)
 				const { getAttestation } = await import('$/sources/EasScan/Graphql/queries.ts')
 				const attestation = await getAttestation({
-					binding,
 					network,
 					uid: $attestation.uid,
 				})
@@ -192,16 +180,12 @@ const easSchemaResolver = defineResolver(Source.EasScan_Graphql, {
 	resolve: {
 		NetworkSchemaUid: {
 			resolve: async (entitySelector, context) => {
-				const {
-					binding,
-					network,
-				} = easScanNetwork(entitySelector.$network)
+				const network = easScanNetwork(entitySelector.$network)
 				const {
 					getAttestationsBySchema,
 					getSchema,
 				} = await import('$/sources/EasScan/Graphql/queries.ts')
 				const schema = await getSchema({
-					binding,
 					network,
 					schemaUid: entitySelector.schemaUid,
 				})
@@ -233,7 +217,6 @@ const easSchemaResolver = defineResolver(Source.EasScan_Graphql, {
 					registeredLogIndex,
 					$$attestations: (
 						await getAttestationsBySchema({
-							binding,
 							network,
 							schemaUid: entitySelector.schemaUid,
 							skip: context.pagination.offset ?? 0,

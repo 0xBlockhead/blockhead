@@ -94,4 +94,4 @@ export const defillamaCurrentPriceIdByCoinId = Object.fromEntries(
 			coinId,
 			providerCoinId,
 		])
-) as Partial<Record<CoinId, string>>
+)

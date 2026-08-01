@@ -40,7 +40,7 @@ export const sourceBindings = allSourceBindings
 		)
 	))
 
-export const sources = sourceProviders.flatMap((provider) => provider.sources)
+export const sources = sourceProviders.flatMap((provider): readonly SourceDefinition[] => provider.sources)
 
 export const enabledSources = enabledSourcesFromBindings<Source>(sourceBindings)
 

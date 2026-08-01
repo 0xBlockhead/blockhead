@@ -6,14 +6,18 @@ export const ethereumChainId = 1
  * L2Beat `hostChain` label → settled-on chain id (L1/L2 host for L2/L3 stacks).
  * @see https://l2beat.com/api/scaling/summary
  */
-export const l2beatHostChainToParentChainId: Record<string, number> = {
-	Ethereum: 1,
-	'Arbitrum One': 42161,
-	'Arbitrum Nova': 42170,
-	'Base Chain': 8453,
-	Linea: 59144,
-	Scroll: 534352,
-}
+export const l2BeatHostChains = [
+	{ label: 'Ethereum', parentChainId: 1 },
+	{ label: 'Arbitrum One', parentChainId: 42161 },
+	{ label: 'Arbitrum Nova', parentChainId: 42170 },
+	{ label: 'Base Chain', parentChainId: 8453 },
+	{ label: 'Linea', parentChainId: 59144 },
+	{ label: 'Scroll', parentChainId: 534352 },
+] as const
+
+export const l2BeatHostChainByLabel = new Map(
+	l2BeatHostChains.map((hostChain) => [hostChain.label, hostChain])
+)
 
 export const l2BeatProjectChainIds = [
 	{ projectId: 'arbitrum', chainId: 42161 },
@@ -92,16 +96,9 @@ export const l2BeatProjectChainIds = [
 	chainId: number
 }[]
 
-export const chainIdByL2BeatProjectId = Object.fromEntries(
-	l2BeatProjectChainIds.map((project) => [
-		project.projectId,
-		project.chainId,
-	])
-) satisfies Partial<Record<string, number>>
-
-export const l2BeatProjectIdByChainId = Object.fromEntries(
+export const l2BeatProjectIdByChainId = new Map(
 	l2BeatProjectChainIds.map((project) => [
 		String(project.chainId),
 		project.projectId,
 	])
-) satisfies Record<string, string>
+)

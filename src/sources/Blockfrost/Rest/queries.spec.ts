@@ -321,7 +321,7 @@ describe('Blockfrost REST transport', () => {
 		})
 	})
 
-	it('loads official committee votes and treats metadata transport failures as optional', async () => {
+	it('loads official committee votes and treats only missing metadata as optional', async () => {
 		sourceFetch
 			.mockResolvedValueOnce(Response.json([
 				{
@@ -344,7 +344,7 @@ describe('Blockfrost REST transport', () => {
 
 		await expect(listCommitteeVotes(16)).resolves.toHaveLength(1)
 		await expect(getGovernanceProposalMetadata('proposal-hash', 1)).resolves.toBeUndefined()
-		await expect(getDRepMetadata('drep1example')).resolves.toBeUndefined()
+		await expect(getDRepMetadata('drep1example')).rejects.toThrow('metadata transport unavailable')
 		await expect(getStakePoolMetadata('pool1example')).resolves.toBeUndefined()
 		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
 			'https://cardano-mainnet.blockfrost.io/api/v0/governance/committee/votes?count=16',

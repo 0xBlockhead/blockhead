@@ -734,11 +734,18 @@ type _SourceArtifact<_Kind extends SourceArtifactKind = SourceArtifactKind> = (
 	) : never
 )
 
-type _SourceCredential<_Scope extends SourceCredentialScope = SourceCredentialScope> = {
-	scope: _Scope
-	env?: _SourceEnv
-	keys?: string[]
-}
+type _SourceCredential<_Scope extends SourceCredentialScope = SourceCredentialScope> = (
+	_Scope extends SourceCredentialScope ? {
+		scope: _Scope
+		env?: _SourceEnv
+	} & (
+		_Scope extends SourceCredentialScope.PublicConfig ? {
+			keys?: never
+		} : {
+			keys?: string[]
+		}
+	) : never
+)
 
 type _SourceRuntimeSecret = {
 	scope: SourceCredentialScope.RuntimeSecret
@@ -46324,7 +46331,7 @@ export const schema = {
 				"name": { label: "Name", description: "The human-readable name of the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Constants_Internal] },
 				"namespace": { label: "Namespace", description: "The namespace that qualifies the identifier.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Constants_Internal] },
 				"environment": { label: "Environment", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Constants_Internal] },
-				"rpcEndpoints": { label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Constants_Internal] },
+				"rpcEndpoints": { label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.NearRpc_JsonRpc] },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearNetwork_Timestamp, defaultSources: [Source.NearRpc_JsonRpc] },
 				"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearBlock, defaultSources: [Source.NearRpc_JsonRpc] },
 				"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearValidator, defaultSources: [Source.NearRpc_JsonRpc] },
@@ -47369,7 +47376,7 @@ export const schema = {
 						path: ["namespace"],
 						is: "Near",
 					})({
-						"rpcEndpoints": { label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Constants_Internal] },
+						"rpcEndpoints": { label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.NearRpc_JsonRpc] },
 						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearNetwork_Timestamp, defaultSources: [Source.NearRpc_JsonRpc] },
 						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearBlock, defaultSources: [Source.NearRpc_JsonRpc] },
 						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearValidator, defaultSources: [Source.NearRpc_JsonRpc] }

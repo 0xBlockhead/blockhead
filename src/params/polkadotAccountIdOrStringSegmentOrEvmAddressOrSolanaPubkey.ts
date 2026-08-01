@@ -1,4 +1,4 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import { match as matchEvmAddress } from '$/params/evmAddress.ts'
 import { match as matchPolkadotAccountId } from '$/params/polkadotAccountId.ts'

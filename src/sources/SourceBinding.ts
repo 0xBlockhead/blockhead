@@ -1,4 +1,4 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import type { Caip2NetworkKey, NetworkSlug } from '$/constants/Network.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
@@ -184,6 +184,9 @@ export enum SourceArtifactKind {
 	Proto = 'Proto',
 }
 
+type NonZeroDecimalDigit = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+type Eip155ChainKey = `${NonZeroDecimalDigit}${string}` & `${bigint}`
+
 export type SourceTarget =
 	| {
 		kind: SourceTargetKind.Caip2Network
@@ -194,7 +197,11 @@ export type SourceTarget =
 		key: NetworkSlug
 	}
 	| {
-		kind: Exclude<SourceTargetKind, SourceTargetKind.Caip2Network | SourceTargetKind.NetworkSlug>
+		kind: SourceTargetKind.Eip155Chain
+		key: Eip155ChainKey
+	}
+	| {
+		kind: Exclude<SourceTargetKind, SourceTargetKind.Caip2Network | SourceTargetKind.NetworkSlug | SourceTargetKind.Eip155Chain>
 		key: string
 	}
 

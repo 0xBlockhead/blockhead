@@ -54,7 +54,6 @@ import {
 	marketSelectorFromCatalogCoinCurrencyMarket,
 	marketSelectorFromCatalogCurrencyCurrencyMarket,
 } from '$/resolvers/market.ts'
-import { TransportType } from '$/constants/TransportType.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstanceKind.ts'
 import {
 	MarketVenueId,
@@ -1309,20 +1308,6 @@ export default {
 				},
 				Lightning: {
 				},
-				Near: {
-					rpcEndpoints: (network) => (
-						network.slug === networkBySlug.near.slug ?
-							[
-								{
-									url: 'https://rpc.mainnet.near.org',
-									transportType: TransportType.Http,
-									providerName: 'NEAR',
-								},
-							]
-						:
-							[]
-					),
-				},
 			}),
 
 		defineResolver(Source.Constants_Internal, {
@@ -1337,13 +1322,6 @@ export default {
 							name: network.name,
 							namespace: network.namespace,
 							environment: network.environment,
-							rpcEndpoints: [
-								{
-									url: 'https://rpc.mainnet.near.org',
-									transportType: TransportType.Http,
-									providerName: 'NEAR',
-								},
-							],
 						}
 					},
 				}
@@ -1353,7 +1331,6 @@ export default {
 				name: (network) => network.name,
 				namespace: (network) => network.namespace,
 				environment: (network) => network.environment,
-				rpcEndpoints: (network) => network.rpcEndpoints,
 			}),
 
 		defineResolver(Source.Constants_Internal, {

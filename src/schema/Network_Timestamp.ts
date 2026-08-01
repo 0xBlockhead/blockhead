@@ -1,4 +1,4 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import { NetworkExecutionModel, NetworkLedgerModel } from '$/constants/Network.ts'
 import { entity, facet } from '$/schema/$schema.ts'

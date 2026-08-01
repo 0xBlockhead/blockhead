@@ -3,7 +3,6 @@ import {
 	SourceEndpointKind,
 	WireProtocol,
 	sourceBindingId,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 import sourceServerCredentialsById from '$/sources/$sourceServerCredentials.server.ts'
 import { remoteLiveBindings } from '$/sources/index.server.ts'
@@ -19,7 +18,7 @@ export type SourceLiveRequest = {
 	}
 }
 
-const remoteLiveBindingBySourceTargetKeyAndOperationGroup: Partial<Record<string, SourceBinding>> = Object.fromEntries(
+const remoteLiveBindingBySourceTargetKeyAndOperationGroup = new Map(
 	remoteLiveBindings.flatMap((binding) => (
 		binding.operationGroups.map((operationGroup) => [
 			`${binding.source}:${binding.target.key}:${operationGroup}`,
@@ -32,9 +31,9 @@ export const iterateSourceLive = async function* (
 	request: SourceLiveRequest,
 	signal?: AbortSignal
 ) {
-	const binding = remoteLiveBindingBySourceTargetKeyAndOperationGroup[
+	const binding = remoteLiveBindingBySourceTargetKeyAndOperationGroup.get(
 		`${request.source}:${request.targetKey}:${request.operationGroup}`
-	]
+	)
 
 	if (binding == null)
 		throw new Error(`${request.source}: no enabled RemoteLive binding for ${request.operationGroup}`)

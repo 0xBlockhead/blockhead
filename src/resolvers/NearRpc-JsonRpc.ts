@@ -11,6 +11,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import { nearRpcEndpoints } from '$/sources/NearRpc/JsonRpc/queries.ts'
 import type {
 	NearRpcAccessKey,
 	NearRpcAccount,
@@ -25,14 +26,11 @@ import type {
 	NearRpcValidator,
 	NearRpcValidators,
 } from '$/sources/NearRpc/JsonRpc/types.ts'
-
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
-
 const assertNearMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug.near.slug)
 		throw new Error('NearRpc_JsonRpc: unsupported network')
 }
-
 const nearActionFields = (action: NearRpcAction) => ({
 	actionKind: (
 		(
@@ -77,7 +75,6 @@ const nearActionFields = (action: NearRpcAction) => ({
 		depositYoctoNear: BigInt(action.Stake.stake),
 	}),
 })
-
 const nearActionReference = (
 	transaction: {
 		$network: NetworkId
@@ -100,7 +97,6 @@ const nearActionReference = (
 		},
 	}
 }
-
 const nearAccessKeyFields = (accessKey: NearRpcAccessKey) => ({
 	nonce: BigInt(accessKey.nonce),
 	permission: accessKey.permission === 'FullAccess' ? 'FullAccess' : 'FunctionCall',
@@ -112,13 +108,11 @@ const nearAccessKeyFields = (accessKey: NearRpcAccessKey) => ({
 		methodNames: accessKey.permission.FunctionCall.method_names,
 	}),
 })
-
 const nearAccountFields = (account: NearRpcAccount) => ({
 	amountYoctoNear: BigInt(account.amount),
 	storageUsageBytes: BigInt(account.storage_usage),
 	codeHash: account.code_hash,
 })
-
 const nearExecutionOutcomeFields = (
 	network: NetworkId,
 	executionOutcome: NearRpcExecutionOutcome
@@ -145,7 +139,6 @@ const nearExecutionOutcomeFields = (
 		},
 	})),
 })
-
 const nearReceiptFields = (
 	network: NetworkId,
 	receipt: NearRpcReceipt
@@ -163,7 +156,6 @@ const nearReceiptFields = (
 		},
 	},
 })
-
 const nearValidatorFields = (validator: NearRpcValidator) => ({
 	publicKey: validator.public_key,
 	stakeYoctoNear: BigInt(validator.stake),
@@ -181,7 +173,6 @@ const nearValidatorFields = (validator: NearRpcValidator) => ({
 		producedChunks: validator.num_produced_chunks,
 	}),
 })
-
 const nearTransactionFields = (
 	network: NetworkId,
 	transaction: NearRpcTransaction
@@ -207,7 +198,6 @@ const nearTransactionFields = (
 		}, action, actionIndex)
 	)),
 })
-
 const getNearTransactionStatus = async ({ $network, hash, signerAccountId }: {
 	$network: NetworkId
 	hash: string
@@ -222,7 +212,6 @@ const getNearTransactionStatus = async ({ $network, hash, signerAccountId }: {
 		senderAccountId: signerAccountId,
 	})
 }
-
 const getNearAccount = async (
 	network: NetworkId,
 	accountId: string
@@ -233,7 +222,6 @@ const getNearAccount = async (
 		accountId,
 	})
 }
-
 const getNearAccessKey = async (
 	network: NetworkId,
 	accountId: string,
@@ -246,7 +234,6 @@ const getNearAccessKey = async (
 		publicKey,
 	})
 }
-
 const nearNetworkTimestampFields = ({
 	headBlock,
 	currentGasPrice,
@@ -273,7 +260,6 @@ const nearNetworkTimestampFields = ({
 	nodeVersion: nodeStatus.version.version,
 	syncing: nodeStatus.sync_info.syncing,
 })
-
 const nearNetworkTimestampFieldResolvers = {
 	headHeight: (timestamp: ReturnType<typeof nearNetworkTimestampFields>) => timestamp.headHeight,
 	headHash: (timestamp: ReturnType<typeof nearNetworkTimestampFields>) => timestamp.headHash,
@@ -290,7 +276,6 @@ const nearNetworkTimestampFieldResolvers = {
 	nodeVersion: (timestamp: ReturnType<typeof nearNetworkTimestampFields>) => timestamp.nodeVersion,
 	syncing: (timestamp: ReturnType<typeof nearNetworkTimestampFields>) => timestamp.syncing,
 }
-
 const nearNetworkTimestampReference = (
 	network: NetworkId,
 	timestamp: ReturnType<typeof nearNetworkTimestampFields> & { timestampMs: number }
@@ -319,7 +304,6 @@ const nearNetworkTimestampReference = (
 		[entityFieldAddressKey(EntityType.NearNetwork_Timestamp, [], 'syncing')]: timestamp.syncing,
 	},
 })
-
 const getNearNetworkTimestampFields = async () => {
 	const {
 		getBlock,
@@ -350,7 +334,6 @@ const getNearNetworkTimestampFields = async () => {
 		}),
 	}
 }
-
 const getNearBlockReferences = async (
 	network: NetworkId,
 	limit: number
@@ -376,7 +359,6 @@ const getNearBlockReferences = async (
 		},
 	}))
 }
-
 const getNearValidatorReferences = async (
 	network: NetworkId,
 	limit: number
@@ -412,7 +394,6 @@ const getNearValidatorReferences = async (
 			}
 		})
 }
-
 const getNearCurrentValidator = async (
 	network: NetworkId,
 	accountId: string
@@ -425,17 +406,42 @@ const getNearCurrentValidator = async (
 	))
 	if (validator == null)
 		throw new Error(`NearRpc_JsonRpc: validator ${accountId} not found`)
-
 	return {
 		validator,
 		validatorSet,
 	}
 }
-
 export default {
 	source: Source.NearRpc_JsonRpc,
-
 	resolvers: [
+		defineResolver(Source.NearRpc_JsonRpc, {
+			entityType: EntityType.NearNetwork,
+			resolve: {
+				Slug: {
+					resolve: async (network) => {
+						assertNearMainnet(network)
+						return nearRpcEndpoints
+					},
+				}
+			},
+		})({
+			rpcEndpoints: (rpcEndpoints) => rpcEndpoints,
+		}),
+		defineResolver(Source.NearRpc_JsonRpc, {
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: async (network) => {
+						assertNearMainnet(network)
+						return nearRpcEndpoints
+					},
+				}
+			},
+		})({
+			Near: {
+				rpcEndpoints: (rpcEndpoints) => rpcEndpoints,
+			},
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearBlock,
 			resolve: {
@@ -481,13 +487,12 @@ export default {
 				}
 			},
 		})({
-				hash: (block) => block.hash,
-				$parent: (block) => block.$parent,
-				epochId: (block) => block.epochId,
-				timestampMs: (block) => block.timestampMs,
-				$$chunks: (block) => block.$$chunks,
-			}),
-
+			hash: (block) => block.hash,
+			$parent: (block) => block.$parent,
+			epochId: (block) => block.epochId,
+			timestampMs: (block) => block.timestampMs,
+			$$chunks: (block) => block.$$chunks,
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearChunk,
 			resolve: {
@@ -522,11 +527,10 @@ export default {
 				}
 			},
 		})({
-				shardId: (chunk) => chunk.shardId,
-				gasUsed: (chunk) => chunk.gasUsed,
-				$$transactions: (chunk) => chunk.$$transactions,
-			}),
-
+			shardId: (chunk) => chunk.shardId,
+			gasUsed: (chunk) => chunk.gasUsed,
+			$$transactions: (chunk) => chunk.$$transactions,
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearTransaction,
 			resolve: {
@@ -563,13 +567,12 @@ export default {
 				}
 			},
 		})({
-				$signer: (transaction) => transaction.$signer,
-				$receiver: (transaction) => transaction.$receiver,
-				nonce: (transaction) => transaction.nonce,
-				$$actions: (transaction) => transaction.$$actions,
-				$$executionOutcomes: (transaction) => transaction.$$executionOutcomes,
-			}),
-
+			$signer: (transaction) => transaction.$signer,
+			$receiver: (transaction) => transaction.$receiver,
+			nonce: (transaction) => transaction.nonce,
+			$$actions: (transaction) => transaction.$$actions,
+			$$executionOutcomes: (transaction) => transaction.$$executionOutcomes,
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearAction,
 			resolve: {
@@ -584,11 +587,10 @@ export default {
 				}
 			},
 		})({
-				actionKind: (action) => action.actionKind,
-				methodName: (action) => action.methodName,
-				depositYoctoNear: (action) => action.depositYoctoNear,
-			}),
-
+			actionKind: (action) => action.actionKind,
+			methodName: (action) => action.methodName,
+			depositYoctoNear: (action) => action.depositYoctoNear,
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearExecutionOutcome,
 			resolve: {
@@ -609,11 +611,10 @@ export default {
 				}
 			},
 		})({
-				status: (outcome) => outcome.status,
-				gasBurnt: (outcome) => outcome.gasBurnt,
-				$$receipts: (outcome) => outcome.$$receipts,
-			}),
-
+			status: (outcome) => outcome.status,
+			gasBurnt: (outcome) => outcome.gasBurnt,
+			$$receipts: (outcome) => outcome.$$receipts,
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearReceipt,
 			resolve: {
@@ -636,10 +637,9 @@ export default {
 				}
 			},
 		})({
-				$predecessor: (receipt) => receipt.$predecessor,
-				$receiver: (receipt) => receipt.$receiver,
-			}),
-
+			$predecessor: (receipt) => receipt.$predecessor,
+			$receiver: (receipt) => receipt.$receiver,
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearAccount,
 			resolve: {
@@ -661,11 +661,10 @@ export default {
 				}
 			},
 		})({
-				amountYoctoNear: (account) => account.amountYoctoNear,
-				storageUsageBytes: (account) => account.storageUsageBytes,
-				$contract: (account) => account.$contract,
-			}),
-
+			amountYoctoNear: (account) => account.amountYoctoNear,
+			storageUsageBytes: (account) => account.storageUsageBytes,
+			$contract: (account) => account.$contract,
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearContract,
 			resolve: {
@@ -679,9 +678,8 @@ export default {
 				}
 			},
 		})({
-				codeHash: (contract) => contract.codeHash,
-			}),
-
+			codeHash: (contract) => contract.codeHash,
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearContractStorageEntry,
 			resolve: {
@@ -695,11 +693,9 @@ export default {
 						assertNearMainnet($contract.$network)
 						if (source !== Source.NearRpc_JsonRpc)
 							throw new Error(`NearRpc_JsonRpc: unsupported source ${source}`)
-
 						const numericBlockHeight = Number(blockHeight)
 						if (!Number.isSafeInteger(numericBlockHeight))
 							throw new Error(`NearRpc_JsonRpc: unsafe block height ${blockHeight}`)
-
 						const { viewState } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 						const state = await viewState({
 							accountId: $contract.accountId,
@@ -708,11 +704,9 @@ export default {
 						})
 						if (BigInt(state.block_height) !== blockHeight)
 							throw new Error(`NearRpc_JsonRpc: response block height ${state.block_height} does not match ${blockHeight}`)
-
 						const value = state.values.find((entry) => entry.key === keyBase64)
 						if (value == null)
 							throw new Error(`NearRpc_JsonRpc: storage key ${keyBase64} not found at block ${blockHeight}`)
-
 						return {
 							blockHash: state.block_hash,
 							valueBase64: value.value,
@@ -722,11 +716,10 @@ export default {
 				}
 			},
 		})({
-				blockHash: (entry) => entry.blockHash,
-				valueBase64: (entry) => entry.valueBase64,
-				prefixBase64: (entry) => entry.prefixBase64,
-			}),
-
+			blockHash: (entry) => entry.blockHash,
+			valueBase64: (entry) => entry.valueBase64,
+			prefixBase64: (entry) => entry.prefixBase64,
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearAccount_Timestamp,
 			resolve: {
@@ -740,11 +733,10 @@ export default {
 				}
 			},
 		})({
-				amountYoctoNear: (timestamp) => timestamp.amountYoctoNear,
-				storageUsageBytes: (timestamp) => timestamp.storageUsageBytes,
-				codeHash: (timestamp) => timestamp.codeHash,
-			}),
-
+			amountYoctoNear: (timestamp) => timestamp.amountYoctoNear,
+			storageUsageBytes: (timestamp) => timestamp.storageUsageBytes,
+			codeHash: (timestamp) => timestamp.codeHash,
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearContract_Timestamp,
 			resolve: {
@@ -761,9 +753,8 @@ export default {
 				}
 			},
 		})({
-				codeHash: (timestamp) => timestamp.codeHash,
-			}),
-
+			codeHash: (timestamp) => timestamp.codeHash,
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearAccessKey,
 			resolve: {
@@ -778,10 +769,9 @@ export default {
 				}
 			},
 		})({
-				nonce: (accessKey) => accessKey.nonce,
-				permission: (accessKey) => accessKey.permission,
-			}),
-
+			nonce: (accessKey) => accessKey.nonce,
+			permission: (accessKey) => accessKey.permission,
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearAccessKey_Timestamp,
 			resolve: {
@@ -796,13 +786,12 @@ export default {
 				}
 			},
 		})({
-				nonce: (timestamp) => timestamp.nonce,
-				permission: (timestamp) => timestamp.permission,
-				allowanceYoctoNear: (timestamp) => timestamp.allowanceYoctoNear,
-				receiverId: (timestamp) => timestamp.receiverId,
-				methodNames: (timestamp) => timestamp.methodNames ?? [],
-			}),
-
+			nonce: (timestamp) => timestamp.nonce,
+			permission: (timestamp) => timestamp.permission,
+			allowanceYoctoNear: (timestamp) => timestamp.allowanceYoctoNear,
+			receiverId: (timestamp) => timestamp.receiverId,
+			methodNames: (timestamp) => timestamp.methodNames ?? [],
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearValidator,
 			resolve: {
@@ -815,15 +804,14 @@ export default {
 				}
 			},
 		})({
-				publicKey: (validator) => validator.publicKey,
-				stakeYoctoNear: (validator) => validator.stakeYoctoNear,
-				isSlashed: (validator) => validator.isSlashed,
-				expectedBlocks: (validator) => validator.expectedBlocks,
-				producedBlocks: (validator) => validator.producedBlocks,
-				expectedChunks: (validator) => validator.expectedChunks,
-				producedChunks: (validator) => validator.producedChunks,
-			}),
-
+			publicKey: (validator) => validator.publicKey,
+			stakeYoctoNear: (validator) => validator.stakeYoctoNear,
+			isSlashed: (validator) => validator.isSlashed,
+			expectedBlocks: (validator) => validator.expectedBlocks,
+			producedBlocks: (validator) => validator.producedBlocks,
+			expectedChunks: (validator) => validator.expectedChunks,
+			producedChunks: (validator) => validator.producedChunks,
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearValidator_Timestamp,
 			resolve: {
@@ -846,18 +834,17 @@ export default {
 				}
 			},
 		})({
-				epochHeight: (timestamp) => timestamp.epochHeight,
-				epochStartHeight: (timestamp) => timestamp.epochStartHeight,
-				validatorSetRole: (timestamp) => timestamp.validatorSetRole,
-				publicKey: (timestamp) => timestamp.publicKey,
-				stakeYoctoNear: (timestamp) => timestamp.stakeYoctoNear,
-				isSlashed: (timestamp) => timestamp.isSlashed,
-				expectedBlocks: (timestamp) => timestamp.expectedBlocks,
-				producedBlocks: (timestamp) => timestamp.producedBlocks,
-				expectedChunks: (timestamp) => timestamp.expectedChunks,
-				producedChunks: (timestamp) => timestamp.producedChunks,
-			}),
-
+			epochHeight: (timestamp) => timestamp.epochHeight,
+			epochStartHeight: (timestamp) => timestamp.epochStartHeight,
+			validatorSetRole: (timestamp) => timestamp.validatorSetRole,
+			publicKey: (timestamp) => timestamp.publicKey,
+			stakeYoctoNear: (timestamp) => timestamp.stakeYoctoNear,
+			isSlashed: (timestamp) => timestamp.isSlashed,
+			expectedBlocks: (timestamp) => timestamp.expectedBlocks,
+			producedBlocks: (timestamp) => timestamp.producedBlocks,
+			expectedChunks: (timestamp) => timestamp.expectedChunks,
+			producedChunks: (timestamp) => timestamp.producedChunks,
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearNetwork,
 			resolve: {
@@ -870,9 +857,8 @@ export default {
 				}
 			},
 		})({
-				$$timestamps: (timestamps) => timestamps,
-			}),
-
+			$$timestamps: (timestamps) => timestamps,
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
@@ -885,11 +871,10 @@ export default {
 				}
 			},
 		})({
-				Near: {
-					$$timestamps: (timestamps) => timestamps,
-				},
-			}),
-
+			Near: {
+				$$timestamps: (timestamps) => timestamps,
+			},
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearNetwork_Timestamp,
 			resolve: {
@@ -901,7 +886,6 @@ export default {
 				}
 			},
 		})(nearNetworkTimestampFieldResolvers),
-
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearNetwork,
 			resolve: {
@@ -915,27 +899,25 @@ export default {
 				}
 			},
 		})({
+			$$blocks: (blocks) => blocks,
+		}),
+		defineResolver(Source.NearRpc_JsonRpc, {
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: async (network, context) => {
+						return getNearBlockReferences(
+							network,
+							resolverContextRowLimit(context)
+						)
+					},
+				}
+			},
+		})({
+			Near: {
 				$$blocks: (blocks) => blocks,
-			}),
-
-		defineResolver(Source.NearRpc_JsonRpc, {
-			entityType: EntityType.Network,
-			resolve: {
-				Slug: {
-					resolve: async (network, context) => {
-						return getNearBlockReferences(
-							network,
-							resolverContextRowLimit(context)
-						)
-					},
-				}
 			},
-		})({
-				Near: {
-					$$blocks: (blocks) => blocks,
-				},
-			}),
-
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearNetwork,
 			resolve: {
@@ -949,9 +931,8 @@ export default {
 				}
 			},
 		})({
-				$$validators: (validators) => validators,
-			}),
-
+			$$validators: (validators) => validators,
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
@@ -965,11 +946,10 @@ export default {
 				}
 			},
 		})({
-				Near: {
-					$$validators: (validators) => validators,
-				},
-			}),
-
+			Near: {
+				$$validators: (validators) => validators,
+			},
+		}),
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearAccount,
 			resolve: {
@@ -996,7 +976,7 @@ export default {
 				}
 			},
 		})({
-				$$accessKeys: (accessKeys) => accessKeys,
-			}),
+			$$accessKeys: (accessKeys) => accessKeys,
+		}),
 	],
 }

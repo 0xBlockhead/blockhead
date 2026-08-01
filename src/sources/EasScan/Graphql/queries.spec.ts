@@ -7,16 +7,8 @@ import {
 } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	SourceTargetKind,
-	WireProtocol,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 import { graphql } from '$/sources/_shared/wire/Graphql/client.ts'
+import bindings from '$/sources/EasScan/bindings.ts'
 import {
 	getAttestation,
 	getAttestationsByAttester,
@@ -29,25 +21,7 @@ vi.mock('$/sources/_shared/wire/Graphql/client.ts', () => ({
 	graphql: vi.fn(),
 }))
 
-const binding = {
-	source: Source.EasScan_Graphql,
-	target: {
-		kind: SourceTargetKind.Eip155Chain,
-		key: '1',
-	},
-	endpoints: [{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://easscan.org/graphql',
-		corsEnabled: false,
-	}],
-	wireProtocol: WireProtocol.Graphql,
-	apiFamily: ApiFamily.GraphqlHttp,
-	operationGroups: [
-		SourceOperationGroup.GenericRead,
-	],
-	delivery: SourceDelivery.HttpProxy,
-	credentials: [],
-} as const satisfies SourceBinding
+const binding = bindings[Source.EasScan_Graphql][0]
 
 const uid = `0x${'1'.repeat(64)}`
 const schemaUid = `0x${'2'.repeat(64)}`
@@ -93,7 +67,6 @@ describe('EasScan GraphQL public reads', () => {
 		})
 
 		await expect(getAttestation({
-			binding,
 			network: 'eip155:1',
 			uid,
 		})).resolves.toEqual(attestation)
@@ -120,19 +93,16 @@ describe('EasScan GraphQL public reads', () => {
 			})
 
 		await expect(getAttestationsByAttester({
-			binding,
 			network: 'eip155:1',
 			attester,
 			skip: 25,
 			take: 10,
 		})).resolves.toEqual([attestation])
 		await expect(getAttestationsByRecipient({
-			binding,
 			network: 'eip155:1',
 			recipient,
 		})).resolves.toEqual([attestation])
 		await expect(getAttestationsBySchema({
-			binding,
 			network: 'eip155:1',
 			schemaUid,
 		})).resolves.toEqual([attestation])
@@ -153,7 +123,6 @@ describe('EasScan GraphQL public reads', () => {
 		})
 
 		await expect(getSchema({
-			binding,
 			network: 'eip155:1',
 			schemaUid,
 		})).resolves.toEqual(easSchema)
@@ -167,18 +136,11 @@ describe('EasScan GraphQL public reads', () => {
 		}))
 	})
 
-	it('rejects global bindings, foreign subjects, and over-broad pages', async () => {
+	it('rejects unsupported networks, foreign subjects, and over-broad pages', async () => {
 		await expect(getAttestation({
-			binding: {
-				...binding,
-				target: {
-					kind: SourceTargetKind.Global,
-					key: 'eas-scan',
-				},
-			},
-			network: 'eip155:1',
+			network: 'eip155:999999',
 			uid,
-		})).rejects.toThrow('exact EIP-155 chain binding')
+		})).rejects.toThrow('no exact network binding')
 
 		vi.mocked(graphql).mockResolvedValueOnce({
 			attestations: [{
@@ -187,12 +149,10 @@ describe('EasScan GraphQL public reads', () => {
 			}],
 		})
 		await expect(getAttestationsByRecipient({
-			binding,
 			network: 'eip155:1',
 			recipient,
 		})).rejects.toThrow('foreign recipient')
 		await expect(getAttestationsBySchema({
-			binding,
 			network: 'eip155:1',
 			schemaUid,
 			take: 101,
@@ -216,12 +176,10 @@ describe('EasScan GraphQL public reads', () => {
 			})
 
 		await expect(getAttestation({
-			binding,
 			network: 'eip155:1',
 			uid,
 		})).rejects.toThrow('invalid attestation lifecycle')
 		await expect(getAttestationsByAttester({
-			binding,
 			network: 'eip155:1',
 			attester,
 		})).rejects.toThrow('duplicate attestations')

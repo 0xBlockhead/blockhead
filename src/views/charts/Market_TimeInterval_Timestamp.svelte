@@ -58,7 +58,7 @@
 	resource={resource({
 			sources: [
 				Source.Coingecko_Rest,
-				Source.Coinpaprika_OpenApi,
+		Source.Coinpaprika_Rest,
 				Source.CoinMarketCap_Rest,
 			],
 			limit,

@@ -1,10 +1,15 @@
-<!-- Generated from APP.ts. Do not edit by hand. -->
+<!-- Generated from APP.ts. -->
 
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { proposalCategoryById, proposalCategoryBySlug, specificationRealmById, specificationRealmBySlug } from '$/constants/SpecificationProposal.ts'
+	import {
+		proposalCategoryById,
+		proposalCategoryBySlug,
+		specificationRealmById,
+		specificationRealmBySlug,
+	} from '$/constants/SpecificationProposal.ts'
 	import specificationProposalSources from '$/sources/specificationProposalSources.ts'
 
 

@@ -1,4 +1,4 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import bindings from '$/sources/Chainlist/bindings.ts'
 import { Source } from '$/sources/Source.ts'

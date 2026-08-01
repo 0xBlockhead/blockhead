@@ -54,8 +54,5 @@ export const jsonRpc2 = async <_Result>(
 	if (json.error != null)
 		throw new Error(`JSON-RPC ${method}: ${json.error.message}`)
 
-	if (!('result' in json))
-		throw new Error(`JSON-RPC ${method}: missing result`)
-
-	return json.result as _Result
+	return json.result
 }

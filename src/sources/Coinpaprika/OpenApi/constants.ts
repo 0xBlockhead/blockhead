@@ -28,7 +28,7 @@ const catalog = [
 	wireId: string
 }[]
 
-export const idByCoinId: Partial<Record<CoinId, string>> = Object.fromEntries(
+export const idByCoinId = Object.fromEntries(
 	catalog
 		.map((entry) => [
 			entry.coinId,
@@ -36,15 +36,13 @@ export const idByCoinId: Partial<Record<CoinId, string>> = Object.fromEntries(
 		])
 )
 
-export const coinIdByWireId: Partial<Record<string, CoinId>> = Object.fromEntries(
+export const coinIdByWireId = new Map(
 	catalog
 		.map((entry) => [
 			entry.wireId,
 			entry.coinId,
 		])
 )
-
-export const coinpaprikaCatalogCoinIds: readonly CoinId[] = catalog.map((entry) => entry.coinId)
 
 /** Hostname fragment → catalog venue (from `market_url` on coin markets). */
 export const coinpaprikaMarketVenueIdByHostnameFragment = [
@@ -57,16 +55,6 @@ export const coinpaprikaMarketVenueIdByHostnameFragment = [
 	['uniswap.', MarketVenueId.Uniswap],
 	['pancakeswap.', MarketVenueId.PancakeSwap],
 ] as const satisfies readonly [string, MarketVenueId][]
-
-/** Coinpaprika `GET /exchanges/{exchange_id}/markets` wire id per catalog venue. */
-export const coinpaprikaExchangeIdByMarketVenueId: Partial<Record<MarketVenueId, string>> = {
-	[MarketVenueId.Binance]: 'binance',
-	[MarketVenueId.Coinbase]: 'gdax',
-	[MarketVenueId.Kraken]: 'kraken',
-	[MarketVenueId.Kucoin]: 'kucoin',
-	[MarketVenueId.Okx]: 'okex',
-	[MarketVenueId.Deribit]: 'deribit',
-}
 
 /** Quote wire ids treated as USD legs for catalog markets. */
 export const coinpaprikaUsdQuoteWireIds = [

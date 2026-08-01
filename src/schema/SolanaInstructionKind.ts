@@ -1,4 +1,4 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 export enum SolanaInstructionKind {
 	Instruction = 'Instruction',

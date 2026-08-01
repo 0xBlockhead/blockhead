@@ -1,4 +1,4 @@
-<!-- Generated from APP.ts. Do not edit by hand. -->
+<!-- Generated from APP.ts. -->
 
 <script lang="ts">
 	// Types/constants
@@ -41,7 +41,7 @@
 		{selection.entitySelector.scope}
 	{/snippet}
 
-	{#snippet Details({ open: detailsOpen })}
+	{#snippet Details()}
 		<CollapsibleTabs
 			id={viewDomId + '-carousel-evm-abi-signatures'}
 			sectionIdPrefix={viewDomId}

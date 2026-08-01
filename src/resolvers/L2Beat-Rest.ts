@@ -15,9 +15,9 @@ import NetworkSchema from '$/schema/Network.ts'
 import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import {
-	chainIdByL2BeatProjectId,
 	ethereumChainId,
-	l2beatHostChainToParentChainId,
+	l2BeatHostChainByLabel,
+	l2BeatHostChains,
 	l2BeatProjectChainIds,
 	l2BeatProjectIdByChainId,
 } from '$/sources/L2Beat/Rest/constants.ts'
@@ -47,11 +47,12 @@ export default {
 						})),
 					],
 					resolve: async (entitySelector) => {
+						const projectId = l2BeatProjectIdByChainId.get(entitySelector.caip2.reference)
 						const project = (
 							await (
 								await import('$/sources/L2Beat/Rest/queries.ts')
 							).fetchScalingSummary()
-						).projects[l2BeatProjectIdByChainId[entitySelector.caip2.reference]]
+						).projects[projectId ?? '']
 						if (project == null)
 							throw new Error('L2Beat_Rest: network project not found')
 
@@ -101,6 +102,9 @@ export default {
 						const project = (await fetchScalingSummary()).projects[projectId]
 						if (project == null)
 							throw new Error('L2Beat_Rest: rollup project not found')
+						const hostChain = l2BeatHostChainByLabel.get(project.hostChain)
+						if (hostChain == null)
+							throw new Error(`L2Beat_Rest: unknown host chain ${project.hostChain}`)
 
 						return {
 							name: project.name,
@@ -114,7 +118,7 @@ export default {
 								[EntityMetaKey.Selector]: {
 									caip2: {
 										namespace: 'eip155' as const,
-										reference: String(l2beatHostChainToParentChainId[project.hostChain]),
+										reference: String(hostChain.parentChainId),
 									},
 								},
 							},
@@ -145,19 +149,14 @@ export default {
 									},
 								},
 							},
-							...l2BeatProjectChainIds.flatMap(({ projectId }) => (
-								chainIdByL2BeatProjectId[projectId] == null ?
-									[]
-								:
-									[{
-										[EntityMetaKey.Selector]: {
-											caip2: {
-												namespace: 'eip155' as const,
-												reference: String(chainIdByL2BeatProjectId[projectId]),
-											},
-										},
-									}]
-							)),
+							...l2BeatProjectChainIds.map(({ chainId }) => ({
+								[EntityMetaKey.Selector]: {
+									caip2: {
+										namespace: 'eip155' as const,
+										reference: String(chainId),
+									},
+								},
+							})),
 						]
 					},
 				},
@@ -172,9 +171,9 @@ export default {
 				Caip2: {
 					resolve: async (entitySelector) => {
 						const chainId = Number(entitySelector.caip2.reference)
-						const projectId = l2BeatProjectIdByChainId[entitySelector.caip2.reference]
-						const hostLabels = Object.entries(l2beatHostChainToParentChainId)
-							.flatMap(([label, parentChainId]) => parentChainId === chainId ? [label] : [])
+						const projectId = l2BeatProjectIdByChainId.get(entitySelector.caip2.reference)
+						const hostLabels = l2BeatHostChains
+							.flatMap(({ label, parentChainId }) => parentChainId === chainId ? [label] : [])
 						if (projectId == null && hostLabels.length === 0)
 							return {
 								parent: undefined,
@@ -187,19 +186,21 @@ export default {
 							await import('$/sources/L2Beat/Rest/queries.ts')
 						).fetchScalingSummary()
 						const project = projectId == null ? undefined : summary.projects[projectId]
+						const parentChainId = project == null ? undefined : l2BeatHostChainByLabel.get(project.hostChain)?.parentChainId
 						return {
 							parent: (
 								project == null
 								|| project.isArchived === true
-								|| l2beatHostChainToParentChainId[project.hostChain] === chainId
+								|| parentChainId == null
+								|| parentChainId === chainId
 							) ?
 								undefined
 							:
 								{
 									[EntityMetaKey.Selector]: {
-										caip2: {
-											namespace: 'eip155' as const,
-											reference: String(l2beatHostChainToParentChainId[project.hostChain]),
+									caip2: {
+										namespace: 'eip155' as const,
+										reference: String(parentChainId),
 										},
 									},
 								},
@@ -212,12 +213,13 @@ export default {
 										projectId,
 									},
 								},
-							settledRollups: l2BeatProjectChainIds.flatMap(({ projectId: childProjectId }) => {
-								const childChainId = chainIdByL2BeatProjectId[childProjectId]
+							settledRollups: l2BeatProjectChainIds.flatMap(({
+								projectId: childProjectId,
+								chainId: childChainId,
+							}) => {
 								const childProject = summary.projects[childProjectId]
 								return (
-									childChainId == null
-									|| childProject == null
+									childProject == null
 									|| childProject.isArchived === true
 									|| !hostLabels.includes(childProject.hostChain)
 								) ?
@@ -235,12 +237,13 @@ export default {
 										},
 									}]
 							}),
-							childLayers: l2BeatProjectChainIds.flatMap(({ projectId: childProjectId }) => {
-								const childChainId = chainIdByL2BeatProjectId[childProjectId]
+							childLayers: l2BeatProjectChainIds.flatMap(({
+								projectId: childProjectId,
+								chainId: childChainId,
+							}) => {
 								const childProject = summary.projects[childProjectId]
 								return (
-									childChainId == null
-									|| childChainId === chainId
+									childChainId === chainId
 									|| childProject == null
 									|| childProject.isArchived === true
 									|| !hostLabels.includes(childProject.hostChain)

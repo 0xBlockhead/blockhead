@@ -1,4 +1,4 @@
-<!-- Generated from APP.ts. Do not edit by hand. -->
+<!-- Generated from APP.ts. -->
 
 <script lang="ts">
 	// Types/constants
@@ -76,7 +76,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ open: contentOpen })}
+	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
 				<dt>ID</dt>
@@ -113,7 +113,7 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details({ open: detailsOpen })}
+	{#snippet Details()}
 		{@const peersResource = selection.$$peers}
 		<ResourceBoundary
 			resource={peersResource}

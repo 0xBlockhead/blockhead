@@ -1,4 +1,4 @@
-<!-- Generated from APP.ts. Do not edit by hand. -->
+<!-- Generated from APP.ts. -->
 
 <script lang="ts">
 	// Types/constants
@@ -64,7 +64,7 @@
 		{['netuid ', String(selection.entitySelector.netuid)].filter(Boolean).join(' ') || [(prefetched.name ?? ''), String(selection.entitySelector.netuid)].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
-	{#snippet Content({ open: contentOpen })}
+	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
 				<dt>Network</dt>
@@ -175,7 +175,7 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details({ open: detailsOpen })}
+	{#snippet Details()}
 		{@const metagraphTimestampsResource = selection.$$metagraphTimestamps}
 		<ResourceBoundary
 			resource={metagraphTimestampsResource}

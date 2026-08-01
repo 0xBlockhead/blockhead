@@ -15,7 +15,6 @@ import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
 	SourceOperationGroup,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 import type {
 	BlockscoutAddressCounters,
@@ -54,14 +53,14 @@ type BlockscoutErc4337RegistryPage =
 	| BlockscoutErc4337PaymastersPage
 	| BlockscoutErc4337FactoriesPage
 
-const bindingByApiFamilyAndChainId: Partial<Record<string, SourceBinding<Source.Blockscout_Rest>>> = Object.fromEntries(
+const bindingByApiFamilyAndChainId = new Map(
 	bindings[Source.Blockscout_Rest].map((binding) => [
 		`${binding.apiFamily}:${binding.target.key}`,
 		binding,
 	] as const)
 )
 const requireBlockscoutBinding = (chainId: number, apiFamily: ApiFamily) => {
-	const binding = bindingByApiFamilyAndChainId[`${apiFamily}:${chainId}`]
+	const binding = bindingByApiFamilyAndChainId.get(`${apiFamily}:${chainId}`)
 	if (binding == null)
 		throw new Error(`Blockscout_Rest: no ${apiFamily} binding for chain ${chainId}`)
 

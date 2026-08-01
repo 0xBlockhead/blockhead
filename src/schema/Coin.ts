@@ -1,4 +1,4 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import { CoinId } from '$/constants/Coin.ts'
 import { entity } from '$/schema/$schema.ts'

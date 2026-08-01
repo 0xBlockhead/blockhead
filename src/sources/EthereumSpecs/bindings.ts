@@ -1,7 +1,16 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, indexSourceBindings, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
+import {
+	ApiFamily,
+	indexSourceBindings,
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
+	SourceTargetKind,
+	WireProtocol,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
 
 const ethereumSpecsGithubGithubContentsApiBrowserDirectBindingAxes = {
 	source: Source.EthereumSpecs_Github,

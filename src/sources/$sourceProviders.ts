@@ -1,4 +1,4 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import constantsSourceProvider from './_Constants/index.ts'
 import acpSourceProvider from './Acp/index.ts'

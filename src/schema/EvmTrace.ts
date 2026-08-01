@@ -1,4 +1,4 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import { EvmInternalCallType } from '$/constants/Evm.ts'
 import { entity } from '$/schema/$schema.ts'

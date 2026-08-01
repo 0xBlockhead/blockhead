@@ -108,7 +108,7 @@ const coinpaprikaMarketSelector = (
 	if (
 		baseWireId == null
 		|| quoteWireId == null
-		|| coinIdByWireId[baseWireId] !== catalogCoinId
+		|| coinIdByWireId.get(baseWireId) !== catalogCoinId
 	)
 		return null
 
@@ -147,7 +147,7 @@ const coinpaprikaMarketSelector = (
 			marketKind,
 		}
 
-	const quoteCoinId = coinIdByWireId[quoteWireId]
+	const quoteCoinId = coinIdByWireId.get(quoteWireId)
 	return (
 		quoteCoinId == null ?
 			null
@@ -353,7 +353,7 @@ export default {
 								publicEnv: context.publicEnv,
 							}))
 								.flatMap((coin) => {
-									const coinId = coin.id == null ? undefined : coinIdByWireId[coin.id]
+									const coinId = coin.id == null ? undefined : coinIdByWireId.get(coin.id)
 									if (
 										coinId == null
 										|| !(coinId in coinById)

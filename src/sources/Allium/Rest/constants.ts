@@ -12,7 +12,7 @@ const chains = [
 }[]
 
 /** Allium path segment `{chain}` → EVM **`chainId`**. */
-export const apiChainByChainId: Partial<Record<number, string>> = Object.fromEntries(
+export const apiChainByChainId = Object.fromEntries(
 	chains
 		.map((entry) => [
 			entry.chainId,

@@ -1,4 +1,4 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
@@ -61,7 +61,7 @@ export default entity({
 		}),
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.Constants_Internal,
+			Source.NearRpc_JsonRpc,
 		],
 	},
 	$$timestamps: {

@@ -6,6 +6,7 @@ import {
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
+	SourceProvider,
 	SourceTargetKind,
 	WireProtocol,
 	defineSources,
@@ -33,15 +34,32 @@ const validHttpBinding = {
 	credentials: [],
 } as const satisfies _SourceBinding
 
+const validEip155Target = {
+	...validHttpBinding,
+	target: {
+		kind: SourceTargetKind.Eip155Chain,
+		key: '1',
+	},
+} as const satisfies _SourceBinding
+
+const invalidEip155Target = {
+	...validHttpBinding,
+	// @ts-expect-error Eip155Chain keys are positive decimal integers.
+	target: {
+		kind: SourceTargetKind.Eip155Chain,
+		key: 'arbitrary',
+	},
+} as const satisfies _SourceBinding
+
 defineSources([
 	{
-		provider: 'Fixture',
+		provider: SourceProvider.Across,
 		label: 'Fixture',
 	},
 ])([
 	{
 		source: Source.Across_Rest,
-		provider: 'Fixture',
+		provider: SourceProvider.Across,
 		label: 'Valid fixture',
 		binding: validHttpBinding,
 	},
@@ -55,7 +73,7 @@ defineSources([
 	{
 		// @ts-expect-error Source rows must use a declared Source identifier.
 		source: 'Unknown_Source',
-		provider: 'Fixture',
+		provider: SourceProvider.Across,
 		label: 'Invalid source fixture',
 		binding: validHttpBinding,
 	},

@@ -1,4 +1,4 @@
-<!-- Generated from APP.ts. Do not edit by hand. -->
+<!-- Generated from APP.ts. -->
 
 <script lang="ts">
 	// Types/constants
@@ -81,7 +81,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ open: contentOpen })}
+	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
 				<dt>session action</dt>
@@ -333,7 +333,7 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details({ open: detailsOpen })}
+	{#snippet Details()}
 		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
 			resource={timestampsResource}

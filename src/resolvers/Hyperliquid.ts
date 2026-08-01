@@ -134,10 +134,10 @@ export default {
 				}
 			},
 		})({
-				$network: (snapshot) => snapshot.$network,
-				rpcEndpoints: (snapshot) => snapshot.rpcEndpoints,
-				restEndpoints: (snapshot) => snapshot.restEndpoints,
-			}),
+			$network: (snapshot) => snapshot.$network,
+			rpcEndpoints: (snapshot) => snapshot.rpcEndpoints,
+			restEndpoints: (snapshot) => snapshot.restEndpoints,
+		}),
 
 		defineResolver(Source.Hyperliquid, {
 			entityType: EntityType.HyperliquidAccount,
@@ -167,21 +167,21 @@ export default {
 				},
 			},
 		})({
-				$$vaultEquities: (snapshot, account) => snapshot.equities.map((equity) => ({
-					[EntityMetaKey.Selector]: {
-						$account: account,
-						$vault: {
-							$network: account.$network,
-							vaultAddress: equity.vaultAddress,
-						},
-						timestampMs: snapshot.timestampMs,
-						source: Source.Hyperliquid,
+			$$vaultEquities: (snapshot, account) => snapshot.equities.map((equity) => ({
+				[EntityMetaKey.Selector]: {
+					$account: account,
+					$vault: {
+						$network: account.$network,
+						vaultAddress: equity.vaultAddress,
 					},
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'equity')]: equity.equity,
-					},
-				})),
-			}),
+					timestampMs: snapshot.timestampMs,
+					source: Source.Hyperliquid,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'equity')]: equity.equity,
+				},
+			})),
+		}),
 
 		defineResolver(Source.Hyperliquid, {
 			entityType: EntityType.Network,
@@ -199,11 +199,11 @@ export default {
 				}
 			},
 		})({
-				Hyperliquid: {
-					rpcEndpoints: (snapshot) => snapshot.Hyperliquid.rpcEndpoints,
-					restEndpoints: (snapshot) => snapshot.Hyperliquid.restEndpoints,
-				},
-			}),
+			Hyperliquid: {
+				rpcEndpoints: (snapshot) => snapshot.Hyperliquid.rpcEndpoints,
+				restEndpoints: (snapshot) => snapshot.Hyperliquid.restEndpoints,
+			},
+		}),
 
 		defineResolver(Source.Hyperliquid, {
 			entityType: EntityType.HyperliquidPerpMarket,
@@ -225,8 +225,8 @@ export default {
 				}
 			},
 		})({
-				$$timestamps: (snapshot) => snapshot,
-			}),
+			$$timestamps: (snapshot) => snapshot,
+		}),
 
 		defineResolver(Source.Hyperliquid, {
 			entityType: EntityType.HyperliquidPerpMarket_Timestamp,
@@ -249,9 +249,9 @@ export default {
 				}
 			},
 		})({
-				maxLeverage: (snapshot) => snapshot.maxLeverage,
-				onlyIsolated: (snapshot) => snapshot.onlyIsolated,
-			}),
+			maxLeverage: (snapshot) => snapshot.maxLeverage,
+			onlyIsolated: (snapshot) => snapshot.onlyIsolated,
+		}),
 
 		defineResolver(Source.Hyperliquid, {
 			entityType: EntityType.HyperliquidSpotAsset,
@@ -361,10 +361,10 @@ export default {
 				}
 			},
 		})({
-				accountRole: (snapshot) => snapshot.accountRole,
-				$masterAccount: (snapshot) => snapshot.$masterAccount,
-				$$timestamps: (snapshot) => snapshot.$$timestamps,
-			}),
+			accountRole: (snapshot) => snapshot.accountRole,
+			$masterAccount: (snapshot) => snapshot.$masterAccount,
+			$$timestamps: (snapshot) => snapshot.$$timestamps,
+		}),
 
 		defineResolver(Source.Hyperliquid, {
 			entityType: EntityType.HyperliquidAccount,
@@ -410,64 +410,64 @@ export default {
 				},
 			},
 		})({
-				$$orders: {
-					select: (page, account) => page.orders.map(({ order, status, statusTimestamp }) => ({
-						[EntityMetaKey.Selector]: {
-							$account: account,
-							oid: assertSafeWireInteger(order.oid, 'order id'),
-						},
-						[EntityMetaKey.Fields]: {
-							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'coin')]: order.coin,
-							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'side')]: order.side,
-							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'orderType')]: order.orderType,
-							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'limitPrice')]: order.limitPx,
-							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'originalSize')]: order.origSz,
-							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'triggerCondition')]: order.triggerCondition,
-							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'triggerPrice')]: order.triggerPx,
-							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'reduceOnly')]: order.reduceOnly,
-							...(order.tif != null && {
-								[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'tif')]: order.tif,
-							}),
-							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'isTrigger')]: order.isTrigger,
-							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'isPositionTpsl')]: order.isPositionTpsl,
-							...(order.cloid != null && {
-								[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'cloid')]: order.cloid,
-							}),
-							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], '$$timestamps')]: [{
-								[EntityMetaKey.Selector]: {
-									$order: {
-										$account: account,
-										oid: assertSafeWireInteger(order.oid, 'order id'),
-									},
-									timestampMs: statusTimestamp,
-									source: Source.Hyperliquid,
+			$$orders: {
+				select: (page, account) => page.orders.map(({ order, status, statusTimestamp }) => ({
+					[EntityMetaKey.Selector]: {
+						$account: account,
+						oid: assertSafeWireInteger(order.oid, 'order id'),
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'coin')]: order.coin,
+						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'side')]: order.side,
+						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'orderType')]: order.orderType,
+						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'limitPrice')]: order.limitPx,
+						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'originalSize')]: order.origSz,
+						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'triggerCondition')]: order.triggerCondition,
+						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'triggerPrice')]: order.triggerPx,
+						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'reduceOnly')]: order.reduceOnly,
+						...(order.tif != null && {
+							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'tif')]: order.tif,
+						}),
+						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'isTrigger')]: order.isTrigger,
+						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'isPositionTpsl')]: order.isPositionTpsl,
+						...(order.cloid != null && {
+							[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'cloid')]: order.cloid,
+						}),
+						[entityFieldAddressKey(EntityType.HyperliquidOrder, [], '$$timestamps')]: [{
+							[EntityMetaKey.Selector]: {
+								$order: {
+									$account: account,
+									oid: assertSafeWireInteger(order.oid, 'order id'),
 								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'status')]: status,
-									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'statusTimestampMs')]: statusTimestamp,
-									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: order.sz,
-									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: order.children,
-								},
-							}],
-						},
-					})),
-					continuation: (page, account) => (
-						page.terminal ?
-							{
-								operation: 'historical-orders',
-								target: account.address,
-								terminal: true,
-							}
-						:
-							{
-								operation: 'historical-orders',
-								target: account.address,
-								terminal: false,
-								token: String(page.offset + page.limit),
-							}
-					),
-				},
-			}),
+								timestampMs: statusTimestamp,
+								source: Source.Hyperliquid,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'status')]: status,
+								[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'statusTimestampMs')]: statusTimestamp,
+								[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: order.sz,
+								[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: order.children,
+							},
+						}],
+					},
+				})),
+				continuation: (page, account) => (
+					page.terminal ?
+						{
+							operation: 'historical-orders',
+							target: account.address,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'historical-orders',
+							target: account.address,
+							terminal: false,
+							token: String(page.offset + page.limit),
+						}
+				),
+			},
+		}),
 
 		defineResolver(Source.Hyperliquid, {
 			entityType: EntityType.HyperliquidAccount,
@@ -522,62 +522,62 @@ export default {
 				},
 			},
 		})({
-				$$fills: {
-					select: (page, account) => page.fills.map((fill) => ({
-						[EntityMetaKey.Selector]: {
-							$account: account,
-							tid: assertSafeWireInteger(fill.tid, 'fill trade id'),
+			$$fills: {
+				select: (page, account) => page.fills.map((fill) => ({
+					[EntityMetaKey.Selector]: {
+						$account: account,
+						tid: assertSafeWireInteger(fill.tid, 'fill trade id'),
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'oid')]: assertSafeWireInteger(fill.oid, 'fill order id'),
+						[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'coin')]: fill.coin,
+						[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'side')]: fill.side,
+						[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'direction')]: fill.dir,
+						[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'price')]: fill.px,
+						[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'size')]: fill.sz,
+						[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'startPosition')]: fill.startPosition,
+						[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'closedPnl')]: fill.closedPnl,
+						[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'fee')]: fill.fee,
+						[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'feeToken')]: fill.feeToken,
+						[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'timeMs')]: fill.time,
+						[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'hash')]: fill.hash,
+						[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'crossed')]: fill.crossed,
+						[entityFieldAddressKey(EntityType.HyperliquidFill, [], '$order')]: {
+							[EntityMetaKey.Selector]: {
+								$account: account,
+								oid: assertSafeWireInteger(fill.oid, 'fill order id'),
+							},
 						},
-						[EntityMetaKey.Fields]: {
-							[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'oid')]: assertSafeWireInteger(fill.oid, 'fill order id'),
-							[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'coin')]: fill.coin,
-							[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'side')]: fill.side,
-							[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'direction')]: fill.dir,
-							[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'price')]: fill.px,
-							[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'size')]: fill.sz,
-							[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'startPosition')]: fill.startPosition,
-							[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'closedPnl')]: fill.closedPnl,
-							[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'fee')]: fill.fee,
-							[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'feeToken')]: fill.feeToken,
-							[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'timeMs')]: fill.time,
-							[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'hash')]: fill.hash,
-							[entityFieldAddressKey(EntityType.HyperliquidFill, [], 'crossed')]: fill.crossed,
-							[entityFieldAddressKey(EntityType.HyperliquidFill, [], '$order')]: {
+						...(fill.hash !== `0x${'0'.repeat(64)}` && {
+							[entityFieldAddressKey(EntityType.HyperliquidFill, [], '$transaction')]: {
 								[EntityMetaKey.Selector]: {
-									$account: account,
-									oid: assertSafeWireInteger(fill.oid, 'fill order id'),
+									$network: account.$network,
+									txHash: fill.hash,
 								},
 							},
-							...(fill.hash !== `0x${'0'.repeat(64)}` && {
-								[entityFieldAddressKey(EntityType.HyperliquidFill, [], '$transaction')]: {
-									[EntityMetaKey.Selector]: {
-										$network: account.$network,
-										txHash: fill.hash,
-									},
-								},
-							}),
-						},
-					})),
-					continuation: (page, account) => {
-						const lastFill = page.fills.at(-1)
-						return (
-							page.terminal || lastFill == null ?
-								{
-									operation: 'user-fills-by-time',
-									target: account.address,
-									terminal: true,
-								}
-							:
-								{
-									operation: 'user-fills-by-time',
-									target: account.address,
-									terminal: false,
-									token: `${String(lastFill.time)}:${String(lastFill.tid)}`,
-								}
-						)
+						}),
 					},
+				})),
+				continuation: (page, account) => {
+					const lastFill = page.fills.at(-1)
+					return (
+						page.terminal || lastFill == null ?
+							{
+								operation: 'user-fills-by-time',
+								target: account.address,
+								terminal: true,
+							}
+						:
+							{
+								operation: 'user-fills-by-time',
+								target: account.address,
+								terminal: false,
+								token: `${String(lastFill.time)}:${String(lastFill.tid)}`,
+							}
+					)
 				},
-			}),
+			},
+		}),
 
 		defineResolver(Source.Hyperliquid, {
 			entityType: EntityType.HyperliquidValidator,
@@ -599,8 +599,8 @@ export default {
 				}
 			},
 		})({
-				$$timestamps: (snapshot) => snapshot,
-			}),
+			$$timestamps: (snapshot) => snapshot,
+		}),
 
 		defineResolver(Source.Hyperliquid, {
 			entityType: EntityType.HyperliquidValidator_Timestamp,
@@ -631,15 +631,15 @@ export default {
 				}
 			},
 		})({
-				name: (snapshot) => snapshot.name,
-				signerAddress: (snapshot) => snapshot.signerAddress,
-				$signer: (snapshot) => snapshot.$signer,
-				commission: (snapshot) => snapshot.commission,
-				recentBlockCount: (snapshot) => snapshot.recentBlockCount,
-				stake: (snapshot) => snapshot.stake,
-				isActive: (snapshot) => snapshot.isActive,
-				isJailed: (snapshot) => snapshot.isJailed,
-			}),
+			name: (snapshot) => snapshot.name,
+			signerAddress: (snapshot) => snapshot.signerAddress,
+			$signer: (snapshot) => snapshot.$signer,
+			commission: (snapshot) => snapshot.commission,
+			recentBlockCount: (snapshot) => snapshot.recentBlockCount,
+			stake: (snapshot) => snapshot.stake,
+			isActive: (snapshot) => snapshot.isActive,
+			isJailed: (snapshot) => snapshot.isJailed,
+		}),
 
 		defineResolver(Source.Hyperliquid, {
 			entityType: EntityType.HyperliquidNetwork,

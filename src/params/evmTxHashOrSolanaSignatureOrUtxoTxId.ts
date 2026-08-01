@@ -1,4 +1,4 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import { match as matchEvmTxHash } from '$/params/evmTxHash.ts'
 import { match as matchSolanaSignature } from '$/params/solanaSignature.ts'

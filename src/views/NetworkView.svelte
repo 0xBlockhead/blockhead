@@ -1,4 +1,4 @@
-<!-- Generated from APP.ts. Do not edit by hand. -->
+<!-- Generated from APP.ts. -->
 
 <script lang="ts">
 	// Types/constants
@@ -999,7 +999,7 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Details({ open: detailsOpen })}
+	{#snippet Details()}
 		<CollapsibleTabs
 			id={viewDomId + '-carousel-network-assets'}
 			sectionIdPrefix={viewDomId}
@@ -4256,108 +4256,121 @@
 
 						</CollapsibleTabs>
 					{/if}
+					{@const nearResourcesSections = [
+							...(
+								nearRpcJsonRpcSources.length > 0 ?
+									[
+										{
+											id: 'near-resources-endpoints',
+											label: 'Endpoints',
+											ownsSection: true,
+										},
+									]
+								:
+									[]
+							),
+						]}
 
-					<CollapsibleTabs
-						id={viewDomId + '-carousel-near-resources'}
-						sectionIdPrefix={viewDomId}
-						sections={
-							[
-								{
-									id: 'near-resources-endpoints',
-									label: 'Endpoints',
-									ownsSection: true,
-								},
-							]
-						}
-						data-card
-						class='network-view-collapsible-resources'
-					>
-						{#snippet Summary()}
-							<header data-row-item="flexible" data-row="wrap gap-4">
-								<HeadingComponent>Resources</HeadingComponent>
-							</header>
-						{/snippet}
+					{#if nearResourcesSections.length > 0}
+						<CollapsibleTabs
+							id={viewDomId + '-carousel-near-resources'}
+							sectionIdPrefix={viewDomId}
+							sections={nearResourcesSections}
+							data-card
+							class='network-view-collapsible-resources'
+						>
+							{#snippet Summary()}
+								<header data-row-item="flexible" data-row="wrap gap-4">
+									<HeadingComponent>Resources</HeadingComponent>
+								</header>
+							{/snippet}
 
-						{#snippet SectionNearResourcesEndpoints({ id, label, open, active })}
-							<ResourceBoundary
-								resource={projection.rpcEndpoints}
-							>
-								{#snippet children(rpcEndpointsField)}
-									<section
-										id={id}
-										aria-labelledby={`${id}:marker`}
-										data-scroll-marker-label={label}
-										data-column-item="flexible"
-										data-column
-										data-active={active}
-									>
-										<article
-											id={`${id}-list`}
+							{#snippet SectionNearResourcesEndpoints({ id, label, open, active })}
+								<ResourceBoundary
+									resource={
+										projection
+										.rpcEndpoints({
+											sources: nearRpcJsonRpcSources,
+										})
+									}
+								>
+									{#snippet children(rpcEndpointsField)}
+										<section
+											id={id}
+											aria-labelledby={`${id}:marker`}
+											data-scroll-marker-label={label}
 											data-column-item="flexible"
-											data-card
-											data-scroll-container
+											data-column
+											data-active={active}
 										>
-											{#if rpcEndpointsField.values.length === 0}
-												<p data-text="muted">RPC endpoints are not listed for this network.</p>
-											{/if}
+											<article
+												id={`${id}-list`}
+												data-column-item="flexible"
+												data-card
+												data-scroll-container
+											>
+												{#if rpcEndpointsField.values.length === 0}
+													<p data-text="muted">RPC endpoints are not listed for this network.</p>
+												{/if}
 
-											<ul data-column="gap-2" data-section-state="resolved-nonempty">
-												{#each rpcEndpointsField.values as rpcEndpoint, rpcEndpointIndex (rpcEndpointIndex)}
-													<li>
-														<dl data-column-item="center">
-															<div>
-																<dt>RPC</dt>
-																<dd>
-																	<a
-																		href={rpcEndpoint.url}
-																		target="_blank"
-																		rel="noreferrer noopener"
-																	>
-																		<TruncatedValue value={rpcEndpoint.url} />
-																	</a>
-																</dd>
-															</div>
+												<ul data-column="gap-2" data-section-state="resolved-nonempty">
+													{#each rpcEndpointsField.values as rpcEndpoint, rpcEndpointIndex (rpcEndpointIndex)}
+														<li>
+															<dl data-column-item="center">
+																<div>
+																	<dt>RPC</dt>
+																	<dd>
+																		<a
+																			href={rpcEndpoint.url}
+																			target="_blank"
+																			rel="noreferrer noopener"
+																		>
+																			<TruncatedValue value={rpcEndpoint.url} />
+																		</a>
+																	</dd>
+																</div>
 
-															<div>
-																<dt>Provider</dt>
-																<dd>
-																	{rpcEndpoint.providerName}
-																</dd>
-															</div>
+																<div>
+																	<dt>Provider</dt>
+																	<dd>
+																		{rpcEndpoint.providerName}
+																	</dd>
+																</div>
 
-															<div>
-																<dt>Transport</dt>
-																<dd>
-																	{rpcEndpoint.transportType}
-																</dd>
-															</div>
-														</dl>
-													</li>
-												{/each}
-											</ul>
-										</article>
-									</section>
-								{/snippet}
+																<div>
+																	<dt>Transport</dt>
+																	<dd>
+																		{rpcEndpoint.transportType}
+																	</dd>
+																</div>
+															</dl>
+														</li>
+													{/each}
+												</ul>
+											</article>
+										</section>
+									{/snippet}
 
-								{#snippet Pending()}
-									<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-										<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-											<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-										</article>
-									</section>
-								{/snippet}
+									{#snippet Pending()}
+										<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+											<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+												<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+											</article>
+										</section>
+									{/snippet}
 
-								{#snippet Failed(_error, _retry)}
-									<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-										<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-											<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-										</article>
-									</section>
-								{/snippet}
-							</ResourceBoundary>
-						{/snippet}
+									{#snippet Failed(_error, _retry)}
+										<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+											<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+												<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+											</article>
+										</section>
+									{/snippet}
+								</ResourceBoundary>
+							{/snippet}
 
-					</CollapsibleTabs>
+						</CollapsibleTabs>
+					{/if}
 				{/snippet}
 			</ProjectionBoundary>
 		{/if}

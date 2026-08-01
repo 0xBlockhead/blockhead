@@ -4,6 +4,7 @@ import {
 	SourceCredentialScope,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
 
 export type SourcePublicEnv = {
 	readonly [key: string]: string
@@ -199,9 +200,9 @@ export const indexSourceProviders = <
 }
 
 export const enabledSourcesFromBindings = <
-	const _Source extends PropertyKey,
+	const _Source extends Source,
 >(
-	sourceBindings: readonly SourceBinding[]
+	sourceBindings: readonly SourceBinding<_Source>[]
 ) => new Set(
-	sourceBindings.map((binding) => binding.source as _Source)
+	sourceBindings.map((binding) => binding.source)
 )

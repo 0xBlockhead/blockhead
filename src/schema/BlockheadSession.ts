@@ -1,4 +1,4 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import { entity } from '$/schema/$schema.ts'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSessionStatus.ts'

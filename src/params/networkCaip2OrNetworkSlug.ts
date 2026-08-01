@@ -1,4 +1,4 @@
-// Generated from APP.ts. Do not edit by hand.
+// Generated from APP.ts.
 
 import { match as matchNetworkCaip2 } from '$/params/networkCaip2.ts'
 import { match as matchNetworkSlug } from '$/params/networkSlug.ts'

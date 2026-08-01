@@ -1,4 +1,4 @@
-<!-- Generated from APP.ts. Do not edit by hand. -->
+<!-- Generated from APP.ts. -->
 
 <script lang="ts">
 	// Types/constants
@@ -35,7 +35,7 @@
 		{[String(selection.entitySelector.fromDomain), String(selection.entitySelector.toDomain)].filter(Boolean).join(' ') || selection.entitySelector.apiHost || titleFallback}
 	{/snippet}
 
-	{#snippet Content({ open: contentOpen })}
+	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
 				<dt>API host</dt>

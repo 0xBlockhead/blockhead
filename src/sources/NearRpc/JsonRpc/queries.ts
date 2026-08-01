@@ -1,4 +1,5 @@
 import { throwHttpError } from '$/lib/http.ts'
+import { TransportType } from '$/constants/TransportType.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
@@ -22,6 +23,12 @@ import bindings from '$/sources/NearRpc/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.NearRpc_JsonRpc]
+
+export const nearRpcEndpoints = binding.endpoints.map((endpoint) => ({
+	url: endpoint.locator,
+	transportType: TransportType.Http,
+	providerName: 'NEAR',
+}))
 
 type JsonRpcResponse<_Result> = {
 	jsonrpc: typeof jsonRpcVersion

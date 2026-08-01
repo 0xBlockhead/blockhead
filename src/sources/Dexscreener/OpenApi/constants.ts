@@ -12,7 +12,7 @@ const chains = [
 }[]
 
 /** Dexscreener `{chainId}` path segment → EVM **`chainId`**. */
-export const apiChainIdByChainId: Partial<Record<number, string>> = Object.fromEntries(
+export const apiChainIdByChainId = Object.fromEntries(
 	chains
 		.map((entry) => [
 			entry.chainId,
@@ -21,7 +21,7 @@ export const apiChainIdByChainId: Partial<Record<number, string>> = Object.fromE
 )
 
 /** **`pair.chainId`** string from search → numeric `chainId` when supported by this transport. */
-export const numericChainIdByDexscreenerApiChainLabel: Partial<Record<string, number>> = Object.fromEntries(
+export const numericChainIdByDexscreenerApiChainLabel = new Map(
 	chains.map((entry) => [
 		entry.apiChainId,
 		entry.chainId,
