@@ -125,6 +125,17 @@ test('entity hrefs compile directly from routes without a parallel artifact fami
 	assert.equal(singularHrefFieldBindingCount + pluralHrefFieldBindingCount, 240)
 	for (const source of generatedSvelteSources)
 		assert.doesNotMatch(source, /__BLOCKHEAD_COMPILED_HREF_FIELD_/)
+	for (const [viewPath, route] of [
+		['src/views/LightningNetworksView.svelte', '/(explore)/(networks)/network/[network]'],
+		['src/views/MarketPricesView.svelte', '/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]'],
+	] as const) {
+		const view = generatedFiles.find(({ path }) => path === viewPath)
+
+		assert.ok(view)
+		const source = renderGeneratedFile(view)
+		assert.equal(source.split(`'${route}'`).length - 1, 1, viewPath)
+		assert.equal((source.match(/\bresolve\(/g) ?? []).length, 1, viewPath)
+	}
 
 	const detailLayouts = generatedFiles
 		.filter(({ path }) => path.endsWith('/+layout.svelte'))

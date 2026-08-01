@@ -12101,12 +12101,10 @@ const entityRouteHrefPlan = (
 		const markerEntry = markerEntryByMarker.get(part)
 		return markerEntry == null ? part : factored ? bindingNameByField.get(markerEntry.fieldName) ?? markerEntry.expression : markerEntry.expression
 	}).join('')
-	const unfactoredExpression = renderExpressionParts(false)
 
 	return {
-		expression: fieldBindings.length === 0 ? unfactoredExpression : renderExpressionParts(true),
+		expression: renderExpressionParts(fieldBindings.length > 0),
 		fieldBindings,
-		unfactoredExpression,
 	}
 }
 
@@ -13729,27 +13727,27 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 				.entries(),
 		]
 	const itemHrefName = `${entityValueName}Href`
-	const routeHrefPlan = entityRouteHrefPlan(
-		indexes,
-		entity,
-		usesResolvedEntityHref ? entityValueName : itemSelectorName,
-		'svelteConst',
-		[
-			entityValueName,
-			itemFieldsName,
-			itemHrefName,
-			itemSelectorName,
-			'selection',
-		],
-		usesResolvedEntityHref
-	)
-	const hrefFieldBindings = pluralView?.rowHref == null ? routeHrefPlan.fieldBindings : []
-	const entityHrefExpression = rowHrefExpression ?? (
+	const routeHrefPlan = (
 		pluralView?.rowHref == null ?
-			routeHrefPlan.expression
+			entityRouteHrefPlan(
+				indexes,
+				entity,
+				usesResolvedEntityHref ? entityValueName : itemSelectorName,
+				'svelteConst',
+				[
+					entityValueName,
+					itemFieldsName,
+					itemHrefName,
+					itemSelectorName,
+					'selection',
+				],
+				usesResolvedEntityHref
+			)
 		:
-			routeHrefPlan.unfactoredExpression
+			undefined
 	)
+	const hrefFieldBindings = routeHrefPlan?.fieldBindings ?? []
+	const entityHrefExpression = rowHrefExpression ?? routeHrefPlan?.expression
 	const itemHrefIsShared = entityHrefExpression != null && rowProjectionPaths.length > 1
 	const directSummaryFieldExpression = (
 		summaryEntity: Entity,
