@@ -17,7 +17,7 @@ import { entityDefinitionByType, schema } from '$/schema/index.ts'
 
 
 export type NormalizedActor = {
-	address: string
+	address: typeof EvmAddress.infer
 }
 
 export type NormalizedXmtpConversation = {
@@ -742,7 +742,7 @@ const probeBlockheadAgentConversationTurn = {
 	promptVersion: 'e2e-probe-v1',
 } as const satisfies NormalizedBlockheadAgentConversationTurn
 
-const defaultEvmSelectors: readonly NormalizedEvmSelector[] = [
+const defaultEvmSelectors = [
 	{ hex: '0xa9059cbb' },
 	{ hex: '0x095ea7b3' },
 	{ hex: '0x70a08231' },
@@ -753,9 +753,9 @@ const defaultEvmSelectors: readonly NormalizedEvmSelector[] = [
 	{ hex: '0x95d89b41' },
 	{ hex: '0x313ce567' },
 	{ hex: '0x42842e0e' },
-]
+] as const satisfies readonly NormalizedEvmSelector[]
 
-const defaultEvmTopics: readonly NormalizedEvmTopic[] = [
+const defaultEvmTopics = [
 	{
 		hex: '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
 	},
@@ -786,9 +786,9 @@ const defaultEvmTopics: readonly NormalizedEvmTopic[] = [
 	{
 		hex: '0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822',
 	},
-]
+] as const satisfies readonly NormalizedEvmTopic[]
 
-const defaultEvmErrors: readonly NormalizedEvmError[] = [
+const defaultEvmErrors = [
 	{ hex: '0x08c379a0' },
 	{ hex: '0x4e487b71' },
 	{ hex: '0x1e4fbdf7' },
@@ -799,9 +799,9 @@ const defaultEvmErrors: readonly NormalizedEvmError[] = [
 	{ hex: '0x2d838119' },
 	{ hex: '0x2d67b72d' },
 	{ hex: '0xfe0d94c1' },
-]
+] as const satisfies readonly NormalizedEvmError[]
 
-const defaultNormalizedLocalInternal: NormalizedLocalInternal = {
+const defaultNormalizedLocalInternal = {
 	actors: [],
 	xmtpConversations: [
 		{
@@ -843,7 +843,7 @@ const defaultNormalizedLocalInternal: NormalizedLocalInternal = {
 	evmSelectors: defaultEvmSelectors,
 	evmTopics: defaultEvmTopics,
 	evmErrors: defaultEvmErrors,
-}
+} as const satisfies NormalizedLocalInternal
 
 
 export const readNormalizedLocalInternal = (): NormalizedLocalInternal => (

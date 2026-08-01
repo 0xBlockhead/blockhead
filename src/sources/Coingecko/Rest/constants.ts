@@ -1,11 +1,7 @@
 import { CoinId } from '$/constants/Coin.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 
-const catalog: readonly {
-	coinId: CoinId
-	wireId?: string
-	decimals?: number
-}[] = [
+const catalog = [
 	{
 		coinId: CoinId.BTC,
 		wireId: 'bitcoin',
@@ -2018,53 +2014,40 @@ const catalog: readonly {
 		coinId: CoinId.MITO,
 		wireId: 'mitosis',
 	},
-] as const
+] as const satisfies readonly {
+	coinId: CoinId
+	wireId: string
+	decimals?: number
+}[]
 
 /** CoinGecko coin id strings (`/coins/{id}` path segment). */
 export const idByCoinId = Object.fromEntries(
-	catalog
-		.flatMap((entry) => (
-			entry.wireId == null ?
-				[]
-			:
-				[[entry.coinId, entry.wireId] as const]
-		))
+	catalog.map((entry) => [entry.coinId, entry.wireId])
 )
 
 export const coinIdByWireId = new Map(
-	catalog
-		.flatMap((entry) => (
-			entry.wireId == null ?
-				[]
-			:
-				[[entry.wireId, entry.coinId] as const]
-		))
+	catalog.map((entry) => [entry.wireId, entry.coinId])
 )
 
-export const coingeckoCatalogCoinIds: readonly CoinId[] = catalog.flatMap((entry) => (
-	entry.wireId == null ?
-		[]
-		:
-		[entry.coinId]
-))
+export const coingeckoCatalogCoinIds = catalog.map((entry) => entry.coinId)
 
 
 /** CoinGecko derivatives exchange id per catalog venue (`binance` spot vs `binance_futures`). */
-export const coingeckoDerivativesExchangeIdByMarketVenueId: Partial<Record<MarketVenueId, string>> = {
+export const coingeckoDerivativesExchangeIdByMarketVenueId = {
 	[MarketVenueId.Binance]: 'binance_futures',
 	[MarketVenueId.Coinbase]: 'coinbase_international_derivatives',
 	[MarketVenueId.Deribit]: 'deribit',
 	[MarketVenueId.Kraken]: 'kraken_futures',
 	[MarketVenueId.Kucoin]: 'kucoin_futures',
 	[MarketVenueId.Okx]: 'okex_swap',
-}
+} as const satisfies Partial<Record<MarketVenueId, string>>
 
 
 /**
  * CoinGecko asset platform id (`/coins/{platform}/contract/…`) keyed by EVM chain id.
  * Avoids downloading the full asset-platform catalog for contract lookups.
  */
-export const coingeckoAssetPlatformIdByChainId: Partial<Record<number, string>> = {
+export const coingeckoAssetPlatformIdByChainId = {
 	1: 'ethereum',
 	5: 'ethereum',
 	10: 'optimistic-ethereum',
@@ -2077,4 +2060,4 @@ export const coingeckoAssetPlatformIdByChainId: Partial<Record<number, string>> 
 	11155111: 'ethereum',
 	17000: 'ethereum',
 	84532: 'base',
-}
+} as const satisfies Partial<Record<number, string>>

@@ -1106,7 +1106,7 @@ export default {
 					resolve: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
 						sliceNormalizedRowsForSubset((await readNormalizedLocalInternal()).actors, context)
 							.map((actor) => ({
-								[EntityMetaKey.Selector]: { address: EvmAddress.assert(actor.address) },
+								[EntityMetaKey.Selector]: { address: actor.address },
 							}))
 					),
 				}

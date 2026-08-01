@@ -313,10 +313,10 @@ export default {
 									}))
 										.items
 										.flatMap<{ [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }>((balanceRow) => (
-										balanceRow.token?.type === 'native' ?
+											balanceRow.token?.type === 'native' ?
 											[{
 												[EntityMetaKey.Selector]: {
-													$actor: { address: actor.address as `0x${string}` },
+													$actor: { address: actor.address },
 													$network: networkSelector,
 												},
 											} satisfies { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }]
@@ -332,9 +332,9 @@ export default {
 													:
 														[{
 															[EntityMetaKey.Selector]: {
-																$actor: { address: actor.address as `0x${string}` },
+																$actor: { address: actor.address },
 																$contract: {
-																$network: networkSelector,
+																	$network: networkSelector,
 																	address,
 																},
 															},
