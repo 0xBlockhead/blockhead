@@ -971,6 +971,21 @@ const isDefaultPluralViewComponent = (
 	&& component === pluralComponentName(indexes.entityByType[entityType])
 )
 
+const compileSectionComponentPlan = (
+	indexes: GenerationIndexes,
+	fieldDefinition: EntityField | undefined,
+	component: string | undefined
+) => ({
+	component,
+	fieldDefinition,
+	rendersDefaultEntitiesList: (
+		component != null
+		&& fieldDefinition?.type === EntityFieldType.EntitiesReference
+		&& fieldDefinition.entityType != null
+		&& isDefaultPluralViewComponent(indexes, fieldDefinition.entityType, component)
+	),
+})
+
 const componentIdentifier = (componentName: string) => componentName.replace(/^_+/, '')
 
 const schemaModulePath = (entityType: string) => `$/schema/${entityType}.ts`
@@ -9729,46 +9744,6 @@ const generateSingularViewFile = (
 			&& fieldDefinitionByReference(entity, section.field, indexes)?.type === EntityFieldType.EntityReference
 		)))
 	)
-	const sectionComponents = unique([...sections, ...detailsTabSections].flatMap((section) => {
-		const fieldDefinition = fieldDefinitionByReference(entity, section.field, indexes)
-		const component = fieldDefinition == null ? undefined : declaredRelationshipSectionComponent(section, indexes)
-		return (
-			component == null
-			|| (
-				fieldDefinition?.type === EntityFieldType.EntitiesReference
-				&& fieldDefinition.entityType != null
-				&& isDefaultPluralViewComponent(indexes, fieldDefinition.entityType, component)
-			)
-		) ? [] : [component]
-	}).concat(
-		[...entityReferenceItems, ...summaryEntityReferenceItems].flatMap((entityType) => {
-			const targetEntity = indexes.entityByType[entityType]
-			return targetEntity == null ? [] : [singularComponentName(targetEntity.entityType)]
-		}),
-		latestItems.flatMap((latest) => {
-			const component = latestComponentName(entity, indexes, latest)
-			return component == null ? [] : [component]
-		}),
-		detailsTabs.flatMap((tab) => (
-			tab.items.flatMap((item) => item.component == null ? [] : [item.component])
-		)),
-		carouselsToRender.flatMap((carousel) => carousel.sections.flatMap((section) => {
-			const component = carouselSectionComponent(entity, indexes, section)
-			const fieldDefinition = section.field == null ?
-				undefined
-				:
-				fieldDefinitionByReference(entity, section.field, indexes)
-			return (
-				component == null
-				|| (
-					fieldDefinition?.type === EntityFieldType.EntitiesReference
-					&& fieldDefinition.entityType != null
-					&& isDefaultPluralViewComponent(indexes, fieldDefinition.entityType, component)
-				)
-			) ? [] : [component]
-		})),
-		...(summaryIconEntityReferenceComponent == null ? [] : [summaryIconEntityReferenceComponent])
-	))
 	const declaredViewSourcesExpression = renderSourceSelectionExpression(viewQuery?.sources)
 	const viewSelectionExpression = (
 		declaredViewSourcesExpression == null ?
@@ -10016,39 +9991,67 @@ const generateSingularViewFile = (
 	const contentListSectionsFromDl = contentListRelationshipSections.flatMap((section) => (
 		renderRelationshipSection(entity, indexes, section, 2)
 	))
+	const sectionComponentPlans = [
+		...[...sections, ...detailsTabSections].map((section) => ({
+			kind: 'relationship' as const,
+			field: section.field,
+			component: declaredRelationshipSectionComponent(section, indexes),
+		})),
+		...contentListRelationshipSections.map((section) => ({
+			kind: 'contentList' as const,
+			field: section.field,
+			component: declaredRelationshipSectionComponent(section, indexes),
+		})),
+		...carouselsToRender.flatMap((carousel) => carousel.sections.map((section) => ({
+			kind: 'carousel' as const,
+			field: section.field,
+			component: carouselSectionComponent(entity, indexes, section),
+		}))),
+	].map((plan) => ({
+		...plan,
+		...compileSectionComponentPlan(
+			indexes,
+			plan.field == null ? undefined : fieldDefinitionByReference(entity, plan.field, indexes),
+			plan.component
+		),
+	}))
+	const sectionComponents = unique(sectionComponentPlans.flatMap((plan) => (
+		plan.kind !== 'relationship'
+		|| plan.component == null
+		|| plan.rendersDefaultEntitiesList ?
+			[]
+		:
+			[plan.component]
+	)).concat(
+		[...entityReferenceItems, ...summaryEntityReferenceItems].flatMap((entityType) => {
+			const targetEntity = indexes.entityByType[entityType]
+			return targetEntity == null ? [] : [singularComponentName(targetEntity.entityType)]
+		}),
+		latestItems.flatMap((latest) => {
+			const component = latestComponentName(entity, indexes, latest)
+			return component == null ? [] : [component]
+		}),
+		detailsTabs.flatMap((tab) => (
+			tab.items.flatMap((item) => item.component == null ? [] : [item.component])
+		)),
+		sectionComponentPlans.flatMap((plan) => (
+			plan.kind !== 'carousel'
+			|| plan.component == null
+			|| plan.rendersDefaultEntitiesList ?
+				[]
+			:
+				[plan.component]
+		)),
+		...(summaryIconEntityReferenceComponent == null ? [] : [summaryIconEntityReferenceComponent])
+	))
 	// Only generated default collection branches introduce the shared list component.
 	// Authored raw snippets own their imports through the declared view import contract.
-	const usesGeneratedEntitiesList = (
-		[
-			...sections,
-			...detailsTabSections,
-			...contentListRelationshipSections,
-		].some((section) => {
-			const fieldDefinition = fieldDefinitionByReference(entity, section.field, indexes)
-			const component = fieldDefinition == null ? undefined : declaredRelationshipSectionComponent(section, indexes)
-			return (
-				fieldDefinition?.type === EntityFieldType.EntitiesReference
-				&& fieldDefinition.entityType != null
-				&& component != null
-				&& isDefaultPluralViewComponent(indexes, fieldDefinition.entityType, component)
-			)
-		})
-		|| carouselsToRender.some((carousel) => carousel.sections.some((section) => {
-			if (section.field == null)
-				return false
-
-			const fieldDefinition = fieldDefinitionByReference(entity, section.field, indexes)
-			const component = carouselSectionComponent(entity, indexes, section)
-			return (
-				fieldDefinition?.type === EntityFieldType.EntityReference
-					&& fieldDefinition.cardinality === EntityFieldCardinality.Many
-				|| fieldDefinition?.type === EntityFieldType.EntitiesReference
-					&& fieldDefinition.entityType != null
-					&& component != null
-					&& isDefaultPluralViewComponent(indexes, fieldDefinition.entityType, component)
-			)
-		}))
-	)
+	const usesGeneratedEntitiesList = sectionComponentPlans.some((plan) => (
+		plan.rendersDefaultEntitiesList
+		|| plan.kind === 'carousel'
+			&& plan.fieldDefinition?.type === EntityFieldType.EntityReference
+			&& plan.fieldDefinition.cardinality === EntityFieldCardinality.Many
+	))
 	const contentRowsToRender = contentRows
 		.map((viewEntries) => contentDlViewEntries(viewEntries))
 		.filter((viewEntries) => viewEntries.length > 0)
