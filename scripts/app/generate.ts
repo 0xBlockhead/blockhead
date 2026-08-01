@@ -12039,7 +12039,7 @@ const entityRouteImportSpecs = (
 // deep selector access from its conditions and parameter values.
 const entityRouteFieldBindings = (
 	entity: Entity,
-	hrefExpression: string | undefined,
+	referenceCountByField: ReadonlyMap<string, number>,
 	fieldsExpression: string,
 	declaration: 'derived' | 'svelteConst',
 	reservedNames: readonly string[]
@@ -12047,12 +12047,11 @@ const entityRouteFieldBindings = (
 	const names = new Set(reservedNames)
 
 	return entity.fields.flatMap((field) => {
+		const actualOccurrenceCount = referenceCountByField.get(field.name) ?? 0
 		const expression = fieldExpression(fieldsExpression, field.name)
-		const occurrenceCount = hrefExpression?.split(expression).length ?? 0
 		if (
 			field.entityType == null
-			|| hrefExpression == null
-			|| occurrenceCount < 3
+			|| actualOccurrenceCount < 2
 		)
 			return []
 
@@ -12064,7 +12063,9 @@ const entityRouteFieldBindings = (
 			:
 				`\t\t{@const ${name} = ${expression}}\n`
 		).length
-		if (occurrenceCount * (expression.length - name.length) <= declarationLength)
+		// Preserve the historical split-length cost threshold: split length was one
+		// greater than the number of emitted references.
+		if ((actualOccurrenceCount + 1) * (expression.length - name.length) <= declarationLength)
 			return []
 
 		names.add(name)
@@ -12085,28 +12086,42 @@ const entityRouteHrefPlan = (
 	reservedNames: readonly string[],
 	usesResolvedEntity = false
 ) => {
-	const unfactoredExpression = (
+	const markerEntries = entity.fields.flatMap((field, index) => field.entityType == null ? [] : [{
+		fieldName: field.name,
+		marker: `__BLOCKHEAD_COMPILED_HREF_FIELD_${index}__`,
+		expression: fieldExpression(fieldsExpression, field.name),
+	}])
+	const markerEntryByMarker = new Map(markerEntries.map((entry) => [entry.marker, entry]))
+	const markedExpression = (
 		(indexes.entityRouteLinksByType[entity.entityType]?.length ?? 0) === 0 ?
 			undefined
 		:
-			renderEntityRouteLinkExpression(indexes, entity.entityType, fieldsExpression, undefined, usesResolvedEntity)
+			renderEntityRouteLinkExpression(
+				indexes,
+				entity.entityType,
+				fieldsExpression,
+				undefined,
+				usesResolvedEntity,
+				Object.fromEntries(markerEntries.map(({ fieldName, marker }) => [fieldName, marker]))
+			)
 	)
-	const fieldBindings = entityRouteFieldBindings(entity, unfactoredExpression, fieldsExpression, declaration, reservedNames)
+	const expressionParts = markedExpression?.split(/(__BLOCKHEAD_COMPILED_HREF_FIELD_\d+__)/g) ?? []
+	const referenceCountByField = new Map<string, number>()
+	for (const part of expressionParts) {
+		const fieldName = markerEntryByMarker.get(part)?.fieldName
+		if (fieldName != null)
+			referenceCountByField.set(fieldName, (referenceCountByField.get(fieldName) ?? 0) + 1)
+	}
+	const fieldBindings = entityRouteFieldBindings(entity, referenceCountByField, fieldsExpression, declaration, reservedNames)
+	const bindingNameByField = new Map(fieldBindings.map(({ fieldName, name }) => [fieldName, name]))
+	const renderExpressionParts = (factored: boolean) => markedExpression == null ? undefined : expressionParts.map((part) => {
+		const markerEntry = markerEntryByMarker.get(part)
+		return markerEntry == null ? part : factored ? bindingNameByField.get(markerEntry.fieldName) ?? markerEntry.expression : markerEntry.expression
+	}).join('')
+	const unfactoredExpression = renderExpressionParts(false)
 
 	return {
-		expression: (
-			unfactoredExpression == null || fieldBindings.length === 0 ?
-				unfactoredExpression
-			:
-				renderEntityRouteLinkExpression(
-					indexes,
-					entity.entityType,
-					fieldsExpression,
-					undefined,
-					usesResolvedEntity,
-					Object.fromEntries(fieldBindings.map(({ fieldName, name }) => [fieldName, name]))
-				)
-		),
+		expression: fieldBindings.length === 0 ? unfactoredExpression : renderExpressionParts(true),
 		fieldBindings,
 		unfactoredExpression,
 	}

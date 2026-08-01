@@ -110,6 +110,20 @@ test('entity hrefs compile directly from routes without a parallel artifact fami
 	assert.equal(generatedFiles.some(({ path }) => path.endsWith('.href.ts')), false)
 	assert.equal(generatedFiles.some(({ path }) => path === 'src/constants/Network.ts'), false)
 	assert.doesNotMatch(generatorSource, /JSON\.stringify\(\{\s*path: existingLink/)
+	const generatedSvelteSources = generatedFiles
+		.filter(({ path }) => path.endsWith('.svelte'))
+		.map(renderGeneratedFile)
+	const singularHrefFieldBindingCount = generatedSvelteSources.reduce((count, source) => (
+		count + (source.match(/const [A-Za-z_$][A-Za-z0-9_$]* = \$derived\(selection\.entitySelector\.\$[A-Za-z0-9_$]+\)/g) ?? []).length
+	), 0)
+	const pluralHrefFieldBindingCount = generatedSvelteSources.reduce((count, source) => (
+		count + (source.match(/\{@const [A-Za-z_$][A-Za-z0-9_$]* = [A-Za-z0-9_$]+Selector\.\$[A-Za-z0-9_$]+\}/g) ?? []).length
+	), 0)
+	assert.equal(singularHrefFieldBindingCount, 121)
+	assert.equal(pluralHrefFieldBindingCount, 119)
+	assert.equal(singularHrefFieldBindingCount + pluralHrefFieldBindingCount, 240)
+	for (const source of generatedSvelteSources)
+		assert.doesNotMatch(source, /__BLOCKHEAD_COMPILED_HREF_FIELD_/)
 
 	const detailLayouts = generatedFiles
 		.filter(({ path }) => path.endsWith('/+layout.svelte'))
