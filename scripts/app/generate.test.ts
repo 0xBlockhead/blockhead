@@ -4391,6 +4391,8 @@ test('groups inherited selector fields under one route mapping', () => {
 	assert.match(generatorSource, /type SelectorAncestorBinding = \{[\s\S]*?field: string[\s\S]*?alternatives: readonly \{[\s\S]*?ancestorNodeId: string[\s\S]*?referencePath: readonly string\[\]/)
 	assert.doesNotMatch(generatorSource, /hrefParamCandidates|\bhrefs\?:/)
 	assert.match(generatorSource, /\.\.\.normalizedSelectorMappings\.map\(\(normalizedMapping\) => \(\{[\s\S]*?routeParamAlternatives: normalizedMapping\.routeParamAlternatives/)
+	assert.match(generatorSource, /const compiledRouteNodes = compileRouteTree\(/)
+	assert.doesNotMatch(generatorSource, /\b(?:compiledRoutes|compiledNodes)\b|children\.nodes/)
 })
 
 test('rejects undeclared regular and selector-variant route parameters upstream', () => {

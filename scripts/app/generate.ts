@@ -3242,9 +3242,7 @@ const compileRouteTree = (
 	ancestorSelectors: readonly RouteAncestorSelector[] = [],
 	ancestorRouteParams: readonly RouteParam[] = [],
 	parentSvelteKitPath = ''
-): {
-	nodes: RouteNode[]
-} => {
+): RouteNode[] => {
 	const {
 		entityByType,
 		valueTypeById,
@@ -3279,7 +3277,7 @@ const compileRouteTree = (
 			...(routeParam?.decode == null ? {} : { decode: routeParam.decode }),
 		}
 	)
-	const compiledNodes = Object.entries(nodes).map(([segment, node]) => {
+	return Object.entries(nodes).map(([segment, node]) => {
 		const routePath = [parentPath, segment].filter(Boolean).join('/')
 		const selectorMappings = Object.entries(node.selectors ?? {}).flatMap(([entityType, selectors]) => (
 			Object.entries(selectors).map(([selectorName, mapping]) => ({
@@ -4078,46 +4076,40 @@ const compileRouteTree = (
 		)
 
 		return {
-			node: {
-				internalPath: routeId(routePath),
-				svelteKitPath,
-				publicPath: publicRouteId(routePath),
-				params: routeParams,
-				collectionMappings: collectionMappings.map((collection) => ({
-					entityType: collection.source.entity,
-					field: collection.source.field,
-					path: collection.source.path,
-					targetEntityType: collection.entity,
-					selector: collection.source.selector,
-					...(collection.source.routeEntityType == null ? {} : {
-						routeEntityType: collection.source.routeEntityType,
-					}),
-					query: collection.query,
-					page: collection.page,
-				})),
-				selectorMappings: normalizedSelectorMappings,
-				...(selectorVariant == null ? {} : {
-					selectorVariant: {
-						ownerNodeId: selectorVariant.ownerNodeId,
-						mapping: selectorVariant.mapping,
-					},
+			internalPath: routeId(routePath),
+			svelteKitPath,
+			publicPath: publicRouteId(routePath),
+			params: routeParams,
+			collectionMappings: collectionMappings.map((collection) => ({
+				entityType: collection.source.entity,
+				field: collection.source.field,
+				path: collection.source.path,
+				targetEntityType: collection.entity,
+				selector: collection.source.selector,
+				...(collection.source.routeEntityType == null ? {} : {
+					routeEntityType: collection.source.routeEntityType,
 				}),
-				...(ownDetailGroup == null ? {} : {
-					detail: {
-						group: ownDetailGroup,
-						mappings: ownDetailMappings,
-					},
-				}),
-				...(node.page == null ? {} : { page: node.page }),
-				...(node.layout == null ? {} : { layout: node.layout }),
-				children: children.nodes,
-			},
+				query: collection.query,
+				page: collection.page,
+			})),
+			selectorMappings: normalizedSelectorMappings,
+			...(selectorVariant == null ? {} : {
+				selectorVariant: {
+					ownerNodeId: selectorVariant.ownerNodeId,
+					mapping: selectorVariant.mapping,
+				},
+			}),
+			...(ownDetailGroup == null ? {} : {
+				detail: {
+					group: ownDetailGroup,
+					mappings: ownDetailMappings,
+				},
+			}),
+			...(node.page == null ? {} : { page: node.page }),
+			...(node.layout == null ? {} : { layout: node.layout }),
+			children,
 		}
 	})
-
-	return {
-		nodes: compiledNodes.map(({ node }) => node),
-	}
 }
 
 const viewConditionFromFacetCondition = (
@@ -5897,7 +5889,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	if (errors.length > 0)
 		throw new Error(errors.join('\n'))
 
-	const compiledRoutes = compileRouteTree(
+	const compiledRouteNodes = compileRouteTree(
 		app.routes.children,
 		{
 			entityByType,
@@ -5907,7 +5899,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			routeParamValueTypesByOwner,
 		}
 	)
-	const indexedRouteNodes = flattenRouteNodes(compiledRoutes.nodes)
+	const indexedRouteNodes = flattenRouteNodes(compiledRouteNodes)
 	const routeNodeByInternalPath = new Map(indexedRouteNodes.map((node) => [node.internalPath, node]))
 	for (const entity of activeEntities) {
 		const singularView = entitySingularView(entity)
@@ -5919,7 +5911,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 				throw new Error(`${entity.entityType}.${list.field} list references missing internal route ${list.href}`)
 	}
 	validateNormalizedRouteNodes(indexedRouteNodes)
-	const routeEntryList = Object.freeze(compileRouteEntries(compiledRoutes.nodes, routeNodeByInternalPath))
+	const routeEntryList = Object.freeze(compileRouteEntries(compiledRouteNodes, routeNodeByInternalPath))
 	validateCompiledRoutes(routeNodeByInternalPath, routeEntryList)
 	const routeNodesByPublicPath = Map.groupBy(indexedRouteNodes, (node) => node.publicPath)
 	const routeNodesByPublicShape = Map.groupBy(indexedRouteNodes, (node) => publicRouteShape(node.publicPath))
@@ -6039,7 +6031,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		if (targetKey !== '' && selectorOutcomeByEntityTypeAndSelector.get(targetKey)?.kind !== 'VisibleRoute')
 			errors.push(`${key} Alias outcome must resolve to one visible route`)
 	}
-	const routeProbeMappingsByNode = indexRouteProbeMappings(compiledRoutes.nodes)
+	const routeProbeMappingsByNode = indexRouteProbeMappings(compiledRouteNodes)
 
 	for (const entry of routeEntryList) {
 		for (const routeFile of entry.files) {
