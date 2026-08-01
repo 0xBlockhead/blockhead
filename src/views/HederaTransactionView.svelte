@@ -332,7 +332,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionHederaTransactionHbarTransfers({ id, label, open })}
+			{#snippet SectionHederaTransactionHbarTransfers({ id, label })}
 				<HederaHbarTransfersView
 					selection={selection.$$hbarTransfers}
 					collapsible={false}
@@ -342,7 +342,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionHederaTransactionTokenTransfers({ id, label, open })}
+			{#snippet SectionHederaTransactionTokenTransfers({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HederaTokenTransfer}
 					collapsible={false}
@@ -383,7 +383,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionHederaTransactionContractResults({ id, label, open })}
+			{#snippet SectionHederaTransactionContractResults({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HederaContractResult}
 					collapsible={false}

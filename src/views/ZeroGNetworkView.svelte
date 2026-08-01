@@ -213,7 +213,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionZerogNetworkObservations({ id, label, open })}
+			{#snippet SectionZerogNetworkObservations({ id, label })}
 				<ZeroGNetwork_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}
@@ -253,7 +253,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionZerogStorageNodes({ id, label, open })}
+			{#snippet SectionZerogStorageNodes({ id, label })}
 				<EntitiesList
 					entityType={EntityType.ZeroGStorageNode}
 					collapsible={false}
@@ -272,7 +272,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionZerogDataBlobs({ id, label, open })}
+			{#snippet SectionZerogDataBlobs({ id, label })}
 				<ZeroGDataBlobsView
 					selection={selection.$$dataBlobs}
 					collapsible={false}
@@ -282,7 +282,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionZerogKvEntries({ id, label, open })}
+			{#snippet SectionZerogKvEntries({ id, label })}
 				<ZeroGKvEntriesView
 					selection={selection.$$kvEntries}
 					collapsible={false}
@@ -318,7 +318,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionZerogDaQuorums({ id, label, open })}
+			{#snippet SectionZerogDaQuorums({ id, label })}
 				<ZeroGDaQuorumsView
 					selection={selection.$$daQuorums}
 					collapsible={false}
@@ -328,7 +328,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionZerogDaNodes({ id, label, open })}
+			{#snippet SectionZerogDaNodes({ id, label })}
 				<ZeroGDaNodesView
 					selection={selection.$$daNodes}
 					collapsible={false}
@@ -360,7 +360,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionZerogServiceProviderList({ id, label, open })}
+			{#snippet SectionZerogServiceProviderList({ id, label })}
 				<ZeroGServiceProvidersView
 					selection={selection.$$serviceProviders}
 					collapsible={false}

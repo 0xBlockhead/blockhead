@@ -1020,7 +1020,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionNetworkAssetsNativeAssets({ id, label, open })}
+			{#snippet SectionNetworkAssetsNativeAssets({ id, label })}
 				<AssetInstancesView
 					selection={
 						selection
@@ -1063,7 +1063,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionNetworkResourcesFaucets({ id, label, open })}
+			{#snippet SectionNetworkResourcesFaucets({ id, label })}
 				<UrlsView
 					selection={
 						selection
@@ -1080,7 +1080,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionNetworkResourcesBlockExplorers({ id, label, open })}
+			{#snippet SectionNetworkResourcesBlockExplorers({ id, label })}
 				<UrlsView
 					selection={
 						selection
@@ -1181,7 +1181,7 @@
 							</header>
 						{/snippet}
 
-						{#snippet SectionEvmNetworkTopologyUpgrades({ id, label, open })}
+						{#snippet SectionEvmNetworkTopologyUpgrades({ id, label })}
 							<EthereumNetworkUpgradesView
 								selection={projection.$$upgrades}
 								collapsible={false}
@@ -1210,7 +1210,7 @@
 							</ResourceBoundary>
 						{/snippet}
 
-						{#snippet SectionEvmNetworkTopologyParentLayer({ id, label, open, active })}
+						{#snippet SectionEvmNetworkTopologyParentLayer({ id, label, active })}
 							<ResourceBoundary
 								resource={evmNetworkTopologyParentLayerResource}
 							>
@@ -1286,7 +1286,7 @@
 							</ResourceBoundary>
 						{/snippet}
 
-						{#snippet SectionEvmNetworkTopologyRollup({ id, label, open, active })}
+						{#snippet SectionEvmNetworkTopologyRollup({ id, label, active })}
 							<ResourceBoundary
 								resource={evmNetworkTopologyRollupResource}
 							>
@@ -1340,7 +1340,7 @@
 							</ResourceBoundary>
 						{/snippet}
 
-						{#snippet SectionEvmNetworkTopologySiblingShards({ id, label, open })}
+						{#snippet SectionEvmNetworkTopologySiblingShards({ id, label })}
 							<NetworksView
 								selection={
 									projection
@@ -1359,7 +1359,7 @@
 							/>
 						{/snippet}
 
-						{#snippet SectionEvmNetworkTopologyTestnets({ id, label, open })}
+						{#snippet SectionEvmNetworkTopologyTestnets({ id, label })}
 							<NetworksView
 								selection={
 									projection
@@ -1398,7 +1398,7 @@
 							</ResourceBoundary>
 						{/snippet}
 
-						{#snippet SectionEvmNetworkTopologyMainnet({ id, label, open, active })}
+						{#snippet SectionEvmNetworkTopologyMainnet({ id, label, active })}
 							<ResourceBoundary
 								resource={evmNetworkTopologyMainnetResource}
 							>
@@ -1453,7 +1453,7 @@
 							</ResourceBoundary>
 						{/snippet}
 
-						{#snippet SectionEvmNetworkTopologyChildLayers({ id, label, open })}
+						{#snippet SectionEvmNetworkTopologyChildLayers({ id, label })}
 							<NetworksView
 								selection={
 									projection
@@ -1473,7 +1473,7 @@
 							/>
 						{/snippet}
 
-						{#snippet SectionEvmNetworkTopologySettledRollups({ id, label, open })}
+						{#snippet SectionEvmNetworkTopologySettledRollups({ id, label })}
 							<EvmRollupsView
 								selection={
 									projection
@@ -1589,7 +1589,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionEvmExecutionUpgrades({ id, label, open })}
+							{#snippet SectionEvmExecutionUpgrades({ id, label })}
 								<EthereumExecutionUpgradesView
 									selection={
 										projection
@@ -1606,7 +1606,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionEvmExecutionBlocks({ id, label, open })}
+							{#snippet SectionEvmExecutionBlocks({ id, label })}
 								<EvmBlocksView
 									selection={
 										projection
@@ -1621,7 +1621,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionEvmExecutionTransactions({ id, label, open })}
+							{#snippet SectionEvmExecutionTransactions({ id, label })}
 								<EvmTransactionsView
 									selection={
 										projection
@@ -1636,7 +1636,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionEvmExecutionMempool({ id, label, open })}
+							{#snippet SectionEvmExecutionMempool({ id, label })}
 								<EvmNetwork_Txpool_TimestampsView
 									selection={
 										projection
@@ -1651,7 +1651,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionEvmExecutionGasBlocks({ id, label, open })}
+							{#snippet SectionEvmExecutionGasBlocks({ id, label })}
 								<EvmNetwork_GasFee_BlocksView
 									selection={
 										projection
@@ -1666,7 +1666,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionEvmExecutionGasEstimates({ id, label, open })}
+							{#snippet SectionEvmExecutionGasEstimates({ id, label })}
 								<EvmNetwork_GasEstimate_TimestampsView
 									selection={
 										projection
@@ -1681,7 +1681,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionEvmExecutionEndpoints({ id, label, open })}
+							{#snippet SectionEvmExecutionEndpoints({ id, label })}
 								<UrlsView
 									selection={
 										projection
@@ -1852,7 +1852,7 @@
 											</header>
 										{/snippet}
 
-										{#snippet SectionEvmConsensusUpgrades({ id, label, open })}
+										{#snippet SectionEvmConsensusUpgrades({ id, label })}
 											<EthereumConsensusUpgradesView
 												selection={
 													selection.Evm
@@ -1869,7 +1869,7 @@
 											/>
 										{/snippet}
 
-										{#snippet SectionEvmConsensusFinality({ id, label, open })}
+										{#snippet SectionEvmConsensusFinality({ id, label })}
 											<EthereumBeaconFinality_TimestampsView
 												selection={
 													selection.Evm
@@ -1884,7 +1884,7 @@
 											/>
 										{/snippet}
 
-										{#snippet SectionEvmConsensusCommittees({ id, label, open })}
+										{#snippet SectionEvmConsensusCommittees({ id, label })}
 											<BeaconCommitteesView
 												selection={
 													selection.Evm
@@ -1899,7 +1899,7 @@
 											/>
 										{/snippet}
 
-										{#snippet SectionEvmConsensusSyncCommittees({ id, label, open })}
+										{#snippet SectionEvmConsensusSyncCommittees({ id, label })}
 											<BeaconSyncCommitteesView
 												selection={
 													selection.Evm
@@ -1914,7 +1914,7 @@
 											/>
 										{/snippet}
 
-										{#snippet SectionEvmConsensusAttestations({ id, label, open })}
+										{#snippet SectionEvmConsensusAttestations({ id, label })}
 											<BeaconAttestationsView
 												selection={
 													selection.Evm
@@ -1929,7 +1929,7 @@
 											/>
 										{/snippet}
 
-										{#snippet SectionEvmConsensusWithdrawals({ id, label, open })}
+										{#snippet SectionEvmConsensusWithdrawals({ id, label })}
 											<BeaconWithdrawalsView
 												selection={
 													selection.Evm
@@ -1944,7 +1944,7 @@
 											/>
 										{/snippet}
 
-										{#snippet SectionEvmConsensusSlashings({ id, label, open })}
+										{#snippet SectionEvmConsensusSlashings({ id, label })}
 											<BeaconSlashingsView
 												selection={
 													selection.Evm
@@ -1959,7 +1959,7 @@
 											/>
 										{/snippet}
 
-										{#snippet SectionEvmConsensusValidators({ id, label, open })}
+										{#snippet SectionEvmConsensusValidators({ id, label })}
 											<BeaconValidatorsView
 												selection={
 													selection.Evm
@@ -1974,7 +1974,7 @@
 											/>
 										{/snippet}
 
-										{#snippet SectionEvmConsensusEpochs({ id, label, open })}
+										{#snippet SectionEvmConsensusEpochs({ id, label })}
 											<BeaconEpochsView
 												selection={
 													selection.Evm
@@ -1989,7 +1989,7 @@
 											/>
 										{/snippet}
 
-										{#snippet SectionEvmConsensusSlots({ id, label, open })}
+										{#snippet SectionEvmConsensusSlots({ id, label })}
 											<BeaconSlotsView
 												selection={
 													selection.Evm
@@ -2004,7 +2004,7 @@
 											/>
 										{/snippet}
 
-										{#snippet SectionEvmConsensusMevRelays({ id, label, open })}
+										{#snippet SectionEvmConsensusMevRelays({ id, label })}
 											<MevRelaysView
 												selection={
 													selection.Evm
@@ -2021,7 +2021,7 @@
 											/>
 										{/snippet}
 
-										{#snippet SectionEvmConsensusMevBuilders({ id, label, open })}
+										{#snippet SectionEvmConsensusMevBuilders({ id, label })}
 											<MevBuildersView
 												selection={
 													selection.Evm
@@ -2038,7 +2038,7 @@
 											/>
 										{/snippet}
 
-										{#snippet SectionEvmConsensusMevBoost({ id, label, open })}
+										{#snippet SectionEvmConsensusMevBoost({ id, label })}
 											<MevRelay_ProposerPayloadDeliveredsView
 												selection={
 													selection.Evm
@@ -2055,7 +2055,7 @@
 											/>
 										{/snippet}
 
-										{#snippet SectionEvmConsensusEndpoints({ id, label, open, active })}
+										{#snippet SectionEvmConsensusEndpoints({ id, label, active })}
 											<ResourceBoundary
 												resource={
 													selection.Evm
@@ -2225,7 +2225,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionEvmContractsPrecompiles({ id, label, open })}
+							{#snippet SectionEvmContractsPrecompiles({ id, label })}
 								<EvmContractsView
 									selection={
 										projection
@@ -2242,7 +2242,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionEvmContractsVerified({ id, label, open })}
+							{#snippet SectionEvmContractsVerified({ id, label })}
 								<EvmContractsView
 									selection={
 										projection
@@ -2257,7 +2257,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionEvmContractsSmartAccounts({ id, label, open })}
+							{#snippet SectionEvmContractsSmartAccounts({ id, label })}
 								<Erc4337SmartAccountsView
 									selection={
 										projection
@@ -2272,7 +2272,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionEvmContractsBundlers({ id, label, open })}
+							{#snippet SectionEvmContractsBundlers({ id, label })}
 								<Erc4337BundlersView
 									selection={
 										projection
@@ -2287,7 +2287,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionEvmContractsPaymasters({ id, label, open })}
+							{#snippet SectionEvmContractsPaymasters({ id, label })}
 								<Erc4337PaymastersView
 									selection={
 										projection
@@ -2302,7 +2302,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionEvmContractsUserOperations({ id, label, open })}
+							{#snippet SectionEvmContractsUserOperations({ id, label })}
 								<EvmUserOperationsView
 									selection={
 										projection
@@ -2317,7 +2317,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionEvmContractsFactories({ id, label, open })}
+							{#snippet SectionEvmContractsFactories({ id, label })}
 								<Erc4337AccountFactoriesView
 									selection={
 										projection
@@ -2421,7 +2421,7 @@
 								</ResourceBoundary>
 							{/snippet}
 
-							{#snippet SectionEvmAssetsNativeCoin({ id, label, open, active })}
+							{#snippet SectionEvmAssetsNativeCoin({ id, label, active })}
 								<ResourceBoundary
 									resource={evmAssetsNativeCoinResource}
 								>
@@ -2495,7 +2495,7 @@
 								</ResourceBoundary>
 							{/snippet}
 
-							{#snippet SectionEvmAssetsNativeInstance({ id, label, open, active })}
+							{#snippet SectionEvmAssetsNativeInstance({ id, label, active })}
 								<ResourceBoundary
 									resource={evmAssetsNativeInstanceResource}
 								>
@@ -2549,7 +2549,7 @@
 								</ResourceBoundary>
 							{/snippet}
 
-							{#snippet SectionEvmAssetsBridges({ id, label, open })}
+							{#snippet SectionEvmAssetsBridges({ id, label })}
 								<EvmNetworkBridgesView
 									selection={
 										projection
@@ -2567,7 +2567,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionEvmAssetsErc20Transfers({ id, label, open })}
+							{#snippet SectionEvmAssetsErc20Transfers({ id, label })}
 								<EvmTokenTransfersView
 									selection={
 										projection
@@ -2582,7 +2582,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionEvmAssetsNftTransfers({ id, label, open })}
+							{#snippet SectionEvmAssetsNftTransfers({ id, label })}
 								<EvmTokenTransfersView
 									selection={
 										projection
@@ -2659,7 +2659,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionCosmosConsensusBlocks({ id, label, open })}
+							{#snippet SectionCosmosConsensusBlocks({ id, label })}
 								<CosmosBlocksView
 									selection={
 										projection
@@ -2674,7 +2674,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionCosmosConsensusValidators({ id, label, open })}
+							{#snippet SectionCosmosConsensusValidators({ id, label })}
 								<CosmosValidatorsView
 									selection={
 										projection
@@ -2719,7 +2719,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionCosmosContractsAccountsAccounts({ id, label, open })}
+							{#snippet SectionCosmosContractsAccountsAccounts({ id, label })}
 								<CosmosAccountsView
 									selection={
 										projection
@@ -2776,7 +2776,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionCosmosGovernanceProposals({ id, label, open })}
+							{#snippet SectionCosmosGovernanceProposals({ id, label })}
 								<CosmosGovernanceProposalsView
 									selection={
 										projection
@@ -2822,7 +2822,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionCosmosResourcesEndpoints({ id, label, open, active })}
+							{#snippet SectionCosmosResourcesEndpoints({ id, label, active })}
 								<ResourceBoundary
 									resource={
 										projection
@@ -2949,7 +2949,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionPolkadotConsensusBlocks({ id, label, open })}
+							{#snippet SectionPolkadotConsensusBlocks({ id, label })}
 								<PolkadotBlocksView
 									selection={
 										projection
@@ -2964,7 +2964,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionPolkadotConsensusValidators({ id, label, open })}
+							{#snippet SectionPolkadotConsensusValidators({ id, label })}
 								<PolkadotValidatorsView
 									selection={
 										projection
@@ -3012,7 +3012,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionPolkadotResourcesEndpoints({ id, label, open, active })}
+							{#snippet SectionPolkadotResourcesEndpoints({ id, label, active })}
 								<ResourceBoundary
 									resource={
 										projection
@@ -3158,7 +3158,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionSolanaExecutionBlocks({ id, label, open })}
+							{#snippet SectionSolanaExecutionBlocks({ id, label })}
 								<SolanaBlocksView
 									selection={
 										projection
@@ -3173,7 +3173,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionSolanaExecutionTransactions({ id, label, open })}
+							{#snippet SectionSolanaExecutionTransactions({ id, label })}
 								<SolanaTransactionsView
 									selection={
 										projection
@@ -3230,7 +3230,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionSolanaConsensusValidators({ id, label, open })}
+							{#snippet SectionSolanaConsensusValidators({ id, label })}
 								<SolanaValidatorsView
 									selection={
 										projection
@@ -3298,7 +3298,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionSolanaContractsAccountsAccounts({ id, label, open })}
+							{#snippet SectionSolanaContractsAccountsAccounts({ id, label })}
 								<SolanaAccountsView
 									selection={
 										projection
@@ -3313,7 +3313,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionSolanaContractsAccountsPrograms({ id, label, open })}
+							{#snippet SectionSolanaContractsAccountsPrograms({ id, label })}
 								<SolanaProgramsView
 									selection={
 										projection
@@ -3369,7 +3369,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionSolanaAssetsTokenAccounts({ id, label, open })}
+							{#snippet SectionSolanaAssetsTokenAccounts({ id, label })}
 								<SolanaTokenAccountsView
 									selection={
 										projection
@@ -3384,7 +3384,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionSolanaAssetsTokenMints({ id, label, open })}
+							{#snippet SectionSolanaAssetsTokenMints({ id, label })}
 								<SolanaTokenMintsView
 									selection={
 										projection
@@ -3430,7 +3430,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionSolanaResourcesEndpoints({ id, label, open, active })}
+							{#snippet SectionSolanaResourcesEndpoints({ id, label, active })}
 								<ResourceBoundary
 									resource={
 										projection
@@ -3564,7 +3564,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionUtxoConsensusObservations({ id, label, open })}
+							{#snippet SectionUtxoConsensusObservations({ id, label })}
 								<Network_TimestampsView
 									selection={
 										selection
@@ -3579,7 +3579,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionUtxoConsensusBlocks({ id, label, open })}
+							{#snippet SectionUtxoConsensusBlocks({ id, label })}
 								<UtxoBlocksView
 									selection={
 										projection
@@ -3639,7 +3639,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionUtxoExecutionTransactions({ id, label, open })}
+							{#snippet SectionUtxoExecutionTransactions({ id, label })}
 								<UtxoTransactionsView
 									selection={
 										projection
@@ -3654,7 +3654,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionUtxoExecutionMempool({ id, label, open })}
+							{#snippet SectionUtxoExecutionMempool({ id, label })}
 								<UtxoTransactionsView
 									selection={
 										projection
@@ -3700,7 +3700,7 @@
 							</header>
 						{/snippet}
 
-						{#snippet SectionZcashShieldedPools({ id, label, open })}
+						{#snippet SectionZcashShieldedPools({ id, label })}
 							<ZcashShieldedPoolsView
 								selection={
 									projection
@@ -3765,7 +3765,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionBittensorChainObservations({ id, label, open })}
+							{#snippet SectionBittensorChainObservations({ id, label })}
 								<BittensorNetwork_TimestampsView
 									selection={
 										projection
@@ -3780,7 +3780,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionBittensorChainBlocks({ id, label, open })}
+							{#snippet SectionBittensorChainBlocks({ id, label })}
 								<BittensorBlocksView
 									selection={
 										projection
@@ -3825,7 +3825,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionBittensorSubnetsSubnets({ id, label, open })}
+							{#snippet SectionBittensorSubnetsSubnets({ id, label })}
 								<BittensorSubnetsView
 									selection={
 										projection
@@ -3883,7 +3883,7 @@
 							</header>
 						{/snippet}
 
-						{#snippet SectionZeroGStorageObservations({ id, label, open })}
+						{#snippet SectionZeroGStorageObservations({ id, label })}
 							<ZeroGNetwork_TimestampsView
 								selection={
 									projection
@@ -3900,7 +3900,7 @@
 							/>
 						{/snippet}
 
-						{#snippet SectionZeroGStorageNodes({ id, label, open })}
+						{#snippet SectionZeroGStorageNodes({ id, label })}
 							<EntitiesList
 								entityType={EntityType.ZeroGStorageNode}
 								collapsible={false}
@@ -3926,7 +3926,7 @@
 							</EntitiesList>
 						{/snippet}
 
-						{#snippet SectionZeroGStorageDataBlobs({ id, label, open })}
+						{#snippet SectionZeroGStorageDataBlobs({ id, label })}
 							<ZeroGDataBlobsView
 								selection={
 									projection
@@ -3943,7 +3943,7 @@
 							/>
 						{/snippet}
 
-						{#snippet SectionZeroGStorageLogEntries({ id, label, open })}
+						{#snippet SectionZeroGStorageLogEntries({ id, label })}
 							<ZeroGStorageLogEntriesView
 								selection={
 									projection
@@ -3994,7 +3994,7 @@
 							</header>
 						{/snippet}
 
-						{#snippet SectionFilecoinChainObservations({ id, label, open })}
+						{#snippet SectionFilecoinChainObservations({ id, label })}
 							<FilecoinNetwork_TimestampsView
 								selection={
 									projection
@@ -4011,7 +4011,7 @@
 							/>
 						{/snippet}
 
-						{#snippet SectionFilecoinChainTipsets({ id, label, open })}
+						{#snippet SectionFilecoinChainTipsets({ id, label })}
 							<FilecoinTipsetsView
 								selection={
 									projection
@@ -4051,7 +4051,7 @@
 							</header>
 						{/snippet}
 
-						{#snippet SectionFilecoinResourcesEndpoints({ id, label, open, active })}
+						{#snippet SectionFilecoinResourcesEndpoints({ id, label, active })}
 							<ResourceBoundary
 								resource={projection.rpcEndpoints}
 							>
@@ -4179,7 +4179,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionNearChainObservations({ id, label, open })}
+							{#snippet SectionNearChainObservations({ id, label })}
 								<NearNetwork_TimestampsView
 									selection={
 										projection
@@ -4194,7 +4194,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionNearChainBlocks({ id, label, open })}
+							{#snippet SectionNearChainBlocks({ id, label })}
 								<NearBlocksView
 									selection={
 										projection
@@ -4239,7 +4239,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionNearConsensusValidators({ id, label, open })}
+							{#snippet SectionNearConsensusValidators({ id, label })}
 								<NearValidatorsView
 									selection={
 										projection
@@ -4285,7 +4285,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionNearResourcesEndpoints({ id, label, open, active })}
+							{#snippet SectionNearResourcesEndpoints({ id, label, active })}
 								<ResourceBoundary
 									resource={
 										projection
@@ -4404,7 +4404,7 @@
 							</header>
 						{/snippet}
 
-						{#snippet SectionMoneroChainObservations({ id, label, open })}
+						{#snippet SectionMoneroChainObservations({ id, label })}
 							<MoneroNetwork_TimestampsView
 								selection={
 									projection
@@ -4421,7 +4421,7 @@
 							/>
 						{/snippet}
 
-						{#snippet SectionMoneroChainBlocks({ id, label, open })}
+						{#snippet SectionMoneroChainBlocks({ id, label })}
 							<MoneroBlocksView
 								selection={
 									projection
@@ -4461,7 +4461,7 @@
 							</header>
 						{/snippet}
 
-						{#snippet SectionMoneroResourcesEndpoints({ id, label, open, active })}
+						{#snippet SectionMoneroResourcesEndpoints({ id, label, active })}
 							<ResourceBoundary
 								resource={projection.rpcEndpoints}
 							>
@@ -4598,7 +4598,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionLightningNetworkObservations({ id, label, open })}
+							{#snippet SectionLightningNetworkObservations({ id, label })}
 								<LightningNetwork_TimestampsView
 									selection={
 										projection
@@ -4613,7 +4613,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionLightningNetworkNodes({ id, label, open })}
+							{#snippet SectionLightningNetworkNodes({ id, label })}
 								<LightningNodesView
 									selection={
 										projection
@@ -4689,7 +4689,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionCardanoChainObservations({ id, label, open })}
+							{#snippet SectionCardanoChainObservations({ id, label })}
 								<CardanoNetwork_TimestampsView
 									selection={
 										projection
@@ -4704,7 +4704,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionCardanoChainBlocks({ id, label, open })}
+							{#snippet SectionCardanoChainBlocks({ id, label })}
 								<CardanoBlocksView
 									selection={
 										projection
@@ -4719,7 +4719,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionCardanoChainTransactions({ id, label, open })}
+							{#snippet SectionCardanoChainTransactions({ id, label })}
 								<CardanoTransactionsView
 									selection={
 										projection
@@ -4764,7 +4764,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionCardanoStakePools({ id, label, open })}
+							{#snippet SectionCardanoStakePools({ id, label })}
 								<CardanoStakePoolsView
 									selection={
 										projection
@@ -4831,7 +4831,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionCardanoGovernanceDreps({ id, label, open })}
+							{#snippet SectionCardanoGovernanceDreps({ id, label })}
 								<CardanoDRepsView
 									selection={
 										projection
@@ -4846,7 +4846,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionCardanoGovernanceProposals({ id, label, open })}
+							{#snippet SectionCardanoGovernanceProposals({ id, label })}
 								<CardanoGovernanceProposalsView
 									selection={
 										projection
@@ -4861,7 +4861,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionCardanoGovernanceCommittee({ id, label, open })}
+							{#snippet SectionCardanoGovernanceCommittee({ id, label })}
 								<CardanoCommittee_EpochsView
 									selection={
 										projection
@@ -4917,7 +4917,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionCardanoAssetsNative({ id, label, open })}
+							{#snippet SectionCardanoAssetsNative({ id, label })}
 								<CardanoNativeAssetsView
 									selection={
 										projection
@@ -4932,7 +4932,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionCardanoProtocolParameters({ id, label, open })}
+							{#snippet SectionCardanoProtocolParameters({ id, label })}
 								<CardanoProtocolParameters_EpochsView
 									selection={
 										projection
@@ -4978,7 +4978,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionCardanoResourcesEndpoints({ id, label, open, active })}
+							{#snippet SectionCardanoResourcesEndpoints({ id, label, active })}
 								<ResourceBoundary
 									resource={
 										projection
@@ -5123,7 +5123,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionTronChainObservations({ id, label, open })}
+							{#snippet SectionTronChainObservations({ id, label })}
 								<EntitiesList
 									entityType={EntityType.TronNetwork_Timestamp}
 									collapsible={false}
@@ -5147,7 +5147,7 @@
 								</EntitiesList>
 							{/snippet}
 
-							{#snippet SectionTronChainBlocks({ id, label, open })}
+							{#snippet SectionTronChainBlocks({ id, label })}
 								<EntitiesList
 									entityType={EntityType.TronBlock}
 									collapsible={false}
@@ -5171,7 +5171,7 @@
 								</EntitiesList>
 							{/snippet}
 
-							{#snippet SectionTronChainWitnesses({ id, label, open })}
+							{#snippet SectionTronChainWitnesses({ id, label })}
 								<TronWitnessesView
 									selection={
 										projection
@@ -5217,7 +5217,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionTronResourcesEndpoints({ id, label, open, active })}
+							{#snippet SectionTronResourcesEndpoints({ id, label, active })}
 								<ResourceBoundary
 									resource={
 										projection
@@ -5344,7 +5344,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionTonChainObservations({ id, label, open })}
+							{#snippet SectionTonChainObservations({ id, label })}
 								<TonNetwork_TimestampsView
 									selection={
 										projection
@@ -5409,7 +5409,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionXrplChainLedgers({ id, label, open })}
+							{#snippet SectionXrplChainLedgers({ id, label })}
 								<XrplLedgersView
 									selection={
 										projection
@@ -5425,7 +5425,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionXrplChainTransactions({ id, label, open })}
+							{#snippet SectionXrplChainTransactions({ id, label })}
 								<XrplTransactionsView
 									selection={
 										projection
@@ -5482,7 +5482,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionXrplLedgerStateAccounts({ id, label, open })}
+							{#snippet SectionXrplLedgerStateAccounts({ id, label })}
 								<XrplAccountsView
 									selection={
 										projection
@@ -5498,7 +5498,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionXrplLedgerStateEntries({ id, label, open })}
+							{#snippet SectionXrplLedgerStateEntries({ id, label })}
 								<XrplLedgerEntriesView
 									selection={
 										projection
@@ -5555,7 +5555,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionXrplProtocolAmendments({ id, label, open })}
+							{#snippet SectionXrplProtocolAmendments({ id, label })}
 								<XrplAmendmentsView
 									selection={
 										projection
@@ -5571,7 +5571,7 @@
 								/>
 							{/snippet}
 
-							{#snippet SectionXrplLiquidityAmms({ id, label, open })}
+							{#snippet SectionXrplLiquidityAmms({ id, label })}
 								<XrplAmmsView
 									selection={
 										projection
@@ -5626,7 +5626,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionHederaChainBlocks({ id, label, open })}
+							{#snippet SectionHederaChainBlocks({ id, label })}
 								<EntitiesList
 									entityType={EntityType.HederaBlock}
 									collapsible={false}
@@ -5681,7 +5681,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionHederaAccounts({ id, label, open })}
+							{#snippet SectionHederaAccounts({ id, label })}
 								<HederaAccountsView
 									selection={
 										projection
@@ -5758,7 +5758,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionHyperliquidChainObservations({ id, label, open })}
+							{#snippet SectionHyperliquidChainObservations({ id, label })}
 								<EntitiesList
 									entityType={EntityType.HyperliquidNetwork_Timestamp}
 									collapsible={false}
@@ -5782,7 +5782,7 @@
 								</EntitiesList>
 							{/snippet}
 
-							{#snippet SectionHyperliquidChainBlocks({ id, label, open })}
+							{#snippet SectionHyperliquidChainBlocks({ id, label })}
 								<EntitiesList
 									entityType={EntityType.HyperliquidBlock}
 									collapsible={false}
@@ -5806,7 +5806,7 @@
 								</EntitiesList>
 							{/snippet}
 
-							{#snippet SectionHyperliquidChainTransactions({ id, label, open })}
+							{#snippet SectionHyperliquidChainTransactions({ id, label })}
 								<EntitiesList
 									entityType={EntityType.HyperliquidTransaction}
 									collapsible={false}
@@ -5860,7 +5860,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionHyperliquidConsensusValidators({ id, label, open })}
+							{#snippet SectionHyperliquidConsensusValidators({ id, label })}
 								<EntitiesList
 									entityType={EntityType.HyperliquidValidator}
 									collapsible={false}
@@ -5925,7 +5925,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionHyperliquidMarketsPerps({ id, label, open })}
+							{#snippet SectionHyperliquidMarketsPerps({ id, label })}
 								<EntitiesList
 									entityType={EntityType.HyperliquidPerpMarket}
 									collapsible={false}
@@ -5949,7 +5949,7 @@
 								</EntitiesList>
 							{/snippet}
 
-							{#snippet SectionHyperliquidMarketsSpotAssets({ id, label, open })}
+							{#snippet SectionHyperliquidMarketsSpotAssets({ id, label })}
 								<HyperliquidSpotAssetsView
 									selection={
 										projection
@@ -6007,7 +6007,7 @@
 								</header>
 							{/snippet}
 
-							{#snippet SectionHyperliquidResourcesRpcEndpoints({ id, label, open, active })}
+							{#snippet SectionHyperliquidResourcesRpcEndpoints({ id, label, active })}
 								<ResourceBoundary
 									resource={
 										projection
@@ -6091,7 +6091,7 @@
 								</ResourceBoundary>
 							{/snippet}
 
-							{#snippet SectionHyperliquidResourcesRestEndpoints({ id, label, open, active })}
+							{#snippet SectionHyperliquidResourcesRestEndpoints({ id, label, active })}
 								<ResourceBoundary
 									resource={
 										projection

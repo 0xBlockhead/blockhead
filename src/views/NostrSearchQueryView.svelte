@@ -132,7 +132,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionNostrSearchProfiles({ id, label, open })}
+			{#snippet SectionNostrSearchProfiles({ id, label })}
 				<NostrProfilesView
 					selection={selection.$$profiles}
 					collapsible={false}

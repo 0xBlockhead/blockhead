@@ -133,7 +133,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTezosTokenTransfers({ id, label, open })}
+			{#snippet SectionTezosTokenTransfers({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosTokenTransfer}
 					collapsible={false}
@@ -178,7 +178,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTezosTokenTimestamps({ id, label, open })}
+			{#snippet SectionTezosTokenTimestamps({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosToken_Timestamp}
 					collapsible={false}
@@ -197,7 +197,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionTezosTokenBalanceTimestamps({ id, label, open })}
+			{#snippet SectionTezosTokenBalanceTimestamps({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosTokenBalance_Timestamp}
 					collapsible={false}

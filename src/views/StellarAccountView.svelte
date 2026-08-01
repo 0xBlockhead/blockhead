@@ -91,7 +91,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionStellarAccountTrustlines({ id, label, open })}
+			{#snippet SectionStellarAccountTrustlines({ id, label })}
 				<EntitiesList
 					entityType={EntityType.StellarTrustline}
 					collapsible={false}
@@ -110,7 +110,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionStellarAccountOffers({ id, label, open })}
+			{#snippet SectionStellarAccountOffers({ id, label })}
 				<EntitiesList
 					entityType={EntityType.StellarOffer}
 					collapsible={false}
@@ -129,7 +129,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionStellarAccountTrades({ id, label, open })}
+			{#snippet SectionStellarAccountTrades({ id, label })}
 				<EntitiesList
 					entityType={EntityType.StellarTrade}
 					collapsible={false}
@@ -174,7 +174,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionStellarAccountTransactions({ id, label, open })}
+			{#snippet SectionStellarAccountTransactions({ id, label })}
 				<EntitiesList
 					entityType={EntityType.StellarTransaction}
 					collapsible={false}
@@ -193,7 +193,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionStellarAccountSigners({ id, label, open })}
+			{#snippet SectionStellarAccountSigners({ id, label })}
 				<EntitiesList
 					entityType={EntityType.StellarAccountSigner}
 					collapsible={false}
@@ -234,7 +234,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionStellarAccountTimestamps({ id, label, open })}
+			{#snippet SectionStellarAccountTimestamps({ id, label })}
 				<EntitiesList
 					entityType={EntityType.StellarAccount_Timestamp}
 					collapsible={false}

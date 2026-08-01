@@ -177,7 +177,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionHederaTokenAssociations({ id, label, open })}
+			{#snippet SectionHederaTokenAssociations({ id, label })}
 				<HederaTokenAssociationsView
 					selection={selection.$$associations}
 					collapsible={false}
@@ -187,7 +187,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionHederaTokenNfts({ id, label, open })}
+			{#snippet SectionHederaTokenNfts({ id, label })}
 				<HederaNftsView
 					selection={selection.$$nfts}
 					collapsible={false}
@@ -219,7 +219,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionHederaTokenTimestamps({ id, label, open })}
+			{#snippet SectionHederaTokenTimestamps({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HederaToken_Timestamp}
 					collapsible={false}

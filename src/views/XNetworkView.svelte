@@ -202,7 +202,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionXNetworkUsers({ id, label, open })}
+			{#snippet SectionXNetworkUsers({ id, label })}
 				<XUsersView
 					selection={selection.$$xUsers}
 					href={
@@ -218,7 +218,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionXNetworkPosts({ id, label, open })}
+			{#snippet SectionXNetworkPosts({ id, label })}
 				<XPostsView
 					selection={selection.$$xPosts}
 					href={

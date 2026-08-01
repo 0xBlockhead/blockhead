@@ -181,7 +181,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionRadicleRepositoryDelegates({ id, label, open })}
+			{#snippet SectionRadicleRepositoryDelegates({ id, label })}
 				<EntitiesList
 					entityType={EntityType.RadicleDelegate}
 					collapsible={false}
@@ -200,7 +200,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionRadicleRepositorySignedRefs({ id, label, open })}
+			{#snippet SectionRadicleRepositorySignedRefs({ id, label })}
 				<EntitiesList
 					entityType={EntityType.RadicleSignedRef}
 					collapsible={false}
@@ -245,7 +245,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionRadicleRepositoryIssues({ id, label, open })}
+			{#snippet SectionRadicleRepositoryIssues({ id, label })}
 				<EntitiesList
 					entityType={EntityType.RadicleIssue}
 					collapsible={false}
@@ -264,7 +264,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionRadicleRepositoryPatches({ id, label, open })}
+			{#snippet SectionRadicleRepositoryPatches({ id, label })}
 				<RadiclePatchesView
 					selection={selection.$$patches}
 					collapsible={false}
@@ -296,7 +296,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionRadicleRepositorySeedObservations({ id, label, open })}
+			{#snippet SectionRadicleRepositorySeedObservations({ id, label })}
 				<BlockheadRadicleSeedObservation_TimestampsView
 					selection={selection.$$seedObservations}
 					collapsible={false}

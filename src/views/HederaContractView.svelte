@@ -136,7 +136,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionHederaContractResults({ id, label, open })}
+			{#snippet SectionHederaContractResults({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HederaContractResult}
 					collapsible={false}
@@ -155,7 +155,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionHederaContractLogs({ id, label, open })}
+			{#snippet SectionHederaContractLogs({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HederaContractLog}
 					collapsible={false}
@@ -174,7 +174,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionHederaContractState({ id, label, open })}
+			{#snippet SectionHederaContractState({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HederaContractState_Timestamp}
 					collapsible={false}
@@ -215,7 +215,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionHederaContractTimestamps({ id, label, open })}
+			{#snippet SectionHederaContractTimestamps({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HederaContract_Timestamp}
 					collapsible={false}

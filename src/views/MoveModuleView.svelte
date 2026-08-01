@@ -110,7 +110,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionMoveModuleFunctions({ id, label, open })}
+			{#snippet SectionMoveModuleFunctions({ id, label })}
 				<MoveFunctionsView
 					selection={selection.$$functions}
 					collapsible={false}
@@ -120,7 +120,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionMoveModuleStructs({ id, label, open })}
+			{#snippet SectionMoveModuleStructs({ id, label })}
 				<MoveStructsView
 					selection={selection.$$structs}
 					collapsible={false}
@@ -152,7 +152,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionMoveModuleTimestamps({ id, label, open })}
+			{#snippet SectionMoveModuleTimestamps({ id, label })}
 				<MoveModule_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

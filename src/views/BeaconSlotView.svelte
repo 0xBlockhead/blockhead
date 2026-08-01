@@ -315,7 +315,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionBeaconSlotCommittees({ id, label, open })}
+			{#snippet SectionBeaconSlotCommittees({ id, label })}
 				<BeaconCommitteesView
 					selection={selection.$$beaconCommittees}
 					collapsible={false}
@@ -324,7 +324,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionBeaconSlotAttestations({ id, label, open })}
+			{#snippet SectionBeaconSlotAttestations({ id, label })}
 				<BeaconAttestationsView
 					selection={selection.$$beaconAttestations}
 					collapsible={false}
@@ -359,7 +359,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionBeaconSlotWithdrawals({ id, label, open })}
+			{#snippet SectionBeaconSlotWithdrawals({ id, label })}
 				<BeaconWithdrawalsView
 					selection={selection.$$beaconWithdrawals}
 					collapsible={false}
@@ -368,7 +368,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionBeaconSlotSlashings({ id, label, open })}
+			{#snippet SectionBeaconSlotSlashings({ id, label })}
 				<BeaconSlashingsView
 					selection={selection.$$beaconSlashings}
 					collapsible={false}

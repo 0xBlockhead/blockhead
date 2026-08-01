@@ -107,7 +107,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionKaspaChainObservations({ id, label, open })}
+			{#snippet SectionKaspaChainObservations({ id, label })}
 				<EntitiesList
 					entityType={EntityType.KaspaNetwork_Timestamp}
 					collapsible={false}
@@ -126,7 +126,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionKaspaVirtualChain({ id, label, open })}
+			{#snippet SectionKaspaVirtualChain({ id, label })}
 				<KaspaVirtualChain_TimestampsView
 					selection={selection.$$virtualChainTimestamps}
 					collapsible={false}
@@ -136,7 +136,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionKaspaChainBlocks({ id, label, open })}
+			{#snippet SectionKaspaChainBlocks({ id, label })}
 				<EntitiesList
 					entityType={EntityType.KaspaBlock}
 					collapsible={false}
@@ -155,7 +155,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionKaspaChainTransactions({ id, label, open })}
+			{#snippet SectionKaspaChainTransactions({ id, label })}
 				<EntitiesList
 					entityType={EntityType.KaspaTransaction}
 					collapsible={false}
@@ -174,7 +174,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionKaspaAcceptedTransactions({ id, label, open })}
+			{#snippet SectionKaspaAcceptedTransactions({ id, label })}
 				<EntitiesList
 					entityType={EntityType.KaspaAcceptedTransaction}
 					collapsible={false}
@@ -215,7 +215,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionKaspaAddressList({ id, label, open })}
+			{#snippet SectionKaspaAddressList({ id, label })}
 				<KaspaAddressesView
 					selection={selection.$$addresses}
 					collapsible={false}

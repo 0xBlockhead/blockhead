@@ -229,7 +229,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionStateChannelTransfers({ id, label, open })}
+			{#snippet SectionStateChannelTransfers({ id, label })}
 				<BlockheadStateChannelTransfersView
 					selection={selection.$$transfers}
 					collapsible={false}
@@ -239,7 +239,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionStateChannelStates({ id, label, open })}
+			{#snippet SectionStateChannelStates({ id, label })}
 				<BlockheadStateChannelStatesView
 					selection={selection.$$states}
 					collapsible={false}
@@ -249,7 +249,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionStateChannelDeposits({ id, label, open })}
+			{#snippet SectionStateChannelDeposits({ id, label })}
 				<BlockheadStateChannelDepositsView
 					selection={selection.$$deposits}
 					collapsible={false}
@@ -281,7 +281,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionStateChannelTimestamps({ id, label, open })}
+			{#snippet SectionStateChannelTimestamps({ id, label })}
 				<BlockheadStateChannel_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

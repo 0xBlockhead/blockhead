@@ -148,7 +148,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionErc4337FactorySmartAccounts({ id, label, open })}
+			{#snippet SectionErc4337FactorySmartAccounts({ id, label })}
 				<Erc4337SmartAccountsView
 					selection={selection.$$smartAccounts}
 					collapsible={false}
@@ -158,7 +158,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionErc4337FactoryUserOperations({ id, label, open })}
+			{#snippet SectionErc4337FactoryUserOperations({ id, label })}
 				<EvmUserOperationsView
 					selection={selection.$$userOperations}
 					collapsible={false}
@@ -190,7 +190,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionErc4337FactoryTimestamps({ id, label, open })}
+			{#snippet SectionErc4337FactoryTimestamps({ id, label })}
 				<Erc4337AccountFactory_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

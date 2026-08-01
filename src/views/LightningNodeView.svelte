@@ -118,7 +118,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionLightningNodeChannels({ id, label, open })}
+			{#snippet SectionLightningNodeChannels({ id, label })}
 				<LightningChannelsView
 					selection={selection.$$channels}
 					collapsible={false}
@@ -150,7 +150,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionLightningNodeTimestamps({ id, label, open })}
+			{#snippet SectionLightningNodeTimestamps({ id, label })}
 				<LightningNode_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

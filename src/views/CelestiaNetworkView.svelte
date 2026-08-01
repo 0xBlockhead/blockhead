@@ -91,7 +91,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionCelestiaChainObservations({ id, label, open })}
+			{#snippet SectionCelestiaChainObservations({ id, label })}
 				<CelestiaNetwork_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}
@@ -101,7 +101,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionCelestiaChainBlocks({ id, label, open })}
+			{#snippet SectionCelestiaChainBlocks({ id, label })}
 				<CelestiaBlocksView
 					selection={selection.$$blocks}
 					collapsible={false}
@@ -137,7 +137,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionCelestiaNamespaces({ id, label, open })}
+			{#snippet SectionCelestiaNamespaces({ id, label })}
 				<CelestiaNamespacesView
 					selection={selection.$$namespaces}
 					collapsible={false}
@@ -147,7 +147,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionCelestiaBlobs({ id, label, open })}
+			{#snippet SectionCelestiaBlobs({ id, label })}
 				<CelestiaBlobsView
 					selection={selection.$$blobs}
 					collapsible={false}

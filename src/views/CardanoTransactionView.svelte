@@ -280,7 +280,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionCardanoTransactionInputs({ id, label, open })}
+			{#snippet SectionCardanoTransactionInputs({ id, label })}
 				<CardanoTxInputsView
 					selection={selection.$$inputs}
 					collapsible={false}
@@ -290,7 +290,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionCardanoTransactionOutputs({ id, label, open })}
+			{#snippet SectionCardanoTransactionOutputs({ id, label })}
 				<CardanoTxOutputsView
 					selection={selection.$$outputs}
 					collapsible={false}
@@ -300,7 +300,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionCardanoTransactionCertificates({ id, label, open })}
+			{#snippet SectionCardanoTransactionCertificates({ id, label })}
 				<CardanoCertificatesView
 					selection={selection.$$certificates}
 					collapsible={false}
@@ -310,7 +310,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionCardanoTransactionScripts({ id, label, open })}
+			{#snippet SectionCardanoTransactionScripts({ id, label })}
 				<CardanoScriptWitnessesView
 					selection={selection.$$scripts}
 					collapsible={false}
@@ -350,7 +350,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionCardanoTransactionGovernanceProposals({ id, label, open })}
+			{#snippet SectionCardanoTransactionGovernanceProposals({ id, label })}
 				<CardanoGovernanceProposalsView
 					selection={selection.$$governanceProposals}
 					collapsible={false}
@@ -360,7 +360,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionCardanoTransactionGovernanceVotes({ id, label, open })}
+			{#snippet SectionCardanoTransactionGovernanceVotes({ id, label })}
 				<CardanoGovernanceVotesView
 					selection={selection.$$governanceVotes}
 					collapsible={false}
@@ -370,7 +370,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionCardanoTransactionAssets({ id, label, open })}
+			{#snippet SectionCardanoTransactionAssets({ id, label })}
 				<CardanoNativeAssetsView
 					selection={selection.$$assets}
 					collapsible={false}

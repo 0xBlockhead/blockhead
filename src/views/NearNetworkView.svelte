@@ -131,7 +131,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionNearChainObservations({ id, label, open })}
+			{#snippet SectionNearChainObservations({ id, label })}
 				<NearNetwork_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}
@@ -140,7 +140,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionNearChainBlocks({ id, label, open })}
+			{#snippet SectionNearChainBlocks({ id, label })}
 				<NearBlocksView
 					selection={selection.$$blocks}
 					collapsible={false}
@@ -171,7 +171,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionNearValidatorList({ id, label, open })}
+			{#snippet SectionNearValidatorList({ id, label })}
 				<NearValidatorsView
 					selection={selection.$$validators}
 					collapsible={false}

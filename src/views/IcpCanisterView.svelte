@@ -96,7 +96,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionIcpCanisterMethods({ id, label, open })}
+			{#snippet SectionIcpCanisterMethods({ id, label })}
 				<IcpCanisterMethodsView
 					selection={selection.$$methods}
 					collapsible={false}
@@ -106,7 +106,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionIcpCanisterMetadata({ id, label, open })}
+			{#snippet SectionIcpCanisterMetadata({ id, label })}
 				<IcpCanisterMetadataEntriesView
 					selection={selection.$$metadata}
 					collapsible={false}
@@ -116,7 +116,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionIcpCanisterLogs({ id, label, open })}
+			{#snippet SectionIcpCanisterLogs({ id, label })}
 				<IcpCanisterLog_TimestampsView
 					selection={selection.$$logs}
 					collapsible={false}
@@ -152,7 +152,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionIcpCanisterCertifiedStates({ id, label, open })}
+			{#snippet SectionIcpCanisterCertifiedStates({ id, label })}
 				<IcpCertifiedStatesView
 					selection={selection.$$certifiedStates}
 					collapsible={false}
@@ -162,7 +162,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionIcpCanisterRequestStatuses({ id, label, open })}
+			{#snippet SectionIcpCanisterRequestStatuses({ id, label })}
 				<IcpRequestStatusesView
 					selection={selection.$$requestStatuses}
 					collapsible={false}
@@ -194,7 +194,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionIcpCanisterTimestamps({ id, label, open })}
+			{#snippet SectionIcpCanisterTimestamps({ id, label })}
 				<IcpCanister_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

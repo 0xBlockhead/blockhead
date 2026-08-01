@@ -202,7 +202,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionFarcasterNetworkFeeds({ id, label, open })}
+			{#snippet SectionFarcasterNetworkFeeds({ id, label })}
 				<FarcasterFeedsView
 					selection={selection.$$feeds}
 					href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed')}
@@ -213,7 +213,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionFarcasterNetworkUsers({ id, label, open })}
+			{#snippet SectionFarcasterNetworkUsers({ id, label })}
 				<FarcasterUsersView
 					selection={selection.$$users}
 					href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/users')}
@@ -224,7 +224,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionFarcasterNetworkChannels({ id, label, open })}
+			{#snippet SectionFarcasterNetworkChannels({ id, label })}
 				<FarcasterChannelsView
 					selection={selection.$$channels}
 					href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/channels')}

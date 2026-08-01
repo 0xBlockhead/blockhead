@@ -268,7 +268,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionLiquidityPoolBlocks({ id, label, open })}
+			{#snippet SectionLiquidityPoolBlocks({ id, label })}
 				<LiquidityPool_BlocksView
 					selection={selection.$$blocks}
 					collapsible={false}
@@ -278,7 +278,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionLiquidityPoolLeverages({ id, label, open })}
+			{#snippet SectionLiquidityPoolLeverages({ id, label })}
 				<LeveragesView
 					selection={selection.$$leverages}
 					collapsible={false}
@@ -310,7 +310,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionLiquidityPoolTimestamps({ id, label, open })}
+			{#snippet SectionLiquidityPoolTimestamps({ id, label })}
 				<LiquidityPool_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

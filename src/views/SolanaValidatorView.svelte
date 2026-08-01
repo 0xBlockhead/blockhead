@@ -122,7 +122,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionSolanaValidatorTimestamps({ id, label, open })}
+			{#snippet SectionSolanaValidatorTimestamps({ id, label })}
 				<SolanaValidator_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

@@ -112,7 +112,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTonNftCollectionItems({ id, label, open })}
+			{#snippet SectionTonNftCollectionItems({ id, label })}
 				<TonNftItemsView
 					selection={selection.$$items}
 					collapsible={false}
@@ -122,7 +122,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionTonNftCollectionTransfers({ id, label, open })}
+			{#snippet SectionTonNftCollectionTransfers({ id, label })}
 				<TonNftTransfersView
 					selection={selection.$$transfers}
 					collapsible={false}
@@ -154,7 +154,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTonNftCollectionTimestamps({ id, label, open })}
+			{#snippet SectionTonNftCollectionTimestamps({ id, label })}
 				<TonNftCollection_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

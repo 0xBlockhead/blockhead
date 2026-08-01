@@ -241,7 +241,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionSessionActionReadiness({ id, label, open })}
+			{#snippet SectionSessionActionReadiness({ id, label })}
 				<BlockheadActionReadinessChecksView
 					selection={selection.$$readinessChecks}
 					collapsible={false}
@@ -251,7 +251,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionSessionActionQuotes({ id, label, open })}
+			{#snippet SectionSessionActionQuotes({ id, label })}
 				<BlockheadIntentQuotesView
 					selection={selection.$$quotes}
 					collapsible={false}
@@ -261,7 +261,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionSessionActionOrders({ id, label, open })}
+			{#snippet SectionSessionActionOrders({ id, label })}
 				<BlockheadIntentOrdersView
 					selection={selection.$$orders}
 					collapsible={false}
@@ -297,7 +297,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionSessionActionWalletRequests({ id, label, open })}
+			{#snippet SectionSessionActionWalletRequests({ id, label })}
 				<BlockheadWalletRequestsView
 					selection={selection.$$walletRequests}
 					collapsible={false}
@@ -307,7 +307,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionSessionActionOutcomes({ id, label, open })}
+			{#snippet SectionSessionActionOutcomes({ id, label })}
 				<BlockheadActionOutcomesView
 					selection={selection.$$outcomes}
 					collapsible={false}

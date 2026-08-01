@@ -247,7 +247,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionMarketsWithCurrencyAsBase({ id, label, open })}
+			{#snippet SectionMarketsWithCurrencyAsBase({ id, label })}
 				<MarketsView
 					selection={selection.$$marketsWithCurrencyAsBase}
 					collapsible={false}
@@ -256,7 +256,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionMarketsWithCurrencyAsQuote({ id, label, open })}
+			{#snippet SectionMarketsWithCurrencyAsQuote({ id, label })}
 				<MarketsView
 					selection={selection.$$marketsWithCurrencyAsQuote}
 					collapsible={false}

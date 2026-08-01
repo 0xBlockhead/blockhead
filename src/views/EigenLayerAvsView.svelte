@@ -219,7 +219,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEigenlayerAvsOperatorList({ id, label, open })}
+			{#snippet SectionEigenlayerAvsOperatorList({ id, label })}
 				<EigenLayerOperatorsView
 					selection={selection.$$operators}
 					collapsible={false}
@@ -229,7 +229,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionEigenlayerAvsAllocations({ id, label, open })}
+			{#snippet SectionEigenlayerAvsAllocations({ id, label })}
 				<EigenLayerAllocation_TimestampsView
 					selection={selection.$$allocations}
 					collapsible={false}
@@ -265,7 +265,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEigenlayerAvsObservations({ id, label, open })}
+			{#snippet SectionEigenlayerAvsObservations({ id, label })}
 				<EigenLayerAvs_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}
@@ -275,7 +275,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionEigenlayerAvsSlashing({ id, label, open })}
+			{#snippet SectionEigenlayerAvsSlashing({ id, label })}
 				<EigenLayerSlashingEventsView
 					selection={selection.$$slashingEvents}
 					collapsible={false}

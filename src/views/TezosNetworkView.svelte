@@ -97,7 +97,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTezosChainObservations({ id, label, open })}
+			{#snippet SectionTezosChainObservations({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosNetwork_Timestamp}
 					collapsible={false}
@@ -116,7 +116,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionTezosChainBlocks({ id, label, open })}
+			{#snippet SectionTezosChainBlocks({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosBlock}
 					collapsible={false}
@@ -135,7 +135,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionTezosChainOperationGroups({ id, label, open })}
+			{#snippet SectionTezosChainOperationGroups({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosOperationGroup}
 					collapsible={false}
@@ -154,7 +154,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionTezosChainOperations({ id, label, open })}
+			{#snippet SectionTezosChainOperations({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosOperation}
 					collapsible={false}
@@ -199,7 +199,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTezosAccounts({ id, label, open })}
+			{#snippet SectionTezosAccounts({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosAccount}
 					collapsible={false}
@@ -218,7 +218,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionTezosContracts({ id, label, open })}
+			{#snippet SectionTezosContracts({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosContract}
 					collapsible={false}
@@ -267,7 +267,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTezosBakers({ id, label, open })}
+			{#snippet SectionTezosBakers({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosBaker}
 					collapsible={false}
@@ -286,7 +286,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionTezosCycles({ id, label, open })}
+			{#snippet SectionTezosCycles({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosCycle}
 					collapsible={false}
@@ -305,7 +305,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionTezosBakingRights({ id, label, open })}
+			{#snippet SectionTezosBakingRights({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosBakingRight}
 					collapsible={false}
@@ -350,7 +350,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTezosTokenList({ id, label, open })}
+			{#snippet SectionTezosTokenList({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosToken}
 					collapsible={false}
@@ -369,7 +369,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionTezosTokenTransfers({ id, label, open })}
+			{#snippet SectionTezosTokenTransfers({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosTokenTransfer}
 					collapsible={false}
@@ -422,7 +422,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTezosBigMapList({ id, label, open })}
+			{#snippet SectionTezosBigMapList({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosBigMap}
 					collapsible={false}
@@ -441,7 +441,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionTezosBigMapKeys({ id, label, open })}
+			{#snippet SectionTezosBigMapKeys({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosBigMapKey}
 					collapsible={false}
@@ -460,7 +460,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionTezosBigMapObservations({ id, label, open })}
+			{#snippet SectionTezosBigMapObservations({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosBigMap_Timestamp}
 					collapsible={false}
@@ -479,7 +479,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionTezosBigMapKeyObservations({ id, label, open })}
+			{#snippet SectionTezosBigMapKeyObservations({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosBigMapKey_Timestamp}
 					collapsible={false}

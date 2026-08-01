@@ -109,7 +109,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTezosBigMapKeys({ id, label, open })}
+			{#snippet SectionTezosBigMapKeys({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosBigMapKey}
 					collapsible={false}
@@ -128,7 +128,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionTezosBigMapUpdates({ id, label, open })}
+			{#snippet SectionTezosBigMapUpdates({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosBigMapDiff}
 					collapsible={false}
@@ -169,7 +169,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTezosBigMapTimestamps({ id, label, open })}
+			{#snippet SectionTezosBigMapTimestamps({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosBigMap_Timestamp}
 					collapsible={false}

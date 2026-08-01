@@ -201,7 +201,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionMcpTools({ id, label, open })}
+			{#snippet SectionMcpTools({ id, label })}
 				<McpToolsView
 					selection={selection.$$tools}
 					collapsible={false}
@@ -211,7 +211,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionMcpPrompts({ id, label, open })}
+			{#snippet SectionMcpPrompts({ id, label })}
 				<McpPromptsView
 					selection={selection.$$prompts}
 					collapsible={false}
@@ -247,7 +247,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionMcpResourceList({ id, label, open })}
+			{#snippet SectionMcpResourceList({ id, label })}
 				<McpResourcesView
 					selection={selection.$$resources}
 					collapsible={false}
@@ -257,7 +257,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionMcpResourceTemplates({ id, label, open })}
+			{#snippet SectionMcpResourceTemplates({ id, label })}
 				<McpResourceTemplatesView
 					selection={selection.$$resourceTemplates}
 					collapsible={false}
@@ -289,7 +289,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionMcpServerObservations({ id, label, open })}
+			{#snippet SectionMcpServerObservations({ id, label })}
 				<McpServer_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

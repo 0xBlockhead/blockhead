@@ -151,7 +151,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAlgorandTealApplications({ id, label, open })}
+			{#snippet SectionAlgorandTealApplications({ id, label })}
 				<AlgorandApplicationsView
 					selection={selection.$$applications}
 					collapsible={false}
@@ -161,7 +161,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAlgorandTealTransactions({ id, label, open })}
+			{#snippet SectionAlgorandTealTransactions({ id, label })}
 				<AlgorandTransactionsView
 					selection={selection.$$transactions}
 					collapsible={false}
@@ -193,7 +193,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAlgorandTealTimestamps({ id, label, open })}
+			{#snippet SectionAlgorandTealTimestamps({ id, label })}
 				<AlgorandTealProgram_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

@@ -126,7 +126,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTronAccountTransactions({ id, label, open })}
+			{#snippet SectionTronAccountTransactions({ id, label })}
 				<TronTransactionsView
 					selection={selection.$$transactions}
 					collapsible={false}
@@ -162,7 +162,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTronAccountTimestamps({ id, label, open })}
+			{#snippet SectionTronAccountTimestamps({ id, label })}
 				<TronAccount_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}
@@ -172,7 +172,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionTronAccountTokenBalanceTimestamps({ id, label, open })}
+			{#snippet SectionTronAccountTokenBalanceTimestamps({ id, label })}
 				<TronAccountTokenBalance_TimestampsView
 					selection={selection.$$tokenBalanceTimestamps}
 					collapsible={false}

@@ -162,7 +162,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionNostrRelayLiveNotes({ id, label, open })}
+			{#snippet SectionNostrRelayLiveNotes({ id, label })}
 				<NostrNotesView
 					selection={selection.$$notes}
 					collapsible={false}

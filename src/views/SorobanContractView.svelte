@@ -87,7 +87,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionSorobanContractStorageEntries({ id, label, open })}
+			{#snippet SectionSorobanContractStorageEntries({ id, label })}
 				<SorobanContractStorageEntriesView
 					selection={selection.$$storageEntries}
 					collapsible={false}
@@ -97,7 +97,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionSorobanContractTransactions({ id, label, open })}
+			{#snippet SectionSorobanContractTransactions({ id, label })}
 				<EntitiesList
 					entityType={EntityType.StellarTransaction}
 					collapsible={false}
@@ -138,7 +138,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionSorobanContractTimestamps({ id, label, open })}
+			{#snippet SectionSorobanContractTimestamps({ id, label })}
 				<EntitiesList
 					entityType={EntityType.SorobanContract_Timestamp}
 					collapsible={false}

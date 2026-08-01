@@ -124,7 +124,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionXrplAccountLedgerEntries({ id, label, open })}
+			{#snippet SectionXrplAccountLedgerEntries({ id, label })}
 				<XrplLedgerEntriesView
 					selection={selection.$$ledgerEntries}
 					collapsible={false}
@@ -134,7 +134,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionXrplAccountTransactions({ id, label, open })}
+			{#snippet SectionXrplAccountTransactions({ id, label })}
 				<XrplTransactionsView
 					selection={selection.$$transactions}
 					collapsible={false}
@@ -144,7 +144,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionXrplAccountTrustlines({ id, label, open })}
+			{#snippet SectionXrplAccountTrustlines({ id, label })}
 				<XrplTrustlinesView
 					selection={selection.$$trustlines}
 					collapsible={false}
@@ -176,7 +176,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionXrplAccountTimestamps({ id, label, open })}
+			{#snippet SectionXrplAccountTimestamps({ id, label })}
 				<XrplAccount_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

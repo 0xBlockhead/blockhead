@@ -87,7 +87,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAlgorandChainObservations({ id, label, open })}
+			{#snippet SectionAlgorandChainObservations({ id, label })}
 				<EntitiesList
 					entityType={EntityType.AlgorandNetwork_Timestamp}
 					collapsible={false}
@@ -106,7 +106,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionAlgorandChainRounds({ id, label, open })}
+			{#snippet SectionAlgorandChainRounds({ id, label })}
 				<EntitiesList
 					entityType={EntityType.AlgorandRound}
 					collapsible={false}
@@ -125,7 +125,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionAlgorandChainTransactions({ id, label, open })}
+			{#snippet SectionAlgorandChainTransactions({ id, label })}
 				<AlgorandTransactionsView
 					selection={selection.$$transactions}
 					collapsible={false}
@@ -161,7 +161,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAlgorandAccounts({ id, label, open })}
+			{#snippet SectionAlgorandAccounts({ id, label })}
 				<EntitiesList
 					entityType={EntityType.AlgorandAccount}
 					collapsible={false}
@@ -180,7 +180,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionAlgorandAssets({ id, label, open })}
+			{#snippet SectionAlgorandAssets({ id, label })}
 				<AlgorandAssetsView
 					selection={selection.$$assets}
 					collapsible={false}
@@ -216,7 +216,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAlgorandApplicationList({ id, label, open })}
+			{#snippet SectionAlgorandApplicationList({ id, label })}
 				<AlgorandApplicationsView
 					selection={selection.$$applications}
 					collapsible={false}
@@ -226,7 +226,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAlgorandTealPrograms({ id, label, open })}
+			{#snippet SectionAlgorandTealPrograms({ id, label })}
 				<AlgorandTealProgramsView
 					selection={selection.$$tealPrograms}
 					collapsible={false}

@@ -197,7 +197,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionRssNetworkFeeds({ id, label, open })}
+			{#snippet SectionRssNetworkFeeds({ id, label })}
 				<RssFeedsView
 					selection={selection.$$rssFeeds}
 					href={

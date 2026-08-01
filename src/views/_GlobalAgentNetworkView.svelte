@@ -124,7 +124,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAgentAcpPrograms({ id, label, open })}
+			{#snippet SectionAgentAcpPrograms({ id, label })}
 				<AcpAgentProgramsView
 					selection={selection.$$acpPrograms}
 					collapsible={false}
@@ -134,7 +134,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAgentA2aCards({ id, label, open })}
+			{#snippet SectionAgentA2aCards({ id, label })}
 				<A2aAgentCardsView
 					selection={selection.$$a2aCards}
 					collapsible={false}
@@ -144,7 +144,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAgentMcpServers({ id, label, open })}
+			{#snippet SectionAgentMcpServers({ id, label })}
 				<McpServersView
 					selection={selection.$$mcpServers}
 					collapsible={false}
@@ -180,7 +180,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAgentEip8004({ id, label, open })}
+			{#snippet SectionAgentEip8004({ id, label })}
 				<Eip8004AgentRegistrationsView
 					selection={selection.$$eip8004Registrations}
 					collapsible={false}
@@ -190,7 +190,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAgentBlockheadProfiles({ id, label, open })}
+			{#snippet SectionAgentBlockheadProfiles({ id, label })}
 				<BlockheadAgentProfilesView
 					selection={selection.$$blockheadProfiles}
 					collapsible={false}
@@ -222,7 +222,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAgentHubObservations({ id, label, open })}
+			{#snippet SectionAgentHubObservations({ id, label })}
 				<GlobalAgentNetwork_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

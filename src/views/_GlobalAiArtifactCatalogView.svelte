@@ -117,7 +117,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAiArtifactCatalogArtifacts({ id, label, open })}
+			{#snippet SectionAiArtifactCatalogArtifacts({ id, label })}
 				<AiArtifactsView
 					selection={selection.$$artifacts}
 					collapsible={false}
@@ -127,7 +127,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAiArtifactCatalogDocuments({ id, label, open })}
+			{#snippet SectionAiArtifactCatalogDocuments({ id, label })}
 				<AiDocumentsView
 					selection={selection.$$documents}
 					collapsible={false}
@@ -159,7 +159,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAiArtifactCatalogTimestamps({ id, label, open })}
+			{#snippet SectionAiArtifactCatalogTimestamps({ id, label })}
 				<GlobalAiArtifactCatalog_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

@@ -122,7 +122,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionSolanaTokenMintTimestamps({ id, label, open })}
+			{#snippet SectionSolanaTokenMintTimestamps({ id, label })}
 				<SolanaTokenMint_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

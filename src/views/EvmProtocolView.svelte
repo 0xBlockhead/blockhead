@@ -204,7 +204,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEvmProtocolSelectors({ id, label, open })}
+			{#snippet SectionEvmProtocolSelectors({ id, label })}
 				<EvmSelectorsView
 					selection={selection.$$evmSelectors}
 					href={
@@ -220,7 +220,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionEvmProtocolTopics({ id, label, open })}
+			{#snippet SectionEvmProtocolTopics({ id, label })}
 				<EvmTopicsView
 					selection={selection.$$evmTopics}
 					href={
@@ -258,7 +258,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEvmProtocolErrorList({ id, label, open })}
+			{#snippet SectionEvmProtocolErrorList({ id, label })}
 				<EvmErrorsView
 					selection={selection.$$evmErrors}
 					href={

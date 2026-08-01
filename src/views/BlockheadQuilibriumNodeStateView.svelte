@@ -224,7 +224,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionQuilibriumFrames({ id, label, open })}
+			{#snippet SectionQuilibriumFrames({ id, label })}
 				<QuilibriumFramesView
 					selection={selection.$$frames}
 					collapsible={false}
@@ -234,7 +234,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionQuilibriumProvers({ id, label, open })}
+			{#snippet SectionQuilibriumProvers({ id, label })}
 				<QuilibriumProversView
 					selection={selection.$$provers}
 					collapsible={false}
@@ -266,7 +266,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionQuilibriumNodeTimestamps({ id, label, open })}
+			{#snippet SectionQuilibriumNodeTimestamps({ id, label })}
 				<BlockheadQuilibriumNodeState_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

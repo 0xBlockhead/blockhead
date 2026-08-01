@@ -309,7 +309,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionLensAccountPosts({ id, label, open })}
+			{#snippet SectionLensAccountPosts({ id, label })}
 				<LensPostsView
 					selection={selection.$$posts}
 					href={
@@ -352,7 +352,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionLensAccountTimestamps({ id, label, open })}
+			{#snippet SectionLensAccountTimestamps({ id, label })}
 				<LensAccount_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

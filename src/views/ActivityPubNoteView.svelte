@@ -147,7 +147,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionActivitypubNoteMediaSensitiveMedia({ id, label, open })}
+			{#snippet SectionActivitypubNoteMediaSensitiveMedia({ id, label })}
 				<MediaListView
 					selection={selection.$$media}
 					collapsible={false}
@@ -305,7 +305,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionActivitypubNoteThreadNotes({ id, label, open })}
+			{#snippet SectionActivitypubNoteThreadNotes({ id, label })}
 				<ActivityPubNotesView
 					selection={selection.$$thread}
 					href={
@@ -350,7 +350,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionActivitypubNoteTimestamps({ id, label, open })}
+			{#snippet SectionActivitypubNoteTimestamps({ id, label })}
 				<ActivityPubNote_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

@@ -99,7 +99,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionArweaveChainObservations({ id, label, open })}
+			{#snippet SectionArweaveChainObservations({ id, label })}
 				<ArweaveNetwork_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}
@@ -109,7 +109,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionArweaveChainBlocks({ id, label, open })}
+			{#snippet SectionArweaveChainBlocks({ id, label })}
 				<ArweaveBlocksView
 					selection={selection.$$blocks}
 					collapsible={false}
@@ -119,7 +119,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionArweaveChainTransactions({ id, label, open })}
+			{#snippet SectionArweaveChainTransactions({ id, label })}
 				<ArweaveTransactionsView
 					selection={selection.$$transactions}
 					collapsible={false}
@@ -151,7 +151,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionArweaveResourceList({ id, label, open })}
+			{#snippet SectionArweaveResourceList({ id, label })}
 				<ArweaveResourcesView
 					selection={selection.$$resources}
 					collapsible={false}

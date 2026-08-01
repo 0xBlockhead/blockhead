@@ -268,7 +268,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionSuiCoinTypeBalances({ id, label, open })}
+			{#snippet SectionSuiCoinTypeBalances({ id, label })}
 				<SuiCoinBalance_TimestampsView
 					selection={selection.$$balances}
 					collapsible={false}
@@ -278,7 +278,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionSuiCoinTypeObjects({ id, label, open })}
+			{#snippet SectionSuiCoinTypeObjects({ id, label })}
 				<SuiObjectsView
 					selection={selection.$$objects}
 					collapsible={false}
@@ -310,7 +310,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionSuiCoinTypeRegulatedStates({ id, label, open })}
+			{#snippet SectionSuiCoinTypeRegulatedStates({ id, label })}
 				<SuiRegulatedCoinState_TimestampsView
 					selection={selection.$$regulatedStates}
 					collapsible={false}

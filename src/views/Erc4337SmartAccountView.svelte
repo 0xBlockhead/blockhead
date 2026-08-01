@@ -165,7 +165,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionErc4337SmartAccountUserOperations({ id, label, open })}
+			{#snippet SectionErc4337SmartAccountUserOperations({ id, label })}
 				<EvmUserOperationsView
 					selection={selection.$$userOperations}
 					collapsible={false}
@@ -197,7 +197,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionErc4337SmartAccountTimestamps({ id, label, open })}
+			{#snippet SectionErc4337SmartAccountTimestamps({ id, label })}
 				<Erc4337SmartAccount_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

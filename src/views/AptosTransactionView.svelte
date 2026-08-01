@@ -185,7 +185,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAptosTxStateChanges({ id, label, open })}
+			{#snippet SectionAptosTxStateChanges({ id, label })}
 				<AptosStateChangesView
 					selection={selection.$$stateChanges}
 					collapsible={false}
@@ -195,7 +195,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAptosTxEvents({ id, label, open })}
+			{#snippet SectionAptosTxEvents({ id, label })}
 				<AptosEventsView
 					selection={selection.$$events}
 					collapsible={false}
@@ -227,7 +227,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAptosTxTimestamps({ id, label, open })}
+			{#snippet SectionAptosTxTimestamps({ id, label })}
 				<AptosTransaction_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

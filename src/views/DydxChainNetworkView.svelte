@@ -88,7 +88,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionDydxChainObservations({ id, label, open })}
+			{#snippet SectionDydxChainObservations({ id, label })}
 				<DydxChainNetwork_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}
@@ -128,7 +128,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionDydxMarkets({ id, label, open })}
+			{#snippet SectionDydxMarkets({ id, label })}
 				<DydxChainMarketsView
 					selection={selection.$$markets}
 					collapsible={false}
@@ -138,7 +138,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionDydxOrders({ id, label, open })}
+			{#snippet SectionDydxOrders({ id, label })}
 				<DydxChainOrdersView
 					selection={selection.$$orders}
 					collapsible={false}
@@ -148,7 +148,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionDydxPositions({ id, label, open })}
+			{#snippet SectionDydxPositions({ id, label })}
 				<DydxChainPerpetualPosition_TimestampsView
 					selection={selection.$$positions}
 					collapsible={false}
@@ -180,7 +180,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionDydxSubaccounts({ id, label, open })}
+			{#snippet SectionDydxSubaccounts({ id, label })}
 				<DydxChainSubaccountsView
 					selection={selection.$$subaccounts}
 					collapsible={false}

@@ -81,7 +81,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionActivitypubInstances({ id, label, open })}
+			{#snippet SectionActivitypubInstances({ id, label })}
 				<ActivityPubInstancesView
 					selection={selection.$$instances}
 					collapsible={false}
@@ -117,7 +117,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionActivitypubActors({ id, label, open })}
+			{#snippet SectionActivitypubActors({ id, label })}
 				<ActivityPubActorsView
 					selection={selection.$$observedActors}
 					href={resolve('/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actors')}
@@ -127,7 +127,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionActivitypubNotes({ id, label, open })}
+			{#snippet SectionActivitypubNotes({ id, label })}
 				<ActivityPubNotesView
 					selection={selection.$$observedNotes}
 					href={resolve('/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/notes')}
@@ -159,7 +159,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionActivitypubHubObservations({ id, label, open })}
+			{#snippet SectionActivitypubHubObservations({ id, label })}
 				<GlobalActivityPubNetwork_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

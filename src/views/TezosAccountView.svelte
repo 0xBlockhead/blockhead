@@ -107,7 +107,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTezosAccountOperations({ id, label, open })}
+			{#snippet SectionTezosAccountOperations({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosOperation}
 					collapsible={false}
@@ -126,7 +126,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionTezosAccountTokenTransfers({ id, label, open })}
+			{#snippet SectionTezosAccountTokenTransfers({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosTokenTransfer}
 					collapsible={false}
@@ -171,7 +171,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTezosAccountTokenBalanceTimestamps({ id, label, open })}
+			{#snippet SectionTezosAccountTokenBalanceTimestamps({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosTokenBalance_Timestamp}
 					collapsible={false}
@@ -190,7 +190,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionTezosAccountTimestamps({ id, label, open })}
+			{#snippet SectionTezosAccountTimestamps({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosAccount_Timestamp}
 					collapsible={false}

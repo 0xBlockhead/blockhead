@@ -182,7 +182,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionBnbBeaconTokenTransfers({ id, label, open })}
+			{#snippet SectionBnbBeaconTokenTransfers({ id, label })}
 				<BnbBeaconTokenTransfersView
 					selection={selection.$$transfers}
 					collapsible={false}
@@ -192,7 +192,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionBnbBeaconTokenMigrations({ id, label, open })}
+			{#snippet SectionBnbBeaconTokenMigrations({ id, label })}
 				<BnbBeaconTokenMigrationsView
 					selection={selection.$$migrations}
 					collapsible={false}
@@ -224,7 +224,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionBnbBeaconTokenTimestamps({ id, label, open })}
+			{#snippet SectionBnbBeaconTokenTimestamps({ id, label })}
 				<BnbBeaconToken_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

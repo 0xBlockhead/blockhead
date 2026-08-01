@@ -98,7 +98,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionStarknetContractAccountStates({ id, label, open })}
+			{#snippet SectionStarknetContractAccountStates({ id, label })}
 				<StarknetAccount_TimestampsView
 					selection={selection.$$accountStates}
 					collapsible={false}
@@ -108,7 +108,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionStarknetContractEvents({ id, label, open })}
+			{#snippet SectionStarknetContractEvents({ id, label })}
 				<StarknetEventsView
 					selection={selection.$$events}
 					collapsible={false}
@@ -144,7 +144,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionStarknetContractStorage({ id, label, open })}
+			{#snippet SectionStarknetContractStorage({ id, label })}
 				<StarknetStorageEntriesView
 					selection={selection.$$storage}
 					collapsible={false}
@@ -154,7 +154,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionStarknetContractTransactions({ id, label, open })}
+			{#snippet SectionStarknetContractTransactions({ id, label })}
 				<StarknetTransactionsView
 					selection={selection.$$transactions}
 					collapsible={false}

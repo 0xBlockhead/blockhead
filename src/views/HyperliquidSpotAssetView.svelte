@@ -200,7 +200,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionHyperliquidSpotAssetBasePairs({ id, label, open })}
+			{#snippet SectionHyperliquidSpotAssetBasePairs({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HyperliquidSpotPair}
 					collapsible={false}
@@ -219,7 +219,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionHyperliquidSpotAssetQuotePairs({ id, label, open })}
+			{#snippet SectionHyperliquidSpotAssetQuotePairs({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HyperliquidSpotPair}
 					collapsible={false}

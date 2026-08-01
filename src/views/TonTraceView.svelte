@@ -157,7 +157,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTonTraceTransactions({ id, label, open })}
+			{#snippet SectionTonTraceTransactions({ id, label })}
 				<TonTransactionsView
 					selection={selection.$$transactions}
 					collapsible={false}
@@ -167,7 +167,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionTonTraceMessages({ id, label, open })}
+			{#snippet SectionTonTraceMessages({ id, label })}
 				<TonMessagesView
 					selection={selection.$$messages}
 					collapsible={false}
@@ -199,7 +199,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTonTraceTimestamps({ id, label, open })}
+			{#snippet SectionTonTraceTimestamps({ id, label })}
 				<TonTrace_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

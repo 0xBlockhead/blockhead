@@ -176,7 +176,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTezosContractEntrypoints({ id, label, open })}
+			{#snippet SectionTezosContractEntrypoints({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosEntrypoint}
 					collapsible={false}
@@ -195,7 +195,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionTezosContractBigMaps({ id, label, open })}
+			{#snippet SectionTezosContractBigMaps({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosBigMap}
 					collapsible={false}
@@ -214,7 +214,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionTezosContractOperations({ id, label, open })}
+			{#snippet SectionTezosContractOperations({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosOperation}
 					collapsible={false}
@@ -255,7 +255,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTezosContractTimestamps({ id, label, open })}
+			{#snippet SectionTezosContractTimestamps({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TezosContract_Timestamp}
 					collapsible={false}

@@ -296,7 +296,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionZcashViewingKeys({ id, label, open })}
+			{#snippet SectionZcashViewingKeys({ id, label })}
 				<BlockheadZcashViewingKeysView
 					selection={selection.$$viewingKeys}
 					collapsible={false}
@@ -306,7 +306,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionZcashNotes({ id, label, open })}
+			{#snippet SectionZcashNotes({ id, label })}
 				<BlockheadZcashNoteStatesView
 					selection={selection.$$notes}
 					collapsible={false}
@@ -338,7 +338,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionZcashWalletTimestamps({ id, label, open })}
+			{#snippet SectionZcashWalletTimestamps({ id, label })}
 				<BlockheadZcashWalletState_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

@@ -137,7 +137,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionSuiTransactionCommands({ id, label, open })}
+			{#snippet SectionSuiTransactionCommands({ id, label })}
 				<SuiProgrammableTransactionCommandsView
 					selection={selection.$$commands}
 					collapsible={false}
@@ -147,7 +147,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionSuiTransactionObjectChanges({ id, label, open })}
+			{#snippet SectionSuiTransactionObjectChanges({ id, label })}
 				<SuiObjectChangesView
 					selection={selection.$$objectChanges}
 					collapsible={false}
@@ -183,7 +183,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionSuiTransactionBalanceChanges({ id, label, open })}
+			{#snippet SectionSuiTransactionBalanceChanges({ id, label })}
 				<SuiBalanceChangesView
 					selection={selection.$$balanceChanges}
 					collapsible={false}
@@ -193,7 +193,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionSuiTransactionEvents({ id, label, open })}
+			{#snippet SectionSuiTransactionEvents({ id, label })}
 				<SuiEventsView
 					selection={selection.$$events}
 					collapsible={false}
@@ -225,7 +225,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionSuiTransactionTimestamps({ id, label, open })}
+			{#snippet SectionSuiTransactionTimestamps({ id, label })}
 				<SuiTransaction_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

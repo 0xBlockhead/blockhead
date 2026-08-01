@@ -87,7 +87,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionKaspaAddressTransactions({ id, label, open })}
+			{#snippet SectionKaspaAddressTransactions({ id, label })}
 				<EntitiesList
 					entityType={EntityType.KaspaTransaction}
 					collapsible={false}
@@ -106,7 +106,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionKaspaAddressUtxos({ id, label, open })}
+			{#snippet SectionKaspaAddressUtxos({ id, label })}
 				<EntitiesList
 					entityType={EntityType.KaspaAddressUtxo_Timestamp}
 					collapsible={false}
@@ -147,7 +147,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionKaspaAddressTimestamps({ id, label, open })}
+			{#snippet SectionKaspaAddressTimestamps({ id, label })}
 				<EntitiesList
 					entityType={EntityType.KaspaAddress_Timestamp}
 					collapsible={false}

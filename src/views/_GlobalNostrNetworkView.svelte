@@ -189,7 +189,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionNostrProfiles({ id, label, open })}
+			{#snippet SectionNostrProfiles({ id, label })}
 				<NostrProfilesView
 					selection={selection.$$observedProfiles}
 					href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/profiles')}
@@ -200,7 +200,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionNostrRelays({ id, label, open })}
+			{#snippet SectionNostrRelays({ id, label })}
 				<NostrRelaysView
 					selection={selection.$$observedRelays}
 					href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/relays')}
@@ -237,7 +237,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionNostrNotes({ id, label, open })}
+			{#snippet SectionNostrNotes({ id, label })}
 				<NostrNotesView
 					selection={selection.$$observedNotes}
 					href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/notes')}
@@ -248,7 +248,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionNostrArticles({ id, label, open })}
+			{#snippet SectionNostrArticles({ id, label })}
 				<NostrArticlesView
 					selection={selection.$$observedArticles}
 					href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/articles')}
@@ -281,7 +281,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionNostrReposts({ id, label, open })}
+			{#snippet SectionNostrReposts({ id, label })}
 				<NostrRepostsView
 					selection={selection.$$observedReposts}
 					href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/reposts')}

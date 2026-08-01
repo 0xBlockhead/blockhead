@@ -175,7 +175,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionStellarAssetClaimableBalances({ id, label, open })}
+			{#snippet SectionStellarAssetClaimableBalances({ id, label })}
 				<EntitiesList
 					entityType={EntityType.StellarClaimableBalance}
 					collapsible={false}
@@ -194,7 +194,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionStellarAssetLiquidityPools({ id, label, open })}
+			{#snippet SectionStellarAssetLiquidityPools({ id, label })}
 				<EntitiesList
 					entityType={EntityType.StellarLiquidityPool}
 					collapsible={false}
@@ -213,7 +213,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionStellarAssetTrustlines({ id, label, open })}
+			{#snippet SectionStellarAssetTrustlines({ id, label })}
 				<EntitiesList
 					entityType={EntityType.StellarTrustline}
 					collapsible={false}
@@ -258,7 +258,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionStellarAssetOffers({ id, label, open })}
+			{#snippet SectionStellarAssetOffers({ id, label })}
 				<EntitiesList
 					entityType={EntityType.StellarOffer}
 					collapsible={false}
@@ -277,7 +277,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionStellarAssetTrades({ id, label, open })}
+			{#snippet SectionStellarAssetTrades({ id, label })}
 				<EntitiesList
 					entityType={EntityType.StellarTrade}
 					collapsible={false}

@@ -205,7 +205,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionYoutubeChannelVideos({ id, label, open })}
+			{#snippet SectionYoutubeChannelVideos({ id, label })}
 				<YoutubeVideosView
 					selection={selection.$$videos}
 					href={
@@ -223,7 +223,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionYoutubeChannelPlaylists({ id, label, open })}
+			{#snippet SectionYoutubeChannelPlaylists({ id, label })}
 				<YoutubePlaylistsView
 					selection={selection.$$playlists}
 					href={
@@ -263,7 +263,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionYoutubeChannelTimestamps({ id, label, open })}
+			{#snippet SectionYoutubeChannelTimestamps({ id, label })}
 				<YoutubeChannel_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

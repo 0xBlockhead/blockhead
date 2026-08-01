@@ -131,7 +131,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionZeroGstorageNodeStoredChunks({ id, label, open })}
+			{#snippet SectionZeroGstorageNodeStoredChunks({ id, label })}
 				<EntitiesList
 					entityType={EntityType.ZeroGDataChunk}
 					collapsible={false}
@@ -150,7 +150,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionZeroGstorageNodeProofs({ id, label, open })}
+			{#snippet SectionZeroGstorageNodeProofs({ id, label })}
 				<ZeroGStorageProofsView
 					selection={selection.$$proofs}
 					collapsible={false}
@@ -182,7 +182,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionZeroGstorageNodeTimestamps({ id, label, open })}
+			{#snippet SectionZeroGstorageNodeTimestamps({ id, label })}
 				<ZeroGStorageNode_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

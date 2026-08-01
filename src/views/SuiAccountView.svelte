@@ -90,7 +90,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionSuiAccountBalances({ id, label, open })}
+			{#snippet SectionSuiAccountBalances({ id, label })}
 				<SuiCoinBalance_TimestampsView
 					selection={selection.$$balances}
 					collapsible={false}
@@ -100,7 +100,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionSuiAccountObjects({ id, label, open })}
+			{#snippet SectionSuiAccountObjects({ id, label })}
 				<SuiObjectsView
 					selection={selection.$$objects}
 					collapsible={false}
@@ -132,7 +132,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionSuiAccountTransactions({ id, label, open })}
+			{#snippet SectionSuiAccountTransactions({ id, label })}
 				<SuiTransactionsView
 					selection={selection.$$transactions}
 					collapsible={false}

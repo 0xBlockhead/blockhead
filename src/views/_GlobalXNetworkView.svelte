@@ -64,7 +64,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionXUsers({ id, label, open })}
+			{#snippet SectionXUsers({ id, label })}
 				<XUsersView
 					selection={selection.$$observedUsers}
 					collapsible={false}
@@ -74,7 +74,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionXPosts({ id, label, open })}
+			{#snippet SectionXPosts({ id, label })}
 				<XPostsView
 					selection={selection.$$observedPosts}
 					collapsible={false}

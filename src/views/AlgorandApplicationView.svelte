@@ -131,7 +131,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAlgorandAppBoxes({ id, label, open })}
+			{#snippet SectionAlgorandAppBoxes({ id, label })}
 				<AlgorandBoxesView
 					selection={selection.$$boxes}
 					collapsible={false}
@@ -141,7 +141,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAlgorandAppLocalState({ id, label, open })}
+			{#snippet SectionAlgorandAppLocalState({ id, label })}
 				<EntitiesList
 					entityType={EntityType.AlgorandApplicationLocalState_Round}
 					collapsible={false}
@@ -182,7 +182,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAlgorandAppTimestamps({ id, label, open })}
+			{#snippet SectionAlgorandAppTimestamps({ id, label })}
 				<EntitiesList
 					entityType={EntityType.AlgorandApplication_Timestamp}
 					collapsible={false}

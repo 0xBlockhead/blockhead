@@ -89,7 +89,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionIcpSubnetCanisterRanges({ id, label, open })}
+			{#snippet SectionIcpSubnetCanisterRanges({ id, label })}
 				<IcpSubnetCanisterRange_TimestampsView
 					selection={selection.$$canisterRanges}
 					collapsible={false}
@@ -99,7 +99,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionIcpSubnetCanisters({ id, label, open })}
+			{#snippet SectionIcpSubnetCanisters({ id, label })}
 				<IcpCanistersView
 					selection={selection.$$canisters}
 					collapsible={false}
@@ -131,7 +131,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionIcpSubnetTimestamps({ id, label, open })}
+			{#snippet SectionIcpSubnetTimestamps({ id, label })}
 				<IcpSubnet_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

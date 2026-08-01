@@ -270,7 +270,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionA2aTaskEvents({ id, label, open })}
+			{#snippet SectionA2aTaskEvents({ id, label })}
 				<A2aTaskEventsView
 					selection={selection.$$events}
 					collapsible={false}
@@ -280,7 +280,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionA2aTaskMessages({ id, label, open })}
+			{#snippet SectionA2aTaskMessages({ id, label })}
 				<A2aMessagesView
 					selection={selection.$$messages}
 					collapsible={false}
@@ -290,7 +290,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionA2aTaskArtifacts({ id, label, open })}
+			{#snippet SectionA2aTaskArtifacts({ id, label })}
 				<A2aArtifactsView
 					selection={selection.$$artifacts}
 					collapsible={false}
@@ -326,7 +326,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionA2aTaskPush({ id, label, open })}
+			{#snippet SectionA2aTaskPush({ id, label })}
 				<A2aPushNotificationConfigsView
 					selection={selection.$$pushNotificationConfigs}
 					collapsible={false}
@@ -336,7 +336,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionA2aTaskObservations({ id, label, open })}
+			{#snippet SectionA2aTaskObservations({ id, label })}
 				<A2aTask_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

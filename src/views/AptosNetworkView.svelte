@@ -101,7 +101,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAptosChainObservations({ id, label, open })}
+			{#snippet SectionAptosChainObservations({ id, label })}
 				<AptosNetwork_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}
@@ -111,7 +111,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAptosChainBlocks({ id, label, open })}
+			{#snippet SectionAptosChainBlocks({ id, label })}
 				<AptosBlocksView
 					selection={selection.$$blocks}
 					collapsible={false}
@@ -121,7 +121,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAptosChainTransactions({ id, label, open })}
+			{#snippet SectionAptosChainTransactions({ id, label })}
 				<AptosTransactionsView
 					selection={selection.$$transactions}
 					collapsible={false}
@@ -131,7 +131,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAptosChainEvents({ id, label, open })}
+			{#snippet SectionAptosChainEvents({ id, label })}
 				<AptosEventsView
 					selection={selection.$$events}
 					collapsible={false}
@@ -163,7 +163,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAptosAccounts({ id, label, open })}
+			{#snippet SectionAptosAccounts({ id, label })}
 				<AptosAccountsView
 					selection={selection.$$accounts}
 					collapsible={false}
@@ -195,7 +195,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAptosCoinBalances({ id, label, open })}
+			{#snippet SectionAptosCoinBalances({ id, label })}
 				<AptosCoinBalance_TimestampsView
 					selection={selection.$$coinBalanceTimestamps}
 					collapsible={false}

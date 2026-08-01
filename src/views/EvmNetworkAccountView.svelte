@@ -137,7 +137,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEvmNetworkAccountTransactions({ id, label, open })}
+			{#snippet SectionEvmNetworkAccountTransactions({ id, label })}
 				<EvmTransactionsView
 					selection={selection.$$transactions}
 					collapsible={false}
@@ -147,7 +147,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionEvmNetworkAccountTokenTransfers({ id, label, open })}
+			{#snippet SectionEvmNetworkAccountTokenTransfers({ id, label })}
 				<EvmTokenTransfersView
 					selection={selection.$$tokenTransfers}
 					collapsible={false}
@@ -157,7 +157,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionEvmNetworkAccountInternalTransfers({ id, label, open })}
+			{#snippet SectionEvmNetworkAccountInternalTransfers({ id, label })}
 				<EvmInternalTransfersView
 					selection={selection.$$internalTransfers}
 					collapsible={false}
@@ -193,7 +193,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEvmNetworkAccountOwnedCoins({ id, label, open })}
+			{#snippet SectionEvmNetworkAccountOwnedCoins({ id, label })}
 				<EvmNetworkActorCoinBalancesView
 					selection={selection.$$ownedCoins}
 					collapsible={false}
@@ -203,7 +203,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionEvmNetworkAccountAllowances({ id, label, open })}
+			{#snippet SectionEvmNetworkAccountAllowances({ id, label })}
 				<EvmActorCoinAllowancesView
 					selection={selection.$$erc20TokenAllowances}
 					collapsible={false}
@@ -235,7 +235,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEvmNetworkAccountTimestamps({ id, label, open })}
+			{#snippet SectionEvmNetworkAccountTimestamps({ id, label })}
 				<EvmNetworkAccount_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

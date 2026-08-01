@@ -137,7 +137,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionStarknetChainObservations({ id, label, open })}
+			{#snippet SectionStarknetChainObservations({ id, label })}
 				<StarknetNetwork_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}
@@ -147,7 +147,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionStarknetChainBlocks({ id, label, open })}
+			{#snippet SectionStarknetChainBlocks({ id, label })}
 				<StarknetBlocksView
 					selection={selection.$$blocks}
 					collapsible={false}
@@ -157,7 +157,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionStarknetChainTransactions({ id, label, open })}
+			{#snippet SectionStarknetChainTransactions({ id, label })}
 				<StarknetTransactionsView
 					selection={selection.$$transactions}
 					collapsible={false}
@@ -193,7 +193,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionStarknetContracts({ id, label, open })}
+			{#snippet SectionStarknetContracts({ id, label })}
 				<StarknetContractsView
 					selection={selection.$$contracts}
 					collapsible={false}
@@ -203,7 +203,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionStarknetClasses({ id, label, open })}
+			{#snippet SectionStarknetClasses({ id, label })}
 				<StarknetClassesView
 					selection={selection.$$classes}
 					collapsible={false}

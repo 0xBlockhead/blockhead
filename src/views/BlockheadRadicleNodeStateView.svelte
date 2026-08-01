@@ -170,7 +170,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionRadiclePeers({ id, label, open })}
+			{#snippet SectionRadiclePeers({ id, label })}
 				<BlockheadRadiclePeersView
 					selection={selection.$$peers}
 					collapsible={false}
@@ -180,7 +180,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionRadicleSyncSessions({ id, label, open })}
+			{#snippet SectionRadicleSyncSessions({ id, label })}
 				<BlockheadRadicleSyncSessionsView
 					selection={selection.$$syncSessions}
 					collapsible={false}
@@ -216,7 +216,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionRadicleInventory({ id, label, open })}
+			{#snippet SectionRadicleInventory({ id, label })}
 				<BlockheadRadicleNodeInventory_TimestampsView
 					selection={selection.$$inventoryTimestamps}
 					collapsible={false}
@@ -226,7 +226,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionRadicleSeeds({ id, label, open })}
+			{#snippet SectionRadicleSeeds({ id, label })}
 				<BlockheadRadicleSeedObservation_TimestampsView
 					selection={selection.$$seedObservations}
 					collapsible={false}
@@ -258,7 +258,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionRadicleNodeTimestamps({ id, label, open })}
+			{#snippet SectionRadicleNodeTimestamps({ id, label })}
 				<BlockheadRadicleNodeState_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

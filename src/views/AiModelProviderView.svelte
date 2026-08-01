@@ -216,7 +216,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAiProviderCatalogEntries({ id, label, open })}
+			{#snippet SectionAiProviderCatalogEntries({ id, label })}
 				<AiProviderCatalogEntriesView
 					selection={selection.$$catalogEntries}
 					collapsible={false}
@@ -226,7 +226,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAiProviderModels({ id, label, open })}
+			{#snippet SectionAiProviderModels({ id, label })}
 				<AiModelsView
 					selection={selection.$$models}
 					collapsible={false}
@@ -258,7 +258,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAiProviderApiOperations({ id, label, open })}
+			{#snippet SectionAiProviderApiOperations({ id, label })}
 				<AiProviderApiOperationsView
 					selection={selection.$$apiOperations}
 					collapsible={false}

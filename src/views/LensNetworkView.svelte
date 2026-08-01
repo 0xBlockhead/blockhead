@@ -193,7 +193,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionLensNetworkAccounts({ id, label, open })}
+			{#snippet SectionLensNetworkAccounts({ id, label })}
 				<LensAccountsView
 					selection={selection.$$lensAccounts}
 					href={resolve('/(social)/(lens)/lens/(lensNetwork)/observations/accounts')}
@@ -226,7 +226,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionLensNetworkPostList({ id, label, open })}
+			{#snippet SectionLensNetworkPostList({ id, label })}
 				<LensPostsView
 					selection={selection.$$lensPosts}
 					href={resolve('/(social)/(lens)/lens/(lensNetwork)/observations/posts')}

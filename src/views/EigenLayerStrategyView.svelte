@@ -200,7 +200,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEigenlayerStrategyTimestamps({ id, label, open })}
+			{#snippet SectionEigenlayerStrategyTimestamps({ id, label })}
 				<EigenLayerStrategy_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}
@@ -236,7 +236,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEigenlayerStrategyDelegations({ id, label, open })}
+			{#snippet SectionEigenlayerStrategyDelegations({ id, label })}
 				<EigenLayerDelegation_TimestampsView
 					selection={selection.$$delegations}
 					collapsible={false}
@@ -246,7 +246,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionEigenlayerStrategyAllocations({ id, label, open })}
+			{#snippet SectionEigenlayerStrategyAllocations({ id, label })}
 				<EigenLayerAllocation_TimestampsView
 					selection={selection.$$allocations}
 					collapsible={false}

@@ -158,7 +158,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionCashuKeysetTimestamps({ id, label, open })}
+			{#snippet SectionCashuKeysetTimestamps({ id, label })}
 				<CashuKeyset_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

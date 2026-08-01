@@ -88,7 +88,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionIcpSubnetList({ id, label, open })}
+			{#snippet SectionIcpSubnetList({ id, label })}
 				<IcpSubnetsView
 					selection={selection.$$subnets}
 					collapsible={false}
@@ -124,7 +124,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionIcpCanisterList({ id, label, open })}
+			{#snippet SectionIcpCanisterList({ id, label })}
 				<IcpCanistersView
 					selection={selection.$$canisters}
 					collapsible={false}
@@ -134,7 +134,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionIcpLedgerCanisters({ id, label, open })}
+			{#snippet SectionIcpLedgerCanisters({ id, label })}
 				<IcpLedgerCanistersView
 					selection={selection.$$ledgerCanisters}
 					collapsible={false}
@@ -166,7 +166,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionIcpRequestStatuses({ id, label, open })}
+			{#snippet SectionIcpRequestStatuses({ id, label })}
 				<IcpRequestStatusesView
 					selection={selection.$$requestStatuses}
 					collapsible={false}
@@ -198,7 +198,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionIcpNetworkObservations({ id, label, open })}
+			{#snippet SectionIcpNetworkObservations({ id, label })}
 				<IcpNetwork_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

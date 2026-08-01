@@ -150,7 +150,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionHyperliquidAccountOrders({ id, label, open })}
+			{#snippet SectionHyperliquidAccountOrders({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HyperliquidOrder}
 					collapsible={false}
@@ -169,7 +169,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionHyperliquidAccountFills({ id, label, open })}
+			{#snippet SectionHyperliquidAccountFills({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HyperliquidFill}
 					collapsible={false}
@@ -188,7 +188,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionHyperliquidAccountVaultEquities({ id, label, open })}
+			{#snippet SectionHyperliquidAccountVaultEquities({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HyperliquidVaultEquity_Timestamp}
 					collapsible={false}
@@ -229,7 +229,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionHyperliquidAccountTimestamps({ id, label, open })}
+			{#snippet SectionHyperliquidAccountTimestamps({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HyperliquidAccount_Timestamp}
 					collapsible={false}

@@ -286,7 +286,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionBittorrentFiles({ id, label, open })}
+			{#snippet SectionBittorrentFiles({ id, label })}
 				<BitTorrentFilesView
 					selection={selection.$$files}
 					collapsible={false}
@@ -296,7 +296,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionBittorrentFileTree({ id, label, open })}
+			{#snippet SectionBittorrentFileTree({ id, label })}
 				<BitTorrentFileTreeEntriesView
 					selection={selection.$$fileTreeEntries}
 					collapsible={false}
@@ -306,7 +306,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionBittorrentPieces({ id, label, open })}
+			{#snippet SectionBittorrentPieces({ id, label })}
 				<BitTorrentPiecesView
 					selection={selection.$$pieces}
 					collapsible={false}
@@ -342,7 +342,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionBittorrentTrackers({ id, label, open })}
+			{#snippet SectionBittorrentTrackers({ id, label })}
 				<BitTorrentTrackersView
 					selection={selection.$$trackers}
 					collapsible={false}
@@ -352,7 +352,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionBittorrentMagnets({ id, label, open })}
+			{#snippet SectionBittorrentMagnets({ id, label })}
 				<MagnetLinksView
 					selection={selection.$$magnets}
 					collapsible={false}
@@ -388,7 +388,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionBittorrentSwarmObservations({ id, label, open })}
+			{#snippet SectionBittorrentSwarmObservations({ id, label })}
 				<BitTorrentSwarmObservation_TimestampsView
 					selection={selection.$$swarmTimestamps}
 					collapsible={false}
@@ -398,7 +398,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionBittorrentClientTransfers({ id, label, open })}
+			{#snippet SectionBittorrentClientTransfers({ id, label })}
 				<BlockheadBitTorrentTransfer_TimestampsView
 					selection={selection.$$clientTransfers}
 					collapsible={false}

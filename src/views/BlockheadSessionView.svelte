@@ -249,7 +249,7 @@
 				</article>
 			{/snippet}
 
-			{#snippet SectionBlockheadSessionIntents({ id, label, open })}
+			{#snippet SectionBlockheadSessionIntents({ id, label })}
 				<BlockheadIntentInvocationsView
 					selection={selection.$$intentInvocations}
 					collapsible={false}
@@ -281,7 +281,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionBlockheadSessionSimulationList({ id, label, open })}
+			{#snippet SectionBlockheadSessionSimulationList({ id, label })}
 				<BlockheadSessionSimulationsView
 					selection={selection.$$simulations}
 					collapsible={false}

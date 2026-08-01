@@ -103,7 +103,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionIcpLedgerCanisterBlocks({ id, label, open })}
+			{#snippet SectionIcpLedgerCanisterBlocks({ id, label })}
 				<IcpLedgerBlocksView
 					selection={selection.$$blocks}
 					collapsible={false}
@@ -113,7 +113,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionIcpLedgerCanisterTransactions({ id, label, open })}
+			{#snippet SectionIcpLedgerCanisterTransactions({ id, label })}
 				<IcpLedgerTransactionsView
 					selection={selection.$$transactions}
 					collapsible={false}
@@ -149,7 +149,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionIcpLedgerCanisterTimestamps({ id, label, open })}
+			{#snippet SectionIcpLedgerCanisterTimestamps({ id, label })}
 				<IcpLedgerCanister_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}
@@ -159,7 +159,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionIcpLedgerCanisterAccountTimestamps({ id, label, open })}
+			{#snippet SectionIcpLedgerCanisterAccountTimestamps({ id, label })}
 				<IcpLedgerAccount_TimestampsView
 					selection={selection.$$accountTimestamps}
 					collapsible={false}

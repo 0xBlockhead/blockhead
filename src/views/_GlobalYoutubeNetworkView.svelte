@@ -86,7 +86,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionYoutubeChannels({ id, label, open })}
+			{#snippet SectionYoutubeChannels({ id, label })}
 				<YoutubeChannelsView
 					selection={selection.$$observedChannels}
 					href={resolve('/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channels')}
@@ -96,7 +96,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionYoutubeVideos({ id, label, open })}
+			{#snippet SectionYoutubeVideos({ id, label })}
 				<YoutubeVideosView
 					selection={selection.$$observedVideos}
 					href={resolve('/(social)/(youtube)/youtube/(globalYoutubeNetwork)/videos')}
@@ -106,7 +106,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionYoutubePlaylists({ id, label, open })}
+			{#snippet SectionYoutubePlaylists({ id, label })}
 				<YoutubePlaylistsView
 					selection={selection.$$observedPlaylists}
 					href={resolve('/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlists')}

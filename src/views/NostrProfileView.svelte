@@ -150,7 +150,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionNostrProfileNotes({ id, label, open })}
+			{#snippet SectionNostrProfileNotes({ id, label })}
 				<NostrNotesView
 					selection={selection.$$notes}
 					collapsible={false}
@@ -160,7 +160,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionNostrProfileArticles({ id, label, open })}
+			{#snippet SectionNostrProfileArticles({ id, label })}
 				<NostrArticlesView
 					selection={selection.$$articles}
 					collapsible={false}
@@ -192,7 +192,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionNostrProfileReposts({ id, label, open })}
+			{#snippet SectionNostrProfileReposts({ id, label })}
 				<NostrRepostsView
 					selection={selection.$$reposts}
 					collapsible={false}

@@ -83,7 +83,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAlgorandAccountTimestamps({ id, label, open })}
+			{#snippet SectionAlgorandAccountTimestamps({ id, label })}
 				<EntitiesList
 					entityType={EntityType.AlgorandAccount_Timestamp}
 					collapsible={false}
@@ -128,7 +128,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAlgorandAccountAssetHoldings({ id, label, open })}
+			{#snippet SectionAlgorandAccountAssetHoldings({ id, label })}
 				<EntitiesList
 					entityType={EntityType.AlgorandAssetHolding_Round}
 					collapsible={false}
@@ -147,7 +147,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionAlgorandAccountAppLocalState({ id, label, open })}
+			{#snippet SectionAlgorandAccountAppLocalState({ id, label })}
 				<EntitiesList
 					entityType={EntityType.AlgorandApplicationLocalState_Round}
 					collapsible={false}

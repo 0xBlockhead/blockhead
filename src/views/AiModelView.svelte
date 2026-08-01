@@ -257,7 +257,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAiModelVersions({ id, label, open })}
+			{#snippet SectionAiModelVersions({ id, label })}
 				<AiModelVersionsView
 					selection={selection.$$versions}
 					collapsible={false}
@@ -267,7 +267,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAiModelDocuments({ id, label, open })}
+			{#snippet SectionAiModelDocuments({ id, label })}
 				<AiDocumentsView
 					selection={selection.$$documents}
 					collapsible={false}
@@ -299,7 +299,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAiModelTimestamps({ id, label, open })}
+			{#snippet SectionAiModelTimestamps({ id, label })}
 				<AiModel_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

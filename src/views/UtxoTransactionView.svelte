@@ -312,7 +312,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionUtxoTransactionInputs({ id, label, open })}
+			{#snippet SectionUtxoTransactionInputs({ id, label })}
 				<UtxoInputsView
 					selection={selection.$$inputs}
 					collapsible={false}
@@ -322,7 +322,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionUtxoTransactionOutputs({ id, label, open })}
+			{#snippet SectionUtxoTransactionOutputs({ id, label })}
 				<UtxoOutputsView
 					selection={selection.$$outputs}
 					collapsible={false}

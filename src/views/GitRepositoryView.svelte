@@ -164,7 +164,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionGitRepositoryRefs({ id, label, open })}
+			{#snippet SectionGitRepositoryRefs({ id, label })}
 				<GitRefsView
 					selection={selection.$$refs}
 					collapsible={false}
@@ -174,7 +174,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGitRepositoryObjectList({ id, label, open })}
+			{#snippet SectionGitRepositoryObjectList({ id, label })}
 				<GitObjectsView
 					selection={selection.$$objects}
 					collapsible={false}
@@ -210,7 +210,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionGitRepositoryRemoteList({ id, label, open })}
+			{#snippet SectionGitRepositoryRemoteList({ id, label })}
 				<GitRemotesView
 					selection={selection.$$remotes}
 					collapsible={false}
@@ -220,7 +220,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGitRepositoryFetches({ id, label, open })}
+			{#snippet SectionGitRepositoryFetches({ id, label })}
 				<GitFetchObservationsView
 					selection={selection.$$fetches}
 					collapsible={false}

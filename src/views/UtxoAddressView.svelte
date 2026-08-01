@@ -128,7 +128,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionUtxoAddressOutputs({ id, label, open })}
+			{#snippet SectionUtxoAddressOutputs({ id, label })}
 				<UtxoOutputsView
 					selection={selection.$$outputs}
 					collapsible={false}
@@ -138,7 +138,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionUtxoAddressTransactions({ id, label, open })}
+			{#snippet SectionUtxoAddressTransactions({ id, label })}
 				<UtxoTransactionsView
 					selection={selection.$$transactions}
 					collapsible={false}
@@ -170,7 +170,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionUtxoAddressTimestamps({ id, label, open })}
+			{#snippet SectionUtxoAddressTimestamps({ id, label })}
 				<UtxoAddress_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

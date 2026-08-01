@@ -168,7 +168,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionZerogLocalChunks({ id, label, open })}
+			{#snippet SectionZerogLocalChunks({ id, label })}
 				<BlockheadZeroGStoredChunksView
 					selection={selection.$$localChunks}
 					collapsible={false}
@@ -178,7 +178,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionZerogLocalProofs({ id, label, open })}
+			{#snippet SectionZerogLocalProofs({ id, label })}
 				<BlockheadZeroGStorageProofsView
 					selection={selection.$$localProofs}
 					collapsible={false}
@@ -210,7 +210,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionZerogStorageTimestamps({ id, label, open })}
+			{#snippet SectionZerogStorageTimestamps({ id, label })}
 				<BlockheadZeroGStorageNodeState_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

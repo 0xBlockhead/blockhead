@@ -251,7 +251,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEigenlayerOperators({ id, label, open })}
+			{#snippet SectionEigenlayerOperators({ id, label })}
 				<EigenLayerOperatorsView
 					selection={selection.$$operators}
 					collapsible={false}
@@ -261,7 +261,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionEigenlayerAvss({ id, label, open })}
+			{#snippet SectionEigenlayerAvss({ id, label })}
 				<EigenLayerAVSsView
 					selection={selection.$$avss}
 					collapsible={false}
@@ -271,7 +271,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionEigenlayerStrategies({ id, label, open })}
+			{#snippet SectionEigenlayerStrategies({ id, label })}
 				<EigenLayerStrategiesView
 					selection={selection.$$strategies}
 					collapsible={false}
@@ -307,7 +307,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEigenlayerRewards({ id, label, open })}
+			{#snippet SectionEigenlayerRewards({ id, label })}
 				<EigenLayerReward_TimestampsView
 					selection={selection.$$rewards}
 					collapsible={false}
@@ -317,7 +317,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionEigenlayerSlashing({ id, label, open })}
+			{#snippet SectionEigenlayerSlashing({ id, label })}
 				<EigenLayerSlashingEventsView
 					selection={selection.$$slashingEvents}
 					collapsible={false}

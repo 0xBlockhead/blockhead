@@ -188,7 +188,7 @@
 										</header>
 									{/snippet}
 
-									{#snippet SectionMarketPrices({ id, label, open })}
+									{#snippet SectionMarketPrices({ id, label })}
 										<MarketPricesView
 											selection={selection.$$marketPrices}
 											collapsible={false}
@@ -198,7 +198,7 @@
 										/>
 									{/snippet}
 
-									{#snippet SectionMarketOhlc({ id, label, open })}
+									{#snippet SectionMarketOhlc({ id, label })}
 										<Market_TimeInterval_TimestampsView
 											selection={selection.$$marketTimeIntervalTimestamps}
 											collapsible={false}
@@ -241,7 +241,7 @@
 										</header>
 									{/snippet}
 
-									{#snippet SectionMarketDerivativeTimestamps({ id, label, open })}
+									{#snippet SectionMarketDerivativeTimestamps({ id, label })}
 										<Market_Derivative_TimestampsView
 											selection={selection.$$derivativeTimestamps}
 											collapsible={false}

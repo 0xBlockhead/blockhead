@@ -136,7 +136,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionLightningObservations({ id, label, open })}
+			{#snippet SectionLightningObservations({ id, label })}
 				<LightningNetwork_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}
@@ -146,7 +146,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionLightningNodes({ id, label, open })}
+			{#snippet SectionLightningNodes({ id, label })}
 				<LightningNodesView
 					selection={selection.$$nodes}
 					collapsible={false}
@@ -156,7 +156,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionLightningChannels({ id, label, open })}
+			{#snippet SectionLightningChannels({ id, label })}
 				<LightningChannelsView
 					selection={selection.$$channels}
 					collapsible={false}
@@ -192,7 +192,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionLightningInvoices({ id, label, open })}
+			{#snippet SectionLightningInvoices({ id, label })}
 				<BlockheadLightningInvoicesView
 					selection={selection.$$invoices}
 					collapsible={false}
@@ -202,7 +202,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionLightningPaymentList({ id, label, open })}
+			{#snippet SectionLightningPaymentList({ id, label })}
 				<BlockheadLightningPaymentsView
 					selection={selection.$$payments}
 					collapsible={false}

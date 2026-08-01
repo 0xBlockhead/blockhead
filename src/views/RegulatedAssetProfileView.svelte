@@ -121,7 +121,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionRegulatedAssetClaimRequirements({ id, label, open })}
+			{#snippet SectionRegulatedAssetClaimRequirements({ id, label })}
 				<EntitiesList
 					entityType={EntityType.ClaimTopicRequirement}
 					collapsible={false}
@@ -140,7 +140,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionRegulatedAssetTrustedIssuers({ id, label, open })}
+			{#snippet SectionRegulatedAssetTrustedIssuers({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TrustedIssuer}
 					collapsible={false}
@@ -159,7 +159,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionRegulatedAssetComplianceModules({ id, label, open })}
+			{#snippet SectionRegulatedAssetComplianceModules({ id, label })}
 				<EntitiesList
 					entityType={EntityType.ComplianceModule}
 					collapsible={false}
@@ -204,7 +204,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionRegulatedAssetIssuerPowers({ id, label, open })}
+			{#snippet SectionRegulatedAssetIssuerPowers({ id, label })}
 				<EntitiesList
 					entityType={EntityType.IssuerPower}
 					collapsible={false}
@@ -223,7 +223,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionRegulatedAssetRestrictions({ id, label, open })}
+			{#snippet SectionRegulatedAssetRestrictions({ id, label })}
 				<EntitiesList
 					entityType={EntityType.TransferRestriction}
 					collapsible={false}
@@ -264,7 +264,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionRegulatedAssetTimestamps({ id, label, open })}
+			{#snippet SectionRegulatedAssetTimestamps({ id, label })}
 				<EntitiesList
 					entityType={EntityType.RegulatedAssetProfile_Timestamp}
 					collapsible={false}

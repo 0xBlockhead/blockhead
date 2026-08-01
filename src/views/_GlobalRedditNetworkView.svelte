@@ -79,7 +79,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionRedditSubreddits({ id, label, open })}
+			{#snippet SectionRedditSubreddits({ id, label })}
 				<RedditSubredditsView
 					selection={selection.$$observedSubreddits}
 					href={resolve('/(social)/(reddit)/reddit/(globalRedditNetwork)/subreddits')}
@@ -89,7 +89,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionRedditLinks({ id, label, open })}
+			{#snippet SectionRedditLinks({ id, label })}
 				<RedditLinksView
 					selection={selection.$$observedLinks}
 					href={resolve('/(social)/(reddit)/reddit/(globalRedditNetwork)/links')}

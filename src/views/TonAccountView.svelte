@@ -151,7 +151,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTonAccountTimestamps({ id, label, open })}
+			{#snippet SectionTonAccountTimestamps({ id, label })}
 				<TonAccount_TimestampsView
 					selection={
 						selection

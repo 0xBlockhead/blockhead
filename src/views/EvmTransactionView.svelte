@@ -635,7 +635,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEvmTxTokenTransfers({ id, label, open })}
+			{#snippet SectionEvmTxTokenTransfers({ id, label })}
 				<EvmTokenTransfersView
 					selection={selection.$$tokenTransfers}
 					collapsible={false}
@@ -645,7 +645,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionEvmTxInternalTransfers({ id, label, open })}
+			{#snippet SectionEvmTxInternalTransfers({ id, label })}
 				<EvmInternalTransfersView
 					selection={selection.$$internalTransfers}
 					collapsible={false}
@@ -681,7 +681,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEvmTxLogs({ id, label, open })}
+			{#snippet SectionEvmTxLogs({ id, label })}
 				<EvmLogsView
 					selection={selection.$$logs}
 					collapsible={false}
@@ -691,7 +691,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionEvmTxTraces({ id, label, open })}
+			{#snippet SectionEvmTxTraces({ id, label })}
 				<EvmTracesView
 					selection={selection.$$traces}
 					collapsible={false}
@@ -723,7 +723,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEvmTxUserOperations({ id, label, open })}
+			{#snippet SectionEvmTxUserOperations({ id, label })}
 				<EvmUserOperationsView
 					selection={selection.$$userOperations}
 					collapsible={false}
@@ -759,7 +759,7 @@
 						</header>
 					{/snippet}
 
-					{#snippet SectionEvmTxBlobs({ id, label, open })}
+					{#snippet SectionEvmTxBlobs({ id, label })}
 						<EvmBlobsView
 							selection={projection.$$blobs}
 							collapsible={false}
@@ -797,7 +797,7 @@
 						</header>
 					{/snippet}
 
-					{#snippet SectionEvmTxAuthorizations({ id, label, open })}
+					{#snippet SectionEvmTxAuthorizations({ id, label })}
 						<Eip7702AuthorizationsView
 							selection={projection.$$authorizations}
 							collapsible={false}

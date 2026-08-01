@@ -238,7 +238,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionCardanoTransactionOutputAssetsList({ id, label, open })}
+			{#snippet SectionCardanoTransactionOutputAssetsList({ id, label })}
 				<CardanoTxOutputAssetsView
 					selection={selection.$$assets}
 					collapsible={false}

@@ -240,7 +240,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionFarcasterUserCasts({ id, label, open })}
+			{#snippet SectionFarcasterUserCasts({ id, label })}
 				<FarcasterCastsView
 					selection={selection.$$casts}
 					href={
@@ -258,7 +258,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionFarcasterUserVerifiedAddresses({ id, label, open })}
+			{#snippet SectionFarcasterUserVerifiedAddresses({ id, label })}
 				<FarcasterVerifiedAddressesView
 					selection={selection.$$verifiedAddresses}
 					collapsible={false}
@@ -290,7 +290,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionFarcasterUserTimestamps({ id, label, open })}
+			{#snippet SectionFarcasterUserTimestamps({ id, label })}
 				<FarcasterUser_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

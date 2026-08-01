@@ -70,7 +70,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEvmAbiSelectors({ id, label, open })}
+			{#snippet SectionEvmAbiSelectors({ id, label })}
 				<EvmSelectorsView
 					selection={selection.$$observedSelectors}
 					collapsible={false}
@@ -80,7 +80,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionEvmAbiTopics({ id, label, open })}
+			{#snippet SectionEvmAbiTopics({ id, label })}
 				<EvmTopicsView
 					selection={selection.$$observedTopics}
 					collapsible={false}
@@ -90,7 +90,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionEvmAbiErrors({ id, label, open })}
+			{#snippet SectionEvmAbiErrors({ id, label })}
 				<EvmErrorsView
 					selection={selection.$$observedErrors}
 					collapsible={false}
@@ -122,7 +122,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEvmAbiTimestamps({ id, label, open })}
+			{#snippet SectionEvmAbiTimestamps({ id, label })}
 				<GlobalEvmAbiCatalog_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

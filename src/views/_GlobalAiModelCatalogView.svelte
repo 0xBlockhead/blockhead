@@ -125,7 +125,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAiProviders({ id, label, open })}
+			{#snippet SectionAiProviders({ id, label })}
 				<AiModelProvidersView
 					selection={selection.$$providers}
 					collapsible={false}
@@ -135,7 +135,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAiCatalogEntries({ id, label, open })}
+			{#snippet SectionAiCatalogEntries({ id, label })}
 				<AiProviderCatalogEntriesView
 					selection={selection.$$catalogEntries}
 					collapsible={false}
@@ -145,7 +145,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAiModels({ id, label, open })}
+			{#snippet SectionAiModels({ id, label })}
 				<AiModelsView
 					selection={selection.$$models}
 					collapsible={false}
@@ -185,7 +185,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAiDatasets({ id, label, open })}
+			{#snippet SectionAiDatasets({ id, label })}
 				<AiDatasetsView
 					selection={selection.$$datasets}
 					collapsible={false}
@@ -195,7 +195,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAiBenchmarks({ id, label, open })}
+			{#snippet SectionAiBenchmarks({ id, label })}
 				<AiBenchmarksView
 					selection={selection.$$benchmarks}
 					collapsible={false}
@@ -205,7 +205,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAiEvaluations({ id, label, open })}
+			{#snippet SectionAiEvaluations({ id, label })}
 				<AiEvaluation_TimestampsView
 					selection={selection.$$evaluations}
 					collapsible={false}
@@ -237,7 +237,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAiCatalogTimestamps({ id, label, open })}
+			{#snippet SectionAiCatalogTimestamps({ id, label })}
 				<GlobalAiModelCatalog_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

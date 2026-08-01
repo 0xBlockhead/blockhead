@@ -210,7 +210,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionKaspaTxInputs({ id, label, open })}
+			{#snippet SectionKaspaTxInputs({ id, label })}
 				<UtxoInputsView
 					selection={selection.$$inputs}
 					collapsible={false}
@@ -220,7 +220,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionKaspaTxOutputs({ id, label, open })}
+			{#snippet SectionKaspaTxOutputs({ id, label })}
 				<UtxoOutputsView
 					selection={selection.$$outputs}
 					collapsible={false}
@@ -252,7 +252,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionKaspaTxAcceptances({ id, label, open })}
+			{#snippet SectionKaspaTxAcceptances({ id, label })}
 				<EntitiesList
 					entityType={EntityType.KaspaAcceptedTransaction}
 					collapsible={false}

@@ -218,7 +218,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionActorEns({ id, label, open })}
+			{#snippet SectionActorEns({ id, label })}
 				<EnsNamesView
 					selection={selection.$$ensNamesOwned}
 					collapsible={false}

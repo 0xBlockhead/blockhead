@@ -102,7 +102,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAptosAccountObservations({ id, label, open })}
+			{#snippet SectionAptosAccountObservations({ id, label })}
 				<AptosAccount_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}
@@ -112,7 +112,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAptosAccountTransactions({ id, label, open })}
+			{#snippet SectionAptosAccountTransactions({ id, label })}
 				<AptosTransactionsView
 					selection={selection.$$transactions}
 					collapsible={false}
@@ -148,7 +148,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAptosAccountBalances({ id, label, open })}
+			{#snippet SectionAptosAccountBalances({ id, label })}
 				<AptosCoinBalance_TimestampsView
 					selection={selection.$$balances}
 					collapsible={false}
@@ -158,7 +158,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionAptosAccountResourceList({ id, label, open })}
+			{#snippet SectionAptosAccountResourceList({ id, label })}
 				<AptosAccountResourcesView
 					selection={selection.$$resources}
 					collapsible={false}

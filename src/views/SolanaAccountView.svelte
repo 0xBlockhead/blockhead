@@ -117,7 +117,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionSolanaAccountTimestamps({ id, label, open })}
+			{#snippet SectionSolanaAccountTimestamps({ id, label })}
 				<SolanaAccount_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

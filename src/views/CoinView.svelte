@@ -208,7 +208,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionCoinInstances({ id, label, open })}
+			{#snippet SectionCoinInstances({ id, label })}
 				<EvmCoinInstancesView
 					selection={selection.$$coinInstances}
 					collapsible={false}
@@ -217,7 +217,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionCoinBridgeCapabilities({ id, label, open })}
+			{#snippet SectionCoinBridgeCapabilities({ id, label })}
 				<CoinBridgeCapabilitiesView
 					selection={selection.$$bridgeCapabilities}
 					collapsible={false}
@@ -255,7 +255,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionCatalogUsdMarket({ id, label, open })}
+			{#snippet SectionCatalogUsdMarket({ id, label })}
 				<MarketsView
 					selection={
 						selection
@@ -272,7 +272,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionMarketsWithCoinAsBase({ id, label, open })}
+			{#snippet SectionMarketsWithCoinAsBase({ id, label })}
 				<MarketsView
 					selection={
 						selection
@@ -286,7 +286,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionMarketsWithCoinAsQuote({ id, label, open })}
+			{#snippet SectionMarketsWithCoinAsQuote({ id, label })}
 				<MarketsView
 					selection={
 						selection

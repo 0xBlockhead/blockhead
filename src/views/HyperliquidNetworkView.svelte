@@ -98,7 +98,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionHyperliquidChainObservations({ id, label, open })}
+			{#snippet SectionHyperliquidChainObservations({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HyperliquidNetwork_Timestamp}
 					collapsible={false}
@@ -117,7 +117,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionHyperliquidChainBlocks({ id, label, open })}
+			{#snippet SectionHyperliquidChainBlocks({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HyperliquidBlock}
 					collapsible={false}
@@ -136,7 +136,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionHyperliquidChainTransactions({ id, label, open })}
+			{#snippet SectionHyperliquidChainTransactions({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HyperliquidTransaction}
 					collapsible={false}
@@ -177,7 +177,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionHyperliquidValidatorList({ id, label, open })}
+			{#snippet SectionHyperliquidValidatorList({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HyperliquidValidator}
 					collapsible={false}
@@ -230,7 +230,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionHyperliquidSpotAssets({ id, label, open })}
+			{#snippet SectionHyperliquidSpotAssets({ id, label })}
 				<HyperliquidSpotAssetsView
 					selection={selection.$$spotAssets}
 					collapsible={false}
@@ -240,7 +240,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionHyperliquidSpotPairs({ id, label, open })}
+			{#snippet SectionHyperliquidSpotPairs({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HyperliquidSpotPair}
 					collapsible={false}
@@ -259,7 +259,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionHyperliquidPerpMarkets({ id, label, open })}
+			{#snippet SectionHyperliquidPerpMarkets({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HyperliquidPerpMarket}
 					collapsible={false}
@@ -278,7 +278,7 @@
 				</EntitiesList>
 			{/snippet}
 
-			{#snippet SectionHyperliquidVaults({ id, label, open })}
+			{#snippet SectionHyperliquidVaults({ id, label })}
 				<EntitiesList
 					entityType={EntityType.HyperliquidVault}
 					collapsible={false}

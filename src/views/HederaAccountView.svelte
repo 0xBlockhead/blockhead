@@ -121,7 +121,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionHederaAccountAllowances({ id, label, open })}
+			{#snippet SectionHederaAccountAllowances({ id, label })}
 				<HederaAllowancesView
 					selection={selection.$$allowances}
 					collapsible={false}
@@ -131,7 +131,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionHederaAccountTokens({ id, label, open })}
+			{#snippet SectionHederaAccountTokens({ id, label })}
 				<HederaTokenAssociationsView
 					selection={selection.$$tokens}
 					collapsible={false}
@@ -167,7 +167,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionHederaAccountNfts({ id, label, open })}
+			{#snippet SectionHederaAccountNfts({ id, label })}
 				<HederaNftsView
 					selection={selection.$$nfts}
 					collapsible={false}
@@ -177,7 +177,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionHederaAccountTransactions({ id, label, open })}
+			{#snippet SectionHederaAccountTransactions({ id, label })}
 				<HederaTransactionsView
 					selection={selection.$$transactions}
 					collapsible={false}
@@ -209,7 +209,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionHederaAccountTimestamps({ id, label, open })}
+			{#snippet SectionHederaAccountTimestamps({ id, label })}
 				<HederaAccount_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

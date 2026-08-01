@@ -258,7 +258,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEnsNameSubdomains({ id, label, open })}
+			{#snippet SectionEnsNameSubdomains({ id, label })}
 				<EnsNamesView
 					selection={selection.$$subdomains}
 					collapsible={false}
@@ -268,7 +268,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionEnsNameRecordList({ id, label, open })}
+			{#snippet SectionEnsNameRecordList({ id, label })}
 				<EnsRecordsView
 					selection={selection.$$records}
 					href={
@@ -308,7 +308,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEnsNameTimestamps({ id, label, open })}
+			{#snippet SectionEnsNameTimestamps({ id, label })}
 				<EnsName_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

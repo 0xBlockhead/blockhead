@@ -176,7 +176,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionCardanoAddressObservations({ id, label, open })}
+			{#snippet SectionCardanoAddressObservations({ id, label })}
 				<CardanoAddress_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}
@@ -186,7 +186,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionCardanoAddressTransactions({ id, label, open })}
+			{#snippet SectionCardanoAddressTransactions({ id, label })}
 				<CardanoTransactionsView
 					selection={selection.$$transactions}
 					collapsible={false}
@@ -196,7 +196,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionCardanoAddressUtxos({ id, label, open })}
+			{#snippet SectionCardanoAddressUtxos({ id, label })}
 				<CardanoTxOutputsView
 					selection={selection.$$utxos}
 					collapsible={false}
@@ -206,7 +206,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionCardanoAddressAssets({ id, label, open })}
+			{#snippet SectionCardanoAddressAssets({ id, label })}
 				<CardanoNativeAssetsView
 					selection={selection.$$assets}
 					collapsible={false}

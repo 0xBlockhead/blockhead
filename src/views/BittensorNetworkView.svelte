@@ -94,7 +94,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionBittensorChainObservations({ id, label, open })}
+			{#snippet SectionBittensorChainObservations({ id, label })}
 				<BittensorNetwork_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}
@@ -103,7 +103,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionBittensorChainBlocks({ id, label, open })}
+			{#snippet SectionBittensorChainBlocks({ id, label })}
 				<BittensorBlocksView
 					selection={selection.$$blocks}
 					collapsible={false}
@@ -134,7 +134,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionBittensorSubnetList({ id, label, open })}
+			{#snippet SectionBittensorSubnetList({ id, label })}
 				<BittensorSubnetsView
 					selection={selection.$$subnets}
 					collapsible={false}

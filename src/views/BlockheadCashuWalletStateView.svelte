@@ -156,7 +156,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionCashuProofs({ id, label, open })}
+			{#snippet SectionCashuProofs({ id, label })}
 				<BlockheadCashuProofsView
 					selection={selection.$$proofs}
 					collapsible={false}
@@ -166,7 +166,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionCashuTokens({ id, label, open })}
+			{#snippet SectionCashuTokens({ id, label })}
 				<BlockheadCashuTokensView
 					selection={selection.$$tokens}
 					collapsible={false}
@@ -202,7 +202,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionCashuMintQuotes({ id, label, open })}
+			{#snippet SectionCashuMintQuotes({ id, label })}
 				<BlockheadCashuMintQuotesView
 					selection={selection.$$mintQuotes}
 					collapsible={false}
@@ -212,7 +212,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionCashuMeltQuotes({ id, label, open })}
+			{#snippet SectionCashuMeltQuotes({ id, label })}
 				<BlockheadCashuMeltQuotesView
 					selection={selection.$$meltQuotes}
 					collapsible={false}
@@ -244,7 +244,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionCashuWalletTimestamps({ id, label, open })}
+			{#snippet SectionCashuWalletTimestamps({ id, label })}
 				<BlockheadCashuWalletState_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

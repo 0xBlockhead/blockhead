@@ -278,7 +278,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEigenlayerOperatorDelegations({ id, label, open })}
+			{#snippet SectionEigenlayerOperatorDelegations({ id, label })}
 				<EigenLayerDelegation_TimestampsView
 					selection={selection.$$delegations}
 					collapsible={false}
@@ -288,7 +288,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionEigenlayerOperatorAllocations({ id, label, open })}
+			{#snippet SectionEigenlayerOperatorAllocations({ id, label })}
 				<EigenLayerAllocation_TimestampsView
 					selection={selection.$$allocations}
 					collapsible={false}
@@ -324,7 +324,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionEigenlayerOperatorRewards({ id, label, open })}
+			{#snippet SectionEigenlayerOperatorRewards({ id, label })}
 				<EigenLayerReward_TimestampsView
 					selection={selection.$$rewards}
 					collapsible={false}
@@ -334,7 +334,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionEigenlayerOperatorSlashing({ id, label, open })}
+			{#snippet SectionEigenlayerOperatorSlashing({ id, label })}
 				<EigenLayerSlashingEventsView
 					selection={selection.$$slashingEvents}
 					collapsible={false}

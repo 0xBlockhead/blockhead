@@ -202,7 +202,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionAccounts({ id, label, open })}
+			{#snippet SectionAccounts({ id, label })}
 				<AtprotoActorsView
 					selection={selection.$$observedActors}
 					href={resolve('/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actors')}
@@ -212,7 +212,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionRecentPosts({ id, label, open })}
+			{#snippet SectionRecentPosts({ id, label })}
 				<AtprotoPostsView
 					selection={selection.$$observedPosts}
 					href={resolve('/(social)/(atproto)/atproto/(globalAtprotoNetwork)/posts')}

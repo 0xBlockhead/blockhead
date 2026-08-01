@@ -153,7 +153,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionBnbBeaconChainObservations({ id, label, open })}
+			{#snippet SectionBnbBeaconChainObservations({ id, label })}
 				<BnbBeaconNetwork_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}
@@ -163,7 +163,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionBnbBeaconChainBlocks({ id, label, open })}
+			{#snippet SectionBnbBeaconChainBlocks({ id, label })}
 				<BnbBeaconBlocksView
 					selection={selection.$$blocks}
 					collapsible={false}
@@ -173,7 +173,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionBnbBeaconChainTransactions({ id, label, open })}
+			{#snippet SectionBnbBeaconChainTransactions({ id, label })}
 				<BnbBeaconTransactionsView
 					selection={selection.$$transactions}
 					collapsible={false}
@@ -205,7 +205,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionBnbBeaconValidatorList({ id, label, open })}
+			{#snippet SectionBnbBeaconValidatorList({ id, label })}
 				<BnbValidatorsView
 					selection={selection.$$validators}
 					collapsible={false}
@@ -241,7 +241,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionBnbBeaconTokens({ id, label, open })}
+			{#snippet SectionBnbBeaconTokens({ id, label })}
 				<BnbBeaconTokensView
 					selection={selection.$$tokens}
 					collapsible={false}
@@ -251,7 +251,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionBnbBeaconMigrations({ id, label, open })}
+			{#snippet SectionBnbBeaconMigrations({ id, label })}
 				<BnbBeaconTokenMigrationsView
 					selection={selection.$$migrationRecords}
 					collapsible={false}

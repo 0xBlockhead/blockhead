@@ -123,7 +123,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionGlobalNetworksAll({ id, label, open })}
+			{#snippet SectionGlobalNetworksAll({ id, label })}
 				<NetworksView
 					selection={selection.$$networks}
 					href={
@@ -139,7 +139,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalNetworkStacks({ id, label, open })}
+			{#snippet SectionGlobalNetworkStacks({ id, label })}
 				<NetworkStacksView
 					selection={selection.$$networkStacks}
 					href={
@@ -155,7 +155,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalEvmNetworks({ id, label, open })}
+			{#snippet SectionGlobalEvmNetworks({ id, label })}
 				<NetworksView
 					selection={selection.$$evmNetworks}
 					collapsible={false}
@@ -165,7 +165,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalNetworkUpgrades({ id, label, open })}
+			{#snippet SectionGlobalNetworkUpgrades({ id, label })}
 				<EthereumNetworkUpgradesView
 					selection={selection.$$networkUpgrades}
 					href={
@@ -223,7 +223,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionGlobalCoins({ id, label, open })}
+			{#snippet SectionGlobalCoins({ id, label })}
 				<CoinsView
 					selection={selection.$$coins}
 					href={
@@ -239,7 +239,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalMarkets({ id, label, open })}
+			{#snippet SectionGlobalMarkets({ id, label })}
 				<MarketsView
 					selection={selection.$$markets}
 					href={
@@ -255,7 +255,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalMarketVenues({ id, label, open })}
+			{#snippet SectionGlobalMarketVenues({ id, label })}
 				<MarketVenuesView
 					selection={selection.$$marketVenues}
 					href={
@@ -271,7 +271,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalCurrencies({ id, label, open })}
+			{#snippet SectionGlobalCurrencies({ id, label })}
 				<CurrenciesView
 					selection={selection.$$currencies}
 					href={
@@ -287,7 +287,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalLiquidityPools({ id, label, open })}
+			{#snippet SectionGlobalLiquidityPools({ id, label })}
 				<LiquidityPoolsView
 					selection={selection.$$liquidityPools}
 					href={
@@ -303,7 +303,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalActorCoins({ id, label, open })}
+			{#snippet SectionGlobalActorCoins({ id, label })}
 				<EvmNetworkActorCoinBalancesView
 					selection={selection.$$actorCoins}
 					collapsible={false}
@@ -339,7 +339,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionGlobalMarketPrices({ id, label, open })}
+			{#snippet SectionGlobalMarketPrices({ id, label })}
 				<MarketPricesView
 					selection={selection.$$marketPrices}
 					href={
@@ -355,7 +355,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalMarketOhlc({ id, label, open })}
+			{#snippet SectionGlobalMarketOhlc({ id, label })}
 				<Market_TimeInterval_TimestampsView
 					selection={selection.$$marketTimeIntervalTimestamps}
 					href={
@@ -401,7 +401,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionGlobalProposalsList({ id, label, open })}
+			{#snippet SectionGlobalProposalsList({ id, label })}
 				<SpecificationProposalsView
 					selection={selection.$$proposals}
 					collapsible={false}
@@ -411,7 +411,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalSpecificationRealms({ id, label, open })}
+			{#snippet SectionGlobalSpecificationRealms({ id, label })}
 				<SpecificationRealmsView
 					selection={selection.$$specificationRealms}
 					href={
@@ -427,7 +427,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalProposalKinds({ id, label, open })}
+			{#snippet SectionGlobalProposalKinds({ id, label })}
 				<SpecificationProposalKindsView
 					selection={selection.$$proposalKinds}
 					collapsible={false}
@@ -475,7 +475,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionGlobalActors({ id, label, open })}
+			{#snippet SectionGlobalActors({ id, label })}
 				<EvmAccountsView
 					selection={selection.$$actors}
 					href={
@@ -491,7 +491,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalXmtp({ id, label, open })}
+			{#snippet SectionGlobalXmtp({ id, label })}
 				<XmtpConversationsView
 					selection={selection.$$xmtpConversations}
 					collapsible={false}
@@ -501,7 +501,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalRooms({ id, label, open })}
+			{#snippet SectionGlobalRooms({ id, label })}
 				<BlockheadRoomsView
 					selection={selection.$$blockheadRooms}
 					href={
@@ -517,7 +517,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalRoomPeers({ id, label, open })}
+			{#snippet SectionGlobalRoomPeers({ id, label })}
 				<BlockheadRoomPeersView
 					selection={selection.$$blockheadRoomPeers}
 					href={
@@ -533,7 +533,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalStateChannels({ id, label, open })}
+			{#snippet SectionGlobalStateChannels({ id, label })}
 				<BlockheadStateChannelsView
 					selection={selection.$$blockheadStateChannels}
 					href={
@@ -595,7 +595,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionGlobalWalletsList({ id, label, open })}
+			{#snippet SectionGlobalWalletsList({ id, label })}
 				<BlockheadWalletsView
 					selection={selection.$$blockheadWallets}
 					collapsible={false}
@@ -605,7 +605,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalWalletConnections({ id, label, open })}
+			{#snippet SectionGlobalWalletConnections({ id, label })}
 				<BlockheadWalletConnectionsView
 					selection={selection.$$blockheadWalletConnections}
 					href={
@@ -621,7 +621,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalAccounts({ id, label, open })}
+			{#snippet SectionGlobalAccounts({ id, label })}
 				<BlockheadAccountsView
 					selection={selection.$$blockheadAccounts}
 					href={
@@ -636,7 +636,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalWalletTransport({ id, label, open })}
+			{#snippet SectionGlobalWalletTransport({ id, label })}
 				<BlockheadWalletTransportSessionsView
 					selection={selection.$$blockheadWalletTransportSessions}
 					collapsible={false}
@@ -646,7 +646,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalWalletRequests({ id, label, open })}
+			{#snippet SectionGlobalWalletRequests({ id, label })}
 				<BlockheadWalletRequestsView
 					selection={selection.$$blockheadWalletRequests}
 					collapsible={false}
@@ -656,7 +656,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalWalletGrants({ id, label, open })}
+			{#snippet SectionGlobalWalletGrants({ id, label })}
 				<BlockheadWalletCapabilityGrantsView
 					selection={selection.$$blockheadWalletCapabilityGrants}
 					collapsible={false}
@@ -666,7 +666,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalWalletAuth({ id, label, open })}
+			{#snippet SectionGlobalWalletAuth({ id, label })}
 				<BlockheadWalletAuthenticationsView
 					selection={selection.$$blockheadWalletAuthentications}
 					collapsible={false}
@@ -730,7 +730,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionGlobalSources({ id, label, open })}
+			{#snippet SectionGlobalSources({ id, label })}
 				<BlockheadSourcesView
 					selection={selection.$$blockheadSources}
 					href={
@@ -746,7 +746,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalSessions({ id, label, open })}
+			{#snippet SectionGlobalSessions({ id, label })}
 				<BlockheadSessionsView
 					selection={selection.$$blockheadSessions}
 					href={
@@ -762,7 +762,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalWorkspaces({ id, label, open })}
+			{#snippet SectionGlobalWorkspaces({ id, label })}
 				<BlockheadWorkspacesView
 					selection={selection.$$blockheadWorkspaces}
 					collapsible={false}
@@ -772,7 +772,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalPanelTrees({ id, label, open })}
+			{#snippet SectionGlobalPanelTrees({ id, label })}
 				<BlockheadPanelTreesView
 					selection={selection.$$blockheadPanelTrees}
 					href={
@@ -788,7 +788,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalMediaIngests({ id, label, open })}
+			{#snippet SectionGlobalMediaIngests({ id, label })}
 				<BlockheadLocalMediaIngestsView
 					selection={selection.$$blockheadLocalMediaIngests}
 					collapsible={false}
@@ -798,7 +798,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalSharedAddresses({ id, label, open })}
+			{#snippet SectionGlobalSharedAddresses({ id, label })}
 				<BlockheadSharedAddressesView
 					selection={selection.$$blockheadSharedAddresses}
 					collapsible={false}
@@ -808,7 +808,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalFarcasterConnections({ id, label, open })}
+			{#snippet SectionGlobalFarcasterConnections({ id, label })}
 				<BlockheadFarcasterAccountConnectionsView
 					selection={selection.$$blockheadFarcasterAccountConnections}
 					href={
@@ -824,7 +824,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalAgentConversations({ id, label, open })}
+			{#snippet SectionGlobalAgentConversations({ id, label })}
 				<BlockheadAgentConversationsView
 					selection={selection.$$blockheadAgentConversations}
 					href={
@@ -846,7 +846,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalAlgorandKeys({ id, label, open })}
+			{#snippet SectionGlobalAlgorandKeys({ id, label })}
 				<BlockheadAlgorandParticipationKeysView
 					selection={selection.$$blockheadAlgorandParticipationKeys}
 					collapsible={false}
@@ -890,7 +890,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionGlobalAiModelCatalogs({ id, label, open })}
+			{#snippet SectionGlobalAiModelCatalogs({ id, label })}
 				<GlobalAiModelCatalogsView
 					selection={selection.$$aiModelCatalogs}
 					collapsible={false}
@@ -900,7 +900,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalAiArtifactCatalogs({ id, label, open })}
+			{#snippet SectionGlobalAiArtifactCatalogs({ id, label })}
 				<GlobalAiArtifactCatalogsView
 					selection={selection.$$aiArtifactCatalogs}
 					collapsible={false}
@@ -910,7 +910,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalAgentNetworks({ id, label, open })}
+			{#snippet SectionGlobalAgentNetworks({ id, label })}
 				<GlobalAgentNetworksView
 					selection={selection.$$agentNetworks}
 					collapsible={false}
@@ -920,7 +920,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalEvmAbiCatalogs({ id, label, open })}
+			{#snippet SectionGlobalEvmAbiCatalogs({ id, label })}
 				<GlobalEvmAbiCatalogsView
 					selection={selection.$$evmAbiCatalogs}
 					collapsible={false}
@@ -960,7 +960,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionGlobalBridgeTransactions({ id, label, open })}
+			{#snippet SectionGlobalBridgeTransactions({ id, label })}
 				<BlockheadBridgeTransactionsView
 					selection={selection.$$bridgeTransactions}
 					collapsible={false}
@@ -970,7 +970,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalBridgeTransfers({ id, label, open })}
+			{#snippet SectionGlobalBridgeTransfers({ id, label })}
 				<BridgeTransfersView
 					selection={selection.$$bridgeTransfers}
 					collapsible={false}
@@ -980,7 +980,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalEip8004({ id, label, open })}
+			{#snippet SectionGlobalEip8004({ id, label })}
 				<EvmNftsView
 					selection={selection.$$eip8004Services}
 					href={
@@ -1026,7 +1026,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionGlobalZerogNodes({ id, label, open })}
+			{#snippet SectionGlobalZerogNodes({ id, label })}
 				<BlockheadZeroGStorageNodeStatesView
 					selection={selection.$$blockheadZeroGStorageNodeStates}
 					collapsible={false}
@@ -1036,7 +1036,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalZerogChunks({ id, label, open })}
+			{#snippet SectionGlobalZerogChunks({ id, label })}
 				<BlockheadZeroGStoredChunksView
 					selection={selection.$$blockheadZeroGStoredChunks}
 					collapsible={false}
@@ -1046,7 +1046,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionGlobalZerogProofs({ id, label, open })}
+			{#snippet SectionGlobalZerogProofs({ id, label })}
 				<BlockheadZeroGStorageProofsView
 					selection={selection.$$blockheadZeroGStorageProofs}
 					collapsible={false}

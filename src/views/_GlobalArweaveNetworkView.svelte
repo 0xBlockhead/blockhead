@@ -81,7 +81,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionArweaveNetworks({ id, label, open })}
+			{#snippet SectionArweaveNetworks({ id, label })}
 				<ArweaveNetworksView
 					selection={selection.$$observedNetworks}
 					collapsible={false}
@@ -91,7 +91,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionArweaveBlocks({ id, label, open })}
+			{#snippet SectionArweaveBlocks({ id, label })}
 				<ArweaveBlocksView
 					selection={selection.$$observedBlocks}
 					collapsible={false}
@@ -101,7 +101,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionArweaveTransactions({ id, label, open })}
+			{#snippet SectionArweaveTransactions({ id, label })}
 				<ArweaveTransactionsView
 					selection={selection.$$observedTransactions}
 					collapsible={false}
@@ -133,7 +133,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionArweaveResourceList({ id, label, open })}
+			{#snippet SectionArweaveResourceList({ id, label })}
 				<ArweaveResourcesView
 					selection={selection.$$observedResources}
 					collapsible={false}

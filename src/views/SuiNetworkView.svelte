@@ -99,7 +99,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionSuiChainObservations({ id, label, open })}
+			{#snippet SectionSuiChainObservations({ id, label })}
 				<SuiNetwork_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}
@@ -109,7 +109,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionSuiChainCheckpoints({ id, label, open })}
+			{#snippet SectionSuiChainCheckpoints({ id, label })}
 				<SuiCheckpointsView
 					selection={selection.$$checkpoints}
 					collapsible={false}
@@ -119,7 +119,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionSuiChainTransactions({ id, label, open })}
+			{#snippet SectionSuiChainTransactions({ id, label })}
 				<SuiTransactionsView
 					selection={selection.$$transactions}
 					collapsible={false}
@@ -155,7 +155,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionSuiObjects({ id, label, open })}
+			{#snippet SectionSuiObjects({ id, label })}
 				<SuiObjectsView
 					selection={selection.$$objects}
 					collapsible={false}
@@ -165,7 +165,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionSuiPackages({ id, label, open })}
+			{#snippet SectionSuiPackages({ id, label })}
 				<SuiPackagesView
 					selection={selection.$$packages}
 					collapsible={false}
@@ -205,7 +205,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionSuiAccounts({ id, label, open })}
+			{#snippet SectionSuiAccounts({ id, label })}
 				<SuiAccountsView
 					selection={selection.$$accounts}
 					collapsible={false}
@@ -215,7 +215,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionSuiCoinTypes({ id, label, open })}
+			{#snippet SectionSuiCoinTypes({ id, label })}
 				<SuiCoinTypesView
 					selection={selection.$$coinTypes}
 					collapsible={false}
@@ -225,7 +225,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionSuiCoinBalances({ id, label, open })}
+			{#snippet SectionSuiCoinBalances({ id, label })}
 				<SuiCoinBalance_TimestampsView
 					selection={selection.$$coinBalanceTimestamps}
 					collapsible={false}

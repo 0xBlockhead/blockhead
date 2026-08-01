@@ -553,6 +553,10 @@ const renderSvelteSnippet = (level: number, declaration: string, body: string[])
 	`${'\t'.repeat(level)}{/snippet}`,
 ]
 
+const svelteMarkupReferencesOpen = (markup: string[]) => (
+	markup.some((line) => /\{[^}]*\bopen\b[^}]*\}/.test(line))
+)
+
 const trimBlankLineEdges = (source: string[]) => source.slice(
 	source.findIndex((line) => line.trim() !== ''),
 	source.findLastIndex((line) => line.trim() !== '') + 1
@@ -12534,7 +12538,11 @@ const renderCarouselSectionSnippet = (
 ) => {
 	if (contentOwnsResourceState) {
 		return [
-			...renderSvelteSnippet(4, `Section${pascal(sectionId)}({ id, label, open })`, sectionBodyLines),
+			...renderSvelteSnippet(
+				4,
+				`Section${pascal(sectionId)}({ id, label${svelteMarkupReferencesOpen(sectionBodyLines) ? ', open' : ''} })`,
+				sectionBodyLines
+			),
 			'',
 		]
 	}
@@ -12582,7 +12590,11 @@ const renderCarouselSectionSnippet = (
 	]
 
 	return [
-		...renderSvelteSnippet(4, `Section${pascal(sectionId)}({ id, label, open, active })`, boundaryLines),
+		...renderSvelteSnippet(
+			4,
+			`Section${pascal(sectionId)}({ id, label${svelteMarkupReferencesOpen(sectionBodyLines) ? ', open' : ''}, active })`,
+			boundaryLines
+		),
 		'',
 	]
 }
@@ -12672,7 +12684,7 @@ const renderCarouselSection = (
 			ownsSection: false,
 			resourceDeclaration: [],
 			markup: [
-				`\t\t\t\t{#snippet Section${pascal(carouselSectionId(section))}({ id, label, open })}`,
+				`\t\t\t\t{#snippet Section${pascal(carouselSectionId(section))}({ id, label${svelteMarkupReferencesOpen(contentLines) ? ', open' : ''} })}`,
 				...leadingConstLines.map((line) => `${'\t'.repeat(5)}${line}`),
 				'\t\t\t\t\t<article',
 				'\t\t\t\t\t\tid={`${id}-list`}',

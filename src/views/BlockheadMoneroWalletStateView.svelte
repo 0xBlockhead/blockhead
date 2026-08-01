@@ -262,7 +262,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionMoneroSubaddresses({ id, label, open })}
+			{#snippet SectionMoneroSubaddresses({ id, label })}
 				<BlockheadMoneroSubaddressStatesView
 					selection={selection.$$subaddresses}
 					collapsible={false}
@@ -272,7 +272,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionMoneroOutputs({ id, label, open })}
+			{#snippet SectionMoneroOutputs({ id, label })}
 				<BlockheadMoneroOutputStatesView
 					selection={selection.$$outputs}
 					collapsible={false}
@@ -308,7 +308,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionMoneroTransfers({ id, label, open })}
+			{#snippet SectionMoneroTransfers({ id, label })}
 				<BlockheadMoneroTransferStatesView
 					selection={selection.$$transfers}
 					collapsible={false}
@@ -318,7 +318,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionMoneroWalletTimestamps({ id, label, open })}
+			{#snippet SectionMoneroWalletTimestamps({ id, label })}
 				<BlockheadMoneroWalletState_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

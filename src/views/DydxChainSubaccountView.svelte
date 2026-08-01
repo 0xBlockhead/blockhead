@@ -118,7 +118,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionDydxSubaccountPositions({ id, label, open })}
+			{#snippet SectionDydxSubaccountPositions({ id, label })}
 				<DydxChainPerpetualPosition_TimestampsView
 					selection={selection.$$positions}
 					collapsible={false}
@@ -128,7 +128,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionDydxSubaccountOrders({ id, label, open })}
+			{#snippet SectionDydxSubaccountOrders({ id, label })}
 				<DydxChainOrdersView
 					selection={selection.$$orders}
 					collapsible={false}
@@ -160,7 +160,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionDydxSubaccountTimestamps({ id, label, open })}
+			{#snippet SectionDydxSubaccountTimestamps({ id, label })}
 				<DydxChainSubaccount_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

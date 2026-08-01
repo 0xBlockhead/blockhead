@@ -272,7 +272,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionFarcasterChannelCasts({ id, label, open })}
+			{#snippet SectionFarcasterChannelCasts({ id, label })}
 				<FarcasterCastsView
 					selection={selection.$$casts}
 					href={
@@ -312,7 +312,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionFarcasterChannelTimestamps({ id, label, open })}
+			{#snippet SectionFarcasterChannelTimestamps({ id, label })}
 				<FarcasterChannel_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

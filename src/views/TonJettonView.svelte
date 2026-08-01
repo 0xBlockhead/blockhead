@@ -108,7 +108,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTonJettonTransfers({ id, label, open })}
+			{#snippet SectionTonJettonTransfers({ id, label })}
 				<TonJettonTransfersView
 					selection={selection.$$transfers}
 					collapsible={false}
@@ -144,7 +144,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionTonJettonBalanceTimestamps({ id, label, open })}
+			{#snippet SectionTonJettonBalanceTimestamps({ id, label })}
 				<TonJettonBalance_TimestampsView
 					selection={selection.$$balanceTimestamps}
 					collapsible={false}
@@ -154,7 +154,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionTonJettonTimestamps({ id, label, open })}
+			{#snippet SectionTonJettonTimestamps({ id, label })}
 				<TonJetton_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}

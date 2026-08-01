@@ -145,7 +145,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionLitecoinMwebTransactionOutputs({ id, label, open })}
+			{#snippet SectionLitecoinMwebTransactionOutputs({ id, label })}
 				<LitecoinMwebOutputsView
 					selection={selection.$$outputs}
 					collapsible={false}
@@ -155,7 +155,7 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionLitecoinMwebTransactionPegIns({ id, label, open })}
+			{#snippet SectionLitecoinMwebTransactionPegIns({ id, label })}
 				<LitecoinMwebPegInsView
 					selection={selection.$$pegIns}
 					collapsible={false}
@@ -187,7 +187,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionLitecoinMwebTransactionPegOuts({ id, label, open })}
+			{#snippet SectionLitecoinMwebTransactionPegOuts({ id, label })}
 				<LitecoinMwebPegOutsView
 					selection={selection.$$pegOuts}
 					collapsible={false}

@@ -81,7 +81,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionCashuMintKeysetList({ id, label, open })}
+			{#snippet SectionCashuMintKeysetList({ id, label })}
 				<CashuKeysetsView
 					selection={selection.$$keysets}
 					collapsible={false}
@@ -113,7 +113,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionCashuMintTimestamps({ id, label, open })}
+			{#snippet SectionCashuMintTimestamps({ id, label })}
 				<CashuMint_TimestampsView
 					selection={selection.$$timestamps}
 					collapsible={false}
