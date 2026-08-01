@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -17,13 +16,11 @@ export default entity({
 	scope: {
 		label: 'Scope',
 		description: 'The fixed scope value that identifies this hub row.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type.unit('_GlobalActivityPubNetwork'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$observedActors: {
 		label: 'Observed actors',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.ActivityPubActor,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 	},
 	$$observedNotes: {
 		label: 'Observed notes',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.ActivityPubNote,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -41,13 +37,11 @@ export default entity({
 	},
 	$$instances: {
 		label: 'Instances',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.ActivityPubInstance,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
 		label: 'Timestamps',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType._GlobalActivityPubNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

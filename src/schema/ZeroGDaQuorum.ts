@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,31 +14,26 @@ export default entity({
 })({
 	$network: {
 		label: 'network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	quorumId: {
 		label: 'quorum ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$consensusNetwork: {
 		label: 'consensus network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.ZeroGConsensusNetwork,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	selectionMethod: {
 		label: 'selection method',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$daNodes: {
 		label: 'DA nodes',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.ZeroGDaNode,
 		cardinality: EntityFieldCardinality.Many,
 	},

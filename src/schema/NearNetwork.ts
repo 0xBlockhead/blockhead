@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -18,14 +17,12 @@ export default entity({
 	slug: {
 		label: 'Slug',
 		description: 'A stable short name used by catalogs and URLs.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type.unit('near'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	name: {
 		label: 'Name',
 		description: 'The human-readable name of the subject.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -35,7 +32,6 @@ export default entity({
 	namespace: {
 		label: 'Namespace',
 		description: 'The namespace that qualifies the identifier.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -44,7 +40,6 @@ export default entity({
 	},
 	environment: {
 		label: 'Environment',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -53,7 +48,6 @@ export default entity({
 	},
 	rpcEndpoints: {
 		label: 'RPC endpoints',
-		type: EntityFieldType.Primitive,
 		primitiveType: type({
 			url: type('string'),
 			transportType: type('string'),
@@ -66,7 +60,6 @@ export default entity({
 	},
 	$$timestamps: {
 		label: 'Observations',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NearNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -75,7 +68,6 @@ export default entity({
 	},
 	$$blocks: {
 		label: 'Blocks',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NearBlock,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -84,7 +76,6 @@ export default entity({
 	},
 	$$validators: {
 		label: 'Validators',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NearValidator,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

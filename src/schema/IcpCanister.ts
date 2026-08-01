@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,48 +14,40 @@ export default entity({
 })({
 	$network: {
 		label: 'network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.IcpNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	canisterId: {
 		label: 'canister ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$methods: {
 		label: 'methods',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.IcpCanisterMethod,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$metadata: {
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.IcpCanisterMetadata,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$logs: {
 		label: 'logs',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.IcpCanisterLog_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$certifiedStates: {
 		label: 'certified states',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.IcpCertifiedState,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$requestStatuses: {
 		label: 'request statuses',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.IcpRequestStatus,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
 		label: 'timestamps',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.IcpCanister_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,31 +14,26 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	referendumId: {
 		label: 'Referendum ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	track: {
 		label: 'Track',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	submittedAtBlockNumber: {
 		label: 'Submitted at block number',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
 		label: 'Lifecycle observations',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.PolkadotReferendum_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

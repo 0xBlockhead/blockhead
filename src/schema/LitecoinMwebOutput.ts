@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,31 +14,26 @@ export default entity({
 })({
 	$transaction: {
 		label: 'transaction',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.LitecoinMwebTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	outputIndex: {
 		label: 'output index',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	commitment: {
 		label: 'commitment',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	senderPubkey: {
 		label: 'sender public key',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$localOutputState: {
 		label: 'local output state',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.BlockheadLitecoinMwebOutputState,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

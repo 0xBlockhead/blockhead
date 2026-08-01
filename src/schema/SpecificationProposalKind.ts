@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,45 +14,38 @@ export default entity({
 })({
 	realm: {
 		label: 'Realm',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	category: {
 		label: 'Category',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	label: {
 		label: 'Label',
 		description: 'A human-readable name for the subject.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	labelPlural: {
 		label: 'Label plural',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	slug: {
 		label: 'Slug',
 		description: 'A stable short name used by catalogs and URLs.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$specificationRealm: {
 		label: 'Specification realm',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.SpecificationRealm,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$proposals: {
 		label: 'Proposals',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.SpecificationProposal,
 		cardinality: EntityFieldCardinality.Many,
 	},

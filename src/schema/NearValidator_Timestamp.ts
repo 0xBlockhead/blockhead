@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -16,33 +15,28 @@ export default entity({
 })({
 	$validator: {
 		label: 'Validator',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.NearValidator,
 		cardinality: EntityFieldCardinality.One,
 	},
 	epochId: {
 		label: 'Epoch ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
 		label: 'Source',
 		description: 'The source that produced this observation.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	epochHeight: {
 		label: 'Epoch height',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -51,7 +45,6 @@ export default entity({
 	},
 	epochStartHeight: {
 		label: 'Epoch start height',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -60,7 +53,6 @@ export default entity({
 	},
 	validatorSetRole: {
 		label: 'Validator set role',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -69,7 +61,6 @@ export default entity({
 	},
 	publicKey: {
 		label: 'Public key',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -78,7 +69,6 @@ export default entity({
 	},
 	stakeYoctoNear: {
 		label: 'Stake yocto near',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -87,7 +77,6 @@ export default entity({
 	},
 	isSlashed: {
 		label: 'Slashed',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -96,7 +85,6 @@ export default entity({
 	},
 	expectedBlocks: {
 		label: 'Expected blocks',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -105,7 +93,6 @@ export default entity({
 	},
 	producedBlocks: {
 		label: 'Produced blocks',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -114,7 +101,6 @@ export default entity({
 	},
 	expectedChunks: {
 		label: 'Expected chunks',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -123,7 +109,6 @@ export default entity({
 	},
 	producedChunks: {
 		label: 'Produced chunks',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -132,13 +117,11 @@ export default entity({
 	},
 	shards: {
 		label: 'Shards',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.Many,
 	},
 	kickoutReason: {
 		label: 'Kickout reason',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

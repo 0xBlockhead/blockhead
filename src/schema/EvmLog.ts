@@ -2,7 +2,6 @@
 
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmTopicHash, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
@@ -17,49 +16,41 @@ export default entity({
 })({
 	indexInTransaction: {
 		label: 'Index in transaction',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$transaction: {
 		label: 'Transaction',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.EvmTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$block: {
 		label: 'Block',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.EvmBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$topics: {
 		label: 'Topics',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.EvmTopic,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	topic0: {
 		label: 'Topic 0',
-		type: EntityFieldType.Primitive,
 		primitiveType: EvmTopicHash,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	data: {
 		label: 'Data',
-		type: EntityFieldType.Primitive,
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	removed: {
 		label: 'Removed',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$emitter: {
 		label: 'Emitter contract',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
@@ -84,7 +75,6 @@ export default entity({
 		})({
 			signatureHash: {
 				label: 'Signature hash',
-				type: EntityFieldType.Primitive,
 				primitiveType: EvmTopicHash,
 				cardinality: EntityFieldCardinality.One,
 			},
@@ -103,7 +93,6 @@ export default entity({
 				})({
 					$$tokenTransfers: {
 						label: 'Token transfers',
-						type: EntityFieldType.EntitiesReference,
 						entityType: EntityType.EvmTokenTransfer,
 						cardinality: EntityFieldCardinality.Many,
 					},

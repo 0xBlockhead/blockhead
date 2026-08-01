@@ -1098,8 +1098,13 @@ ${members.map((member) => `\t${member} = '${member}',`).join('\n')}
 	assert.equal(generatedFileByPath.has('src/sources/index.server.ts'), false)
 	assert.match(
 		generatedFileByPath.get('src/schema/Account.ts') ?? '',
-		/import \{ entity, facet \} from '\$\/schema\/\$schema\.ts'[\s\S]*?import \{ EntityFieldCardinality \} from '\$\/schema\/EntityFieldCardinality\.ts'[\s\S]*?import \{ EntityFieldType \} from '\$\/schema\/EntityFieldType\.ts'/
+		/import \{ entity, facet \} from '\$\/schema\/\$schema\.ts'[\s\S]*?import \{ EntityFieldCardinality \} from '\$\/schema\/EntityFieldCardinality\.ts'/
 	)
+	for (const entity of app.schema.entities) {
+		const entitySchema = generatedFileByPath.get(`src/schema/${entity.entityType}.ts`) ?? ''
+		assert.doesNotMatch(entitySchema, /EntityFieldType/)
+		assert.doesNotMatch(entitySchema, /\btype: EntityFieldType\./)
+	}
 })
 
 test('keeps APP compiler registries internally aligned', () => {

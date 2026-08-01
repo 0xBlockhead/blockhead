@@ -43,17 +43,14 @@ const EvmTransaction = entity({
 	},
 })({
 	txHash: {
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	envelopeType: {
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	value: {
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
@@ -70,7 +67,6 @@ const EvmTransaction = entity({
 			],
 		})({
 			maxFeePerGas: {
-				type: EntityFieldType.Primitive,
 				primitiveType: type('bigint'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 			},
@@ -80,12 +76,10 @@ const EvmTransaction = entity({
 			is: 'Blob',
 		})({
 			maxFeePerBlobGas: {
-				type: EntityFieldType.Primitive,
 				primitiveType: type('bigint'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 			},
 			blobGasUsed: {
-				type: EntityFieldType.Primitive,
 				primitiveType: type('bigint'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 			},
@@ -101,17 +95,14 @@ const EvmLog = entity({
 	},
 })({
 	$transaction: {
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.EvmTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$transactions: {
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.EvmTransaction,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	topic0: {
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
@@ -125,12 +116,10 @@ const EvmLog = entity({
 			is: 'transfer',
 		})({
 			signatureHash: {
-				type: EntityFieldType.Primitive,
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.One,
 			},
 			$$eventTransactions: {
-				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.EvmTransaction,
 				cardinality: EntityFieldCardinality.Many,
 			},
@@ -144,13 +133,106 @@ const EvmLog = entity({
 					is: 'transfer',
 				})({
 					tokenId: {
-						type: EntityFieldType.Primitive,
 						primitiveType: type('string'),
 						cardinality: EntityFieldCardinality.ZeroOrOne,
 					},
 				}),
 			},
 		}),
+	},
+})
+
+type TypesEqual<_Left, _Right> = (
+	(<_Type>() => _Type extends _Left ? 1 : 2) extends
+	(<_Type>() => _Type extends _Right ? 1 : 2) ? true : false
+)
+type EvmTransactionField = typeof EvmTransaction.fields[number]
+type EvmLogField = typeof EvmLog.fields[number]
+type EvmLogEventField = Extract<
+	NonNullable<typeof EvmLog.facets>[number],
+	{ readonly name: 'Event' }
+>['fields'][number]
+
+const primitiveFieldKindIsLiteral: TypesEqual<
+	Extract<EvmTransactionField, { readonly name: 'txHash' }>['type'],
+	EntityFieldType.Primitive
+> = true
+const referenceFieldKindIsLiteral: TypesEqual<
+	Extract<EvmLogField, { readonly name: '$transaction' }>['type'],
+	EntityFieldType.EntityReference
+> = true
+const referencesFieldKindIsLiteral: TypesEqual<
+	Extract<EvmLogField, { readonly name: '$$transactions' }>['type'],
+	EntityFieldType.EntitiesReference
+> = true
+const nestedReferencesFieldKindIsLiteral: TypesEqual<
+	Extract<EvmLogEventField, { readonly name: '$$eventTransactions' }>['type'],
+	EntityFieldType.EntitiesReference
+> = true
+void [
+	primitiveFieldKindIsLiteral,
+	referenceFieldKindIsLiteral,
+	referencesFieldKindIsLiteral,
+	nestedReferencesFieldKindIsLiteral,
+]
+
+entity({
+	entityType: 'InvalidInferredFieldKinds',
+	labels: {
+		singular: 'invalid inferred field kinds',
+		plural: 'invalid inferred field kinds',
+	},
+})({
+	// @ts-expect-error Builder field kind is inferred and cannot be repeated explicitly.
+	explicitType: {
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	// @ts-expect-error Builder fields cannot retain the inferred key with an undefined value.
+	explicitUndefinedType: {
+		type: undefined,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	// @ts-expect-error Primitive field keys cannot declare a referenced entity.
+	primitiveReference: {
+		primitiveType: type('string'),
+		entityType: EntityType.EvmTransaction,
+		cardinality: EntityFieldCardinality.One,
+	},
+	// @ts-expect-error Singular reference field keys require entityType, not primitiveType.
+	$primitive: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	// @ts-expect-error Plural reference field keys require plural cardinality.
+	$$singular: {
+		entityType: EntityType.EvmTransaction,
+		cardinality: EntityFieldCardinality.One,
+	},
+	// @ts-expect-error A reference prefix without a field name is invalid.
+	$: {
+		entityType: EntityType.EvmTransaction,
+		cardinality: EntityFieldCardinality.One,
+	},
+})
+
+entity({
+	entityType: 'InvalidPluralReferenceSelector',
+	labels: {
+		singular: 'invalid plural reference selector',
+		plural: 'invalid plural reference selectors',
+	},
+})({
+	$$transactions: {
+		entityType: EntityType.EvmTransaction,
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		// @ts-expect-error Plural references cannot identify an entity.
+		Invalid: ['$$transactions'],
 	},
 })
 

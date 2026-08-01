@@ -154,7 +154,6 @@ const OptionalSelectorCardinality = entity({
 	},
 })({
 	optionalId: {
-		type: EntityFieldType.Primitive,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		primitiveType: arktype('string'),
 	},
@@ -172,7 +171,6 @@ entity({
 	},
 })({
 	manyId: {
-		type: EntityFieldType.Primitive,
 		cardinality: EntityFieldCardinality.Many,
 		primitiveType: arktype('string'),
 	},
@@ -191,7 +189,6 @@ entity({
 	},
 })({
 	id: {
-		type: EntityFieldType.Primitive,
 		cardinality: EntityFieldCardinality.One,
 		primitiveType: arktype('string'),
 	},
@@ -202,8 +199,67 @@ entity({
 	},
 })
 
+const InferredFieldKinds = entity({
+	entityType: 'InferredFieldKinds',
+	labels: {
+		singular: 'inferred field kinds',
+		plural: 'inferred field kinds',
+	},
+})({
+	id: {
+		primitiveType: arktype('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	$parent: {
+		entityType: Parent.entityType,
+		cardinality: EntityFieldCardinality.One,
+	},
+	$$children: {
+		entityType: Child.entityType,
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		Id: ['id'],
+		Parent: ['$parent'],
+	},
+	facets: {
+		Nested: facet({
+			path: ['id'],
+			is: 'nested',
+		})({
+			nestedId: {
+				primitiveType: arktype('string'),
+				cardinality: EntityFieldCardinality.One,
+			},
+			$nestedParent: {
+				entityType: Parent.entityType,
+				cardinality: EntityFieldCardinality.One,
+			},
+			$$nestedChildren: {
+				entityType: Child.entityType,
+				cardinality: EntityFieldCardinality.Many,
+			},
+		}),
+	},
+})
+
 
 describe('entity selectors', () => {
+	it('infers literal runtime field kinds from base and nested field names', () => {
+		expect([
+			...InferredFieldKinds.fields,
+			...(InferredFieldKinds.facets?.[0]?.fields ?? []),
+		].map(({ name, type }) => [name, type])).toEqual([
+			['id', EntityFieldType.Primitive],
+			['$parent', EntityFieldType.EntityReference],
+			['$$children', EntityFieldType.EntitiesReference],
+			['nestedId', EntityFieldType.Primitive],
+			['$nestedParent', EntityFieldType.EntityReference],
+			['$$nestedChildren', EntityFieldType.EntitiesReference],
+		])
+	})
+
 	it('matches exact named selector field sets', () => {
 		expect(validateEntitySelector(
 			fixtureSchema,
@@ -731,7 +787,6 @@ describe('entity selectors', () => {
 				},
 			})({
 				kind: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 				},
@@ -745,7 +800,6 @@ describe('entity selectors', () => {
 						is: 'parent',
 					})({
 						parentKind: {
-							type: EntityFieldType.Primitive,
 							primitiveType: arktype('string'),
 							cardinality: EntityFieldCardinality.One,
 						},
@@ -756,7 +810,6 @@ describe('entity selectors', () => {
 								is: 'child',
 							})({
 								childField: {
-									type: EntityFieldType.Primitive,
 									primitiveType: arktype('string'),
 									cardinality: EntityFieldCardinality.One,
 								},

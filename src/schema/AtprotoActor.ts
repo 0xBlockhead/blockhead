@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -17,19 +16,16 @@ export default entity({
 })({
 	did: {
 		label: 'DID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	handle: {
 		label: 'Handle',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
 		label: 'Metric observations',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.AtprotoActor_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -38,7 +34,6 @@ export default entity({
 	},
 	$$posts: {
 		label: 'Posts',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.AtprotoPost,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

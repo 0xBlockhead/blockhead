@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -16,27 +15,23 @@ export default entity({
 })({
 	$keyset: {
 		label: 'keyset',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.CashuKeyset,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
 		label: 'Source',
 		description: 'The source that produced this observation.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	active: {
 		label: 'active',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -45,7 +40,6 @@ export default entity({
 	},
 	inputFeePpk: {
 		label: 'input fee ppk',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -54,19 +48,16 @@ export default entity({
 	},
 	finalExpiryMs: {
 		label: 'final expiry ms',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	listedByKeysEndpoint: {
 		label: 'listed by keys endpoint',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	listedByKeysetsEndpoint: {
 		label: 'listed by keysets endpoint',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

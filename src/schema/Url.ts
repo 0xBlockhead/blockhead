@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
@@ -18,13 +17,11 @@ export default entity({
 	url: {
 		label: 'URL',
 		description: 'The URL for the source-domain resource.',
-		type: EntityFieldType.Primitive,
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$previewTimestamps: {
 		label: 'Preview timestamps',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.UrlPreview_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

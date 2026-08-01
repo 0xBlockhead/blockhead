@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -16,19 +15,16 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	txHash: {
 		label: 'Transaction hash',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$block: {
 		label: 'Block',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.MoneroBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -37,7 +33,6 @@ export default entity({
 	},
 	version: {
 		label: 'Version',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -46,7 +41,6 @@ export default entity({
 	},
 	unlockTime: {
 		label: 'Unlock time',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -55,7 +49,6 @@ export default entity({
 	},
 	feeAtomicUnits: {
 		label: 'Fee atomic units',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -64,7 +57,6 @@ export default entity({
 	},
 	$$keyImages: {
 		label: 'Key images',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.MoneroKeyImage,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -73,7 +65,6 @@ export default entity({
 	},
 	$$stealthOutputs: {
 		label: 'Stealth outputs',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.MoneroStealthOutput,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

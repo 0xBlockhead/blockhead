@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
@@ -16,19 +15,16 @@ export default entity({
 })({
 	$nodeState: {
 		label: 'node state',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.BlockheadLogosBlockchainNodeState,
 		cardinality: EntityFieldCardinality.One,
 	},
 	publicKey: {
 		label: 'public key',
-		type: EntityFieldType.Primitive,
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
 		label: 'timestamps',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

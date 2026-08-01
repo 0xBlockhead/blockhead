@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -16,19 +15,16 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	transactionId: {
 		label: 'Transaction ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$block: {
 		label: 'Block',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.TronBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -40,7 +36,6 @@ export default entity({
 	},
 	blockHeight: {
 		label: 'Block height',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -54,7 +49,6 @@ export default entity({
 	timestampMs: {
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -67,7 +61,6 @@ export default entity({
 	},
 	expirationTimestampMs: {
 		label: 'Expiration timestamp',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -78,7 +71,6 @@ export default entity({
 	},
 	contractType: {
 		label: 'Contract type',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -90,7 +82,6 @@ export default entity({
 	},
 	result: {
 		label: 'Result',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -102,7 +93,6 @@ export default entity({
 	},
 	feeSun: {
 		label: 'Fee sun',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -111,7 +101,6 @@ export default entity({
 	},
 	$owner: {
 		label: 'Owner',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.TronAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -123,7 +112,6 @@ export default entity({
 	},
 	$to: {
 		label: 'To',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.TronAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -135,7 +123,6 @@ export default entity({
 	},
 	$contract: {
 		label: 'Contract',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.TronContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -147,7 +134,6 @@ export default entity({
 	},
 	amountSun: {
 		label: 'Amount sun',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -159,7 +145,6 @@ export default entity({
 	},
 	assetName: {
 		label: 'Asset name',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -171,7 +156,6 @@ export default entity({
 	},
 	rawDataHex: {
 		label: 'Raw data hex',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -182,7 +166,6 @@ export default entity({
 	},
 	signatures: {
 		label: 'Signatures',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -193,7 +176,6 @@ export default entity({
 	},
 	$receipt: {
 		label: 'Receipt',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.TronTransactionReceipt,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -205,7 +187,6 @@ export default entity({
 	},
 	$$tokenTransfers: {
 		label: 'Token transfers',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.TronTokenTransfer,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

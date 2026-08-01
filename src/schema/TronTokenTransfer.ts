@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -16,25 +15,21 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	transactionId: {
 		label: 'Transaction ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	transferIndex: {
 		label: 'Transfer index',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$transaction: {
 		label: 'Transaction',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.TronTransaction,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -43,7 +38,6 @@ export default entity({
 	},
 	$token: {
 		label: 'Token',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.TronToken,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -52,7 +46,6 @@ export default entity({
 	},
 	standard: {
 		label: 'Standard',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -61,7 +54,6 @@ export default entity({
 	},
 	$from: {
 		label: 'From',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.TronAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -70,7 +62,6 @@ export default entity({
 	},
 	$to: {
 		label: 'To',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.TronAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -79,7 +70,6 @@ export default entity({
 	},
 	amount: {
 		label: 'Amount',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -89,7 +79,6 @@ export default entity({
 	timestampMs: {
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

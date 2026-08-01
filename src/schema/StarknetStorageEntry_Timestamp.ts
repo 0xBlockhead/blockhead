@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,35 +14,30 @@ export default entity({
 })({
 	$entry: {
 		label: 'entry',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.StarknetStorageEntry,
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockNumber: {
 		label: 'Block number',
 		description: 'The block height or number in its network.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
 		label: 'Source',
 		description: 'The source that produced this observation.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	value: {
 		label: 'Value',
 		description: 'The source-domain value.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	blockHash: {
 		label: 'Block hash',
 		description: 'The hash that identifies the block in its network.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

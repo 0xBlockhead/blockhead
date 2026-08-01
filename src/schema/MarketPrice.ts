@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -15,12 +14,10 @@ export default entity({
 	},
 })({
 	$market: {
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Market,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$parentMarket: {
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Market,
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -33,7 +30,6 @@ export default entity({
 		],
 	},
 	$$quotes: {
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.Market_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,31 +14,26 @@ export default entity({
 })({
 	$acceptingBlock: {
 		label: 'accepting block',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.KaspaBlock,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$transaction: {
 		label: 'transaction',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.KaspaTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	acceptedIndex: {
 		label: 'accepted index',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	acceptingBlockHash: {
 		label: 'accepting block hash',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	transactionId: {
 		label: 'transaction ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},

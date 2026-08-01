@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,62 +14,52 @@ export default entity({
 })({
 	$wasm: {
 		label: 'Wasm',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.SorobanWasm,
 		cardinality: EntityFieldCardinality.One,
 	},
 	ledgerSequence: {
 		label: 'ledger sequence',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
 		label: 'Source',
 		description: 'The source that produced this observation.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	observedAtMs: {
 		label: 'observed AT ms',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	wasmBytes: {
 		label: 'Wasm bytes',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	byteLength: {
 		label: 'byte length',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	interfaceVersion: {
 		label: 'interface version',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	envMeta: {
 		label: 'env meta',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	specEntries: {
 		label: 'spec entries',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	found: {
 		label: 'found',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

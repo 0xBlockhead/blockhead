@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -17,67 +16,56 @@ export default entity({
 	id: {
 		label: 'ID',
 		description: 'The identifier assigned by the source domain.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	username: {
 		label: 'Username',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	name: {
 		label: 'Name',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	description: {
 		label: 'Description',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	verified: {
 		label: 'Verified',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdAt: {
 		label: 'Created',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	location: {
 		label: 'Location',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	websiteUrl: {
 		label: 'Website URL',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$icon: {
 		label: 'Icon',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Media,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$profileBanner: {
 		label: 'Profile banner',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Media,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
 		label: 'Observations',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.XUser_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -87,7 +75,6 @@ export default entity({
 	},
 	$$posts: {
 		label: 'Posts',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.XPost,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

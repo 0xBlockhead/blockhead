@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,31 +14,26 @@ export default entity({
 })({
 	gatewayId: {
 		label: 'gateway ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	apiUrl: {
 		label: 'API URL',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	nodePubkey: {
 		label: 'node public key',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$federations: {
 		label: 'federations',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.FedimintFederation,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
 		label: 'timestamps',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.FedimintGateway_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

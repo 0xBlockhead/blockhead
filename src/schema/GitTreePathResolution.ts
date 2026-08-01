@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
@@ -16,43 +15,36 @@ export default entity({
 })({
 	$repository: {
 		label: 'repository',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.GitRepository,
 		cardinality: EntityFieldCardinality.One,
 	},
 	commitObjectId: {
 		label: 'commit object ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	path: {
 		label: 'path',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	treeObjectIds: {
 		label: 'tree object ids',
-		type: EntityFieldType.Primitive,
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	blobObjectId: {
 		label: 'blob object ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	submoduleCommitId: {
 		label: 'submodule commit ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	status: {
 		label: 'status',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},

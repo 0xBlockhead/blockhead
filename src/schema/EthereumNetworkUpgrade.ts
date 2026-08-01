@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -16,51 +15,43 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	upgradeId: {
 		label: 'Upgrade ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	name: {
 		label: 'Name',
 		description: 'The human-readable name of the subject.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	slug: {
 		label: 'Slug',
 		description: 'A stable short name used by catalogs and URLs.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	activationBlock: {
 		label: 'Activation block',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	activationTimestampMs: {
 		label: 'Activation time',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	activationEpoch: {
 		label: 'Activation epoch',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$networkExecutionUpgrade: {
 		label: 'Execution layer',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.EthereumExecutionUpgrade,
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -69,7 +60,6 @@ export default entity({
 	},
 	$networkConsensusUpgrade: {
 		label: 'Consensus layer',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.EthereumConsensusUpgrade,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -78,7 +68,6 @@ export default entity({
 	},
 	$$proposals: {
 		label: 'Specification proposals',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.SpecificationProposal,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

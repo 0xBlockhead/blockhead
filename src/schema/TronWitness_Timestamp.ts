@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
@@ -17,27 +16,23 @@ export default entity({
 })({
 	$witness: {
 		label: 'Witness',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.TronWitness,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
 		label: 'Source',
 		description: 'The source that produced this observation.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	url: {
 		label: 'URL',
-		type: EntityFieldType.Primitive,
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -46,7 +41,6 @@ export default entity({
 	},
 	voteCount: {
 		label: 'Votes',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -55,7 +49,6 @@ export default entity({
 	},
 	totalProduced: {
 		label: 'Total produced',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -64,7 +57,6 @@ export default entity({
 	},
 	totalMissed: {
 		label: 'Total missed',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -73,7 +65,6 @@ export default entity({
 	},
 	latestBlockHeight: {
 		label: 'Latest block height',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -82,7 +73,6 @@ export default entity({
 	},
 	latestSlotNumber: {
 		label: 'Latest slot number',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -91,7 +81,6 @@ export default entity({
 	},
 	active: {
 		label: 'Active',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

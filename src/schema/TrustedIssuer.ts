@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,25 +14,21 @@ export default entity({
 })({
 	$profile: {
 		label: 'profile',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.RegulatedAssetProfile,
 		cardinality: EntityFieldCardinality.One,
 	},
 	issuerKey: {
 		label: 'issuer key',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	issuerSelector: {
 		label: 'issuer selector',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	claimTopics: {
 		label: 'claim topics',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
 	},

@@ -4,7 +4,6 @@ import { CoinId } from '$/constants/Coin.ts'
 import { entity } from '$/schema/$schema.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstanceKind.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -18,94 +17,79 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	kind: {
 		label: 'Kind',
-		type: EntityFieldType.Primitive,
 		primitiveType: type.enumerated(...Object.values(AssetInstanceKind)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	assetKey: {
 		label: 'Asset key',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	coinId: {
 		label: 'Coin ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type.enumerated(...Object.values(CoinId)),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	name: {
 		label: 'Name',
 		description: 'The human-readable name of the subject.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	symbol: {
 		label: 'Symbol',
 		description: 'The short ticker or symbol used for display.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	decimals: {
 		label: 'Decimals',
 		description: 'The number of decimal places used to display the amount.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$icon: {
 		label: 'Icon',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Media,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$formats: {
 		label: 'Formats',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.AssetFormatSupport_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$metadata: {
 		label: 'Metadata',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.TokenMetadataDocument,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$tokenProgramExtensions: {
 		label: 'Token program extensions',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.TokenProgramExtension_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$regulatedProfiles: {
 		label: 'regulated profiles',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.RegulatedAssetProfile,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$transferRestrictions: {
 		label: 'transfer restrictions',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.TransferRestriction,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$nftCollections: {
 		label: 'NFT collections',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NftCollection,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$payouts: {
 		label: 'payouts',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.Payout,
 		cardinality: EntityFieldCardinality.Many,
 	},

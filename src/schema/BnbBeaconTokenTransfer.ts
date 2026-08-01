@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,44 +14,37 @@ export default entity({
 })({
 	$transaction: {
 		label: 'transaction',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.BnbBeaconTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	transferIndex: {
 		label: 'transfer index',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	symbol: {
 		label: 'Symbol',
 		description: 'The short ticker or symbol used for display.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	fromAddress: {
 		label: 'from address',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	toAddress: {
 		label: 'to address',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	amount: {
 		label: 'amount',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$token: {
 		label: 'token',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.BnbBeaconToken,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

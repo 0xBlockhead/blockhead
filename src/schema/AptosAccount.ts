@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -16,20 +15,17 @@ export default entity({
 })({
 	$network: {
 		label: 'network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.AptosNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
 		label: 'Address',
 		description: 'The address or account identifier used by the source protocol.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
 		label: 'timestamps',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.AptosAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -38,7 +34,6 @@ export default entity({
 	},
 	$$balances: {
 		label: 'balances',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.AptosCoinBalance_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -47,7 +42,6 @@ export default entity({
 	},
 	$$resources: {
 		label: 'resources',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.AptosAccountResource,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -56,7 +50,6 @@ export default entity({
 	},
 	$$transactions: {
 		label: 'transactions',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.AptosTransaction,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPoolKind.ts'
 import { Source } from '$/sources/Source.ts'
@@ -17,19 +16,16 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	pool: {
 		label: 'Pool',
-		type: EntityFieldType.Primitive,
 		primitiveType: type.enumerated(...Object.values(ZcashShieldedPoolKind)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	activationNetworkUpgrade: {
 		label: 'Activation network upgrade',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -38,7 +34,6 @@ export default entity({
 	},
 	noteProtocol: {
 		label: 'Note protocol',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [

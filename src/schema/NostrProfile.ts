@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -17,13 +16,11 @@ export default entity({
 })({
 	pubkey: {
 		label: 'Pubkey',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$latestMetadataEvent: {
 		label: 'Latest signed metadata',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.NostrProfileMetadataEvent,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -33,7 +30,6 @@ export default entity({
 	},
 	$$metadataEvents: {
 		label: 'Signed metadata versions',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NostrProfileMetadataEvent,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -43,7 +39,6 @@ export default entity({
 	},
 	$$notes: {
 		label: 'Notes',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -53,7 +48,6 @@ export default entity({
 	},
 	$$articles: {
 		label: 'Articles',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NostrArticle,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -62,7 +56,6 @@ export default entity({
 	},
 	$$reposts: {
 		label: 'Reposts',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NostrRepost,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -16,19 +15,16 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	cid: {
 		label: 'CID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$tipset: {
 		label: 'Tipset',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.FilecoinTipset,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -38,7 +34,6 @@ export default entity({
 	},
 	$miner: {
 		label: 'Miner',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.FilecoinMiner,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -48,7 +43,6 @@ export default entity({
 	},
 	ticketVrFProof: {
 		label: 'Ticket VRF proof',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -57,7 +51,6 @@ export default entity({
 	},
 	winCount: {
 		label: 'Win count',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -66,7 +59,6 @@ export default entity({
 	},
 	$$messages: {
 		label: 'Messages',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.FilecoinMessage,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannelStatus.ts'
 import { Source } from '$/sources/Source.ts'
@@ -17,27 +16,23 @@ export default entity({
 })({
 	$channel: {
 		label: 'Channel',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.LightningChannel,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
 		label: 'Source',
 		description: 'The source that produced this observation.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	status: {
 		label: 'Status',
-		type: EntityFieldType.Primitive,
 		primitiveType: type.enumerated(...Object.values(LightningChannelStatus)),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -47,7 +42,6 @@ export default entity({
 	},
 	capacitySats: {
 		label: 'Capacity sats',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -57,7 +51,6 @@ export default entity({
 	},
 	feeRatePpm: {
 		label: 'Fee rate ppm',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -66,7 +59,6 @@ export default entity({
 	},
 	updatedAtMs: {
 		label: 'Updated',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -75,7 +67,6 @@ export default entity({
 	},
 	closingTransactionId: {
 		label: 'Closing transaction ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -84,7 +75,6 @@ export default entity({
 	},
 	closingFeeSats: {
 		label: 'Closing fee sats',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -93,7 +83,6 @@ export default entity({
 	},
 	closingReason: {
 		label: 'Closing reason',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -102,7 +91,6 @@ export default entity({
 	},
 	closedAtMs: {
 		label: 'Closed',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

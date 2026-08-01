@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
@@ -16,87 +15,73 @@ export default entity({
 })({
 	subjectKind: {
 		label: 'subject kind',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	subjectSelector: {
 		label: 'subject selector',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	relationshipKind: {
 		label: 'relationship kind',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	objectKind: {
 		label: 'object kind',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	objectSelector: {
 		label: 'object selector',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
 		label: 'Source',
 		description: 'The source that produced this observation.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	confidence: {
 		label: 'confidence',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$document: {
 		label: 'document',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.AiDocument,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$documentClaim: {
 		label: 'document claim',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.AiDocumentClaim,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	evidenceUri: {
 		label: 'evidence URI',
-		type: EntityFieldType.Primitive,
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	evidenceHashAlgorithm: {
 		label: 'evidence hash algorithm',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	evidenceHash: {
 		label: 'evidence hash',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	signature: {
 		label: 'signature',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

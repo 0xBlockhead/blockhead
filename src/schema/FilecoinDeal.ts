@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,85 +14,71 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	dealId: {
 		label: 'Deal ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$provider: {
 		label: 'Provider',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.FilecoinMiner,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$client: {
 		label: 'Client',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.FilecoinActor,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	pieceCid: {
 		label: 'Piece CID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	pieceSizeBytes: {
 		label: 'Piece size bytes',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	verifiedDeal: {
 		label: 'Verified deal',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	label: {
 		label: 'Label',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	startEpoch: {
 		label: 'Start epoch',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	endEpoch: {
 		label: 'End epoch',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	storagePricePerEpochAttoFil: {
 		label: 'Storage price per epoch attoFIL',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	providerCollateralAttoFil: {
 		label: 'Provider collateral attoFIL',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	clientCollateralAttoFil: {
 		label: 'Client collateral attoFIL',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
 		label: 'Observations',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.FilecoinDeal_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

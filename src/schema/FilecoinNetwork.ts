@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -17,13 +16,11 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	rpcEndpoints: {
 		label: 'RPC endpoints',
-		type: EntityFieldType.Primitive,
 		primitiveType: type({
 			url: type('string'),
 			transportType: type('string'),
@@ -36,7 +33,6 @@ export default entity({
 	},
 	$$timestamps: {
 		label: 'Observations',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.FilecoinNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -45,7 +41,6 @@ export default entity({
 	},
 	$$tipsets: {
 		label: 'Tipsets',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.FilecoinTipset,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

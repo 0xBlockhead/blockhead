@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -16,19 +15,16 @@ export default entity({
 })({
 	$cast: {
 		label: 'Cast',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.FarcasterCast,
 		cardinality: EntityFieldCardinality.One,
 	},
 	indexInCast: {
 		label: 'Index in cast',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	url: {
 		label: 'URL',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -37,7 +33,6 @@ export default entity({
 	},
 	$embeddedCast: {
 		label: 'Embedded cast',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.FarcasterCast,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -46,7 +41,6 @@ export default entity({
 	},
 	title: {
 		label: 'Title',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -55,7 +49,6 @@ export default entity({
 	},
 	description: {
 		label: 'Description',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -64,7 +57,6 @@ export default entity({
 	},
 	iconUrl: {
 		label: 'Icon URL',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -73,7 +65,6 @@ export default entity({
 	},
 	$icon: {
 		label: 'Icon',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Media,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -82,7 +73,6 @@ export default entity({
 	},
 	quotedPreviewText: {
 		label: 'Quoted preview text',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

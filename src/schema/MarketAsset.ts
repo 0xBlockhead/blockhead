@@ -3,7 +3,6 @@
 import { MarketAssetKind } from '$/constants/Market.ts'
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -17,13 +16,11 @@ export default entity({
 })({
 	kind: {
 		label: 'Kind',
-		type: EntityFieldType.Primitive,
 		primitiveType: type.enumerated(...Object.values(MarketAssetKind)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	assetKey: {
 		label: 'Asset key',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
@@ -44,7 +41,6 @@ export default entity({
 		})({
 			$coin: {
 				label: 'Coin',
-				type: EntityFieldType.EntityReference,
 				entityType: EntityType.Coin,
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -60,7 +56,6 @@ export default entity({
 		})({
 			$coinInstance: {
 				label: 'Coin instance',
-				type: EntityFieldType.EntityReference,
 				entityType: EntityType.EvmCoinInstance,
 				cardinality: EntityFieldCardinality.One,
 			},
@@ -73,7 +68,6 @@ export default entity({
 		})({
 			$currency: {
 				label: 'Currency',
-				type: EntityFieldType.EntityReference,
 				entityType: EntityType.Currency,
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [

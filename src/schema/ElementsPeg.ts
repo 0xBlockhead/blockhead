@@ -3,7 +3,6 @@
 import { entity } from '$/schema/$schema.ts'
 import { ElementsPegDirection } from '$/schema/ElementsPegDirection.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -16,55 +15,46 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.ElementsNetwork,
 		cardinality: EntityFieldCardinality.One,
 	},
 	pegTransactionId: {
 		label: 'Peg transaction ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	direction: {
 		label: 'Direction',
-		type: EntityFieldType.Primitive,
 		primitiveType: type.enumerated(...Object.values(ElementsPegDirection)),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$bitcoinTransaction: {
 		label: 'Bitcoin transaction',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.UtxoTransaction,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$elementsTransaction: {
 		label: 'Elements transaction',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.UtxoTransaction,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	amountSats: {
 		label: 'Amount sats',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	claimScript: {
 		label: 'Claim script',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	pakProof: {
 		label: 'PAK proof',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
 		label: 'Observations',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.ElementsPeg_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

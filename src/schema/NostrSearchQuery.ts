@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -17,13 +16,11 @@ export default entity({
 })({
 	query: {
 		label: 'Query',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	resultCount: {
 		label: 'Results',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 	},
 	completed: {
 		label: 'Completed',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -41,7 +37,6 @@ export default entity({
 	},
 	$$profiles: {
 		label: 'Profiles',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NostrProfile,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

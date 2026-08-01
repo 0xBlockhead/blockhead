@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -17,13 +16,11 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
 		label: 'Runtime observations',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.BittensorNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 	},
 	$$blocks: {
 		label: 'Blocks',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.BittensorBlock,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -41,7 +37,6 @@ export default entity({
 	},
 	$$subnets: {
 		label: 'Subnets',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.BittensorSubnet,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

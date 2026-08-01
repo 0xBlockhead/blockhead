@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -16,13 +15,11 @@ export default entity({
 })({
 	$output: {
 		label: 'Output',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.UtxoOutput,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$category: {
 		label: 'Category',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.BitcoinCashCashTokenCategory,
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -31,7 +28,6 @@ export default entity({
 	},
 	amount: {
 		label: 'Amount',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [

@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -17,13 +16,11 @@ export default entity({
 	scope: {
 		label: 'Scope',
 		description: 'The fixed scope value that identifies this hub row.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type.unit('_GlobalEvmAbiCatalog'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$observedTopics: {
 		label: 'observed topics',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.EvmTopic,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -32,7 +29,6 @@ export default entity({
 	},
 	$$observedSelectors: {
 		label: 'observed selectors',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.EvmSelector,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -41,7 +37,6 @@ export default entity({
 	},
 	$$observedErrors: {
 		label: 'observed errors',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.EvmError,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -50,7 +45,6 @@ export default entity({
 	},
 	$$timestamps: {
 		label: 'timestamps',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType._GlobalEvmAbiCatalog_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

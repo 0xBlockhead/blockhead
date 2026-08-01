@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -16,28 +15,24 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
 		label: 'Source',
 		description: 'The source that produced this observation.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	height: {
 		label: 'Height',
 		description: 'The block height.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -46,7 +41,6 @@ export default entity({
 	},
 	targetHeight: {
 		label: 'Target height',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -55,7 +49,6 @@ export default entity({
 	},
 	topBlockHash: {
 		label: 'Top block hash',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -64,7 +57,6 @@ export default entity({
 	},
 	difficulty: {
 		label: 'Difficulty',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -73,7 +65,6 @@ export default entity({
 	},
 	wideDifficulty: {
 		label: 'Wide difficulty',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -82,7 +73,6 @@ export default entity({
 	},
 	cumulativeDifficulty: {
 		label: 'Cumulative difficulty',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -91,7 +81,6 @@ export default entity({
 	},
 	wideCumulativeDifficulty: {
 		label: 'Wide cumulative difficulty',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -100,7 +89,6 @@ export default entity({
 	},
 	blockSizeLimit: {
 		label: 'Block size limit',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -109,7 +97,6 @@ export default entity({
 	},
 	blockSizeMedian: {
 		label: 'Block size median',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -118,7 +105,6 @@ export default entity({
 	},
 	blockWeightLimit: {
 		label: 'Block weight limit',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -127,7 +113,6 @@ export default entity({
 	},
 	blockWeightMedian: {
 		label: 'Block weight median',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -136,7 +121,6 @@ export default entity({
 	},
 	databaseSize: {
 		label: 'Database size',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -145,7 +129,6 @@ export default entity({
 	},
 	freeSpace: {
 		label: 'Free space',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -154,7 +137,6 @@ export default entity({
 	},
 	greyPeerlistSize: {
 		label: 'Grey peerlist size',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -163,7 +145,6 @@ export default entity({
 	},
 	whitePeerlistSize: {
 		label: 'White peerlist size',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -172,7 +153,6 @@ export default entity({
 	},
 	incomingConnections: {
 		label: 'Incoming connections',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -181,7 +161,6 @@ export default entity({
 	},
 	outgoingConnections: {
 		label: 'Outgoing connections',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -190,7 +169,6 @@ export default entity({
 	},
 	txCount: {
 		label: 'Transaction count',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -199,7 +177,6 @@ export default entity({
 	},
 	txPoolSize: {
 		label: 'Transaction pool size',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -208,7 +185,6 @@ export default entity({
 	},
 	altBlocksCount: {
 		label: 'Alt blocks',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -217,7 +193,6 @@ export default entity({
 	},
 	targetSeconds: {
 		label: 'Target seconds',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -226,7 +201,6 @@ export default entity({
 	},
 	rpcConnections: {
 		label: 'RPC connections',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -235,7 +209,6 @@ export default entity({
 	},
 	mainnet: {
 		label: 'Mainnet',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -244,7 +217,6 @@ export default entity({
 	},
 	nettype: {
 		label: 'Network type',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -253,7 +225,6 @@ export default entity({
 	},
 	offline: {
 		label: 'Offline',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -262,7 +233,6 @@ export default entity({
 	},
 	synchronized: {
 		label: 'Synchronized',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -271,7 +241,6 @@ export default entity({
 	},
 	wasBootstrapEverUsed: {
 		label: 'Bootstrap ever used',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -280,7 +249,6 @@ export default entity({
 	},
 	version: {
 		label: 'Version',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -289,7 +257,6 @@ export default entity({
 	},
 	status: {
 		label: 'Status',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

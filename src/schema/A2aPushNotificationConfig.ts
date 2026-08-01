@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
@@ -16,51 +15,43 @@ export default entity({
 })({
 	$task: {
 		label: 'task',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.A2aTask,
 		cardinality: EntityFieldCardinality.One,
 	},
 	configId: {
 		label: 'config ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	url: {
 		label: 'URL',
 		description: 'The URL for the source-domain resource.',
-		type: EntityFieldType.Primitive,
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	authKind: {
 		label: 'auth kind',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	authentication: {
 		label: 'authentication',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdAt: {
 		label: 'Created',
 		description: 'The time when the subject was created according to the source.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	deletedAt: {
 		label: 'deleted AT',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	status: {
 		label: 'status',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -16,27 +15,23 @@ export default entity({
 })({
 	$account: {
 		label: 'Account',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.SolanaAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	slot: {
 		label: 'Slot',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
 		label: 'Source',
 		description: 'The source that produced this observation.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -45,7 +40,6 @@ export default entity({
 	},
 	lamports: {
 		label: 'Lamports',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -55,7 +49,6 @@ export default entity({
 	},
 	$ownerProgram: {
 		label: 'Owner program',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.SolanaProgram,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -65,7 +58,6 @@ export default entity({
 	},
 	executable: {
 		label: 'Executable',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -75,7 +67,6 @@ export default entity({
 	},
 	rentEpoch: {
 		label: 'Rent epoch',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -85,7 +76,6 @@ export default entity({
 	},
 	spaceBytes: {
 		label: 'Space bytes',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -94,7 +84,6 @@ export default entity({
 	},
 	dataEncoding: {
 		label: 'Data encoding',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -104,7 +93,6 @@ export default entity({
 	},
 	parsedData: {
 		label: 'Parsed data',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

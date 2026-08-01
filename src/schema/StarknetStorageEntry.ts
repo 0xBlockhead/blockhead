@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,19 +14,16 @@ export default entity({
 })({
 	$contract: {
 		label: 'contract',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.StarknetContract,
 		cardinality: EntityFieldCardinality.One,
 	},
 	storageKey: {
 		label: 'storage key',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
 		label: 'timestamps',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.StarknetStorageEntry_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

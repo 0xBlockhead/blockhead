@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -16,32 +15,27 @@ export default entity({
 })({
 	$network: {
 		label: 'network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	epoch: {
 		label: 'epoch',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
 		label: 'Source',
 		description: 'The source that produced this observation.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	slot: {
 		label: 'slot',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	govActionId: {
 		label: 'governance action ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -50,7 +44,6 @@ export default entity({
 	},
 	$seatingProposal: {
 		label: 'seating proposal',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.CardanoGovernanceProposal,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -59,7 +52,6 @@ export default entity({
 	},
 	dissolved: {
 		label: 'dissolved',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -68,7 +60,6 @@ export default entity({
 	},
 	quorumNumerator: {
 		label: 'quorum numerator',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -77,7 +68,6 @@ export default entity({
 	},
 	quorumDenominator: {
 		label: 'quorum denominator',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -86,7 +76,6 @@ export default entity({
 	},
 	memberCount: {
 		label: 'member count',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -95,7 +84,6 @@ export default entity({
 	},
 	members: {
 		label: 'members',
-		type: EntityFieldType.Primitive,
 		primitiveType: type({
 			cc_cold_id: type('string'),
 			cc_cold_hex: type('string'),
@@ -113,13 +101,11 @@ export default entity({
 	},
 	threshold: {
 		label: 'threshold',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$votes: {
 		label: 'votes',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CardanoGovernanceVote,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

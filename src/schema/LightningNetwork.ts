@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,49 +14,41 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	name: {
 		label: 'Name',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$settlementNetwork: {
 		label: 'Settlement network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
 		label: 'Observations',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.LightningNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
 	},
 	$$nodes: {
 		label: 'Nodes',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.LightningNode,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
 	},
 	$$channels: {
 		label: 'Channels',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.LightningChannel,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
 	},
 	$$invoices: {
 		label: 'Invoices',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.BlockheadLightningInvoice,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$payments: {
 		label: 'Payments',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.BlockheadLightningPayment,
 		cardinality: EntityFieldCardinality.Many,
 	},

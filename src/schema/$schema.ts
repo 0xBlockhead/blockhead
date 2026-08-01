@@ -268,7 +268,8 @@ export const evaluateEntityFacetConditionPlan = (
 type EntityFieldDefinitionInput<_Source extends string = string> = (
 	EntityFieldDefinition<_Source> extends infer _FieldDefinition ?
 		_FieldDefinition extends EntityFieldDefinition<_Source> ?
-			Omit<_FieldDefinition, 'name'>
+			& Omit<_FieldDefinition, 'name' | 'type'>
+			& { readonly type?: never }
 		:
 			never
 	:
@@ -277,24 +278,46 @@ type EntityFieldDefinitionInput<_Source extends string = string> = (
 
 type EntityFieldDefinitionInputByName<_Source extends string = string> = Record<string, EntityFieldDefinitionInput<_Source>>
 
+type EntityFieldTypeFromName<_FieldName extends string> = (
+	_FieldName extends `$$${infer _ReferenceName}` ?
+		_ReferenceName extends '' ? never : EntityFieldType.EntitiesReference
+	: _FieldName extends `$${infer _ReferenceName}` ?
+		_ReferenceName extends '' ? never : EntityFieldType.EntityReference
+	:
+		EntityFieldType.Primitive
+)
+
+type EntityFieldDefinitionInputForName<
+	_FieldName extends string,
+	_Source extends string = string,
+> = (
+	EntityFieldTypeFromName<_FieldName> extends infer _FieldType extends EntityFieldType ?
+		& Omit<
+			Extract<EntityFieldDefinition<_Source>, { readonly type: _FieldType }>,
+			'name' | 'type'
+		>
+		& { readonly type?: never }
+		& (
+			_FieldType extends EntityFieldType.Primitive ?
+				{ readonly entityType?: never }
+			:
+				{
+					readonly primitiveType?: never
+					readonly quantity?: never
+				}
+		)
+	:
+		never
+)
+
 type EntityFieldDefinitionInputsWithValidNames<
 	_Fields extends EntityFieldDefinitionInputByName,
 > = {
 	readonly [_FieldName in keyof _Fields]: _FieldName extends string ?
-		_Fields[_FieldName]['type'] extends EntityFieldType.Primitive ?
-			_FieldName extends `$${string}` ? never : _Fields[_FieldName]
-		: _Fields[_FieldName]['type'] extends EntityFieldType.EntityReference ?
-			_FieldName extends `$$${string}` ?
-				never
-			: _FieldName extends `$${infer _ReferenceName}` ?
-				_ReferenceName extends '' ? never : _Fields[_FieldName]
-			:
-				never
-		: _Fields[_FieldName]['type'] extends EntityFieldType.EntitiesReference ?
-			_FieldName extends `$$${infer _ReferencesName}` ?
-				_ReferencesName extends '' ? never : _Fields[_FieldName]
-			:
-				never
+		'type' extends keyof _Fields[_FieldName] ?
+			never
+		: _Fields[_FieldName] extends EntityFieldDefinitionInputForName<_FieldName> ?
+			_Fields[_FieldName]
 		:
 			never
 	:
@@ -305,21 +328,23 @@ type EntityFieldDefinitionFromInput<
 	_FieldName extends string,
 	_Field extends EntityFieldDefinitionInput,
 > = (
-	_Field extends { readonly type: EntityFieldType.Primitive } ?
-		& _Field
-		& { readonly name: _FieldName }
-	: _Field extends { readonly type: EntityFieldType.EntityReference } ?
-		_FieldName extends `$${string}` ?
-			& _Field
+	_Field extends EntityFieldDefinitionInputForName<_FieldName> ?
+		EntityFieldTypeFromName<_FieldName> extends infer _FieldType extends EntityFieldType ?
+			& Extract<EntityFieldDefinition, { readonly type: _FieldType }>
+			& Omit<_Field, 'name' | 'type'>
 			& { readonly name: _FieldName }
 		:
 			never
-	: _Field extends { readonly type: EntityFieldType.EntitiesReference } ?
-		_FieldName extends `$$${string}` ?
-			& _Field
-			& { readonly name: _FieldName }
-		:
-			never
+	:
+		never
+)
+
+type EntityFieldDefinitionFromNamedInput<
+	_Fields,
+	_FieldName extends keyof _Fields & string,
+> = (
+	_Fields[_FieldName] extends infer _Field extends EntityFieldDefinitionInput ?
+		EntityFieldDefinitionFromInput<_FieldName, _Field>
 	:
 		never
 )
@@ -393,16 +418,16 @@ type EntityFacetConditionTarget<
 		: _Segment extends keyof _Fields ?
 			_Rest extends readonly [] ?
 				{
-					readonly field: _Fields[_Segment]
+					readonly field: EntityFieldDefinitionFromNamedInput<_Fields, _Segment>
 					readonly indexed: false
 				}
 			: _Rest extends readonly [number] ?
-				_Fields[_Segment] extends {
+				EntityFieldDefinitionFromNamedInput<_Fields, _Segment> extends {
 					readonly type: EntityFieldType.Primitive
 					readonly cardinality: EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
 				} ?
 					{
-						readonly field: _Fields[_Segment]
+						readonly field: EntityFieldDefinitionFromNamedInput<_Fields, _Segment>
 						readonly indexed: true
 					}
 				:
@@ -522,6 +547,12 @@ const entityDefinitionFields = <_Source extends string>(
 ): EntityFieldDefinition<_Source>[] => Object.entries(fields).map(([name, fieldDefinition]) => ({
 	...fieldDefinition,
 	name,
+	type: name.startsWith('$$') ?
+		EntityFieldType.EntitiesReference
+	: name.startsWith('$') ?
+		EntityFieldType.EntityReference
+	:
+		EntityFieldType.Primitive,
 } as EntityFieldDefinition<_Source>))
 
 const entityFacetDefinition = <_Source extends string>(
@@ -615,11 +646,17 @@ export const entity = <
 					_SelectorName in keyof _Selectors
 				]: _Selectors[_SelectorName] extends readonly [string, ...string[]] ?
 					_Selectors[_SelectorName][number] extends keyof _Fields & string ?
-						_Fields[_Selectors[_SelectorName][number]]['type'] extends (
+						EntityFieldDefinitionFromNamedInput<
+							_Fields,
+							_Selectors[_SelectorName][number]
+						>['type'] extends (
 							| EntityFieldType.Primitive
 							| EntityFieldType.EntityReference
 						) ?
-							_Fields[_Selectors[_SelectorName][number]]['cardinality'] extends (
+							EntityFieldDefinitionFromNamedInput<
+								_Fields,
+								_Selectors[_SelectorName][number]
+							>['cardinality'] extends (
 								| EntityFieldCardinality.One
 								| EntityFieldCardinality.ZeroOrOne
 							) ?

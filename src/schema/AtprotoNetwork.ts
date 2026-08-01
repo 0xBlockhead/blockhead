@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -17,37 +16,31 @@ export default entity({
 	scope: {
 		label: 'Scope',
 		description: 'The fixed scope value that identifies this protocol row.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type.unit('AtprotoNetwork'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	protocolName: {
 		label: 'Protocol',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	homeUrl: {
 		label: 'Home URL',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	docsUrl: {
 		label: 'Docs URL',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	registryName: {
 		label: 'Registry name',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	relationshipModel: {
 		label: 'Connection model',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

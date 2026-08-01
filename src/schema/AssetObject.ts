@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -16,55 +15,46 @@ export default entity({
 })({
 	$assetInstance: {
 		label: 'asset instance',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.AssetInstance,
 		cardinality: EntityFieldCardinality.One,
 	},
 	objectKey: {
 		label: 'object key',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	objectKind: {
 		label: 'object kind',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$class: {
 		label: 'class',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.AssetClass,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	tokenId: {
 		label: 'Token ID',
 		description: 'The token identifier within its collection or contract.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	slot: {
 		label: 'slot',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	metadataUri: {
 		label: 'metadata URI',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$metadata: {
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.TokenMetadataDocument,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$usageRights: {
 		label: 'usage rights',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.UsageRight_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

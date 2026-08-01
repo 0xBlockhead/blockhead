@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -17,13 +16,11 @@ export default entity({
 })({
 	eventId: {
 		label: 'Event ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	kind: {
 		label: 'Kind',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -33,7 +30,6 @@ export default entity({
 	},
 	pubkey: {
 		label: 'Pubkey',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -43,7 +39,6 @@ export default entity({
 	},
 	content: {
 		label: 'Text',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -53,7 +48,6 @@ export default entity({
 	},
 	sensitive: {
 		label: 'Sensitive',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -64,7 +58,6 @@ export default entity({
 	},
 	contentWarning: {
 		label: 'Content warning',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -76,7 +69,6 @@ export default entity({
 	createdAt: {
 		label: 'Created',
 		description: 'The event creation time normalized to Unix milliseconds.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -86,13 +78,11 @@ export default entity({
 	},
 	tags: {
 		label: 'Tags',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$author: {
 		label: 'Author',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.NostrProfile,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -102,7 +92,6 @@ export default entity({
 	},
 	replyToEventId: {
 		label: 'Reply to event ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -112,7 +101,6 @@ export default entity({
 	},
 	rootEventId: {
 		label: 'Root event ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -122,7 +110,6 @@ export default entity({
 	},
 	$replyToNote: {
 		label: 'Reply to note',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -133,7 +120,6 @@ export default entity({
 	},
 	$rootNote: {
 		label: 'Root note',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -144,7 +130,6 @@ export default entity({
 	},
 	$$replies: {
 		label: 'Replies',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -154,7 +139,6 @@ export default entity({
 	},
 	$$reactions: {
 		label: 'Reactions',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NostrReaction,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

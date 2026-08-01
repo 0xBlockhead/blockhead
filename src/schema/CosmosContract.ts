@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,32 +14,27 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	address: {
 		label: 'Address',
 		description: 'The address or account identifier used by the source protocol.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	codeId: {
 		label: 'Code ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$creator: {
 		label: 'Creator',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.CosmosAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$admin: {
 		label: 'Admin',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.CosmosAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},

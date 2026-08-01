@@ -2,7 +2,6 @@
 
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -18,7 +17,6 @@ export default entity({
 	caip10: {
 		label: 'CAIP-10',
 		description: 'The account identifier in CAIP-10 namespace, reference, and address form.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type({
 			namespace: type('string'),
 			reference: type('string'),
@@ -28,7 +26,6 @@ export default entity({
 	},
 	$network: {
 		label: 'network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -38,7 +35,6 @@ export default entity({
 	namespace: {
 		label: 'Namespace',
 		description: 'The CAIP namespace that selects this account\'s protocol projection.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -48,7 +44,6 @@ export default entity({
 	address: {
 		label: 'Address',
 		description: 'The address or account identifier used by the source protocol.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -71,7 +66,6 @@ export default entity({
 		})({
 			$account: {
 				label: 'EVM account',
-				type: EntityFieldType.EntityReference,
 				entityType: EntityType.EvmNetworkAccount,
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -87,7 +81,6 @@ export default entity({
 		})({
 			$account: {
 				label: 'Aptos account',
-				type: EntityFieldType.EntityReference,
 				entityType: EntityType.AptosAccount,
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -103,7 +96,6 @@ export default entity({
 		})({
 			$account: {
 				label: 'Cardano address',
-				type: EntityFieldType.EntityReference,
 				entityType: EntityType.CardanoAddress,
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -119,7 +111,6 @@ export default entity({
 		})({
 			$account: {
 				label: 'Cosmos account',
-				type: EntityFieldType.EntityReference,
 				entityType: EntityType.CosmosAccount,
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -135,7 +126,6 @@ export default entity({
 		})({
 			$account: {
 				label: 'Hedera account',
-				type: EntityFieldType.EntityReference,
 				entityType: EntityType.HederaAccount,
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -151,7 +141,6 @@ export default entity({
 		})({
 			$account: {
 				label: 'Polkadot account',
-				type: EntityFieldType.EntityReference,
 				entityType: EntityType.PolkadotAccount,
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -167,7 +156,6 @@ export default entity({
 		})({
 			$account: {
 				label: 'Solana account',
-				type: EntityFieldType.EntityReference,
 				entityType: EntityType.SolanaAccount,
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -183,7 +171,6 @@ export default entity({
 		})({
 			$account: {
 				label: 'Starknet account contract',
-				type: EntityFieldType.EntityReference,
 				entityType: EntityType.StarknetContract,
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -199,7 +186,6 @@ export default entity({
 		})({
 			$account: {
 				label: 'Tron account',
-				type: EntityFieldType.EntityReference,
 				entityType: EntityType.TronAccount,
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -215,7 +201,6 @@ export default entity({
 		})({
 			$account: {
 				label: 'TON account',
-				type: EntityFieldType.EntityReference,
 				entityType: EntityType.TonAccount,
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -231,7 +216,6 @@ export default entity({
 		})({
 			$account: {
 				label: 'XRPL account',
-				type: EntityFieldType.EntityReference,
 				entityType: EntityType.XrplAccount,
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [
@@ -247,7 +231,6 @@ export default entity({
 		})({
 			$account: {
 				label: 'UTXO address',
-				type: EntityFieldType.EntityReference,
 				entityType: EntityType.UtxoAddress,
 				cardinality: EntityFieldCardinality.One,
 				defaultSources: [

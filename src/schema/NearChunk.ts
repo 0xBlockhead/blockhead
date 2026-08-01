@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -16,25 +15,21 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	chunkHash: {
 		label: 'Chunk hash',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$block: {
 		label: 'Block',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.NearBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	shardId: {
 		label: 'Shard ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -43,7 +38,6 @@ export default entity({
 	},
 	gasUsed: {
 		label: 'Gas used',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -52,7 +46,6 @@ export default entity({
 	},
 	$$transactions: {
 		label: 'Transactions',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NearTransaction,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

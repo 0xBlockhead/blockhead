@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,49 +14,41 @@ export default entity({
 })({
 	$contract: {
 		label: 'contract',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.TezosContract,
 		cardinality: EntityFieldCardinality.One,
 	},
 	bigMapId: {
 		label: 'big map ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	path: {
 		label: 'path',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	keyType: {
 		label: 'key type',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	valueType: {
 		label: 'value type',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$keys: {
 		label: 'keys',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.TezosBigMapKey,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$updates: {
 		label: 'updates',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.TezosBigMapDiff,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
 		label: 'timestamps',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.TezosBigMap_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

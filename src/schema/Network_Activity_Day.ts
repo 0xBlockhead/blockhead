@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { OptimisticProviderResult } from '$/schema/OptimisticProviderResult.ts'
 import { Source } from '$/sources/Source.ts'
@@ -18,25 +17,21 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	dayStartTimestampMs: {
 		label: 'Day start',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
 		label: 'Source',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockCount: {
 		label: 'Block count',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -45,7 +40,6 @@ export default entity({
 	},
 	transactionCount: {
 		label: 'Transaction count',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -54,7 +48,6 @@ export default entity({
 	},
 	endBlockNumber: {
 		label: 'End block number',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -63,7 +56,6 @@ export default entity({
 	},
 	indexedThroughTimestampMs: {
 		label: 'Indexed through',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -72,7 +64,6 @@ export default entity({
 	},
 	resolvedAtMs: {
 		label: 'Resolved at',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
@@ -81,7 +72,6 @@ export default entity({
 	},
 	trustModel: {
 		label: 'Trust model',
-		type: EntityFieldType.Primitive,
 		primitiveType: type.enumerated(...Object.values(OptimisticProviderResult)),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [

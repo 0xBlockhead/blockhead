@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
@@ -18,31 +17,26 @@ export default entity({
 })({
 	$network: {
 		label: 'network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	nodeId: {
 		label: 'node ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$operator: {
 		label: 'operator',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	endpoint: {
 		label: 'endpoint',
-		type: EntityFieldType.Primitive,
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
 		label: 'timestamps',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.ZeroGStorageNode_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -51,13 +45,11 @@ export default entity({
 	},
 	$$storedChunks: {
 		label: 'stored chunks',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.ZeroGDataChunk,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$proofs: {
 		label: 'proofs',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.ZeroGStorageProof,
 		cardinality: EntityFieldCardinality.Many,
 	},

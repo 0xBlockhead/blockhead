@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -16,19 +15,16 @@ export default entity({
 })({
 	$network: {
 		label: 'network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	accountId: {
 		label: 'account ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$allowances: {
 		label: 'allowances',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.HederaAllowance,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -37,7 +33,6 @@ export default entity({
 	},
 	$$tokens: {
 		label: 'tokens',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.HederaTokenAssociation,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -46,7 +41,6 @@ export default entity({
 	},
 	$$nfts: {
 		label: 'nfts',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.HederaNft,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -55,7 +49,6 @@ export default entity({
 	},
 	$$transactions: {
 		label: 'transactions',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.HederaTransaction,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -64,7 +57,6 @@ export default entity({
 	},
 	$$timestamps: {
 		label: 'timestamps',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.HederaAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

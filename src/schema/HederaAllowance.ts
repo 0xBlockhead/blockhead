@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,50 +14,42 @@ export default entity({
 })({
 	$owner: {
 		label: 'owner',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.HederaAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$spender: {
 		label: 'spender',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.HederaAccount,
 		cardinality: EntityFieldCardinality.One,
 	},
 	allowanceKind: {
 		label: 'allowance kind',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	tokenId: {
 		label: 'Token ID',
 		description: 'The token identifier within its collection or contract.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	serialNumber: {
 		label: 'serial number',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$token: {
 		label: 'token',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.HederaToken,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$nft: {
 		label: 'NFT',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.HederaNft,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
 		label: 'timestamps',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.HederaAllowance_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

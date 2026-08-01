@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -16,20 +15,17 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	id: {
 		label: 'ID',
 		description: 'The identifier assigned by the source domain.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$baseToken: {
 		label: 'Base token',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -38,7 +34,6 @@ export default entity({
 	},
 	$quoteToken: {
 		label: 'Quote token',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -47,31 +42,26 @@ export default entity({
 	},
 	fee: {
 		label: 'Fee',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	tickSpacing: {
 		label: 'Tick spacing',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$hooks: {
 		label: 'Hooks',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	v4PoolId: {
 		label: 'v4 pool ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {
 		label: 'Observations',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.LiquidityPool_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -80,13 +70,11 @@ export default entity({
 	},
 	$$blocks: {
 		label: 'Blocks',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.LiquidityPool_Block,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$leverages: {
 		label: 'Leverage positions',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.Leverage,
 		cardinality: EntityFieldCardinality.Many,
 	},

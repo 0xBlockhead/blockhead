@@ -6719,10 +6719,6 @@ const generateEntitySchemaFile = (entity: Entity, indexes: GenerationIndexes) =>
 			names: ['EntityFieldCardinality'],
 		},
 		{
-			from: '$/schema/EntityFieldType.ts',
-			names: ['EntityFieldType'],
-		},
-		{
 			from: '$/schema/EntityType.ts',
 			names: ['EntityType'],
 		},
@@ -6789,7 +6785,6 @@ const emitSchemaFieldEntry = (fieldDefinition: EntityField, indexes: GenerationI
 		['label', fieldDefinition.label == null ? undefined : emitTypeScript(fieldDefinition.label)],
 		['labelPlural', fieldDefinition.labelPlural == null ? undefined : emitTypeScript(fieldDefinition.labelPlural)],
 		['description', fieldDefinition.description == null ? undefined : emitTypeScript(fieldDefinition.description)],
-		['type', enumAccess('EntityFieldType', fieldDefinition.type)],
 		[
 			'primitiveType',
 			fieldDefinition.type === EntityFieldType.Primitive ?

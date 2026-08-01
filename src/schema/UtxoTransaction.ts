@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,79 +14,66 @@ export default entity({
 })({
 	$network: {
 		label: 'Network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	txId: {
 		label: 'Transaction ID',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$block: {
 		label: 'Block',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.UtxoBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	version: {
 		label: 'Version',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	lockTime: {
 		label: 'Lock time',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	sizeBytes: {
 		label: 'Size',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	virtualSizeBytes: {
 		label: 'Virtual size',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	weightUnits: {
 		label: 'Weight',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	feeSats: {
 		label: 'Fee',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	isCoinbase: {
 		label: 'Coinbase',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$inputs: {
 		label: 'Inputs',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.UtxoInput,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$outputs: {
 		label: 'Outputs',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.UtxoOutput,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$zcashShieldedActions: {
 		label: 'Zcash shielded actions',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.ZcashShieldedAction,
 		cardinality: EntityFieldCardinality.Many,
 	},

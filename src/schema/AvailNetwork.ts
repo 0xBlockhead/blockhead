@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,31 +14,26 @@ export default entity({
 })({
 	$network: {
 		label: 'network',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$timestamps: {
 		label: 'timestamps',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.AvailNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$blocks: {
 		label: 'blocks',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.AvailBlock,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$appIds: {
 		label: 'app ids',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.AvailAppId,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$dataSubmissions: {
 		label: 'data submissions',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.AvailDataSubmission,
 		cardinality: EntityFieldCardinality.Many,
 	},

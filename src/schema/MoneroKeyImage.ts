@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -16,25 +15,21 @@ export default entity({
 })({
 	$transaction: {
 		label: 'Transaction',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.MoneroTransaction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	inputIndex: {
 		label: 'Input index',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	keyImage: {
 		label: 'Key image',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$ring: {
 		label: 'Ring',
-		type: EntityFieldType.EntityReference,
 		entityType: EntityType.MoneroRing,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

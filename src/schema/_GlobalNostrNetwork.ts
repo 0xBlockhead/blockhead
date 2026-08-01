@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
@@ -19,13 +18,11 @@ export default entity({
 	scope: {
 		label: 'Scope',
 		description: 'The fixed scope value that identifies this global hub row.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type.unit('_GlobalNostrNetwork'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	protocolName: {
 		label: 'Protocol',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -34,7 +31,6 @@ export default entity({
 	},
 	registryName: {
 		label: 'Registry name',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -43,7 +39,6 @@ export default entity({
 	},
 	homeUrl: {
 		label: 'Home',
-		type: EntityFieldType.Primitive,
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -52,7 +47,6 @@ export default entity({
 	},
 	docsUrl: {
 		label: 'Docs',
-		type: EntityFieldType.Primitive,
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -61,7 +55,6 @@ export default entity({
 	},
 	relationshipModel: {
 		label: 'Connection model',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -70,7 +63,6 @@ export default entity({
 	},
 	$$observedProfiles: {
 		label: 'Profiles',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NostrProfile,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -80,7 +72,6 @@ export default entity({
 	},
 	$$observedNotes: {
 		label: 'Notes',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -90,7 +81,6 @@ export default entity({
 	},
 	$$observedRelays: {
 		label: 'Relays',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NostrRelay,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -100,7 +90,6 @@ export default entity({
 	},
 	$$observedReposts: {
 		label: 'Reposts',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NostrRepost,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -109,13 +98,11 @@ export default entity({
 	},
 	$$observedReactions: {
 		label: 'Reactions',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NostrReaction,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$observedArticles: {
 		label: 'Articles',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NostrArticle,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -124,7 +111,6 @@ export default entity({
 	},
 	$$timestamps: {
 		label: 'Observations',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType._GlobalNostrNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

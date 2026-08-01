@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
@@ -19,37 +18,31 @@ export default entity({
 	scope: {
 		label: 'Scope',
 		description: 'The fixed scope value that identifies this hub row.',
-		type: EntityFieldType.Primitive,
 		primitiveType: type.unit('_GlobalAtprotoNetwork'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	protocolName: {
 		label: 'Protocol',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	relationshipModel: {
 		label: 'Connection model',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	homeUrl: {
 		label: 'Home',
-		type: EntityFieldType.Primitive,
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	docsUrl: {
 		label: 'Documentation',
-		type: EntityFieldType.Primitive,
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$observedActors: {
 		label: 'Accounts',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.AtprotoActor,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -59,7 +52,6 @@ export default entity({
 	},
 	$$observedPosts: {
 		label: 'Recent posts',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.AtprotoPost,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -69,7 +61,6 @@ export default entity({
 	},
 	$$timestamps: {
 		label: 'Observations',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType._GlobalAtprotoNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},

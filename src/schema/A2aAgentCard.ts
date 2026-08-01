@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
@@ -16,19 +15,16 @@ export default entity({
 })({
 	agentCardUrl: {
 		label: 'agent card URL',
-		type: EntityFieldType.Primitive,
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$snapshots: {
 		label: 'snapshots',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.A2aAgentCard_Snapshot,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$documents: {
 		label: 'documents',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.AiDocument,
 		cardinality: EntityFieldCardinality.Many,
 	},

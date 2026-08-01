@@ -4,7 +4,6 @@ import type { SourceResolverModule } from '$/resolvers/$resolvers.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -18,7 +17,6 @@ const fixtureSchema = [
 		},
 	})({
 		network: {
-			type: EntityFieldType.Primitive,
 			primitiveType: arktype({
 				namespace: "'eip155' | 'cosmos'",
 				reference: 'string',
@@ -26,12 +24,10 @@ const fixtureSchema = [
 			cardinality: EntityFieldCardinality.One,
 		},
 		slug: {
-			type: EntityFieldType.Primitive,
 			primitiveType: arktype('string'),
 			cardinality: EntityFieldCardinality.One,
 		},
 		name: {
-			type: EntityFieldType.Primitive,
 			primitiveType: arktype('string'),
 			cardinality: EntityFieldCardinality.One,
 		},

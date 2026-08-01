@@ -2,7 +2,6 @@
 
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -16,13 +15,11 @@ export default entity({
 })({
 	mintUrl: {
 		label: 'mint URL',
-		type: EntityFieldType.Primitive,
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$keysets: {
 		label: 'keysets',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CashuKeyset,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
@@ -31,7 +28,6 @@ export default entity({
 	},
 	$$timestamps: {
 		label: 'Observations',
-		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CashuMint_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [

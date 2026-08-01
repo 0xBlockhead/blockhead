@@ -59,7 +59,6 @@ import {
 	ProjectionResolution,
 } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
-import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
@@ -90,22 +89,18 @@ const materializationFixtureSchema = [
 		},
 	})({
 		slug: {
-			type: EntityFieldType.Primitive,
 			primitiveType: arktype('string'),
 			cardinality: EntityFieldCardinality.One,
 		},
 		values: {
-			type: EntityFieldType.Primitive,
 			primitiveType: arktype('number'),
 			cardinality: EntityFieldCardinality.Many,
 		},
 		$$children: {
-			type: EntityFieldType.EntitiesReference,
 			entityType: 'MaterializationChild',
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
 		converted: {
-			type: EntityFieldType.Primitive,
 			primitiveType: arktype('bigint'),
 			cardinality: EntityFieldCardinality.One,
 		},
@@ -122,22 +117,18 @@ const materializationFixtureSchema = [
 		},
 	})({
 		id: {
-			type: EntityFieldType.Primitive,
 			primitiveType: arktype('string'),
 			cardinality: EntityFieldCardinality.One,
 		},
 		title: {
-			type: EntityFieldType.Primitive,
 			primitiveType: arktype('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		kind: {
-			type: EntityFieldType.Primitive,
 			primitiveType: arktype('string'),
 			cardinality: EntityFieldCardinality.One,
 		},
 		$sibling: {
-			type: EntityFieldType.EntityReference,
 			entityType: 'MaterializationChild',
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
@@ -151,7 +142,6 @@ const materializationFixtureSchema = [
 				is: 'left',
 			})({
 				label: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 				},
@@ -161,7 +151,6 @@ const materializationFixtureSchema = [
 				is: 'right',
 			})({
 				label: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 				},
@@ -677,12 +666,10 @@ describe('client resolver stack architecture', () => {
 				},
 			})({
 				slug: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 				},
 				items: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.ZeroOrMany,
 				},
@@ -1774,12 +1761,10 @@ describe('client resolver stack architecture', () => {
 				},
 			})({
 				slug: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 				},
 				$$children: {
-					type: EntityFieldType.EntitiesReference,
 					entityType: 'ContinuationChild',
 					cardinality: EntityFieldCardinality.ZeroOrMany,
 				},
@@ -1796,7 +1781,6 @@ describe('client resolver stack architecture', () => {
 				},
 			})({
 				id: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 				},
@@ -2093,32 +2077,26 @@ describe('client resolver stack architecture', () => {
 				},
 			})({
 				slug: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 				},
 				namespace: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 				},
 				value: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 				},
 				$child: {
-					type: EntityFieldType.EntityReference,
 					entityType: 'SelectionChildFixture',
 					cardinality: EntityFieldCardinality.One,
 				},
 				$$children: {
-					type: EntityFieldType.EntitiesReference,
 					entityType: 'SelectionChildFixture',
 					cardinality: EntityFieldCardinality.Many,
 				},
 				kind: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 				},
@@ -2132,12 +2110,10 @@ describe('client resolver stack architecture', () => {
 						is: 'parent',
 					})({
 						parentKind: {
-							type: EntityFieldType.Primitive,
 							primitiveType: arktype('string'),
 							cardinality: EntityFieldCardinality.One,
 						},
 						$parentChild: {
-							type: EntityFieldType.EntityReference,
 							entityType: 'SelectionChildFixture',
 							cardinality: EntityFieldCardinality.One,
 						},
@@ -2151,7 +2127,6 @@ describe('client resolver stack architecture', () => {
 								is: 'child',
 							})({
 								childField: {
-									type: EntityFieldType.Primitive,
 									primitiveType: arktype('string'),
 									cardinality: EntityFieldCardinality.One,
 								},
@@ -2163,7 +2138,6 @@ describe('client resolver stack architecture', () => {
 						is: 'other',
 					})({
 						$otherChild: {
-							type: EntityFieldType.EntityReference,
 							entityType: 'SelectionChildFixture',
 							cardinality: EntityFieldCardinality.One,
 						},
@@ -2178,22 +2152,18 @@ describe('client resolver stack architecture', () => {
 				},
 			})({
 				id: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('bigint'),
 					cardinality: EntityFieldCardinality.One,
 				},
 				label: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 				},
 				kind: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 				},
 				$owner: {
-					type: EntityFieldType.EntityReference,
 					entityType: 'SelectionFixture',
 					cardinality: EntityFieldCardinality.One,
 				},
@@ -2210,7 +2180,6 @@ describe('client resolver stack architecture', () => {
 						is: 'fixture',
 					})({
 						$fixture: {
-							type: EntityFieldType.EntityReference,
 							entityType: 'SelectionFixture',
 							cardinality: EntityFieldCardinality.One,
 						},
@@ -2641,13 +2610,11 @@ describe('client resolver stack architecture', () => {
 				},
 			})({
 				slug: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 					defaultSources: ['identity-source'],
 				},
 				kind: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 				},
@@ -2661,7 +2628,6 @@ describe('client resolver stack architecture', () => {
 						is: 'details',
 					})({
 						status: {
-							type: EntityFieldType.Primitive,
 							primitiveType: arktype('string'),
 							cardinality: EntityFieldCardinality.One,
 							defaultSources: ['facet-source'],
@@ -2837,12 +2803,10 @@ describe('client resolver stack architecture', () => {
 				},
 			})({
 				did: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 				},
 				handle: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 				},
@@ -3558,12 +3522,10 @@ describe('client resolver stack architecture', () => {
 				},
 			})({
 				slug: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 				},
 				items: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.Many,
 				},
@@ -3789,12 +3751,10 @@ describe('client resolver stack architecture', () => {
 				},
 			})({
 				slug: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 				},
 				items: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.Many,
 				},
@@ -3958,22 +3918,18 @@ describe('client resolver stack architecture', () => {
 				},
 			})({
 				slug: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 				},
 				note: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 				},
 				$related: {
-					type: EntityFieldType.EntityReference,
 					entityType: 'LocalAuthorityRelatedFixture',
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 				},
 				items: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.Many,
 				},
@@ -3990,7 +3946,6 @@ describe('client resolver stack architecture', () => {
 				},
 			})({
 				id: {
-					type: EntityFieldType.Primitive,
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.One,
 				},
