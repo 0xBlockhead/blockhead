@@ -7328,7 +7328,7 @@ const generateSourceProviderBindingsFile = (
 	// credential catalog.
 	const providerName = pascal(provider.provider)
 	const providerHasMultipleSources = new Set(bindings.map(({ source }) => source)).size > 1
-	const bindingRows = bindings.map(({ binding, source }, index) => {
+	const bindingRows = bindings.map(({ binding, source }) => {
 		const sourceName = pascal(String(source))
 		const targetName = pascal(binding.target.key.replace(/[^A-Za-z0-9]+/g, '-'))
 		const sourceSuffix = sourceName.startsWith(providerName) ? sourceName.slice(providerName.length) : sourceName
@@ -7350,7 +7350,6 @@ const generateSourceProviderBindingsFile = (
 		return {
 			binding,
 			source: String(source),
-			index,
 			endpoints: {
 				identity: JSON.stringify(binding.endpoints),
 				expression: emitArray(binding.endpoints.map((endpoint) => emitObject([
@@ -7406,8 +7405,8 @@ const generateSourceProviderBindingsFile = (
 				binding.artifacts ?? null,
 			])
 		)).values()]
-		const bindingGroupIndexByBindingIndex = new Map(bindingGroups.flatMap((group, groupIndex) => (
-			group.map(({ index }) => [index, groupIndex] as const)
+		const bindingGroupIndexByBinding = new Map(bindingGroups.flatMap((group, groupIndex) => (
+			group.map(({ binding }) => [binding, groupIndex] as const)
 		)))
 		const repeatedBindingGroups = bindingGroups.filter((group) => group.length > 1)
 		// One repeated group needs only its source name. Multiple groups append the
@@ -7446,7 +7445,7 @@ const generateSourceProviderBindingsFile = (
 			source,
 			sourceBindingRows,
 			bindingGroups,
-			bindingGroupIndexByBindingIndex,
+			bindingGroupIndexByBinding,
 			bindingBaseNames,
 		}
 	})
@@ -7471,7 +7470,7 @@ const generateSourceProviderBindingsFile = (
 		source,
 		sourceBindingRows,
 		bindingGroups,
-		bindingGroupIndexByBindingIndex,
+		bindingGroupIndexByBinding,
 		bindingBaseNames,
 	}) => ({
 		source,
@@ -7488,15 +7487,14 @@ const generateSourceProviderBindingsFile = (
 		}),
 		bindings: sourceBindingRows.map(({
 			binding,
-			index,
 			endpoints,
 			operationGroups,
 			credentials,
 			artifacts,
-		}) => {
-			const groupIndex = bindingGroupIndexByBindingIndex.get(index)
+		}, bindingIndex) => {
+			const groupIndex = bindingGroupIndexByBinding.get(binding)
 			if (groupIndex == null)
-				throw new Error(`${source} binding ${index} has no binding-axis group`)
+				throw new Error(`${source} binding ${bindingIndex} has no binding-axis group`)
 			return emitSourceBinding(source, binding, {
 				endpoints: properties.endpoints.reference(endpoints) ?? '[]',
 				operationGroups: properties.operationGroups.reference(operationGroups) ?? '[]',
@@ -7538,7 +7536,7 @@ const generateSourceProviderBindingsFile = (
 			)))
 		))
 		if (orderedMatrixRows.some((row, index) => (
-			row?.index !== sourcePlan.sourceBindingRows[index]?.index
+			row !== sourcePlan.sourceBindingRows[index]
 		)))
 			return []
 

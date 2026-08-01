@@ -172,6 +172,15 @@ test('derives provider partitions only at their emitter invocation', async () =>
 	assert.match(generatorSource, /sourceProviders\.flatMap\(\(provider\) => \{[\s\S]*?const providerBindings = indexes\.sourceBindings\.filter[\s\S]*?generateSourceProviderBindingsFile\(provider, providerBindings\)[\s\S]*?generationInput\.sources\.filter\(\(source\) => source\.provider === provider\.provider\)/)
 })
 
+test('uses authored binding identity instead of synthetic row indexes', async () => {
+	const generatorSource = await readFile('scripts/app/generate.ts', 'utf8')
+
+	assert.doesNotMatch(generatorSource, /bindingGroupIndexByBindingIndex|row\?\.index|sourceBindingRows\[index\]\?\.index/)
+	assert.doesNotMatch(generatorSource, /bindings\.map\(\(\{ binding, source \}, index\) =>/)
+	assert.match(generatorSource, /const bindingGroupIndexByBinding = new Map\(bindingGroups\.flatMap\(\(group, groupIndex\) => \(\n\t\t\tgroup\.map\(\(\{ binding \}\) => \[binding, groupIndex\] as const\)/)
+	assert.match(generatorSource, /orderedMatrixRows\.some\(\(row, index\) => \(\n\t\t\trow !== sourcePlan\.sourceBindingRows\[index\]/)
+})
+
 test('owns Esplora target identities without object stringification', () => {
 	assert.deepEqual(
 		sourceBindingRows
