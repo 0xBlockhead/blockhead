@@ -769,6 +769,15 @@ const retainedPluralEntities = app.schema.entities.filter((entity) => (
 ))
 
 test('generated views and pages import exactly the dependencies they use', () => {
+	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
+	const importPlanningStart = generatorSource.indexOf('const scriptBeforePendingEntity =')
+	const importPlanningSource = generatorSource.slice(
+		importPlanningStart,
+		generatorSource.indexOf('\n\tconst markup =', importPlanningStart)
+	)
+	assert.match(importPlanningSource, /renderedCollectionRouteExpressions\.length > 0/)
+	assert.doesNotMatch(importPlanningSource, /renderCollectionRouteValueExpression\(/)
+
 	const dependencyContracts = [
 		['ResourceBoundary', /^\s*import ResourceBoundary from '\$\/components\/ResourceBoundary\.svelte'$/m, /<ResourceBoundary\b/],
 		['resolve', /^\s*import \{ resolve \} from '\$app\/paths'$/m, /\bresolve\(/],

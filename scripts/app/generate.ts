@@ -10631,21 +10631,12 @@ const generateSingularViewFile = (
 		...((
 			entityHrefExpression != null
 			|| allViewItems(entity, indexes).some((item) => typeof item === 'object' && 'link' in item && item.link != null)
+			|| renderedCollectionRouteExpressions.length > 0
 			|| sections.some((section) => {
 				const fieldDefinition = fieldDefinitionByReference(entity, section.field, indexes)
 				return (
 					fieldDefinition?.type === EntityFieldType.EntitiesReference
-					&& (
-						section.href != null
-						|| fieldDefinition.entityType != null
-						&& renderCollectionRouteValueExpression(
-							entity,
-							indexes,
-							section.field,
-							fieldDefinition.entityType,
-							'selection.entitySelector'
-						) != null
-					)
+					&& section.href != null
 				)
 			})
 			|| carouselsToRender.some((carousel) => carousel.sections.some((section) => {
@@ -10656,16 +10647,7 @@ const generateSingularViewFile = (
 				return (
 					fieldDefinition?.type === EntityFieldType.EntitiesReference
 					&& fieldDefinition.entityType != null
-					&& (
-						section.link != null
-						|| renderCollectionRouteValueExpression(
-							entity,
-							indexes,
-							section.field,
-							fieldDefinition.entityType,
-							'selection.entitySelector'
-						) != null
-					)
+					&& section.link != null
 				)
 			}))
 		) ? [
