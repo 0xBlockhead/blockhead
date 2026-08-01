@@ -3660,6 +3660,23 @@ test('rejects missing, Many, and Zero selector fields before route compilation',
 	)
 })
 
+test('validates one canonical entity type list', () => {
+	const duplicateEntityApp = structuredClone(app)
+	const network = duplicateEntityApp.schema.entities.find((entity) => entity.entityType === EntityType.Network)
+	assert.ok(network)
+	duplicateEntityApp.schema.entities.push(structuredClone(network))
+
+	assert.throws(
+		() => compileApp(duplicateEntityApp),
+		/Duplicate entity type: Network/
+	)
+	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
+	assert.match(generatorSource, /const entityTypes = Object\.freeze\(activeEntities\.map/)
+	assert.equal((generatorSource.match(/expectUnique\('entity type'/g) ?? []).length, 1)
+	assert.doesNotMatch(generatorSource, /expectUnique\('active entity type'/)
+	assert.equal((generatorSource.match(/selector references missing field/g) ?? []).length, 1)
+})
+
 test('keeps route projection ownership explicit', () => {
 	const assertProjectionOwnership = (nodes: typeof app.routes.children): void => {
 		for (const node of Object.values(nodes)) {

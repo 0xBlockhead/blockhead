@@ -5489,7 +5489,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			sensitivity: 'base',
 			numeric: true,
 		})))
-	const entityTypes = Object.freeze(unique(activeEntities.map((entity) => entity.entityType)))
+	const entityTypes = Object.freeze(activeEntities.map((entity) => entity.entityType))
 	const entityByType = new Map(activeEntities.map((entity) => [entity.entityType, entity]))
 	const compiledEntityByType = nullPrototypeRecord([...entityByType])
 	const valueTypeById = new Map([
@@ -5662,7 +5662,6 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		}
 	}
 	expectUnique('entity type', entityTypes)
-	expectUnique('active entity type', activeEntities.map((entity) => entity.entityType))
 	expectUnique('value type', app.schema.valueTypes.map((valueType) => valueType.id))
 	expectUnique('source provider', sourceProviders.map((provider) => provider.provider))
 
@@ -5706,12 +5705,6 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 				)),
 			].includes(facetEntry.facet.name))
 				errors.push(`${entity.entityType}.${facetEntry.projectionPath.join('.')} facet name collides with a field in its projection namespace`)
-		}
-		for (const selector of entity.selectors) {
-			for (const field of selector.fields) {
-				if (!fieldNames.has(field))
-					errors.push(`${entity.entityType}.${selector.name} references missing field ${field}`)
-			}
 		}
 		for (const field of allFields) {
 			if (
