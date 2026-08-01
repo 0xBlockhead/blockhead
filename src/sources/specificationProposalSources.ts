@@ -2,76 +2,129 @@
 
 import { Source } from '$/sources/Source.ts'
 
+const cases = [
+	[
+		'Bitcoin',
+		[
+			'Bip',
+		],
+		Source.BitcoinBips_Github,
+	],
+	[
+		'BitcoinCash',
+		[
+			'Chip',
+		],
+		Source.BitcoinCashChips_Gitlab,
+	],
+	[
+		'ChainAgnostic',
+		[
+			'Caip',
+		],
+		Source.Caips_Github,
+	],
+	[
+		'Cosmos',
+		[
+			'Adr',
+		],
+		Source.CosmosAdrs_Github,
+	],
+	[
+		'Dogecoin',
+		[
+			'Dip',
+		],
+		Source.DogecoinDips_Github,
+	],
+	[
+		'Ens',
+		[
+			'Ensip',
+		],
+		Source.Ensips_Github,
+	],
+	[
+		'Ethereum',
+		[
+			'Eip',
+			'Erc',
+		],
+		Source.EthereumEips_Github,
+	],
+	[
+		'Filecoin',
+		[
+			'Fip',
+		],
+		Source.FilecoinFips_Github,
+	],
+	[
+		'Hyperliquid',
+		[
+			'Hip',
+		],
+		Source.HyperliquidDocs_Rest,
+	],
+	[
+		'Litecoin',
+		[
+			'Lip',
+		],
+		Source.LitecoinLips_Github,
+	],
+	[
+		'Near',
+		[
+			'Nep',
+		],
+		Source.NearNeps_Github,
+	],
+	[
+		'Polkadot',
+		[
+			'Rfc',
+		],
+		Source.PolkadotRfcs_Github,
+	],
+	[
+		'Quilibrium',
+		[
+			'ProtocolDocument',
+		],
+		Source.QuilibriumDocs_Rest,
+	],
+	[
+		'Solana',
+		[
+			'Simd',
+		],
+		Source.SolanaSimds_Github,
+	],
+	[
+		'Zcash',
+		[
+			'Zip',
+		],
+		Source.ZcashZips_Github,
+	],
+] as const
+type Case = typeof cases[number]
+
+const defaultSources = cases.map(([, , source]) => source)
+
 export default ({
 	realm,
 	category,
 }: {
-	realm?: 'Bitcoin' | 'BitcoinCash' | 'ChainAgnostic' | 'Cosmos' | 'Dogecoin' | 'Ens' | 'Ethereum' | 'Filecoin' | 'Hyperliquid' | 'Litecoin' | 'Near' | 'Polkadot' | 'Quilibrium' | 'Solana' | 'Zcash'
-	category?: 'Bip' | 'Chip' | 'Caip' | 'Adr' | 'Dip' | 'Ensip' | 'Eip' | 'Erc' | 'Fip' | 'Hip' | 'Lip' | 'Nep' | 'Rfc' | 'ProtocolDocument' | 'Simd' | 'Zip'
+	realm?: Case[0]
+	category?: Case[1][number]
 }) => {
-	if (realm === 'Bitcoin' && category === 'Bip')
-		return [Source.BitcoinBips_Github]
+	const matchedSource = cases.find(([firstFieldValue, secondFieldValues]) => (
+		firstFieldValue === realm
+		&& secondFieldValues.some((secondFieldValue) => secondFieldValue === category)
+	))?.[2]
 
-	if (realm === 'BitcoinCash' && category === 'Chip')
-		return [Source.BitcoinCashChips_Gitlab]
-
-	if (realm === 'ChainAgnostic' && category === 'Caip')
-		return [Source.Caips_Github]
-
-	if (realm === 'Cosmos' && category === 'Adr')
-		return [Source.CosmosAdrs_Github]
-
-	if (realm === 'Dogecoin' && category === 'Dip')
-		return [Source.DogecoinDips_Github]
-
-	if (realm === 'Ens' && category === 'Ensip')
-		return [Source.Ensips_Github]
-
-	if (realm === 'Ethereum' && category === 'Eip')
-		return [Source.EthereumEips_Github]
-
-	if (realm === 'Ethereum' && category === 'Erc')
-		return [Source.EthereumEips_Github]
-
-	if (realm === 'Filecoin' && category === 'Fip')
-		return [Source.FilecoinFips_Github]
-
-	if (realm === 'Hyperliquid' && category === 'Hip')
-		return [Source.HyperliquidDocs_Rest]
-
-	if (realm === 'Litecoin' && category === 'Lip')
-		return [Source.LitecoinLips_Github]
-
-	if (realm === 'Near' && category === 'Nep')
-		return [Source.NearNeps_Github]
-
-	if (realm === 'Polkadot' && category === 'Rfc')
-		return [Source.PolkadotRfcs_Github]
-
-	if (realm === 'Quilibrium' && category === 'ProtocolDocument')
-		return [Source.QuilibriumDocs_Rest]
-
-	if (realm === 'Solana' && category === 'Simd')
-		return [Source.SolanaSimds_Github]
-
-	if (realm === 'Zcash' && category === 'Zip')
-		return [Source.ZcashZips_Github]
-
-	return [
-		Source.BitcoinBips_Github,
-		Source.BitcoinCashChips_Gitlab,
-		Source.Caips_Github,
-		Source.CosmosAdrs_Github,
-		Source.DogecoinDips_Github,
-		Source.Ensips_Github,
-		Source.EthereumEips_Github,
-		Source.FilecoinFips_Github,
-		Source.HyperliquidDocs_Rest,
-		Source.LitecoinLips_Github,
-		Source.NearNeps_Github,
-		Source.PolkadotRfcs_Github,
-		Source.QuilibriumDocs_Rest,
-		Source.SolanaSimds_Github,
-		Source.ZcashZips_Github,
-	]
+	return matchedSource == null ? [...defaultSources] : [matchedSource]
 }

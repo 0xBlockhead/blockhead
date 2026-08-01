@@ -53,6 +53,7 @@ import {
 } from './render.ts'
 import sourceProviders from '../../src/sources/$sourceProviders.ts'
 import sourceServerCredentialsById from '../../src/sources/$sourceServerCredentials.server.ts'
+import specificationProposalSources from '../../src/sources/specificationProposalSources.ts'
 
 
 const root = process.cwd()
@@ -2523,8 +2524,12 @@ test('keeps proposal catalog relationships on explicit Constants authority', () 
 	const specificationProposalKindView = baselineCompiledApp.generatedFiles.find((generatedFile) => (
 		generatedFile.path === 'src/views/SpecificationProposalKindView.svelte'
 	))
+	const specificationProposalSourcesFile = baselineCompiledApp.generatedFiles.find((generatedFile) => (
+		generatedFile.path === 'src/sources/specificationProposalSources.ts'
+	))
 	assert.ok(specificationProposalsView)
 	assert.ok(specificationProposalKindView)
+	assert.ok(specificationProposalSourcesFile)
 	assert.deepEqual(
 		global?.fields
 			.filter((field) => ['$$proposals', '$$specificationRealms', '$$proposalKinds'].includes(field.name))
@@ -2541,6 +2546,18 @@ test('keeps proposal catalog relationships on explicit Constants authority', () 
 	assert.match(renderGeneratedFile(specificationProposalKindView), /import specificationProposalSources from '\$\/sources\/specificationProposalSources\.ts'/)
 	assert.doesNotMatch(renderGeneratedFile(specificationProposalKindView), /sources: \[\s*Source\.BitcoinBips_Github,[\s\S]*?Source\.ZcashZips_Github/)
 	assert.doesNotMatch(renderGeneratedFile(specificationProposalKindView), /String\([^)]*\)\]\.join\(':'\)/)
+	const renderedSpecificationProposalSources = renderGeneratedFile(specificationProposalSourcesFile)
+	assert.match(renderedSpecificationProposalSources, /type Case = typeof cases\[number\]/)
+	assert.match(renderedSpecificationProposalSources, /realm\?: Case\[0\]/)
+	assert.match(renderedSpecificationProposalSources, /category\?: Case\[1\]\[number\]/)
+	assert.equal((renderedSpecificationProposalSources.match(/Source\.EthereumEips_Github/g) ?? []).length, 1)
+	assert.doesNotMatch(renderedSpecificationProposalSources, /if \(realm ===/)
+	assert.deepEqual(specificationProposalSources({ realm: 'Ethereum', category: 'Eip' }), [Source.EthereumEips_Github])
+	assert.deepEqual(specificationProposalSources({ realm: 'Ethereum', category: 'Erc' }), [Source.EthereumEips_Github])
+	const defaultSpecificationProposalSources = specificationProposalSources({})
+	assert.equal(defaultSpecificationProposalSources.length, 15)
+	assert.equal(new Set(defaultSpecificationProposalSources).size, 15)
+	assert.notEqual(defaultSpecificationProposalSources, specificationProposalSources({}))
 })
 
 test('renders entity references without scalar display formatting inferred from their names', () => {

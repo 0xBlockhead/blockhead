@@ -7950,6 +7950,70 @@ const generateSourceSelectionFiles = (sourceSelections: readonly NamedSourceSele
 		],
 		body: (() => {
 			const fields = sourceSelectionConditionFields(selection)
+			const [firstField, secondField] = fields
+			const cases = selection.cases ?? []
+			// A case table is lossless only when every row selects one source and its
+			// grouped source order is exactly the authored fallback order.
+			const tableRows = fields.length === 2 && cases.every((item) => item.sources.length === 1) ?
+				[...Map.groupBy(cases, (item) => JSON.stringify([
+					item.when[0]?.equals,
+					item.sources[0],
+				])).values()].flatMap((matchingCases) => {
+					const firstCase = matchingCases[0]
+					const firstCondition = firstCase?.when[0]
+					const source = firstCase?.sources[0]
+					const secondFieldValues = matchingCases.flatMap((item) => (
+						item.when[1] == null ? [] : [item.when[1].equals]
+					))
+					return (
+						firstCondition == null
+						|| source == null
+						|| secondFieldValues.length !== matchingCases.length ?
+							[]
+						:
+							[{
+								firstFieldValue: firstCondition.equals,
+								secondFieldValues,
+								source,
+							}]
+					)
+				})
+			:
+				undefined
+			if (
+				firstField != null
+				&& secondField != null
+				&& tableRows != null
+				&& tableRows.length > 0
+				&& tableRows.length === selection.default.length
+				&& tableRows.every((row, index) => row.source === selection.default[index])
+			)
+				return [
+					`const cases = ${emitArray(tableRows.map((row) => emitArray([
+						emitTypeScript(row.firstFieldValue),
+						emitArray(row.secondFieldValues.map(emitTypeScript)),
+						enumAccess('Source', row.source),
+					])))} as const`,
+					'type Case = typeof cases[number]',
+					'',
+					'const defaultSources = cases.map(([, , source]) => source)',
+					'',
+					'export default ({',
+					`\t${firstField},`,
+					`\t${secondField},`,
+					'}: {',
+					`\t${firstField}?: Case[0]`,
+					`\t${secondField}?: Case[1][number]`,
+					'}) => {',
+					'\tconst matchedSource = cases.find(([firstFieldValue, secondFieldValues]) => (',
+					`\t\tfirstFieldValue === ${firstField}`,
+					`\t\t&& secondFieldValues.some((secondFieldValue) => secondFieldValue === ${secondField})`,
+					'\t))?.[2]',
+					'',
+					'\treturn matchedSource == null ? [...defaultSources] : [matchedSource]',
+					'}',
+				]
+
 			return [
 				'export default ({',
 				...fields.map((field) => `\t${field},`),
