@@ -7329,9 +7329,6 @@ const generateSourceProviderBindingsFile = (
 				binding.artifacts ?? null,
 			])
 		)).values()]
-		const bindingGroupIndexByBinding = new Map(bindingGroups.flatMap((group, groupIndex) => (
-			group.map(({ binding }) => [binding, groupIndex] as const)
-		)))
 		const repeatedBindingGroups = bindingGroups.filter((group) => group.length > 1)
 		// One repeated group needs only its source name. Multiple groups append the
 		// shortest existing binding axis that distinguishes every emitted object.
@@ -7365,11 +7362,18 @@ const generateSourceProviderBindingsFile = (
 						''
 				}BindingAxes`
 		})
+		const bindingBaseNameByBinding = new Map(bindingGroups.flatMap((group, groupIndex) => {
+			const bindingBaseName = bindingBaseNames[groupIndex]
+			return bindingBaseName == null ?
+				[]
+			:
+				group.map(({ binding }) => [binding, bindingBaseName] as const)
+		}))
 		return {
 			source,
 			sourceBindingRows,
 			bindingGroups,
-			bindingGroupIndexByBinding,
+			bindingBaseNameByBinding,
 			bindingBaseNames,
 		}
 	})
@@ -7394,7 +7398,7 @@ const generateSourceProviderBindingsFile = (
 		source,
 		sourceBindingRows,
 		bindingGroups,
-		bindingGroupIndexByBinding,
+		bindingBaseNameByBinding,
 		bindingBaseNames,
 	}) => ({
 		source,
@@ -7415,17 +7419,12 @@ const generateSourceProviderBindingsFile = (
 			operationGroups,
 			credentials,
 			artifacts,
-		}, bindingIndex) => {
-			const groupIndex = bindingGroupIndexByBinding.get(binding)
-			if (groupIndex == null)
-				throw new Error(`${source} binding ${bindingIndex} has no binding-axis group`)
-			return emitSourceBinding(source, binding, {
+		}) => emitSourceBinding(source, binding, {
 				endpoints: properties.endpoints.reference(endpoints) ?? '[]',
 				operationGroups: properties.operationGroups.reference(operationGroups) ?? '[]',
 				credentials: properties.credentials.reference(credentials) ?? '[]',
 				artifacts: properties.artifacts.reference(artifacts),
-			}, bindingBaseNames[groupIndex])
-		}),
+			}, bindingBaseNameByBinding.get(binding))),
 	}))
 	// A source matrix is compact only when it reconstructs the authored binding
 	// order exactly. Uniform target kinds keep the target key type correlated;
