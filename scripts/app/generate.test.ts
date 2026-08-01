@@ -377,9 +377,13 @@ test('generated views import runtime schema symbols used by raw snippets', () =>
 		'/\\bhref\\b/.test(snippet.raw)',
 		'line.includes(\'<IconComponent\')',
 		'line.includes(\'<Projection \')',
+		'contentMarkup.some((line) => line.includes(\'contentOpen\'))',
+		'svelteMarkupReferencesOpen',
 		'/\\?\\s/.test(expression)',
 	])
 		assert.equal(generatorSource.includes(sourceHeuristic), false)
+	assert.match(generatedSource('src/views/MarketView.svelte'), /\{#snippet Content\(\{ open: contentOpen \}\)\}/)
+	assert.match(generatedSource('src/views/BlockheadSessionView.svelte'), /\{#snippet SectionBlockheadSessionActions\(\{ id, label, open \}\)\}/)
 
 	for (const generatedFile of baselineCompiledApp.generatedFiles) {
 		if (!generatedFile.path.endsWith('.svelte'))

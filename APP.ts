@@ -951,6 +951,7 @@ enum _ListFilterComparison {
 }
 
 export const rawSnippetReference = {
+	open: "open",
 	params: "params",
 	pendingEntity: "pendingEntity",
 	prefetched: "prefetched",
@@ -17592,13 +17593,16 @@ export const schema = {
 									{
 										id: "blockhead-session-actions",
 										label: "Actions",
-										Content: dedent `
+										Content: {
+											...dedent `
 											<BlockheadSessionActionsComposer
 												{selection}
 												{id}
 												{open}
 											/>
-										`,
+											`,
+											references: ["open"],
+										},
 									},
 									{ id: "blockhead-session-intents", field: "$$intentInvocations", List: "BlockheadIntentInvocationsView", label: "Intent invocations", emptyText: "No intent invocations." },
 								],
@@ -43402,7 +43406,8 @@ export const schema = {
 									{
 										kind: _ViewItemKind.Block,
 										id: "market-summary",
-										Content: dedent `
+										Content: {
+											...dedent `
 	<dl data-column-item="center">
 		<div>
 			<dt>Kind</dt>
@@ -43475,6 +43480,8 @@ export const schema = {
 		</div>
 	</dl>
 	`,
+											references: ["open"],
+										},
 									},
 								],
 							],
