@@ -1826,6 +1826,28 @@ test('keeps projection fields resolved when their terminal name matches a select
 	}
 })
 
+test('validates facet fields through the canonical facet traversal', () => {
+	const invalidFacetListApp = structuredClone(app)
+	const account = invalidFacetListApp.schema.entities.find((entity) => entity.entityType === EntityType.Account)
+	const evm = account?.facets?.find((facet) => facet.name === 'Evm')
+	assert.ok(evm)
+	Object.defineProperty(evm, 'singularView', {
+		enumerable: true,
+		value: {
+			lists: [{ field: 'missing' }],
+		},
+	})
+
+	assert.throws(
+		() => compileApp(invalidFacetListApp),
+		/Account facet list references missing field missing/
+	)
+	assert.doesNotMatch(
+		readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8'),
+		/const entityFields =/
+	)
+})
+
 test('renders value display facts and their query dependencies in definition lists', () => {
 	const generatedFiles = baselineCompiledApp.generatedFiles
 	const beaconValidatorView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/BeaconValidatorView.svelte')

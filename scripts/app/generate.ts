@@ -5768,6 +5768,11 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		expectUnique(`${entity.entityType} field`, entity.fields.map((field) => field.name))
 		const fieldNames = new Set(entity.fields.map((field) => field.name))
 		const entityFacetEntries = facetEntries.filter((facetEntry) => facetEntry.entityType === entity.entityType)
+		const allFields = [
+			...entity.fields,
+			...entityFacetEntries.flatMap(({ facet }) => facet.fields ?? []),
+		]
+		const allFieldNames = new Set(allFields.map((field) => field.name))
 		for (const siblingFacetEntries of Object.values(Object.groupBy(
 			entityFacetEntries,
 			({ projectionPath }) => JSON.stringify(projectionPath.slice(0, -1))
@@ -5798,7 +5803,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 					errors.push(`${entity.entityType}.${selector.name} references missing field ${field}`)
 			}
 		}
-		for (const field of entityFields(entity)) {
+		for (const field of allFields) {
 			if (
 				field.type === EntityFieldType.Primitive && field.name.startsWith('$')
 				|| field.type === EntityFieldType.EntityReference && !/^\$[^$].+$/.test(field.name)
@@ -5846,7 +5851,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			for (const list of facet.singularView?.lists ?? []) {
 				if (
 					list.field != null
-					&& !entityFields(entity).some((field) => field.name === fieldNameForReference(list.field))
+					&& !allFieldNames.has(fieldNameForReference(list.field))
 				)
 					errors.push(`${entity.entityType} facet list references missing field ${list.field}`)
 			}
@@ -8169,20 +8174,6 @@ const viewItemEntityFieldsExpression = (
 
 	return usesSelectorFields ? 'selection.entitySelector' : 'entity'
 }
-
-const entityFields = (entity: Entity) => [
-	...entity.fields,
-	...(() => {
-		const facets = [...(entity.facets ?? [])]
-		const fields: EntityField[] = []
-		for (const facet of facets) {
-			fields.push(...(facet.fields ?? []))
-			facets.push(...(facet.facets ?? []))
-		}
-
-		return fields
-	})(),
-]
 
 const fieldDefinitionByReference = (
 	entity: Entity,
