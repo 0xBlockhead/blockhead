@@ -5106,6 +5106,7 @@ test('correlates generated source, binding, and resolver selector keys at defini
 	try {
 		const fixturePath = path.join(typeTestRoot, 'generated-source-key-types.ts')
 		writeFileSync(fixturePath, `import specificationProposalSources from '${root}/src/sources/specificationProposalSources.ts'
+import sourceServerCredentials from '${root}/src/sources/$sourceServerCredentials.server.ts'
 import acrossBindings from '${root}/src/sources/Across/bindings.ts'
 import blockscoutBindings from '${root}/src/sources/Blockscout/bindings.ts'
 import lightningLndBindings from '${root}/src/sources/LightningLnd/bindings.ts'
@@ -5117,6 +5118,7 @@ import {
 	indexSourceBindings,
 	type SourceBinding,
 	type SourceBindingIndex,
+	type SourceServerCredentialDefinition,
 } from '${root}/src/sources/SourceBinding.ts'
 specificationProposalSources({
 	realm: 'Bitcoin',
@@ -5148,6 +5150,7 @@ defineResolver(Source.Constants_Internal, {
 	},
 })({})
 const validBindings = lightningLndBindings satisfies SourceBindingIndex
+const typedSourceServerCredentials: Map<string, SourceServerCredentialDefinition> = sourceServerCredentials
 const acrossBinding = acrossBindings[Source.Across_Rest]
 const acrossSource: Source.Across_Rest = acrossBinding.source
 const xrplClioBindingsForSource: readonly SourceBinding<Source.XrplClio_JsonRpc>[] = xrplClioBindings[Source.XrplClio_JsonRpc]
@@ -5168,6 +5171,7 @@ const invalidBlockscoutTargetKey: '999' = blockscoutBindingsForSource[0].target.
 acrossBindings[Source.Erigon_JsonRpc]
 // @ts-expect-error A binding index key must equal the binding's source.
 const mismatchedBindings = { [Source.LightningMempoolSpace_Rest]: lightningLndBindings[Source.LightningLnd_Rest] } satisfies SourceBindingIndex
+void typedSourceServerCredentials
 `)
 		assertTypeChecks('generated-source-keys:typecheck', [fixturePath], true)
 	} finally {
@@ -5378,14 +5382,17 @@ test('keeps runtime secret configuration in one server projection', () => {
 	assert.match(serverCredentials, /export default new Map<\n\tstring,\n\tSourceServerCredentialDefinition\n>/)
 	assert.match(serverCredentials, /import sourceProviders from '\$\/sources\/\$sourceProviders\.ts'/)
 	assert.match(serverCredentials, /const runtimeSecretBindingCandidates = sourceProviders\n\t\.flatMap<SourceBinding>\(\(\{ bindings \}\) => bindings\)[\s\S]*?scope === SourceCredentialScope\.RuntimeSecret[\s\S]*?&& keys == null/)
-	assert.match(serverCredentials, /sourceBindingId\(runtimeSecretBinding\(Source\.GoldRushFoundational_Rest\)\)/)
+	assert.match(serverCredentials, /const runtimeSecretCredentials = \[/)
+	assert.equal((serverCredentials.match(/^\t\tSource\./gm) ?? []).length, 19)
+	assert.match(serverCredentials, /sourceBindingId\(runtimeSecretBinding\(source, targetKey\)\)/)
+	assert.equal((serverCredentials.match(/sourceBindingId\(/g) ?? []).length, 1)
 	assert.doesNotMatch(serverCredentials, /'\["/)
 	assert.doesNotMatch(serverCredentials, /from '\$\/sources\/[^']+\/bindings\.ts'/)
-	assert.equal(serverCredentials.match(/runtimeSecretBinding\(Source\.[^)]+, /g)?.length, 5)
-	assert.match(serverCredentials, /runtimeSecretBinding\(Source\.SafeTransactionService_Rest, '1'\)/)
-	assert.match(serverCredentials, /runtimeSecretBinding\(Source\.TonCenter, 'ton:-239'\)/)
+	assert.match(serverCredentials, /Source\.SafeTransactionService_Rest,\n\t\t'1'/)
+	assert.match(serverCredentials, /Source\.TonCenter,\n\t\t'ton:-239'/)
 	assert.match(serverCredentials, /COVALENT_API_KEY/)
 	assert.match(serverCredentials, /header: \{[\s\S]*?name: 'authorization'[\s\S]*?prefix: 'Bearer '/)
+	assert.match(serverCredentials, /\{\n\t\tenvKey,\n\t\tinjection,\n\t\},\n\] satisfies readonly \[string, SourceServerCredentialDefinition\]/)
 	assert.doesNotMatch(serverCredentials, /endpoints:|header-secret|literal-secret/)
 	assert.deepEqual([...sourceServerCredentialsById.keys()].sort(), app.sources.sources.flatMap((source) => [
 		...(source.binding == null ? [] : [source.binding]),

@@ -31,225 +31,224 @@ const runtimeSecretBinding = (
 	return binding
 }
 
+const runtimeSecretCredentials = [
+	[
+		Source.Amboss_Graphql,
+		undefined,
+		'AMBOSS_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+	],
+	[
+		Source.Blockfrost_Rest,
+		undefined,
+		'BLOCKFROST_PROJECT_ID',
+		{
+			header: {
+				name: 'project_id',
+			},
+		},
+	],
+	[
+		Source.EigenExplorer_Rest,
+		undefined,
+		'EIGEN_EXPLORER_API_TOKEN',
+		{
+			header: {
+				name: 'x-api-token',
+			},
+		},
+	],
+	[
+		Source.EnvioHyperRpc_JsonRpc,
+		undefined,
+		'ENVIO_API_TOKEN',
+		{
+			endpointTemplate: {
+				slot: 'ENVIO_API_TOKEN',
+			},
+		},
+	],
+	[
+		Source.EnvioHyperSync_RawHttp,
+		undefined,
+		'ENVIO_API_TOKEN',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+	],
+	[
+		Source.GetBlockRpc_JsonRpc,
+		undefined,
+		'GETBLOCK_API_KEY',
+		{
+			endpointTemplate: {
+				slot: 'GETBLOCK_API_KEY',
+			},
+		},
+	],
+	[
+		Source.GetBlockYellowstone_Grpc,
+		undefined,
+		'GETBLOCK_API_KEY',
+		{
+			endpointTemplate: {
+				slot: 'GETBLOCK_API_KEY',
+			},
+		},
+	],
+	[
+		Source.GoldRushFoundational_Rest,
+		undefined,
+		'COVALENT_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+	],
+	[
+		Source.OpenAI_Rest,
+		undefined,
+		'OPENAI_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+	],
+	[
+		Source.PythHermes_Rest,
+		undefined,
+		'PYTH_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+	],
+	[
+		Source.SafeTransactionService_Rest,
+		'1',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+	],
+	[
+		Source.SafeTransactionService_Rest,
+		'100',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+	],
+	[
+		Source.SafeTransactionService_Rest,
+		'8453',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+	],
+	[
+		Source.SpaceAndTime_MakeInfinite,
+		undefined,
+		'MAKEINFINITE_API_KEY',
+		{
+			header: {
+				name: 'apikey',
+			},
+		},
+	],
+	[
+		Source.Starkscan,
+		undefined,
+		'STARKSCAN_API_KEY',
+		{
+			header: {
+				name: 'X-Starkscan-Api-Key',
+			},
+		},
+	],
+	[
+		Source.Tally,
+		undefined,
+		'TALLY_API_KEY',
+		{
+			header: {
+				name: 'Api-Key',
+			},
+		},
+	],
+	[
+		Source.TonCenter,
+		'ton:-239',
+		'TONCENTER_MAINNET_API_KEY',
+		{
+			header: {
+				name: 'X-API-Key',
+			},
+		},
+	],
+	[
+		Source.TonCenter,
+		'ton:-3',
+		'TONCENTER_TESTNET_API_KEY',
+		{
+			header: {
+				name: 'X-API-Key',
+			},
+		},
+	],
+	[
+		Source.Voyager,
+		undefined,
+		'VOYAGER_API_KEY',
+		{
+			header: {
+				name: 'x-api-key',
+			},
+		},
+	],
+] as const satisfies readonly (readonly [
+	source: Source,
+	targetKey: string | undefined,
+	envKey: string,
+	injection: SourceServerCredentialDefinition['injection'],
+])[]
+
 export default new Map<
 	string,
 	SourceServerCredentialDefinition
->([
-	[
-		sourceBindingId(runtimeSecretBinding(Source.Amboss_Graphql)),
-		{
-			envKey: 'AMBOSS_API_KEY',
-			injection: {
-				header: {
-					name: 'authorization',
-					prefix: 'Bearer ',
-				},
-			},
-		},
-	],
-	[
-		sourceBindingId(runtimeSecretBinding(Source.Blockfrost_Rest)),
-		{
-			envKey: 'BLOCKFROST_PROJECT_ID',
-			injection: {
-				header: {
-					name: 'project_id',
-				},
-			},
-		},
-	],
-	[
-		sourceBindingId(runtimeSecretBinding(Source.EigenExplorer_Rest)),
-		{
-			envKey: 'EIGEN_EXPLORER_API_TOKEN',
-			injection: {
-				header: {
-					name: 'x-api-token',
-				},
-			},
-		},
-	],
-	[
-		sourceBindingId(runtimeSecretBinding(Source.EnvioHyperRpc_JsonRpc)),
-		{
-			envKey: 'ENVIO_API_TOKEN',
-			injection: {
-				endpointTemplate: {
-					slot: 'ENVIO_API_TOKEN',
-				},
-			},
-		},
-	],
-	[
-		sourceBindingId(runtimeSecretBinding(Source.EnvioHyperSync_RawHttp)),
-		{
-			envKey: 'ENVIO_API_TOKEN',
-			injection: {
-				header: {
-					name: 'authorization',
-					prefix: 'Bearer ',
-				},
-			},
-		},
-	],
-	[
-		sourceBindingId(runtimeSecretBinding(Source.GetBlockRpc_JsonRpc)),
-		{
-			envKey: 'GETBLOCK_API_KEY',
-			injection: {
-				endpointTemplate: {
-					slot: 'GETBLOCK_API_KEY',
-				},
-			},
-		},
-	],
-	[
-		sourceBindingId(runtimeSecretBinding(Source.GetBlockYellowstone_Grpc)),
-		{
-			envKey: 'GETBLOCK_API_KEY',
-			injection: {
-				endpointTemplate: {
-					slot: 'GETBLOCK_API_KEY',
-				},
-			},
-		},
-	],
-	[
-		sourceBindingId(runtimeSecretBinding(Source.GoldRushFoundational_Rest)),
-		{
-			envKey: 'COVALENT_API_KEY',
-			injection: {
-				header: {
-					name: 'authorization',
-					prefix: 'Bearer ',
-				},
-			},
-		},
-	],
-	[
-		sourceBindingId(runtimeSecretBinding(Source.OpenAI_Rest)),
-		{
-			envKey: 'OPENAI_API_KEY',
-			injection: {
-				header: {
-					name: 'authorization',
-					prefix: 'Bearer ',
-				},
-			},
-		},
-	],
-	[
-		sourceBindingId(runtimeSecretBinding(Source.PythHermes_Rest)),
-		{
-			envKey: 'PYTH_API_KEY',
-			injection: {
-				header: {
-					name: 'authorization',
-					prefix: 'Bearer ',
-				},
-			},
-		},
-	],
-	[
-		sourceBindingId(runtimeSecretBinding(Source.SafeTransactionService_Rest, '1')),
-		{
-			envKey: 'SAFE_TRANSACTION_SERVICE_API_KEY',
-			injection: {
-				header: {
-					name: 'authorization',
-					prefix: 'Bearer ',
-				},
-			},
-		},
-	],
-	[
-		sourceBindingId(runtimeSecretBinding(Source.SafeTransactionService_Rest, '100')),
-		{
-			envKey: 'SAFE_TRANSACTION_SERVICE_API_KEY',
-			injection: {
-				header: {
-					name: 'authorization',
-					prefix: 'Bearer ',
-				},
-			},
-		},
-	],
-	[
-		sourceBindingId(runtimeSecretBinding(Source.SafeTransactionService_Rest, '8453')),
-		{
-			envKey: 'SAFE_TRANSACTION_SERVICE_API_KEY',
-			injection: {
-				header: {
-					name: 'authorization',
-					prefix: 'Bearer ',
-				},
-			},
-		},
-	],
-	[
-		sourceBindingId(runtimeSecretBinding(Source.SpaceAndTime_MakeInfinite)),
-		{
-			envKey: 'MAKEINFINITE_API_KEY',
-			injection: {
-				header: {
-					name: 'apikey',
-				},
-			},
-		},
-	],
-	[
-		sourceBindingId(runtimeSecretBinding(Source.Starkscan)),
-		{
-			envKey: 'STARKSCAN_API_KEY',
-			injection: {
-				header: {
-					name: 'X-Starkscan-Api-Key',
-				},
-			},
-		},
-	],
-	[
-		sourceBindingId(runtimeSecretBinding(Source.Tally)),
-		{
-			envKey: 'TALLY_API_KEY',
-			injection: {
-				header: {
-					name: 'Api-Key',
-				},
-			},
-		},
-	],
-	[
-		sourceBindingId(runtimeSecretBinding(Source.TonCenter, 'ton:-239')),
-		{
-			envKey: 'TONCENTER_MAINNET_API_KEY',
-			injection: {
-				header: {
-					name: 'X-API-Key',
-				},
-			},
-		},
-	],
-	[
-		sourceBindingId(runtimeSecretBinding(Source.TonCenter, 'ton:-3')),
-		{
-			envKey: 'TONCENTER_TESTNET_API_KEY',
-			injection: {
-				header: {
-					name: 'X-API-Key',
-				},
-			},
-		},
-	],
-	[
-		sourceBindingId(runtimeSecretBinding(Source.Voyager)),
-		{
-			envKey: 'VOYAGER_API_KEY',
-			injection: {
-				header: {
-					name: 'x-api-key',
-				},
-			},
-		},
-	],
-])
+>(runtimeSecretCredentials.map(([
+	source,
+	targetKey,
+	envKey,
+	injection,
+]) => [
+	sourceBindingId(runtimeSecretBinding(source, targetKey)),
+	{
+		envKey,
+		injection,
+	},
+] satisfies readonly [string, SourceServerCredentialDefinition]))

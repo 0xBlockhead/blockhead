@@ -7859,7 +7859,7 @@ const generateSourceServerCredentialsFile = (
 			runtimeSecret,
 		}]
 	})
-	const bindingExpression = ({ source, binding }: SourceBindingEntry) => {
+	const bindingSelectorExpressions = ({ source, binding }: SourceBindingEntry) => {
 		const sourceRuntimeSecretBindings = runtimeSecretBindings.filter((candidate) => candidate.source === source)
 		const targetKey = sourceRuntimeSecretBindings.length === 1 ? undefined : binding.target.key
 		if (sourceRuntimeSecretBindings.filter((candidate) => (
@@ -7868,7 +7868,10 @@ const generateSourceServerCredentialsFile = (
 		)).length !== 1)
 			throw new Error(`${source}: target ${binding.target.key} must identify exactly one runtime-secret binding`)
 
-		return `runtimeSecretBinding(${enumAccess('Source', source)}${targetKey === undefined ? '' : `, ${emitTypeScript(targetKey)}`})`
+		return [
+			enumAccess('Source', source),
+			targetKey === undefined ? 'undefined' : emitTypeScript(targetKey),
+		]
 	}
 
 	return tsFile(
@@ -7918,19 +7921,35 @@ const generateSourceServerCredentialsFile = (
 				'\treturn binding',
 				'}',
 				'',
+				`const runtimeSecretCredentials = ${emitArray(runtimeSecretBindings.map((sourceBinding) => emitArray([
+					...bindingSelectorExpressions(sourceBinding),
+					emitTypeScript(sourceBinding.runtimeSecret.envKey),
+					emitTypeScript({
+						kind: 'value',
+						value: sourceBinding.runtimeSecret.injection,
+					}),
+				])))} as const satisfies readonly (readonly [`,
+				'	source: Source,',
+				'	targetKey: string | undefined,',
+				'	envKey: string,',
+				"\tinjection: SourceServerCredentialDefinition['injection'],",
+				'])[]',
+				'',
 				'export default new Map<',
 				'\tstring,',
 				'\tSourceServerCredentialDefinition',
-				`>(${emitArray(runtimeSecretBindings.map((sourceBinding) => emitArray([
-					`sourceBindingId(${bindingExpression(sourceBinding)})`,
-					emitObject([
-						['envKey', emitTypeScript(sourceBinding.runtimeSecret.envKey)],
-						['injection', emitTypeScript({
-							kind: 'value',
-							value: sourceBinding.runtimeSecret.injection,
-						})],
-					]),
-				])))})`,
+				'>(runtimeSecretCredentials.map(([',
+				'\tsource,',
+				'\ttargetKey,',
+				'\tenvKey,',
+				'\tinjection,',
+				']) => [',
+				'\tsourceBindingId(runtimeSecretBinding(source, targetKey)),',
+				'\t{',
+				'\t\tenvKey,',
+				'\t\tinjection,',
+				'\t},',
+				'] satisfies readonly [string, SourceServerCredentialDefinition]))',
 			],
 		}
 	)
