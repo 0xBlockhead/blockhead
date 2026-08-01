@@ -15681,15 +15681,23 @@ const renderCollectionPageMarkup = (
 		entityPluralView(collectionEntity)?.title
 		?? sentenceStart(entityLabelPlural(collectionEntity))
 	)
-	const commonComponentAttributes = [
+	const defaultPluralComponent = pluralComponentName(collectionEntity)
+	const rendersDefaultEntitiesList = (
+		isDefaultPluralViewComponent(indexes, collection.entity, defaultPluralComponent)
+		&& collectionComponent === componentIdentifier(defaultPluralComponent)
+	)
+	const componentAttributes = [
 		renderSvelteAttribute(componentIndent + 1, 'href', hrefExpression),
 		...(collectionUsesDefaultTitle ? [] : [
 			`${'\t'.repeat(componentIndent + 1)}title=${emitTypeScript(collectionTitle)}`,
 		]),
+		...(rendersDefaultEntitiesList ? [] : [
+			renderSvelteAttribute(componentIndent + 1, 'selection', selectionExpression),
+		]),
 		...(source.path.length === 1 ? [
 			renderSvelteAttribute(componentIndent + 1, 'countResource', `${selectionExpression}.count`),
 		] : []),
-		...(isDefaultPluralViewComponent(indexes, collection.entity, pluralComponentName(collectionEntity)) ? [
+		...(rendersDefaultEntitiesList ? [
 			`${'\t'.repeat(componentIndent + 1)}open={true}`,
 		] : []),
 		`${'\t'.repeat(componentIndent + 1)}id=${emitTypeScript(
@@ -15700,31 +15708,17 @@ const renderCollectionPageMarkup = (
 		)}`,
 	]
 	const component = (
-		isDefaultPluralViewComponent(indexes, collection.entity, pluralComponentName(collectionEntity))
-		&& collectionComponent === componentIdentifier(pluralComponentName(collectionEntity)) ?
+		rendersDefaultEntitiesList ?
 			renderDefaultEntitiesList(
 				collection.entity,
 				selectionExpression,
-				commonComponentAttributes,
+				componentAttributes,
 				componentIndent
 			)
 		:
 			[
 				`${'\t'.repeat(componentIndent)}<${collectionComponent}`,
-				renderSvelteAttribute(componentIndent + 1, 'href', hrefExpression),
-				...(collectionUsesDefaultTitle ? [] : [
-					`${'\t'.repeat(componentIndent + 1)}title=${emitTypeScript(collectionTitle)}`,
-				]),
-				renderSvelteAttribute(componentIndent + 1, 'selection', selectionExpression),
-				...(source.path.length === 1 ? [
-					renderSvelteAttribute(componentIndent + 1, 'countResource', `${selectionExpression}.count`),
-				] : []),
-				`${'\t'.repeat(componentIndent + 1)}id=${emitTypeScript(
-					href.startsWith('/~/accounts/') ?
-						`account-${routeCollectionId(camel(collection.entity))}`
-					:
-						routeCollectionIdForFieldReference(source.field)
-				)}`,
+				...componentAttributes,
 				`${'\t'.repeat(componentIndent)}/>`,
 			]
 	)
