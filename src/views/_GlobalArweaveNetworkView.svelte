@@ -10,11 +10,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType._GlobalArweaveNetwork> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType._GlobalArweaveNetwork>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('-global-arweave-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 

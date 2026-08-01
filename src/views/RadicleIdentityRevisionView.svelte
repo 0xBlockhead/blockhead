@@ -9,11 +9,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.RadicleIdentityRevision> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.RadicleIdentityRevision>, 'prefetched'> = $props()
 
 
 	// Components

@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.RadicleIdentityDocument> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.RadicleIdentityDocument>, 'prefetched'> = $props()
 
 
 	// Components
@@ -146,7 +145,6 @@
 							<dd>
 								<RadicleRepositoryView
 									selection={select(EntityType.RadicleRepository, radicleRepository[EntityMetaKey.Selector])}
-									prefetched={radicleRepository}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

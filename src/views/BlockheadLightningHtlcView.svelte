@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BlockheadLightningHtlc> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BlockheadLightningHtlc>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [

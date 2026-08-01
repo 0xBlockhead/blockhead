@@ -540,16 +540,14 @@
 												{#snippet children(beaconEpochs)}
 													{@const beaconEpoch = beaconEpochs.values[0]}
 													{#if beaconEpoch != null}
-														{@const beaconEpochSelector = beaconEpoch[EntityMetaKey.Selector]}
 														<BeaconEpochView
 															selection={
-																select(EntityType.BeaconEpoch, beaconEpochSelector, {
+																select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector], {
 																	sources: [
 																		Source.Beacon_Rest,
 																	],
 																})
 															}
-															prefetched={{ ...beaconEpochSelector, ...beaconEpoch }}
 															layout={EntityLayout.Value}
 														/>
 													{:else}
@@ -584,16 +582,14 @@
 												{#snippet children(beaconSlots)}
 													{@const beaconSlot = beaconSlots.values[0]}
 													{#if beaconSlot != null}
-														{@const beaconSlotSelector = beaconSlot[EntityMetaKey.Selector]}
 														<BeaconSlotView
 															selection={
-																select(EntityType.BeaconSlot, beaconSlotSelector, {
+																select(EntityType.BeaconSlot, beaconSlot[EntityMetaKey.Selector], {
 																	sources: [
 																		Source.Beacon_Rest,
 																	],
 																})
 															}
-															prefetched={{ ...beaconSlotSelector, ...beaconSlot }}
 															layout={EntityLayout.Value}
 														/>
 													{:else}
@@ -819,7 +815,6 @@
 											<dd>
 												<EvmCoinInstanceView
 													selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-													prefetched={evmCoinInstance}
 													layout={EntityLayout.Value}
 												/>
 											</dd>
@@ -2523,7 +2518,6 @@
 																],
 															})
 														}
-														prefetched={evmCoinInstance}
 														layout={EntityLayout.SummaryInline}
 													/>
 												</article>

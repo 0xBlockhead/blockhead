@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.OracleFeed_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.OracleFeed_Timestamp>, 'prefetched'> = $props()
 
 	const oracleFeedTimestamp = $derived(selection({
 		fields: {

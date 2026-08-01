@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.CelestiaNetwork> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.CelestiaNetwork>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('celestia-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 

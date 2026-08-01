@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BitcoinCashCashTokenCategory> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BitcoinCashCashTokenCategory>, 'prefetched'> = $props()
 
 
 	// Components

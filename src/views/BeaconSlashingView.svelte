@@ -15,13 +15,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BeaconSlashing> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BeaconSlashing>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 	const titleFallback = $derived(`Slashing #${selection.entitySelector.indexInSlot}`)

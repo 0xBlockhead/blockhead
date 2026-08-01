@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.EigenLayerSlashingEvent> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.EigenLayerSlashingEvent>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -65,7 +64,6 @@
 				{#if eigenLayerOperator != null}
 					<EigenLayerOperatorView
 						selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
-						prefetched={eigenLayerOperator}
 						layout={EntityLayout.Title}
 					/>
 				{/if}
@@ -81,7 +79,6 @@
 				{#if eigenLayerAvs != null}
 					<EigenLayerAvsView
 						selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
-						prefetched={eigenLayerAvs}
 						layout={EntityLayout.Value}
 					/>
 				{/if}
@@ -116,7 +113,6 @@
 							<dd>
 								<EigenLayerOperatorView
 									selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
-									prefetched={eigenLayerOperator}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -135,7 +131,6 @@
 							<dd>
 								<EigenLayerAvsView
 									selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
-									prefetched={eigenLayerAvs}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -154,7 +149,6 @@
 							<dd>
 								<EigenLayerStrategyView
 									selection={select(EntityType.EigenLayerStrategy, eigenLayerStrategy[EntityMetaKey.Selector])}
-									prefetched={eigenLayerStrategy}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

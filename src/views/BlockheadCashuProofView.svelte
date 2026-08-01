@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BlockheadCashuProof> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BlockheadCashuProof>, 'prefetched'> = $props()
 
 	const blockheadCashuProof = $derived(selection({
 		fields: {
@@ -82,7 +81,6 @@
 						{#snippet children(cashuMint)}
 							<CashuMintView
 								selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
-								prefetched={cashuMint}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -113,7 +111,6 @@
 							<dd>
 								<CashuKeysetView
 									selection={select(EntityType.CashuKeyset, cashuKeyset[EntityMetaKey.Selector])}
-									prefetched={cashuKeyset}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

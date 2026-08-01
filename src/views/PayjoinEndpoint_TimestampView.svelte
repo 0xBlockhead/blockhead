@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.PayjoinEndpoint_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.PayjoinEndpoint_Timestamp>, 'prefetched'> = $props()
 
 	const payjoinEndpointTimestamp = $derived(selection({
 		fields: {

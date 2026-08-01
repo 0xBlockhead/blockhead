@@ -11,11 +11,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType._Global> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType._Global>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('-global-' + encodeURIComponent(stringify(selection.entitySelector)))
 

@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.DydxChainOrder> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.DydxChainOrder>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -105,7 +104,6 @@
 							<dd>
 								<DydxChainMarketView
 									selection={select(EntityType.DydxChainMarket, dydxChainMarket[EntityMetaKey.Selector])}
-									prefetched={dydxChainMarket}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

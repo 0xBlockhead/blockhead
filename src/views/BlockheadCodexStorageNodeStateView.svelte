@@ -10,12 +10,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BlockheadCodexStorageNodeState> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BlockheadCodexStorageNodeState>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [

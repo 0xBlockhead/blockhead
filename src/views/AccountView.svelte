@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.Account> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.Account>, 'prefetched'> = $props()
 
 	const account = $derived(selection({
 		sources: selection.sources ?? [

@@ -133,7 +133,6 @@
 						{#snippet children(nostrArticle)}
 							<NostrArticleView
 								selection={select(EntityType.NostrArticle, nostrArticle[EntityMetaKey.Selector])}
-								prefetched={nostrArticle}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -150,7 +149,6 @@
 						{#snippet children(nostrProfile)}
 							<NostrProfileView
 								selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
-								prefetched={nostrProfile}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

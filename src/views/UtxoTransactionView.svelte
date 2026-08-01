@@ -17,13 +17,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.UtxoTransaction> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.UtxoTransaction>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 	const utxoTransaction = $derived(selection({
@@ -266,7 +265,6 @@
 							<dd>
 								<UtxoBlockView
 									selection={select(EntityType.UtxoBlock, utxoBlock[EntityMetaKey.Selector])}
-									prefetched={utxoBlock}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

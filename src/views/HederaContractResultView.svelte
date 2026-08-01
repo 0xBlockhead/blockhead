@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.HederaContractResult> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.HederaContractResult>, 'prefetched'> = $props()
 
 
 	// Components
@@ -58,7 +57,6 @@
 							<dd>
 								<HederaContractView
 									selection={select(EntityType.HederaContract, hederaContract[EntityMetaKey.Selector])}
-									prefetched={hederaContract}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

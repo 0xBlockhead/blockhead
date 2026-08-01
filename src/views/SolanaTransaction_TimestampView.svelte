@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.SolanaTransaction_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.SolanaTransaction_Timestamp>, 'prefetched'> = $props()
 
 	const solanaTransactionTimestamp = $derived(selection({
 		fields: {

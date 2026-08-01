@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.AcpSession> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.AcpSession>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -59,7 +58,6 @@
 				{#if acpAgentRuntime != null}
 					<AcpAgentRuntimeView
 						selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector])}
-						prefetched={acpAgentRuntime}
 						layout={EntityLayout.Value}
 					/>
 				{/if}
@@ -105,7 +103,6 @@
 							<dd>
 								<AcpAgentRuntimeView
 									selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector])}
-									prefetched={acpAgentRuntime}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

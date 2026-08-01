@@ -11,13 +11,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType._GlobalYoutubeNetwork> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType._GlobalYoutubeNetwork>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('-global-youtube-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 

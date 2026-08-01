@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.SuiNetwork_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.SuiNetwork_Timestamp>, 'prefetched'> = $props()
 
 
 	// Components

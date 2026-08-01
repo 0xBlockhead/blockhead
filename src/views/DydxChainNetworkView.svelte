@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.DydxChainNetwork> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.DydxChainNetwork>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('dydx-chain-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 

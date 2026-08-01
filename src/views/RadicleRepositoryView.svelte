@@ -15,11 +15,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.RadicleRepository> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.RadicleRepository>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('radicle-repository-' + encodeURIComponent(stringify(selection.entitySelector)))
 

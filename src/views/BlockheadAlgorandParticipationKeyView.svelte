@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BlockheadAlgorandParticipationKey> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BlockheadAlgorandParticipationKey>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -98,7 +97,6 @@
 							<dd>
 								<AlgorandAccountView
 									selection={select(EntityType.AlgorandAccount, algorandAccount[EntityMetaKey.Selector])}
-									prefetched={algorandAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -117,7 +115,6 @@
 							<dd>
 								<AlgorandNetworkView
 									selection={select(EntityType.AlgorandNetwork, algorandNetwork[EntityMetaKey.Selector])}
-									prefetched={algorandNetwork}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

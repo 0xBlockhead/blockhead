@@ -71,7 +71,6 @@
 						{#if market != null}
 							<MarketView
 								selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
-								prefetched={market}
 								href={null}
 								layout={EntityLayout.Value}
 							/>
@@ -111,7 +110,6 @@
 							<dd>
 								<MarketView
 									selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
-									prefetched={market}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

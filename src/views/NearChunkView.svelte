@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.NearChunk> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.NearChunk>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -64,7 +63,6 @@
 				{#if nearBlock != null}
 					<NearBlockView
 						selection={select(EntityType.NearBlock, nearBlock[EntityMetaKey.Selector])}
-						prefetched={nearBlock}
 						layout={EntityLayout.Value}
 					/>
 				{/if}
@@ -116,7 +114,6 @@
 							<dd>
 								<NearBlockView
 									selection={select(EntityType.NearBlock, nearBlock[EntityMetaKey.Selector])}
-									prefetched={nearBlock}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

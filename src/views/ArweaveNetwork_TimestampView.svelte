@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.ArweaveNetwork_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.ArweaveNetwork_Timestamp>, 'prefetched'> = $props()
 
 	const arweaveNetworkTimestamp = $derived(selection({
 		fields: {

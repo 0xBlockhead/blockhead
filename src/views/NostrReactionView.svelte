@@ -168,7 +168,6 @@
 								<dd>
 									<NostrProfileView
 										selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
-										prefetched={nostrProfile}
 										layout={EntityLayout.Value}
 									/>
 								</dd>
@@ -210,7 +209,6 @@
 								<dd>
 									<NostrArticleView
 										selection={select(EntityType.NostrArticle, nostrArticle[EntityMetaKey.Selector])}
-										prefetched={nostrArticle}
 										layout={EntityLayout.Value}
 									/>
 								</dd>

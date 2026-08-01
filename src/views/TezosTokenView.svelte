@@ -15,11 +15,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.TezosToken> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.TezosToken>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('tezos-token-' + encodeURIComponent(stringify(selection.entitySelector)))
 
@@ -101,7 +100,6 @@
 							<dd>
 								<TezosContractView
 									selection={select(EntityType.TezosContract, tezosContract[EntityMetaKey.Selector])}
-									prefetched={tezosContract}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

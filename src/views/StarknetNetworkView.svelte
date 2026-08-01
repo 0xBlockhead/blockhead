@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.StarknetNetwork> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.StarknetNetwork>, 'prefetched'> = $props()
 
 	const starknetNetwork = $derived(selection({
 		sources: selection.sources ?? [

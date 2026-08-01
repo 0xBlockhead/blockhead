@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.ZcashShieldedPoolBlockState> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.ZcashShieldedPoolBlockState>, 'prefetched'> = $props()
 
 	const zcashShieldedPoolBlockState = $derived(selection({
 		fields: {

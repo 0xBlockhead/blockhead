@@ -182,7 +182,6 @@
 							<dd>
 								<AptosAccountResourceView
 									selection={select(EntityType.AptosAccountResource, aptosAccountResource[EntityMetaKey.Selector])}
-									prefetched={aptosAccountResource}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -247,7 +246,6 @@
 							<dd>
 								<MoveModuleView
 									selection={select(EntityType.MoveModule, moveModule[EntityMetaKey.Selector])}
-									prefetched={moveModule}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.ZeroGServiceRequest> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.ZeroGServiceRequest>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -64,7 +63,6 @@
 					<span data-text="muted">
 						<EvmAccountView
 							selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-							prefetched={evmAccount}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -102,7 +100,6 @@
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-									prefetched={evmAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -165,7 +162,6 @@
 							<dd>
 								<ZeroGSettlementTraceView
 									selection={select(EntityType.ZeroGSettlementTrace, zeroGSettlementTrace[EntityMetaKey.Selector])}
-									prefetched={zeroGSettlementTrace}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

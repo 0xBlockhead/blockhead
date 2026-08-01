@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.SuiCoinType> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.SuiCoinType>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('sui-coin-type-' + encodeURIComponent(stringify(selection.entitySelector)))
 
@@ -78,7 +77,6 @@
 							<dd>
 								<MoveStructView
 									selection={select(EntityType.MoveStruct, moveStruct[EntityMetaKey.Selector])}
-									prefetched={moveStruct}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -97,7 +95,6 @@
 							<dd>
 								<SuiObjectView
 									selection={select(EntityType.SuiObject, suiObject[EntityMetaKey.Selector])}
-									prefetched={suiObject}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

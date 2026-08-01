@@ -10,12 +10,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BlockheadWakuNodeState> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BlockheadWakuNodeState>, 'prefetched'> = $props()
 
 	const blockheadWakuNodeState = $derived(selection({
 		sources: selection.sources ?? [

@@ -9,12 +9,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.GitObjectVerification_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.GitObjectVerification_Timestamp>, 'prefetched'> = $props()
 
 	const gitObjectVerificationTimestamp = $derived(selection({
 		fields: {

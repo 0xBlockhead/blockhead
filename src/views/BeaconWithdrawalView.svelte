@@ -17,13 +17,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BeaconWithdrawal> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BeaconWithdrawal>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
@@ -203,7 +202,6 @@
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-									prefetched={evmAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

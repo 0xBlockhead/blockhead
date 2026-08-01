@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BlockheadRadicleSyncSession> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BlockheadRadicleSyncSession>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -90,7 +89,6 @@
 						{#snippet children(blockheadRadicleNodeState)}
 							<BlockheadRadicleNodeStateView
 								selection={select(EntityType.BlockheadRadicleNodeState, blockheadRadicleNodeState[EntityMetaKey.Selector])}
-								prefetched={blockheadRadicleNodeState}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -121,7 +119,6 @@
 							<dd>
 								<RadicleRepositoryView
 									selection={select(EntityType.RadicleRepository, radicleRepository[EntityMetaKey.Selector])}
-									prefetched={radicleRepository}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

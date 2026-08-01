@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.TronTokenTransfer> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.TronTokenTransfer>, 'prefetched'> = $props()
 
 
 	// Components
@@ -74,7 +73,6 @@
 							<dd>
 								<TronTransactionView
 									selection={select(EntityType.TronTransaction, tronTransaction[EntityMetaKey.Selector])}
-									prefetched={tronTransaction}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -93,7 +91,6 @@
 							<dd>
 								<TronTokenView
 									selection={select(EntityType.TronToken, tronToken[EntityMetaKey.Selector])}
-									prefetched={tronToken}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -134,7 +131,6 @@
 							<dd>
 								<TronAccountView
 									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
-									prefetched={tronAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -153,7 +149,6 @@
 							<dd>
 								<TronAccountView
 									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
-									prefetched={tronAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

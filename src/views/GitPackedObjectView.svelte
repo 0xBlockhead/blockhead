@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.GitPackedObject> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.GitPackedObject>, 'prefetched'> = $props()
 
 	const gitPackedObject = $derived(selection({
 		fields: {
@@ -66,7 +65,6 @@
 				<span data-text="muted">
 					<GitPackfileView
 						selection={select(EntityType.GitPackfile, gitPackfile[EntityMetaKey.Selector])}
-						prefetched={gitPackfile}
 						layout={EntityLayout.Title}
 					/>
 				</span>
@@ -168,7 +166,6 @@
 						{#snippet children(gitPackfile)}
 							<GitPackfileView
 								selection={select(EntityType.GitPackfile, gitPackfile[EntityMetaKey.Selector])}
-								prefetched={gitPackfile}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -186,7 +183,6 @@
 							<dd>
 								<GitObjectView
 									selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
-									prefetched={gitObject}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

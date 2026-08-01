@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.CelestiaBlob> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.CelestiaBlob>, 'prefetched'> = $props()
 
 
 	// Components

@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.AptosAccountResource> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.AptosAccountResource>, 'prefetched'> = $props()
 
 
 	// Components

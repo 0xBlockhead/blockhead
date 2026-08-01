@@ -15,11 +15,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.TezosContract> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.TezosContract>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('tezos-contract-' + encodeURIComponent(stringify(selection.entitySelector)))
 
@@ -117,7 +116,6 @@
 							<dd>
 								<TezosAccountView
 									selection={select(EntityType.TezosAccount, tezosAccount[EntityMetaKey.Selector])}
-									prefetched={tezosAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -136,7 +134,6 @@
 							<dd>
 								<TezosMichelsonScriptView
 									selection={select(EntityType.TezosMichelsonScript, tezosMichelsonScript[EntityMetaKey.Selector])}
-									prefetched={tezosMichelsonScript}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

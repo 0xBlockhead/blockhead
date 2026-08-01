@@ -13,11 +13,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.AlgorandNetwork_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.AlgorandNetwork_Timestamp>, 'prefetched'> = $props()
 
 
 	// Components

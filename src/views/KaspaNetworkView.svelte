@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.KaspaNetwork> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.KaspaNetwork>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('kaspa-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 

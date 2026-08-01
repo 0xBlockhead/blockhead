@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.A2aMessagePart> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.A2aMessagePart>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [],
@@ -82,7 +81,6 @@
 							<dd>
 								<A2aMessageView
 									selection={select(EntityType.A2aMessage, a2aMessage[EntityMetaKey.Selector])}
-									prefetched={a2aMessage}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

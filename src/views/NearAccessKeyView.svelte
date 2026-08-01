@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.NearAccessKey> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.NearAccessKey>, 'prefetched'> = $props()
 
 	const nearAccessKey = $derived(selection({
 		sources: selection.sources ?? [

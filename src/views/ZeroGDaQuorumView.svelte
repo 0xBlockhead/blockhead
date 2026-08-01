@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.ZeroGDaQuorum> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.ZeroGDaQuorum>, 'prefetched'> = $props()
 
 
 	// Components
@@ -56,7 +55,6 @@
 					<span data-text="muted">
 						<ZeroGConsensusNetworkView
 							selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector])}
-							prefetched={zeroGConsensusNetwork}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -94,7 +92,6 @@
 							<dd>
 								<ZeroGConsensusNetworkView
 									selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector])}
-									prefetched={zeroGConsensusNetwork}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

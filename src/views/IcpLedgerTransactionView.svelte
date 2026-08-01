@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.IcpLedgerTransaction> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.IcpLedgerTransaction>, 'prefetched'> = $props()
 
 
 	// Components
@@ -265,7 +264,6 @@
 							<dd>
 								<IcpLedgerCanisterView
 									selection={select(EntityType.IcpLedgerCanister, icpLedgerCanister[EntityMetaKey.Selector])}
-									prefetched={icpLedgerCanister}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.AvalanchePChainTransaction_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.AvalanchePChainTransaction_Timestamp>, 'prefetched'> = $props()
 
 	const avalanchePChainTransactionTimestamp = $derived(selection({
 		fields: {

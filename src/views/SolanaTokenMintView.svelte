@@ -16,13 +16,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.SolanaTokenMint> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.SolanaTokenMint>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 	const viewDomId = $derived('solana-token-mint-' + encodeURIComponent(stringify(selection.entitySelector)))

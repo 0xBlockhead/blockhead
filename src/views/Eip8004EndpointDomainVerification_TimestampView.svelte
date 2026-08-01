@@ -9,12 +9,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.Eip8004EndpointDomainVerification_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.Eip8004EndpointDomainVerification_Timestamp>, 'prefetched'> = $props()
 
 	const eip8004EndpointDomainVerificationTimestamp = $derived(selection({
 		fields: {

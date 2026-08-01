@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.AiProviderCatalogEntry_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.AiProviderCatalogEntry_Timestamp>, 'prefetched'> = $props()
 
 	const aiProviderCatalogEntryTimestamp = $derived(selection({
 		sources: selection.sources ?? [

@@ -148,10 +148,9 @@
 						{#snippet children(coinTimestamps)}
 							{@const coinTimestamp = coinTimestamps.values[0]}
 							{#if coinTimestamp != null}
-								{@const coinTimestampSelector = coinTimestamp[EntityMetaKey.Selector]}
 								<Coin_TimestampView
 									selection={
-										select(EntityType.Coin_Timestamp, coinTimestampSelector, {
+										select(EntityType.Coin_Timestamp, coinTimestamp[EntityMetaKey.Selector], {
 											sources: [
 												Source.Constants_Internal,
 												Source.Coingecko_Rest,
@@ -160,7 +159,6 @@
 											],
 										})
 									}
-									prefetched={{ ...coinTimestampSelector, ...coinTimestamp }}
 									layout={EntityLayout.Value}
 								/>
 							{:else}

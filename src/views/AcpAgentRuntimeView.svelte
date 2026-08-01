@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.AcpAgentRuntime> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.AcpAgentRuntime>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -140,7 +139,6 @@
 							<dd>
 								<BlockheadAgentProgramInstallView
 									selection={select(EntityType.BlockheadAgentProgramInstall, blockheadAgentProgramInstall[EntityMetaKey.Selector])}
-									prefetched={blockheadAgentProgramInstall}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

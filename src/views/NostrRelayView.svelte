@@ -17,13 +17,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.NostrRelay> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.NostrRelay>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('nostr-relay-' + encodeURIComponent(stringify(selection.entitySelector)))
 

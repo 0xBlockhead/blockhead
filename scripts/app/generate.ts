@@ -414,6 +414,8 @@ type GenerationIndexes = Readonly<
 	>
 	& {
 		defaultPluralViewEntityTypes?: ReadonlySet<string>
+		prefetchedSingularViewEntityTypes?: ReadonlySet<string>
+		summaryPlanByEntityType?: ReadonlyMap<string, ReturnType<typeof compileSummaryPlan>>
 	}
 >
 type SourcesMarkdownInput = Readonly<{
@@ -987,6 +989,16 @@ const viewModulePath = (componentName: string) => `$/views/${componentName}.svel
 const pluralViewName = (entity: Entity) => componentIdentifier(pluralComponentName(entity)).replace(/View$/, '')
 
 const singularComponentIdentifier = (entityType: string) => componentIdentifier(singularComponentName(entityType))
+
+const viewComponentAcceptsPrefetched = (
+	indexes: GenerationIndexes,
+	entityType: string,
+	component: string
+) => (
+	indexes.prefetchedSingularViewEntityTypes == null
+	|| componentIdentifier(component) !== singularComponentIdentifier(entityType)
+	|| indexes.prefetchedSingularViewEntityTypes.has(entityType)
+)
 
 const propertyAccess = (property: string) => /^[A-Za-z_$][\w$]*$/.test(property) ? `.${property}` : `[${emitTypeScript(property)}]`
 
@@ -2533,9 +2545,8 @@ const rawSnippet = (snippet: _RawSnippet | undefined) => (
 	snippet == null || typeof snippet === 'string' ? [] : [snippet]
 )
 
-const entityRawSnippets = (entity: Entity) => {
+const singularViewRawSnippets = (entity: Entity) => {
 	const singularView = entitySingularView(entity)
-	const pluralView = entityPluralView(entity)
 
 	return [
 		...rawSnippet(singularView?.TypeAnnotationTooltip),
@@ -2547,6 +2558,14 @@ const entityRawSnippets = (entity: Entity) => {
 			carousel.sections.flatMap((section) => rawSnippet(section.Content))
 		)),
 		...(singularView?.details?.tabs ?? []).flatMap((tab) => rawSnippet(tab.Content)),
+	]
+}
+
+const entityRawSnippets = (entity: Entity) => {
+	const pluralView = entityPluralView(entity)
+
+	return [
+		...singularViewRawSnippets(entity),
 		...rawSnippet(pluralView?.TypeAnnotationTooltip),
 		...declaredViewItems(entity).flatMap((viewItem) => (
 			typeof viewItem === 'object' && 'Content' in viewItem ?
@@ -6291,9 +6310,27 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 			selection,
 			functionName: sourceSelectionFunctionName(selection),
 		}] as const)).values()]
+	const summaryPlanByEntityType = new Map(generationInput.entities.map((entity) => [
+		entity.entityType,
+		compileSummaryPlan(entity, indexes),
+	]))
+	const summaryPlanningIndexes = {
+		...indexes,
+		summaryPlanByEntityType,
+	}
+	const singularViewPlanByEntityType = new Map(generationInput.entities.map((entity) => [
+		entity.entityType,
+		generateSingularViewFile(entity, summaryPlanningIndexes),
+	]))
+	const prefetchedSingularViewEntityTypes = new Set(generationInput.entities.flatMap((entity) => (
+		singularViewPlanByEntityType.get(entity.entityType)?.consumesPrefetched === true ?
+			[entity.entityType]
+		:
+			[]
+	)))
 	const pluralViewPlanByEntityType = new Map(generationInput.entities.map((entity) => [
 		entity.entityType,
-		generatePluralViewPlan(entity, indexes),
+		generatePluralViewPlan(entity, summaryPlanningIndexes),
 	]))
 	const defaultPluralViewEntityTypes = new Set(generationInput.entities.flatMap((entity) => (
 		pluralViewPlanByEntityType.get(entity.entityType)?.isExactDefault === true ?
@@ -6302,11 +6339,12 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 			[]
 	)))
 	const renderingIndexes = {
-		...indexes,
+		...summaryPlanningIndexes,
 		defaultPluralViewEntityTypes,
+		prefetchedSingularViewEntityTypes,
 	}
 	const entityViewFiles = generationInput.entities.flatMap((entity) => [
-		generateSingularViewFile(entity, renderingIndexes),
+		generateSingularViewFile(entity, renderingIndexes).file,
 		...(defaultPluralViewEntityTypes.has(entity.entityType) ? [] : [
 			pluralViewPlanByEntityType.get(entity.entityType)?.file,
 		]),
@@ -8743,7 +8781,7 @@ const viewItemContextExpression = (
 const summarySerial = (entity: Entity) => entitySingularView(entity)?.summary?.serial
 
 const declarativeSummaryQueryFieldReferences = (entity: Entity, indexes: GenerationIndexes, visitedEntityTypes = new Set<EntityType>()): FieldReference[] | undefined => {
-	const summaryPlan = compileSummaryPlan(entity, indexes)
+	const summaryPlan = summaryPlanFor(entity, indexes)
 	if (
 		[
 			summaryPlan.icon,
@@ -8798,7 +8836,7 @@ const allViewItems = (entity: Entity, indexes: GenerationIndexes) => {
 	const details = singularView?.details
 
 	return viewItemTree([
-		...compileSummaryPlan(entity, indexes).allEntries,
+		...summaryPlanFor(entity, indexes).allEntries,
 		...contentDlGroups(entity, indexes).flat(),
 		...(content?.body == null ? [] : [content.body]),
 		...(content?.blocks ?? []).flat(),
@@ -8947,6 +8985,10 @@ const compileSummaryPlan = (entity: Entity, indexes: GenerationIndexes) => {
 	}
 }
 
+const summaryPlanFor = (entity: Entity, indexes: GenerationIndexes) => (
+	indexes.summaryPlanByEntityType?.get(entity.entityType) ?? compileSummaryPlan(entity, indexes)
+)
+
 const defaultContentDlGroups = (entity: Entity, indexes: GenerationIndexes) => {
 	const singularView = entitySingularView(entity)
 	const content = singularView?.content
@@ -8958,7 +9000,7 @@ const defaultContentDlGroups = (entity: Entity, indexes: GenerationIndexes) => {
 	)
 		return []
 
-	const summaryFieldKeys = compileSummaryPlan(entity, indexes).fieldKeys
+	const summaryFieldKeys = summaryPlanFor(entity, indexes).fieldKeys
 	const entries = entity.fields
 		.filter((fieldDefinition) => !summaryFieldKeys.has(fieldDefinition.name))
 		.flatMap((fieldDefinition) => (
@@ -8978,7 +9020,7 @@ const defaultContentDlGroups = (entity: Entity, indexes: GenerationIndexes) => {
 
 const contentDlGroups = (entity: Entity, indexes: GenerationIndexes) => {
 	const singularView = entitySingularView(entity)
-	const summaryFieldKeys = compileSummaryPlan(entity, indexes).fieldKeys
+	const summaryFieldKeys = summaryPlanFor(entity, indexes).fieldKeys
 	const modeledDlGroups = singularView?.content?.dl ?? []
 	const openFieldKeys = new Set(modeledDlGroups.flatMap((viewEntries) => viewEntries.flatMap((viewEntry) => itemFieldReferences(viewEntry).map(fieldReferenceKey))))
 	const serialFieldName = summarySerial(entity)?.field
@@ -9203,7 +9245,7 @@ const generateSingularViewFile = (entity: Entity, indexes: GenerationIndexes) =>
 	const componentName = singularComponentName(entity.entityType)
 	const entityName = camel(entity.entityType)
 	const contentWarning = singularView?.contentWarning
-	const summaryPlan = compileSummaryPlan(entity, indexes)
+	const summaryPlan = summaryPlanFor(entity, indexes)
 	const {
 		serial,
 		everySelectorOwnsSerial,
@@ -9304,7 +9346,7 @@ const generateSingularViewFile = (entity: Entity, indexes: GenerationIndexes) =>
 			:
 			undefined
 	)
-	const rawSnippets = entityRawSnippets(entity)
+	const rawSnippets = singularViewRawSnippets(entity)
 	const rawSnippetReferences = new Set(rawSnippets.flatMap((snippet) => snippet.references ?? []))
 	const generatedUsesSelect = (
 		latestItems.length > 0
@@ -10025,7 +10067,9 @@ const generateSingularViewFile = (entity: Entity, indexes: GenerationIndexes) =>
 				...(optional ? [`${'\t'.repeat(level + 2)}{#if ${targetEntityName} != null}`] : []),
 				`${'\t'.repeat(referenceLevel)}<${componentIdentifier(component)}`,
 				renderSvelteAttribute(referenceLevel + 1, 'selection', `select(EntityType.${targetEntity.entityType}, ${targetEntityName}[EntityMetaKey.Selector])`),
-				`${'\t'.repeat(referenceLevel + 1)}prefetched={${targetEntityName}}`,
+				...(viewComponentAcceptsPrefetched(indexes, targetEntity.entityType, component) ? [
+					`${'\t'.repeat(referenceLevel + 1)}prefetched={${targetEntityName}}`,
+				] : []),
 				...(targetHasHref ? [`${'\t'.repeat(referenceLevel + 1)}href={null}`] : []),
 				`${'\t'.repeat(referenceLevel + 1)}layout={EntityLayout.${refLayout}}`,
 				`${'\t'.repeat(referenceLevel)}/>`,
@@ -10269,6 +10313,15 @@ const generateSingularViewFile = (entity: Entity, indexes: GenerationIndexes) =>
 		|| typeScriptExpressionReferencesBinding(entityValueFallbackExpression, viewBindings.pendingEntity)
 		|| typeScriptExpressionReferencesBinding(pendingValueFallbackExpression, viewBindings.pendingEntity)
 	)
+	const consumesPrefetched = (
+		rawSnippetReferences.has('prefetched')
+		|| typeScriptExpressionReferencesBinding(titleFallbackExpression, 'prefetched')
+		|| usesPendingEntity
+			&& (
+				singularView?.pending == null
+				|| typeScriptExpressionReferencesBinding(singularView.pending.expression, 'prefetched')
+			)
+	)
 	const usesViewDomId = (
 		carouselsToRender.length > 0
 		|| detailsTabs.length > 0
@@ -10443,13 +10496,13 @@ const generateSingularViewFile = (entity: Entity, indexes: GenerationIndexes) =>
 		'// State',
 		'let {',
 		'\tselection,',
-		'\tprefetched = {},',
+		...(consumesPrefetched ? ['\tprefetched = {},'] : []),
 		...(entityViewOwnsTitleFallback ? [] : ['\ttitle,']),
 		...(entityHrefExpression == null ? [] : ['\thref,']),
 		'\tlayout = EntityLayout.SummaryDetails,',
 		'\topen = $bindable(layout === EntityLayout.SummaryDetails),',
 		'\t...EntityViewProps',
-		`}: EntitySelectionViewProps<EntityType.${entity.entityType}> = $props()`,
+		`}: ${consumesPrefetched ? '' : 'Omit<'}EntitySelectionViewProps<EntityType.${entity.entityType}>${consumesPrefetched ? '' : ', \'prefetched\'>'} = $props()`,
 		'',
 	]
 	const renderScriptAfterPendingEntity = (inlineEntityResource: boolean) => [
@@ -10661,17 +10714,20 @@ const generateSingularViewFile = (entity: Entity, indexes: GenerationIndexes) =>
 		'</EntityView>',
 	]
 
-	return svelteFile(
-		viewModulePath(componentName).replace(/^\$\//, 'src/'),
-		{
-			script: [
-				...scriptBeforePendingEntity,
-				...(usesPendingEntity ? renderPendingEntityDerived(entity) : []),
-				...renderScriptAfterPendingEntity(inlineEntityResource),
-			],
-			markup,
-		}
-	)
+	return {
+		consumesPrefetched,
+		file: svelteFile(
+			viewModulePath(componentName).replace(/^\$\//, 'src/'),
+			{
+				script: [
+					...scriptBeforePendingEntity,
+					...(usesPendingEntity ? renderPendingEntityDerived(entity) : []),
+					...renderScriptAfterPendingEntity(inlineEntityResource),
+				],
+				markup,
+			}
+		),
+	}
 }
 
 const renderContentBlock = (
@@ -10834,7 +10890,9 @@ const renderSummaryAfterItem = (
 				`${'\t'.repeat(referenceLevel)}<span data-text="muted">`,
 				`${'\t'.repeat(referenceLevel + 1)}<${componentIdentifier(component)}`,
 				renderSvelteAttribute(referenceLevel + 2, 'selection', `select(EntityType.${targetEntity.entityType}, ${targetEntityName}[EntityMetaKey.Selector])`),
-				`${'\t'.repeat(referenceLevel + 2)}prefetched={${targetEntityName}}`,
+				...(viewComponentAcceptsPrefetched(indexes, targetEntity.entityType, component) ? [
+					`${'\t'.repeat(referenceLevel + 2)}prefetched={${targetEntityName}}`,
+				] : []),
 				`${'\t'.repeat(referenceLevel + 2)}layout={EntityLayout.Title}`,
 				`${'\t'.repeat(referenceLevel + 1)}/>`,
 				`${'\t'.repeat(referenceLevel)}</span>`,
@@ -10959,7 +11017,9 @@ const renderIconSnippet = (
 			...(optional ? ['{#if reference != null}'] : []),
 			`${'\t'.repeat(referenceLevel)}<${componentIdentifier(component)}`,
 			`${'\t'.repeat(referenceLevel + 1)}selection={select(EntityType.${iconFieldDefinition.entityType}, ${referenceSelectorExpression})}`,
-			`${'\t'.repeat(referenceLevel + 1)}prefetched={reference}`,
+			...(viewComponentAcceptsPrefetched(indexes, iconFieldDefinition.entityType, component) ? [
+				`${'\t'.repeat(referenceLevel + 1)}prefetched={reference}`,
+			] : []),
 			`${'\t'.repeat(referenceLevel + 1)}layout={EntityLayout.Value}`,
 			`${'\t'.repeat(referenceLevel)}/>`,
 			...(optional ? ['{/if}'] : []),
@@ -11047,7 +11107,9 @@ const renderEntityReferenceDlItem = (
 	const entityViewLines = [
 		`${'\t'.repeat(level + 2)}<${component}`,
 		renderSvelteAttribute(level + 3, 'selection', `select(EntityType.${fieldDefinition.entityType}, ${targetEntityName}[EntityMetaKey.Selector])`),
-		`${'\t'.repeat(level + 3)}prefetched={${targetEntityName}}`,
+		...(viewComponentAcceptsPrefetched(indexes, fieldDefinition.entityType, component) ? [
+			`${'\t'.repeat(level + 3)}prefetched={${targetEntityName}}`,
+		] : []),
 		`${'\t'.repeat(level + 3)}layout={EntityLayout.Value}`,
 		`${'\t'.repeat(level + 2)}/>`,
 	]
@@ -11352,13 +11414,16 @@ const renderLatestContentItem = (
 	const selectorExpression = `${latestEntityName}[EntityMetaKey.Selector]`
 	const latestLabel = latest.label ?? latest.field
 	const latestConditions = latest.conditions ?? latest.when ?? []
+	const targetAcceptsPrefetched = viewComponentAcceptsPrefetched(indexes, entityType, component)
 
 	const latestBodyLines = [
 		`${'\t'.repeat(level + 4)}{#if ${latestEntityName} != null}`,
-		renderSvelteConst(level + 5, latestSelectorName, selectorExpression),
+		...(targetAcceptsPrefetched ? [renderSvelteConst(level + 5, latestSelectorName, selectorExpression)] : []),
 		`${'\t'.repeat(level + 5)}<${componentIdentifier(component)}`,
-		renderSvelteAttribute(level + 6, 'selection', `select(EntityType.${entityType}, ${latestSelectorName}${latestSelectionSuffix})`),
-		`${'\t'.repeat(level + 6)}prefetched={{ ...${latestSelectorName}, ...${latestEntityName} }}`,
+		renderSvelteAttribute(level + 6, 'selection', `select(EntityType.${entityType}, ${targetAcceptsPrefetched ? latestSelectorName : selectorExpression}${latestSelectionSuffix})`),
+		...(targetAcceptsPrefetched ? [
+			`${'\t'.repeat(level + 6)}prefetched={{ ...${latestSelectorName}, ...${latestEntityName} }}`,
+		] : []),
 		`${'\t'.repeat(level + 6)}layout={EntityLayout.Value}`,
 		`${'\t'.repeat(level + 5)}/>`,
 		`${'\t'.repeat(level + 4)}{:else}`,
@@ -12812,7 +12877,9 @@ const renderCarouselSection = (
 				'selection',
 				targetSelectionExpression
 			),
-			`\t\t\t\t\t\t\t\tprefetched={${targetEntityName}}`,
+			...(viewComponentAcceptsPrefetched(indexes, targetEntity, component) ? [
+				`\t\t\t\t\t\t\t\tprefetched={${targetEntityName}}`,
+			] : []),
 			'\t\t\t\t\t\t\t\tlayout={EntityLayout.SummaryInline}',
 			'\t\t\t\t\t\t\t/>',
 			'\t\t\t\t\t\t</article>',
@@ -12837,7 +12904,9 @@ const renderCarouselSection = (
 				'selection',
 				targetSelectionExpression
 			),
-			`\t\t\t\t\t\t\t\tprefetched={${targetEntityName}}`,
+			...(viewComponentAcceptsPrefetched(indexes, targetEntity, component) ? [
+				`\t\t\t\t\t\t\t\tprefetched={${targetEntityName}}`,
+			] : []),
 			'\t\t\t\t\t\t\t\tlayout={EntityLayout.Summary}',
 			'\t\t\t\t\t\t\t\topen={false}',
 			'\t\t\t\t\t\t\t/>',
@@ -13061,7 +13130,9 @@ const renderEntityReferenceSection = (
 			`${'\t'.repeat(level + 4)}<h3>${section.label ?? labelForField(fieldDefinition)}</h3>`,
 			`${'\t'.repeat(level + 4)}<${componentIdentifier(component)}`,
 			`${'\t'.repeat(level + 5)}selection={select(EntityType.${targetEntity}, ${targetEntityName}[EntityMetaKey.Selector])}`,
-			`${'\t'.repeat(level + 5)}prefetched={${targetEntityName}}`,
+			...(viewComponentAcceptsPrefetched(indexes, targetEntity, component) ? [
+				`${'\t'.repeat(level + 5)}prefetched={${targetEntityName}}`,
+			] : []),
 			`${'\t'.repeat(level + 5)}layout={EntityLayout.Summary}`,
 			`${'\t'.repeat(level + 5)}open={false}`,
 			`${'\t'.repeat(level + 4)}/>`,
@@ -13081,7 +13152,9 @@ const renderEntityReferenceSection = (
 		`${'\t'.repeat(level + 2)}{#snippet children(${targetEntityName})}`,
 		`${'\t'.repeat(referenceLevel)}<${componentIdentifier(component)}`,
 		`${'\t'.repeat(referenceLevel + 1)}selection={select(EntityType.${targetEntity}, ${targetEntityName}[EntityMetaKey.Selector])}`,
-		`${'\t'.repeat(referenceLevel + 1)}prefetched={${targetEntityName}}`,
+		...(viewComponentAcceptsPrefetched(indexes, targetEntity, component) ? [
+			`${'\t'.repeat(referenceLevel + 1)}prefetched={${targetEntityName}}`,
+		] : []),
 		`${'\t'.repeat(referenceLevel + 1)}layout={EntityLayout.Summary}`,
 		`${'\t'.repeat(referenceLevel + 1)}open={false}`,
 		`${'\t'.repeat(referenceLevel)}/>`,
@@ -13259,7 +13332,7 @@ const renderFilterCondition = (
 
 const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 	const singularView = entitySingularView(entity)
-	const summaryPlan = compileSummaryPlan(entity, indexes)
+	const summaryPlan = summaryPlanFor(entity, indexes)
 	const pluralView: PluralView | undefined = entityPluralView(entity)
 	const componentName = pluralComponentName(entity)
 	const contentWarning = singularView?.contentWarning
@@ -13511,7 +13584,7 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 		visitedEntityTypes = new Set<EntityType>(),
 		entitySelectorExpression?: string
 	) => {
-		const directSummaryPlan = compileSummaryPlan(summaryEntity, indexes)
+		const directSummaryPlan = summaryPlanFor(summaryEntity, indexes)
 		const directSummarySerial = directSummaryPlan.serial
 		return renderFirstDeclaredExpression([
 			directSummarySerial == null ? undefined : renderSerialTextExpression(
@@ -14635,7 +14708,7 @@ const renderPageEntityTitleExpression = (
 	pendingFieldsExpression = `${selectionExpression}.entitySelector`,
 	pendingSelectorName?: string
 ) => {
-	const summaryPlan = compileSummaryPlan(entity, indexes)
+	const summaryPlan = summaryPlanFor(entity, indexes)
 	const serial = summaryPlan.serial
 	const pendingSelectorFields = (
 		pendingSelectorName == null ?

@@ -16,13 +16,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.HederaAccount> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.HederaAccount>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 	const viewDomId = $derived('hedera-account-' + encodeURIComponent(stringify(selection.entitySelector)))

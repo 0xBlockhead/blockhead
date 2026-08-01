@@ -16,13 +16,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.SolanaValidator> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.SolanaValidator>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 	const viewDomId = $derived('solana-validator-' + encodeURIComponent(stringify(selection.entitySelector)))

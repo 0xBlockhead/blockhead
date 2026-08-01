@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.MoneroKeyImage> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.MoneroKeyImage>, 'prefetched'> = $props()
 
 
 	// Components
@@ -58,7 +57,6 @@
 					<span data-text="muted">
 						<MoneroRingView
 							selection={select(EntityType.MoneroRing, moneroRing[EntityMetaKey.Selector])}
-							prefetched={moneroRing}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -105,7 +103,6 @@
 							<dd>
 								<MoneroRingView
 									selection={select(EntityType.MoneroRing, moneroRing[EntityMetaKey.Selector])}
-									prefetched={moneroRing}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

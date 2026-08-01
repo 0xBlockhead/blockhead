@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.EnsReverseRecord_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.EnsReverseRecord_Timestamp>, 'prefetched'> = $props()
 
 	const ensReverseRecordTimestamp = $derived(selection({
 		sources: selection.sources ?? [

@@ -16,13 +16,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.MarketAsset> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.MarketAsset>, 'prefetched'> = $props()
 
 
 	// Components
@@ -116,7 +115,6 @@
 									{#snippet children(evmCoinInstance)}
 										<EvmCoinInstanceView
 											selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-											prefetched={evmCoinInstance}
 											layout={EntityLayout.Value}
 										/>
 									{/snippet}

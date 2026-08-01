@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.TezosBigMapDiff> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.TezosBigMapDiff>, 'prefetched'> = $props()
 
 
 	// Components
@@ -91,7 +90,6 @@
 							<dd>
 								<TezosBigMapView
 									selection={select(EntityType.TezosBigMap, tezosBigMap[EntityMetaKey.Selector])}
-									prefetched={tezosBigMap}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

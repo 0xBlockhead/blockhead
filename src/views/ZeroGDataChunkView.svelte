@@ -13,11 +13,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.ZeroGDataChunk> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.ZeroGDataChunk>, 'prefetched'> = $props()
 
 
 	// Components

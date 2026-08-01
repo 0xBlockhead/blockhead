@@ -15,13 +15,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.Erc4337AccountFactory_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.Erc4337AccountFactory_Timestamp>, 'prefetched'> = $props()
 
 	const factory = $derived(selection.entitySelector.$factory)
 	const erc4337AccountFactoryTimestamp = $derived(selection({

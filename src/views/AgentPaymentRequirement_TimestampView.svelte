@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.AgentPaymentRequirement_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.AgentPaymentRequirement_Timestamp>, 'prefetched'> = $props()
 
 
 	// Components
@@ -79,7 +78,6 @@
 							<dd>
 								<A2aAgentServiceView
 									selection={select(EntityType.A2aAgentService, a2aAgentService[EntityMetaKey.Selector])}
-									prefetched={a2aAgentService}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -98,7 +96,6 @@
 							<dd>
 								<McpServerView
 									selection={select(EntityType.McpServer, mcpServer[EntityMetaKey.Selector])}
-									prefetched={mcpServer}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -117,7 +114,6 @@
 							<dd>
 								<Eip8004AgentServiceEndpointView
 									selection={select(EntityType.Eip8004AgentServiceEndpoint, eip8004AgentServiceEndpoint[EntityMetaKey.Selector])}
-									prefetched={eip8004AgentServiceEndpoint}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -136,7 +132,6 @@
 							<dd>
 								<BlockheadAgentConnectionView
 									selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
-									prefetched={blockheadAgentConnection}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

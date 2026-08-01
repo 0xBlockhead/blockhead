@@ -102,7 +102,6 @@
 							<dd>
 								<ArweaveTransactionView
 									selection={select(EntityType.ArweaveTransaction, arweaveTransaction[EntityMetaKey.Selector])}
-									prefetched={arweaveTransaction}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

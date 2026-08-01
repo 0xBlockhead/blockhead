@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.AiEvaluation_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.AiEvaluation_Timestamp>, 'prefetched'> = $props()
 
 	const aiEvaluationTimestamp = $derived(selection({
 		fields: {
@@ -209,7 +208,6 @@
 							<dd>
 								<A2aAgentServiceView
 									selection={select(EntityType.A2aAgentService, a2aAgentService[EntityMetaKey.Selector])}
-									prefetched={a2aAgentService}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -228,7 +226,6 @@
 							<dd>
 								<McpServerView
 									selection={select(EntityType.McpServer, mcpServer[EntityMetaKey.Selector])}
-									prefetched={mcpServer}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -247,7 +244,6 @@
 							<dd>
 								<Eip8004AgentRegistrationView
 									selection={select(EntityType.Eip8004AgentRegistration, eip8004AgentRegistration[EntityMetaKey.Selector])}
-									prefetched={eip8004AgentRegistration}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

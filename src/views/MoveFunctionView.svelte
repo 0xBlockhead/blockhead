@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.MoveFunction> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.MoveFunction>, 'prefetched'> = $props()
 
 	const moveFunction = $derived(selection({
 		fields: {

@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.TonNftTransfer> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.TonNftTransfer>, 'prefetched'> = $props()
 
 
 	// Components
@@ -79,7 +78,6 @@
 							<dd>
 								<TonNftItemView
 									selection={select(EntityType.TonNftItem, tonNftItem[EntityMetaKey.Selector])}
-									prefetched={tonNftItem}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -98,7 +96,6 @@
 							<dd>
 								<TonNftCollectionView
 									selection={select(EntityType.TonNftCollection, tonNftCollection[EntityMetaKey.Selector])}
-									prefetched={tonNftCollection}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -117,7 +114,6 @@
 							<dd>
 								<TonAccountView
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
-									prefetched={tonAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -136,7 +132,6 @@
 							<dd>
 								<TonAccountView
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
-									prefetched={tonAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -155,7 +150,6 @@
 							<dd>
 								<TonTraceView
 									selection={select(EntityType.TonTrace, tonTrace[EntityMetaKey.Selector])}
-									prefetched={tonTrace}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -174,7 +168,6 @@
 							<dd>
 								<TonMessageView
 									selection={select(EntityType.TonMessage, tonMessage[EntityMetaKey.Selector])}
-									prefetched={tonMessage}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

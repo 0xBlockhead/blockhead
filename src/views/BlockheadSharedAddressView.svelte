@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BlockheadSharedAddress> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BlockheadSharedAddress>, 'prefetched'> = $props()
 
 	const blockheadSharedAddress = $derived(selection({
 		sources: selection.sources ?? [
@@ -59,7 +58,6 @@
 			{#snippet children(evmAccount)}
 				<EvmAccountView
 					selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-					prefetched={evmAccount}
 					href={null}
 					layout={EntityLayout.Title}
 				/>
@@ -140,7 +138,6 @@
 						{#snippet children(evmAccount)}
 							<EvmAccountView
 								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-								prefetched={evmAccount}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

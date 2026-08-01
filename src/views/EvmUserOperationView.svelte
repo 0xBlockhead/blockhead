@@ -18,13 +18,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.EvmUserOperation> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.EvmUserOperation>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
@@ -253,7 +252,6 @@
 							<dd>
 								<EvmTransactionView
 									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
-									prefetched={evmTransaction}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -318,7 +316,6 @@
 										<dd>
 											<Erc4337SmartAccountView
 												selection={select(EntityType.Erc4337SmartAccount, erc4337SmartAccount[EntityMetaKey.Selector])}
-												prefetched={erc4337SmartAccount}
 												layout={EntityLayout.Value}
 											/>
 										</dd>
@@ -337,7 +334,6 @@
 										<dd>
 											<Erc4337PaymasterView
 												selection={select(EntityType.Erc4337Paymaster, erc4337Paymaster[EntityMetaKey.Selector])}
-												prefetched={erc4337Paymaster}
 												layout={EntityLayout.Value}
 											/>
 										</dd>
@@ -356,7 +352,6 @@
 										<dd>
 											<Erc4337BundlerView
 												selection={select(EntityType.Erc4337Bundler, erc4337Bundler[EntityMetaKey.Selector])}
-												prefetched={erc4337Bundler}
 												layout={EntityLayout.Value}
 											/>
 										</dd>

@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.XrplAmm_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.XrplAmm_Timestamp>, 'prefetched'> = $props()
 
 
 	// Components
@@ -184,7 +183,6 @@
 							<dd>
 								<XrplLedgerEntryView
 									selection={select(EntityType.XrplLedgerEntry, xrplLedgerEntry[EntityMetaKey.Selector])}
-									prefetched={xrplLedgerEntry}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

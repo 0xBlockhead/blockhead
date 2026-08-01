@@ -13,11 +13,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.StellarTransaction_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.StellarTransaction_Timestamp>, 'prefetched'> = $props()
 
 
 	// Components

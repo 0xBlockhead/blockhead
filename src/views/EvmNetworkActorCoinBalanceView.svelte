@@ -159,7 +159,6 @@
 						{#snippet children(evmCoinInstance)}
 							<EvmCoinInstanceView
 								selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-								prefetched={evmCoinInstance}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

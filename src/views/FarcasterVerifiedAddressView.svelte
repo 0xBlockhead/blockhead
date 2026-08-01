@@ -15,13 +15,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.FarcasterVerifiedAddress> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.FarcasterVerifiedAddress>, 'prefetched'> = $props()
 
 	const titleFallback = $derived(selection.entitySelector.address || 'Farcaster verified address')
 
@@ -113,7 +112,6 @@
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-									prefetched={evmAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -134,7 +132,6 @@
 							<dd>
 								<SolanaAccountView
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
-									prefetched={solanaAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BlockheadZcashNoteState> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BlockheadZcashNoteState>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -113,7 +112,6 @@
 							<dd>
 								<ZcashShieldedActionView
 									selection={select(EntityType.ZcashShieldedAction, zcashShieldedAction[EntityMetaKey.Selector])}
-									prefetched={zcashShieldedAction}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

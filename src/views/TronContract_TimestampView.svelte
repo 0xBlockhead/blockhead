@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.TronContract_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.TronContract_Timestamp>, 'prefetched'> = $props()
 
 
 	// Components
@@ -137,7 +136,6 @@
 							<dd>
 								<TronContractView
 									selection={select(EntityType.TronContract, tronContract[EntityMetaKey.Selector])}
-									prefetched={tronContract}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

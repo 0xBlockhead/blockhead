@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.PayoutClaim_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.PayoutClaim_Timestamp>, 'prefetched'> = $props()
 
 
 	// Components
@@ -174,7 +173,6 @@
 							<dd>
 								<EvmTransactionView
 									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
-									prefetched={evmTransaction}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

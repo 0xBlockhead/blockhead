@@ -141,7 +141,6 @@
 							<dd>
 								<BlockheadWalletConnectionView
 									selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector])}
-									prefetched={blockheadWalletConnection}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BlockheadFedimintClientState_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BlockheadFedimintClientState_Timestamp>, 'prefetched'> = $props()
 
 	const blockheadFedimintClientStateTimestamp = $derived(selection({
 		fields: {

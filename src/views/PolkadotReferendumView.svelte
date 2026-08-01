@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.PolkadotReferendum> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.PolkadotReferendum>, 'prefetched'> = $props()
 
 	const polkadotReferendum = $derived(selection({
 		fields: {

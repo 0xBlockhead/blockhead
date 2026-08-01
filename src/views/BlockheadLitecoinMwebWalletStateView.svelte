@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BlockheadLitecoinMwebWalletState> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BlockheadLitecoinMwebWalletState>, 'prefetched'> = $props()
 
 
 	// Components

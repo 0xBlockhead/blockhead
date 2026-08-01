@@ -16,13 +16,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.LightningNode> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.LightningNode>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 	const viewDomId = $derived('lightning-node-' + encodeURIComponent(stringify(selection.entitySelector)))

@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.SuiTransaction> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.SuiTransaction>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('sui-transaction-' + encodeURIComponent(stringify(selection.entitySelector)))
 

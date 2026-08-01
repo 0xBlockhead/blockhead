@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.IcpNetwork> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.IcpNetwork>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('icp-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 

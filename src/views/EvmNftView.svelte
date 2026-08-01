@@ -238,7 +238,6 @@
 									<dd>
 										<EvmAccountView
 											selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-											prefetched={evmAccount}
 											layout={EntityLayout.Value}
 										/>
 									</dd>

@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.ElementsPeg> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.ElementsPeg>, 'prefetched'> = $props()
 
 	const elementsPeg = $derived(selection({
 		fields: {
@@ -113,7 +112,6 @@
 							<dd>
 								<UtxoTransactionView
 									selection={select(EntityType.UtxoTransaction, utxoTransaction[EntityMetaKey.Selector])}
-									prefetched={utxoTransaction}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -132,7 +130,6 @@
 							<dd>
 								<UtxoTransactionView
 									selection={select(EntityType.UtxoTransaction, utxoTransaction[EntityMetaKey.Selector])}
-									prefetched={utxoTransaction}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

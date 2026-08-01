@@ -16,12 +16,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.EigenLayerStrategy> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.EigenLayerStrategy>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -115,7 +114,6 @@
 							<dd>
 								<EvmCoinInstanceView
 									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-									prefetched={evmCoinInstance}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

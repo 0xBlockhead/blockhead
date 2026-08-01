@@ -106,7 +106,6 @@
 							<dd>
 								<EvmTransactionView
 									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
-									prefetched={evmTransaction}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -147,7 +146,6 @@
 							<dd>
 								<EvmTransactionView
 									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
-									prefetched={evmTransaction}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -168,7 +166,6 @@
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-									prefetched={evmAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -187,7 +184,6 @@
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-									prefetched={evmAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -244,7 +240,6 @@
 							<dd>
 								<EvmCoinInstanceView
 									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-									prefetched={evmCoinInstance}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -263,7 +258,6 @@
 							<dd>
 								<EvmCoinInstanceView
 									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-									prefetched={evmCoinInstance}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

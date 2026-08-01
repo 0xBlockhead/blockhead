@@ -16,13 +16,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.LiquidityPool_Block> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.LiquidityPool_Block>, 'prefetched'> = $props()
 
 	const liquidityPool = $derived(selection.entitySelector.$liquidityPool)
 	const viewSelection = $derived(selection({
@@ -128,7 +127,6 @@
 						{#snippet children(liquidityPool)}
 							<LiquidityPoolView
 								selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
-								prefetched={liquidityPool}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

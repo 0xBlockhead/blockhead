@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.TonTransaction> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.TonTransaction>, 'prefetched'> = $props()
 
 
 	// Components
@@ -264,7 +263,6 @@
 							<dd>
 								<TonBlockView
 									selection={select(EntityType.TonBlock, tonBlock[EntityMetaKey.Selector])}
-									prefetched={tonBlock}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -283,7 +281,6 @@
 							<dd>
 								<TonTraceView
 									selection={select(EntityType.TonTrace, tonTrace[EntityMetaKey.Selector])}
-									prefetched={tonTrace}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -302,7 +299,6 @@
 							<dd>
 								<TonMessageView
 									selection={select(EntityType.TonMessage, tonMessage[EntityMetaKey.Selector])}
-									prefetched={tonMessage}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

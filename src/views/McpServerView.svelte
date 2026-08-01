@@ -16,12 +16,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.McpServer> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.McpServer>, 'prefetched'> = $props()
 
 	const mcpServer = $derived(selection({
 		sources: selection.sources ?? [

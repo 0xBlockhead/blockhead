@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.RadicleSignedRef> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.RadicleSignedRef>, 'prefetched'> = $props()
 
 
 	// Components
@@ -114,7 +113,6 @@
 							<dd>
 								<GitRefView
 									selection={select(EntityType.GitRef, gitRef[EntityMetaKey.Selector])}
-									prefetched={gitRef}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -133,7 +131,6 @@
 							<dd>
 								<GitRefObservation_TimestampView
 									selection={select(EntityType.GitRefObservation_Timestamp, gitRefObservationTimestamp[EntityMetaKey.Selector])}
-									prefetched={gitRefObservationTimestamp}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

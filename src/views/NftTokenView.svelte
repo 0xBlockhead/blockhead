@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.NftToken> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.NftToken>, 'prefetched'> = $props()
 
 
 	// Components
@@ -90,7 +89,6 @@
 							<dd>
 								<AssetObjectView
 									selection={select(EntityType.AssetObject, assetObject[EntityMetaKey.Selector])}
-									prefetched={assetObject}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

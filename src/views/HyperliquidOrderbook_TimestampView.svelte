@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.HyperliquidOrderbook_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.HyperliquidOrderbook_Timestamp>, 'prefetched'> = $props()
 
 
 	// Components
@@ -80,7 +79,6 @@
 							<dd>
 								<HyperliquidPerpMarketView
 									selection={select(EntityType.HyperliquidPerpMarket, hyperliquidPerpMarket[EntityMetaKey.Selector])}
-									prefetched={hyperliquidPerpMarket}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -99,7 +97,6 @@
 							<dd>
 								<HyperliquidSpotPairView
 									selection={select(EntityType.HyperliquidSpotPair, hyperliquidSpotPair[EntityMetaKey.Selector])}
-									prefetched={hyperliquidSpotPair}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -16,13 +16,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BlockheadWalletConnection> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BlockheadWalletConnection>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -301,7 +300,6 @@
 							<dd>
 								<AccountView
 									selection={select(EntityType.Account, account[EntityMetaKey.Selector])}
-									prefetched={account}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

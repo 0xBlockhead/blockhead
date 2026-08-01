@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BittensorBlock> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BittensorBlock>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -116,7 +115,6 @@
 							<dd>
 								<BittensorBlockView
 									selection={select(EntityType.BittensorBlock, bittensorBlock[EntityMetaKey.Selector])}
-									prefetched={bittensorBlock}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.IcpCanister_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.IcpCanister_Timestamp>, 'prefetched'> = $props()
 
 
 	// Components
@@ -75,7 +74,6 @@
 							<dd>
 								<IcpSubnetView
 									selection={select(EntityType.IcpSubnet, icpSubnet[EntityMetaKey.Selector])}
-									prefetched={icpSubnet}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

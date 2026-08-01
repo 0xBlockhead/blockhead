@@ -15,13 +15,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BeaconValidator_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BeaconValidator_Timestamp>, 'prefetched'> = $props()
 
 	const validator = $derived(selection.entitySelector.$validator)
 	const beaconValidatorTimestamp = $derived(selection({

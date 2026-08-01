@@ -9,12 +9,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.MagnetResolution_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.MagnetResolution_Timestamp>, 'prefetched'> = $props()
 
 	const magnetResolutionTimestamp = $derived(selection({
 		fields: {

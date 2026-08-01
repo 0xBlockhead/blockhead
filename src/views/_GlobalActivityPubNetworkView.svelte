@@ -11,12 +11,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType._GlobalActivityPubNetwork> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType._GlobalActivityPubNetwork>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('-global-activity-pub-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 

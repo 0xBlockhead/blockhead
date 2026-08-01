@@ -10,12 +10,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType._GlobalSwarmAccess> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType._GlobalSwarmAccess>, 'prefetched'> = $props()
 
 
 	// Components

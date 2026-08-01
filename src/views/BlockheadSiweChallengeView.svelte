@@ -171,7 +171,6 @@
 						{#snippet children(evmAccount)}
 							<EvmAccountView
 								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-								prefetched={evmAccount}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

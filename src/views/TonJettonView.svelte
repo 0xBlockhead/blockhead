@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.TonJetton> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.TonJetton>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('ton-jetton-' + encodeURIComponent(stringify(selection.entitySelector)))
 
@@ -76,7 +75,6 @@
 							<dd>
 								<TonAccountView
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
-									prefetched={tonAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

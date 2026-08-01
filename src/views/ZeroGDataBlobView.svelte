@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.ZeroGDataBlob> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.ZeroGDataBlob>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -171,7 +170,6 @@
 							<dd>
 								<ZeroGConsensusNetworkView
 									selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector])}
-									prefetched={zeroGConsensusNetwork}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -190,7 +188,6 @@
 							<dd>
 								<ZeroGDaQuorumView
 									selection={select(EntityType.ZeroGDaQuorum, zeroGDaQuorum[EntityMetaKey.Selector])}
-									prefetched={zeroGDaQuorum}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -209,7 +206,6 @@
 							<dd>
 								<ZeroGStorageLogEntryView
 									selection={select(EntityType.ZeroGStorageLogEntry, zeroGStorageLogEntry[EntityMetaKey.Selector])}
-									prefetched={zeroGStorageLogEntry}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

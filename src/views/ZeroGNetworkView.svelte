@@ -181,7 +181,6 @@
 							<dd>
 								<ZeroGConsensusNetworkView
 									selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector])}
-									prefetched={zeroGConsensusNetwork}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

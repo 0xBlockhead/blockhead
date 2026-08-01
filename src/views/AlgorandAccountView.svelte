@@ -15,11 +15,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.AlgorandAccount> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.AlgorandAccount>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('algorand-account-' + encodeURIComponent(stringify(selection.entitySelector)))
 

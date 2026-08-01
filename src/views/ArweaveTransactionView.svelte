@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.ArweaveTransaction> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.ArweaveTransaction>, 'prefetched'> = $props()
 
 	const arweaveTransaction = $derived(selection({
 		fields: {

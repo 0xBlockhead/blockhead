@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.PolkadotAsset> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.PolkadotAsset>, 'prefetched'> = $props()
 
 	const titleFallback = $derived(selection.entitySelector.assetId || 'Polkadot asset')
 

@@ -13,11 +13,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.TezosTokenBalance_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.TezosTokenBalance_Timestamp>, 'prefetched'> = $props()
 
 
 	// Components

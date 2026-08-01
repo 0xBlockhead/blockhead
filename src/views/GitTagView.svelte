@@ -88,7 +88,6 @@
 						{#snippet children(gitObject)}
 							<GitObjectView
 								selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
-								prefetched={gitObject}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

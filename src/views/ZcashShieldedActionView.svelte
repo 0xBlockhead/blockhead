@@ -16,13 +16,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.ZcashShieldedAction> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.ZcashShieldedAction>, 'prefetched'> = $props()
 
 	const transaction = $derived(selection.entitySelector.$transaction)
 	const zcashShieldedAction = $derived(selection({
@@ -130,7 +129,6 @@
 							<dd>
 								<ZcashShieldedPoolView
 									selection={select(EntityType.ZcashShieldedPool, zcashShieldedPool[EntityMetaKey.Selector])}
-									prefetched={zcashShieldedPool}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

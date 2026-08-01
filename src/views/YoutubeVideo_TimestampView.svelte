@@ -14,13 +14,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.YoutubeVideo_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.YoutubeVideo_Timestamp>, 'prefetched'> = $props()
 
 
 	// Components

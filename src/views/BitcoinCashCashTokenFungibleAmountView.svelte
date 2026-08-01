@@ -77,7 +77,6 @@
 				<span data-text="muted">
 					<BitcoinCashCashTokenCategoryView
 						selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
-						prefetched={bitcoinCashCashTokenCategory}
 						layout={EntityLayout.Title}
 					/>
 				</span>
@@ -111,7 +110,6 @@
 						{#snippet children(bitcoinCashCashTokenCategory)}
 							<BitcoinCashCashTokenCategoryView
 								selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
-								prefetched={bitcoinCashCashTokenCategory}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

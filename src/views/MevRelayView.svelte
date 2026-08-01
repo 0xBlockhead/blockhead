@@ -15,13 +15,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.MevRelay> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.MevRelay>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 	const titleFallback = $derived(selection.entitySelector.host || 'MEV relay')

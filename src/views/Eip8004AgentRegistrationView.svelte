@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.Eip8004AgentRegistration> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.Eip8004AgentRegistration>, 'prefetched'> = $props()
 
 	const titleFallback = $derived(selection.entitySelector.agentId || 'EIP-8004 agent registration')
 

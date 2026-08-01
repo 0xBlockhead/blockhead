@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.CelestiaNamespace_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.CelestiaNamespace_Timestamp>, 'prefetched'> = $props()
 
 	const celestiaNamespaceTimestamp = $derived(selection({
 		fields: {

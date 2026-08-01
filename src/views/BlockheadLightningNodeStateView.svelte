@@ -85,7 +85,6 @@
 					<span data-text="muted">
 						<LightningNodeView
 							selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
-							prefetched={lightningNode}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -161,7 +160,6 @@
 							<dd>
 								<LightningNodeView
 									selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
-									prefetched={lightningNode}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.Eip8004AgentServiceEndpoint> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.Eip8004AgentServiceEndpoint>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -205,7 +204,6 @@
 							<dd>
 								<McpServerView
 									selection={select(EntityType.McpServer, mcpServer[EntityMetaKey.Selector])}
-									prefetched={mcpServer}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

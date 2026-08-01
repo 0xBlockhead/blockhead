@@ -11,12 +11,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType._GlobalRedditNetwork> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType._GlobalRedditNetwork>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('-global-reddit-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 

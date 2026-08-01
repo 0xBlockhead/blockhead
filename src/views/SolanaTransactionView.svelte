@@ -16,13 +16,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.SolanaTransaction> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.SolanaTransaction>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 	const solanaTransaction = $derived(selection({
@@ -191,7 +190,6 @@
 							<dd>
 								<SolanaBlockView
 									selection={select(EntityType.SolanaBlock, solanaBlock[EntityMetaKey.Selector])}
-									prefetched={solanaBlock}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -210,7 +208,6 @@
 							<dd>
 								<SolanaAccountView
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
-									prefetched={solanaAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

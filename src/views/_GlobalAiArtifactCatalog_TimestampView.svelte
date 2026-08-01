@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType._GlobalAiArtifactCatalog_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType._GlobalAiArtifactCatalog_Timestamp>, 'prefetched'> = $props()
 
 	const globalAiArtifactCatalogTimestamp = $derived(selection({
 		fields: {

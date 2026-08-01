@@ -99,7 +99,6 @@
 							<dd>
 								<CardanoStakeCredentialView
 									selection={select(EntityType.CardanoStakeCredential, cardanoStakeCredential[EntityMetaKey.Selector])}
-									prefetched={cardanoStakeCredential}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

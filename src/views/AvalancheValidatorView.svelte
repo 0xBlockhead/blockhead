@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.AvalancheValidator> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.AvalancheValidator>, 'prefetched'> = $props()
 
 	const avalancheValidator = $derived(selection({
 		fields: {

@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.HyperliquidSpotPair> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.HyperliquidSpotPair>, 'prefetched'> = $props()
 
 
 	// Components

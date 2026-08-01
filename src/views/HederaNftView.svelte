@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.HederaNft> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.HederaNft>, 'prefetched'> = $props()
 
 	const hederaNft = $derived(selection({
 		fields: {

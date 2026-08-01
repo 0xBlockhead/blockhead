@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.NearBlock> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.NearBlock>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -127,7 +126,6 @@
 							<dd>
 								<NearBlockView
 									selection={select(EntityType.NearBlock, nearBlock[EntityMetaKey.Selector])}
-									prefetched={nearBlock}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

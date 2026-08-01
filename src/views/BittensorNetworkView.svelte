@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BittensorNetwork> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BittensorNetwork>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('bittensor-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 

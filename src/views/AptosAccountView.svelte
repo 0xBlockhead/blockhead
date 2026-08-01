@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.AptosAccount> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.AptosAccount>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('aptos-account-' + encodeURIComponent(stringify(selection.entitySelector)))
 

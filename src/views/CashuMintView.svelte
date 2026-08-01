@@ -10,12 +10,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.CashuMint> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.CashuMint>, 'prefetched'> = $props()
 
 	const titleFallback = $derived(selection.entitySelector.mintUrl || 'Cashu mint')
 	const viewDomId = $derived('cashu-mint-' + encodeURIComponent(stringify(selection.entitySelector)))

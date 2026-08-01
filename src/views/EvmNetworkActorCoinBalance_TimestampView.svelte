@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.EvmNetworkActorCoinBalance_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.EvmNetworkActorCoinBalance_Timestamp>, 'prefetched'> = $props()
 
 	const evmNetworkActorCoinBalanceTimestamp = $derived(selection({
 		fields: {

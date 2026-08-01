@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.GitTreePathResolution> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.GitTreePathResolution>, 'prefetched'> = $props()
 
 	const gitTreePathResolution = $derived(selection({
 		fields: {

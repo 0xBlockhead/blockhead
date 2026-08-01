@@ -163,7 +163,6 @@
 						{#snippet children(filecoinTipset)}
 							<FilecoinTipsetView
 								selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
-								prefetched={filecoinTipset}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -181,7 +180,6 @@
 							<dd>
 								<FilecoinActorView
 									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
-									prefetched={filecoinActor}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -200,7 +198,6 @@
 							<dd>
 								<FilecoinActorView
 									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
-									prefetched={filecoinActor}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

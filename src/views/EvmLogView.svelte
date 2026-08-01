@@ -18,13 +18,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.EvmLog> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.EvmLog>, 'prefetched'> = $props()
 
 	const transaction = $derived(selection.entitySelector.$transaction)
 

@@ -17,13 +17,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.EvmCoinInstance> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.EvmCoinInstance>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 
@@ -330,7 +329,6 @@
 									<dd>
 										<EvmCoinInstanceView
 											selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-											prefetched={evmCoinInstance}
 											layout={EntityLayout.Value}
 										/>
 									</dd>

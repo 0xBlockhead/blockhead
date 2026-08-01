@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.PolkadotValidator> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.PolkadotValidator>, 'prefetched'> = $props()
 
 
 	// Components

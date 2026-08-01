@@ -15,11 +15,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.HyperliquidAccount> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.HyperliquidAccount>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('hyperliquid-account-' + encodeURIComponent(stringify(selection.entitySelector)))
 
@@ -91,7 +90,6 @@
 							<dd>
 								<HyperliquidAccountView
 									selection={select(EntityType.HyperliquidAccount, hyperliquidAccount[EntityMetaKey.Selector])}
-									prefetched={hyperliquidAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -110,7 +108,6 @@
 							<dd>
 								<HyperliquidAccountView
 									selection={select(EntityType.HyperliquidAccount, hyperliquidAccount[EntityMetaKey.Selector])}
-									prefetched={hyperliquidAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

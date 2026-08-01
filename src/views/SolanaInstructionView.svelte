@@ -16,13 +16,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.SolanaInstruction> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.SolanaInstruction>, 'prefetched'> = $props()
 
 	const transaction = $derived(selection.entitySelector.$transaction)
 
@@ -210,7 +209,6 @@
 							<dd>
 								<SolanaProgramView
 									selection={select(EntityType.SolanaProgram, solanaProgram[EntityMetaKey.Selector])}
-									prefetched={solanaProgram}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

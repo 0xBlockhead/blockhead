@@ -15,13 +15,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.LensAccount_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.LensAccount_Timestamp>, 'prefetched'> = $props()
 
 	const account = $derived(selection.entitySelector.$account)
 	const viewSelection = $derived(selection({

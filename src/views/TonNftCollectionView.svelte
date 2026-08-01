@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.TonNftCollection> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.TonNftCollection>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('ton-nft-collection-' + encodeURIComponent(stringify(selection.entitySelector)))
 
@@ -76,7 +75,6 @@
 							<dd>
 								<TonAccountView
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
-									prefetched={tonAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

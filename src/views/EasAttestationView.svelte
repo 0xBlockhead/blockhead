@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.EasAttestation> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.EasAttestation>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -68,7 +67,6 @@
 				{#if easSchema != null}
 					<EasSchemaView
 						selection={select(EntityType.EasSchema, easSchema[EntityMetaKey.Selector])}
-						prefetched={easSchema}
 						layout={EntityLayout.Value}
 					/>
 				{/if}
@@ -272,7 +270,6 @@
 							<dd>
 								<EasSchemaView
 									selection={select(EntityType.EasSchema, easSchema[EntityMetaKey.Selector])}
-									prefetched={easSchema}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -291,7 +288,6 @@
 							<dd>
 								<EvmNetworkAccountView
 									selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
-									prefetched={evmNetworkAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -310,7 +306,6 @@
 							<dd>
 								<EvmNetworkAccountView
 									selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
-									prefetched={evmNetworkAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -329,7 +324,6 @@
 							<dd>
 								<EasAttestationView
 									selection={select(EntityType.EasAttestation, easAttestation[EntityMetaKey.Selector])}
-									prefetched={easAttestation}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

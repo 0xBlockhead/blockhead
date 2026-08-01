@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.ZeroGConsensusNetwork_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.ZeroGConsensusNetwork_Timestamp>, 'prefetched'> = $props()
 
 
 	// Components

@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BlockheadTransferIntent> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BlockheadTransferIntent>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -310,7 +309,6 @@
 							<dd>
 								<AccountView
 									selection={select(EntityType.Account, account[EntityMetaKey.Selector])}
-									prefetched={account}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -329,7 +327,6 @@
 							<dd>
 								<AccountView
 									selection={select(EntityType.Account, account[EntityMetaKey.Selector])}
-									prefetched={account}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -348,7 +345,6 @@
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-									prefetched={evmAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -367,7 +363,6 @@
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-									prefetched={evmAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -424,7 +419,6 @@
 							<dd>
 								<EvmCoinInstanceView
 									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-									prefetched={evmCoinInstance}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BlockheadQuilibriumPendingTransaction> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BlockheadQuilibriumPendingTransaction>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -109,7 +108,6 @@
 							<dd>
 								<QuilibriumAccountView
 									selection={select(EntityType.QuilibriumAccount, quilibriumAccount[EntityMetaKey.Selector])}
-									prefetched={quilibriumAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -128,7 +126,6 @@
 							<dd>
 								<QuilibriumAccountView
 									selection={select(EntityType.QuilibriumAccount, quilibriumAccount[EntityMetaKey.Selector])}
-									prefetched={quilibriumAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

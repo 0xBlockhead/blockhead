@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.TokenProgramExtension_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.TokenProgramExtension_Timestamp>, 'prefetched'> = $props()
 
 	const titleFallback = $derived(selection.entitySelector.extensionKind || 'token program extension timestamp')
 

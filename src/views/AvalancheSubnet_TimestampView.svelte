@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.AvalancheSubnet_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.AvalancheSubnet_Timestamp>, 'prefetched'> = $props()
 
 	const avalancheSubnetTimestamp = $derived(selection({
 		fields: {

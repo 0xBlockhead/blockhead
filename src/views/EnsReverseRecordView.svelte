@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.EnsReverseRecord> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.EnsReverseRecord>, 'prefetched'> = $props()
 
 
 	// Components

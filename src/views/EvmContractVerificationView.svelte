@@ -234,7 +234,6 @@
 							<dd>
 								<EvmContractSourceBundleView
 									selection={select(EntityType.EvmContractSourceBundle, evmContractSourceBundle[EntityMetaKey.Selector])}
-									prefetched={evmContractSourceBundle}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

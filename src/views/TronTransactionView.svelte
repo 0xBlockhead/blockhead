@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.TronTransaction> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.TronTransaction>, 'prefetched'> = $props()
 
 	const titleFallback = $derived(selection.entitySelector.transactionId || 'tron transaction')
 
@@ -73,7 +72,6 @@
 					<span data-text="muted">
 						<TronAccountView
 							selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
-							prefetched={tronAccount}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -89,7 +87,6 @@
 					<span data-text="muted">
 						<TronAccountView
 							selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
-							prefetched={tronAccount}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -120,7 +117,6 @@
 							<dd>
 								<TronBlockView
 									selection={select(EntityType.TronBlock, tronBlock[EntityMetaKey.Selector])}
-									prefetched={tronBlock}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -249,7 +245,6 @@
 							<dd>
 								<TronContractView
 									selection={select(EntityType.TronContract, tronContract[EntityMetaKey.Selector])}
-									prefetched={tronContract}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -353,7 +348,6 @@
 							<dd>
 								<TronTransactionReceiptView
 									selection={select(EntityType.TronTransactionReceipt, tronTransactionReceipt[EntityMetaKey.Selector])}
-									prefetched={tronTransactionReceipt}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

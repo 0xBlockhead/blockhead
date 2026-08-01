@@ -15,11 +15,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.ZeroGStorageNode> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.ZeroGStorageNode>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('zero-gstorage-node-' + encodeURIComponent(stringify(selection.entitySelector)))
 
@@ -73,7 +72,6 @@
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-									prefetched={evmAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

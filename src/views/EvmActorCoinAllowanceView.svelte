@@ -15,13 +15,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.EvmActorCoinAllowance> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.EvmActorCoinAllowance>, 'prefetched'> = $props()
 
 	const contract = $derived(selection.entitySelector.$contract)
 

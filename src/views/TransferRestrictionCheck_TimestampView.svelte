@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.TransferRestrictionCheck_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.TransferRestrictionCheck_Timestamp>, 'prefetched'> = $props()
 
 
 	// Components
@@ -82,7 +81,6 @@
 							<dd>
 								<AccountView
 									selection={select(EntityType.Account, account[EntityMetaKey.Selector])}
-									prefetched={account}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

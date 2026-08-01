@@ -65,7 +65,6 @@
 			{#snippet children(bitcoinCashCashTokenCategory)}
 				<BitcoinCashCashTokenCategoryView
 					selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
-					prefetched={bitcoinCashCashTokenCategory}
 					layout={EntityLayout.Value}
 				/>
 			{/snippet}
@@ -114,7 +113,6 @@
 						{#snippet children(bitcoinCashCashTokenCategory)}
 							<BitcoinCashCashTokenCategoryView
 								selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
-								prefetched={bitcoinCashCashTokenCategory}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

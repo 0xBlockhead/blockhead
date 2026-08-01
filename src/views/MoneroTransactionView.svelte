@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.MoneroTransaction> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.MoneroTransaction>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -65,7 +64,6 @@
 				{#if moneroBlock != null}
 					<MoneroBlockView
 						selection={select(EntityType.MoneroBlock, moneroBlock[EntityMetaKey.Selector])}
-						prefetched={moneroBlock}
 						layout={EntityLayout.Value}
 					/>
 				{/if}
@@ -117,7 +115,6 @@
 							<dd>
 								<MoneroBlockView
 									selection={select(EntityType.MoneroBlock, moneroBlock[EntityMetaKey.Selector])}
-									prefetched={moneroBlock}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

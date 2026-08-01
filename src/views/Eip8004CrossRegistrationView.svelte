@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.Eip8004CrossRegistration> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.Eip8004CrossRegistration>, 'prefetched'> = $props()
 
 	const titleFallback = $derived(selection.entitySelector.targetKind || 'EIP-8004 cross registration')
 

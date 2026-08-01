@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.EigenLayerReward_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.EigenLayerReward_Timestamp>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -111,7 +110,6 @@
 							<dd>
 								<EigenLayerStrategyView
 									selection={select(EntityType.EigenLayerStrategy, eigenLayerStrategy[EntityMetaKey.Selector])}
-									prefetched={eigenLayerStrategy}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -130,7 +128,6 @@
 							<dd>
 								<EigenLayerOperatorView
 									selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
-									prefetched={eigenLayerOperator}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -149,7 +146,6 @@
 							<dd>
 								<EigenLayerAvsView
 									selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
-									prefetched={eigenLayerAvs}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

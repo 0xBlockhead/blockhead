@@ -717,6 +717,28 @@ test('generated views and pages import exactly the dependencies they use', () =>
 	assert.deepEqual(mismatches, [])
 })
 
+test('accepts and passes prefetched rows only where pending display consumes them', () => {
+	const prefetchedConsumers = generatedViewSources.filter(([_filePath, source]) => (
+		/prefetched\.|\.\.\.prefetched/.test(source)
+	))
+	const prefetchedAcceptors = generatedViewSources.filter(([_filePath, source]) => (
+		/prefetched = \{\}/.test(source)
+	))
+
+	assert.deepEqual(
+		prefetchedAcceptors.map(([filePath]) => filePath),
+		prefetchedConsumers.map(([filePath]) => filePath)
+	)
+	assert.equal(prefetchedConsumers.length, 229)
+	assert.equal(generatedViewSources.reduce((count, [_filePath, source]) => (
+		count + (source.match(/prefetched=\{/g)?.length ?? 0)
+	), 0), 341)
+	assert.match(generatedSource('src/views/A2aMessageView.svelte'), /Omit<EntitySelectionViewProps<EntityType\.A2aMessage>, 'prefetched'>/)
+	assert.doesNotMatch(generatedSource('src/views/A2aMessagePartView.svelte'), /<A2aMessageView[^>]*prefetched=/)
+	assert.match(generatedSource('src/views/MediaView.svelte'), /prefetched = \{\}/)
+	assert.match(generatedSource('src/views/NetworkView.svelte'), /prefetched = \{\}/)
+})
+
 test('compiles exact default plural wrappers into their generated consumers', () => {
 	assert.equal(omittedPluralEntities.length, 149)
 	assert.equal(retainedPluralEntities.length, 846)

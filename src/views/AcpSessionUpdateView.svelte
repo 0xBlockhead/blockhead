@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.AcpSessionUpdate> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.AcpSessionUpdate>, 'prefetched'> = $props()
 
 	const acpSessionUpdate = $derived(selection({
 		sources: selection.sources ?? [

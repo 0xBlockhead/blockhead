@@ -74,7 +74,6 @@
 					<span data-text="muted">
 						<MarketView
 							selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
-							prefetched={market}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -193,7 +192,6 @@
 							<dd>
 								<MarketView
 									selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
-									prefetched={market}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -14,13 +14,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.CoinBridgeCapability> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.CoinBridgeCapability>, 'prefetched'> = $props()
 
 	const fromInstance = $derived(selection.entitySelector.$fromInstance)
 	const toInstance = $derived(selection.entitySelector.$toInstance)

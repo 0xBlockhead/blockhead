@@ -102,7 +102,6 @@
 					<span data-text="muted">
 						<MevBuilderView
 							selection={select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector])}
-							prefetched={mevBuilder}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -214,7 +213,6 @@
 							<dd>
 								<MevBuilderView
 									selection={select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector])}
-									prefetched={mevBuilder}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

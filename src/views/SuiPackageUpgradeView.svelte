@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.SuiPackageUpgrade> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.SuiPackageUpgrade>, 'prefetched'> = $props()
 
 
 	// Components
@@ -179,7 +178,6 @@
 							<dd>
 								<SuiTransactionView
 									selection={select(EntityType.SuiTransaction, suiTransaction[EntityMetaKey.Selector])}
-									prefetched={suiTransaction}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -198,7 +196,6 @@
 							<dd>
 								<SuiPackageVersionView
 									selection={select(EntityType.SuiPackageVersion, suiPackageVersion[EntityMetaKey.Selector])}
-									prefetched={suiPackageVersion}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

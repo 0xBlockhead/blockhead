@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.CosmosMessage> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.CosmosMessage>, 'prefetched'> = $props()
 
 	const cosmosMessage = $derived(selection({
 		fields: {
@@ -311,7 +310,6 @@
 							<dd>
 								<CosmosAccountView
 									selection={select(EntityType.CosmosAccount, cosmosAccount[EntityMetaKey.Selector])}
-									prefetched={cosmosAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

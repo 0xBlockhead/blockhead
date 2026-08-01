@@ -17,13 +17,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.CardanoCommittee_Epoch> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.CardanoCommittee_Epoch>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({

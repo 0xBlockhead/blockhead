@@ -146,7 +146,6 @@
 							<dd>
 								<McpServerView
 									selection={select(EntityType.McpServer, mcpServer[EntityMetaKey.Selector])}
-									prefetched={mcpServer}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -165,7 +164,6 @@
 							<dd>
 								<Eip8004AgentRegistrationView
 									selection={select(EntityType.Eip8004AgentRegistration, eip8004AgentRegistration[EntityMetaKey.Selector])}
-									prefetched={eip8004AgentRegistration}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

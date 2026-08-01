@@ -16,13 +16,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.XrplTrustline> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.XrplTrustline>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 
@@ -105,7 +104,6 @@
 							<dd>
 								<XrplAccountView
 									selection={select(EntityType.XrplAccount, xrplAccount[EntityMetaKey.Selector])}
-									prefetched={xrplAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -124,7 +122,6 @@
 							<dd>
 								<XrplAccountView
 									selection={select(EntityType.XrplAccount, xrplAccount[EntityMetaKey.Selector])}
-									prefetched={xrplAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

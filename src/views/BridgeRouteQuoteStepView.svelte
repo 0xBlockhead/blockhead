@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BridgeRouteQuoteStep> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BridgeRouteQuoteStep>, 'prefetched'> = $props()
 
 	const bridgeRouteQuoteStep = $derived(selection({
 		fields: {
@@ -216,7 +215,6 @@
 							<dd>
 								<EvmCoinInstanceView
 									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-									prefetched={evmCoinInstance}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -235,7 +233,6 @@
 							<dd>
 								<EvmCoinInstanceView
 									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-									prefetched={evmCoinInstance}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

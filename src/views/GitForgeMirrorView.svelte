@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.GitForgeMirror> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.GitForgeMirror>, 'prefetched'> = $props()
 
 	const titleFallback = $derived([selection.entitySelector.owner, selection.entitySelector.repositoryName].filter(Boolean).join(' ') || 'Git forge mirror')
 

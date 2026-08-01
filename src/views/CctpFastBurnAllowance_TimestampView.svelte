@@ -9,12 +9,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.CctpFastBurnAllowance_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.CctpFastBurnAllowance_Timestamp>, 'prefetched'> = $props()
 
 	const cctpFastBurnAllowanceTimestamp = $derived(selection({
 		fields: {

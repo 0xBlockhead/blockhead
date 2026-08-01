@@ -16,13 +16,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.EvmNetworkAccount> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.EvmNetworkAccount>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 	const viewDomId = $derived('evm-network-account-' + encodeURIComponent(stringify(selection.entitySelector)))

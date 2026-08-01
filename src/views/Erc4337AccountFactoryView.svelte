@@ -17,13 +17,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.Erc4337AccountFactory> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.Erc4337AccountFactory>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 	const viewDomId = $derived('erc4337account-factory-' + encodeURIComponent(stringify(selection.entitySelector)))

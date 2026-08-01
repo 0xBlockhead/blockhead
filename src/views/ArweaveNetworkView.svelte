@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.ArweaveNetwork> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.ArweaveNetwork>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('arweave-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 

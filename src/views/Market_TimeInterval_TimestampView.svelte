@@ -16,13 +16,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.Market_TimeInterval_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.Market_TimeInterval_Timestamp>, 'prefetched'> = $props()
 
 	const market = $derived(selection.entitySelector.$market)
 	const marketTimeIntervalTimestamp = $derived(selection({
@@ -243,7 +242,6 @@
 						{#snippet children(market)}
 							<MarketView
 								selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
-								prefetched={market}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

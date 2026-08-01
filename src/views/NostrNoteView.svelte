@@ -184,7 +184,6 @@
 								<dd>
 									<NostrProfileView
 										selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
-										prefetched={nostrProfile}
 										layout={EntityLayout.Value}
 									/>
 								</dd>

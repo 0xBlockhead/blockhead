@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.NearTransaction> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.NearTransaction>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -68,7 +67,6 @@
 						{#if nearAccount != null}
 							<NearAccountView
 								selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
-								prefetched={nearAccount}
 								layout={EntityLayout.Value}
 							/>
 						{/if}
@@ -89,7 +87,6 @@
 					<span data-text="muted">
 						<NearAccountView
 							selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
-							prefetched={nearAccount}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -140,7 +137,6 @@
 							<dd>
 								<NearAccountView
 									selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
-									prefetched={nearAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -159,7 +155,6 @@
 							<dd>
 								<NearAccountView
 									selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
-									prefetched={nearAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

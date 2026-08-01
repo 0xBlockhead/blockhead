@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.MoneroStealthOutput> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.MoneroStealthOutput>, 'prefetched'> = $props()
 
 	const moneroStealthOutput = $derived(selection({
 		sources: selection.sources ?? [

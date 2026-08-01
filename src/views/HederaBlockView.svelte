@@ -13,11 +13,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.HederaBlock> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.HederaBlock>, 'prefetched'> = $props()
 
 
 	// Components

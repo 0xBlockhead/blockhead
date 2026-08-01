@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.RadicleIssue> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.RadicleIssue>, 'prefetched'> = $props()
 
 
 	// Components
@@ -193,7 +192,6 @@
 							<dd>
 								<GitObjectView
 									selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
-									prefetched={gitObject}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

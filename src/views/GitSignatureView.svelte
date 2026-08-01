@@ -9,12 +9,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.GitSignature> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.GitSignature>, 'prefetched'> = $props()
 
 	const gitSignature = $derived(selection({
 		fields: {

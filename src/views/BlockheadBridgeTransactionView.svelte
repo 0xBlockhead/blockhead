@@ -15,13 +15,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BlockheadBridgeTransaction> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BlockheadBridgeTransaction>, 'prefetched'> = $props()
 
 	const sourceTx = $derived(selection.entitySelector.$sourceTx)
 

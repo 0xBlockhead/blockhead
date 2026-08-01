@@ -15,11 +15,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.HederaContract> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.HederaContract>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('hedera-contract-' + encodeURIComponent(stringify(selection.entitySelector)))
 

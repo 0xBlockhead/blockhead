@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.AlgorandTransaction> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.AlgorandTransaction>, 'prefetched'> = $props()
 
 	const algorandTransaction = $derived(selection({
 		fields: {
@@ -187,7 +186,6 @@
 							<dd>
 								<AlgorandTransactionGroupView
 									selection={select(EntityType.AlgorandTransactionGroup, algorandTransactionGroup[EntityMetaKey.Selector])}
-									prefetched={algorandTransactionGroup}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

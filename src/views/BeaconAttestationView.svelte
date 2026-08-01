@@ -15,13 +15,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BeaconAttestation> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BeaconAttestation>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 

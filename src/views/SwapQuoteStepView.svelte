@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.SwapQuoteStep> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.SwapQuoteStep>, 'prefetched'> = $props()
 
 
 	// Components
@@ -153,7 +152,6 @@
 							<dd>
 								<LiquidityPoolView
 									selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
-									prefetched={liquidityPool}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -172,7 +170,6 @@
 							<dd>
 								<EvmCoinInstanceView
 									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-									prefetched={evmCoinInstance}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -191,7 +188,6 @@
 							<dd>
 								<EvmCoinInstanceView
 									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-									prefetched={evmCoinInstance}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

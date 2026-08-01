@@ -16,13 +16,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.SolanaTokenAccount> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.SolanaTokenAccount>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 
@@ -77,7 +76,6 @@
 				<span data-text="muted">
 					<SolanaTokenMintView
 						selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector])}
-						prefetched={solanaTokenMint}
 						layout={EntityLayout.Title}
 					/>
 				</span>
@@ -103,7 +101,6 @@
 						{#snippet children(solanaTokenMint)}
 							<SolanaTokenMintView
 								selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector])}
-								prefetched={solanaTokenMint}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -121,7 +118,6 @@
 							<dd>
 								<SolanaAccountView
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
-									prefetched={solanaAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -140,7 +136,6 @@
 							<dd>
 								<SolanaAccountView
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
-									prefetched={solanaAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -161,7 +156,6 @@
 							<dd>
 								<SolanaAccountView
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
-									prefetched={solanaAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -180,7 +174,6 @@
 							<dd>
 								<SolanaAccountView
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
-									prefetched={solanaAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

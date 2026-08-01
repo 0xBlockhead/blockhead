@@ -9,12 +9,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.CctpFee> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.CctpFee>, 'prefetched'> = $props()
 
 	const titleFallback = $derived(selection.entitySelector.apiHost || 'CCTP fee')
 

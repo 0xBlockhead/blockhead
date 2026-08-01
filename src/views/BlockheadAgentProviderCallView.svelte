@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BlockheadAgentProviderCall> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BlockheadAgentProviderCall>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -109,7 +108,6 @@
 							<dd>
 								<BlockheadAgentConnectionView
 									selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
-									prefetched={blockheadAgentConnection}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -187,7 +185,6 @@
 							<dd>
 								<McpToolCallView
 									selection={select(EntityType.McpToolCall, mcpToolCall[EntityMetaKey.Selector])}
-									prefetched={mcpToolCall}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -225,7 +222,6 @@
 							<dd>
 								<AcpSessionView
 									selection={select(EntityType.AcpSession, acpSession[EntityMetaKey.Selector])}
-									prefetched={acpSession}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -244,7 +240,6 @@
 							<dd>
 								<AcpPromptTurnView
 									selection={select(EntityType.AcpPromptTurn, acpPromptTurn[EntityMetaKey.Selector])}
-									prefetched={acpPromptTurn}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

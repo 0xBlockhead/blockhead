@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.ZeroGDaNode> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.ZeroGDaNode>, 'prefetched'> = $props()
 
 
 	// Components
@@ -56,7 +55,6 @@
 					<span data-text="muted">
 						<ZeroGDaQuorumView
 							selection={select(EntityType.ZeroGDaQuorum, zeroGDaQuorum[EntityMetaKey.Selector])}
-							prefetched={zeroGDaQuorum}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -94,7 +92,6 @@
 							<dd>
 								<ZeroGDaQuorumView
 									selection={select(EntityType.ZeroGDaQuorum, zeroGDaQuorum[EntityMetaKey.Selector])}
-									prefetched={zeroGDaQuorum}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -113,7 +110,6 @@
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-									prefetched={evmAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

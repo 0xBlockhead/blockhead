@@ -114,7 +114,6 @@
 							<dd>
 								<A2aAgentServiceView
 									selection={select(EntityType.A2aAgentService, a2aAgentService[EntityMetaKey.Selector])}
-									prefetched={a2aAgentService}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

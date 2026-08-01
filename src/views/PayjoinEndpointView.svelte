@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.PayjoinEndpoint> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.PayjoinEndpoint>, 'prefetched'> = $props()
 
 	const payjoinEndpoint = $derived(selection({
 		fields: {
@@ -63,7 +62,6 @@
 					<span data-text="muted">
 						<PayjoinDirectoryView
 							selection={select(EntityType.PayjoinDirectory, payjoinDirectory[EntityMetaKey.Selector])}
-							prefetched={payjoinDirectory}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -113,7 +111,6 @@
 							<dd>
 								<PayjoinDirectoryView
 									selection={select(EntityType.PayjoinDirectory, payjoinDirectory[EntityMetaKey.Selector])}
-									prefetched={payjoinDirectory}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

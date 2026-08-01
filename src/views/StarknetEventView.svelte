@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.StarknetEvent> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.StarknetEvent>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -68,7 +67,6 @@
 					<span data-text="muted">
 						<StarknetContractView
 							selection={select(EntityType.StarknetContract, starknetContract[EntityMetaKey.Selector])}
-							prefetched={starknetContract}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -108,7 +106,6 @@
 							<dd>
 								<StarknetContractView
 									selection={select(EntityType.StarknetContract, starknetContract[EntityMetaKey.Selector])}
-									prefetched={starknetContract}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

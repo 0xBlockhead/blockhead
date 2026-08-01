@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.SwapQuote_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.SwapQuote_Timestamp>, 'prefetched'> = $props()
 
 
 	// Components
@@ -87,7 +86,6 @@
 						{#snippet children(evmCoinInstance)}
 							<EvmCoinInstanceView
 								selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-								prefetched={evmCoinInstance}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -104,7 +102,6 @@
 						{#snippet children(evmCoinInstance)}
 							<EvmCoinInstanceView
 								selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-								prefetched={evmCoinInstance}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -207,7 +204,6 @@
 							<dd>
 								<BlockheadSwapIntentView
 									selection={select(EntityType.BlockheadSwapIntent, blockheadSwapIntent[EntityMetaKey.Selector])}
-									prefetched={blockheadSwapIntent}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

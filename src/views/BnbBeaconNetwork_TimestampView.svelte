@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BnbBeaconNetwork_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BnbBeaconNetwork_Timestamp>, 'prefetched'> = $props()
 
 	const bnbBeaconNetworkTimestamp = $derived(selection({
 		fields: {

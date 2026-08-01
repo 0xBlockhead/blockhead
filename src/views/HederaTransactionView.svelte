@@ -277,7 +277,6 @@
 							<dd>
 								<HederaBlockView
 									selection={select(EntityType.HederaBlock, hederaBlock[EntityMetaKey.Selector])}
-									prefetched={hederaBlock}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -296,7 +295,6 @@
 							<dd>
 								<HederaScheduleView
 									selection={select(EntityType.HederaSchedule, hederaSchedule[EntityMetaKey.Selector])}
-									prefetched={hederaSchedule}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

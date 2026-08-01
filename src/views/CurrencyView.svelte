@@ -115,16 +115,14 @@
 						{#snippet children(currencyTimestamps)}
 							{@const currencyTimestamp = currencyTimestamps.values[0]}
 							{#if currencyTimestamp != null}
-								{@const currencyTimestampSelector = currencyTimestamp[EntityMetaKey.Selector]}
 								<Currency_TimestampView
 									selection={
-										select(EntityType.Currency_Timestamp, currencyTimestampSelector, {
+										select(EntityType.Currency_Timestamp, currencyTimestamp[EntityMetaKey.Selector], {
 											sources: [
 												Source.Constants_Internal,
 											],
 										})
 									}
-									prefetched={{ ...currencyTimestampSelector, ...currencyTimestamp }}
 									layout={EntityLayout.Value}
 								/>
 							{:else}

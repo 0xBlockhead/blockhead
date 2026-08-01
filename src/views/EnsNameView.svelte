@@ -17,13 +17,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.EnsName> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.EnsName>, 'prefetched'> = $props()
 
 	const ensName = $derived(selection({
 		sources: selection.sources ?? [
@@ -165,7 +164,6 @@
 							<dd>
 								<EnsNameView
 									selection={select(EntityType.EnsName, ensName[EntityMetaKey.Selector])}
-									prefetched={ensName}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -203,7 +201,6 @@
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-									prefetched={evmAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -222,7 +219,6 @@
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-									prefetched={evmAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

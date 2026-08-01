@@ -95,7 +95,6 @@
 				{#if lightningNode != null}
 					<LightningNodeView
 						selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
-						prefetched={lightningNode}
 						href={null}
 						layout={EntityLayout.Value}
 					/>
@@ -151,7 +150,6 @@
 							<dd>
 								<LightningNodeView
 									selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
-									prefetched={lightningNode}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

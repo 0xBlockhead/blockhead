@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.Eip8004AgentRegistrationFile> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.Eip8004AgentRegistrationFile>, 'prefetched'> = $props()
 
 
 	// Components

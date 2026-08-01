@@ -14,13 +14,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.YoutubeComment_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.YoutubeComment_Timestamp>, 'prefetched'> = $props()
 
 	const comment = $derived(selection.entitySelector.$comment)
 

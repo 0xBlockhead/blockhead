@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.MoveModule> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.MoveModule>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('move-module-' + encodeURIComponent(stringify(selection.entitySelector)))
 

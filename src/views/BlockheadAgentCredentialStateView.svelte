@@ -78,7 +78,6 @@
 					<span data-text="muted">
 						<BlockheadAgentConnectionView
 							selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
-							prefetched={blockheadAgentConnection}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -106,7 +105,6 @@
 							<dd>
 								<BlockheadAgentConnectionView
 									selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
-									prefetched={blockheadAgentConnection}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

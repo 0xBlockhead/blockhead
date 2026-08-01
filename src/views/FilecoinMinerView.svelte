@@ -17,13 +17,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.FilecoinMiner> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.FilecoinMiner>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 

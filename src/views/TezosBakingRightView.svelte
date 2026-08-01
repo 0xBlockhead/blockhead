@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.TezosBakingRight> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.TezosBakingRight>, 'prefetched'> = $props()
 
 
 	// Components
@@ -93,7 +92,6 @@
 							<dd>
 								<TezosBakerView
 									selection={select(EntityType.TezosBaker, tezosBaker[EntityMetaKey.Selector])}
-									prefetched={tezosBaker}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

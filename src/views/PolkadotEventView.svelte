@@ -99,7 +99,6 @@
 					<span data-text="muted">
 						<PolkadotPalletView
 							selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector])}
-							prefetched={polkadotPallet}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -140,7 +139,6 @@
 							<dd>
 								<PolkadotPalletView
 									selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector])}
-									prefetched={polkadotPallet}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -159,7 +157,6 @@
 							<dd>
 								<PolkadotExtrinsicView
 									selection={select(EntityType.PolkadotExtrinsic, polkadotExtrinsic[EntityMetaKey.Selector])}
-									prefetched={polkadotExtrinsic}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

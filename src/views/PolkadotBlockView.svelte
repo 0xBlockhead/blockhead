@@ -16,13 +16,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.PolkadotBlock> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.PolkadotBlock>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 	const polkadotBlock = $derived(selection({
@@ -189,7 +188,6 @@
 							<dd>
 								<PolkadotBlockView
 									selection={select(EntityType.PolkadotBlock, polkadotBlock[EntityMetaKey.Selector])}
-									prefetched={polkadotBlock}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

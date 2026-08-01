@@ -9,12 +9,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.FedimintGateway> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.FedimintGateway>, 'prefetched'> = $props()
 
 	const fedimintGateway = $derived(selection({
 		fields: {

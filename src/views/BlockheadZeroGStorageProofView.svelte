@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BlockheadZeroGStorageProof> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BlockheadZeroGStorageProof>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -120,7 +119,6 @@
 							<dd>
 								<ZeroGDataBlobView
 									selection={select(EntityType.ZeroGDataBlob, zeroGDataBlob[EntityMetaKey.Selector])}
-									prefetched={zeroGDataBlob}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -139,7 +137,6 @@
 							<dd>
 								<BlockheadZeroGStoredChunkView
 									selection={select(EntityType.BlockheadZeroGStoredChunk, blockheadZeroGStoredChunk[EntityMetaKey.Selector])}
-									prefetched={blockheadZeroGStoredChunk}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

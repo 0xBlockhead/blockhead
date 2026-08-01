@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.PolkadotValidator_Era> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.PolkadotValidator_Era>, 'prefetched'> = $props()
 
 	const polkadotValidatorEra = $derived(selection({
 		fields: {
@@ -93,7 +92,6 @@
 							<dd>
 								<PolkadotAccountView
 									selection={select(EntityType.PolkadotAccount, polkadotAccount[EntityMetaKey.Selector])}
-									prefetched={polkadotAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

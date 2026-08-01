@@ -17,13 +17,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.Erc4337SmartAccount> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.Erc4337SmartAccount>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 	const viewDomId = $derived('erc4337smart-account-' + encodeURIComponent(stringify(selection.entitySelector)))
@@ -123,7 +122,6 @@
 							<dd>
 								<Erc4337AccountFactoryView
 									selection={select(EntityType.Erc4337AccountFactory, erc4337AccountFactory[EntityMetaKey.Selector])}
-									prefetched={erc4337AccountFactory}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

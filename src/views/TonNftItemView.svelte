@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.TonNftItem> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.TonNftItem>, 'prefetched'> = $props()
 
 
 	// Components
@@ -87,7 +86,6 @@
 							<dd>
 								<TonNftCollectionView
 									selection={select(EntityType.TonNftCollection, tonNftCollection[EntityMetaKey.Selector])}
-									prefetched={tonNftCollection}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -128,7 +126,6 @@
 							<dd>
 								<TonAccountView
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
-									prefetched={tonAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

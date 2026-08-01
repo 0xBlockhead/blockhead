@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.ZeroGKvEntry> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.ZeroGKvEntry>, 'prefetched'> = $props()
 
 	const titleFallback = $derived(selection.entitySelector.key || 'zero g kv entry')
 
@@ -118,7 +117,6 @@
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-									prefetched={evmAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -137,7 +135,6 @@
 							<dd>
 								<ZeroGStorageLogEntryView
 									selection={select(EntityType.ZeroGStorageLogEntry, zeroGStorageLogEntry[EntityMetaKey.Selector])}
-									prefetched={zeroGStorageLogEntry}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

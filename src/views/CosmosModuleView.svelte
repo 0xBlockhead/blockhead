@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.CosmosModule> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.CosmosModule>, 'prefetched'> = $props()
 
 	const titleFallback = $derived(selection.entitySelector.moduleName || 'Cosmos module')
 
@@ -71,7 +70,6 @@
 							<dd>
 								<CosmosAccountView
 									selection={select(EntityType.CosmosAccount, cosmosAccount[EntityMetaKey.Selector])}
-									prefetched={cosmosAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

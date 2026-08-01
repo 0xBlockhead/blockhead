@@ -10,11 +10,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType._GlobalAgentNetwork> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType._GlobalAgentNetwork>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('-global-agent-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 

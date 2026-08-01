@@ -15,11 +15,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.KaspaAddressUtxo_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.KaspaAddressUtxo_Timestamp>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -173,7 +172,6 @@
 							<dd>
 								<UtxoOutputView
 									selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
-									prefetched={utxoOutput}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -192,7 +190,6 @@
 							<dd>
 								<KaspaTransactionView
 									selection={select(EntityType.KaspaTransaction, kaspaTransaction[EntityMetaKey.Selector])}
-									prefetched={kaspaTransaction}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

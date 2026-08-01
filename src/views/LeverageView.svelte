@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.Leverage> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.Leverage>, 'prefetched'> = $props()
 
 	const leverage = $derived(selection({
 		fields: {
@@ -238,7 +237,6 @@
 						{#snippet children(liquidityPool)}
 							<LiquidityPoolView
 								selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
-								prefetched={liquidityPool}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -255,7 +253,6 @@
 						{#snippet children(evmAccount)}
 							<EvmAccountView
 								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-								prefetched={evmAccount}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

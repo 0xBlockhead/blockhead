@@ -15,13 +15,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.ActivityPubNote_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.ActivityPubNote_Timestamp>, 'prefetched'> = $props()
 
 	const note = $derived(selection.entitySelector.$note)
 	const viewSelection = $derived(selection({

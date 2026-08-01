@@ -533,7 +533,6 @@
 						{#snippet children(liquidityPool)}
 							<LiquidityPoolView
 								selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
-								prefetched={liquidityPool}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

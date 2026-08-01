@@ -9,12 +9,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BitTorrentDhtNode_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BitTorrentDhtNode_Timestamp>, 'prefetched'> = $props()
 
 	const bitTorrentDhtNodeTimestamp = $derived(selection({
 		fields: {

@@ -17,13 +17,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BeaconSlot> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BeaconSlot>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
 	const viewDomId = $derived('beacon-slot-' + encodeURIComponent(stringify(selection.entitySelector)))
@@ -93,7 +92,6 @@
 				<span data-text="muted">
 					<BeaconEpochView
 						selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
-						prefetched={beaconEpoch}
 						layout={EntityLayout.Title}
 					/>
 				</span>
@@ -136,7 +134,6 @@
 						{#snippet children(beaconEpoch)}
 							<BeaconEpochView
 								selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
-								prefetched={beaconEpoch}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

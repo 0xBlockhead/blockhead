@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.AiRelationshipClaim> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.AiRelationshipClaim>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -151,7 +150,6 @@
 							<dd>
 								<AiDocumentClaimView
 									selection={select(EntityType.AiDocumentClaim, aiDocumentClaim[EntityMetaKey.Selector])}
-									prefetched={aiDocumentClaim}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

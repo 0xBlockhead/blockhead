@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.CosmosValidator_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.CosmosValidator_Timestamp>, 'prefetched'> = $props()
 
 	const cosmosValidatorTimestamp = $derived(selection({
 		fields: {

@@ -163,7 +163,6 @@
 						{#snippet children(filecoinTipset)}
 							<FilecoinTipsetView
 								selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
-								prefetched={filecoinTipset}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

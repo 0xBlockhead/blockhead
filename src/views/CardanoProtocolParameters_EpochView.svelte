@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.CardanoProtocolParameters_Epoch> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.CardanoProtocolParameters_Epoch>, 'prefetched'> = $props()
 
 
 	// Components

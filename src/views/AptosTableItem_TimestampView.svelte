@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.AptosTableItem_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.AptosTableItem_Timestamp>, 'prefetched'> = $props()
 
 	const aptosTableItemTimestamp = $derived(selection({
 		fields: {

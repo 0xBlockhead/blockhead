@@ -15,11 +15,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.StellarAccount> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.StellarAccount>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('stellar-account-' + encodeURIComponent(stringify(selection.entitySelector)))
 

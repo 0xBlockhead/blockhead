@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.TransferRestriction> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.TransferRestriction>, 'prefetched'> = $props()
 
 
 	// Components

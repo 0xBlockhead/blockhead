@@ -19,13 +19,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.Market> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.Market>, 'prefetched'> = $props()
 
 	const base = $derived(selection.entitySelector.$base)
 	const quote = $derived(selection.entitySelector.$quote)

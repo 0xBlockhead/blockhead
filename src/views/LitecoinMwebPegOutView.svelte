@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.LitecoinMwebPegOut> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.LitecoinMwebPegOut>, 'prefetched'> = $props()
 
 
 	// Components
@@ -61,7 +60,6 @@
 					<span data-text="muted">
 						<UtxoOutputView
 							selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
-							prefetched={utxoOutput}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -101,7 +99,6 @@
 							<dd>
 								<UtxoOutputView
 									selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
-									prefetched={utxoOutput}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

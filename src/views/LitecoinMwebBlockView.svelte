@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.LitecoinMwebBlock> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.LitecoinMwebBlock>, 'prefetched'> = $props()
 
 	const litecoinMwebBlock = $derived(selection({
 		sources: selection.sources ?? [

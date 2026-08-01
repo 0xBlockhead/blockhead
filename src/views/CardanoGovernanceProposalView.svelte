@@ -106,7 +106,6 @@
 							<dd>
 								<CardanoTransactionView
 									selection={select(EntityType.CardanoTransaction, cardanoTransaction[EntityMetaKey.Selector])}
-									prefetched={cardanoTransaction}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

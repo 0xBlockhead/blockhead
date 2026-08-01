@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.TezosTokenTransfer> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.TezosTokenTransfer>, 'prefetched'> = $props()
 
 
 	// Components
@@ -75,7 +74,6 @@
 							<dd>
 								<TezosTokenView
 									selection={select(EntityType.TezosToken, tezosToken[EntityMetaKey.Selector])}
-									prefetched={tezosToken}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -94,7 +92,6 @@
 							<dd>
 								<TezosAccountView
 									selection={select(EntityType.TezosAccount, tezosAccount[EntityMetaKey.Selector])}
-									prefetched={tezosAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -113,7 +110,6 @@
 							<dd>
 								<TezosAccountView
 									selection={select(EntityType.TezosAccount, tezosAccount[EntityMetaKey.Selector])}
-									prefetched={tezosAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -132,7 +128,6 @@
 							<dd>
 								<TezosOperationView
 									selection={select(EntityType.TezosOperation, tezosOperation[EntityMetaKey.Selector])}
-									prefetched={tezosOperation}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

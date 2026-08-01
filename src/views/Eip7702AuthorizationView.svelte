@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.Eip7702Authorization> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.Eip7702Authorization>, 'prefetched'> = $props()
 
 	const eip7702Authorization = $derived(selection({
 		fields: {
@@ -271,7 +270,6 @@
 							<dd>
 								<EvmNetworkAccountView
 									selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
-									prefetched={evmNetworkAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

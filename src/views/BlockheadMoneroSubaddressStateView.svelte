@@ -115,7 +115,6 @@
 						{#snippet children(moneroNetwork)}
 							<MoneroNetworkView
 								selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector])}
-								prefetched={moneroNetwork}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

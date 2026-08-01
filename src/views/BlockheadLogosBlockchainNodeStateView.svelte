@@ -10,12 +10,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BlockheadLogosBlockchainNodeState> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BlockheadLogosBlockchainNodeState>, 'prefetched'> = $props()
 
 	const blockheadLogosBlockchainNodeState = $derived(selection({
 		sources: selection.sources ?? [

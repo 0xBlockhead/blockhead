@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.BlockheadFilecoinPendingMessage> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.BlockheadFilecoinPendingMessage>, 'prefetched'> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -106,7 +105,6 @@
 							<dd>
 								<FilecoinNetworkView
 									selection={select(EntityType.FilecoinNetwork, filecoinNetwork[EntityMetaKey.Selector])}
-									prefetched={filecoinNetwork}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -125,7 +123,6 @@
 							<dd>
 								<FilecoinMessageView
 									selection={select(EntityType.FilecoinMessage, filecoinMessage[EntityMetaKey.Selector])}
-									prefetched={filecoinMessage}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -144,7 +141,6 @@
 							<dd>
 								<FilecoinActorView
 									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
-									prefetched={filecoinActor}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -163,7 +159,6 @@
 							<dd>
 								<FilecoinActorView
 									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
-									prefetched={filecoinActor}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

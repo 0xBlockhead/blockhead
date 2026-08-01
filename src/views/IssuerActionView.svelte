@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.IssuerAction> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.IssuerAction>, 'prefetched'> = $props()
 
 
 	// Components
@@ -114,7 +113,6 @@
 							<dd>
 								<IssuerPowerView
 									selection={select(EntityType.IssuerPower, issuerPower[EntityMetaKey.Selector])}
-									prefetched={issuerPower}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.HederaAllowance> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.HederaAllowance>, 'prefetched'> = $props()
 
 	const hederaAllowance = $derived(selection({
 		fields: {
@@ -65,7 +64,6 @@
 							<span data-text="muted">
 								<HederaTokenView
 									selection={select(EntityType.HederaToken, hederaToken[EntityMetaKey.Selector])}
-									prefetched={hederaToken}
 									layout={EntityLayout.Title}
 								/>
 							</span>
@@ -125,7 +123,6 @@
 							<dd>
 								<HederaTokenView
 									selection={select(EntityType.HederaToken, hederaToken[EntityMetaKey.Selector])}
-									prefetched={hederaToken}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -162,7 +159,6 @@
 							<dd>
 								<HederaNftView
 									selection={select(EntityType.HederaNft, hederaNft[EntityMetaKey.Selector])}
-									prefetched={hederaNft}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

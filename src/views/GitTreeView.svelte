@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.GitTree> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.GitTree>, 'prefetched'> = $props()
 
 	const titleFallback = $derived(selection.entitySelector.objectId || 'Git tree')
 
@@ -73,7 +72,6 @@
 						{#snippet children(gitObject)}
 							<GitObjectView
 								selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
-								prefetched={gitObject}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

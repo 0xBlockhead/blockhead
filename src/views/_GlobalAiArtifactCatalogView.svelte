@@ -10,11 +10,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType._GlobalAiArtifactCatalog> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType._GlobalAiArtifactCatalog>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('-global-ai-artifact-catalog-' + encodeURIComponent(stringify(selection.entitySelector)))
 

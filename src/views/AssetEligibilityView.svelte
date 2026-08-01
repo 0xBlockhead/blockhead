@@ -13,12 +13,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.AssetEligibility> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.AssetEligibility>, 'prefetched'> = $props()
 
 	const assetEligibility = $derived(selection({
 		fields: {

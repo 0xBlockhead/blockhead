@@ -15,13 +15,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.FarcasterCast_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.FarcasterCast_Timestamp>, 'prefetched'> = $props()
 
 	const cast = $derived(selection.entitySelector.$cast)
 	const viewSelection = $derived(selection({

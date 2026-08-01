@@ -14,11 +14,10 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.StellarTrade> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.StellarTrade>, 'prefetched'> = $props()
 
 
 	// Components
@@ -99,7 +98,6 @@
 							<dd>
 								<StellarAccountView
 									selection={select(EntityType.StellarAccount, stellarAccount[EntityMetaKey.Selector])}
-									prefetched={stellarAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -118,7 +116,6 @@
 							<dd>
 								<StellarAccountView
 									selection={select(EntityType.StellarAccount, stellarAccount[EntityMetaKey.Selector])}
-									prefetched={stellarAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -137,7 +134,6 @@
 							<dd>
 								<StellarOfferView
 									selection={select(EntityType.StellarOffer, stellarOffer[EntityMetaKey.Selector])}
-									prefetched={stellarOffer}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -156,7 +152,6 @@
 							<dd>
 								<StellarOfferView
 									selection={select(EntityType.StellarOffer, stellarOffer[EntityMetaKey.Selector])}
-									prefetched={stellarOffer}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -175,7 +170,6 @@
 							<dd>
 								<StellarLiquidityPoolView
 									selection={select(EntityType.StellarLiquidityPool, stellarLiquidityPool[EntityMetaKey.Selector])}
-									prefetched={stellarLiquidityPool}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -194,7 +188,6 @@
 							<dd>
 								<StellarLiquidityPoolView
 									selection={select(EntityType.StellarLiquidityPool, stellarLiquidityPool[EntityMetaKey.Selector])}
-									prefetched={stellarLiquidityPool}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -213,7 +206,6 @@
 							<dd>
 								<StellarAssetView
 									selection={select(EntityType.StellarAsset, stellarAsset[EntityMetaKey.Selector])}
-									prefetched={stellarAsset}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -232,7 +224,6 @@
 							<dd>
 								<StellarAssetView
 									selection={select(EntityType.StellarAsset, stellarAsset[EntityMetaKey.Selector])}
-									prefetched={stellarAsset}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -339,7 +330,6 @@
 							<dd>
 								<StellarTransactionView
 									selection={select(EntityType.StellarTransaction, stellarTransaction[EntityMetaKey.Selector])}
-									prefetched={stellarTransaction}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -358,7 +348,6 @@
 							<dd>
 								<StellarOperationView
 									selection={select(EntityType.StellarOperation, stellarOperation[EntityMetaKey.Selector])}
-									prefetched={stellarOperation}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

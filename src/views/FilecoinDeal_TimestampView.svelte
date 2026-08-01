@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.FilecoinDeal_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.FilecoinDeal_Timestamp>, 'prefetched'> = $props()
 
 	const filecoinDealTimestamp = $derived(selection({
 		fields: {
@@ -149,7 +148,6 @@
 							<dd>
 								<FilecoinTipsetView
 									selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
-									prefetched={filecoinTipset}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -15,12 +15,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.TonTrace> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.TonTrace>, 'prefetched'> = $props()
 
 	const viewDomId = $derived('ton-trace-' + encodeURIComponent(stringify(selection.entitySelector)))
 
@@ -93,7 +92,6 @@
 						{#snippet children(tonMessage)}
 							<TonMessageView
 								selection={select(EntityType.TonMessage, tonMessage[EntityMetaKey.Selector])}
-								prefetched={tonMessage}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

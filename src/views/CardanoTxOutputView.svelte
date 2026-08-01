@@ -18,13 +18,12 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.CardanoTxOutput> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.CardanoTxOutput>, 'prefetched'> = $props()
 
 	const transaction = $derived(selection.entitySelector.$transaction)
 	const viewSelection = $derived(selection({
@@ -145,7 +144,6 @@
 							<dd>
 								<CardanoAddressView
 									selection={select(EntityType.CardanoAddress, cardanoAddress[EntityMetaKey.Selector])}
-									prefetched={cardanoAddress}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

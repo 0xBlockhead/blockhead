@@ -149,7 +149,6 @@
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-									prefetched={evmAccount}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -168,7 +167,6 @@
 							<dd>
 								<EvmTransactionView
 									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
-									prefetched={evmTransaction}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -953,6 +953,7 @@ enum _ListFilterComparison {
 export const rawSnippetReference = {
 	params: "params",
 	pendingEntity: "pendingEntity",
+	prefetched: "prefetched",
 	resolvedEntity: {
 		source: "__appRawSnippetResolvedEntity__",
 	},
@@ -44622,7 +44623,7 @@ export const schema = {
 																											{/snippet}
 																										</ResourceBoundary>
 																									`.raw,
-								references: ["resolvedEntity"],
+								references: ["prefetched", "resolvedEntity"],
 							},
 							title: [{ field: "url", format: "url" }],
 							value: [{ field: "url", format: "truncated" }],
@@ -44669,7 +44670,7 @@ export const schema = {
 																											{/snippet}
 																										</ResourceBoundary>
 																									`.raw,
-								references: ["resolvedEntity"],
+								references: ["prefetched", "resolvedEntity"],
 							},
 						},
 						closed: [{ field: "url", format: "truncated" }, "type", "transport"],

@@ -14,12 +14,11 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.DogecoinBlockAuxPow> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.DogecoinBlockAuxPow>, 'prefetched'> = $props()
 
 
 	// Components
@@ -54,7 +53,6 @@
 				{#if dogecoinAuxPowParentBlockHeader != null}
 					<DogecoinAuxPowParentBlockHeaderView
 						selection={select(EntityType.DogecoinAuxPowParentBlockHeader, dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector])}
-						prefetched={dogecoinAuxPowParentBlockHeader}
 						layout={EntityLayout.Value}
 					/>
 				{/if}
@@ -84,7 +82,6 @@
 							<dd>
 								<DogecoinAuxPowParentBlockHeaderView
 									selection={select(EntityType.DogecoinAuxPowParentBlockHeader, dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector])}
-									prefetched={dogecoinAuxPowParentBlockHeader}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -103,7 +100,6 @@
 							<dd>
 								<DogecoinAuxPowMerkleBranchView
 									selection={select(EntityType.DogecoinAuxPowMerkleBranch, dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector])}
-									prefetched={dogecoinAuxPowMerkleBranch}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -122,7 +118,6 @@
 							<dd>
 								<DogecoinAuxPowMerkleBranchView
 									selection={select(EntityType.DogecoinAuxPowMerkleBranch, dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector])}
-									prefetched={dogecoinAuxPowMerkleBranch}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
