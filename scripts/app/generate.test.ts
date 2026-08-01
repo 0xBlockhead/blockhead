@@ -3595,6 +3595,7 @@ test('rejects underivable route projection subjects', () => {
 
 	assert.ok(networkMapping)
 	Object.defineProperty(networkMapping, 'projection', {
+		enumerable: true,
 		value: {
 			entityType: EntityType.EvmCoinInstance,
 			facetPath: ['NativeCurrency'],
