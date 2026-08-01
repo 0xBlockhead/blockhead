@@ -3561,6 +3561,23 @@ test('keeps route projection ownership explicit', () => {
 	assertProjectionOwnership(app.routes.children)
 })
 
+test('rejects underivable route projection subjects', () => {
+	const underivableProjectionApp = structuredClone(app)
+	const networkMapping = underivableProjectionApp.routes.children['(explore)']?.children?.['(networks)']?.children?.network?.children?.['[network]']?.selectors?.[EntityType.Network]?.Caip2
+
+	assert.ok(networkMapping)
+	Object.defineProperty(networkMapping, 'projection', {
+		value: {
+			entityType: EntityType.EvmCoinInstance,
+			facetPath: ['NativeCurrency'],
+		},
+	})
+	assert.throws(
+		() => compileApp(underivableProjectionApp),
+		/\/\(explore\)\/\(networks\)\/network\/\[network\] Network\.Caip2 cannot derive projection subject EvmCoinInstance/
+	)
+})
+
 test('rejects duplicate selector route mappings before indexing', () => {
 	const networkMappings = app.routes.children['(explore)']?.children?.['(networks)']?.children?.network?.children?.['[network]']?.selectors?.[EntityType.Network]
 

@@ -205,11 +205,7 @@ type SelectorRouteMapping = {
 		facetPath: readonly string[]
 	}
 	when?: _AppFacetCondition
-	projectionSubject?: {
-		entityType: string
-		selector: _Expression
-		routeParam?: string
-	}
+	projectionRouteParam?: string
 	page?: NonNullable<NonNullable<App['routes']['children'][string]['selectors']>[string]>[string]['page']
 }
 type SelectorRouteVariant = {
@@ -3841,19 +3837,15 @@ const compileRouteTree = (
 					}))
 			)
 
-			const projectionSelector = mapping.projection == null ?
-				undefined
-			: mapping.projection.entityType === entityType ?
-				{
-					kind: 'object' as const,
-					fields: fields.map(({ field, value }) => ({
-						name: field,
-						value,
-					})),
-				}
-			:
-				routePageSelectorExpression(entityByType, ancestorSelectorsAtNode, mapping.projection.entityType)
-			if (mapping.projection != null && projectionSelector == null)
+			if (
+				mapping.projection != null
+				&& mapping.projection.entityType !== entityType
+				&& routePageSelectorExpression(
+					entityByType,
+					ancestorSelectorsAtNode,
+					mapping.projection.entityType
+				) == null
+			)
 				throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} cannot derive projection subject ${mapping.projection.entityType}`)
 
 			const projectionRouteParams = mapping.projection == null ? [] : unique(ancestorSelectorsAtNode
@@ -3885,13 +3877,9 @@ const compileRouteTree = (
 				fields,
 				title,
 				...(mapping.when == null ? {} : { when: mapping.when }),
-				...(mapping.projection == null || projectionSelector == null ? {} : {
+				...(mapping.projection == null ? {} : {
 					projection: mapping.projection,
-					projectionSubject: {
-						entityType: mapping.projection.entityType,
-						selector: projectionSelector,
-						...(projectionRouteParams[0] == null ? {} : { routeParam: projectionRouteParams[0] }),
-					},
+					...(projectionRouteParams[0] == null ? {} : { projectionRouteParam: projectionRouteParams[0] }),
 				}),
 				...(mapping.page == null ? {} : { page: mapping.page }),
 			}
@@ -14314,7 +14302,7 @@ const routeNeedsPageModule = (
 	routeFile: RouteFile,
 	renderEntries: readonly RouteRenderEntry[]
 ) => (
-	routeFile.mappings?.some((mapping) => mapping.projectionSubject?.routeParam != null) === true
+	routeFile.mappings?.some((mapping) => mapping.projectionRouteParam != null) === true
 		&& !routeProjectionOwnedByAncestor(routePath, routeFile, renderEntries)
 )
 
@@ -14384,7 +14372,7 @@ const routeMappingContext = (
 	indexes: GenerationIndexes,
 	mapping: SelectorRouteMapping
 ) => {
-	const networkParam = mapping.projectionSubject?.routeParam
+	const networkParam = mapping.projectionRouteParam
 	const fieldsExpression = emitObject(mapping.fields.map((field) => [
 		field.field,
 		renderExpression(field.value, {
