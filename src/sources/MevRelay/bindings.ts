@@ -61,6 +61,6 @@ const bindings = mevRelayRestTargets.map(({
 				corsEnabled: false,
 			},
 		],
-})) satisfies readonly SourceBinding[]
+} satisfies SourceBinding))
 
 export default indexSourceBindings(bindings)

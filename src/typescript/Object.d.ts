@@ -1,4 +1,9 @@
 interface ObjectConstructor {
+	hasOwn<
+		_Object extends object,
+		_Key extends PropertyKey,
+	>(object: _Object, key: _Key): key is _Key & keyof _Object
+
 	keys<_Object extends object>(object: _Object): Array<keyof _Object>
 
 	values<

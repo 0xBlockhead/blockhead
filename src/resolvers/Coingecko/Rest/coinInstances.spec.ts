@@ -12,6 +12,7 @@ import { EntityMetaKey } from '$/schema/$schema.ts'
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 
 vi.mock('$/sources/Coingecko/Rest/constants.ts', () => ({
+	coingeckoCatalogCoinIds: [CoinId.ETH],
 	idByCoinId: {
 		[CoinId.ETH]: 'ethereum',
 	},

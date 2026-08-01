@@ -2696,7 +2696,12 @@ test('emits every source-axis enum and only valid enum references in provider ro
 		/^src\/sources\/[^/]+\/bindings\.ts$/.test(path)
 	))) {
 		const source = renderGeneratedFile(generatedBindings)
-		assert.match(source, /const bindings = [\s\S]*?satisfies readonly SourceBinding\[\]/)
+		if (source.includes('.flatMap(({'))
+			assert.match(source, /\] satisfies readonly SourceBinding\[\]\)\)/)
+		else if (source.includes('.map(({'))
+			assert.match(source, /\} satisfies SourceBinding\)\)/)
+		else
+			assert.match(source, /const bindings = [\s\S]*?satisfies readonly SourceBinding\[\]/)
 		assert.match(source, /export default indexSourceBindings\(bindings\)/)
 		assert.doesNotMatch(source, /SourceCredentialScope\.None|generated: false/)
 		assert.doesNotMatch(source, /typeof bindings\[\d+\]/)

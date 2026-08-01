@@ -65,6 +65,6 @@ const bindings = blobscanRestTargets.map(({
 				corsEnabled: false,
 			},
 		],
-})) satisfies readonly SourceBinding[]
+} satisfies SourceBinding))
 
 export default indexSourceBindings(bindings)

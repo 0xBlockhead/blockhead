@@ -7694,11 +7694,11 @@ const generateSourceProviderBindingsFile = ({
 			...(matrix.variants.length === 1 ? [
 				'}) => ({',
 				...variant.slice(1, -1).map((line) => indent(line)),
-				'})) satisfies readonly SourceBinding[]',
+				'} satisfies SourceBinding))',
 			] : [
-				'}) => [',
+				'}) => ([',
 				...matrix.variants.map((binding) => `${indent(binding)},`),
-				']) satisfies readonly SourceBinding[]',
+				'] satisfies readonly SourceBinding[]))',
 			]),
 		]
 	}

@@ -54,6 +54,6 @@ const bindings = ethereumSpecsGithubTargets.map(({
 				corsEnabled: true,
 			},
 		],
-})) satisfies readonly SourceBinding[]
+} satisfies SourceBinding))
 
 export default indexSourceBindings(bindings)

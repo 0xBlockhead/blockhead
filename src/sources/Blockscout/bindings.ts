@@ -94,7 +94,7 @@ const blockscoutRestTargets = [
 const bindings = blockscoutRestTargets.flatMap(({
 	key,
 	locator,
-}) => [
+}) => ([
 	{
 		...blockscoutRestV2HttpProxyBindingAxes,
 		target: {
@@ -123,6 +123,6 @@ const bindings = blockscoutRestTargets.flatMap(({
 			},
 		],
 	},
-]) satisfies readonly SourceBinding[]
+] satisfies readonly SourceBinding[]))
 
 export default indexSourceBindings(bindings)

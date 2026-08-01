@@ -2022,11 +2022,11 @@ const catalog = [
 
 /** CoinGecko coin id strings (`/coins/{id}` path segment). */
 export const idByCoinId = Object.fromEntries(
-	catalog.map((entry) => [entry.coinId, entry.wireId])
+	catalog.map((entry) => [entry.coinId, entry.wireId] as const)
 )
 
 export const coinIdByWireId = new Map(
-	catalog.map((entry) => [entry.wireId, entry.coinId])
+	catalog.map((entry) => [entry.wireId, entry.coinId] as const)
 )
 
 export const coingeckoCatalogCoinIds = catalog.map((entry) => entry.coinId)

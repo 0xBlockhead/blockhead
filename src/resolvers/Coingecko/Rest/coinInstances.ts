@@ -178,9 +178,9 @@ export const fetchCoinInstanceStubsForCoin = async (
 	publicEnv: SourcePublicEnv
 ) => {
 	const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-	const coingeckoId = idByCoinId[coinId]
-	if (coingeckoId == null)
+	if (!Object.hasOwn(idByCoinId, coinId))
 		return []
+	const coingeckoId = idByCoinId[coinId]
 
 	const [coin, assetPlatforms] = await Promise.all([
 		getCoin({
@@ -221,13 +221,13 @@ export const fetchCoinInstanceStubsForCoin = async (
 const coinInstanceByKeyForEnv = async (
 	publicEnv: SourcePublicEnv
 ) => {
-	const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
+	const { coingeckoCatalogCoinIds } = await import('$/sources/Coingecko/Rest/constants.ts')
 	const coinInstanceByKey = new Map<string, {
 		coinId: CoinId
 		row: CoinInstanceStub
 	}>()
 
-	for (const coinId of Object.keys(idByCoinId)) {
+	for (const coinId of coingeckoCatalogCoinIds) {
 		const rows = await fetchCoinInstanceStubsForCoin(
 			coinId,
 			publicEnv

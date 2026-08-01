@@ -79,7 +79,7 @@ const nostrRelayNip11HttpBindings = nostrRelayNip11HttpTargets.map(({
 				corsEnabled: false,
 			},
 		],
-})) satisfies readonly SourceBinding[]
+} satisfies SourceBinding))
 
 const nostrRelayWebSocketTargets = [
 	{
@@ -111,7 +111,7 @@ const nostrRelayWebSocketBindings = nostrRelayWebSocketTargets.map(({
 				locator,
 			},
 		],
-})) satisfies readonly SourceBinding[]
+} satisfies SourceBinding))
 
 const bindings = [
 	...nostrRelayNip11HttpBindings,
