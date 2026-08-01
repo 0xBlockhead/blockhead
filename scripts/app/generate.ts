@@ -998,11 +998,6 @@ const viewComponentAcceptsPrefetched = (
 
 const propertyAccess = (property: string) => /^[A-Za-z_$][\w$]*$/.test(property) ? `.${property}` : `[${emitTypeScript(property)}]`
 
-const optionalPropertyAccess = (property: string) => {
-	const access = propertyAccess(property)
-	return access.startsWith('.') ? `?.${access.slice(1)}` : `?.${access}`
-}
-
 const objectPropertyKey = (property: string) => /^[A-Za-z_$][\w$]*$/.test(property) ? property : emitTypeScript(property)
 
 const fieldExpression = (base: string, field: string) => [
@@ -1016,19 +1011,6 @@ const fieldExpression = (base: string, field: string) => [
 		:
 			`${expression}${propertyAccess(part)}`
 	), '')
-
-const optionalFieldExpression = (base: string, field: string) => [
-	base,
-	...field.split('.'),
-]
-	.filter(Boolean)
-	.reduce((expression, part) => (
-		expression === '' ?
-			part
-		:
-			`${expression}${optionalPropertyAccess(part)}`
-	), '')
-
 const fieldPathsPresenceExpressions = (
 	base: string,
 	fieldPaths: readonly string[][],
@@ -1522,7 +1504,6 @@ type ExpressionContext = {
 	fields?: string
 	fieldExpressionByName?: Readonly<Record<string, string>>
 	pageSelector?: string
-	optional?: boolean
 	entity?: Entity
 	indexes?: GenerationIndexes
 }
@@ -1564,7 +1545,6 @@ const renderRouteParamExpression = (
 		const renderedExpression = renderExpression(expression, {
 			...context,
 			fields: context.fields ?? 'selector',
-			optional: false,
 		})
 		if (appExpressionProducesString(expression, context))
 			return decode === _ExpressionDecode.DecodeURIComponent ?
@@ -1588,10 +1568,7 @@ const renderRouteParamExpression = (
 		)).join('')}\``
 
 	if (expression.kind === 'case') {
-		const routeValueExpression = renderExpression(expression, {
-			...context,
-			optional: false,
-		}, 'omit')
+		const routeValueExpression = renderExpression(expression, context, 'omit')
 		if (appExpressionProducesString(expression, context))
 			return decode === _ExpressionDecode.DecodeURIComponent ?
 				`encodeURIComponent(${routeValueExpression})`
@@ -1608,10 +1585,7 @@ const renderRouteParamExpression = (
 			`String(${routeValueExpression})`
 	}
 
-	const looseExpression = renderExpression(expression, {
-		...context,
-		optional: false,
-	})
+	const looseExpression = renderExpression(expression, context)
 	if (appExpressionProducesString(expression, context))
 		return decode === _ExpressionDecode.DecodeURIComponent ?
 			`encodeURIComponent(${looseExpression})`
@@ -2427,19 +2401,9 @@ const renderExpression = (
 		return value
 	}
 	if (expression.kind === 'field')
-		return context.fieldExpressionByName?.[expression.name] ?? (
-			context.optional === true ?
-				optionalFieldExpression(context.fields ?? 'selector', expression.name)
-			:
-				fieldExpression(context.fields ?? 'selector', expression.name)
-		)
+		return context.fieldExpressionByName?.[expression.name] ?? fieldExpression(context.fields ?? 'selector', expression.name)
 	if (expression.kind === 'property')
-		return `${renderExpression(expression.value, context)}${
-			context.optional === true ?
-				optionalPropertyAccess(expression.property)
-			:
-				propertyAccess(expression.property)
-		}`
+		return `${renderExpression(expression.value, context)}${propertyAccess(expression.property)}`
 	if (expression.kind === 'pageSelector')
 		return context.pageSelector ?? 'data.selector'
 	if (expression.kind === 'object')
@@ -2466,12 +2430,7 @@ const renderExpression = (
 			: expression.param != null ?
 				`${context.params ?? 'params'}.${expression.param}`
 			: expression.field != null ?
-				context.fieldExpressionByName?.[expression.field] ?? (
-					context.optional === true ?
-						optionalFieldExpression(context.fields ?? 'selector', expression.field)
-					:
-						fieldExpression(context.fields ?? 'selector', expression.field)
-				)
+				context.fieldExpressionByName?.[expression.field] ?? fieldExpression(context.fields ?? 'selector', expression.field)
 			:
 				'undefined'
 		)
