@@ -2067,21 +2067,30 @@ const renderQuery = (
 	])
 }
 
-const conditionExpression = (
-	conditions: readonly {
+type ConditionTerm = {
+	expression: string
+	// Matching paths make equality's presence implication explicit.
+	presencePath?: string
+	equalityPath?: string
+	// A lone logical expression needs grouping when joined as an OR alternative.
+	logical?: true
+}
+
+const conditionTerms = (
+	condition: {
 		field: FieldReference
 		equals?: _Literal
 		notEquals?: _Literal
 		contains?: _Literal
 		oneOf?: readonly _Literal[]
-	}[],
+	},
 	entityExpression: string,
 	entity?: Entity,
 	indexes?: GenerationIndexes,
 	partial = false,
 	partialBasePresent = false,
 	fieldExpressionByName?: Readonly<Record<string, string>>
-) => unique(conditions.map((condition) => {
+): ConditionTerm[] => {
 	if (isProjectionFieldReference(condition.field))
 		throw new Error(`Projection condition ${condition.field.join('.')} must be rendered inside its ProjectionBoundary`)
 
@@ -2098,16 +2107,9 @@ const conditionExpression = (
 		:
 			valueExpression
 	)
-	const expression = [
-		!('equals' in condition) ? undefined : `${conditionValueExpression} === ${emitTypeScript(condition.equals)}`,
-		!('notEquals' in condition) ? undefined : `${conditionValueExpression} !== ${emitTypeScript(condition.notEquals)}`,
-		!('contains' in condition) ? undefined : `${conditionValueExpression}.includes(${emitTypeScript(condition.contains)})`,
-		!('oneOf' in condition) ? undefined : `${emitArray(condition.oneOf.map(emitTypeScript))}.includes(${conditionValueExpression})`,
-	].filter(Boolean).join(' && ')
-	return (
-		partial ?
-			[
-				...fieldPathsPresenceExpressions(
+	return [
+		...(partial ?
+			fieldPathsPresenceExpressions(
 					entityExpression,
 					[(
 						'notEquals' in condition
@@ -2117,13 +2119,42 @@ const conditionExpression = (
 							fieldReferenceKey(condition.field).split('.').filter(Boolean).slice(0, -1)
 					)],
 					partialBasePresent
-				),
-				expression,
-			].filter(Boolean).join(' && ')
-			:
-			expression
-	)
-})).join(' && ')
+				).map((expression) => ({ expression }))
+		:
+			[]),
+		...(!('equals' in condition) ? [] : [{
+			expression: `${conditionValueExpression} === ${emitTypeScript(condition.equals)}`,
+			equalityPath: conditionValueExpression,
+		}]),
+		...(!('notEquals' in condition) ? [] : [{
+			expression: `${conditionValueExpression} !== ${emitTypeScript(condition.notEquals)}`,
+		}]),
+		...(!('contains' in condition) ? [] : [{
+			expression: `${conditionValueExpression}.includes(${emitTypeScript(condition.contains)})`,
+		}]),
+		...(!('oneOf' in condition) ? [] : [{
+			expression: `${emitArray(condition.oneOf.map(emitTypeScript))}.includes(${conditionValueExpression})`,
+		}]),
+	]
+}
+
+const conditionExpression = (
+	conditions: readonly Parameters<typeof conditionTerms>[0][],
+	entityExpression: string,
+	entity?: Entity,
+	indexes?: GenerationIndexes,
+	partial = false,
+	partialBasePresent = false,
+	fieldExpressionByName?: Readonly<Record<string, string>>
+) => unique(conditions.map((condition) => conditionTerms(
+	condition,
+	entityExpression,
+	entity,
+	indexes,
+	partial,
+	partialBasePresent,
+	fieldExpressionByName
+).map((term) => term.expression).join(' && '))).join(' && ')
 
 const renderConditionedEntityLines = (
 	entity: Entity,
@@ -2265,28 +2296,72 @@ const expressionFieldPaths = (expression: _Expression): string[][] => {
 	return []
 }
 
+// Groups retain route-candidate identity and specificity while their terms
+// retain the atomic logic needed for rendering without reparsing TypeScript.
+type HrefConditionGroup = {
+	terms: readonly ConditionTerm[]
+	parenthesized?: true
+}
+
+const hrefConditionGroupExpression = (group: HrefConditionGroup) => {
+	const expression = group.terms.map((term) => term.expression).join(' && ')
+	return group.parenthesized === true ? `(${expression})` : expression
+}
+
+const hrefConditionGroupsExpression = (groups: readonly HrefConditionGroup[]) => (
+	groups.map(hrefConditionGroupExpression).join(' && ')
+)
+
+const uniqueHrefConditionGroups = (groups: readonly HrefConditionGroup[]) => [...new Map(
+	groups.map((group) => [hrefConditionGroupExpression(group), group])
+).values()]
+
+const hrefConditionPlan = (groups: readonly HrefConditionGroup[]) => {
+	const terms = [...new Map(
+		groups.flatMap((group) => group.terms).map((term) => [term.expression, term])
+	).values()]
+	const applicableTerms = terms.filter((term) => (
+		term.presencePath == null
+		|| !terms.some((candidate) => candidate.equalityPath === term.presencePath)
+	))
+
+	return {
+		expression: applicableTerms.length <= 1 ?
+			applicableTerms[0]?.expression ?? 'true'
+		:
+			applicableTerms.map((term) => term.expression).join('\n&& '),
+		logical: applicableTerms.length > 1 || applicableTerms[0]?.logical === true,
+	}
+}
+
 const routeExpressionConditions = (
 	context: ExpressionContext,
 	expression: _Expression,
-	fieldPathConditions: (fieldPaths: readonly string[][]) => string[]
-): string[] => {
+	fieldPathConditions: (fieldPaths: readonly string[][]) => ConditionTerm[]
+): HrefConditionGroup[] => {
 	if (typeof expression === 'string' || 'raw' in expression)
 		return []
 
 	if (expression.kind === 'case') {
-		const valueCondition = routeExpressionConditions(context, expression.value, fieldPathConditions).join(' && ')
+		const valueConditionGroups = routeExpressionConditions(context, expression.value, fieldPathConditions)
+		const valueCondition = hrefConditionGroupsExpression(valueConditionGroups)
 		const valueExpression = renderExpression(expression.value, context)
-		const cases = expression.cases.map((item) => ({
-			condition: `${valueExpression} === ${emitTypeScript(item.equals)}`,
-			inverseCondition: `${valueExpression} !== ${emitTypeScript(item.equals)}`,
-			requirement: routeExpressionConditions(context, item.value, fieldPathConditions).join(' && ') || 'true',
-		}))
+		const cases = expression.cases.map((item) => {
+			const requirementGroups = routeExpressionConditions(context, item.value, fieldPathConditions)
+			return {
+				condition: `${valueExpression} === ${emitTypeScript(item.equals)}`,
+				inverseCondition: `${valueExpression} !== ${emitTypeScript(item.equals)}`,
+				requirementGroups,
+				requirement: hrefConditionGroupsExpression(requirementGroups) || 'true',
+			}
+		})
 		const exhaustive = appCaseIsExhaustive(expression, context)
 		const conditionalCases = exhaustive ? cases.slice(0, -1) : cases
-		const fallbackRequirement = exhaustive ?
-			cases.at(-1)?.requirement ?? 'true'
+		const fallbackRequirementGroups = exhaustive ?
+			cases.at(-1)?.requirementGroups ?? []
 		:
-			routeExpressionConditions(context, expression.default, fieldPathConditions).join(' && ') || 'true'
+			routeExpressionConditions(context, expression.default, fieldPathConditions)
+		const fallbackRequirement = hrefConditionGroupsExpression(fallbackRequirementGroups) || 'true'
 		const caseCondition = conditionalCases.length === 0 ?
 			fallbackRequirement
 		: conditionalCases.length === 1 && conditionalCases[0]?.requirement === 'true' && fallbackRequirement === 'true' ?
@@ -2300,10 +2375,26 @@ const routeExpressionConditions = (
 				.map(({ condition, requirement }) => `${condition} ? ${requirement}`)
 				.join(' : ')} : ${fallbackRequirement})`
 
-		return [valueCondition === '' ? caseCondition : `(${valueCondition} && ${caseCondition})`]
+		const caseTerms = conditionalCases.length === 0 ?
+			fallbackRequirementGroups.flatMap((group) => group.terms)
+		:
+			[{
+				expression: caseCondition,
+				...(conditionalCases.length === 1 && caseCondition !== 'true' ? { logical: true as const } : {}),
+			}]
+
+		return [{
+			terms: [
+				...valueConditionGroups.flatMap((group) => group.terms),
+				...caseTerms,
+			],
+			...(valueCondition === '' ? {} : { parenthesized: true as const }),
+		}]
 	}
 
-	return fieldPathConditions(uniqueFieldPaths(expressionFieldPaths(expression)))
+	return fieldPathConditions(uniqueFieldPaths(expressionFieldPaths(expression))).map((term) => ({
+		terms: [term],
+	}))
 }
 
 const expressionUsesKind = (expression: _Expression | undefined, kind: _Expression['kind']): boolean => {
@@ -11960,9 +12051,9 @@ const entityPathConditions = (
 	mode: 'selector' | 'resolved',
 	fieldPaths: readonly string[][],
 	fieldExpressionByName?: Readonly<Record<string, string>>
-) => unique(fieldPaths.flatMap((fieldPath) => {
+) => [...new Map(fieldPaths.flatMap((fieldPath) => {
 	let entity = indexes.entityByType[entityType]
-	const conditions: string[] = []
+	const conditions: ConditionTerm[] = []
 
 	for (const [index, fieldName] of fieldPath.entries()) {
 		if (entity == null)
@@ -11972,7 +12063,13 @@ const entityPathConditions = (
 		// Unknown paths are not assumed safe: preserve the generic presence chain
 		// so malformed or external expressions cannot produce unsafe access.
 		if (field == null)
-			return fieldPathsPresenceExpressions(fieldsExpression, [fieldPath], true)
+			return fieldPath.map((_part, fieldIndex) => {
+				const presencePath = fieldExpression(fieldsExpression, fieldPath.slice(0, fieldIndex + 1).join('.'))
+				return {
+					expression: `${presencePath} != null`,
+					presencePath,
+				}
+			})
 
 		const pathExpression = mode === 'selector' && index === 0 ?
 			fieldsExpression
@@ -11993,13 +12090,16 @@ const entityPathConditions = (
 		:
 			undefined
 		if (condition != null)
-			conditions.push(condition)
+			conditions.push({
+				expression: condition,
+				...(mode === 'resolved' ? { presencePath: pathExpression } : {}),
+			})
 
 		entity = field.entityType == null ? undefined : indexes.entityByType[field.entityType]
 	}
 
 	return conditions
-}))
+}).map((term) => [term.expression, term])).values()]
 
 // A unit-typed selector field already proves its only possible equality.
 // Keeping that comparison in generated code adds an unreachable undefined arm.
@@ -12031,37 +12131,9 @@ const renderEntityRouteLinkExpression = (
 	fieldExpressionByName?: Readonly<Record<string, string>>,
 	routeLinks: readonly EntityRouteLink[] = indexes.entityRouteLinksByType[entityType] ?? []
 ) => {
-	const renderHrefCondition = (conditionTerms: readonly string[]) => {
-		const flattenedConditionTerms = unique(conditionTerms.flatMap((condition) => {
-			const parsed = parseTypeScriptExpression(condition)
-			const conjunctionTerms = (expression: ts.Expression): string[] => {
-				const value = unwrapParenthesizedExpression(expression)
-				return (
-					ts.isBinaryExpression(value)
-					&& value.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken ?
-						[
-							...conjunctionTerms(value.left),
-							...conjunctionTerms(value.right),
-						]
-					:
-						[expression.getText(parsed.sourceFile)]
-				)
-			}
-
-			return conjunctionTerms(parsed.expression)
-		}))
-		const uniqueConditionTerms = flattenedConditionTerms.filter((condition) => (
-			!condition.endsWith(' != null')
-			|| !flattenedConditionTerms.some((candidate) => (
-				candidate.startsWith(`${condition.slice(0, -' != null'.length)} === `)
-			))
-		))
-
-		return uniqueConditionTerms.length <= 1 ?
-			uniqueConditionTerms[0] ?? 'true'
-		:
-			uniqueConditionTerms.join('\n&& ')
-	}
+	const renderHrefCondition = (conditionGroups: readonly HrefConditionGroup[]) => (
+		hrefConditionPlan(conditionGroups).expression
+	)
 	const entityRouteLinks = routeLinks
 		.filter((entityRouteLink) => selectorName == null || entityRouteLink.selector === selectorName)
 	// Entities without a visible route intentionally produce no link expression.
@@ -12110,9 +12182,9 @@ const renderEntityRouteLinkExpression = (
 				indexes,
 			}, param.decode),
 		}))
-		const entityCondition = (entityRouteLink.conditions ?? [])
+		const entityConditionTerms = (entityRouteLink.conditions ?? [])
 			.filter((condition) => !entitySelectorConditionIsGuaranteed(indexes, entityType, condition))
-			.map((condition) => [
+			.flatMap((condition) => [
 				...entityPathConditions(
 					indexes,
 					entityType,
@@ -12121,8 +12193,8 @@ const renderEntityRouteLinkExpression = (
 					[[condition.field]],
 					fieldExpressionByName
 				),
-				conditionExpression(
-					[condition],
+				...conditionTerms(
+					condition,
 					fieldsExpression,
 					indexes.entityByType[entityType],
 					indexes,
@@ -12130,9 +12202,11 @@ const renderEntityRouteLinkExpression = (
 					false,
 					fieldExpressionByName
 				),
-			].join(' && '))
-			.join(' && ')
-		const paramConditionTerms = selectorName == null ? entityRouteLink.params.flatMap((param) => routeExpressionConditions(
+			])
+		const entityConditionGroup = entityConditionTerms.length === 0 ? undefined : {
+			terms: entityConditionTerms,
+		}
+		const paramConditionGroups = selectorName == null ? entityRouteLink.params.flatMap((param) => routeExpressionConditions(
 			{
 				fields: fieldsExpression,
 				entity: indexes.entityByType[entityType],
@@ -12150,20 +12224,20 @@ const renderEntityRouteLinkExpression = (
 				)
 			)
 		)) : []
-		const conditionTerms = unique([
-			entityCondition,
-			...paramConditionTerms,
-		].filter(Boolean))
+		const conditionGroups = uniqueHrefConditionGroups([
+			...(entityConditionGroup == null ? [] : [entityConditionGroup]),
+			...paramConditionGroups,
+		])
 
 		return {
-			conditionTerms,
-			hasParamCondition: paramConditionTerms.length > 0,
-			hasRouteCondition: entityCondition !== '',
+			conditionGroups,
+			hasParamCondition: paramConditionGroups.length > 0,
+			hasRouteCondition: entityConditionGroup != null,
 			path: entityRouteLink.path,
 			params,
 			selectorVariantCoordinates: selectorVariantCoordinates(paramFieldPaths),
 			selector: entityRouteLink.selector,
-			specificity: conditionTerms.length,
+			specificity: conditionGroups.length,
 		}
 	})
 	const routeConditionsAreComplements = (
@@ -12211,7 +12285,7 @@ const renderEntityRouteLinkExpression = (
 
 	// Multiple candidates must all discriminate themselves; otherwise route
 	// selection would depend on declaration order.
-	if (routeCandidates.length > 1 && routeCandidates.some((candidate) => candidate.conditionTerms.length === 0))
+	if (routeCandidates.length > 1 && routeCandidates.some((candidate) => candidate.conditionGroups.length === 0))
 		throw new Error(`${entityType} has multiple unconditional entity hrefs`)
 
 	// Alternatives for the same physical route differ only in selector-derived
@@ -12225,8 +12299,10 @@ const renderEntityRouteLinkExpression = (
 		if (first == null)
 			throw new Error(`${entityType} has an empty entity href candidate group`)
 
-		const sharedConditionTerms = first.conditionTerms.filter((condition) => (
-			group.every((candidate) => candidate.conditionTerms.includes(condition))
+		const sharedConditionGroups = first.conditionGroups.filter((conditionGroup) => (
+			group.every((candidate) => candidate.conditionGroups.some((candidateConditionGroup) => (
+				hrefConditionGroupExpression(candidateConditionGroup) === hrefConditionGroupExpression(conditionGroup)
+			)))
 		))
 		const sharedSelectorVariantCoordinateKeys = first.selectorVariantCoordinates
 			.map(selectorVariantCoordinateKey)
@@ -12238,10 +12314,12 @@ const renderEntityRouteLinkExpression = (
 				!sharedSelectorVariantCoordinateKeys.includes(selectorVariantCoordinateKey(coordinate))
 			))
 		))
-		const variantConditionTerms = group.map((candidate) => candidate.conditionTerms.filter((condition) => (
-			!sharedConditionTerms.includes(condition)
+		const variantConditionGroups = group.map((candidate) => candidate.conditionGroups.filter((conditionGroup) => (
+			!sharedConditionGroups.some((sharedConditionGroup) => (
+				hrefConditionGroupExpression(sharedConditionGroup) === hrefConditionGroupExpression(conditionGroup)
+			))
 		)))
-		if (group.length > 1 && variantConditionTerms.some((conditions) => conditions.length === 0))
+		if (group.length > 1 && variantConditionGroups.some((conditions) => conditions.length === 0))
 			throw new Error(`${entityType} same-route entity href candidates are not distinguishable`)
 		const parameterVariantsCoverSelector = (
 			alternativeSelectorVariantCoordinates.every((coordinates) => coordinates.length === 1)
@@ -12293,7 +12371,7 @@ const renderEntityRouteLinkExpression = (
 					:
 						renderConditionalExpression(
 							group.slice(0, -1).map((candidate, candidateIndex) => ({
-								condition: renderHrefCondition(variantConditionTerms[candidateIndex] ?? candidate.conditionTerms),
+								condition: renderHrefCondition(variantConditionGroups[candidateIndex] ?? candidate.conditionGroups),
 								value: values[candidateIndex] ?? fallback,
 							})),
 							fallback
@@ -12301,27 +12379,25 @@ const renderEntityRouteLinkExpression = (
 				}
 			})
 		return {
-			conditionTerms: group.length === 1 ?
-				first.conditionTerms
+			conditionGroups: group.length === 1 ?
+				first.conditionGroups
 			: groupCoversEverySelector ?
-				sharedConditionTerms
+				sharedConditionGroups
 			:
 				[
-					...sharedConditionTerms,
-					`(\n${indent(variantConditionTerms.map((conditions) => {
-						const condition = renderHrefCondition(conditions)
-						const expression = unwrapParenthesizedExpression(parseTypeScriptExpression(condition).expression)
-						return (
-							ts.isBinaryExpression(expression)
-							&& (
-								expression.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken
-								|| expression.operatorToken.kind === ts.SyntaxKind.BarBarToken
-							)
-						) ?
-							`(\n${indent(condition, 1)}\n)`
-						:
-							condition
-					}).join('\n|| '), 1)}\n)`,
+					...sharedConditionGroups,
+					{
+						terms: [{
+							expression: `(\n${indent(variantConditionGroups.map((conditionGroups) => {
+								const condition = hrefConditionPlan(conditionGroups)
+								return condition.logical ?
+									`(\n${indent(condition.expression, 1)}\n)`
+								:
+									condition.expression
+							}).join('\n|| '), 1)}\n)`,
+							logical: true,
+						}],
+					},
 				],
 			hrefExpression: renderResolveExpression(
 				first.path,
@@ -12337,17 +12413,19 @@ const renderEntityRouteLinkExpression = (
 	// A single route emits directly unless it has a real applicability condition.
 	if (candidates.length === 1) {
 		const candidate = candidates[0]
-		return candidate.conditionTerms.length === 0 ?
+		return candidate.conditionGroups.length === 0 ?
 			candidates[0].hrefExpression
 		:
-			`(\n${indent(renderHrefCondition(candidates[0].conditionTerms), 1)} ?\n${indent(candidates[0].hrefExpression, 2)}\n\t:\n\t\tundefined\n)`
+			`(\n${indent(renderHrefCondition(candidates[0].conditionGroups), 1)} ?\n${indent(candidates[0].hrefExpression, 2)}\n\t:\n\t\tundefined\n)`
 	}
 
 	// Factor conditions common to every candidate once around the decision tree.
-	const sharedConditionTerms = candidates[0].conditionTerms.reduce<string[]>(
+	const sharedConditionGroups = candidates[0].conditionGroups.reduce<HrefConditionGroup[]>(
 		(sharedConditions, condition, index) => (
 			sharedConditions.length === index
-			&& candidates.every((candidate) => candidate.conditionTerms[index] === condition) ?
+			&& candidates.every((candidate) => (
+				hrefConditionGroupExpression(candidate.conditionGroups[index] ?? { terms: [] }) === hrefConditionGroupExpression(condition)
+			)) ?
 				[
 					...sharedConditions,
 					condition,
@@ -12367,7 +12445,7 @@ const renderEntityRouteLinkExpression = (
 			return `${'\t'.repeat(level)}undefined`
 		// Grouping selector variants can prove a route unconditional even when
 		// each input candidate needed its own selector-presence condition.
-		if (candidate.conditionTerms.length === 0) {
+		if (candidate.conditionGroups.length === 0) {
 			if (candidateIndex !== candidates.length - 1)
 				throw new Error(`${entityType} has an unconditional entity href before another candidate`)
 
@@ -12377,9 +12455,9 @@ const renderEntityRouteLinkExpression = (
 		if (routesCoverEverySelector && candidateIndex === candidates.length - 1)
 			return indent(candidate.hrefExpression, level)
 
-		const conditionTerms = candidate.conditionTerms.slice(sharedConditionTerms.length)
+		const conditionGroups = candidate.conditionGroups.slice(sharedConditionGroups.length)
 		return [
-			`${indent(renderHrefCondition(conditionTerms), level)} ?`,
+			`${indent(renderHrefCondition(conditionGroups), level)} ?`,
 			indent(candidate.hrefExpression, level + 1),
 			`${'\t'.repeat(level)}:`,
 			renderCandidateExpression(candidateIndex + 1, level + 1),
@@ -12387,13 +12465,13 @@ const renderEntityRouteLinkExpression = (
 	}
 	const candidateExpression = renderCandidateExpression(
 		0,
-		sharedConditionTerms.length === 0 ? 1 : 2
+		sharedConditionGroups.length === 0 ? 1 : 2
 	)
 
-	return sharedConditionTerms.length === 0 ?
+	return sharedConditionGroups.length === 0 ?
 		`(\n${candidateExpression}\n)`
 	:
-		`(\n${indent(renderHrefCondition(sharedConditionTerms), 1)} ?\n${candidateExpression}\n\t:\n\t\tundefined\n)`
+		`(\n${indent(renderHrefCondition(sharedConditionGroups), 1)} ?\n${candidateExpression}\n\t:\n\t\tundefined\n)`
 }
 
 const compileEntityPageSelection = (
@@ -13498,7 +13576,7 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 			itemSelectorName,
 			'selector',
 			rowHrefFieldPaths
-		).join(' && ')
+		).map((term) => term.expression).join(' && ')
 	const rowHrefValueExpression = pluralView?.rowHref == null ?
 		undefined
 	:
