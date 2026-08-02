@@ -2443,10 +2443,7 @@ export type _ViewItem<
 			suffix?: string | Exclude<_Expression, string>
 			link?: {
 				href: string
-				params?: {
-					param: string
-					value: _Expression
-				}[]
+				params?: Readonly<Record<string, _Expression>>
 			}
 			when?: _ViewWhen
 		}
@@ -2612,10 +2609,7 @@ type _EntityView<
 			field?: _EntityFieldReference
 			link?: {
 				route: string
-				params?: {
-					param: string
-					value: _Expression
-				}[]
+				params?: Readonly<Record<string, _Expression>>
 			}
 			selection?: _ViewQuery<_EntityFieldReference>
 			layout?: EntityLayout
@@ -3168,10 +3162,7 @@ type _SelectorRouteMapping = {
 			notEquals?: _Literal
 			contains?: _Literal
 		}[]
-		params?: {
-			param: string
-			value: _Expression
-		}[]
+		params?: Readonly<Record<string, _Expression>>
 	}
 	probeCount?: number
 	boundaryLiveOptional?: true
@@ -3193,10 +3184,7 @@ type _SelectorRouteVariant = {
 			notEquals?: _Literal
 			contains?: _Literal
 		}[]
-		params?: {
-			param: string
-			value: _Expression
-		}[]
+		params?: Readonly<Record<string, _Expression>>
 	}
 	boundaryLiveOptional?: true
 	page?: _RoutePage
@@ -53782,18 +53770,15 @@ export const schema = {
 										enumConstantFrom: "$/constants/SpecificationProposal.ts",
 										link: {
 											href: "/proposals/[specificationRealmSlug=specificationRealmSlug]",
-											params: [
-												{
-													param: "specificationRealmSlug",
-													value: {
-														kind: "catalogIndex",
-														from: "$/constants/SpecificationProposal.ts",
-														map: "specificationRealmById",
-														field: "value",
-														property: "slug",
-													},
+											params: {
+												specificationRealmSlug: {
+													kind: "catalogIndex",
+													from: "$/constants/SpecificationProposal.ts",
+													map: "specificationRealmById",
+													field: "value",
+													property: "slug",
 												},
-											],
+											},
 										},
 										when: "open",
 									},
@@ -53804,28 +53789,22 @@ export const schema = {
 										enumConstantFrom: "$/constants/SpecificationProposal.ts",
 										link: {
 											href: "/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]",
-											params: [
-												{
-													param: "specificationRealmSlug",
-													value: {
-														kind: "catalogIndex",
-														from: "$/constants/SpecificationProposal.ts",
-														map: "specificationRealmById",
-														field: "realm",
-														property: "slug",
-													},
+											params: {
+												specificationRealmSlug: {
+													kind: "catalogIndex",
+													from: "$/constants/SpecificationProposal.ts",
+													map: "specificationRealmById",
+													field: "realm",
+													property: "slug",
 												},
-												{
-													param: "proposalKindSlug",
-													value: {
-														kind: "catalogIndex",
-														from: "$/constants/SpecificationProposal.ts",
-														map: "proposalCategoryById",
-														field: "category",
-														property: "slug",
-													},
+												proposalKindSlug: {
+													kind: "catalogIndex",
+													from: "$/constants/SpecificationProposal.ts",
+													map: "proposalCategoryById",
+													field: "category",
+													property: "slug",
 												},
-											],
+											},
 										},
 										when: "open",
 									},
@@ -78689,18 +78668,15 @@ export const routes = defineRoutes(schema)({
 											}
 										},
 										href: {
-											params: [
-												{
-													param: "specificationRealmSlug",
-													value: {
-														kind: "catalogIndex",
-														from: "$/constants/SpecificationProposal.ts",
-														map: "specificationRealmById",
-														field: "realm",
-														property: "slug",
-													},
+											params: {
+												specificationRealmSlug: {
+													kind: "catalogIndex",
+													from: "$/constants/SpecificationProposal.ts",
+													map: "specificationRealmById",
+													field: "realm",
+													property: "slug",
 												},
-											],
+											},
 										},
 										page: {}
 									}
@@ -78739,28 +78715,22 @@ export const routes = defineRoutes(schema)({
 													property: "labelPlural",
 												},
 												href: {
-													params: [
-														{
-															param: "specificationRealmSlug",
-															value: {
-																kind: "catalogIndex",
-																from: "$/constants/SpecificationProposal.ts",
-																map: "specificationRealmById",
-																field: "realm",
-																property: "slug",
-															},
+													params: {
+														specificationRealmSlug: {
+															kind: "catalogIndex",
+															from: "$/constants/SpecificationProposal.ts",
+															map: "specificationRealmById",
+															field: "realm",
+															property: "slug",
 														},
-														{
-															param: "proposalKindSlug",
-															value: {
-																kind: "catalogIndex",
-																from: "$/constants/SpecificationProposal.ts",
-																map: "proposalCategoryById",
-																field: "category",
-																property: "slug",
-															},
+														proposalKindSlug: {
+															kind: "catalogIndex",
+															from: "$/constants/SpecificationProposal.ts",
+															map: "proposalCategoryById",
+															field: "category",
+															property: "slug",
 														},
-													],
+													},
 												},
 												page: {}
 											}
@@ -78793,42 +78763,33 @@ export const routes = defineRoutes(schema)({
 															"number": { raw: "Number(params.proposalRef.slice(params.proposalRef.lastIndexOf('-') + 1))" }
 														},
 														href: {
-															params: [
-																{
-																	param: "specificationRealmSlug",
-																	value: {
-																		kind: "catalogIndex",
-																		from: "$/constants/SpecificationProposal.ts",
-																		map: "specificationRealmById",
-																		field: "realm",
-																		property: "slug",
-																	},
+															params: {
+																specificationRealmSlug: {
+																	kind: "catalogIndex",
+																	from: "$/constants/SpecificationProposal.ts",
+																	map: "specificationRealmById",
+																	field: "realm",
+																	property: "slug",
 																},
-																{
-																	param: "proposalKindSlug",
-																	value: {
+																proposalKindSlug: {
+																	kind: "catalogIndex",
+																	from: "$/constants/SpecificationProposal.ts",
+																	map: "proposalCategoryById",
+																	field: "category",
+																	property: "slug",
+																},
+																proposalRef: routeTemplate([
+																	{
 																		kind: "catalogIndex",
 																		from: "$/constants/SpecificationProposal.ts",
 																		map: "proposalCategoryById",
 																		field: "category",
-																		property: "slug",
+																		property: "label",
 																	},
-																},
-																{
-																	param: "proposalRef",
-																	value: routeTemplate([
-																		{
-																			kind: "catalogIndex",
-																			from: "$/constants/SpecificationProposal.ts",
-																			map: "proposalCategoryById",
-																			field: "category",
-																			property: "label",
-																		},
-																		"-",
-																		routeField("number"),
-																	]),
-																},
-															],
+																	"-",
+																	routeField("number"),
+																]),
+															},
 														},
 														page: {}
 													}
@@ -79322,12 +79283,9 @@ export const routes = defineRoutes(schema)({
 													"type": { kind: "literal", value: "NativeCurrency" }
 												},
 												href: {
-													params: [
-														{
-															param: "coinInstanceSlug",
-															value: { kind: "literal", value: "native" },
-														},
-													],
+													params: {
+														coinInstanceSlug: { kind: "literal", value: "native" },
+													},
 												},
 												page: {}
 											},
@@ -79407,24 +79365,12 @@ export const routes = defineRoutes(schema)({
 																			"$toInstance": routeEvmCoinInstanceSelectorFromParams("toChainId", "toCoinInstanceSlug")
 																		},
 																		href: {
-																params: [
-																	{
-																		param: "fromChainId",
-																		value: routeEvmCoinInstanceNetworkReferenceFromField("$fromInstance"),
-																	},
-																	{
-																		param: "fromCoinInstanceSlug",
-																		value: routeEvmCoinInstanceSlugFromField("$fromInstance"),
-																	},
-																	{
-																		param: "toChainId",
-																		value: routeEvmCoinInstanceNetworkReferenceFromField("$toInstance"),
-																	},
-																				{
-																					param: "toCoinInstanceSlug",
-																					value: routeEvmCoinInstanceSlugFromField("$toInstance"),
-																				},
-																			],
+																params: {
+																	fromChainId: routeEvmCoinInstanceNetworkReferenceFromField("$fromInstance"),
+																	fromCoinInstanceSlug: routeEvmCoinInstanceSlugFromField("$fromInstance"),
+																	toChainId: routeEvmCoinInstanceNetworkReferenceFromField("$toInstance"),
+																	toCoinInstanceSlug: routeEvmCoinInstanceSlugFromField("$toInstance"),
+																},
 																		},
 																		page: {}
 																	}
@@ -79546,12 +79492,12 @@ export const routes = defineRoutes(schema)({
 																							}
 																						},
 																href: {
-																	params: [
-																				{ param: "baseKind", value: routeMarketAssetRouteLabel(routeMarketField("", "$base")) },
-																				{ param: "base", value: routeMarketAssetLabel(routeMarketField("", "$base")) },
-																				{ param: "quoteKind", value: routeMarketAssetRouteLabel(routeMarketField("", "$quote")) },
-																				{ param: "quote", value: routeMarketAssetLabel(routeMarketField("", "$quote")) },
-																	],
+																	params: {
+																		baseKind: routeMarketAssetRouteLabel(routeMarketField("", "$base")),
+																		base: routeMarketAssetLabel(routeMarketField("", "$base")),
+																		quoteKind: routeMarketAssetRouteLabel(routeMarketField("", "$quote")),
+																		quote: routeMarketAssetLabel(routeMarketField("", "$quote")),
+																	},
 																						},
 																						page: {}
 																					}

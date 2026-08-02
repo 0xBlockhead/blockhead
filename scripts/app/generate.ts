@@ -1479,19 +1479,21 @@ const routeParamNames = (path: string) => unique(
 		.filter((param): param is string => param != null)
 )
 
-const renderResolveExpression = (path: string, params: readonly [string, string][] = []) => {
-	if (params.length === 0)
+const renderResolveExpression = (
+	path: string,
+	params: Readonly<Record<string, string>> = {}
+) => {
+	const paramEntries = Object.entries(params)
+	if (paramEntries.length === 0)
 		return `resolve(${emitTypeScript(routeId(path))})`
+	const routeParamOrder = routeParamNames(path)
 
 	return [
 		'resolve(',
 		`\t${emitTypeScript(routeId(path))},`,
-		indent(emitObject(params.toSorted(([leftParam], [rightParam]) => (
-			routeParamNames(path).indexOf(leftParam) - routeParamNames(path).indexOf(rightParam)
-		)).map(([param, value]) => [
-			param,
-			value,
-		]))),
+		indent(emitObject(paramEntries.toSorted(([leftParam], [rightParam]) => (
+			routeParamOrder.indexOf(leftParam) - routeParamOrder.indexOf(rightParam)
+		)))),
 		')',
 	].join('\n')
 }
@@ -3324,10 +3326,10 @@ const compileRouteTree = (
 				...(sourceMapping.href == null ? {} : {
 					href: {
 						...sourceMapping.href,
-						params: (sourceMapping.href.params ?? []).map((param) => ({
-							...param,
-							value: normalizeExpression(`${entityType}.${selectorName}`, param.value),
-						})),
+						params: Object.fromEntries(Object.entries(sourceMapping.href.params ?? {}).map(([param, value]) => [
+							param,
+							normalizeExpression(`${entityType}.${selectorName}`, value),
+						])),
 					},
 				}),
 			}
@@ -3344,7 +3346,7 @@ const compileRouteTree = (
 			for (const param of unique(Object.values(mapping.derivations ?? {}).flatMap(routeParamNamesFromExpression))) {
 				if (routeParamValueTypes.has(param))
 					throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} binds route parameter ${param} more than once`)
-				if ((mapping.href?.params ?? []).some((hrefParam) => hrefParam.param === param))
+				if (Object.hasOwn(mapping.href?.params ?? {}, param))
 					continue
 				const valueTypes = routeParams.toReversed().find((routeParam) => routeParam.name === param)?.valueTypes ?? []
 				if (valueTypes.length === 0)
@@ -3366,7 +3368,7 @@ const compileRouteTree = (
 					]))
 				)
 			))
-			for (const { param } of mapping.href?.params ?? []) {
+			for (const param of Object.keys(mapping.href?.params ?? {})) {
 				if (routeParamValueTypes.has(param) && !derivationRouteParams.some(([derivationParam]) => derivationParam === param))
 					throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} binds route parameter ${param} more than once`)
 				if (routeParamValueTypes.has(param))
@@ -3405,7 +3407,7 @@ const compileRouteTree = (
 					param,
 					compileRouteParamValue(param, value),
 				])),
-				...Object.fromEntries((mapping.href?.params ?? []).map(({ param, value }) => [
+				...Object.fromEntries(Object.entries(mapping.href?.params ?? {}).map(([param, value]) => [
 					param,
 					compileRouteParamValue(param, value),
 				])),
@@ -3941,7 +3943,7 @@ const compileRouteTree = (
 					param,
 					compileRouteParamValue(param, value),
 				])),
-				...Object.fromEntries((node.selectorVariant.href?.params ?? []).map(({ param, value }) => [
+				...Object.fromEntries(Object.entries(node.selectorVariant.href?.params ?? {}).map(([param, value]) => [
 					param,
 					compileRouteParamValue(param, value),
 				])),
@@ -8780,20 +8782,21 @@ const renderValueMarkup = (
 	const fieldExpressionByName = {
 		value: valueExpression,
 	}
+	const link = typeof viewEntry === 'object' && 'link' in viewEntry ? viewEntry.link : undefined
 	const hrefExpression = (
-		typeof viewEntry === 'object' && 'link' in viewEntry && viewEntry.link != null ?
+		link != null ?
 			renderResolveExpression(
-				viewEntry.link.href,
-				(viewEntry.link.params ?? []).map((param) => [
-					param.param,
+				link.href,
+				Object.fromEntries(Object.entries(link.params ?? {}).map(([param, value]) => [
+					param,
 					renderRouteParamExpression(
-						param.value,
+						value,
 						{
 							fields: fieldValuesExpression,
 							fieldExpressionByName,
 						}
 					),
-				])
+				]))
 			)
 		:
 			undefined
@@ -9227,7 +9230,7 @@ const viewItemContextFieldPaths = (viewEntry: _ViewItem): string[][] => (
 	:
 		uniqueFieldPaths([
 			...viewItemDisplayExpressions(viewEntry).flatMap(expressionFieldPaths),
-			...(viewEntry.link?.params ?? []).flatMap((param) => expressionFieldPaths(param.value)),
+			...Object.values(viewEntry.link?.params ?? {}).flatMap(expressionFieldPaths),
 			...viewItemTree(viewItems(viewEntry.valuePrefix)).flatMap(viewItemContextFieldPaths),
 		])
 )
@@ -9335,8 +9338,8 @@ const viewItemImports = (entity: Entity, indexes: GenerationIndexes) => {
 				existing.add(viewEntry.enumConstantMap)
 				expressionImportMap.set(viewEntry.enumConstantFrom, existing)
 			}
-			for (const param of viewEntry.link?.params ?? [])
-				expressionImports(param.value, expressionImportMap)
+			for (const expression of Object.values(viewEntry.link?.params ?? {}))
+				expressionImports(expression, expressionImportMap)
 			for (const expression of viewItemDisplayExpressions(viewEntry))
 				expressionImports(expression, expressionImportMap)
 		}
@@ -12522,9 +12525,9 @@ const renderEntityRouteLinkExpression = (
 		const paramFieldPaths = uniqueFieldPaths(Object.values(entityRouteLink.params).flatMap(({ value }) => (
 			expressionFieldPaths(value)
 		)))
-		const params = Object.entries(entityRouteLink.params).map(([param, routeParamValue]) => ({
+		const params = Object.fromEntries(Object.entries(entityRouteLink.params).map(([param, routeParamValue]) => [
 			param,
-			value: renderRouteParamExpression(
+			renderRouteParamExpression(
 				routeParamValue.value,
 				{
 					fields: fieldsExpression,
@@ -12534,7 +12537,7 @@ const renderEntityRouteLinkExpression = (
 				routeParamValue.decode,
 				true
 			),
-		}))
+		]))
 		const entityConditionTerms = (entityRouteLink.conditions ?? [])
 			.filter((condition) => !entitySelectorConditionIsGuaranteed(indexes, entityType, condition))
 			.flatMap((condition) => [
@@ -12643,7 +12646,7 @@ const renderEntityRouteLinkExpression = (
 	// at the values that actually differ.
 	const candidates = [...Map.groupBy(routeCandidates, (candidate) => JSON.stringify([
 		candidate.path,
-		candidate.params.map(({ param }) => param).toSorted(),
+		Object.keys(candidate.params).toSorted(),
 	])).values()].map((group) => {
 		const first = group[0]
 		if (first == null)
@@ -12698,25 +12701,20 @@ const renderEntityRouteLinkExpression = (
 			)
 		)
 
-		const params = first.params
+		const routeParamOrder = routeParamNames(first.path)
+		const params = Object.fromEntries(Object.keys(first.params)
 			.toSorted((left, right) => (
-				routeParamNames(first.path).indexOf(left.param) - routeParamNames(first.path).indexOf(right.param)
+				routeParamOrder.indexOf(left) - routeParamOrder.indexOf(right)
 			))
-			.map(({ param }) => {
-				const values = group.map((candidate) => {
-					const candidateParam = candidate.params.find((item) => item.param === param)
-					if (candidateParam == null)
-						throw new Error(`${entityType} entity href candidates disagree on route parameters`)
-
-					return candidateParam.value
-				})
+			.map((param) => {
+				const values = group.map((candidate) => candidate.params[param])
 				const fallback = values.at(-1)
 				if (fallback == null)
 					throw new Error(`${entityType} entity href parameter ${param} has no value`)
 
-				return {
+				return [
 					param,
-					value: unique(values).length === 1 ?
+					unique(values).length === 1 ?
 						fallback
 					:
 						renderConditionalExpression(
@@ -12726,8 +12724,8 @@ const renderEntityRouteLinkExpression = (
 							})),
 							fallback
 						),
-				}
-			})
+				]
+			}))
 		return {
 			conditionGroups: group.length === 1 ?
 				first.conditionGroups
@@ -12751,10 +12749,7 @@ const renderEntityRouteLinkExpression = (
 				],
 			hrefExpression: renderResolveExpression(
 				first.path,
-				params.map(({ param, value }): [string, string] => [
-					param,
-					value,
-				])
+				params
 			),
 			specificity: Math.max(...group.map((candidate) => candidate.specificity)),
 		}
@@ -13330,12 +13325,12 @@ const renderCarouselSection = (
 	:
 		renderResolveExpression(
 			section.link.route,
-			(section.link.params ?? []).map((param) => [
-				param.param,
-				renderRouteParamExpression(param.value, {
+			Object.fromEntries(Object.entries(section.link.params ?? {}).map(([param, value]) => [
+				param,
+				renderRouteParamExpression(value, {
 					fields: 'selection.entitySelector',
 				}),
-			])
+			]))
 		)
 	const contentOwnsResourceState = (
 		fieldDefinition.type === EntityFieldType.EntitiesReference
@@ -13948,7 +13943,7 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 	:
 		renderResolveExpression(
 			pluralView.rowHref.route,
-			Object.entries(pluralView.rowHref.params).map(([param, value]) => [
+			Object.fromEntries(Object.entries(pluralView.rowHref.params).map(([param, value]) => [
 				param,
 				renderRouteParamExpression(
 					value,
@@ -13960,7 +13955,7 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 					undefined,
 					true
 				),
-			])
+			]))
 		)
 	const rowHrefExpression = rowHrefValueExpression == null || rowHrefCondition === '' ?
 		rowHrefValueExpression
@@ -15021,7 +15016,7 @@ const generateMultiCollectionPageFile = (
 	)
 	const collectionHrefExpression = renderResolveExpression(
 		routeId(appRoutePath),
-		pageRouteParams.map((param) => [param, `params.${param}`])
+		Object.fromEntries(pageRouteParams.map((param) => [param, `params.${param}`]))
 	)
 	const pageTitle = unique(contexts.map(({ collection }) => (
 		collection.page?.text?.title ?? collection.page?.text?.label ?? ''
@@ -15803,7 +15798,7 @@ const renderEntityPageMarkup = (
 			renderSvelteAttribute(
 				2,
 				'href',
-				renderResolveExpression(currentRouteId, routeParamNames(currentRouteId).map((param) => [param, `params.${param}`]))
+				renderResolveExpression(currentRouteId, Object.fromEntries(routeParamNames(currentRouteId).map((param) => [param, `params.${param}`])))
 			),
 				]
 		),
@@ -15833,7 +15828,7 @@ const renderCollectionPageMarkup = (
 	hideWhenEmpty = false,
 	inlineSelectionExpression?: string,
 	conditionExpression?: string,
-	hrefExpression = renderResolveExpression(href, routeParamNames(href).map((param) => [param, `params.${param}`]))
+	hrefExpression = renderResolveExpression(href, Object.fromEntries(routeParamNames(href).map((param) => [param, `params.${param}`])))
 ) => {
 	if (collectionComponent == null)
 		return []
@@ -15933,7 +15928,7 @@ const generateLayoutFile = (routePath: string, routeFile: RouteFile) => {
 		const hrefParamNames = routeParamNames(routeFile.detailLayout.href)
 		const entityHrefExpression = renderResolveExpression(
 			routeFile.detailLayout.href,
-			hrefParamNames.map((param) => [param, `params.${param}`])
+			Object.fromEntries(hrefParamNames.map((param) => [param, `params.${param}`]))
 		)
 		const keyExpression = (
 			hrefParamNames.length === 0 ?
@@ -16031,7 +16026,7 @@ const generateLayoutFile = (routePath: string, routeFile: RouteFile) => {
 	const hrefExpression = href == null ?
 		undefined
 	:
-		renderResolveExpression(href, hrefParams.map((param) => [param, `params.${param}`]))
+		renderResolveExpression(href, Object.fromEntries(hrefParams.map((param) => [param, `params.${param}`])))
 	const usesParams = hrefParams.length > 0
 
 	return svelteFile(

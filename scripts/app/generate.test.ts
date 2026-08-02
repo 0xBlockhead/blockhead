@@ -5199,14 +5199,22 @@ test('retains only rendered detail layout facts', () => {
 })
 
 test('retains one keyed route parameter representation through href compilation', () => {
+	const appSource = readFileSync(path.join(root, 'APP.ts'), 'utf8')
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
 
+	assert.doesNotMatch(appSource, /params\?: \{\n\s+param: string\n\s+value: _Expression/)
+	assert.doesNotMatch(appSource, /params:\s*\[\s*\{\s*param:/)
 	assert.match(generatorSource, /type RouteParamValues = Readonly<Record<string, \{\n\tvalue: _Expression\n\tdecode\?: _ExpressionDecode\n\}>>/)
 	assert.match(generatorSource, /type RouteLink = \{\n\tpath: string\n\tparams: RouteParamValues\n\}/)
 	assert.match(generatorSource, /routeParamAlternatives: readonly RouteParamValues\[\]/)
 	assert.match(generatorSource, /routeParamAlternatives: normalizedMapping\.routeParamAlternatives/)
 	assert.match(generatorSource, /Object\.hasOwn\(routeParams, name\)/)
-	assert.doesNotMatch(generatorSource, /routeParamAlternativesWithDecodes|alternative\.map\(\(\{ param, value \}\)|routeParams\.some\(\(\{ param \}\)/)
+	assert.match(generatorSource, /params: Readonly<Record<string, string>> = \{\}/)
+	assert.doesNotMatch(
+		generatorSource,
+		/routeParamAlternativesWithDecodes|alternative\.map\(\(\{ param, value \}\)|routeParams\.some\(\(\{ param \}\)|candidate\.params\.find|params\.map\(\(\{ param, value \}\): \[string, string\]/
+	)
+	assert.doesNotMatch(generatorSource, /const renderResolveExpression = \(path: string, params: readonly \[string, string\]\[\]/)
 })
 
 test('rejects undeclared regular and selector-variant route parameters upstream', () => {
