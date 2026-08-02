@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.CardanoKoios,
 	label: 'Cardano Koios',
-	sources: [
-		{
-			source: Source.CardanoKoios_Rest,
+	sources: {
+		[Source.CardanoKoios_Rest]: {
 			label: 'Cardano Koios REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

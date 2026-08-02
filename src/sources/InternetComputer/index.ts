@@ -8,27 +8,22 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.InternetComputer,
 	label: 'Internet Computer',
-	sources: [
-		{
-			source: Source.IcDashboard_Canister,
+	sources: {
+		[Source.IcDashboard_Canister]: {
 			label: 'IC dashboard canister',
 		},
-		{
-			source: Source.InternetComputer_Canister,
+		[Source.InternetComputer_Canister]: {
 			label: 'Internet Computer canister',
 		},
-		{
-			source: Source.InternetComputer_Http,
+		[Source.InternetComputer_Http]: {
 			label: 'Internet Computer HTTP gateway',
 		},
-		{
-			source: Source.InternetComputer_RosettaApi,
+		[Source.InternetComputer_RosettaApi]: {
 			label: 'Internet Computer Rosetta API',
 		},
-		{
-			source: Source.InternetComputer_WalletApi,
+		[Source.InternetComputer_WalletApi]: {
 			label: 'Internet Computer wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

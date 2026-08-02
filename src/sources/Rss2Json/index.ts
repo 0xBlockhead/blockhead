@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Rss2Json,
 	label: 'RSS2JSON',
-	sources: [
-		{
-			source: Source.Rss2Json_Rest,
+	sources: {
+		[Source.Rss2Json_Rest]: {
 			label: 'RSS2JSON API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Coinpaprika,
 	label: 'Coinpaprika',
-	sources: [
-		{
-			source: Source.Coinpaprika_Rest,
+	sources: {
+		[Source.Coinpaprika_Rest]: {
 			label: 'Coinpaprika REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

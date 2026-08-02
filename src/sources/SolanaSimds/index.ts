@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.SolanaSimds,
 	label: 'Solana SIMDs',
-	sources: [
-		{
-			source: Source.SolanaSimds_Github,
+	sources: {
+		[Source.SolanaSimds_Github]: {
 			label: 'Solana SIMDs GitHub',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

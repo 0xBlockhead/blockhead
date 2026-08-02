@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Freighter,
 	label: 'Freighter',
-	sources: [
-		{
-			source: Source.Freighter_WalletApi,
+	sources: {
+		[Source.Freighter_WalletApi]: {
 			label: 'Freighter wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

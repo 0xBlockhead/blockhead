@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.LightningLnd,
 	label: 'LND',
-	sources: [
-		{
-			source: Source.LightningLnd_Rest,
+	sources: {
+		[Source.LightningLnd_Rest]: {
 			label: 'LND REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

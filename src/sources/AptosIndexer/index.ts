@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.AptosIndexer,
 	label: 'Aptos Indexer',
-	sources: [
-		{
-			source: Source.AptosIndexer_Graphql,
+	sources: {
+		[Source.AptosIndexer_Graphql]: {
 			label: 'Aptos Indexer GraphQL',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

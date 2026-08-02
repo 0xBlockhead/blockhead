@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.LogosBlockchainNode,
 	label: 'Logos blockchain node',
-	sources: [
-		{
-			source: Source.LogosBlockchainNode_Rest,
+	sources: {
+		[Source.LogosBlockchainNode_Rest]: {
 			label: 'Logos blockchain node REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

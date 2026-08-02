@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Eas,
 	label: 'Ethereum Attestation Service',
-	sources: [
-		{
-			source: Source.EasContracts_Evm,
+	sources: {
+		[Source.EasContracts_Evm]: {
 			label: 'EAS contract catalog',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

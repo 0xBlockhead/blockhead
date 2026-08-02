@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Forgejo,
 	label: 'Forgejo',
-	sources: [
-		{
-			source: Source.Forgejo_Rest,
+	sources: {
+		[Source.Forgejo_Rest]: {
 			label: 'Forgejo REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

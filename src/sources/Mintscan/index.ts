@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Mintscan,
 	label: 'Mintscan',
-	sources: [
-		{
-			source: Source.Mintscan,
+	sources: {
+		[Source.Mintscan]: {
 			label: 'Mintscan',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

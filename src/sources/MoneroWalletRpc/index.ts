@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.MoneroWalletRpc,
 	label: 'Monero wallet RPC',
-	sources: [
-		{
-			source: Source.MoneroWalletRpc_JsonRpc,
+	sources: {
+		[Source.MoneroWalletRpc_JsonRpc]: {
 			label: 'Monero wallet JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

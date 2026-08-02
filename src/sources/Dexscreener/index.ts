@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Dexscreener,
 	label: 'Dexscreener',
-	sources: [
-		{
-			source: Source.Dexscreener_Rest,
+	sources: {
+		[Source.Dexscreener_Rest]: {
 			label: 'Dexscreener REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

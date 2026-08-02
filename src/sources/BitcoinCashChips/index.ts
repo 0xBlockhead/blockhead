@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.BitcoinCashChips,
 	label: 'Bitcoin Cash CHIPs',
-	sources: [
-		{
-			source: Source.BitcoinCashChips_Gitlab,
+	sources: {
+		[Source.BitcoinCashChips_Gitlab]: {
 			label: 'Bitcoin Cash CHIPs GitLab',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

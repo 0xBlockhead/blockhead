@@ -8,11 +8,10 @@ import bindings from '$/sources/Spdx/bindings.ts'
 export default {
 	provider: SourceProvider.Spdx,
 	label: 'SPDX',
-	sources: [
-		{
-			source: Source.SpdxDocument_Local,
+	sources: {
+		[Source.SpdxDocument_Local]: {
 			label: 'SPDX document',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

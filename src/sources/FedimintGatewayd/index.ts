@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.FedimintGatewayd,
 	label: 'Fedimint gatewayd',
-	sources: [
-		{
-			source: Source.FedimintGatewayd_Rest,
+	sources: {
+		[Source.FedimintGatewayd_Rest]: {
 			label: 'Fedimint gatewayd REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

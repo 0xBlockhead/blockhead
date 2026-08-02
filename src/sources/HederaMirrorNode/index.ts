@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.HederaMirrorNode,
 	label: 'Hedera mirror node',
-	sources: [
-		{
-			source: Source.HederaMirrorNode_Rest,
+	sources: {
+		[Source.HederaMirrorNode_Rest]: {
 			label: 'Hedera mirror node REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

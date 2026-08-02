@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.BitcoinBips,
 	label: 'Bitcoin BIPs',
-	sources: [
-		{
-			source: Source.BitcoinBips_Github,
+	sources: {
+		[Source.BitcoinBips_Github]: {
 			label: 'Bitcoin BIPs GitHub',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

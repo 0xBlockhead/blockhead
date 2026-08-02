@@ -8,11 +8,10 @@ import bindings from '$/sources/Swarm/bindings.ts'
 export default {
 	provider: SourceProvider.Swarm,
 	label: 'Swarm',
-	sources: [
-		{
-			source: Source.Swarm_Rest,
+	sources: {
+		[Source.Swarm_Rest]: {
 			label: 'Swarm Gateway',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

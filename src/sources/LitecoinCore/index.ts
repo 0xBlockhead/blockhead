@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.LitecoinCore,
 	label: 'Litecoin Core',
-	sources: [
-		{
-			source: Source.LitecoinCore_JsonRpc,
+	sources: {
+		[Source.LitecoinCore_JsonRpc]: {
 			label: 'Litecoin Core JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

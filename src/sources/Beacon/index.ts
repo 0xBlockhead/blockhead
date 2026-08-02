@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Beacon,
 	label: 'Beacon',
-	sources: [
-		{
-			source: Source.Beacon_Rest,
+	sources: {
+		[Source.Beacon_Rest]: {
 			label: 'Beacon (consensus) REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

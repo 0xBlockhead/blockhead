@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Cohere,
 	label: 'Cohere',
-	sources: [
-		{
-			source: Source.Cohere_Rest,
+	sources: {
+		[Source.Cohere_Rest]: {
 			label: 'Cohere REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

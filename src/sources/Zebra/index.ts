@@ -8,11 +8,10 @@ import bindings from '$/sources/Zebra/bindings.ts'
 export default {
 	provider: SourceProvider.Zebra,
 	label: 'Zebra',
-	sources: [
-		{
-			source: Source.Zebra_JsonRpc,
+	sources: {
+		[Source.Zebra_JsonRpc]: {
 			label: 'Zebra JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import bindings from '$/sources/Sourcify/bindings.ts'
 export default {
 	provider: SourceProvider.Sourcify,
 	label: 'Sourcify',
-	sources: [
-		{
-			source: Source.Sourcify_Rest,
+	sources: {
+		[Source.Sourcify_Rest]: {
 			label: 'Sourcify REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

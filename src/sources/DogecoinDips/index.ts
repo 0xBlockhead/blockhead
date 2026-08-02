@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.DogecoinDips,
 	label: 'Dogecoin DIPs',
-	sources: [
-		{
-			source: Source.DogecoinDips_Github,
+	sources: {
+		[Source.DogecoinDips_Github]: {
 			label: 'Dogecoin DIPs GitHub',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

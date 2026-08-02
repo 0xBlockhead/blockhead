@@ -8,15 +8,13 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Caips,
 	label: 'CAIPs',
-	sources: [
-		{
-			source: Source.Caips_Github,
+	sources: {
+		[Source.Caips_Github]: {
 			label: 'CAIPs GitHub',
 		},
-		{
-			source: Source.CaipNamespaces_Github,
+		[Source.CaipNamespaces_Github]: {
 			label: 'CAIP namespaces GitHub',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

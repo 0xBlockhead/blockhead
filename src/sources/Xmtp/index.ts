@@ -8,15 +8,13 @@ import bindings from '$/sources/Xmtp/bindings.ts'
 export default {
 	provider: SourceProvider.Xmtp,
 	label: 'XMTP',
-	sources: [
-		{
-			source: Source.Xmtp_BrowserSdk,
+	sources: {
+		[Source.Xmtp_BrowserSdk]: {
 			label: 'XMTP browser SDK',
 		},
-		{
-			source: Source.Xmtp_NodeSdk,
+		[Source.Xmtp_NodeSdk]: {
 			label: 'XMTP Node SDK',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

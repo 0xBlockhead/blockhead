@@ -8,15 +8,13 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Git,
 	label: 'Git',
-	sources: [
-		{
-			source: Source.Git_Local,
+	sources: {
+		[Source.Git_Local]: {
 			label: 'Local Git repository',
 		},
-		{
-			source: Source.Git_Remote,
+		[Source.Git_Remote]: {
 			label: 'Remote Git repository',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import bindings from '$/sources/StellarHorizon/bindings.ts'
 export default {
 	provider: SourceProvider.StellarHorizon,
 	label: 'Stellar Horizon',
-	sources: [
-		{
-			source: Source.StellarHorizon_Rest,
+	sources: {
+		[Source.StellarHorizon_Rest]: {
 			label: 'Stellar Horizon REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

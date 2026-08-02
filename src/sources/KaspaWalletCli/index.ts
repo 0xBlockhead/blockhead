@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.KaspaWalletCli,
 	label: 'Kaspa wallet CLI',
-	sources: [
-		{
-			source: Source.KaspaWalletCli_WalletApi,
+	sources: {
+		[Source.KaspaWalletCli_WalletApi]: {
 			label: 'Kaspa wallet CLI API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

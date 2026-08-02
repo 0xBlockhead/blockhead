@@ -8,11 +8,10 @@ import bindings from '$/sources/Sui/bindings.ts'
 export default {
 	provider: SourceProvider.Sui,
 	label: 'Sui',
-	sources: [
-		{
-			source: Source.Sui,
+	sources: {
+		[Source.Sui]: {
 			label: 'Sui',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

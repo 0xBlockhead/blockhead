@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.NearBlocks,
 	label: 'NearBlocks',
-	sources: [
-		{
-			source: Source.NearBlocks_Rest,
+	sources: {
+		[Source.NearBlocks_Rest]: {
 			label: 'NearBlocks REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

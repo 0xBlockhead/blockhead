@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Primal,
 	label: 'Primal',
-	sources: [
-		{
-			source: Source.Primal_Rest,
+	sources: {
+		[Source.Primal_Rest]: {
 			label: 'Primal REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

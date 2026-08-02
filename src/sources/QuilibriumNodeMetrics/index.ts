@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.QuilibriumNodeMetrics,
 	label: 'Quilibrium node metrics',
-	sources: [
-		{
-			source: Source.QuilibriumNodeMetrics_Prometheus,
+	sources: {
+		[Source.QuilibriumNodeMetrics_Prometheus]: {
 			label: 'Quilibrium node Prometheus',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

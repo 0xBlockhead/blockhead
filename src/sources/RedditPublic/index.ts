@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.RedditPublic,
 	label: 'Reddit public JSON',
-	sources: [
-		{
-			source: Source.Reddit_PublicJson,
+	sources: {
+		[Source.Reddit_PublicJson]: {
 			label: 'Reddit public JSON',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

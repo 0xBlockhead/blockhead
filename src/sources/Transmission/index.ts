@@ -8,11 +8,10 @@ import bindings from '$/sources/Transmission/bindings.ts'
 export default {
 	provider: SourceProvider.Transmission,
 	label: 'Transmission',
-	sources: [
-		{
-			source: Source.TransmissionRpc_JsonRpc,
+	sources: {
+		[Source.TransmissionRpc_JsonRpc]: {
 			label: 'Transmission RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

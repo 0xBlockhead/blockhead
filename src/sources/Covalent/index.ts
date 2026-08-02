@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Covalent,
 	label: 'Covalent',
-	sources: [
-		{
-			source: Source.GoldRushFoundational_Rest,
+	sources: {
+		[Source.GoldRushFoundational_Rest]: {
 			label: 'GoldRush Foundational API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.EnsMetadataService,
 	label: 'ENS metadata service',
-	sources: [
-		{
-			source: Source.EnsMetadataService,
+	sources: {
+		[Source.EnsMetadataService]: {
 			label: 'ENS metadata service',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

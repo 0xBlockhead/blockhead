@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.AvalancheInfo,
 	label: 'Avalanche Info API',
-	sources: [
-		{
-			source: Source.AvalancheInfo_JsonRpc,
+	sources: {
+		[Source.AvalancheInfo_JsonRpc]: {
 			label: 'Avalanche Info JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

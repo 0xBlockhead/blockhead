@@ -267,18 +267,20 @@ describe('source applicability planning contract', () => {
 				{
 					provider: 'Included',
 					label: 'Included',
-					sources: [{
-						source: 'Included',
-						label: 'Included',
-					}],
+					sources: {
+						'Included': {
+							label: 'Included',
+						},
+					},
 				},
 				{
 					provider: 'Excluded',
 					label: 'Excluded',
-					sources: [{
-						source: 'Excluded',
-						label: 'Excluded',
-					}],
+					sources: {
+						'Excluded': {
+							label: 'Excluded',
+						},
+					},
 				},
 			],
 		})({
@@ -420,10 +422,11 @@ describe('source applicability planning contract', () => {
 			sourceProviders: [{
 				provider: 'Restricted',
 				label: 'Restricted',
-				sources: [{
-					source: 'Restricted',
-					label: 'Restricted',
-				}],
+				sources: {
+					'Restricted': {
+						label: 'Restricted',
+					},
+				},
 			}],
 		})({
 			resolvers: [{

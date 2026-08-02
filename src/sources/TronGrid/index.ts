@@ -8,11 +8,10 @@ import bindings from '$/sources/TronGrid/bindings.ts'
 export default {
 	provider: SourceProvider.TronGrid,
 	label: 'TronGrid',
-	sources: [
-		{
-			source: Source.TronGrid_Rest,
+	sources: {
+		[Source.TronGrid_Rest]: {
 			label: 'TronGrid REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

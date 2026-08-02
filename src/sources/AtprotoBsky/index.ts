@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.AtprotoBsky,
 	label: 'ATProto (Bsky public appview)',
-	sources: [
-		{
-			source: Source.Atproto_Xrpc,
+	sources: {
+		[Source.Atproto_Xrpc]: {
 			label: 'ATProto XRPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

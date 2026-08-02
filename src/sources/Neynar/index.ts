@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Neynar,
 	label: 'Neynar',
-	sources: [
-		{
-			source: Source.Neynar_Rest,
+	sources: {
+		[Source.Neynar_Rest]: {
 			label: 'Neynar REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

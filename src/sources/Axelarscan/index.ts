@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Axelarscan,
 	label: 'Axelarscan',
-	sources: [
-		{
-			source: Source.Axelarscan_Rest,
+	sources: {
+		[Source.Axelarscan_Rest]: {
 			label: 'Axelarscan REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

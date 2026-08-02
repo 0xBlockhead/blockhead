@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Farcaster,
 	label: 'Farcaster',
-	sources: [
-		{
-			source: Source.Farcaster_Rest,
+	sources: {
+		[Source.Farcaster_Rest]: {
 			label: 'Farcaster REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

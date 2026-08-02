@@ -8,11 +8,10 @@ import bindings from '$/sources/XrpScan/bindings.ts'
 export default {
 	provider: SourceProvider.XrpScan,
 	label: 'XRPScan',
-	sources: [
-		{
-			source: Source.XrpScan_Rest,
+	sources: {
+		[Source.XrpScan_Rest]: {
 			label: 'XRPScan REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

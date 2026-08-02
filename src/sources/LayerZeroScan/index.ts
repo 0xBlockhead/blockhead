@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.LayerZeroScan,
 	label: 'LayerZero Scan',
-	sources: [
-		{
-			source: Source.LayerZeroScan_Rest,
+	sources: {
+		[Source.LayerZeroScan_Rest]: {
 			label: 'LayerZero Scan REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

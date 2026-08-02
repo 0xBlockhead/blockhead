@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Kabila,
 	label: 'Kabila',
-	sources: [
-		{
-			source: Source.Kabila_WalletConnect,
+	sources: {
+		[Source.Kabila_WalletConnect]: {
 			label: 'Kabila WalletConnect',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

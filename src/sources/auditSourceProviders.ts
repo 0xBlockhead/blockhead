@@ -5,7 +5,7 @@ export const auditSourceProviders = (
 	sourceProviders: readonly SourceProviderDefinition[]
 ) => {
 	const sourceRows = new Set(
-		sourceProviders.flatMap((provider) => provider.sources.map((source) => source.source))
+		sourceProviders.flatMap((provider) => Object.keys(provider.sources))
 	)
 	const bindingSources = new Set(
 		sourceProviders.flatMap((provider) => Object.values(provider.bindings).flatMap((bindings) => bindings ?? []).map((binding) => binding.source))
@@ -20,7 +20,7 @@ export const auditSourceProviders = (
 		sourcesWithoutBindings: sourceEnumMembers.filter((source) => !bindingSources.has(source)),
 		bindingSourcesWithoutRows: [...bindingSources].filter((source) => !sourceRows.has(source)),
 		bindingsOutsideProviderRows: sourceProviders.flatMap((provider) => {
-			const providerSourceRows = new Set(provider.sources.map((source) => source.source))
+			const providerSourceRows = new Set(Object.keys(provider.sources))
 			return Object.values(provider.bindings).flatMap((bindings) => bindings ?? [])
 				.filter((binding) => !providerSourceRows.has(binding.source))
 				.map((binding) => `${provider.provider}:${binding.source}`)

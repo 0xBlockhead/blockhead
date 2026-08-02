@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.CardanoCip30,
 	label: 'Cardano CIP-30',
-	sources: [
-		{
-			source: Source.CardanoCip30_WalletApi,
+	sources: {
+		[Source.CardanoCip30_WalletApi]: {
 			label: 'Cardano CIP-30 wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

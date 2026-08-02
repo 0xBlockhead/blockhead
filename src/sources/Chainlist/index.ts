@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Chainlist,
 	label: 'Chainlist',
-	sources: [
-		{
-			source: Source.Chainlist_Rest,
+	sources: {
+		[Source.Chainlist_Rest]: {
 			label: 'Chainlist REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

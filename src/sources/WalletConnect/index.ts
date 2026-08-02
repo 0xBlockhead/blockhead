@@ -8,11 +8,10 @@ import bindings from '$/sources/WalletConnect/bindings.ts'
 export default {
 	provider: SourceProvider.WalletConnect,
 	label: 'WalletConnect',
-	sources: [
-		{
-			source: Source.WalletConnect_SignClient,
+	sources: {
+		[Source.WalletConnect_SignClient]: {
 			label: 'WalletConnect sign client',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

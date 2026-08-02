@@ -8,11 +8,10 @@ import bindings from '$/sources/StoicWallet/bindings.ts'
 export default {
 	provider: SourceProvider.StoicWallet,
 	label: 'Stoic Wallet',
-	sources: [
-		{
-			source: Source.StoicWallet_WalletApi,
+	sources: {
+		[Source.StoicWallet_WalletApi]: {
 			label: 'Stoic Wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

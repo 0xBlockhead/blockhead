@@ -1,5 +1,5 @@
 import sourceProviders, { sourceBindings as allSourceBindings } from '$/sources/$sourceProviders.ts'
-import { enabledSourcesFromBindings, indexSourceProviders, type SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { enabledSourcesFromBindings, indexSourceProviders } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceCredentialScope, SourceDelivery, SourceTargetKind } from '$/sources/SourceBinding.ts'
 import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
@@ -9,8 +9,6 @@ export {
 	Source,
 	sourceProviders,
 }
-
-export type SourceDefinition = SourceDefinitionTemplate<Source>
 
 export type { SourcePublicEnv } from '$/sources/$sources.ts'
 
@@ -37,8 +35,6 @@ export const sourceBindings = allSourceBindings
 			))
 		)
 	))
-
-export const sources = sourceProviders.flatMap((provider): readonly SourceDefinition[] => provider.sources)
 
 export const enabledSources = enabledSourcesFromBindings<Source>(sourceBindings)
 

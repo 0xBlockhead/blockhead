@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.BitcoinCashNode,
 	label: 'Bitcoin Cash Node',
-	sources: [
-		{
-			source: Source.BitcoinCashNode_JsonRpc,
+	sources: {
+		[Source.BitcoinCashNode_JsonRpc]: {
 			label: 'Bitcoin Cash Node JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

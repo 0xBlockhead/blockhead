@@ -8,19 +8,16 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.KaspaNode,
 	label: 'Kaspa node',
-	sources: [
-		{
-			source: Source.KaspaNode_Grpc,
+	sources: {
+		[Source.KaspaNode_Grpc]: {
 			label: 'Kaspa node gRPC',
 		},
-		{
-			source: Source.KaspaNode_Rest,
+		[Source.KaspaNode_Rest]: {
 			label: 'Kaspa node REST',
 		},
-		{
-			source: Source.KaspaNode_Wrpc,
+		[Source.KaspaNode_Wrpc]: {
 			label: 'Kaspa node wRPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.EthereumLists,
 	label: 'ethereum-lists (chainid.network)',
-	sources: [
-		{
-			source: Source.EthereumLists_Rest,
+	sources: {
+		[Source.EthereumLists_Rest]: {
 			label: 'ethereum-lists REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

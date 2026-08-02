@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.EthereumSpecs,
 	label: 'Ethereum specs',
-	sources: [
-		{
-			source: Source.EthereumSpecs_Github,
+	sources: {
+		[Source.EthereumSpecs_Github]: {
 			label: 'Ethereum specs GitHub',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

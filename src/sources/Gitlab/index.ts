@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Gitlab,
 	label: 'GitLab',
-	sources: [
-		{
-			source: Source.Gitlab_Rest,
+	sources: {
+		[Source.Gitlab_Rest]: {
 			label: 'GitLab REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

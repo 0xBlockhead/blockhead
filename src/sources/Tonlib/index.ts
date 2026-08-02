@@ -8,11 +8,10 @@ import bindings from '$/sources/Tonlib/bindings.ts'
 export default {
 	provider: SourceProvider.Tonlib,
 	label: 'tonlib',
-	sources: [
-		{
-			source: Source.Tonlib_JsonRpc,
+	sources: {
+		[Source.Tonlib_JsonRpc]: {
 			label: 'tonlib JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

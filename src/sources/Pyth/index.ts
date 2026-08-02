@@ -8,23 +8,19 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Pyth,
 	label: 'Pyth',
-	sources: [
-		{
-			source: Source.Pyth_EvmContract,
+	sources: {
+		[Source.Pyth_EvmContract]: {
 			label: 'Pyth EVM contract catalog',
 		},
-		{
-			source: Source.Pyth_SolanaProgram,
+		[Source.Pyth_SolanaProgram]: {
 			label: 'Pyth Solana program catalog',
 		},
-		{
-			source: Source.PythHermes_Rest,
+		[Source.PythHermes_Rest]: {
 			label: 'Pyth Hermes REST',
 		},
-		{
-			source: Source.PythBenchmarks_Rest,
+		[Source.PythBenchmarks_Rest]: {
 			label: 'Pyth benchmarks REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

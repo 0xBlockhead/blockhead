@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Mlflow,
 	label: 'MLflow',
-	sources: [
-		{
-			source: Source.Mlflow_Rest,
+	sources: {
+		[Source.Mlflow_Rest]: {
 			label: 'MLflow REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

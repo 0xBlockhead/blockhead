@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Avail,
 	label: 'Avail',
-	sources: [
-		{
-			source: Source.Avail,
+	sources: {
+		[Source.Avail]: {
 			label: 'Avail',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

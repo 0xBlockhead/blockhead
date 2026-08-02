@@ -8,11 +8,10 @@ import bindings from '$/sources/TonCenter/bindings.ts'
 export default {
 	provider: SourceProvider.TonCenter,
 	label: 'TON Center',
-	sources: [
-		{
-			source: Source.TonCenter,
+	sources: {
+		[Source.TonCenter]: {
 			label: 'TON Center',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

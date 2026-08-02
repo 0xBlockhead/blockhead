@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.BitcoinCashBcmr,
 	label: 'Bitcoin Cash Metadata Registries',
-	sources: [
-		{
-			source: Source.BitcoinCashBcmr_Github,
+	sources: {
+		[Source.BitcoinCashBcmr_Github]: {
 			label: 'Bitcoin Cash BCMR GitHub',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

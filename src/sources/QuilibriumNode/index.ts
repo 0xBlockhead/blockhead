@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.QuilibriumNode,
 	label: 'Quilibrium node',
-	sources: [
-		{
-			source: Source.QuilibriumNode_Grpc,
+	sources: {
+		[Source.QuilibriumNode_Grpc]: {
 			label: 'Quilibrium node gRPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

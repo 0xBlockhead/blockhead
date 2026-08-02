@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.CardanoNode,
 	label: 'Cardano node',
-	sources: [
-		{
-			source: Source.CardanoNode_LocalStateQuery,
+	sources: {
+		[Source.CardanoNode_LocalStateQuery]: {
 			label: 'Cardano node local-state query',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

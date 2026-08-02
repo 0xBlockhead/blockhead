@@ -3151,6 +3151,38 @@ test('keeps ordered generated provider bindings semantically equal to APP', () =
 	assert.deepEqual(sourceBindings, flattenedProviderBindings)
 	for (const [bindingIndex, binding] of sourceBindings.entries())
 		assert.equal(binding, flattenedProviderBindings[bindingIndex])
+	for (const { sources, bindings } of sourceProviders)
+		assert.deepEqual(Object.keys(sources), Object.keys(bindings))
+
+	assert.deepEqual(
+		sourceProviders.map(({ provider, sources }) => ({
+			provider,
+			sources: Object.entries(sources).map(([source, definition]) => ({
+				source,
+				label: definition.label,
+				...(definition.env == null ? {} : {
+					env: definition.env.json,
+				}),
+			})),
+		})),
+		app.sources.providers.map(({ provider }) => ({
+			provider,
+			sources: app.sources.sources
+				.filter((source) => source.provider === provider)
+				.map((source) => ({
+					source: source.source,
+					label: source.label,
+					...(source.env == null ? {} : {
+						env: arktype(source.env.keys.length === 0 ? {
+							'[string]': 'string',
+						} : Object.fromEntries(source.env.keys.map(({ name, type }) => [
+							name,
+							type,
+						]))).json,
+					}),
+				})),
+		}))
+	)
 
 	assert.deepEqual(
 		sourceProviders.map(({ provider, bindings }) => ({
@@ -3278,23 +3310,25 @@ test('keeps source binding compatibility in the compiler instead of re-encoding 
 		baselineCompiledApp.generatedFiles.some(({ path }) => path === 'src/sources/officialArtifacts.ts'),
 		false
 	)
+	let generatedSourceMetadataCount = 0
 	for (const generatedProvider of baselineCompiledApp.generatedFiles.filter(({ path }) => (
 		/^src\/sources\/[^/]+\/index\.ts$/.test(path)
 	))) {
 		const source = renderGeneratedFile(generatedProvider)
-		if (source.includes("from '$/sources/") && source.includes('/bindings.ts\''))
-			assert.match(source, /bindings: Object\.values\(bindings\)\.flat\(\)/, generatedProvider.path)
-		else
-			assert.match(source, /bindings: \[\]/, generatedProvider.path)
+		assert.match(source, /\tsources: \{/, generatedProvider.path)
+		assert.match(source, /\tbindings,/, generatedProvider.path)
+		assert.doesNotMatch(source, /\bsource: Source\./, generatedProvider.path)
+		generatedSourceMetadataCount += (source.match(/^\t\t\[Source\./gm) ?? []).length
 		assert.doesNotMatch(source, /bindings\[Source\./, generatedProvider.path)
 		assert.equal((source.match(/\bprovider:/g) ?? []).length, 1, generatedProvider.path)
 	}
+	assert.equal(generatedSourceMetadataCount, app.sources.sources.length)
 	const etherscanProvider = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/sources/Etherscan/index.ts')
 	const voltaireProvider = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/sources/Voltaire/index.ts')
 	const sourceProviders = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/sources/$sourceProviders.ts')
 	assert.ok(etherscanProvider && voltaireProvider && sourceProviders)
-	assert.match(renderGeneratedFile(etherscanProvider), /bindings: Object\.values\(bindings\)\.flat\(\)/)
-	assert.match(renderGeneratedFile(voltaireProvider), /bindings: Object\.values\(bindings\)\.flat\(\)/)
+	assert.match(renderGeneratedFile(etherscanProvider), /\[Source\.Etherscan_Rest\]: \{[\s\S]*?\tbindings,/)
+	assert.match(renderGeneratedFile(voltaireProvider), /\[Source\.Voltaire_JsonRpc\]: \{[\s\S]*?\tbindings,/)
 	assert.match(renderGeneratedFile(sourceProviders), /from '\.\/Etherscan\/index\.ts'/)
 	assert.match(renderGeneratedFile(sourceProviders), /from '\.\/Voltaire\/index\.ts'/)
 	for (const path of [
@@ -5872,6 +5906,7 @@ test('correlates generated source, binding, and resolver selector keys at defini
 import sourceServerCredentials from '${root}/src/sources/$sourceServerCredentials.server.ts'
 import acrossBindings from '${root}/src/sources/Across/bindings.ts'
 import atprotoSyncBindings from '${root}/src/sources/AtprotoSync/bindings.ts'
+import arweaveBindings from '${root}/src/sources/Arweave/bindings.ts'
 import blockscoutBindings from '${root}/src/sources/Blockscout/bindings.ts'
 import getBlockBindings from '${root}/src/sources/GetBlock/bindings.ts'
 import lightningLndBindings from '${root}/src/sources/LightningLnd/bindings.ts'
@@ -5965,27 +6000,66 @@ const voyagerBinding = voyagerBindings[Source.Voyager]
 const mismatchedVoyagerProvider = {
 	provider: SourceProvider.Voyager,
 	label: 'Voyager',
-	sources: [
-		{
-			// @ts-expect-error Provider source metadata must belong to its exact binding index.
-			source: Source.Wormholescan,
+	sources: {
+		// @ts-expect-error Provider source metadata keys must belong to its exact binding index.
+		[Source.Wormholescan]: {
 			label: 'Wormholescan',
 		},
-	],
+	},
 	bindings: voyagerBindings,
 } satisfies SourceProviderDefinition<typeof voyagerBindings>
 const missingVoyagerBindings = {
 	provider: SourceProvider.Voyager,
 	label: 'Voyager',
-	sources: [
-		{
-			source: Source.Voyager,
+	sources: {
+		[Source.Voyager]: {
 			label: 'Voyager',
 		},
-	],
+	},
 	// @ts-expect-error Provider definitions retain every key from their imported binding index.
 	bindings: {},
 } satisfies SourceProviderDefinition<typeof voyagerBindings>
+const missingVoyagerSource = {
+	provider: SourceProvider.Voyager,
+	label: 'Voyager',
+	// @ts-expect-error Provider source metadata retains every imported binding source key.
+	sources: {},
+	bindings: voyagerBindings,
+} satisfies SourceProviderDefinition<typeof voyagerBindings>
+const repeatedVoyagerSource = {
+	provider: SourceProvider.Voyager,
+	label: 'Voyager',
+	sources: {
+		[Source.Voyager]: {
+			label: 'Voyager',
+			// @ts-expect-error Indexed source metadata does not repeat its source key.
+			source: Source.Voyager,
+		},
+	},
+	bindings: voyagerBindings,
+} satisfies SourceProviderDefinition<typeof voyagerBindings>
+const missingArweaveGraphqlSource = {
+	provider: SourceProvider.Arweave,
+	label: 'Arweave',
+	// @ts-expect-error Every source in a multi-source binding index requires metadata.
+	sources: {
+		[Source.Arweave_Rest]: {
+			label: 'Arweave REST',
+		},
+	},
+	bindings: arweaveBindings,
+} satisfies SourceProviderDefinition<typeof arweaveBindings>
+const validVoyagerProvider = {
+	provider: SourceProvider.Voyager,
+	label: 'Voyager',
+	sources: {
+		[Source.Voyager]: {
+			label: 'Voyager',
+		},
+	},
+	bindings: voyagerBindings,
+} satisfies SourceProviderDefinition<typeof voyagerBindings>
+const broadProviders: readonly SourceProviderDefinition[] = [validVoyagerProvider]
 const acrossSource: Source.Across_Rest = acrossBinding.source
 const xrplClioBindingsForSource: readonly SourceBinding<Source.XrplClio_JsonRpc>[] = xrplClioBindings[Source.XrplClio_JsonRpc]
 const repeatedAcrossBindings = indexSourceBindings([
@@ -6048,6 +6122,10 @@ void typedSourceServerCredentials
 void mixedProxyCredentials
 void mismatchedVoyagerProvider
 void missingVoyagerBindings
+void missingVoyagerSource
+void repeatedVoyagerSource
+void missingArweaveGraphqlSource
+void broadProviders
 `)
 		assertTypeChecks('generated-source-keys:typecheck', [fixturePath], true)
 	} finally {

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Piped,
 	label: 'Piped',
-	sources: [
-		{
-			source: Source.Piped_Rest,
+	sources: {
+		[Source.Piped_Rest]: {
 			label: 'Piped API REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

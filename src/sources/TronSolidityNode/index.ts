@@ -8,11 +8,10 @@ import bindings from '$/sources/TronSolidityNode/bindings.ts'
 export default {
 	provider: SourceProvider.TronSolidityNode,
 	label: 'TRON SolidityNode',
-	sources: [
-		{
-			source: Source.TronSolidityNode_Rest,
+	sources: {
+		[Source.TronSolidityNode_Rest]: {
 			label: 'TRON SolidityNode REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

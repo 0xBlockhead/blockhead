@@ -8,11 +8,10 @@ import bindings from '$/sources/ZcashLightwalletd/bindings.ts'
 export default {
 	provider: SourceProvider.ZcashLightwalletd,
 	label: 'Zcash lightwalletd',
-	sources: [
-		{
-			source: Source.ZcashLightwalletd_Grpc,
+	sources: {
+		[Source.ZcashLightwalletd_Grpc]: {
 			label: 'Zcash lightwalletd gRPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

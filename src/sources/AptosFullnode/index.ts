@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.AptosFullnode,
 	label: 'Aptos fullnode',
-	sources: [
-		{
-			source: Source.AptosFullnode_Rest,
+	sources: {
+		[Source.AptosFullnode_Rest]: {
 			label: 'Aptos fullnode REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

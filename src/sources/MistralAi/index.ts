@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.MistralAi,
 	label: 'Mistral AI',
-	sources: [
-		{
-			source: Source.MistralAi_Rest,
+	sources: {
+		[Source.MistralAi_Rest]: {
 			label: 'Mistral AI REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

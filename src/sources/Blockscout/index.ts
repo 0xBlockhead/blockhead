@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Blockscout,
 	label: 'Blockscout',
-	sources: [
-		{
-			source: Source.Blockscout_Rest,
+	sources: {
+		[Source.Blockscout_Rest]: {
 			label: 'Blockscout REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

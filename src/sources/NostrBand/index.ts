@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.NostrBand,
 	label: 'NostrBand',
-	sources: [
-		{
-			source: Source.NostrBand_Rest,
+	sources: {
+		[Source.NostrBand_Rest]: {
 			label: 'NostrBand REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Snapchain,
 	label: 'Snapchain',
-	sources: [
-		{
-			source: Source.Snapchain_Rest,
+	sources: {
+		[Source.Snapchain_Rest]: {
 			label: 'Snapchain REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

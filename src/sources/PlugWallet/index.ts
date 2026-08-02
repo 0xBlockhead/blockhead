@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.PlugWallet,
 	label: 'Plug Wallet',
-	sources: [
-		{
-			source: Source.PlugWallet_WalletApi,
+	sources: {
+		[Source.PlugWallet_WalletApi]: {
 			label: 'Plug Wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

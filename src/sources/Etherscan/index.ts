@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Etherscan,
 	label: 'Etherscan',
-	sources: [
-		{
-			source: Source.Etherscan_Rest,
+	sources: {
+		[Source.Etherscan_Rest]: {
 			label: 'Etherscan REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Allium,
 	label: 'Allium',
-	sources: [
-		{
-			source: Source.Allium_Rest,
+	sources: {
+		[Source.Allium_Rest]: {
 			label: 'Allium REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

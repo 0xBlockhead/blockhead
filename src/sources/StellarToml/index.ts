@@ -8,11 +8,10 @@ import bindings from '$/sources/StellarToml/bindings.ts'
 export default {
 	provider: SourceProvider.StellarToml,
 	label: 'Stellar TOML',
-	sources: [
-		{
-			source: Source.StellarToml_Rest,
+	sources: {
+		[Source.StellarToml_Rest]: {
 			label: 'Stellar TOML REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

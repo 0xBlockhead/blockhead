@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Blockfrost,
 	label: 'Blockfrost',
-	sources: [
-		{
-			source: Source.Blockfrost_Rest,
+	sources: {
+		[Source.Blockfrost_Rest]: {
 			label: 'Blockfrost REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Helius,
 	label: 'Helius',
-	sources: [
-		{
-			source: Source.Helius,
+	sources: {
+		[Source.Helius]: {
 			label: 'Helius',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

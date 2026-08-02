@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Reddit,
 	label: 'Reddit',
-	sources: [
-		{
-			source: Source.Reddit_Rest,
+	sources: {
+		[Source.Reddit_Rest]: {
 			label: 'Reddit OAuth REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

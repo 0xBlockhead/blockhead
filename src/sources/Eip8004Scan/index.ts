@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Eip8004Scan,
 	label: '8004scan',
-	sources: [
-		{
-			source: Source.Eip8004Scan_Rest,
+	sources: {
+		[Source.Eip8004Scan_Rest]: {
 			label: '8004scan REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

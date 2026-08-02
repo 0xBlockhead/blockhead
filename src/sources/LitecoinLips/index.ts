@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.LitecoinLips,
 	label: 'Litecoin LIPs',
-	sources: [
-		{
-			source: Source.LitecoinLips_Github,
+	sources: {
+		[Source.LitecoinLips_Github]: {
 			label: 'Litecoin LIPs GitHub',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

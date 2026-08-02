@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Dydx,
 	label: 'dYdX',
-	sources: [
-		{
-			source: Source.DydxIndexer,
+	sources: {
+		[Source.DydxIndexer]: {
 			label: 'dYdX Indexer',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

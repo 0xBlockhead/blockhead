@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Conseil,
 	label: 'Conseil',
-	sources: [
-		{
-			source: Source.Conseil_Postgres,
+	sources: {
+		[Source.Conseil_Postgres]: {
 			label: 'Conseil Postgres',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

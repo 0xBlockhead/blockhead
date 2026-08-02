@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Petra,
 	label: 'Petra',
-	sources: [
-		{
-			source: Source.Petra_WalletApi,
+	sources: {
+		[Source.Petra_WalletApi]: {
 			label: 'Petra wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

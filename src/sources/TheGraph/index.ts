@@ -8,11 +8,10 @@ import bindings from '$/sources/TheGraph/bindings.ts'
 export default {
 	provider: SourceProvider.TheGraph,
 	label: 'The Graph',
-	sources: [
-		{
-			source: Source.TheGraph_Graphql,
+	sources: {
+		[Source.TheGraph_Graphql]: {
 			label: 'The Graph GraphQL',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

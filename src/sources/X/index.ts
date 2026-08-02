@@ -8,11 +8,10 @@ import bindings from '$/sources/X/bindings.ts'
 export default {
 	provider: SourceProvider.X,
 	label: 'X',
-	sources: [
-		{
-			source: Source.X_Rest,
+	sources: {
+		[Source.X_Rest]: {
 			label: 'X API v2',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

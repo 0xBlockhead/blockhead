@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.SnapshotHub,
 	label: 'Snapshot Hub',
-	sources: [
-		{
-			source: Source.SnapshotHub_Graphql,
+	sources: {
+		[Source.SnapshotHub_Graphql]: {
 			label: 'Snapshot Hub GraphQL',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

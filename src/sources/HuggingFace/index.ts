@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.HuggingFace,
 	label: 'Hugging Face',
-	sources: [
-		{
-			source: Source.HuggingFaceHub_Rest,
+	sources: {
+		[Source.HuggingFaceHub_Rest]: {
 			label: 'Hugging Face Hub REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

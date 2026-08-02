@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.AwsBedrock,
 	label: 'AWS Bedrock',
-	sources: [
-		{
-			source: Source.AwsBedrock_Rest,
+	sources: {
+		[Source.AwsBedrock_Rest]: {
 			label: 'AWS Bedrock REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

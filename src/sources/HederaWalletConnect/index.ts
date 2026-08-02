@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.HederaWalletConnect,
 	label: 'Hedera WalletConnect',
-	sources: [
-		{
-			source: Source.HederaWalletConnect_SignClient,
+	sources: {
+		[Source.HederaWalletConnect_SignClient]: {
 			label: 'Hedera WalletConnect sign client',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

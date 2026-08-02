@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.LogosDocs,
 	label: 'Logos docs',
-	sources: [
-		{
-			source: Source.LogosDocs_Rest,
+	sources: {
+		[Source.LogosDocs_Rest]: {
 			label: 'Logos docs',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

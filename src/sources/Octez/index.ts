@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Octez,
 	label: 'Octez',
-	sources: [
-		{
-			source: Source.OctezNode,
+	sources: {
+		[Source.OctezNode]: {
 			label: 'Octez Mainnet node',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

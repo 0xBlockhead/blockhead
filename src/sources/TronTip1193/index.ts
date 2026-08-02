@@ -8,11 +8,10 @@ import bindings from '$/sources/TronTip1193/bindings.ts'
 export default {
 	provider: SourceProvider.TronTip1193,
 	label: 'TRON TIP-1193',
-	sources: [
-		{
-			source: Source.TronTip1193_WalletApi,
+	sources: {
+		[Source.TronTip1193_WalletApi]: {
 			label: 'TRON TIP-1193 wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.KaswareWallet,
 	label: 'Kasware Wallet',
-	sources: [
-		{
-			source: Source.KaswareWallet_WalletApi,
+	sources: {
+		[Source.KaswareWallet_WalletApi]: {
 			label: 'Kasware Wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

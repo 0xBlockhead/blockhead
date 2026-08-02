@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Keplr,
 	label: 'Keplr',
-	sources: [
-		{
-			source: Source.Keplr_WalletApi,
+	sources: {
+		[Source.Keplr_WalletApi]: {
 			label: 'Keplr wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

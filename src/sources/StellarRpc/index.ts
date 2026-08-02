@@ -8,11 +8,10 @@ import bindings from '$/sources/StellarRpc/bindings.ts'
 export default {
 	provider: SourceProvider.StellarRpc,
 	label: 'Stellar RPC',
-	sources: [
-		{
-			source: Source.StellarRpc_JsonRpc,
+	sources: {
+		[Source.StellarRpc_JsonRpc]: {
 			label: 'Stellar RPC JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

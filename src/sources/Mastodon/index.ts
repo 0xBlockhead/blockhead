@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Mastodon,
 	label: 'Mastodon',
-	sources: [
-		{
-			source: Source.Mastodon_Rest,
+	sources: {
+		[Source.Mastodon_Rest]: {
 			label: 'Mastodon REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

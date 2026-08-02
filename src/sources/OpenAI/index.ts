@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.OpenAI,
 	label: 'OpenAI',
-	sources: [
-		{
-			source: Source.OpenAI_Rest,
+	sources: {
+		[Source.OpenAI_Rest]: {
 			label: 'OpenAI REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

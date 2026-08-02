@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Celestia,
 	label: 'Celestia',
-	sources: [
-		{
-			source: Source.CelestiaNode,
+	sources: {
+		[Source.CelestiaNode]: {
 			label: 'Celestia Node',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

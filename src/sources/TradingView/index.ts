@@ -8,11 +8,10 @@ import bindings from '$/sources/TradingView/bindings.ts'
 export default {
 	provider: SourceProvider.TradingView,
 	label: 'TradingView',
-	sources: [
-		{
-			source: Source.TradingView_Rest,
+	sources: {
+		[Source.TradingView_Rest]: {
 			label: 'TradingView REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

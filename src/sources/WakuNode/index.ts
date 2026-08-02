@@ -8,11 +8,10 @@ import bindings from '$/sources/WakuNode/bindings.ts'
 export default {
 	provider: SourceProvider.WakuNode,
 	label: 'Waku node',
-	sources: [
-		{
-			source: Source.WakuNode,
+	sources: {
+		[Source.WakuNode]: {
 			label: 'Waku node',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

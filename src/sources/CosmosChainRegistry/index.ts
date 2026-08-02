@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.CosmosChainRegistry,
 	label: 'Cosmos Chain Registry name',
-	sources: [
-		{
-			source: Source.CosmosChainRegistry_Github,
+	sources: {
+		[Source.CosmosChainRegistry_Github]: {
 			label: 'Cosmos Chain Registry name GitHub',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Amboss,
 	label: 'Amboss',
-	sources: [
-		{
-			source: Source.Amboss_Graphql,
+	sources: {
+		[Source.Amboss_Graphql]: {
 			label: 'Amboss Space GraphQL',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

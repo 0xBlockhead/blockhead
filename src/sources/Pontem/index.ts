@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Pontem,
 	label: 'Pontem',
-	sources: [
-		{
-			source: Source.Pontem_WalletApi,
+	sources: {
+		[Source.Pontem_WalletApi]: {
 			label: 'Pontem wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

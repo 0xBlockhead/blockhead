@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Anthropic,
 	label: 'Anthropic',
-	sources: [
-		{
-			source: Source.Anthropic_Rest,
+	sources: {
+		[Source.Anthropic_Rest]: {
 			label: 'Anthropic REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import bindings from '$/sources/TonApi/bindings.ts'
 export default {
 	provider: SourceProvider.TonApi,
 	label: 'TonAPI',
-	sources: [
-		{
-			source: Source.TonApi_Rest,
+	sources: {
+		[Source.TonApi_Rest]: {
 			label: 'TonAPI REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

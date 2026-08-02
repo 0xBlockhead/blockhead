@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.AtprotoSync,
 	label: 'AT Protocol sync',
-	sources: [
-		{
-			source: Source.AtprotoSync_Xrpc,
+	sources: {
+		[Source.AtprotoSync_Xrpc]: {
 			label: 'AT Protocol sync XRPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

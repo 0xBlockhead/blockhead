@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.KaspaExplorer,
 	label: 'Kaspa Explorer',
-	sources: [
-		{
-			source: Source.KaspaExplorer,
+	sources: {
+		[Source.KaspaExplorer]: {
 			label: 'Kaspa Explorer',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

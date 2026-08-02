@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Nfid,
 	label: 'NFID',
-	sources: [
-		{
-			source: Source.Nfid_WalletApi,
+	sources: {
+		[Source.Nfid_WalletApi]: {
 			label: 'NFID wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

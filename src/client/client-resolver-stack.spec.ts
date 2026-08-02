@@ -682,16 +682,14 @@ describe('client resolver stack architecture', () => {
 		const sourceProviders = [{
 			provider: 'PersistenceFixture',
 			label: 'Persistence fixture',
-			sources: [
-				{
-					source: 'source-a',
+			sources: {
+				'source-a': {
 					label: 'Source A',
 				},
-				{
-					source: 'source-b',
+				'source-b': {
 					label: 'Source B',
 				},
-			],
+			},
 		}] as const
 		let sourceAValues = ['a']
 		let sourceACount = 1
@@ -1798,10 +1796,11 @@ describe('client resolver stack architecture', () => {
 			sourceProviders: [{
 				provider: 'continuation-provider',
 				label: 'Continuation provider',
-				sources: [{
-					source: 'continuation-source',
-					label: 'Continuation source',
-				}],
+				sources: {
+					'continuation-source': {
+						label: 'Continuation source',
+					},
+				},
 			}],
 		})({
 			resolvers: [{
@@ -2192,10 +2191,11 @@ describe('client resolver stack architecture', () => {
 			sourceProviders: [{
 				provider: 'selection-fixture',
 				label: 'Selection fixture',
-				sources: [{
-					source: 'selection-fixture',
-					label: 'Selection fixture',
-				}],
+				sources: {
+					'selection-fixture': {
+						label: 'Selection fixture',
+					},
+				},
 			}],
 		})({
 			resolvers: [{
@@ -2700,20 +2700,17 @@ describe('client resolver stack architecture', () => {
 			sourceProviders: [{
 				provider: 'selector-source-fixture',
 				label: 'Selector source fixture',
-				sources: [
-					{
-						source: 'identity-source',
+				sources: {
+					'identity-source': {
 						label: 'Identity source',
 					},
-					{
-						source: 'unrelated-source',
+					'unrelated-source': {
 						label: 'Unrelated source',
 					},
-					{
-						source: 'facet-source',
+					'facet-source': {
 						label: 'Facet source',
 					},
-				],
+				},
 			}],
 		})({
 			resolvers: [
@@ -2860,10 +2857,11 @@ describe('client resolver stack architecture', () => {
 			sourceProviders: [{
 				provider: 'identity-provider',
 				label: 'Identity provider',
-				sources: [{
-					source: 'identity-source',
-					label: 'Identity source',
-				}],
+				sources: {
+					'identity-source': {
+						label: 'Identity source',
+					},
+				},
 			}],
 		})({
 			resolvers: [{
@@ -3089,10 +3087,11 @@ describe('client resolver stack architecture', () => {
 			sourceProviders: [{
 				provider: 'materialization-provider',
 				label: 'Materialization provider',
-				sources: [{
-					source: 'source-a',
-					label: 'Source A',
-				}],
+				sources: {
+					'source-a': {
+						label: 'Source A',
+					},
+				},
 			}],
 		})({
 			resolvers: [{
@@ -3302,16 +3301,14 @@ describe('client resolver stack architecture', () => {
 			sourceProviders: [{
 				provider: 'materialization-provider',
 				label: 'Materialization provider',
-				sources: [
-					{
-						source: 'source-a',
+				sources: {
+					'source-a': {
 						label: 'Source A',
 					},
-					{
-						source: 'source-b',
+					'source-b': {
 						label: 'Source B',
 					},
-				],
+				},
 			}],
 		})({
 			resolvers: [
@@ -3564,16 +3561,14 @@ describe('client resolver stack architecture', () => {
 			sourceProviders: [{
 				provider: 'fixture',
 				label: 'Fixture',
-				sources: [
-					{
-						source: 'source-a',
+				sources: {
+					'source-a': {
 						label: 'Source A',
 					},
-					{
-						source: 'source-b',
+					'source-b': {
 						label: 'Source B',
 					},
-				],
+				},
 			}],
 		})({
 			resolvers: [
@@ -3771,10 +3766,11 @@ describe('client resolver stack architecture', () => {
 			sourceProviders: [{
 				provider: 'fixture',
 				label: 'Fixture',
-				sources: [{
-					source: 'live-source',
-					label: 'Live source',
-				}],
+				sources: {
+					'live-source': {
+						label: 'Live source',
+					},
+				},
 			}],
 		})({
 			resolvers: [{
@@ -3999,16 +3995,14 @@ describe('client resolver stack architecture', () => {
 			sourceProviders: [{
 				provider: 'local',
 				label: 'Local',
-				sources: [
-					{
-						source: Source.Local_Internal,
+				sources: {
+					[Source.Local_Internal]: {
 						label: 'Local',
 					},
-					{
-						source: Source.Constants_Internal,
+					[Source.Constants_Internal]: {
 						label: 'Constants',
 					},
-				],
+				},
 			}],
 		})({
 			resolvers: [{

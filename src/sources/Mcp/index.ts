@@ -8,15 +8,13 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Mcp,
 	label: 'MCP',
-	sources: [
-		{
-			source: Source.McpDeclared_Protocol,
+	sources: {
+		[Source.McpDeclared_Protocol]: {
 			label: 'Declared MCP server',
 		},
-		{
-			source: Source.McpPackageRegistry_Rest,
+		[Source.McpPackageRegistry_Rest]: {
 			label: 'MCP package registry REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.CardanoDbSync,
 	label: 'cardano-db-sync',
-	sources: [
-		{
-			source: Source.CardanoDbSync_Postgres,
+	sources: {
+		[Source.CardanoDbSync_Postgres]: {
 			label: 'cardano-db-sync Postgres',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.AzureAiFoundry,
 	label: 'Azure AI Foundry',
-	sources: [
-		{
-			source: Source.AzureAiFoundry_Rest,
+	sources: {
+		[Source.AzureAiFoundry_Rest]: {
 			label: 'Azure AI Foundry REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

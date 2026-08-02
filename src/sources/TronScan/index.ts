@@ -8,11 +8,10 @@ import bindings from '$/sources/TronScan/bindings.ts'
 export default {
 	provider: SourceProvider.TronScan,
 	label: 'TRONSCAN',
-	sources: [
-		{
-			source: Source.TronScan_Rest,
+	sources: {
+		[Source.TronScan_Rest]: {
 			label: 'TRONSCAN REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

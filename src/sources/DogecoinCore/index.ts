@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.DogecoinCore,
 	label: 'Dogecoin Core',
-	sources: [
-		{
-			source: Source.DogecoinCore_JsonRpc,
+	sources: {
+		[Source.DogecoinCore_JsonRpc]: {
 			label: 'Dogecoin Core JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

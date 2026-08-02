@@ -8,11 +8,10 @@ import bindings from '$/sources/ZcashClientBackend/bindings.ts'
 export default {
 	provider: SourceProvider.ZcashClientBackend,
 	label: 'zcash_client_backend',
-	sources: [
-		{
-			source: Source.ZcashClientBackend_Local,
+	sources: {
+		[Source.ZcashClientBackend_Local]: {
 			label: 'zcash_client_backend local store',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

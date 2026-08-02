@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Bithomp,
 	label: 'Bithomp',
-	sources: [
-		{
-			source: Source.Bithomp,
+	sources: {
+		[Source.Bithomp]: {
 			label: 'Bithomp',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

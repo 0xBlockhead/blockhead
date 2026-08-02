@@ -8,15 +8,13 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.GetBlock,
 	label: 'GetBlock',
-	sources: [
-		{
-			source: Source.GetBlockRpc_JsonRpc,
+	sources: {
+		[Source.GetBlockRpc_JsonRpc]: {
 			label: 'GetBlock EVM JSON-RPC',
 		},
-		{
-			source: Source.GetBlockYellowstone_Grpc,
+		[Source.GetBlockYellowstone_Grpc]: {
 			label: 'GetBlock Yellowstone gRPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

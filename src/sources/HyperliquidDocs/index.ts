@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.HyperliquidDocs,
 	label: 'Hyperliquid docs',
-	sources: [
-		{
-			source: Source.HyperliquidDocs_Rest,
+	sources: {
+		[Source.HyperliquidDocs_Rest]: {
 			label: 'Hyperliquid docs REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

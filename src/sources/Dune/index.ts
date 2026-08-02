@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Dune,
 	label: 'Dune',
-	sources: [
-		{
-			source: Source.Dune_Rest,
+	sources: {
+		[Source.Dune_Rest]: {
 			label: 'Dune REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

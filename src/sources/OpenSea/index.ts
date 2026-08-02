@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.OpenSea,
 	label: 'OpenSea',
-	sources: [
-		{
-			source: Source.OpenSea_Rest,
+	sources: {
+		[Source.OpenSea_Rest]: {
 			label: 'OpenSea REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

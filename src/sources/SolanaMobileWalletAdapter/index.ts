@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.SolanaMobileWalletAdapter,
 	label: 'Solana Mobile Wallet Adapter',
-	sources: [
-		{
-			source: Source.SolanaMobileWalletAdapter_WalletApi,
+	sources: {
+		[Source.SolanaMobileWalletAdapter_WalletApi]: {
 			label: 'Solana Mobile Wallet Adapter API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

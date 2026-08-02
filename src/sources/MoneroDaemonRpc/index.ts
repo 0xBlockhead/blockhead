@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.MoneroDaemonRpc,
 	label: 'Monero daemon RPC',
-	sources: [
-		{
-			source: Source.MoneroDaemonRpc_JsonRpc,
+	sources: {
+		[Source.MoneroDaemonRpc_JsonRpc]: {
 			label: 'Monero daemon JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

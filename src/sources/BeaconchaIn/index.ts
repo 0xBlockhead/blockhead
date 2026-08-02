@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.BeaconchaIn,
 	label: 'Beaconcha.in',
-	sources: [
-		{
-			source: Source.BeaconchaIn_Rest,
+	sources: {
+		[Source.BeaconchaIn_Rest]: {
 			label: 'Beaconcha.in REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

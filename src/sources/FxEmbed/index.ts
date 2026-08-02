@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.FxEmbed,
 	label: 'FxEmbed',
-	sources: [
-		{
-			source: Source.X_FxEmbed_Rest,
+	sources: {
+		[Source.X_FxEmbed_Rest]: {
 			label: 'FxEmbed REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

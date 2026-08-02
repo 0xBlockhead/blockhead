@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Martian,
 	label: 'Martian',
-	sources: [
-		{
-			source: Source.Martian_WalletApi,
+	sources: {
+		[Source.Martian_WalletApi]: {
 			label: 'Martian wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

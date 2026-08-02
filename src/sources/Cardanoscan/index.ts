@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Cardanoscan,
 	label: 'Cardanoscan',
-	sources: [
-		{
-			source: Source.Cardanoscan_Rest,
+	sources: {
+		[Source.Cardanoscan_Rest]: {
 			label: 'Cardanoscan REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

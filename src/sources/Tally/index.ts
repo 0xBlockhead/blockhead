@@ -8,11 +8,10 @@ import bindings from '$/sources/Tally/bindings.ts'
 export default {
 	provider: SourceProvider.Tally,
 	label: 'Tally',
-	sources: [
-		{
-			source: Source.Tally,
+	sources: {
+		[Source.Tally]: {
 			label: 'Tally',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

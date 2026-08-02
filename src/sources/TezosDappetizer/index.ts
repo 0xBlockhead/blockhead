@@ -8,11 +8,10 @@ import bindings from '$/sources/TezosDappetizer/bindings.ts'
 export default {
 	provider: SourceProvider.TezosDappetizer,
 	label: 'Tezos Dappetizer',
-	sources: [
-		{
-			source: Source.TezosDappetizer_Postgres,
+	sources: {
+		[Source.TezosDappetizer_Postgres]: {
 			label: 'Tezos Dappetizer Postgres',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

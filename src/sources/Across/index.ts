@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Across,
 	label: 'Across',
-	sources: [
-		{
-			source: Source.Across_Rest,
+	sources: {
+		[Source.Across_Rest]: {
 			label: 'Across REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

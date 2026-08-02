@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.MlCommons,
 	label: 'MLCommons',
-	sources: [
-		{
-			source: Source.CroissantDocument_Local,
+	sources: {
+		[Source.CroissantDocument_Local]: {
 			label: 'Croissant document',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

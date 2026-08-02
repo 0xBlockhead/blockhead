@@ -8,15 +8,13 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.NostrRelay,
 	label: 'Nostr relay',
-	sources: [
-		{
-			source: Source.NostrRelay_Nip11_Http,
+	sources: {
+		[Source.NostrRelay_Nip11_Http]: {
 			label: 'Nostr relay NIP-11 HTTP',
 		},
-		{
-			source: Source.NostrRelay_WebSocket,
+		[Source.NostrRelay_WebSocket]: {
 			label: 'Nostr relay WebSocket',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

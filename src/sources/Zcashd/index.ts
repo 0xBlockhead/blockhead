@@ -8,15 +8,13 @@ import bindings from '$/sources/Zcashd/bindings.ts'
 export default {
 	provider: SourceProvider.Zcashd,
 	label: 'zcashd',
-	sources: [
-		{
-			source: Source.Zcashd_JsonRpc,
+	sources: {
+		[Source.Zcashd_JsonRpc]: {
 			label: 'zcashd JSON-RPC',
 		},
-		{
-			source: Source.ZcashdWallet_JsonRpc,
+		[Source.ZcashdWallet_JsonRpc]: {
 			label: 'zcashd wallet JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

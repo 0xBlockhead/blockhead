@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.CronosExplorer,
 	label: 'Cronos Explorer',
-	sources: [
-		{
-			source: Source.CronosExplorer,
+	sources: {
+		[Source.CronosExplorer]: {
 			label: 'Cronos Explorer',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

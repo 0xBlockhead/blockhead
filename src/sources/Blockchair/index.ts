@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Blockchair,
 	label: 'Blockchair',
-	sources: [
-		{
-			source: Source.Blockchair_Rest,
+	sources: {
+		[Source.Blockchair_Rest]: {
 			label: 'Blockchair REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

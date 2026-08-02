@@ -8,11 +8,10 @@ import bindings from '$/sources/XrplClio/bindings.ts'
 export default {
 	provider: SourceProvider.XrplClio,
 	label: 'XRPL Clio',
-	sources: [
-		{
-			source: Source.XrplClio_JsonRpc,
+	sources: {
+		[Source.XrplClio_JsonRpc]: {
 			label: 'XRPL Clio JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

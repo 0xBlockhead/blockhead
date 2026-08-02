@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.CodexNetworkPresets,
 	label: 'Codex network presets',
-	sources: [
-		{
-			source: Source.CodexNetworkPresets_Github,
+	sources: {
+		[Source.CodexNetworkPresets_Github]: {
 			label: 'Codex network presets GitHub',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

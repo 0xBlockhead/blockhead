@@ -8,11 +8,10 @@ import bindings from '$/sources/TrustWalletAssets/bindings.ts'
 export default {
 	provider: SourceProvider.TrustWalletAssets,
 	label: 'Trust Wallet Assets',
-	sources: [
-		{
-			source: Source.TrustWalletAssets_Github,
+	sources: {
+		[Source.TrustWalletAssets_Github]: {
 			label: 'Trust Wallet Assets GitHub',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

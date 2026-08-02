@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.CoinMarketCap,
 	label: 'Coin Market Cap',
-	sources: [
-		{
-			source: Source.CoinMarketCap_Rest,
+	sources: {
+		[Source.CoinMarketCap_Rest]: {
 			label: 'Coin Market Cap REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

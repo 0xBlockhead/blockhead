@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Hyperliquid,
 	label: 'Hyperliquid',
-	sources: [
-		{
-			source: Source.Hyperliquid,
+	sources: {
+		[Source.Hyperliquid]: {
 			label: 'Hyperliquid',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

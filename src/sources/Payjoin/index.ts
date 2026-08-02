@@ -8,19 +8,16 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Payjoin,
 	label: 'Payjoin',
-	sources: [
-		{
-			source: Source.PayjoinOhttpRelay_Http,
+	sources: {
+		[Source.PayjoinOhttpRelay_Http]: {
 			label: 'Payjoin OHTTP relay',
 		},
-		{
-			source: Source.PayjoinReceiver_Http,
+		[Source.PayjoinReceiver_Http]: {
 			label: 'Payjoin receiver HTTP',
 		},
-		{
-			source: Source.PayjoinDirectory_Rest,
+		[Source.PayjoinDirectory_Rest]: {
 			label: 'Payjoin directory REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

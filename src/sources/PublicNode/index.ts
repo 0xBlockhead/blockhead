@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.PublicNode,
 	label: 'PublicNode',
-	sources: [
-		{
-			source: Source.Solana_JsonRpc,
+	sources: {
+		[Source.Solana_JsonRpc]: {
 			label: 'Solana JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

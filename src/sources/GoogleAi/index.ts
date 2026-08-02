@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.GoogleAi,
 	label: 'Google AI',
-	sources: [
-		{
-			source: Source.GoogleAi_Rest,
+	sources: {
+		[Source.GoogleAi_Rest]: {
 			label: 'Google AI REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

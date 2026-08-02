@@ -8,11 +8,10 @@ import bindings from '$/sources/TonConnect/bindings.ts'
 export default {
 	provider: SourceProvider.TonConnect,
 	label: 'TonConnect',
-	sources: [
-		{
-			source: Source.TonConnect_WalletApi,
+	sources: {
+		[Source.TonConnect_WalletApi]: {
 			label: 'TonConnect wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

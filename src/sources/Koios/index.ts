@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Koios,
 	label: 'Koios',
-	sources: [
-		{
-			source: Source.Koios_Rest,
+	sources: {
+		[Source.Koios_Rest]: {
 			label: 'Koios REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Lens,
 	label: 'Lens Protocol',
-	sources: [
-		{
-			source: Source.Lens_Graphql,
+	sources: {
+		[Source.Lens_Graphql]: {
 			label: 'Lens Protocol GraphQL',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

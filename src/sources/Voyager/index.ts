@@ -8,11 +8,10 @@ import bindings from '$/sources/Voyager/bindings.ts'
 export default {
 	provider: SourceProvider.Voyager,
 	label: 'Voyager',
-	sources: [
-		{
-			source: Source.Voyager,
+	sources: {
+		[Source.Voyager]: {
 			label: 'Voyager',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

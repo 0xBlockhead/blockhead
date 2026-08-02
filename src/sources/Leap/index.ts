@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Leap,
 	label: 'Leap',
-	sources: [
-		{
-			source: Source.Leap_WalletApi,
+	sources: {
+		[Source.Leap_WalletApi]: {
 			label: 'Leap wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

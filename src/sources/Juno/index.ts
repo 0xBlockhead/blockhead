@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Juno,
 	label: 'Juno',
-	sources: [
-		{
-			source: Source.Juno_JsonRpc,
+	sources: {
+		[Source.Juno_JsonRpc]: {
 			label: 'Juno JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

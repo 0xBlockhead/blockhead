@@ -77,7 +77,7 @@ const {
 	schema,
 	resolvers,
 	new Set(sourceProviders.flatMap((sourceProvider) => (
-		sourceProvider.sources.map((sourceDefinition) => sourceDefinition.source)
+		Object.keys(sourceProvider.sources)
 	)))
 )
 
@@ -181,7 +181,7 @@ describe('resolver registry live resolver architecture', () => {
 		expect(new Set(activeResolverSources).size).toBe(activeResolverSources.length)
 		expect(activeResolverSources.every((source) => (
 			sourceProviders.some((sourceProvider) => (
-				sourceProvider.sources.some((sourceDefinition) => sourceDefinition.source === source)
+				Object.hasOwn(sourceProvider.sources, source)
 			))
 		))).toBe(true)
 	})
@@ -852,7 +852,7 @@ describe('resolver registry live resolver architecture', () => {
 		const generatedEntityTypes = schema.map((entity) => entity.entityType)
 		const generatedSourceProviders = sourceProviders.map((sourceProvider) => sourceProvider.provider)
 		const generatedSources = sourceProviders.flatMap((sourceProvider) => (
-			sourceProvider.sources.map((sourceDefinition) => sourceDefinition.source)
+			Object.keys(sourceProvider.sources)
 		))
 
 		expect(generatedEntityTypes.length).toBe(new Set(generatedEntityTypes).size)

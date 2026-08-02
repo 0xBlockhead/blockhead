@@ -8,11 +8,10 @@ import bindings from '$/sources/ThreeXpl/bindings.ts'
 export default {
 	provider: SourceProvider.ThreeXpl,
 	label: '3xpl',
-	sources: [
-		{
-			source: Source.ThreeXpl_Rest,
+	sources: {
+		[Source.ThreeXpl_Rest]: {
 			label: '3xpl REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

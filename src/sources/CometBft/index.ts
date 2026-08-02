@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.CometBft,
 	label: 'CometBFT',
-	sources: [
-		{
-			source: Source.CometBft_Rest,
+	sources: {
+		[Source.CometBft_Rest]: {
 			label: 'CometBFT REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

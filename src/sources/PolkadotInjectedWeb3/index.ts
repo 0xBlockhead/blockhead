@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.PolkadotInjectedWeb3,
 	label: 'Polkadot injected web3',
-	sources: [
-		{
-			source: Source.PolkadotInjectedWeb3_WalletApi,
+	sources: {
+		[Source.PolkadotInjectedWeb3_WalletApi]: {
 			label: 'Polkadot injected web3 wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

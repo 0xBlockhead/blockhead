@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Coingecko,
 	label: 'Coingecko',
-	sources: [
-		{
-			source: Source.Coingecko_Rest,
+	sources: {
+		[Source.Coingecko_Rest]: {
 			label: 'Coingecko REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Lotus,
 	label: 'Lotus',
-	sources: [
-		{
-			source: Source.Lotus_JsonRpc,
+	sources: {
+		[Source.Lotus_JsonRpc]: {
 			label: 'Lotus JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

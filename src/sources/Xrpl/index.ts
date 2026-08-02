@@ -8,11 +8,10 @@ import bindings from '$/sources/Xrpl/bindings.ts'
 export default {
 	provider: SourceProvider.Xrpl,
 	label: 'XRPL rippled',
-	sources: [
-		{
-			source: Source.Xrpl_Rippled,
+	sources: {
+		[Source.Xrpl_Rippled]: {
 			label: 'XRPL rippled JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

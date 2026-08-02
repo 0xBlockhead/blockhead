@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.EigenLayer,
 	label: 'EigenLayer',
-	sources: [
-		{
-			source: Source.EigenLayerContracts_Evm,
+	sources: {
+		[Source.EigenLayerContracts_Evm]: {
 			label: 'EigenLayer contract catalog',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

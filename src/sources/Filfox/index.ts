@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Filfox,
 	label: 'Filfox',
-	sources: [
-		{
-			source: Source.Filfox_Rest,
+	sources: {
+		[Source.Filfox_Rest]: {
 			label: 'Filfox REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

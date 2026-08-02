@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.SigstoreRekor,
 	label: 'Sigstore Rekor',
-	sources: [
-		{
-			source: Source.SigstoreRekor,
+	sources: {
+		[Source.SigstoreRekor]: {
 			label: 'Sigstore Rekor',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

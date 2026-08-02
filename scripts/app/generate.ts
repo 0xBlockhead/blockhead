@@ -7792,13 +7792,12 @@ const generateSourceProviderDefinitionFile = (
 				indent(`provider: ${enumAccess('SourceProvider', provider.provider)},`),
 				indent(`label: ${emitTypeScript(provider.label)},`),
 				...(provider.env == null ? [] : [indent(`env: ${emitEnvSchema(provider.env)},`)]),
-				indent('sources: ['),
-				...sources.map((source) => indent(`${emitObject([
-					['source', enumAccess('Source', source.source)],
+				indent('sources: {'),
+				...sources.map((source) => indent(`[${enumAccess('Source', source.source)}]: ${emitObject([
 					['label', emitTypeScript(source.label)],
 					['env', emitEnvSchema(source.env)],
 				])},`, 2)),
-				indent('],'),
+				indent('},'),
 				indent('bindings,'),
 				'} satisfies SourceProviderDefinition<typeof bindings>',
 			],

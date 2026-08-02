@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider._Constants,
 	label: 'Constants',
-	sources: [
-		{
-			source: Source.Constants_Internal,
+	sources: {
+		[Source.Constants_Internal]: {
 			label: 'Checked-in constants',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

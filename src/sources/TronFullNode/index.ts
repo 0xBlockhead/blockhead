@@ -8,11 +8,10 @@ import bindings from '$/sources/TronFullNode/bindings.ts'
 export default {
 	provider: SourceProvider.TronFullNode,
 	label: 'TRON FullNode',
-	sources: [
-		{
-			source: Source.TronFullNode_Rest,
+	sources: {
+		[Source.TronFullNode_Rest]: {
 			label: 'TRON FullNode REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

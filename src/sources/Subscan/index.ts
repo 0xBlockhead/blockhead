@@ -8,11 +8,10 @@ import bindings from '$/sources/Subscan/bindings.ts'
 export default {
 	provider: SourceProvider.Subscan,
 	label: 'Subscan',
-	sources: [
-		{
-			source: Source.Subscan_Rest,
+	sources: {
+		[Source.Subscan_Rest]: {
 			label: 'Subscan REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import bindings from '$/sources/SubstrateSidecar/bindings.ts'
 export default {
 	provider: SourceProvider.SubstrateSidecar,
 	label: 'Substrate API Sidecar',
-	sources: [
-		{
-			source: Source.SubstrateSidecar_Rest,
+	sources: {
+		[Source.SubstrateSidecar_Rest]: {
 			label: 'Substrate API Sidecar REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

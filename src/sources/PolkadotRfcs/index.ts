@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.PolkadotRfcs,
 	label: 'Polkadot RFCs',
-	sources: [
-		{
-			source: Source.PolkadotRfcs_Github,
+	sources: {
+		[Source.PolkadotRfcs_Github]: {
 			label: 'Polkadot RFCs GitHub',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

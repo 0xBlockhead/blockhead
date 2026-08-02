@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.RadicleCli,
 	label: 'Radicle CLI',
-	sources: [
-		{
-			source: Source.RadicleCli_Local,
+	sources: {
+		[Source.RadicleCli_Local]: {
 			label: 'Radicle CLI local',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

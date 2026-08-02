@@ -8,11 +8,10 @@ import bindings from '$/sources/Wormholescan/bindings.ts'
 export default {
 	provider: SourceProvider.Wormholescan,
 	label: 'Wormholescan',
-	sources: [
-		{
-			source: Source.Wormholescan,
+	sources: {
+		[Source.Wormholescan]: {
 			label: 'Wormholescan',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

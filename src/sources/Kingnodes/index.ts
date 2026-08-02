@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Kingnodes,
 	label: 'Kingnodes',
-	sources: [
-		{
-			source: Source.KingnodesDydxNode,
+	sources: {
+		[Source.KingnodesDydxNode]: {
 			label: 'Kingnodes dYdX node',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

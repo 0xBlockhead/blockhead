@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Local,
 	label: 'Local',
-	sources: [
-		{
-			source: Source.Local_Internal,
+	sources: {
+		[Source.Local_Internal]: {
 			label: 'Local Internal',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

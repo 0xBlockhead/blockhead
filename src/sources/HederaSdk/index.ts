@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.HederaSdk,
 	label: 'Hedera SDK',
-	sources: [
-		{
-			source: Source.HederaSdk_Grpc,
+	sources: {
+		[Source.HederaSdk_Grpc]: {
 			label: 'Hedera SDK gRPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

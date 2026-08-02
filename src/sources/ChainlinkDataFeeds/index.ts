@@ -8,15 +8,13 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.ChainlinkDataFeeds,
 	label: 'Chainlink Data Feeds',
-	sources: [
-		{
-			source: Source.ChainlinkDataFeeds_AddressCatalog,
+	sources: {
+		[Source.ChainlinkDataFeeds_AddressCatalog]: {
 			label: 'Chainlink Data Feeds address catalog',
 		},
-		{
-			source: Source.ChainlinkDataFeeds_Contracts,
+		[Source.ChainlinkDataFeeds_Contracts]: {
 			label: 'Chainlink Data Feeds contracts',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

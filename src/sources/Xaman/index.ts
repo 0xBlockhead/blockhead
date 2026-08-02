@@ -8,11 +8,10 @@ import bindings from '$/sources/Xaman/bindings.ts'
 export default {
 	provider: SourceProvider.Xaman,
 	label: 'Xaman',
-	sources: [
-		{
-			source: Source.Xaman_Api,
+	sources: {
+		[Source.Xaman_Api]: {
 			label: 'Xaman API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.EasScan,
 	label: 'EAS Scan',
-	sources: [
-		{
-			source: Source.EasScan_Graphql,
+	sources: {
+		[Source.EasScan_Graphql]: {
 			label: 'EAS Scan GraphQL',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

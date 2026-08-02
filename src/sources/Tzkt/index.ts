@@ -8,11 +8,10 @@ import bindings from '$/sources/Tzkt/bindings.ts'
 export default {
 	provider: SourceProvider.Tzkt,
 	label: 'TzKT',
-	sources: [
-		{
-			source: Source.Tzkt_Rest,
+	sources: {
+		[Source.Tzkt_Rest]: {
 			label: 'TzKT REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

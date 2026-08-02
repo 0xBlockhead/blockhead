@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.BitTorrent,
 	label: 'BitTorrent',
-	sources: [
-		{
-			source: Source.BitTorrent,
+	sources: {
+		[Source.BitTorrent]: {
 			label: 'BitTorrent',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Ipfs,
 	label: 'IPFS',
-	sources: [
-		{
-			source: Source.Ipfs_Rest,
+	sources: {
+		[Source.Ipfs_Rest]: {
 			label: 'IPFS Gateway',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.NearConnect,
 	label: 'NEAR Connect',
-	sources: [
-		{
-			source: Source.NearConnect_WalletApi,
+	sources: {
+		[Source.NearConnect_WalletApi]: {
 			label: 'NEAR Connect wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import bindings from '$/sources/SpaceAndTime/bindings.ts'
 export default {
 	provider: SourceProvider.SpaceAndTime,
 	label: 'Space and Time',
-	sources: [
-		{
-			source: Source.SpaceAndTime_MakeInfinite,
+	sources: {
+		[Source.SpaceAndTime_MakeInfinite]: {
 			label: 'Space and Time MakeInfinite',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,23 +8,19 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.CircleCctp,
 	label: 'Circle CCTP',
-	sources: [
-		{
-			source: Source.CircleCctpIris,
+	sources: {
+		[Source.CircleCctpIris]: {
 			label: 'Circle CCTP Iris',
 		},
-		{
-			source: Source.CircleCctpContracts_Evm,
+		[Source.CircleCctpContracts_Evm]: {
 			label: 'Circle CCTP EVM contracts',
 		},
-		{
-			source: Source.CircleCctpContracts_Solana,
+		[Source.CircleCctpContracts_Solana]: {
 			label: 'Circle CCTP Solana contracts',
 		},
-		{
-			source: Source.CircleCctpContracts_Stellar,
+		[Source.CircleCctpContracts_Stellar]: {
 			label: 'Circle CCTP Stellar contracts',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

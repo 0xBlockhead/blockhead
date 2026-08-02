@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.AptosAip62,
 	label: 'Aptos AIP-62',
-	sources: [
-		{
-			source: Source.AptosAip62_WalletApi,
+	sources: {
+		[Source.AptosAip62_WalletApi]: {
 			label: 'Aptos AIP-62 wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

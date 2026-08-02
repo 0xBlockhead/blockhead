@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Bittensor,
 	label: 'Bittensor',
-	sources: [
-		{
-			source: Source.Bittensor_JsonRpc,
+	sources: {
+		[Source.Bittensor_JsonRpc]: {
 			label: 'Bittensor JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

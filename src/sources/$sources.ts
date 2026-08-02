@@ -1,3 +1,5 @@
+/// <reference path="../typescript/Object.d.ts" />
+
 import { type as arktype, type Type } from 'arktype'
 
 import {
@@ -20,6 +22,12 @@ export type SourceDefinition<
 	env?: Type<SourcePublicEnv>
 }
 
+export type SourceDefinitionIndex<
+	_Source extends PropertyKey,
+> = {
+	readonly [_Key in _Source]: Omit<SourceDefinition<_Key>, 'source'>
+}
+
 export type SourceProviderDefinition<
 	_SourceProvider extends PropertyKey,
 	_Source extends PropertyKey,
@@ -27,7 +35,7 @@ export type SourceProviderDefinition<
 	provider: _SourceProvider
 	label: string
 	env?: Type<SourcePublicEnv>
-	sources: readonly SourceDefinition<_Source>[]
+	sources: Partial<SourceDefinitionIndex<_Source>>
 	bindings?: SourceBindingIndex
 }
 
@@ -139,7 +147,11 @@ export const indexSourceProviders = <
 			| readonly SourceBinding[]
 			| undefined
 		>(sourceProvider.bindings ?? {}).flatMap((bindings) => bindings ?? [])
-		return sourceProvider.sources.flatMap((sourceDefinition) => {
+		return Object.keys(sourceProvider.sources).flatMap((source) => {
+			const sourceDefinition = sourceProvider.sources[source]
+			if (sourceDefinition == null)
+				return []
+
 			const sourceSubset = envSubsetFromSchema(
 				'env' in sourceDefinition ?
 					sourceDefinition.env
@@ -150,7 +162,7 @@ export const indexSourceProviders = <
 				return []
 
 			const sourceBindings = providerBindings.filter((binding) => (
-				binding.source === sourceDefinition.source
+				binding.source === source
 			))
 			const bindingSubsets = sourceBindings.flatMap((binding) => {
 				const credentialSubsets = binding.credentials.flatMap((credential) => {
@@ -176,7 +188,7 @@ export const indexSourceProviders = <
 				...Object.assign({}, ...bindingSubsets),
 			}
 			return [{
-				sourceDefinition,
+				source,
 				publicEnv: (
 					'env' in sourceProvider
 					|| 'env' in sourceDefinition
@@ -195,12 +207,12 @@ export const indexSourceProviders = <
 	return {
 		resolverPublicEnvBySource: new Map(
 			enabledSourceEntries.map((entry) => ([
-				entry.sourceDefinition.source,
+				entry.source,
 				entry.publicEnv,
 			]))
 		),
 		enabledSources: new Set(
-			enabledSourceEntries.map((entry) => entry.sourceDefinition.source)
+			enabledSourceEntries.map((entry) => entry.source)
 		),
 	}
 }

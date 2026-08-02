@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.CosmosSdk,
 	label: 'Cosmos SDK',
-	sources: [
-		{
-			source: Source.CosmosSdk_Rest,
+	sources: {
+		[Source.CosmosSdk_Rest]: {
 			label: 'Cosmos SDK REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

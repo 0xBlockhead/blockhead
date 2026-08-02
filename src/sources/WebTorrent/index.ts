@@ -8,19 +8,16 @@ import bindings from '$/sources/WebTorrent/bindings.ts'
 export default {
 	provider: SourceProvider.WebTorrent,
 	label: 'WebTorrent',
-	sources: [
-		{
-			source: Source.WebTorrent_Client,
+	sources: {
+		[Source.WebTorrent_Client]: {
 			label: 'WebTorrent client',
 		},
-		{
-			source: Source.WebTorrent_Dht,
+		[Source.WebTorrent_Dht]: {
 			label: 'WebTorrent DHT',
 		},
-		{
-			source: Source.WebTorrent_Tracker,
+		[Source.WebTorrent_Tracker]: {
 			label: 'WebTorrent tracker',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

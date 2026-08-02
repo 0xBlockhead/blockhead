@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Openchain,
 	label: 'Openchain',
-	sources: [
-		{
-			source: Source.Openchain_Rest,
+	sources: {
+		[Source.Openchain_Rest]: {
 			label: 'Openchain REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

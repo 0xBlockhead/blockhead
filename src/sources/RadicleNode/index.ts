@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.RadicleNode,
 	label: 'Radicle node',
-	sources: [
-		{
-			source: Source.RadicleNode_Control,
+	sources: {
+		[Source.RadicleNode_Control]: {
 			label: 'Radicle node control API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

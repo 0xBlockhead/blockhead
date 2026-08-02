@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.L2Beat,
 	label: 'L2Beat',
-	sources: [
-		{
-			source: Source.L2Beat_Rest,
+	sources: {
+		[Source.L2Beat_Rest]: {
 			label: 'L2Beat REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

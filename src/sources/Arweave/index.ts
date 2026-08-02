@@ -8,15 +8,13 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Arweave,
 	label: 'Arweave',
-	sources: [
-		{
-			source: Source.Arweave_Rest,
+	sources: {
+		[Source.Arweave_Rest]: {
 			label: 'Arweave Gateway',
 		},
-		{
-			source: Source.Arweave_Graphql,
+		[Source.Arweave_Graphql]: {
 			label: 'Arweave GraphQL',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.MempoolSpace,
 	label: 'mempool.space',
-	sources: [
-		{
-			source: Source.MempoolSpace_Rest,
+	sources: {
+		[Source.MempoolSpace_Rest]: {
 			label: 'mempool.space REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

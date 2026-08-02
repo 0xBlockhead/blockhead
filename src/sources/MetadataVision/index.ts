@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.MetadataVision,
 	label: 'Metadata Vision',
-	sources: [
-		{
-			source: Source.MetadataVision_Rest,
+	sources: {
+		[Source.MetadataVision_Rest]: {
 			label: 'Metadata Vision Open Graph',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

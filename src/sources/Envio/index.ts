@@ -8,15 +8,13 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Envio,
 	label: 'Envio',
-	sources: [
-		{
-			source: Source.EnvioHyperRpc_JsonRpc,
+	sources: {
+		[Source.EnvioHyperRpc_JsonRpc]: {
 			label: 'Envio HyperRPC',
 		},
-		{
-			source: Source.EnvioHyperSync_RawHttp,
+		[Source.EnvioHyperSync_RawHttp]: {
 			label: 'Envio HyperSync',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Polkadot,
 	label: 'Polkadot',
-	sources: [
-		{
-			source: Source.Polkadot_JsonRpc,
+	sources: {
+		[Source.Polkadot_JsonRpc]: {
 			label: 'Polkadot JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

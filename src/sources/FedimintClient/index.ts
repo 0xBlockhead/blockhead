@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.FedimintClient,
 	label: 'Fedimint client',
-	sources: [
-		{
-			source: Source.FedimintClient_Rpc,
+	sources: {
+		[Source.FedimintClient_Rpc]: {
 			label: 'Fedimint client RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

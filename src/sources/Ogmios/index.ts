@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Ogmios,
 	label: 'Ogmios',
-	sources: [
-		{
-			source: Source.Ogmios_JsonRpc,
+	sources: {
+		[Source.Ogmios_JsonRpc]: {
 			label: 'Ogmios JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

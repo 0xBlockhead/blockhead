@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Esplora,
 	label: 'Esplora',
-	sources: [
-		{
-			source: Source.Esplora_Rest,
+	sources: {
+		[Source.Esplora_Rest]: {
 			label: 'Esplora REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

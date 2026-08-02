@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.qBittorrentWebUi,
 	label: 'qBittorrent WebUI',
-	sources: [
-		{
-			source: Source.qBittorrentWebUi_Rest,
+	sources: {
+		[Source.qBittorrentWebUi_Rest]: {
 			label: 'qBittorrent WebUI REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

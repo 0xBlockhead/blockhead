@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Reth,
 	label: 'Reth',
-	sources: [
-		{
-			source: Source.Reth_JsonRpc,
+	sources: {
+		[Source.Reth_JsonRpc]: {
 			label: 'Reth JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

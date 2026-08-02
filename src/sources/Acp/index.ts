@@ -8,15 +8,13 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Acp,
 	label: 'Agent Client Protocol',
-	sources: [
-		{
-			source: Source.AcpLocal_JsonRpc,
+	sources: {
+		[Source.AcpLocal_JsonRpc]: {
 			label: 'ACP local JSON-RPC',
 		},
-		{
-			source: Source.AcpRegistry_Rest,
+		[Source.AcpRegistry_Rest]: {
 			label: 'ACP registry REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

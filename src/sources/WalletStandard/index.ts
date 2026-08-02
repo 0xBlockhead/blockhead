@@ -8,11 +8,10 @@ import bindings from '$/sources/WalletStandard/bindings.ts'
 export default {
 	provider: SourceProvider.WalletStandard,
 	label: 'Wallet Standard',
-	sources: [
-		{
-			source: Source.WalletStandard_WalletApi,
+	sources: {
+		[Source.WalletStandard_WalletApi]: {
 			label: 'Wallet Standard API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

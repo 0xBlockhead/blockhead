@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Rss,
 	label: 'RSS / Atom',
-	sources: [
-		{
-			source: Source.Rss_Rest,
+	sources: {
+		[Source.Rss_Rest]: {
 			label: 'RSS / Atom direct fetch',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

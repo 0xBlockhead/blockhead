@@ -8,11 +8,10 @@ import bindings from '$/sources/ZcashZips/bindings.ts'
 export default {
 	provider: SourceProvider.ZcashZips,
 	label: 'Zcash ZIPs',
-	sources: [
-		{
-			source: Source.ZcashZips_Github,
+	sources: {
+		[Source.ZcashZips_Github]: {
 			label: 'Zcash ZIPs GitHub',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

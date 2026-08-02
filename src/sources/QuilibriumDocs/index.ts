@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.QuilibriumDocs,
 	label: 'Quilibrium docs',
-	sources: [
-		{
-			source: Source.QuilibriumDocs_Rest,
+	sources: {
+		[Source.QuilibriumDocs_Rest]: {
 			label: 'Quilibrium docs REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

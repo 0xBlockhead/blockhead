@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.HashConnect,
 	label: 'HashConnect',
-	sources: [
-		{
-			source: Source.HashConnect_WalletApi,
+	sources: {
+		[Source.HashConnect_WalletApi]: {
 			label: 'HashConnect wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

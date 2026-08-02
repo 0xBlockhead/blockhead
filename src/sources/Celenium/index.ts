@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Celenium,
 	label: 'Celenium',
-	sources: [
-		{
-			source: Source.Celenium_Rest,
+	sources: {
+		[Source.Celenium_Rest]: {
 			label: 'Celenium REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

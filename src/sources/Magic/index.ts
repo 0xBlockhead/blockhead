@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Magic,
 	label: 'Magic',
-	sources: [
-		{
-			source: Source.Magic_HederaWalletApi,
+	sources: {
+		[Source.Magic_HederaWalletApi]: {
 			label: 'Magic Hedera wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

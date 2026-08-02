@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.MagnetUri,
 	label: 'Magnet URI',
-	sources: [
-		{
-			source: Source.MagnetUri_Uri,
+	sources: {
+		[Source.MagnetUri_Uri]: {
 			label: 'Magnet URI parser',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

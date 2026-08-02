@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Pathfinder,
 	label: 'Pathfinder',
-	sources: [
-		{
-			source: Source.Pathfinder,
+	sources: {
+		[Source.Pathfinder]: {
 			label: 'Pathfinder',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

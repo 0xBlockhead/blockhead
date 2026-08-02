@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.LedgerFilecoin,
 	label: 'Ledger Filecoin',
-	sources: [
-		{
-			source: Source.LedgerFilecoin_WalletApi,
+	sources: {
+		[Source.LedgerFilecoin_WalletApi]: {
 			label: 'Ledger Filecoin wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.AlgorandWallet,
 	label: 'Algorand wallet',
-	sources: [
-		{
-			source: Source.AlgorandWallet_WalletApi,
+	sources: {
+		[Source.AlgorandWallet_WalletApi]: {
 			label: 'Algorand wallet API',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

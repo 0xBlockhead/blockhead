@@ -8,11 +8,10 @@ import bindings from '$/sources/Sqd/bindings.ts'
 export default {
 	provider: SourceProvider.Sqd,
 	label: 'SQD',
-	sources: [
-		{
-			source: Source.SqdPortal_RawHttp,
+	sources: {
+		[Source.SqdPortal_RawHttp]: {
 			label: 'SQD Portal',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

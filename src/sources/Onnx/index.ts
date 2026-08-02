@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Onnx,
 	label: 'ONNX',
-	sources: [
-		{
-			source: Source.OnnxArtifact_Local,
+	sources: {
+		[Source.OnnxArtifact_Local]: {
 			label: 'ONNX artifact',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

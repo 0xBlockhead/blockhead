@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.EigenExplorer,
 	label: 'EigenExplorer',
-	sources: [
-		{
-			source: Source.EigenExplorer_Rest,
+	sources: {
+		[Source.EigenExplorer_Rest]: {
 			label: 'EigenExplorer REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

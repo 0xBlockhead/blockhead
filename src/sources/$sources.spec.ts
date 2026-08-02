@@ -54,50 +54,44 @@ const fixtureSourceProviders = [
 		env: arktype({
 			PUBLIC_PROVIDER_KEY: 'string',
 		}),
-		sources: [
-			{
-				source: 'ProviderOnlySource',
+		sources: {
+			ProviderOnlySource: {
 				label: 'Provider-only source',
 			},
-			{
-				source: 'ProviderAndSourceEnvSource',
+			ProviderAndSourceEnvSource: {
 				label: 'Provider and source env source',
 				env: arktype({
 					PUBLIC_SOURCE_KEY: 'string',
 				}),
 			},
-			{
-				source: 'FailingSourceEnvSource',
+			FailingSourceEnvSource: {
 				label: 'Failing source env source',
 				env: arktype({
 					PUBLIC_FAILING_SOURCE_KEY: 'string',
 				}),
 			},
-		],
+		},
 	},
 	{
 		provider: 'ProviderWithoutEnv',
 		label: 'Provider without env',
-		sources: [
-			{
-				source: 'SourceOnlyEnvSource',
+		sources: {
+			SourceOnlyEnvSource: {
 				label: 'Source-only env source',
 				env: arktype({
 					PUBLIC_SOURCE_ONLY_KEY: 'string',
 				}),
 			},
-			{
-				source: 'OpenSource',
+			OpenSource: {
 				label: 'Open source',
 			},
-			{
-				source: 'OptionalEnvSource',
+			OptionalEnvSource: {
 				label: 'Optional-env source',
 				env: arktype({
 					PUBLIC_OPTIONAL_KEY: 'string > 0?',
 				}),
 			},
-		],
+		},
 	},
 	{
 		provider: 'FailingProvider',
@@ -105,12 +99,11 @@ const fixtureSourceProviders = [
 		env: arktype({
 			PUBLIC_FAILING_PROVIDER_KEY: 'string',
 		}),
-		sources: [
-			{
-				source: 'ProviderDisabledSource',
+		sources: {
+			ProviderDisabledSource: {
 				label: 'Provider disabled source',
 			},
-		],
+		},
 	},
 ] as const satisfies readonly SourceProviderDefinition<string, string>[]
 
@@ -273,7 +266,7 @@ describe('source provider registry', () => {
 	it('keeps binding origins canonical', () => {
 		for (const sourceProvider of appSourceProviders) {
 			expect(sourceProvider.provider, sourceProvider.label).toBeDefined()
-			expect(sourceProvider.sources.length, String(sourceProvider.provider)).toBeGreaterThan(0)
+			expect(Object.keys(sourceProvider.sources).length, String(sourceProvider.provider)).toBeGreaterThan(0)
 
 			for (const endpoint of Object.values(sourceProvider.bindings).flat().flatMap(({ endpoints }) => endpoints)) {
 				const origin = sourceEndpointOrigin(endpoint)
@@ -289,9 +282,9 @@ describe('source provider registry', () => {
 		const sourceProvidersBySource = new Map<PropertyKey, PropertyKey>()
 
 		for (const sourceProvider of appSourceProviders) {
-			for (const sourceDefinition of sourceProvider.sources) {
-				expect(sourceProvidersBySource.has(sourceDefinition.source), String(sourceDefinition.source)).toBe(false)
-				sourceProvidersBySource.set(sourceDefinition.source, sourceProvider.provider)
+			for (const source of Object.keys(sourceProvider.sources)) {
+				expect(sourceProvidersBySource.has(source), String(source)).toBe(false)
+				sourceProvidersBySource.set(source, sourceProvider.provider)
 			}
 		}
 	})

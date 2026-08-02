@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Lifi,
 	label: 'LI.FI',
-	sources: [
-		{
-			source: Source.Lifi_Rest,
+	sources: {
+		[Source.Lifi_Rest]: {
 			label: 'LI.FI REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

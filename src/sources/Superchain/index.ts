@@ -8,11 +8,10 @@ import bindings from '$/sources/Superchain/bindings.ts'
 export default {
 	provider: SourceProvider.Superchain,
 	label: 'Superchain',
-	sources: [
-		{
-			source: Source.Superchain_Github,
+	sources: {
+		[Source.Superchain_Github]: {
 			label: 'Superchain GitHub',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

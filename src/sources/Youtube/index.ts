@@ -8,11 +8,10 @@ import bindings from '$/sources/Youtube/bindings.ts'
 export default {
 	provider: SourceProvider.Youtube,
 	label: 'YouTube',
-	sources: [
-		{
-			source: Source.Youtube_Rest,
+	sources: {
+		[Source.Youtube_Rest]: {
 			label: 'YouTube Data API v3',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

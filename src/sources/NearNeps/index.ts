@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.NearNeps,
 	label: 'NEAR NEPs',
-	sources: [
-		{
-			source: Source.NearNeps_Github,
+	sources: {
+		[Source.NearNeps_Github]: {
 			label: 'NEAR NEPs GitHub',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

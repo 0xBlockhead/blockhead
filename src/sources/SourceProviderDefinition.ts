@@ -1,5 +1,5 @@
 import type {
-	SourceDefinition,
+	SourceDefinitionIndex,
 	SourceProviderDefinition as SourceProviderDefinitionTemplate,
 } from '$/sources/$sources.ts'
 import type { Source } from '$/sources/Source.ts'
@@ -15,6 +15,13 @@ type SourceFromIndex<
 	_Bindings extends SourceBindingIndex,
 > = Extract<keyof _Bindings, Source>
 
+type SourceDefinitionsFromIndex<
+	_Bindings extends SourceBindingIndex,
+> = SourceBindingIndex extends _Bindings ?
+	Partial<SourceDefinitionIndex<Source>>
+:
+	SourceDefinitionIndex<SourceFromIndex<_Bindings>>
+
 export type SourceProviderDefinition<
 	_Bindings extends SourceBindingIndex = SourceBindingIndex,
 > = (
@@ -23,7 +30,7 @@ export type SourceProviderDefinition<
 		| 'sources'
 		| 'bindings'
 	> & {
-		sources: readonly SourceDefinition<SourceFromIndex<_Bindings>>[]
+		sources: SourceDefinitionsFromIndex<_Bindings>
 		bindings: _Bindings
 	}
 )

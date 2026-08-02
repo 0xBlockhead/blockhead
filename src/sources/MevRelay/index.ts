@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.MevRelay,
 	label: 'MEV-Boost relay',
-	sources: [
-		{
-			source: Source.MevRelay_Rest,
+	sources: {
+		[Source.MevRelay_Rest]: {
 			label: 'MEV-Boost relay REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

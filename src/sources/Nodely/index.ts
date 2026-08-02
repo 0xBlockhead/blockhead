@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Nodely,
 	label: 'Nodely',
-	sources: [
-		{
-			source: Source.Nodely,
+	sources: {
+		[Source.Nodely]: {
 			label: 'Nodely',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

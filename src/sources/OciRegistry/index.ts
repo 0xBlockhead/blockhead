@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.OciRegistry,
 	label: 'OCI Registry',
-	sources: [
-		{
-			source: Source.OciRegistry_Distribution,
+	sources: {
+		[Source.OciRegistry_Distribution]: {
 			label: 'OCI distribution registry',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

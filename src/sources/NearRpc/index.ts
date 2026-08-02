@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.NearRpc,
 	label: 'NEAR RPC',
-	sources: [
-		{
-			source: Source.NearRpc_JsonRpc,
+	sources: {
+		[Source.NearRpc_JsonRpc]: {
 			label: 'NEAR JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

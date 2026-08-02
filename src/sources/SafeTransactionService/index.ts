@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.SafeTransactionService,
 	label: 'Safe Transaction Service',
-	sources: [
-		{
-			source: Source.SafeTransactionService_Rest,
+	sources: {
+		[Source.SafeTransactionService_Rest]: {
 			label: 'Safe Transaction Service REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

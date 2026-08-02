@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Erigon,
 	label: 'Erigon',
-	sources: [
-		{
-			source: Source.Erigon_JsonRpc,
+	sources: {
+		[Source.Erigon_JsonRpc]: {
 			label: 'Erigon JSON-RPC',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

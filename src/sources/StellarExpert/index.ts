@@ -8,11 +8,10 @@ import bindings from '$/sources/StellarExpert/bindings.ts'
 export default {
 	provider: SourceProvider.StellarExpert,
 	label: 'StellarExpert',
-	sources: [
-		{
-			source: Source.StellarExpert,
+	sources: {
+		[Source.StellarExpert]: {
 			label: 'StellarExpert',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

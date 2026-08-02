@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Cashu,
 	label: 'Cashu',
-	sources: [
-		{
-			source: Source.CashuMint_Rest,
+	sources: {
+		[Source.CashuMint_Rest]: {
 			label: 'Cashu mint REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.CosmosAdrs,
 	label: 'Cosmos ADRs',
-	sources: [
-		{
-			source: Source.CosmosAdrs_Github,
+	sources: {
+		[Source.CosmosAdrs_Github]: {
 			label: 'Cosmos ADRs GitHub',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

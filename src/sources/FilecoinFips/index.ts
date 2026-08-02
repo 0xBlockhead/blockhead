@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.FilecoinFips,
 	label: 'Filecoin FIPs',
-	sources: [
-		{
-			source: Source.FilecoinFips_Github,
+	sources: {
+		[Source.FilecoinFips_Github]: {
 			label: 'Filecoin FIPs GitHub',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

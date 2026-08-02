@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.InternetIdentity,
 	label: 'Internet Identity',
-	sources: [
-		{
-			source: Source.InternetIdentity_Delegation,
+	sources: {
+		[Source.InternetIdentity_Delegation]: {
 			label: 'Internet Identity delegation',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

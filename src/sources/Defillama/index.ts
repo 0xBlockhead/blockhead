@@ -8,11 +8,10 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Defillama,
 	label: 'Defillama',
-	sources: [
-		{
-			source: Source.Defillama_Rest,
+	sources: {
+		[Source.Defillama_Rest]: {
 			label: 'Defillama REST',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

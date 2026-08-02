@@ -8,15 +8,13 @@ import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinitio
 export default {
 	provider: SourceProvider.Radicle,
 	label: 'Radicle',
-	sources: [
-		{
-			source: Source.Radicle_Local,
+	sources: {
+		[Source.Radicle_Local]: {
 			label: 'Radicle local repository',
 		},
-		{
-			source: Source.Radicle_Remote,
+		[Source.Radicle_Remote]: {
 			label: 'Radicle remote repository',
 		},
-	],
+	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>
