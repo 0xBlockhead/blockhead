@@ -3,14 +3,13 @@ import {
 	SpecificationRealm,
 } from '$/constants/SpecificationProposal.ts'
 import {
-	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
+import defineSpecificationProposalResolvers from '$/resolvers/SpecificationProposal.ts'
 import { regex } from 'arkregex'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
-import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { BitcoinCashChipsGitlabTree } from '$/sources/BitcoinCashChips/Gitlab/types.ts'
 const chipMetadataValue = (text: string, key: string) => (
@@ -52,61 +51,36 @@ const chipRowsByNumber = (tree: BitcoinCashChipsGitlabTree) => {
 export default {
 	source: Source.BitcoinCashChips_Gitlab,
 
-	resolvers: [
-		defineResolver({
-			entityType: EntityType.SpecificationProposal,
-			resolve: {
-				RealmCategoryNumber: {
-					appliesTo: [
-						{
-							realm: SpecificationRealm.BitcoinCash,
-							category: ProposalCategory.Chip,
-						},
-					],
-					resolve: async ({ category, number, realm }) => {
-						if (realm !== SpecificationRealm.BitcoinCash || category !== ProposalCategory.Chip)
-							throw new Error('BitcoinCashChips_Gitlab: proposal resolver only supports Bitcoin Cash CHIPs')
-
-						const {
-							getChipMarkdownText,
-							getTree,
-						} = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
-						const chip = chipRowsByNumber(await getTree())[number]
-						const text = await getChipMarkdownText(
-							{ path: chip.path }
-						)
-						if (text.trim() === '')
-							throw new Error('BitcoinCashChips_Gitlab: empty proposal text')
-
-						return {
-							documentCategory: chipMetadataValue(text, 'Type'),
-							documentTitle: chipMetadataValue(text, 'Title') ?? /^#\s+(.+)$/m.exec(text)?.[1]?.trim(),
-							documentStatus: chipMetadataValue(text, 'Status'),
-							documentBody: text,
-						}
-					},
-				},
+	resolvers: defineSpecificationProposalResolvers({
+		appliesTo: [
+			{
+				realm: SpecificationRealm.BitcoinCash,
+				category: ProposalCategory.Chip,
 			},
-		})({
-				documentCategory: (snapshot) => snapshot.documentCategory,
-				documentTitle: (snapshot) => snapshot.documentTitle,
-				documentStatus: (snapshot) => snapshot.documentStatus,
-				documentBody: (snapshot) => snapshot.documentBody,
-			}),
+		],
+		resolveProposal: async ({ number }) => {
+			const {
+				getChipMarkdownText,
+				getTree,
+			} = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
+			const chip = chipRowsByNumber(await getTree())[number]
+			const text = await getChipMarkdownText({
+				path: chip.path,
+			})
+			if (text.trim() === '')
+				throw new Error('BitcoinCashChips_Gitlab: empty proposal text')
 
-		defineResolver({
-			entityType: EntityType._Global,
-			resolve: {
-				Scope: {
-					resolve: async () => {
-						const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
-						return Object.values(chipRowsByNumber(await getTree()))
-							.map(({ path: _path, ...chip }) => chip)
-					},
-				},
-			},
-		})({
-				$$proposals: (snapshot) => snapshot,
-			}),
-	],
+			return {
+				documentBody: text,
+				documentCategory: chipMetadataValue(text, 'Type'),
+				documentStatus: chipMetadataValue(text, 'Status'),
+				documentTitle: chipMetadataValue(text, 'Title') ?? /^#\s+(.+)$/m.exec(text)?.[1]?.trim(),
+			}
+		},
+		resolveProposalIndex: async () => {
+			const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
+			return Object.values(chipRowsByNumber(await getTree()))
+				.map(({ path: _path, ...chip }) => chip)
+		},
+	}),
 } satisfies RegisteredSourceResolverModule

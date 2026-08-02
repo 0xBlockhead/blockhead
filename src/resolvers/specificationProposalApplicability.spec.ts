@@ -23,15 +23,23 @@ import polkadotRfcs from '$/resolvers/PolkadotRfcs-Github.ts'
 import quilibriumDocs from '$/resolvers/QuilibriumDocs-Rest.ts'
 import solanaSimds from '$/resolvers/SolanaSimds-Github.ts'
 import zcashZips from '$/resolvers/ZcashZips-Github.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	EntityMetaKey,
+	entityFieldAddressKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 
+const bitcoinCashChipsQueries = vi.hoisted(() => ({
+	getChipMarkdownText: vi.fn(),
+	getTree: vi.fn(),
+}))
 const dogecoinDipsQueries = vi.hoisted(() => ({
 	getContents: vi.fn(),
 	getMediaWikiText: vi.fn(),
 }))
 
+vi.mock('$/sources/BitcoinCashChips/Gitlab/queries.ts', () => bitcoinCashChipsQueries)
 vi.mock('$/sources/DogecoinDips/Github/queries.ts', () => dogecoinDipsQueries)
 
 const proposalResolvers = [
@@ -55,6 +63,7 @@ const proposalResolvers = [
 
 const sharedSpecificationProposalResolvers = [
 	bitcoinBips,
+	bitcoinCashChips,
 	caips,
 	cosmosAdrs,
 	dogecoinDips,
@@ -64,6 +73,7 @@ const sharedSpecificationProposalResolvers = [
 	litecoinLips,
 	nearNeps,
 	polkadotRfcs,
+	quilibriumDocs,
 	solanaSimds,
 	zcashZips,
 ] as const
@@ -131,6 +141,69 @@ describe('specification proposal source applicability', () => {
 				number: 100,
 			},
 		])
+	})
+
+	it('discovers and resolves Bitcoin Cash CHIPs through the provider-owned repository contract', async () => {
+		const tree = [
+			{
+				type: 'blob',
+				name: 'CHIP-2021-05-new.md',
+				path: 'CHIP-2021-05-new.md',
+			},
+			{
+				type: 'tree',
+				name: 'CHIP-2020-01-directory.md',
+				path: 'CHIP-2020-01-directory.md',
+			},
+			{
+				type: 'blob',
+				name: 'CHIP-2020-01-old.md',
+				path: 'CHIP-2020-01-old.md',
+			},
+		]
+		bitcoinCashChipsQueries.getTree.mockResolvedValue(tree)
+
+		const rows = await bitcoinCashChips.resolvers[1].resolve.Scope.resolve()
+		expect(rows.map((row) => row[EntityMetaKey.Selector])).toEqual([
+			{
+				realm: SpecificationRealm.BitcoinCash,
+				category: ProposalCategory.Chip,
+				number: 202001001,
+			},
+			{
+				realm: SpecificationRealm.BitcoinCash,
+				category: ProposalCategory.Chip,
+				number: 202105002,
+			},
+		])
+
+		bitcoinCashChipsQueries.getChipMarkdownText.mockResolvedValue(`> Type: Standards\n> Status: Draft\n# Fallback title\n\nBody`)
+		const proposal = await bitcoinCashChips.resolvers[0]
+			.resolve.RealmCategoryNumber.resolve({
+				realm: SpecificationRealm.BitcoinCash,
+				category: ProposalCategory.Chip,
+				number: 202105002,
+			})
+		expect(bitcoinCashChipsQueries.getChipMarkdownText).toHaveBeenCalledWith({
+			path: 'CHIP-2021-05-new.md',
+		})
+		expect(proposal).toEqual({
+			documentBody: `> Type: Standards\n> Status: Draft\n# Fallback title\n\nBody`,
+			documentCategory: 'Standards',
+			documentStatus: 'Draft',
+			documentTitle: 'Fallback title',
+		})
+	})
+
+	it('preserves Quilibrium proposal fields on the global index rows', async () => {
+		const rows = await quilibriumDocs.resolvers[1].resolve.Scope.resolve()
+		expect(rows).toHaveLength(1)
+		expect(rows[0]?.[EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentBody')]: 'Quilibrium protocol whitepaper and architecture reference.',
+			[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentCategory')]: 'Protocol document',
+			[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentStatus')]: 'Published',
+			[entityFieldAddressKey(EntityType.SpecificationProposal, [], 'documentTitle')]: 'Quilibrium peer-to-peer MPC platform whitepaper',
+		})
 	})
 
 	it('admits only the provider that owns each realm and category before resolution', () => {
