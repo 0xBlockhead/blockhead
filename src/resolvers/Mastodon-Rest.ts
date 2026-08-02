@@ -190,13 +190,13 @@ const activityPubNoteCardReferenceFromMastodonStatus = (
 		return undefined
 
 	return {
-		[EntityMetaKey.Selector]: activityStreamsUri != null ?
-			{ activityStreamsUri }
-		:
+		[EntityMetaKey.Selector]: status.id != null ?
 			{
 				instanceOrigin,
 				localStatusId: String(status.id),
-			},
+			}
+		:
+			{ activityStreamsUri },
 		[EntityMetaKey.Fields]: (
 			activityStreamsUri == null || status.id == null ?
 				{}
@@ -308,7 +308,7 @@ const activityPubActorCardReferenceFromMastodonStatus = (
 	servingInstanceOrigin: string,
 	resolvedAtMs: number
 ) => {
-	if (status.account == null)
+	if (status.account?.id == null)
 		throw new Error('Mastodon_Rest: public timeline status missing author')
 
 	const activityStreamsUri = optionalNonemptyString(status.account.uri)
@@ -341,7 +341,8 @@ const activityPubActorCardReferenceFromMastodonStatus = (
 
 	return {
 		[EntityMetaKey.Selector]: {
-			activityStreamsUri,
+			instanceOrigin: servingInstanceOrigin,
+			localAccountId: String(status.account.id),
 		},
 		[EntityMetaKey.Fields]: {
 			...Object.fromEntries(Object.entries(
@@ -446,36 +447,37 @@ export default {
 										instanceOrigin,
 										resolvedAtMs
 									),
-									status,
+									actorActivityStreamsUri: String(status.account?.uri),
+									note: activityPubNoteCardReferenceFromMastodonStatus(
+										status,
+										instanceOrigin,
+										resolvedAtMs
+									),
 								}]
 							} catch {
 								return []
 							}
 						})
-						const actorByActivityStreamsUri = timelineEntries.reduce((actors, { actor }) => {
-							const activityStreamsUri = actor[EntityMetaKey.Selector].activityStreamsUri
-							if (!actors.has(activityStreamsUri))
-								actors.set(activityStreamsUri, actor)
+						const actorByActivityStreamsUri = timelineEntries.reduce((actors, {
+							actor,
+							actorActivityStreamsUri,
+						}) => {
+							if (!actors.has(actorActivityStreamsUri))
+								actors.set(actorActivityStreamsUri, actor)
 
 							return actors
 						}, new Map<string, ReturnType<typeof activityPubActorCardReferenceFromMastodonStatus>>())
 						return {
 							actors: [...actorByActivityStreamsUri.values()].slice(0, limit),
-							notes: [...new Map(
-								timelineEntries.flatMap(({ status }) => (
-									optionalNonemptyString(status.uri) != null ?
-										[{
-											[EntityMetaKey.Selector]: {
-												activityStreamsUri: String(status.uri),
-											},
-										}]
-									:
-										[]
-								))
-							.map((note) => [
-								note[EntityMetaKey.Selector].activityStreamsUri,
-								note,
-							])).values()].slice(0, limit),
+							notes: [...new Map(timelineEntries.flatMap(({ note }) => (
+								note == null || !('localStatusId' in note[EntityMetaKey.Selector]) ?
+									[]
+								:
+									[[
+										`${note[EntityMetaKey.Selector].instanceOrigin}\n${note[EntityMetaKey.Selector].localStatusId}`,
+										note,
+									] as const]
+							))).values()].slice(0, limit),
 						}
 					},
 				},

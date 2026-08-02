@@ -180,25 +180,31 @@ describe('Mastodon ActivityPub observations', () => {
 			17
 		)
 		expect(listPublicTimelinePage).toHaveBeenCalledTimes(1)
-		expect(notes(timeline)).toEqual([
+		const projectedNotes = notes(timeline)
+		expect(projectedNotes.map((note) => note[EntityMetaKey.Selector])).toEqual([
 			{
-				[EntityMetaKey.Selector]: {
-					activityStreamsUri: 'https://remote.example/users/alice/statuses/3',
-				},
+				instanceOrigin: 'https://fosstodon.org',
+				localStatusId: '114000000000000003',
 			},
 			{
-				[EntityMetaKey.Selector]: {
-					activityStreamsUri: 'https://fosstodon.org/users/bob/statuses/4',
-				},
+				instanceOrigin: 'https://fosstodon.org',
+				localStatusId: '114000000000000004',
 			},
 		])
+		expect(projectedNotes[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.ActivityPubNote, [], 'instanceOrigin')]: 'https://fosstodon.org',
+			[entityFieldAddressKey(EntityType.ActivityPubNote, [], 'localStatusId')]: '114000000000000003',
+			[entityFieldAddressKey(EntityType.ActivityPubNote, [], 'activityStreamsUri')]: 'https://remote.example/users/alice/statuses/3',
+		})
 		const projectedActors = actors(timeline)
 		expect(projectedActors.map((actor) => actor[EntityMetaKey.Selector])).toEqual([
 			{
-				activityStreamsUri: 'https://remote.example/users/alice',
+				instanceOrigin: 'https://fosstodon.org',
+				localAccountId: 'remote-cache-1',
 			},
 			{
-				activityStreamsUri: 'https://fosstodon.org/users/bob',
+				instanceOrigin: 'https://fosstodon.org',
+				localAccountId: 'bob-local-id',
 			},
 		])
 		expect(projectedActors[0][EntityMetaKey.Fields]).toMatchObject({
