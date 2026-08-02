@@ -260,14 +260,6 @@ type RouteNode = {
 	}[]
 	selectorMappings: readonly SelectorRouteMapping[]
 	selectorVariant?: SelectorRouteMapping
-	detail?: {
-		group: string
-		mappings: readonly {
-			entityType: EntityType
-			selectorName: string
-			component: string
-		}[]
-	}
 	page?: NonNullable<App['routes']['children'][string]['page']>
 	layout?: NonNullable<App['routes']['children'][string]['layout']>
 	children: readonly RouteNode[]
@@ -2614,12 +2606,6 @@ const entityRawSnippets = (entity: Entity) => {
 	]
 }
 
-type RouteDetail = {
-	entityType: EntityType
-	selectorName: string
-	component: string
-	sourceSelection?: readonly string[] | _SourceSelection
-}
 type RouteDetailLayoutPlan = {
 	components: readonly string[]
 	hrefExpression: string
@@ -3757,25 +3743,21 @@ const compileRouteTree = (
 				page: collection.page,
 			}
 		})
-		const ownDetailMappings = compiledSelectorMappings.flatMap(({ mapping, selector }) => (
+		const ownDetailEntityTypes = unique(compiledSelectorMappings.flatMap(({ mapping, selector }) => (
 			selector.params.length > 0
 			&& (
 				mapping.page != null
 				|| selector.entityType === node.page?.view?.entity
 			) ?
-				[{
-					entityType: selector.entityType,
-					selectorName: selector.selectorName,
-					component: mapping.page?.view?.component ?? node.page?.view?.component ?? singularComponentName(selector.entityType),
-				}]
+				[selector.entityType]
 			:
 				[]
-		))
+		)))
 		const ownDetailGroup = (
-			ownDetailMappings.length === 0 ?
+			ownDetailEntityTypes.length === 0 ?
 				undefined
-			: unique(ownDetailMappings.map(({ entityType }) => entityType)).length === 1 ?
-				camel(ownDetailMappings[0]?.entityType ?? '')
+			: ownDetailEntityTypes.length === 1 ?
+				camel(ownDetailEntityTypes[0] ?? '')
 			:
 				'selection'
 		)
@@ -4075,12 +4057,6 @@ const compileRouteTree = (
 			...(selectorVariant == null ? {} : {
 				selectorVariant: selectorVariant.mapping,
 			}),
-			...(ownDetailGroup == null ? {} : {
-				detail: {
-					group: ownDetailGroup,
-					mappings: ownDetailMappings,
-				},
-			}),
 			...(node.page == null ? {} : { page: node.page }),
 			...(node.layout == null ? {} : { layout: node.layout }),
 			children,
@@ -4122,10 +4098,13 @@ const viewConditionFromFacetCondition = (
 const selectorMappingOwnsDetailPage = (
 	node: RouteNode,
 	mapping: SelectorRouteMapping
-) => node.selectorVariant === mapping || node.detail?.mappings.some((detail) => (
-	detail.entityType === mapping.entityType
-	&& detail.selectorName === mapping.selectorName
-)) === true
+) => node.selectorVariant === mapping || (
+	mapping.fields.length > 0
+	&& (
+		mapping.page != null
+		|| mapping.entityType === node.page?.view?.entity
+	)
+)
 
 const routeLinksFromMapping = (
 	node: RouteNode,
@@ -4604,18 +4583,19 @@ const compileRouteEntries = (
 		: mappingPages.length > 1 ? {}
 		: undefined
 	)
-	const ownDetails = node.detail?.mappings.flatMap((detail) => {
-		const mapping = node.selectorMappings.find((candidate) => (
-			candidate.entityType === detail.entityType
-			&& candidate.selectorName === detail.selectorName
-		))
-		return mapping == null ? [] : [{
-			...detail,
-			...(mapping.sourceSelection == null ? {} : { sourceSelection: mapping.sourceSelection }),
-		} satisfies RouteDetail]
-	}) ?? []
+	const ownDetails = node.selectorMappings.flatMap((mapping) => (
+		selectorMappingOwnsDetailPage(node, mapping) ?
+			[{
+				entityType: mapping.entityType,
+				selectorName: mapping.selectorName,
+				component: mapping.page?.view?.component ?? node.page?.view?.component ?? singularComponentName(mapping.entityType),
+				...(mapping.sourceSelection == null ? {} : { sourceSelection: mapping.sourceSelection }),
+			}]
+		:
+			[]
+	))
+	const detailEntityTypes = unique(ownDetails.map((detail) => detail.entityType))
 	const detailLayout = ownDetails.length === 0 ? undefined : (() => {
-		const detailEntityTypes = unique(ownDetails.map((detail) => detail.entityType))
 		for (const detailIdentity of detailEntityTypes) {
 			const entityDetails = ownDetails.filter((detail) => detail.entityType === detailIdentity)
 			if (unique(entityDetails.map((detail) => detail.component)).length > 1)
@@ -4723,9 +4703,9 @@ const compileRouteEntries = (
 			routePath: node.svelteKitPath.replace(/^\//, ''),
 			files,
 		}]),
-		...(node.detail == null || ownDetails.length === 0 || node.children.length === 0 ? [] : [{
+		...(detailLayout == null || node.children.length === 0 ? [] : [{
 			internalPath: node.internalPath,
-			routePath: `${node.svelteKitPath.replace(/^\//, '')}/(${node.detail.group})`,
+			routePath: `${node.svelteKitPath.replace(/^\//, '')}/(${detailEntityTypes.length === 1 ? camel(detailEntityTypes[0] ?? '') : 'selection'})`,
 			files: [{
 				kind: RouteFileKind.Layout,
 				detailLayout,
