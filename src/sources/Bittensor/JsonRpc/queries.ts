@@ -1,17 +1,19 @@
 import { substrateJsonRpc } from '$/sources/_shared/interfaces/SubstrateJsonRpc/client.ts'
 import bindings from '$/sources/Bittensor/bindings.ts'
 import { type as arktype } from 'arktype'
-import {
-	getBlock as getSubstrateBlock,
-	getBlockHash as getSubstrateBlockHash,
-	getFinalizedHead as getSubstrateFinalizedHead,
-	getHeader as getSubstrateHeader,
-	getRuntimeVersion as getSubstrateRuntimeVersion,
-	getSystemHealth as getSubstrateSystemHealth,
-} from '$/sources/_shared/interfaces/SubstrateJsonRpc/queries.ts'
+import { substrateJsonRpcQueries } from '$/sources/_shared/interfaces/SubstrateJsonRpc/queries.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.Bittensor_JsonRpc][0]
+
+export const {
+	getBlock,
+	getBlockHash,
+	getFinalizedHead,
+	getHeader,
+	getRuntimeVersion,
+	getSystemHealth,
+} = substrateJsonRpcQueries(binding)
 
 const scaleBytes = arktype('(number.integer >= 0 <= 255)[]')
 
@@ -76,57 +78,6 @@ const getSubnetScaleBytes = async ({
 		maxBytes: 4_194_304,
 	})
 }
-
-export const getFinalizedHead = () => (
-	getSubstrateFinalizedHead({
-		binding,
-	})
-)
-
-export const getBlockHash = ({
-	blockNumber,
-}: {
-	blockNumber: bigint
-}) => (
-	getSubstrateBlockHash({
-		binding,
-		blockNumber,
-	})
-)
-
-export const getHeader = ({
-	blockHash,
-}: {
-	blockHash?: string
-}) => (
-	getSubstrateHeader({
-		binding,
-		blockHash,
-	})
-)
-
-export const getBlock = ({
-	blockHash,
-}: {
-	blockHash: string
-}) => (
-	getSubstrateBlock({
-		binding,
-		blockHash,
-	})
-)
-
-export const getRuntimeVersion = () => (
-	getSubstrateRuntimeVersion({
-		binding,
-	})
-)
-
-export const getSystemHealth = () => (
-	getSubstrateSystemHealth({
-		binding,
-	})
-)
 
 export const getSubnetsInfo = ({
 	blockHash,
