@@ -115,19 +115,17 @@ describe('Dogecoin Core JSON-RPC', () => {
 		])
 	})
 
-	it('preserves explicit block and transaction verbosity', async () => {
+	it('uses each protocol family decoded response parameter', async () => {
 		jsonRpc2.mockResolvedValue('wire-result')
 
 		await getBitcoinBlock({
 			blockHash: block.hash,
-			verbosity: 0,
 		})
 		await getBitcoinRawTransaction({
 			txId: 'bitcoin-transaction',
 		})
 		await getLitecoinRawTransaction({
 			txId: 'litecoin-transaction',
-			verbose: false,
 		})
 
 		expect(jsonRpc2.mock.calls.map((call) => call.slice(1))).toEqual([
@@ -135,21 +133,21 @@ describe('Dogecoin Core JSON-RPC', () => {
 				'getblock',
 				[
 					block.hash,
-					0,
+					2,
 				],
 			],
 			[
 				'getrawtransaction',
 				[
 					'bitcoin-transaction',
-					true,
+					1,
 				],
 			],
 			[
 				'getrawtransaction',
 				[
 					'litecoin-transaction',
-					false,
+					true,
 				],
 			],
 		])

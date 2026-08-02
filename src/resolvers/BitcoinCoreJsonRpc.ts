@@ -50,7 +50,6 @@ export const bitcoinCoreJsonRpcResolvers = ({
 							} = await loadQueries()
 							const block = await getBlock({
 								blockHash: hash,
-								verbosity: 2,
 							})
 							return {
 								hash: block.hash,
@@ -116,7 +115,6 @@ export const bitcoinCoreJsonRpcResolvers = ({
 							const { getRawTransaction } = await loadQueries()
 							const transaction = await getRawTransaction({
 								txId: txId,
-								verbose: true,
 							})
 							return {
 								[EntityMetaKey.Selector]: {

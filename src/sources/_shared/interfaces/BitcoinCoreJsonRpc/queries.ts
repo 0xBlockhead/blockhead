@@ -7,36 +7,35 @@ import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 
 export const bitcoinCoreJsonRpc = <
 	_Block extends BitcoinCoreBlock = BitcoinCoreBlock,
->(binding: SourceBinding) => ({
-	getBlock: <_Verbosity extends 0 | 1 | 2 = 2>({
+>(
+	binding: SourceBinding,
+	transactionObjectParameter: 1 | true
+) => ({
+	getBlock: ({
 		blockHash,
-		verbosity,
 	}: {
 		blockHash: string
-		verbosity?: _Verbosity
 	}) => (
-		jsonRpc2<_Verbosity extends 0 ? string : _Block>(
+		jsonRpc2<_Block>(
 			binding,
 			'getblock',
 			[
 				blockHash,
-				verbosity ?? 2,
+				2,
 			]
 		)
 	),
-	getRawTransaction: <_Verbose extends boolean = true>({
+	getRawTransaction: ({
 		txId,
-		verbose,
 	}: {
 		txId: string
-		verbose?: _Verbose
 	}) => (
-		jsonRpc2<_Verbose extends true ? BitcoinCoreTransaction : string>(
+		jsonRpc2<BitcoinCoreTransaction>(
 			binding,
 			'getrawtransaction',
 			[
 				txId,
-				verbose ?? true,
+				transactionObjectParameter,
 			]
 		)
 	),

@@ -7,4 +7,4 @@ const binding = bindings[Source.BitcoinCore_JsonRpc][0]
 export const {
 	getBlock,
 	getRawTransaction,
-} = bitcoinCoreJsonRpc(binding)
+} = bitcoinCoreJsonRpc(binding, 1)

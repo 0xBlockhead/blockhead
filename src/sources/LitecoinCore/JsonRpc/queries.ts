@@ -7,4 +7,4 @@ const binding = bindings[Source.LitecoinCore_JsonRpc][0]
 export const {
 	getBlock,
 	getRawTransaction,
-} = bitcoinCoreJsonRpc(binding)
+} = bitcoinCoreJsonRpc(binding, true)
