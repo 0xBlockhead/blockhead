@@ -54,6 +54,7 @@ const proposalResolvers = [
 ] as const
 
 const sharedSpecificationProposalResolvers = [
+	bitcoinBips,
 	caips,
 	cosmosAdrs,
 	dogecoinDips,
@@ -63,6 +64,7 @@ const sharedSpecificationProposalResolvers = [
 	litecoinLips,
 	nearNeps,
 	polkadotRfcs,
+	solanaSimds,
 	zcashZips,
 ] as const
 
