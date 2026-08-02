@@ -1337,6 +1337,17 @@ test('keeps APP compiler registries internally aligned', () => {
 	assert.equal(appResolverModulePaths.length, new Set(appResolverModulePaths).size)
 })
 
+test('rejects duplicate resolver module paths during compilation', () => {
+	const duplicatePathApp = structuredClone(app)
+	const [firstResolverModule, secondResolverModule] = duplicatePathApp.resolvers.modules
+
+	assert.ok(firstResolverModule && secondResolverModule)
+	Object.defineProperty(secondResolverModule, 'path', {
+		value: firstResolverModule.path,
+	})
+	assert.throws(() => compileApp(duplicatePathApp), /duplicate resolver module path/)
+})
+
 test('retains only consumed generation indexes', () => {
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
 
