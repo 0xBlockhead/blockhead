@@ -340,6 +340,7 @@ type CompiledAppFacts = Readonly<{
 	valueTypeById: Readonly<Record<string, ValueType>>
 	sourceProviders: readonly SourceProviderDefinition[]
 	sources: readonly SourceDefinition[]
+	sourceDefinitionById: Readonly<Record<string, SourceDefinition>>
 	sourceBindings: readonly SourceBindingEntry[]
 	resolverModules: readonly App['resolvers']['modules'][number][]
 	navigationItems: readonly App['navigation']['items'][number][]
@@ -362,6 +363,7 @@ type GenerationIndexes = Readonly<
 		| 'facetAncestorConditionsByPath'
 		| 'facetDependencyConditionsByPath'
 		| 'sourceBindings'
+		| 'sourceDefinitionById'
 		| 'valueTypeById'
 	>
 	& {
@@ -372,6 +374,7 @@ type GenerationIndexes = Readonly<
 >
 type SourcesMarkdownInput = Readonly<{
 	sourceBindings: readonly SourceBindingEntry[]
+	sourceDefinitionById: Readonly<Record<string, SourceDefinition>>
 	sourceProviders: readonly SourceProviderDefinition[]
 	sources: readonly SourceDefinition[]
 }>
@@ -6269,6 +6272,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		valueTypeById: nullPrototypeRecord([...valueTypeById]),
 		sourceProviders,
 		sources,
+		sourceDefinitionById,
 		sourceBindings: compiledSourceBindings,
 		resolverModules,
 		navigationItems,
@@ -6304,6 +6308,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			facetAncestorConditionsByPath: compiledApp.facetAncestorConditionsByPath,
 			facetDependencyConditionsByPath: compiledApp.facetDependencyConditionsByPath,
 			sourceBindings: compiledApp.sourceBindings,
+			sourceDefinitionById: compiledApp.sourceDefinitionById,
 			valueTypeById: compiledApp.valueTypeById,
 		},
 		entities: compiledApp.activeEntities,
@@ -6328,10 +6333,6 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 	const entityTypes = generationInput.entities.map(({ entityType }) => entityType)
 	const sourceProviders = generationInput.sourceProviders
 	const sourceProviderNames = sourceProviders.map(({ provider }) => provider)
-	const sourceDefinitionById = nullPrototypeRecord(generationInput.sources.map((source) => [
-		String(source.source),
-		source,
-	]))
 	const namedSourceSelections = [...new Map(unique(generationInput.entities.flatMap(entityNamedSourceSelections))
 		.map((selection) => [sourceSelectionFunctionName(selection), {
 			selection,
@@ -6409,6 +6410,7 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 			kind: 'text',
 			body: lines(emitCompiledSourcesMarkdown({
 				sourceBindings: indexes.sourceBindings,
+				sourceDefinitionById: indexes.sourceDefinitionById,
 				sourceProviders,
 				sources: generationInput.sources,
 			})),
@@ -6425,7 +6427,7 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 		generateSourceProviderEnumFile(sourceProviderNames),
 		...sourceProviders.flatMap((provider) => {
 			const providerBindings = indexes.sourceBindings.filter((sourceBinding) => (
-				sourceDefinitionById[sourceBinding.source].provider === provider.provider
+				indexes.sourceDefinitionById[sourceBinding.source].provider === provider.provider
 			))
 			return [
 				generateSourceProviderBindingsFile(provider, providerBindings),
@@ -6840,10 +6842,6 @@ const emitMarkdownTable = (
 ]
 
 const emitCompiledSourcesMarkdown = (sourcesMarkdown: SourcesMarkdownInput) => {
-	const sourceDefinitionById = nullPrototypeRecord(sourcesMarkdown.sources.map((source) => [
-		String(source.source),
-		source,
-	]))
 	const sourceBindingRows = sourcesMarkdown.sourceBindings.map((sourceBinding, bindingIndex) => ({
 		...sourceBinding,
 		bindingNumber: String(bindingIndex + 1),
@@ -6885,7 +6883,7 @@ const emitCompiledSourcesMarkdown = (sourcesMarkdown: SourcesMarkdownInput) => {
 			],
 			sourceBindingRows.map(({ binding, bindingNumber, source }) => [
 				bindingNumber,
-				sourceDefinitionById[source].provider,
+				sourcesMarkdown.sourceDefinitionById[source].provider,
 				String(source),
 				binding.target.kind,
 				binding.target.key,

@@ -159,7 +159,13 @@ test('retains only canonical source binding facts in compiler rows', async () =>
 	assert.match(sourceBindingEntry, /type SourceBindingEntry = \{\n\treadonly source: SourceDefinition\['source'\]\n\treadonly binding: SourceBinding\n\}/)
 	assert.doesNotMatch(sourceBindingEntry, /provider|bindingIndex|artifact/)
 	assert.doesNotMatch(generatorSource, /SourceArtifactEntry|sourceArtifacts/)
-	assert.match(generatorSource, /const sourceDefinitionById = nullPrototypeRecord\(sources\.map/)
+	assert.equal(
+		(generatorSource.match(/const sourceDefinitionById = nullPrototypeRecord\(/g) ?? []).length,
+		1
+	)
+	assert.match(generatorSource, /sourceDefinitionById: compiledApp\.sourceDefinitionById/)
+	assert.doesNotMatch(generatorSource, /nullPrototypeRecord\(generationInput\.sources\.map/)
+	assert.doesNotMatch(generatorSource, /nullPrototypeRecord\(sourcesMarkdown\.sources\.map/)
 	assert.match(generatorSource, /sourceBindingRows\.flatMap\(\(\{ binding, bindingNumber \}\) => \(binding\.artifacts \?\? \[\]\)\.map/)
 })
 
@@ -167,9 +173,9 @@ test('derives provider partitions only at their emitter invocation', async () =>
 	const generatorSource = await readFile('scripts/app/generate.ts', 'utf8')
 
 	assert.doesNotMatch(generatorSource, /CompiledSourceProviderFacts|sourceProviderPlans/)
-	assert.match(generatorSource, /type CompiledAppFacts = Readonly<\{[\s\S]*?sourceProviders: readonly SourceProviderDefinition\[\][\s\S]*?sources: readonly SourceDefinition\[\][\s\S]*?sourceBindings: readonly SourceBindingEntry\[\]/)
+	assert.match(generatorSource, /type CompiledAppFacts = Readonly<\{[\s\S]*?sourceProviders: readonly SourceProviderDefinition\[\][\s\S]*?sources: readonly SourceDefinition\[\][\s\S]*?sourceDefinitionById: Readonly<Record<string, SourceDefinition>>[\s\S]*?sourceBindings: readonly SourceBindingEntry\[\]/)
 	assert.match(generatorSource, /type GenerationInput = Readonly<\{[\s\S]*?sourceProviders: readonly SourceProviderDefinition\[\][\s\S]*?sources: readonly SourceDefinition\[\]/)
-	assert.match(generatorSource, /sourceProviders\.flatMap\(\(provider\) => \{[\s\S]*?const providerBindings = indexes\.sourceBindings\.filter[\s\S]*?generateSourceProviderBindingsFile\(provider, providerBindings\)[\s\S]*?generationInput\.sources\.filter\(\(source\) => source\.provider === provider\.provider\)/)
+	assert.match(generatorSource, /sourceProviders\.flatMap\(\(provider\) => \{[\s\S]*?const providerBindings = indexes\.sourceBindings\.filter[\s\S]*?indexes\.sourceDefinitionById\[sourceBinding\.source\]\.provider === provider\.provider[\s\S]*?generateSourceProviderBindingsFile\(provider, providerBindings\)[\s\S]*?generationInput\.sources\.filter\(\(source\) => source\.provider === provider\.provider\)/)
 })
 
 test('uses authored binding identity instead of synthetic row indexes', async () => {
@@ -352,4 +358,20 @@ test('renders SOURCES.md exactly from APP', async () => {
 			artifact.referenceUrl ?? '',
 		])),
 	})
+})
+
+test('keys source ownership independently of authored source row order', () => {
+	const shuffledApp = structuredClone(app)
+	Object.defineProperty(shuffledApp.sources, 'sources', {
+		value: shuffledApp.sources.sources.toReversed(),
+	})
+	const voyagerBindingRow = tableAfterHeading(
+		renderSourcesMarkdown(compileApp(shuffledApp)),
+		'## Bindings'
+	).rows.find((row) => row[2] === Source.Voyager)
+
+	assert.equal(
+		voyagerBindingRow?.[1],
+		app.sources.sources.find(({ source }) => source === Source.Voyager)?.provider
+	)
 })
