@@ -7340,24 +7340,6 @@ const emitSourceBinding = (
 	] as const : []),
 ])
 
-const emitSourceBindingBase = (
-	source: string,
-	binding: NonNullable<App['sources']['sources'][number]['binding']>,
-	expressions: {
-		operationGroups: string
-		credentials: string
-		artifacts?: string
-	}
-) => emitObject([
-	['source', enumAccess('Source', source)],
-	['wireProtocol', enumAccess('WireProtocol', binding.wireProtocol)],
-	['apiFamily', enumAccess('ApiFamily', binding.apiFamily)],
-	['operationGroups', expressions.operationGroups],
-	['delivery', enumAccess('SourceDelivery', binding.delivery)],
-	['credentials', expressions.credentials],
-	['artifacts', expressions.artifacts],
-])
-
 // Repeated binding values are declared once beside the rows that consume them.
 type RepeatedBindingValue = {
 	identity: string
@@ -7582,11 +7564,15 @@ const generateSourceProviderBindingsFile = (
 			const baseIdentifier = bindingBaseNames[groupIndex]
 			if (binding == null || baseIdentifier == null)
 				return []
-			return [`const ${baseIdentifier} = ${emitSourceBindingBase(source, binding, {
-				operationGroups: bindingValueReference(properties.operationGroups, group[0].operationGroups) ?? '[]',
-				credentials: bindingValueReference(properties.credentials, group[0].credentials) ?? '[]',
-				artifacts: bindingValueReference(properties.artifacts, group[0].artifacts),
-			})} as const`]
+			return [`const ${baseIdentifier} = ${emitObject([
+				['source', enumAccess('Source', source)],
+				['wireProtocol', enumAccess('WireProtocol', binding.wireProtocol)],
+				['apiFamily', enumAccess('ApiFamily', binding.apiFamily)],
+				['operationGroups', bindingValueReference(properties.operationGroups, group[0].operationGroups) ?? '[]'],
+				['delivery', enumAccess('SourceDelivery', binding.delivery)],
+				['credentials', bindingValueReference(properties.credentials, group[0].credentials) ?? '[]'],
+				['artifacts', bindingValueReference(properties.artifacts, group[0].artifacts)],
+			])} as const`]
 		}),
 		bindings: sourceBindingRows.map(({
 			binding,
