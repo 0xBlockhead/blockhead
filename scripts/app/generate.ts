@@ -11230,16 +11230,17 @@ const renderSummaryAfter = (
 	viewEntries: readonly _ViewItem[]
 ) => {
 	const fieldValueNames = fieldValueNamesForViewEntries(viewEntries)
+	const summaryAfterItems = viewEntries.flatMap((viewEntry, viewEntryIndex) => renderSummaryAfterItem(
+		entity,
+		indexes,
+		viewEntry,
+		fieldValueNames[viewEntryIndex] ?? 'value',
+		entityName == null ? 2 : 4
+	))
 	if (entityName == null)
 		return [
 			'',
-			...renderSvelteSnippet(1, 'HeadingAfter()', viewEntries.flatMap((viewEntry, viewEntryIndex) => renderSummaryAfterItem(
-				entity,
-				indexes,
-				viewEntry,
-				fieldValueNames[viewEntryIndex] ?? 'value',
-				2
-			))),
+			...renderSvelteSnippet(1, 'HeadingAfter()', summaryAfterItems),
 		]
 
 	return [
@@ -11247,13 +11248,7 @@ const renderSummaryAfter = (
 		'\t{#snippet HeadingAfter()}',
 		...renderResourceBoundaryOpen(2, entityName),
 		'\t\t\t{#snippet children(entity)}',
-		...viewEntries.flatMap((viewEntry, viewEntryIndex) => renderSummaryAfterItem(
-			entity,
-			indexes,
-			viewEntry,
-			fieldValueNames[viewEntryIndex] ?? 'value',
-			4
-		)),
+		...summaryAfterItems,
 		'\t\t\t{/snippet}',
 		'\t\t</ResourceBoundary>',
 		'\t{/snippet}',
