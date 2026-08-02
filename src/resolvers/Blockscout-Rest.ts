@@ -2531,11 +2531,11 @@ export default {
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
-						const { getUserOperationsByTransaction } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const wires = await getUserOperationsByTransaction({
+						const { getUserOperationsPage } = await import('$/sources/Blockscout/Rest/queries.ts')
+						const wires = await getUserOperationsPage({
 							chainId: evmChainIdFromNetworkSelector($network),
-							txHash,
 							limit,
+							transactionHash: txHash,
 						})
 						return wires.flatMap((wire) => {
 							const reference = evmUserOperationReferenceFromBlockscoutWire({

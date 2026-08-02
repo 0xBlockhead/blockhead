@@ -279,7 +279,7 @@ describe('Blockscout account-abstraction queries', () => {
 	})
 
 	it('returns account-abstraction rows from the documented success response', async () => {
-		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+		const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
 			items: [userOperation],
 			next_page_params: {
 				page: 2,
@@ -289,6 +289,11 @@ describe('Blockscout account-abstraction queries', () => {
 		await expect(getUserOperationsPage({
 			chainId: 1,
 			limit: 3,
+			transactionHash: hex('a', 64),
 		})).resolves.toEqual([userOperation])
+		expect(fetchMock).toHaveBeenCalledWith(
+			expect.stringContaining(`transaction_hash=${hex('a', 64)}`),
+			expect.any(Object)
+		)
 	})
 })

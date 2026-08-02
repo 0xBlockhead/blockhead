@@ -484,9 +484,11 @@ const blockscoutErc4337PathHash = (value: string, byteSize: 20 | 32, label: stri
 export const getUserOperationsPage = async ({
 	chainId,
 	limit,
+	transactionHash,
 }: {
 	chainId: number
 	limit: number
+	transactionHash?: string
 }) => {
 	if (limit <= 0)
 		return []
@@ -496,32 +498,13 @@ export const getUserOperationsPage = async ({
 		path: '/proxy/account-abstraction/operations',
 		searchParams: {
 			page_size: blockscoutItemsCount(limit),
-		},
-	})).items
-}
-
-export const getUserOperationsByTransaction = async ({
-	chainId,
-	txHash,
-	limit,
-}: {
-	chainId: number
-	txHash: string
-	limit: number
-}) => {
-	if (limit <= 0)
-		return []
-
-	return (await getBlockscoutJson<BlockscoutUserOperationsPage>({
-		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
-		path: '/proxy/account-abstraction/operations',
-		searchParams: {
-			page_size: blockscoutItemsCount(limit),
-			transaction_hash: blockscoutErc4337PathHash(
-				txHash,
-				32,
-				'Blockscout user operations by transaction'
-			),
+			...(transactionHash != null && {
+				transaction_hash: blockscoutErc4337PathHash(
+					transactionHash,
+					32,
+					'Blockscout user operations by transaction'
+				),
+			}),
 		},
 	})).items
 }
