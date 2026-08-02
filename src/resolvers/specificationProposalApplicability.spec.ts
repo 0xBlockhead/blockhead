@@ -53,7 +53,44 @@ const proposalResolvers = [
 	[zcashZips, SpecificationRealm.Zcash, ProposalCategory.Zip],
 ] as const
 
+const sharedSpecificationProposalResolvers = [
+	caips,
+	cosmosAdrs,
+	dogecoinDips,
+	ensips,
+	filecoinFips,
+	litecoinLips,
+	nearNeps,
+	polkadotRfcs,
+	zcashZips,
+] as const
+
 describe('specification proposal source applicability', () => {
+	it('preserves the shared proposal document and index resolver contract', () => {
+		for (const module of sharedSpecificationProposalResolvers) {
+			expect(module.resolvers).toHaveLength(2)
+			expect(module.resolvers.map(({ entityType }) => entityType)).toEqual([
+				EntityType.SpecificationProposal,
+				EntityType._Global,
+			])
+			expect(Object.keys(module.resolvers[0].resolve)).toEqual([
+				'RealmCategoryNumber',
+			])
+			expect(Object.keys(module.resolvers[0].projections)).toEqual([
+				'documentBody',
+				'documentCategory',
+				'documentStatus',
+				'documentTitle',
+			])
+			expect(Object.keys(module.resolvers[1].resolve)).toEqual([
+				'Scope',
+			])
+			expect(Object.keys(module.resolvers[1].projections)).toEqual([
+				'$$proposals',
+			])
+		}
+	})
+
 	it('discovers Dogecoin DIPs from the declared GitHub source snapshot', async () => {
 		dogecoinDipsQueries.getContents.mockResolvedValueOnce([
 			{
