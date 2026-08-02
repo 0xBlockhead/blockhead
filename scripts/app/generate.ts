@@ -653,11 +653,11 @@ const isTypeScriptBindingReference = (
 
 const typeScriptNodeReferenceCount = (
 	root: ts.Node,
-	binding: string
+	matchesReference: (node: ts.Node) => boolean
 ) => {
 	let referenceCount = 0
 	const visit = (node: ts.Node) => {
-		if (isTypeScriptBindingReference(node, binding))
+		if (matchesReference(node))
 			referenceCount += 1
 		else
 			ts.forEachChild(node, visit)
@@ -673,7 +673,26 @@ const typeScriptExpressionReferenceCount = (
 	if (source.trim() === '')
 		return 0
 
-	return typeScriptNodeReferenceCount(parseTypeScriptExpression(source).expression, binding)
+	return typeScriptNodeReferenceCount(
+		parseTypeScriptExpression(source).expression,
+		(node) => isTypeScriptBindingReference(node, binding)
+	)
+}
+
+const typeScriptSubexpressionReferenceCount = (
+	source: string,
+	reference: string
+) => {
+	if (source.trim() === '')
+		return 0
+
+	const parsedSource = parseTypeScriptExpression(source)
+	const referenceSource = parseTypeScriptExpression(reference)
+	const referenceText = unwrapParenthesizedExpression(referenceSource.expression).getText(referenceSource.sourceFile)
+	return typeScriptNodeReferenceCount(
+		parsedSource.expression,
+		(node) => ts.isExpression(node) && node.getText(parsedSource.sourceFile) === referenceText
+	)
 }
 
 const typeScriptExpressionReferencesBinding = (
@@ -700,7 +719,10 @@ const typeScriptSourceReferencesBinding = (
 	if (sourceFile.parseDiagnostics.length > 0)
 		throw new Error('Cannot parse authored TypeScript script')
 
-	return typeScriptNodeReferenceCount(sourceFile, binding) > 0
+	return typeScriptNodeReferenceCount(
+		sourceFile,
+		(node) => isTypeScriptBindingReference(node, binding)
+	) > 0
 }
 
 const replaceTypeScriptIdentifier = (
@@ -12319,13 +12341,7 @@ const entityRouteHrefPlan = (
 	reservedNames: readonly string[],
 	usesResolvedEntity = false
 ) => {
-	const markerEntries = entity.fields.flatMap((field, index) => field.entityType == null ? [] : [{
-		fieldName: field.name,
-		marker: `__BLOCKHEAD_COMPILED_HREF_FIELD_${index}__`,
-		expression: fieldExpression(fieldsExpression, field.name),
-	}])
-	const markerEntryByMarker = new Map(markerEntries.map((entry) => [entry.marker, entry]))
-	const markedExpression = (
+	const directExpression = (
 		(indexes.entityRouteLinksByType[entity.entityType]?.length ?? 0) === 0 ?
 			undefined
 		:
@@ -12334,26 +12350,32 @@ const entityRouteHrefPlan = (
 				entity.entityType,
 				fieldsExpression,
 				undefined,
-				usesResolvedEntity,
-				Object.fromEntries(markerEntries.map(({ fieldName, marker }) => [fieldName, marker]))
+				usesResolvedEntity
 			)
 	)
-	const expressionParts = markedExpression?.split(/(__BLOCKHEAD_COMPILED_HREF_FIELD_\d+__)/g) ?? []
-	const referenceCountByField = new Map<string, number>()
-	for (const part of expressionParts) {
-		const fieldName = markerEntryByMarker.get(part)?.fieldName
-		if (fieldName != null)
-			referenceCountByField.set(fieldName, (referenceCountByField.get(fieldName) ?? 0) + 1)
-	}
+	const referenceCountByField = new Map(entity.fields.flatMap((field) => (
+		field.entityType == null || directExpression == null ?
+			[]
+		:
+			[[
+				field.name,
+				typeScriptSubexpressionReferenceCount(
+					directExpression,
+					fieldExpression(fieldsExpression, field.name)
+				),
+			] as const]
+	)))
 	const fieldBindings = entityRouteFieldBindings(entity, referenceCountByField, fieldsExpression, declaration, reservedNames)
-	const bindingNameByField = new Map(fieldBindings.map(({ fieldName, name }) => [fieldName, name]))
-	const renderExpressionParts = (factored: boolean) => markedExpression == null ? undefined : expressionParts.map((part) => {
-		const markerEntry = markerEntryByMarker.get(part)
-		return markerEntry == null ? part : factored ? bindingNameByField.get(markerEntry.fieldName) ?? markerEntry.expression : markerEntry.expression
-	}).join('')
 
 	return {
-		expression: renderExpressionParts(fieldBindings.length > 0),
+		expression: fieldBindings.length === 0 ? directExpression : renderEntityRouteLinkExpression(
+			indexes,
+			entity.entityType,
+			fieldsExpression,
+			undefined,
+			usesResolvedEntity,
+			Object.fromEntries(fieldBindings.map(({ fieldName, name }) => [fieldName, name]))
+		),
 		fieldBindings,
 	}
 }
