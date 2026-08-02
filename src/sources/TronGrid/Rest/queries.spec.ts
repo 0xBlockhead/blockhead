@@ -31,11 +31,9 @@ it('routes POST and GET reads through the declared HTTP proxy binding', async ()
 	expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
 
 	await getBlockByNumber({
-		binding,
 		height: 7n,
 	})
 	await getAccountTransactions({
-		binding,
 		address: 'Taccount',
 		limit: 25,
 	})
