@@ -3141,13 +3141,9 @@ type _RoutePage = {
 }
 
 type _RouteLayout = {
-	kind?: "group"
-	title?: string
+	kind: "group"
+	title: string
 	href?: string
-	entity?: EntityType
-	selector?: _Expression
-	component?: string
-	id?: _Expression
 }
 
 type _SelectorRouteMapping = {

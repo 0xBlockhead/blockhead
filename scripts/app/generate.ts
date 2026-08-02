@@ -117,7 +117,9 @@ type CollectionRouteMapping = {
 	entity: EntityType
 	source: {
 		entity: EntityType
-		selector: _Expression
+		selector:
+			| Extract<_Expression, { kind: 'object' }>
+			| Extract<_Expression, { kind: 'pageSelector' }>
 		referencePath: CollectionReferencePath['fields']
 		routeEntityType?: EntityType
 	}
@@ -4139,7 +4141,7 @@ const routeLinkFromCollection = (
 ): EntityRouteLink | undefined => {
 	const path = node.svelteKitPath
 	const selector = collection.source.selector
-	if (selector.kind !== 'object' && selector.kind !== 'selector')
+	if (selector.kind === 'pageSelector')
 		return routeParamNames(path).length === 0 ?
 			{
 				path,
@@ -4151,48 +4153,24 @@ const routeLinkFromCollection = (
 
 	const routeParams = routeParamNames(path)
 	const params = Object.fromEntries(routeParams.flatMap((param) => {
-		if (selector.kind === 'object') {
-			const selectorField = selector.fields.find(({ value }) => (
-				typeof value !== 'string'
-					&& !('raw' in value)
-				&& value.kind === 'param'
-					&& value.name === param
-			))
-			if (selectorField == null)
-				return []
-
-			const decode = node.params.find((routeParam) => routeParam.name === param)?.decode
-			return [[
-				param,
-				{
-					value: {
-						kind: 'field' as const,
-						name: selectorField.name,
-					},
-					...(typeof decode !== 'string' ? {} : { decode }),
-				},
-			] as const]
-		}
-
-		const selectorParam = selector.params.find((item) => item.param === param)
-		if (selectorParam == null)
+		const selectorField = selector.fields.find(({ value }) => (
+			typeof value !== 'string'
+				&& !('raw' in value)
+			&& value.kind === 'param'
+				&& value.name === param
+		))
+		if (selectorField == null)
 			return []
 
+		const decode = node.params.find((routeParam) => routeParam.name === param)?.decode
 		return [[
 			param,
 			{
-				value: (
-					'hrefValue' in selectorParam && selectorParam.hrefValue != null ?
-						selectorParam.hrefValue
-					: 'value' in selectorParam ?
-						selectorParam.value
-					:
-						{
-							kind: 'field' as const,
-							name: selectorParam.field,
-						}
-				),
-				decode: selectorParam.decode,
+				value: {
+					kind: 'field' as const,
+					name: selectorField.name,
+				},
+				...(typeof decode !== 'string' ? {} : { decode }),
 			},
 		] as const]
 	}))
@@ -4202,18 +4180,8 @@ const routeLinkFromCollection = (
 	return {
 		path,
 		params,
-		selector: selector.kind === 'selector' ? selector.selector : '',
-		conditions: (selector.kind === 'object' ?
-			selector.fields.map(({ name: field, value }) => ({
-				field,
-				value,
-			}))
-		:
-			selector.params.flatMap((selectorParam) => 'value' in selectorParam ? [{
-				field: selectorParam.field,
-				value: selectorParam.value,
-			}] : [])
-		).flatMap(({ field, value }) => (
+		selector: '',
+		conditions: selector.fields.flatMap(({ name: field, value }) => (
 			typeof value !== 'string'
 			&& !('raw' in value)
 			&& value.kind === 'literal' ?
@@ -6014,9 +5982,6 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 
 	for (const entry of routeEntryList) {
 		for (const routeFile of entry.files) {
-			if (routeFile.layout?.entity != null && entityByType[routeFile.layout.entity] == null)
-				errors.push(`${entry.routePath} layout references missing entity ${routeFile.layout.entity}`)
-
 			if (
 				routeFile.page?.view?.component != null
 				&& routeFile.mappings?.length === 0
@@ -15751,84 +15716,36 @@ const renderDetailHrefBinding = (hrefExpression: string, reactive: boolean) => (
 )
 
 const generateLayoutFile = (routePath: string, routeFile: RouteFile) => {
-	if (routeFile.layout == null && routeFile.detailLayout == null)
-		throw new Error(`${routePath} layout route file is missing layout metadata`)
-
-	const modeledEntityLayout = routeFile.layout?.entity == null ? undefined : routeFile.layout
-	const componentFile = modeledEntityLayout == null ?
-		undefined
-	:
-		modeledEntityLayout.component ?? singularComponentName(modeledEntityLayout.entity)
-	const selectorExpression = modeledEntityLayout?.selector == null ?
-		undefined
-	:
-		renderExpression(modeledEntityLayout.selector, {
-			params: 'params',
-		})
-	const entityHref = routeFile.detailLayout?.href ?? modeledEntityLayout?.href
-	const hrefParamNames = entityHref == null ? [] : routeParamNames(entityHref)
-	const componentFiles = routeFile.detailLayout?.components ?? (componentFile == null ? [] : [componentFile])
-	const componentDeclaration = componentFiles.length > 1 ? routeFile.detailLayout?.detailViewExpression : undefined
-	const constantImports = routeFile.detailLayout != null ?
-		(
-			typeScriptExpressionReferencesBinding(routeFile.detailLayout.detailSelectionExpression, 'Source') ?
-				['import { Source } from \'$/sources/Source.ts\'']
-			:
-				[]
+	if (routeFile.detailLayout != null) {
+		const hrefParamNames = routeParamNames(routeFile.detailLayout.href)
+		const entityHrefExpression = renderResolveExpression(
+			routeFile.detailLayout.href,
+			hrefParamNames.map((param) => [param, `params.${param}`])
 		)
-	:
-		mergeImports([
-			...[
-				modeledEntityLayout?.selector,
-				modeledEntityLayout?.id,
-			].flatMap((expression) => expression == null ? [] : importSpecsFromMap(expressionImports(expression))),
-		]).map(emitImport)
-	const entityHrefExpression = (
-		entityHref == null ?
-			undefined
-		:
-			renderResolveExpression(entityHref, hrefParamNames.map((param) => [param, `params.${param}`]))
-	)
-	const idExpression = modeledEntityLayout?.id == null ?
-		undefined
-	:
-		renderExpression(modeledEntityLayout.id, {
-			params: 'params',
-		})
-	const keyExpression = (
-		hrefParamNames.length === 0 ?
-			undefined
-		: hrefParamNames.length === 1 ?
-			`params.${hrefParamNames[0]}`
-		:
-			`[${hrefParamNames.map((param) => `params.${param}`).join(', ')}].join(':')`
-	)
-	const selectionExpression = routeFile.detailLayout?.detailSelectionExpression ?? (
-		modeledEntityLayout == null ?
-			undefined
-		: selectorExpression == null ?
-			`select(EntityType.${modeledEntityLayout.entity}, data.selector)`
-		:
-			`select(EntityType.${modeledEntityLayout.entity}, ${selectorExpression})`
-	)
-	if (componentFiles.length > 0 && selectionExpression != null) {
-		const component = routeFile.detailLayout != null && componentFiles.length > 1 ?
+		const keyExpression = (
+			hrefParamNames.length === 0 ?
+				undefined
+			: hrefParamNames.length === 1 ?
+				`params.${hrefParamNames[0]}`
+			:
+				`[${hrefParamNames.map((param) => `params.${param}`).join(', ')}].join(':')`
+		)
+		const component = routeFile.detailLayout.components.length > 1 ?
 			'DetailView'
 		:
-			componentIdentifier(componentFiles[0]!)
+			componentIdentifier(routeFile.detailLayout.components[0]!)
 		const parentPageCollapsibleLines = [
 			'<ParentPageCollapsible',
-			...(entityHrefExpression == null ? [] : [renderSvelteAttribute(1, 'href', 'detailHref')]),
-			...(idExpression == null ? [] : [renderSvelteAttribute(1, 'id', idExpression)]),
+			renderSvelteAttribute(1, 'href', 'detailHref'),
 			'>',
 			'\t{#snippet Summary()}',
-			...(componentDeclaration == null ? [] : [
-				'\t\t{@const DetailView = ' + componentDeclaration + '}',
+			...(routeFile.detailLayout.components.length === 1 ? [] : [
+				'\t\t{@const DetailView = ' + routeFile.detailLayout.detailViewExpression + '}',
 				'',
 			]),
 			`\t\t<${component}`,
-			renderSvelteAttribute(3, 'selection', selectionExpression),
-			...(entityHrefExpression == null ? [] : [renderSvelteAttribute(3, 'href', 'detailHref')]),
+			renderSvelteAttribute(3, 'selection', routeFile.detailLayout.detailSelectionExpression),
+			renderSvelteAttribute(3, 'href', 'detailHref'),
 			'\t\t\tlayout={EntityLayout.SummaryInline}',
 			'\t\t/>',
 			'\t{/snippet}',
@@ -15844,41 +15761,42 @@ const generateLayoutFile = (routePath: string, routeFile: RouteFile) => {
 					'// Types/constants',
 					'import type { LayoutProps } from \'./$types.ts\'',
 					'import { EntityType } from \'$/schema/EntityType.ts\'',
-					...constantImports,
+					...(typeScriptExpressionReferencesBinding(routeFile.detailLayout.detailSelectionExpression, 'Source') ?
+						['import { Source } from \'$/sources/Source.ts\'']
+					:
+						[]
+					),
 					'',
 					'',
 					'// Context',
-					...(entityHrefExpression == null ? [] : ['import { resolve } from \'$app/paths\'']),
+					'import { resolve } from \'$app/paths\'',
 					'import { select } from \'$/routes/+layout.svelte\'',
 					'',
 					'',
 					'// State',
 					'let {',
 					'\tchildren,',
-					...(routeFile.detailLayout != null || selectorExpression == null ? ['\tdata,'] : []),
+					'\tdata,',
 					'\tparams,',
 					'}: LayoutProps = $props()',
-					...(entityHrefExpression == null ? [] : [
-						'',
-						...renderDetailHrefBinding(entityHrefExpression, keyExpression != null),
-					]),
+					'',
+					...renderDetailHrefBinding(entityHrefExpression, keyExpression != null),
 					'',
 					'',
 					'// Components',
 					'import { EntityLayout } from \'$/components/EntityView.svelte\'',
 					'import ParentPageCollapsible from \'$/components/ParentPageCollapsible.svelte\'',
-					...componentFiles.map((component) => `import ${componentIdentifier(component)} from '${viewModulePath(component)}'`),
+					...routeFile.detailLayout.components.map((component) => `import ${componentIdentifier(component)} from '${viewModulePath(component)}'`),
 				],
 				markup: renderKeyedSvelteMarkup(keyExpression, parentPageCollapsibleLines),
 			}
 		)
 	}
 
-	const title = routeFile.layout?.kind === 'group' ? routeFile.layout.title : undefined
-	if (title == null)
-		throw new Error(`${routePath} group layout is missing title`)
+	if (routeFile.layout == null)
+		throw new Error(`${routePath} layout route file is missing layout metadata`)
 
-	const href = routeFile.layout?.kind === 'group' ? routeFile.layout.href : undefined
+	const { title, href } = routeFile.layout
 	const hrefParams = href == null ? [] : routeParamNames(href)
 	const hrefExpression = href == null ?
 		undefined
