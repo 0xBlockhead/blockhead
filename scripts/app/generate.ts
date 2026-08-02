@@ -6944,6 +6944,24 @@ export const sourceBindingId = (binding: SourceBindingIdentityInput) => JSON.str
 	sourceBindingIdentityAxes.map(([, value]) => value(binding))
 )
 
+const canonicalOperationGroupSets = [
+	{
+		name: 'genericReadOperationGroups',
+		operationGroups: [SourceOperationGroup.GenericRead],
+	},
+	{
+		name: 'walletReadAndSignOperationGroups',
+		operationGroups: [
+			SourceOperationGroup.WalletAccountRead,
+			SourceOperationGroup.WalletSign,
+		],
+	},
+] as const
+const canonicalOperationGroupReferenceByIdentity = new Map(canonicalOperationGroupSets.map(({
+	name,
+	operationGroups,
+}) => [JSON.stringify(operationGroups), name]))
+
 const generateSourceBindingFile = () => tsFile(
 	'src/sources/SourceBinding.ts',
 	{
@@ -6979,8 +6997,15 @@ const generateSourceBindingFile = () => tsFile(
 			'',
 			emitStringEnum('SourceOperationGroup', Object.values(SourceOperationGroup)),
 			'',
-			'export const genericReadOperationGroups = [SourceOperationGroup.GenericRead] as const',
-			'',
+			...canonicalOperationGroupSets.flatMap(({ name, operationGroups }) => [
+				`export const ${name} = ${
+					operationGroups.length === 1 ?
+						`[${enumAccess('SourceOperationGroup', operationGroups[0])}]`
+					:
+						emitArray(operationGroups.map((operationGroup) => enumAccess('SourceOperationGroup', operationGroup)))
+				} as const`,
+				'',
+			]),
 			emitStringEnum('SourceDelivery', Object.values(SourceDelivery)),
 			'',
 			emitStringEnum('SourceCredentialScope', Object.values(SourceCredentialScope)),
@@ -7466,10 +7491,7 @@ const generateSourceProviderBindingsFile = (
 			operationGroups: {
 				identity: JSON.stringify(binding.operationGroups),
 				expression: emitArray(binding.operationGroups.map((group) => enumAccess('SourceOperationGroup', group))),
-				reference: (
-					binding.operationGroups.length === 1
-					&& binding.operationGroups[0] === SourceOperationGroup.GenericRead
-				) ? 'genericReadOperationGroups' : undefined,
+				reference: canonicalOperationGroupReferenceByIdentity.get(JSON.stringify(binding.operationGroups)),
 				valueName: `${binding.operationGroups.join('')}OperationGroups`,
 			},
 			credentials: {
@@ -7945,10 +7967,9 @@ const generateSourceProviderBindingsFile = (
 
 		return [...compact.declarations, compact.expression].join('\n').length < direct.expression.length ? compact : direct
 	})()
-	const usesGenericReadOperationGroups = bindings.some(({ binding }) => (
-		binding.operationGroups.length === 1
-		&& binding.operationGroups[0] === SourceOperationGroup.GenericRead
-	))
+	const canonicalOperationGroupReferences = unique(bindingRows.flatMap(({ operationGroups }) => (
+		operationGroups.reference == null ? [] : [operationGroups.reference]
+	)))
 	const enumNames = [
 		'ApiFamily',
 		'SourceDelivery',
@@ -7957,12 +7978,9 @@ const generateSourceProviderBindingsFile = (
 		...(bindings.some(({ binding }) => binding.artifacts?.length) ? ['SourceArtifactKind'] : []),
 		...(bindings.some(({ binding }) => binding.credentials.length > 0) ? ['SourceCredentialScope'] : []),
 		...(bindings.some(({ binding }) => binding.endpoints.length > 0) ? ['SourceEndpointKind'] : []),
-		...(bindings.some(({ binding }) => (
+		...(bindingRows.some(({ binding, operationGroups }) => (
 			binding.operationGroups.length > 0
-			&& !(
-				binding.operationGroups.length === 1
-				&& binding.operationGroups[0] === SourceOperationGroup.GenericRead
-			)
+			&& operationGroups.reference == null
 		)) ? ['SourceOperationGroup'] : []),
 	]
 
@@ -7978,7 +7996,7 @@ const generateSourceProviderBindingsFile = (
 					from: '$/sources/SourceBinding.ts',
 						names: [
 							...enumNames,
-							...(usesGenericReadOperationGroups ? ['genericReadOperationGroups'] : []),
+							...canonicalOperationGroupReferences,
 							'indexSourceBindings',
 					],
 					typeNames: ['SourceBinding'],

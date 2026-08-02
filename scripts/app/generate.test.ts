@@ -2949,6 +2949,7 @@ test('emits every source-axis enum and only valid enum references in provider ro
 	assert.doesNotMatch(renderedSourceBinding, /SourceBindingDelivery(?:Endpoint|Credential)Layout/)
 	assert.doesNotMatch(renderedSourceBinding, /endpoints: readonly SourceEndpoint\[\][\s\S]*?wireProtocol: WireProtocol[\s\S]*?apiFamily: ApiFamily[\s\S]*?operationGroups: readonly SourceOperationGroup\[\]/)
 	assert.match(renderedSourceBinding, /export const genericReadOperationGroups = \[SourceOperationGroup\.GenericRead\] as const/)
+	assert.match(renderedSourceBinding, /export const walletReadAndSignOperationGroups = \[\n\tSourceOperationGroup\.WalletAccountRead,\n\tSourceOperationGroup\.WalletSign,\n\] as const/)
 	assert.match(
 		renderedSourceBinding,
 		/export const sourceBindingId = \(\{[\s\S]*?\) => JSON\.stringify\(\[\n\tsource,\n\ttarget\.kind,\n\ttarget\.key,\n\tdelivery,\n\tapiFamily,\n\]\)/
@@ -3008,6 +3009,10 @@ test('emits every source-axis enum and only valid enum references in provider ro
 			sourceBindingImportNames.has('genericReadOperationGroups'),
 			source.includes('operationGroups: genericReadOperationGroups')
 		)
+		assert.equal(
+			sourceBindingImportNames.has('walletReadAndSignOperationGroups'),
+			source.includes('operationGroups: walletReadAndSignOperationGroups')
+		)
 		assert.equal(sourceBindingImportNames.has('SourceOperationGroup'), /SourceOperationGroup\./.test(source))
 		assert.equal(sourceFile.statements.filter((statement) => (
 			ts.isVariableStatement(statement)
@@ -3034,8 +3039,7 @@ test('emits every source-axis enum and only valid enum references in provider ro
 		assert.doesNotMatch(source, /^const [A-Za-z0-9_$]+Credentials = \[\] as const$/m)
 		assert.doesNotMatch(source, /^const [A-Za-z0-9_$]*GenericReadOperationGroups =/m)
 		assert.doesNotMatch(source, /operationGroups: \[\n\s*SourceOperationGroup\.GenericRead,\n\s*\]/)
-		if (source.includes('genericReadOperationGroups'))
-			assert.match(source, /import \{[\s\S]*?genericReadOperationGroups[\s\S]*?\} from '\$\/sources\/SourceBinding\.ts'/)
+		assert.doesNotMatch(source, /operationGroups: \[\n\s*SourceOperationGroup\.WalletAccountRead,\n\s*SourceOperationGroup\.WalletSign,\n\s*\]/)
 		for (const declaration of source.matchAll(/^const ([A-Za-z_$][\w$]*) =/gm))
 			assert.ok(
 				(source.match(new RegExp(`\\b${declaration[1]}\\b`, 'g')) ?? []).length >= (
