@@ -7,12 +7,9 @@
 
 import { threeXplGetJson } from '$/sources/ThreeXpl/Rest/client.ts'
 import type {
-	ThreeXplAddressData,
-	ThreeXplAddressMonetaryData,
 	ThreeXplApiResponse,
 	ThreeXplBlockData,
 	ThreeXplBlockchainSelector,
-	ThreeXplBlocksData,
 	ThreeXplClientOptions,
 	ThreeXplGeneralInfoData,
 	ThreeXplLimit,
@@ -74,40 +71,6 @@ export const search = ({
 			from,
 			in: entity,
 			mixins,
-			library,
-		},
-		options,
-	})
-)
-
-/**
- * `GET /{blockchain}/blocks` — recent or paged block summaries.
- */
-export const fetchBlocks = ({
-	blockchain,
-	from,
-	limit,
-	page,
-	library,
-	options,
-}: {
-	blockchain: string
-	from?: ThreeXplModuleSelector
-	limit?: ThreeXplLimit
-	page?: string | number
-	library?: string
-	options?: ThreeXplClientOptions
-}) => (
-	threeXplGetJson<ThreeXplApiResponse<ThreeXplBlocksData>>({
-		pathSegments: [
-			blockchain,
-			'blocks',
-		],
-		searchParams: {
-			data: 'blocks',
-			from,
-			limit,
-			page,
 			library,
 		},
 		options,
@@ -195,93 +158,6 @@ export const fetchTransaction = ({
 			page,
 			mixins,
 			library,
-		},
-		options,
-	})
-)
-
-/**
- * `GET /{blockchain}/address/{address}` — account/address summary, balances,
- * historical events, and mempool events. Balances and event currencies are the
- * documented token/asset surface; request `library=currencies` for metadata.
- */
-export const fetchAddress = ({
-	blockchain,
-	address,
-	data = 'address,balances,events,mempool',
-	from,
-	limit,
-	page,
-	segment,
-	mixins,
-	library,
-	options,
-}: {
-	blockchain: string
-	address: string
-	data?: 'address' | 'balances' | 'events' | 'mempool' | string
-	from?: ThreeXplModuleSelector
-	limit?: ThreeXplLimit
-	page?: string | number
-	segment?: string
-	mixins?: 'stats'
-	library?: string
-	options?: ThreeXplClientOptions
-}) => (
-	threeXplGetJson<ThreeXplApiResponse<ThreeXplAddressData>>({
-		pathSegments: [
-			blockchain,
-			'address',
-			address,
-		],
-		searchParams: {
-			data,
-			from,
-			limit,
-			page,
-			segment,
-			mixins,
-			library,
-		},
-		options,
-	})
-)
-
-/**
- * `GET /{blockchain}/address/{address}/monetary` — calculated monetary account
- * details where 3xpl supports them.
- */
-export const fetchAddressMonetary = ({
-	blockchain,
-	address,
-	currency,
-	from,
-	to,
-	filter,
-	options,
-}: {
-	blockchain: string
-	address: string
-	currency?: string
-	from?: string
-	to?: string
-	filter?: readonly string[]
-	options?: ThreeXplClientOptions
-}) => (
-	threeXplGetJson<ThreeXplApiResponse<ThreeXplAddressMonetaryData>>({
-		pathSegments: [
-			blockchain,
-			'address',
-			address,
-			'monetary',
-		],
-		searchParams: {
-			currency,
-			from,
-			to,
-		},
-		repeatedSearchParams: {
-			'filter[]': filter,
 		},
 		options,
 	})

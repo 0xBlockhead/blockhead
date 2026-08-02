@@ -144,10 +144,6 @@ export type ThreeXplBlockInfo = {
 	events?: Record<string, number>
 }
 
-export type ThreeXplBlocksData = {
-	blocks?: Record<string, ThreeXplBlockInfo>
-}
-
 export type ThreeXplBlockData = {
 	block?: ThreeXplBlockInfo
 	events?: Record<string, ThreeXplBlockEvent[]>
@@ -182,50 +178,6 @@ export type ThreeXplTransactionEvent = ThreeXplCommonEvent & {
 export type ThreeXplTransactionData = {
 	transaction?: ThreeXplTransactionInfo
 	events?: Record<string, ThreeXplTransactionEvent[]>
-}
-
-export type ThreeXplAddressGeneralInfo = {
-	address?: string
-	balances?: Record<string, number>
-	events?: Record<string, number>
-}
-
-export type ThreeXplAddressBalance = {
-	balance?: string
-	events?: number
-}
-
-export type ThreeXplAddressEvent = ThreeXplCommonEvent & {
-	block?: number
-	transaction?: string
-	time?: string
-}
-
-export type ThreeXplAddressData = {
-	address?: ThreeXplAddressGeneralInfo
-	balances?: Record<string, Record<string, ThreeXplAddressBalance>>
-	events?: Record<string, ThreeXplAddressEvent[]>
-	mempool?: Record<string, ThreeXplAddressEvent[]>
-}
-
-export type ThreeXplAddressMonetaryAmount = {
-	value?: string
-	currency?: string
-}
-
-export type ThreeXplAddressMonetaryData = {
-	address?: ThreeXplAddressGeneralInfo
-	balances?: Record<string, Record<string, ThreeXplAddressBalance & {
-		monetary?: Record<string, ThreeXplAddressMonetaryAmount>
-	}>>
-	events?: Record<string, (ThreeXplAddressEvent & {
-		monetary?: Record<string, ThreeXplAddressMonetaryAmount>
-	})[]>
-	period?: Record<string, JsonValue>
-	period_dates?: {
-		from?: string
-		to?: string
-	}
 }
 
 export type ThreeXplSearchResult = {
