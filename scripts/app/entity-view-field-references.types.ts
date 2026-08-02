@@ -65,6 +65,36 @@ void rejectedListSectionSlotMetadata
 entity({
 	entityType: EntityType.Network,
 	labels: {
+		singular: 'invalid facet condition fixture',
+		plural: 'invalid facet condition fixtures',
+	},
+})({
+	id: {
+		type: EntityFieldType.Primitive,
+		cardinality: EntityFieldCardinality.One,
+		valueType: 'string',
+	},
+})
+// @ts-expect-error Facet conditions must reference captured entity or ancestor facet fields.
+({
+	selectors: {
+		Id: ['id'],
+	},
+	facets: {
+		Invalid: facet({
+			path: ['missingField'],
+			is: 'invalid',
+		})({})({}),
+	},
+	views: {
+		plural: {},
+	},
+})
+
+
+entity({
+	entityType: EntityType.Network,
+	labels: {
 		singular: 'type fixture',
 		plural: 'type fixtures',
 	},

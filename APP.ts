@@ -3021,23 +3021,23 @@ type _FacetTreeIsValid<
 	? Extract<_Facets[number]['name'], _AvailableFields> extends never
 		? _AllTrue<{
 		[_Index in keyof _Facets]: _Facets[_Index] extends infer _Facet extends _EntityFacet
-			? _ConditionNamesAreValid<_Facet['condition'], _AvailableFields | _AncestorFacetNames>
-				& (
-					_Facet['fields'] extends readonly _EntityField[]
-						? _Facet['facets'] extends readonly _EntityFacet[]
-							? Extract<
-								_Facet['facets'][number]['name'],
-								_AvailableFields | _NamedFieldNames<_Facet['fields']>
-							> extends never
-								? _FacetTreeIsValid<
-									_Facet['facets'],
-									_AvailableFields | _NamedFieldNames<_Facet['fields']>,
-									_AncestorFacetNames | _Facet['name']
-								>
-								: false
-							: true
+			? _AllTrue<[
+				_ConditionNamesAreValid<_Facet['condition'], _AvailableFields | _AncestorFacetNames>,
+				_Facet['fields'] extends readonly _EntityField[]
+					? _Facet['facets'] extends readonly _EntityFacet[]
+						? Extract<
+							_Facet['facets'][number]['name'],
+							_AvailableFields | _NamedFieldNames<_Facet['fields']>
+						> extends never
+							? _FacetTreeIsValid<
+								_Facet['facets'],
+								_AvailableFields | _NamedFieldNames<_Facet['fields']>,
+								_AncestorFacetNames | _Facet['name']
+							>
+							: false
 						: true
-				)
+					: true,
+			]>
 			: false
 		}>
 		: false
