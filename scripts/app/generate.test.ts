@@ -1247,6 +1247,13 @@ test('keeps APP field presentation metadata out of runtime schema modules', () =
 	})
 
 	assert.deepEqual(violations, [])
+	assert.equal(
+		app.schema.entities
+			.find(({ entityType }) => entityType === EntityType.Market_TimeInterval_Timestamp)
+			?.fields.find(({ name }) => name === 'quoteVolume')
+			?.description,
+		'Quote-leg candle volume, scaled by 1e8 like quote prices.'
+	)
 	assert.match(generatedSource('src/schema/Network.ts'), /labels: \{[\s\S]*?singular: 'Network',[\s\S]*?plural: 'networks',[\s\S]*?\}/)
 	assert.match(generatedSource('src/schema/Network.ts'), /description: 'A blockchain, ledger, or protocol network with its own identity and supporting metadata\.'/)
 })

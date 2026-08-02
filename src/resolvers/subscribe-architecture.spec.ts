@@ -1015,13 +1015,6 @@ describe('client resolver architecture', () => {
 		expect(scannedSourceByFilePath[join(srcPath, 'views', 'Market_TimeInterval_TimestampsView.svelte')] ?? '').not.toMatch(/\bDefiLlama|Defillama\b/)
 	})
 
-	it('documents OHLC quote volume as quote-leg units scaled by price scale', () => {
-		const source = scannedSourceByFilePath[join(srcPath, 'schema', 'Market_TimeInterval_Timestamp.ts')]
-
-		expect(source).toMatch(/quoteVolume:[\s\S]*description: 'Quote-leg candle volume, scaled by 1e8 like quote prices\.'/)
-	})
-
-
 	it('does not export legacy raw Persisted collection aliases from app layout', () => {
 		expect(scannedSourceByFilePath[join(srcPath, 'routes', '+layout.svelte')]).not.toMatch(
 			/\bexport const entity(?:CollectionByEntityType|FieldCollections|FieldCountCollections|CollectionsQueryClient)\b/
