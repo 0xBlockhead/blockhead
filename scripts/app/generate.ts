@@ -932,21 +932,6 @@ const isDefaultPluralViewComponent = (
 	&& component === pluralComponentName(indexes.entityByType[entityType])
 )
 
-const compileSectionComponentPlan = (
-	indexes: GenerationIndexes,
-	fieldDefinition: EntityField | undefined,
-	component: string | undefined
-) => ({
-	component,
-	fieldDefinition,
-	rendersDefaultEntitiesList: (
-		component != null
-		&& fieldDefinition?.type === EntityFieldType.EntitiesReference
-		&& fieldDefinition.entityType != null
-		&& isDefaultPluralViewComponent(indexes, fieldDefinition.entityType, component)
-	),
-})
-
 const componentIdentifier = (componentName: string) => componentName.replace(/^_+/, '')
 
 const schemaModulePath = (entityType: string) => `$/schema/${entityType}.ts`
@@ -8534,14 +8519,6 @@ const fieldValueTypeType = (indexes: GenerationIndexes, fieldDefinition: EntityF
 	fieldValueType(indexes, fieldDefinition)?.type ?? fieldDefinition.primitiveType
 )
 
-const fieldNeedsExplicitDisplayExpression = (indexes: GenerationIndexes, fieldDefinition: EntityField) => {
-	const valueTypeType = fieldValueTypeType(indexes, fieldDefinition)
-
-	return (
-		valueTypeTypeRequiresDisplayExpression(valueTypeType)
-	) && fieldValueType(indexes, fieldDefinition)?.displayExpression == null
-}
-
 const renderNullishExpression = (
 	valueExpression: string,
 	fallbackExpression?: string
@@ -9653,17 +9630,22 @@ const defaultContentDlGroups = (entity: Entity, indexes: GenerationIndexes) => {
 	const summaryFieldKeys = summaryPlanFor(entity, indexes).fieldKeys
 	const entries = entity.fields
 		.filter((fieldDefinition) => !summaryFieldKeys.has(fieldDefinition.name))
-		.flatMap((fieldDefinition) => (
-			fieldDefinition.type === EntityFieldType.EntitiesReference
-			|| fieldDefinition.type === EntityFieldType.Primitive
-				&& fieldNeedsExplicitDisplayExpression(indexes, fieldDefinition) ?
-				[]
-			:
-				[{
-					kind: _ViewItemKind.Field,
-					field: fieldDefinition.name,
-				} satisfies Exclude<_ViewItem, string>]
-		))
+		.flatMap((fieldDefinition) => {
+			const valueType = fieldValueType(indexes, fieldDefinition)
+
+			return (
+				fieldDefinition.type === EntityFieldType.EntitiesReference
+				|| fieldDefinition.type === EntityFieldType.Primitive
+					&& valueTypeTypeRequiresDisplayExpression(valueType?.type ?? fieldDefinition.primitiveType)
+					&& valueType?.displayExpression == null ?
+					[]
+				:
+					[{
+						kind: _ViewItemKind.Field,
+						field: fieldDefinition.name,
+					} satisfies Exclude<_ViewItem, string>]
+			)
+		})
 
 	return entries.length === 0 ? [] : [entries]
 }
@@ -10286,14 +10268,20 @@ const generateSingularViewFile = (
 			field: section.field,
 			component: carouselSectionComponent(entity, indexes, section),
 		}))),
-	].map((plan) => ({
-		...plan,
-		...compileSectionComponentPlan(
-			indexes,
-			plan.field == null ? undefined : fieldDefinitionByReference(entity, plan.field, indexes),
-			plan.component
-		),
-	}))
+	].map((plan) => {
+		const fieldDefinition = plan.field == null ? undefined : fieldDefinitionByReference(entity, plan.field, indexes)
+
+		return {
+			...plan,
+			fieldDefinition,
+			rendersDefaultEntitiesList: (
+				plan.component != null
+				&& fieldDefinition?.type === EntityFieldType.EntitiesReference
+				&& fieldDefinition.entityType != null
+				&& isDefaultPluralViewComponent(indexes, fieldDefinition.entityType, plan.component)
+			),
+		}
+	})
 	const sectionComponents = unique(sectionComponentPlans.flatMap((plan) => (
 		plan.kind !== 'relationship'
 		|| plan.component == null
@@ -12827,7 +12815,6 @@ const compileEntityPageSelection = (
 				&& fieldDefinition.type !== EntityFieldType.EntitiesReference
 			)
 		})
-	const fieldDefaultSources = pageSelectionFieldDefaultSources(entity, indexes, fields)
 	const selectorSourceExpression = selectorExpression.includes('\n') ?
 		`(${selectorExpression}).source`
 	:
@@ -12841,7 +12828,7 @@ const compileEntityPageSelection = (
 			`[${selectorSourceExpression}]`
 		:
 			renderFieldConditionedSourceSelectionExpression(
-				sourceSelection ?? fieldDefaultSources,
+				sourceSelection ?? pageSelectionFieldDefaultSources(entity, indexes, fields),
 				selectorExpression
 			),
 	}
