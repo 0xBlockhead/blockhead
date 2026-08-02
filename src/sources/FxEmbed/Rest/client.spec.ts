@@ -93,13 +93,27 @@ it('clamps bounded search and profile windows without inventing continuation', a
 	expect(new URL(sourceGetJson.mock.calls[1][1]).searchParams.get('count')).toBe('1')
 	expect(new URL(sourceGetJson.mock.calls[0][1]).searchParams.has('cursor')).toBe(false)
 	expect(new URL(sourceGetJson.mock.calls[1][1]).searchParams.has('cursor')).toBe(false)
+	expect(sourceGetJson.mock.calls[0][2]).toEqual([404])
+	expect(sourceGetJson.mock.calls[1][2]).toEqual([])
+})
+
+it('returns the documented empty search result response', async () => {
+	sourceGetJson.mockResolvedValueOnce({
+		code: 404,
+		results: [],
+	})
+
+	expect(await searchStatuses(10)).toEqual({
+		code: 404,
+		results: [],
+	})
 })
 
 it('rejects FxEmbed application failures returned through successful HTTP transport', async () => {
 	sourceGetJson.mockResolvedValueOnce({
-		code: 404,
-		message: 'Post not found',
+		code: 500,
+		message: 'Upstream failed',
 	})
 
-	await expect(searchStatuses(10)).rejects.toThrow('Post not found')
+	await expect(searchStatuses(10)).rejects.toThrow('Upstream failed')
 })

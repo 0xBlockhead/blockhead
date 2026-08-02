@@ -52,7 +52,8 @@ export const searchStatuses = (
 			q: 'lang:en -is:retweet',
 			feed: 'latest',
 			count: clampFxEmbedCount(count),
-		}
+		},
+		[404]
 	)
 )
 

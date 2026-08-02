@@ -98,9 +98,10 @@ export const sourceFetch = async (
 
 export const sourceGetJson = <_Json>(
 	binding: SourceBinding,
-	url: string
+	url: string,
+	acceptedErrorStatuses: readonly number[] = []
 ) => sourceFetch(binding, url).then(async (response) => {
-	if (!response.ok)
+	if (!response.ok && !acceptedErrorStatuses.includes(response.status))
 		throw new Error(await fetchFailedMessage(url, response))
 
 	return response.json<_Json>()
