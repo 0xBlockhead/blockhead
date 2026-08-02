@@ -4827,6 +4827,39 @@ test('retains only physical route file facts consumed by route emitters', () => 
 	assert.match(physicalRoutePlanSource, /routeNeedsPageModule[\s\S]*?!routeProjectionOwnedByAncestor/)
 })
 
+test('compiles each collection reference path once into its canonical route mapping', () => {
+	const routeNodes = [...Object.values(app.routes.children)]
+	let collectionCount = 0
+	for (const routeNode of routeNodes) {
+		collectionCount += routeNode.collections?.length ?? 0
+		routeNodes.push(...Object.values(routeNode.children ?? {}))
+	}
+	assert.equal(collectionCount, 158)
+
+	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
+	const collectionMappingTypeSource = generatorSource.slice(
+		generatorSource.indexOf('type CollectionRouteMapping ='),
+		generatorSource.indexOf('type RouteFile =')
+	)
+	const routeNodeSource = generatorSource.slice(
+		generatorSource.indexOf('type RouteNode ='),
+		generatorSource.indexOf('type RelationshipSection =')
+	)
+	const collectionEmitterSource = generatorSource.slice(
+		generatorSource.indexOf('type CollectionMapping ='),
+		generatorSource.indexOf('const pageContextSection =')
+	)
+
+	assert.match(collectionMappingTypeSource, /referencePath: CollectionReferencePath\['fields'\]/)
+	assert.doesNotMatch(collectionMappingTypeSource, /\n\t\t(?:field|path):/)
+	assert.match(routeNodeSource, /collectionMappings: readonly CollectionRouteMapping\[\]/)
+	assert.doesNotMatch(routeNodeSource, /targetEntityType|\n\t\t(?:entityType|field|path|selector):/)
+	assert.match(generatorSource, /const compileCollectionReferencePath = \(/)
+	assert.equal((generatorSource.match(/compileCollectionReferencePath\(/g) ?? []).length, 1)
+	assert.doesNotMatch(collectionEmitterSource, /compileCollectionReferencePath\(/)
+	assert.doesNotMatch(generatorSource, /collectionMappings: collectionMappings\.map|const collections = node\.collectionMappings\.map/)
+})
+
 test('retains only rendered detail layout facts', () => {
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
 	const detailPlanSource = generatorSource.slice(

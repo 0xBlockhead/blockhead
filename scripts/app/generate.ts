@@ -102,16 +102,9 @@ type ValueType =
 type ValueTypeType = App['schema']['valueTypes'][number]['type']
 type EntityCarouselSection = EntityCarousel['sections'][number]
 type PluralView = NonNullable<Entity['views']['plural']>
-type ReferencePathStep = {
-	entity: Entity
-	projectionPath: readonly string[]
-	field: EntityField
-}
-type ReferencePathPlan = {
-	steps: readonly ReferencePathStep[]
-	terminalEntity: Entity
-	terminalProjectionPath: readonly string[]
-	terminalField: EntityField
+type CollectionReferencePath = {
+	fields: readonly [FieldReference, ...FieldReference[]]
+	targetEntityType: EntityType
 }
 enum RouteFileKind {
 	Page = 'page',
@@ -125,8 +118,7 @@ type CollectionRouteMapping = {
 	source: {
 		entity: EntityType
 		selector: _Expression
-		field: _FieldReference
-		path: readonly string[]
+		referencePath: CollectionReferencePath['fields']
 		routeEntityType?: EntityType
 	}
 	query?: _ViewQuery
@@ -251,16 +243,7 @@ type RouteNode = {
 	svelteKitPath: string
 	publicPath: string
 	params: readonly RouteParam[]
-	collectionMappings: readonly {
-		entityType: EntityType
-		field: FieldReference
-		path: readonly string[]
-		targetEntityType: EntityType
-		selector: _Expression
-		routeEntityType?: EntityType
-		query?: _ViewQuery
-		page?: NonNullable<App['routes']['children'][string]['collections']>[number]['page']
-	}[]
+	collectionMappings: readonly CollectionRouteMapping[]
 	selectorMappings: readonly SelectorRouteMapping[]
 	selectorVariant?: SelectorRouteMapping
 	page?: NonNullable<App['routes']['children'][string]['page']>
@@ -3755,7 +3738,7 @@ const compileRouteTree = (
 				),
 				...collection.field.slice(2),
 			]
-			const plan = collectionReferencePathPlan(
+			const referencePath = compileCollectionReferencePath(
 				sourceEntity,
 				{
 					entityByType: indexes.compiledEntityByType,
@@ -3764,23 +3747,13 @@ const compileRouteTree = (
 				path,
 				`${routeId(routePath)} collection`
 			)
-			const field = plan.steps[0]?.field ?? plan.terminalField
-			const fieldProjectionPath = plan.steps[0]?.projectionPath ?? plan.terminalProjectionPath
-			if (field.entityType == null)
-				throw new Error(`${routeId(routePath)} collection references non-entity field ${sourceEntity.entityType}.${field.name}`)
-			if (plan.terminalField.entityType == null)
-				throw new Error(`${routeId(routePath)} collection terminal ${plan.terminalEntity.entityType}.${plan.terminalField.name} is missing its target entity`)
 
 			return {
-				entity: plan.terminalField.entityType,
+				entity: referencePath.targetEntityType,
 				source: {
 					entity: sourceEntity.entityType,
 					selector,
-					field: fieldProjectionPath.length === 0 ? field.name : [
-						...fieldProjectionPath,
-						field.name,
-					],
-					path,
+					referencePath: referencePath.fields,
 					...(
 						expressionUsesKind(selector, 'pageSelector')
 						&& nearestAncestorSelectorMappings.length > 1
@@ -4102,18 +4075,7 @@ const compileRouteTree = (
 				explicitValueTypes: _explicitValueTypes,
 				...routeParam
 			}) => routeParam),
-			collectionMappings: collectionMappings.map((collection) => ({
-				entityType: collection.source.entity,
-				field: collection.source.field,
-				path: collection.source.path,
-				targetEntityType: collection.entity,
-				selector: collection.source.selector,
-				...(collection.source.routeEntityType == null ? {} : {
-					routeEntityType: collection.source.routeEntityType,
-				}),
-				query: collection.query,
-				page: collection.page,
-			})),
+			collectionMappings,
 			selectorMappings: normalizedSelectorMappings,
 			...(selectorVariant == null ? {} : {
 				selectorVariant: selectorVariant.mapping,
@@ -4209,7 +4171,7 @@ const routeLinkFromCollection = (
 	collection: RouteNode['collectionMappings'][number]
 ): EntityRouteLink | undefined => {
 	const path = node.svelteKitPath
-	const selector = collection.selector
+	const selector = collection.source.selector
 	if (selector.kind === 'object') {
 		const routeParams = routeParamNames(path)
 		const params = Object.fromEntries(routeParams.flatMap((param) => {
@@ -4729,20 +4691,6 @@ const compileRouteEntries = (
 			}),
 		}
 	})()
-	const collections = node.collectionMappings.map((collection) => ({
-		entity: collection.targetEntityType,
-		source: {
-			entity: collection.entityType,
-			selector: collection.selector,
-			field: collection.field,
-			path: collection.path,
-			...(collection.routeEntityType == null ? {} : {
-				routeEntityType: collection.routeEntityType,
-			}),
-		},
-		query: collection.query,
-		page: collection.page,
-	}))
 	const layout = node.layout == null ? undefined : {
 		kind: RouteFileKind.Layout,
 		layout: {
@@ -4762,7 +4710,7 @@ const compileRouteEntries = (
 			kind: RouteFileKind.Page,
 			page,
 			mappings: renderMappings,
-			collections,
+			collections: node.collectionMappings,
 		} satisfies RouteFile]),
 		...(layout == null ? [] : [layout]),
 	]
@@ -6193,20 +6141,20 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			if (
 				node.params.length === 0
 				&& (
-					collectionRouteByEntity.get(collection.targetEntityType) == null
-					|| node.svelteKitPath.length < (collectionRouteByEntity.get(collection.targetEntityType) ?? '').length
+					collectionRouteByEntity.get(collection.entity) == null
+					|| node.svelteKitPath.length < (collectionRouteByEntity.get(collection.entity) ?? '').length
 				)
 			)
-				collectionRouteByEntity.set(collection.targetEntityType, node.svelteKitPath)
+				collectionRouteByEntity.set(collection.entity, node.svelteKitPath)
 
 			const collectionRouteLink = routeLinkFromCollection(node, collection)
 			if (collectionRouteLink == null)
 				continue
 
 			const key = collectionSourceFieldKey(
-				collection.entityType,
-				fieldNameForReference(collection.field),
-				collection.targetEntityType
+				collection.source.entity,
+				fieldNameForReference(collection.source.referencePath[0]),
+				collection.entity
 			)
 			const collectionRoutes = collectionRoutesBySourceField.get(key) ?? []
 			if (collectionRoutes.every((routeLink) => entityRouteLinkKey(routeLink) !== entityRouteLinkKey(collectionRouteLink)))
@@ -8384,15 +8332,15 @@ const fieldDefinitionByReference = (
 	))
 }
 
-const collectionReferencePathPlan = (
+const compileCollectionReferencePath = (
 	entity: Entity,
 	indexes: Pick<GenerationIndexes, 'entityByType' | 'entityFacetByPath'>,
 	path: readonly string[],
 	owner: string
-): ReferencePathPlan => {
+): CollectionReferencePath => {
 	let currentEntity = entity
 	let projectionPath: string[] = []
-	const steps: ReferencePathStep[] = []
+	const fields: FieldReference[] = []
 
 	for (const [index, segment] of path.entries()) {
 		const nextProjectionPath = [
@@ -8414,18 +8362,26 @@ const collectionReferencePathPlan = (
 		)
 		if (field == null)
 			throw new Error(`${owner} references missing ${currentEntity.entityType}.${[...projectionPath, segment].join('.')}`)
+		const fieldReference = projectionPath.length === 0 ? field.name : [
+			...projectionPath,
+			field.name,
+		]
 
 		if (index === path.length - 1) {
 			if (field.type !== EntityFieldType.EntitiesReference)
 				throw new Error(`${owner} must end in an EntitiesReference`)
 			if (!fieldCardinalityIsMany(field))
 				throw new Error(`${owner} terminal field must be Many or ZeroOrMany`)
+			if (field.entityType == null)
+				throw new Error(`${owner} terminal ${currentEntity.entityType}.${field.name} is missing its target entity`)
+			const referencePath: [FieldReference, ...FieldReference[]] = [
+				...fields,
+				fieldReference,
+			]
 
 			return {
-				steps,
-				terminalEntity: currentEntity,
-				terminalProjectionPath: projectionPath,
-				terminalField: field,
+				fields: referencePath,
+				targetEntityType: field.entityType,
 			}
 		}
 
@@ -8437,11 +8393,7 @@ const collectionReferencePathPlan = (
 		if (field.entityType == null || indexes.entityByType[field.entityType] == null)
 			throw new Error(`${owner} references missing target entity ${field.entityType ?? ''}`)
 
-		steps.push({
-			entity: currentEntity,
-			projectionPath,
-			field,
-		})
+		fields.push(fieldReference)
 		currentEntity = indexes.entityByType[field.entityType]
 		projectionPath = []
 	}
@@ -14830,75 +14782,41 @@ const generatePageModuleFile = (routePath: string, routeFile: RouteFile, indexes
 type CollectionMapping = NonNullable<RouteFile['collections']>[number]
 
 const collectionSelectionPlan = (
-	routePath: string,
-	indexes: GenerationIndexes,
 	collection: CollectionMapping,
-	sourceEntity: Entity,
 	sourceSelection: string
 ) => {
-	const pathPlan = collectionReferencePathPlan(
-		sourceEntity,
-		indexes,
-		collection.source.path,
-		`${routePath} collection`
-	)
-	const pathSteps = [
-		...pathPlan.steps,
-		{
-			entity: pathPlan.terminalEntity,
-			projectionPath: pathPlan.terminalProjectionPath,
-			field: pathPlan.terminalField,
-		},
-	]
-	const rootStep = pathSteps[0]
-	if (rootStep == null)
-		throw new Error(`${routePath} collection has no reference path`)
-
-	const rootFieldName = collection.source.path[rootStep.projectionPath.length] ?? rootStep.field.name
-	const rootFieldReference: FieldReference = rootStep.projectionPath.length === 0 ?
-		rootFieldName
-		:
-		[
-			...rootStep.projectionPath,
-			rootFieldName,
-		]
-	const stepQueries = pathSteps.map((_step, index) => renderQuery(
-		index === pathSteps.length - 1 ? collection.query : undefined,
+	const referencePath = collection.source.referencePath
+	const stepQueries = referencePath.map((_field, index) => renderQuery(
+		index === referencePath.length - 1 ? collection.query : undefined,
 		[]
 	))
-	const selectionFrom = (root: string, steps: typeof pathSteps, queries: typeof stepQueries) => steps.reduce(
-		(expression, step, index) => fieldResourceExpression(
+	const selectionFrom = (root: string, fields: readonly FieldReference[], queries: typeof stepQueries) => fields.reduce(
+		(expression, field, index) => fieldResourceExpression(
 			expression,
-			step.projectionPath.length === 0 ?
-				step.field.name
-			:
-				[
-					...step.projectionPath,
-					step.field.name,
-				],
+			field,
 			queries[index]
 		),
 		root
 	)
 	const rootSelection = fieldResourceExpression(
 		sourceSelection,
-		rootFieldReference,
+		referencePath[0],
 		stepQueries[0]
 	)
-	const selection = selectionFrom(rootSelection, pathSteps.slice(1), stepQueries.slice(1))
-	const projectionStepIndex = pathSteps.findIndex((step) => step.projectionPath.length > 0)
-	const sharedRootSteps = projectionStepIndex < 0 ? [rootStep] : pathSteps.slice(0, projectionStepIndex)
+	const selection = selectionFrom(rootSelection, referencePath.slice(1), stepQueries.slice(1))
+	const projectionStepIndex = referencePath.findIndex(isProjectionFieldReference)
+	const sharedRootFields = projectionStepIndex < 0 ? [referencePath[0]] : referencePath.slice(0, projectionStepIndex)
 	const selectionFromSharedRoot = (sharedRoot: string) => selectionFrom(
-		sharedRoot, pathSteps.slice(sharedRootSteps.length), stepQueries.slice(sharedRootSteps.length)
+		sharedRoot, referencePath.slice(sharedRootFields.length), stepQueries.slice(sharedRootFields.length)
 	)
 
 	return {
-		isRelationshipPath: pathSteps.length > 1,
+		isRelationshipPath: referencePath.length > 1,
 		selection,
-		sharedRootSelection: sharedRootSteps.slice(1).reduce(
-			(expression, step) => fieldResourceExpression(
+		sharedRootSelection: sharedRootFields.slice(1).reduce(
+			(expression, field) => fieldResourceExpression(
 				expression,
-				step.field.name
+				field
 			),
 			rootSelection
 		),
@@ -14922,9 +14840,8 @@ const generateMultiCollectionPageFile = (
 	indexes: GenerationIndexes
 ) => {
 	const unboundContexts = (routeFile.collections ?? []).map((collection, index) => {
-		const sourceEntity = indexes.entityByType[collection.source.entity]
 		const collectionEntity = indexes.entityByType[collection.entity]
-		if (sourceEntity == null || collectionEntity == null)
+		if (collectionEntity == null)
 			throw new Error(`${routePath} collection mapping references a missing entity`)
 
 		const sourceSelection = `select(EntityType.${collection.source.entity}, ${renderExpression(collection.source.selector, {
@@ -14938,10 +14855,7 @@ const generateMultiCollectionPageFile = (
 			sharedRootSelection,
 			selectionFromSharedRoot,
 		} = collectionSelectionPlan(
-			routePath,
-			indexes,
 			collection,
-			sourceEntity,
 			sourceSelection
 		)
 		const componentFile = collection.page?.view?.component
@@ -15600,20 +15514,16 @@ const generatePageFile = (
 		:
 			[]
 	)
-	const collectionSourceEntityDefinition = collection == null ? undefined : indexes.entityByType[collection.source.entity]
 	const collectionSourceSelectionExpression = collection == null ? '' : `select(EntityType.${collection.source.entity}, ${renderExpression(collection.source.selector, {
 		pageSelector: 'data.selector',
 		fields: 'data.selector',
 		params: 'params',
 	})})`
-	const collectionSelection = collection == null || collectionSourceEntityDefinition == null ?
+	const collectionSelection = collection == null ?
 		undefined
 	:
 		collectionSelectionPlan(
-			routePath,
-			indexes,
 			collection,
-			collectionSourceEntityDefinition,
 			collectionSourceSelectionExpression
 		)
 	const collectionSelectionExpression = collectionSelection?.selection ?? ''
@@ -15808,10 +15718,6 @@ const renderCollectionPageMarkup = (
 		return []
 
 	const source = collection.source
-	const sourceEntity = indexes.entityByType[source.entity]
-	if (sourceEntity == null)
-		throw new Error(`${collection.entity} collection references missing source entity ${source.entity}`)
-
 	const collectionEntity = indexes.entityByType[collection.entity]
 	if (collectionEntity == null)
 		throw new Error(`${collection.entity} collection references missing entity`)
@@ -15819,7 +15725,8 @@ const renderCollectionPageMarkup = (
 	const outerIndent = conditionExpression == null ? 1 : 2
 	const bodyIndent = outerIndent
 	const componentIndent = bodyIndent + (hideWhenEmpty ? 3 : 0)
-	const needsSelectionBinding = hideWhenEmpty || source.path.length === 1
+	const usesDirectFieldResource = source.referencePath.length === 1 && !isProjectionFieldReference(source.referencePath[0])
+	const needsSelectionBinding = hideWhenEmpty || usesDirectFieldResource
 	const inlineSelection = inlineSelectionExpression ?? collectionSelectionExpression
 	const selectionExpression = needsSelectionBinding ?
 		collectionSelectionExpression
@@ -15847,7 +15754,7 @@ const renderCollectionPageMarkup = (
 		...(rendersDefaultEntitiesList ? [] : [
 			renderSvelteAttribute(componentIndent + 1, 'selection', selectionExpression),
 		]),
-		...(source.path.length === 1 ? [
+		...(usesDirectFieldResource ? [
 			renderSvelteAttribute(componentIndent + 1, 'countResource', `${selectionExpression}.count`),
 		] : []),
 		...(rendersDefaultEntitiesList ? [
@@ -15857,7 +15764,7 @@ const renderCollectionPageMarkup = (
 			href.startsWith('/~/accounts/') ?
 				`account-${routeCollectionId(camel(collection.entity))}`
 			:
-				routeCollectionIdForFieldReference(source.field)
+				routeCollectionIdForFieldReference(source.referencePath[0])
 		)}`,
 	]
 	const component = (
