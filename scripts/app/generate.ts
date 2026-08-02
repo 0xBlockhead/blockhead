@@ -2597,8 +2597,7 @@ const entityRawSnippets = (entity: Entity) => {
 
 type RouteDetailLayoutPlan = {
 	components: readonly string[]
-	hrefExpression: string
-	keyExpression?: string
+	href: string
 	detailViewExpression: string
 	detailSelectionExpression: string
 }
@@ -4622,17 +4621,10 @@ const compileRouteEntries = (
 			dispatchDetails.findIndex((candidate) => candidate.entityType === detail.entityType) === index
 		))
 
-		const hrefParamNames = routeParamNames(node.svelteKitPath)
 		const detailSourcesExpression = renderDispatchedSourceSelectionExpression(dispatchDetails)
 		return {
 			components: unique(ownDetails.map((detail) => detail.component)),
-			hrefExpression: renderResolveExpression(node.svelteKitPath, hrefParamNames.map((param) => [param, `params.${param}`])),
-			...(hrefParamNames.length === 0 ? {} : {
-				keyExpression: hrefParamNames.length === 1 ?
-					`params.${hrefParamNames[0]}`
-				:
-					`[${hrefParamNames.map((param) => `params.${param}`).join(', ')}].join(':')`,
-			}),
+			href: node.svelteKitPath,
 			detailViewExpression: componentDetails.reduceRight((alternate, detail, index) => (
 				index === componentDetails.length - 1 ?
 					componentIdentifier(detail.component)
@@ -15821,7 +15813,8 @@ const generateLayoutFile = (routePath: string, routeFile: RouteFile) => {
 		renderExpression(modeledEntityLayout.selector, {
 			params: 'params',
 		})
-	const hrefParamNames = modeledEntityLayout?.href == null ? [] : routeParamNames(modeledEntityLayout.href)
+	const entityHref = routeFile.detailLayout?.href ?? modeledEntityLayout?.href
+	const hrefParamNames = entityHref == null ? [] : routeParamNames(entityHref)
 	const componentFiles = routeFile.detailLayout?.components ?? (componentFile == null ? [] : [componentFile])
 	const componentDeclaration = componentFiles.length > 1 ? routeFile.detailLayout?.detailViewExpression : undefined
 	const constantImports = routeFile.detailLayout != null ?
@@ -15838,11 +15831,11 @@ const generateLayoutFile = (routePath: string, routeFile: RouteFile) => {
 				modeledEntityLayout?.id,
 			].flatMap((expression) => expression == null ? [] : importSpecsFromMap(expressionImports(expression))),
 		]).map(emitImport)
-	const entityHrefExpression = routeFile.detailLayout?.hrefExpression ?? (
-		modeledEntityLayout?.href == null ?
+	const entityHrefExpression = (
+		entityHref == null ?
 			undefined
 		:
-			renderResolveExpression(modeledEntityLayout.href, hrefParamNames.map((param) => [param, `params.${param}`]))
+			renderResolveExpression(entityHref, hrefParamNames.map((param) => [param, `params.${param}`]))
 	)
 	const idExpression = modeledEntityLayout?.id == null ?
 		undefined
@@ -15850,7 +15843,7 @@ const generateLayoutFile = (routePath: string, routeFile: RouteFile) => {
 		renderExpression(modeledEntityLayout.id, {
 			params: 'params',
 		})
-	const keyExpression = routeFile.detailLayout?.keyExpression ?? (
+	const keyExpression = (
 		hrefParamNames.length === 0 ?
 			undefined
 		: hrefParamNames.length === 1 ?
