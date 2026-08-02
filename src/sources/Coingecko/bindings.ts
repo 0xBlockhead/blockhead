@@ -43,12 +43,12 @@ export default indexSourceBindings([
 		],
 		artifacts: [
 			{
-				kind: SourceArtifactKind.OpenApiSpec,
-				path: 'src/sources/Coingecko/OpenApi/demo-api.json',
-			},
-			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/Coingecko/OpenApi/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/Coingecko/OpenApi/demo-api.json',
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,
@@ -84,12 +84,12 @@ export default indexSourceBindings([
 		],
 		artifacts: [
 			{
-				kind: SourceArtifactKind.OpenApiSpec,
-				path: 'src/sources/Coingecko/OpenApi/Pro/pro-api.json',
-			},
-			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/Coingecko/OpenApi/Pro/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/Coingecko/OpenApi/Pro/pro-api.json',
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,

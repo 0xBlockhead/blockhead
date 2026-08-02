@@ -41,14 +41,14 @@ export default indexSourceBindings([
 		credentials: tonCenterCredentials,
 		artifacts: [
 			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/TonCenter/OpenApi/schema-source.ts',
+			},
+			{
 				kind: SourceArtifactKind.OpenApiSpec,
 				path: 'src/sources/TonCenter/OpenApi/openapi.json',
 				generated: true,
 				officialUrl: 'https://toncenter.com/api/v2/openapi.json',
-			},
-			{
-				kind: SourceArtifactKind.GenerationManifest,
-				path: 'src/sources/TonCenter/OpenApi/schema-source.ts',
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,

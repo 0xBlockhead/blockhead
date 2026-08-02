@@ -33,12 +33,12 @@ export default indexSourceBindings([
 		credentials: [],
 		artifacts: [
 			{
-				kind: SourceArtifactKind.Proto,
-				path: 'src/sources/ZcashLightwalletd/Grpc/proto',
-			},
-			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/ZcashLightwalletd/Grpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.Proto,
+				path: 'src/sources/ZcashLightwalletd/Grpc/proto',
 			},
 		],
 	},

@@ -43,12 +43,12 @@ export default indexSourceBindings([
 		],
 		artifacts: [
 			{
-				kind: SourceArtifactKind.GoogleDiscovery,
-				path: 'src/sources/Youtube/Discovery/youtube-v3.json',
-			},
-			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/Youtube/Discovery/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.GoogleDiscovery,
+				path: 'src/sources/Youtube/Discovery/youtube-v3.json',
 			},
 		],
 	},

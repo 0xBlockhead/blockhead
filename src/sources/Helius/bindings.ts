@@ -70,12 +70,12 @@ export default indexSourceBindings([
 		credentials: heliusCredentials,
 		artifacts: [
 			{
-				kind: SourceArtifactKind.OpenRpcSpec,
-				path: 'src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/metaplex-das-api.json',
-			},
-			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/metaplex-das-api.json',
 			},
 		],
 	},

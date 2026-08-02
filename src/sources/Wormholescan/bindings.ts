@@ -34,14 +34,14 @@ export default indexSourceBindings([
 		credentials: [],
 		artifacts: [
 			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/Wormholescan/OpenApi/schema-source.ts',
+			},
+			{
 				kind: SourceArtifactKind.OpenApiSpec,
 				path: 'src/sources/Wormholescan/OpenApi/openapi.json',
 				generated: true,
 				officialUrl: 'https://api.wormholescan.io/swagger.json',
-			},
-			{
-				kind: SourceArtifactKind.GenerationManifest,
-				path: 'src/sources/Wormholescan/OpenApi/schema-source.ts',
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,

@@ -84325,13 +84325,13 @@ export const app = {
 					],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Amboss/Graphql/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.GraphqlSchema,
 							path: "src/sources/Amboss/Graphql/schema.graphql",
 							generated: true,
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/Amboss/Graphql/schema-source.ts",
 						},
 						{
 							kind: SourceArtifactKind.GraphqlTypes,
@@ -84429,12 +84429,12 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.OpenApiSpec,
-							path: "src/sources/AptosFullnode/OpenApi/spec.yaml",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/AptosFullnode/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/AptosFullnode/OpenApi/spec.yaml",
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -84469,14 +84469,14 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/AptosIndexer/Graphql/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.GraphqlSchema,
 							path: "src/sources/AptosIndexer/Graphql/schema.graphql",
 							generated: true,
 							officialUrl: "https://api.mainnet.aptoslabs.com/v1/graphql",
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/AptosIndexer/Graphql/schema-source.ts",
 						},
 						{
 							kind: SourceArtifactKind.GraphqlTypes,
@@ -84547,14 +84547,14 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Arweave/Graphql/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.GraphqlSchema,
 							path: "src/sources/Arweave/Graphql/schema.graphql",
 							generated: true,
 							officialUrl: "https://arweave.net/graphql",
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/Arweave/Graphql/schema-source.ts",
 						},
 						{
 							kind: SourceArtifactKind.GraphqlTypes,
@@ -84589,12 +84589,12 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.Lexicon,
-							path: "src/sources/AtprotoBsky/Lexicon",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/AtprotoBsky/Lexicon/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.Lexicon,
+							path: "src/sources/AtprotoBsky/Lexicon",
 						},
 					],
 				},
@@ -84624,12 +84624,12 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.Lexicon,
-							path: "src/sources/AtprotoBskySocial/Lexicon",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/AtprotoBskySocial/Lexicon/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.Lexicon,
+							path: "src/sources/AtprotoBskySocial/Lexicon",
 						},
 					],
 				},
@@ -84778,8 +84778,8 @@ export const app = {
 							scope: SourceCredentialScope.RuntimeSecret,
 							keys: [
 								"AWS_ACCESS_KEY_ID",
-								"AWS_SECRET_ACCESS_KEY",
 								"AWS_BEDROCK_REGION",
+								"AWS_SECRET_ACCESS_KEY",
 							],
 						},
 					],
@@ -84868,12 +84868,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenApiSpec,
-								path: "src/sources/Beacon/OpenApi/beacon-node-oapi.yaml",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/Beacon/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Beacon/OpenApi/beacon-node-oapi.yaml",
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -84903,12 +84903,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenApiSpec,
-								path: "src/sources/Beacon/OpenApi/beacon-node-oapi.yaml",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/Beacon/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Beacon/OpenApi/beacon-node-oapi.yaml",
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -84938,12 +84938,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenApiSpec,
-								path: "src/sources/Beacon/OpenApi/beacon-node-oapi.yaml",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/Beacon/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Beacon/OpenApi/beacon-node-oapi.yaml",
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -85255,14 +85255,14 @@ export const app = {
 					],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Bithomp/OpenApi/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/Bithomp/OpenApi/openapi.yaml",
 							generated: true,
 							officialUrl: "https://raw.githubusercontent.com/Bithomp/slate/master/source/bithomp-dhali.yaml",
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/Bithomp/OpenApi/schema-source.ts",
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -85613,12 +85613,12 @@ export const app = {
 					],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.OpenApiSpec,
-							path: "src/sources/Blockfrost/OpenApi/openapi.yaml",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/Blockfrost/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/Blockfrost/OpenApi/openapi.yaml",
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -85648,19 +85648,19 @@ export const app = {
 						wireProtocol: WireProtocol.HttpRest,
 						apiFamily: ApiFamily.BlockscoutRestV2,
 						operationGroups: [
-							SourceOperationGroup.GenericRead,
 							SourceOperationGroup.BlockscoutAccountAbstraction,
+							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenApiSpec,
-								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/Blockscout/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -85690,12 +85690,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -85714,19 +85714,19 @@ export const app = {
 						wireProtocol: WireProtocol.HttpRest,
 						apiFamily: ApiFamily.BlockscoutRestV2,
 						operationGroups: [
-							SourceOperationGroup.GenericRead,
 							SourceOperationGroup.BlockscoutAccountAbstraction,
+							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenApiSpec,
-								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/Blockscout/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -85756,12 +85756,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -85780,19 +85780,19 @@ export const app = {
 						wireProtocol: WireProtocol.HttpRest,
 						apiFamily: ApiFamily.BlockscoutRestV2,
 						operationGroups: [
-							SourceOperationGroup.GenericRead,
 							SourceOperationGroup.BlockscoutAccountAbstraction,
+							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenApiSpec,
-								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/Blockscout/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -85822,12 +85822,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -85846,19 +85846,19 @@ export const app = {
 						wireProtocol: WireProtocol.HttpRest,
 						apiFamily: ApiFamily.BlockscoutRestV2,
 						operationGroups: [
-							SourceOperationGroup.GenericRead,
 							SourceOperationGroup.BlockscoutAccountAbstraction,
+							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenApiSpec,
-								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/Blockscout/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -85888,12 +85888,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -85912,19 +85912,19 @@ export const app = {
 						wireProtocol: WireProtocol.HttpRest,
 						apiFamily: ApiFamily.BlockscoutRestV2,
 						operationGroups: [
-							SourceOperationGroup.GenericRead,
 							SourceOperationGroup.BlockscoutAccountAbstraction,
+							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenApiSpec,
-								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/Blockscout/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -85954,12 +85954,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -85978,19 +85978,19 @@ export const app = {
 						wireProtocol: WireProtocol.HttpRest,
 						apiFamily: ApiFamily.BlockscoutRestV2,
 						operationGroups: [
-							SourceOperationGroup.GenericRead,
 							SourceOperationGroup.BlockscoutAccountAbstraction,
+							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenApiSpec,
-								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/Blockscout/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -86020,12 +86020,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -86044,19 +86044,19 @@ export const app = {
 						wireProtocol: WireProtocol.HttpRest,
 						apiFamily: ApiFamily.BlockscoutRestV2,
 						operationGroups: [
-							SourceOperationGroup.GenericRead,
 							SourceOperationGroup.BlockscoutAccountAbstraction,
+							SourceOperationGroup.GenericRead,
 						],
 						delivery: SourceDelivery.HttpProxy,
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenApiSpec,
-								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/Blockscout/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Blockscout/OpenApi/openapi.yaml",
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -86086,12 +86086,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -86385,14 +86385,14 @@ export const app = {
 					],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Celestia/JsonRpc/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.OpenRpcSpec,
 							path: "src/sources/Celestia/JsonRpc/openrpc.json",
 							generated: true,
 							officialUrl: "https://docs.celestia.org/specs/openrpc-v0.28.4.json",
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/Celestia/JsonRpc/schema-source.ts",
 						},
 					],
 				},
@@ -86501,14 +86501,14 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/CircleCctp/OpenApi/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/CircleCctp/OpenApi/openapi.yaml",
 							generated: true,
 							officialUrl: "https://developers.circle.com/openapi/cctp.yaml",
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/CircleCctp/OpenApi/schema-source.ts",
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -86693,12 +86693,12 @@ export const app = {
 						],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenApiSpec,
-								path: "src/sources/Coingecko/OpenApi/demo-api.json",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/Coingecko/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Coingecko/OpenApi/demo-api.json",
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -86740,12 +86740,12 @@ export const app = {
 						],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenApiSpec,
-								path: "src/sources/Coingecko/OpenApi/Pro/pro-api.json",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/Coingecko/OpenApi/Pro/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Coingecko/OpenApi/Pro/pro-api.json",
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -86825,12 +86825,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenApiSpec,
-								path: "src/sources/Coinpaprika/OpenApi/openapi.yml",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/Coinpaprika/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Coinpaprika/OpenApi/openapi.yml",
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -87123,12 +87123,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenApiSpec,
-								path: "src/sources/Defillama/OpenApi/openapi.json",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/Defillama/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Defillama/OpenApi/openapi.json",
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -87190,12 +87190,12 @@ export const app = {
 						],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenApiSpec,
-								path: "src/sources/Defillama/OpenApi/Pro/openapi.json",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/Defillama/OpenApi/Pro/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Defillama/OpenApi/Pro/openapi.json",
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -87231,12 +87231,12 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.OpenApiSpec,
-							path: "src/sources/Dexscreener/OpenApi/openapi.yml",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/Dexscreener/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/Dexscreener/OpenApi/openapi.yml",
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -87373,14 +87373,14 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Dydx/OpenApi/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/Dydx/OpenApi/openapi.json",
 							generated: true,
 							officialUrl: "https://raw.githubusercontent.com/dydxprotocol/v4-chain/main/indexer/services/comlink/public/swagger.json",
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/Dydx/OpenApi/schema-source.ts",
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -88017,14 +88017,14 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/EnsMetadataService/OpenApi/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/EnsMetadataService/OpenApi/openapi.json",
 							generated: true,
 							officialUrl: "https://metadata.ens.domains/assets/doc_output.json",
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/EnsMetadataService/OpenApi/schema-source.ts",
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -88065,12 +88065,12 @@ export const app = {
 					],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.OpenRpcSpec,
-							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenRpcSpec,
+							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 						},
 					],
 				},
@@ -88379,12 +88379,12 @@ export const app = {
 					],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.OpenRpcSpec,
-							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenRpcSpec,
+							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 						},
 					],
 				},
@@ -88732,12 +88732,12 @@ export const app = {
 					],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.OpenRpcSpec,
-							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenRpcSpec,
+							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 						},
 					],
 				},
@@ -89031,12 +89031,12 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.Proto,
-							path: "src/sources/HederaSdk/Grpc/proto",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/HederaSdk/Grpc/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.Proto,
+							path: "src/sources/HederaSdk/Grpc/proto",
 						},
 					],
 				},
@@ -89146,12 +89146,12 @@ export const app = {
 						],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/metaplex-das-api.json",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/metaplex-das-api.json",
 							},
 						],
 					},
@@ -89177,8 +89177,8 @@ export const app = {
 					apiFamily: ApiFamily.RestJson,
 					operationGroups: [
 						SourceOperationGroup.AiArtifactCatalog,
-						SourceOperationGroup.RepositoryMetadata,
 						SourceOperationGroup.GenericRead,
+						SourceOperationGroup.RepositoryMetadata,
 					],
 					delivery: SourceDelivery.RemoteQuery,
 					credentials: [
@@ -89240,12 +89240,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -89546,14 +89546,14 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/KaspaExplorer/OpenApi/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/KaspaExplorer/OpenApi/openapi.json",
 							generated: true,
 							officialUrl: "https://api.kaspa.org/openapi.json",
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/KaspaExplorer/OpenApi/schema-source.ts",
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -89587,12 +89587,12 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.Proto,
-							path: "src/sources/KaspaNode/Grpc/proto",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/KaspaNode/Grpc/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.Proto,
+							path: "src/sources/KaspaNode/Grpc/proto",
 						},
 					],
 				},
@@ -89844,14 +89844,14 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/LayerZeroScan/OpenApi/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/LayerZeroScan/OpenApi/openapi.json",
 							generated: true,
 							officialUrl: "https://scan.layerzero-api.com/v1/openapi",
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/LayerZeroScan/OpenApi/schema-source.ts",
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -89956,12 +89956,12 @@ export const app = {
 					],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.GraphqlSchema,
-							path: "src/sources/Lens/Graphql/schema.graphql",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/Lens/Graphql/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.GraphqlSchema,
+							path: "src/sources/Lens/Graphql/schema.graphql",
 						},
 						{
 							kind: SourceArtifactKind.GraphqlTypes,
@@ -90001,6 +90001,10 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Lifi/OpenApi/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/Lifi/OpenApi/openapi.yaml",
 						},
@@ -90008,10 +90012,6 @@ export const app = {
 							kind: SourceArtifactKind.OpenApiTypes,
 							path: "src/sources/Lifi/OpenApi/openapi.d.ts",
 							generated: true,
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/Lifi/OpenApi/schema-source.ts",
 						},
 					],
 				},
@@ -91117,12 +91117,12 @@ export const app = {
 					],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.OpenApiSpec,
-							path: "src/sources/Neynar/OpenApi/openapi.yaml",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/Neynar/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/Neynar/OpenApi/openapi.yaml",
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -91343,8 +91343,8 @@ export const app = {
 						wireProtocol: WireProtocol.WebSocketMessages,
 						apiFamily: ApiFamily.NostrRelay,
 						operationGroups: [
-							SourceOperationGroup.NostrRelayRead,
 							SourceOperationGroup.GenericSubscribe,
+							SourceOperationGroup.NostrRelayRead,
 						],
 						delivery: SourceDelivery.RemoteLive,
 						credentials: [],
@@ -91369,8 +91369,8 @@ export const app = {
 						wireProtocol: WireProtocol.WebSocketMessages,
 						apiFamily: ApiFamily.NostrRelay,
 						operationGroups: [
-							SourceOperationGroup.NostrRelayRead,
 							SourceOperationGroup.GenericSubscribe,
+							SourceOperationGroup.NostrRelayRead,
 						],
 						delivery: SourceDelivery.RemoteLive,
 						credentials: [],
@@ -91395,8 +91395,8 @@ export const app = {
 						wireProtocol: WireProtocol.WebSocketMessages,
 						apiFamily: ApiFamily.NostrRelay,
 						operationGroups: [
-							SourceOperationGroup.NostrRelayRead,
 							SourceOperationGroup.GenericSubscribe,
+							SourceOperationGroup.NostrRelayRead,
 						],
 						delivery: SourceDelivery.RemoteLive,
 						credentials: [],
@@ -91428,8 +91428,8 @@ export const app = {
 					wireProtocol: WireProtocol.OciDistribution,
 					apiFamily: ApiFamily.OciDistributionApi,
 					operationGroups: [
-						SourceOperationGroup.SoftwareArtifactRegistry,
 						SourceOperationGroup.RepositoryMetadata,
+						SourceOperationGroup.SoftwareArtifactRegistry,
 					],
 					delivery: SourceDelivery.RemoteQuery,
 					credentials: [
@@ -91609,12 +91609,12 @@ export const app = {
 					],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.OpenApiSpec,
-							path: "src/sources/OpenSea/OpenApi/openapi.json",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/OpenSea/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/OpenSea/OpenApi/openapi.json",
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -91649,12 +91649,12 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.OpenRpcSpec,
-							path: "src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/openrpc.json",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenRpcSpec,
+							path: "src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/openrpc.json",
 						},
 					],
 				},
@@ -92073,14 +92073,14 @@ export const app = {
 					],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Pyth/OpenApi/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/Pyth/OpenApi/openapi.json",
 							generated: true,
 							officialUrl: "https://hermes.pyth.network/docs/openapi.json",
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/Pyth/OpenApi/schema-source.ts",
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -92505,12 +92505,12 @@ export const app = {
 					],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.OpenRpcSpec,
-							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenRpcSpec,
+							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 						},
 					],
 				},
@@ -92742,21 +92742,21 @@ export const app = {
 					wireProtocol: WireProtocol.HttpRest,
 					apiFamily: ApiFamily.OpenApiHttp,
 					operationGroups: [
-						SourceOperationGroup.SoftwareArtifactRegistry,
 						SourceOperationGroup.GenericRead,
+						SourceOperationGroup.SoftwareArtifactRegistry,
 					],
 					delivery: SourceDelivery.BrowserDirect,
 					credentials: [],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/SigstoreRekor/OpenApi/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/SigstoreRekor/OpenApi/openapi.yaml",
 							generated: true,
 							officialUrl: "https://raw.githubusercontent.com/sigstore/rekor/main/openapi.yaml",
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/SigstoreRekor/OpenApi/schema-source.ts",
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -92791,14 +92791,14 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/SnapshotHub/Graphql/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.GraphqlSchema,
 							path: "src/sources/SnapshotHub/Graphql/schema.graphql",
 							generated: true,
 							officialUrl: "https://hub.snapshot.org/graphql",
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/SnapshotHub/Graphql/schema-source.ts",
 						},
 						{
 							kind: SourceArtifactKind.GraphqlTypes,
@@ -93134,12 +93134,12 @@ export const app = {
 					],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.OpenApiSpec,
-							path: "src/sources/Starkscan/OpenApi/openapi.yaml",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/Starkscan/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/Starkscan/OpenApi/openapi.yaml",
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -93174,14 +93174,14 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/StellarExpert/OpenApi/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/StellarExpert/OpenApi/openapi.yml",
 							generated: true,
 							officialUrl: "https://raw.githubusercontent.com/stellar-expert/stellar-expert-explorer/master/ui/open-api/openapi.yml",
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/StellarExpert/OpenApi/schema-source.ts",
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -93395,14 +93395,14 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/Sui/Graphql/schema-source.ts",
+							},
+							{
 								kind: SourceArtifactKind.GraphqlSchema,
 								path: "src/sources/Sui/Graphql/schema.graphql",
 								generated: true,
 								officialUrl: "https://graphql.mainnet.sui.io/graphql",
-							},
-							{
-								kind: SourceArtifactKind.GenerationManifest,
-								path: "src/sources/Sui/Graphql/schema-source.ts",
 							},
 							{
 								kind: SourceArtifactKind.GraphqlTypes,
@@ -93592,14 +93592,14 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Octez/OpenApi/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/Octez/OpenApi/openapi.json",
 							generated: true,
 							officialUrl: "https://gitlab.com/tezos/tezos/-/raw/master/docs/api/rpc-openapi.json",
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/Octez/OpenApi/schema-source.ts",
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -93646,16 +93646,16 @@ export const app = {
 					],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/TheGraph/Graphql/Ens/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.GraphqlSchema,
 							path: "src/sources/TheGraph/Graphql/Ens/schema.graphql",
 						},
 						{
 							kind: SourceArtifactKind.GraphqlSchema,
 							path: "src/sources/TheGraph/Graphql/Ens/schema.patch.graphql",
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/TheGraph/Graphql/Ens/schema-source.ts",
 						},
 						{
 							kind: SourceArtifactKind.GraphqlTypes,
@@ -93792,14 +93792,14 @@ export const app = {
 						],
 						artifacts: [
 							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/TonCenter/OpenApi/schema-source.ts",
+							},
+							{
 								kind: SourceArtifactKind.OpenApiSpec,
 								path: "src/sources/TonCenter/OpenApi/openapi.json",
 								generated: true,
 								officialUrl: "https://toncenter.com/api/v2/openapi.json",
-							},
-							{
-								kind: SourceArtifactKind.GenerationManifest,
-								path: "src/sources/TonCenter/OpenApi/schema-source.ts",
 							},
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
@@ -94312,12 +94312,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94353,12 +94353,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94385,12 +94385,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94414,12 +94414,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94446,12 +94446,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94475,12 +94475,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94507,12 +94507,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94536,12 +94536,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94568,12 +94568,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94597,12 +94597,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94629,12 +94629,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94658,12 +94658,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94690,12 +94690,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94719,12 +94719,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94751,12 +94751,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94780,12 +94780,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94812,12 +94812,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94841,12 +94841,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94873,12 +94873,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94902,12 +94902,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94934,12 +94934,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94963,12 +94963,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -94995,12 +94995,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95024,12 +95024,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95056,12 +95056,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95085,12 +95085,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95117,12 +95117,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95146,12 +95146,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95178,12 +95178,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95207,12 +95207,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95239,12 +95239,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95268,12 +95268,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95300,12 +95300,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95329,12 +95329,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95361,12 +95361,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95390,12 +95390,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95427,12 +95427,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95460,12 +95460,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95492,12 +95492,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95521,12 +95521,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95553,12 +95553,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95582,12 +95582,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95614,12 +95614,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95643,12 +95643,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95675,12 +95675,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95704,12 +95704,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95736,12 +95736,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95765,12 +95765,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95797,12 +95797,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95826,12 +95826,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95858,12 +95858,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95887,12 +95887,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95919,12 +95919,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95948,12 +95948,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -95980,12 +95980,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96009,12 +96009,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96041,12 +96041,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96070,12 +96070,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96102,12 +96102,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96131,12 +96131,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96163,12 +96163,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96192,12 +96192,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96224,12 +96224,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96253,12 +96253,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96285,12 +96285,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96314,12 +96314,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96346,12 +96346,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96375,12 +96375,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96407,12 +96407,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96436,12 +96436,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96468,12 +96468,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96497,12 +96497,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96529,12 +96529,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96558,12 +96558,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96590,12 +96590,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96619,12 +96619,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96651,12 +96651,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96680,12 +96680,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96712,12 +96712,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96741,12 +96741,12 @@ export const app = {
 						credentials: [],
 						artifacts: [
 							{
-								kind: SourceArtifactKind.OpenRpcSpec,
-								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-							},
-							{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 							},
 						],
 					},
@@ -96787,14 +96787,14 @@ export const app = {
 					],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Voyager/OpenApi/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/Voyager/OpenApi/openapi.json",
 							generated: true,
 							officialUrl: "https://docs.voyager.online/api-reference/openapi.json",
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/Voyager/OpenApi/schema-source.ts",
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -96905,8 +96905,8 @@ export const app = {
 					wireProtocol: WireProtocol.InProcess,
 					apiFamily: ApiFamily.WebTorrentApi,
 					operationGroups: [
-						SourceOperationGroup.GenericRead,
 						SourceOperationGroup.BitTorrentAnnounce,
+						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
 					credentials: [],
@@ -96986,14 +96986,14 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/Wormholescan/OpenApi/schema-source.ts",
+						},
+						{
 							kind: SourceArtifactKind.OpenApiSpec,
 							path: "src/sources/Wormholescan/OpenApi/openapi.json",
 							generated: true,
 							officialUrl: "https://api.wormholescan.io/swagger.json",
-						},
-						{
-							kind: SourceArtifactKind.GenerationManifest,
-							path: "src/sources/Wormholescan/OpenApi/schema-source.ts",
 						},
 						{
 							kind: SourceArtifactKind.OpenApiTypes,
@@ -97273,12 +97273,12 @@ export const app = {
 					],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.GoogleDiscovery,
-							path: "src/sources/Youtube/Discovery/youtube-v3.json",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/Youtube/Discovery/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.GoogleDiscovery,
+							path: "src/sources/Youtube/Discovery/youtube-v3.json",
 						},
 					],
 				},
@@ -97394,12 +97394,12 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.Proto,
-							path: "src/sources/ZcashLightwalletd/Grpc/proto",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/ZcashLightwalletd/Grpc/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.Proto,
+							path: "src/sources/ZcashLightwalletd/Grpc/proto",
 						},
 					],
 				},
@@ -97488,12 +97488,12 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.OpenRpcSpec,
-							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
-						},
-						{
 							kind: SourceArtifactKind.GenerationManifest,
 							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenRpcSpec,
+							path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
 						},
 					],
 				},

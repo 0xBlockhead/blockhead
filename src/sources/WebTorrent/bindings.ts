@@ -28,8 +28,8 @@ export default indexSourceBindings([
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.WebTorrentApi,
 		operationGroups: [
-			SourceOperationGroup.GenericRead,
 			SourceOperationGroup.BitTorrentAnnounce,
+			SourceOperationGroup.GenericRead,
 		],
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],

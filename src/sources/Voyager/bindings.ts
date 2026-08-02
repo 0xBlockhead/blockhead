@@ -39,14 +39,14 @@ export default indexSourceBindings([
 		],
 		artifacts: [
 			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/Voyager/OpenApi/schema-source.ts',
+			},
+			{
 				kind: SourceArtifactKind.OpenApiSpec,
 				path: 'src/sources/Voyager/OpenApi/openapi.json',
 				generated: true,
 				officialUrl: 'https://docs.voyager.online/api-reference/openapi.json',
-			},
-			{
-				kind: SourceArtifactKind.GenerationManifest,
-				path: 'src/sources/Voyager/OpenApi/schema-source.ts',
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,

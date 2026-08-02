@@ -36,12 +36,12 @@ export default indexSourceBindings([
 		credentials: [],
 		artifacts: [
 			{
-				kind: SourceArtifactKind.OpenApiSpec,
-				path: 'src/sources/Defillama/OpenApi/openapi.json',
-			},
-			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/Defillama/OpenApi/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/Defillama/OpenApi/openapi.json',
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,
@@ -96,12 +96,12 @@ export default indexSourceBindings([
 		],
 		artifacts: [
 			{
-				kind: SourceArtifactKind.OpenApiSpec,
-				path: 'src/sources/Defillama/OpenApi/Pro/openapi.json',
-			},
-			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/Defillama/OpenApi/Pro/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/Defillama/OpenApi/Pro/openapi.json',
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,

@@ -34,14 +34,14 @@ export default indexSourceBindings([
 		credentials: [],
 		artifacts: [
 			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/AptosIndexer/Graphql/schema-source.ts',
+			},
+			{
 				kind: SourceArtifactKind.GraphqlSchema,
 				path: 'src/sources/AptosIndexer/Graphql/schema.graphql',
 				generated: true,
 				officialUrl: 'https://api.mainnet.aptoslabs.com/v1/graphql',
-			},
-			{
-				kind: SourceArtifactKind.GenerationManifest,
-				path: 'src/sources/AptosIndexer/Graphql/schema-source.ts',
 			},
 			{
 				kind: SourceArtifactKind.GraphqlTypes,

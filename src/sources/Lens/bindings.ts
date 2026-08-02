@@ -43,12 +43,12 @@ export default indexSourceBindings([
 		],
 		artifacts: [
 			{
-				kind: SourceArtifactKind.GraphqlSchema,
-				path: 'src/sources/Lens/Graphql/schema.graphql',
-			},
-			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/Lens/Graphql/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.GraphqlSchema,
+				path: 'src/sources/Lens/Graphql/schema.graphql',
 			},
 			{
 				kind: SourceArtifactKind.GraphqlTypes,

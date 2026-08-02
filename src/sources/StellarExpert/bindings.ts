@@ -34,14 +34,14 @@ export default indexSourceBindings([
 		credentials: [],
 		artifacts: [
 			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/StellarExpert/OpenApi/schema-source.ts',
+			},
+			{
 				kind: SourceArtifactKind.OpenApiSpec,
 				path: 'src/sources/StellarExpert/OpenApi/openapi.yml',
 				generated: true,
 				officialUrl: 'https://raw.githubusercontent.com/stellar-expert/stellar-expert-explorer/master/ui/open-api/openapi.yml',
-			},
-			{
-				kind: SourceArtifactKind.GenerationManifest,
-				path: 'src/sources/StellarExpert/OpenApi/schema-source.ts',
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,

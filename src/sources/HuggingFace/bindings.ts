@@ -31,8 +31,8 @@ export default indexSourceBindings([
 		apiFamily: ApiFamily.RestJson,
 		operationGroups: [
 			SourceOperationGroup.AiArtifactCatalog,
-			SourceOperationGroup.RepositoryMetadata,
 			SourceOperationGroup.GenericRead,
+			SourceOperationGroup.RepositoryMetadata,
 		],
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [

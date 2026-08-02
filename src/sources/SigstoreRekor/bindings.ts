@@ -30,21 +30,21 @@ export default indexSourceBindings([
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.OpenApiHttp,
 		operationGroups: [
-			SourceOperationGroup.SoftwareArtifactRegistry,
 			SourceOperationGroup.GenericRead,
+			SourceOperationGroup.SoftwareArtifactRegistry,
 		],
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 		artifacts: [
 			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/SigstoreRekor/OpenApi/schema-source.ts',
+			},
+			{
 				kind: SourceArtifactKind.OpenApiSpec,
 				path: 'src/sources/SigstoreRekor/OpenApi/openapi.yaml',
 				generated: true,
 				officialUrl: 'https://raw.githubusercontent.com/sigstore/rekor/main/openapi.yaml',
-			},
-			{
-				kind: SourceArtifactKind.GenerationManifest,
-				path: 'src/sources/SigstoreRekor/OpenApi/schema-source.ts',
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,

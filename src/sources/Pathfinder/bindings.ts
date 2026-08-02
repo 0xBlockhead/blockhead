@@ -34,12 +34,12 @@ export default indexSourceBindings([
 		credentials: [],
 		artifacts: [
 			{
-				kind: SourceArtifactKind.OpenRpcSpec,
-				path: 'src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/openrpc.json',
-			},
-			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/openrpc.json',
 			},
 		],
 	},

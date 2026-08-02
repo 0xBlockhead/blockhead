@@ -34,12 +34,12 @@ export default indexSourceBindings([
 		credentials: [],
 		artifacts: [
 			{
-				kind: SourceArtifactKind.OpenApiSpec,
-				path: 'src/sources/Dexscreener/OpenApi/openapi.yml',
-			},
-			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/Dexscreener/OpenApi/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/Dexscreener/OpenApi/openapi.yml',
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,

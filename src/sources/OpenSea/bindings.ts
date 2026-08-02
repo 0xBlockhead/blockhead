@@ -39,12 +39,12 @@ export default indexSourceBindings([
 		],
 		artifacts: [
 			{
-				kind: SourceArtifactKind.OpenApiSpec,
-				path: 'src/sources/OpenSea/OpenApi/openapi.json',
-			},
-			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/OpenSea/OpenApi/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/OpenSea/OpenApi/openapi.json',
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,

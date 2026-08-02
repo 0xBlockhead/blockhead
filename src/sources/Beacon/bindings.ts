@@ -22,12 +22,12 @@ const beaconRestBindingAxes = {
 	credentials: [],
 	artifacts: [
 		{
-			kind: SourceArtifactKind.OpenApiSpec,
-			path: 'src/sources/Beacon/OpenApi/beacon-node-oapi.yaml',
-		},
-		{
 			kind: SourceArtifactKind.GenerationManifest,
 			path: 'src/sources/Beacon/OpenApi/schema-source.ts',
+		},
+		{
+			kind: SourceArtifactKind.OpenApiSpec,
+			path: 'src/sources/Beacon/OpenApi/beacon-node-oapi.yaml',
 		},
 		{
 			kind: SourceArtifactKind.OpenApiTypes,

@@ -34,14 +34,14 @@ export default indexSourceBindings([
 		credentials: [],
 		artifacts: [
 			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/Sui/Graphql/schema-source.ts',
+			},
+			{
 				kind: SourceArtifactKind.GraphqlSchema,
 				path: 'src/sources/Sui/Graphql/schema.graphql',
 				generated: true,
 				officialUrl: 'https://graphql.mainnet.sui.io/graphql',
-			},
-			{
-				kind: SourceArtifactKind.GenerationManifest,
-				path: 'src/sources/Sui/Graphql/schema-source.ts',
 			},
 			{
 				kind: SourceArtifactKind.GraphqlTypes,

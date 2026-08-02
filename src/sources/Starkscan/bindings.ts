@@ -39,12 +39,12 @@ export default indexSourceBindings([
 		],
 		artifacts: [
 			{
-				kind: SourceArtifactKind.OpenApiSpec,
-				path: 'src/sources/Starkscan/OpenApi/openapi.yaml',
-			},
-			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/Starkscan/OpenApi/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/Starkscan/OpenApi/openapi.yaml',
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,

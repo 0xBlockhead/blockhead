@@ -67,14 +67,14 @@ export default indexSourceBindings([
 		credentials: [],
 		artifacts: [
 			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/Arweave/Graphql/schema-source.ts',
+			},
+			{
 				kind: SourceArtifactKind.GraphqlSchema,
 				path: 'src/sources/Arweave/Graphql/schema.graphql',
 				generated: true,
 				officialUrl: 'https://arweave.net/graphql',
-			},
-			{
-				kind: SourceArtifactKind.GenerationManifest,
-				path: 'src/sources/Arweave/Graphql/schema-source.ts',
 			},
 			{
 				kind: SourceArtifactKind.GraphqlTypes,

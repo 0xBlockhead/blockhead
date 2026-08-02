@@ -33,12 +33,12 @@ export default indexSourceBindings([
 		credentials: [],
 		artifacts: [
 			{
-				kind: SourceArtifactKind.Proto,
-				path: 'src/sources/KaspaNode/Grpc/proto',
-			},
-			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/KaspaNode/Grpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.Proto,
+				path: 'src/sources/KaspaNode/Grpc/proto',
 			},
 		],
 	},

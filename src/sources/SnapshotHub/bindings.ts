@@ -34,14 +34,14 @@ export default indexSourceBindings([
 		credentials: [],
 		artifacts: [
 			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/SnapshotHub/Graphql/schema-source.ts',
+			},
+			{
 				kind: SourceArtifactKind.GraphqlSchema,
 				path: 'src/sources/SnapshotHub/Graphql/schema.graphql',
 				generated: true,
 				officialUrl: 'https://hub.snapshot.org/graphql',
-			},
-			{
-				kind: SourceArtifactKind.GenerationManifest,
-				path: 'src/sources/SnapshotHub/Graphql/schema-source.ts',
 			},
 			{
 				kind: SourceArtifactKind.GraphqlTypes,

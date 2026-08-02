@@ -43,14 +43,14 @@ export default indexSourceBindings([
 		],
 		artifacts: [
 			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/Bithomp/OpenApi/schema-source.ts',
+			},
+			{
 				kind: SourceArtifactKind.OpenApiSpec,
 				path: 'src/sources/Bithomp/OpenApi/openapi.yaml',
 				generated: true,
 				officialUrl: 'https://raw.githubusercontent.com/Bithomp/slate/master/source/bithomp-dhali.yaml',
-			},
-			{
-				kind: SourceArtifactKind.GenerationManifest,
-				path: 'src/sources/Bithomp/OpenApi/schema-source.ts',
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,

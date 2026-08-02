@@ -5411,6 +5411,18 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			throw new Error(`${source}: source binding requires at least one endpoint`)
 		if (binding.operationGroups.length === 0)
 			throw new Error(`${source}: source binding requires at least one operation group`)
+		validateAlphabeticalSet(`${source} operation groups`, binding.operationGroups)
+		if (binding.artifacts != null)
+			validateAlphabeticalSet(
+				`${source} artifacts`,
+				binding.artifacts.map(({ kind, path }) => `${kind}\0${path}`)
+			)
+		for (const credential of binding.credentials) {
+			if (!('envKey' in credential) && credential.keys != null)
+				validateAlphabeticalSet(`${source} credential keys`, credential.keys)
+			if (!('envKey' in credential) && credential.env != null)
+				validateAlphabeticalSet(`${source} credential environment keys`, credential.env.keys.map(({ name }) => name))
+		}
 
 		const compatibility = sourceBindingCompatibility.find((candidate) => (
 			candidate.wireProtocol === binding.wireProtocol

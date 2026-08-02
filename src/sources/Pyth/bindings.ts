@@ -75,14 +75,14 @@ export default indexSourceBindings([
 		],
 		artifacts: [
 			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/Pyth/OpenApi/schema-source.ts',
+			},
+			{
 				kind: SourceArtifactKind.OpenApiSpec,
 				path: 'src/sources/Pyth/OpenApi/openapi.json',
 				generated: true,
 				officialUrl: 'https://hermes.pyth.network/docs/openapi.json',
-			},
-			{
-				kind: SourceArtifactKind.GenerationManifest,
-				path: 'src/sources/Pyth/OpenApi/schema-source.ts',
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,

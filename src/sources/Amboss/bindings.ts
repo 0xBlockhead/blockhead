@@ -39,13 +39,13 @@ export default indexSourceBindings([
 		],
 		artifacts: [
 			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/Amboss/Graphql/schema-source.ts',
+			},
+			{
 				kind: SourceArtifactKind.GraphqlSchema,
 				path: 'src/sources/Amboss/Graphql/schema.graphql',
 				generated: true,
-			},
-			{
-				kind: SourceArtifactKind.GenerationManifest,
-				path: 'src/sources/Amboss/Graphql/schema-source.ts',
 			},
 			{
 				kind: SourceArtifactKind.GraphqlTypes,

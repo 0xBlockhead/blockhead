@@ -36,12 +36,12 @@ export default indexSourceBindings([
 		credentials: [],
 		artifacts: [
 			{
-				kind: SourceArtifactKind.OpenApiSpec,
-				path: 'src/sources/Coinpaprika/OpenApi/openapi.yml',
-			},
-			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/Coinpaprika/OpenApi/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/Coinpaprika/OpenApi/openapi.yml',
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,

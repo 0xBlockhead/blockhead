@@ -34,12 +34,12 @@ export default indexSourceBindings([
 		credentials: [],
 		artifacts: [
 			{
-				kind: SourceArtifactKind.OpenApiSpec,
-				path: 'src/sources/AptosFullnode/OpenApi/spec.yaml',
-			},
-			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/AptosFullnode/OpenApi/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/AptosFullnode/OpenApi/spec.yaml',
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,

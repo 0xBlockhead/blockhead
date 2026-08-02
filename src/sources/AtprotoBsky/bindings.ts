@@ -34,12 +34,12 @@ export default indexSourceBindings([
 		credentials: [],
 		artifacts: [
 			{
-				kind: SourceArtifactKind.Lexicon,
-				path: 'src/sources/AtprotoBsky/Lexicon',
-			},
-			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/AtprotoBsky/Lexicon/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.Lexicon,
+				path: 'src/sources/AtprotoBsky/Lexicon',
 			},
 		],
 	},

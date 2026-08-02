@@ -30,8 +30,8 @@ export default indexSourceBindings([
 		wireProtocol: WireProtocol.OciDistribution,
 		apiFamily: ApiFamily.OciDistributionApi,
 		operationGroups: [
-			SourceOperationGroup.SoftwareArtifactRegistry,
 			SourceOperationGroup.RepositoryMetadata,
+			SourceOperationGroup.SoftwareArtifactRegistry,
 		],
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [

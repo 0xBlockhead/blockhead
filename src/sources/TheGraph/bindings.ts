@@ -43,16 +43,16 @@ export default indexSourceBindings([
 		],
 		artifacts: [
 			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/TheGraph/Graphql/Ens/schema-source.ts',
+			},
+			{
 				kind: SourceArtifactKind.GraphqlSchema,
 				path: 'src/sources/TheGraph/Graphql/Ens/schema.graphql',
 			},
 			{
 				kind: SourceArtifactKind.GraphqlSchema,
 				path: 'src/sources/TheGraph/Graphql/Ens/schema.patch.graphql',
-			},
-			{
-				kind: SourceArtifactKind.GenerationManifest,
-				path: 'src/sources/TheGraph/Graphql/Ens/schema-source.ts',
 			},
 			{
 				kind: SourceArtifactKind.GraphqlTypes,

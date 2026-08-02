@@ -39,6 +39,10 @@ export default indexSourceBindings([
 		credentials: [],
 		artifacts: [
 			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/Lifi/OpenApi/schema-source.ts',
+			},
+			{
 				kind: SourceArtifactKind.OpenApiSpec,
 				path: 'src/sources/Lifi/OpenApi/openapi.yaml',
 			},
@@ -46,10 +50,6 @@ export default indexSourceBindings([
 				kind: SourceArtifactKind.OpenApiTypes,
 				path: 'src/sources/Lifi/OpenApi/openapi.d.ts',
 				generated: true,
-			},
-			{
-				kind: SourceArtifactKind.GenerationManifest,
-				path: 'src/sources/Lifi/OpenApi/schema-source.ts',
 			},
 		],
 	},

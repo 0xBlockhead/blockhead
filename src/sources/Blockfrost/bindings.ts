@@ -39,12 +39,12 @@ export default indexSourceBindings([
 		],
 		artifacts: [
 			{
-				kind: SourceArtifactKind.OpenApiSpec,
-				path: 'src/sources/Blockfrost/OpenApi/openapi.yaml',
-			},
-			{
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/Blockfrost/OpenApi/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/Blockfrost/OpenApi/openapi.yaml',
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,

@@ -3825,6 +3825,36 @@ test('rejects incompatible and empty authored bindings before compilation', () =
 	assert.throws(() => compileApp(templatedProxyApp), /HttpProxy requires a concrete HTTP origin/)
 })
 
+test('rejects unordered binding membership sets without sorting priority axes', () => {
+	const operationGroupApp = structuredClone(app)
+	const operationGroupBinding = operationGroupApp.sources.sources
+		.flatMap((source) => source.bindings ?? (source.binding == null ? [] : [source.binding]))
+		.find((binding) => binding.operationGroups.length > 1)
+
+	assert.ok(operationGroupBinding)
+	operationGroupBinding.operationGroups.reverse()
+	assert.throws(() => compileApp(operationGroupApp), /operation groups must be alphabetized/)
+
+	const artifactApp = structuredClone(app)
+	const artifactBinding = artifactApp.sources.sources
+		.flatMap((source) => source.bindings ?? (source.binding == null ? [] : [source.binding]))
+		.find((binding) => (binding.artifacts?.length ?? 0) > 1)
+
+	assert.ok(artifactBinding?.artifacts)
+	artifactBinding.artifacts.reverse()
+	assert.throws(() => compileApp(artifactApp), /artifacts must be alphabetized/)
+
+	const credentialKeyApp = structuredClone(app)
+	const credentialKeyBinding = credentialKeyApp.sources.sources
+		.flatMap((source) => source.bindings ?? (source.binding == null ? [] : [source.binding]))
+		.find((binding) => binding.credentials.some((credential) => !('envKey' in credential) && (credential.keys?.length ?? 0) > 1))
+	const credential = credentialKeyBinding?.credentials.find((candidate) => !('envKey' in candidate) && (candidate.keys?.length ?? 0) > 1)
+
+	assert.ok(credential && !('envKey' in credential) && credential.keys)
+	credential.keys.reverse()
+	assert.throws(() => compileApp(credentialKeyApp), /credential keys must be alphabetized/)
+})
+
 test('enforces canonical delivery endpoint and credential layouts during compilation', () => {
 	const mixedProxyCredentialsApp = structuredClone(app)
 	const mixedProxyCredentialsSource = mixedProxyCredentialsApp.sources.sources.find((source) => source.source === Source.GetBlockRpc_JsonRpc)
