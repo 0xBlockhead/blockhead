@@ -493,6 +493,14 @@ describe('resolver registry live resolver architecture', () => {
 		))).toBe(true)
 	})
 
+	it('indexes live entity and field keys alphabetically without reordering resolver parts', () => {
+		expect(Object.keys(fieldNamesWithLiveResolverByEntityType)).toEqual(
+			Object.keys(fieldNamesWithLiveResolverByEntityType).toSorted((left, right) => left.localeCompare(right, 'en'))
+		)
+		for (const fieldNames of Object.values(fieldNamesWithLiveResolverByEntityType))
+			expect(fieldNames).toEqual(fieldNames.toSorted((left, right) => left.localeCompare(right, 'en')))
+	})
+
 	it('publishes Voltaire live EVM network Many fields as one source row containing an array', async () => {
 		const replaceTimestampRows = vi.fn()
 		const replaceBlockRows = vi.fn()

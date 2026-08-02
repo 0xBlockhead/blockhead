@@ -1449,10 +1449,12 @@ export const indexResolvers = <
 			fieldNames.add(liveField.fieldName)
 	}
 	const fieldNamesWithLiveResolverByEntityType = Object.fromEntries(
-		[...liveFieldNamesByEntityType].map(([entityType, fieldNames]) => [
-			entityType,
-			[...fieldNames],
-		])
+		[...liveFieldNamesByEntityType]
+			.toSorted(([leftEntityType], [rightEntityType]) => leftEntityType.localeCompare(rightEntityType, 'en'))
+			.map(([entityType, fieldNames]) => [
+				entityType,
+				[...fieldNames].toSorted((leftFieldName, rightFieldName) => leftFieldName.localeCompare(rightFieldName, 'en')),
+			])
 	)
 	return {
 		resolverDefinitions,
