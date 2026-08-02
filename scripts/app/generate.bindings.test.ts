@@ -169,6 +169,22 @@ test('retains only canonical source binding facts in compiler rows', async () =>
 	assert.match(generatorSource, /sourceBindingRows\.flatMap\(\(\{ binding, bindingNumber \}\) => \(binding\.artifacts \?\? \[\]\)\.map/)
 })
 
+test('retains one record index for each entity and value type', async () => {
+	const generatorSource = await readFile('scripts/app/generate.ts', 'utf8')
+	const routeValueTypeIndexer = generatorSource.slice(
+		generatorSource.indexOf('const indexRouteParamValueTypes ='),
+		generatorSource.indexOf('// Route compilation turns')
+	)
+
+	assert.equal((generatorSource.match(/const entityByType = nullPrototypeRecord\(/g) ?? []).length, 1)
+	assert.equal((generatorSource.match(/const valueTypeById = nullPrototypeRecord\(/g) ?? []).length, 1)
+	assert.doesNotMatch(generatorSource, /compiledEntityByType/)
+	assert.doesNotMatch(generatorSource, /entityByType\.(?:get|has)\(/)
+	assert.doesNotMatch(generatorSource, /valueTypeById\.(?:get|has)\(/)
+	assert.doesNotMatch(routeValueTypeIndexer, /new Map\(entities\.map/)
+	assert.match(routeValueTypeIndexer, /entityByType: Readonly<Record<string, Entity>>/)
+})
+
 test('derives provider partitions only at their emitter invocation', async () => {
 	const generatorSource = await readFile('scripts/app/generate.ts', 'utf8')
 

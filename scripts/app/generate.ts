@@ -435,7 +435,7 @@ const groupAdjacentBy = <_Value>(
 const nullPrototypeRecord = <_Value>(entries: readonly (readonly [string, _Value])[]) => Object.assign(
 	Object.create(null),
 	Object.fromEntries(entries)
-) as Record<string, _Value>
+) as Readonly<Record<string, _Value>>
 
 const freezeCompiled = <_Value>(value: _Value): _Value => {
 	if (Array.isArray(value))
@@ -2717,7 +2717,7 @@ export const composeSelectorRouteParamAlternatives = (
 }
 
 const entitySelectorReferencePaths = (
-	entityByType: ReadonlyMap<string, Entity>,
+	entityByType: Readonly<Record<string, Entity>>,
 	currentEntityType: string,
 	selectorName: string,
 	targetEntityType: string,
@@ -2729,7 +2729,7 @@ const entitySelectorReferencePaths = (
 	if (visitedEntityTypes.has(currentEntityType))
 		return []
 
-	const currentEntity = entityByType.get(currentEntityType)
+	const currentEntity = entityByType[currentEntityType]
 	const selector = currentEntity?.selectors.find((candidate) => candidate.name === selectorName)
 	if (currentEntity == null || selector == null)
 		return []
@@ -2740,7 +2740,7 @@ const entitySelectorReferencePaths = (
 			return []
 
 		const referencedEntityType = field.entityType
-		const referencedEntity = entityByType.get(referencedEntityType)
+		const referencedEntity = entityByType[referencedEntityType]
 		return referencedEntity == null ? [] : referencedEntity.selectors.flatMap((referencedSelector) => entitySelectorReferencePaths(
 			entityByType,
 			referencedEntityType,
@@ -2762,7 +2762,7 @@ const entitySelectorReferencePaths = (
 }
 
 const routePageSelectorExpression = (
-	entityByType: ReadonlyMap<string, Entity>,
+	entityByType: Readonly<Record<string, Entity>>,
 	ancestorSelectors: readonly RouteAncestorSelector[],
 	entityType: string
 ): _Expression | undefined => {
@@ -2796,7 +2796,7 @@ const routePageSelectorExpression = (
 }
 
 const resolveRouteParamFieldPath = (
-	entityByType: ReadonlyMap<string, Entity>,
+	entityByType: Readonly<Record<string, Entity>>,
 	entity: Entity,
 	fieldPath: readonly string[]
 ) => {
@@ -2810,7 +2810,7 @@ const resolveRouteParamFieldPath = (
 			if (field.type !== EntityFieldType.EntityReference || field.entityType == null)
 				throw new Error(`${entity.entityType} route parameter path ${fieldPath.join('.')} traverses non-reference field ${fieldEntity.entityType}.${fieldName}`)
 
-			const referencedEntity = entityByType.get(field.entityType)
+			const referencedEntity = entityByType[field.entityType]
 			if (referencedEntity == null)
 				throw new Error(`${entity.entityType} route parameter path ${fieldPath.join('.')} references missing entity ${field.entityType}`)
 
@@ -2903,7 +2903,7 @@ const routeExpressionThroughReference = (
 const routeParamValuesFromExpression = (
 	expression: _Expression,
 	fieldValue: _Expression,
-	entityByType: ReadonlyMap<string, Entity>,
+	entityByType: Readonly<Record<string, Entity>>,
 	routeParamValueTypes: ReadonlyMap<string, readonly string[]>
 ): readonly (readonly [string, _Expression])[] => {
 	if (typeof expression === 'string' || 'raw' in expression)
@@ -2917,7 +2917,7 @@ const routeParamValuesFromExpression = (
 			property: field.name,
 		}, entityByType, routeParamValueTypes))
 	if (expression.kind === 'selector') {
-		const referencedEntity = entityByType.get(expression.entity)
+		const referencedEntity = entityByType[expression.entity]
 		return expression.params.flatMap((selectorParam) => {
 			const selectorFieldValue = {
 				kind: 'property' as const,
@@ -3008,15 +3008,15 @@ const normalizeRouteParamDecodes = (
 	expression: _Expression,
 	decodeByParam: ReadonlyMap<string, _ExpressionDecode | _RouteParamTransform | undefined>,
 	owner: string,
-	entityByType?: ReadonlyMap<string, Entity>,
-	valueTypeById?: ReadonlyMap<string, ValueType>,
+	entityByType?: Readonly<Record<string, Entity>>,
+	valueTypeById?: Readonly<Record<string, ValueType>>,
 	expectedField?: EntityField
 ): _Expression => {
 	if (typeof expression === 'string' || 'raw' in expression)
 		return expression
 	if (expression.kind === 'param') {
 		const decode = expectedField?.type === EntityFieldType.Primitive && expectedField.valueType != null ?
-			valueTypeById?.get(expectedField.valueType)?.routeParam?.decode
+			valueTypeById?.[expectedField.valueType]?.routeParam?.decode
 		:
 			decodeByParam.get(expression.name)
 		if (
@@ -3044,7 +3044,7 @@ const normalizeRouteParamDecodes = (
 	}
 	if (expression.kind === 'object') {
 		const referencedEntity = expectedField?.type === EntityFieldType.EntityReference && expectedField.entityType != null ?
-			entityByType?.get(expectedField.entityType)
+			entityByType?.[expectedField.entityType]
 		:
 			undefined
 		const objectDecodeByParam = expectedField?.type === EntityFieldType.Primitive ?
@@ -3074,7 +3074,7 @@ const normalizeRouteParamDecodes = (
 			...expression,
 			params: expression.params.map((param) => {
 				const selectorField = entityByType
-					?.get(expression.entity)
+					?.[expression.entity]
 					?.fields.find((field) => field.name === param.field)
 				if ('value' in param) {
 					return {
@@ -3099,7 +3099,7 @@ const normalizeRouteParamDecodes = (
 					}
 				}
 				const decode = selectorField?.type === EntityFieldType.Primitive && selectorField.valueType != null ?
-					valueTypeById?.get(selectorField.valueType)?.routeParam?.decode
+					valueTypeById?.[selectorField.valueType]?.routeParam?.decode
 				:
 					decodeByParam.get(param.param)
 				if (
@@ -3176,9 +3176,8 @@ const normalizeRouteParamDecodes = (
 
 const indexRouteParamValueTypes = (
 	nodes: App['routes']['children'],
-	entities: readonly Entity[]
+	entityByType: Readonly<Record<string, Entity>>
 ) => {
-	const entityByType = new Map(entities.map((entity) => [entity.entityType, entity]))
 	const valueTypesByOwner = new Map<string, string[]>()
 	const visit = (
 		children: App['routes']['children'],
@@ -3197,7 +3196,7 @@ const indexRouteParamValueTypes = (
 						const owner = ownerByParam.get(param)
 						if (owner == null)
 							throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} binds undeclared route parameter ${param}`)
-						const entity = entityByType.get(entityType)
+						const entity = entityByType[entityType]
 						if (entity == null)
 							throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} references missing entity`)
 						const { terminalField } = resolveRouteParamFieldPath(entityByType, entity, fieldPath)
@@ -3226,10 +3225,9 @@ const indexRouteParamValueTypes = (
 const compileRouteTree = (
 	nodes: App['routes']['children'],
 	indexes: {
-		entityByType: ReadonlyMap<string, Entity>
-		compiledEntityByType: Readonly<Record<string, Entity>>
+		entityByType: Readonly<Record<string, Entity>>
 		entityFacetByPath: Readonly<Record<string, EntityFacetEntry>>
-		valueTypeById: ReadonlyMap<string | undefined, ValueType>
+		valueTypeById: Readonly<Record<string, ValueType>>
 		routeParamValueTypesByOwner: ReadonlyMap<string, readonly string[]>
 	},
 	parentPath = '',
@@ -3290,7 +3288,7 @@ const compileRouteTree = (
 					...boundValueTypes,
 				])
 				const routeParamDefinitions = valueTypes.flatMap((valueType) => {
-					const routeParam = indexes.valueTypeById.get(valueType)?.routeParam
+					const routeParam = indexes.valueTypeById[valueType]?.routeParam
 					return routeParam == null ? [] : [routeParam]
 				})
 				if (valueTypes.length === 0 || routeParamDefinitions.length !== valueTypes.length)
@@ -3355,7 +3353,7 @@ const compileRouteTree = (
 			].filter(Boolean).join('/')),
 		}))
 		const compiledSelectorMappings = selectorMappings.map(({ entityType, selectorName, mapping: sourceMapping }) => {
-			const entity = entityByType.get(entityType)
+			const entity = entityByType[entityType]
 			const selector = entity?.selectors.find((candidate) => candidate.name === selectorName)
 			if (entity == null || selector == null)
 				throw new Error(`${routeId(routePath)} references missing selector ${entityType}.${selectorName}`)
@@ -3449,7 +3447,7 @@ const compileRouteTree = (
 									kind: 'field',
 									name: fieldName,
 								}),
-								valueTypeById.get(terminalField.valueType)?.routeParam
+								valueTypeById[terminalField.valueType]?.routeParam
 							)
 						),
 					]
@@ -3464,7 +3462,7 @@ const compileRouteTree = (
 				])),
 			}
 			const decodedParamValue = (param: string, field: EntityField): _Expression => {
-				const routeParam = valueTypeById.get(field.valueType)?.routeParam
+				const routeParam = field.valueType == null ? undefined : valueTypeById[field.valueType]?.routeParam
 				if (routeParam == null)
 					throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} parameter ${param} has no schema route parameter field`)
 
@@ -3582,7 +3580,7 @@ const compileRouteTree = (
 				if (field.type !== EntityFieldType.EntityReference || field.entityType == null)
 					throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} route parameter path traverses non-reference selector field ${selectorEntity.entityType}.${field.name}`)
 
-				const referencedEntity = entityByType.get(field.entityType)
+				const referencedEntity = entityByType[field.entityType]
 				if (referencedEntity == null)
 					throw new Error(`${routeId(routePath)} ${selectorEntity.entityType}.${field.name} references missing entity ${field.entityType}`)
 				const nestedBindings = bindings.map((binding) => ({
@@ -3680,7 +3678,7 @@ const compileRouteTree = (
 					param,
 					valueTypes,
 					matchers: unique(valueTypes.map((valueType) => {
-						const matcher = valueTypeById.get(valueType)?.routeParam?.matcher
+						const matcher = valueTypeById[valueType]?.routeParam?.matcher
 						if (matcher == null)
 							throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} parameter ${param} value type ${valueType} has no route matcher`)
 
@@ -3729,7 +3727,7 @@ const compileRouteTree = (
 			} : {
 				kind: 'pageSelector' as const,
 			}
-			const sourceEntity = indexes.entityByType.get(collection.field[0])
+			const sourceEntity = indexes.entityByType[collection.field[0]]
 			if (sourceEntity == null)
 				throw new Error(`${routeId(routePath)} collection references missing source entity ${collection.field[0]}`)
 
@@ -3744,7 +3742,7 @@ const compileRouteTree = (
 			const referencePath = compileCollectionReferencePath(
 				sourceEntity,
 				{
-					entityByType: indexes.compiledEntityByType,
+					entityByType: indexes.entityByType,
 					entityFacetByPath: indexes.entityFacetByPath,
 				},
 				path,
@@ -3806,7 +3804,7 @@ const compileRouteTree = (
 			mapping,
 			title,
 		}): SelectorRouteMapping => {
-			const normalizedEntity = entityByType.get(entityType)
+			const normalizedEntity = entityByType[entityType]
 			const normalizedSelector = normalizedEntity?.selectors.find((selector) => selector.name === selectorName)
 			if (normalizedEntity == null || normalizedSelector == null)
 				throw new Error(`${routeId(routePath)} references missing normalized selector ${entityType}.${selectorName}`)
@@ -3890,7 +3888,7 @@ const compileRouteTree = (
 				throw new Error(`${routeId(routePath)} selector variant does not override any selector fields`)
 
 			const compatibleAncestors = ancestorSelectorsAtNode.filter((ancestor) => {
-				const entity = entityByType.get(ancestor.entityType)
+				const entity = entityByType[ancestor.entityType]
 				const selector = entity?.selectors.find((candidate) => candidate.name === ancestor.selectorName)
 
 				return selector != null && overriddenFieldNames.every((fieldName) => selector.fields.includes(fieldName))
@@ -3903,7 +3901,7 @@ const compileRouteTree = (
 			const owner = owners[0]
 			if (owner == null)
 				throw new Error(`${routeId(routePath)} selector variant has no ancestor selector owner`)
-			const entity = entityByType.get(owner.entityType)
+			const entity = entityByType[owner.entityType]
 			const selector = entity?.selectors.find((candidate) => candidate.name === owner.selectorName)
 			if (entity == null || selector == null)
 				throw new Error(`${routeId(routePath)} selector variant owner ${owner.entityType}.${owner.selectorName} is missing`)
@@ -3958,7 +3956,7 @@ const compileRouteTree = (
 					field,
 					value: decodedRouteParamValue(
 						binding.param,
-						valueTypeById.get(binding.terminalField.valueType)?.routeParam
+						valueTypeById[binding.terminalField.valueType]?.routeParam
 					),
 				}
 			})
@@ -3975,7 +3973,7 @@ const compileRouteTree = (
 							param,
 							encodedRouteParamValue(
 								value,
-								valueTypeById.get(terminalField.valueType)?.routeParam
+								valueTypeById[terminalField.valueType]?.routeParam
 							)
 						),
 					]
@@ -4499,7 +4497,7 @@ const canonicalFacetScalarConditions = (
 const routeApplicability = (
 	node: RouteNode,
 	mapping: SelectorRouteMapping | undefined,
-	valueTypeById: ReadonlyMap<string | undefined, ValueType>,
+	valueTypeById: Readonly<Record<string, ValueType>>,
 	enumMembersByName: ReadonlyMap<string, readonly (string | number | boolean | null)[]>,
 	entityFacetByPath: Readonly<Record<string, EntityFacetEntry>>,
 	facetAncestorConditionsByPath: Readonly<Record<string, readonly _AppFacetCondition[]>>
@@ -4511,13 +4509,13 @@ const routeApplicability = (
 			?? node.params.find((routeParam) => routeParam.name === param)?.valueTypes
 			?? []
 		const domains = valueTypes.map((valueType) => {
-			const definition = valueTypeById.get(valueType)
+			const definition = valueTypeById[valueType]
 			return definition == null ? undefined : routeValueTypeScalarDomain(definition, enumMembersByName)
 		})
 		if (domains.length > 0 && domains.every((domain) => domain != null))
 			allowedScalarsByPath.set(`param:${index}`, new Set(domains.flatMap((domain) => domain ?? [])))
 		const encodedDomains = valueTypes.map((valueType) => {
-			const definition = valueTypeById.get(valueType)
+			const definition = valueTypeById[valueType]
 			return definition == null ? undefined : encodedRouteParamDomain(definition, enumMembersByName)
 		})
 		if (encodedDomains.length > 0 && encodedDomains.every((domain) => domain != null))
@@ -5602,9 +5600,9 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			throw new Error(`Duplicate source: ${source}`)
 
 	const sourceDefinitionById = nullPrototypeRecord(sources.map((source) => [
-		String(source.source),
+		source.source,
 		source,
-	]))
+	] as const))
 
 	for (const indistinguishableBindings of Map.groupBy(
 		compiledSourceBindings,
@@ -5633,9 +5631,11 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			numeric: true,
 		})))
 	const entityTypes = Object.freeze(activeEntities.map((entity) => entity.entityType))
-	const entityByType = new Map(activeEntities.map((entity) => [entity.entityType, entity]))
-	const compiledEntityByType = nullPrototypeRecord([...entityByType])
-	const valueTypeById = new Map([
+	const entityByType = nullPrototypeRecord(activeEntities.map((entity) => [
+		entity.entityType,
+		entity,
+	] as const))
+	const valueTypeById = nullPrototypeRecord([
 		...app.schema.valueTypes.map((valueType) => [valueType.id, valueType] as const),
 		...activeEntities.flatMap((entity) => (entity.enums ?? []).map((appEnum) => [
 			appEnum.name,
@@ -5691,7 +5691,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	if (errors.length > 0)
 		throw new Error(errors.join('\n'))
 
-	const routeParamValueTypesByOwner = indexRouteParamValueTypes(app.routes.children, activeEntities)
+	const routeParamValueTypesByOwner = indexRouteParamValueTypes(app.routes.children, entityByType)
 
 	const validateRouteNodes = (
 		nodes: App['routes']['children'],
@@ -5716,7 +5716,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 				])
 				if (
 					valueTypes.length === 0
-					|| valueTypes.some((valueType) => valueTypeById.get(valueType)?.routeParam == null)
+					|| valueTypes.some((valueType) => valueTypeById[valueType]?.routeParam == null)
 				) {
 					errors.push(`${routePath} route parameter ${param} has no schema route parameter type`)
 					continue
@@ -5748,7 +5748,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			])
 			const localEntityTypes = Object.keys(node.selectors ?? {})
 			for (const [entityType, selectors] of Object.entries(node.selectors ?? {})) {
-				const entity = entityByType.get(entityType)
+				const entity = entityByType[entityType]
 				if (entity == null)
 					continue
 
@@ -5856,7 +5856,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 				|| field.type === EntityFieldType.EntitiesReference && !/^\$\$[^$].+$/.test(field.name)
 			)
 				errors.push(`${entity.entityType}.${field.name} name does not match ${field.type}`)
-			if (field.valueType != null && !valueTypeById.has(field.valueType))
+			if (field.valueType != null && valueTypeById[field.valueType] == null)
 				errors.push(`${entity.entityType}.${field.name} references missing value type ${field.valueType}`)
 			if (field.entityType != null && !allEntityTypes.has(field.entityType))
 				errors.push(`${entity.entityType}.${field.name} references missing entity type ${field.entityType}`)
@@ -5878,7 +5878,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 				['text', contentWarning.textField, 'string'],
 			] as const) {
 				const field = fieldDefinitionByReference(entity, fieldReference, { entityFacetByPath })
-				const valueType = field?.valueType == null ? undefined : valueTypeById.get(field.valueType)
+				const valueType = field?.valueType == null ? undefined : valueTypeById[field.valueType]
 				const primitiveType = valueType?.type ?? field?.primitiveType
 				if (field == null)
 					errors.push(`${entity.entityType} contentWarning ${role} field references missing field ${fieldReference}`)
@@ -5928,7 +5928,6 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		app.routes.children,
 		{
 			entityByType,
-			compiledEntityByType,
 			entityFacetByPath,
 			valueTypeById,
 			routeParamValueTypesByOwner,
@@ -6068,7 +6067,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 
 	for (const entry of routeEntryList) {
 		for (const routeFile of entry.files) {
-			if (routeFile.layout?.entity != null && !entityByType.has(routeFile.layout.entity))
+			if (routeFile.layout?.entity != null && entityByType[routeFile.layout.entity] == null)
 				errors.push(`${entry.routePath} layout references missing entity ${routeFile.layout.entity}`)
 
 			if (
@@ -6265,11 +6264,11 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 
 	const compiledApp = {
 		activeEntities,
-		entityByType: compiledEntityByType,
+		entityByType,
 		entityFacetByPath,
 		facetAncestorConditionsByPath,
 		facetDependencyConditionsByPath,
-		valueTypeById: nullPrototypeRecord([...valueTypeById]),
+		valueTypeById,
 		sourceProviders,
 		sources,
 		sourceDefinitionById,
