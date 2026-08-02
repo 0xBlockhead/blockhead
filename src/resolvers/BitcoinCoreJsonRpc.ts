@@ -9,7 +9,11 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { bitcoinCoreJsonRpc } from '$/sources/_shared/interfaces/BitcoinCoreJsonRpc/queries.ts'
 
-export const bitcoinCoreJsonRpcResolvers = ({
+export const bitcoinCoreJsonRpcResolvers = <
+	_Source extends
+		| Source.BitcoinCore_JsonRpc
+		| Source.LitecoinCore_JsonRpc
+>({
 	acceptsSlugSelector,
 	loadQueries,
 	network,
@@ -18,7 +22,7 @@ export const bitcoinCoreJsonRpcResolvers = ({
 	acceptsSlugSelector: boolean
 	loadQueries: () => Promise<ReturnType<typeof bitcoinCoreJsonRpc>>
 	network: (typeof networkBySlug)['bitcoin' | 'litecoin']
-	source: Source.BitcoinCore_JsonRpc | Source.LitecoinCore_JsonRpc
+	source: _Source
 }) => {
 	const assertNetwork = (
 		networkSelector: EntitySelector<typeof schema, EntityType.Network>

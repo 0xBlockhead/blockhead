@@ -230,8 +230,12 @@ const blockFields = (
 	}
 }
 
-export const tronNodeRestResolvers = (
-	source: Source.TronFullNode_Rest | Source.TronSolidityNode_Rest,
+export const tronNodeRestResolvers = <
+	_Source extends
+		| Source.TronFullNode_Rest
+		| Source.TronSolidityNode_Rest
+>(
+	source: _Source,
 	loadQueries: () => Promise<ReturnType<typeof tronNodeRest>>
 ) => {
 	const tronAccountTimestampApplicability = [
