@@ -12,10 +12,10 @@ import {
 
 const binding = bindings[Source.Polkadot_JsonRpc][0]
 
-const polkadotJsonRpc = () => ({
+const polkadotJsonRpc = {
 	binding,
 	label: 'Polkadot',
-})
+}
 
 export const getRpcEndpoints = () => binding.endpoints.map((endpoint) => ({
 	url: endpoint.locator,
@@ -29,15 +29,13 @@ export const getBlockHash = ({
 	blockNumber: bigint
 }) => (
 	getSubstrateBlockHash({
-		...polkadotJsonRpc(),
+		...polkadotJsonRpc,
 		blockNumber,
 	})
 )
 
 export const getFinalizedHead = () => (
-	getSubstrateFinalizedHead({
-		...polkadotJsonRpc(),
-	})
+	getSubstrateFinalizedHead(polkadotJsonRpc)
 )
 
 export const getBlock = ({
@@ -46,7 +44,7 @@ export const getBlock = ({
 	blockHash: string
 }) => (
 	getSubstrateBlock({
-		...polkadotJsonRpc(),
+		...polkadotJsonRpc,
 		blockHash,
 	})
 )
@@ -57,19 +55,15 @@ export const getHeader = ({
 	blockHash?: string
 }) => (
 	getSubstrateHeader({
-		...polkadotJsonRpc(),
+		...polkadotJsonRpc,
 		blockHash,
 	})
 )
 
 export const getRuntimeVersion = () => (
-	getSubstrateRuntimeVersion({
-		...polkadotJsonRpc(),
-	})
+	getSubstrateRuntimeVersion(polkadotJsonRpc)
 )
 
 export const getSystemHealth = () => (
-	getSubstrateSystemHealth({
-		...polkadotJsonRpc(),
-	})
+	getSubstrateSystemHealth(polkadotJsonRpc)
 )
