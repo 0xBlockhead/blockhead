@@ -27,15 +27,17 @@ describe('Farcaster REST binding authority', () => {
 		vi.stubGlobal('fetch', fetchMock)
 		vi.stubGlobal('window', {})
 
-		await farcasterGet('/v2/all-channels', {
-			limit: 100,
-		})
-		await farcasterGet('/~api/v2/user-thread-casts', {
-			username: 'alice',
-		})
+		await farcasterGet('client-api', '/v2/all-channels')
+		await farcasterGet(
+			'web-api',
+			'/~api/v2/user-thread-casts',
+			{
+				username: 'alice',
+			}
+		)
 
 		expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
-			`/api-proxy/${encodeURIComponent(sourceBindingId(farcasterBindingByTargetKey['client-api']))}/0/https%3A%2F%2Fapi.farcaster.xyz%2Fv2%2Fall-channels%3Flimit%3D100`,
+			`/api-proxy/${encodeURIComponent(sourceBindingId(farcasterBindingByTargetKey['client-api']))}/0/https%3A%2F%2Fapi.farcaster.xyz%2Fv2%2Fall-channels`,
 			`/api-proxy/${encodeURIComponent(sourceBindingId(farcasterBindingByTargetKey['web-api']))}/0/https%3A%2F%2Ffarcaster.xyz%2F~api%2Fv2%2Fuser-thread-casts%3Fusername%3Dalice`,
 		])
 	})

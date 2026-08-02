@@ -33,9 +33,11 @@ export type FarcasterPage<Result> = {
 	}
 }
 
-export type FarcasterChannelsResponse = FarcasterPage<{
-	channels?: FarcasterChannel[]
-}>
+export type FarcasterChannelsResponse = {
+	result?: {
+		channels?: FarcasterChannel[]
+	}
+}
 
 export type FarcasterChannelResponse = FarcasterPage<{
 	channel?: FarcasterChannel

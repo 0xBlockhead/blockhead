@@ -6,15 +6,12 @@
  */
 
 import { farcasterGet } from '$/sources/Farcaster/Rest/client.ts'
-import {
-	farcasterRestAllChannelsPageLimit,
-	farcasterRestUserThreadCastsLimit,
-} from '$/sources/Farcaster/Rest/constants.ts'
+import { farcasterRestUserThreadCastsLimit } from '$/sources/Farcaster/Rest/constants.ts'
 import type {
-	FarcasterChannelResponse,
-	FarcasterPage,
 	FarcasterChannel,
+	FarcasterChannelResponse,
 	FarcasterChannelsResponse,
+	FarcasterPage,
 	FarcasterPrimaryAddressResponse,
 	FarcasterUserThreadCastsResponse,
 } from '$/sources/Farcaster/Rest/types.ts'
@@ -22,43 +19,23 @@ import type {
 /**
  * `GET /v2/all-channels`
  */
-export const getAllChannelsPage = ({
-	cursor,
-	limit = farcasterRestAllChannelsPageLimit,
-}: {
-	cursor?: string
-	limit?: number
-} = {}) => (
-	farcasterGet<FarcasterChannelsResponse>('/v2/all-channels', {
-		cursor,
-		limit,
-	})
-)
-
 export const getAllChannels = async () => {
-	const channels = new Map<string, FarcasterChannel>()
-	let cursor: string | undefined
+	const channels = (
+		await farcasterGet<FarcasterChannelsResponse>('client-api', '/v2/all-channels')
+	).result?.channels ?? []
+	if (new Set(channels.map(({ id }) => id)).size !== channels.length)
+		throw new Error('Farcaster_Rest: duplicate channel id')
 
-	do {
-		const page = await getAllChannelsPage({
-			cursor,
-		})
-
-		for (const channel of page.result?.channels ?? []) {
-			channels.set(channel.id, channel)
-		}
-
-		cursor = page.next?.cursor
-	} while (cursor != null && cursor !== '')
-
-	return [...channels.values()]
+	return channels
 }
 
 /**
  * `GET /v1/channel`
  */
 export const getChannel = async (channelId: string) => (
-	(await farcasterGet<FarcasterChannelResponse>('/v1/channel', { channelId })).result?.channel
+	(
+		await farcasterGet<FarcasterChannelResponse>('client-api', '/v1/channel', { channelId })
+	).result?.channel
 )
 
 /**
@@ -72,10 +49,14 @@ export const getPrimaryAddress = async ({
 	protocol?: 'ethereum' | 'solana'
 }) => {
 	const address = (
-		await farcasterGet<FarcasterPrimaryAddressResponse>('/fc/primary-address', {
-			fid,
-			protocol,
-		})
+		await farcasterGet<FarcasterPrimaryAddressResponse>(
+			'client-api',
+			'/fc/primary-address',
+			{
+				fid,
+				protocol,
+			}
+		)
 	).result?.address
 	if (
 		address != null
@@ -102,6 +83,7 @@ export const getUserThreadCasts = ({
 	limit?: number
 }) => (
 	farcasterGet<FarcasterUserThreadCastsResponse>(
+		'web-api',
 		'/~api/v2/user-thread-casts',
 		{
 			username,
@@ -128,7 +110,7 @@ export const getChannelFollowersPage = ({
 		FarcasterPage<{
 			users: { fid: number; followedAt: number }[]
 		}>
-	>('/v1/channel-followers', { channelId, cursor, limit })
+	>('client-api', '/v1/channel-followers', { channelId, cursor, limit })
 )
 
 /**
@@ -145,6 +127,7 @@ export const getUserFollowingChannelsPage = ({
 	limit?: number
 }) => (
 	farcasterGet<FarcasterPage<{ channels: FarcasterChannel[] }>>(
+		'client-api',
 		'/v1/user-following-channels',
 		{ fid, cursor, limit }
 	)
@@ -166,44 +149,6 @@ const countRowsAcrossFarcasterPages = async <_Result, _Row>({
 	} while (cursor != null && cursor !== '')
 	return count
 }
-
-export const getChannelFollowersCount = ({
-	channelId,
-}: {
-	channelId: string
-}) => (
-	countRowsAcrossFarcasterPages({
-		loadPage: (cursor) => (
-			getChannelFollowersPage({
-				channelId,
-				cursor,
-				limit: 100,
-			})
-		),
-		selectRows: (result) => (
-			result?.users
-		),
-	})
-)
-
-export const getChannelMembersCount = ({
-	channelId,
-}: {
-	channelId: string
-}) => (
-	countRowsAcrossFarcasterPages({
-		loadPage: (cursor) => (
-			getChannelMembersPage({
-				channelId,
-				cursor,
-				limit: 100,
-			})
-		),
-		selectRows: (result) => (
-			result?.members
-		),
-	})
-)
 
 export const getUserFollowingChannelsCount = ({
 	fid,
@@ -237,7 +182,7 @@ export const getUserChannelFollowStatus = ({
 }) => (
 	farcasterGet<{
 		result: { following: boolean; followedAt?: number }
-	}>('/v1/user-channel', { fid, channelId })
+	}>('client-api', '/v1/user-channel', { fid, channelId })
 )
 
 /**
@@ -259,7 +204,7 @@ export const getChannelMembersPage = ({
 		FarcasterPage<{
 			members: { fid: number; memberAt: number }[]
 		}>
-	>('/fc/channel-members', { channelId, fid, cursor, limit })
+	>('client-api', '/fc/channel-members', { channelId, fid, cursor, limit })
 )
 
 /**
@@ -287,7 +232,7 @@ export const getChannelInvitesPage = ({
 				role: 'member' | 'moderator'
 			}[]
 		}>
-	>('/fc/channel-invites', { channelId, fid, cursor, limit })
+	>('client-api', '/fc/channel-invites', { channelId, fid, cursor, limit })
 )
 
 /**
@@ -312,7 +257,7 @@ export const getModeratedCastsPage = ({
 				moderatedAt: number
 			}[]
 		}>
-	>('/fc/moderated-casts', { channelId, cursor, limit })
+	>('client-api', '/fc/moderated-casts', { channelId, cursor, limit })
 )
 
 /**
@@ -334,7 +279,7 @@ export const getChannelRestrictedUsersPage = ({
 		FarcasterPage<{
 			restrictedUsers: { fid: number; channelId: string; restrictedAt: number }[]
 		}>
-	>('/fc/channel-restricted-users', { channelId, fid, cursor, limit })
+	>('client-api', '/fc/channel-restricted-users', { channelId, fid, cursor, limit })
 )
 
 /**
@@ -356,7 +301,7 @@ export const getChannelBannedUsersPage = ({
 		FarcasterPage<{
 			bannedUsers: { fid: number; channelId: string; bannedAt: number }[]
 		}>
-	>('/fc/channel-bans', { channelId, fid, cursor, limit })
+	>('client-api', '/fc/channel-bans', { channelId, fid, cursor, limit })
 )
 
 /**
@@ -383,7 +328,7 @@ export const getDiscoverActionsPage = ({
 				action: { actionType: 'post'; postUrl: string }
 			}[]
 		}>
-	>('/v2/discover-actions', { list, cursor, limit })
+	>('client-api', '/v2/discover-actions', { list, cursor, limit })
 )
 
 /**
@@ -403,7 +348,7 @@ export const getBlockedUsersPage = ({
 		FarcasterPage<{
 			blockedUsers: { blockerFid: number; blockedFid: number; createdAt: number }[]
 		}>
-	>('/fc/blocked-users', { blockerFid, cursor, limit })
+	>('client-api', '/fc/blocked-users', { blockerFid, cursor, limit })
 )
 
 /**
@@ -431,7 +376,7 @@ export const getAccountVerificationsPage = ({
 				verifiedAt: number
 			}[]
 		}>
-	>('/fc/account-verifications', { fid, platform, cursor, limit })
+	>('client-api', '/fc/account-verifications', { fid, platform, cursor, limit })
 )
 
 /**
@@ -462,7 +407,7 @@ export const getCreatorRewardsWinnerHistoryPage = ({
 				}[]
 			}
 		}>
-	>('/v1/creator-rewards-winner-history', { periodsAgo, cursor, limit })
+	>('client-api', '/v1/creator-rewards-winner-history', { periodsAgo, cursor, limit })
 )
 
 /**
@@ -494,7 +439,7 @@ export const getDeveloperRewardsWinnerHistoryPage = ({
 				}[]
 			}
 		}>
-	>('/v1/developer-rewards-winner-history', { periodsAgo, cursor, limit })
+	>('client-api', '/v1/developer-rewards-winner-history', { periodsAgo, cursor, limit })
 )
 
 /**
@@ -515,7 +460,7 @@ export const getPrimaryAddresses = ({
 				| { fid: number; success: false }
 			)[]
 		}
-	}>('/fc/primary-addresses', { fids, protocol })
+	}>('client-api', '/fc/primary-addresses', { fids, protocol })
 )
 
 /**
@@ -535,5 +480,5 @@ export const getStarterPackMembersPage = ({
 		FarcasterPage<{
 			members: { fid: number; memberAt: number }[]
 		}>
-	>('/fc/starter-pack-members', { id, cursor, limit })
+	>('client-api', '/fc/starter-pack-members', { id, cursor, limit })
 )

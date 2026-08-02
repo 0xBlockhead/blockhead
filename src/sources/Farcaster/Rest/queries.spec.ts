@@ -4,10 +4,6 @@ import {
 	it,
 	vi,
 } from 'vitest'
-import bindings from '$/sources/Farcaster/bindings.ts'
-import { Source } from '$/sources/Source.ts'
-
-const farcasterBinding = bindings[Source.Farcaster_Rest]
 
 const farcasterGet = vi.hoisted(() => vi.fn())
 
@@ -16,12 +12,35 @@ vi.mock('$/sources/Farcaster/Rest/client.ts', () => ({
 }))
 
 const {
+	getAllChannels,
 	getPrimaryAddress,
 	getUserThreadCasts,
 } = await import(
 	'$/sources/Farcaster/Rest/queries.ts'
 )
 describe('Farcaster public thread endpoint', () => {
+	it('loads all channels once and rejects duplicate ids', async () => {
+		farcasterGet.mockResolvedValueOnce({ result: { channels: [] } })
+
+		await expect(getAllChannels()).resolves.toEqual([])
+		expect(farcasterGet).toHaveBeenCalledOnce()
+		expect(farcasterGet).toHaveBeenCalledWith(
+			'client-api',
+			'/v2/all-channels'
+		)
+
+		farcasterGet.mockResolvedValueOnce({
+			result: {
+				channels: [
+					{ id: 'dev' },
+					{ id: 'dev' },
+				],
+			},
+		})
+
+		await expect(getAllChannels()).rejects.toThrow('duplicate channel id')
+	})
+
 	it('returns the endpoint-native ordered thread response', async () => {
 		const response = {
 			result: {
@@ -65,6 +84,7 @@ describe('Farcaster public thread endpoint', () => {
 			castHashPrefix: '0xf0ca1',
 		})).resolves.toEqual(response)
 		expect(farcasterGet).toHaveBeenCalledWith(
+			'web-api',
 			'/~api/v2/user-thread-casts',
 			{
 				username: 'alice',

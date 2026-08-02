@@ -19,15 +19,11 @@ const bindingByTargetKey = Object.fromEntries(
 )
 
 export async function farcasterGet<T>(
+	targetKey: typeof bindings[Source.Farcaster_Rest][number]['target']['key'],
 	path: string,
 	params?: Record<string, string | number | boolean | undefined>
 ) {
-	const binding = (
-		path.startsWith('/~api/') ?
-			bindingByTargetKey['web-api']
-		:
-			bindingByTargetKey['client-api']
-	)
+	const binding = bindingByTargetKey[targetKey]
 	const url = httpUrl(binding, path, params)
 	const response = await sourceFetch(binding, url)
 	if (!response.ok)

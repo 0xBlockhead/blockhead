@@ -17,6 +17,7 @@ import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import type { FarcasterChannel } from '$/sources/Farcaster/Rest/types.ts'
 
 const normalizeMediaUrl = (value: string | null | undefined) => {
 	const raw = value ?? ''
@@ -36,7 +37,7 @@ const zeroXLowerHexCastHash = (hash: string) => {
 	return `0x${hex.toLowerCase()}`
 }
 
-const farcasterCastTimestampMs = (timestamp: number | undefined) => (
+const farcasterTimestampMs = (timestamp: number | undefined) => (
 	timestamp != null && Number.isFinite(timestamp) ?
 		(
 			timestamp >= 1e12 ?
@@ -48,19 +49,69 @@ const farcasterCastTimestampMs = (timestamp: number | undefined) => (
 	undefined
 )
 
-const getFarcasterChannelCounts = async (channelId: string) => {
-	const {
-		getChannelFollowersCount,
-		getChannelMembersCount,
-	} = await import('$/sources/Farcaster/Rest/queries.ts')
-	const [followerCount, memberCount] = await Promise.all([
-		getChannelFollowersCount({ channelId }),
-		getChannelMembersCount({ channelId }),
-	])
+const farcasterChannelFields = (channel: FarcasterChannel) => {
+	const imageUrl = normalizeMediaUrl(optionalNonemptyString(channel.imageUrl))
+	const headerImageUrl = normalizeMediaUrl(optionalNonemptyString(channel.headerImageUrl))
+
 	return {
-		followerCount,
-		memberCount,
+		$icon: mediaFromUrl(imageUrl, MediaType.Image),
+		$headerImage: mediaFromUrl(headerImageUrl, MediaType.Image),
+		$lead: (
+			channel.leadFid == null ?
+				undefined
+			:
+				{
+					[EntityMetaKey.Selector]: { fid: channel.leadFid },
+				}
+		),
+		$moderator: (
+			channel.moderatorFids?.[0] == null ?
+				undefined
+			:
+				{
+					[EntityMetaKey.Selector]: { fid: channel.moderatorFids[0] },
+				}
+		),
+		$$moderators: (channel.moderatorFids ?? []).map((moderatorFid) => ({
+			[EntityMetaKey.Selector]: { fid: moderatorFid },
+		})),
+		$$timestamps: [{
+			[EntityMetaKey.Selector]: {
+				$channel: { id: channel.id },
+				timestampMs: Date.now(),
+			},
+			[EntityMetaKey.Fields]: {
+				...(channel.followerCount != null && {
+					[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'followerCount')]: channel.followerCount,
+				}),
+				...(channel.memberCount != null && {
+					[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'memberCount')]: channel.memberCount,
+				}),
+			},
+		}],
+		createdAt: farcasterTimestampMs(channel.createdAt),
+		description: optionalNonemptyString(channel.description),
+		externalLinkTitle: optionalNonemptyString(channel.externalLink?.title),
+		externalLinkUrl: optionalNonemptyString(channel.externalLink?.url),
+		followedAt: farcasterTimestampMs(channel.followedAt),
+		headerImageUrl,
+		iconUrl: imageUrl,
+		name: optionalNonemptyString(channel.name) ?? channel.id,
+		pinnedCastHash: optionalNonemptyString(channel.pinnedCastHash),
+		publicCasting: channel.publicCasting,
+		url: optionalNonemptyString(channel.url),
 	}
+}
+
+const getFarcasterChannel = async (channelId: string) => {
+	const { getChannel } = await import('$/sources/Farcaster/Rest/queries.ts')
+	const channel = await getChannel(channelId)
+	if (channel == null)
+		throw new Error('Farcaster_Rest: channel not found')
+	if (channel.id !== channelId)
+		throw new Error('Farcaster_Rest: channel subject mismatch')
+
+	return channel
 }
 
 export default {
@@ -104,33 +155,33 @@ export default {
 									},
 								}))(EvmAddress.assert(ethAddress))]),
 							...(solAddress == null ?
-							[]
-						:
-							[{
-								[EntityMetaKey.Selector]: {
-									fid,
-									protocol: 'solana' as const,
-									address: solAddress,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], '$user')]: {
-										[EntityMetaKey.Selector]: { fid },
+								[]
+							:
+								[{
+									[EntityMetaKey.Selector]: {
+										fid,
+										protocol: 'solana' as const,
+										address: solAddress,
 									},
-									[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], '$solanaAccount')]: {
-										[EntityMetaKey.Selector]: {
-											$network: {
-												caip2: {
-													namespace: 'solana',
-													reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-												},
-											},
-											pubkey: solAddress,
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], '$user')]: {
+											[EntityMetaKey.Selector]: { fid },
 										},
+										[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], '$solanaAccount')]: {
+											[EntityMetaKey.Selector]: {
+												$network: {
+													caip2: {
+														namespace: 'solana',
+														reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+													},
+												},
+												pubkey: solAddress,
+											},
+										},
+										[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], 'protocol')]: 'solana' as const,
+										[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], 'address')]: solAddress,
 									},
-									[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], 'protocol')]: 'solana' as const,
-									[entityFieldAddressKey(EntityType.FarcasterVerifiedAddress, [], 'address')]: solAddress,
-								},
-							}]),
+								}]),
 						]
 						if (verifiedAddresses.length === 0)
 							throw new Error('Farcaster_Rest: verified address not found')
@@ -148,115 +199,48 @@ export default {
 				}
 			},
 		})({
-				$primaryEvmAccount: (user) => user.$primaryEvmAccount,
-				$$verifiedAddresses: (user) => user.$$verifiedAddresses,
-			}),
+			$primaryEvmAccount: (user) => user.$primaryEvmAccount,
+			$$verifiedAddresses: (user) => user.$$verifiedAddresses,
+		}),
 
 		defineResolver({
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
 				Id: {
-					resolve: async ({ id }) => {
-						const { getChannel } = await import('$/sources/Farcaster/Rest/queries.ts')
-						const channel = await getChannel(id)
-						if (channel == null) throw new Error('Farcaster_Rest: channel not found')
-						if (channel.id !== id)
-							throw new Error('Farcaster_Rest: channel subject mismatch')
-						const name = optionalNonemptyString(channel.name) ?? channel.id
-						const url = optionalNonemptyString(channel.url)
-						const description = optionalNonemptyString(channel.description)
-						const imageUrl = normalizeMediaUrl(optionalNonemptyString(channel.imageUrl))
-						const headerImageUrl = normalizeMediaUrl(optionalNonemptyString(channel.headerImageUrl))
-						const pinnedCastHash = optionalNonemptyString(channel.pinnedCastHash)
-						const externalLinkTitle = optionalNonemptyString(channel.externalLink?.title)
-						const externalLinkUrl = optionalNonemptyString(channel.externalLink?.url)
-						const createdAt = (
-							channel.createdAt != null && Number.isFinite(channel.createdAt) ?
-								channel.createdAt >= 1e12 ?
-									channel.createdAt
-								:
-									channel.createdAt * 1000
-							:
-								undefined
-						)
-						const followedAt = (
-							channel.followedAt != null && Number.isFinite(channel.followedAt) ?
-								channel.followedAt >= 1e12 ?
-									channel.followedAt
-								:
-									channel.followedAt * 1000
-							:
-								undefined
-						)
-						return {
-							name,
-							...(url != null && { url }),
-							...(description != null && { description }),
-							...(imageUrl != null && { iconUrl: imageUrl }),
-							...((iconMedia) => iconMedia != null && { $icon: iconMedia })(mediaFromUrl(imageUrl, MediaType.Image)),
-							...(headerImageUrl != null && { headerImageUrl }),
-							...((headerImageMedia) => headerImageMedia != null && { $headerImage: headerImageMedia })(mediaFromUrl(headerImageUrl, MediaType.Image)),
-							$lead: (
-								channel.leadFid == null ?
-									undefined
-								:
-									{
-										[EntityMetaKey.Selector]: { fid: channel.leadFid },
-									}
-							),
-							$moderator: (
-								channel.moderatorFids?.[0] == null ?
-									undefined
-								:
-									{
-										[EntityMetaKey.Selector]: { fid: channel.moderatorFids[0] },
-									}
-							),
-							$$moderators: (channel.moderatorFids ?? []).map((moderatorFid) => (
-								{
-									[EntityMetaKey.Selector]: { fid: moderatorFid },
-								}
-							)),
-							...(createdAt != null && { createdAt }),
-							...(pinnedCastHash != null && { pinnedCastHash }),
-							...(channel.publicCasting != null && { publicCasting: channel.publicCasting }),
-							...(externalLinkTitle != null && { externalLinkTitle }),
-							...(externalLinkUrl != null && { externalLinkUrl }),
-							...(followedAt != null && { followedAt }),
-						}
-					},
+					resolve: async ({ id }) => farcasterChannelFields(await getFarcasterChannel(id)),
 				}
 			},
 		})({
-				name: (channel) => channel.name,
-				url: (channel) => channel.url,
-				description: (channel) => channel.description,
-				iconUrl: (channel) => channel.iconUrl,
-				$icon: (channel) => channel.$icon,
-				headerImageUrl: (channel) => channel.headerImageUrl,
-				$headerImage: (channel) => channel.$headerImage,
-				$lead: (channel) => channel.$lead,
-				$moderator: (channel) => channel.$moderator,
-				$$moderators: (channel) => channel.$$moderators,
-				createdAt: (channel) => channel.createdAt,
-				pinnedCastHash: (channel) => channel.pinnedCastHash,
-				publicCasting: (channel) => channel.publicCasting,
-				externalLinkTitle: (channel) => channel.externalLinkTitle,
-				externalLinkUrl: (channel) => channel.externalLinkUrl,
-				followedAt: (channel) => channel.followedAt,
-			}),
+			$icon: (channel) => channel.$icon,
+			$headerImage: (channel) => channel.$headerImage,
+			$lead: (channel) => channel.$lead,
+			$moderator: (channel) => channel.$moderator,
+			$$moderators: (channel) => channel.$$moderators,
+			$$timestamps: (channel) => channel.$$timestamps,
+			createdAt: (channel) => channel.createdAt,
+			description: (channel) => channel.description,
+			externalLinkTitle: (channel) => channel.externalLinkTitle,
+			externalLinkUrl: (channel) => channel.externalLinkUrl,
+			followedAt: (channel) => channel.followedAt,
+			headerImageUrl: (channel) => channel.headerImageUrl,
+			iconUrl: (channel) => channel.iconUrl,
+			name: (channel) => channel.name,
+			pinnedCastHash: (channel) => channel.pinnedCastHash,
+			publicCasting: (channel) => channel.publicCasting,
+			url: (channel) => channel.url,
+		}),
 
 		defineResolver({
 			entityType: EntityType.FarcasterChannel_Timestamp,
 			resolve: {
 				FarcasterChannelTimestampMs: {
-					resolve: async ({ $channel }) => getFarcasterChannelCounts($channel.id),
+					resolve: async ({ $channel }) => getFarcasterChannel($channel.id),
 				}
 			},
 		})({
-				followerCount: (timestamp) => timestamp.followerCount,
-				memberCount: (timestamp) => timestamp.memberCount,
-			}),
+			followerCount: (channel) => channel.followerCount,
+			memberCount: (channel) => channel.memberCount,
+		}),
 
 		defineResolver({
 			entityType: EntityType.FarcasterCast,
@@ -285,7 +269,7 @@ export default {
 							&& cast.author.username.toLowerCase() !== username.toLowerCase()
 						)
 							throw new Error('Farcaster_Rest: cast author username mismatch')
-						const timestamp = farcasterCastTimestampMs(cast.timestamp)
+						const timestamp = farcasterTimestampMs(cast.timestamp)
 						if (timestamp == null)
 							throw new Error('Farcaster_Rest: cast missing timestamp')
 						const parentHash = optionalNonemptyString(cast.parentHash)
@@ -341,7 +325,7 @@ export default {
 									const replyHash = optionalNonemptyString(reply.hash)
 									if (replyHash == null || reply.author?.fid == null)
 										return []
-									const replyTimestamp = farcasterCastTimestampMs(reply.timestamp)
+									const replyTimestamp = farcasterTimestampMs(reply.timestamp)
 									const replyUsername = optionalNonemptyString(reply.author.username)
 									const replyChannelId = optionalNonemptyString(reply.channel?.id)
 
@@ -385,20 +369,20 @@ export default {
 				}
 			},
 		})({
-				fid: (cast) => cast.fid,
-				hash: (cast) => cast.hash,
-				username: (cast) => cast.username,
-				hashPrefix: (cast) => cast.hashPrefix,
-				clientUrl: (cast) => cast.clientUrl,
-				$author: (cast) => cast.$author,
-				text: (cast) => cast.text,
-				$parentCast: (cast) => cast.$parentCast,
-				parentUrl: (cast) => cast.parentUrl,
-				$channel: (cast) => cast.$channel,
-				timestamp: (cast) => cast.timestamp,
-				$$directReplies: (cast) => cast.$$directReplies,
-				threadHash: (cast) => cast.threadHash,
-			}),
+			fid: (cast) => cast.fid,
+			hash: (cast) => cast.hash,
+			username: (cast) => cast.username,
+			hashPrefix: (cast) => cast.hashPrefix,
+			clientUrl: (cast) => cast.clientUrl,
+			$author: (cast) => cast.$author,
+			text: (cast) => cast.text,
+			$parentCast: (cast) => cast.$parentCast,
+			parentUrl: (cast) => cast.parentUrl,
+			$channel: (cast) => cast.$channel,
+			timestamp: (cast) => cast.timestamp,
+			$$directReplies: (cast) => cast.$$directReplies,
+			threadHash: (cast) => cast.threadHash,
+		}),
 
 		defineResolver({
 			entityType: EntityType.FarcasterFeed,
@@ -425,38 +409,8 @@ export default {
 				},
 			},
 		})({
-				label: (feed) => feed.label,
-			}),
-
-		defineResolver({
-			entityType: EntityType.FarcasterChannel,
-			resolve: {
-				Id: {
-					resolve: async ({ id }) => {
-						const {
-							followerCount,
-							memberCount,
-						} = await getFarcasterChannelCounts(id)
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$channel: { id },
-									timestampMs: Date.now(),
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'followerCount')]:
-										followerCount,
-									[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'memberCount')]:
-										memberCount,
-								},
-							},
-						]
-					},
-				}
-			},
-		})({
-				$$timestamps: (timestamps) => timestamps,
-			}),
+			label: (feed) => feed.label,
+		}),
 
 		defineResolver({
 			entityType: EntityType.FarcasterNetwork,
@@ -471,10 +425,10 @@ export default {
 							},
 						]
 					),
-				}
+				},
 			},
 		})({
-				$$feeds: (feeds) => feeds,
+			$$feeds: (feeds) => feeds,
 		}),
 
 		defineResolver({
@@ -483,18 +437,56 @@ export default {
 				Scope: {
 					resolve: async (_selector, context) => {
 						const { getAllChannels } = await import('$/sources/Farcaster/Rest/queries.ts')
-						return (await getAllChannels())
-							.slice(0, resolverContextRowLimit(context))
-							.map((farcasterChannel) => ({
-								[EntityMetaKey.Selector]: {
-									id: farcasterChannel.id,
-								},
-							}))
+						const channels = await getAllChannels()
+						const offset = context.providerContinuationToken == null ?
+							context.pagination.offset ?? 0
+						:
+							Number(context.providerContinuationToken)
+						if (!Number.isSafeInteger(offset) || offset < 0)
+							throw new Error('Farcaster_Rest: invalid all-channels continuation')
+
+						return {
+							offset,
+							rows: channels.slice(offset, offset + resolverContextRowLimit(context)).map((farcasterChannel) => {
+								const icon = mediaFromUrl(
+									normalizeMediaUrl(optionalNonemptyString(farcasterChannel.imageUrl)),
+									MediaType.Image
+								)
+								const createdAt = farcasterTimestampMs(farcasterChannel.createdAt)
+								return {
+									[EntityMetaKey.Selector]: {
+										id: farcasterChannel.id,
+									},
+									[EntityMetaKey.Fields]: {
+										...(icon != null && {
+											[entityFieldAddressKey(EntityType.FarcasterChannel, [], '$icon')]: icon,
+										}),
+										...(createdAt != null && {
+											[entityFieldAddressKey(EntityType.FarcasterChannel, [], 'createdAt')]: createdAt,
+										}),
+										[entityFieldAddressKey(EntityType.FarcasterChannel, [], 'name')]: optionalNonemptyString(farcasterChannel.name) ?? farcasterChannel.id,
+									},
+								}
+							}),
+							totalCount: channels.length,
+						}
 					},
 				}
 			},
 		})({
-				$$channels: (channels) => channels,
+			$$channels: {
+				select: (snapshot) => snapshot.rows,
+				continuation: (snapshot) => {
+					const nextOffset = snapshot.offset + snapshot.rows.length
+					return {
+						operation: 'all-channels',
+						target: 'client-api',
+						terminal: nextOffset >= snapshot.totalCount,
+						...(nextOffset < snapshot.totalCount && { token: String(nextOffset) }),
+					}
+				},
+				resolveCount: (snapshot) => snapshot.totalCount,
+			},
 		}),
 	],
 } satisfies RegisteredSourceResolverModule
