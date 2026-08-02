@@ -11,7 +11,6 @@ import {
 	SourceEndpointKind,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const lotusJsonRpcArtifacts = [
@@ -66,4 +65,4 @@ export default indexSourceBindings([
 		],
 		artifacts: lotusJsonRpcArtifacts,
 	},
-] as const satisfies readonly SourceBinding[])
+])

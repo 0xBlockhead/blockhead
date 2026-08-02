@@ -7826,10 +7826,10 @@ const generateSourceProviderBindingsFile = (
 		const direct = {
 			declarations: [],
 			expression: [
-			'[',
-			...renderedSourcePlans.flatMap(({ bindings }) => bindings.map((binding) => `${indent(binding)},`)),
-			'] as const satisfies readonly SourceBinding[]',
-		].join('\n'),
+				'[',
+				...renderedSourcePlans.flatMap(({ bindings }) => bindings.map((binding) => `${indent(binding)},`)),
+				']',
+			].join('\n'),
 		}
 		const compactBySource = new Map(renderedSourcePlans.flatMap((sourcePlan) => {
 			const plannedMatrices = bindingMatrices.get(sourcePlan.source) ?? []
@@ -7951,7 +7951,7 @@ const generateSourceProviderBindingsFile = (
 							...canonicalOperationGroupReferences,
 							'indexSourceBindings',
 					],
-					typeNames: ['SourceBinding'],
+					typeNames: renderedBindingPlan.expression.includes('SourceBinding') ? ['SourceBinding'] : [],
 				},
 				...(bindings.some(({ binding }) => binding.credentials.some((credential) => (
 					!('envKey' in credential)

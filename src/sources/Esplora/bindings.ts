@@ -9,7 +9,6 @@ import {
 	SourceEndpointKind,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const esploraRestBindingAxes = {
@@ -50,4 +49,4 @@ export default indexSourceBindings([
 			},
 		],
 	},
-] as const satisfies readonly SourceBinding[])
+])

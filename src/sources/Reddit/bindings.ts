@@ -11,7 +11,6 @@ import {
 	SourceEndpointKind,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 import { type as arktype } from 'arktype'
 
@@ -68,4 +67,4 @@ export default indexSourceBindings([
 			},
 		],
 	},
-] as const satisfies readonly SourceBinding[])
+])

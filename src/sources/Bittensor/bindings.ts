@@ -10,7 +10,6 @@ import {
 	SourceEndpointKind,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 export default indexSourceBindings([
@@ -44,4 +43,4 @@ export default indexSourceBindings([
 			},
 		],
 	},
-] as const satisfies readonly SourceBinding[])
+])

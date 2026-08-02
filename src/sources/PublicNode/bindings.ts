@@ -11,7 +11,6 @@ import {
 	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const solanaJsonRpcArtifacts = [
@@ -63,4 +62,4 @@ export default indexSourceBindings([
 		credentials: [],
 		artifacts: solanaJsonRpcArtifacts,
 	},
-] as const satisfies readonly SourceBinding[])
+])

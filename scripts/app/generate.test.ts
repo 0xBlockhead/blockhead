@@ -3106,8 +3106,10 @@ test('emits every source-axis enum and only valid enum references in provider ro
 			assert.match(source, /\] satisfies readonly SourceBinding\[\]\)\)/)
 		else if (source.includes('.map(({'))
 			assert.match(source, /\} satisfies SourceBinding\)\)/)
-		else
-			assert.match(source, /export default indexSourceBindings\(\[[\s\S]*?satisfies readonly SourceBinding\[\]\)/)
+		else {
+			assert.doesNotMatch(source, /type SourceBinding|satisfies (?:readonly )?SourceBinding/)
+			assert.match(source, /export default indexSourceBindings\(\[[\s\S]*?\n\]\)/)
+		}
 		assert.match(source, /export default indexSourceBindings\(/)
 		assert.doesNotMatch(source, /SourceCredentialScope\.None|generated: false/)
 		assert.doesNotMatch(source, /^\s*\[Source\.[A-Za-z0-9_]+\]: \{/m)

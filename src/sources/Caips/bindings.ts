@@ -9,7 +9,6 @@ import {
 	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const caipsEndpoints = [
@@ -55,4 +54,4 @@ export default indexSourceBindings([
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 	},
-] as const satisfies readonly SourceBinding[])
+])

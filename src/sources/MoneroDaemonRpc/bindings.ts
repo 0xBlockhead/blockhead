@@ -11,7 +11,6 @@ import {
 	SourceEndpointKind,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const moneroDaemonRpcJsonRpcArtifacts = [
@@ -71,4 +70,4 @@ export default indexSourceBindings([
 		],
 		artifacts: moneroDaemonRpcJsonRpcArtifacts,
 	},
-] as const satisfies readonly SourceBinding[])
+])

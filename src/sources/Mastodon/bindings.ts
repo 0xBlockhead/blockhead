@@ -10,7 +10,6 @@ import {
 	SourceEndpointKind,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const mastodonRestEndpoints = [
@@ -67,4 +66,4 @@ export default indexSourceBindings([
 		},
 		endpoints: mastodonRestEndpoints,
 	},
-] as const satisfies readonly SourceBinding[])
+])

@@ -10,7 +10,6 @@ import {
 	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const gitRepositoryContentsRepositoryMetadataOperationGroups = [
@@ -64,4 +63,4 @@ export default indexSourceBindings([
 			},
 		],
 	},
-] as const satisfies readonly SourceBinding[])
+])

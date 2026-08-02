@@ -10,7 +10,6 @@ import {
 	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const bitTorrentEndpoints = [
@@ -128,4 +127,4 @@ export default indexSourceBindings([
 		delivery: SourceDelivery.ServerOnly,
 		credentials: [],
 	},
-] as const satisfies readonly SourceBinding[])
+])

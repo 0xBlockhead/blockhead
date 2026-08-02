@@ -9,7 +9,6 @@ import {
 	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 export default indexSourceBindings([
@@ -40,4 +39,4 @@ export default indexSourceBindings([
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 	},
-] as const satisfies readonly SourceBinding[])
+])

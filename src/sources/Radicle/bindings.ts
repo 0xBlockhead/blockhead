@@ -10,7 +10,6 @@ import {
 	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 export default indexSourceBindings([
@@ -60,4 +59,4 @@ export default indexSourceBindings([
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [],
 	},
-] as const satisfies readonly SourceBinding[])
+])

@@ -11,7 +11,6 @@ import {
 	SourceTargetKind,
 	walletReadAndSignOperationGroups,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const zcashdEndpoints = [
@@ -54,4 +53,4 @@ export default indexSourceBindings([
 		delivery: SourceDelivery.LocalOnly,
 		credentials: zcashdCredentials,
 	},
-] as const satisfies readonly SourceBinding[])
+])

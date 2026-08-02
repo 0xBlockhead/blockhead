@@ -12,7 +12,6 @@ import {
 	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const envio1Credentials = [
@@ -79,4 +78,4 @@ export default indexSourceBindings([
 			},
 		],
 	},
-] as const satisfies readonly SourceBinding[])
+])

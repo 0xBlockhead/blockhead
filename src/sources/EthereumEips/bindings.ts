@@ -9,7 +9,6 @@ import {
 	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const ethereumEipsGithubEndpoints = [
@@ -53,4 +52,4 @@ export default indexSourceBindings([
 		},
 		endpoints: ethereumEipsGithubEndpoints,
 	},
-] as const satisfies readonly SourceBinding[])
+])
