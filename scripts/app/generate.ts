@@ -784,11 +784,15 @@ const templateInterpolationExpression = (expression: string) => {
 }
 
 const renderSvelteTextOrExpression = (level: number, expression: string) => {
-	const literalValue = typeScriptStringValue(expression)
-	if (literalValue != null)
-		return `${'\t'.repeat(level)}${svelteText(literalValue)}`
+	const parsed = parseTypeScriptExpression(expression)
+	const unwrappedExpression = unwrapParenthesizedExpression(parsed.expression)
+	if (
+		ts.isStringLiteral(unwrappedExpression)
+		|| ts.isNoSubstitutionTemplateLiteral(unwrappedExpression)
+	)
+		return `${'\t'.repeat(level)}${svelteText(unwrappedExpression.text)}`
 
-	const renderedExpression = typeScriptExpressionWithoutOuterParentheses(expression)
+	const renderedExpression = unwrappedExpression.getText(parsed.sourceFile)
 	if (!renderedExpression.includes('\n'))
 		return `${'\t'.repeat(level)}{${renderedExpression}}`
 
