@@ -7636,108 +7636,10 @@ const generateSourceProviderBindingsFile = (
 				artifacts: bindingValueReference(properties.artifacts, artifacts),
 			}, bindingBaseNameByBinding.get(binding))),
 	}))
-	// A source matrix is compact only when it reconstructs the authored binding
-	// order exactly. Uniform target kinds keep the target key type correlated;
-	// mixed target domains remain explicit rows.
+	// Ordered target blocks discover both whole-source and partial matrices.
+	// Whole matrices retain their compact shared locator and constant suffixes;
+	// partial matrices keep every variant locator as explicit authored data.
 	const bindingMatrices = new Map(sourcePlans.flatMap((sourcePlan) => {
-		const firstBindingGroup = sourcePlan.bindingGroups[0]
-		if (
-			firstBindingGroup == null
-			|| firstBindingGroup.length < 2
-			|| sourcePlan.bindingGroups.some((group) => group.length !== firstBindingGroup.length)
-			|| sourcePlan.bindingGroups.some((group) => group.some(({ binding }) => binding.endpoints.length !== 1))
-			|| new Set(firstBindingGroup.map(({ binding }) => binding.target.kind)).size !== 1
-		)
-			return []
-
-		const targetIdentity = ({ binding }: typeof firstBindingGroup[number]) => JSON.stringify([
-			binding.target.kind,
-			binding.target.key,
-		])
-		const targetIdentities = firstBindingGroup.map(targetIdentity)
-		if (
-			new Set(targetIdentities).size !== targetIdentities.length
-			|| sourcePlan.bindingGroups.some((group) => (
-				JSON.stringify(group.map(targetIdentity).sort()) !== JSON.stringify([...targetIdentities].sort())
-			))
-		)
-			return []
-
-		const orderedMatrixRows = firstBindingGroup.flatMap((targetRow) => (
-			sourcePlan.bindingGroups.map((group) => group.find((candidate) => (
-				targetIdentity(candidate) === targetIdentity(targetRow)
-			)))
-		))
-		if (orderedMatrixRows.some((row, index) => (
-			row !== sourcePlan.sourceBindingRows[index]
-		)))
-			return []
-
-		const locatorSuffixes = sourcePlan.bindingGroups.map((group) => {
-			const endpoint = group[0]?.binding.endpoints[0]
-			if (endpoint == null || group.some(({ binding }) => (
-				binding.endpoints[0]?.endpointKind !== endpoint.endpointKind
-				|| binding.endpoints[0].corsEnabled !== endpoint.corsEnabled
-			)))
-				return undefined
-
-			const suffixes = firstBindingGroup.map((targetRow) => {
-				const bindingRow = group.find((candidate) => targetIdentity(candidate) === targetIdentity(targetRow))
-				const baseLocator = targetRow.binding.endpoints[0]?.locator
-				const locator = bindingRow?.binding.endpoints[0]?.locator
-				return baseLocator != null && locator?.startsWith(baseLocator) === true ?
-					locator.slice(baseLocator.length)
-				:
-					undefined
-			})
-			return suffixes[0] != null && suffixes.every((suffix) => suffix === suffixes[0]) ?
-				suffixes[0]
-			:
-				undefined
-		})
-		if (locatorSuffixes.some((suffix) => suffix == null))
-			return []
-
-		return [[sourcePlan.source, {
-			name: `${camel(sourcePlan.source)}Targets`,
-			rows: firstBindingGroup.map((targetRow) => ({
-				key: targetRow.binding.target.key,
-				values: [[
-					'locator',
-					targetRow.binding.endpoints[0].locator,
-				] as const],
-			})),
-			variants: sourcePlan.bindingGroups.map((group, groupIndex) => {
-				const binding = group[0]?.binding
-				const endpoint = binding?.endpoints[0]
-				const baseIdentifier = sourcePlan.bindingBaseNames[groupIndex]
-				const locatorSuffix = locatorSuffixes[groupIndex]
-				if (binding == null || endpoint == null || baseIdentifier == null || locatorSuffix == null)
-					throw new Error(`${sourcePlan.source}: incomplete binding matrix axis ${groupIndex}`)
-
-				return emitObject([
-					{
-						spread: baseIdentifier,
-					},
-					['target', `{
-	kind: ${enumAccess('SourceTargetKind', binding.target.kind)},
-	key,
-}`],
-					['endpoints', emitArray([`{
-	endpointKind: ${enumAccess('SourceEndpointKind', endpoint.endpointKind)},
-	${locatorSuffix === '' ? 'locator' : `locator: \`\${locator}${locatorSuffix}\``},${endpoint.corsEnabled == null ? '' : `
-	corsEnabled: ${String(endpoint.corsEnabled)},`}
-}`])],
-				])
-			}),
-		}] as const]
-	}))
-	// Sources that cannot form one whole matrix may still contain compact
-	// contiguous runs. Every variant locator remains explicit authored data.
-	const partialBindingMatrices = new Map(sourcePlans.flatMap((sourcePlan) => {
-		if (bindingMatrices.has(sourcePlan.source))
-			return []
-
 		// Binding-base identity already contains every non-target semantic axis;
 		// endpoint kind and CORS complete each matrix variant signature.
 		const targetBlocks = groupAdjacentBy(sourcePlan.sourceBindingRows, ({ binding }) => JSON.stringify([
@@ -7791,17 +7693,42 @@ const generateSourceProviderBindingsFile = (
 				return []
 
 			const variants = firstBlock.variants
-			if (new Set(variants.map(({ locatorName }) => locatorName)).size !== variants.length)
+			const sourceRows = blocks.flatMap(({ rows }) => rows)
+			const firstRowIndex = sourcePlan.sourceBindingRows.indexOf(sourceRows[0])
+			const locatorSuffixes = (
+				firstRowIndex === 0
+				&& sourceRows.length === sourcePlan.sourceBindingRows.length ?
+					variants.map((_, variantIndex) => {
+						const suffixes = blocks.map(({ variants: blockVariants }) => {
+							const baseLocator = blockVariants[0]?.endpoint.locator
+							const locator = blockVariants[variantIndex]?.endpoint.locator
+							return baseLocator != null && locator?.startsWith(baseLocator) === true ?
+								locator.slice(baseLocator.length)
+							:
+								undefined
+						})
+						return suffixes[0] != null && suffixes.every((suffix) => suffix === suffixes[0]) ?
+							suffixes[0]
+						:
+							undefined
+					})
+				:
+					[]
+			)
+			const whole = locatorSuffixes.length === variants.length && locatorSuffixes.every((suffix) => suffix != null)
+			if (!whole && new Set(variants.map(({ locatorName }) => locatorName)).size !== variants.length)
 				return []
 
 			const rows = blocks.map(({ rows: blockRows, variants: blockVariants }) => ({
 				key: blockRows[0]?.binding.target.key ?? '',
-				values: variants.map(({ locatorName }, variantIndex) => [
+				values: whole ? [[
+					'locator',
+					blockVariants[0]?.endpoint.locator ?? '',
+				] as const] : variants.map(({ locatorName }, variantIndex) => [
 					locatorName,
 					blockVariants[variantIndex]?.endpoint.locator ?? '',
 				] as const),
 			}))
-			const sourceRows = blocks.flatMap(({ rows }) => rows)
 			if (JSON.stringify(rows.flatMap((row) => variants.map((variant, variantIndex) => ({
 				...variant.binding,
 				target: {
@@ -7810,17 +7737,23 @@ const generateSourceProviderBindingsFile = (
 				},
 				endpoints: [{
 					...variant.endpoint,
-					locator: row.values[variantIndex]?.[1],
+					locator: whole ?
+						`${row.values[0]?.[1]}${locatorSuffixes[variantIndex]}`
+					:
+						row.values[variantIndex]?.[1],
 				}],
 			})))) !== JSON.stringify(sourceRows.map(({ binding }) => binding)))
-				throw new Error(`${sourcePlan.source}: partial binding matrix does not reconstruct authored rows`)
+				throw new Error(`${sourcePlan.source}: binding matrix does not reconstruct authored rows`)
 
 			return [{
-				firstRowIndex: sourcePlan.sourceBindingRows.indexOf(sourceRows[0]),
-				name: `${camel(sourcePlan.source)}Targets${pascal(rows[0]?.key ?? '')}Through${pascal(rows.at(-1)?.key ?? '')}`,
+				firstRowIndex,
+				name: whole ?
+					`${camel(sourcePlan.source)}Targets`
+				:
+					`${camel(sourcePlan.source)}Targets${pascal(rows[0]?.key ?? '')}Through${pascal(rows.at(-1)?.key ?? '')}`,
 				rowCount: sourceRows.length,
 				rows,
-				variants: variants.map(({ baseIdentifier, binding, endpoint, locatorName }) => emitObject([
+				variants: variants.map(({ baseIdentifier, binding, endpoint, locatorName }, variantIndex) => emitObject([
 					{
 						spread: baseIdentifier,
 					},
@@ -7830,10 +7763,17 @@ const generateSourceProviderBindingsFile = (
 }`],
 					['endpoints', emitArray([`{
 	endpointKind: ${enumAccess('SourceEndpointKind', endpoint.endpointKind)},
-	locator: ${locatorName},${endpoint.corsEnabled == null ? '' : `
+	${whole ?
+		locatorSuffixes[variantIndex] === '' ?
+			'locator'
+		:
+			`locator: \`\${locator}${locatorSuffixes[variantIndex]}\``
+	:
+		`locator: ${locatorName}`},${endpoint.corsEnabled == null ? '' : `
 	corsEnabled: ${String(endpoint.corsEnabled)},`}
 }`])],
 				])),
+				whole,
 			}]
 		})
 		return matrices.length === 0 ? [] : [[sourcePlan.source, matrices] as const]
@@ -7881,11 +7821,12 @@ const generateSourceProviderBindingsFile = (
 		].join('\n'),
 		}
 		const compactBySource = new Map(renderedSourcePlans.flatMap((sourcePlan) => {
-			const matrix = bindingMatrices.get(sourcePlan.source)
-			if (matrix != null)
-				return [[sourcePlan.source, renderBindingMatrix(matrix)] as const]
+			const plannedMatrices = bindingMatrices.get(sourcePlan.source) ?? []
+			const wholeMatrix = plannedMatrices.find(({ whole }) => whole)
+			if (wholeMatrix != null)
+				return [[sourcePlan.source, renderBindingMatrix(wholeMatrix)] as const]
 
-			const matrices = (partialBindingMatrices.get(sourcePlan.source) ?? [])
+			const matrices = plannedMatrices
 				.map((partialMatrix) => ({
 					...partialMatrix,
 					...renderBindingMatrix(partialMatrix),
