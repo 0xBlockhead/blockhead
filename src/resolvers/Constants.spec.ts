@@ -133,6 +133,20 @@ if (nostrProfileResolver == null)
 	throw new Error('Constants spec missing NostrProfile resolver')
 
 describe('Constants resolver projections', () => {
+	it('leaves global OHLC observations to their live field owner', () => {
+		expect(schema.find(({ entityType }) => (
+			entityType === EntityType._Global
+		))?.fields.find(({ name }) => (
+			name === '$$marketTimeIntervalTimestamps'
+		))?.defaultSources).toEqual([
+			Source.Coingecko_Rest,
+		])
+		expect(constantsResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType._Global
+			&& '$$marketTimeIntervalTimestamps' in resolver.projections
+		))).toBe(false)
+	})
+
 	it('keeps beacon consensus domain facts without materializing transport endpoints', async () => {
 		const network = await networkConsensusProtocolResolver.resolve.Caip2.resolve({
 			caip2: networkBySlug.ethereum.caip2,

@@ -4561,7 +4561,7 @@ export const schema = {
 				"$$marketVenues": { label: "market venues", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MarketVenue },
 				"$$currencies": { label: "currencies", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Currency },
 				"$$marketPrices": { label: "market prices", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MarketPrice },
-				"$$marketTimeIntervalTimestamps": { label: "market time interval timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Market_TimeInterval_Timestamp },
+				"$$marketTimeIntervalTimestamps": { label: "market time interval timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Market_TimeInterval_Timestamp, defaultSources: [Source.Coingecko_Rest] },
 				"$$actors": { label: "actors", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmAccount },
 				"$$xmtpConversations": { label: "XMTP conversations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XmtpConversation },
 				"$$blockheadSources": { label: "blockhead sources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadSource, defaultSources: [Source.Local_Internal] },
@@ -78835,7 +78835,6 @@ export const routes = defineRoutes(schema)({
 										"$$marketTimeIntervalTimestamps"
 									],
 									query: {
-										sources: [Source.Constants_Internal],
 										limit: 256,
 									},
 									derivations: {

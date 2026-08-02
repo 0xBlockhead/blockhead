@@ -4,7 +4,6 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -27,9 +26,6 @@
 		scope: '$$marketTimeIntervalTimestamps',
 	})
 		.$$marketTimeIntervalTimestamps({
-			sources: [
-				Source.Constants_Internal,
-			],
 			limit: 256,
 		})}
 

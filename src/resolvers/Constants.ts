@@ -17,7 +17,6 @@ import { ipfsProtocolByScope } from '$/constants/IpfsProtocol.ts'
 import {
 	MarketAssetKind,
 	MarketKind,
-	marketOhlcDailyTimeInterval,
 } from '$/constants/Market.ts'
 import type {
 	NetworkConsensusUpgradeRow,
@@ -2525,27 +2524,6 @@ export default {
 			},
 		})({
 				$$markets: (entity) => entity,
-			}),
-
-		defineResolver({
-			entityType: EntityType._Global,
-			resolve: {
-				Scope: {
-					resolve: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
-						seededCoinSpotUsdMarkets.slice(0, resolverContextRowLimit(context)).map((catalogMarket) => (
-							{
-								[EntityMetaKey.Selector]: {
-									$market: marketSelectorFromCatalogCoinCurrencyMarket(catalogMarket),
-									timeInterval: marketOhlcDailyTimeInterval,
-									timestampMs: currencyCatalogSnapshotTimestampMs,
-								},
-							}
-						))
-					),
-				}
-			},
-		})({
-				$$marketTimeIntervalTimestamps: (entity) => entity,
 			}),
 
 		defineResolver({

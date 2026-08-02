@@ -84,6 +84,9 @@ export default entity({
 	$$marketTimeIntervalTimestamps: {
 		entityType: EntityType.Market_TimeInterval_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Coingecko_Rest,
+		],
 	},
 	$$actors: {
 		entityType: EntityType.EvmAccount,
