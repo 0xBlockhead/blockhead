@@ -3,7 +3,6 @@ import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import type {
 	SolanaRpcAccountInfo,
 	SolanaRpcAddressSignature,
-	SolanaRpcAddressTransaction,
 	SolanaRpcBlock,
 	SolanaRpcCommitment,
 	SolanaRpcEpochInfo,
@@ -207,7 +206,7 @@ export const getTransactionsForAddress = async ({
 		until,
 		commitment,
 	})
-	const transactions: SolanaRpcAddressTransaction[] = await Promise.all(
+	const transactions = await Promise.all(
 		page.signatures.map(async (signature) => {
 			const transaction = await getTransaction({
 				signature: signature.signature,

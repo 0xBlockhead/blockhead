@@ -1,5 +1,4 @@
 import { tradingViewScannerFetch } from '$/sources/TradingView/Rest/client.ts'
-import type { TradingViewQuote } from '$/sources/TradingView/Rest/types.ts'
 
 /**
  * `POST /crypto/scan` scanner request for quote columns.
@@ -20,7 +19,7 @@ export const getCryptoQuotes = async ({
 			'update_time',
 		],
 	})).data
-		?.flatMap((row): TradingViewQuote[] => {
+		?.flatMap((row) => {
 			const [
 				name,
 				price,
