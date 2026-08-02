@@ -770,51 +770,33 @@ const retainedPluralEntities = app.schema.entities.filter((entity) => (
 	generatedPaths.has(`src/views/${entity.views.plural.component}.svelte`)
 ))
 
-test('omits exact field-default sources only from parent field queries', () => {
-	const literalSourceCountByPath = Object.fromEntries(generatedViewSources.flatMap(([filePath, source]) => {
-		const count = (source.match(/sources: \[\n(?:\s+Source\.[A-Za-z0-9_]+,\n)+\s+\]/g) ?? []).length
-		return count === 0 ? [] : [[filePath, count]]
-	}))
-	assert.equal(Object.values(literalSourceCountByPath).reduce((total, count) => total + count, 0), 36)
-	assert.deepEqual(
-		literalSourceCountByPath,
-		{
-			'src/views/AtprotoActorView.svelte': 1,
-			'src/views/BeaconEpochView.svelte': 1,
-			'src/views/CoinView.svelte': 3,
-			'src/views/CurrencyView.svelte': 2,
-			'src/views/EthereumExecutionUpgradeView.svelte': 1,
-			'src/views/FilecoinActorView.svelte': 1,
-			'src/views/FilecoinMinerView.svelte': 1,
-			'src/views/MarketView.svelte': 1,
-			'src/views/NetworkView.svelte': 24,
-			'src/views/NostrRelayView.svelte': 1,
-		}
-	)
-
+test('preserves explicit view source selections independently of field defaults', () => {
 	const filecoinActorView = generatedSource('src/views/FilecoinActorView.svelte')
 	const filecoinParentQuery = filecoinActorView.slice(
 		filecoinActorView.indexOf('.$$timestamps({'),
 		filecoinActorView.indexOf('<FilecoinActor_TimestampView')
 	)
-	assert.doesNotMatch(filecoinParentQuery, /sources:/)
+	assert.match(filecoinParentQuery, /sources: \[\s+Source\.Lotus_JsonRpc,\s+\]/)
 	assert.match(
 		filecoinActorView.slice(filecoinActorView.indexOf('<FilecoinActor_TimestampView')),
 		/sources: \[\s+Source\.Lotus_JsonRpc,\s+\]/
 	)
 	assert.match(
-		generatedSource('src/views/CoinView.svelte'),
-		/\.\$\$marketsWithCoinAsBase\(\{\s+sources: \[\s+Source\.Constants_Internal,\s+\]/
+		generatedSource('src/views/EvmCoinInstanceView.svelte'),
+		/\.\$\$outboundBridgeCapabilities\(\{\s+sources: \[\s+Source\.Lifi_Rest,\s+\]/
 	)
 	assert.match(
 		generatedSource('src/views/NetworkView.svelte'),
-		/\.\$\$blocks\(\{\s+sources: voltaireJsonRpcSources,/
+		/\.\$\$consensusUpgrades\(\{\s+sources: \[\s+Source\.Constants_Internal,\s+\]/
 	)
-	for (const rawView of [
-		generatedSource('src/views/AtprotoActorView.svelte'),
-		generatedSource('src/views/MarketView.svelte'),
-	])
-		assert.match(rawView, /sources: \[\s+Source\.(?:Atproto_Xrpc|Coingecko_Rest),\s+\]/)
+	assert.match(
+		generatedSource('src/views/TonAccountView.svelte'),
+		/\.\$\$timestamps\(\{\s+sources: \[\s+Source\.TonApi_Rest,\s+\]/
+	)
+	assert.match(
+		generatedSource('src/views/YoutubeCommentView.svelte'),
+		/\.\$\$replies\(\{\s+sources: \[\s+Source\.Youtube_Rest,\s+\]/
+	)
 
 	const mutatedApp = structuredClone(app)
 	const filecoinActor = mutatedApp.schema.entities.find(({ entityType }) => entityType === EntityType.FilecoinActor)
@@ -822,13 +804,50 @@ test('omits exact field-default sources only from parent field queries', () => {
 	const timestamps = filecoinActor.fields.find(({ name }) => name === '$$timestamps')
 	assert.ok(timestamps)
 	timestamps.defaultSources = [Source.Constants_Internal]
-	const mutatedFilecoinActorView = compileApp(mutatedApp).generatedFiles.find(({ path }) => (
+	const mutatedCompiledApp = compileApp(mutatedApp)
+	const mutatedFilecoinActorView = mutatedCompiledApp.generatedFiles.find(({ path }) => (
 		path === 'src/views/FilecoinActorView.svelte'
 	))
 	assert.ok(mutatedFilecoinActorView)
 	assert.equal(
 		(renderGeneratedFile(mutatedFilecoinActorView).match(/sources: \[\s+Source\.Lotus_JsonRpc,\s+\]/g) ?? []).length,
 		2
+	)
+	const mutatedFilecoinActorSchema = mutatedCompiledApp.generatedFiles.find(({ path }) => (
+		path === 'src/schema/FilecoinActor.ts'
+	))
+	assert.ok(mutatedFilecoinActorSchema)
+	assert.match(
+		renderGeneratedFile(mutatedFilecoinActorSchema),
+		/defaultSources: \[\s+Source\.Constants_Internal,\s+\]/
+	)
+
+	const fallbackApp = structuredClone(app)
+	const fallbackFilecoinActor = fallbackApp.schema.entities.find(({ entityType }) => entityType === EntityType.FilecoinActor)
+	assert.ok(fallbackFilecoinActor)
+	const latest = fallbackFilecoinActor.views.singular.latest?.[0]
+	assert.ok(latest)
+	delete latest.query?.sources
+	const fallbackCompiledApp = compileApp(fallbackApp)
+	const fallbackFilecoinActorView = fallbackCompiledApp.generatedFiles.find(({ path }) => (
+		path === 'src/views/FilecoinActorView.svelte'
+	))
+	assert.ok(fallbackFilecoinActorView)
+	const fallbackFilecoinActorViewSource = renderGeneratedFile(fallbackFilecoinActorView)
+	assert.doesNotMatch(
+		fallbackFilecoinActorViewSource.slice(
+			fallbackFilecoinActorViewSource.indexOf('.$$timestamps({'),
+			fallbackFilecoinActorViewSource.indexOf('<FilecoinActor_TimestampView')
+		),
+		/sources:/
+	)
+	const fallbackFilecoinActorSchema = fallbackCompiledApp.generatedFiles.find(({ path }) => (
+		path === 'src/schema/FilecoinActor.ts'
+	))
+	assert.ok(fallbackFilecoinActorSchema)
+	assert.match(
+		renderGeneratedFile(fallbackFilecoinActorSchema),
+		/defaultSources: \[\s+Source\.Lotus_JsonRpc,\s+\]/
 	)
 })
 
@@ -6386,7 +6405,11 @@ test('loads sibling facet row fields only after eligibility through projection-o
 		assert.match(markup, /resource=\{\s*selection\.entitySelector\.type === 'NativeCurrency' \?\s*selection\.NativeCurrency\s*:\s*selection\.Erc20Token\s*\}/)
 	assert.equal((singularView.match(/resource=\{selection\.(?:NativeCurrency|Erc20Token)\}/g) ?? []).length, 4)
 	assert.equal((singularView.match(/\.\$\$outboundBridgeCapabilities\b/g) ?? []).length, 1)
-	assert.doesNotMatch(singularView, /\.\$\$outboundBridgeCapabilities\(/)
+	assert.doesNotMatch(singularView.slice(0, singularView.indexOf('{#snippet Details(')), /\.\$\$outboundBridgeCapabilities\(/)
+	assert.match(
+		detailsMarkup,
+		/\{#snippet Applicable\(projection\)\}[\s\S]*?projection\s*\.\$\$outboundBridgeCapabilities\(\{[\s\S]*?Source\.Lifi_Rest/
+	)
 	assert.doesNotMatch(singularView, /\{@const [^=\n]*\.[^=\n]* =/)
 	assert.doesNotMatch(rootResource, /NativeCurrency|Erc20Token|Blockscout_Rest|Constants_Internal|symbol|name/)
 })

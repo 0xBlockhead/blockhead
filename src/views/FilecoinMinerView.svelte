@@ -71,6 +71,9 @@
 						resource={
 							selection
 							.$$timestamps({
+								sources: [
+									Source.Lotus_JsonRpc,
+								],
 								fields: {
 									height: true,
 									timestampMs: true,

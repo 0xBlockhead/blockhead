@@ -71,6 +71,10 @@
 						resource={
 							selection
 							.$$timestamps({
+								sources: [
+									Source.NostrBand_Rest,
+									Source.NostrRelay_Nip11_Http,
+								],
 								limit: 1,
 								orderBy: [
 									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
@@ -116,6 +120,10 @@
 	{#snippet Details()}
 		{@const timestampsResource = selection
 			.$$timestamps({
+				sources: [
+					Source.NostrBand_Rest,
+					Source.NostrRelay_Nip11_Http,
+				],
 				limit: 64,
 			})}
 		<ResourceBoundary

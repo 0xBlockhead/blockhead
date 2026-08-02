@@ -7,6 +7,7 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -154,6 +155,9 @@
 					selection={
 						selection
 						.$$timestamps({
+							sources: [
+								Source.TonApi_Rest,
+							],
 							limit: 16,
 						})
 					}

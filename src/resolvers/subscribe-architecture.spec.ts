@@ -392,11 +392,12 @@ describe('client resolver architecture', () => {
 		).toEqual([])
 	})
 
-	it('keeps field default-source ownership in the client subscription layer', () => {
+	it('does not collapse explicit view source selections against field defaults', () => {
 		const generatorSource = readFileSync(join(rootPath, 'scripts', 'app', 'generate.ts'), 'utf8')
 		const subscribeSource = scannedSourceByFilePath[join(srcPath, 'client', '$subscribe.svelte.ts')]
 
 		expect(generatorSource).not.toMatch(/const fieldQuery(?:ForName)? = /)
+		expect(generatorSource).not.toMatch(/const fieldSourceOverride = /)
 		expect(subscribeSource).toMatch(/selection\.sources \?\? definition\.defaultSources/)
 	})
 

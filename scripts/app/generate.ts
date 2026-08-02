@@ -1953,27 +1953,6 @@ const renderFieldConditionedSourceSelectionExpression = (
 	]))})`
 }
 
-const fieldSourceOverride = (
-	fieldDefinition: EntityField,
-	sources: readonly string[] | _SourceSelection | undefined
-) => (
-	Array.isArray(sources)
-	&& fieldDefinition.defaultSources != null
-	&& sources.length === fieldDefinition.defaultSources.length
-	&& sources.every((source, index) => source === fieldDefinition.defaultSources[index]) ?
-		undefined
-	:
-		sources
-)
-
-const fieldQuery = (
-	fieldDefinition: EntityField | undefined,
-	query: _ViewQuery | undefined
-) => fieldDefinition == null || query == null ? query : {
-	...query,
-	sources: fieldSourceOverride(fieldDefinition, query.sources),
-}
-
 const renderQuery = (
 	query: _ViewQuery | _ListView['query'] | undefined,
 	fields?: readonly FieldReference[],
@@ -10013,10 +9992,7 @@ const generateSingularViewFile = (
 		viewSelectionValueExpression
 	:
 		`${viewSelectionValueExpression}(${query})`
-	const sectionQueries = sections.map((section) => renderQuery(fieldQuery(
-		fieldDefinitionByReference(entity, section.field, indexes),
-		section.selection
-	), []))
+	const sectionQueries = sections.map((section) => renderQuery(section.selection, []))
 	const latestQueries = latestItems.map((latest) => renderQuery(latest.query, latest.fields ?? []))
 	const carouselQueries = carouselsToRender.flatMap((carousel) => carousel.sections.flatMap((section) => {
 		if (carouselSectionComponent(entity, indexes, section) == null)
@@ -10032,7 +10008,7 @@ const generateSingularViewFile = (
 				&& networkSourceSelectionNeedsFiltering(indexes, sources) ?
 				section.selection
 			:
-				fieldQuery(fieldDefinition, section.selection),
+				section.selection,
 			[]
 		)]
 	}))
@@ -11727,11 +11703,11 @@ const renderLatestContentItem = (
 	].filter((fieldName) => latestEntity == null || fieldDefinitionByReference(latestEntity, fieldName) != null))
 
 	const query = renderQuery(
-		fieldQuery(latestFieldDefinition, {
+		{
 			...latest.query,
 			limit: 1,
 			orderBy: latestOrderBy,
-		}),
+		},
 		latestQueryFields,
 		undefined,
 		undefined,
@@ -11921,11 +11897,10 @@ const renderRelationshipSection = (
 	const targetEntity = fieldDefinition.entityType
 	if (targetEntity == null)
 		throw new Error(`${entity.entityType}.${section.field} relationship section field must reference an entity`)
-	const parentFieldQuery = fieldQuery(fieldDefinition, section.selection)
 	const query = renderQuery(
-		parentFieldQuery,
+		section.selection,
 		[],
-		renderFieldConditionedSourceSelectionExpression(parentFieldQuery?.sources, 'pendingEntity')
+		renderFieldConditionedSourceSelectionExpression(section.selection?.sources, 'pendingEntity')
 	)
 
 	const renderSection = (
@@ -13160,7 +13135,7 @@ const renderCarouselSection = (
 		fieldProjectionAccess.fieldBase,
 		fieldProjectionAccess.fieldReference ?? '',
 		renderQuery(
-			fieldQuery(fieldDefinition, section.selection),
+			section.selection,
 			[],
 			applicableSources.applicable ? applicableSources.name : undefined
 		)
