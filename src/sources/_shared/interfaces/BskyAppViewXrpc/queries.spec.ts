@@ -15,6 +15,8 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceGetJson,
 }))
 
+const publicAppViewQueries = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+const socialAppViewQueries = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 const {
 	getAuthorFeed,
 	getPostThread,
@@ -23,45 +25,63 @@ const {
 	resolveHandle,
 	searchActorsTypeahead,
 	searchPosts,
-} = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+} = publicAppViewQueries
 
 beforeEach(() => {
 	sourceGetJson.mockReset()
 	sourceGetJson.mockResolvedValue({})
 })
 
-it('uses the registered HTTP proxy binding for all seven XRPC operations', async () => {
-	await resolveHandle('alice.test')
-	await getProfile('did:plc:profile')
-	await getPosts([
-		'at://did:plc:first/app.bsky.feed.post/3first',
-		'at://did:plc:second/app.bsky.feed.post/3second',
-	])
-	await getPostThread('at://did:plc:thread/app.bsky.feed.post/3thread')
-	await getAuthorFeed({
-		actor: 'did:plc:feed',
-		cursor: 'cursor/with?reserved&values',
-	})
-	await searchActorsTypeahead({
-		q: 'alice & bob',
-	})
-	await searchPosts({
-		q: 'at://did:plc:search/app.bsky.feed.post/3search & reserved',
-	})
-
-	expect(sourceGetJson).toHaveBeenCalledTimes(7)
-	for (const [binding] of sourceGetJson.mock.calls) {
-		expect(binding.source).toBe('Atproto_Xrpc')
-		expect(binding.target).toEqual({
-			kind: SourceTargetKind.Global,
-			key: 'bsky-public-appview',
+it('uses each registered AppView proxy binding for the shared seven-operation interface', async () => {
+	for (const {
+		queries,
+		source,
+		targetKey,
+	} of [
+		{
+			queries: publicAppViewQueries,
+			source: 'Atproto_Xrpc',
+			targetKey: 'bsky-public-appview',
+		},
+		{
+			queries: socialAppViewQueries,
+			source: 'Atproto_BskySocial_Xrpc',
+			targetKey: 'bsky-social-appview',
+		},
+	]) {
+		sourceGetJson.mockClear()
+		await queries.resolveHandle('alice.test')
+		await queries.getProfile('did:plc:profile')
+		await queries.getPosts([
+			'at://did:plc:first/app.bsky.feed.post/3first',
+			'at://did:plc:second/app.bsky.feed.post/3second',
+		])
+		await queries.getPostThread('at://did:plc:thread/app.bsky.feed.post/3thread')
+		await queries.getAuthorFeed({
+			actor: 'did:plc:feed',
+			cursor: 'cursor/with?reserved&values',
 		})
-		expect(binding.operationGroups).toContain(SourceOperationGroup.GenericRead)
-		expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
-		expect(sourceBindingId(binding)).toBeTypeOf('string')
-		expect(binding.endpoints).toHaveLength(1)
-		expect(binding.endpoints[0].endpointKind).toBe(SourceEndpointKind.HttpUrl)
-		expect(binding.endpoints[0].corsEnabled).toBe(false)
+		await queries.searchActorsTypeahead({
+			q: 'alice & bob',
+		})
+		await queries.searchPosts({
+			q: 'at://did:plc:search/app.bsky.feed.post/3search & reserved',
+		})
+
+		expect(sourceGetJson).toHaveBeenCalledTimes(7)
+		for (const [binding] of sourceGetJson.mock.calls) {
+			expect(binding.source).toBe(source)
+			expect(binding.target).toEqual({
+				kind: SourceTargetKind.Global,
+				key: targetKey,
+			})
+			expect(binding.operationGroups).toContain(SourceOperationGroup.GenericRead)
+			expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
+			expect(sourceBindingId(binding)).toBeTypeOf('string')
+			expect(binding.endpoints).toHaveLength(1)
+			expect(binding.endpoints[0].endpointKind).toBe(SourceEndpointKind.HttpUrl)
+			expect(binding.endpoints[0].corsEnabled).toBe(false)
+		}
 	}
 })
 

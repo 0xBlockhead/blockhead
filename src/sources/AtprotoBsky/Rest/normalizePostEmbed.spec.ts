@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { normalizeBskyPostEmbed } from '$/sources/AtprotoBsky/Rest/normalizePostEmbed.ts'
-import type { BskyAppViewPostEmbed } from '$/sources/AtprotoBsky/Rest/types.ts'
+import type { BskyAppViewPostEmbed } from '$/sources/_shared/interfaces/BskyAppViewXrpc/types.ts'
 
 const image = {
 	$type: 'app.bsky.embed.images#view',

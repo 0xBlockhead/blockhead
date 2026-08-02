@@ -1,7 +1,7 @@
 import type {
 	BskyAppViewPostEmbed,
 	BskyAppViewRecordEmbed,
-} from '$/sources/AtprotoBsky/Rest/types.ts'
+} from '$/sources/_shared/interfaces/BskyAppViewXrpc/types.ts'
 import { isJsonObject } from '$/typescript/JsonValue.ts'
 
 const postAtUriPattern = /^at:\/\/[^/]+\/app\.bsky\.feed\.post\/[^/]+$/

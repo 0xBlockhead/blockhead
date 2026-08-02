@@ -13,7 +13,7 @@ import {
 import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import type { BskyAppViewPostView } from '$/sources/AtprotoBsky/Rest/types.ts'
+import type { BskyAppViewPostView } from '$/sources/_shared/interfaces/BskyAppViewXrpc/types.ts'
 
 const atprotoPostFieldsFromPostView = (postView: BskyAppViewPostView) => {
 	const atprotoRecord = postView.record
