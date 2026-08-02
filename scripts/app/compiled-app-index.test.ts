@@ -192,7 +192,7 @@ test('rejects ambiguous same-entity detail components without collapsing selecto
 
 	assert.throws(
 		() => compileApp(ambiguousApp),
-		/detail layout assigns ambiguous components or hrefs to Network/
+		/detail layout assigns ambiguous components to Network/
 	)
 })
 
