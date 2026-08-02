@@ -3181,7 +3181,7 @@ test('emits every source-axis enum and only valid enum references in provider ro
 	assert.match(renderedNostrRelayBindings, /\n\t\.\.\.nostrRelayWebSocketTargets\.map/)
 	assert.doesNotMatch(
 		readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8'),
-		/bindingRows\.length\s*[<>]=?\s*[0-9]+/
+		/bindingRows\.length\s*[<>]=?\s*[0-9]+|join\([^)]*\)\.length\s*<|direct\.expression\.length/
 	)
 
 	const voltaireBindings = generatedFiles.find(({ path }) => path === 'src/sources/Voltaire/bindings.ts')
@@ -3196,15 +3196,9 @@ test('emits every source-axis enum and only valid enum references in provider ro
 	assert.doesNotMatch(renderedVoltaireBindings, /voltaireJsonRpcEvmExecutionJsonRpc(?:RemoteLive|HttpProxy|BrowserDirect)BindingAxes/)
 	assert.match(renderedVoltaireBindings, /credentials: \[\]/)
 	assert.equal((renderedVoltaireBindings.match(/artifacts: voltaireJsonRpcArtifacts/g) ?? []).length, voltaireBindingCount)
-	assert.equal((renderedVoltaireBindings.match(/Targets[0-9]+Through[0-9]+\.flatMap/g) ?? []).length, 4)
-	for (const targetRange of [
-		'10Through480',
-		'998Through999',
-		'1301Through4801',
-		'10143Through11155420',
-	])
-		assert.match(renderedVoltaireBindings, new RegExp(`const voltaireJsonRpcTargets${targetRange} =`))
-	assert.equal((renderedVoltaireBindings.match(/^\t\tkey: '[0-9]+',$/gm) ?? []).length, 38)
+	assert.equal((renderedVoltaireBindings.match(/^\t\.\.\.\(\[$/gm) ?? []).length, 4)
+	assert.doesNotMatch(renderedVoltaireBindings, /const voltaireJsonRpc[^\n]*Targets|Through/)
+	assert.equal((renderedVoltaireBindings.match(/^\t\t\tkey: '[0-9]+',$/gm) ?? []).length, 42)
 	assert.equal((renderedVoltaireBindings.match(/^\t\t\tkey: '1',$/gm) ?? []).length, 2)
 	assert.equal((renderedVoltaireBindings.match(/^\t\t\tkey: '8453',$/gm) ?? []).length, 2)
 	assert.match(renderedVoltaireBindings, /httpProxyLocator: 'https:\/\/mainnet\.optimism\.io',[\s\S]*?remoteLiveLocator: 'wss:\/\/mainnet\.optimism\.io'/)

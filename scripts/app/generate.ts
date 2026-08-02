@@ -7695,6 +7695,13 @@ const generateSourceProviderBindingsFile = (
 			const variants = firstBlock.variants
 			const sourceRows = blocks.flatMap(({ rows }) => rows)
 			const firstRowIndex = sourcePlan.sourceBindingRows.indexOf(sourceRows[0])
+			// A single-variant catalog is the source definition only when it owns
+			// every row; partial matrices are reserved for repeated axis joins.
+			if (variants.length === 1 && (
+				firstRowIndex !== 0
+				|| sourceRows.length !== sourcePlan.sourceBindingRows.length
+			))
+				return []
 			const locatorSuffixes = (
 				firstRowIndex === 0
 				&& sourceRows.length === sourcePlan.sourceBindingRows.length ?
@@ -7747,10 +7754,7 @@ const generateSourceProviderBindingsFile = (
 
 			return [{
 				firstRowIndex,
-				name: whole ?
-					`${camel(sourcePlan.source)}Targets`
-				:
-					`${camel(sourcePlan.source)}Targets${pascal(rows[0]?.key ?? '')}Through${pascal(rows.at(-1)?.key ?? '')}`,
+				name: `${camel(sourcePlan.source)}Targets`,
 				rowCount: sourceRows.length,
 				rows,
 				variants: variants.map(({ baseIdentifier, binding, endpoint, locatorName }, variantIndex) => emitObject([
@@ -7786,17 +7790,19 @@ const generateSourceProviderBindingsFile = (
 				values: readonly (readonly [string, string])[]
 			}[]
 			variants: readonly string[]
-		}
+		},
+		inline = false
 	) => {
 		const variant = lines(matrix.variants[0] ?? '')
 		const valueNames = matrix.rows[0]?.values.map(([name]) => name) ?? []
+		const targetRows = emitArray(matrix.rows.map(({ key, values }) => emitObject([
+			['key', emitTypeScript(key)],
+			...values.map(([name, value]) => [name, emitTypeScript(value)] as const),
+		])))
 		return {
-			declarations: [`const ${matrix.name} = ${emitArray(matrix.rows.map(({ key, values }) => emitObject([
-				['key', emitTypeScript(key)],
-				...values.map(([name, value]) => [name, emitTypeScript(value)] as const),
-			])))} as const`],
+			declarations: inline ? [] : [`const ${matrix.name} = ${targetRows} as const`],
 			expression: [
-				`${matrix.name}.${matrix.variants.length === 1 ? 'map' : 'flatMap'}(({`,
+				`${inline ? `(${targetRows} as const)` : matrix.name}.${matrix.variants.length === 1 ? 'map' : 'flatMap'}(({`,
 				'\tkey,',
 				...valueNames.map((name) => `\t${name},`),
 				...(matrix.variants.length === 1 ? [
@@ -7826,18 +7832,10 @@ const generateSourceProviderBindingsFile = (
 			if (wholeMatrix != null)
 				return [[sourcePlan.source, renderBindingMatrix(wholeMatrix)] as const]
 
-			const matrices = plannedMatrices
-				.map((partialMatrix) => ({
-					...partialMatrix,
-					...renderBindingMatrix(partialMatrix),
-				}))
-				.filter((partialMatrix) => (
-					[...partialMatrix.declarations, partialMatrix.expression].join('\n').length
-					< sourcePlan.bindings.slice(
-						partialMatrix.firstRowIndex,
-						partialMatrix.firstRowIndex + partialMatrix.rowCount
-					).join('\n').length
-				))
+			const matrices = plannedMatrices.map((partialMatrix) => ({
+				...partialMatrix,
+				...renderBindingMatrix(partialMatrix, true),
+			}))
 			if (matrices.length === 0)
 				return []
 
@@ -7864,7 +7862,7 @@ const generateSourceProviderBindingsFile = (
 				})
 
 			return [[sourcePlan.source, {
-				declarations: matrices.flatMap(({ declarations }) => declarations),
+				declarations: [],
 				expression: [
 					'[',
 					...parts.flatMap(({ expression, spread }) => lines(expression).map((line, lineIndex, expressionLines) => (
@@ -7906,7 +7904,7 @@ const generateSourceProviderBindingsFile = (
 		if (compact == null)
 			return direct
 
-		return [...compact.declarations, compact.expression].join('\n').length < direct.expression.length ? compact : direct
+		return compact
 	})()
 	const canonicalOperationGroupReferences = unique(bindingRows.flatMap(({ operationGroups }) => (
 		operationGroups.reference == null ? [] : [operationGroups.reference]
