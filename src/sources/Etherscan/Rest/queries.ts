@@ -15,7 +15,6 @@ import type {
 	EtherscanErc721TokenTransfer,
 	EtherscanGasOracle,
 	EtherscanInternalTransaction,
-	EtherscanProxyJsonRpc,
 	EtherscanStringStatus,
 	EtherscanTokenTransferTagged,
 } from '$/sources/Etherscan/Rest/types.ts'
@@ -28,8 +27,8 @@ import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import {
 	etherscanV2GetJson,
+	etherscanV2GetProxyResult,
 	etherscanV2UnwrapAccountResultArray,
-	etherscanV2UnwrapProxyResult,
 } from '$/sources/Etherscan/Rest/client.ts'
 import { supportedChainIds } from '$/sources/Etherscan/Rest/constants.ts'
 
@@ -99,18 +98,16 @@ export const getTransactionByHash = async ({
 	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
 	if (normalizedTxHash == null) return null
 
-	return etherscanV2UnwrapProxyResult(
-		await etherscanV2GetJson<EtherscanProxyJsonRpc<RpcTransaction>>({
-			chainId,
-			publicEnv,
-			query: {
-				module: 'proxy',
-				action: 'eth_getTransactionByHash',
-				txhash: normalizedTxHash,
-			},
-			options,
-		})
-	)
+	return etherscanV2GetProxyResult<RpcTransaction>({
+		chainId,
+		publicEnv,
+		query: {
+			module: 'proxy',
+			action: 'eth_getTransactionByHash',
+			txhash: normalizedTxHash,
+		},
+		options,
+	})
 }
 
 /**
@@ -131,18 +128,16 @@ export const getTransactionReceipt = async ({
 	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
 	if (normalizedTxHash == null) return null
 
-	return etherscanV2UnwrapProxyResult(
-		await etherscanV2GetJson<EtherscanProxyJsonRpc<RpcReceipt>>({
-			chainId,
-			publicEnv,
-			query: {
-				module: 'proxy',
-				action: 'eth_getTransactionReceipt',
-				txhash: normalizedTxHash,
-			},
-			options,
-		})
-	)
+	return etherscanV2GetProxyResult<RpcReceipt>({
+		chainId,
+		publicEnv,
+		query: {
+			module: 'proxy',
+			action: 'eth_getTransactionReceipt',
+			txhash: normalizedTxHash,
+		},
+		options,
+	})
 }
 
 /**
@@ -158,17 +153,15 @@ export const getBlockNumber = async ({
 	chainId: number
 	options?: { apiKey?: string }
 }) => {
-	const blockNumberHex = etherscanV2UnwrapProxyResult(
-		await etherscanV2GetJson<EtherscanProxyJsonRpc<string>>({
-			chainId,
-			publicEnv,
-			query: {
-				module: 'proxy',
-				action: 'eth_blockNumber',
-			},
-			options,
-		})
-	)
+	const blockNumberHex = await etherscanV2GetProxyResult<string>({
+		chainId,
+		publicEnv,
+		query: {
+			module: 'proxy',
+			action: 'eth_blockNumber',
+		},
+		options,
+	})
 	return typeof blockNumberHex === 'string' ? blockNumberHex : null
 }
 
@@ -189,19 +182,17 @@ export const getBlockByNumber = async ({
 	boolean: boolean
 	options?: { apiKey?: string }
 }) => (
-	etherscanV2UnwrapProxyResult(
-		await etherscanV2GetJson<EtherscanProxyJsonRpc<RpcBlockHeader>>({
-			chainId,
-			publicEnv,
-			query: {
-				module: 'proxy',
-				action: 'eth_getBlockByNumber',
-				tag,
-				boolean: boolean ? 'true' : 'false',
-			},
-			options,
-		})
-	)
+	etherscanV2GetProxyResult<RpcBlockHeader>({
+		chainId,
+		publicEnv,
+		query: {
+			module: 'proxy',
+			action: 'eth_getBlockByNumber',
+			tag,
+			boolean: boolean ? 'true' : 'false',
+		},
+		options,
+	})
 )
 
 /**
@@ -319,19 +310,17 @@ export const getCode = async ({
 	address: `0x${string}`
 	options?: { apiKey?: string }
 }) => (
-	etherscanV2UnwrapProxyResult(
-		await etherscanV2GetJson<EtherscanProxyJsonRpc<`0x${string}`>>({
-			chainId,
-			publicEnv,
-			query: {
-				module: 'proxy',
-				action: 'eth_getCode',
-				address,
-				tag: 'latest',
-			},
-			options,
-		})
-	)
+	etherscanV2GetProxyResult<`0x${string}`>({
+		chainId,
+		publicEnv,
+		query: {
+			module: 'proxy',
+			action: 'eth_getCode',
+			address,
+			tag: 'latest',
+		},
+		options,
+	})
 )
 
 /** **`module=proxy`**, **`action=eth_getStorageAt`**. */
@@ -348,20 +337,18 @@ export const getStorageAt = async ({
 	slotQuantityHex: `0x${string}`
 	options?: { apiKey?: string }
 }) => (
-	etherscanV2UnwrapProxyResult(
-		await etherscanV2GetJson<EtherscanProxyJsonRpc<`0x${string}`>>({
-			chainId,
-			publicEnv,
-			query: {
-				module: 'proxy',
-				action: 'eth_getStorageAt',
-				address,
-				position: slotQuantityHex,
-				tag: 'latest',
-			},
-			options,
-		})
-	)
+	etherscanV2GetProxyResult<`0x${string}`>({
+		chainId,
+		publicEnv,
+		query: {
+			module: 'proxy',
+			action: 'eth_getStorageAt',
+			address,
+			position: slotQuantityHex,
+			tag: 'latest',
+		},
+		options,
+	})
 )
 
 /**

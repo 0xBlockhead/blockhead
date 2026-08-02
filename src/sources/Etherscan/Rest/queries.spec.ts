@@ -4,11 +4,11 @@ const etherscanV2GetJson = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Etherscan/Rest/client.ts', () => ({
 	etherscanV2GetJson,
+	etherscanV2GetProxyResult: async (request: Parameters<typeof etherscanV2GetJson>[0]) => (
+		(await etherscanV2GetJson(request))?.result ?? null
+	),
 	etherscanV2UnwrapAccountResultArray: (
 		wire: { result?: unknown[] } | null
-	) => wire?.result ?? null,
-	etherscanV2UnwrapProxyResult: (
-		wire: { result?: unknown } | null
 	) => wire?.result ?? null,
 }))
 

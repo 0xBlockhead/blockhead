@@ -104,3 +104,9 @@ export const etherscanV2GetJson = async <T>({
 	if (apiKey !== undefined) search.set('apikey', apiKey)
 	return sourceGetJson<T>(binding, `${firstHttpUrlForBinding(binding)}?${search}`)
 }
+
+export const etherscanV2GetProxyResult = async <T>(
+	request: Parameters<typeof etherscanV2GetJson>[0]
+) => etherscanV2UnwrapProxyResult(
+	await etherscanV2GetJson<EtherscanProxyJsonRpc<T>>(request)
+)
