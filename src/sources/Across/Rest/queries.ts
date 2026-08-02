@@ -75,67 +75,50 @@ const assertDeposit = (deposit: AcrossDeposit) => {
 	}
 }
 
-const depositIdentityQuery = ({
-	originChainId,
-	depositId,
-}: {
-	originChainId: number
-	depositId: string
-}) => {
-	assertChainId(originChainId)
-	assertIntegerString(depositId, 'deposit id')
-	return new URLSearchParams({
-		originChainId: String(originChainId),
-		depositId,
-	})
-}
-
-export const getDeposit = async ({
-	originChainId,
-	depositId,
-	index = 0,
-}: {
-	originChainId: number
-	depositId: string
-	index?: number
-}) => {
+export const getDeposit = async (query: (
+	| {
+		depositId: string
+		depositTxnRef?: never
+		index?: number
+		originChainId: number
+	}
+	| {
+		depositId?: never
+		depositTxnRef: string
+		index?: number
+		originChainId?: never
+	}
+)) => {
+	const index = query.index ?? 0
 	if (!Number.isSafeInteger(index) || index < 0)
 		throw new Error(`Across_Rest: invalid deposit index ${index}`)
-	const query = depositIdentityQuery({
-		originChainId,
-		depositId,
-	})
-	query.set('index', String(index))
-	const response = await fetchAcrossJson<AcrossDepositResponse>(`/api/deposit?${query}`)
-	assertDeposit(response.deposit)
-	if (
-		response.deposit.originChainId !== originChainId
-		|| response.deposit.depositId !== depositId
-		|| response.pagination.currentIndex !== index
-	)
-		throw new Error('Across_Rest: mismatched deposit identity')
-	return response
-}
+	if (query.depositTxnRef == null) {
+		assertChainId(query.originChainId)
+		assertIntegerString(query.depositId, 'deposit id')
+	} else
+		assertOpaqueIdentity(query.depositTxnRef, 'deposit transaction reference')
 
-export const getDepositByTransaction = async ({
-	depositTxnRef,
-	index = 0,
-}: {
-	depositTxnRef: string
-	index?: number
-}) => {
-	assertOpaqueIdentity(depositTxnRef, 'deposit transaction reference')
-	if (!Number.isSafeInteger(index) || index < 0)
-		throw new Error(`Across_Rest: invalid deposit index ${index}`)
 	const response = await fetchAcrossJson<AcrossDepositResponse>(
 		`/api/deposit?${new URLSearchParams({
-			depositTxnRef,
+			...(query.depositTxnRef == null ? {
+				originChainId: String(query.originChainId),
+				depositId: query.depositId,
+			} : {
+				depositTxnRef: query.depositTxnRef,
+			}),
 			index: String(index),
 		})}`
 	)
 	assertDeposit(response.deposit)
-	if (
-		response.deposit.depositTxnRef !== depositTxnRef
+	if (query.depositTxnRef == null) {
+		if (
+			response.deposit.originChainId !== query.originChainId
+			|| response.deposit.depositId !== query.depositId
+			|| response.pagination.currentIndex !== index
+		)
+			throw new Error('Across_Rest: mismatched deposit identity')
+	} else if (
+		response.deposit.depositTxnRef !== query.depositTxnRef
 		|| response.pagination.currentIndex !== index
 	)
 		throw new Error('Across_Rest: mismatched deposit transaction identity')
@@ -149,12 +132,13 @@ export const getDepositStatus = async ({
 	originChainId: number
 	depositId: string
 }) => {
-	const query = depositIdentityQuery({
-		originChainId,
-		depositId,
-	})
+	assertChainId(originChainId)
+	assertIntegerString(depositId, 'deposit id')
 	const status = await fetchAcrossJson<AcrossDepositStatusResponse>(
-		`/api/deposit/status?${query}`
+		`/api/deposit/status?${new URLSearchParams({
+			originChainId: String(originChainId),
+			depositId,
+		})}`
 	)
 	if (status.originChainId !== originChainId || status.depositId !== depositId)
 		throw new Error('Across_Rest: mismatched deposit status identity')

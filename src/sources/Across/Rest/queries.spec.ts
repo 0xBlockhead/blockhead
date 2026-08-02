@@ -18,7 +18,6 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 
 const {
 	getDeposit,
-	getDepositByTransaction,
 	getDeposits,
 	getDepositStatus,
 	getSuggestedFees,
@@ -110,7 +109,7 @@ describe('Across public bridge queries', () => {
 			},
 		})
 
-		await getDepositByTransaction({
+		await getDeposit({
 			depositTxnRef,
 			index: 2,
 		})
@@ -279,6 +278,8 @@ describe('Across public bridge queries', () => {
 			depositId,
 		})).rejects.toThrow('fill predates deposit')
 
-		expect('query' in await import('$/sources/Across/Rest/queries.ts')).toBe(false)
+		const queries = await import('$/sources/Across/Rest/queries.ts')
+		expect('getDepositByTransaction' in queries).toBe(false)
+		expect('query' in queries).toBe(false)
 	})
 })
