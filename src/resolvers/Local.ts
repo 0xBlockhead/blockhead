@@ -1897,4 +1897,4 @@ export default {
 			reachable: (timestamp) => timestamp.reachable,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Local_Internal>
+} satisfies RegisteredSourceResolverModule

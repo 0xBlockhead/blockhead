@@ -103,4 +103,4 @@ export default {
 				chunkRoot: (snapshot) => snapshot.chunkRoot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.ZeroGStorageNode_JsonRpc>
+} satisfies RegisteredSourceResolverModule

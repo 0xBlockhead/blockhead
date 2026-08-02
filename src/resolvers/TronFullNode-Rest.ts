@@ -333,4 +333,4 @@ export default {
 				contractResultHex: (receipt) => receipt.contractResultHex,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.TronFullNode_Rest>
+} satisfies RegisteredSourceResolverModule

@@ -3165,4 +3165,4 @@ export default {
 				},
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Constants_Internal>
+} satisfies RegisteredSourceResolverModule

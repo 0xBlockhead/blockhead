@@ -401,4 +401,4 @@ export default {
 			}),
 
 	],
-} satisfies RegisteredSourceResolverModule<Source.ZeroGStorageScan_Rest>
+} satisfies RegisteredSourceResolverModule

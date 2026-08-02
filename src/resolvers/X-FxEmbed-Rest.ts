@@ -560,4 +560,4 @@ export default {
 			),
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.X_FxEmbed_Rest>
+} satisfies RegisteredSourceResolverModule

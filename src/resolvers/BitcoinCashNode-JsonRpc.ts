@@ -166,4 +166,4 @@ export default {
 				commitmentHex: (snapshot) => snapshot.commitmentHex,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.BitcoinCashNode_JsonRpc>
+} satisfies RegisteredSourceResolverModule

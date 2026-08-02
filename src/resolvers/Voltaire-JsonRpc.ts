@@ -2188,4 +2188,4 @@ export default {
 			codeHash: (snapshot) => snapshot.codeHash,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Voltaire_JsonRpc>
+} satisfies RegisteredSourceResolverModule

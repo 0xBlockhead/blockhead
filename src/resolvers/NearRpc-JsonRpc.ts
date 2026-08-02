@@ -980,4 +980,4 @@ export default {
 			$$accessKeys: (accessKeys) => accessKeys,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.NearRpc_JsonRpc>
+} satisfies RegisteredSourceResolverModule

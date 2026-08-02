@@ -824,4 +824,4 @@ export default {
 				$$observedPlaylists: (network) => network,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Youtube_Rest>
+} satisfies RegisteredSourceResolverModule

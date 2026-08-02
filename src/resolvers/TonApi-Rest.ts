@@ -169,4 +169,4 @@ export default {
 			$masterAccount: (jetton) => jetton.$masterAccount,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.TonApi_Rest>
+} satisfies RegisteredSourceResolverModule

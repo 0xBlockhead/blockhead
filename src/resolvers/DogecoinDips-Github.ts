@@ -83,4 +83,4 @@ export default {
 				$$proposals: (snapshot) => snapshot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.DogecoinDips_Github>
+} satisfies RegisteredSourceResolverModule

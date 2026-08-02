@@ -671,6 +671,12 @@ describe('client resolver architecture', () => {
 		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', 'defineResolver.ts')]).not.toMatch(/\bSourcePublicEnv\b/)
 	})
 
+	it('infers each resolver module source without repeating it in the contract', () => {
+		expect(scannedSource).not.toMatch(/RegisteredSourceResolverModule<Source\./)
+		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', 'defineResolver.ts')]).toMatch(/_Source extends Source = Source/)
+		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', 'index.ts')]).toMatch(/RegisteredSourceResolverModule<_Source>/)
+	})
+
 	it('keeps IPFS source transport details out of generic lib modules', () => {
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Ipfs', 'Rest', 'constants.ts')]).toBeUndefined()
 		expect(scannedSourceByFilePath[join(srcPath, 'lib', 'contentType.ts')]).toBeUndefined()

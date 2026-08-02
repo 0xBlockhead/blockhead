@@ -76,4 +76,4 @@ export default {
 				$$proposals: (snapshot) => snapshot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.PolkadotRfcs_Github>
+} satisfies RegisteredSourceResolverModule

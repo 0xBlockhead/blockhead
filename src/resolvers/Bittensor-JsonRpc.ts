@@ -451,4 +451,4 @@ export default {
 					$$neurons: (neurons) => neurons,
 				}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Bittensor_JsonRpc>
+} satisfies RegisteredSourceResolverModule

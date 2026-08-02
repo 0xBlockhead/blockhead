@@ -114,4 +114,4 @@ export default {
 			trustModel: (activityDay) => activityDay?.trustModel,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.SpaceAndTime_MakeInfinite>
+} satisfies RegisteredSourceResolverModule

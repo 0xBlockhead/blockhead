@@ -173,4 +173,4 @@ export default {
 			reachable: (snapshot) => snapshot.reachable,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Openchain_Rest>
+} satisfies RegisteredSourceResolverModule

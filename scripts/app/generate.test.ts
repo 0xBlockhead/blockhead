@@ -5865,7 +5865,13 @@ type AssertFalse<_Value extends false> = _Value
 const ambossResolverModule = {
 	source: Source.Amboss_Graphql,
 	resolvers: [],
-} satisfies RegisteredSourceResolverModule<Source.Amboss_Graphql>
+} satisfies RegisteredSourceResolverModule
+type InferredAmbossSource = AssertTrue<
+	typeof ambossResolverModule.source extends Source.Amboss_Graphql ?
+		Source.Amboss_Graphql extends typeof ambossResolverModule.source ? true : false
+	:
+		false
+>
 type AmbossResolverLoader = () => Promise<{
 	default: typeof ambossResolverModule
 }>
@@ -5976,8 +5982,10 @@ acrossBindings[Source.Erigon_JsonRpc]
 const mismatchedBindings = { [Source.LightningMempoolSpace_Rest]: lightningLndBindings[Source.LightningLnd_Rest] } satisfies SourceBindingIndex
 const validResolverEntry: ValidResolverEntry = true
 const swappedResolverEntry: SwappedResolverEntry = false
+const inferredAmbossSource: InferredAmbossSource = true
 void validResolverEntry
 void swappedResolverEntry
+void inferredAmbossSource
 void typedSourceServerCredentials
 void mixedProxyCredentials
 void mismatchedVoyagerProvider

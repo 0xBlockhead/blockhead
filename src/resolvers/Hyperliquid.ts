@@ -678,4 +678,4 @@ export default {
 			},
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Hyperliquid>
+} satisfies RegisteredSourceResolverModule

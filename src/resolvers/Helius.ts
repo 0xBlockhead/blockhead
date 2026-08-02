@@ -241,4 +241,4 @@ export default {
 			}),
 
 	],
-} satisfies RegisteredSourceResolverModule<Source.Helius>
+} satisfies RegisteredSourceResolverModule

@@ -844,4 +844,4 @@ export default {
 			}),
 
 	],
-} satisfies RegisteredSourceResolverModule<Source.Neynar_Rest>
+} satisfies RegisteredSourceResolverModule

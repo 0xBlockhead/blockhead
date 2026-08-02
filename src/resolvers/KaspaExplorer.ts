@@ -198,4 +198,4 @@ export default {
 			},
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.KaspaExplorer>
+} satisfies RegisteredSourceResolverModule

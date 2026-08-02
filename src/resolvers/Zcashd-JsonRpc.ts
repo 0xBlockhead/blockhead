@@ -327,4 +327,4 @@ export default {
 			orchardTree: (snapshot) => snapshot.orchardTree,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Zcashd_JsonRpc>
+} satisfies RegisteredSourceResolverModule

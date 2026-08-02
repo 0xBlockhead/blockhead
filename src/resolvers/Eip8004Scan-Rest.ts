@@ -351,4 +351,4 @@ export default {
 				$$eip8004Services: (snapshot) => snapshot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Eip8004Scan_Rest>
+} satisfies RegisteredSourceResolverModule

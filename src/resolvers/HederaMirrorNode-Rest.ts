@@ -835,4 +835,4 @@ export default {
 			$$tokenTransfers: (transaction) => transaction.$$tokenTransfers,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.HederaMirrorNode_Rest>
+} satisfies RegisteredSourceResolverModule

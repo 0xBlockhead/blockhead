@@ -607,4 +607,4 @@ export default {
 			}),
 
 	],
-} satisfies RegisteredSourceResolverModule<Source.MoneroDaemonRpc_JsonRpc>
+} satisfies RegisteredSourceResolverModule

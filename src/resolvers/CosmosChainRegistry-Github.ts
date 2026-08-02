@@ -169,4 +169,4 @@ export default {
 			$$nativeAssets: (snapshot) => snapshot,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.CosmosChainRegistry_Github>
+} satisfies RegisteredSourceResolverModule

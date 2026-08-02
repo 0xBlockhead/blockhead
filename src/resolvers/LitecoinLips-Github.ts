@@ -80,4 +80,4 @@ export default {
 				$$proposals: (snapshot) => snapshot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.LitecoinLips_Github>
+} satisfies RegisteredSourceResolverModule

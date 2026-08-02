@@ -116,4 +116,4 @@ export default {
 			$$logs: (transaction) => transaction.$$logs,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.GoldRushFoundational_Rest>
+} satisfies RegisteredSourceResolverModule

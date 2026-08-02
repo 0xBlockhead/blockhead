@@ -235,4 +235,4 @@ export default {
 			error: (snapshot) => snapshot.error,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Rss_Rest>
+} satisfies RegisteredSourceResolverModule

@@ -592,6 +592,6 @@ const lensGraphqlResolvers = {
 			$$posts: (posts) => posts,
 		}),
 	] as const,
-} satisfies RegisteredSourceResolverModule<Source.Lens_Graphql>
+} satisfies RegisteredSourceResolverModule
 
 export default lensGraphqlResolvers

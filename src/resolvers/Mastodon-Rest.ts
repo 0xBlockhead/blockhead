@@ -1071,4 +1071,4 @@ export default {
 				$$thread: (note) => note,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Mastodon_Rest>
+} satisfies RegisteredSourceResolverModule

@@ -92,5 +92,5 @@ export default {
 			$$transactions: (block) => block.transactions,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.EnvioHyperSync_RawHttp>
+} satisfies RegisteredSourceResolverModule
 import { networkBySlug } from '$/constants/Network.ts'

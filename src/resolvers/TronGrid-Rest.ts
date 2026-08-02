@@ -735,4 +735,4 @@ export default {
 				$$transactions: (transactions) => transactions,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.TronGrid_Rest>
+} satisfies RegisteredSourceResolverModule

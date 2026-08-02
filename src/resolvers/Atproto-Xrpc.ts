@@ -333,4 +333,4 @@ export default {
 				$$thread: (thread) => thread,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Atproto_Xrpc>
+} satisfies RegisteredSourceResolverModule

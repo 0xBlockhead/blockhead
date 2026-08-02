@@ -76,4 +76,4 @@ export default {
 				$$proposals: (snapshot) => snapshot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.QuilibriumDocs_Rest>
+} satisfies RegisteredSourceResolverModule

@@ -145,4 +145,4 @@ export default {
 			documentUrl: (operation) => operation.documentUrl,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.OpenAI_Rest>
+} satisfies RegisteredSourceResolverModule

@@ -611,4 +611,4 @@ export default {
 			})),
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.CardanoKoios_Rest>
+} satisfies RegisteredSourceResolverModule

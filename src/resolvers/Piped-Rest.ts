@@ -557,4 +557,4 @@ export default {
 		}),
 
 	],
-} satisfies RegisteredSourceResolverModule<Source.Piped_Rest>
+} satisfies RegisteredSourceResolverModule

@@ -301,4 +301,4 @@ export default {
 				syncing: (timestamp) => timestamp.syncing,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Celenium_Rest>
+} satisfies RegisteredSourceResolverModule

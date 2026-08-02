@@ -612,4 +612,4 @@ export default {
 		}),
 
 	],
-} satisfies RegisteredSourceResolverModule<Source.Blockchair_Rest>
+} satisfies RegisteredSourceResolverModule

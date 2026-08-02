@@ -444,4 +444,4 @@ export default {
 			}),
 
 	],
-} satisfies RegisteredSourceResolverModule<Source.SubstrateSidecar_Rest>
+} satisfies RegisteredSourceResolverModule

@@ -266,4 +266,4 @@ export default {
 			},
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Pathfinder>
+} satisfies RegisteredSourceResolverModule

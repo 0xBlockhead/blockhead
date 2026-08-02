@@ -303,4 +303,4 @@ export default {
 				$$evmNetworks: (networks) => networks,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Chainlist_Rest>
+} satisfies RegisteredSourceResolverModule

@@ -450,4 +450,4 @@ export default {
 				$parentMarket: (market) => market,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.CoinMarketCap_Rest>
+} satisfies RegisteredSourceResolverModule

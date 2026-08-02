@@ -88,4 +88,4 @@ export default {
 			$$transactions: (block) => block.transactions,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.SqdPortal_RawHttp>
+} satisfies RegisteredSourceResolverModule

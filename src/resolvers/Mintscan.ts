@@ -108,4 +108,4 @@ export default {
 			$$timestamps: (account) => account.$$timestamps,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Mintscan>
+} satisfies RegisteredSourceResolverModule

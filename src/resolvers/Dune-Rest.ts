@@ -40,4 +40,4 @@ export default {
 			duneCreditsIncluded: (snapshot) => snapshot.duneCreditsIncluded,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Dune_Rest>
+} satisfies RegisteredSourceResolverModule

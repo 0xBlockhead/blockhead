@@ -303,4 +303,4 @@ export default {
 				$implementation: (implementation) => implementation,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Sourcify_Rest>
+} satisfies RegisteredSourceResolverModule

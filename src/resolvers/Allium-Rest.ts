@@ -356,4 +356,4 @@ export default {
 			$$actorCoins: (actorCoins) => actorCoins,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Allium_Rest>
+} satisfies RegisteredSourceResolverModule

@@ -247,4 +247,4 @@ export default {
 			error: (snapshot) => snapshot.error,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Rss2Json_Rest>
+} satisfies RegisteredSourceResolverModule

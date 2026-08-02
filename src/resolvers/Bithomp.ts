@@ -83,4 +83,4 @@ export default {
 			$$timestamps: (timestamps) => timestamps,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Bithomp>
+} satisfies RegisteredSourceResolverModule

@@ -273,4 +273,4 @@ export default {
 			},
 		}),
 	],
-} as const satisfies RegisteredSourceResolverModule<Source.L2Beat_Rest>
+} as const satisfies RegisteredSourceResolverModule

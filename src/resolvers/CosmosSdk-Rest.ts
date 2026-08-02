@@ -1168,4 +1168,4 @@ export default {
 				},
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.CosmosSdk_Rest>
+} satisfies RegisteredSourceResolverModule

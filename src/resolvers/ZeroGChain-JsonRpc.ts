@@ -364,4 +364,4 @@ export default {
 			$$transactions: (transactions) => transactions,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.ZeroGChain_JsonRpc>
+} satisfies RegisteredSourceResolverModule

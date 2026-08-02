@@ -49,4 +49,4 @@ export default {
 			withdrawalsCount: (snapshot) => snapshot.withdrawalsCount,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.BeaconchaIn_Rest>
+} satisfies RegisteredSourceResolverModule

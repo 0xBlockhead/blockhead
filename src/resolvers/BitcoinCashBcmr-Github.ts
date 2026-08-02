@@ -59,4 +59,4 @@ export default {
 				decimals: (snapshot) => snapshot.decimals,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.BitcoinCashBcmr_Github>
+} satisfies RegisteredSourceResolverModule

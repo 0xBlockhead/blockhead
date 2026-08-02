@@ -640,4 +640,4 @@ export default {
 		}),
 
 	],
-} satisfies RegisteredSourceResolverModule<Source.LightningLnd_Rest>
+} satisfies RegisteredSourceResolverModule

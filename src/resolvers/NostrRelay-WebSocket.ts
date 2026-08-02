@@ -111,4 +111,4 @@ export default {
 			$$notes: () => [],
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.NostrRelay_WebSocket>
+} satisfies RegisteredSourceResolverModule

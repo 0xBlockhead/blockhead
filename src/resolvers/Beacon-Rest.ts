@@ -797,4 +797,4 @@ export default {
 				currentForkVersion: (upgrade) => upgrade.currentForkVersion,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Beacon_Rest>
+} satisfies RegisteredSourceResolverModule

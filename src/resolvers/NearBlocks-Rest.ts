@@ -170,4 +170,4 @@ export default {
 			$$executionOutcomes: (snapshot) => snapshot.$$executionOutcomes,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.NearBlocks_Rest>
+} satisfies RegisteredSourceResolverModule

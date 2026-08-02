@@ -460,4 +460,4 @@ export default {
 				$$replies: (comment) => comment,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Reddit_Rest>
+} satisfies RegisteredSourceResolverModule

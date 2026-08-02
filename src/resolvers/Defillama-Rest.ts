@@ -175,4 +175,4 @@ export default {
 			$icon: (icon) => icon,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Defillama_Rest>
+} satisfies RegisteredSourceResolverModule

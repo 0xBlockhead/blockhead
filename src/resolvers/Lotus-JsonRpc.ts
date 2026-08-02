@@ -690,4 +690,4 @@ export default {
 				$$timestamps: (miner) => miner.timestamps,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Lotus_JsonRpc>
+} satisfies RegisteredSourceResolverModule

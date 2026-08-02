@@ -1101,4 +1101,4 @@ export default {
 				$parentMarket: (timestamp) => timestamp,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Coingecko_Rest>
+} satisfies RegisteredSourceResolverModule

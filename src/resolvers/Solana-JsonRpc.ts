@@ -1240,4 +1240,4 @@ export default {
 			}),
 
 	],
-} satisfies RegisteredSourceResolverModule<Source.Solana_JsonRpc>
+} satisfies RegisteredSourceResolverModule

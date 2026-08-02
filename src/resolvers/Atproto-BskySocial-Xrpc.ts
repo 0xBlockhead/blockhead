@@ -334,4 +334,4 @@ export default {
 				$$thread: (thread) => thread,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Atproto_BskySocial_Xrpc>
+} satisfies RegisteredSourceResolverModule

@@ -188,4 +188,4 @@ export default {
 			$$keysets: (snapshot) => snapshot,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.CashuMint_Rest>
+} satisfies RegisteredSourceResolverModule

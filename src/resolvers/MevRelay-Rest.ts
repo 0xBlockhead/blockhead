@@ -426,4 +426,4 @@ export default {
 				},
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.MevRelay_Rest>
+} satisfies RegisteredSourceResolverModule

@@ -170,4 +170,4 @@ export const mlflowResolvers = [
 export default {
 	source: Source.Mlflow_Rest,
 	resolvers: mlflowResolvers,
-} satisfies RegisteredSourceResolverModule<Source.Mlflow_Rest>
+} satisfies RegisteredSourceResolverModule

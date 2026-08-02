@@ -609,4 +609,4 @@ export default {
 				$$blockExplorerUrls: (urls) => urls,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Lifi_Rest>
+} satisfies RegisteredSourceResolverModule

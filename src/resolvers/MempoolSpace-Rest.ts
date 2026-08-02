@@ -623,4 +623,4 @@ export default {
 			}),
 
 	],
-} satisfies RegisteredSourceResolverModule<Source.MempoolSpace_Rest>
+} satisfies RegisteredSourceResolverModule

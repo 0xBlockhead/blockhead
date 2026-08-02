@@ -162,4 +162,4 @@ export default {
 			},
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Starkscan>
+} satisfies RegisteredSourceResolverModule

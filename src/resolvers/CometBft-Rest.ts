@@ -83,4 +83,4 @@ export default {
 				gasUsed: (snapshot) => snapshot.gasUsed,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.CometBft_Rest>
+} satisfies RegisteredSourceResolverModule

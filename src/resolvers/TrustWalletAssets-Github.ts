@@ -198,4 +198,4 @@ export default {
 				$icon: (snapshot) => snapshot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.TrustWalletAssets_Github>
+} satisfies RegisteredSourceResolverModule

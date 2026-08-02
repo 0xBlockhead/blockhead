@@ -1017,4 +1017,4 @@ export default {
 			}),
 
 	],
-} satisfies RegisteredSourceResolverModule<Source.Primal_Rest>
+} satisfies RegisteredSourceResolverModule

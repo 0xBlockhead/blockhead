@@ -136,4 +136,4 @@ export default {
 			$$timestamps: (timestamps) => timestamps,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Nodely>
+} satisfies RegisteredSourceResolverModule

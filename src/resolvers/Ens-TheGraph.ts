@@ -396,4 +396,4 @@ export default {
 				$$matchingNames: (matchingNames) => matchingNames,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.TheGraph_Graphql>
+} satisfies RegisteredSourceResolverModule

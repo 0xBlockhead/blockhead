@@ -34,4 +34,4 @@ export default {
 				executionSpecsMainnetUpgradeMarkdown: (snapshot) => snapshot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.EthereumSpecs_Github>
+} satisfies RegisteredSourceResolverModule

@@ -86,4 +86,4 @@ export default {
 				$$proposals: (snapshot) => snapshot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.HyperliquidDocs_Rest>
+} satisfies RegisteredSourceResolverModule

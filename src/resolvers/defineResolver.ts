@@ -13,7 +13,7 @@ import type {
 } from '$/resolvers/$resolvers.ts'
 
 export type RegisteredSourceResolverModule<
-	_Source extends Source,
+	_Source extends Source = Source,
 > = SourceResolverModule<typeof schema, _Source>
 
 type ResolverSnapshotCandidate = ResolverComparable | object

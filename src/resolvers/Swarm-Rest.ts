@@ -144,4 +144,4 @@ export default {
 			reachable: (snapshot) => snapshot.reachable,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Swarm_Rest>
+} satisfies RegisteredSourceResolverModule

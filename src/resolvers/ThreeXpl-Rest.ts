@@ -322,4 +322,4 @@ export default {
 			$$transactions: (block) => block.$$transactions,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.ThreeXpl_Rest>
+} satisfies RegisteredSourceResolverModule

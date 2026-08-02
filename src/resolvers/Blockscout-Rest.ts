@@ -2742,4 +2742,4 @@ export default {
 			storageSlotReads: (entity) => entity,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Blockscout_Rest>
+} satisfies RegisteredSourceResolverModule

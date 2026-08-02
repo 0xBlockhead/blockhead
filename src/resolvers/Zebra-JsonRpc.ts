@@ -232,4 +232,4 @@ export default {
 				$address: (snapshot) => snapshot.$address,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Zebra_JsonRpc>
+} satisfies RegisteredSourceResolverModule

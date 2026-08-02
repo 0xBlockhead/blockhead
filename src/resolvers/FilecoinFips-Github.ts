@@ -79,4 +79,4 @@ export default {
 				$$proposals: (snapshot) => snapshot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.FilecoinFips_Github>
+} satisfies RegisteredSourceResolverModule

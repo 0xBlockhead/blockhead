@@ -89,4 +89,4 @@ export default {
 				$$proposals: (snapshot) => snapshot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.BitcoinBips_Github>
+} satisfies RegisteredSourceResolverModule

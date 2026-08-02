@@ -917,4 +917,4 @@ export default {
 				$$tokenTransfers: (tokenTransfers) => tokenTransfers,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.TronScan_Rest>
+} satisfies RegisteredSourceResolverModule

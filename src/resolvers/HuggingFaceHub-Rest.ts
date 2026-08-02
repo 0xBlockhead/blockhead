@@ -169,4 +169,4 @@ export const huggingFaceHubResolvers = [
 export default {
 	source: Source.HuggingFaceHub_Rest,
 	resolvers: huggingFaceHubResolvers,
-} satisfies RegisteredSourceResolverModule<Source.HuggingFaceHub_Rest>
+} satisfies RegisteredSourceResolverModule

@@ -136,4 +136,4 @@ export default {
 			providerAssetId: (quote) => quote.providerAssetId,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.TradingView_Rest>
+} satisfies RegisteredSourceResolverModule

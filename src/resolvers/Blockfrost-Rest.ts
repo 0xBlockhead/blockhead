@@ -1560,4 +1560,4 @@ export default {
 			epoch: (block) => block.epoch,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Blockfrost_Rest>
+} satisfies RegisteredSourceResolverModule

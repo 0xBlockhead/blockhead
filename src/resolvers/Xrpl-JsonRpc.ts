@@ -753,4 +753,4 @@ export default {
 			},
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Xrpl_Rippled>
+} satisfies RegisteredSourceResolverModule

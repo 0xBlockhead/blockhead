@@ -228,4 +228,4 @@ export default {
 				$$messages: (snapshot) => snapshot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Filfox_Rest>
+} satisfies RegisteredSourceResolverModule

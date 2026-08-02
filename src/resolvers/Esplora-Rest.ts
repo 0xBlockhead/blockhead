@@ -296,4 +296,4 @@ export default {
 			$$assets: (assetReferences) => assetReferences,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Esplora_Rest>
+} satisfies RegisteredSourceResolverModule

@@ -1259,4 +1259,4 @@ export default {
 			}),
 
 	],
-} satisfies RegisteredSourceResolverModule<Source.NostrBand_Rest>
+} satisfies RegisteredSourceResolverModule

@@ -98,4 +98,4 @@ export default {
 			$$proposals: (snapshot) => snapshot,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.SolanaSimds_Github>
+} satisfies RegisteredSourceResolverModule

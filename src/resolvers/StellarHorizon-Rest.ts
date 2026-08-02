@@ -142,4 +142,4 @@ export default {
 			},
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.StellarHorizon_Rest>
+} satisfies RegisteredSourceResolverModule

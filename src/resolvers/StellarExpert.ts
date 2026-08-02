@@ -51,4 +51,4 @@ export default {
 			closeTimeMs: (ledger) => ledger.closeTimeMs,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.StellarExpert>
+} satisfies RegisteredSourceResolverModule

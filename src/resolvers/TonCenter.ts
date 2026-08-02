@@ -578,6 +578,6 @@ export const createTonCenterV3Resolvers = () => ({
 			},
 		}),
 		] as const,
-	}) satisfies RegisteredSourceResolverModule<Source.TonCenter>
+	}) satisfies RegisteredSourceResolverModule
 
 export default createTonCenterV3Resolvers()

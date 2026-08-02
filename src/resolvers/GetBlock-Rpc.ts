@@ -158,5 +158,5 @@ export default {
 			$$logs: (transaction) => transaction.$$logs,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.GetBlockRpc_JsonRpc>
+} satisfies RegisteredSourceResolverModule
 import { networkBySlug } from '$/constants/Network.ts'

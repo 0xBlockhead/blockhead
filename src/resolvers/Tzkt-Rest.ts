@@ -1182,4 +1182,4 @@ export default {
 				active: (timestamp) => timestamp.active,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Tzkt_Rest>
+} satisfies RegisteredSourceResolverModule

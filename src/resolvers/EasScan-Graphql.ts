@@ -259,4 +259,4 @@ export default {
 		easAttestationTimestampResolver,
 		easSchemaResolver,
 	],
-} satisfies RegisteredSourceResolverModule<Source.EasScan_Graphql>
+} satisfies RegisteredSourceResolverModule

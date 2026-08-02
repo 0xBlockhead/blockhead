@@ -82,4 +82,4 @@ export default {
 			sharedStakingStatusSource: (timestamp) => timestamp.sharedStakingStatusSource,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.ZeroGChainScan_Rest>
+} satisfies RegisteredSourceResolverModule

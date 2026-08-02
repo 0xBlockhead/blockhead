@@ -91,4 +91,4 @@ export default {
 				$$proposals: (snapshot) => snapshot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.ZcashZips_Github>
+} satisfies RegisteredSourceResolverModule

@@ -82,4 +82,4 @@ export default {
 			previewStatus: (snapshot) => snapshot.previewStatus,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.MetadataVision_Rest>
+} satisfies RegisteredSourceResolverModule

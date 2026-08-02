@@ -869,4 +869,4 @@ export default {
 			}),
 
 	],
-} satisfies RegisteredSourceResolverModule<Source.Snapchain_Rest>
+} satisfies RegisteredSourceResolverModule

@@ -999,4 +999,4 @@ export default {
 				$$internalTransfers: (transaction) => transaction,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Etherscan_Rest>
+} satisfies RegisteredSourceResolverModule

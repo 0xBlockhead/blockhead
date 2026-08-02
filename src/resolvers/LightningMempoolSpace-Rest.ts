@@ -462,4 +462,4 @@ export default {
 			$$channels: (snapshot) => snapshot,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.LightningMempoolSpace_Rest>
+} satisfies RegisteredSourceResolverModule

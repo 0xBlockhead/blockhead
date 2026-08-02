@@ -90,4 +90,4 @@ export default {
 			delegatedShares: (delegation) => delegation.delegatedShares,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.EigenExplorer_Rest>
+} satisfies RegisteredSourceResolverModule

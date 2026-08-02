@@ -80,4 +80,4 @@ export default {
 				$$nodes: (snapshot) => snapshot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Amboss_Graphql>
+} satisfies RegisteredSourceResolverModule

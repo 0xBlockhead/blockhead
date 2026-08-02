@@ -348,4 +348,4 @@ export default {
 			},
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.X_Rest>
+} satisfies RegisteredSourceResolverModule

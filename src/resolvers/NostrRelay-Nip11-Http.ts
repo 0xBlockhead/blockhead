@@ -149,4 +149,4 @@ export default {
 			error: (observation) => observation.error,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.NostrRelay_Nip11_Http>
+} satisfies RegisteredSourceResolverModule

@@ -721,4 +721,4 @@ export default {
 		...resolver,
 		source: Source.AptosFullnode_Rest,
 	})),
-} satisfies RegisteredSourceResolverModule<Source.AptosFullnode_Rest>
+} satisfies RegisteredSourceResolverModule

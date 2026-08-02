@@ -154,4 +154,4 @@ export default {
 			},
 		}),
 	] as const,
-} satisfies RegisteredSourceResolverModule<Source.Sui>
+} satisfies RegisteredSourceResolverModule

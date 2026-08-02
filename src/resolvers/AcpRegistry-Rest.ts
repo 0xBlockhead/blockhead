@@ -59,4 +59,4 @@ export default {
 			},
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.AcpRegistry_Rest>
+} satisfies RegisteredSourceResolverModule

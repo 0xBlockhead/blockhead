@@ -89,4 +89,4 @@ export default {
 				$$proposals: (snapshot) => snapshot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Caips_Github>
+} satisfies RegisteredSourceResolverModule

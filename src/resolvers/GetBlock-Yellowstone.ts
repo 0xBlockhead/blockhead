@@ -130,4 +130,4 @@ export default {
 			dataEncoding: (update) => update.dataEncoding,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.GetBlockYellowstone_Grpc>
+} satisfies RegisteredSourceResolverModule

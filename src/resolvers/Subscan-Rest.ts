@@ -207,4 +207,4 @@ export default {
 				nayVotes: (observation) => observation.nayVotes,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Subscan_Rest>
+} satisfies RegisteredSourceResolverModule

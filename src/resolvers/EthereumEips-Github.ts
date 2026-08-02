@@ -221,4 +221,4 @@ export default {
 				},
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.EthereumEips_Github>
+} satisfies RegisteredSourceResolverModule

@@ -32,4 +32,4 @@ export default {
 			ohttpKeyConfig: (snapshot) => snapshot.ohttpKeyConfig,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.PayjoinDirectory_Rest>
+} satisfies RegisteredSourceResolverModule

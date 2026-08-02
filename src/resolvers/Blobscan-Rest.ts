@@ -90,4 +90,4 @@ export default {
 			blobDataStorageReferences: (snapshot) => snapshot.blobDataStorageReferences,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Blobscan_Rest>
+} satisfies RegisteredSourceResolverModule

@@ -266,4 +266,4 @@ export default {
 				isCoinbase: (snapshot) => snapshot.isCoinbase,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.DogecoinCore_JsonRpc>
+} satisfies RegisteredSourceResolverModule

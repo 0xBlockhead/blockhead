@@ -317,4 +317,4 @@ export default {
 		aptosTableItemResolver,
 		aptosTableItemTimestampResolver,
 	],
-} satisfies RegisteredSourceResolverModule<Source.AptosIndexer_Graphql>
+} satisfies RegisteredSourceResolverModule

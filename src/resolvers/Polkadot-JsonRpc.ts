@@ -261,4 +261,4 @@ export default {
 			}),
 
 	],
-} satisfies RegisteredSourceResolverModule<Source.Polkadot_JsonRpc>
+} satisfies RegisteredSourceResolverModule

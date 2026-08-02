@@ -79,4 +79,4 @@ export default {
 				$$proposals: (snapshot) => snapshot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.CosmosAdrs_Github>
+} satisfies RegisteredSourceResolverModule

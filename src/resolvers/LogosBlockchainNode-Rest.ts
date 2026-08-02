@@ -63,4 +63,4 @@ export default {
 			$$timestamps: (timestamps) => timestamps,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.LogosBlockchainNode_Rest>
+} satisfies RegisteredSourceResolverModule

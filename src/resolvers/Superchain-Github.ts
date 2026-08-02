@@ -126,4 +126,4 @@ export default {
 			},
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Superchain_Github>
+} satisfies RegisteredSourceResolverModule

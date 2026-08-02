@@ -136,4 +136,4 @@ export default {
 				isCoinbase: (snapshot) => snapshot.isCoinbase,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.LitecoinCore_JsonRpc>
+} satisfies RegisteredSourceResolverModule

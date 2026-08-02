@@ -564,4 +564,4 @@ export default {
 				$$replies: (replies) => replies,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Reddit_PublicJson>
+} satisfies RegisteredSourceResolverModule

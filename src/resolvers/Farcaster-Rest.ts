@@ -497,4 +497,4 @@ export default {
 				$$channels: (channels) => channels,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Farcaster_Rest>
+} satisfies RegisteredSourceResolverModule

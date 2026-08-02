@@ -289,4 +289,4 @@ export default {
 				$$evmNetworks: (networks) => networks,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.EthereumLists_Rest>
+} satisfies RegisteredSourceResolverModule

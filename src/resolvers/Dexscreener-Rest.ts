@@ -221,4 +221,4 @@ export default {
 				$parentLiquidityPool: (snapshot) => snapshot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Dexscreener_Rest>
+} satisfies RegisteredSourceResolverModule

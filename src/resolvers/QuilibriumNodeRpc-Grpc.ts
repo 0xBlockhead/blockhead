@@ -27,4 +27,4 @@ export default {
 			accountKind: (account) => account.accountKind,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.QuilibriumNodeRpc_Grpc>
+} satisfies RegisteredSourceResolverModule

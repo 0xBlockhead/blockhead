@@ -109,4 +109,4 @@ export default {
 				$$proposals: (snapshot) => snapshot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.BitcoinCashChips_Gitlab>
+} satisfies RegisteredSourceResolverModule

@@ -91,4 +91,4 @@ export default {
 				$$proposals: (snapshot) => snapshot,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Ensips_Github>
+} satisfies RegisteredSourceResolverModule

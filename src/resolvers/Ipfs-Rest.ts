@@ -126,4 +126,4 @@ export default {
 				$media: (snapshot) => snapshot.$media,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Ipfs_Rest>
+} satisfies RegisteredSourceResolverModule

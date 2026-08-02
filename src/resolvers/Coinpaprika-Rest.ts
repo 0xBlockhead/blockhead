@@ -571,4 +571,4 @@ export default {
 				$parentMarket: (timestamp) => timestamp,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Coinpaprika_Rest>
+} satisfies RegisteredSourceResolverModule
