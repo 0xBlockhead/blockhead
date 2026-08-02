@@ -466,38 +466,6 @@ export const getCreatorRewardsWinnerHistoryPage = ({
 )
 
 /**
- * `GET /v1/developer-rewards-winner-history`
- * @see https://docs.farcaster.xyz/reference/farcaster/api#get-developer-reward-winners
- */
-export const getDeveloperRewardsWinnerHistoryPage = ({
-	periodsAgo,
-	cursor,
-	limit,
-}: {
-	periodsAgo?: number
-	cursor?: string
-	limit?: number
-}) => (
-	farcasterGet<
-		FarcasterPage<{
-			history: {
-				periodStartTimestamp: number
-				periodEndTimestamp: number
-				winners: {
-					fid: number
-					domain: string
-					frameName: string
-					score: number
-					rank: number
-					rewardCents: number
-					walletAddress?: `0x${string}`
-				}[]
-			}
-		}>
-	>('/v1/developer-rewards-winner-history', { periodsAgo, cursor, limit })
-)
-
-/**
  * `GET /fc/primary-addresses`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-multiple-user-primary-addresses
  */
