@@ -1567,20 +1567,17 @@ const emitFacetCondition = (condition: _AppFacetCondition): string => (
 		emitObject([
 			['all', emitArray(condition.all.map(emitFacetCondition))],
 		])
-	: 'is' in condition ?
-		emitObject([
-			['path', emitArray(condition.path.map((part) => typeof part === 'string' ? emitTypeScript(part) : String(part)))],
-			['is', emitTypeScript(condition.is)],
-		])
-	: 'isOneOf' in condition ?
-		emitObject([
-			['path', emitArray(condition.path.map((part) => typeof part === 'string' ? emitTypeScript(part) : String(part)))],
-			['isOneOf', emitArray(condition.isOneOf.map(emitTypeScript))],
-		])
 	:
 		emitObject([
 			['path', emitArray(condition.path.map((part) => typeof part === 'string' ? emitTypeScript(part) : String(part)))],
-			['includes', emitTypeScript(condition.includes)],
+			(
+				'is' in condition ?
+					['is', emitTypeScript(condition.is)]
+				: 'isOneOf' in condition ?
+					['isOneOf', emitArray(condition.isOneOf.map(emitTypeScript))]
+				:
+					['includes', emitTypeScript(condition.includes)]
+			),
 		])
 )
 
@@ -2259,8 +2256,7 @@ const routeExpressionConditions = (
 		const cases = expression.cases.map((item) => {
 			const requirementGroups = routeExpressionConditions(context, item.value, fieldPathConditions)
 			return {
-				condition: `${valueExpression} === ${emitTypeScript(item.equals)}`,
-				inverseCondition: `${valueExpression} !== ${emitTypeScript(item.equals)}`,
+				equals: emitTypeScript(item.equals),
 				requirementGroups,
 				requirement: hrefConditionGroupsExpression(requirementGroups) || 'true',
 			}
@@ -2277,12 +2273,12 @@ const routeExpressionConditions = (
 		: conditionalCases.length === 1 && conditionalCases[0]?.requirement === 'true' && fallbackRequirement === 'true' ?
 			'true'
 		: conditionalCases.length === 1 && conditionalCases[0]?.requirement === 'true' ?
-			`(${conditionalCases[0].condition} || ${fallbackRequirement})`
+			`(${valueExpression} === ${conditionalCases[0].equals} || ${fallbackRequirement})`
 		: conditionalCases.length === 1 && fallbackRequirement === 'true' ?
-			`(${conditionalCases[0].inverseCondition} || ${conditionalCases[0].requirement})`
+			`(${valueExpression} !== ${conditionalCases[0].equals} || ${conditionalCases[0].requirement})`
 		:
 			`(${conditionalCases
-				.map(({ condition, requirement }) => `${condition} ? ${requirement}`)
+				.map(({ equals, requirement }) => `${valueExpression} === ${equals} ? ${requirement}`)
 				.join(' : ')} : ${fallbackRequirement})`
 
 		const caseTerms = conditionalCases.length === 0 ?
@@ -11064,16 +11060,14 @@ const generateSingularViewFile = (
 					]
 			))
 	}
-	const titleSnippetMarkup = renderSummarySnippet('Title')
 	const renderedTitleSnippetMarkup = (
-		titleSnippetMarkup.join('\n') === renderSvelteSnippet(
-			1,
-			'Title()',
-			[renderSvelteTextOrExpression(2, titleFallbackExpression)]
-		).join('\n') ?
+		summaryPlan.title.raw == null
+		&& !(serial != null && summaryPlan.title.rendersSerial)
+		&& !summaryPlan.title.resolvesEntity
+		&& entitySummaryTitleMarkup.length === 0 ?
 			[]
 		:
-			titleSnippetMarkup
+			renderSummarySnippet('Title')
 	)
 	const contentMarkup = [
 		...(latestMarkup.length === 0 ? [] : [
