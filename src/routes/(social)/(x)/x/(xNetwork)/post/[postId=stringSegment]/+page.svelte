@@ -25,7 +25,6 @@
 			text: true,
 			createdAt: true,
 			$author: true,
-			postUrl: true,
 			$replyToPost: true,
 			$quotedPost: true,
 		},

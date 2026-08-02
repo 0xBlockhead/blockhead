@@ -711,7 +711,7 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 
 	[EntityType.BlockheadFarcasterAccountConnection]: { fid: 3 },
 
-	[EntityType.BlockheadSource]: { id: 'e2e-probe-source' },
+	[EntityType.BlockheadSource]: { id: Source.Local_Internal },
 	[EntityType.BlockheadPanelTree]: { id: 'e2e-probe-panel-tree' },
 	[EntityType.BlockheadRoom]: { id: 'e2e-probe-room' },
 	[EntityType.BlockheadSession]: { id: 'e2e-probe-session' },
@@ -1752,9 +1752,9 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 	[EntityType.XNetwork]: { scope: 'XNetwork' },
 	[EntityType.XmtpConversation]: { id: 'e2e-probe-conversation' },
 	[EntityType.XmtpNetwork]: { scope: 'XmtpNetwork' },
-	[EntityType.XPost]: { id: '1855943488122347520' },
+	[EntityType.XPost]: { id: '2081809802515136887' },
 	[EntityType.XPost_Timestamp]: {
-		$post: { id: '1855943488122347520' },
+		$post: { id: '2081809802515136887' },
 		timestampMs: 1_700_000_000_000,
 	},
 	[EntityType.XUser]: { id: '12' },

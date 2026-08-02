@@ -20,6 +20,7 @@
 		id: params.sourceId,
 	}, {
 		sources: [
+			Source.Constants_Internal,
 			Source.Local_Internal,
 		],
 		fields: {

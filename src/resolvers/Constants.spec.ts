@@ -20,11 +20,16 @@ import {
 	nostrNetworkSeedNotes,
 	nostrNetworkSeedProfiles,
 } from '$/constants/Social/Nostr.ts'
-import { indexResolvers } from '$/resolvers/$resolvers.ts'
+import {
+	indexResolvers,
+	resolverContextRowLimit,
+} from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { Source } from '$/sources/Source.ts'
+import sourceProviders from '$/sources/$sourceProviders.ts'
 
 const resolverContext = {
 	filters: [],
@@ -89,6 +94,17 @@ const accountResolver = constantsResolvers.resolvers.find((resolver) => (
 const nostrProfileResolver = constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.NostrProfile
 ))
+const xPostUrlResolver = constantsResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.XPost
+	&& 'postUrl' in resolver.projections
+))
+const blockheadSourceResolver = constantsResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BlockheadSource
+))
+const blockheadSourcesResolver = constantsResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType._Global
+	&& '$$blockheadSources' in resolver.projections
+))
 
 if (networkUpgradesResolver == null)
 	throw new Error('Constants spec missing Network.Evm.$$upgrades resolver')
@@ -132,7 +148,94 @@ if (accountResolver == null)
 if (nostrProfileResolver == null)
 	throw new Error('Constants spec missing NostrProfile resolver')
 
+if (xPostUrlResolver == null)
+	throw new Error('Constants spec missing XPost URL resolver')
+
+if (blockheadSourceResolver == null || blockheadSourcesResolver == null)
+	throw new Error('Constants spec missing Blockhead source catalog resolvers')
+
 describe('Constants resolver projections', () => {
+	it('resolves the canonical source registry without displacing editable local rows', async () => {
+		const snapshot = await blockheadSourcesResolver.resolve.Scope.resolve({
+			scope: '$$blockheadSources',
+		}, resolverContext)
+		const sourceReferences = blockheadSourcesResolver.projections.$$blockheadSources.select(snapshot)
+		const sourceCount = sourceProviders.reduce((count, provider) => (
+			count + Object.keys(provider.sources).length
+		), 0)
+		expect(sourceReferences).toHaveLength(Math.min(
+			sourceCount,
+			resolverContextRowLimit(resolverContext)
+		))
+		const sourceReference = sourceReferences.find((reference) => (
+			reference[EntityMetaKey.Selector].id === Source.AcpLocal_JsonRpc
+		))
+		expect(sourceReference).toEqual({
+			[EntityMetaKey.Selector]: {
+				id: Source.AcpLocal_JsonRpc,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BlockheadSource, [], 'label')]: 'ACP local JSON-RPC',
+				[entityFieldAddressKey(EntityType.BlockheadSource, [], 'provider')]: 'Acp',
+				[entityFieldAddressKey(EntityType.BlockheadSource, [], 'source')]: Source.AcpLocal_JsonRpc,
+			},
+		})
+		expect(blockheadSourcesResolver.projections.$$blockheadSources.resolveCount(snapshot)).toBe(sourceCount)
+		expect(blockheadSourcesResolver.projections.$$blockheadSources.continuation(snapshot)).toEqual({
+			operation: 'source-registry',
+			target: 'global',
+			terminal: false,
+			token: String(resolverContextRowLimit(resolverContext)),
+		})
+		if (sourceReference == null)
+			throw new Error('Constants source catalog omitted AcpLocal_JsonRpc')
+
+		const blockheadSource = await blockheadSourceResolver.resolve.Id.resolve(
+			sourceReference[EntityMetaKey.Selector],
+			resolverContext
+		)
+		expect({
+			id: blockheadSourceResolver.projections.id(blockheadSource),
+			label: blockheadSourceResolver.projections.label(blockheadSource),
+			provider: blockheadSourceResolver.projections.provider(blockheadSource),
+			source: blockheadSourceResolver.projections.source(blockheadSource),
+		}).toEqual({
+			id: Source.AcpLocal_JsonRpc,
+			label: 'ACP local JSON-RPC',
+			provider: 'Acp',
+			source: Source.AcpLocal_JsonRpc,
+		})
+		expect(blockheadSourceResolver.resolve.Id.resolve({
+			id: Source.Local_Internal,
+		}, resolverContext)).toMatchObject({
+			id: Source.Local_Internal,
+			label: 'Local Internal',
+			provider: 'Local',
+			source: Source.Local_Internal,
+		})
+		expect(schema.find(({ entityType }) => (
+			entityType === EntityType._Global
+		))?.fields.find(({ name }) => name === '$$blockheadSources')?.defaultSources).toEqual([
+			Source.Constants_Internal,
+			Source.Local_Internal,
+		])
+	})
+
+	it('derives every X post URL synchronously from its required ID', async () => {
+		const post = await xPostUrlResolver.resolve['Id'].resolve({
+			id: 'not-a-seeded-post',
+		}, resolverContext)
+		expect(xPostUrlResolver.projections.postUrl(post, resolverContext)).toBe(
+			'https://x.com/i/web/status/not-a-seeded-post'
+		)
+		expect(schema.find(({ entityType }) => (
+			entityType === EntityType.XPost
+		))?.fields.find(({ name }) => name === 'postUrl')).toMatchObject({
+			cardinality: EntityFieldCardinality.One,
+			defaultSources: [Source.Constants_Internal],
+		})
+	})
+
 	it('leaves global OHLC observations to their live field owner', () => {
 		expect(schema.find(({ entityType }) => (
 			entityType === EntityType._Global

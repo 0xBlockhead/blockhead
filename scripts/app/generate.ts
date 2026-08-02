@@ -972,6 +972,20 @@ const fieldExpression = (base: string, field: string) => [
 		:
 			`${expression}${propertyAccess(part)}`
 	), '')
+
+const fieldExpressionWithOverrides = (
+	base: string,
+	field: string,
+	fieldExpressionByName?: Readonly<Record<string, string>>
+) => {
+	const [fieldName, ...propertyPath] = field.split('.')
+	const mappedExpression = fieldExpressionByName?.[fieldName ?? '']
+	return fieldExpression(
+		mappedExpression ?? base,
+		mappedExpression == null ? field : propertyPath.join('.')
+	)
+}
+
 const fieldPathsPresenceExpressions = (
 	base: string,
 	fieldPaths: readonly string[][],
@@ -2002,12 +2016,7 @@ const conditionTerms = (
 		throw new Error(`Projection condition ${condition.field.join('.')} must be rendered inside its ProjectionBoundary`)
 
 	const fieldDefinition = entity == null ? undefined : fieldDefinitionByReference(entity, condition.field, indexes)
-	const [fieldName, ...propertyPath] = condition.field.split('.')
-	const mappedFieldExpression = fieldExpressionByName?.[fieldName ?? '']
-	const valueExpression = fieldExpression(
-		mappedFieldExpression ?? entityExpression,
-		mappedFieldExpression == null ? condition.field : propertyPath.join('.')
-	)
+	const valueExpression = fieldExpressionWithOverrides(entityExpression, condition.field, fieldExpressionByName)
 	const conditionValueExpression = (
 		fieldDefinition != null && fieldCardinalityIsMany(fieldDefinition) ?
 			`${valueExpression}.values`
@@ -2340,7 +2349,7 @@ const renderExpression = (
 		return value
 	}
 	if (expression.kind === 'field')
-		return context.fieldExpressionByName?.[expression.name] ?? fieldExpression(context.fields ?? 'selector', expression.name)
+		return fieldExpressionWithOverrides(context.fields ?? 'selector', expression.name, context.fieldExpressionByName)
 	if (expression.kind === 'property')
 		return `${renderExpression(expression.value, context)}${propertyAccess(expression.property)}`
 	if (expression.kind === 'pageSelector')
@@ -2369,7 +2378,7 @@ const renderExpression = (
 			: expression.param != null ?
 				`${context.params ?? 'params'}.${expression.param}`
 			: expression.field != null ?
-				context.fieldExpressionByName?.[expression.field] ?? fieldExpression(context.fields ?? 'selector', expression.field)
+				fieldExpressionWithOverrides(context.fields ?? 'selector', expression.field, context.fieldExpressionByName)
 			:
 				'undefined'
 		)
@@ -2507,6 +2516,27 @@ const declaredViewItems = (entity: Entity) => {
 		...(pluralView?.row?.titleFallback ?? []),
 		...(pluralView?.row?.HeadingAfter ?? []),
 	].filter((viewItem) => viewItem != null)
+}
+
+const viewItemSourceSelection = (
+	entity: Entity,
+	indexes: GenerationIndexes,
+	viewItem: _ViewItem
+) => {
+	if (typeof viewItem === 'object' && 'selection' in viewItem && viewItem.selection != null)
+		return viewItem.selection.sources
+
+	const fieldReference = itemFieldReferences(viewItem)[0]
+	const fieldSources = fieldReference == null ? undefined : fieldDefinitionByReference(entity, fieldReference, indexes)?.defaultSources
+	const viewSources = entity.views.singular?.query?.sources
+	return (
+		fieldSources != null
+		&& Array.isArray(viewSources)
+		&& fieldSources.every((source) => !viewSources.includes(source)) ?
+			fieldSources
+		:
+			undefined
+	)
 }
 
 const entityNamedSourceSelections = (entity: Entity) => {
@@ -10074,8 +10104,8 @@ const generateSingularViewFile = (
 			.flat()
 			.filter((viewEntry) => {
 				if (
-					typeof viewEntry === 'object'
-					&& (
+					viewItemSourceSelection(entity, indexes, viewEntry) != null
+					|| typeof viewEntry === 'object' && (
 						'kind' in viewEntry
 						|| 'primitiveList' in viewEntry && viewEntry.primitiveList != null
 					)
@@ -10109,6 +10139,9 @@ const generateSingularViewFile = (
 		`${viewSelectionValueExpression}(${query})`
 	const sectionQueries = sections.map((section) => renderQuery(section.selection, []))
 	const latestQueries = latestItems.map((latest) => renderQuery(latest.query, latest.fields ?? []))
+	const usesItemSourceSelection = allViewItems(entity, indexes).some((viewItem) => (
+		viewItemSourceSelection(entity, indexes, viewItem) != null
+	))
 	const carouselQueries = carouselsToRender.flatMap((carousel) => carousel.sections.flatMap((section) => {
 		if (carouselSectionComponent(entity, indexes, section) == null)
 			return []
@@ -10134,7 +10167,6 @@ const generateSingularViewFile = (
 		indexes,
 		entity,
 		'selection.entitySelector',
-		'derived',
 		[
 			camel(entity.entityType),
 			'contentWarningSelectorKey',
@@ -10348,8 +10380,8 @@ const generateSingularViewFile = (
 			.flat()
 			.filter((viewEntry) => {
 				if (
-					typeof viewEntry === 'object'
-					&& (
+					viewItemSourceSelection(entity, indexes, viewEntry) != null
+					|| typeof viewEntry === 'object' && (
 						'kind' in viewEntry
 						|| 'primitiveList' in viewEntry && viewEntry.primitiveList != null
 					)
@@ -10894,6 +10926,7 @@ const generateSingularViewFile = (
 				&& (viewSelectionReferenceCount > 0 || resolvesEntity)
 				&& typeScriptExpressionReferencesBinding(declaredViewSourcesExpression, 'Source')
 				|| typeScriptExpressionReferencesBinding(query, 'Source')
+				|| usesItemSourceSelection
 				|| sectionQueries.some((sectionQuery) => typeScriptExpressionReferencesBinding(sectionQuery, 'Source'))
 				|| latestQueries.some((latestQuery) => typeScriptExpressionReferencesBinding(latestQuery, 'Source'))
 				|| carouselQueries.some((carouselQuery) => typeScriptExpressionReferencesBinding(carouselQuery, 'Source'))
@@ -11495,14 +11528,19 @@ const renderEntityReferenceDlItem = (
 		throw new Error(`${entity.entityType}.${fieldName} references missing entity type ${fieldDefinition.entityType}`)
 
 	const component = singularComponentIdentifier(targetEntity.entityType)
-	const itemSelection = typeof viewEntry === 'object' && 'selection' in viewEntry ? viewEntry.selection : undefined
+	const itemSources = viewItemSourceSelection(entity, indexes, viewEntry)
+	const itemSelection = itemSources == null ? undefined : { sources: itemSources }
 	const query = renderQuery(itemSelection, [])
 	if (entitySelectorOwnsField(entity, fieldReference)) {
 		const selectorExpression = fieldExpression('selection.entitySelector', fieldReference)
 
 		return wrapWhen(viewEntry, openExpression, renderDefinitionListItem(level, label, [
 			`${'\t'.repeat(level + 2)}<${component}`,
-			renderSvelteAttribute(level + 3, 'selection', `select(EntityType.${fieldDefinition.entityType}, ${selectorExpression})`),
+			renderSvelteAttribute(
+				level + 3,
+				'selection',
+				`select(EntityType.${fieldDefinition.entityType}, ${selectorExpression}${query === '{}' ? '' : `, ${query}`})`
+			),
 			`${'\t'.repeat(level + 3)}layout={EntityLayout.Value}`,
 			`${'\t'.repeat(level + 2)}/>`,
 		]))
@@ -11649,20 +11687,23 @@ const renderContentItem = (
 
 	const fieldValueName = localIdentifier(fieldName)
 	const projectionFieldResource = isProjectionFieldReference(fieldReference)
+	const itemSources = viewItemSourceSelection(entity, indexes, viewEntry)
+	const itemSelection = itemSources == null ? undefined : { sources: itemSources }
 	const itemQueryFields = viewItemFieldReferences(viewEntry)
 	const query = renderQuery(
-		undefined,
+		itemSelection,
 		projectionFieldResource ? [] : itemQueryFields
 	)
 	const projectionFieldResourceExpression = projectionFieldResource ? fieldProxyResourceExpression(fieldResourceBase, renderedFieldReference, query) : undefined
 	const resourceExpression = (
 		projectionFieldResourceExpression
 		?? (
-			entityResourceExpression != null
+			itemSources == null
+			&& entityResourceExpression != null
 			&& itemQueryFields.every((field) => entityResourceFieldKeys?.has(fieldReferenceKey(field))) ?
 				entityResourceExpression
 			:
-				`${querySelectionExpression}(${query})`
+				`${itemSources == null ? querySelectionExpression : 'selection'}(${query})`
 		)
 	)
 	if (primitiveList != null) {
@@ -12220,7 +12261,6 @@ const entityRouteFieldBindings = (
 	entity: Entity,
 	referenceCountByField: ReadonlyMap<string, number>,
 	fieldsExpression: string,
-	declaration: 'derived' | 'svelteConst',
 	reservedNames: readonly string[]
 ) => {
 	const names = new Set(reservedNames)
@@ -12236,17 +12276,6 @@ const entityRouteFieldBindings = (
 
 		const fieldName = generatedIdentifier(field.name)
 		const name = names.has(fieldName) ? `${fieldName}Selector` : fieldName
-		const declarationLength = (
-			declaration === 'derived' ?
-				`\tconst ${name} = $derived(${expression})\n`
-			:
-				`\t\t{@const ${name} = ${expression}}\n`
-		).length
-		// Preserve the historical split-length cost threshold: split length was one
-		// greater than the number of emitted references.
-		if ((actualOccurrenceCount + 1) * (expression.length - name.length) <= declarationLength)
-			return []
-
 		names.add(name)
 
 		return [{
@@ -12261,7 +12290,6 @@ const entityRouteHrefPlan = (
 	indexes: GenerationIndexes,
 	entity: Entity,
 	fieldsExpression: string,
-	declaration: 'derived' | 'svelteConst',
 	reservedNames: readonly string[],
 	usesResolvedEntity = false
 ) => {
@@ -12278,6 +12306,8 @@ const entityRouteHrefPlan = (
 				}
 			)
 	)
+	// Count the field roots in the expression that the route compiler actually
+	// emits, so route factoring and selector exhaustiveness stay authoritative.
 	const parsedExpression = directExpression == null ? undefined : parseTypeScriptExpression(directExpression)
 	const fieldByExpression = new Map(entity.fields.flatMap((field) => (
 		field.entityType == null ?
@@ -12285,21 +12315,12 @@ const entityRouteHrefPlan = (
 		:
 			[[fieldExpression(fieldsExpression, field.name), field.name] as const]
 	)))
-	const fieldReferences: {
-		fieldName: string
-		start: number
-		end: number
-	}[] = []
+	const referencedFieldNames: string[] = []
 	if (parsedExpression != null) {
-		const expressionStart = parsedExpression.expression.getStart(parsedExpression.sourceFile)
 		const visit = (node: ts.Node) => {
 			const fieldName = ts.isExpression(node) ? fieldByExpression.get(node.getText(parsedExpression.sourceFile)) : undefined
 			if (fieldName != null) {
-				fieldReferences.push({
-					fieldName,
-					start: node.getStart(parsedExpression.sourceFile) - expressionStart,
-					end: node.end - expressionStart,
-				})
+				referencedFieldNames.push(fieldName)
 				return
 			}
 
@@ -12307,28 +12328,50 @@ const entityRouteHrefPlan = (
 		}
 		visit(parsedExpression.expression)
 	}
-	const fieldReferencesByName = Map.groupBy(fieldReferences, ({ fieldName }) => fieldName)
-	const fieldBindings = entityRouteFieldBindings(
+	const candidateFieldBindings = entityRouteFieldBindings(
 		entity,
-		new Map([...fieldReferencesByName].map(([fieldName, references]) => [fieldName, references.length])),
+		new Map(
+			[...Map.groupBy(referencedFieldNames, (fieldName) => fieldName)]
+				.map(([fieldName, references]) => [fieldName, references.length])
+		),
 		fieldsExpression,
-		declaration,
 		reservedNames
 	)
+	const candidateExpression = candidateFieldBindings.length === 0 || directExpression == null ? directExpression : renderEntityRouteLinkExpression(
+		indexes,
+		entity.entityType,
+		fieldsExpression,
+		{
+			fieldExpressionByName: Object.fromEntries(candidateFieldBindings.map(({ fieldName, name }) => [fieldName, name])),
+			resolvedFields: usesResolvedEntity,
+		}
+	)
+	// Raw route fragments cannot consume structured field overrides. Keep only
+	// bindings that the structured rerender actually references.
+	const fieldBindings = candidateExpression == null ? [] : candidateFieldBindings.filter(({ name }) => (
+		typeScriptExpressionReferencesBinding(candidateExpression, name)
+	))
 
 	return {
-		expression: fieldBindings.length === 0 || directExpression == null ? directExpression : fieldBindings
-			.flatMap(({ fieldName, name }) => (
-				(fieldReferencesByName.get(fieldName) ?? []).map(({ start, end }) => ({
-					end,
-					name,
-					start,
-				}))
-			))
-			.toSorted((left, right) => right.start - left.start)
-			.reduce((expression, replacement) => (
-				`${expression.slice(0, replacement.start)}${replacement.name}${expression.slice(replacement.end)}`
-			), directExpression),
+		// Re-render the structured APP route expression with named field roots; the
+		// TypeScript AST is used only to count and verify emitted references.
+		expression: (
+			fieldBindings.length === 0 || directExpression == null ?
+				directExpression
+			:
+			fieldBindings.length === candidateFieldBindings.length ?
+				candidateExpression
+			:
+				renderEntityRouteLinkExpression(
+					indexes,
+					entity.entityType,
+					fieldsExpression,
+					{
+						fieldExpressionByName: Object.fromEntries(fieldBindings.map(({ fieldName, name }) => [fieldName, name])),
+						resolvedFields: usesResolvedEntity,
+					}
+				)
+		),
 		fieldBindings,
 	}
 }
@@ -12361,7 +12404,8 @@ const entityPathConditions = (
 	entityType: string,
 	fieldsExpression: string,
 	mode: 'selector' | 'resolved',
-	fieldPaths: readonly string[][]
+	fieldPaths: readonly string[][],
+	fieldExpressionByName?: Readonly<Record<string, string>>
 ) => [...new Map(fieldPaths.flatMap((fieldPath) => {
 	let entity = indexes.entityByType[entityType]
 	const conditions: ConditionTerm[] = []
@@ -12375,7 +12419,11 @@ const entityPathConditions = (
 		// so malformed or external expressions cannot produce unsafe access.
 		if (field == null)
 			return fieldPath.map((_part, fieldIndex) => {
-				const presencePath = fieldExpression(fieldsExpression, fieldPath.slice(0, fieldIndex + 1).join('.'))
+				const presencePath = fieldExpressionWithOverrides(
+					fieldsExpression,
+					fieldPath.slice(0, fieldIndex + 1).join('.'),
+					fieldExpressionByName
+				)
 				return {
 					expression: `${presencePath} != null`,
 					presencePath,
@@ -12385,9 +12433,10 @@ const entityPathConditions = (
 		const pathExpression = mode === 'selector' && index === 0 ?
 			fieldsExpression
 		:
-			fieldPath.slice(1, index + (mode === 'resolved' ? 1 : 0)).reduce(
-				(expression, pathPart) => `${expression}${propertyAccess(pathPart)}`,
-				fieldExpression(fieldsExpression, fieldPath[0] ?? '')
+			fieldExpressionWithOverrides(
+				fieldsExpression,
+				fieldPath.slice(0, index + (mode === 'resolved' ? 1 : 0)).join('.'),
+				fieldExpressionByName
 			)
 		const condition = mode === 'selector' ?
 			(
@@ -12438,10 +12487,12 @@ const renderEntityRouteLinkExpression = (
 	entityType: string,
 	fieldsExpression: string,
 	{
+		fieldExpressionByName,
 		resolvedFields = false,
 		routeLinks = indexes.entityRouteLinksByType[entityType] ?? [],
 		selectorName,
 	}: {
+		fieldExpressionByName?: Readonly<Record<string, string>>
 		resolvedFields?: boolean
 		routeLinks?: readonly EntityRouteLink[]
 		selectorName?: string
@@ -12487,6 +12538,7 @@ const renderEntityRouteLinkExpression = (
 	})
 	const expressionContext = {
 		fields: fieldsExpression,
+		fieldExpressionByName,
 		entity: indexes.entityByType[entityType],
 		indexes,
 	}
@@ -12495,7 +12547,8 @@ const renderEntityRouteLinkExpression = (
 		entityType,
 		fieldsExpression,
 		resolvedFields ? 'resolved' : 'selector',
-		fieldPaths
+		fieldPaths,
+		fieldExpressionByName
 	)
 	const routeCandidates = entityRouteLinks.map((entityRouteLink) => {
 		const compiledParams = Object.entries(entityRouteLink.params).map(([param, { decode, value }]) => ({
@@ -12516,7 +12569,8 @@ const renderEntityRouteLinkExpression = (
 					entityType,
 					fieldsExpression,
 					resolvedFields ? 'resolved' : 'selector',
-					[[condition.field]]
+					[[condition.field]],
+					fieldExpressionByName
 				),
 				...conditionTerms(
 					condition,
@@ -12524,7 +12578,8 @@ const renderEntityRouteLinkExpression = (
 					indexes.entityByType[entityType],
 					indexes,
 					false,
-					false
+					false,
+					fieldExpressionByName
 				),
 			])
 		const entityConditionGroup = entityConditionTerms.length === 0 ? undefined : {
@@ -12793,11 +12848,19 @@ const compileEntityPageSelection = (
 
 	const selector = entity.selectors.find((item) => item.name === selectorName)
 	const sourceSelectorField = selector?.fields.includes('source') === true
-	const fields = viewResolvedFieldReferences(entity, indexes, selectorName)
+	const selectorFieldNames = new Set(selector?.fields ?? [])
+	const fields = [...new Map(allViewItems(entity, indexes)
+		.filter((viewItem) => viewItemSourceSelection(entity, indexes, viewItem) == null)
+		.flatMap(viewItemFieldReferences)
+		.map((fieldReference) => [fieldReferenceKey(fieldReference), fieldReference])).values()]
 		.filter((fieldReference) => {
 			const fieldDefinition = fieldDefinitionByReference(entity, fieldReference, indexes)
 			return (
-				fieldDefinition != null
+				(
+					isProjectionFieldReference(fieldReference)
+					|| !selectorFieldNames.has(fieldReference)
+				)
+				&& fieldDefinition != null
 				&& fieldDefinition.type !== EntityFieldType.EntitiesReference
 			)
 		})
@@ -13934,7 +13997,6 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 				indexes,
 				entity,
 				usesResolvedEntityHref ? entityValueName : itemSelectorName,
-				'svelteConst',
 				[
 					entityValueName,
 					itemFieldsName,

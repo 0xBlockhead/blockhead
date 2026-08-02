@@ -33,7 +33,6 @@
 		fields: {
 			text: true,
 			createdAt: true,
-			postUrl: true,
 		},
 	}))
 	const titleFallback = $derived([(prefetched.text ?? ''), selection.entitySelector.id].filter(Boolean).join(' ') || 'X post')
@@ -135,27 +134,33 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={xPost}
-			>
-				{#snippet children(entity)}
-					{@const postUrl = entity.postUrl}
-					{#if postUrl != null}
-						<div>
-							<dt>Post URL</dt>
-							<dd>
-								<a
-									href={postUrl}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={postUrl} />
-								</a>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Post URL</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								sources: [
+									Source.Constants_Internal,
+								],
+								fields: {
+									postUrl: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							<a
+								href={entity.postUrl}
+								target="_blank"
+								rel="noreferrer noopener"
+							>
+								<TruncatedValue value={entity.postUrl} />
+							</a>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">

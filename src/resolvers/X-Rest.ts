@@ -59,8 +59,6 @@ const xPostReference = (
 				...(Number.isFinite(createdAt) && {
 					[entityFieldAddressKey(EntityType.XPost, [], 'createdAt')]: createdAt,
 				}),
-				[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:
-					UrlString.assert(`https://x.com/i/web/status/${id}`),
 				...(tweet.author_id != null && {
 					[entityFieldAddressKey(EntityType.XPost, [], '$author')]:
 						xUserReference(tweet.author_id, users),
@@ -221,7 +219,6 @@ export default {
 									response.includes?.users
 								),
 							}),
-							postUrl: UrlString.assert(`https://x.com/i/web/status/${id}`),
 							$$media: (
 								tweet.attachments?.media_keys ?? []
 							).flatMap((mediaKey) => {
@@ -277,7 +274,6 @@ export default {
 			conversationId: (post) => post.conversationId,
 			$replyToPost: (post) => post.$replyToPost,
 			$quotedPost: (post) => post.$quotedPost,
-			postUrl: (post) => post.postUrl,
 			$$media: (post) => post.$$media,
 			$author: (post) => post.$author,
 			$$timestamps: (post) => post.$$timestamps,
@@ -322,8 +318,6 @@ export default {
 											[entityFieldAddressKey(EntityType.XPost, [], 'createdAt')]:
 												Date.parse(wirePost.created_at ?? ''),
 										}),
-										[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:
-											UrlString.assert(`https://x.com/i/web/status/${wirePost.id}`),
 										[entityFieldAddressKey(EntityType.XPost, [], '$author')]:
 											xUserReference(userId, page.includes?.users),
 									},

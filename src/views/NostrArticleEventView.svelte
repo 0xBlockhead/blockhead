@@ -29,14 +29,10 @@
 	const contentWarningSelectorKey = $derived(stringify(selection.entitySelector))
 	const nostrArticleEvent = $derived(selection({
 		fields: {
-			pubkey: true,
 			identifier: true,
-			kind: true,
 			createdAt: true,
 			signature: true,
 			title: true,
-			summary: true,
-			imageUrl: true,
 			publishedAt: true,
 			sensitive: true,
 			contentWarning: true,

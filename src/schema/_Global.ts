@@ -100,6 +100,7 @@ export default entity({
 		entityType: EntityType.BlockheadSource,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
+			Source.Constants_Internal,
 			Source.Local_Internal,
 		],
 	},

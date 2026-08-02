@@ -1253,22 +1253,6 @@ export default {
 			}),
 
 		defineResolver({
-			entityType: EntityType.BlockheadSource,
-			resolve: {
-				Id: {
-					resolve: async ({ id }) => {
-					const catalog = await readNormalizedLocalInternal()
-					const blockheadSource = catalog.blockheadSources.find((candidate) => candidate.id === id)
-					if (blockheadSource == null) throw new Error('Local_Internal: BlockheadSource not present in local catalog')
-					return {}
-				},
-				}
-			},
-		})({
-				id: (blockheadSource) => blockheadSource[EntityMetaKey.Selector].id,
-			}),
-
-		defineResolver({
 			entityType: EntityType.BlockheadFarcasterAccountConnection,
 			resolve: {
 				ConnectionId: {
@@ -1298,25 +1282,6 @@ export default {
 				expiresAt: (connection) => connection.expiresAt,
 				associationFingerprint: (connection) => connection.associationFingerprint,
 				selected: (connection) => connection.selected,
-			}),
-
-		defineResolver({
-			entityType: EntityType._Global,
-			resolve: {
-				Scope: {
-					resolve: async (_scopedEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
-					sliceNormalizedRowsForSubset(
-						(await readNormalizedLocalInternal()).blockheadSources,
-						context
-					)
-						.map((blockheadSource) => ({
-							[EntityMetaKey.Selector]: { id: blockheadSource.id },
-						}))
-				),
-				}
-			},
-		})({
-				$$blockheadSources: (entity) => entity,
 			}),
 
 		defineResolver({

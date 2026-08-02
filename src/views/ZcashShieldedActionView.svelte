@@ -7,6 +7,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -195,7 +196,13 @@
 				<dt>Transaction</dt>
 				<dd>
 					<UtxoTransactionView
-						selection={select(EntityType.UtxoTransaction, selection.entitySelector.$transaction)}
+						selection={
+							select(EntityType.UtxoTransaction, selection.entitySelector.$transaction, {
+								sources: [
+									Source.Zcashd_JsonRpc,
+								],
+							})
+						}
 						layout={EntityLayout.Value}
 					/>
 				</dd>

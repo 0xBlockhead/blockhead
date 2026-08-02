@@ -27,6 +27,7 @@ import {
 } from '../../src/constants/Market.ts'
 import { MarketVenueId } from '../../src/constants/MarketVenue.ts'
 import { specificationRealms } from '../../src/constants/SpecificationProposal.ts'
+import { Source } from '../../src/sources/Source.ts'
 import { swarmDocsLandingReference } from '../../src/sources/Swarm/Rest/constants.ts'
 import {
 	ERC4337_ACCOUNT_FACTORY_ADDRESS,
@@ -131,7 +132,7 @@ export const e2eRouteProbeAtomValueById = {
 	"/~/agents/conversation/[conversationId]/turn/[turnId]:BlockheadAgentConversationTurn.ConversationTurnId.1.conversationId": 'e2e-probe-agent-conversation',
 	"/~/agents/conversation/[conversationId]/turn/[turnId]:BlockheadAgentConversationTurn.ConversationTurnId.1.turnId": 'e2e-probe-agent-conversation-turn',
 	"/~/dashboard/[dashboardId]:BlockheadPanelTree.Id.1.dashboardId": 'e2e-probe-panel-tree',
-	"/~/manage/source/[sourceId]:BlockheadSource.Id.1.sourceId": 'e2e-probe-source',
+	"/~/manage/source/[sourceId]:BlockheadSource.Id.1.sourceId": Source.Local_Internal,
 	"/~/multiplayer/contact/[contactId]:BlockheadRoomPeer.Id.1.contactId": 'e2e-probe-room-peer',
 	"/~/multiplayer/room/[roomId]:BlockheadRoom.Id.1.roomId": 'e2e-probe-room',
 	"/~/session/[sessionId]:BlockheadSession.Id.1.sessionId": 'e2e-probe-session',

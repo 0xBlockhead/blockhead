@@ -104,8 +104,6 @@ describe('X FxEmbed global network', () => {
 					[entityFieldAddressKey(EntityType.XPost, [], 'text')]: 'First post',
 					[entityFieldAddressKey(EntityType.XPost, [], 'createdAt')]:
 						1_768_435_200_000,
-					[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:
-						'https://x.com/i/web/status/post-1',
 					[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
 						[EntityMetaKey.Selector]: { id: 'user-1' },
 						[EntityMetaKey.Fields]: {
@@ -118,8 +116,6 @@ describe('X FxEmbed global network', () => {
 			{
 				[EntityMetaKey.Selector]: { id: 'post-2' },
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:
-						'https://x.com/i/web/status/post-2',
 					[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
 						[EntityMetaKey.Selector]: { id: 'user-2' },
 						[EntityMetaKey.Fields]: {
@@ -162,8 +158,6 @@ describe('X FxEmbed global network', () => {
 		expect(globalNetworkResolvers[0].projections.$$observedPosts(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: { id: 'valid-post' },
 			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:
-					'https://x.com/i/web/status/valid-post',
 				[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
 					[EntityMetaKey.Selector]: { id: 'missing-handle' },
 				},

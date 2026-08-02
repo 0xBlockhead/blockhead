@@ -55,6 +55,15 @@ describe('X reading identity and observation contract', () => {
 			query.mockReset()
 	})
 
+	it('leaves post URLs to the selector-derived source', () => {
+		expect([
+			...fxEmbedResolvers.resolvers,
+			...xResolvers.resolvers,
+		].filter((resolver) => resolver.entityType === EntityType.XPost).every((resolver) => (
+			!Object.hasOwn(resolver.projections, 'postUrl')
+		))).toBe(true)
+	})
+
 	it('converges username lookup on the provider-owned id and current username', async () => {
 		fxEmbedQueries.getUser.mockResolvedValue({
 			user: {
@@ -197,8 +206,6 @@ describe('X reading identity and observation contract', () => {
 					'Prefilled official timeline post',
 				[entityFieldAddressKey(EntityType.XPost, [], 'createdAt')]:
 					1_768_435_200_000,
-				[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:
-					'https://x.com/i/web/status/1890000000000000000',
 				[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
 					[EntityMetaKey.Selector]: {
 						id: '44196397',

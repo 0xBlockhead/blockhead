@@ -33,7 +33,6 @@
 		fields: {
 			text: true,
 			authorDisplayName: true,
-			publishedAt: true,
 			publishedAtMs: true,
 		},
 	}))

@@ -31,7 +31,6 @@
 			siteUrl: true,
 			language: true,
 			lastBuildDate: true,
-			imageUrl: true,
 		},
 	}))
 	const titleFallback = $derived([(prefetched.title ?? ''), selection.entitySelector.feedUrl].filter(Boolean).join(' ') || 'RSS feed')

@@ -63,8 +63,6 @@ describe('X FxEmbed reading materialization', () => {
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.XPost, [], 'text')]: 'Readable fixture post',
 				[entityFieldAddressKey(EntityType.XPost, [], 'createdAt')]: 1_768_435_200_000,
-				[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:
-					'https://x.com/i/web/status/post-1',
 				[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
 					[EntityMetaKey.Selector]: { id: 'user-1' },
 					[EntityMetaKey.Fields]: {
@@ -114,11 +112,8 @@ describe('X FxEmbed reading materialization', () => {
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.XPost, [], 'text')]: 'Profile fixture post',
 				[entityFieldAddressKey(EntityType.XPost, [], 'createdAt')]: 1_768_435_201_000,
-				[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:
-					'https://x.com/i/web/status/post-2',
 				[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
 					[EntityMetaKey.Selector]: { id: 'user-1' },
-					[EntityMetaKey.Fields]: {},
 				},
 			},
 		}])

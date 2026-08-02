@@ -28,10 +28,6 @@ export type NormalizedXmtpConversation = {
 	consentState?: XmtpConversationConsentState
 }
 
-export type NormalizedBlockheadSource = {
-	id: string
-}
-
 export type NormalizedBlockheadWallet = {
 	id: string
 	name: string
@@ -362,7 +358,6 @@ export type NormalizedEvmError = {
 export type NormalizedLocalInternal = {
 	actors: readonly NormalizedActor[]
 	xmtpConversations: readonly NormalizedXmtpConversation[]
-	blockheadSources: readonly NormalizedBlockheadSource[]
 	blockheadWallets: readonly NormalizedBlockheadWallet[]
 	blockheadWalletConnections: readonly NormalizedBlockheadWalletConnection[]
 	blockheadSessions: readonly NormalizedBlockheadSession[]
@@ -400,10 +395,6 @@ const probeBridgeTransaction = {
 	txHash: '0x31ed178236b6bc4dd6dc8c6026e9d344e39afe0dc6d832c228131ce4ee40a8ca',
 	createdAt: 0,
 } as const satisfies NormalizedBridgeTransaction
-
-const probeBlockheadSource = {
-	id: 'e2e-probe-source',
-} as const satisfies NormalizedBlockheadSource
 
 const probeBlockheadWallet = {
 	id: 'eip6963:e2e-probe-wallet',
@@ -812,7 +803,6 @@ const defaultNormalizedLocalInternal = {
 			consentState: XmtpConversationConsentState.Allowed,
 		},
 	],
-	blockheadSources: [probeBlockheadSource],
 	blockheadWallets: [probeBlockheadWallet],
 	blockheadWalletConnections: [probeBlockheadWalletConnection],
 	blockheadSessions: [

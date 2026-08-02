@@ -2442,7 +2442,9 @@ export type _ViewItem<
 			label?: string
 			description?: string
 			format?: _ViewFieldFormat
-			selection?: _ViewQuery
+			selection?: {
+				sources: readonly string[]
+			}
 			component?: string
 			layout?: EntityLayout
 			enumConstantMap?: string
@@ -4564,7 +4566,7 @@ export const schema = {
 				"$$marketTimeIntervalTimestamps": { label: "market time interval timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Market_TimeInterval_Timestamp, defaultSources: [Source.Coingecko_Rest] },
 				"$$actors": { label: "actors", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmAccount },
 				"$$xmtpConversations": { label: "XMTP conversations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XmtpConversation },
-				"$$blockheadSources": { label: "blockhead sources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadSource, defaultSources: [Source.Local_Internal] },
+				"$$blockheadSources": { label: "blockhead sources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadSource, defaultSources: [Source.Constants_Internal, Source.Local_Internal] },
 				"$$blockheadWallets": { label: "blockhead wallets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWallet },
 				"$$blockheadWalletConnections": { label: "blockhead wallet connections", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWalletConnection },
 				"$$blockheadAccounts": { label: "blockhead accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadAccount, defaultSources: [Source.Local_Internal] },
@@ -18180,7 +18182,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.Constants_Internal, Source.Local_Internal],
 							fields: ["label", "source", "provider", "endpointUrl"],
 							openFields: ["transportKind", "authKind", "corsMode", "proxyMode", "environmentScope", "$$timestamps"],
 						},
@@ -18200,7 +18202,7 @@ export const schema = {
 					plural: { component: "BlockheadSourcesView",
 						title: "Sources",
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.Constants_Internal, Source.Local_Internal],
 						},
 					},
 				},
@@ -48505,7 +48507,7 @@ export const schema = {
 							fallbackText: "Sensitive content",
 						},
 						query: {
-							fields: ["eventId", "$article", "pubkey", "identifier", "kind", "createdAt", "signature", "title", "summary", "imageUrl", "publishedAt", "$author"],
+							fields: ["eventId", "$article", "identifier", "createdAt", "signature", "title", "publishedAt", "$author"],
 							openFields: ["content", "tags"],
 						},
 						summary: {
@@ -48891,7 +48893,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							fields: ["eventId", "$profile", "pubkey", "kind", "createdAt", "signature", "displayName", "about", "nip05", "lud16", "website", "$icon", "$banner"],
+							fields: ["eventId", "$profile", "pubkey", "createdAt", "signature", "displayName", "about", "nip05", "lud16", "website", "$icon"],
 							openFields: ["content", "tags", "lud06", "iconUrl", "bannerUrl"],
 						},
 						summary: {
@@ -52149,7 +52151,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Rss_Rest, Source.Rss2Json_Rest],
-							fields: ["title", "description", "siteUrl", "language", "lastBuildDate", "imageUrl"],
+							fields: ["title", "description", "siteUrl", "language", "lastBuildDate"],
 							openFields: ["$$items", "$$timestamps"],
 						},
 						summary: {
@@ -63671,7 +63673,7 @@ export const schema = {
 				"conversationId": { label: "Conversation ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"$replyToPost": { label: "Reply to post", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.XPost },
 				"$quotedPost": { label: "Quoted post", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.XPost },
-				"postUrl": { label: "Post URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"postUrl": { label: "Post URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Constants_Internal] },
 				"$$media": { label: "Media", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Media },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XPost_Timestamp },
 			})({
@@ -63682,7 +63684,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.X_Rest, Source.X_FxEmbed_Rest],
-							fields: ["text", "createdAt", "$author", "postUrl", "$replyToPost", "$quotedPost", "$$media"],
+							fields: ["text", "createdAt", "$author", "$replyToPost", "$quotedPost", "$$media"],
 							openFields: ["$$timestamps"],
 						},
 						summary: {
@@ -64700,7 +64702,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.X_Rest, Source.X_FxEmbed_Rest],
-							fields: ["id", "username", "name", "description", "location", "websiteUrl", "verified", "createdAt", "$icon", "$profileBanner"],
+							fields: ["id", "username", "name", "description", "location", "websiteUrl", "verified", "createdAt", "$icon"],
 							openFields: ["$$timestamps", "$$posts"],
 						},
 						summary: {
@@ -65101,7 +65103,6 @@ export const schema = {
 							fields: [
 								"text",
 								"authorDisplayName",
-								"publishedAt",
 								"publishedAtMs",
 								"$author",
 								"$video",

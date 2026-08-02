@@ -26,7 +26,6 @@
 	const nostrProfileMetadataEvent = $derived(selection({
 		fields: {
 			pubkey: true,
-			kind: true,
 			createdAt: true,
 			signature: true,
 			displayName: true,

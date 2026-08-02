@@ -96,10 +96,7 @@ import {
 	youtubeNetworkSeedVideos,
 	youtubeNetworkSeedVideoByVideoId,
 } from '$/constants/Social/Youtube.ts'
-import {
-	xNetworkSeedPostById,
-	xNetworkSeedUsers,
-} from '$/constants/Social/X.ts'
+import { xNetworkSeedUsers } from '$/constants/Social/X.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
@@ -114,6 +111,7 @@ import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { Source } from '$/sources/Source.ts'
+import sourceProviders from '$/sources/$sourceProviders.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import {
 	precompilesByChainId,
@@ -121,6 +119,16 @@ import {
 import { standardPrecompiles } from '$/constants/precompiles/standard.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPoolKind.ts'
+
+const blockheadSources = sourceProviders.flatMap(({ provider, sources }) => (
+	Object.entries(sources).map(([source, definition]) => ({
+		id: source,
+		label: definition.label,
+		provider,
+		source,
+	}))
+)).toSorted((sourceA, sourceB) => sourceA.id.localeCompare(sourceB.id))
+const blockheadSourceById = Object.fromEntries(blockheadSources.map((source) => [source.id, source]))
 
 const zeroGChainId = 16661
 
@@ -373,6 +381,73 @@ export default {
 	source: Source.Constants_Internal,
 
 	resolvers: [
+		defineResolver({
+			entityType: EntityType.BlockheadSource,
+			resolve: {
+				Id: {
+					resolve: ({ id }) => {
+						const blockheadSource = blockheadSourceById[id]
+						if (blockheadSource == null)
+							throw new Error('Constants_Internal: BlockheadSource not present in catalog')
+
+						return blockheadSource
+					},
+				},
+			},
+		})({
+			id: (blockheadSource) => blockheadSource.id,
+			label: (blockheadSource) => blockheadSource.label,
+			provider: (blockheadSource) => blockheadSource.provider,
+			source: (blockheadSource) => blockheadSource.source,
+		}),
+
+		defineResolver({
+			entityType: EntityType._Global,
+			resolve: {
+				Scope: {
+					resolve: (_selector: EntitySelector<typeof schema, EntityType._Global>, context) => {
+						const offset = context.providerContinuationToken == null ?
+							context.pagination.offset ?? 0
+						:
+							Number(context.providerContinuationToken)
+						if (!Number.isSafeInteger(offset) || offset < 0)
+							throw new Error('Constants_Internal: invalid source-registry continuation')
+
+						return {
+							offset,
+							rows: blockheadSources
+								.slice(offset, offset + resolverContextRowLimit(context))
+								.map((blockheadSource) => ({
+									[EntityMetaKey.Selector]: {
+										id: blockheadSource.id,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.BlockheadSource, [], 'label')]: blockheadSource.label,
+										[entityFieldAddressKey(EntityType.BlockheadSource, [], 'provider')]: blockheadSource.provider,
+										[entityFieldAddressKey(EntityType.BlockheadSource, [], 'source')]: blockheadSource.source,
+									},
+								})),
+							totalCount: blockheadSources.length,
+						}
+					},
+				},
+			},
+		})({
+			$$blockheadSources: {
+				select: (snapshot) => snapshot.rows,
+				continuation: (snapshot) => {
+					const nextOffset = snapshot.offset + snapshot.rows.length
+					return {
+						operation: 'source-registry',
+						target: 'global',
+						terminal: nextOffset >= snapshot.totalCount,
+						...(nextOffset < snapshot.totalCount && { token: String(nextOffset) }),
+					}
+				},
+				resolveCount: (snapshot) => snapshot.totalCount,
+			},
+		}),
+
 		defineResolver({
 			entityType: EntityType.EthereumNetworkUpgrade,
 			resolve: {
@@ -3073,18 +3148,13 @@ export default {
 			entityType: EntityType.XPost,
 			resolve: {
 				Id: {
-					resolve: async ({ id }) => {
-						const post = xNetworkSeedPostById[id]
-						if (post == null) throw new Error(`Constants_Internal: XPost ${id} not found`)
-
-						return post
-					},
+					resolve: ({ id }) => ({ id }),
 				}
 			},
 		})({
-				id: (entity) => entity.id,
-				postUrl: (entity) => `https://x.com/i/web/status/${entity.id}`,
-			}),
+			id: (entity) => entity.id,
+			postUrl: (entity) => `https://x.com/i/web/status/${entity.id}`,
+		}),
 
 		defineResolver({
 			entityType: EntityType.EvmContract,

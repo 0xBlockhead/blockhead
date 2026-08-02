@@ -21,6 +21,7 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
+			Source.Constants_Internal,
 			Source.Local_Internal,
 		],
 	}))

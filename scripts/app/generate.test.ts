@@ -309,7 +309,6 @@ test('entity hrefs compile directly from routes without a parallel artifact fami
 		renderGeneratedFile(xPostTimestampView),
 		/\|\| 'X post' \|\| 'X post observation'/
 	)
-
 	const stateChannelView = generatedFiles.find(({ path }) => path === 'src/views/BlockheadStateChannelStateView.svelte')
 	assert(stateChannelView)
 	assert.doesNotMatch(
@@ -377,7 +376,7 @@ test('generated views import runtime schema symbols used by raw snippets', () =>
 	assert.doesNotMatch(generatorSource, /svelteComponentNames|viewMarkupLines|raw\.includes/)
 	assert.doesNotMatch(
 		generatorSource,
-		/__PENDING_ENTITY_STATE__|line\.replace|concreteExpression|expression\.replace\(\(\?<\!\\\.\)|pending\.expression\.replace|renderPresentRouteParamExpression[\s\S]{0,250}\.replaceAll|replaceAll\(projectionResourceExpression|directSummaryRowLines\.map/
+		/__PENDING_ENTITY_STATE__|line\.replace|concreteExpression|expression\.replace\(\(\?<\!\\\.\)|expression\.slice\(0, replacement\.start\)|pending\.expression\.replace|renderPresentRouteParamExpression[\s\S]{0,250}\.replaceAll|replaceAll\(projectionResourceExpression|directSummaryRowLines\.map/
 	)
 	for (const sourceHeuristic of [
 		'condition.includes(\'(\')',
@@ -855,6 +854,48 @@ test('preserves explicit view source selections independently of field defaults'
 	)
 })
 
+test('keeps divergent field sources at their exact item consumers', () => {
+	const xPostView = generatedSource('src/views/XPostView.svelte')
+	const postUrlStart = xPostView.indexOf('<dt>Post URL</dt>')
+	const postUrlItem = xPostView.slice(postUrlStart, xPostView.indexOf('</dl>', postUrlStart))
+	assert.match(postUrlItem, /selection\(\{\s+sources: \[\s+Source\.Constants_Internal,\s+\],\s+fields: \{\s+postUrl: true,/)
+	assert.doesNotMatch(postUrlItem, /viewSelection/)
+	assert.doesNotMatch(
+		generatedSource('src/routes/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]/+page.svelte'),
+		/postUrl: true/
+	)
+	assert.doesNotMatch(
+		generatedSource('src/routes/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]/+page.svelte'),
+		/\bimage: true/
+	)
+	assert.doesNotMatch(
+		generatedSource('src/routes/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/+page.svelte'),
+		/\bimageUrl: true/
+	)
+
+	const zcashShieldedActionView = generatedSource('src/views/ZcashShieldedActionView.svelte')
+	const transactionStart = zcashShieldedActionView.indexOf('<dt>Transaction</dt>')
+	const transactionItem = zcashShieldedActionView.slice(
+		transactionStart,
+		zcashShieldedActionView.indexOf('</dl>', transactionStart)
+	)
+	assert.match(zcashShieldedActionView, /import \{ Source \} from '\$\/sources\/Source\.ts'/)
+	assert.match(transactionItem, /sources: \[\s+Source\.Zcashd_JsonRpc,/)
+
+	const tokenTransferView = generatedSource('src/views/EvmTokenTransferView.svelte')
+	const tokenSymbolStart = tokenTransferView.indexOf('<dt>Token symbol</dt>')
+	assert.doesNotMatch(
+		tokenTransferView.slice(tokenSymbolStart, tokenTransferView.indexOf('</dl>', tokenSymbolStart)),
+		/Source\.Etherscan_Rest/
+	)
+	const networkView = generatedSource('src/views/NetworkView.svelte')
+	const ledgerModelsStart = networkView.indexOf('<dt>Ledger models</dt>')
+	assert.doesNotMatch(
+		networkView.slice(ledgerModelsStart, networkView.indexOf('</dl>', ledgerModelsStart)),
+		/Source\.L2Beat_Rest/
+	)
+})
+
 test('generated views and pages import exactly the dependencies they use', () => {
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
 	const importPlanningStart = generatorSource.indexOf('const scriptBeforePendingEntity =')
@@ -1205,7 +1246,7 @@ test('generates one APP-ordered lazy resolver loader registry', () => {
 				modules: app.resolvers.modules.map((module, index) => index === 0 ? {
 					...module,
 					source: 'MissingSource',
-				} : module),
+				} : module).toSorted((left, right) => String(left.source).localeCompare(String(right.source), 'en')),
 			},
 		}),
 		/references missing source MissingSource/
@@ -5137,7 +5178,7 @@ test('retains only physical route file facts consumed by route emitters', () => 
 		&& /\/(?:\+page\.svelte|\+page\.ts|\+layout\.svelte|\+layout\.ts)$/.test(filePath)
 	))
 
-	assert.equal(physicalRouteFiles.length, 565)
+	assert.equal(physicalRouteFiles.length, 564)
 	assert.doesNotMatch(physicalRoutePlanSource, /\bplacement:|\binheritedMappings,|\bprojectionOwnedByAncestor\b|\bpageModuleOwnership:/)
 	assert.match(physicalRoutePlanSource, /const inheritedMappings = [^\n]+[\s\S]*?routeFile: inheritedMappings \? \{[\s\S]*?mappings: pageModule\?\.mappings/)
 	assert.match(physicalRoutePlanSource, /const generatedPageModule = [\s\S]*?plan\.generatedPageModule === true/)
