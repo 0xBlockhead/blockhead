@@ -1,6 +1,7 @@
 import {
 	defineResolver,
 	type SourceResolverContext,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -112,7 +113,7 @@ const getTransaction = async (
 		$network: NetworkId
 		signature: string
 	},
-	context: SourceResolverContext<Source.Helius>
+	context: SourceResolverContext
 ) => {
 	assertSolanaMainnet($network)
 	const { getEnhancedTransactions } = await import('$/sources/Helius/Rest/queries.ts')
@@ -128,7 +129,7 @@ export default {
 	source: Source.Helius,
 
 	resolvers: [
-		defineResolver(Source.Helius, {
+		defineResolver({
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
 				NetworkSignature: {
@@ -184,7 +185,7 @@ export default {
 				})),
 			}),
 
-		defineResolver(Source.Helius, {
+		defineResolver({
 			entityType: EntityType.SolanaTransaction_Timestamp,
 			resolve: {
 				TransactionSlotSource: {
@@ -212,7 +213,7 @@ export default {
 				err: (timestamp) => timestamp.err,
 			}),
 
-		defineResolver(Source.Helius, {
+		defineResolver({
 			entityType: EntityType.SolanaInstruction,
 			resolve: {
 				SolanaTransactionIndexInTransaction: {
@@ -240,4 +241,4 @@ export default {
 			}),
 
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Helius>

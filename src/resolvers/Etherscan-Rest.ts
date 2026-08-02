@@ -7,6 +7,7 @@ import { evmAbiFromJsonString } from '$/lib/evmAbi.ts'
 import { hexLowerOfByteSize, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { evmChainIdFromNetworkSelector } from '$/resolvers/evm.ts'
 import {
@@ -473,7 +474,7 @@ export default {
 	source: Source.Etherscan_Rest,
 
 	resolvers: [
-		defineResolver(Source.Etherscan_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {
@@ -510,7 +511,7 @@ export default {
 			transport: (timestamp) => timestamp.transport,
 		}),
 
-		defineResolver(Source.Etherscan_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmTokenTransfer,
 			resolve: {
 				LogIndexInLog: {
@@ -579,7 +580,7 @@ export default {
 				),
 			}),
 
-		defineResolver(Source.Etherscan_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmInternalTransfer,
 			resolve: {
 				TransactionIndexInTransaction: {
@@ -618,7 +619,7 @@ export default {
 				$to: (transfer) => transfer.$to,
 				$createdContract: (transfer) => transfer.$createdContract,
 			}),
-		defineResolver(Source.Etherscan_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -638,7 +639,7 @@ export default {
 				abi: (contract) => contract,
 			}),
 
-		defineResolver(Source.Etherscan_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -666,7 +667,7 @@ export default {
 				$deployer: (contract) => contract,
 			}),
 
-		defineResolver(Source.Etherscan_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -695,7 +696,7 @@ export default {
 				$creationTransaction: (contract) => contract,
 			}),
 
-		defineResolver(Source.Etherscan_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -724,7 +725,7 @@ export default {
 				$implementation: (contract) => contract,
 			}),
 
-		defineResolver(Source.Etherscan_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -745,7 +746,7 @@ export default {
 				code: (contract) => contract,
 			}),
 
-		defineResolver(Source.Etherscan_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -766,7 +767,7 @@ export default {
 				codeHash: (contract) => contract,
 			}),
 
-		defineResolver(Source.Etherscan_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -796,7 +797,7 @@ export default {
 				storageSlotReads: (contract) => contract,
 			}),
 
-		defineResolver(Source.Etherscan_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -823,7 +824,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Etherscan_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				EvmNetworkEvmAccount: {
@@ -859,7 +860,7 @@ export default {
 				$$tokenTransfers: (account) => account,
 			}),
 
-		defineResolver(Source.Etherscan_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				EvmNetworkEvmAccount: {
@@ -895,7 +896,7 @@ export default {
 				$$internalTransfers: (account) => account,
 			}),
 
-		defineResolver(Source.Etherscan_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmLog,
 			resolve: {
 				TransactionIndexInTransaction: {
@@ -936,7 +937,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Etherscan_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				EvmNetworkTxHash: {
@@ -970,7 +971,7 @@ export default {
 				$$tokenTransfers: (transaction) => transaction,
 			}),
 
-		defineResolver(Source.Etherscan_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				EvmNetworkTxHash: {
@@ -998,4 +999,4 @@ export default {
 				$$internalTransfers: (transaction) => transaction,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Etherscan_Rest>

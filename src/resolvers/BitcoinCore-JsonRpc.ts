@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -26,7 +27,7 @@ export default {
 	source: Source.BitcoinCore_JsonRpc,
 
 	resolvers: [
-		defineResolver(Source.BitcoinCore_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				NetworkHeightHash: {
@@ -95,7 +96,7 @@ export default {
 				$$transactions: (snapshot) => snapshot.$$transactions,
 			}),
 
-		defineResolver(Source.BitcoinCore_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				NetworkTxId: {
@@ -131,4 +132,4 @@ export default {
 				isCoinbase: (snapshot) => snapshot.isCoinbase,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.BitcoinCore_JsonRpc>

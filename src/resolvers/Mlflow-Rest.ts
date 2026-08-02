@@ -1,4 +1,4 @@
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -38,7 +38,7 @@ const parseArtifactId = (providerArtifactId: string) => {
 }
 
 export const mlflowResolvers = [
-		defineResolver(Source.Mlflow_Rest, {
+		defineResolver({
 			entityType: EntityType.AiModel,
 			resolve: {
 				ProviderModelId: {
@@ -68,7 +68,7 @@ export const mlflowResolvers = [
 			$$documents: () => [],
 		}),
 
-		defineResolver(Source.Mlflow_Rest, {
+		defineResolver({
 			entityType: EntityType.AiModelVersion,
 			resolve: {
 				ModelVersionId: {
@@ -103,7 +103,7 @@ export const mlflowResolvers = [
 			}],
 		}),
 
-		defineResolver(Source.Mlflow_Rest, {
+		defineResolver({
 			entityType: EntityType.AiArtifact,
 			resolve: {
 				ProviderArtifactId: {
@@ -139,7 +139,7 @@ export const mlflowResolvers = [
 			}] : [],
 		}),
 
-		defineResolver(Source.Mlflow_Rest, {
+		defineResolver({
 			entityType: EntityType.AiDocument,
 			resolve: {
 				KindArtifact: {
@@ -170,4 +170,4 @@ export const mlflowResolvers = [
 export default {
 	source: Source.Mlflow_Rest,
 	resolvers: mlflowResolvers,
-}
+} satisfies RegisteredSourceResolverModule<Source.Mlflow_Rest>

@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -26,7 +27,7 @@ export default {
 	source: Source.CometBft_Rest,
 
 	resolvers: [
-		defineResolver(Source.CometBft_Rest, {
+		defineResolver({
 			entityType: EntityType.CosmosBlock,
 			resolve: {
 				NetworkHeight: {
@@ -51,7 +52,7 @@ export default {
 				timestampMs: (snapshot) => snapshot.timestampMs,
 			}),
 
-		defineResolver(Source.CometBft_Rest, {
+		defineResolver({
 			entityType: EntityType.CosmosTransaction,
 			resolve: {
 				NetworkTxHash: {
@@ -82,4 +83,4 @@ export default {
 				gasUsed: (snapshot) => snapshot.gasUsed,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.CometBft_Rest>

@@ -1,4 +1,4 @@
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -49,7 +49,7 @@ export default {
 	source: Source.OpenAI_Rest,
 
 	resolvers: [
-		defineResolver(Source.OpenAI_Rest, {
+		defineResolver({
 			entityType: EntityType.AiModel,
 			resolve: {
 				ProviderModelId: {
@@ -73,7 +73,7 @@ export default {
 			providerCreatedAt: (model) => model.providerCreatedAt,
 		}),
 
-		defineResolver(Source.OpenAI_Rest, {
+		defineResolver({
 			entityType: EntityType.AiProviderCatalogEntry,
 			resolve: {
 				ProviderCatalogKindProviderEntryId: {
@@ -114,7 +114,7 @@ export default {
 			subjectSelector: (entry) => entry.subjectSelector,
 		}),
 
-		defineResolver(Source.OpenAI_Rest, {
+		defineResolver({
 			entityType: EntityType.AiProviderApiOperation,
 			resolve: {
 				ProviderOperationId: {
@@ -145,4 +145,4 @@ export default {
 			documentUrl: (operation) => operation.documentUrl,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.OpenAI_Rest>

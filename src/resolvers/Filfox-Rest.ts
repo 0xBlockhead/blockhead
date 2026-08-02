@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -32,7 +33,7 @@ export default {
 	source: Source.Filfox_Rest,
 
 	resolvers: [
-		defineResolver(Source.Filfox_Rest, {
+		defineResolver({
 			entityType: EntityType.FilecoinTipset,
 			resolve: {
 				NetworkHeightTipsetKey: {
@@ -101,7 +102,7 @@ export default {
 				$$blocks: (snapshot) => snapshot.$$blocks,
 			}),
 
-		defineResolver(Source.Filfox_Rest, {
+		defineResolver({
 			entityType: EntityType.FilecoinBlock,
 			resolve: {
 				NetworkCid: {
@@ -144,7 +145,7 @@ export default {
 				winCount: (snapshot) => snapshot.winCount,
 			}),
 
-		defineResolver(Source.Filfox_Rest, {
+		defineResolver({
 			entityType: EntityType.FilecoinMessage,
 			resolve: {
 				NetworkCid: {
@@ -190,7 +191,7 @@ export default {
 				gasLimit: (snapshot) => snapshot.gasLimit,
 			}),
 
-		defineResolver(Source.Filfox_Rest, {
+		defineResolver({
 			entityType: EntityType.FilecoinBlock,
 			resolve: {
 				NetworkCid: {
@@ -227,4 +228,4 @@ export default {
 				$$messages: (snapshot) => snapshot,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Filfox_Rest>

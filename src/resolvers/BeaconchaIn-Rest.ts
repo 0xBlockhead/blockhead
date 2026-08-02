@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -8,7 +9,7 @@ export default {
 	source: Source.BeaconchaIn_Rest,
 
 	resolvers: [
-		defineResolver(Source.BeaconchaIn_Rest, {
+		defineResolver({
 			entityType: EntityType.BeaconEpoch,
 			resolve: {
 				EvmNetworkEpoch: {
@@ -48,4 +49,4 @@ export default {
 			withdrawalsCount: (snapshot) => snapshot.withdrawalsCount,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.BeaconchaIn_Rest>

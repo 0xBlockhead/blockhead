@@ -1,5 +1,5 @@
 import { networkBySlug } from '$/constants/Network.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -8,7 +8,7 @@ export default {
 	source: Source.GetBlockYellowstone_Grpc,
 
 	resolvers: [
-		defineResolver(Source.GetBlockYellowstone_Grpc, {
+		defineResolver({
 			entityType: EntityType.SolanaAccount_Timestamp,
 			resolve: {
 				AccountSlotSource: {
@@ -130,4 +130,4 @@ export default {
 			dataEncoding: (update) => update.dataEncoding,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.GetBlockYellowstone_Grpc>

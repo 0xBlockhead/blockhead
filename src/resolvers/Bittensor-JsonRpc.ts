@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -42,7 +43,7 @@ export default {
 	source: Source.Bittensor_JsonRpc,
 
 	resolvers: [
-		defineResolver(Source.Bittensor_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.BittensorNetwork,
 			resolve: {
 				Network: {
@@ -60,7 +61,7 @@ export default {
 					$network: (network) => network.$network,
 				}),
 
-		defineResolver(Source.Bittensor_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.BittensorNetwork_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {
@@ -129,7 +130,7 @@ export default {
 					metagraphsByteLength: (timestamp) => timestamp.metagraphsByteLength,
 				}),
 
-		defineResolver(Source.Bittensor_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.BittensorBlock,
 			resolve: {
 				NetworkBlockNumberHash: {
@@ -169,7 +170,7 @@ export default {
 					extrinsicCount: (block) => block.extrinsicCount,
 				}),
 
-		defineResolver(Source.Bittensor_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.BittensorSubnet,
 			resolve: {
 				NetworkNetuid: {
@@ -211,7 +212,7 @@ export default {
 					hyperparamsByteLength: (subnet) => subnet.hyperparamsByteLength,
 				}),
 
-		defineResolver(Source.Bittensor_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.BittensorMetagraph_Timestamp,
 			resolve: {
 				SubnetTimestampMsSource: {
@@ -232,7 +233,7 @@ export default {
 					metagraphByteLength: (timestamp) => timestamp.metagraphByteLength,
 				}),
 
-		defineResolver(Source.Bittensor_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.BittensorNeuron,
 			resolve: {
 				BittensorSubnetUid: {
@@ -248,7 +249,7 @@ export default {
 					uid: (neuron) => neuron.uid,
 				}),
 
-		defineResolver(Source.Bittensor_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -272,7 +273,7 @@ export default {
 					},
 				}),
 
-		defineResolver(Source.Bittensor_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.BittensorNetwork,
 			resolve: {
 				Network: {
@@ -294,7 +295,7 @@ export default {
 					$$timestamps: (timestamps) => timestamps,
 				}),
 
-		defineResolver(Source.Bittensor_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -330,7 +331,7 @@ export default {
 					},
 				}),
 
-		defineResolver(Source.Bittensor_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.BittensorNetwork,
 			resolve: {
 				Network: {
@@ -364,7 +365,7 @@ export default {
 					$$blocks: (blocks) => blocks,
 				}),
 
-		defineResolver(Source.Bittensor_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -390,7 +391,7 @@ export default {
 					},
 				}),
 
-		defineResolver(Source.Bittensor_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.BittensorNetwork,
 			resolve: {
 				Network: {
@@ -414,7 +415,7 @@ export default {
 					$$subnets: (subnets) => subnets,
 				}),
 
-		defineResolver(Source.Bittensor_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.BittensorSubnet,
 			resolve: {
 				NetworkNetuid: {
@@ -436,7 +437,7 @@ export default {
 					$$metagraphTimestamps: (timestamps) => timestamps,
 				}),
 
-		defineResolver(Source.Bittensor_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.BittensorSubnet,
 			resolve: {
 				NetworkNetuid: {
@@ -450,4 +451,4 @@ export default {
 					$$neurons: (neurons) => neurons,
 				}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Bittensor_JsonRpc>

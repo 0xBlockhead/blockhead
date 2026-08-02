@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -189,7 +190,7 @@ export default {
 	source: Source.Lotus_JsonRpc,
 
 	resolvers: [
-		defineResolver(Source.Lotus_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.FilecoinNetwork,
 			resolve: {
 				Network: {
@@ -210,7 +211,7 @@ export default {
 				rpcEndpoints: (network) => network.rpcEndpoints,
 			}),
 
-		defineResolver(Source.Lotus_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -229,7 +230,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Lotus_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.FilecoinNetwork_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {
@@ -303,7 +304,7 @@ export default {
 				totalQualityAdjustedPower: (timestamp) => timestamp.totalQualityAdjustedPower,
 			}),
 
-		defineResolver(Source.Lotus_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.FilecoinTipset,
 			resolve: {
 				NetworkHeightTipsetKey: {
@@ -335,7 +336,7 @@ export default {
 				$$blocks: (tipset) => tipset.$$blocks,
 			}),
 
-		defineResolver(Source.Lotus_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.FilecoinBlock,
 			resolve: {
 				NetworkCid: {
@@ -359,7 +360,7 @@ export default {
 				winCount: (block) => block.winCount,
 			}),
 
-		defineResolver(Source.Lotus_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.FilecoinSector,
 			resolve: {
 				FilecoinMinerSectorNumber: {
@@ -383,7 +384,7 @@ export default {
 				expirationEpoch: (sector) => sector.expirationEpoch,
 			}),
 
-		defineResolver(Source.Lotus_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.FilecoinActor,
 			resolve: {
 				NetworkAddress: {
@@ -412,7 +413,7 @@ export default {
 				$$timestamps: (actor) => actor.$$timestamps,
 			}),
 
-		defineResolver(Source.Lotus_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.FilecoinActor_Timestamp,
 			resolve: {
 				ActorHeightTipsetKeySource: {
@@ -474,7 +475,7 @@ export default {
 				stateRootCid: (timestamp) => timestamp.stateRootCid,
 			}),
 
-		defineResolver(Source.Lotus_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.FilecoinSector_Timestamp,
 			resolve: {
 				SectorTimestampMsSource: {
@@ -506,7 +507,7 @@ export default {
 				expirationEpoch: (timestamp) => timestamp.expirationEpoch,
 			}),
 
-		defineResolver(Source.Lotus_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.FilecoinMiner_Timestamp,
 			resolve: {
 				MinerHeightTipsetKeySource: {
@@ -593,7 +594,7 @@ export default {
 				faultySectorCount: (timestamp) => timestamp.faultySectorCount,
 			}),
 
-		defineResolver(Source.Lotus_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.FilecoinNetwork,
 			resolve: {
 				Network: {
@@ -604,7 +605,7 @@ export default {
 				$$timestamps: (timestamps) => timestamps,
 			}),
 
-		defineResolver(Source.Lotus_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -617,7 +618,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Lotus_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.FilecoinNetwork,
 			resolve: {
 				Network: {
@@ -631,7 +632,7 @@ export default {
 				$$tipsets: (tipsets) => tipsets,
 			}),
 
-		defineResolver(Source.Lotus_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -648,7 +649,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Lotus_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.FilecoinMiner,
 			resolve: {
 				NetworkMinerAddress: {
@@ -689,4 +690,4 @@ export default {
 				$$timestamps: (miner) => miner.timestamps,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Lotus_JsonRpc>

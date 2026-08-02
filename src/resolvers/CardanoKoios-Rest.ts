@@ -1,7 +1,7 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { cardanoGovernanceActionFields } from '$/resolvers/CardanoGovernance.ts'
-import { defineResolver, type SourceResolverContext } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule, type SourceResolverContext } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
@@ -32,7 +32,7 @@ const assertCardanoMainnet = (
 const cardanoNetworkSelectors = <const _Snapshot extends object>(
 	resolve: (
 		network: EntitySelector<typeof schema, EntityType.Network>,
-		context: SourceResolverContext<Source.CardanoKoios_Rest>
+		context: SourceResolverContext
 	) => Promise<_Snapshot>
 ) => ({
 	Slug: { resolve },
@@ -64,7 +64,7 @@ export default {
 	source: Source.CardanoKoios_Rest,
 
 	resolvers: [
-		defineResolver(Source.CardanoKoios_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
@@ -79,7 +79,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.CardanoKoios_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
@@ -109,7 +109,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.CardanoKoios_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
@@ -136,7 +136,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.CardanoKoios_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
@@ -157,7 +157,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.CardanoKoios_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
@@ -186,7 +186,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.CardanoKoios_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
@@ -210,7 +210,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.CardanoKoios_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
@@ -303,7 +303,7 @@ export default {
 				},
 		}),
 
-		defineResolver(Source.CardanoKoios_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
@@ -325,7 +325,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.CardanoKoios_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
@@ -369,7 +369,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.CardanoKoios_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
@@ -411,7 +411,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.CardanoKoios_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoGovernanceProposal,
 			resolve: {
 				NetworkProposalTxHashProposalIndex: {
@@ -469,7 +469,7 @@ export default {
 			constitutionScript: (proposal) => proposal.constitutionScript,
 		}),
 
-		defineResolver(Source.CardanoKoios_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoTransaction,
 			resolve: {
 				NetworkHash: {
@@ -611,4 +611,4 @@ export default {
 			})),
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.CardanoKoios_Rest>

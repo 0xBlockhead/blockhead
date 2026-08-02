@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -9,7 +10,7 @@ export default {
 	source: Source.BitcoinCashBcmr_Github,
 
 	resolvers: [
-		defineResolver(Source.BitcoinCashBcmr_Github, {
+		defineResolver({
 			entityType: EntityType.BitcoinCashBcmrMetadata,
 			resolve: {
 				NetworkCategoryIdRegistryUrl: {
@@ -58,4 +59,4 @@ export default {
 				decimals: (snapshot) => snapshot.decimals,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.BitcoinCashBcmr_Github>

@@ -1,5 +1,5 @@
 import { networkBySlug } from '$/constants/Network.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
@@ -11,7 +11,7 @@ export default {
 	source: Source.Bithomp,
 
 	resolvers: [
-		defineResolver(Source.Bithomp, {
+		defineResolver({
 			entityType: EntityType.XrplAccount,
 			resolve: {
 				NetworkAccount: {
@@ -83,4 +83,4 @@ export default {
 			$$timestamps: (timestamps) => timestamps,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Bithomp>

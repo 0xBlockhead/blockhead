@@ -1,6 +1,6 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { defineResolver, type SourceResolverContext } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule, type SourceResolverContext } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
@@ -32,7 +32,7 @@ const assertCardanoMainnet = (
 const cardanoNetworkSelectors = <const _Snapshot extends object>(
 	resolve: (
 		network: EntitySelector<typeof schema, EntityType.Network>,
-		context: SourceResolverContext<Source.Blockfrost_Rest>
+		context: SourceResolverContext
 	) => Promise<_Snapshot>
 ) => ({
 	Slug: { resolve },
@@ -216,7 +216,7 @@ export default {
 	source: Source.Blockfrost_Rest,
 
 	resolvers: [
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoAddress,
 			resolve: {
 				NetworkAddress: {
@@ -282,7 +282,7 @@ export default {
 			$$timestamps: (address) => address.$$timestamps,
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoAddress,
 			resolve: {
 				NetworkAddress: {
@@ -336,7 +336,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoAddress,
 			resolve: {
 				NetworkAddress: {
@@ -452,7 +452,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoTransaction,
 			resolve: {
 				NetworkHash: {
@@ -476,7 +476,7 @@ export default {
 			ttlSlot: (transaction) => transaction.invalid_hereafter == null ? undefined : BigInt(transaction.invalid_hereafter),
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoTransaction,
 			resolve: {
 				NetworkHash: {
@@ -572,7 +572,7 @@ export default {
 			),
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoTxInput,
 			resolve: {
 				TransactionInputIndex: {
@@ -609,7 +609,7 @@ export default {
 			}),
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoTxOutput,
 			resolve: {
 				TransactionOutputIndex: {
@@ -663,7 +663,7 @@ export default {
 			}),
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
@@ -678,7 +678,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
@@ -719,7 +719,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
@@ -753,7 +753,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
@@ -776,7 +776,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
@@ -799,7 +799,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
@@ -828,7 +828,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
@@ -902,7 +902,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
@@ -931,7 +931,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
@@ -1010,7 +1010,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
@@ -1049,7 +1049,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoCommittee_Epoch,
 			resolve: {
 				NetworkEpochSource: {
@@ -1089,7 +1089,7 @@ export default {
 			$$votes: (committee) => committee.$$votes,
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoGovernanceProposal,
 			resolve: {
 				NetworkProposalTxHashProposalIndex: {
@@ -1273,7 +1273,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoGovernanceProposal,
 			resolve: {
 				NetworkProposalTxHashProposalIndex: {
@@ -1305,7 +1305,7 @@ export default {
 			anchorHash: (proposal) => proposal.anchorHash,
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoGovernanceProposal_Timestamp,
 			resolve: {
 				ProposalEpochSource: {
@@ -1360,7 +1360,7 @@ export default {
 			expirationEpoch: (observation) => observation.expirationEpoch,
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoDRep,
 			resolve: {
 				NetworkDrepCredential: {
@@ -1411,7 +1411,7 @@ export default {
 			$$votes: (drep) => drep.$$votes,
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoDRep,
 			resolve: {
 				NetworkDrepCredential: {
@@ -1433,7 +1433,7 @@ export default {
 			anchorHash: (drep) => drep.anchorHash,
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoStakePool,
 			resolve: {
 				NetworkPoolId: {
@@ -1452,7 +1452,7 @@ export default {
 			vrfKeyHash: (pool) => pool.vrf_key,
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoStakePool,
 			resolve: {
 				NetworkPoolId: {
@@ -1476,7 +1476,7 @@ export default {
 			homepage: (pool) => pool.homepage ?? undefined,
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoNetwork_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {
@@ -1516,7 +1516,7 @@ export default {
 			backendHealthy: (observation) => observation.backendHealthy,
 		}),
 
-		defineResolver(Source.Blockfrost_Rest, {
+		defineResolver({
 			entityType: EntityType.CardanoBlock,
 			resolve: {
 				NetworkHash: {
@@ -1560,4 +1560,4 @@ export default {
 			epoch: (block) => block.epoch,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Blockfrost_Rest>

@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { timestampMsFromUnixSeconds } from '$/lib/time.ts'
@@ -218,7 +219,7 @@ export default {
 	source: Source.Reddit_PublicJson,
 
 	resolvers: [
-		defineResolver(Source.Reddit_PublicJson, {
+		defineResolver({
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
 				Name: {
@@ -265,7 +266,7 @@ export default {
 				$$timestamps: (subreddit) => subreddit.$$timestamps,
 			}),
 
-		defineResolver(Source.Reddit_PublicJson, {
+		defineResolver({
 			entityType: EntityType.RedditLink,
 			resolve: {
 				Fullname: {
@@ -328,7 +329,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Reddit_PublicJson, {
+		defineResolver({
 			entityType: EntityType.RedditComment,
 			resolve: {
 				Fullname: {
@@ -381,7 +382,7 @@ export default {
 				$$timestamps: (comment) => comment.$$timestamps,
 			}),
 
-		defineResolver(Source.Reddit_PublicJson, {
+		defineResolver({
 			entityType: EntityType.RedditSubreddit_Timestamp,
 			resolve: {
 				SubredditTimestampMsSource: {
@@ -402,7 +403,7 @@ export default {
 				activeUserCount: (timestamp) => timestamp.activeUserCount,
 			}),
 
-		defineResolver(Source.Reddit_PublicJson, {
+		defineResolver({
 			entityType: EntityType.RedditLink_Timestamp,
 			resolve: {
 				LinkTimestampMsSource: {
@@ -423,7 +424,7 @@ export default {
 				commentCount: (timestamp) => timestamp.commentCount,
 			}),
 
-		defineResolver(Source.Reddit_PublicJson, {
+		defineResolver({
 			entityType: EntityType.RedditComment_Timestamp,
 			resolve: {
 				CommentTimestampMsSource: {
@@ -440,7 +441,7 @@ export default {
 				score: (timestamp) => timestamp.score,
 			}),
 
-		defineResolver(Source.Reddit_PublicJson, {
+		defineResolver({
 			entityType: EntityType._GlobalRedditNetwork,
 			resolve: {
 				Scope: {
@@ -472,7 +473,7 @@ export default {
 				$$observedLinks: (network) => network.links,
 			}),
 
-		defineResolver(Source.Reddit_PublicJson, {
+		defineResolver({
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
 				Name: {
@@ -514,7 +515,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Reddit_PublicJson, {
+		defineResolver({
 			entityType: EntityType.RedditLink,
 			resolve: {
 				Fullname: {
@@ -536,7 +537,7 @@ export default {
 				$$comments: (comments) => comments,
 			}),
 
-		defineResolver(Source.Reddit_PublicJson, {
+		defineResolver({
 			entityType: EntityType.RedditComment,
 			resolve: {
 				Fullname: {
@@ -563,4 +564,4 @@ export default {
 				$$replies: (replies) => replies,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Reddit_PublicJson>

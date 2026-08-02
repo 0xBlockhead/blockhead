@@ -1,6 +1,6 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
@@ -36,7 +36,7 @@ export default {
 	source: Source.Nodely,
 
 	resolvers: [
-		defineResolver(Source.Nodely, {
+		defineResolver({
 			entityType: EntityType.AlgorandAccount,
 			resolve: {
 				NetworkAddress: {
@@ -94,7 +94,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Nodely, {
+		defineResolver({
 			entityType: EntityType.AlgorandAccount,
 			resolve: {
 				NetworkAddress: {
@@ -136,4 +136,4 @@ export default {
 			$$timestamps: (timestamps) => timestamps,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Nodely>

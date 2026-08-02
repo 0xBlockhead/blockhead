@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -12,7 +13,7 @@ export default {
 	source: Source.Blobscan_Rest,
 
 	resolvers: [
-		defineResolver(Source.Blobscan_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmBlob,
 			resolve: {
 				TransactionIndexInTransaction: {
@@ -54,7 +55,7 @@ export default {
 			$block: (snapshot) => snapshot.$block,
 		}),
 
-		defineResolver(Source.Blobscan_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmBlob,
 			resolve: {
 				TransactionIndexInTransaction: {
@@ -89,4 +90,4 @@ export default {
 			blobDataStorageReferences: (snapshot) => snapshot.blobDataStorageReferences,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Blobscan_Rest>

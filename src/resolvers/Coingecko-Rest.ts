@@ -15,6 +15,7 @@ import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	isSeededCoinCurrencyMarket,
@@ -291,7 +292,7 @@ export default {
 	source: Source.Coingecko_Rest,
 
 	resolvers: [
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType.Market_Derivative_Timestamp,
 			resolve: {
 				MarketTimestampMsFeedKey: {
@@ -327,7 +328,7 @@ export default {
 			transport: (timestamp) => timestamp.transport,
 		}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType.Market,
 			resolve: {
 				BaseQuoteMarketVenueKind: {
@@ -353,7 +354,7 @@ export default {
 			$$derivativeTimestamps: (market) => market,
 		}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType.Market_Derivative_Timestamp,
 			resolve: {
 				MarketTimestampMsFeedKey: {
@@ -368,7 +369,7 @@ export default {
 			}),
 		}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -385,7 +386,7 @@ export default {
 			$$markets: (globalScope) => globalScope,
 		}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType.Coin,
 			resolve: {
 				CoinId: {
@@ -415,7 +416,7 @@ export default {
 			$$marketsWithCoinAsBase: (coin) => coin,
 		}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType.Coin,
 			resolve: {
 				CoinId: {
@@ -468,7 +469,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType.Coin_Timestamp,
 			resolve: {
 				CoinTimestampMsSource: {
@@ -509,7 +510,7 @@ export default {
 				providerAssetId: (coinTimestamp) => coinTimestamp.providerAssetId,
 			}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				NetworkTypeContract: {
@@ -572,7 +573,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
 				MarketTimestampMsFeedKey: {
@@ -626,7 +627,7 @@ export default {
 				caip19: (timestamp) => timestamp.caip19,
 			}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
 				MarketTimeIntervalTimestampMs: {
@@ -674,7 +675,7 @@ export default {
 				low: (timestamp) => timestamp.low,
 				close: (timestamp) => timestamp.close,
 			}),
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -711,7 +712,7 @@ export default {
 				$$coins: (globalScope) => globalScope,
 			}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -753,7 +754,7 @@ export default {
 				$$marketPrices: (globalScope) => globalScope,
 			}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -799,7 +800,7 @@ export default {
 				$$marketTimeIntervalTimestamps: (globalScope) => globalScope,
 			}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType.Coin,
 			resolve: {
 				CoinId: {
@@ -819,7 +820,7 @@ export default {
 				$$coinInstances: (coin) => coin,
 			}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				NetworkType: {
@@ -883,7 +884,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				NetworkType: {
@@ -949,7 +950,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType.Market,
 			resolve: {
 				BaseQuoteMarketVenueKind: {
@@ -969,7 +970,7 @@ export default {
 				$baseCoin: (market) => market,
 			}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType.Market,
 			resolve: {
 				BaseQuoteMarketVenueKind: {
@@ -995,7 +996,7 @@ export default {
 				$$marketPrices: (market) => market,
 			}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType.Market,
 			resolve: {
 				BaseQuoteMarketVenueKind: {
@@ -1034,7 +1035,7 @@ export default {
 				$$marketTimeIntervalTimestamps: (market) => market,
 			}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				Market: {
@@ -1070,7 +1071,7 @@ export default {
 				$$quotes: (marketPrice) => marketPrice,
 			}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				Market: {
@@ -1085,7 +1086,7 @@ export default {
 				$parentMarket: (marketPrice) => marketPrice,
 			}),
 
-		defineResolver(Source.Coingecko_Rest, {
+		defineResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
 				MarketTimeIntervalTimestampMs: {
@@ -1100,4 +1101,4 @@ export default {
 				$parentMarket: (timestamp) => timestamp,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Coingecko_Rest>

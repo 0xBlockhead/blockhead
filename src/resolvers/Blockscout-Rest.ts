@@ -6,6 +6,7 @@ import { optionalNonemptyString } from '$/lib/string.ts'
 import { hexLowerOfByteSize, with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	evmChainIdFromNetworkSelector,
@@ -896,7 +897,7 @@ export default {
 	source: Source.Blockscout_Rest,
 
 	resolvers: [
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmBlock,
 			resolve: {
 				EvmNetworkBlockNumber: {
@@ -968,7 +969,7 @@ export default {
 			transactionCount: (block) => block.transactionCount,
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				EvmNetworkTxHash: {
@@ -1143,7 +1144,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmLog,
 			resolve: {
 				TransactionIndexInTransaction: {
@@ -1178,7 +1179,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmLog,
 			resolve: {
 				TransactionIndexInTransaction: {
@@ -1226,7 +1227,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmTokenTransfer,
 			resolve: {
 				LogIndexInLog: {
@@ -1285,7 +1286,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				NetworkTypeContract: {
@@ -1334,7 +1335,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmInternalTransfer,
 			resolve: {
 				TransactionIndexInTransaction: {
@@ -1373,7 +1374,7 @@ export default {
 			$createdContract: (transfer) => transfer.$createdContract,
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Erc4337SmartAccount,
 			resolve: {
 				EvmNetworkAddress: {
@@ -1384,7 +1385,7 @@ export default {
 			$contract: (account) => account.$contract,
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Erc4337SmartAccount,
 			resolve: {
 				EvmNetworkAddress: {
@@ -1425,7 +1426,7 @@ export default {
 			})),
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Erc4337SmartAccount_Timestamp,
 			resolve: {
 				AccountTimestampMsSource: {
@@ -1455,7 +1456,7 @@ export default {
 			userOperationsCount: (timestamp) => timestamp.userOperationsCount,
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Erc4337Paymaster,
 			resolve: {
 				EvmNetworkAddress: {
@@ -1466,7 +1467,7 @@ export default {
 			$contract: (paymaster) => paymaster.$contract,
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Erc4337AccountFactory,
 			resolve: {
 				EvmNetworkAddress: {
@@ -1477,7 +1478,7 @@ export default {
 			$contract: (factory) => factory.$contract,
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmUserOperation,
 			resolve: {
 				EvmNetworkHash: {
@@ -1636,7 +1637,7 @@ export default {
 			$bundler: (userOperation) => userOperation.$bundler,
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
 				MarketTimestampMsFeedKey: {
@@ -1671,7 +1672,7 @@ export default {
 			providerAssetId: (quote) => quote.providerAssetId,
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {
@@ -1706,7 +1707,7 @@ export default {
 			transport: (gasEstimate) => gasEstimate.transport,
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Coin_Timestamp,
 			resolve: {
 				CoinTimestampMsSource: {
@@ -1755,7 +1756,7 @@ export default {
 			providerAssetId: (coinTimestamp) => coinTimestamp.providerAssetId,
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -1788,7 +1789,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				EvmNetworkEvmAccount: {
@@ -1824,7 +1825,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmBlock,
 			resolve: {
 				EvmNetworkBlockNumber: {
@@ -1844,7 +1845,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -1891,7 +1892,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -1934,7 +1935,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				EvmNetworkEvmAccount: {
@@ -1980,7 +1981,7 @@ export default {
 			$$transactions: (entity) => entity,
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				EvmNetworkEvmAccount: {
@@ -2016,7 +2017,7 @@ export default {
 			$$tokenTransfers: (entity) => entity.map(evmTokenTransferReference),
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				EvmNetworkEvmAccount: {
@@ -2051,7 +2052,7 @@ export default {
 			$$internalTransfers: (entity) => entity.map(evmInternalTransferReference),
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -2119,7 +2120,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -2163,7 +2164,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -2197,7 +2198,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -2230,7 +2231,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -2263,7 +2264,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -2296,7 +2297,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -2333,7 +2334,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -2376,7 +2377,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.Coin,
 			resolve: {
 				CoinId: {
@@ -2409,7 +2410,7 @@ export default {
 			$$timestamps: (entity) => entity,
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				Market: {
@@ -2447,7 +2448,7 @@ export default {
 			$$quotes: (entity) => entity,
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				EvmNetworkTxHash: {
@@ -2484,7 +2485,7 @@ export default {
 			$$tokenTransfers: (entity) => entity.map(evmTokenTransferReference),
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				EvmNetworkTxHash: {
@@ -2516,7 +2517,7 @@ export default {
 			$$internalTransfers: (entity) => entity.map(evmInternalTransferReference),
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				EvmNetworkTxHash: {
@@ -2550,7 +2551,7 @@ export default {
 			$$userOperations: (entity) => entity,
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmBlock,
 			resolve: {
 				EvmNetworkBlockNumber: {
@@ -2591,7 +2592,7 @@ export default {
 			$$transactions: (entity) => entity,
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -2632,7 +2633,7 @@ export default {
 			$creationTransaction: (contract) => contract.$creationTransaction,
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -2675,7 +2676,7 @@ export default {
 			abi: (contract) => contract.abi,
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -2707,7 +2708,7 @@ export default {
 			codeHash: (contract) => contract.codeHash,
 		}),
 
-		defineResolver(Source.Blockscout_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -2741,4 +2742,4 @@ export default {
 			storageSlotReads: (entity) => entity,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Blockscout_Rest>

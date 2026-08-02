@@ -1,6 +1,7 @@
 import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import type {
 	NormalizedStateChannel,
@@ -117,7 +118,7 @@ export default {
 	source: Source.Local_Internal,
 
 	resolvers: [
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.XmtpConversation,
 			resolve: {
 				Id: {
@@ -145,7 +146,7 @@ export default {
 				consentState: (conversation) => conversation.consentState,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadWallet,
 			resolve: {
 				Id: {
@@ -177,7 +178,7 @@ export default {
 				capabilities: (wallet) => wallet.capabilities,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.WalletConnectionMethod,
 			resolve: {
 				Id: {
@@ -212,7 +213,7 @@ export default {
 				dependencyPolicy: (method) => method.dependencyPolicy,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadWalletConnection,
 			resolve: {
 				ConnectionKey: {
@@ -275,7 +276,7 @@ export default {
 				error: (connection) => connection.error,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadRoom,
 			resolve: {
 				Id: {
@@ -297,7 +298,7 @@ export default {
 				name: (room) => room.name,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadSession,
 			resolve: {
 				Id: {
@@ -325,7 +326,7 @@ export default {
 				simulationCount: (session) => session.simulationCount,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadSessionAction,
 			resolve: {
 				SessionIdActionId: {
@@ -360,7 +361,7 @@ export default {
 				updatedAt: (action) => action.updatedAt,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadSocialPostSession,
 			resolve: {
 				Id: {
@@ -424,7 +425,7 @@ export default {
 				lockedAt: (session) => session.lockedAt,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadLocalMediaIngest,
 			resolve: {
 				IngestId: {
@@ -476,7 +477,7 @@ export default {
 				$$timestamps: (ingest) => ingest.$$timestamps,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadLocalMediaIngest_Timestamp,
 			resolve: {
 				IngestTimestampMsSource: {
@@ -514,7 +515,7 @@ export default {
 				error: (observation) => observation.error,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadRoomPeer,
 			resolve: {
 				Id: {
@@ -546,7 +547,7 @@ export default {
 				isConnected: (peer) => peer.isConnected,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadSharedAddress,
 			resolve: {
 				Id: {
@@ -576,7 +577,7 @@ export default {
 				sharedAt: (address) => address.sharedAt,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadSiweChallenge,
 			resolve: {
 				Id: {
@@ -646,7 +647,7 @@ export default {
 				verificationError: (challenge) => challenge.verificationError,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadFilecoinPendingMessage,
 			resolve: {
 				NodeIdMessageCidObservedAtMs: {
@@ -719,7 +720,7 @@ export default {
 				payload: (message) => message.payload,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadStateChannel,
 			resolve: {
 				Id: {
@@ -762,7 +763,7 @@ export default {
 			$$timestamps: (channel) => channel.$$timestamps,
 		}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadStateChannel_Timestamp,
 			resolve: {
 				ChannelTimestampMsSource: {
@@ -790,7 +791,7 @@ export default {
 			status: (timestamp) => timestamp.status,
 		}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadStateChannelDeposit,
 			resolve: {
 				ChannelAccount: {
@@ -834,7 +835,7 @@ export default {
 			$$timestamps: (deposit) => deposit.$$timestamps,
 		}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadStateChannelDeposit_Timestamp,
 			resolve: {
 				DepositTimestampMsSource: {
@@ -862,7 +863,7 @@ export default {
 			lockedBalance: (timestamp) => timestamp.lockedBalance,
 		}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadStateChannelTransfer,
 			resolve: {
 				ChannelTurnNumFromToAmount: {
@@ -900,7 +901,7 @@ export default {
 				status: (transfer) => transfer.status,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadStateChannelState,
 			resolve: {
 				ChannelVersionStateData: {
@@ -942,7 +943,7 @@ export default {
 				timestamp: (state) => state.timestamp,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadTransferRequest,
 			resolve: {
 				IdEvmNetwork: {
@@ -983,7 +984,7 @@ export default {
 				expiresAt: (request) => request.expiresAt,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadAgentConversation,
 			resolve: {
 				Id: {
@@ -1015,7 +1016,7 @@ export default {
 				updatedAt: (conversation) => conversation.updatedAt,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadAgentConversationTurn,
 			resolve: {
 				Id: {
@@ -1078,7 +1079,7 @@ export default {
 				promptVersion: (turn) => turn.promptVersion,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadEnsNameSearch,
 			resolve: {
 				Query: {
@@ -1099,7 +1100,7 @@ export default {
 				resultLimit: (entity) => entity.resultLimit,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -1115,7 +1116,7 @@ export default {
 				$$actors: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -1134,7 +1135,7 @@ export default {
 				$$xmtpConversations: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.XmtpNetwork,
 			resolve: {
 				Scope: {
@@ -1153,7 +1154,7 @@ export default {
 				$$xmtpConversations: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadWorkspace,
 			resolve: {
 				Id: {
@@ -1187,7 +1188,7 @@ export default {
 				updatedAt: (blockheadWorkspace) => blockheadWorkspace.updatedAt,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadPanelTree,
 			resolve: {
 				Id: {
@@ -1218,7 +1219,7 @@ export default {
 				),
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadPanel,
 			resolve: {
 				TreeIdPanelId: {
@@ -1251,7 +1252,7 @@ export default {
 				selector: (blockheadPanel) => blockheadPanel.selector,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadSource,
 			resolve: {
 				Id: {
@@ -1267,7 +1268,7 @@ export default {
 				id: (blockheadSource) => blockheadSource[EntityMetaKey.Selector].id,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadFarcasterAccountConnection,
 			resolve: {
 				ConnectionId: {
@@ -1299,7 +1300,7 @@ export default {
 				selected: (connection) => connection.selected,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -1318,7 +1319,7 @@ export default {
 				$$blockheadSources: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -1337,7 +1338,7 @@ export default {
 				$$blockheadWallets: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -1358,7 +1359,7 @@ export default {
 				$$blockheadWalletConnections: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -1377,7 +1378,7 @@ export default {
 				$$blockheadSessions: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadSession,
 			resolve: {
 				Id: {
@@ -1404,7 +1405,7 @@ export default {
 				$$actions: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -1423,7 +1424,7 @@ export default {
 				$$blockheadWorkspaces: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -1442,7 +1443,7 @@ export default {
 				$$blockheadLocalMediaIngests: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -1461,7 +1462,7 @@ export default {
 				$$blockheadPanelTrees: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadPanelTree,
 			resolve: {
 				Id: {
@@ -1488,7 +1489,7 @@ export default {
 				$$panels: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -1507,7 +1508,7 @@ export default {
 				$$blockheadFarcasterAccountConnections: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -1526,7 +1527,7 @@ export default {
 				$$blockheadAgentConversations: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadAgentConversation,
 			resolve: {
 				Id: {
@@ -1549,7 +1550,7 @@ export default {
 				$$turns: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -1575,7 +1576,7 @@ export default {
 				$$bridgeTransactions: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadBridgeTransaction,
 			resolve: {
 				AccountSourceTxCreatedAt: {
@@ -1610,7 +1611,7 @@ export default {
 				createdAt: (transaction) => transaction.createdAt,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadRoom,
 			resolve: {
 				Id: {
@@ -1631,7 +1632,7 @@ export default {
 				$$peers: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -1650,7 +1651,7 @@ export default {
 				$$blockheadRoomPeers: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -1669,7 +1670,7 @@ export default {
 				$$blockheadRooms: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -1688,7 +1689,7 @@ export default {
 					$$blockheadStateChannels: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadStateChannel,
 			resolve: {
 				Id: {
@@ -1717,7 +1718,7 @@ export default {
 				$$transfers: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadStateChannel,
 			resolve: {
 				Id: {
@@ -1744,7 +1745,7 @@ export default {
 				$$states: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType.BlockheadStateChannel,
 			resolve: {
 				Id: {
@@ -1770,7 +1771,7 @@ export default {
 				$$deposits: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -1789,7 +1790,7 @@ export default {
 				$$blockheadSharedAddresses: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._GlobalEvmAbiCatalog,
 			resolve: {
 				Scope: {
@@ -1808,7 +1809,7 @@ export default {
 					$$observedSelectors: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._GlobalEvmAbiCatalog,
 			resolve: {
 				Scope: {
@@ -1827,7 +1828,7 @@ export default {
 					$$observedTopics: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._GlobalEvmAbiCatalog,
 			resolve: {
 				Scope: {
@@ -1846,7 +1847,7 @@ export default {
 					$$observedErrors: (entity) => entity,
 			}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._GlobalEvmAbiCatalog,
 			resolve: {
 				Scope: {
@@ -1867,7 +1868,7 @@ export default {
 			$$timestamps: (timestamps) => timestamps,
 		}),
 
-		defineResolver(Source.Local_Internal, {
+		defineResolver({
 			entityType: EntityType._GlobalEvmAbiCatalog_Timestamp,
 			resolve: {
 				HubTimestampMsSource: {
@@ -1896,4 +1897,4 @@ export default {
 			reachable: (timestamp) => timestamp.reachable,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Local_Internal>

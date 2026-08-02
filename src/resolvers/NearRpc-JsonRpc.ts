@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -414,7 +415,7 @@ const getNearCurrentValidator = async (
 export default {
 	source: Source.NearRpc_JsonRpc,
 	resolvers: [
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearNetwork,
 			resolve: {
 				Slug: {
@@ -427,7 +428,7 @@ export default {
 		})({
 			rpcEndpoints: (rpcEndpoints) => rpcEndpoints,
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -442,7 +443,7 @@ export default {
 				rpcEndpoints: (rpcEndpoints) => rpcEndpoints,
 			},
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearBlock,
 			resolve: {
 				NetworkHeightHash: {
@@ -493,7 +494,7 @@ export default {
 			timestampMs: (block) => block.timestampMs,
 			$$chunks: (block) => block.$$chunks,
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearChunk,
 			resolve: {
 				NetworkChunkHash: {
@@ -531,7 +532,7 @@ export default {
 			gasUsed: (chunk) => chunk.gasUsed,
 			$$transactions: (chunk) => chunk.$$transactions,
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearTransaction,
 			resolve: {
 				NetworkHashSignerAccountId: {
@@ -573,7 +574,7 @@ export default {
 			$$actions: (transaction) => transaction.$$actions,
 			$$executionOutcomes: (transaction) => transaction.$$executionOutcomes,
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearAction,
 			resolve: {
 				NearTransactionActionIndex: {
@@ -591,7 +592,7 @@ export default {
 			methodName: (action) => action.methodName,
 			depositYoctoNear: (action) => action.depositYoctoNear,
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearExecutionOutcome,
 			resolve: {
 				NearTransactionOutcomeId: {
@@ -615,7 +616,7 @@ export default {
 			gasBurnt: (outcome) => outcome.gasBurnt,
 			$$receipts: (outcome) => outcome.$$receipts,
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearReceipt,
 			resolve: {
 				NetworkReceiptId: {
@@ -640,7 +641,7 @@ export default {
 			$predecessor: (receipt) => receipt.$predecessor,
 			$receiver: (receipt) => receipt.$receiver,
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearAccount,
 			resolve: {
 				NetworkAccountId: {
@@ -665,7 +666,7 @@ export default {
 			storageUsageBytes: (account) => account.storageUsageBytes,
 			$contract: (account) => account.$contract,
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearContract,
 			resolve: {
 				NetworkAccountId: {
@@ -680,7 +681,7 @@ export default {
 		})({
 			codeHash: (contract) => contract.codeHash,
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearContractStorageEntry,
 			resolve: {
 				ContractKeyBlockHeightSource: {
@@ -720,7 +721,7 @@ export default {
 			valueBase64: (entry) => entry.valueBase64,
 			prefixBase64: (entry) => entry.prefixBase64,
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearAccount_Timestamp,
 			resolve: {
 				AccountTimestampMsSource: {
@@ -737,7 +738,7 @@ export default {
 			storageUsageBytes: (timestamp) => timestamp.storageUsageBytes,
 			codeHash: (timestamp) => timestamp.codeHash,
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearContract_Timestamp,
 			resolve: {
 				ContractTimestampMsSource: {
@@ -755,7 +756,7 @@ export default {
 		})({
 			codeHash: (timestamp) => timestamp.codeHash,
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearAccessKey,
 			resolve: {
 				NearAccountPublicKey: {
@@ -772,7 +773,7 @@ export default {
 			nonce: (accessKey) => accessKey.nonce,
 			permission: (accessKey) => accessKey.permission,
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearAccessKey_Timestamp,
 			resolve: {
 				AccessKeyTimestampMsSource: {
@@ -792,7 +793,7 @@ export default {
 			receiverId: (timestamp) => timestamp.receiverId,
 			methodNames: (timestamp) => timestamp.methodNames ?? [],
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearValidator,
 			resolve: {
 				NetworkAccountId: {
@@ -812,7 +813,7 @@ export default {
 			expectedChunks: (validator) => validator.expectedChunks,
 			producedChunks: (validator) => validator.producedChunks,
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearValidator_Timestamp,
 			resolve: {
 				ValidatorEpochIdSource: {
@@ -845,7 +846,7 @@ export default {
 			expectedChunks: (timestamp) => timestamp.expectedChunks,
 			producedChunks: (timestamp) => timestamp.producedChunks,
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearNetwork,
 			resolve: {
 				Slug: {
@@ -859,7 +860,7 @@ export default {
 		})({
 			$$timestamps: (timestamps) => timestamps,
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -875,7 +876,7 @@ export default {
 				$$timestamps: (timestamps) => timestamps,
 			},
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearNetwork_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {
@@ -886,7 +887,7 @@ export default {
 				}
 			},
 		})(nearNetworkTimestampFieldResolvers),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearNetwork,
 			resolve: {
 				Slug: {
@@ -901,7 +902,7 @@ export default {
 		})({
 			$$blocks: (blocks) => blocks,
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -918,7 +919,7 @@ export default {
 				$$blocks: (blocks) => blocks,
 			},
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearNetwork,
 			resolve: {
 				Slug: {
@@ -933,7 +934,7 @@ export default {
 		})({
 			$$validators: (validators) => validators,
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -950,7 +951,7 @@ export default {
 				$$validators: (validators) => validators,
 			},
 		}),
-		defineResolver(Source.NearRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.NearAccount,
 			resolve: {
 				NetworkAccountId: {
@@ -979,4 +980,4 @@ export default {
 			$$accessKeys: (accessKeys) => accessKeys,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.NearRpc_JsonRpc>

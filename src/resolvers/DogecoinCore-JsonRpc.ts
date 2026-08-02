@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -30,7 +31,7 @@ export default {
 	source: Source.DogecoinCore_JsonRpc,
 
 	resolvers: [
-		defineResolver(Source.DogecoinCore_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.DogecoinBlockAuxPow,
 			resolve: {
 				Block: {
@@ -77,7 +78,7 @@ export default {
 			$chainBranch: (auxPow) => auxPow.$chainBranch,
 		}),
 
-		defineResolver(Source.DogecoinCore_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.DogecoinAuxPowMerkleBranch,
 			resolve: {
 				AuxPowBranchKind: {
@@ -114,7 +115,7 @@ export default {
 			index: (branch) => branch.index,
 		}),
 
-		defineResolver(Source.DogecoinCore_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.DogecoinAuxPowParentBlockHeader,
 			resolve: {
 				AuxPow: {
@@ -160,7 +161,7 @@ export default {
 			nonce: (header) => header.nonce,
 		}),
 
-		defineResolver(Source.DogecoinCore_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				NetworkHeightHash: {
@@ -229,7 +230,7 @@ export default {
 				$$transactions: (snapshot) => snapshot.$$transactions,
 			}),
 
-		defineResolver(Source.DogecoinCore_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				NetworkTxId: {
@@ -265,4 +266,4 @@ export default {
 				isCoinbase: (snapshot) => snapshot.isCoinbase,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.DogecoinCore_JsonRpc>

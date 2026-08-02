@@ -1,5 +1,5 @@
 import { networkBySlug } from '$/constants/Network.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
@@ -28,7 +28,7 @@ export default {
 	source: Source.EigenExplorer_Rest,
 
 	resolvers: [
-		defineResolver(Source.EigenExplorer_Rest, {
+		defineResolver({
 			entityType: EntityType.EigenLayerDelegation_Timestamp,
 			resolve: {
 				StakerOperatorStrategyTimestampMsSource: {
@@ -90,4 +90,4 @@ export default {
 			delegatedShares: (delegation) => delegation.delegatedShares,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.EigenExplorer_Rest>

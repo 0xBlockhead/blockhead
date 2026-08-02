@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { optionalTimestampMs } from '$/lib/time.ts'
@@ -75,7 +76,7 @@ export default {
 	source: Source.Atproto_Xrpc,
 
 	resolvers: [
-		defineResolver(Source.Atproto_Xrpc, {
+		defineResolver({
 			entityType: EntityType.AtprotoActor,
 			resolve: {
 				Did: {
@@ -88,7 +89,7 @@ export default {
 				did: (actor) => actor.did,
 			}),
 
-		defineResolver(Source.Atproto_Xrpc, {
+		defineResolver({
 			entityType: EntityType.AtprotoActor,
 			resolve: {
 				Handle: {
@@ -106,7 +107,7 @@ export default {
 				handle: (actor) => actor.handle,
 			}),
 
-		defineResolver(Source.Atproto_Xrpc, {
+		defineResolver({
 			entityType: EntityType.AtprotoPost,
 			resolve: {
 				Uri: {
@@ -139,7 +140,7 @@ export default {
 				$$timestamps: (post) => post.$$timestamps,
 			}),
 
-		defineResolver(Source.Atproto_Xrpc, {
+		defineResolver({
 			entityType: EntityType.AtprotoPost_Timestamp,
 			resolve: {
 				AtprotoPostTimestampMs: {
@@ -163,7 +164,7 @@ export default {
 				quoteCount: (timestamp) => timestamp.quoteCount,
 			}),
 
-		defineResolver(Source.Atproto_Xrpc, {
+		defineResolver({
 			entityType: EntityType._GlobalAtprotoNetwork,
 			resolve: {
 				Scope: {
@@ -191,7 +192,7 @@ export default {
 				$$observedActors: (actors) => actors,
 			}),
 
-		defineResolver(Source.Atproto_Xrpc, {
+		defineResolver({
 			entityType: EntityType._GlobalAtprotoNetwork,
 			resolve: {
 				Scope: {
@@ -218,7 +219,7 @@ export default {
 				$$observedPosts: (posts) => posts,
 			}),
 
-		defineResolver(Source.Atproto_Xrpc, {
+		defineResolver({
 			entityType: EntityType.AtprotoActor,
 			resolve: {
 				Did: {
@@ -260,7 +261,7 @@ export default {
 				$$timestamps: (timestamps) => timestamps,
 			}),
 
-		defineResolver(Source.Atproto_Xrpc, {
+		defineResolver({
 			entityType: EntityType.AtprotoActor,
 			resolve: {
 				Did: {
@@ -286,7 +287,7 @@ export default {
 				$$posts: (posts) => posts,
 			}),
 
-		defineResolver(Source.Atproto_Xrpc, {
+		defineResolver({
 			entityType: EntityType.AtprotoPost,
 			resolve: {
 				Uri: {
@@ -332,4 +333,4 @@ export default {
 				$$thread: (thread) => thread,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Atproto_Xrpc>

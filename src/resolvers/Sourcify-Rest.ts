@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { evmAbiFromJsonValue } from '$/lib/evmAbi.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
@@ -87,7 +88,7 @@ export default {
 	source: Source.Sourcify_Rest,
 
 	resolvers: [
-		defineResolver(Source.Sourcify_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContractVerification,
 			resolve: {
 				EvmContract: {
@@ -129,7 +130,7 @@ export default {
 				$sourceBundle: (verification) => verification.$sourceBundle,
 			}),
 
-		defineResolver(Source.Sourcify_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContractCompilation,
 			resolve: {
 				EvmContract: {
@@ -179,7 +180,7 @@ export default {
 				storageLayoutJson: (compilation) => compilation.storageLayoutJson,
 			}),
 
-		defineResolver(Source.Sourcify_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContractSourceBundle,
 			resolve: {
 				EvmContract: {
@@ -196,7 +197,7 @@ export default {
 				files: (sourceBundle) => sourceBundle.files,
 			}),
 
-		defineResolver(Source.Sourcify_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -216,7 +217,7 @@ export default {
 				abi: (abi) => abi,
 			}),
 
-		defineResolver(Source.Sourcify_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -234,7 +235,7 @@ export default {
 				$verification: (verification) => verification,
 			}),
 
-		defineResolver(Source.Sourcify_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -256,7 +257,7 @@ export default {
 				$deployer: (deployer) => deployer,
 			}),
 
-		defineResolver(Source.Sourcify_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -279,7 +280,7 @@ export default {
 				$creationTransaction: (creationTransaction) => creationTransaction,
 			}),
 
-		defineResolver(Source.Sourcify_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -302,4 +303,4 @@ export default {
 				$implementation: (implementation) => implementation,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Sourcify_Rest>

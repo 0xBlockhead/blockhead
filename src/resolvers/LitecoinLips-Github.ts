@@ -4,6 +4,7 @@ import {
 } from '$/constants/SpecificationProposal.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { regex } from 'arkregex'
 import {
@@ -19,7 +20,7 @@ export default {
 	source: Source.LitecoinLips_Github,
 
 	resolvers: [
-		defineResolver(Source.LitecoinLips_Github, {
+		defineResolver({
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
 				RealmCategoryNumber: {
@@ -53,7 +54,7 @@ export default {
 				documentBody: (snapshot) => snapshot.documentBody,
 			}),
 
-		defineResolver(Source.LitecoinLips_Github, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -79,4 +80,4 @@ export default {
 				$$proposals: (snapshot) => snapshot,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.LitecoinLips_Github>

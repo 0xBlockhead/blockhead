@@ -1,6 +1,6 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
@@ -60,7 +60,7 @@ export default {
 	source: Source.Starkscan,
 
 	resolvers: [
-		defineResolver(Source.Starkscan, {
+		defineResolver({
 			entityType: EntityType.StarknetContract,
 			resolve: {
 				NetworkAddress: {
@@ -162,4 +162,4 @@ export default {
 			},
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Starkscan>

@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
@@ -13,7 +14,7 @@ export default {
 	source: Source.Swarm_Rest,
 
 	resolvers: [
-		defineResolver(Source.Swarm_Rest, {
+		defineResolver({
 			entityType: EntityType.SwarmResource,
 			resolve: {
 				ResourceAddress: {
@@ -109,7 +110,7 @@ export default {
 				$media: (snapshot) => snapshot.$media,
 			}),
 
-		defineResolver(Source.Swarm_Rest, {
+		defineResolver({
 			entityType: EntityType._GlobalSwarmAccess_Timestamp,
 			resolve: {
 				HubTimestampMsSource: {
@@ -143,4 +144,4 @@ export default {
 			reachable: (snapshot) => snapshot.reachable,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Swarm_Rest>

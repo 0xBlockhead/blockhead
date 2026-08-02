@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { Hex } from '@tevm/voltaire/Hex'
 import { networks } from '$/constants/Network.ts'
@@ -51,7 +52,7 @@ export default {
 	source: Source.Allium_Rest,
 
 	resolvers: [
-		defineResolver(Source.Allium_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				NetworkTypeContract: {
@@ -116,7 +117,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Allium_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmNetworkActorCoinBalance,
 			resolve: {
 				EvmAccountNativeCoinInstance: {
@@ -224,7 +225,7 @@ export default {
 			decimals: (balance) => balance.decimals,
 		}),
 
-		defineResolver(Source.Allium_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				EvmNetworkEvmAccount: {
@@ -284,7 +285,7 @@ export default {
 			$$ownedCoins: (ownedCoins) => ownedCoins,
 		}),
 
-		defineResolver(Source.Allium_Rest, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -355,4 +356,4 @@ export default {
 			$$actorCoins: (actorCoins) => actorCoins,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Allium_Rest>

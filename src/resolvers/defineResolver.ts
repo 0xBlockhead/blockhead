@@ -10,11 +10,14 @@ import type {
 	ResolverContext,
 	ResolverSelectorPattern,
 	ResolverValue,
+	SourceResolverModule,
 } from '$/resolvers/$resolvers.ts'
 
-export type SourceResolverContext<
+export type RegisteredSourceResolverModule<
 	_Source extends Source,
-> = Omit<ResolverContext, 'publicEnv'> & {
+> = SourceResolverModule<typeof schema, _Source>
+
+export type SourceResolverContext = Omit<ResolverContext, 'publicEnv'> & {
 	readonly publicEnv: SourcePublicEnv
 }
 
@@ -37,7 +40,6 @@ type ResolverSnapshot<_Resolve> = (
 )
 
 type ResolveShape<
-	_Source extends Source,
 	_EntityType extends EntityType<typeof schema>,
 > = Partial<{
 	readonly [_SelectorName in Extract<EntitySelectorName<typeof schema, _EntityType>, string>]: {
@@ -56,7 +58,7 @@ type ResolveShape<
 				_EntityType,
 				Extract<_SelectorName, EntitySelectorName<typeof schema, _EntityType>>
 			>,
-			context: SourceResolverContext<_Source>
+			context: SourceResolverContext
 		) => Promise<ResolverSnapshotCandidate>
 	}
 }>
@@ -70,32 +72,28 @@ type ExactResolveConstraint<
 	{ readonly resolve: never }
 
 type ResolverFields<
-	_Source extends Source,
 	_EntityType extends EntityType<typeof schema>,
-	_Resolve extends ResolveShape<_Source, _EntityType>,
+	_Resolve extends ResolveShape<_EntityType>,
 > = Partial<{
 	readonly [_FieldName in EntityFieldName<typeof schema, _EntityType>]: FieldSelector<
 		typeof schema,
 		_EntityType,
 		_FieldName,
 		ResolverSnapshot<_Resolve>,
-		SourceResolverContext<_Source>
+		SourceResolverContext
 	>
 }> & ResolverFacetFields<
-	_Source,
 	_EntityType,
 	_Resolve,
 	NonNullable<EntityDefinitionForEntityType<typeof schema, _EntityType>['facets']>[number]
 >
 
 type ResolverFacetFields<
-	_Source extends Source,
 	_EntityType extends EntityType<typeof schema>,
-	_Resolve extends ResolveShape<_Source, _EntityType>,
+	_Resolve extends ResolveShape<_EntityType>,
 	_Facet extends EntityFacetDefinition,
 > = string extends _Facet['name'] ? {} : Partial<{
 	readonly [_FacetName in _Facet['name']]: ResolverFacetFieldsForDefinition<
-		_Source,
 		_EntityType,
 		_Resolve,
 		Extract<_Facet, { readonly name: _FacetName }>
@@ -103,9 +101,8 @@ type ResolverFacetFields<
 }>
 
 type ResolverFacetFieldsForDefinition<
-	_Source extends Source,
 	_EntityType extends EntityType<typeof schema>,
-	_Resolve extends ResolveShape<_Source, _EntityType>,
+	_Resolve extends ResolveShape<_EntityType>,
 	_Facet extends EntityFacetDefinition,
 > = Partial<{
 	readonly [_FieldName in _Facet['fields'][number]['name']]: ProjectionFieldSelector<
@@ -113,55 +110,48 @@ type ResolverFacetFieldsForDefinition<
 		_EntityType,
 		Extract<_Facet['fields'][number], { readonly name: _FieldName }>,
 		ResolverSnapshot<_Resolve>,
-		SourceResolverContext<_Source>
+		SourceResolverContext
 	>
 }> & ResolverFacetFields<
-	_Source,
 	_EntityType,
 	_Resolve,
 	NonNullable<_Facet['facets']>[number]
 >
 
 type DefineResolverResult<
-	_Source extends Source,
 	_EntityType extends EntityType<typeof schema>,
-	_Resolve extends ResolveShape<_Source, _EntityType>,
+	_Resolve extends ResolveShape<_EntityType>,
 	_Resolver extends {
 		entityType: _EntityType
 		resolve: _Resolve
 	},
-> = <const _Fields extends ResolverFields<_Source, _EntityType, _Resolve>>(projections: _Fields) => _Resolver & {
+> = <const _Fields extends ResolverFields<_EntityType, _Resolve>>(projections: _Fields) => _Resolver & {
 	projections: _Fields
 }
 
 export function defineResolver<
-	const _Source extends Source,
 	const _EntityType extends EntityType<typeof schema>,
-	const _Resolve extends ResolveShape<_Source, _EntityType>,
+	const _Resolve extends ResolveShape<_EntityType>,
 >(
-	_source: _Source,
 	resolver: {
 		entityType: _EntityType
 		resolve: _Resolve
 	} & ExactResolveConstraint<_EntityType, _Resolve>
-): DefineResolverResult<_Source, _EntityType, _Resolve, typeof resolver>
+): DefineResolverResult<_EntityType, _Resolve, typeof resolver>
 
 export function defineResolver<
-	const _Source extends Source,
 	const _EntityType extends EntityType<typeof schema>,
-	const _Resolve extends ResolveShape<_Source, _EntityType>,
+	const _Resolve extends ResolveShape<_EntityType>,
 	const _ResolveLive extends ResolveLivePublishers<typeof schema, _EntityType>,
 >(
-	_source: _Source,
 	resolver: {
 		entityType: _EntityType
 		resolve: _Resolve
 		resolveLive: _ResolveLive
 	} & ExactResolveConstraint<_EntityType, _Resolve>
-): DefineResolverResult<_Source, _EntityType, _Resolve, typeof resolver>
+): DefineResolverResult<_EntityType, _Resolve, typeof resolver>
 
 export function defineResolver(
-	_source: Source,
 	resolver: {
 		entityType: EntityType<typeof schema>
 		resolve: object

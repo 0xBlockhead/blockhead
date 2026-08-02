@@ -2,7 +2,7 @@ import {
 	type ProviderContinuation,
 	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
@@ -188,7 +188,7 @@ export default {
 	source: Source.Xrpl_Rippled,
 
 	resolvers: [
-		defineResolver(Source.Xrpl_Rippled, {
+		defineResolver({
 			entityType: EntityType.XrplAccount,
 			resolve: {
 				NetworkAccount: {
@@ -220,7 +220,7 @@ export default {
 			$$timestamps: (timestamps) => timestamps,
 		}),
 
-		defineResolver(Source.Xrpl_Rippled, {
+		defineResolver({
 			entityType: EntityType.XrplAccount_Timestamp,
 			resolve: {
 				AccountLedgerIndexSource: {
@@ -250,7 +250,7 @@ export default {
 			flags: (observation) => observation.flags,
 		}),
 
-		defineResolver(Source.Xrpl_Rippled, {
+		defineResolver({
 			entityType: EntityType.XrplAccount,
 			resolve: {
 				NetworkAccount: {
@@ -318,7 +318,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Xrpl_Rippled, {
+		defineResolver({
 			entityType: EntityType.XrplAccount,
 			resolve: {
 				NetworkAccount: {
@@ -425,7 +425,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Xrpl_Rippled, {
+		defineResolver({
 			entityType: EntityType.XrplAccount,
 			resolve: {
 				NetworkAccount: {
@@ -515,7 +515,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Xrpl_Rippled, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -548,7 +548,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Xrpl_Rippled, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -584,7 +584,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Xrpl_Rippled, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -613,7 +613,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Xrpl_Rippled, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -667,7 +667,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Xrpl_Rippled, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -719,7 +719,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Xrpl_Rippled, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -753,4 +753,4 @@ export default {
 			},
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Xrpl_Rippled>

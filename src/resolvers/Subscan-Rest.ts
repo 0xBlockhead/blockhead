@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -33,7 +34,7 @@ export default {
 	source: Source.Subscan_Rest,
 
 	resolvers: [
-		defineResolver(Source.Subscan_Rest, {
+		defineResolver({
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
 				NetworkBlockNumberHash: {
@@ -68,7 +69,7 @@ export default {
 				extrinsicsRoot: (snapshot) => snapshot.extrinsicsRoot,
 			}),
 
-		defineResolver(Source.Subscan_Rest, {
+		defineResolver({
 			entityType: EntityType.PolkadotExtrinsic,
 			resolve: {
 				BlockIndexInBlock: {
@@ -127,7 +128,7 @@ export default {
 				success: (snapshot) => snapshot.success,
 			}),
 
-		defineResolver(Source.Subscan_Rest, {
+		defineResolver({
 			entityType: EntityType.PolkadotReferendum,
 			resolve: {
 				NetworkReferendumId: {
@@ -153,7 +154,7 @@ export default {
 				submittedAtBlockNumber: (referendum) => referendum.submittedAtBlockNumber,
 			}),
 
-		defineResolver(Source.Subscan_Rest, {
+		defineResolver({
 			entityType: EntityType.PolkadotReferendum_Timestamp,
 			resolve: {
 				ReferendumTimestampMsSource: {
@@ -206,4 +207,4 @@ export default {
 				nayVotes: (observation) => observation.nayVotes,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Subscan_Rest>

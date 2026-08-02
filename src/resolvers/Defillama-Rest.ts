@@ -2,7 +2,7 @@ import {
 	MarketAssetKind,
 	MarketKind,
 } from '$/constants/Market.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { isSeededCoinCurrencyMarket } from '$/resolvers/market.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -46,7 +46,7 @@ export default {
 	source: Source.Defillama_Rest,
 
 	resolvers: [
-		defineResolver(Source.Defillama_Rest, {
+		defineResolver({
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
 				MarketTimestampMsFeedKey: {
@@ -91,7 +91,7 @@ export default {
 			providerAssetId: (snapshot) => snapshot.providerAssetId,
 		}),
 
-		defineResolver(Source.Defillama_Rest, {
+		defineResolver({
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				Market: {
@@ -134,7 +134,7 @@ export default {
 			$$quotes: (quotes) => quotes,
 		}),
 
-		defineResolver(Source.Defillama_Rest, {
+		defineResolver({
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				Market: {
@@ -147,7 +147,7 @@ export default {
 			$parentMarket: (market) => market,
 		}),
 
-		defineResolver(Source.Defillama_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -175,4 +175,4 @@ export default {
 			$icon: (icon) => icon,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Defillama_Rest>

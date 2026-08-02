@@ -1,5 +1,5 @@
 import { networkBySlug } from '$/constants/Network.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
@@ -25,7 +25,7 @@ export default {
 	source: Source.LogosBlockchainNode_Rest,
 
 	resolvers: [
-		defineResolver(Source.LogosBlockchainNode_Rest, {
+		defineResolver({
 			entityType: EntityType.LogosBlockchainNetwork,
 			resolve: {
 				Network: {
@@ -63,4 +63,4 @@ export default {
 			$$timestamps: (timestamps) => timestamps,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.LogosBlockchainNode_Rest>

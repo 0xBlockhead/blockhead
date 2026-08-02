@@ -1,5 +1,5 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { type } from 'arktype'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
@@ -74,7 +74,7 @@ export default {
 	source: Source.X_Rest,
 
 	resolvers: [
-		defineResolver(Source.X_Rest, {
+		defineResolver({
 			entityType: EntityType.XUser,
 			resolve: {
 				Id: {
@@ -172,7 +172,7 @@ export default {
 			$$timestamps: (user) => user.$$timestamps,
 		}),
 
-		defineResolver(Source.X_Rest, {
+		defineResolver({
 			entityType: EntityType.XPost,
 			resolve: {
 				Id: {
@@ -283,7 +283,7 @@ export default {
 			$$timestamps: (post) => post.$$timestamps,
 		}),
 
-		defineResolver(Source.X_Rest, {
+		defineResolver({
 			entityType: EntityType.XUser,
 			resolve: {
 				Id: {
@@ -348,4 +348,4 @@ export default {
 			},
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.X_Rest>

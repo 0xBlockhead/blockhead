@@ -1,6 +1,6 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
@@ -275,7 +275,7 @@ export default {
 	source: Source.HederaMirrorNode_Rest,
 
 	resolvers: [
-		defineResolver(Source.HederaMirrorNode_Rest, {
+		defineResolver({
 			entityType: EntityType.HederaAccount,
 			resolve: {
 				NetworkAccountId: {
@@ -352,7 +352,7 @@ export default {
 			$$timestamps: (account) => account.$$timestamps,
 		}),
 
-		defineResolver(Source.HederaMirrorNode_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -378,7 +378,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.HederaMirrorNode_Rest, {
+		defineResolver({
 			entityType: EntityType.HederaBlock,
 			resolve: {
 				NetworkBlockNumber: {
@@ -417,7 +417,7 @@ export default {
 			transactionCount: (block) => block.transactionCount,
 		}),
 
-		defineResolver(Source.HederaMirrorNode_Rest, {
+		defineResolver({
 			entityType: EntityType.HederaAccount,
 			resolve: {
 				NetworkAccountId: {
@@ -494,7 +494,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.HederaMirrorNode_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -535,7 +535,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.HederaMirrorNode_Rest, {
+		defineResolver({
 			entityType: EntityType.HederaAccount,
 			resolve: {
 				NetworkAccountId: {
@@ -630,7 +630,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.HederaMirrorNode_Rest, {
+		defineResolver({
 			entityType: EntityType.HederaAccount,
 			resolve: {
 				NetworkAccountId: {
@@ -703,7 +703,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.HederaMirrorNode_Rest, {
+		defineResolver({
 			entityType: EntityType.HederaAccount,
 			resolve: {
 				NetworkAccountId: {
@@ -778,7 +778,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.HederaMirrorNode_Rest, {
+		defineResolver({
 			entityType: EntityType.HederaTransaction,
 			resolve: {
 				NetworkConsensusTimestamp: {
@@ -835,4 +835,4 @@ export default {
 			$$tokenTransfers: (transaction) => transaction.$$tokenTransfers,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.HederaMirrorNode_Rest>

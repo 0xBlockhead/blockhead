@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -52,7 +53,7 @@ export default {
 	source: Source.ThreeXpl_Rest,
 
 	resolvers: [
-		defineResolver(Source.ThreeXpl_Rest, {
+		defineResolver({
 			entityType: EntityType.MoneroBlock,
 			resolve: {
 				NetworkHeightHash: {
@@ -92,7 +93,7 @@ export default {
 			$$transactions: (block) => block.$$transactions,
 		}),
 
-		defineResolver(Source.ThreeXpl_Rest, {
+		defineResolver({
 			entityType: EntityType.NearBlock,
 			resolve: {
 				NetworkHeightHash: {
@@ -116,7 +117,7 @@ export default {
 				timestampMs: (block) => block.timestampMs,
 			}),
 
-		defineResolver(Source.ThreeXpl_Rest, {
+		defineResolver({
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
 				NetworkBlockNumberHash: {
@@ -136,7 +137,7 @@ export default {
 				hash: (block) => block.hash,
 			}),
 
-		defineResolver(Source.ThreeXpl_Rest, {
+		defineResolver({
 			entityType: EntityType.SolanaBlock,
 			resolve: {
 				Slot: {
@@ -183,7 +184,7 @@ export default {
 			$$transactions: (block) => block.$$transactions,
 		}),
 
-		defineResolver(Source.ThreeXpl_Rest, {
+		defineResolver({
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
 				NetworkSignature: {
@@ -210,7 +211,7 @@ export default {
 				$block: (transaction) => transaction.$block,
 			}),
 
-		defineResolver(Source.ThreeXpl_Rest, {
+		defineResolver({
 			entityType: EntityType.TronBlock,
 			resolve: {
 				NetworkHeightHash: {
@@ -253,7 +254,7 @@ export default {
 			$$transactions: (block) => block.$$transactions,
 		}),
 
-		defineResolver(Source.ThreeXpl_Rest, {
+		defineResolver({
 			entityType: EntityType.TronTransaction,
 			resolve: {
 				NetworkTransactionId: {
@@ -288,7 +289,7 @@ export default {
 				timestampMs: (transaction) => transaction.timestampMs,
 			}),
 
-		defineResolver(Source.ThreeXpl_Rest, {
+		defineResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				NetworkHeightHash: {
@@ -321,4 +322,4 @@ export default {
 			$$transactions: (block) => block.$$transactions,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.ThreeXpl_Rest>

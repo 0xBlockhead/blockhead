@@ -98,7 +98,7 @@ const resolveHyperliquidTransactions = async (
 		.slice(0, limit)
 }
 export const hyperliquidEvmResolvers = [
-	defineResolver(Source.Hyperliquid, {
+	defineResolver({
 		entityType: EntityType.HyperliquidBlock,
 		resolve: {
 			Height: {
@@ -125,7 +125,7 @@ export const hyperliquidEvmResolvers = [
 		timestampMs: (snapshot) => snapshot.timestampMs,
 		$$transactions: (snapshot) => snapshot.$$transactions,
 	}),
-	defineResolver(Source.Hyperliquid, {
+	defineResolver({
 		entityType: EntityType.HyperliquidTransaction,
 		resolve: {
 			NetworkTxHash: {
@@ -163,7 +163,7 @@ export const hyperliquidEvmResolvers = [
 		$account: (snapshot) => snapshot.$account,
 		actionType: (snapshot) => snapshot.actionType,
 	}),
-	defineResolver(Source.Hyperliquid, {
+	defineResolver({
 		entityType: EntityType.HyperliquidTransaction,
 		resolve: {
 			NetworkTxHash: {
@@ -181,7 +181,7 @@ export const hyperliquidEvmResolvers = [
 	})({
 		$$timestamps: (snapshot) => snapshot,
 	}),
-	defineResolver(Source.Hyperliquid, {
+	defineResolver({
 		entityType: EntityType.HyperliquidTransaction_Timestamp,
 		resolve: {
 			TransactionTimestampMsSource: {
@@ -206,7 +206,7 @@ export const hyperliquidEvmResolvers = [
 		status: (snapshot) => snapshot.status,
 		blockNumber: (snapshot) => snapshot.blockNumber,
 	}),
-	defineResolver(Source.Hyperliquid, {
+	defineResolver({
 		entityType: EntityType.HyperliquidNetwork,
 		resolve: {
 			Network: {
@@ -219,7 +219,7 @@ export const hyperliquidEvmResolvers = [
 	})({
 		$$blocks: (snapshot) => snapshot,
 	}),
-	defineResolver(Source.Hyperliquid, {
+	defineResolver({
 		entityType: EntityType.Network,
 		resolve: {
 			Slug: {
@@ -234,7 +234,7 @@ export const hyperliquidEvmResolvers = [
 			$$blocks: (snapshot) => snapshot,
 		},
 	}),
-	defineResolver(Source.Hyperliquid, {
+	defineResolver({
 		entityType: EntityType.HyperliquidNetwork,
 		resolve: {
 			Network: {
@@ -247,7 +247,7 @@ export const hyperliquidEvmResolvers = [
 	})({
 		$$transactions: (snapshot) => snapshot,
 	}),
-	defineResolver(Source.Hyperliquid, {
+	defineResolver({
 		entityType: EntityType.Network,
 		resolve: {
 			Slug: {

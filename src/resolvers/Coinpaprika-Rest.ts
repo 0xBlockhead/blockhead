@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import type { CoinId } from '$/constants/Coin.ts'
 import { Iso4217 } from '$/constants/Currency.ts'
@@ -199,7 +200,7 @@ export default {
 	source: Source.Coinpaprika_Rest,
 
 	resolvers: [
-		defineResolver(Source.Coinpaprika_Rest, {
+		defineResolver({
 			entityType: EntityType.Coin,
 			resolve: {
 				CoinId: {
@@ -242,7 +243,7 @@ export default {
 				$logo: (coin) => coin.$logo,
 			}),
 
-		defineResolver(Source.Coinpaprika_Rest, {
+		defineResolver({
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
 				MarketTimestampMsFeedKey: {
@@ -288,7 +289,7 @@ export default {
 				providerAssetId: (timestamp) => timestamp.providerAssetId,
 			}),
 
-		defineResolver(Source.Coinpaprika_Rest, {
+		defineResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
 				MarketTimeIntervalTimestampMs: {
@@ -340,7 +341,7 @@ export default {
 				close: (timestamp) => timestamp.close,
 				quoteVolume: (timestamp) => timestamp.quoteVolume,
 			}),
-		defineResolver(Source.Coinpaprika_Rest, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -382,7 +383,7 @@ export default {
 				$$coins: (globalScope) => globalScope,
 			}),
 
-		defineResolver(Source.Coinpaprika_Rest, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -427,7 +428,7 @@ export default {
 			}),
 
 
-		defineResolver(Source.Coinpaprika_Rest, {
+		defineResolver({
 			entityType: EntityType.Coin,
 				resolve: {
 					CoinId: {
@@ -458,7 +459,7 @@ export default {
 				$$marketsWithCoinAsBase: (coin) => coin,
 			}),
 
-		defineResolver(Source.Coinpaprika_Rest, {
+		defineResolver({
 			entityType: EntityType.Market,
 			resolve: {
 				BaseQuoteMarketVenueKind: {
@@ -501,7 +502,7 @@ export default {
 				$$marketTimeIntervalTimestamps: (market) => market,
 			}),
 
-		defineResolver(Source.Coinpaprika_Rest, {
+		defineResolver({
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				Market: {
@@ -540,7 +541,7 @@ export default {
 				$$quotes: (marketPrice) => marketPrice,
 			}),
 
-		defineResolver(Source.Coinpaprika_Rest, {
+		defineResolver({
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				Market: {
@@ -555,7 +556,7 @@ export default {
 				$parentMarket: (marketPrice) => marketPrice,
 			}),
 
-		defineResolver(Source.Coinpaprika_Rest, {
+		defineResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
 				MarketTimeIntervalTimestampMs: {
@@ -570,4 +571,4 @@ export default {
 				$parentMarket: (timestamp) => timestamp,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Coinpaprika_Rest>

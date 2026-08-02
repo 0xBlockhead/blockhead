@@ -2,6 +2,7 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type SourceResolverContext,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	Caip2Namespace,
@@ -43,7 +44,7 @@ const tronNetworkApplicability = [
 const tronNetworkResolverSelectors = <_Snapshot extends object>(
 	resolve: (
 		network: NetworkId,
-		context: SourceResolverContext<Source.TronGrid_Rest>
+		context: SourceResolverContext
 	) => Promise<_Snapshot>
 ) => ({
 	Caip2: {
@@ -334,7 +335,7 @@ export default {
 	source: Source.TronGrid_Rest,
 
 	resolvers: [
-		defineResolver(Source.TronGrid_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: tronNetworkResolverSelectors(
 				async (network) => {
@@ -349,7 +350,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.TronGrid_Rest, {
+		defineResolver({
 			entityType: EntityType.TronNetwork_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {
@@ -398,7 +399,7 @@ export default {
 				createAccountFeeSun: (timestamp) => timestamp.createAccountFeeSun,
 			}),
 
-		defineResolver(Source.TronGrid_Rest, {
+		defineResolver({
 			entityType: EntityType.TronBlock,
 			resolve: {
 				NetworkHeightHash: {
@@ -427,7 +428,7 @@ export default {
 				$$transactions: (block) => block.$$transactions,
 			}),
 
-		defineResolver(Source.TronGrid_Rest, {
+		defineResolver({
 			entityType: EntityType.TronTransaction,
 			resolve: {
 				NetworkTransactionId: {
@@ -470,7 +471,7 @@ export default {
 				signatures: (transaction) => transaction.signatures,
 			}),
 
-		defineResolver(Source.TronGrid_Rest, {
+		defineResolver({
 			entityType: EntityType.TronAccount,
 			resolve: {
 				NetworkAddress: {
@@ -504,7 +505,7 @@ export default {
 				$$timestamps: (account) => account.$$timestamps,
 			}),
 
-		defineResolver(Source.TronGrid_Rest, {
+		defineResolver({
 			entityType: EntityType.TronAccount_Timestamp,
 			resolve: {
 				AccountTimestampMsSource: {
@@ -554,7 +555,7 @@ export default {
 				energyLimit: (account) => account.energyLimit,
 			}),
 
-		defineResolver(Source.TronGrid_Rest, {
+		defineResolver({
 			entityType: EntityType.TronTransactionReceipt,
 			resolve: {
 				Transaction: {
@@ -576,7 +577,7 @@ export default {
 				contractResultHex: (receipt) => receipt.contractResultHex,
 			}),
 
-		defineResolver(Source.TronGrid_Rest, {
+		defineResolver({
 			entityType: EntityType.TronWitness,
 			resolve: {
 				NetworkAddress: {
@@ -608,7 +609,7 @@ export default {
 				$$timestamps: (witness) => witness.$$timestamps,
 			}),
 
-		defineResolver(Source.TronGrid_Rest, {
+		defineResolver({
 			entityType: EntityType.TronWitness_Timestamp,
 			resolve: {
 				WitnessTimestampMsSource: {
@@ -633,7 +634,7 @@ export default {
 				active: (timestamp) => timestamp.active,
 			}),
 
-		defineResolver(Source.TronGrid_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: tronNetworkResolverSelectors(
 				async (network) => {
@@ -655,7 +656,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.TronGrid_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: tronNetworkResolverSelectors(
 				async (network) => {
@@ -673,7 +674,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.TronGrid_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: tronNetworkResolverSelectors(
 				async (network, context) => {
@@ -704,7 +705,7 @@ export default {
 			}),
 
 
-		defineResolver(Source.TronGrid_Rest, {
+		defineResolver({
 			entityType: EntityType.TronAccount,
 			resolve: {
 				NetworkAddress: {
@@ -735,4 +736,4 @@ export default {
 				$$transactions: (transactions) => transactions,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.TronGrid_Rest>

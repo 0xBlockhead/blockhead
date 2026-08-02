@@ -1,6 +1,6 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey, type EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { schema } from '$/schema/index.ts'
@@ -92,7 +92,7 @@ const aptosIndexerResolver = <const _Resolver extends object>(_resolver: _Resolv
 })
 
 export const aptosAccountTransactionsResolver = aptosIndexerResolver(
-	defineResolver(Source.AptosIndexer_Graphql, {
+	defineResolver({
 		entityType: EntityType.AptosAccount,
 		resolve: {
 			NetworkAddress: {
@@ -120,7 +120,7 @@ export const aptosAccountTransactionsResolver = aptosIndexerResolver(
 )
 
 export const aptosAccountBalancesResolver = aptosIndexerResolver(
-	defineResolver(Source.AptosIndexer_Graphql, {
+	defineResolver({
 		entityType: EntityType.AptosAccount,
 		resolve: {
 			NetworkAddress: {
@@ -156,7 +156,7 @@ export const aptosAccountBalancesResolver = aptosIndexerResolver(
 )
 
 export const aptosCoinBalanceResolver = aptosIndexerResolver(
-	defineResolver(Source.AptosIndexer_Graphql, {
+	defineResolver({
 		entityType: EntityType.AptosCoinBalance_Timestamp,
 		resolve: {
 			AccountStorageIdLedgerVersionSource: {
@@ -202,7 +202,7 @@ export const aptosCoinBalanceResolver = aptosIndexerResolver(
 )
 
 export const aptosTransactionResolver = aptosIndexerResolver(
-	defineResolver(Source.AptosIndexer_Graphql, {
+	defineResolver({
 		entityType: EntityType.AptosTransaction,
 		resolve: {
 			NetworkVersion: {
@@ -230,7 +230,7 @@ export const aptosTransactionResolver = aptosIndexerResolver(
 )
 
 export const aptosTableItemResolver = aptosIndexerResolver(
-	defineResolver(Source.AptosIndexer_Graphql, {
+	defineResolver({
 		entityType: EntityType.AptosTableItem,
 		resolve: {
 			NetworkTableHandleKeyHash: {
@@ -261,7 +261,7 @@ export const aptosTableItemResolver = aptosIndexerResolver(
 )
 
 export const aptosTableItemTimestampResolver = aptosIndexerResolver(
-	defineResolver(Source.AptosIndexer_Graphql, {
+	defineResolver({
 		entityType: EntityType.AptosTableItem_Timestamp,
 		resolve: {
 			TableItemLedgerVersionSource: {
@@ -317,4 +317,4 @@ export default {
 		aptosTableItemResolver,
 		aptosTableItemTimestampResolver,
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.AptosIndexer_Graphql>

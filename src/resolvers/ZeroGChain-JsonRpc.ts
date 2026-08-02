@@ -6,6 +6,7 @@ import {
 } from '$/constants/Evm.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { hexLowerOfByteSize, with0xHex } from '$/lib/hexLowerOfByteSize.ts'
 import {
@@ -100,7 +101,7 @@ export default {
 	source: Source.ZeroGChain_JsonRpc,
 
 	resolvers: [
-		defineResolver(Source.ZeroGChain_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmBlock,
 			resolve: {
 				EvmNetworkBlockNumber: {
@@ -157,7 +158,7 @@ export default {
 				transactionCount: (block) => block.transactionCount,
 			}),
 
-		defineResolver(Source.ZeroGChain_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				EvmNetworkEvmAccount: {
@@ -184,7 +185,7 @@ export default {
 				$$timestamps: (account) => account.$$timestamps,
 			}),
 
-		defineResolver(Source.ZeroGChain_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmNetworkAccount_Timestamp,
 			resolve: {
 				AccountTimestampMsSource: {
@@ -207,7 +208,7 @@ export default {
 				isContract: (account) => account.isContract,
 			}),
 
-		defineResolver(Source.ZeroGChain_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				EvmNetworkTxHash: {
@@ -331,7 +332,7 @@ export default {
 			},
 			}),
 
-		defineResolver(Source.ZeroGChain_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmBlock,
 			resolve: {
 				EvmNetworkBlockNumber: {
@@ -363,4 +364,4 @@ export default {
 			$$transactions: (transactions) => transactions,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.ZeroGChain_JsonRpc>

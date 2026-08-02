@@ -1,5 +1,5 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { optionalTimestampMs } from '$/lib/time.ts'
@@ -221,7 +221,7 @@ const lensGraphqlResolvers = {
 	source: Source.Lens_Graphql,
 
 	resolvers: [
-		defineResolver(Source.Lens_Graphql, {
+		defineResolver({
 			entityType: EntityType.LensNetwork,
 			resolve: {
 				Scope: {
@@ -239,7 +239,7 @@ const lensGraphqlResolvers = {
 				$$lensPosts: (posts) => posts,
 			}),
 
-		defineResolver(Source.Lens_Graphql, {
+		defineResolver({
 			entityType: EntityType.LensAccount,
 			resolve: {
 				Address: {
@@ -293,7 +293,7 @@ const lensGraphqlResolvers = {
 				$$timestamps: (account) => account.$$timestamps,
 			}),
 
-		defineResolver(Source.Lens_Graphql, {
+		defineResolver({
 			entityType: EntityType.LensPost,
 			resolve: {
 				Id: {
@@ -396,7 +396,7 @@ const lensGraphqlResolvers = {
 				$$timestamps: (post) => post.$$timestamps,
 			}),
 
-		defineResolver(Source.Lens_Graphql, {
+		defineResolver({
 			entityType: EntityType.LensAccount_Timestamp,
 			resolve: {
 				LensAccountTimestampMs: {
@@ -442,7 +442,7 @@ const lensGraphqlResolvers = {
 				followingCount: (timestamp) => timestamp.followingCount,
 			}),
 
-		defineResolver(Source.Lens_Graphql, {
+		defineResolver({
 			entityType: EntityType.LensPost_Timestamp,
 			resolve: {
 				LensPostTimestampMs: {
@@ -464,7 +464,7 @@ const lensGraphqlResolvers = {
 				reactionCount: (timestamp) => timestamp.reactionCount,
 			}),
 
-		defineResolver(Source.Lens_Graphql, {
+		defineResolver({
 			entityType: EntityType.LensPost,
 			resolve: {
 				Id: {
@@ -487,7 +487,7 @@ const lensGraphqlResolvers = {
 				$$comments: (comments) => comments,
 			}),
 
-		defineResolver(Source.Lens_Graphql, {
+		defineResolver({
 			entityType: EntityType.LensAccount,
 			resolve: {
 				Address: {
@@ -511,7 +511,7 @@ const lensGraphqlResolvers = {
 				$$posts: (posts) => posts,
 			}),
 
-		defineResolver(Source.Lens_Graphql, {
+		defineResolver({
 			entityType: EntityType.LensNetwork,
 			resolve: {
 				Scope: {
@@ -537,7 +537,7 @@ const lensGraphqlResolvers = {
 				$$lensAccounts: (accounts) => accounts,
 			}),
 
-		defineResolver(Source.Lens_Graphql, {
+		defineResolver({
 			entityType: EntityType.LensFeed,
 			resolve: {
 				Address: {
@@ -565,7 +565,7 @@ const lensGraphqlResolvers = {
 				createdAt: (feed) => feed.createdAt,
 			}),
 
-		defineResolver(Source.Lens_Graphql, {
+		defineResolver({
 			entityType: EntityType.LensFeed,
 			resolve: {
 				Address: {
@@ -592,6 +592,6 @@ const lensGraphqlResolvers = {
 			$$posts: (posts) => posts,
 		}),
 	] as const,
-}
+} satisfies RegisteredSourceResolverModule<Source.Lens_Graphql>
 
 export default lensGraphqlResolvers

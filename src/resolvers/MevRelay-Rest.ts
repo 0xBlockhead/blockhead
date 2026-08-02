@@ -2,6 +2,7 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -40,7 +41,7 @@ export default {
 	source: Source.MevRelay_Rest,
 
 	resolvers: [
-		defineResolver(Source.MevRelay_Rest, {
+		defineResolver({
 			entityType: EntityType.MevRelay_ProposerPayloadDelivered,
 			resolve: {
 				EvmNetworkRelayHostSlotBlockHash: {
@@ -95,7 +96,7 @@ export default {
 				$executionBlock: (snapshot) => snapshot.$executionBlock,
 			}),
 
-		defineResolver(Source.MevRelay_Rest, {
+		defineResolver({
 			entityType: EntityType.MevRelay,
 			resolve: {
 				EvmNetworkHost: {
@@ -114,7 +115,7 @@ export default {
 				$$timestamps: (snapshot) => snapshot,
 			}),
 
-		defineResolver(Source.MevRelay_Rest, {
+		defineResolver({
 			entityType: EntityType.MevRelay_Timestamp,
 			resolve: {
 				RelayTimestampMsSource: {
@@ -176,7 +177,7 @@ export default {
 				error: (snapshot) => snapshot.error,
 			}),
 
-		defineResolver(Source.MevRelay_Rest, {
+		defineResolver({
 			entityType: EntityType.MevBuilder,
 			resolve: {
 				EvmNetworkBuilderPubkey: {
@@ -195,7 +196,7 @@ export default {
 				$$timestamps: (snapshot) => snapshot,
 			}),
 
-		defineResolver(Source.MevRelay_Rest, {
+		defineResolver({
 			entityType: EntityType.MevBuilder_Timestamp,
 			resolve: {
 				BuilderTimestampMsSource: {
@@ -248,7 +249,7 @@ export default {
 				sampleLimit: (snapshot) => snapshot.sampleLimit,
 			}),
 
-		defineResolver(Source.MevRelay_Rest, {
+		defineResolver({
 			entityType: EntityType.MevBuilder,
 			resolve: {
 				EvmNetworkBuilderPubkey: {
@@ -308,7 +309,7 @@ export default {
 				$$deliveredPayloads: (snapshot) => snapshot,
 			}),
 
-		defineResolver(Source.MevRelay_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -373,7 +374,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.MevRelay_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -425,4 +426,4 @@ export default {
 				},
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.MevRelay_Rest>

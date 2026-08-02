@@ -14,6 +14,7 @@ import { resolveMediaUrlTransport } from '$/lib/media.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { evmNetworkSelectorFromChainId } from '$/resolvers/evm.ts'
 import {
@@ -641,7 +642,7 @@ const networkScopedEvmBlockFieldsFromVoltaireBlockRpc = (
 export default {
 	source: Source.Voltaire_JsonRpc,
 	resolvers: [
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmBlock,
 			resolve: {
 				EvmNetworkBlockNumber: {
@@ -784,7 +785,7 @@ export default {
 			$$transactions: (entity) => entity.$$transactions,
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmBlob,
 			resolve: {
 				TransactionIndexInTransaction: {
@@ -852,7 +853,7 @@ export default {
 			}),
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmNetwork_GasFee_Block,
 			resolve: {
 				EvmNetworkBlockNumber: {
@@ -921,7 +922,7 @@ export default {
 			blobGasUsedRatio: (gasFeeBlock) => gasFeeBlock.blobGasUsedRatio,
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmNetwork_Txpool_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {
@@ -952,7 +953,7 @@ export default {
 			queuedCount: (txpool) => txpool.queuedCount,
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EnsName,
 			resolve: {
 				NormalizedName: {
@@ -973,7 +974,7 @@ export default {
 			normalizedName: (entity) => entity.normalizedName,
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmActorCoinAllowance,
 			resolve: {
 				EvmAccountEvmContractSpenderInteropAddress: {
@@ -1005,7 +1006,7 @@ export default {
 			interopAddress: (allowance) => allowance.interopAddress,
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				EvmNetworkTxHash: {
@@ -1386,7 +1387,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmLog,
 			resolve: {
 				TransactionIndexInTransaction: {
@@ -1461,7 +1462,7 @@ export default {
 				},
 			},
 		}),
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -1700,7 +1701,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmAccount,
 			resolve: {
 				AddressInteropAddress: {
@@ -1739,7 +1740,7 @@ export default {
 			$primaryName: (entity) => entity,
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -1774,7 +1775,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmNetwork_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {
@@ -1802,7 +1803,7 @@ export default {
 			blockHeight: (entity) => entity.blockHeight,
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -1838,7 +1839,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -1875,7 +1876,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -1933,7 +1934,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -1964,7 +1965,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -2020,7 +2021,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				EvmNetworkTxHash: {
@@ -2062,7 +2063,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmAccount,
 			resolve: {
 				AddressInteropAddress: {
@@ -2114,7 +2115,7 @@ export default {
 			avatarUrl: (entity) => entity.avatarUrl,
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -2152,7 +2153,7 @@ export default {
 			storageSlotReads: (entity) => entity,
 		}),
 
-		defineResolver(Source.Voltaire_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -2187,4 +2188,4 @@ export default {
 			codeHash: (snapshot) => snapshot.codeHash,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Voltaire_JsonRpc>

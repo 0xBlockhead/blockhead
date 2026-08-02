@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -74,7 +75,7 @@ export default {
 	source: Source.Esplora_Rest,
 
 	resolvers: [
-		defineResolver(Source.Esplora_Rest, {
+		defineResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				NetworkHeightHash: {
@@ -120,7 +121,7 @@ export default {
 				transactionCount: (snapshot) => snapshot.transactionCount,
 			}),
 
-		defineResolver(Source.Esplora_Rest, {
+		defineResolver({
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				NetworkTxId: {
@@ -164,7 +165,7 @@ export default {
 				isCoinbase: (snapshot) => snapshot.isCoinbase,
 			}),
 
-		defineResolver(Source.Esplora_Rest, {
+		defineResolver({
 			entityType: EntityType.ElementsAsset,
 			resolve: {
 				ElementsNetworkAssetId: {
@@ -196,7 +197,7 @@ export default {
 				hasBlindedIssuances: (snapshot) => snapshot.hasBlindedIssuances,
 			}),
 
-		defineResolver(Source.Esplora_Rest, {
+		defineResolver({
 			entityType: EntityType.ElementsAsset,
 			resolve: {
 				ElementsNetworkAssetId: {
@@ -215,7 +216,7 @@ export default {
 				$$timestamps: (snapshot) => snapshot,
 			}),
 
-		defineResolver(Source.Esplora_Rest, {
+		defineResolver({
 			entityType: EntityType.ElementsAsset_Timestamp,
 			resolve: {
 				AssetTimestampMsSource: {
@@ -246,7 +247,7 @@ export default {
 				reissuanceTokenCount: (snapshot) => snapshot.reissuanceTokenCount,
 			}),
 
-		defineResolver(Source.Esplora_Rest, {
+		defineResolver({
 			entityType: EntityType.ElementsNetwork,
 			resolve: {
 				Network: {
@@ -271,7 +272,7 @@ export default {
 			$nativeAsset: (assetReference) => assetReference,
 		}),
 
-		defineResolver(Source.Esplora_Rest, {
+		defineResolver({
 			entityType: EntityType.ElementsNetwork,
 			resolve: {
 				Network: {
@@ -295,4 +296,4 @@ export default {
 			$$assets: (assetReferences) => assetReferences,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Esplora_Rest>

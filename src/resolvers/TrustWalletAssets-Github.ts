@@ -1,6 +1,7 @@
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -109,7 +110,7 @@ export default {
 	source: Source.TrustWalletAssets_Github,
 
 	resolvers: [
-		defineResolver(Source.TrustWalletAssets_Github, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -153,7 +154,7 @@ export default {
 				$icon: (snapshot) => snapshot,
 			}),
 
-		defineResolver(Source.TrustWalletAssets_Github, {
+		defineResolver({
 			entityType: EntityType.AssetInstance,
 			resolve: {
 				NetworkKindAssetKey: {
@@ -197,4 +198,4 @@ export default {
 				$icon: (snapshot) => snapshot,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.TrustWalletAssets_Github>

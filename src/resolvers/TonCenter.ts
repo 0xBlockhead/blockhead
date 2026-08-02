@@ -3,6 +3,7 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type SourceResolverContext,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
@@ -36,7 +37,7 @@ const tonNetworkApplicability = [
 const tonNetworkSelectors = <_Snapshot extends object>(
 	resolve: (
 		network: TonNetwork,
-		context: SourceResolverContext<Source.TonCenter>
+		context: SourceResolverContext
 	) => Promise<_Snapshot>
 ) => ({
 	Caip2: {
@@ -165,7 +166,7 @@ export const createTonCenterV3Resolvers = () => ({
 	source: Source.TonCenter,
 
 	resolvers: [
-		defineResolver(Source.TonCenter, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: tonNetworkSelectors(async (network, context) => {
 				assertTonMainnet(network)
@@ -201,7 +202,7 @@ export const createTonCenterV3Resolvers = () => ({
 			},
 		}),
 
-		defineResolver(Source.TonCenter, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: tonNetworkSelectors(async (network, context) => {
 				assertTonMainnet(network)
@@ -274,7 +275,7 @@ export const createTonCenterV3Resolvers = () => ({
 			},
 		}),
 
-		defineResolver(Source.TonCenter, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: tonNetworkSelectors(async (network, context) => {
 				assertTonMainnet(network)
@@ -296,7 +297,7 @@ export const createTonCenterV3Resolvers = () => ({
 			},
 		}),
 
-		defineResolver(Source.TonCenter, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: tonNetworkSelectors(async (network, context) => {
 				assertTonMainnet(network)
@@ -350,7 +351,7 @@ export const createTonCenterV3Resolvers = () => ({
 			},
 		}),
 
-		defineResolver(Source.TonCenter, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: tonNetworkSelectors(async (network, context) => {
 				assertTonMainnet(network)
@@ -416,7 +417,7 @@ export const createTonCenterV3Resolvers = () => ({
 			},
 		}),
 
-		defineResolver(Source.TonCenter, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: tonNetworkSelectors(async (network, context) => {
 				assertTonMainnet(network)
@@ -487,7 +488,7 @@ export const createTonCenterV3Resolvers = () => ({
 			},
 		}),
 
-		defineResolver(Source.TonCenter, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: tonNetworkSelectors(async (network, context) => {
 				assertTonMainnet(network)
@@ -578,6 +579,6 @@ export const createTonCenterV3Resolvers = () => ({
 			},
 		}),
 		] as const,
-	})
+	}) satisfies RegisteredSourceResolverModule<Source.TonCenter>
 
 export default createTonCenterV3Resolvers()

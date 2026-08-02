@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	networkBySlug,
@@ -410,7 +411,7 @@ export default {
 	source: Source.Solana_JsonRpc,
 
 	resolvers: [
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.SolanaBlock,
 			resolve: {
 				Slot: {
@@ -468,7 +469,7 @@ export default {
 				$$transactions: (block) => block.$$transactions,
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -485,7 +486,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {
@@ -560,7 +561,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
 				NetworkSignature: {
@@ -606,7 +607,7 @@ export default {
 				$$instructions: (transaction) => transaction.$$instructions,
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.SolanaTransaction_Timestamp,
 			resolve: {
 				TransactionSlotSource: {
@@ -640,7 +641,7 @@ export default {
 				err: (timestamp) => timestamp.err,
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.SolanaInstruction,
 			resolve: {
 				SolanaTransactionIndexInTransaction: {
@@ -691,7 +692,7 @@ export default {
 				$$accounts: (instruction) => instruction.$$accounts,
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.SolanaAccount,
 			resolve: {
 				NetworkPubkey: {
@@ -723,7 +724,7 @@ export default {
 				$$timestamps: (account) => account.$$timestamps,
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.SolanaAccount_Timestamp,
 			resolve: {
 				AccountSlotSource: {
@@ -754,7 +755,7 @@ export default {
 				dataEncoding: (timestamp) => timestamp.dataEncoding,
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.SolanaProgram,
 			resolve: {
 				NetworkProgramId: {
@@ -775,7 +776,7 @@ export default {
 				$programAccount: (program) => program.$programAccount,
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.SolanaTokenMint,
 			resolve: {
 				NetworkMintAddress: {
@@ -807,7 +808,7 @@ export default {
 				$$timestamps: (mint) => mint.$$timestamps,
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.SolanaTokenMint_Timestamp,
 			resolve: {
 				MintSlotSource: {
@@ -845,7 +846,7 @@ export default {
 				freezeAuthorityPubkey: (timestamp) => timestamp.freezeAuthorityPubkey,
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.SolanaTokenAccount,
 			resolve: {
 				NetworkTokenAccountPubkey: {
@@ -917,7 +918,7 @@ export default {
 				$$timestamps: (account) => account.$$timestamps,
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.SolanaTokenAccount_Timestamp,
 			resolve: {
 				TokenAccountSlotSource: {
@@ -954,7 +955,7 @@ export default {
 				closeAuthorityPubkey: (timestamp) => timestamp.closeAuthorityPubkey,
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.SolanaValidator,
 			resolve: {
 				NetworkVotePubkey: {
@@ -983,7 +984,7 @@ export default {
 				$$timestamps: (validator) => validator.$$timestamps,
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.SolanaValidator_Timestamp,
 			resolve: {
 				ValidatorSlotSource: {
@@ -1016,7 +1017,7 @@ export default {
 				epochCredits: (timestamp) => timestamp.epochCredits,
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -1038,7 +1039,7 @@ export default {
 				$$timestamps: (timestamps) => timestamps,
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -1074,7 +1075,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -1095,7 +1096,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -1115,7 +1116,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Solana_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -1239,4 +1240,4 @@ export default {
 			}),
 
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Solana_JsonRpc>

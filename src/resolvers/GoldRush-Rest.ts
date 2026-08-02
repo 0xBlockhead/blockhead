@@ -1,6 +1,6 @@
 import { EvmTransactionExecutionStatus } from '$/constants/Evm.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
 	type Entity,
@@ -33,7 +33,7 @@ export default {
 	source: Source.GoldRushFoundational_Rest,
 
 	resolvers: [
-		defineResolver(Source.GoldRushFoundational_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				EvmNetworkTxHash: {
@@ -116,4 +116,4 @@ export default {
 			$$logs: (transaction) => transaction.$$logs,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.GoldRushFoundational_Rest>

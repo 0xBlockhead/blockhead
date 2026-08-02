@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	networkBySlug,
@@ -57,7 +58,7 @@ export default {
 	source: Source.Polkadot_JsonRpc,
 
 	resolvers: [
-		defineResolver(Source.Polkadot_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -74,7 +75,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Polkadot_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {
@@ -151,7 +152,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Polkadot_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
 				NetworkBlockNumberHash: {
@@ -194,7 +195,7 @@ export default {
 				$$extrinsics: (block) => block.$$extrinsics,
 			}),
 
-		defineResolver(Source.Polkadot_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -216,7 +217,7 @@ export default {
 				$$timestamps: (timestamps) => timestamps,
 			}),
 
-		defineResolver(Source.Polkadot_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -260,4 +261,4 @@ export default {
 			}),
 
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Polkadot_JsonRpc>

@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { ipfsNamespaceFromString } from '$/lib/ipfs.ts'
 import { canonicalIpfsCidString, decodeIpfsCid } from '$/lib/multiformats.ts'
@@ -16,7 +17,7 @@ export default {
 	source: Source.Ipfs_Rest,
 
 	resolvers: [
-		defineResolver(Source.Ipfs_Rest, {
+		defineResolver({
 			entityType: EntityType.IpfsResource,
 			resolve: {
 				ResourceAddress: {
@@ -125,4 +126,4 @@ export default {
 				$media: (snapshot) => snapshot.$media,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Ipfs_Rest>

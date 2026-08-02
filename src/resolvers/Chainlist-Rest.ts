@@ -2,7 +2,7 @@ import { coins } from '$/constants/Coin.ts'
 import { NetworkEnvironment } from '$/constants/Network.ts'
 import { resolveMediaUrlTransport } from '$/lib/media.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	evmChainCatalogEthereumRootAcceptsTestnet,
 	evmChainCatalogExplorerUrlEntities,
@@ -26,7 +26,7 @@ export default {
 	source: Source.Chainlist_Rest,
 
 	resolvers: [
-		defineResolver(Source.Chainlist_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmNetworkBridge,
 			resolve: {
 				FromToUrl: {
@@ -66,7 +66,7 @@ export default {
 				relationshipType: (bridge) => bridge.relationshipType,
 			}),
 
-		defineResolver(Source.Chainlist_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -286,7 +286,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Chainlist_Rest, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -303,4 +303,4 @@ export default {
 				$$evmNetworks: (networks) => networks,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Chainlist_Rest>

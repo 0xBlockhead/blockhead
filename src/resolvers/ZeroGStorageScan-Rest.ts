@@ -2,6 +2,7 @@ import { networkBySlug } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	type EntitySelector,
@@ -77,7 +78,7 @@ export default {
 	source: Source.ZeroGStorageScan_Rest,
 
 	resolvers: [
-		defineResolver(Source.ZeroGStorageScan_Rest, {
+		defineResolver({
 			entityType: EntityType.ZeroGNetwork_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {
@@ -119,7 +120,7 @@ export default {
 				prunedFileCount: (snapshot) => snapshot.prunedFileCount,
 			}),
 
-		defineResolver(Source.ZeroGStorageScan_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -143,7 +144,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.ZeroGStorageScan_Rest, {
+		defineResolver({
 			entityType: EntityType.ZeroGStorageNode,
 			resolve: {
 				NetworkNodeId: {
@@ -187,7 +188,7 @@ export default {
 				$$timestamps: (snapshot) => snapshot.$$timestamps,
 			}),
 
-		defineResolver(Source.ZeroGStorageScan_Rest, {
+		defineResolver({
 			entityType: EntityType.ZeroGStorageNode_Timestamp,
 			resolve: {
 				StorageNodeTimestampMsSource: {
@@ -223,7 +224,7 @@ export default {
 				totalReward: (snapshot) => snapshot.totalReward,
 			}),
 
-		defineResolver(Source.ZeroGStorageScan_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -272,7 +273,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.ZeroGStorageScan_Rest, {
+		defineResolver({
 			entityType: EntityType.ZeroGDataBlob,
 			resolve: {
 				NetworkDataRoot: {
@@ -299,7 +300,7 @@ export default {
 				sizeBytes: (snapshot) => snapshot.sizeBytes,
 			}),
 
-		defineResolver(Source.ZeroGStorageScan_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -357,7 +358,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.ZeroGStorageScan_Rest, {
+		defineResolver({
 			entityType: EntityType.ZeroGStorageLogEntry,
 			resolve: {
 				NetworkLogEntryId: {
@@ -400,4 +401,4 @@ export default {
 			}),
 
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.ZeroGStorageScan_Rest>

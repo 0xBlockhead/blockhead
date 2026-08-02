@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import {
@@ -19,7 +20,7 @@ export default {
 	source: Source.NostrRelay_Nip11_Http,
 
 	resolvers: [
-		defineResolver(Source.NostrRelay_Nip11_Http, {
+		defineResolver({
 			entityType: EntityType.NostrRelay,
 			resolve: {
 				RelayUrl: {
@@ -43,7 +44,7 @@ export default {
 			$$timestamps: (relay) => relay.$$timestamps,
 		}),
 
-		defineResolver(Source.NostrRelay_Nip11_Http, {
+		defineResolver({
 			entityType: EntityType.NostrRelay_Timestamp,
 			resolve: {
 				RelayTimestampMsSource: {
@@ -148,4 +149,4 @@ export default {
 			error: (observation) => observation.error,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.NostrRelay_Nip11_Http>

@@ -3,7 +3,7 @@ import {
 	Caip2Reference,
 	networkBySlug,
 } from '$/constants/Network.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
@@ -86,7 +86,7 @@ export default {
 	source: Source.TonApi_Rest,
 
 	resolvers: [
-		defineResolver(Source.TonApi_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -104,7 +104,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.TonApi_Rest, {
+		defineResolver({
 			entityType: EntityType.TonAccount,
 			resolve: {
 				NetworkAddress: {
@@ -143,7 +143,7 @@ export default {
 			$$timestamps: (account) => account.$$timestamps,
 		}),
 
-		defineResolver(Source.TonApi_Rest, {
+		defineResolver({
 			entityType: EntityType.TonJetton,
 			resolve: {
 				NetworkMasterAddress: {
@@ -169,4 +169,4 @@ export default {
 			$masterAccount: (jetton) => jetton.$masterAccount,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.TonApi_Rest>

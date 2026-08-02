@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -41,7 +42,7 @@ export default {
 	source: Source.Zebra_JsonRpc,
 
 	resolvers: [
-		defineResolver(Source.Zebra_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				NetworkHeightHash: {
@@ -108,7 +109,7 @@ export default {
 				$$transactions: (snapshot) => snapshot.$$transactions,
 			}),
 
-		defineResolver(Source.Zebra_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				NetworkTxId: {
@@ -152,7 +153,7 @@ export default {
 				$$outputs: (snapshot) => snapshot.$$outputs,
 			}),
 
-		defineResolver(Source.Zebra_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.UtxoInput,
 			resolve: {
 				TransactionIndexInTransaction: {
@@ -196,7 +197,7 @@ export default {
 				witness: (snapshot) => snapshot.witness ?? [],
 			}),
 
-		defineResolver(Source.Zebra_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.UtxoOutput,
 			resolve: {
 				TransactionIndexInTransaction: {
@@ -231,4 +232,4 @@ export default {
 				$address: (snapshot) => snapshot.$address,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Zebra_JsonRpc>

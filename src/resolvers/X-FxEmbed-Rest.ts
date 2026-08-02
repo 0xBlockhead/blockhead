@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { type } from 'arktype'
 import { optionalNonemptyString } from '$/lib/string.ts'
@@ -18,7 +19,7 @@ export default {
 	source: Source.X_FxEmbed_Rest,
 
 	resolvers: [
-		defineResolver(Source.X_FxEmbed_Rest, {
+		defineResolver({
 			entityType: EntityType.XUser,
 			resolve: {
 				Id: {
@@ -175,7 +176,7 @@ export default {
 					$$timestamps: (snapshot) => snapshot.$$timestamps,
 				}),
 
-		defineResolver(Source.X_FxEmbed_Rest, {
+		defineResolver({
 			entityType: EntityType.XPost,
 			resolve: {
 				Id: {
@@ -303,7 +304,7 @@ export default {
 					$$timestamps: (snapshot) => snapshot.$$timestamps,
 				}),
 
-		defineResolver(Source.X_FxEmbed_Rest, {
+		defineResolver({
 			entityType: EntityType.XNetwork,
 			resolve: {
 				Scope: {
@@ -382,7 +383,7 @@ export default {
 			),
 		}),
 
-		defineResolver(Source.X_FxEmbed_Rest, {
+		defineResolver({
 			entityType: EntityType.XUser,
 			resolve: {
 				Id: {
@@ -477,7 +478,7 @@ export default {
 				$$posts: (snapshot) => snapshot,
 			}),
 
-		defineResolver(Source.X_FxEmbed_Rest, {
+		defineResolver({
 			entityType: EntityType._GlobalXNetwork,
 			resolve: {
 				Scope: {
@@ -559,4 +560,4 @@ export default {
 			),
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.X_FxEmbed_Rest>

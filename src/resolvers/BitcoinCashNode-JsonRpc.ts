@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -47,7 +48,7 @@ export default {
 	source: Source.BitcoinCashNode_JsonRpc,
 
 	resolvers: [
-		defineResolver(Source.BitcoinCashNode_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.UtxoOutput,
 			resolve: {
 				TransactionIndexInTransaction: {
@@ -94,7 +95,7 @@ export default {
 				$bitcoinCashCashTokenNft: (snapshot) => snapshot.$bitcoinCashCashTokenNft,
 			}),
 
-		defineResolver(Source.BitcoinCashNode_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.BitcoinCashCashTokenFungibleAmount,
 			resolve: {
 				UtxoOutput: {
@@ -118,7 +119,7 @@ export default {
 				amount: (snapshot) => snapshot.amount,
 			}),
 
-		defineResolver(Source.BitcoinCashNode_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.BitcoinCashCashTokenNft,
 			resolve: {
 				UtxoOutput: {
@@ -148,7 +149,7 @@ export default {
 				capability: (snapshot) => snapshot.capability,
 			}),
 
-		defineResolver(Source.BitcoinCashNode_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.BitcoinCashCashTokenCommitment,
 			resolve: {
 				UtxoOutput: {
@@ -165,4 +166,4 @@ export default {
 				commitmentHex: (snapshot) => snapshot.commitmentHex,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.BitcoinCashNode_JsonRpc>

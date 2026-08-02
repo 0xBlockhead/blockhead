@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { networkBySlug } from '$/constants/Network.ts'
@@ -163,7 +164,7 @@ export default {
 	source: Source.SubstrateSidecar_Rest,
 
 	resolvers: [
-		defineResolver(Source.SubstrateSidecar_Rest, {
+		defineResolver({
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
 				NetworkBlockNumberHash: {
@@ -241,7 +242,7 @@ export default {
 			})),
 		}),
 
-		defineResolver(Source.SubstrateSidecar_Rest, {
+		defineResolver({
 			entityType: EntityType.PolkadotExtrinsic,
 			resolve: {
 				BlockIndexInBlock: {
@@ -269,7 +270,7 @@ export default {
 			success: (extrinsic) => extrinsic.success,
 		}),
 
-		defineResolver(Source.SubstrateSidecar_Rest, {
+		defineResolver({
 			entityType: EntityType.PolkadotEvent,
 			resolve: {
 				BlockIndexInBlock: {
@@ -296,7 +297,7 @@ export default {
 			eventName: (event) => event.eventName,
 		}),
 
-		defineResolver(Source.SubstrateSidecar_Rest, {
+		defineResolver({
 			entityType: EntityType.PolkadotAccount,
 			resolve: {
 				NetworkAccountId: {
@@ -334,7 +335,7 @@ export default {
 				})),
 			}),
 
-		defineResolver(Source.SubstrateSidecar_Rest, {
+		defineResolver({
 			entityType: EntityType.PolkadotAccount_Timestamp,
 			resolve: {
 				AccountTimestampMsSource: {
@@ -361,7 +362,7 @@ export default {
 				freeBalancePlancks: (timestamp) => timestamp.freeBalancePlancks,
 			}),
 
-		defineResolver(Source.SubstrateSidecar_Rest, {
+		defineResolver({
 			entityType: EntityType.PolkadotPallet,
 			resolve: {
 				NetworkPalletName: {
@@ -381,7 +382,7 @@ export default {
 				index: (pallet) => pallet.index,
 			}),
 
-		defineResolver(Source.SubstrateSidecar_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -419,7 +420,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.SubstrateSidecar_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -443,4 +444,4 @@ export default {
 			}),
 
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.SubstrateSidecar_Rest>

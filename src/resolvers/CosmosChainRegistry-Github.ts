@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { NetworkEnvironment } from '$/constants/Network.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
@@ -94,7 +95,7 @@ export default {
 	source: Source.CosmosChainRegistry_Github,
 
 	resolvers: [
-		defineResolver(Source.CosmosChainRegistry_Github, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cosmosNetworkSelectors(async (entitySelector) => {
 				const { getChain } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
@@ -114,7 +115,7 @@ export default {
 			$icon: (snapshot) => snapshot.$icon,
 		}),
 
-		defineResolver(Source.CosmosChainRegistry_Github, {
+		defineResolver({
 			entityType: EntityType.AssetInstance,
 			resolve: {
 				NetworkKindAssetKey: {
@@ -153,7 +154,7 @@ export default {
 				decimals: (snapshot) => snapshot.decimals,
 			}),
 
-		defineResolver(Source.CosmosChainRegistry_Github, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cosmosNetworkSelectors(async (entitySelector) => {
 				const { getAssetList } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
@@ -168,4 +169,4 @@ export default {
 			$$nativeAssets: (snapshot) => snapshot,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.CosmosChainRegistry_Github>

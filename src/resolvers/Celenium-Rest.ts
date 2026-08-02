@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
@@ -23,7 +24,7 @@ export default {
 	source: Source.Celenium_Rest,
 
 	resolvers: [
-		defineResolver(Source.Celenium_Rest, {
+		defineResolver({
 			entityType: EntityType.CelestiaNetwork,
 			resolve: {
 				Network: {
@@ -52,7 +53,7 @@ export default {
 				$$timestamps: (timestamps) => timestamps,
 			}),
 
-		defineResolver(Source.Celenium_Rest, {
+		defineResolver({
 			entityType: EntityType.CelestiaNetwork,
 			resolve: {
 				Network: {
@@ -83,7 +84,7 @@ export default {
 				$$blocks: (blocks) => blocks,
 			}),
 
-		defineResolver(Source.Celenium_Rest, {
+		defineResolver({
 			entityType: EntityType.CelestiaNetwork,
 			resolve: {
 				Network: {
@@ -140,7 +141,7 @@ export default {
 				$$namespaces: (namespaces) => namespaces,
 			}),
 
-		defineResolver(Source.Celenium_Rest, {
+		defineResolver({
 			entityType: EntityType.CelestiaNetwork,
 			resolve: {
 				Network: {
@@ -192,7 +193,7 @@ export default {
 				$$blobs: (blobs) => blobs,
 			}),
 
-		defineResolver(Source.Celenium_Rest, {
+		defineResolver({
 			entityType: EntityType.CelestiaBlock,
 			resolve: {
 				NetworkHeight: {
@@ -225,7 +226,7 @@ export default {
 				transactionCount: (block) => block.transactionCount,
 			}),
 
-		defineResolver(Source.Celenium_Rest, {
+		defineResolver({
 			entityType: EntityType.CosmosTransaction,
 			resolve: {
 				NetworkTxHash: {
@@ -261,7 +262,7 @@ export default {
 				signerAddresses: (transaction) => transaction.signerAddresses,
 			}),
 
-		defineResolver(Source.Celenium_Rest, {
+		defineResolver({
 			entityType: EntityType.CelestiaNetwork_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {
@@ -300,4 +301,4 @@ export default {
 				syncing: (timestamp) => timestamp.syncing,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Celenium_Rest>

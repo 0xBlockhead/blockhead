@@ -1,6 +1,6 @@
 import { networks } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
 	type EntitySelector,
@@ -56,7 +56,7 @@ const evmNetworkAccount = (
 	},
 })
 
-const easAttestationResolver = defineResolver(Source.EasScan_Graphql, {
+const easAttestationResolver = defineResolver({
 	entityType: EntityType.EasAttestation,
 	resolve: {
 		NetworkUid: {
@@ -129,7 +129,7 @@ const easAttestationResolver = defineResolver(Source.EasScan_Graphql, {
 	$$timestamps: (attestation) => attestation.$$timestamps,
 })
 
-const easAttestationTimestampResolver = defineResolver(Source.EasScan_Graphql, {
+const easAttestationTimestampResolver = defineResolver({
 	entityType: EntityType.EasAttestation_Timestamp,
 	resolve: {
 		AttestationTimestampMsSource: {
@@ -175,7 +175,7 @@ const easAttestationTimestampResolver = defineResolver(Source.EasScan_Graphql, {
 	transactionHash: (attestation) => attestation.transactionHash,
 })
 
-const easSchemaResolver = defineResolver(Source.EasScan_Graphql, {
+const easSchemaResolver = defineResolver({
 	entityType: EntityType.EasSchema,
 	resolve: {
 		NetworkSchemaUid: {
@@ -259,4 +259,4 @@ export default {
 		easAttestationTimestampResolver,
 		easSchemaResolver,
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.EasScan_Graphql>

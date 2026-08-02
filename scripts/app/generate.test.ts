@@ -1075,6 +1075,9 @@ test('generates one APP-ordered lazy resolver loader registry', () => {
 	assert.doesNotMatch(source, /export default loadResolvers/)
 	assert.doesNotMatch(source, /loadResolverEntries|loadAllResolvers/)
 	assert.match(source, /Resolver module source mismatch/)
+	assert.match(source, /type ResolverLoaderEntry = \{[\s\S]*?\[_Source in Source\]: readonly \[[\s\S]*?RegisteredSourceResolverModule<_Source>[\s\S]*?\}\[Source\]/)
+	assert.match(source, /as const satisfies readonly ResolverLoaderEntry\[\]/)
+	assert.doesNotMatch(source, /SourceResolverModule<typeof schema, Source>/)
 	for (const loaderEntry of [
 		"[Source.Nodely, () => import('./AlgorandIndexer-Rest.ts')]",
 		"[Source.KaspaExplorer, () => import('./KaspaExplorer.ts')]",
@@ -5549,7 +5552,10 @@ import acrossBindings from '${root}/src/sources/Across/bindings.ts'
 import blockscoutBindings from '${root}/src/sources/Blockscout/bindings.ts'
 import lightningLndBindings from '${root}/src/sources/LightningLnd/bindings.ts'
 import xrplClioBindings from '${root}/src/sources/XrplClio/bindings.ts'
-import { defineResolver } from '${root}/src/resolvers/defineResolver.ts'
+import {
+	defineResolver,
+	type RegisteredSourceResolverModule,
+} from '${root}/src/resolvers/defineResolver.ts'
 import { EntityType } from '${root}/src/schema/EntityType.ts'
 import { Source } from '${root}/src/sources/Source.ts'
 import {
@@ -5558,6 +5564,29 @@ import {
 	type SourceBindingIndex,
 	type SourceServerCredentialDefinition,
 } from '${root}/src/sources/SourceBinding.ts'
+type ResolverLoaderEntry = {
+	[_Source in Source]: readonly [
+		_Source,
+		() => Promise<{
+			default: RegisteredSourceResolverModule<_Source>
+		}>,
+	]
+}[Source]
+type AssertTrue<_Value extends true> = _Value
+type AssertFalse<_Value extends false> = _Value
+const ambossResolverModule = {
+	source: Source.Amboss_Graphql,
+	resolvers: [],
+} satisfies RegisteredSourceResolverModule<Source.Amboss_Graphql>
+type AmbossResolverLoader = () => Promise<{
+	default: typeof ambossResolverModule
+}>
+type ValidResolverEntry = AssertTrue<
+	readonly [Source.Amboss_Graphql, AmbossResolverLoader] extends ResolverLoaderEntry ? true : false
+>
+type SwappedResolverEntry = AssertFalse<
+	readonly [Source.Atproto_Xrpc, AmbossResolverLoader] extends ResolverLoaderEntry ? true : false
+>
 specificationProposalSources({
 	realm: 'Bitcoin',
 	category: 'Bip',
@@ -5566,7 +5595,7 @@ specificationProposalSources({
 specificationProposalSources({ realm: 'missing' })
 // @ts-expect-error Source-selection inputs accept only their authored condition fields.
 specificationProposalSources({ missing: 'Bitcoin' })
-defineResolver(Source.Constants_Internal, {
+defineResolver({
 	entityType: EntityType.Network,
 	resolve: {
 		Caip2: {
@@ -5578,7 +5607,7 @@ defineResolver(Source.Constants_Internal, {
 		},
 	},
 })({})
-defineResolver(Source.Constants_Internal, {
+defineResolver({
 	entityType: EntityType.Network,
 	resolve: {
 		// @ts-expect-error Resolver keys accept only selectors declared by the entity.
@@ -5609,6 +5638,10 @@ const invalidBlockscoutTargetKey: '999' = blockscoutBindingsForSource[0].target.
 acrossBindings[Source.Erigon_JsonRpc]
 // @ts-expect-error A binding index key must equal the binding's source.
 const mismatchedBindings = { [Source.LightningMempoolSpace_Rest]: lightningLndBindings[Source.LightningLnd_Rest] } satisfies SourceBindingIndex
+const validResolverEntry: ValidResolverEntry = true
+const swappedResolverEntry: SwappedResolverEntry = false
+void validResolverEntry
+void swappedResolverEntry
 void typedSourceServerCredentials
 `)
 		assertTypeChecks('generated-source-keys:typecheck', [fixturePath], true)

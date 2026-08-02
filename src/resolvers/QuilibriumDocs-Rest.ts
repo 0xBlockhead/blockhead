@@ -4,6 +4,7 @@ import {
 } from '$/constants/SpecificationProposal.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -26,7 +27,7 @@ export default {
 	source: Source.QuilibriumDocs_Rest,
 
 	resolvers: [
-		defineResolver(Source.QuilibriumDocs_Rest, {
+		defineResolver({
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
 				RealmCategoryNumber: {
@@ -52,7 +53,7 @@ export default {
 				documentBody: (snapshot) => snapshot.documentBody,
 			}),
 
-		defineResolver(Source.QuilibriumDocs_Rest, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -75,4 +76,4 @@ export default {
 				$$proposals: (snapshot) => snapshot,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.QuilibriumDocs_Rest>

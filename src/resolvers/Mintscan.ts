@@ -1,5 +1,5 @@
 import { networkBySlug } from '$/constants/Network.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
@@ -11,7 +11,7 @@ export default {
 	source: Source.Mintscan,
 
 	resolvers: [
-		defineResolver(Source.Mintscan, {
+		defineResolver({
 			entityType: EntityType.CosmosAccount,
 			resolve: {
 				NetworkAddress: {
@@ -108,4 +108,4 @@ export default {
 			$$timestamps: (account) => account.$$timestamps,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Mintscan>

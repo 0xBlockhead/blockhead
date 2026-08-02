@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { optionalTimestampMs } from '$/lib/time.ts'
@@ -138,7 +139,7 @@ export default {
 	source: Source.Neynar_Rest,
 
 	resolvers: [
-		defineResolver(Source.Neynar_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterUser,
 			resolve: {
 				Fid: {
@@ -257,7 +258,7 @@ export default {
 				$$verifiedAddresses: (user) => user.$$verifiedAddresses,
 				}),
 
-			defineResolver(Source.Neynar_Rest, {
+			defineResolver({
 				entityType: EntityType.FarcasterVerifiedAddress,
 				resolve: {
 					FidProtocolAddress: {
@@ -341,7 +342,7 @@ export default {
 					$solanaAccount: (verifiedAddress) => verifiedAddress.$solanaAccount,
 				}),
 
-		defineResolver(Source.Neynar_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterCast,
 			resolve: {
 				FidHash: {
@@ -546,7 +547,7 @@ export default {
 				$channel: (cast) => cast.$channel,
 			}),
 
-		defineResolver(Source.Neynar_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterCast,
 			resolve: {
 				FidHash: {
@@ -636,7 +637,7 @@ export default {
 				$$directReplies: (cast) => cast.$$directReplies,
 			}),
 
-		defineResolver(Source.Neynar_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterFeed,
 			resolve: {
 				Variant: {
@@ -747,7 +748,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Neynar_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterUser,
 			resolve: {
 				Fid: {
@@ -794,7 +795,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Neynar_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
 				Id: {
@@ -843,4 +844,4 @@ export default {
 			}),
 
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Neynar_Rest>

@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -22,7 +23,7 @@ export default {
 	source: Source.NearBlocks_Rest,
 
 	resolvers: [
-		defineResolver(Source.NearBlocks_Rest, {
+		defineResolver({
 			entityType: EntityType.NearAccount,
 			resolve: {
 				NetworkAccountId: {
@@ -49,7 +50,7 @@ export default {
 				storageUsageBytes: (snapshot) => snapshot.storageUsageBytes,
 			}),
 
-		defineResolver(Source.NearBlocks_Rest, {
+		defineResolver({
 			entityType: EntityType.NearBlock,
 			resolve: {
 				NetworkHeightHash: {
@@ -87,7 +88,7 @@ export default {
 				timestampMs: (snapshot) => snapshot.timestampMs,
 			}),
 
-		defineResolver(Source.NearBlocks_Rest, {
+		defineResolver({
 			entityType: EntityType.NearTransaction,
 			resolve: {
 				NetworkHashSignerAccountId: {
@@ -169,4 +170,4 @@ export default {
 			$$executionOutcomes: (snapshot) => snapshot.$$executionOutcomes,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.NearBlocks_Rest>

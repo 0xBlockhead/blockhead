@@ -1,6 +1,6 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
@@ -32,7 +32,7 @@ export default {
 	source: Source.StellarHorizon_Rest,
 
 	resolvers: [
-		defineResolver(Source.StellarHorizon_Rest, {
+		defineResolver({
 			entityType: EntityType.StellarAccount,
 			resolve: {
 				NetworkAccountId: {
@@ -65,7 +65,7 @@ export default {
 			$$timestamps: (timestamps) => timestamps,
 		}),
 
-		defineResolver(Source.StellarHorizon_Rest, {
+		defineResolver({
 			entityType: EntityType.StellarAccount,
 			resolve: {
 				NetworkAccountId: {
@@ -142,4 +142,4 @@ export default {
 			},
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.StellarHorizon_Rest>

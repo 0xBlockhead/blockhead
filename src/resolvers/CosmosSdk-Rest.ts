@@ -2,6 +2,7 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type SourceResolverContext,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	networkBySlug,
@@ -56,7 +57,7 @@ const cosmosNetworkApplicability = [
 const cosmosNetworkResolverSelectors = <_Snapshot extends object>(
 	resolve: (
 		network: NetworkId,
-		context: SourceResolverContext<Source.CosmosSdk_Rest>
+		context: SourceResolverContext
 	) => Promise<_Snapshot>
 ) => ({
 	Caip2: {
@@ -478,7 +479,7 @@ export default {
 	source: Source.CosmosSdk_Rest,
 
 	resolvers: [
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cosmosNetworkResolverSelectors(
 				async () => cosmosSdkRestEndpoints
@@ -489,7 +490,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.Network_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {
@@ -570,7 +571,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.CosmosBlock,
 			resolve: {
 				NetworkHeight: {
@@ -597,7 +598,7 @@ export default {
 				transactionCount: (block) => block.transactionCount,
 			}),
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.CosmosTransaction,
 			resolve: {
 				NetworkTxHash: {
@@ -633,7 +634,7 @@ export default {
 				$$messages: (transaction) => transaction.$$messages,
 			}),
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.CosmosAccount,
 			resolve: {
 				NetworkAddress: {
@@ -691,7 +692,7 @@ export default {
 				$$timestamps: (account) => account.$$timestamps,
 			}),
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.CosmosAccount_Timestamp,
 			resolve: {
 				AccountTimestampMsSource: {
@@ -731,7 +732,7 @@ export default {
 				sequence: (account) => account.sequence,
 			}),
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.CosmosValidator,
 			resolve: {
 				NetworkOperatorAddress: {
@@ -757,7 +758,7 @@ export default {
 				$$timestamps: (validator) => validator.$$timestamps,
 			}),
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.CosmosValidator_Timestamp,
 			resolve: {
 				ValidatorTimestampMsSource: {
@@ -787,7 +788,7 @@ export default {
 				tokens: (validator) => validator.tokens,
 			}),
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.CosmosMessage,
 			resolve: {
 				TransactionIndexInTransaction: {
@@ -810,7 +811,7 @@ export default {
 				$contract: (message) => message.$contract,
 			}),
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.CosmosGovernanceProposal,
 			resolve: {
 				NetworkProposalId: {
@@ -840,7 +841,7 @@ export default {
 				$$timestamps: (proposal) => proposal.$$timestamps,
 			}),
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.CosmosGovernanceProposal_Timestamp,
 			resolve: {
 				ProposalTimestampMsSource: {
@@ -871,7 +872,7 @@ export default {
 				status: (proposal) => proposal.status,
 			}),
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.CosmosDenom,
 			resolve: {
 				NetworkDenom: {
@@ -895,7 +896,7 @@ export default {
 				symbol: (denom) => denom.symbol,
 			}),
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.CosmosModule,
 			resolve: {
 				NetworkModuleName: {
@@ -922,7 +923,7 @@ export default {
 				$authority: (module) => module.$authority,
 			}),
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.CosmosContract,
 			resolve: {
 				NetworkAddress: {
@@ -958,7 +959,7 @@ export default {
 				$admin: (contract) => contract.$admin,
 			}),
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cosmosNetworkResolverSelectors(
 				async (network) => ([
@@ -975,7 +976,7 @@ export default {
 				$$timestamps: (timestamps) => timestamps,
 			}),
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cosmosNetworkResolverSelectors(
 				async (network, context) => (
@@ -991,7 +992,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cosmosNetworkResolverSelectors(
 				async (network, context) => (
@@ -1010,7 +1011,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cosmosNetworkResolverSelectors(
 				async (network, context) => (
@@ -1029,7 +1030,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cosmosNetworkResolverSelectors(
 				async (network, context) => (
@@ -1049,7 +1050,7 @@ export default {
 			}),
 
 
-		defineResolver(Source.CosmosSdk_Rest, {
+		defineResolver({
 			entityType: EntityType.CosmosAccount,
 			resolve: {
 				NetworkAddress: {
@@ -1168,4 +1169,4 @@ export default {
 				},
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.CosmosSdk_Rest>

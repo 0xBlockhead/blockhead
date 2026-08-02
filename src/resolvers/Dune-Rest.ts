@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -8,7 +9,7 @@ export default {
 	source: Source.Dune_Rest,
 
 	resolvers: [
-		defineResolver(Source.Dune_Rest, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -39,4 +40,4 @@ export default {
 			duneCreditsIncluded: (snapshot) => snapshot.duneCreditsIncluded,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Dune_Rest>

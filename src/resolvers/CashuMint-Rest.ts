@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -12,7 +13,7 @@ export default {
 	source: Source.CashuMint_Rest,
 
 	resolvers: [
-		defineResolver(Source.CashuMint_Rest, {
+		defineResolver({
 			entityType: EntityType.CashuMint,
 			resolve: {
 				MintUrl: {
@@ -33,7 +34,7 @@ export default {
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 
-		defineResolver(Source.CashuMint_Rest, {
+		defineResolver({
 			entityType: EntityType.CashuKeyset,
 			resolve: {
 				CashuMintKeysetId: {
@@ -78,7 +79,7 @@ export default {
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 
-		defineResolver(Source.CashuMint_Rest, {
+		defineResolver({
 			entityType: EntityType.CashuMint_Timestamp,
 			resolve: {
 				MintTimestampMsSource: {
@@ -122,7 +123,7 @@ export default {
 			serverTimeMs: (snapshot) => snapshot.serverTimeMs,
 		}),
 
-		defineResolver(Source.CashuMint_Rest, {
+		defineResolver({
 			entityType: EntityType.CashuKeyset_Timestamp,
 			resolve: {
 				KeysetTimestampMsSource: {
@@ -159,7 +160,7 @@ export default {
 			listedByKeysetsEndpoint: (snapshot) => snapshot.listedByKeysetsEndpoint,
 		}),
 
-		defineResolver(Source.CashuMint_Rest, {
+		defineResolver({
 			entityType: EntityType.CashuMint,
 			resolve: {
 				MintUrl: {
@@ -187,4 +188,4 @@ export default {
 			$$keysets: (snapshot) => snapshot,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.CashuMint_Rest>

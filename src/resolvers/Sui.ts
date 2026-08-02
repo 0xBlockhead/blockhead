@@ -1,6 +1,6 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	type EntitySelector,
 	entityFieldAddressKey,
@@ -21,7 +21,7 @@ export default {
 	source: Source.Sui,
 
 	resolvers: [
-		defineResolver(Source.Sui, {
+		defineResolver({
 			entityType: EntityType.SuiAccount,
 			resolve: {
 				NetworkAddress: {
@@ -86,7 +86,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Sui, {
+		defineResolver({
 			entityType: EntityType.SuiAccount,
 			resolve: {
 				NetworkAddress: {
@@ -154,4 +154,4 @@ export default {
 			},
 		}),
 	] as const,
-}
+} satisfies RegisteredSourceResolverModule<Source.Sui>

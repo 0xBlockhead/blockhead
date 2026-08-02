@@ -9,6 +9,7 @@ import {
 import { with0xHex } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -111,7 +112,7 @@ export default {
 	source: Source.Beacon_Rest,
 
 	resolvers: [
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -134,7 +135,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.BeaconEpoch,
 			resolve: {
 				EvmNetworkEpoch: {
@@ -151,7 +152,7 @@ export default {
 				slotCount: (epoch) => epoch.slotCount,
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.BeaconSlot,
 			resolve: {
 				EvmNetworkSlot: {
@@ -170,7 +171,7 @@ export default {
 				}),
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.BeaconSlot,
 			resolve: {
 				EvmNetworkSlot: {
@@ -206,7 +207,7 @@ export default {
 				stateRoot: (slot) => slot.stateRoot,
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.BeaconValidator,
 			resolve: {
 				NetworkIndexInNetwork: {
@@ -240,7 +241,7 @@ export default {
 				status: (validator) => validator.status,
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.BeaconCommittee,
 			resolve: {
 				EvmNetworkSlotIndexInSlot: {
@@ -264,7 +265,7 @@ export default {
 				validatorIndices: (committee) => committee.validatorIndices,
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.BeaconSyncCommittee,
 			resolve: {
 				EvmNetworkPeriod: {
@@ -286,7 +287,7 @@ export default {
 				validatorIndices: (committee) => committee.validatorIndices,
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.BeaconAttestation,
 			resolve: {
 				EvmNetworkSlotIndexInSlot: {
@@ -312,7 +313,7 @@ export default {
 				aggregationBits: (attestation) => attestation.aggregationBits,
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.BeaconWithdrawal,
 			resolve: {
 				EvmNetworkSlotIndexInSlot: {
@@ -355,7 +356,7 @@ export default {
 				amountGwei: (withdrawal) => withdrawal.amountGwei,
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.BeaconSlashing,
 			resolve: {
 				EvmNetworkSlotKindIndexInSlot: {
@@ -390,7 +391,7 @@ export default {
 				indexInSlot: (slashing) => slashing.indexInSlot,
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.EthereumBeaconFinality_Timestamp,
 			resolve: {
 				EvmNetworkTimestampMs: {
@@ -424,7 +425,7 @@ export default {
 				finalizedCheckpointRoot: (timestamp) => timestamp.finalizedCheckpointRoot,
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.BeaconEpoch,
 			resolve: {
 				EvmNetworkEpoch: {
@@ -446,7 +447,7 @@ export default {
 				$$beaconSlots: (epoch) => epoch,
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -487,7 +488,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -526,7 +527,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -559,7 +560,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.BeaconSlot,
 			resolve: {
 				EvmNetworkSlot: {
@@ -587,7 +588,7 @@ export default {
 				$$beaconCommittees: (slot) => slot,
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.BeaconSlot,
 			resolve: {
 				EvmNetworkSlot: {
@@ -638,7 +639,7 @@ export default {
 				$$beaconSlashings: (slot) => slot.slashings,
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -665,7 +666,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -696,7 +697,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -750,7 +751,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -775,7 +776,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Beacon_Rest, {
+		defineResolver({
 			entityType: EntityType.EthereumConsensusUpgrade,
 			resolve: {
 				EvmNetworkUpgradeId: {
@@ -796,4 +797,4 @@ export default {
 				currentForkVersion: (upgrade) => upgrade.currentForkVersion,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Beacon_Rest>

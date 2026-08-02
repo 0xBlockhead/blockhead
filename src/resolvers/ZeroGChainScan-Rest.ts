@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
@@ -21,7 +22,7 @@ export default {
 	source: Source.ZeroGChainScan_Rest,
 
 	resolvers: [
-		defineResolver(Source.ZeroGChainScan_Rest, {
+		defineResolver({
 			entityType: EntityType.ZeroGConsensusNetwork,
 			resolve: {
 				NetworkConsensusNetworkId: {
@@ -55,7 +56,7 @@ export default {
 		$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 
-		defineResolver(Source.ZeroGChainScan_Rest, {
+		defineResolver({
 			entityType: EntityType.ZeroGConsensusNetwork_Timestamp,
 			resolve: {
 				ConsensusNetworkTimestampMsSource: {
@@ -81,4 +82,4 @@ export default {
 			sharedStakingStatusSource: (timestamp) => timestamp.sharedStakingStatusSource,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.ZeroGChainScan_Rest>

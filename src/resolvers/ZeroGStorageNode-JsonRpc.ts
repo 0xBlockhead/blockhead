@@ -1,6 +1,7 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -40,7 +41,7 @@ export default {
 	source: Source.ZeroGStorageNode_JsonRpc,
 
 	resolvers: [
-		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.ZeroGStorageNode,
 			resolve: {
 				NetworkNodeId: {
@@ -68,7 +69,7 @@ export default {
 				endpoint: (snapshot) => snapshot.endpoint,
 			}),
 
-		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.ZeroGDataBlob,
 			resolve: {
 				NetworkDataRoot: {
@@ -84,7 +85,7 @@ export default {
 				sizeBytes: (snapshot) => snapshot.sizeBytes,
 			}),
 
-		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.ZeroGDataChunk,
 			resolve: {
 				ZeroGDataBlobChunkIndex: {
@@ -102,4 +103,4 @@ export default {
 				chunkRoot: (snapshot) => snapshot.chunkRoot,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.ZeroGStorageNode_JsonRpc>

@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { farcasterPlaceholderIconUrlFragments } from '$/constants/Social/Farcaster.ts'
@@ -66,7 +67,7 @@ export default {
 	source: Source.Farcaster_Rest,
 
 	resolvers: [
-		defineResolver(Source.Farcaster_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterUser,
 			resolve: {
 				Fid: {
@@ -151,7 +152,7 @@ export default {
 				$$verifiedAddresses: (user) => user.$$verifiedAddresses,
 			}),
 
-		defineResolver(Source.Farcaster_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
 				Id: {
@@ -245,7 +246,7 @@ export default {
 				followedAt: (channel) => channel.followedAt,
 			}),
 
-		defineResolver(Source.Farcaster_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterChannel_Timestamp,
 			resolve: {
 				FarcasterChannelTimestampMs: {
@@ -257,7 +258,7 @@ export default {
 				memberCount: (timestamp) => timestamp.memberCount,
 			}),
 
-		defineResolver(Source.Farcaster_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterCast,
 			resolve: {
 				UsernameHashPrefix: {
@@ -399,7 +400,7 @@ export default {
 				threadHash: (cast) => cast.threadHash,
 			}),
 
-		defineResolver(Source.Farcaster_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterFeed,
 			resolve: {
 				Variant: {
@@ -427,7 +428,7 @@ export default {
 				label: (feed) => feed.label,
 			}),
 
-		defineResolver(Source.Farcaster_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
 				Id: {
@@ -457,7 +458,7 @@ export default {
 				$$timestamps: (timestamps) => timestamps,
 			}),
 
-		defineResolver(Source.Farcaster_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterNetwork,
 			resolve: {
 				Scope: {
@@ -476,7 +477,7 @@ export default {
 				$$feeds: (feeds) => feeds,
 		}),
 
-		defineResolver(Source.Farcaster_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterNetwork,
 			resolve: {
 				Scope: {
@@ -496,4 +497,4 @@ export default {
 				$$channels: (channels) => channels,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Farcaster_Rest>

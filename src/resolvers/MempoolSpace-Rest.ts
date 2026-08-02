@@ -2,6 +2,7 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type SourceResolverContext,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	networkBySlug,
@@ -92,7 +93,7 @@ const bitcoinNetworkSelectors = <
 const _Snapshot extends object>(
 	resolve: (
 		network: NetworkId,
-		context: SourceResolverContext<Source.MempoolSpace_Rest>
+		context: SourceResolverContext
 	) => Promise<_Snapshot>
 ) => ({
 	Caip2: {
@@ -118,7 +119,7 @@ export default {
 	source: Source.MempoolSpace_Rest,
 
 	resolvers: [
-		defineResolver(Source.MempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				NetworkHeightHash: {
@@ -163,7 +164,7 @@ export default {
 				transactionCount: (block) => block.transactionCount,
 			}),
 
-		defineResolver(Source.MempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				NetworkTxId: {
@@ -224,7 +225,7 @@ export default {
 				$$outputs: (transaction) => transaction.$$outputs,
 			}),
 
-		defineResolver(Source.MempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.UtxoInput,
 			resolve: {
 				TransactionIndexInTransaction: {
@@ -269,7 +270,7 @@ export default {
 				witness: (input) => input.witness ?? [],
 			}),
 
-		defineResolver(Source.MempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.UtxoAddress,
 			resolve: {
 					NetworkAddress: {
@@ -299,7 +300,7 @@ export default {
 					$$timestamps: (address) => address.$$timestamps,
 				}),
 
-		defineResolver(Source.MempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.UtxoAddress,
 			resolve: {
 				NetworkAddress: {
@@ -352,7 +353,7 @@ export default {
 			},
 		}),
 
-			defineResolver(Source.MempoolSpace_Rest, {
+			defineResolver({
 				entityType: EntityType.UtxoAddress_Timestamp,
 				resolve: {
 					AddressTimestampMsSource: {
@@ -384,7 +385,7 @@ export default {
 					spentValueSats: (address) => address.spentValueSats,
 				}),
 
-		defineResolver(Source.MempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.UtxoOutput,
 			resolve: {
 				TransactionIndexInTransaction: {
@@ -422,7 +423,7 @@ export default {
 				$address: (output) => output.$address,
 			}),
 
-		defineResolver(Source.MempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.Network_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {
@@ -480,7 +481,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.MempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: bitcoinNetworkSelectors(async (network) => {
 				assertBitcoinMainnet(network)
@@ -493,7 +494,7 @@ export default {
 				slug: (network) => network.slug,
 			}),
 
-		defineResolver(Source.MempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: bitcoinNetworkSelectors(async (network) => {
 				assertBitcoinMainnet(network)
@@ -530,7 +531,7 @@ export default {
 				$$timestamps: (timestamps) => timestamps,
 			}),
 
-		defineResolver(Source.MempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: bitcoinNetworkSelectors(async (network, context) => {
 				assertBitcoinMainnet(network)
@@ -550,7 +551,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.MempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: bitcoinNetworkSelectors(async (network) => {
 				assertBitcoinMainnet(network)
@@ -582,7 +583,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.MempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: bitcoinNetworkSelectors(async (network, context) => {
 				assertBitcoinMainnet(network)
@@ -601,7 +602,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.MempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				NetworkHeightHash: {
@@ -625,4 +626,4 @@ export default {
 			}),
 
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.MempoolSpace_Rest>

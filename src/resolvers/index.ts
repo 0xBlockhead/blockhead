@@ -1,8 +1,16 @@
 // Generated from APP.ts.
 
-import type { SourceResolverModule } from '$/resolvers/$resolvers.ts'
-import type { schema } from '$/schema/index.ts'
+import type { RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { Source } from '$/sources/Source.ts'
+
+type ResolverLoaderEntry = {
+	[_Source in Source]: readonly [
+		_Source,
+		() => Promise<{
+			default: RegisteredSourceResolverModule<_Source>
+		}>,
+	]
+}[Source]
 
 const resolverLoaderEntries = [
 	[Source.Amboss_Graphql, () => import('./Amboss-Graphql.ts')],
@@ -143,7 +151,7 @@ const resolverLoaderEntries = [
 	[Source.ZeroGChainScan_Rest, () => import('./ZeroGChainScan-Rest.ts')],
 	[Source.ZeroGStorageNode_JsonRpc, () => import('./ZeroGStorageNode-JsonRpc.ts')],
 	[Source.ZeroGStorageScan_Rest, () => import('./ZeroGStorageScan-Rest.ts')],
-] as const satisfies readonly (readonly [Source, () => Promise<{ default: SourceResolverModule<typeof schema, Source> }>])[]
+] as const satisfies readonly ResolverLoaderEntry[]
 
 export const loadResolvers = async (enabledSources: ReadonlySet<Source> = new Set(Object.values(Source))) => Promise.all(
 	resolverLoaderEntries

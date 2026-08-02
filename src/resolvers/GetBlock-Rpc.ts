@@ -1,6 +1,6 @@
 import { EvmTransactionExecutionStatus } from '$/constants/Evm.ts'
 import { hexLowerOfByteSize, with0xHex } from '$/lib/hexLowerOfByteSize.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
 	type Entity,
@@ -43,7 +43,7 @@ export default {
 	source: Source.GetBlockRpc_JsonRpc,
 
 	resolvers: [
-		defineResolver(Source.GetBlockRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				EvmNetworkTxHash: {
@@ -158,5 +158,5 @@ export default {
 			$$logs: (transaction) => transaction.$$logs,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.GetBlockRpc_JsonRpc>
 import { networkBySlug } from '$/constants/Network.ts'

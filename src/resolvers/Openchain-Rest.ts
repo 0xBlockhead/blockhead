@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -44,7 +45,7 @@ export default {
 	source: Source.Openchain_Rest,
 
 	resolvers: [
-		defineResolver(Source.Openchain_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmSelector,
 			resolve: {
 				Hex: {
@@ -67,7 +68,7 @@ export default {
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 
-		defineResolver(Source.Openchain_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmSelector_Timestamp,
 			resolve: {
 				SelectorTimestampMsSource: {
@@ -80,7 +81,7 @@ export default {
 			signatures: (snapshot) => snapshot.signatures,
 		}),
 
-		defineResolver(Source.Openchain_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmTopic,
 			resolve: {
 				Hex: {
@@ -103,7 +104,7 @@ export default {
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 
-		defineResolver(Source.Openchain_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmTopic_Timestamp,
 			resolve: {
 				TopicTimestampMsSource: {
@@ -127,7 +128,7 @@ export default {
 			reachable: (snapshot) => snapshot.reachable,
 		}),
 
-		defineResolver(Source.Openchain_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmError,
 			resolve: {
 				Hex: {
@@ -150,7 +151,7 @@ export default {
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 
-		defineResolver(Source.Openchain_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmError_Timestamp,
 			resolve: {
 				ErrorTimestampMsSource: {
@@ -172,4 +173,4 @@ export default {
 			reachable: (snapshot) => snapshot.reachable,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Openchain_Rest>

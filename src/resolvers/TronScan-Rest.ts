@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -424,7 +425,7 @@ export default {
 	source: Source.TronScan_Rest,
 
 	resolvers: [
-		defineResolver(Source.TronScan_Rest, {
+		defineResolver({
 			entityType: EntityType.TronBlock,
 			resolve: {
 				NetworkHeightHash: {
@@ -451,7 +452,7 @@ export default {
 				transactionCount: (block) => block.transactionCount,
 			}),
 
-		defineResolver(Source.TronScan_Rest, {
+		defineResolver({
 			entityType: EntityType.TronAccount,
 			resolve: {
 				NetworkAddress: {
@@ -492,7 +493,7 @@ export default {
 				$$timestamps: (account) => account.$$timestamps,
 			}),
 
-		defineResolver(Source.TronScan_Rest, {
+		defineResolver({
 			entityType: EntityType.TronAccount,
 			resolve: {
 				NetworkAddress: {
@@ -566,7 +567,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.TronScan_Rest, {
+		defineResolver({
 			entityType: EntityType.TronAccount_Timestamp,
 			resolve: {
 				AccountTimestampMsSource: {
@@ -597,7 +598,7 @@ export default {
 				isContract: (account) => account.isContract,
 			}),
 
-		defineResolver(Source.TronScan_Rest, {
+		defineResolver({
 			entityType: EntityType.TronTransaction,
 			resolve: {
 				NetworkTransactionId: {
@@ -628,7 +629,7 @@ export default {
 				assetName: (transaction) => transaction.assetName,
 			}),
 
-		defineResolver(Source.TronScan_Rest, {
+		defineResolver({
 			entityType: EntityType.TronContract,
 			resolve: {
 				NetworkAddress: {
@@ -651,7 +652,7 @@ export default {
 				$$tokens: (contract) => contract.$$tokens,
 			}),
 
-		defineResolver(Source.TronScan_Rest, {
+		defineResolver({
 			entityType: EntityType.TronContract_Timestamp,
 			resolve: {
 				ContractTimestampMsSource: {
@@ -686,7 +687,7 @@ export default {
 				$implementation: (contract) => contract.$implementation,
 			}),
 
-		defineResolver(Source.TronScan_Rest, {
+		defineResolver({
 			entityType: EntityType.TronTransactionReceipt,
 			resolve: {
 				Transaction: {
@@ -709,7 +710,7 @@ export default {
 				result: (receipt) => receipt.result,
 			}),
 
-		defineResolver(Source.TronScan_Rest, {
+		defineResolver({
 			entityType: EntityType.TronToken,
 			resolve: {
 				NetworkTokenId: {
@@ -736,7 +737,7 @@ export default {
 				$$timestamps: (token) => token.$$timestamps ?? [],
 			}),
 
-		defineResolver(Source.TronScan_Rest, {
+		defineResolver({
 			entityType: EntityType.TronToken_Timestamp,
 			resolve: {
 				TokenTimestampMsSource: {
@@ -769,7 +770,7 @@ export default {
 				holderCount: (token) => token.holderCount,
 			}),
 
-		defineResolver(Source.TronScan_Rest, {
+		defineResolver({
 			entityType: EntityType.TronTokenTransfer,
 			resolve: {
 				NetworkTransactionIdTransferIndex: {
@@ -803,7 +804,7 @@ export default {
 				timestampMs: (transfer) => transfer.timestampMs,
 			}),
 
-		defineResolver(Source.TronScan_Rest, {
+		defineResolver({
 			entityType: EntityType.TronAccountTokenBalance_Timestamp,
 			resolve: {
 				AccountTokenTimestampMsSource: {
@@ -832,7 +833,7 @@ export default {
 				tokenSymbol: (timestamp) => timestamp.tokenSymbol,
 			}),
 
-		defineResolver(Source.TronScan_Rest, {
+		defineResolver({
 			entityType: EntityType.TronAccount,
 			resolve: {
 				NetworkAddress: {
@@ -888,7 +889,7 @@ export default {
 					$$tokenBalanceTimestamps: (timestamps) => timestamps,
 				}),
 
-		defineResolver(Source.TronScan_Rest, {
+		defineResolver({
 			entityType: EntityType.TronTransaction,
 			resolve: {
 				NetworkTransactionId: {
@@ -916,4 +917,4 @@ export default {
 				$$tokenTransfers: (tokenTransfers) => tokenTransfers,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.TronScan_Rest>

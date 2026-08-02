@@ -1,7 +1,7 @@
 import {
 	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { nostrNoteFieldValuesFromEvent } from '$/resolvers/NostrBand-Rest.ts'
 import {
 	EntityMetaKey,
@@ -24,7 +24,7 @@ export default {
 	source: Source.NostrRelay_WebSocket,
 
 	resolvers: [
-		defineResolver(Source.NostrRelay_WebSocket, {
+		defineResolver({
 			entityType: EntityType.NostrRelay,
 			resolve: {
 				RelayUrl: {
@@ -111,4 +111,4 @@ export default {
 			$$notes: () => [],
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.NostrRelay_WebSocket>

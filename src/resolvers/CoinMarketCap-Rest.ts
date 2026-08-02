@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	MarketAssetKind,
@@ -66,7 +67,7 @@ export default {
 	source: Source.CoinMarketCap_Rest,
 
 	resolvers: [
-		defineResolver(Source.CoinMarketCap_Rest, {
+		defineResolver({
 			entityType: EntityType.Coin,
 			resolve: {
 				CoinId: {
@@ -118,7 +119,7 @@ export default {
 				$logo: (coin) => coin.$logo,
 			}),
 
-		defineResolver(Source.CoinMarketCap_Rest, {
+		defineResolver({
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
 				MarketTimestampMsFeedKey: {
@@ -192,7 +193,7 @@ export default {
 				caip19: (timestamp) => timestamp.caip2,
 			}),
 
-		defineResolver(Source.CoinMarketCap_Rest, {
+		defineResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
 				MarketTimeIntervalTimestampMs: {
@@ -248,7 +249,7 @@ export default {
 				quoteVolume: (timestamp) => timestamp.quoteVolume,
 			}),
 
-		defineResolver(Source.CoinMarketCap_Rest, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -273,7 +274,7 @@ export default {
 				$$coins: (coins) => coins,
 			}),
 
-		defineResolver(Source.CoinMarketCap_Rest, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -325,7 +326,7 @@ export default {
 				$$marketPrices: (marketPrices) => marketPrices,
 			}),
 
-		defineResolver(Source.CoinMarketCap_Rest, {
+		defineResolver({
 			entityType: EntityType.Market,
 			resolve: {
 				BaseQuoteMarketVenueKind: {
@@ -371,7 +372,7 @@ export default {
 				$$marketTimeIntervalTimestamps: (timestamps) => timestamps,
 			}),
 
-		defineResolver(Source.CoinMarketCap_Rest, {
+		defineResolver({
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				Market: {
@@ -419,7 +420,7 @@ export default {
 				$$quotes: (quotes) => quotes,
 			}),
 
-		defineResolver(Source.CoinMarketCap_Rest, {
+		defineResolver({
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				Market: {
@@ -434,7 +435,7 @@ export default {
 				$parentMarket: (market) => market,
 			}),
 
-		defineResolver(Source.CoinMarketCap_Rest, {
+		defineResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
 				MarketTimeIntervalTimestampMs: {
@@ -449,4 +450,4 @@ export default {
 				$parentMarket: (market) => market,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.CoinMarketCap_Rest>

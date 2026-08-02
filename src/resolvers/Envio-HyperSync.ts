@@ -1,5 +1,5 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -27,7 +27,7 @@ export default {
 	source: Source.EnvioHyperSync_RawHttp,
 
 	resolvers: [
-		defineResolver(Source.EnvioHyperSync_RawHttp, {
+		defineResolver({
 			entityType: EntityType.EvmBlock,
 			resolve: {
 				EvmNetworkBlockNumber: {
@@ -92,5 +92,5 @@ export default {
 			$$transactions: (block) => block.transactions,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.EnvioHyperSync_RawHttp>
 import { networkBySlug } from '$/constants/Network.ts'

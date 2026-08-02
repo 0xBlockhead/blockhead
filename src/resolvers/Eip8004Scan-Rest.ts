@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { evmChainIdFromNetworkSelector } from '$/resolvers/evm.ts'
 import {
@@ -98,7 +99,7 @@ export default {
 	source: Source.Eip8004Scan_Rest,
 
 	resolvers: [
-		defineResolver(Source.Eip8004Scan_Rest, {
+		defineResolver({
 			entityType: EntityType.Eip8004AgentRegistration,
 			resolve: {
 				NamespaceChainIdIdentityRegistryAgentId: {
@@ -164,7 +165,7 @@ export default {
 			$evmNft: (registration) => registration.$evmNft,
 		}),
 
-		defineResolver(Source.Eip8004Scan_Rest, {
+		defineResolver({
 			entityType: EntityType.Eip8004AgentServiceEndpoint,
 			resolve: {
 				RegistrationFileEndpointKindEndpointUrl: {
@@ -231,7 +232,7 @@ export default {
 			active: (endpoint) => endpoint.active,
 		}),
 
-		defineResolver(Source.Eip8004Scan_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmNft,
 			resolve: {
 				EvmContractTokenId: {
@@ -308,7 +309,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Eip8004Scan_Rest, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -350,4 +351,4 @@ export default {
 				$$eip8004Services: (snapshot) => snapshot,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Eip8004Scan_Rest>

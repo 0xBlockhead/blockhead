@@ -2,6 +2,7 @@ import { mediaFromUrl } from '$/resolvers/media.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -34,7 +35,7 @@ export default {
 	source: Source.MetadataVision_Rest,
 
 	resolvers: [
-		defineResolver(Source.MetadataVision_Rest, {
+		defineResolver({
 			entityType: EntityType.Url,
 			resolve: {
 				Url: {
@@ -55,7 +56,7 @@ export default {
 			$$previewTimestamps: (snapshot) => snapshot.$$previewTimestamps,
 		}),
 
-		defineResolver(Source.MetadataVision_Rest, {
+		defineResolver({
 			entityType: EntityType.UrlPreview_Timestamp,
 			resolve: {
 				UrlTimestampMsSource: {
@@ -81,4 +82,4 @@ export default {
 			previewStatus: (snapshot) => snapshot.previewStatus,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.MetadataVision_Rest>

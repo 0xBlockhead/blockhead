@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
@@ -412,7 +413,7 @@ export default {
 	source: Source.Mastodon_Rest,
 
 	resolvers: [
-		defineResolver(Source.Mastodon_Rest, {
+		defineResolver({
 			entityType: EntityType._GlobalActivityPubNetwork,
 			resolve: {
 				Scope: {
@@ -484,7 +485,7 @@ export default {
 			$$observedNotes: (timeline) => timeline.notes,
 		}),
 
-		defineResolver(Source.Mastodon_Rest, {
+		defineResolver({
 			entityType: EntityType._GlobalActivityPubNetwork,
 			resolve: {
 				Scope: {
@@ -501,7 +502,7 @@ export default {
 				$$instances: (instances) => instances,
 			}),
 
-		defineResolver(Source.Mastodon_Rest, {
+		defineResolver({
 			entityType: EntityType._GlobalActivityPubNetwork,
 			resolve: {
 				Scope: {
@@ -554,7 +555,7 @@ export default {
 			$$timestamps: (observations) => observations,
 		}),
 
-		defineResolver(Source.Mastodon_Rest, {
+		defineResolver({
 			entityType: EntityType._GlobalActivityPubNetwork_Timestamp,
 			resolve: {
 				HubTimestampMsSource: {
@@ -578,7 +579,7 @@ export default {
 			source: (observation) => observation.source,
 		}),
 
-		defineResolver(Source.Mastodon_Rest, {
+		defineResolver({
 			entityType: EntityType.ActivityPubInstance,
 			resolve: {
 				InstanceOrigin: {
@@ -589,7 +590,7 @@ export default {
 				instanceOrigin: (instance) => instance.instanceOrigin,
 			}),
 
-		defineResolver(Source.Mastodon_Rest, {
+		defineResolver({
 			entityType: EntityType.ActivityPubInstance,
 			resolve: {
 				InstanceOrigin: {
@@ -659,7 +660,7 @@ export default {
 				$$timestamps: (observations) => observations,
 			}),
 
-		defineResolver(Source.Mastodon_Rest, {
+		defineResolver({
 			entityType: EntityType.ActivityPubInstance_Timestamp,
 			resolve: {
 				InstanceTimestampMsSource: {
@@ -677,7 +678,7 @@ export default {
 				source: (observation) => observation.source,
 			}),
 
-		defineResolver(Source.Mastodon_Rest, {
+		defineResolver({
 			entityType: EntityType.ActivityPubInstancePeer,
 			resolve: {
 				ObservationPeerDomain: {
@@ -689,7 +690,7 @@ export default {
 				peerDomain: (peer) => peer.peerDomain,
 			}),
 
-		defineResolver(Source.Mastodon_Rest, {
+		defineResolver({
 			entityType: EntityType.ActivityPubInstanceModeratedDomain,
 			resolve: {
 				ObservationDomain: {
@@ -705,7 +706,7 @@ export default {
 				domain: (domain) => domain.domain,
 			}),
 
-		defineResolver(Source.Mastodon_Rest, {
+		defineResolver({
 			entityType: EntityType.ActivityPubNetwork,
 			resolve: {
 				Scope: {
@@ -737,7 +738,7 @@ export default {
 				$$activityPubNotes: (notes) => notes,
 			}),
 
-		defineResolver(Source.Mastodon_Rest, {
+		defineResolver({
 			entityType: EntityType.ActivityPubActor,
 			resolve: {
 				LocalAccountId: {
@@ -827,7 +828,7 @@ export default {
 				$$timestamps: (actor) => actor.$$timestamps,
 			}),
 
-		defineResolver(Source.Mastodon_Rest, {
+		defineResolver({
 			entityType: EntityType.ActivityPubNote,
 			resolve: {
 				InstanceOriginLocalStatusId: {
@@ -892,7 +893,7 @@ export default {
 				$$timestamps: (note) => note.$$timestamps,
 			}),
 
-		defineResolver(Source.Mastodon_Rest, {
+		defineResolver({
 			entityType: EntityType.ActivityPubActor_Timestamp,
 			resolve: {
 				ActivityPubActorTimestampMsSource: {
@@ -909,7 +910,7 @@ export default {
 				source: (timestamp) => timestamp.source,
 			}),
 
-		defineResolver(Source.Mastodon_Rest, {
+		defineResolver({
 			entityType: EntityType.ActivityPubNote_Timestamp,
 			resolve: {
 				ActivityPubNoteTimestampMsSource: {
@@ -925,7 +926,7 @@ export default {
 				timestampMs: (timestamp) => timestamp.timestampMs,
 				source: (timestamp) => timestamp.source,
 			}),
-		defineResolver(Source.Mastodon_Rest, {
+		defineResolver({
 			entityType: EntityType.ActivityPubActor,
 			resolve: {
 				LocalAccountId: {
@@ -1002,7 +1003,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Mastodon_Rest, {
+		defineResolver({
 			entityType: EntityType.ActivityPubNote,
 			resolve: {
 				InstanceOriginLocalStatusId: {
@@ -1070,4 +1071,4 @@ export default {
 				$$thread: (note) => note,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Mastodon_Rest>

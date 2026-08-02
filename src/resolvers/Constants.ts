@@ -103,6 +103,7 @@ import {
 } from '$/constants/Social/X.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -373,7 +374,7 @@ export default {
 	source: Source.Constants_Internal,
 
 	resolvers: [
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.EthereumNetworkUpgrade,
 			resolve: {
 				EvmNetworkUpgradeId: {
@@ -520,7 +521,7 @@ export default {
 			$$proposals: (upgrade) => upgrade.$$proposals,
 		}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.EthereumExecutionUpgrade,
 			resolve: {
 				EvmNetworkUpgradeId: {
@@ -576,7 +577,7 @@ export default {
 			$$proposals: (upgrade) => upgrade.$$proposals,
 		}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.EthereumConsensusUpgrade,
 			resolve: {
 				EvmNetworkUpgradeId: {
@@ -648,7 +649,7 @@ export default {
 			$$proposals: (upgrade) => upgrade.$$proposals,
 		}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Currency,
 			resolve: {
 				Iso4217: {
@@ -670,7 +671,7 @@ export default {
 				minorUnitExponent: (currency) => currency.minorUnitExponent,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Currency_Timestamp,
 			resolve: {
 				CurrencyTimestampMs: {
@@ -690,7 +691,7 @@ export default {
 				marketCap: (currencyTimestamp) => currencyTimestamp.marketCap,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Coin,
 			resolve: {
 				CoinId: {
@@ -707,7 +708,7 @@ export default {
 				symbol: (coin) => coin.symbol,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Coin,
 			resolve: {
 				CoinId: {
@@ -735,7 +736,7 @@ export default {
 				name: (coin) => coin.name,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Account,
 			resolve: {
 				Caip10: {
@@ -922,7 +923,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.EvmAccount,
 			resolve: {
 				Address: {
@@ -935,7 +936,7 @@ export default {
 				address: (account) => account.address,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				NetworkType: {
@@ -1009,7 +1010,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.CoinBridgeCapability,
 			resolve: {
 				EvmCoinInstanceEvmCoinInstanceToolKey: {
@@ -1032,7 +1033,7 @@ export default {
 				assetOutcome: (capability) => capability.assetOutcome,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.MevRelay,
 			resolve: {
 				EvmNetworkHost: {
@@ -1045,7 +1046,7 @@ export default {
 				url: (relay) => relay.url,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.EvmProtocol,
 			resolve: {
 				Scope: {
@@ -1058,7 +1059,7 @@ export default {
 				docsUrl: (protocol) => protocol.docsUrl,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.MarketVenue,
 			resolve: {
 				MarketVenueId: {
@@ -1108,7 +1109,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.NetworkStack,
 			resolve: {
 				NetworkStackId: {
@@ -1119,7 +1120,7 @@ export default {
 				label: (networkStack) => networkStack.label,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.SpecificationRealm,
 			resolve: {
 				Realm: {
@@ -1145,7 +1146,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
 			resolve: {
 				RealmCategory: {
@@ -1163,7 +1164,7 @@ export default {
 					}),
 				}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -1199,7 +1200,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.ZcashShieldedPool,
 			resolve: {
 				NetworkPool: {
@@ -1221,7 +1222,7 @@ export default {
 				noteProtocol: (pool) => pool.noteProtocol,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -1310,7 +1311,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.NearNetwork,
 			resolve: {
 				Slug: {
@@ -1333,7 +1334,7 @@ export default {
 				environment: (network) => network.environment,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.ZeroGNetwork,
 			resolve: {
 				Slug: {
@@ -1364,7 +1365,7 @@ export default {
 				$executionNetwork: (network) => network.$executionNetwork,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.ElementsNetwork,
 			resolve: {
 				Network: {
@@ -1401,7 +1402,7 @@ export default {
 				confidentialTransactionsDefault: (network) => network.confidentialTransactionsDefault,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.AssetInstance,
 			resolve: {
 				NetworkKindAssetKey: {
@@ -1421,7 +1422,7 @@ export default {
 				symbol: (assetInstance) => assetInstance.symbol,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.BittensorSubnet,
 			resolve: {
 				NetworkNetuid: {
@@ -1434,7 +1435,7 @@ export default {
 				name: (subnet) => subnet.name,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.NetworkUpgrade,
 			resolve: {
 				NetworkUpgradeId: {
@@ -1448,7 +1449,7 @@ export default {
 			}),
 
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.ActivityPubNetwork,
 			resolve: {
 				Scope: {
@@ -1472,7 +1473,7 @@ export default {
 				$$activityPubActors: (entity) => entity.$$activityPubActors,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.AtprotoNetwork,
 			resolve: {
 				Scope: {
@@ -1489,7 +1490,7 @@ export default {
 				docsUrl: (entity) => entity.docsUrl,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType._GlobalAtprotoNetwork,
 			resolve: {
 				Scope: {
@@ -1521,7 +1522,7 @@ export default {
 			}),
 
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType._GlobalEnsNetwork,
 			resolve: {
 				Scope: {
@@ -1568,7 +1569,7 @@ export default {
 				$nameWrapper: (entity) => entity.$nameWrapper,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.IpfsProtocol,
 			resolve: {
 				Scope: {
@@ -1581,7 +1582,7 @@ export default {
 				docsUrl: (entity) => entity.docsUrl,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType._GlobalArweaveNetwork,
 			resolve: {
 				Scope: {
@@ -1594,7 +1595,7 @@ export default {
 			scope: (entity) => entity.scope,
 		}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType._GlobalIpfsAccess,
 			resolve: {
 				Scope: {
@@ -1607,7 +1608,7 @@ export default {
 			scope: (entity) => entity.scope,
 		}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.SwarmProtocol,
 			resolve: {
 				Scope: {
@@ -1620,7 +1621,7 @@ export default {
 				docsUrl: (entity) => entity.docsUrl,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType._GlobalSwarmAccess,
 			resolve: {
 				Scope: {
@@ -1633,7 +1634,7 @@ export default {
 			scope: (entity) => entity.scope,
 		}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.FarcasterNetwork,
 			resolve: {
 				Scope: {
@@ -1663,7 +1664,7 @@ export default {
 				$$feeds: (entity) => entity.$$feeds,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.LensNetwork,
 			resolve: {
 				Scope: {
@@ -1690,7 +1691,7 @@ export default {
 				$$lensAccounts: (entity) => entity.$$lensAccounts,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType._GlobalNostrNetwork,
 			resolve: {
 				Scope: {
@@ -1729,7 +1730,7 @@ export default {
 				$$observedRelays: (network) => network.$$observedRelays,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				CanonicalPubkey: {
@@ -1757,7 +1758,7 @@ export default {
 				$$notes: (profile) => profile.$$notes,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.NostrRelay,
 			resolve: {
 				RelayUrl: {
@@ -1776,7 +1777,7 @@ export default {
 				relayUrl: (relay) => relay.relayUrl,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.NostrNote,
 			resolve: {
 				CanonicalEventId: {
@@ -1823,7 +1824,7 @@ export default {
 				$$reactions: (note) => note.$$reactions,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.RedditNetwork,
 			resolve: {
 				Scope: {
@@ -1840,7 +1841,7 @@ export default {
 				docsUrl: (entity) => entity.docsUrl,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.RssNetwork,
 			resolve: {
 				Scope: {
@@ -1867,7 +1868,7 @@ export default {
 				$$rssFeeds: (entity) => entity.$$rssFeeds,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.XNetwork,
 			resolve: {
 				Scope: {
@@ -1888,7 +1889,7 @@ export default {
 				relationshipModel: (entity) => entity.relationshipModel,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.XmtpNetwork,
 			resolve: {
 				Scope: {
@@ -1909,7 +1910,7 @@ export default {
 				relationshipModel: (entity) => entity.relationshipModel,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.YoutubeNetwork,
 			resolve: {
 				Scope: {
@@ -1926,7 +1927,7 @@ export default {
 					docsUrl: (entity) => entity.docsUrl,
 				}),
 
-			defineResolver(Source.Constants_Internal, {
+			defineResolver({
 				entityType: EntityType.YoutubeChannel,
 				resolve: {
 				ChannelId: {
@@ -1942,7 +1943,7 @@ export default {
 						title: (entity) => entity.title,
 					}),
 
-				defineResolver(Source.Constants_Internal, {
+				defineResolver({
 					entityType: EntityType.YoutubePlaylist,
 				resolve: {
 				PlaylistId: {
@@ -1966,7 +1967,7 @@ export default {
 					$channel: (entity) => entity.$channel,
 				}),
 
-			defineResolver(Source.Constants_Internal, {
+			defineResolver({
 				entityType: EntityType.YoutubePlaylist,
 				resolve: {
 					PlaylistId: {
@@ -1999,7 +2000,7 @@ export default {
 					$$videos: (entity) => entity,
 				}),
 
-			defineResolver(Source.Constants_Internal, {
+			defineResolver({
 				entityType: EntityType.YoutubeVideo,
 				resolve: {
 				VideoId: {
@@ -2019,7 +2020,7 @@ export default {
 					$author: (entity) => entity.$author,
 				}),
 
-			defineResolver(Source.Constants_Internal, {
+			defineResolver({
 				entityType: EntityType._GlobalRedditNetwork,
 				resolve: {
 					Scope: {
@@ -2032,7 +2033,7 @@ export default {
 					scope: (entity) => entity.scope,
 				}),
 
-			defineResolver(Source.Constants_Internal, {
+			defineResolver({
 				entityType: EntityType._GlobalRedditNetwork,
 				resolve: {
 					Scope: {
@@ -2049,7 +2050,7 @@ export default {
 					$$observedSubreddits: (entity) => entity,
 				}),
 
-			defineResolver(Source.Constants_Internal, {
+			defineResolver({
 				entityType: EntityType._GlobalRedditNetwork,
 				resolve: {
 					Scope: {
@@ -2077,7 +2078,7 @@ export default {
 					$$observedLinks: (entity) => entity,
 				}),
 
-			defineResolver(Source.Constants_Internal, {
+			defineResolver({
 				entityType: EntityType._GlobalYoutubeNetwork,
 				resolve: {
 					Scope: {
@@ -2097,7 +2098,7 @@ export default {
 					$$observedChannels: (entity) => entity,
 				}),
 
-			defineResolver(Source.Constants_Internal, {
+			defineResolver({
 				entityType: EntityType._GlobalYoutubeNetwork,
 				resolve: {
 					Scope: {
@@ -2128,7 +2129,7 @@ export default {
 					},
 				}),
 
-			defineResolver(Source.Constants_Internal, {
+			defineResolver({
 				entityType: EntityType._GlobalYoutubeNetwork,
 				resolve: {
 					Scope: {
@@ -2153,7 +2154,7 @@ export default {
 					$$observedPlaylists: (entity) => entity,
 				}),
 
-			defineResolver(Source.Constants_Internal, {
+			defineResolver({
 				entityType: EntityType._Global,
 				resolve: {
 				Scope: {
@@ -2170,7 +2171,7 @@ export default {
 				$$networks: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -2187,7 +2188,7 @@ export default {
 				$$networkStacks: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -2211,7 +2212,7 @@ export default {
 				$$networkUpgrades: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -2303,7 +2304,7 @@ export default {
 				$$nativeAssets: (entity) => entity.nativeAssets,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -2329,7 +2330,7 @@ export default {
 				$$faucetUrls: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -2355,7 +2356,7 @@ export default {
 				$$blockExplorerUrls: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Url,
 			resolve: {
 				Url: {
@@ -2368,7 +2369,7 @@ export default {
 				url: (entity) => entity.url,
 			}),
 
-			defineResolver(Source.Constants_Internal, {
+			defineResolver({
 				entityType: EntityType._Global,
 				resolve: {
 					Scope: {
@@ -2379,7 +2380,7 @@ export default {
 				$$proposals: (proposals) => proposals,
 			}),
 
-			defineResolver(Source.Constants_Internal, {
+			defineResolver({
 				entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -2396,7 +2397,7 @@ export default {
 				$$specificationRealms: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -2415,7 +2416,7 @@ export default {
 			}),
 
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -2444,7 +2445,7 @@ export default {
 				$$coins: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -2461,7 +2462,7 @@ export default {
 				$$marketVenues: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -2480,7 +2481,7 @@ export default {
 				$$currencies: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Currency,
 			resolve: {
 				Iso4217: {
@@ -2506,7 +2507,7 @@ export default {
 				$$timestamps: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -2526,7 +2527,7 @@ export default {
 				$$markets: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -2547,7 +2548,7 @@ export default {
 				$$marketTimeIntervalTimestamps: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Coin,
 			resolve: {
 				CoinId: {
@@ -2564,7 +2565,7 @@ export default {
 				$$marketsWithCoinAsBase: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Coin,
 			resolve: {
 				CoinId: {
@@ -2579,7 +2580,7 @@ export default {
 				$$marketsWithCoinAsQuote: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Currency,
 			resolve: {
 				Iso4217: {
@@ -2594,7 +2595,7 @@ export default {
 				$$marketsWithCurrencyAsBase: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Currency,
 			resolve: {
 				Iso4217: {
@@ -2619,7 +2620,7 @@ export default {
 				$$marketsWithCurrencyAsQuote: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Coin,
 			resolve: {
 				CoinId: {
@@ -2645,7 +2646,7 @@ export default {
 				$$coinInstances: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.MarketAsset,
 			resolve: {
 				KindAssetKey: {
@@ -2689,7 +2690,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Market,
 			resolve: {
 				BaseQuoteMarketVenueKind: {
@@ -2709,7 +2710,7 @@ export default {
 				$baseCoin: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Market,
 			resolve: {
 				BaseQuoteMarketVenueKind: {
@@ -2734,7 +2735,7 @@ export default {
 				$$marketPrices: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				Market: {
@@ -2749,7 +2750,7 @@ export default {
 				$parentMarket: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
 				MarketTimeIntervalTimestampMs: {
@@ -2762,7 +2763,7 @@ export default {
 			$parentMarket: (entity) => entity,
 		}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -2815,7 +2816,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -2863,7 +2864,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -2895,7 +2896,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -2927,7 +2928,7 @@ export default {
 				},
 			}),
 
-					defineResolver(Source.Constants_Internal, {
+					defineResolver({
 					entityType: EntityType.AtprotoPost,
 					resolve: {
 						Uri: {
@@ -2950,7 +2951,7 @@ export default {
 						uri: (entity) => entity.uri,
 						$author: (entity) => entity.$author,
 					}),
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
 				Name: {
@@ -2967,7 +2968,7 @@ export default {
 				name: (subreddit) => subreddit.name,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
 				Name: {
@@ -2997,7 +2998,7 @@ export default {
 				$$links: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.RedditLink,
 			resolve: {
 				Fullname: {
@@ -3030,7 +3031,7 @@ export default {
 				$subreddit: (link) => link.$subreddit,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.RedditLink,
 			resolve: {
 				Fullname: {
@@ -3059,7 +3060,7 @@ export default {
 				$$comments: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.RedditComment,
 			resolve: {
 				Fullname: {
@@ -3090,7 +3091,7 @@ export default {
 				$link: (comment) => comment.$link,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.XPost,
 			resolve: {
 				Id: {
@@ -3107,7 +3108,7 @@ export default {
 				postUrl: (entity) => `https://x.com/i/web/status/${entity.id}`,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.EvmContract,
 			resolve: {
 				EvmNetworkAddress: {
@@ -3129,7 +3130,7 @@ export default {
 				precompileName: (entity) => entity,
 			}),
 
-		defineResolver(Source.Constants_Internal, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -3164,4 +3165,4 @@ export default {
 				},
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Constants_Internal>

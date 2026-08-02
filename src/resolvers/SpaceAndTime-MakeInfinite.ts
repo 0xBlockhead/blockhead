@@ -1,4 +1,4 @@
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
@@ -54,7 +54,7 @@ export default {
 	source: Source.SpaceAndTime_MakeInfinite,
 
 	resolvers: [
-		defineResolver(Source.SpaceAndTime_MakeInfinite, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -90,7 +90,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.SpaceAndTime_MakeInfinite, {
+		defineResolver({
 			entityType: EntityType.Network_Activity_Day,
 			resolve: {
 				NetworkDayStartTimestampMsSource: {
@@ -114,4 +114,4 @@ export default {
 			trustModel: (activityDay) => activityDay?.trustModel,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.SpaceAndTime_MakeInfinite>

@@ -2,6 +2,7 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type SourceResolverContext,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -233,7 +234,7 @@ const paymentTimestampFieldsFromLndPayment = (payment: LndPayment) => ({
 	preimage: payment.payment_preimage,
 })
 
-const lndChannels = async (context: SourceResolverContext<Source.LightningLnd_Rest>) => {
+const lndChannels = async (context: SourceResolverContext) => {
 	const { listChannels } = await import('$/sources/LightningLnd/Rest/queries.ts')
 	return ((await listChannels({
 		publicEnv: context.publicEnv,
@@ -241,7 +242,7 @@ const lndChannels = async (context: SourceResolverContext<Source.LightningLnd_Re
 		.filter((channel) => channel.private === false)
 }
 
-const lndInfo = async (context: SourceResolverContext<Source.LightningLnd_Rest>) => {
+const lndInfo = async (context: SourceResolverContext) => {
 	const { getInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
 	return getInfo({
 		publicEnv: context.publicEnv,
@@ -252,7 +253,7 @@ export default {
 	source: Source.LightningLnd_Rest,
 
 	resolvers: [
-		defineResolver(Source.LightningLnd_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				Network: {
@@ -274,7 +275,7 @@ export default {
 			$settlementNetwork: (network) => network.$settlementNetwork,
 		}),
 
-		defineResolver(Source.LightningLnd_Rest, {
+		defineResolver({
 			entityType: EntityType.BlockheadLightningNodeState,
 			resolve: {
 				ConnectionIdNetwork: {
@@ -306,7 +307,7 @@ export default {
 			$node: (state) => state.$node,
 		}),
 
-		defineResolver(Source.LightningLnd_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningNode,
 			resolve: {
 				NetworkPublicKey: {
@@ -336,7 +337,7 @@ export default {
 			$$timestamps: (node) => node.$$timestamps,
 		}),
 
-		defineResolver(Source.LightningLnd_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningNode_Timestamp,
 			resolve: {
 				NodeTimestampMsSource: {
@@ -361,7 +362,7 @@ export default {
 			networkAddresses: (timestamp) => timestamp.networkAddresses,
 		}),
 
-		defineResolver(Source.LightningLnd_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningChannel,
 			resolve: {
 				NetworkChannelId: {
@@ -381,7 +382,7 @@ export default {
 			$$timestamps: (channel) => channel.$$timestamps,
 		}),
 
-		defineResolver(Source.LightningLnd_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningChannel_Timestamp,
 			resolve: {
 				ChannelTimestampMsSource: {
@@ -405,7 +406,7 @@ export default {
 			capacitySats: (timestamp) => timestamp.capacitySats,
 		}),
 
-		defineResolver(Source.LightningLnd_Rest, {
+		defineResolver({
 			entityType: EntityType.BlockheadLightningInvoice,
 			resolve: {
 				NetworkPaymentHash: {
@@ -434,7 +435,7 @@ export default {
 			$$timestamps: (invoice) => invoice.$$timestamps,
 		}),
 
-		defineResolver(Source.LightningLnd_Rest, {
+		defineResolver({
 			entityType: EntityType.BlockheadLightningInvoice_Timestamp,
 			resolve: {
 				InvoiceTimestampMsSource: {
@@ -465,7 +466,7 @@ export default {
 			settleIndex: (timestamp) => timestamp.settleIndex,
 		}),
 
-		defineResolver(Source.LightningLnd_Rest, {
+		defineResolver({
 			entityType: EntityType.BlockheadLightningPayment,
 			resolve: {
 				NetworkPaymentHash: {
@@ -491,7 +492,7 @@ export default {
 			$$timestamps: (payment) => payment.$$timestamps,
 		}),
 
-		defineResolver(Source.LightningLnd_Rest, {
+		defineResolver({
 			entityType: EntityType.BlockheadLightningPayment_Timestamp,
 			resolve: {
 				PaymentTimestampMsSource: {
@@ -522,7 +523,7 @@ export default {
 			preimage: (timestamp) => timestamp.preimage,
 		}),
 
-		defineResolver(Source.LightningLnd_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				Network: {
@@ -544,7 +545,7 @@ export default {
 			$$nodes: (nodes) => nodes,
 		}),
 
-		defineResolver(Source.LightningLnd_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				Network: {
@@ -560,7 +561,7 @@ export default {
 			$$channels: (channels) => channels,
 		}),
 
-		defineResolver(Source.LightningLnd_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				Network: {
@@ -593,7 +594,7 @@ export default {
 			$$invoices: (invoices) => invoices,
 		}),
 
-		defineResolver(Source.LightningLnd_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				Network: {
@@ -618,7 +619,7 @@ export default {
 			$$payments: (payments) => payments,
 		}),
 
-		defineResolver(Source.LightningLnd_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningNode,
 			resolve: {
 				NetworkPublicKey: {
@@ -640,4 +641,4 @@ export default {
 		}),
 
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.LightningLnd_Rest>

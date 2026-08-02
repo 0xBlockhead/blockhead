@@ -2,7 +2,7 @@ import {
 	type ProviderContinuation,
 	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
 	entityFieldAddressKey,
@@ -167,7 +167,7 @@ export default {
 	source: Source.Pathfinder,
 
 	resolvers: [
-		defineResolver(Source.Pathfinder, {
+		defineResolver({
 			entityType: EntityType.StarknetContract,
 			resolve: {
 				NetworkAddress: {
@@ -202,7 +202,7 @@ export default {
 			}],
 		}),
 
-		defineResolver(Source.Pathfinder, {
+		defineResolver({
 			entityType: EntityType.StarknetAccount_Timestamp,
 			resolve: {
 				ContractBlockNumberSource: {
@@ -236,7 +236,7 @@ export default {
 			found: (state) => state.found,
 		}),
 
-		defineResolver(Source.Pathfinder, {
+		defineResolver({
 			entityType: EntityType.StarknetContract,
 			resolve: {
 				NetworkAddress: {
@@ -266,4 +266,4 @@ export default {
 			},
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Pathfinder>

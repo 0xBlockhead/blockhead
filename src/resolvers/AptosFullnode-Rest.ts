@@ -1,5 +1,5 @@
 import { networkBySlug } from '$/constants/Network.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
 	type EntitySelector,
@@ -334,7 +334,7 @@ export default {
 	source: Source.AptosFullnode_Rest,
 
 	resolvers: [
-		defineResolver(Source.AptosFullnode_Rest, {
+		defineResolver({
 			entityType: EntityType.AptosNetwork,
 			resolve: {
 				Network: {
@@ -358,7 +358,7 @@ export default {
 			$$timestamps: (timestamps) => timestamps,
 		}),
 
-		defineResolver(Source.AptosFullnode_Rest, {
+		defineResolver({
 			entityType: EntityType.AptosNetwork_Timestamp,
 			resolve: {
 				NetworkLedgerVersionSource: {
@@ -400,7 +400,7 @@ export default {
 			nodeRole: (ledger) => ledger.nodeRole,
 		}),
 
-		defineResolver(Source.AptosFullnode_Rest, {
+		defineResolver({
 			entityType: EntityType.AptosAccount,
 			resolve: {
 				NetworkAddress: {
@@ -424,7 +424,7 @@ export default {
 			$$timestamps: (timestamps) => timestamps,
 		}),
 
-		defineResolver(Source.AptosFullnode_Rest, {
+		defineResolver({
 			entityType: EntityType.AptosAccount,
 			resolve: {
 				NetworkAddress: {
@@ -446,7 +446,7 @@ export default {
 			$$resources: (resources) => resources,
 		}),
 
-		defineResolver(Source.AptosFullnode_Rest, {
+		defineResolver({
 			entityType: EntityType.AptosAccount_Timestamp,
 			resolve: {
 				AccountLedgerVersionSource: {
@@ -487,7 +487,7 @@ export default {
 			authenticationKey: (account) => account.authenticationKey,
 		}),
 
-		defineResolver(Source.AptosFullnode_Rest, {
+		defineResolver({
 			entityType: EntityType.AptosAccountResource,
 			resolve: {
 				AccountResourceType: {
@@ -514,7 +514,7 @@ export default {
 			$$timestamps: (timestamps) => timestamps,
 		}),
 
-		defineResolver(Source.AptosFullnode_Rest, {
+		defineResolver({
 			entityType: EntityType.AptosAccountResource_Timestamp,
 			resolve: {
 				ResourceLedgerVersionSource: {
@@ -547,7 +547,7 @@ export default {
 			value: (value) => value,
 		}),
 
-		defineResolver(Source.AptosFullnode_Rest, {
+		defineResolver({
 			entityType: EntityType.AptosBlock,
 			resolve: {
 				NetworkHeight: {
@@ -583,7 +583,7 @@ export default {
 			$$transactions: (block) => block.transactions,
 		}),
 
-		defineResolver(Source.AptosFullnode_Rest, {
+		defineResolver({
 			entityType: EntityType.AptosTransaction,
 			resolve: {
 				NetworkVersion: {
@@ -605,7 +605,7 @@ export default {
 			$$events: (transaction) => transaction.events,
 		}),
 
-		defineResolver(Source.AptosFullnode_Rest, {
+		defineResolver({
 			entityType: EntityType.AptosTransaction_Timestamp,
 			resolve: {
 				TransactionLedgerVersionSource: {
@@ -651,7 +651,7 @@ export default {
 			accumulatorRootHash: (transaction) => transaction.accumulatorRootHash,
 		}),
 
-		defineResolver(Source.AptosFullnode_Rest, {
+		defineResolver({
 			entityType: EntityType.AptosEvent,
 			resolve: {
 				NetworkTransactionVersionEventIndex: {
@@ -677,7 +677,7 @@ export default {
 			value: (event) => event.value,
 		}),
 
-		defineResolver(Source.AptosFullnode_Rest, {
+		defineResolver({
 			entityType: EntityType.AptosStateChange,
 			resolve: {
 				TransactionChangeIndex: {
@@ -721,4 +721,4 @@ export default {
 		...resolver,
 		source: Source.AptosFullnode_Rest,
 	})),
-}
+} satisfies RegisteredSourceResolverModule<Source.AptosFullnode_Rest>

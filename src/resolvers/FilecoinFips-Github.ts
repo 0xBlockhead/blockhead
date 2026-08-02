@@ -4,6 +4,7 @@ import {
 } from '$/constants/SpecificationProposal.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts'
 import { regex } from 'arkregex'
@@ -16,7 +17,7 @@ export default {
 	source: Source.FilecoinFips_Github,
 
 	resolvers: [
-		defineResolver(Source.FilecoinFips_Github, {
+		defineResolver({
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
 				RealmCategoryNumber: {
@@ -52,7 +53,7 @@ export default {
 				documentBody: (snapshot) => snapshot.documentBody,
 			}),
 
-		defineResolver(Source.FilecoinFips_Github, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -78,4 +79,4 @@ export default {
 				$$proposals: (snapshot) => snapshot,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.FilecoinFips_Github>

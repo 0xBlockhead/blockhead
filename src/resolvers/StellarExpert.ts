@@ -1,5 +1,5 @@
 import { networkBySlug } from '$/constants/Network.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -7,7 +7,7 @@ export default {
 	source: Source.StellarExpert,
 
 	resolvers: [
-		defineResolver(Source.StellarExpert, {
+		defineResolver({
 			entityType: EntityType.StellarLedger,
 			resolve: {
 				NetworkSequence: {
@@ -51,4 +51,4 @@ export default {
 			closeTimeMs: (ledger) => ledger.closeTimeMs,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.StellarExpert>

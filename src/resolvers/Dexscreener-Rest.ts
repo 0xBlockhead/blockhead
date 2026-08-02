@@ -2,6 +2,7 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -14,7 +15,7 @@ export default {
 	source: Source.Dexscreener_Rest,
 
 	resolvers: [
-		defineResolver(Source.Dexscreener_Rest, {
+		defineResolver({
 			entityType: EntityType.LiquidityPool,
 			resolve: {
 				EvmNetworkId: {
@@ -80,7 +81,7 @@ export default {
 				$$timestamps: (snapshot) => snapshot.$$timestamps,
 			}),
 
-		defineResolver(Source.Dexscreener_Rest, {
+		defineResolver({
 			entityType: EntityType.LiquidityPool_Timestamp,
 			resolve: {
 				LiquidityPoolTimestampMsFeedKey: {
@@ -143,7 +144,7 @@ export default {
 				transport: (snapshot) => snapshot.transport,
 			}),
 
-		defineResolver(Source.Dexscreener_Rest, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -194,7 +195,7 @@ export default {
 				$$liquidityPools: (snapshot) => snapshot,
 			}),
 
-		defineResolver(Source.Dexscreener_Rest, {
+		defineResolver({
 			entityType: EntityType.LiquidityPool_Timestamp,
 			resolve: {
 				LiquidityPoolTimestampMsFeedKey: {
@@ -207,7 +208,7 @@ export default {
 				$parentLiquidityPool: (snapshot) => snapshot,
 			}),
 
-		defineResolver(Source.Dexscreener_Rest, {
+		defineResolver({
 			entityType: EntityType.LiquidityPool_Block,
 			resolve: {
 				LiquidityPoolBlockNumber: {
@@ -220,4 +221,4 @@ export default {
 				$parentLiquidityPool: (snapshot) => snapshot,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Dexscreener_Rest>

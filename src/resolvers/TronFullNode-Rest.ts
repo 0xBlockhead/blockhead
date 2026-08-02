@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -173,7 +174,7 @@ export default {
 	source: Source.TronFullNode_Rest,
 
 	resolvers: [
-		defineResolver(Source.TronFullNode_Rest, {
+		defineResolver({
 			entityType: EntityType.TronBlock,
 			resolve: {
 				NetworkHeightHash: {
@@ -204,7 +205,7 @@ export default {
 				$$transactions: (block) => block.$$transactions,
 			}),
 
-		defineResolver(Source.TronFullNode_Rest, {
+		defineResolver({
 			entityType: EntityType.TronTransaction,
 			resolve: {
 				NetworkTransactionId: {
@@ -246,7 +247,7 @@ export default {
 				signatures: (transaction) => transaction.signatures ?? [],
 			}),
 
-		defineResolver(Source.TronFullNode_Rest, {
+		defineResolver({
 			entityType: EntityType.TronAccount,
 			resolve: {
 				NetworkAddress: {
@@ -266,7 +267,7 @@ export default {
 				name: (account) => account.name,
 			}),
 
-		defineResolver(Source.TronFullNode_Rest, {
+		defineResolver({
 			entityType: EntityType.TronAccount,
 			resolve: {
 				NetworkAddress: {
@@ -285,7 +286,7 @@ export default {
 				$$timestamps: (snapshot) => snapshot,
 			}),
 
-		defineResolver(Source.TronFullNode_Rest, {
+		defineResolver({
 			entityType: EntityType.TronAccount_Timestamp,
 			resolve: {
 				AccountTimestampMsSource: {
@@ -311,7 +312,7 @@ export default {
 				latestOperationTimestampMs: (account) => account.latestOperationTimestampMs,
 			}),
 
-		defineResolver(Source.TronFullNode_Rest, {
+		defineResolver({
 			entityType: EntityType.TronTransactionReceipt,
 			resolve: {
 				Transaction: {
@@ -332,4 +333,4 @@ export default {
 				contractResultHex: (receipt) => receipt.contractResultHex,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.TronFullNode_Rest>

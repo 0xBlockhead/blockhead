@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -165,7 +166,7 @@ export default {
 	source: Source.LightningMempoolSpace_Rest,
 
 	resolvers: [
-		defineResolver(Source.LightningMempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				Network: {
@@ -185,7 +186,7 @@ export default {
 			$settlementNetwork: (snapshot) => snapshot.$settlementNetwork,
 		}),
 
-		defineResolver(Source.LightningMempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -209,7 +210,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.LightningMempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningNetwork_Timestamp,
 			resolve: {
 				LightningNetworkTimestampMsSource: {
@@ -238,7 +239,7 @@ export default {
 			medianFeeRatePpm: (snapshot) => snapshot.medianFeeRatePpm,
 		}),
 
-		defineResolver(Source.LightningMempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningNode,
 			resolve: {
 				NetworkPublicKey: {
@@ -269,7 +270,7 @@ export default {
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 
-		defineResolver(Source.LightningMempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningNode_Timestamp,
 			resolve: {
 				NodeTimestampMsSource: {
@@ -299,7 +300,7 @@ export default {
 			networkAddresses: (snapshot) => snapshot.networkAddresses,
 		}),
 
-		defineResolver(Source.LightningMempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningChannel,
 			resolve: {
 				NetworkChannelId: {
@@ -322,7 +323,7 @@ export default {
 			$node1: (snapshot) => snapshot.$node1,
 		}),
 
-		defineResolver(Source.LightningMempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningChannel_Timestamp,
 			resolve: {
 				ChannelTimestampMsSource: {
@@ -351,7 +352,7 @@ export default {
 			closedAtMs: (snapshot) => snapshot.closedAtMs,
 		}),
 
-		defineResolver(Source.LightningMempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				Network: {
@@ -371,7 +372,7 @@ export default {
 			$$timestamps: (snapshot) => snapshot,
 		}),
 
-		defineResolver(Source.LightningMempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -393,7 +394,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.LightningMempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				Network: {
@@ -410,7 +411,7 @@ export default {
 			$$nodes: (snapshot) => snapshot,
 		}),
 
-		defineResolver(Source.LightningMempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -429,7 +430,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.LightningMempoolSpace_Rest, {
+		defineResolver({
 			entityType: EntityType.LightningNode,
 			resolve: {
 				NetworkPublicKey: {
@@ -461,4 +462,4 @@ export default {
 			$$channels: (snapshot) => snapshot,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.LightningMempoolSpace_Rest>

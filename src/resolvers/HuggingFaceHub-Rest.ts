@@ -1,4 +1,4 @@
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -49,7 +49,7 @@ const parseArtifactId = (providerArtifactId: string) => {
 }
 
 export const huggingFaceHubResolvers = [
-		defineResolver(Source.HuggingFaceHub_Rest, {
+		defineResolver({
 			entityType: EntityType.AiModel,
 			resolve: {
 				ProviderModelId: {
@@ -77,7 +77,7 @@ export const huggingFaceHubResolvers = [
 			$$documents: (model) => model.sha == null ? [] : [documentReference(model.id, model.sha)],
 		}),
 
-		defineResolver(Source.HuggingFaceHub_Rest, {
+		defineResolver({
 			entityType: EntityType.AiModelVersion,
 			resolve: {
 				HuggingFaceRepoRevision: {
@@ -103,7 +103,7 @@ export const huggingFaceHubResolvers = [
 			$$documents: (model, selector) => [documentReference(model.id, selector.revision)],
 		}),
 
-		defineResolver(Source.HuggingFaceHub_Rest, {
+		defineResolver({
 			entityType: EntityType.AiArtifact,
 			resolve: {
 				ProviderArtifactId: {
@@ -135,7 +135,7 @@ export const huggingFaceHubResolvers = [
 			$$documents: (artifact) => artifact.path == null ? [documentReference(artifact.repoId, artifact.revision)] : [],
 		}),
 
-		defineResolver(Source.HuggingFaceHub_Rest, {
+		defineResolver({
 			entityType: EntityType.AiDocument,
 			resolve: {
 				DocumentUrl: {
@@ -169,4 +169,4 @@ export const huggingFaceHubResolvers = [
 export default {
 	source: Source.HuggingFaceHub_Rest,
 	resolvers: huggingFaceHubResolvers,
-}
+} satisfies RegisteredSourceResolverModule<Source.HuggingFaceHub_Rest>

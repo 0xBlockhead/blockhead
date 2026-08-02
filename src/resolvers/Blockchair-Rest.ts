@@ -2,6 +2,7 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type SourceResolverContext,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
@@ -59,7 +60,7 @@ const blockchairNetworkTimestampApplicability = [
 const blockchairNetworkSelectors = <_Snapshot extends object>(
 	resolve: (
 		network: NetworkId,
-		context: SourceResolverContext<Source.Blockchair_Rest>
+		context: SourceResolverContext
 	) => Promise<_Snapshot>
 ) => ({
 	Caip2: {
@@ -188,7 +189,7 @@ export default {
 	source: Source.Blockchair_Rest,
 
 	resolvers: [
-		defineResolver(Source.Blockchair_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: blockchairNetworkSelectors(async (network) => ({
 				[EntityMetaKey.Selector]: network,
@@ -198,7 +199,7 @@ export default {
 			slug: (network) => network.slug,
 		}),
 
-		defineResolver(Source.Blockchair_Rest, {
+		defineResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				NetworkHeight: {
@@ -252,7 +253,7 @@ export default {
 			$$transactions: (block) => block.$$transactions,
 		}),
 
-		defineResolver(Source.Blockchair_Rest, {
+		defineResolver({
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				NetworkTxId: {
@@ -305,7 +306,7 @@ export default {
 			$$outputs: (transaction) => transaction.$$outputs,
 		}),
 
-		defineResolver(Source.Blockchair_Rest, {
+		defineResolver({
 			entityType: EntityType.UtxoAddress,
 			resolve: {
 				NetworkAddress: {
@@ -331,7 +332,7 @@ export default {
 			$$timestamps: (address) => address.$$timestamps,
 		}),
 
-		defineResolver(Source.Blockchair_Rest, {
+		defineResolver({
 			entityType: EntityType.UtxoAddress_Timestamp,
 			resolve: {
 				AddressTimestampMsSource: {
@@ -346,7 +347,7 @@ export default {
 			spentValueSats: (address) => bigintFromNumber(address.spent),
 		}),
 
-		defineResolver(Source.Blockchair_Rest, {
+		defineResolver({
 			entityType: EntityType.UtxoInput,
 			resolve: {
 				TransactionIndexInTransaction: {
@@ -393,7 +394,7 @@ export default {
 			witness: (input) => input.witness ?? [],
 		}),
 
-		defineResolver(Source.Blockchair_Rest, {
+		defineResolver({
 			entityType: EntityType.UtxoOutput,
 			resolve: {
 				TransactionIndexInTransaction: {
@@ -437,7 +438,7 @@ export default {
 			isSpent: (output) => output.isSpent,
 		}),
 
-		defineResolver(Source.Blockchair_Rest, {
+		defineResolver({
 			entityType: EntityType.Network_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {
@@ -530,7 +531,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockchair_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: blockchairNetworkSelectors(async (network) => {
 				const { getBitcoinLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
@@ -564,7 +565,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockchair_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: blockchairNetworkSelectors(async (network, context) => {
 				const { getBlocks } = await import('$/sources/Blockchair/Rest/queries.ts')
@@ -588,7 +589,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Blockchair_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: blockchairNetworkSelectors(async (network, context) => {
 				const { getTransactions } = await import('$/sources/Blockchair/Rest/queries.ts')
@@ -612,4 +613,4 @@ export default {
 		}),
 
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Blockchair_Rest>

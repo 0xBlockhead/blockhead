@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -28,7 +29,7 @@ export default {
 	source: Source.L2Beat_Rest,
 
 	resolvers: [
-		defineResolver(Source.L2Beat_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -93,7 +94,7 @@ export default {
 			environment: (network) => network.environment,
 		}),
 
-		defineResolver(Source.L2Beat_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmRollup,
 			resolve: {
 				EvmNetworkProjectId: {
@@ -135,7 +136,7 @@ export default {
 			$settlementNetwork: (snapshot) => snapshot.$settlementNetwork,
 		}),
 
-		defineResolver(Source.L2Beat_Rest, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -165,7 +166,7 @@ export default {
 			$$evmNetworks: (snapshot) => snapshot,
 		}),
 
-		defineResolver(Source.L2Beat_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -272,4 +273,4 @@ export default {
 			},
 		}),
 	],
-} as const
+} as const satisfies RegisteredSourceResolverModule<Source.L2Beat_Rest>

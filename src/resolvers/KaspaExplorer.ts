@@ -1,6 +1,6 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
@@ -36,7 +36,7 @@ export default {
 	source: Source.KaspaExplorer,
 
 	resolvers: [
-		defineResolver(Source.KaspaExplorer, {
+		defineResolver({
 			entityType: EntityType.KaspaAddress,
 			resolve: {
 				NetworkAddress: {
@@ -79,7 +79,7 @@ export default {
 			$$timestamps: (timestamps) => timestamps,
 		}),
 
-		defineResolver(Source.KaspaExplorer, {
+		defineResolver({
 			entityType: EntityType.KaspaAddress,
 			resolve: {
 				NetworkAddress: {
@@ -119,7 +119,7 @@ export default {
 			$$utxos: (utxos) => utxos,
 		}),
 
-		defineResolver(Source.KaspaExplorer, {
+		defineResolver({
 			entityType: EntityType.KaspaAddress,
 			resolve: {
 				NetworkAddress: {
@@ -198,4 +198,4 @@ export default {
 			},
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.KaspaExplorer>

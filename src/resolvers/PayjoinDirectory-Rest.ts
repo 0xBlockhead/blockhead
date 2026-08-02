@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -8,7 +9,7 @@ export default {
 	source: Source.PayjoinDirectory_Rest,
 
 	resolvers: [
-		defineResolver(Source.PayjoinDirectory_Rest, {
+		defineResolver({
 			entityType: EntityType.PayjoinDirectory,
 			resolve: {
 				DirectoryUrl: {
@@ -31,4 +32,4 @@ export default {
 			ohttpKeyConfig: (snapshot) => snapshot.ohttpKeyConfig,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.PayjoinDirectory_Rest>

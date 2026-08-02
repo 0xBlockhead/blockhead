@@ -5,7 +5,6 @@ import { defineResolver } from '$/resolvers/defineResolver.ts'
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
 
 
 const fixtureSchema = [
@@ -159,7 +158,7 @@ void invalidLiteral
 void wrongSelector
 void emptyPatterns
 
-defineResolver(Source.Constants_Internal, {
+defineResolver({
 	entityType: EntityType.Network,
 	resolve: {
 		Caip2: {
@@ -170,7 +169,7 @@ defineResolver(Source.Constants_Internal, {
 	},
 })({})
 
-defineResolver(Source.Constants_Internal, {
+defineResolver({
 	entityType: EntityType.Network,
 	resolve: {
 		// @ts-expect-error A resolver definition cannot introduce a key absent from the entity's selectors.

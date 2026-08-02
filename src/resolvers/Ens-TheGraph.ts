@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { normalize as ensNormalizeNode, toString as ensToString } from '@tevm/voltaire/Ens'
 import {
@@ -52,7 +53,7 @@ export default {
 	source: Source.TheGraph_Graphql,
 
 	resolvers: [
-		defineResolver(Source.TheGraph_Graphql, {
+		defineResolver({
 			entityType: EntityType._GlobalEnsNetwork_Timestamp,
 			resolve: {
 				HubTimestampMsSource: {
@@ -95,7 +96,7 @@ export default {
 			reachable: (observation) => observation.reachable,
 		}),
 
-		defineResolver(Source.TheGraph_Graphql, {
+		defineResolver({
 			entityType: EntityType.EnsName,
 			resolve: {
 				NormalizedName: {
@@ -229,7 +230,7 @@ export default {
 				$$records: (ensName) => ensName.$$records ?? [],
 			}),
 
-		defineResolver(Source.TheGraph_Graphql, {
+		defineResolver({
 			entityType: EntityType.EnsName_Timestamp,
 			resolve: {
 				NameTimestampMsSource: {
@@ -310,7 +311,7 @@ export default {
 				isMigrated: (ensNameTimestamp) => ensNameTimestamp.isMigrated,
 			}),
 
-		defineResolver(Source.TheGraph_Graphql, {
+		defineResolver({
 			entityType: EntityType.EvmAccount,
 			resolve: {
 				AddressInteropAddress: {
@@ -339,7 +340,7 @@ export default {
 				$$ensNamesOwned: (ensNamesOwned) => ensNamesOwned,
 			}),
 
-		defineResolver(Source.TheGraph_Graphql, {
+		defineResolver({
 			entityType: EntityType.EnsRecord,
 			resolve: {
 				NameRecordKey: {
@@ -363,7 +364,7 @@ export default {
 				coinType: (ensRecord) => ensRecord.coinType,
 			}),
 
-		defineResolver(Source.TheGraph_Graphql, {
+		defineResolver({
 			entityType: EntityType.BlockheadEnsNameSearch,
 			resolve: {
 				Query: {
@@ -395,4 +396,4 @@ export default {
 				$$matchingNames: (matchingNames) => matchingNames,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.TheGraph_Graphql>

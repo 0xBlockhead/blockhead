@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import {
@@ -563,7 +564,7 @@ export default {
 	source: Source.NostrBand_Rest,
 
 	resolvers: [
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrSearchQuery,
 			resolve: {
 				Query: {
@@ -615,7 +616,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				CanonicalPubkey: {
@@ -649,7 +650,7 @@ export default {
 			$$metadataEvents: (profile) => profile.$$metadataEvents,
 		}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrProfileMetadataEvent,
 			resolve: {
 				CanonicalEventId: {
@@ -686,7 +687,7 @@ export default {
 			$banner: (event) => event.$banner,
 		}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrNote,
 			resolve: {
 				CanonicalEventId: {
@@ -721,7 +722,7 @@ export default {
 				$rootNote: (note) => note.$rootNote,
 			}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrRelay,
 			resolve: {
 				RelayUrl: {
@@ -748,7 +749,7 @@ export default {
 			$$timestamps: (relay) => relay.$$timestamps,
 		}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrRelay_Timestamp,
 			resolve: {
 				RelayTimestampMsSource: {
@@ -840,7 +841,7 @@ export default {
 			error: (observation) => observation.error,
 		}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrRepost,
 			resolve: {
 				CanonicalEventId: {
@@ -895,7 +896,7 @@ export default {
 				$repostedArticle: (repost) => repost.$repostedArticle,
 			}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrReaction,
 			resolve: {
 				CanonicalEventId: {
@@ -939,7 +940,7 @@ export default {
 				content: (reaction) => reaction.content,
 			}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrArticle,
 			resolve: {
 				CanonicalCoordinate: {
@@ -980,7 +981,7 @@ export default {
 			$$events: (article) => article.$$events,
 		}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrArticleEvent,
 			resolve: {
 				CanonicalEventId: {
@@ -1015,7 +1016,7 @@ export default {
 			$author: (event) => event.$author,
 		}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType._GlobalNostrNetwork,
 			resolve: {
 				Scope: {
@@ -1042,7 +1043,7 @@ export default {
 			$$observedProfiles: (profiles) => profiles,
 		}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType._GlobalNostrNetwork,
 			resolve: {
 				Scope: {
@@ -1065,7 +1066,7 @@ export default {
 			$$observedNotes: (notes) => notes,
 		}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType._GlobalNostrNetwork,
 			resolve: {
 				Scope: {
@@ -1089,7 +1090,7 @@ export default {
 			$$observedRelays: (relays) => relays,
 		}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType._GlobalNostrNetwork,
 			resolve: {
 				Scope: {
@@ -1112,7 +1113,7 @@ export default {
 			$$observedReposts: (reposts) => reposts,
 		}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType._GlobalNostrNetwork,
 			resolve: {
 				Scope: {
@@ -1133,7 +1134,7 @@ export default {
 			$$observedArticles: (articles) => articles,
 		}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				CanonicalPubkey: {
@@ -1159,7 +1160,7 @@ export default {
 				$$notes: (notes) => notes,
 			}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				CanonicalPubkey: {
@@ -1183,7 +1184,7 @@ export default {
 				$$articles: (articles) => articles,
 			}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				CanonicalPubkey: {
@@ -1209,7 +1210,7 @@ export default {
 				$$reposts: (reposts) => reposts,
 			}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrNote,
 			resolve: {
 				CanonicalEventId: {
@@ -1233,7 +1234,7 @@ export default {
 				$$replies: (replies) => replies,
 			}),
 
-		defineResolver(Source.NostrBand_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrNote,
 			resolve: {
 				CanonicalEventId: {
@@ -1258,4 +1259,4 @@ export default {
 			}),
 
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.NostrBand_Rest>

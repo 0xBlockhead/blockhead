@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -8,7 +9,7 @@ export default {
 	source: Source.EthereumSpecs_Github,
 
 	resolvers: [
-		defineResolver(Source.EthereumSpecs_Github, {
+		defineResolver({
 			entityType: EntityType.EthereumExecutionUpgrade,
 			resolve: {
 				EvmNetworkUpgradeId: {
@@ -33,4 +34,4 @@ export default {
 				executionSpecsMainnetUpgradeMarkdown: (snapshot) => snapshot,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.EthereumSpecs_Github>

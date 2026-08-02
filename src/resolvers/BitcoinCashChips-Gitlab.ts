@@ -4,6 +4,7 @@ import {
 } from '$/constants/SpecificationProposal.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { regex } from 'arkregex'
 import {
@@ -52,7 +53,7 @@ export default {
 	source: Source.BitcoinCashChips_Gitlab,
 
 	resolvers: [
-		defineResolver(Source.BitcoinCashChips_Gitlab, {
+		defineResolver({
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
 				RealmCategoryNumber: {
@@ -93,7 +94,7 @@ export default {
 				documentBody: (snapshot) => snapshot.documentBody,
 			}),
 
-		defineResolver(Source.BitcoinCashChips_Gitlab, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -108,4 +109,4 @@ export default {
 				$$proposals: (snapshot) => snapshot,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.BitcoinCashChips_Gitlab>

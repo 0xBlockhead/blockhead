@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
@@ -145,7 +146,7 @@ export default {
 	source: Source.Piped_Rest,
 
 	resolvers: [
-		defineResolver(Source.Piped_Rest, {
+		defineResolver({
 			entityType: EntityType.YoutubeChannel,
 			resolve: {
 				ChannelId: {
@@ -184,7 +185,7 @@ export default {
 				$$timestamps: (channel) => channel.$$timestamps,
 			}),
 
-		defineResolver(Source.Piped_Rest, {
+		defineResolver({
 			entityType: EntityType.YoutubePlaylist,
 			resolve: {
 				PlaylistId: {
@@ -229,7 +230,7 @@ export default {
 				$$timestamps: (playlist) => playlist.$$timestamps,
 			}),
 
-		defineResolver(Source.Piped_Rest, {
+		defineResolver({
 			entityType: EntityType.YoutubeVideo,
 			resolve: {
 				VideoId: {
@@ -276,7 +277,7 @@ export default {
 				$author: (video) => video.$author,
 			}),
 
-		defineResolver(Source.Piped_Rest, {
+		defineResolver({
 			entityType: EntityType.YoutubeComment,
 			resolve: {
 				VideoIdCommentId: {
@@ -333,7 +334,7 @@ export default {
 				$$timestamps: (comment) => comment.$$timestamps,
 			}),
 
-		defineResolver(Source.Piped_Rest, {
+		defineResolver({
 			entityType: EntityType.YoutubeChannel,
 			resolve: {
 					ChannelId: {
@@ -379,7 +380,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Piped_Rest, {
+		defineResolver({
 			entityType: EntityType.YoutubeChannel,
 			resolve: {
 					ChannelId: {
@@ -427,7 +428,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Piped_Rest, {
+		defineResolver({
 			entityType: EntityType.YoutubePlaylist,
 			resolve: {
 					PlaylistId: {
@@ -473,7 +474,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Piped_Rest, {
+		defineResolver({
 			entityType: EntityType.YoutubeVideo,
 			resolve: {
 					VideoId: {
@@ -521,7 +522,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Piped_Rest, {
+		defineResolver({
 			entityType: EntityType._GlobalYoutubeNetwork,
 			resolve: {
 				Scope: {
@@ -556,4 +557,4 @@ export default {
 		}),
 
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Piped_Rest>

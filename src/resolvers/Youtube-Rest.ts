@@ -2,6 +2,7 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { type } from 'arktype'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { optionalTimestampMs } from '$/lib/time.ts'
@@ -153,7 +154,7 @@ export default {
 	source: Source.Youtube_Rest,
 
 	resolvers: [
-		defineResolver(Source.Youtube_Rest, {
+		defineResolver({
 			entityType: EntityType.YoutubeChannel,
 			resolve: {
 				ChannelId: {
@@ -219,7 +220,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Youtube_Rest, {
+		defineResolver({
 			entityType: EntityType.YoutubeVideo,
 			resolve: {
 				VideoId: {
@@ -335,7 +336,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Youtube_Rest, {
+		defineResolver({
 			entityType: EntityType.YoutubePlaylist,
 			resolve: {
 				PlaylistId: {
@@ -395,7 +396,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Youtube_Rest, {
+		defineResolver({
 			entityType: EntityType.YoutubeComment,
 			resolve: {
 				VideoIdCommentId: {
@@ -457,7 +458,7 @@ export default {
 				$parentComment: (comment) => comment.$parentComment,
 			}),
 
-		defineResolver(Source.Youtube_Rest, {
+		defineResolver({
 			entityType: EntityType.YoutubeChannel,
 			resolve: {
 					ChannelId: {
@@ -500,7 +501,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Youtube_Rest, {
+		defineResolver({
 			entityType: EntityType.YoutubeChannel,
 			resolve: {
 					ChannelId: {
@@ -543,7 +544,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Youtube_Rest, {
+		defineResolver({
 			entityType: EntityType.YoutubePlaylist,
 			resolve: {
 					PlaylistId: {
@@ -591,7 +592,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Youtube_Rest, {
+		defineResolver({
 			entityType: EntityType.YoutubeVideo,
 			resolve: {
 					VideoId: {
@@ -636,7 +637,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Youtube_Rest, {
+		defineResolver({
 			entityType: EntityType.YoutubeComment,
 			resolve: {
 				VideoIdCommentId: {
@@ -694,7 +695,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Youtube_Rest, {
+		defineResolver({
 			entityType: EntityType.YoutubeComment,
 			resolve: {
 					VideoIdCommentId: {
@@ -756,7 +757,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Youtube_Rest, {
+		defineResolver({
 			entityType: EntityType._GlobalYoutubeNetwork,
 			resolve: {
 				Scope: {
@@ -789,7 +790,7 @@ export default {
 			),
 		}),
 
-		defineResolver(Source.Youtube_Rest, {
+		defineResolver({
 			entityType: EntityType._GlobalYoutubeNetwork,
 			resolve: {
 				Scope: {
@@ -823,4 +824,4 @@ export default {
 				$$observedPlaylists: (network) => network,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Youtube_Rest>

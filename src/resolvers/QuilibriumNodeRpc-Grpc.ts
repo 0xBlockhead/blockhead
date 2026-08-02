@@ -1,4 +1,4 @@
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { Source } from '$/sources/Source.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
@@ -6,7 +6,7 @@ export default {
 	source: Source.QuilibriumNodeRpc_Grpc,
 
 	resolvers: [
-		defineResolver(Source.QuilibriumNodeRpc_Grpc, {
+		defineResolver({
 			entityType: EntityType.QuilibriumAccount,
 			resolve: {
 				NetworkAccountAddress: {
@@ -27,4 +27,4 @@ export default {
 			accountKind: (account) => account.accountKind,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.QuilibriumNodeRpc_Grpc>

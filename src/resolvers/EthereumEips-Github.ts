@@ -5,6 +5,7 @@ import {
 import {
 	defineResolver,
 	type SourceResolverContext,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	resolverContextRowLimit,
@@ -53,7 +54,7 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 		name: string
 		download_url?: string | null
 	}[]>
-	context: SourceResolverContext<Source.EthereumEips_Github>
+	context: SourceResolverContext
 }) => {
 	const ledgers = (
 		category === ProposalCategory.Erc ?
@@ -114,7 +115,7 @@ export default {
 	source: Source.EthereumEips_Github,
 
 	resolvers: [
-		defineResolver(Source.EthereumEips_Github, {
+		defineResolver({
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
 				RealmCategoryNumber: {
@@ -169,7 +170,7 @@ export default {
 			documentBody: (snapshot) => snapshot.documentBody,
 		}),
 
-		defineResolver(Source.EthereumEips_Github, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -191,7 +192,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.EthereumEips_Github, {
+		defineResolver({
 			entityType: EntityType.SpecificationProposalKind,
 			resolve: {
 				RealmCategory: {
@@ -220,4 +221,4 @@ export default {
 				},
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.EthereumEips_Github>

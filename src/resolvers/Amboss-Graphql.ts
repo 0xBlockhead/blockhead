@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -21,7 +22,7 @@ export default {
 	source: Source.Amboss_Graphql,
 
 	resolvers: [
-		defineResolver(Source.Amboss_Graphql, {
+		defineResolver({
 			entityType: EntityType.LightningChannel,
 			resolve: {
 				NetworkChannelId: {
@@ -56,7 +57,7 @@ export default {
 				$node1: (snapshot) => snapshot.$node1,
 			}),
 
-		defineResolver(Source.Amboss_Graphql, {
+		defineResolver({
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				Network: {
@@ -79,4 +80,4 @@ export default {
 				$$nodes: (snapshot) => snapshot,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Amboss_Graphql>

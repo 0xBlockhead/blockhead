@@ -2,6 +2,7 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { hyperliquidEvmResolvers } from '$/resolvers/HyperliquidEvm.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -117,7 +118,7 @@ export default {
 	resolvers: [
 		...hyperliquidEvmResolvers,
 
-		defineResolver(Source.Hyperliquid, {
+		defineResolver({
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
 				Network: {
@@ -139,7 +140,7 @@ export default {
 			restEndpoints: (snapshot) => snapshot.restEndpoints,
 		}),
 
-		defineResolver(Source.Hyperliquid, {
+		defineResolver({
 			entityType: EntityType.HyperliquidAccount,
 			resolve: {
 				NetworkAddress: {
@@ -183,7 +184,7 @@ export default {
 			})),
 		}),
 
-		defineResolver(Source.Hyperliquid, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -205,7 +206,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Hyperliquid, {
+		defineResolver({
 			entityType: EntityType.HyperliquidPerpMarket,
 			resolve: {
 				NetworkCoin: {
@@ -228,7 +229,7 @@ export default {
 			$$timestamps: (snapshot) => snapshot,
 		}),
 
-		defineResolver(Source.Hyperliquid, {
+		defineResolver({
 			entityType: EntityType.HyperliquidPerpMarket_Timestamp,
 			resolve: {
 				PerpMarketTimestampMsSource: {
@@ -253,7 +254,7 @@ export default {
 			onlyIsolated: (snapshot) => snapshot.onlyIsolated,
 		}),
 
-		defineResolver(Source.Hyperliquid, {
+		defineResolver({
 			entityType: EntityType.HyperliquidSpotAsset,
 			resolve: {
 				NetworkAssetId: {
@@ -282,7 +283,7 @@ export default {
 			tokenId: (snapshot) => snapshot.tokenId,
 		}),
 
-		defineResolver(Source.Hyperliquid, {
+		defineResolver({
 			entityType: EntityType.HyperliquidAccount,
 			resolve: {
 				NetworkAddress: {
@@ -366,7 +367,7 @@ export default {
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 
-		defineResolver(Source.Hyperliquid, {
+		defineResolver({
 			entityType: EntityType.HyperliquidAccount,
 			resolve: {
 				NetworkAddress: {
@@ -469,7 +470,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Hyperliquid, {
+		defineResolver({
 			entityType: EntityType.HyperliquidAccount,
 			resolve: {
 				NetworkAddress: {
@@ -579,7 +580,7 @@ export default {
 			},
 		}),
 
-		defineResolver(Source.Hyperliquid, {
+		defineResolver({
 			entityType: EntityType.HyperliquidValidator,
 			resolve: {
 				NetworkValidator: {
@@ -602,7 +603,7 @@ export default {
 			$$timestamps: (snapshot) => snapshot,
 		}),
 
-		defineResolver(Source.Hyperliquid, {
+		defineResolver({
 			entityType: EntityType.HyperliquidValidator_Timestamp,
 			resolve: {
 				ValidatorTimestampMsSource: {
@@ -641,7 +642,7 @@ export default {
 			isJailed: (snapshot) => snapshot.isJailed,
 		}),
 
-		defineResolver(Source.Hyperliquid, {
+		defineResolver({
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
 				Network: {
@@ -658,7 +659,7 @@ export default {
 			$$spotAssets: (snapshot) => snapshot.$$spotAssets,
 		}),
 
-		defineResolver(Source.Hyperliquid, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -677,4 +678,4 @@ export default {
 			},
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Hyperliquid>

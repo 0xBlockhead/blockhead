@@ -5,6 +5,7 @@ import {
 } from '$/constants/Network.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -39,7 +40,7 @@ export default {
 	source: Source.Superchain_Github,
 
 	resolvers: [
-		defineResolver(Source.Superchain_Github, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -125,4 +126,4 @@ export default {
 			},
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Superchain_Github>

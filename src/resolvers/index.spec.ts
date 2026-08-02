@@ -347,7 +347,7 @@ describe('resolver registry live resolver architecture', () => {
 
 	it('requires concrete resolver declarations to name every supported field facet', () => {
 		expect(() => {
-			defineResolver(Source.Constants_Internal, {
+			defineResolver({
 				entityType: EntityType.Network,
 				resolve: {
 					// @ts-expect-error Resolver keys must be selector names declared by the entity schema.
@@ -358,7 +358,7 @@ describe('resolver registry live resolver architecture', () => {
 			})({})
 		}).toBeTypeOf('function')
 		expect(() => {
-			defineResolver(Source.Voltaire_JsonRpc, {
+			defineResolver({
 				entityType: EntityType.Network,
 				resolve: {
 					Caip2: {
@@ -384,7 +384,7 @@ describe('resolver registry live resolver architecture', () => {
 			})({})
 		}).toBeTypeOf('function')
 		expect(() => {
-			defineResolver(Source.Voltaire_JsonRpc, {
+			defineResolver({
 				entityType: EntityType.Network,
 				resolve: {
 					Caip2: {
@@ -426,7 +426,7 @@ describe('resolver registry live resolver architecture', () => {
 
 	it('types projection fields declared by nested facets', () => {
 		expect(
-			defineResolver(Source.Blockscout_Rest, {
+			defineResolver({
 				entityType: EntityType.EvmLog,
 				resolve: {
 					TransactionIndexInTransaction: {
@@ -767,7 +767,7 @@ describe('resolver registry live resolver architecture', () => {
 	})
 
 	it('preserves duplicate-safe field part indexes for multi-selector resolve keys and parentSelectors parts', () => {
-		const first = defineResolver(Source.Constants_Internal, {
+		const first = defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -780,7 +780,7 @@ describe('resolver registry live resolver architecture', () => {
 					select: () => ([]),
 				},
 			})
-		const second = defineResolver(Source.Constants_Internal, {
+		const second = defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {

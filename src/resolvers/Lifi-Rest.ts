@@ -5,6 +5,7 @@ import { CoinId } from '$/constants/Coin.ts'
 import {
 	defineResolver,
 	type SourceResolverContext,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	evmChainCatalogExplorerUrlEntities,
@@ -267,7 +268,7 @@ const coinBridgeCapabilityRowsForCoin = async (
 
 const coinIdForBridgeInstanceSelector = async (
 	entitySelector: EntitySelector<typeof schema, EntityType.EvmCoinInstance>,
-	context: SourceResolverContext<Source.Lifi_Rest>
+	context: SourceResolverContext
 ) => {
 	const lifiEntitySelector = lifiCoinInstanceSelector(entitySelector)
 	if (
@@ -290,7 +291,7 @@ const coinIdForBridgeInstanceSelector = async (
 
 const coinBridgeCapabilitiesForInstance = async (
 	entitySelector: EntitySelector<typeof schema, EntityType.EvmCoinInstance>,
-	context: SourceResolverContext<Source.Lifi_Rest>,
+	context: SourceResolverContext,
 	direction: 'inbound' | 'outbound'
 ) => {
 	const { filterCoinBridgeCapabilityRowsForInstance } = await import(
@@ -309,7 +310,7 @@ export default {
 	source: Source.Lifi_Rest,
 
 	resolvers: [
-		defineResolver(Source.Lifi_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -333,7 +334,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Lifi_Rest, {
+		defineResolver({
 			entityType: EntityType.CoinBridgeCapability,
 			resolve: {
 				EvmCoinInstanceEvmCoinInstanceToolKey: {
@@ -356,7 +357,7 @@ export default {
 				assetOutcome: (capability) => capability.assetOutcome,
 			}),
 
-		defineResolver(Source.Lifi_Rest, {
+		defineResolver({
 			entityType: EntityType.BridgeRoute,
 			resolve: {
 				Quote: {
@@ -388,7 +389,7 @@ export default {
 				tags: (route) => route.tags,
 			}),
 
-		defineResolver(Source.Lifi_Rest, {
+		defineResolver({
 			entityType: EntityType.BridgeRouteStep,
 			resolve: {
 				RouteIndexInRoute: {
@@ -421,7 +422,7 @@ export default {
 				assetOutcome: (step) => step.assetOutcome,
 			}),
 
-		defineResolver(Source.Lifi_Rest, {
+		defineResolver({
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
@@ -437,7 +438,7 @@ export default {
 				$$evmNetworks: (networks) => networks,
 			}),
 
-		defineResolver(Source.Lifi_Rest, {
+		defineResolver({
 			entityType: EntityType.Coin,
 			resolve: {
 				CoinId: {
@@ -450,7 +451,7 @@ export default {
 				$$bridgeCapabilities: (capabilities) => capabilities,
 			}),
 
-		defineResolver(Source.Lifi_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				NetworkType: {
@@ -473,7 +474,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Lifi_Rest, {
+		defineResolver({
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
 				NetworkType: {
@@ -496,7 +497,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.Lifi_Rest, {
+		defineResolver({
 			entityType: EntityType.BridgeTransfer,
 			resolve: {
 				SourceTransferId: {
@@ -531,7 +532,7 @@ export default {
 			$$timestamps: (transfer) => transfer.$$timestamps,
 		}),
 
-		defineResolver(Source.Lifi_Rest, {
+		defineResolver({
 			entityType: EntityType.BridgeTransfer_Timestamp,
 			resolve: {
 				TransferTimestampMsSource: {
@@ -582,7 +583,7 @@ export default {
 			error: (observation) => observation.error,
 		}),
 
-		defineResolver(Source.Lifi_Rest, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -608,4 +609,4 @@ export default {
 				$$blockExplorerUrls: (urls) => urls,
 			}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Lifi_Rest>

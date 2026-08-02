@@ -7952,12 +7952,8 @@ const generateResolverIndexFile = (resolverModules: readonly App['resolvers']['m
 	{
 		imports: [
 			{
-				from: '$/resolvers/$resolvers.ts',
-				typeNames: ['SourceResolverModule'],
-			},
-			{
-				from: '$/schema/index.ts',
-				typeNames: ['schema'],
+				from: '$/resolvers/defineResolver.ts',
+				typeNames: ['RegisteredSourceResolverModule'],
 			},
 				{
 					from: '$/sources/Source.ts',
@@ -7965,11 +7961,20 @@ const generateResolverIndexFile = (resolverModules: readonly App['resolvers']['m
 				},
 		],
 		body: [
+			'type ResolverLoaderEntry = {',
+			'\t[_Source in Source]: readonly [',
+			'\t\t_Source,',
+			'\t\t() => Promise<{',
+			'\t\t\tdefault: RegisteredSourceResolverModule<_Source>',
+			'\t\t}>,',
+			'\t]',
+			'}[Source]',
+			'',
 			'const resolverLoaderEntries = [',
 			...resolverModules.map((module) => (
 				`\t[Source.${module.source}, () => import(${emitTypeScript(module.path.replace(/^src\/resolvers\//, './'))})],`
 			)),
-			'] as const satisfies readonly (readonly [Source, () => Promise<{ default: SourceResolverModule<typeof schema, Source> }>])[]',
+			'] as const satisfies readonly ResolverLoaderEntry[]',
 			'',
 			'export const loadResolvers = async (enabledSources: ReadonlySet<Source> = new Set(Object.values(Source))) => Promise.all(',
 			'\tresolverLoaderEntries',

@@ -5,6 +5,7 @@ import {
 } from '$/constants/Market.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -46,7 +47,7 @@ export default {
 	source: Source.TradingView_Rest,
 
 	resolvers: [
-		defineResolver(Source.TradingView_Rest, {
+		defineResolver({
 			entityType: EntityType.Market,
 			resolve: {
 				BaseQuoteMarketVenueKind: {
@@ -66,7 +67,7 @@ export default {
 			$$marketPrices: (marketPrices) => marketPrices,
 		}),
 
-		defineResolver(Source.TradingView_Rest, {
+		defineResolver({
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				Market: {
@@ -91,7 +92,7 @@ export default {
 			$$quotes: (quotes) => quotes,
 		}),
 
-		defineResolver(Source.TradingView_Rest, {
+		defineResolver({
 			entityType: EntityType.MarketPrice,
 			resolve: {
 				Market: {
@@ -104,7 +105,7 @@ export default {
 			$parentMarket: (market) => market,
 		}),
 
-		defineResolver(Source.TradingView_Rest, {
+		defineResolver({
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
 				MarketTimestampMsFeedKey: {
@@ -135,4 +136,4 @@ export default {
 			providerAssetId: (quote) => quote.providerAssetId,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.TradingView_Rest>

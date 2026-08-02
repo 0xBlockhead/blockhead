@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -12,7 +13,7 @@ export default {
 	source: Source.Rss_Rest,
 
 	resolvers: [
-		defineResolver(Source.Rss_Rest, {
+		defineResolver({
 			entityType: EntityType.RssFeed,
 			resolve: {
 				FeedUrl: {
@@ -60,7 +61,7 @@ export default {
 			$$items: (snapshot) => snapshot.items,
 		}),
 
-		defineResolver(Source.Rss_Rest, {
+		defineResolver({
 			entityType: EntityType.RssItem,
 			resolve: {
 				FeedIdentity: {
@@ -128,7 +129,7 @@ export default {
 			$feed: (snapshot) => snapshot.$feed,
 		}),
 
-		defineResolver(Source.Rss_Rest, {
+		defineResolver({
 			entityType: EntityType.RssFeed_Timestamp,
 			resolve: {
 				FeedTimestampMsSource: {
@@ -176,7 +177,7 @@ export default {
 			error: (snapshot) => snapshot.error,
 		}),
 
-		defineResolver(Source.Rss_Rest, {
+		defineResolver({
 			entityType: EntityType.RssItem_Timestamp,
 			resolve: {
 				ItemTimestampMsSource: {
@@ -234,4 +235,4 @@ export default {
 			error: (snapshot) => snapshot.error,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Rss_Rest>

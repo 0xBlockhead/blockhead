@@ -4,7 +4,7 @@ import {
 	EvmTransactionKind,
 } from '$/constants/Evm.ts'
 import { hexLowerOfByteSize, with0xHex } from '$/lib/hexLowerOfByteSize.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
 	type Entity,
@@ -46,7 +46,7 @@ export default {
 	source: Source.EnvioHyperRpc_JsonRpc,
 
 	resolvers: [
-		defineResolver(Source.EnvioHyperRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				EvmNetworkTxHash: {
@@ -194,5 +194,5 @@ export default {
 			$$logs: (transaction) => transaction.logs,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.EnvioHyperRpc_JsonRpc>
 import { networkBySlug } from '$/constants/Network.ts'

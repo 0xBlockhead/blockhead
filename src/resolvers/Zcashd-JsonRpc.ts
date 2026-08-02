@@ -1,5 +1,6 @@
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -162,7 +163,7 @@ export default {
 	source: Source.Zcashd_JsonRpc,
 
 	resolvers: [
-		defineResolver(Source.Zcashd_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				NetworkHeight: {
@@ -197,7 +198,7 @@ export default {
 			})),
 		}),
 
-		defineResolver(Source.Zcashd_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				NetworkTxId: {
@@ -243,7 +244,7 @@ export default {
 			$$zcashShieldedActions: (snapshot) => snapshot.$$shieldedActions,
 		}),
 
-		defineResolver(Source.Zcashd_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.ZcashShieldedAction,
 			resolve: {
 				TransactionPoolActionKindIndexInTransaction: {
@@ -284,7 +285,7 @@ export default {
 			valueCommitment: (snapshot) => snapshot.valueCommitment,
 		}),
 
-		defineResolver(Source.Zcashd_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.ZcashShieldedPoolBlockState,
 			resolve: {
 				BlockPool: {
@@ -326,4 +327,4 @@ export default {
 			orchardTree: (snapshot) => snapshot.orchardTree,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Zcashd_JsonRpc>

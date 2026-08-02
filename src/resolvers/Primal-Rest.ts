@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import {
@@ -607,7 +608,7 @@ export default {
 	source: Source.Primal_Rest,
 
 	resolvers: [
-		defineResolver(Source.Primal_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrNote,
 			resolve: {
 				CanonicalEventId: {
@@ -642,7 +643,7 @@ export default {
 				$rootNote: (note) => note.$rootNote,
 			}),
 
-		defineResolver(Source.Primal_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrRepost,
 			resolve: {
 				CanonicalEventId: {
@@ -697,7 +698,7 @@ export default {
 				$repostedArticle: (repost) => repost.$repostedArticle,
 			}),
 
-		defineResolver(Source.Primal_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrReaction,
 			resolve: {
 				CanonicalEventId: {
@@ -741,7 +742,7 @@ export default {
 				content: (reaction) => reaction.content,
 			}),
 
-		defineResolver(Source.Primal_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrArticleEvent,
 			resolve: {
 				CanonicalEventId: {
@@ -776,7 +777,7 @@ export default {
 				$author: (event) => event.$author,
 			}),
 
-		defineResolver(Source.Primal_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrArticle,
 			resolve: {
 				CanonicalCoordinate: {
@@ -821,7 +822,7 @@ export default {
 				$$events: (article) => article.$$events,
 			}),
 
-		defineResolver(Source.Primal_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrProfileMetadataEvent,
 			resolve: {
 				CanonicalEventId: {
@@ -856,7 +857,7 @@ export default {
 				bannerUrl: (event) => event.bannerUrl,
 			}),
 
-		defineResolver(Source.Primal_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				CanonicalPubkey: {
@@ -887,7 +888,7 @@ export default {
 				$latestMetadataEvent: (profile) => profile.$latestMetadataEvent,
 				$$metadataEvents: (profile) => profile.$$metadataEvents,
 			}),
-		defineResolver(Source.Primal_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				CanonicalPubkey: {
@@ -913,7 +914,7 @@ export default {
 				$$notes: (profile) => profile,
 			}),
 
-		defineResolver(Source.Primal_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				CanonicalPubkey: {
@@ -939,7 +940,7 @@ export default {
 				$$reposts: (profile) => profile,
 			}),
 
-		defineResolver(Source.Primal_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrProfile,
 			resolve: {
 				CanonicalPubkey: {
@@ -963,7 +964,7 @@ export default {
 				$$articles: (profile) => profile,
 			}),
 
-		defineResolver(Source.Primal_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrNote,
 			resolve: {
 				CanonicalEventId: {
@@ -989,7 +990,7 @@ export default {
 				$$replies: (note) => note,
 			}),
 
-		defineResolver(Source.Primal_Rest, {
+		defineResolver({
 			entityType: EntityType.NostrNote,
 			resolve: {
 				CanonicalEventId: {
@@ -1016,4 +1017,4 @@ export default {
 			}),
 
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Primal_Rest>

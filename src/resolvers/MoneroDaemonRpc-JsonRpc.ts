@@ -1,6 +1,7 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -300,7 +301,7 @@ export default {
 	source: Source.MoneroDaemonRpc_JsonRpc,
 
 	resolvers: [
-		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.MoneroNetwork,
 			resolve: {
 				Network: {
@@ -320,7 +321,7 @@ export default {
 				rpcEndpoints: (network) => network.rpcEndpoints,
 			}),
 
-		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -338,7 +339,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.MoneroBlock,
 			resolve: {
 				NetworkHeight: {
@@ -357,7 +358,7 @@ export default {
 				$$transactions: (block) => block.$$transactions,
 			}),
 
-		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.MoneroTransaction,
 			resolve: {
 				NetworkTxHash: {
@@ -378,7 +379,7 @@ export default {
 				$$stealthOutputs: (transaction) => transaction.$$stealthOutputs ?? [],
 			}),
 
-		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.MoneroKeyImage,
 			resolve: {
 				MoneroTransactionInputIndexKeyImage: {
@@ -399,7 +400,7 @@ export default {
 				$ring: (keyImage) => keyImage.$ring,
 			}),
 
-		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.MoneroRing,
 			resolve: {
 				MoneroKeyImage: {
@@ -429,7 +430,7 @@ export default {
 				$$members: (ring) => ring.$$members,
 			}),
 
-		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.MoneroRingMember,
 			resolve: {
 				MoneroRingMemberIndex: {
@@ -449,7 +450,7 @@ export default {
 				globalOutputIndex: (ringMember) => ringMember.globalOutputIndex,
 			}),
 
-		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.MoneroStealthOutput,
 			resolve: {
 				MoneroTransactionOutputIndex: {
@@ -471,7 +472,7 @@ export default {
 				commitment: (output) => output.commitment,
 			}),
 
-		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.MoneroNetwork,
 			resolve: {
 				Network: {
@@ -501,7 +502,7 @@ export default {
 				$$timestamps: (timestamps) => timestamps,
 			}),
 
-		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -533,7 +534,7 @@ export default {
 				},
 			}),
 
-		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.MoneroNetwork_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {
@@ -546,7 +547,7 @@ export default {
 			},
 		})(moneroNetworkTimestampFieldResolvers),
 
-		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.MoneroNetwork,
 			resolve: {
 				Network: {
@@ -576,7 +577,7 @@ export default {
 				$$blocks: (blocks) => blocks,
 			}),
 
-		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -606,4 +607,4 @@ export default {
 			}),
 
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.MoneroDaemonRpc_JsonRpc>

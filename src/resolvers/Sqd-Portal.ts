@@ -1,6 +1,6 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { networkBySlug } from '$/constants/Network.ts'
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -28,7 +28,7 @@ export default {
 	source: Source.SqdPortal_RawHttp,
 
 	resolvers: [
-		defineResolver(Source.SqdPortal_RawHttp, {
+		defineResolver({
 			entityType: EntityType.EvmBlock,
 			resolve: {
 				EvmNetworkBlockNumber: {
@@ -88,4 +88,4 @@ export default {
 			$$transactions: (block) => block.transactions,
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.SqdPortal_RawHttp>

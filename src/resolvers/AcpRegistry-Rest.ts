@@ -1,4 +1,4 @@
-import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -8,7 +8,7 @@ export default {
 	source: Source.AcpRegistry_Rest,
 
 	resolvers: [
-		defineResolver(Source.AcpRegistry_Rest, {
+		defineResolver({
 			entityType: EntityType.AcpAgentProgramVersion,
 			resolve: {
 				ProgramVersion: {
@@ -59,4 +59,4 @@ export default {
 			},
 		}),
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.AcpRegistry_Rest>

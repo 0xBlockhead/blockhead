@@ -6,6 +6,7 @@ import { resolveMediaUrlTransport } from '$/lib/media.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	defineResolver,
+	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -252,7 +253,7 @@ export default {
 	source: Source.Snapchain_Rest,
 
 	resolvers: [
-		defineResolver(Source.Snapchain_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterUser,
 			resolve: {
 				Fid: {
@@ -351,7 +352,7 @@ export default {
 			$$verifiedAddresses: (user) => user.$$verifiedAddresses ?? [],
 		}),
 
-		defineResolver(Source.Snapchain_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterVerifiedAddress,
 			resolve: {
 				FidProtocolAddress: {
@@ -385,7 +386,7 @@ export default {
 			$solanaAccount: (verifiedAddress) => verifiedAddress.$solanaAccount,
 		}),
 
-		defineResolver(Source.Snapchain_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterUser_Timestamp,
 			resolve: {
 				FarcasterUserTimestampMs: {
@@ -397,7 +398,7 @@ export default {
 				followingCount: (timestamp) => timestamp.followingCount,
 			}),
 
-		defineResolver(Source.Snapchain_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterCast,
 			resolve: {
 				FidHash: {
@@ -496,7 +497,7 @@ export default {
 				$$embeds: (cast) => cast.$$embeds,
 			}),
 
-		defineResolver(Source.Snapchain_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterCast,
 			resolve: {
 				FidHash: {
@@ -562,7 +563,7 @@ export default {
 			$$directReplies: (directReplies) => directReplies,
 		}),
 
-		defineResolver(Source.Snapchain_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterCast_Timestamp,
 			resolve: {
 				FarcasterCastTimestampMs: {
@@ -582,7 +583,7 @@ export default {
 				replyCount: (timestamp) => timestamp.replyCount,
 			}),
 
-		defineResolver(Source.Snapchain_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterCastEmbed,
 			resolve: {
 				CastIndexInCast: {
@@ -633,7 +634,7 @@ export default {
 				quotedPreviewText: () => undefined,
 			}),
 
-		defineResolver(Source.Snapchain_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterNetwork,
 			resolve: {
 				Scope: {
@@ -655,7 +656,7 @@ export default {
 				$$users: (users) => users,
 		}),
 
-		defineResolver(Source.Snapchain_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterUser,
 			resolve: {
 				Fid: {
@@ -683,7 +684,7 @@ export default {
 				$$timestamps: (timestamps) => timestamps,
 			}),
 
-		defineResolver(Source.Snapchain_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterUser,
 			resolve: {
 				Fid: {
@@ -711,7 +712,7 @@ export default {
 				$$casts: (casts) => casts,
 			}),
 
-		defineResolver(Source.Snapchain_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterCast,
 			resolve: {
 				FidHash: {
@@ -743,7 +744,7 @@ export default {
 				$$timestamps: (timestamps) => timestamps,
 			}),
 
-		defineResolver(Source.Snapchain_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
 				Id: {
@@ -762,7 +763,7 @@ export default {
 				$$casts: (casts) => casts,
 			}),
 
-		defineResolver(Source.Snapchain_Rest, {
+		defineResolver({
 			entityType: EntityType.FarcasterFeed,
 			resolve: {
 				Variant: {
@@ -868,4 +869,4 @@ export default {
 			}),
 
 	],
-}
+} satisfies RegisteredSourceResolverModule<Source.Snapchain_Rest>
