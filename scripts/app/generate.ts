@@ -5193,6 +5193,19 @@ const normalizeApp = (app: App) => {
 	}
 }
 
+const validateAlphabeticalSet = (
+	label: string,
+	values: readonly string[]
+) => {
+	for (const [index, value] of values.entries()) {
+		const comparison = index === 0 ? -1 : values[index - 1]!.localeCompare(value, 'en')
+		if (comparison === 0)
+			throw new Error(`${label} contains duplicate ${value}`)
+		if (comparison > 0)
+			throw new Error(`${label} must be alphabetized`)
+	}
+}
+
 export const validateSourceBindingCompatibility = (compatibilityRows: readonly {
 	wireProtocol: WireProtocol
 	apiFamilies: readonly ApiFamily[]
@@ -5215,8 +5228,7 @@ export const validateSourceBindingCompatibility = (compatibilityRows: readonly {
 			...(compatibility.operationGroups === true ? [] : [['operation group', compatibility.operationGroups] as const]),
 			...(compatibility.artifactKinds === true ? [] : [['artifact kind', compatibility.artifactKinds] as const]),
 		] as const)
-			if (new Set(values).size !== values.length)
-				throw new Error(`${compatibility.wireProtocol}: compatibility row contains duplicate ${label}`)
+			validateAlphabeticalSet(`${compatibility.wireProtocol} compatibility ${label}`, values)
 
 		for (const apiFamily of compatibility.apiFamilies) {
 			const protocolFamilyKey = `${compatibility.wireProtocol}/${apiFamily}`
@@ -5226,6 +5238,10 @@ export const validateSourceBindingCompatibility = (compatibilityRows: readonly {
 			protocolFamilyKeys.add(protocolFamilyKey)
 		}
 	}
+	validateAlphabeticalSet(
+		'Source binding compatibility rows',
+		compatibilityRows.map(({ apiFamilies, wireProtocol }) => `${wireProtocol}/${apiFamilies.join(',')}`)
+	)
 }
 
 type SourceBindingDeliveryCompatibility = {
@@ -5274,6 +5290,7 @@ export const validateSourceBindingDeliveryCompatibility = (
 ) => {
 	const rowKeys = new Set<string>()
 	for (const compatibility of compatibilityRows) {
+		validateAlphabeticalSet('Delivery compatibility deliveries', compatibility.deliveries)
 		if (compatibility.deliveries.length === 0)
 			throw new Error('Delivery compatibility row requires at least one delivery')
 		if (compatibility.wireProtocols !== true) {
@@ -5285,18 +5302,13 @@ export const validateSourceBindingDeliveryCompatibility = (
 				compatibility.wireProtocols.exclude
 			if (wireProtocols.length === 0)
 				throw new Error('Constrained delivery wire protocols must be nonempty')
-			if (new Set(wireProtocols).size !== wireProtocols.length)
-				throw new Error('Delivery compatibility row contains duplicate wire protocol')
+			validateAlphabeticalSet('Delivery compatibility wire protocols', wireProtocols)
 		}
 		if (compatibility.apiFamilies !== true && compatibility.apiFamilies.length === 0)
 			throw new Error('Constrained delivery API families must be nonempty')
 
-		for (const [label, values] of [
-			['delivery', compatibility.deliveries],
-			...(compatibility.apiFamilies === true ? [] : [['API family', compatibility.apiFamilies] as const]),
-		] as const)
-			if (new Set(values).size !== values.length)
-				throw new Error(`Delivery compatibility row contains duplicate ${label}`)
+		if (compatibility.apiFamilies !== true)
+			validateAlphabeticalSet('Delivery compatibility API families', compatibility.apiFamilies)
 
 		const rowKey = JSON.stringify(compatibility)
 		if (rowKeys.has(rowKey))
@@ -5355,8 +5367,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		['SourceTargetKind', Object.values(SourceTargetKind)],
 		['WireProtocol', Object.values(WireProtocol)],
 	] as const)
-		if (values.some((value, index) => index > 0 && values[index - 1]!.localeCompare(value, 'en') >= 0))
-			throw new Error(`${label} members must be unique and alphabetized`)
+		validateAlphabeticalSet(`${label} members`, values)
 
 	validateSourceBindingCompatibility(sourceBindingCompatibility)
 	validateSourceBindingDeliveryCompatibility(sourceBindingDeliveryCompatibility)

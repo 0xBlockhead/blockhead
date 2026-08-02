@@ -297,15 +297,14 @@ type SourceBindingCompatibility =
 	| SourceBindingCompatibilityRow<WireProtocol.Git, ApiFamily.GitObject, SourceEndpointKind.HttpUrl | SourceEndpointKind.LocalFilePath, SourceOperationGroup, SourceArtifactKind>
 	| SourceBindingCompatibilityRow<WireProtocol.Graphql, ApiFamily.GraphqlHttp, SourceEndpointKind.HttpUrl, SourceOperationGroup.GenericRead, SourceArtifactKind.GenerationManifest | SourceArtifactKind.GraphqlSchema | SourceArtifactKind.GraphqlTypes | SourceArtifactKind.HandwrittenTypes>
 	| SourceBindingCompatibilityRow<WireProtocol.Grpc, ApiFamily.GrpcService, SourceEndpointKind.HttpUrl | SourceEndpointKind.TcpAddress, SourceOperationGroup, SourceArtifactKind>
-	| SourceBindingCompatibilityRow<WireProtocol.HttpRest, ApiFamily.AlgodRestApi | ApiFamily.AlgorandIndexerRestApi | ApiFamily.ArweaveGateway | ApiFamily.BitTorrentClient | ApiFamily.BlockscoutRestV2 | ApiFamily.CosmosLcdApi | ApiFamily.EthereumBeaconRest | ApiFamily.EtherscanModuleAction | ApiFamily.FedimintGatewaydApi | ApiFamily.ForgejoRestApi | ApiFamily.GitObject | ApiFamily.GithubContentsApi | ApiFamily.GithubRestApi | ApiFamily.GitlabRestApi | ApiFamily.GoldRushFoundationalApi | ApiFamily.IpfsGateway | ApiFamily.KaspaRestApi | ApiFamily.NostrRelay | ApiFamily.RestJson | ApiFamily.RosettaApi | ApiFamily.SourcifyRestV2 | ApiFamily.SwarmGateway | ApiFamily.TezosNodeRpc | ApiFamily.TonCenterV3Api, SourceEndpointKind.HttpUrl, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.HttpRest, ApiFamily.AlgodRestApi | ApiFamily.AlgorandIndexerRestApi | ApiFamily.ArweaveGateway | ApiFamily.BitTorrentClient | ApiFamily.BlockscoutRestV2 | ApiFamily.CosmosLcdApi | ApiFamily.EthereumBeaconRest | ApiFamily.EtherscanModuleAction | ApiFamily.FedimintGatewaydApi | ApiFamily.ForgejoRestApi | ApiFamily.GithubContentsApi | ApiFamily.GithubRestApi | ApiFamily.GitlabRestApi | ApiFamily.GitObject | ApiFamily.GoldRushFoundationalApi | ApiFamily.IpfsGateway | ApiFamily.KaspaRestApi | ApiFamily.NostrRelay | ApiFamily.RestJson | ApiFamily.RosettaApi | ApiFamily.SourcifyRestV2 | ApiFamily.SwarmGateway | ApiFamily.TezosNodeRpc | ApiFamily.TonCenterV3Api, SourceEndpointKind.HttpUrl, SourceOperationGroup, SourceArtifactKind>
 	| SourceBindingCompatibilityRow<WireProtocol.HttpRest, ApiFamily.OpenApiHttp, SourceEndpointKind.HttpUrl, SourceOperationGroup.GenericRead | SourceOperationGroup.SoftwareArtifactRegistry, SourceArtifactKind.GenerationManifest | SourceArtifactKind.OpenApiSpec | SourceArtifactKind.OpenApiTypes>
 	| SourceBindingCompatibilityRow<WireProtocol.InProcess, ApiFamily.BitTorrentDht | ApiFamily.CatalogRows | ApiFamily.WebTorrentApi | ApiFamily.XmtpClientApi, SourceEndpointKind.InProcess, SourceOperationGroup, SourceArtifactKind>
 	| SourceBindingCompatibilityRow<WireProtocol.InProcess, ApiFamily.CardanoLocalStateQuery | ApiFamily.LocalParser, SourceEndpointKind.LocalProcess, SourceOperationGroup, SourceArtifactKind>
 	| SourceBindingCompatibilityRow<WireProtocol.JsonRpc2, ApiFamily.AcpProtocol | ApiFamily.McpProtocol, SourceEndpointKind.LocalProcess, SourceOperationGroup, SourceArtifactKind>
 	| SourceBindingCompatibilityRow<WireProtocol.JsonRpc2, ApiFamily.BitcoinJsonRpc | ApiFamily.CelestiaNodeJsonRpc | ApiFamily.FilecoinLotusJsonRpc | ApiFamily.MetaplexDasJsonRpc | ApiFamily.MoneroDaemonJsonRpc | ApiFamily.StarknetJsonRpc | ApiFamily.SubstrateJsonRpc, SourceEndpointKind.HttpUrl, SourceOperationGroup, SourceArtifactKind>
-	| SourceBindingCompatibilityRow<WireProtocol.JsonRpc2, ApiFamily.JsonRpcApi | ApiFamily.SolanaJsonRpc, SourceEndpointKind.HttpUrl | SourceEndpointKind.WebSocketUrl, SourceOperationGroup, SourceArtifactKind>
-	| SourceBindingCompatibilityRow<WireProtocol.WebSocketMessages, ApiFamily.NostrRelay, SourceEndpointKind.WebSocketUrl, SourceOperationGroup, SourceArtifactKind>
 	| SourceBindingCompatibilityRow<WireProtocol.JsonRpc2, ApiFamily.EvmExecutionJsonRpc, SourceEndpointKind.HttpUrl | SourceEndpointKind.WebSocketUrl, SourceOperationGroup.EvmRpcCore | SourceOperationGroup.EvmRpcSubscribe | SourceOperationGroup.EvmRpcTrace | SourceOperationGroup.EvmRpcTxpool, SourceArtifactKind.GenerationManifest | SourceArtifactKind.OpenRpcSpec | SourceArtifactKind.OpenRpcTypes>
+	| SourceBindingCompatibilityRow<WireProtocol.JsonRpc2, ApiFamily.JsonRpcApi | ApiFamily.SolanaJsonRpc, SourceEndpointKind.HttpUrl | SourceEndpointKind.WebSocketUrl, SourceOperationGroup, SourceArtifactKind>
 	| SourceBindingCompatibilityRow<WireProtocol.LocalFile, ApiFamily.GitObject | ApiFamily.LocalParser | ApiFamily.LocalStateStore, SourceEndpointKind.LocalFilePath, SourceOperationGroup, SourceArtifactKind>
 	| SourceBindingCompatibilityRow<WireProtocol.OciDistribution, ApiFamily.OciDistributionApi, SourceEndpointKind.HttpUrl, SourceOperationGroup, SourceArtifactKind>
 	| SourceBindingCompatibilityRow<WireProtocol.Prometheus, ApiFamily.PrometheusText, SourceEndpointKind.HttpUrl, SourceOperationGroup, SourceArtifactKind>
@@ -314,6 +313,7 @@ type SourceBindingCompatibility =
 	| SourceBindingCompatibilityRow<WireProtocol.Uri, ApiFamily.UriScheme, SourceEndpointKind.InProcess, SourceOperationGroup, SourceArtifactKind>
 	| SourceBindingCompatibilityRow<WireProtocol.WalletProvider, ApiFamily.WalletApi, SourceEndpointKind.BrowserWalletProvider | SourceEndpointKind.InProcess | SourceEndpointKind.LocalProcess, SourceOperationGroup.WalletAccountRead | SourceOperationGroup.WalletSign, never>
 	| SourceBindingCompatibilityRow<WireProtocol.WebSocketMessages, ApiFamily.BitTorrentTracker, SourceEndpointKind.WebSocketUrl, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.WebSocketMessages, ApiFamily.NostrRelay, SourceEndpointKind.WebSocketUrl, SourceOperationGroup, SourceArtifactKind>
 	| SourceBindingCompatibilityRow<WireProtocol.Wrpc, ApiFamily.KaspaWrpcApi, SourceEndpointKind.HttpUrl, SourceOperationGroup, SourceArtifactKind>
 	| SourceBindingCompatibilityRow<WireProtocol.Xrpc, ApiFamily.AtprotoSync, SourceEndpointKind.HttpUrl | SourceEndpointKind.WebSocketUrl, SourceOperationGroup, SourceArtifactKind>
 	| SourceBindingCompatibilityRow<WireProtocol.Xrpc, ApiFamily.XrpcLexicon, SourceEndpointKind.HttpUrl, SourceOperationGroup, SourceArtifactKind>
@@ -377,7 +377,7 @@ type SourceBindingDelivery =
 		credentials: readonly SourceCredentialRequirement[]
 	}
 	| {
-		delivery: SourceDelivery.ServerOnly | SourceDelivery.LocalOnly | SourceDelivery.Unsupported
+		delivery: SourceDelivery.LocalOnly | SourceDelivery.ServerOnly | SourceDelivery.Unsupported
 		credentials: readonly SourceCredentialRequirement[]
 	}
 

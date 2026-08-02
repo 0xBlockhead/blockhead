@@ -3740,7 +3740,17 @@ test('rejects malformed source binding compatibility rows before compilation', (
 				SourceEndpointKind.TcpAddress,
 			],
 		}]),
-		/duplicate endpoint kind/
+		/endpoint kind contains duplicate/
+	)
+	assert.throws(
+		() => validateSourceBindingCompatibility([{
+			...sourceBindingCompatibility[0],
+			endpointKinds: [
+				SourceEndpointKind.WebSocketUrl,
+				SourceEndpointKind.HttpUrl,
+			],
+		}]),
+		/endpoint kind must be alphabetized/
 	)
 })
 
