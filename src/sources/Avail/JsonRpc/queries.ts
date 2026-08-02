@@ -92,20 +92,15 @@ export const getNetworkIdentity = async (
 		genesisHash,
 	] = await Promise.all([
 		request<string>(publicEnv, 'system_chain'),
-		request<string>(
-			publicEnv,
-			'chain_getBlockHash',
-			[0]
-		),
+		getBlockHash(publicEnv, 0n),
 	])
 	if (chainName !== mainnetChainName)
 		throw new Error('Avail: foreign chain name')
-	assertHash(genesisHash, 'genesis block hash')
-	if (genesisHash.toLowerCase() !== mainnetGenesisHash)
+	if (genesisHash !== mainnetGenesisHash)
 		throw new Error('Avail: foreign genesis block')
 	return {
 		chainName,
-		genesisHash: genesisHash.toLowerCase(),
+		genesisHash,
 	}
 }
 
