@@ -1,12 +1,12 @@
 import {
 	getGithubContents,
-	getGithubRawText,
 	githubContentsUrl,
 	githubRawUrl,
 	githubRepositoryTargetFromKey,
 } from '$/sources/_shared/hosts/Github/Http/client.ts'
 import bindings from '$/sources/FilecoinFips/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import { sourceGetText } from '$/sources/_runtime/http.ts'
 
 const binding = bindings[Source.FilecoinFips_Github][0]
 const target = githubRepositoryTargetFromKey(binding.target.key)
@@ -34,11 +34,5 @@ export const getMarkdownText = ({
 }: {
 	number: number
 }) => (
-	getGithubRawText({
-		binding,
-		target: {
-			...target,
-			path: `${target.path}/fip-${number.toString().padStart(4, '0')}.md`,
-		},
-	})
+	sourceGetText(binding, getMarkdownUrl({ number }))
 )

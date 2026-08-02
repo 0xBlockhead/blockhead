@@ -1,12 +1,12 @@
 import {
 	getGithubContents,
-	getGithubRawText,
 	githubContentsUrl,
 	githubRawUrl,
 	githubRepositoryTargetFromKey,
 } from '$/sources/_shared/hosts/Github/Http/client.ts'
 import bindings from '$/sources/ZcashZips/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import { sourceGetText } from '$/sources/_runtime/http.ts'
 
 const binding = bindings[Source.ZcashZips_Github][0]
 const target = githubRepositoryTargetFromKey(binding.target.key)
@@ -34,11 +34,5 @@ export const getProposalRstText = ({
 }: {
 	number: number
 }) => (
-	getGithubRawText({
-		binding,
-		target: {
-			...target,
-			path: `${target.path}/zip-${number.toString().padStart(4, '0')}.rst`,
-		},
-	})
+	sourceGetText(binding, getProposalRstUrl({ number }))
 )

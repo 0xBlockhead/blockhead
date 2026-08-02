@@ -1,11 +1,11 @@
 import bindings from '$/sources/Ensips/bindings.ts'
 import {
 	getGithubContents,
-	getGithubRawText,
 	githubContentsUrl,
 	githubRawUrl,
 	githubRepositoryTargetFromKey,
 } from '$/sources/_shared/hosts/Github/Http/client.ts'
+import { sourceGetText } from '$/sources/_runtime/http.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.Ensips_Github][0]
@@ -32,11 +32,5 @@ export const getProposalMarkdownText = ({
 }: {
 	number: number
 }) => (
-	getGithubRawText({
-		binding,
-		target: {
-			...target,
-			path: `${target.path}/${number}.md`,
-		},
-	})
+	sourceGetText(binding, getProposalMarkdownUrl({ number }))
 )
