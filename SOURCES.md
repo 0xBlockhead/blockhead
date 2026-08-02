@@ -1501,7 +1501,6 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 174 | 1 | UserDelegated | no |  |
 | 179 | 1 | UserDelegated | no |  |
 | 180 | 1 | UserDelegated | no |  |
-| 181 | 1 | PublicConfig | yes | PUBLIC_LENS_API_KEY |
 | 183 | 1 | PublicConfig | yes | PUBLIC_LND_MACAROON_HEX |
 | 185 | 1 | LocalSecret | no |  |
 | 187 | 1 | LocalSecret | no |  |

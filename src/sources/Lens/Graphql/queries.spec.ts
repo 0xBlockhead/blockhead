@@ -42,6 +42,7 @@ afterEach(() => {
 
 
 it('requests complete public account and post reading fields', async () => {
+	const accountAddress = '0x1111111111111111111111111111111111111111'
 	const username = {
 		id: 'username-1',
 		value: 'lens/alice',
@@ -52,7 +53,7 @@ it('requests complete public account and post reading fields', async () => {
 		timestamp: '2026-07-20T12:00:00.000Z',
 	}
 	const account = {
-		address: '0x1111111111111111111111111111111111111111',
+		address: accountAddress,
 		owner: '0x3333333333333333333333333333333333333333',
 		createdAt: '2026-07-20T12:00:00.000Z',
 		score: 42,
@@ -88,7 +89,7 @@ it('requests complete public account and post reading fields', async () => {
 			},
 		}))
 
-	await expect(queryAccountByAddress({}, account.address)).resolves.toMatchObject({
+	await expect(queryAccountByAddress(accountAddress)).resolves.toMatchObject({
 		account,
 		accountStats: {
 			graphFollowStats: {
@@ -96,7 +97,7 @@ it('requests complete public account and post reading fields', async () => {
 			},
 		},
 	})
-	await expect(queryPost({}, 'post-1')).resolves.toMatchObject({
+	await expect(queryPost('post-1')).resolves.toMatchObject({
 		post: {
 			contentUri: 'lens://post-1',
 			feed: {
@@ -107,7 +108,7 @@ it('requests complete public account and post reading fields', async () => {
 		},
 	})
 	expect(requestBody(0).query).toMatch(/owner[\s\S]*score[\s\S]*username[\s\S]*linkedTo[\s\S]*ownedBy/)
-	expect(requestBody(0).variables).toEqual({ address: account.address })
+	expect(requestBody(0).variables).toEqual({ address: accountAddress })
 	expect(requestBody(1).query).toMatch(/contentUri[\s\S]*feed[\s\S]*address[\s\S]*metadata/)
 	expect(requestBody(1).variables).toEqual({ post: 'post-1' })
 })
@@ -131,9 +132,9 @@ it('keeps account lookup and observation documents independently addressable', a
 			},
 		}))
 
-	await queryAccountByLocalName({}, 'alice')
-	await queryAccountByLegacyProfileId({}, '0x01')
-	await queryAccountStats({}, address)
+	await queryAccountByLocalName('alice')
+	await queryAccountByLegacyProfileId('0x01')
+	await queryAccountStats(address)
 
 	expect(fetchMock.mock.calls.map((_call, index) => requestBody(index).variables)).toEqual([
 		{ localName: 'alice' },
@@ -174,7 +175,7 @@ it('continues public directories by cursor, dedupes identities, and stops at exh
 			},
 		}))
 
-	await expect(queryAccounts({}, 3)).resolves.toMatchObject({
+	await expect(queryAccounts(3)).resolves.toMatchObject({
 		accounts: {
 			items: [
 				{ address: '0x1111111111111111111111111111111111111111' },
@@ -204,7 +205,7 @@ it('continues public directories by cursor, dedupes identities, and stops at exh
 				pageInfo: { prev: null, next: 'stuck' },
 			},
 		}))
-	await expect(queryFeeds({}, 3)).resolves.toMatchObject({
+	await expect(queryFeeds(3)).resolves.toMatchObject({
 		feeds: {
 			items: [
 				{ address: '0x4444444444444444444444444444444444444444' },
@@ -227,13 +228,13 @@ it('issues typed unsigned feed, username, and namespace detail and directory ope
 		.mockResolvedValueOnce(response({ namespace: null }))
 		.mockResolvedValueOnce(response({ namespaces: { items: [], pageInfo: { next: null, prev: null } } }))
 
-	await queryFeed({}, address)
-	await queryFeeds({}, 1)
-	await queryUsernameById({}, 'username-1')
-	await queryUsernameByLocalName({}, address, 'alice')
-	await queryUsernames({}, 1, { linkedTo: address })
-	await queryNamespace({}, address)
-	await queryNamespaces({}, 1)
+	await queryFeed(address)
+	await queryFeeds(1)
+	await queryUsernameById('username-1')
+	await queryUsernameByLocalName(address, 'alice')
+	await queryUsernames(1, { linkedTo: address })
+	await queryNamespace(address)
+	await queryNamespaces(1)
 
 	expect(fetchMock).toHaveBeenCalledTimes(7)
 	expect(fetchMock.mock.calls.map((_call, index) => requestBody(index).variables)).toEqual([
@@ -279,7 +280,7 @@ it('paginates and deduplicates unsigned posts for one exact feed', async () => {
 			},
 		}))
 
-	await expect(queryFeedPosts({}, address, 2)).resolves.toMatchObject({
+	await expect(queryFeedPosts(address, 2)).resolves.toMatchObject({
 		posts: {
 			items: [
 				post,
@@ -337,7 +338,7 @@ it('stops opaque-cursor pagination after repeated pages make no identity progres
 			},
 		}))
 
-	await expect(queryFeedPosts({}, address, 2)).resolves.toMatchObject({
+	await expect(queryFeedPosts(address, 2)).resolves.toMatchObject({
 		posts: {
 			items: [post],
 			pageInfo: { next: 'opaque+/=3' },
@@ -359,10 +360,7 @@ it('rejects foreign account and post response identities before enrichment', asy
 			},
 		},
 	}))
-	await expect(queryAccountByAddress(
-		{},
-		'0x1111111111111111111111111111111111111111'
-	)).rejects.toThrow('account response does not match request')
+	await expect(queryAccountByAddress('0x1111111111111111111111111111111111111111')).rejects.toThrow('account response does not match request')
 
 	fetchMock.mockResolvedValueOnce(response({
 		account: {
@@ -372,10 +370,7 @@ it('rejects foreign account and post response identities before enrichment', asy
 			},
 		},
 	}))
-	await expect(queryAccountByLocalName(
-		{},
-		'alice'
-	)).rejects.toThrow('account response does not match request')
+	await expect(queryAccountByLocalName('alice')).rejects.toThrow('account response does not match request')
 
 	fetchMock.mockResolvedValueOnce(response({
 		post: {
@@ -383,15 +378,15 @@ it('rejects foreign account and post response identities before enrichment', asy
 			slug: 'foreign-post',
 		},
 	}))
-	await expect(queryPost({}, 'requested-post')).rejects.toThrow('post response does not match request')
+	await expect(queryPost('requested-post')).rejects.toThrow('post response does not match request')
 })
 
 it('rejects malformed identities and invalid directory limits before transport', async () => {
-	await expect(queryPost({}, ' ')).rejects.toThrow('post identity must not be empty')
-	await expect(queryAccountByLocalName({}, ' ')).rejects.toThrow('account identity must not be empty')
-	await expect(queryUsernameById({}, '')).rejects.toThrow('username identity must not be empty')
-	await expect(queryAccounts({}, -1)).rejects.toThrow('page limit must be a nonnegative safe integer')
-	await expect(queryFeeds({}, 1.5)).rejects.toThrow('page limit must be a nonnegative safe integer')
-	await expect(queryFeedPosts({}, '0x1111111111111111111111111111111111111111', -1)).rejects.toThrow('page limit must be a nonnegative safe integer')
+	await expect(queryPost(' ')).rejects.toThrow('post identity must not be empty')
+	await expect(queryAccountByLocalName(' ')).rejects.toThrow('account identity must not be empty')
+	await expect(queryUsernameById('')).rejects.toThrow('username identity must not be empty')
+	await expect(queryAccounts(-1)).rejects.toThrow('page limit must be a nonnegative safe integer')
+	await expect(queryFeeds(1.5)).rejects.toThrow('page limit must be a nonnegative safe integer')
+	await expect(queryFeedPosts('0x1111111111111111111111111111111111111111', -1)).rejects.toThrow('page limit must be a nonnegative safe integer')
 	expect(fetchMock).not.toHaveBeenCalled()
 })

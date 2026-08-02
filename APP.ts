@@ -89798,19 +89798,7 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.PublicConfig,
-							env: {
-								keys: [
-									{
-										name: "PUBLIC_LENS_API_KEY",
-										type: "string > 0?",
-									},
-								],
-							},
-						},
-					],
+					credentials: [],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.GenerationManifest,

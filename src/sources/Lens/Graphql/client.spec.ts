@@ -38,7 +38,7 @@ afterEach(() => {
 })
 
 it('sends a bounded latest-post query through the canonical binding delivery', async () => {
-	await expect(queryLatestPosts({}, 'FIFTY')).resolves.toEqual({
+	await expect(queryLatestPosts('FIFTY')).resolves.toEqual({
 		posts: {
 			items: [],
 			pageInfo: {
@@ -49,6 +49,7 @@ it('sends a bounded latest-post query through the canonical binding delivery', a
 	})
 
 	expect(binding.delivery).toBe(SourceDelivery.BrowserDirect)
+	expect(binding.credentials).toEqual([])
 	expect(fetchMock).toHaveBeenCalledTimes(1)
 	expect(fetchMock.mock.calls[0][0]).toBe('https://api.lens.xyz/graphql')
 	const init = fetchMock.mock.calls[0][1]
@@ -59,19 +60,8 @@ it('sends a bounded latest-post query through the canonical binding delivery', a
 	expect(init?.signal).toBeInstanceOf(AbortSignal)
 })
 
-it('includes configured app identity without exposing an empty header', async () => {
-	await queryLatestPosts({
-		PUBLIC_LENS_API_KEY: ' lens-app ',
-	})
-
-	expect(fetchMock.mock.calls[0][1]?.headers).toHaveProperty('x-lens-app', 'lens-app')
-})
-
-it('keeps the source enabled when its optional public app identity is absent', () => {
+it('keeps the anonymous browser source enabled without configuration', () => {
 	expect(indexSourceProviders([lensProvider], {}).enabledSources.has(Source.Lens_Graphql)).toBe(true)
-	expect(indexSourceProviders([lensProvider], {
-		PUBLIC_LENS_API_KEY: 'configured',
-	}).enabledSources.has(Source.Lens_Graphql)).toBe(true)
 })
 
 it('fails closed on GraphQL errors instead of returning partial data', async () => {
@@ -90,7 +80,7 @@ it('fails closed on GraphQL errors instead of returning partial data', async () 
 		},
 	}))
 
-	await expect(queryLatestPosts({})).rejects.toThrow(
+	await expect(queryLatestPosts()).rejects.toThrow(
 		'Lens_Graphql: query rejected'
 	)
 })

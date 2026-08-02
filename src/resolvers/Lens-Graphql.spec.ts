@@ -184,16 +184,13 @@ describe('Lens_Graphql reading relationships', () => {
 			id: 'parent-post',
 		}, context)).resolves.toEqual([expectedReference])
 		expect(queryLatestPosts).toHaveBeenCalledWith(
-			{},
 			64
 		)
 		expect(queryPostsByAuthor).toHaveBeenCalledWith(
-			{},
 			'0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
 			64
 		)
 		expect(queryPostComments).toHaveBeenCalledWith(
-			{},
 			'parent-post',
 			64
 		)
@@ -248,7 +245,6 @@ describe('Lens_Graphql reading relationships', () => {
 			],
 		})
 		expect(queryAccountByAddress).toHaveBeenCalledWith(
-			{},
 			'0xabcdefabcdefabcdefabcdefabcdefabcdefabcd'
 		)
 		await expect(lensGraphql.resolvers[3].resolve.LensAccountTimestampMs.resolve(
@@ -341,8 +337,15 @@ describe('Lens_Graphql reading relationships', () => {
 				items: [
 					{
 						address: 'ABCDEFabcdefABCDEFabcdefABCDEFabcdefABCD',
+						createdAt: '2025-03-04T05:06:07.000Z',
+						owner: '0x1111111111111111111111111111111111111111',
+						score: 42,
 						username: { localName: 'alice' },
-						metadata: { name: 'Alice' },
+						metadata: {
+							bio: 'Lens reader',
+							name: 'Alice',
+							picture: null,
+						},
 					},
 				],
 			},
@@ -366,12 +369,15 @@ describe('Lens_Graphql reading relationships', () => {
 				address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
 			},
 			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.LensAccount, [], 'localName')]: 'alice',
+				[entityFieldAddressKey(EntityType.LensAccount, [], '$icon')]: undefined,
+				[entityFieldAddressKey(EntityType.LensAccount, [], 'bio')]: 'Lens reader',
+				[entityFieldAddressKey(EntityType.LensAccount, [], 'createdAt')]: 1_741_064_767_000,
 				[entityFieldAddressKey(EntityType.LensAccount, [], 'displayName')]: 'Alice',
+				[entityFieldAddressKey(EntityType.LensAccount, [], 'legacyProfileId')]: undefined,
+				[entityFieldAddressKey(EntityType.LensAccount, [], 'localName')]: 'alice',
 			},
 		}])
 		expect(queryAccounts).toHaveBeenCalledWith(
-			{},
 			64
 		)
 		await expect(lensGraphql.resolvers[8].resolve.Address.resolve({
@@ -478,7 +484,6 @@ describe('Lens_Graphql reading relationships', () => {
 			},
 		])
 		expect(queryFeedPosts).toHaveBeenCalledWith(
-			{},
 			'0x1111111111111111111111111111111111111111',
 			7
 		)

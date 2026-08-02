@@ -76,18 +76,14 @@ describe('source provider registry', () => {
 		const configured = indexSourceProviders(sourceProviderDefinitions, {
 			PUBLIC_BLOCKCHAIR_API_KEY: 'blockchair-secret',
 			PUBLIC_EXTRA_KEY: 'extra-public',
-			PUBLIC_LENS_API_KEY: 'lens-secret',
 		})
 		expect(configured.resolverPublicEnvBySource.get(Source.Blockchair_Rest)).toEqual({
 			PUBLIC_BLOCKCHAIR_API_KEY: 'blockchair-secret',
 		})
-		expect(configured.resolverPublicEnvBySource.get(Source.Lens_Graphql)).toEqual({
-			PUBLIC_LENS_API_KEY: 'lens-secret',
-		})
+		expect(configured.resolverPublicEnvBySource.get(Source.Lens_Graphql)).toEqual({})
 		expect(configured.resolverPublicEnvBySource.get(Source.Piped_Rest)).toEqual({
 			PUBLIC_BLOCKCHAIR_API_KEY: 'blockchair-secret',
 			PUBLIC_EXTRA_KEY: 'extra-public',
-			PUBLIC_LENS_API_KEY: 'lens-secret',
 		})
 	})
 

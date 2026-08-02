@@ -1,4 +1,3 @@
-import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import {
 	graphql,
 	queryLens,
@@ -663,14 +662,9 @@ const LensNamespacesDocument = graphql(`
 `, [LensUsernameNamespace])
 
 export const queryAccountByAddress = async (
-	publicEnv: SourcePublicEnv,
 	address: `0x${string}`
 ) => {
-	if (address === '')
-		throw new Error('Lens_Graphql: account identity must not be empty')
-
 	const response = await queryLens(
-		publicEnv,
 		LensAccountByAddressDocument,
 		{ address }
 	)
@@ -684,14 +678,12 @@ export const queryAccountByAddress = async (
 }
 
 export const queryAccountByLocalName = async (
-	publicEnv: SourcePublicEnv,
 	localName: string
 ) => {
 	if (localName.trim() === '')
 		throw new Error('Lens_Graphql: account identity must not be empty')
 
 	const response = await queryLens(
-		publicEnv,
 		LensAccountByLocalNameDocument,
 		{ localName }
 	)
@@ -705,42 +697,33 @@ export const queryAccountByLocalName = async (
 }
 
 export const queryAccountByLegacyProfileId = async (
-	publicEnv: SourcePublicEnv,
 	legacyProfileId: string
 ) => {
 	if (legacyProfileId.trim() === '')
 		throw new Error('Lens_Graphql: account identity must not be empty')
 
 	return queryLens(
-		publicEnv,
 		LensAccountByLegacyProfileIdDocument,
 		{ legacyProfileId }
 	)
 }
 
 export const queryAccountStats = async (
-	publicEnv: SourcePublicEnv,
 	address: `0x${string}`
 ) => {
-	if (address === '')
-		throw new Error('Lens_Graphql: account identity must not be empty')
-
 	return queryLens(
-		publicEnv,
 		LensAccountStatsDocument,
 		{ address }
 	)
 }
 
 export const queryPost = async (
-	publicEnv: SourcePublicEnv,
 	postId: string
 ) => {
 	if (postId.trim() === '')
 		throw new Error('Lens_Graphql: post identity must not be empty')
 
 	const response = await queryLens(
-		publicEnv,
 		LensPostDocument,
 		{
 			post: postId,
@@ -753,7 +736,6 @@ export const queryPost = async (
 }
 
 export const queryPostsByAuthor = async (
-	publicEnv: SourcePublicEnv,
 	address: `0x${string}`,
 	limit: number | LensPageSize = 10
 ) => ({
@@ -761,7 +743,6 @@ export const queryPostsByAuthor = async (
 		limit === 'TEN' ? 10 : limit === 'FIFTY' ? 50 : limit,
 		async (pageSize, cursor) => (
 			(await queryLens(
-				publicEnv,
 				LensPostsByAuthorDocument,
 				{
 					address,
@@ -775,14 +756,12 @@ export const queryPostsByAuthor = async (
 })
 
 export const queryLatestPosts = async (
-	publicEnv: SourcePublicEnv,
 	limit: number | LensPageSize = 10
 ) => ({
 	posts: await queryLensPages(
 		limit === 'TEN' ? 10 : limit === 'FIFTY' ? 50 : limit,
 		async (pageSize, cursor) => (
 			(await queryLens(
-				publicEnv,
 				LensLatestPostsDocument,
 				{
 					pageSize,
@@ -795,7 +774,6 @@ export const queryLatestPosts = async (
 })
 
 export const queryPostComments = async (
-	publicEnv: SourcePublicEnv,
 	postId: string,
 	limit: number | LensPageSize = 10
 ) => ({
@@ -803,7 +781,6 @@ export const queryPostComments = async (
 		limit === 'TEN' ? 10 : limit === 'FIFTY' ? 50 : limit,
 		async (pageSize, cursor) => (
 			(await queryLens(
-				publicEnv,
 				LensPostCommentsDocument,
 				{
 					post: postId,
@@ -817,14 +794,12 @@ export const queryPostComments = async (
 })
 
 export const queryAccounts = async (
-	publicEnv: SourcePublicEnv,
 	limit = 10
 ) => ({
 	accounts: await queryLensPages(
 		limit,
 		async (pageSize, cursor) => (
 			(await queryLens(
-				publicEnv,
 				LensAccountsDocument,
 				{
 					pageSize,
@@ -837,33 +812,23 @@ export const queryAccounts = async (
 })
 
 export const queryFeed = async (
-	publicEnv: SourcePublicEnv,
 	address: `0x${string}`
 ) => {
-	if (address === '')
-		throw new Error('Lens_Graphql: feed identity must not be empty')
-
 	return queryLens(
-		publicEnv,
 		LensFeedDocument,
 		{ address }
 	)
 }
 
 export const queryFeedPosts = async (
-	publicEnv: SourcePublicEnv,
 	address: `0x${string}`,
 	limit = 10
 ) => {
-	if (address === '')
-		throw new Error('Lens_Graphql: feed identity must not be empty')
-
 	return {
 		posts: await queryLensPages(
 			limit,
 			async (pageSize, cursor) => (
 				(await queryLens(
-					publicEnv,
 					LensFeedPostsDocument,
 					{
 						feed: address,
@@ -878,14 +843,12 @@ export const queryFeedPosts = async (
 }
 
 export const queryFeeds = async (
-	publicEnv: SourcePublicEnv,
 	limit = 10
 ) => ({
 	feeds: await queryLensPages(
 		limit,
 		async (pageSize, cursor) => (
 			(await queryLens(
-				publicEnv,
 				LensFeedsDocument,
 				{
 					pageSize,
@@ -898,29 +861,25 @@ export const queryFeeds = async (
 })
 
 export const queryUsernameById = async (
-	publicEnv: SourcePublicEnv,
 	id: string
 ) => {
 	if (id.trim() === '')
 		throw new Error('Lens_Graphql: username identity must not be empty')
 
 	return queryLens(
-		publicEnv,
 		LensUsernameByIdDocument,
 		{ id }
 	)
 }
 
 export const queryUsernameByLocalName = async (
-	publicEnv: SourcePublicEnv,
 	namespace: `0x${string}`,
 	localName: string
 ) => {
-	if (namespace === '' || localName.trim() === '')
+	if (localName.trim() === '')
 		throw new Error('Lens_Graphql: username identity must not be empty')
 
 	return queryLens(
-		publicEnv,
 		LensUsernameByLocalNameDocument,
 		{
 			namespace,
@@ -930,7 +889,6 @@ export const queryUsernameByLocalName = async (
 }
 
 export const queryUsernames = async (
-	publicEnv: SourcePublicEnv,
 	limit = 10,
 	filter: {
 		owner?: `0x${string}`
@@ -943,7 +901,6 @@ export const queryUsernames = async (
 		limit,
 		async (pageSize, cursor) => (
 			(await queryLens(
-				publicEnv,
 				LensUsernamesDocument,
 				{
 					...filter,
@@ -957,28 +914,21 @@ export const queryUsernames = async (
 })
 
 export const queryNamespace = async (
-	publicEnv: SourcePublicEnv,
 	address: `0x${string}`
 ) => {
-	if (address === '')
-		throw new Error('Lens_Graphql: namespace identity must not be empty')
-
 	return queryLens(
-		publicEnv,
 		LensNamespaceDocument,
 		{ address }
 	)
 }
 
 export const queryNamespaces = async (
-	publicEnv: SourcePublicEnv,
 	limit = 10
 ) => ({
 	namespaces: await queryLensPages(
 		limit,
 		async (pageSize, cursor) => (
 			(await queryLens(
-				publicEnv,
 				LensNamespacesDocument,
 				{
 					pageSize,

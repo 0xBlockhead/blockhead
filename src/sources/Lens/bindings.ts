@@ -6,13 +6,11 @@ import {
 	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
-	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
-import { type as arktype } from 'arktype'
 
 export default indexSourceBindings([
 	{
@@ -32,14 +30,7 @@ export default indexSourceBindings([
 		apiFamily: ApiFamily.GraphqlHttp,
 		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
-		credentials: [
-			{
-				scope: SourceCredentialScope.PublicConfig,
-				env: arktype({
-					'PUBLIC_LENS_API_KEY': 'string > 0?',
-				}),
-			},
-		],
+		credentials: [],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.GenerationManifest,
