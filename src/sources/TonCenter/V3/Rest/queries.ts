@@ -1,8 +1,3 @@
-import {
-	type as arktype,
-	type Type,
-} from 'arktype'
-
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/TonCenter/bindings.ts'
@@ -15,23 +10,18 @@ import {
 	tonCenterV3RawAddress,
 	tonCenterV3Shard,
 } from '$/sources/TonCenter/V3/Rest/normalization.ts'
-import type {
-	TonCenterV3BlocksWire,
-	TonCenterV3BlockWire,
-	TonCenterV3JettonMastersWire,
-	TonCenterV3JettonMasterWire,
-	TonCenterV3MessagesWire,
-	TonCenterV3MessageWire,
-	TonCenterV3NftCollectionsWire,
-	TonCenterV3NftCollectionWire,
-	TonCenterV3NftItemsWire,
-	TonCenterV3NftItemWire,
-	TonCenterV3Order,
-	TonCenterV3Page,
-	TonCenterV3TracesWire,
-	TonCenterV3TraceWire,
-	TonCenterV3TransactionsWire,
-	TonCenterV3TransactionWire,
+import {
+	tonCenterV3Blocks,
+	tonCenterV3JettonMasters,
+	tonCenterV3Messages,
+	tonCenterV3NftCollections,
+	tonCenterV3NftItems,
+	tonCenterV3Traces,
+	tonCenterV3Transactions,
+	type TonCenterV3MessageWire,
+	type TonCenterV3NftCollectionWire,
+	type TonCenterV3Order,
+	type TonCenterV3Page,
 } from '$/sources/TonCenter/V3/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -46,160 +36,6 @@ const binding = Object.fromEntries(
 
 const decimalString = /^(?:0|[1-9]\d*)$/
 const signedInt32Maximum = (2 ** 31) - 1
-
-const tonCenterV3Block = arktype({
-	workchain: 'number.integer',
-	shard: 'string',
-	seqno: 'number.integer >= 0',
-	root_hash: 'string',
-	file_hash: 'string',
-	gen_utime: 'string',
-	start_lt: 'string',
-	end_lt: 'string',
-	tx_count: 'number.integer >= 0',
-}) satisfies Type<TonCenterV3BlockWire>
-
-const tonCenterV3Blocks = arktype({
-	blocks: tonCenterV3Block.array(),
-}) satisfies Type<TonCenterV3BlocksWire>
-
-const tonCenterV3Message = arktype({
-	hash: 'string',
-	'source?': 'string | null',
-	'destination?': 'string | null',
-	created_at: 'string',
-	created_lt: 'string',
-	value: 'string',
-	fwd_fee: 'string',
-	'ihr_fee?': 'string',
-	import_fee: 'string',
-	'opcode?': 'number.integer',
-	'in_msg_tx_hash?': 'string',
-	'out_msg_tx_hash?': 'string',
-}) satisfies Type<TonCenterV3MessageWire>
-
-const tonCenterV3Messages = arktype({
-	messages: tonCenterV3Message.array(),
-}) satisfies Type<TonCenterV3MessagesWire>
-
-const tonCenterV3Trace = arktype({
-	trace_id: 'string',
-	'external_hash?': 'string',
-	start_lt: 'string',
-	end_lt: 'string',
-	start_utime: 'number.integer >= 0',
-	end_utime: 'number.integer >= 0',
-	mc_seqno_start: 'string',
-	mc_seqno_end: 'string',
-	is_incomplete: 'boolean',
-	trace: {
-		in_msg_hash: 'string',
-		in_msg: tonCenterV3Message,
-		'tx_hash?': 'string',
-	},
-	transactions_order: 'string[]',
-	trace_info: {
-		messages: 'number.integer >= 0',
-		pending_messages: 'number.integer >= 0',
-		transactions: 'number.integer >= 0',
-	},
-}) satisfies Type<TonCenterV3TraceWire>
-
-const tonCenterV3Traces = arktype({
-	traces: tonCenterV3Trace.array(),
-}) satisfies Type<TonCenterV3TracesWire>
-
-const tonCenterV3Transaction = arktype({
-	account: 'string',
-	hash: 'string',
-	lt: 'string',
-	block_ref: {
-		workchain: 'number.integer',
-		shard: 'string',
-		seqno: 'number.integer >= 0',
-	},
-	now: 'number.integer >= 0',
-	total_fees: 'string',
-	prev_trans_hash: 'string',
-	prev_trans_lt: 'string',
-	orig_status: 'string',
-	end_status: 'string',
-	description: {
-		type: 'string',
-		aborted: 'boolean',
-		destroyed: 'boolean',
-	},
-	'account_state_before?': {
-		balance: 'string',
-	},
-	'account_state_after?': {
-		balance: 'string',
-	},
-	'in_msg?': tonCenterV3Message.or('null'),
-	out_msgs: tonCenterV3Message.array(),
-	'trace_id?': 'string',
-	'trace_external_hash?': 'string',
-}) satisfies Type<TonCenterV3TransactionWire>
-
-const tonCenterV3Transactions = arktype({
-	transactions: tonCenterV3Transaction.array(),
-}) satisfies Type<TonCenterV3TransactionsWire>
-
-const tonCenterV3Content = arktype({
-	'[string]': 'unknown',
-	'uri?': 'string',
-})
-
-const tonCenterV3JettonMaster = arktype({
-	address: 'string',
-	'admin_address?': 'string',
-	'code_hash?': 'string',
-	'data_hash?': 'string',
-	'jetton_content?': tonCenterV3Content,
-	'jetton_wallet_code_hash?': 'string',
-	'last_transaction_lt?': 'string',
-	'mintable?': 'boolean',
-	'total_supply?': 'string',
-}) satisfies Type<TonCenterV3JettonMasterWire>
-
-const tonCenterV3JettonMasters = arktype({
-	jetton_masters: tonCenterV3JettonMaster.array(),
-}) satisfies Type<TonCenterV3JettonMastersWire>
-
-const tonCenterV3NftCollection = arktype({
-	address: 'string',
-	'code_hash?': 'string',
-	'collection_content?': tonCenterV3Content,
-	'data_hash?': 'string',
-	'last_transaction_lt?': 'string',
-	'next_item_index?': 'string',
-	'owner_address?': 'string',
-}) satisfies Type<TonCenterV3NftCollectionWire>
-
-const tonCenterV3NftCollections = arktype({
-	nft_collections: tonCenterV3NftCollection.array(),
-}) satisfies Type<TonCenterV3NftCollectionsWire>
-
-const tonCenterV3NftItem = arktype({
-	address: 'string',
-	'auction_contract_address?': 'string',
-	'code_hash?': 'string',
-	'collection?': tonCenterV3NftCollection,
-	'collection_address?': 'string',
-	'content?': tonCenterV3Content,
-	'data_hash?': 'string',
-	'index?': 'string',
-	'init?': 'boolean',
-	'last_transaction_lt?': 'string',
-	'on_sale?': 'boolean',
-	'owner_address?': 'string',
-	'real_owner?': 'string',
-	'sale_contract_address?': 'string',
-}) satisfies Type<TonCenterV3NftItemWire>
-
-const tonCenterV3NftItems = arktype({
-	nft_items: tonCenterV3NftItem.array(),
-}) satisfies Type<TonCenterV3NftItemsWire>
 
 const getTonCenterV3RestJson = <_Json>(
 	path: string
