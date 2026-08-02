@@ -67,11 +67,11 @@ describe('source provider registry', () => {
 		})
 
 		expect(missingRequiredEnv.enabledSources.has(Source.Blockchair_Rest)).toBe(false)
+		expect(missingRequiredEnv.enabledSources.has(Source.Coingecko_Rest)).toBe(true)
 		expect(missingRequiredEnv.enabledSources.has(Source.Lens_Graphql)).toBe(true)
+		expect(missingRequiredEnv.resolverPublicEnvBySource.get(Source.Coingecko_Rest)).toEqual({})
 		expect(missingRequiredEnv.resolverPublicEnvBySource.get(Source.Lens_Graphql)).toEqual({})
-		expect(missingRequiredEnv.resolverPublicEnvBySource.get(Source.Piped_Rest)).toEqual({
-			PUBLIC_EXTRA_KEY: 'extra-public',
-		})
+		expect(missingRequiredEnv.resolverPublicEnvBySource.get(Source.Piped_Rest)).toEqual({})
 
 		const configured = indexSourceProviders(sourceProviderDefinitions, {
 			PUBLIC_BLOCKCHAIR_API_KEY: 'blockchair-secret',
@@ -81,10 +81,7 @@ describe('source provider registry', () => {
 			PUBLIC_BLOCKCHAIR_API_KEY: 'blockchair-secret',
 		})
 		expect(configured.resolverPublicEnvBySource.get(Source.Lens_Graphql)).toEqual({})
-		expect(configured.resolverPublicEnvBySource.get(Source.Piped_Rest)).toEqual({
-			PUBLIC_BLOCKCHAIR_API_KEY: 'blockchair-secret',
-			PUBLIC_EXTRA_KEY: 'extra-public',
-		})
+		expect(configured.resolverPublicEnvBySource.get(Source.Piped_Rest)).toEqual({})
 	})
 
 	it('keeps Voltaire transaction source narrowing from dropping signature and blob fields', () => {

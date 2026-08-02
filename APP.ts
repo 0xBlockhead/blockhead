@@ -86547,7 +86547,7 @@ export const app = {
 									keys: [
 										{
 											name: "PUBLIC_COINGECKO_DEMO_API_KEY",
-											type: "string",
+											type: "string > 0?",
 										},
 									],
 								},

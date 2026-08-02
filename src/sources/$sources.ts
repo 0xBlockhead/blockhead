@@ -164,15 +164,7 @@ export const indexSourceProviders = <
 			const bindingEnv = Object.assign({}, ...bindingSubsets) satisfies SourcePublicEnv
 			return [{
 				source,
-				publicEnv: (
-					sourceBindings.some((binding) => binding.credentials.some((credential) => (
-						credential.scope === SourceCredentialScope.PublicConfig
-						&& credential.env != null
-					))) ?
-						bindingEnv
-					:
-						resolverPublicEnv
-				),
+				publicEnv: sourceBindings.length === 0 ? resolverPublicEnv : bindingEnv,
 			}]
 		})
 	})

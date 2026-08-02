@@ -27,6 +27,7 @@ beforeEach(() => {
 
 describe('CoinGecko client plan selection', () => {
 	it('selects Demo and Pro credentials under one source identity', async () => {
+		await coingeckoFetch({}, '/ping')
 		await coingeckoFetch({
 			PUBLIC_COINGECKO_DEMO_API_KEY: 'demo-key',
 		}, '/ping')
@@ -41,6 +42,13 @@ describe('CoinGecko client plan selection', () => {
 			demoKey: init.headers.get('x-cg-demo-api-key'),
 			proKey: init.headers.get('x-cg-pro-api-key'),
 		}))).toEqual([
+			{
+				source: Source.Coingecko_Rest,
+				targetKey: 'coingecko-demo',
+				url: 'https://api.coingecko.com/api/v3/ping',
+				demoKey: null,
+				proKey: null,
+			},
 			{
 				source: Source.Coingecko_Rest,
 				targetKey: 'coingecko-demo',

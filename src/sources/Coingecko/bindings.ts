@@ -36,7 +36,7 @@ export default indexSourceBindings([
 			{
 				scope: SourceCredentialScope.PublicConfig,
 				env: arktype({
-					'PUBLIC_COINGECKO_DEMO_API_KEY': 'string',
+					'PUBLIC_COINGECKO_DEMO_API_KEY': 'string > 0?',
 				}),
 			},
 		],
