@@ -13,7 +13,7 @@ import {
 	encodeGetBlockYellowstoneAccountRequest,
 } from '$/sources/GetBlock/Yellowstone/protobuf.ts'
 
-const binding = bindings[Source.GetBlockYellowstone_Grpc]
+const binding = bindings[Source.GetBlockYellowstone_Grpc][0]
 
 export const subscribeSolanaAccountUpdates = async function* (
 	accountRequest: GetBlockYellowstoneAccountRequest,

@@ -14,7 +14,7 @@ import {
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/TheGraph/bindings.ts'
 
-const binding = bindings[Source.TheGraph_Graphql]
+const binding = bindings[Source.TheGraph_Graphql][0]
 
 export const queryTheGraph = async <
 	_Result extends object,

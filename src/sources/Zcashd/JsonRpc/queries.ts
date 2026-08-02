@@ -9,7 +9,7 @@ import type {
 import bindings from '$/sources/Zcashd/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Zcashd_JsonRpc]
+const binding = bindings[Source.Zcashd_JsonRpc][0]
 
 export const getBlockHash = ({
 	height,

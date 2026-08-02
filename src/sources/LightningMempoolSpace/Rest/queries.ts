@@ -10,7 +10,7 @@ import type {
 } from '$/sources/LightningMempoolSpace/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.LightningMempoolSpace_Rest]
+const binding = bindings[Source.LightningMempoolSpace_Rest][0]
 
 const assertPublicKey = (publicKey: string) => {
 	if (!/^(02|03)[0-9a-f]{64}$/.test(publicKey))

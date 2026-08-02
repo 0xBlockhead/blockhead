@@ -6,7 +6,7 @@ import type {
 	EnvioHyperRpcTransactionReceipt,
 } from '$/sources/Envio/HyperRpc/types.ts'
 
-const binding = bindings[Source.EnvioHyperRpc_JsonRpc]
+const binding = bindings[Source.EnvioHyperRpc_JsonRpc][0]
 
 export const getEvmTransactionByHash = (
 	txHash: string

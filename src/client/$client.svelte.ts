@@ -3611,7 +3611,6 @@ export const client = <
 	)
 	const sourceBindingsBySource = Object.groupBy(
 		sourceProviders.flatMap((sourceProvider) => Object.values<
-			| SourceBinding
 			| readonly SourceBinding[]
 			| undefined
 		>(sourceProvider.bindings ?? {}).flatMap((bindings) => bindings ?? [])),

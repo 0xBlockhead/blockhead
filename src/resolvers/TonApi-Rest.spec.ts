@@ -47,7 +47,7 @@ const masterchainHeadFixture = {
 	gen_utime: 1_750_000_000,
 } satisfies TonApiMasterchainHead
 
-const tonApiBinding = bindings[Source.TonApi_Rest]
+const tonApiBinding = bindings[Source.TonApi_Rest][0]
 
 const accountResolver = tonApiResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.TonAccount

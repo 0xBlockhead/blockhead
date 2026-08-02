@@ -4,7 +4,7 @@ import bindings from '$/sources/Anthropic/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-const binding = bindings[Source.Anthropic_Rest]
+const binding = bindings[Source.Anthropic_Rest][0]
 
 const requestAnthropicJson = async ({
 	path,

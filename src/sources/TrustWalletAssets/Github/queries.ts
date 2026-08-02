@@ -5,7 +5,7 @@ import {
 } from '$/sources/_shared/hosts/Github/Http/client.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.TrustWalletAssets_Github]
+const binding = bindings[Source.TrustWalletAssets_Github][0]
 const target = githubRepositoryTargetFromKey(binding.target.key)
 
 export const getChainLogoUrl = (chain: string) => (

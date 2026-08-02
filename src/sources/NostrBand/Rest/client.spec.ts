@@ -30,7 +30,7 @@ describe('NostrBand REST client delivery', () => {
 		}))
 		vi.stubGlobal('fetch', fetchMock)
 		vi.stubGlobal('window', {})
-		const binding = bindings[Source.NostrBand_Rest]
+		const binding = bindings[Source.NostrBand_Rest][0]
 
 		await expect(listTopProfiles(20)).resolves.toEqual({ profiles: [] })
 
@@ -60,7 +60,7 @@ describe('NostrBand REST client delivery', () => {
 		}))
 		vi.stubGlobal('fetch', fetchMock)
 		vi.stubGlobal('window', {})
-		const bindingId = encodeURIComponent(sourceBindingId(bindings[Source.NostrBand_Rest]))
+		const bindingId = encodeURIComponent(sourceBindingId(bindings[Source.NostrBand_Rest][0]))
 
 		await expect(listRecentEvents(120, [6, 16])).resolves.toEqual({ events: [] })
 		await expect(listAuthorEvents('ABCDEF', 0, [30_023])).resolves.toEqual({ events: [] })

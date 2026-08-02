@@ -10,7 +10,7 @@ import {
 import * as httpRestClient from '$/sources/_shared/wire/HttpRest/client.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Arweave_Rest]
+const binding = bindings[Source.Arweave_Rest][0]
 
 const transactionId = 'A'.repeat(43)
 const recipientAddress = 'B'.repeat(43)

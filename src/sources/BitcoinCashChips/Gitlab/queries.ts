@@ -7,7 +7,7 @@ import bindings from '$/sources/BitcoinCashChips/bindings.ts'
 import type { BitcoinCashChipsGitlabTree } from '$/sources/BitcoinCashChips/Gitlab/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.BitcoinCashChips_Gitlab]
+const binding = bindings[Source.BitcoinCashChips_Gitlab][0]
 
 const bitcoinCashChipsGitlabRepo = {
 	projectId: '23431309',

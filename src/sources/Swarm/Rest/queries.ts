@@ -4,7 +4,7 @@ import { sourceEndpointOrigin } from '$/sources/SourceBinding.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/Swarm/bindings.ts'
 
-const binding = bindings[Source.Swarm_Rest]
+const binding = bindings[Source.Swarm_Rest][0]
 
 const swarmGatewayEndpoints = () => binding.endpoints
 

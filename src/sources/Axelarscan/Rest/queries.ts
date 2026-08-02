@@ -7,7 +7,7 @@ import type {
 } from '$/sources/Axelarscan/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Axelarscan_Rest]
+const binding = bindings[Source.Axelarscan_Rest][0]
 const integerStringPattern = /^(?:0|[1-9]\d*)$/
 const bytes32Pattern = /^0x[0-9a-fA-F]{64}$/
 

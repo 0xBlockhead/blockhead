@@ -42,7 +42,7 @@ const selector = {
 	blockHeight: 123n,
 	source: Source.NearRpc_JsonRpc,
 }
-const nearBinding = bindings[Source.NearRpc_JsonRpc]
+const nearBinding = bindings[Source.NearRpc_JsonRpc][0]
 
 describe('NEAR contract storage query', () => {
 	beforeEach(() => {

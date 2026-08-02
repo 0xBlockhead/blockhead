@@ -2970,6 +2970,9 @@ test('emits every source-axis enum and only valid enum references in provider ro
 		for (const enumValue of Object.values(sourceAxis))
 			assert.match(enumBody, new RegExp(`\\b${enumValue}\\s*=\\s*'${enumValue}'`))
 	}
+	assert.match(renderedSourceBinding, /return Object\.groupBy\(bindings, \(\{ source \}\) => source\)/)
+	assert.match(renderedSourceBinding, /if \(bindings\.length === 0\)/)
+	assert.doesNotMatch(renderedSourceBinding, /sourceBindings\.length === 1|Object\.fromEntries\(/)
 
 	for (const providerBindingPath of [
 		'src/sources/Envio/bindings.ts',
@@ -5993,10 +5996,10 @@ defineResolver({
 })({})
 const validBindings = lightningLndBindings satisfies SourceBindingIndex
 const typedSourceServerCredentials: Map<string, SourceServerCredentialDefinition> = sourceServerCredentials
-const acrossBinding = acrossBindings[Source.Across_Rest]
-const atprotoSyncBinding = atprotoSyncBindings[Source.AtprotoSync_Xrpc]
-const getBlockRpcBinding = getBlockBindings[Source.GetBlockRpc_JsonRpc]
-const voyagerBinding = voyagerBindings[Source.Voyager]
+const acrossBinding = acrossBindings[Source.Across_Rest][0]
+const atprotoSyncBinding = atprotoSyncBindings[Source.AtprotoSync_Xrpc][0]
+const getBlockRpcBinding = getBlockBindings[Source.GetBlockRpc_JsonRpc][0]
+const voyagerBinding = voyagerBindings[Source.Voyager][0]
 const mismatchedVoyagerProvider = {
 	provider: SourceProvider.Voyager,
 	label: 'Voyager',
@@ -6061,16 +6064,30 @@ const validVoyagerProvider = {
 } satisfies SourceProviderDefinition<typeof voyagerBindings>
 const broadProviders: readonly SourceProviderDefinition[] = [validVoyagerProvider]
 const acrossSource: Source.Across_Rest = acrossBinding.source
+const exactAcrossBindings: readonly [typeof acrossBinding] = acrossBindings[Source.Across_Rest]
 const xrplClioBindingsForSource: readonly SourceBinding<Source.XrplClio_JsonRpc>[] = xrplClioBindings[Source.XrplClio_JsonRpc]
 const repeatedAcrossBindings = indexSourceBindings([
 	acrossBinding,
 	acrossBinding,
 ] as const)
-const repeatedAcrossBindingsForSource: readonly SourceBinding<Source.Across_Rest>[] = repeatedAcrossBindings[Source.Across_Rest]
+const repeatedAcrossBindingsForSource: readonly [typeof acrossBinding, typeof acrossBinding] = repeatedAcrossBindings[Source.Across_Rest]
 // @ts-expect-error Repeating a structurally identical binding still produces an array at runtime.
 const repeatedAcrossBinding: SourceBinding<Source.Across_Rest> = repeatedAcrossBindings[Source.Across_Rest]
 const computedAcrossBindings = indexSourceBindings([acrossBinding, acrossBinding].flatMap((binding) => [binding]))
-const computedAcrossBindingsForSource: readonly SourceBinding<Source.Across_Rest>[] = computedAcrossBindings[Source.Across_Rest]
+const computedAcrossBindingsForSource: readonly [SourceBinding<Source.Across_Rest>, ...SourceBinding<Source.Across_Rest>[]] | undefined = computedAcrossBindings[Source.Across_Rest]
+// @ts-expect-error A dynamic binding array cannot promise that its inferred source key exists.
+const requiredComputedAcrossBindings: readonly SourceBinding<Source.Across_Rest>[] = computedAcrossBindings[Source.Across_Rest]
+const widenedBindings: readonly SourceBinding[] = [acrossBinding]
+const widenedAcrossBindings: readonly [SourceBinding<Source.Across_Rest>, ...SourceBinding<Source.Across_Rest>[]] | undefined = indexSourceBindings(widenedBindings)[Source.Across_Rest]
+const unionBinding: SourceBinding<Source.Across_Rest | Source.Voyager> = acrossBinding
+const unionAcrossBindings: readonly [SourceBinding<Source.Across_Rest>, ...SourceBinding<Source.Across_Rest>[]] | undefined = indexSourceBindings([unionBinding].flatMap((binding) => [binding]))[Source.Across_Rest]
+const unionTupleAcrossBindings: readonly [SourceBinding<Source.Across_Rest>, ...SourceBinding<Source.Across_Rest>[]] | undefined = indexSourceBindings([unionBinding] as const)[Source.Across_Rest]
+// @ts-expect-error A tuple containing a widened source cannot promise one possible source key.
+const requiredUnionTupleAcrossBindings: readonly SourceBinding<Source.Across_Rest>[] = indexSourceBindings([unionBinding] as const)[Source.Across_Rest]
+const emptyAcrossBindingIndex = {
+	// @ts-expect-error A present source key must retain at least one binding.
+	[Source.Across_Rest]: [],
+} satisfies SourceBindingIndex
 const mixedProxyCredentials = {
 	...getBlockRpcBinding,
 	credentials: [
@@ -6105,7 +6122,7 @@ const repeatedRuntimeSecret = { ...getBlockRpcBinding, credentials: [getBlockRpc
 // @ts-expect-error Managed runtime-secret projections cannot be widened with credential keys.
 const runtimeSecretWithKeys = { ...getBlockRpcBinding, credentials: [{ ...getBlockRpcBinding.credentials[0], keys: ['INVALID'] }] } as const satisfies SourceBinding
 const blockscoutBindingsForSource = blockscoutBindings[Source.Blockscout_Rest]
-const blockscoutTargetKey: '1' | '10' | '100' | '137' | '8453' | '42161' | '11155111' = blockscoutBindingsForSource[0].target.key
+const blockscoutTargetKey: '1' | '10' | '100' | '137' | '8453' | '42161' | '11155111' | undefined = blockscoutBindingsForSource?.[0].target.key
 // @ts-expect-error Compact generated binding targets retain their authored key union.
 const invalidBlockscoutTargetKey: '999' = blockscoutBindingsForSource[0].target.key
 // @ts-expect-error Inferred binding indexes expose only source keys present in their row tuple.
@@ -6120,6 +6137,14 @@ void swappedResolverEntry
 void inferredAmbossSource
 void typedSourceServerCredentials
 void mixedProxyCredentials
+void exactAcrossBindings
+void computedAcrossBindingsForSource
+void requiredComputedAcrossBindings
+void widenedAcrossBindings
+void unionAcrossBindings
+void unionTupleAcrossBindings
+void requiredUnionTupleAcrossBindings
+void emptyAcrossBindingIndex
 void mismatchedVoyagerProvider
 void missingVoyagerBindings
 void missingVoyagerSource

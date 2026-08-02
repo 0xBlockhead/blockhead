@@ -37,7 +37,7 @@ const {
 	listStakePools,
 } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
-const binding = bindings[Source.Blockfrost_Rest]
+const binding = bindings[Source.Blockfrost_Rest][0]
 
 const block = blockFixture satisfies BlockfrostBlock
 

@@ -24,7 +24,7 @@ const {
 	getSubaccount,
 } = await import('$/sources/Dydx/Rest/queries.ts')
 
-const binding = bindings[Source.DydxIndexer]
+const binding = bindings[Source.DydxIndexer][0]
 
 const address = `dydx1${'q'.repeat(38)}`
 const height = {

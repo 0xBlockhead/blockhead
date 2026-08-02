@@ -6,7 +6,7 @@ import { Source } from '$/sources/Source.ts'
 
 type DydxPerpetualPosition = components['schemas']['PerpetualPositionResponseObject']
 
-const binding = bindings[Source.DydxIndexer]
+const binding = bindings[Source.DydxIndexer][0]
 
 const decimalPattern = /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/
 const addressPattern = /^dydx1[023456789acdefghjklmnpqrstuvwxyz]{38}$/

@@ -24,7 +24,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 	sourceFetch: vi.fn(),
 }))
 
-const binding = bindings[Source.EigenExplorer_Rest]
+const binding = bindings[Source.EigenExplorer_Rest][0]
 
 const stakerAddress = '0x1111111111111111111111111111111111111111'
 const operatorAddress = '0x2222222222222222222222222222222222222222'

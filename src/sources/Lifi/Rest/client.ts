@@ -5,7 +5,7 @@ import {
 import bindings from '$/sources/Lifi/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Lifi_Rest]
+const binding = bindings[Source.Lifi_Rest][0]
 
 export const lifiRestFetch = (
 	path: string,

@@ -8,7 +8,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import bindings from '$/sources/FxEmbed/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const fxEmbedBinding = bindings[Source.X_FxEmbed_Rest]
+const fxEmbedBinding = bindings[Source.X_FxEmbed_Rest][0]
 
 const fxEmbedQueries = vi.hoisted(() => ({
 	getStatus: vi.fn(),

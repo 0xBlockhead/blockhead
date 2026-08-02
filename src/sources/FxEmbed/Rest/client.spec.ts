@@ -34,7 +34,7 @@ const {
 	searchStatuses,
 } = await import('$/sources/FxEmbed/Rest/queries.ts')
 
-const fxEmbedRestBinding = bindings[Source.X_FxEmbed_Rest]
+const fxEmbedRestBinding = bindings[Source.X_FxEmbed_Rest][0]
 
 beforeEach(() => {
 	firstHttpUrlForBinding.mockClear()

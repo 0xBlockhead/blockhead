@@ -16,7 +16,7 @@ import type { JsonValue } from '$/typescript/JsonValue.ts'
 import bindings from '$/sources/Subscan/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Subscan_Rest]
+const binding = bindings[Source.Subscan_Rest][0]
 
 const post = async <_Result>({
 	path,

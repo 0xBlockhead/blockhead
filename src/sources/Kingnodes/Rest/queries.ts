@@ -3,7 +3,7 @@ import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/Kingnodes/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.KingnodesDydxNode]
+const binding = bindings[Source.KingnodesDydxNode][0]
 
 export const getDydxLatestBlock = async () => {
 	const value = await sourceGetJson<{

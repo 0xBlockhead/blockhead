@@ -13,7 +13,7 @@ import type {
 import bindings from '$/sources/TronFullNode/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.TronFullNode_Rest]
+const binding = bindings[Source.TronFullNode_Rest][0]
 
 const tronFullNodePost = async <_Result>({
 	path,

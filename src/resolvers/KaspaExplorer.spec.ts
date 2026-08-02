@@ -59,7 +59,7 @@ if (
 )
 	throw new Error('Kaspa Explorer spec missing address resolvers')
 
-const binding = bindings[Source.KaspaExplorer]
+const binding = bindings[Source.KaspaExplorer][0]
 
 const network = {
 	$network: {

@@ -23,7 +23,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 	sourceFetch: vi.fn(),
 }))
 
-const binding = bindings[Source.OpenSea_Rest]
+const binding = bindings[Source.OpenSea_Rest][0]
 
 const address = '0x1111111111111111111111111111111111111111'
 const contract = '0x3333333333333333333333333333333333333333'

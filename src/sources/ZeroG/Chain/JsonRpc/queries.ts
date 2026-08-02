@@ -8,7 +8,7 @@ import {
 	getTransactionReceipt as getEvmTransactionReceipt,
 } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts'
 
-const binding = bindings[Source.ZeroGChain_JsonRpc]
+const binding = bindings[Source.ZeroGChain_JsonRpc][0]
 
 export const getBlockNumber = async () => (
 	`0x${(await getEvmBlockNumber(binding)).toString(16)}`

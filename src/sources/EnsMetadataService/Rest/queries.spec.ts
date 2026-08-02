@@ -21,7 +21,7 @@ const {
 	getEnsNftMetadata,
 } = queries
 
-const binding = bindings[Source.EnsMetadataService]
+const binding = bindings[Source.EnsMetadataService][0]
 
 describe('ENS Labs Metadata Service OpenAPI operations', () => {
 	beforeEach(() => {

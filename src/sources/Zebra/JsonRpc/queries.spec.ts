@@ -27,7 +27,7 @@ const {
 	getTransparentAddressUtxos,
 } = await import('$/sources/Zebra/JsonRpc/queries.ts')
 
-const binding = bindings[Source.Zebra_JsonRpc]
+const binding = bindings[Source.Zebra_JsonRpc][0]
 
 const address = `t1${'A'.repeat(33)}`
 

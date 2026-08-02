@@ -11,7 +11,7 @@ import bindings from '$/sources/Bithomp/bindings.ts'
 import type { operations } from '$/sources/Bithomp/OpenApi/openapi.d.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Bithomp]
+const binding = bindings[Source.Bithomp][0]
 
 export const getAccount = async (
 	publicEnv: SourcePublicEnv,

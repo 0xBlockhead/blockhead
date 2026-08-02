@@ -166,7 +166,7 @@ test('feed, cast, author, channel, and replies form a canonical reading journey'
 			})
 			return
 		}
-		if (sourceUrl.includes(proxyPath(snapchainBindings[Source.Snapchain_Rest]))) {
+		if (sourceUrl.includes(proxyPath(snapchainBindings[Source.Snapchain_Rest][0]))) {
 			if (sourceUrl.includes('/v1/castById')) {
 				await route.fulfill({
 					json: {
@@ -225,7 +225,7 @@ test('feed, cast, author, channel, and replies form a canonical reading journey'
 			})
 			return
 		}
-		if (!sourceUrl.includes(proxyPath(neynarBindings[Source.Neynar_Rest]))) {
+		if (!sourceUrl.includes(proxyPath(neynarBindings[Source.Neynar_Rest][0]))) {
 			await route.fallback()
 			return
 		}

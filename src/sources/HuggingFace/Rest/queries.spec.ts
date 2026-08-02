@@ -17,7 +17,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceGetText,
 }))
 
-const binding = bindings[Source.HuggingFaceHub_Rest]
+const binding = bindings[Source.HuggingFaceHub_Rest][0]
 
 describe('Hugging Face typed queries', () => {
 	beforeEach(() => {

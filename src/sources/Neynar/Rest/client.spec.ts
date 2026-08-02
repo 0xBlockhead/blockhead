@@ -10,7 +10,7 @@ import bindings from '$/sources/Neynar/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceBindingId } from '$/sources/SourceBinding.ts'
 
-const neynarBinding = bindings[Source.Neynar_Rest]
+const neynarBinding = bindings[Source.Neynar_Rest][0]
 
 afterEach(() => {
 	vi.unstubAllGlobals()

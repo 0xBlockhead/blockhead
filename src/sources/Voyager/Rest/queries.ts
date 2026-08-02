@@ -3,7 +3,7 @@ import type { paths } from '$/sources/Voyager/OpenApi/openapi.d.ts'
 import bindings from '$/sources/Voyager/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Voyager]
+const binding = bindings[Source.Voyager][0]
 
 export const getTransactionByHash = (
 	{ txnHash }: paths['/txns/{txnHash}']['get']['parameters']['path']

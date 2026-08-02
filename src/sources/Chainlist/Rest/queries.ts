@@ -12,7 +12,7 @@ import bindings from '$/sources/Chainlist/bindings.ts'
 import type { ChainlistRpcsJsonChain } from '$/sources/Chainlist/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Chainlist_Rest]
+const binding = bindings[Source.Chainlist_Rest][0]
 
 export const fetchRpcsJson = async () => {
 	const url = new URL('/rpcs.json', firstHttpUrlForBinding(binding)).toString()

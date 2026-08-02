@@ -6,7 +6,7 @@ import {
 import bindings from '$/sources/Piped/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Piped_Rest]
+const binding = bindings[Source.Piped_Rest][0]
 
 const toQuery = (params: Record<string, string | undefined>) => {
 	const sp = new URLSearchParams()

@@ -8,7 +8,7 @@ import { SourceDelivery } from '$/sources/SourceBinding.ts'
 
 const { queryLatestPosts } = await import('$/sources/Lens/Graphql/queries.ts')
 
-const binding = bindings[Source.Lens_Graphql]
+const binding = bindings[Source.Lens_Graphql][0]
 
 const fetchMock = vi.fn<typeof fetch>()
 

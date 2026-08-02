@@ -6,7 +6,7 @@ import {
 import bindings from '$/sources/Rss2Json/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Rss2Json_Rest]
+const binding = bindings[Source.Rss2Json_Rest][0]
 
 export const rss2JsonGet = (path: string) => (
 	sourceGetJson<Rss2JsonResponse>(

@@ -6,7 +6,7 @@ import {
 import bindings from '$/sources/CosmosAdrs/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.CosmosAdrs_Github]
+const binding = bindings[Source.CosmosAdrs_Github][0]
 const target = githubRepositoryTargetFromKey(binding.target.key)
 
 export const getContents = () => (

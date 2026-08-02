@@ -53,7 +53,7 @@ const blobProofWire = arktype({
 	is_max_namespace_ignored: 'boolean',
 }).array()
 
-const binding = bindings[Source.CelestiaNode]
+const binding = bindings[Source.CelestiaNode][0]
 
 const configuredBinding = (publicEnv: SourcePublicEnv) => ({
 	...binding,

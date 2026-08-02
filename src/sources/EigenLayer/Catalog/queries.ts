@@ -3,5 +3,5 @@ import bindings from '$/sources/EigenLayer/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 export const getCatalogRows = () => (
-	catalogRowsRequest(bindings[Source.EigenLayerContracts_Evm])
+	catalogRowsRequest(bindings[Source.EigenLayerContracts_Evm][0])
 )

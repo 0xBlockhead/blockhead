@@ -16,7 +16,7 @@ const { default: {
 	getNonce,
 } } = await import('$/sources/Pathfinder/JsonRpc/queries.ts')
 
-const binding = bindings[Source.Pathfinder]
+const binding = bindings[Source.Pathfinder][0]
 
 describe('Pathfinder Starknet JSON-RPC transport', () => {
 	beforeEach(() => {

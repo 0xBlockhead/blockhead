@@ -23,7 +23,7 @@ import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/Etherscan/bindings.ts'
 import { supportedChainIds } from '$/sources/Etherscan/Rest/constants.ts'
 
-const binding = bindings[Source.Etherscan_Rest]
+const binding = bindings[Source.Etherscan_Rest][0]
 
 /**
 	* Etherscan proxy wire: JSON-RPC `result`, or treat **`status: "0"`** / **`error`** as failure (not RPC data).

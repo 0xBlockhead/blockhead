@@ -8,7 +8,7 @@ import {
 import { Source } from '$/sources/Source.ts'
 import { sourceBindingId } from '$/sources/SourceBinding.ts'
 
-const primalBinding = bindings[Source.Primal_Rest]
+const primalBinding = bindings[Source.Primal_Rest][0]
 
 describe('Primal REST binding authority', () => {
 	afterEach(() => {

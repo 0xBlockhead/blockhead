@@ -14,7 +14,7 @@ import {
 import * as httpRestClient from '$/sources/_shared/wire/HttpRest/client.ts'
 import * as sourceHttp from '$/sources/_runtime/http.ts'
 
-const registeredBinding = bindings[Source.KaspaExplorer]
+const registeredBinding = bindings[Source.KaspaExplorer][0]
 
 const binding = registeredBinding
 

@@ -9,7 +9,7 @@ import {
 } from '$/sources/_shared/hosts/Github/Http/client.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.CaipNamespaces_Github]
+const binding = bindings[Source.CaipNamespaces_Github][0]
 const target = githubRepositoryTargetFromKey(binding.target.key)
 
 export const getContentsUrl = () => (

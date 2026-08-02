@@ -14,7 +14,7 @@ vi.mock('$/sources/DogecoinCore/JsonRpc/queries.ts', () => ({
 
 const { default: dogecoinCoreResolvers } = await import('$/resolvers/DogecoinCore-JsonRpc.ts')
 
-const dogecoinMainnetBinding = bindings[Source.DogecoinCore_JsonRpc]
+const dogecoinMainnetBinding = bindings[Source.DogecoinCore_JsonRpc][0]
 
 const resolverContext = {
 	filters: [],

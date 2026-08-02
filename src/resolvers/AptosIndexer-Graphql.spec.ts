@@ -28,7 +28,7 @@ const {
 	aptosTransactionResolver,
 } = await import('$/resolvers/AptosIndexer-Graphql.ts')
 
-const aptosIndexerBinding = bindings[Source.AptosIndexer_Graphql]
+const aptosIndexerBinding = bindings[Source.AptosIndexer_Graphql][0]
 
 const aptosNetwork = {
 	$network: {

@@ -4,7 +4,7 @@ import bindings from '$/sources/MistralAi/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-const binding = bindings[Source.MistralAi_Rest]
+const binding = bindings[Source.MistralAi_Rest][0]
 
 const requestMistralAiJson = async ({
 	path,

@@ -20,7 +20,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceFetch: vi.fn(),
 }))
 
-const placeholderBinding = bindings[Source.ChainlinkDataFeeds_Contracts]
+const placeholderBinding = bindings[Source.ChainlinkDataFeeds_Contracts][0]
 
 const network = 'eip155:1' as const
 const binding = {

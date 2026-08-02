@@ -430,17 +430,55 @@ export const sourceBindingId = ({
 ])
 
 export type SourceBindingIndex = {
-	readonly [_Source in Source]?:
-		| SourceBinding<_Source>
-		| readonly SourceBinding<_Source>[]
+	readonly [_Source in Source]?: readonly [
+		SourceBinding<_Source>,
+		...SourceBinding<_Source>[],
+	]
 }
+
+type SourceBindingFor<
+	_Binding extends SourceBinding,
+	_Source extends Source,
+> = _Binding extends SourceBinding ?
+	_Binding['source'] extends _Source ?
+		_Binding
+	: _Source extends _Binding['source'] ?
+		_Binding & SourceBinding<_Source>
+	:
+		never
+:
+	never
+
+type IsUnion<
+	_Value,
+	_Whole = _Value,
+> = _Value extends _Whole ?
+	[_Whole] extends [_Value] ? false : true
+:
+	never
+
+type SourceBindingTupleHasWidenedSource<
+	_Bindings extends readonly SourceBinding[],
+> = _Bindings extends readonly [
+	infer _Binding extends SourceBinding,
+	...infer _Remaining extends readonly SourceBinding[],
+] ?
+	IsUnion<_Binding['source']> extends true ?
+		true
+	:
+		SourceBindingTupleHasWidenedSource<_Remaining>
+:
+	false
 
 type SourceBindingsFor<
 	_Bindings extends readonly SourceBinding[],
 	_Source extends Source,
 	_Matches extends readonly SourceBinding[] = [],
 > = number extends _Bindings['length'] ?
-	readonly Extract<_Bindings[number], SourceBinding<_Source>>[]
+	readonly [
+		SourceBindingFor<_Bindings[number], _Source>,
+		...SourceBindingFor<_Bindings[number], _Source>[],
+	]
 : _Bindings extends readonly [
 	infer _Binding extends SourceBinding,
 	...infer _Remaining extends readonly SourceBinding[],
@@ -454,17 +492,28 @@ type SourceBindingsFor<
 			_Matches
 	>
 :
-	_Matches extends readonly [infer _Binding extends SourceBinding] ?
-		_Binding
-	:
-		_Matches
+	_Matches
 
 type SourceBindingIndexFrom<
 	_Bindings extends readonly SourceBinding[],
-> = {
-	readonly [_Source in _Bindings[number]['source']]:
-		SourceBindingsFor<_Bindings, _Source>
-}
+> = number extends _Bindings['length'] ?
+	Partial<{
+		readonly [_Source in _Bindings[number]['source']]:
+			SourceBindingsFor<_Bindings, _Source>
+	}>
+:
+	SourceBindingTupleHasWidenedSource<_Bindings> extends true ?
+		Partial<{
+			readonly [_Source in _Bindings[number]['source']]: readonly [
+				SourceBindingFor<_Bindings[number], _Source>,
+				...SourceBindingFor<_Bindings[number], _Source>[],
+			]
+		}>
+:
+	{
+		readonly [_Source in _Bindings[number]['source']]:
+			SourceBindingsFor<_Bindings, _Source>
+	}
 
 export function indexSourceBindings<
 	const _Bindings extends readonly SourceBinding[],
@@ -473,12 +522,9 @@ export function indexSourceBindings<
 ): SourceBindingIndexFrom<_Bindings>
 export function indexSourceBindings(
 	bindings: readonly SourceBinding[]
-): SourceBindingIndex {
-	return Object.fromEntries(
-		Object.entries(Object.groupBy(bindings, ({ source }) => source))
-			.map(([source, sourceBindings]) => [
-				source,
-				sourceBindings.length === 1 ? sourceBindings[0] : sourceBindings,
-			])
-	)
+): Partial<Record<Source, readonly SourceBinding[]>> {
+	if (bindings.length === 0)
+		throw new Error('Source binding indexes must contain at least one binding')
+
+	return Object.groupBy(bindings, ({ source }) => source)
 }

@@ -6,7 +6,7 @@ import {
 import bindings from '$/sources/ZeroG/bindings.ts'
 import type { ZeroGChainScanInfo } from '$/sources/ZeroG/ChainScan/Rest/types.ts'
 
-const binding = bindings[Source.ZeroGChainScan_Rest]
+const binding = bindings[Source.ZeroGChainScan_Rest][0]
 
 export const getInfo = () => ({
 	url: firstHttpUrlForBinding(binding),

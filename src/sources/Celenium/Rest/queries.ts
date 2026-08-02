@@ -6,7 +6,7 @@ import bindings from '$/sources/Celenium/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-const binding = bindings[Source.Celenium_Rest]
+const binding = bindings[Source.Celenium_Rest][0]
 const celeniumHash = /^[0-9a-fA-F]{64}$/
 const celeniumAddress = /^celestia1[02-9ac-hj-np-z]{38}$/
 const namespaceIdPattern = /^[0-9a-fA-F]{56}$/

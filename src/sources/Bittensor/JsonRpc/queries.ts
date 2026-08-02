@@ -11,7 +11,7 @@ import {
 } from '$/sources/_shared/interfaces/SubstrateJsonRpc/queries.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Bittensor_JsonRpc]
+const binding = bindings[Source.Bittensor_JsonRpc][0]
 
 const scaleBytes = arktype('(number.integer >= 0 <= 255)[]')
 

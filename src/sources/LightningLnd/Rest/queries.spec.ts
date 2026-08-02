@@ -22,7 +22,7 @@ import {
 	getNodeInfo,
 } from '$/sources/LightningLnd/Rest/queries.ts'
 
-const binding = bindings[Source.LightningLnd_Rest]
+const binding = bindings[Source.LightningLnd_Rest][0]
 
 const publicEnv = {
 	PUBLIC_LND_MACAROON_HEX: 'macaroon',

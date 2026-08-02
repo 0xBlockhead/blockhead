@@ -15,7 +15,7 @@ vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
 	jsonRpc2: vi.fn(),
 }))
 
-const binding = bindings[Source.CelestiaNode]
+const binding = bindings[Source.CelestiaNode][0]
 const publicEnv = {
 	PUBLIC_CELESTIA_NODE_RPC_URL: 'https://example.com',
 }

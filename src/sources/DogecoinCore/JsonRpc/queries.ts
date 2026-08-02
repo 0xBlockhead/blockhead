@@ -8,7 +8,7 @@ import type { DogecoinCoreBlock } from '$/sources/DogecoinCore/JsonRpc/types.ts'
 import bindings from '$/sources/DogecoinCore/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.DogecoinCore_JsonRpc]
+const binding = bindings[Source.DogecoinCore_JsonRpc][0]
 
 export const getBlockHash = ({
 	height,

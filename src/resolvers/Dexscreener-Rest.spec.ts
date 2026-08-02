@@ -19,7 +19,7 @@ vi.mock('$/sources/Dexscreener/OpenApi/queries.ts', () => ({
 
 const { default: dexscreener } = await import('$/resolvers/Dexscreener-Rest.ts')
 
-const dexscreenerBinding = bindings[Source.Dexscreener_Rest]
+const dexscreenerBinding = bindings[Source.Dexscreener_Rest][0]
 
 describe('Dexscreener liquidity pool observation clock', () => {
 	it('uses the source resolution time rather than a separate wall clock', async () => {

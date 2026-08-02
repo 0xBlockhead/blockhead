@@ -11,7 +11,7 @@ import type {
 	GetBlockJsonRpcResponse,
 } from '$/sources/GetBlock/Rpc/types.ts'
 
-const binding = bindings[Source.GetBlockRpc_JsonRpc]
+const binding = bindings[Source.GetBlockRpc_JsonRpc][0]
 
 const request = async <_Result>(
 	method: string,

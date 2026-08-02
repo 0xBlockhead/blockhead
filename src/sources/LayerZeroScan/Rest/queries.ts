@@ -14,7 +14,7 @@ type LayerZeroDestinationTransaction = NonNullable<NonNullable<LayerZeroMessage[
 
 const guidPattern = /^0x[0-9a-fA-F]{64}$/
 const integerStringPattern = /^(?:0|[1-9]\d*)$/
-const binding = bindings[Source.LayerZeroScan_Rest]
+const binding = bindings[Source.LayerZeroScan_Rest][0]
 
 const assertEndpointId = (endpointId: number) => {
 	if (!Number.isSafeInteger(endpointId) || endpointId < 1)

@@ -17,7 +17,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 	sourceFetch: vi.fn(),
 }))
 
-const binding = bindings[Source.CircleCctpIris]
+const binding = bindings[Source.CircleCctpIris][0]
 const transactionHash = `0x${'11'.repeat(32)}`
 const forwardTransactionHash = `0x${'22'.repeat(32)}`
 const address = (value: string) => `0x${value.repeat(20)}`

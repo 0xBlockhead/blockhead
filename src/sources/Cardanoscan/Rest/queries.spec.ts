@@ -22,7 +22,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 
 const { query } = await import('$/sources/Cardanoscan/Rest/queries.ts')
 
-const binding = bindings[Source.Cardanoscan_Rest]
+const binding = bindings[Source.Cardanoscan_Rest][0]
 
 describe('Cardanoscan public REST transport', () => {
 	beforeEach(() => {

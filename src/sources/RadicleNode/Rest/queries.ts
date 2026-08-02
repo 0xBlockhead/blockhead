@@ -4,5 +4,5 @@ import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { Source } from '$/sources/Source.ts'
 
 export const query = (path: string) => (
-	getJson<JsonValue>(bindings[Source.RadicleNode_Control], path)
+	getJson<JsonValue>(bindings[Source.RadicleNode_Control][0], path)
 )

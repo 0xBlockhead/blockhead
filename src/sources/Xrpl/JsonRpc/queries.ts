@@ -16,7 +16,7 @@ import type {
 import bindings from '$/sources/Xrpl/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Xrpl_Rippled]
+const binding = bindings[Source.Xrpl_Rippled][0]
 
 export const getServerInfo = () => (
 	jsonRpc2<XrplServerInfoResult>(binding, 'server_info')

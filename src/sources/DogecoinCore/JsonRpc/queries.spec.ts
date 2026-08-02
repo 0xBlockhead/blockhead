@@ -16,9 +16,9 @@ const { getBlock: getBitcoinBlock } = await import('$/sources/BitcoinCore/JsonRp
 const { getBlock: getDogecoinBlock } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
 const { getBlock: getLitecoinBlock } = await import('$/sources/LitecoinCore/JsonRpc/queries.ts')
 
-const bitcoinMainnetBinding = bindings[Source.BitcoinCore_JsonRpc]
-const dogecoinMainnetBinding = dogecoinCoreBindings[Source.DogecoinCore_JsonRpc]
-const litecoinMainnetBinding = litecoinCoreBindings[Source.LitecoinCore_JsonRpc]
+const bitcoinMainnetBinding = bindings[Source.BitcoinCore_JsonRpc][0]
+const dogecoinMainnetBinding = dogecoinCoreBindings[Source.DogecoinCore_JsonRpc][0]
+const litecoinMainnetBinding = litecoinCoreBindings[Source.LitecoinCore_JsonRpc][0]
 
 const block = {
 	hash: 'dogecoin-block-hash',

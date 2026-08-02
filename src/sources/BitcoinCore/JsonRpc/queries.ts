@@ -8,7 +8,7 @@ import type {
 import bindings from '$/sources/BitcoinCore/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.BitcoinCore_JsonRpc]
+const binding = bindings[Source.BitcoinCore_JsonRpc][0]
 
 export const getBlockHash = ({
 	height,

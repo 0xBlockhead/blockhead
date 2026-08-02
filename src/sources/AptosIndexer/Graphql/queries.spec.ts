@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import bindings from '$/sources/AptosIndexer/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const aptosIndexerBinding = bindings[Source.AptosIndexer_Graphql]
+const aptosIndexerBinding = bindings[Source.AptosIndexer_Graphql][0]
 
 const { executeAptosIndexer } = vi.hoisted(() => ({
 	executeAptosIndexer: vi.fn(),

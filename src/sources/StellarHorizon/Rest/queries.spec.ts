@@ -18,7 +18,7 @@ const {
 	getAccountTransactions,
 } = await import('$/sources/StellarHorizon/Rest/queries.ts')
 
-const binding = bindings[Source.StellarHorizon_Rest]
+const binding = bindings[Source.StellarHorizon_Rest][0]
 
 const accountId = `G${'A'.repeat(55)}`
 const otherAccountId = `G${'B'.repeat(55)}`

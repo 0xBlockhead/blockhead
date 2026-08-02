@@ -19,6 +19,7 @@ import {
 	SourceEndpointKind,
 	SourceTargetKind,
 	WireProtocol,
+	indexSourceBindings,
 	sourceBindingId,
 	sourceEndpointOrigin,
 	type SourceBinding,
@@ -50,6 +51,19 @@ const sourceMember = (
 ) => (Source as Record<string, Source | undefined>)[name]
 
 describe('source binding indexes', () => {
+	it('retains every present source bucket as one nonempty array shape', () => {
+		const binding = sourceBindings[0]
+
+		expect(indexSourceBindings([binding].flatMap((binding) => [binding]))[binding.source])
+			.toEqual([binding])
+		expect(indexSourceBindings([binding, binding].flatMap((binding) => [binding]))[binding.source])
+			.toEqual([
+				binding,
+				binding,
+			])
+		expect(() => indexSourceBindings([])).toThrow('must contain at least one binding')
+	})
+
 	it('derives binding identity from only the five stable selection axes', () => {
 		const binding = sourceBindings.find(({ source }) => source === Source.Blockscout_Rest)
 		expect(binding).toBeDefined()
@@ -73,6 +87,11 @@ describe('source binding indexes', () => {
 
 	it('keeps every Source enum member represented by one provider source row and one binding source', () => {
 		const audit = auditSourceProviders(sourceProviders)
+		for (const { bindings } of sourceProviders)
+			for (const [source, sourceBindings] of Object.entries(bindings)) {
+				expect(sourceBindings.length).toBeGreaterThan(0)
+				expect(sourceBindings.every((binding) => binding.source === source)).toBe(true)
+			}
 
 		expect(audit.sourceRows.size).toBe(audit.sourceEnumMembers.length)
 		expect(audit.bindingSources.size).toBe(audit.sourceEnumMembers.length)
@@ -100,7 +119,6 @@ describe('source binding indexes', () => {
 				.filter((binding) => binding.delivery === SourceDelivery.HttpProxy)
 				.flatMap((binding) => (
 					binding.endpoints
-						.filter((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
 						.flatMap((endpoint) => sourceEndpointOrigin(endpoint) ?? [])
 				))
 		))
@@ -194,7 +212,6 @@ describe('source binding indexes', () => {
 	it('keeps RemoteLive WebSocket bindings out of the HTTP proxy origins', () => {
 		expect(remoteLiveBindings.some((binding) => (
 			binding.source === Source.Voltaire_JsonRpc
-			&& binding.delivery === SourceDelivery.RemoteLive
 		))).toBe(true)
 		expect(httpProxyOrigins.has('wss://ethereum.publicnode.com')).toBe(false)
 		expect(remoteLiveBindings.flatMap((binding) => (
@@ -293,9 +310,9 @@ describe('source binding indexes', () => {
 			await snapchainGet('/v1/fids', { pageSize: 100 })
 
 			expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
-				`/api-proxy/${encodeURIComponent(sourceBindingId(redditPublicBindings[Source.Reddit_PublicJson]))}/0/https%3A%2F%2Fwww.reddit.com%2Fr%2Fpopular%2F.rss`,
-				`/api-proxy/${encodeURIComponent(sourceBindingId(neynarBindings[Source.Neynar_Rest]))}/0/https%3A%2F%2Fapi.neynar.com%2Fv2%2Ffarcaster%2Ffeed%2F%3Ffeed_type%3Dfilter%26filter_type%3Dglobal_trending`,
-				`/api-proxy/${encodeURIComponent(sourceBindingId(snapchainBindings[Source.Snapchain_Rest]))}/0/https%3A%2F%2Fhub.pinata.cloud%2Fv1%2Ffids%3FpageSize%3D100`,
+				`/api-proxy/${encodeURIComponent(sourceBindingId(redditPublicBindings[Source.Reddit_PublicJson][0]))}/0/https%3A%2F%2Fwww.reddit.com%2Fr%2Fpopular%2F.rss`,
+				`/api-proxy/${encodeURIComponent(sourceBindingId(neynarBindings[Source.Neynar_Rest][0]))}/0/https%3A%2F%2Fapi.neynar.com%2Fv2%2Ffarcaster%2Ffeed%2F%3Ffeed_type%3Dfilter%26filter_type%3Dglobal_trending`,
+				`/api-proxy/${encodeURIComponent(sourceBindingId(snapchainBindings[Source.Snapchain_Rest][0]))}/0/https%3A%2F%2Fhub.pinata.cloud%2Fv1%2Ffids%3FpageSize%3D100`,
 			])
 		} finally {
 			vi.unstubAllGlobals()

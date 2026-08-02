@@ -20,7 +20,7 @@ const {
 	listReferenda,
 } = await import('$/sources/Subscan/Rest/queries.ts')
 
-const binding = bindings[Source.Subscan_Rest]
+const binding = bindings[Source.Subscan_Rest][0]
 
 const publicEnv = {
 	PUBLIC_SUBSCAN_API_KEY: 'subscan-key',

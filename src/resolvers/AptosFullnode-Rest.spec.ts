@@ -31,7 +31,7 @@ const resolverFor = (entityType: EntityType) => {
 	return resolver
 }
 
-const aptosFullnodeBinding = bindings[Source.AptosFullnode_Rest]
+const aptosFullnodeBinding = bindings[Source.AptosFullnode_Rest][0]
 
 const canonicalNetwork = {
 	caip2: {

@@ -19,7 +19,7 @@ import {
 import bindings from '$/sources/Lens/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Lens_Graphql]
+const binding = bindings[Source.Lens_Graphql][0]
 
 
 const fetchMock = vi.fn<typeof fetch>()

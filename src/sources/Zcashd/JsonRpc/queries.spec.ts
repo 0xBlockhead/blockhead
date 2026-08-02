@@ -20,7 +20,7 @@ import { Source } from '$/sources/Source.ts'
 
 const { default: zcashdResolvers } = await import('$/resolvers/Zcashd-JsonRpc.ts')
 
-const zcashdMainnetBinding = bindings[Source.Zcashd_JsonRpc]
+const zcashdMainnetBinding = bindings[Source.Zcashd_JsonRpc][0]
 
 const fetchMock = vi.fn<typeof fetch>()
 

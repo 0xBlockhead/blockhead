@@ -13,7 +13,7 @@ import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import bindings from '$/sources/BitcoinCashNode/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.BitcoinCashNode_JsonRpc]
+const binding = bindings[Source.BitcoinCashNode_JsonRpc][0]
 
 const assertCashAddress = (address: string) => {
 	if (!/^bitcoincash:[qpzr][qpzry9x8gf2tvdw0s3jn54khce6mua7l]{41,111}$/.test(address))

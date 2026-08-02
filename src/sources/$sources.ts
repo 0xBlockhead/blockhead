@@ -143,7 +143,6 @@ export const indexSourceProviders = <
 			return []
 
 		const providerBindings = Object.values<
-			| SourceBinding
 			| readonly SourceBinding[]
 			| undefined
 		>(sourceProvider.bindings ?? {}).flatMap((bindings) => bindings ?? [])

@@ -26,7 +26,7 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 
 const queries = await import('$/sources/Octez/Rest/queries.ts')
 
-const binding = bindings[Source.OctezNode]
+const binding = bindings[Source.OctezNode][0]
 const blockHash = `B${'1'.repeat(50)}`
 
 describe('Octez mainnet shell RPC operations', () => {

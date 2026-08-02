@@ -50,7 +50,7 @@ if (transactionResolver == null)
 if (inputResolver == null || outputResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing independently addressable child resolver')
 
-const binding = bindings[Source.MempoolSpace_Rest]
+const binding = bindings[Source.MempoolSpace_Rest][0]
 
 const resolverContext = {
 	filters: [],

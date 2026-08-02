@@ -17,7 +17,7 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 
 const queries = await import('$/sources/LogosBlockchainNode/Rest/queries.ts')
 
-const binding = bindings[Source.LogosBlockchainNode_Rest]
+const binding = bindings[Source.LogosBlockchainNode_Rest][0]
 
 const lib = '2'.repeat(64)
 const tip = '3'.repeat(64)

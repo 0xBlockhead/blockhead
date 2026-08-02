@@ -16,7 +16,7 @@ import type {
 import bindings from '$/sources/NearRpc/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.NearRpc_JsonRpc]
+const binding = bindings[Source.NearRpc_JsonRpc][0]
 
 export const nearRpcEndpoints = binding.endpoints.map((endpoint) => ({
 	url: endpoint.locator,

@@ -12,7 +12,7 @@ import {
 } from '$/sources/SpaceAndTime/MakeInfinite/types.ts'
 
 const millisecondsPerUtcDay = 86_400_000
-const binding = bindings[Source.SpaceAndTime_MakeInfinite]
+const binding = bindings[Source.SpaceAndTime_MakeInfinite][0]
 
 const utcSqlTimestamp = (timestampMs: number) => (
 	new Date(timestampMs).toISOString().slice(0, 19).replace('T', ' ')

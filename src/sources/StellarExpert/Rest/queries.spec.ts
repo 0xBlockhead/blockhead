@@ -20,7 +20,7 @@ const {
 	getAllAssets,
 	getTimestampFromSequence,
 } = queries
-const binding = bindings[Source.StellarExpert]
+const binding = bindings[Source.StellarExpert][0]
 
 describe('StellarExpert OpenAPI operations', () => {
 	beforeEach(() => {

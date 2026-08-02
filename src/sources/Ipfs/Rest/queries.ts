@@ -9,7 +9,7 @@ import { sourceEndpointOrigin } from '$/sources/SourceBinding.ts'
 import bindings from '$/sources/Ipfs/bindings.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 
-const binding = bindings[Source.Ipfs_Rest]
+const binding = bindings[Source.Ipfs_Rest][0]
 
 const gatewayUrlLastSegment = /([^/]+)$/
 

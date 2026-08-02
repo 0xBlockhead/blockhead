@@ -24,7 +24,7 @@ const {
 	getSuggestedFees,
 } = await import('$/sources/Across/Rest/queries.ts')
 
-const binding = bindings[Source.Across_Rest]
+const binding = bindings[Source.Across_Rest][0]
 
 const depositor = '0xA4d353BBc130cbeF1811f27ac70989F9d568CeAB'
 const recipient = '0xB4d353BBc130cbeF1811f27ac70989F9d568CeAB'

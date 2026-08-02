@@ -50,7 +50,7 @@ describe('Mintscan Cosmos LCD proxy operations', () => {
 		await query()
 
 		expect(sourceFetch).toHaveBeenCalledWith(
-			bindings[Source.Mintscan],
+			bindings[Source.Mintscan][0],
 			url,
 			{
 				headers: {

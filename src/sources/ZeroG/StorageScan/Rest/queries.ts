@@ -13,7 +13,7 @@ import type {
 	ZeroGStorageScanTransaction,
 } from '$/sources/ZeroG/StorageScan/Rest/types.ts'
 
-const binding = bindings[Source.ZeroGStorageScan_Rest]
+const binding = bindings[Source.ZeroGStorageScan_Rest][0]
 
 const getStorageScanData = async <_Data>({
 	path,

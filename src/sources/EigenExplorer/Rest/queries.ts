@@ -11,7 +11,7 @@ import type {
 	EigenExplorerWithdrawal,
 } from '$/sources/EigenExplorer/Rest/types.ts'
 
-const binding = bindings[Source.EigenExplorer_Rest]
+const binding = bindings[Source.EigenExplorer_Rest][0]
 
 const evmAddressPattern = /^0x[0-9a-f]{40}$/i
 const bytes32Pattern = /^0x[0-9a-f]{64}$/i

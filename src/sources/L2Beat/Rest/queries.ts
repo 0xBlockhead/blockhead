@@ -9,7 +9,7 @@ import { scalingSummaryPath } from '$/sources/L2Beat/Rest/constants.ts'
 import type { L2BeatScalingSummaryResponse } from '$/sources/L2Beat/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.L2Beat_Rest]
+const binding = bindings[Source.L2Beat_Rest][0]
 
 export const fetchScalingSummary = () => (
 	getJson<L2BeatScalingSummaryResponse>(

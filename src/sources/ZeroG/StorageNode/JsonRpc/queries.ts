@@ -8,7 +8,7 @@ import { Source } from '$/sources/Source.ts'
 import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/ZeroG/bindings.ts'
 
-const binding = bindings[Source.ZeroGStorageNode_JsonRpc]
+const binding = bindings[Source.ZeroGStorageNode_JsonRpc][0]
 
 export const endpoint = firstHttpUrlForBinding(binding)
 

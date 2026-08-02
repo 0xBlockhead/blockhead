@@ -15,7 +15,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceFetch,
 }))
 
-const bindingDefinition = bindings[Source.Mlflow_Rest]
+const bindingDefinition = bindings[Source.Mlflow_Rest][0]
 
 const binding = {
 	...bindingDefinition,

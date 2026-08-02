@@ -11,7 +11,7 @@ import {
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/Youtube/bindings.ts'
 
-const youtubeBinding = bindings[Source.Youtube_Rest]
+const youtubeBinding = bindings[Source.Youtube_Rest][0]
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 
@@ -52,7 +52,6 @@ it('uses generated HttpProxy binding metadata and preserves reserved query ident
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [{
 			scope: SourceCredentialScope.PublicConfig,
-			keys: ['PUBLIC_YOUTUBE_API_KEY'],
 		}],
 		endpoints: [{
 			endpointKind: SourceEndpointKind.HttpUrl,
@@ -60,6 +59,8 @@ it('uses generated HttpProxy binding metadata and preserves reserved query ident
 			corsEnabled: false,
 		}],
 	})
+	expect(youtubeBinding.credentials[0].env.props.map(({ key }) => String(key)))
+		.toEqual(['PUBLIC_YOUTUBE_API_KEY'])
 	expect(new URL(sourceGetJson.mock.calls[0][1]).searchParams.get('key')).toBe('api key/+')
 	expect(new URL(sourceGetJson.mock.calls[0][1]).searchParams.get('q')).toBe('channel / + % identity')
 })

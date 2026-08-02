@@ -13,7 +13,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 
 const { getBlockByNumber } = await import('$/sources/TronFullNode/Rest/queries.ts')
 
-const binding = bindings[Source.TronFullNode_Rest]
+const binding = bindings[Source.TronFullNode_Rest][0]
 
 describe('TRON local FullNode transport', () => {
 	beforeEach(() => {

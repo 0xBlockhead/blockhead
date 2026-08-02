@@ -23,7 +23,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 const { default: goldRushResolvers } = await import('$/resolvers/GoldRush-Rest.ts')
 
 const transactionResolver = goldRushResolvers.resolvers[0]
-const goldRushBinding = bindings[Source.GoldRushFoundational_Rest]
+const goldRushBinding = bindings[Source.GoldRushFoundational_Rest][0]
 const transactionResponse = transactionFixture satisfies GoldRushTransactionResponse
 const transactionEmptyResponse = transactionEmptyFixture satisfies GoldRushTransactionResponse
 const transactionErrorResponse = transactionErrorFixture satisfies GoldRushTransactionResponse

@@ -21,7 +21,7 @@ const {
 	getAccountTransactions,
 } = await import('$/sources/NearBlocks/Rest/queries.ts')
 
-const binding = bindings[Source.NearBlocks_Rest]
+const binding = bindings[Source.NearBlocks_Rest][0]
 
 const transaction = {
 	actions: [{

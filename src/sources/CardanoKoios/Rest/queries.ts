@@ -27,7 +27,7 @@ import { parseCardanoGovernanceAction } from '$/sources/_shared/interfaces/Carda
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.CardanoKoios_Rest]
+const binding = bindings[Source.CardanoKoios_Rest][0]
 
 export const getRestEndpoints = () => [{
 	url: firstHttpUrlForBinding(binding),

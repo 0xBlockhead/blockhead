@@ -7,7 +7,7 @@ import type {
 import bindings from '$/sources/CometBft/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.CometBft_Rest]
+const binding = bindings[Source.CometBft_Rest][0]
 
 export const getBlock = ({
 	height,

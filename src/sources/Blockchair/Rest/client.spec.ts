@@ -11,7 +11,7 @@ import {
 	sourceBindingId,
 } from '$/sources/SourceBinding.ts'
 
-const binding = bindings[Source.Blockchair_Rest]
+const binding = bindings[Source.Blockchair_Rest][0]
 
 describe('Blockchair REST client delivery', () => {
 	afterEach(() => {

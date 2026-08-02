@@ -25,7 +25,7 @@ const {
 	getTransactions,
 } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
 
-const binding = bindings[Source.HederaMirrorNode_Rest]
+const binding = bindings[Source.HederaMirrorNode_Rest][0]
 
 const cases = [
 	{

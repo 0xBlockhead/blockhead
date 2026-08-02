@@ -13,7 +13,7 @@ import {
 
 import type { introspection } from './graphql-env.d.ts'
 
-const binding = bindings[Source.Amboss_Graphql]
+const binding = bindings[Source.Amboss_Graphql][0]
 
 export const graphql = initGraphQLTada<{
 	introspection: introspection

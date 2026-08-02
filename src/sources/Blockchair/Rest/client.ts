@@ -13,7 +13,7 @@ import bindings from '$/sources/Blockchair/bindings.ts'
 import type { BlockchairRequestOptions } from '$/sources/Blockchair/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Blockchair_Rest]
+const binding = bindings[Source.Blockchair_Rest][0]
 
 export type BlockchairSearchParams = Record<
 	string,

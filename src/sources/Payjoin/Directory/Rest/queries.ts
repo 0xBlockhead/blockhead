@@ -3,7 +3,7 @@ import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/Payjoin/bindings.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 
-const payjoinDirectoryBinding = bindings[Source.PayjoinDirectory_Rest]
+const payjoinDirectoryBinding = bindings[Source.PayjoinDirectory_Rest][0]
 
 export const ohttpGatewayUrlForDirectory = (directoryUrl: string) => (
 	`${directoryUrl.replace(/\/$/, '')}/.well-known/ohttp-gateway`

@@ -16,7 +16,7 @@ import type {
 import bindings from '$/sources/AptosFullnode/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.AptosFullnode_Rest]
+const binding = bindings[Source.AptosFullnode_Rest][0]
 
 const requiredHeader = (
 	response: Response,

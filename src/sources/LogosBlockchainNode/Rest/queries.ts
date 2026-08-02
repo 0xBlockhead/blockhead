@@ -7,7 +7,7 @@ import { Source } from '$/sources/Source.ts'
 export const getCryptarchiaInfo = async () => (
 	chainServiceInfo.assert(
 		await getJson<JsonValue>(
-			bindings[Source.LogosBlockchainNode_Rest],
+			bindings[Source.LogosBlockchainNode_Rest][0],
 			'/cryptarchia/info'
 		)
 	)

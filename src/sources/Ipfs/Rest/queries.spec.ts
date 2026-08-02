@@ -10,7 +10,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 }))
 
 const { fetchBrowseResult } = await import('$/sources/Ipfs/Rest/queries.ts')
-const binding = bindings[Source.Ipfs_Rest]
+const binding = bindings[Source.Ipfs_Rest][0]
 
 describe('IPFS gateway binding transport', () => {
 	beforeEach(() => {

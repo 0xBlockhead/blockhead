@@ -8,7 +8,7 @@ import {
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
 
-const binding = bindings[Source.Allium_Rest]
+const binding = bindings[Source.Allium_Rest][0]
 
 export const alliumFetch = async <_Response>(
 	publicEnv: SourcePublicEnv,

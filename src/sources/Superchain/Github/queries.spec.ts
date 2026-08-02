@@ -20,7 +20,7 @@ import {
 	getChainList,
 } from '$/sources/Superchain/Github/queries.ts'
 
-const binding = bindings[Source.Superchain_Github]
+const binding = bindings[Source.Superchain_Github][0]
 
 describe('Superchain GitHub chain list', () => {
 	beforeEach(() => {

@@ -19,7 +19,7 @@ import {
 } from '$/sources/SnapshotHub/Graphql/queries.ts'
 import * as runtimeHttp from '$/sources/_runtime/http.ts'
 
-const binding = bindings[Source.SnapshotHub_Graphql]
+const binding = bindings[Source.SnapshotHub_Graphql][0]
 
 const spaceId = 'ens.eth'
 const proposalId = `0x${'1'.repeat(64)}`

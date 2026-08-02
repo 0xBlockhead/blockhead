@@ -13,7 +13,7 @@ import type {
 import bindings from '$/sources/TronSolidityNode/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.TronSolidityNode_Rest]
+const binding = bindings[Source.TronSolidityNode_Rest][0]
 
 const tronSolidityNodePost = async <_Result>({
 	path,

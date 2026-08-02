@@ -3,7 +3,7 @@ import { firstHttpUrlForBinding, sourceGetJson } from '$/sources/_runtime/http.t
 import bindings from '$/sources/AtprotoBsky/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Atproto_Xrpc]
+const binding = bindings[Source.Atproto_Xrpc][0]
 
 const toQuery = (params: Record<string, string | number | readonly string[] | undefined>) => {
 	const sp = new URLSearchParams()

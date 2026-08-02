@@ -10,7 +10,7 @@ import type {
 } from '$/sources/StellarHorizon/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.StellarHorizon_Rest]
+const binding = bindings[Source.StellarHorizon_Rest][0]
 
 const assertAccountId = (
 	accountId: string,

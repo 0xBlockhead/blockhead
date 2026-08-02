@@ -5,7 +5,7 @@ import {
 import bindings from '$/sources/FxEmbed/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.X_FxEmbed_Rest]
+const binding = bindings[Source.X_FxEmbed_Rest][0]
 
 const toQuery = (params: Record<string, string | number | undefined>) => {
 	const searchParams = new URLSearchParams()

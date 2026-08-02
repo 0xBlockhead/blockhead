@@ -7,7 +7,7 @@ import bindings from '$/sources/Sourcify/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-const binding = bindings[Source.Sourcify_Rest]
+const binding = bindings[Source.Sourcify_Rest][0]
 
 export const sourcifyGetJsonOrNull = async <T = JsonValue>({
 	path,

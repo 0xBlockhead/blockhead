@@ -7,7 +7,7 @@ import { redditUserAgent } from '$/sources/RedditPublic/Rest/constants.ts'
 import bindings from '$/sources/RedditPublic/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Reddit_PublicJson]
+const binding = bindings[Source.Reddit_PublicJson][0]
 
 const redditPublicGet = async (path: string) => {
 	const url = `${firstHttpUrlForBinding(binding)}${path.startsWith('/') ? path : `/${path}`}`

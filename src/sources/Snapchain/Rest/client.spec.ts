@@ -10,7 +10,7 @@ import bindings from '$/sources/Snapchain/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceBindingId } from '$/sources/SourceBinding.ts'
 
-const snapchainBinding = bindings[Source.Snapchain_Rest]
+const snapchainBinding = bindings[Source.Snapchain_Rest][0]
 
 afterEach(() => {
 	vi.unstubAllGlobals()

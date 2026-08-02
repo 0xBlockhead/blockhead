@@ -28,7 +28,7 @@ const accountTransactionsResolver = tronScanResolvers.resolvers.find((resolver) 
 if (accountTransactionsResolver == null)
 	throw new Error('TronScan-Rest spec missing TronAccount.$$transactions resolver')
 
-const binding = bindings[Source.TronScan_Rest]
+const binding = bindings[Source.TronScan_Rest][0]
 
 const resolverContext = {
 	filters: [],

@@ -12,7 +12,7 @@ import type {
 } from '$/sources/Mlflow/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Mlflow_Rest]
+const binding = bindings[Source.Mlflow_Rest][0]
 
 const fetchMlflowJson = async <_Result>({
 	credential,

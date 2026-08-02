@@ -23,7 +23,7 @@ const {
 	getMessagesByTransaction,
 } = await import('$/sources/LayerZeroScan/Rest/queries.ts')
 
-const binding = bindings[Source.LayerZeroScan_Rest]
+const binding = bindings[Source.LayerZeroScan_Rest][0]
 
 const sender = '0x1111111111111111111111111111111111111111'
 const receiver = '0x2222222222222222222222222222222222222222'

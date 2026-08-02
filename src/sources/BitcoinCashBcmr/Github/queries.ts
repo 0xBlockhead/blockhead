@@ -6,7 +6,7 @@ import type {
 } from '$/sources/BitcoinCashBcmr/Github/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.BitcoinCashBcmr_Github]
+const binding = bindings[Source.BitcoinCashBcmr_Github][0]
 
 const isIsoTimestamp = (value: string) => {
 	const timestampMs = Date.parse(value)

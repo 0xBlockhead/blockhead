@@ -9,7 +9,7 @@ import type {
 } from '$/sources/Eip8004Scan/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Eip8004Scan_Rest]
+const binding = bindings[Source.Eip8004Scan_Rest][0]
 
 export const fetchAgentList = (
 	{

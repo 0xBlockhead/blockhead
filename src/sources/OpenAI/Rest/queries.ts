@@ -7,7 +7,7 @@ import type {
 } from '$/sources/OpenAI/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.OpenAI_Rest]
+const binding = bindings[Source.OpenAI_Rest][0]
 
 const requestOpenAiJson = async <_Response>({
 	path,

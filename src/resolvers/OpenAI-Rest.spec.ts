@@ -14,7 +14,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 
 const { default: openAiResolvers } = await import('$/resolvers/OpenAI-Rest.ts')
 
-const openAiBinding = bindings[Source.OpenAI_Rest]
+const openAiBinding = bindings[Source.OpenAI_Rest][0]
 
 const resolverFor = (entityType: EntityType) => {
 	const resolver = openAiResolvers.resolvers.find((candidate) => candidate.entityType === entityType)

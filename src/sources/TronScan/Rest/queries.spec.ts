@@ -15,7 +15,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 
 const { getAccountTransactions } = await import('$/sources/TronScan/Rest/queries.ts')
 
-const binding = bindings[Source.TronScan_Rest]
+const binding = bindings[Source.TronScan_Rest][0]
 
 describe('TronScan REST account transactions transport', () => {
 	beforeEach(() => {

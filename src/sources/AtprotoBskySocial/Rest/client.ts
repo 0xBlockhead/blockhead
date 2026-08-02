@@ -6,7 +6,7 @@ import {
 import bindings from '$/sources/AtprotoBskySocial/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Atproto_BskySocial_Xrpc]
+const binding = bindings[Source.Atproto_BskySocial_Xrpc][0]
 
 const toQuery = (params: Record<string, string | number | readonly string[] | undefined>) => {
 	const sp = new URLSearchParams()

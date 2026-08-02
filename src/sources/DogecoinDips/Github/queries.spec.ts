@@ -15,7 +15,7 @@ const {
 	getMediaWikiText,
 } = await import('$/sources/DogecoinDips/Github/queries.ts')
 
-const binding = bindings[Source.DogecoinDips_Github]
+const binding = bindings[Source.DogecoinDips_Github][0]
 
 describe('Dogecoin DIPs GitHub queries', () => {
 	it('uses the registered binding endpoint and repository target', async () => {

@@ -13,7 +13,7 @@ import {
 	githubRepositoryTargetFromKey,
 } from '$/sources/_shared/hosts/Github/Http/client.ts'
 
-const binding = bindings[Source.Caips_Github]
+const binding = bindings[Source.Caips_Github][0]
 const target = githubRepositoryTargetFromKey(binding.target.key)
 
 export const getContentsUrl = () => githubContentsUrl(target)

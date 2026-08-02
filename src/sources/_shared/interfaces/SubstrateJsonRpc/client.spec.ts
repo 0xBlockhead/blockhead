@@ -16,7 +16,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 }))
 
 const { substrateJsonRpc } = await import('$/sources/_shared/interfaces/SubstrateJsonRpc/client.ts')
-const bittensorBinding = bindings[Source.Bittensor_JsonRpc]
+const bittensorBinding = bindings[Source.Bittensor_JsonRpc][0]
 
 describe('Substrate JSON-RPC binding transport', () => {
 	beforeEach(() => {

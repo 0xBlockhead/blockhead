@@ -7,7 +7,7 @@ import {
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
 
-const binding = bindings[Source.CircleCctpIris]
+const binding = bindings[Source.CircleCctpIris][0]
 
 type GetMessagesV2 = operations['getMessagesV2']
 type GetMessagesV2Query = NonNullable<GetMessagesV2['parameters']['query']>

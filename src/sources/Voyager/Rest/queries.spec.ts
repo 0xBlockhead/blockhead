@@ -24,7 +24,7 @@ const {
 	getNetworkStats,
 	getTransactionByHash,
 } = queries
-const binding = bindings[Source.Voyager]
+const binding = bindings[Source.Voyager][0]
 
 describe('Voyager OpenAPI operations', () => {
 	beforeEach(() => {

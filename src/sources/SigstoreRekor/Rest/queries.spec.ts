@@ -16,7 +16,7 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 	getJson,
 }))
 
-const binding = bindings[Source.SigstoreRekor]
+const binding = bindings[Source.SigstoreRekor][0]
 
 describe('Sigstore Rekor public transparency log', () => {
 	beforeEach(() => {

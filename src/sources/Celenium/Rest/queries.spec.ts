@@ -13,7 +13,7 @@ import {
 } from '$/sources/Celenium/Rest/queries.ts'
 import * as sourceHttp from '$/sources/_runtime/http.ts'
 
-const binding = bindings[Source.Celenium_Rest]
+const binding = bindings[Source.Celenium_Rest][0]
 
 const hash = 'a'.repeat(64)
 const parentHash = 'b'.repeat(64)

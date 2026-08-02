@@ -7,7 +7,7 @@ import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import bindings from '$/sources/Youtube/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Youtube_Rest]
+const binding = bindings[Source.Youtube_Rest][0]
 
 export const youtubeApiV3Get = async <T>(
 	publicEnv: SourcePublicEnv,

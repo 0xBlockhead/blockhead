@@ -15,7 +15,7 @@ import {
 
 import type { introspection } from './graphql-env.d.ts'
 
-const binding = bindings[Source.Lens_Graphql]
+const binding = bindings[Source.Lens_Graphql][0]
 
 export type { introspection }
 

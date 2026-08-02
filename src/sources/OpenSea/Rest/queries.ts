@@ -14,7 +14,7 @@ import {
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
 
-const binding = bindings[Source.OpenSea_Rest]
+const binding = bindings[Source.OpenSea_Rest][0]
 
 const requestOpenSeaJson = async <_Response>({
 	path,

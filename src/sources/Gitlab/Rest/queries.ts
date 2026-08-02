@@ -3,7 +3,7 @@ import bindings from '$/sources/Gitlab/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-const binding = bindings[Source.Gitlab_Rest]
+const binding = bindings[Source.Gitlab_Rest][0]
 
 export const getProject = ({
 	projectId,

@@ -286,7 +286,7 @@ describe('LI.FI transfer status', () => {
 
 	it('shares the canonical LI.FI REST source binding', () => {
 		expect(Object.keys(bindings)).toEqual([Source.Lifi_Rest])
-		expect(bindings[Source.Lifi_Rest].source).toBe(Source.Lifi_Rest)
+		expect(bindings[Source.Lifi_Rest][0].source).toBe(Source.Lifi_Rest)
 	})
 
 	it('rejects an empty transfer identifier before transport', async () => {

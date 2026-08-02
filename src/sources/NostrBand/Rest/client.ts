@@ -5,7 +5,7 @@ import {
 import bindings from '$/sources/NostrBand/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.NostrBand_Rest]
+const binding = bindings[Source.NostrBand_Rest][0]
 
 const toQuery = (params: Record<string, string | number | undefined>) => {
 	const searchParams = new URLSearchParams()

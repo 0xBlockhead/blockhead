@@ -146,7 +146,7 @@ const accountTransactions = {
 	validated: true,
 } satisfies XrplAccountTransactionsResult
 
-const binding = bindings[Source.Xrpl_Rippled]
+const binding = bindings[Source.Xrpl_Rippled][0]
 
 const context = {
 	filters: [],

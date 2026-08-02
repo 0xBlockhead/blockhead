@@ -11,7 +11,7 @@ import type {
 } from '$/sources/Covalent/GoldRush/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.GoldRushFoundational_Rest]
+const binding = bindings[Source.GoldRushFoundational_Rest][0]
 
 const evmAddressPattern = /^0x[0-9a-f]{40}$/i
 const unsignedIntegerPattern = /^(0|[1-9][0-9]*)$/

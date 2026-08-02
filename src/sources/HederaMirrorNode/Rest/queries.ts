@@ -20,7 +20,7 @@ import type {
 } from '$/sources/HederaMirrorNode/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.HederaMirrorNode_Rest]
+const binding = bindings[Source.HederaMirrorNode_Rest][0]
 
 const accountIdPattern = /^\d{1,10}\.\d{1,10}\.\d{1,10}$/
 const bigintWireKeys = new Set([

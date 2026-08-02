@@ -10,7 +10,7 @@ import {
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/Snapchain/bindings.ts'
 
-const snapchainBinding = bindings[Source.Snapchain_Rest]
+const snapchainBinding = bindings[Source.Snapchain_Rest][0]
 
 const toQueryString = (params?: Record<string, string | number | boolean | undefined>) => {
 	const searchParams = new URLSearchParams()

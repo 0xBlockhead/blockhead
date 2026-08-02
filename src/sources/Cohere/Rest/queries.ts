@@ -4,7 +4,7 @@ import bindings from '$/sources/Cohere/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-const binding = bindings[Source.Cohere_Rest]
+const binding = bindings[Source.Cohere_Rest][0]
 
 export const listModels = async ({
 	credential,

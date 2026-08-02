@@ -6,7 +6,7 @@ import bindings from '$/sources/Wormholescan/bindings.ts'
 import type { operations } from '$/sources/Wormholescan/OpenApi/openapi.d.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Wormholescan]
+const binding = bindings[Source.Wormholescan][0]
 
 export const getHealth = () => (
 	getJson<operations['health-check']['responses'][200]['content']['*/*']>(

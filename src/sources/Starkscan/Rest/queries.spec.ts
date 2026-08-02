@@ -20,7 +20,7 @@ const {
 	getExactTokenHoldings,
 } = await import('$/sources/Starkscan/Rest/queries.ts')
 
-const binding = bindings[Source.Starkscan]
+const binding = bindings[Source.Starkscan][0]
 
 const account = '0x01'
 const transaction = {

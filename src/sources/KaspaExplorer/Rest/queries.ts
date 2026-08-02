@@ -5,7 +5,7 @@ import type { paths } from '$/sources/KaspaExplorer/OpenApi/openapi.d.ts'
 import bindings from '$/sources/KaspaExplorer/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.KaspaExplorer]
+const binding = bindings[Source.KaspaExplorer][0]
 
 const kaspaAddressCharset = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l'
 

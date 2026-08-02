@@ -3,7 +3,7 @@ import { Source } from '$/sources/Source.ts'
 import type { paths } from '$/sources/StellarExpert/OpenApi/openapi.d.ts'
 import bindings from '$/sources/StellarExpert/bindings.ts'
 
-const binding = bindings[Source.StellarExpert]
+const binding = bindings[Source.StellarExpert][0]
 
 export const getAllAssets = (
 	{

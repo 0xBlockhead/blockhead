@@ -17,7 +17,7 @@ const {
 	getAccountTransactions,
 } = await import('$/sources/InternetComputer/RosettaApi/queries.ts')
 
-const binding = bindings[Source.InternetComputer_RosettaApi]
+const binding = bindings[Source.InternetComputer_RosettaApi][0]
 
 const accountIdentifier = 'a'.repeat(64)
 const otherAccountIdentifier = 'b'.repeat(64)

@@ -171,7 +171,7 @@ const cardanoCommitteeEpochResolver = blockfrostResolvers.resolvers.find((
 if (cardanoCommitteeEpochResolver == null)
 	throw new Error('Blockfrost-Rest spec missing CardanoCommittee_Epoch resolver')
 
-const blockfrostBinding = bindings[Source.Blockfrost_Rest]
+const blockfrostBinding = bindings[Source.Blockfrost_Rest][0]
 
 const resolverContext = {
 	filters: [],

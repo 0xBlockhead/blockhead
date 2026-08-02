@@ -19,7 +19,7 @@ vi.mock('$/sources/CometBft/Rest/queries.ts', () => ({
 
 const { default: cometBft } = await import('$/resolvers/CometBft-Rest.ts')
 
-const cometBftBinding = bindings[Source.CometBft_Rest]
+const cometBftBinding = bindings[Source.CometBft_Rest][0]
 
 describe('CometBFT resolver binding', () => {
 	it('passes the exact canonical Cosmos Hub binding to transport', async () => {

@@ -22,7 +22,7 @@ const {
 	getUtxos,
 } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
 
-const binding = bindings[Source.AvalanchePlatformVm_JsonRpc]
+const binding = bindings[Source.AvalanchePlatformVm_JsonRpc][0]
 
 beforeEach(() => {
 	jsonRpc2.mockReset()

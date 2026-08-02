@@ -3,7 +3,7 @@ import bindings from '$/sources/Pyth/bindings.ts'
 import type { paths } from '$/sources/Pyth/OpenApi/openapi.d.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.PythHermes_Rest]
+const binding = bindings[Source.PythHermes_Rest][0]
 
 export const getPriceFeeds = (
 	parameters: NonNullable<paths['/v2/price_feeds']['get']['parameters']['query']> = {}

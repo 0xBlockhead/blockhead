@@ -19,7 +19,7 @@ const {
 	getOverview,
 } = await import('$/sources/Filfox/Rest/queries.ts')
 
-const binding = bindings[Source.Filfox_Rest]
+const binding = bindings[Source.Filfox_Rest][0]
 
 describe('Filfox REST binding path', () => {
 	beforeEach(() => {

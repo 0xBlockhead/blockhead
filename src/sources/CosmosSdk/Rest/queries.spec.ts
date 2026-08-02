@@ -77,7 +77,7 @@ const {
 	getTransactionsByEvent,
 } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 
-const binding = bindings[Source.CosmosSdk_Rest]
+const binding = bindings[Source.CosmosSdk_Rest][0]
 
 describe('Cosmos SDK GetTxsEvent transport', () => {
 	beforeEach(() => {

@@ -18,7 +18,7 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 
 const { getBlockchainAccountTransactions } = await import('$/sources/TonApi/Rest/queries.ts')
 
-const binding = bindings[Source.TonApi_Rest]
+const binding = bindings[Source.TonApi_Rest][0]
 
 const accountId = '0:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
 const transaction = {

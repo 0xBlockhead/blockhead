@@ -8,7 +8,7 @@ import type {
 	ZcashTransaction,
 } from '$/sources/Zcashd/JsonRpc/types.ts'
 
-const binding = bindings[Source.Zebra_JsonRpc]
+const binding = bindings[Source.Zebra_JsonRpc][0]
 
 const assertTransparentAddress = (address: string) => {
 	if (!/^t[13][1-9A-HJ-NP-Za-km-z]{33}$/.test(address))

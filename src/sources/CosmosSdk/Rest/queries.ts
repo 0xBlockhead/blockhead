@@ -60,7 +60,7 @@ const cosmosSdkDenomMetadataWire = arktype({
 	},
 })
 
-const binding = bindings[Source.CosmosSdk_Rest]
+const binding = bindings[Source.CosmosSdk_Rest][0]
 const base = firstHttpUrlForBinding(binding).replace(/\/$/, '')
 
 export const cosmosSdkRestEndpoints = binding.endpoints.map(({ locator: url }) => ({

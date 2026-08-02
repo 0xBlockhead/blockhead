@@ -7,7 +7,7 @@ import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import type { SuperchainChainListEntry } from '$/sources/Superchain/Github/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Superchain_Github]
+const binding = bindings[Source.Superchain_Github][0]
 
 export const getChainList = async () => {
 	const chains = await sourceGetJson<SuperchainChainListEntry[]>(

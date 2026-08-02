@@ -14,7 +14,7 @@ import type {
 import bindings from '$/sources/TonApi/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.TonApi_Rest]
+const binding = bindings[Source.TonApi_Rest][0]
 
 const tonApiAccount = arktype({
 	address: 'string',

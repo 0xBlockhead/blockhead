@@ -5,7 +5,7 @@ import type { paths } from '$/sources/Octez/OpenApi/openapi.d.ts'
 import { Source } from '$/sources/Source.ts'
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 
-const binding = bindings[Source.OctezNode]
+const binding = bindings[Source.OctezNode][0]
 const mainnetChainId = 'NetXdQprcVkpaWU'
 const blockHashPattern = /^B[1-9A-HJ-NP-Za-km-z]{50}$/
 type GetResponse<_Path extends keyof paths> = paths[_Path]['get'] extends {

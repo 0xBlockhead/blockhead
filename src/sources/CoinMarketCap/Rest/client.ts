@@ -8,7 +8,7 @@ import {
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
 
-const binding = bindings[Source.CoinMarketCap_Rest]
+const binding = bindings[Source.CoinMarketCap_Rest][0]
 
 export const coinMarketCapFetch = async <_Response>(
 	publicEnv: SourcePublicEnv,

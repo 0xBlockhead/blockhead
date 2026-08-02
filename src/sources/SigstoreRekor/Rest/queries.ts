@@ -3,7 +3,7 @@ import bindings from '$/sources/SigstoreRekor/bindings.ts'
 import type { operations } from '$/sources/SigstoreRekor/OpenApi/openapi.d.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.SigstoreRekor]
+const binding = bindings[Source.SigstoreRekor][0]
 
 export const getLogInfo = () => (
 	getJson<operations['getLogInfo']['responses'][200]['content']['application/json']>(

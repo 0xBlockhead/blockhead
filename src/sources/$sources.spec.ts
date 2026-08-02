@@ -424,7 +424,7 @@ describe('source provider registry', () => {
 	})
 
 	it('derives Piped transport metadata from its canonical binding', () => {
-		expect(pipedBindings[Source.Piped_Rest].endpoints).toEqual([{
+		expect(pipedBindings[Source.Piped_Rest][0].endpoints).toEqual([{
 			endpointKind: SourceEndpointKind.HttpUrl,
 			locator: 'https://api.piped.private.coffee',
 			corsEnabled: true,

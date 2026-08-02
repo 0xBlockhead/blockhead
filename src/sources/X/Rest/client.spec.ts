@@ -12,7 +12,7 @@ import {
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/X/bindings.ts'
 
-const xBinding = bindings[Source.X_Rest]
+const xBinding = bindings[Source.X_Rest][0]
 
 const sourceFetch = vi.hoisted(() => vi.fn())
 
@@ -57,9 +57,10 @@ it('uses the proxied X origin with the configured bearer', async () => {
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [{
 			scope: SourceCredentialScope.PublicConfig,
-			keys: ['PUBLIC_X_API_BEARER'],
 		}],
 	})
+	expect(xBinding.credentials[0].env.props.map(({ key }) => String(key)))
+		.toEqual(['PUBLIC_X_API_BEARER'])
 	expect(sourceFetch.mock.calls[0][1]).toContain(
 		'https://api.x.com/2/users/user%2Fwith%20reserved/tweets?'
 	)

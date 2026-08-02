@@ -26,7 +26,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 	sourceGetJson: (binding: SourceBinding, url: string) => getJson(url, binding),
 }))
 
-const tzktRestBinding = bindings[Source.Tzkt_Rest]
+const tzktRestBinding = bindings[Source.Tzkt_Rest][0]
 
 const {
 	getBlock,

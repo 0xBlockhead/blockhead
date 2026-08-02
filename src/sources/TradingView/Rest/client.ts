@@ -10,7 +10,7 @@ import type {
 	TradingViewScannerResponse,
 } from '$/sources/TradingView/Rest/types.ts'
 
-const tradingViewBinding = bindings[Source.TradingView_Rest]
+const tradingViewBinding = bindings[Source.TradingView_Rest][0]
 
 export const tradingViewScannerFetch = async ({
 	columns,

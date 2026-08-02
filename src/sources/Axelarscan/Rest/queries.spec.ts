@@ -21,7 +21,7 @@ const {
 	getGmpMessagesByTransaction,
 } = await import('$/sources/Axelarscan/Rest/queries.ts')
 
-const binding = bindings[Source.Axelarscan_Rest]
+const binding = bindings[Source.Axelarscan_Rest][0]
 
 const sourceTransactionHash = `0x${'1'.repeat(64)}`
 const gasTransactionHash = `0x${'2'.repeat(64)}`

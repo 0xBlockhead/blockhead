@@ -9,7 +9,7 @@ import {
 } from '$/sources/_runtime/http.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.DogecoinDips_Github]
+const binding = bindings[Source.DogecoinDips_Github][0]
 const target = githubRepositoryTargetFromKey(binding.target.key)
 
 export const getContents = () => (

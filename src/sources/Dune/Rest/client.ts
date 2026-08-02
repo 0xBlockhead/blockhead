@@ -13,7 +13,7 @@ import {
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
 
-const binding = bindings[Source.Dune_Rest]
+const binding = bindings[Source.Dune_Rest][0]
 
 export const duneRequestHeaders = (
 	publicEnv: SourcePublicEnv

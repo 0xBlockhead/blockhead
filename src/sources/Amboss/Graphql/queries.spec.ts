@@ -18,7 +18,7 @@ import {
 
 const publicKey = `02${'a'.repeat(64)}`
 const peerPublicKey = `03${'b'.repeat(64)}`
-const binding = bindings[Source.Amboss_Graphql]
+const binding = bindings[Source.Amboss_Graphql][0]
 
 describe('Amboss public Lightning graph queries', () => {
 	it('rejects node identity substitution', async () => {

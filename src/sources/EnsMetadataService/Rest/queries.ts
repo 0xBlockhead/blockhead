@@ -11,7 +11,7 @@ export const getEnsNftMetadata = (
 	}: paths['/{networkName}/{contractAddress(0x[a-fA-F0-9]{40})}/{tokenId}']['get']['parameters']['path']
 ) => (
 	getJson<paths['/{networkName}/{contractAddress(0x[a-fA-F0-9]{40})}/{tokenId}']['get']['responses'][200]['content']['application/json']>(
-		bindings[Source.EnsMetadataService],
+		bindings[Source.EnsMetadataService][0],
 		`/${networkName}/${encodeURIComponent(contractAddress)}/${encodeURIComponent(tokenId)}`
 	)
 )
@@ -23,7 +23,7 @@ export const getAvatarMetadata = (
 	}: paths['/{networkName}/avatar/{name}/meta']['get']['parameters']['path']
 ) => (
 	getJson<paths['/{networkName}/avatar/{name}/meta']['get']['responses'][200]['content']['application/json']>(
-		bindings[Source.EnsMetadataService],
+		bindings[Source.EnsMetadataService][0],
 		`/${networkName}/avatar/${encodeURIComponent(name)}/meta`
 	)
 )

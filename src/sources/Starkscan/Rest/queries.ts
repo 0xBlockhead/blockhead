@@ -3,7 +3,7 @@ import bindings from '$/sources/Starkscan/bindings.ts'
 import type { components } from '$/sources/Starkscan/OpenApi/openapi.d.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Starkscan]
+const binding = bindings[Source.Starkscan][0]
 
 type AddressTransactionPage = components['schemas']['AddressTransactionPage']
 type AddressTokenHoldings = components['schemas']['AddressTokenHoldingsView']

@@ -10,7 +10,7 @@ import type {
 	CashuMintKeysetsWire,
 } from '$/sources/Cashu/Mint/Rest/types.ts'
 
-const binding = bindings[Source.CashuMint_Rest]
+const binding = bindings[Source.CashuMint_Rest][0]
 
 const assertMintUrl = (mintUrl: string) => {
 	if (binding.target.key !== mintUrl)

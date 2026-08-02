@@ -48,7 +48,7 @@ vi.mock('$/sources/index.server.ts', () => ({
 }))
 vi.mock('$/sources/GetBlock/bindings.ts', () => ({
 	default: {
-		GetBlockYellowstone_Grpc: resolverBinding,
+		GetBlockYellowstone_Grpc: [resolverBinding],
 	},
 }))
 vi.mock('$/sources/$sourceServerCredentials.server.ts', () => ({

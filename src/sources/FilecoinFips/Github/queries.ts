@@ -8,7 +8,7 @@ import {
 import bindings from '$/sources/FilecoinFips/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.FilecoinFips_Github]
+const binding = bindings[Source.FilecoinFips_Github][0]
 const target = githubRepositoryTargetFromKey(binding.target.key)
 
 export const getContentsUrl = () => (

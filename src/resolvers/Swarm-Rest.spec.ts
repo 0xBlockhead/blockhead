@@ -14,7 +14,7 @@ vi.mock('$/lib/http.ts', () => ({
 }))
 
 const resolverModule = (await import('$/resolvers/Swarm-Rest.ts')).default
-const binding = bindings[Source.Swarm_Rest]
+const binding = bindings[Source.Swarm_Rest][0]
 const accessTimestampResolver = resolverModule.resolvers.find((resolver) => (
 	resolver.entityType === EntityType._GlobalSwarmAccess_Timestamp
 ))

@@ -20,7 +20,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceGetJson: vi.fn(),
 }))
 
-const binding = bindings[Source.GoldRushFoundational_Rest]
+const binding = bindings[Source.GoldRushFoundational_Rest][0]
 const address = '0x1111111111111111111111111111111111111111'
 const tokenAddress = '0x2222222222222222222222222222222222222222'
 const data = {

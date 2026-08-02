@@ -10,7 +10,7 @@ import {
 	getSystemHealth as getSubstrateSystemHealth,
 } from '$/sources/_shared/interfaces/SubstrateJsonRpc/queries.ts'
 
-const binding = bindings[Source.Polkadot_JsonRpc]
+const binding = bindings[Source.Polkadot_JsonRpc][0]
 
 const polkadotJsonRpc = () => ({
 	binding,

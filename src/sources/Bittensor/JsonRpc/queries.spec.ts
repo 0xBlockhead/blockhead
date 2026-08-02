@@ -16,7 +16,7 @@ vi.mock('$/sources/_shared/interfaces/SubstrateJsonRpc/client.ts', () => ({
 
 const substrateJsonRpcMock = vi.mocked(substrateJsonRpc)
 const blockHash = `0x${'a'.repeat(64)}`
-const bittensorBinding = bindings[Source.Bittensor_JsonRpc]
+const bittensorBinding = bindings[Source.Bittensor_JsonRpc][0]
 
 describe('Bittensor custom JSON-RPC SCALE transport', () => {
 	beforeEach(() => {

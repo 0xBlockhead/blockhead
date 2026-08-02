@@ -21,7 +21,7 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 	getJson,
 }))
 
-const binding = bindings[Source.Dexscreener_Rest]
+const binding = bindings[Source.Dexscreener_Rest][0]
 
 const pair = {
 	chainId: 'ethereum',

@@ -11,7 +11,7 @@ import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 import type { introspection } from './graphql-env.d.ts'
 
-const binding = bindings[Source.SnapshotHub_Graphql]
+const binding = bindings[Source.SnapshotHub_Graphql][0]
 
 export const maximumSnapshotHubGraphqlResponseBytes = 2_000_000
 

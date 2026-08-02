@@ -13,7 +13,7 @@ vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
 
 const { getTransparentAddressUtxos } = await import('$/sources/BitcoinCashNode/JsonRpc/queries.ts')
 
-const binding = bindings[Source.BitcoinCashNode_JsonRpc]
+const binding = bindings[Source.BitcoinCashNode_JsonRpc][0]
 
 const address = `bitcoincash:q${'q'.repeat(41)}`
 

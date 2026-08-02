@@ -37,7 +37,7 @@ describe('Kingnodes dYdX node read transport', () => {
 			},
 		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
-			bindings[Source.KingnodesDydxNode],
+			bindings[Source.KingnodesDydxNode][0],
 			'https://dydx-rest.kingnodes.com/cosmos/base/tendermint/v1beta1/blocks/latest'
 		)
 	})

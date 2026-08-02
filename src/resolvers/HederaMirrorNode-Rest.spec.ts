@@ -189,7 +189,7 @@ const nftFixture = {
 	token_id: '0.0.701',
 }
 
-const binding = bindings[Source.HederaMirrorNode_Rest]
+const binding = bindings[Source.HederaMirrorNode_Rest][0]
 
 const network = {
 	slug: 'hedera',

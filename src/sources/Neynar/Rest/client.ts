@@ -14,7 +14,7 @@ import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import bindings from '$/sources/Neynar/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Neynar_Rest]
+const binding = bindings[Source.Neynar_Rest][0]
 
 export const neynarRequestHeaders = (
 	publicEnv: SourcePublicEnv

@@ -2,7 +2,7 @@ import bindings from '$/sources/WakuNode/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { getJson, getText } from '$/sources/_shared/wire/HttpRest/client.ts'
 
-const binding = bindings[Source.WakuNode]
+const binding = bindings[Source.WakuNode][0]
 
 export const getDebugInfo = () => (
 	getJson<{

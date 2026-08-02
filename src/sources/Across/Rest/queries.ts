@@ -9,7 +9,7 @@ import type {
 } from '$/sources/Across/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Across_Rest]
+const binding = bindings[Source.Across_Rest][0]
 const integerStringPattern = /^(?:0|[1-9]\d*)$/
 const decimalStringPattern = /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/
 

@@ -15,7 +15,7 @@ const {
 	getTx,
 } = await import('$/sources/CometBft/Rest/queries.ts')
 
-const binding = bindings[Source.CometBft_Rest]
+const binding = bindings[Source.CometBft_Rest][0]
 
 describe('CometBFT REST queries', () => {
 	it('uses the registered binding for block and transaction paths', async () => {

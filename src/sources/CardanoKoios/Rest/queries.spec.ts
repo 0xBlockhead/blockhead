@@ -41,7 +41,7 @@ const {
 	listStakePools,
 } = await import('$/sources/CardanoKoios/Rest/queries.ts')
 
-const binding = bindings[Source.CardanoKoios_Rest]
+const binding = bindings[Source.CardanoKoios_Rest][0]
 
 const transactionInfo = {
 	tx_hash: 'transaction-hash',

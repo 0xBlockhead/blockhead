@@ -17,7 +17,7 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 
 const queries = await import('$/sources/Pyth/Rest/queries.ts')
 
-const binding = bindings[Source.PythHermes_Rest]
+const binding = bindings[Source.PythHermes_Rest][0]
 
 const priceFeedId = 'e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43'
 

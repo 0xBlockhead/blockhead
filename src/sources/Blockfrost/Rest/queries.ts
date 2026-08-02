@@ -41,7 +41,7 @@ import { parseCardanoGovernanceAction } from '$/sources/_shared/interfaces/Carda
 import { type } from 'arktype'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Blockfrost_Rest]
+const binding = bindings[Source.Blockfrost_Rest][0]
 
 export const getRestEndpoints = () => [{
 	url: firstHttpUrlForBinding(binding),

@@ -9,7 +9,7 @@ import {
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
 
-const binding = bindings[Source.AptosIndexer_Graphql]
+const binding = bindings[Source.AptosIndexer_Graphql][0]
 
 type AptosIndexerGraphqlResponse<_Result> = {
 	data?: _Result

@@ -11,7 +11,7 @@ import type {
 } from '$/sources/HuggingFace/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.HuggingFaceHub_Rest]
+const binding = bindings[Source.HuggingFaceHub_Rest][0]
 
 const requestHuggingFaceJson = async <_Result>({
 	path,

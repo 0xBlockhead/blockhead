@@ -49,7 +49,7 @@ describe('Bithomp account operation', () => {
 			},
 		})
 		expect(sourceFetch).toHaveBeenCalledWith(
-			bindings[Source.Bithomp],
+			bindings[Source.Bithomp][0],
 			'https://bithomp.com/api/v2/address/rAccount%2Fwith%20path?ledgerInfo=true',
 			{
 				headers: {

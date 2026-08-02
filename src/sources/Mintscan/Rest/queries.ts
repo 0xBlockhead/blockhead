@@ -14,7 +14,7 @@ import type {
 import bindings from '$/sources/Mintscan/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Mintscan]
+const binding = bindings[Source.Mintscan][0]
 
 const mintscanGet = async <_Response>(
 	publicEnv: SourcePublicEnv,

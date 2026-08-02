@@ -14,7 +14,7 @@ import type {
 import bindings from '$/sources/MempoolSpace/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.MempoolSpace_Rest]
+const binding = bindings[Source.MempoolSpace_Rest][0]
 
 const mempoolSpaceRestUrl = (
 	path: string

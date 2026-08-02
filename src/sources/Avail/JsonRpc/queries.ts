@@ -24,7 +24,7 @@ const headerWire = arktype({
 	},
 })
 
-const binding = bindings[Source.Avail]
+const binding = bindings[Source.Avail][0]
 
 const request = <_Result extends JsonValue>(
 	publicEnv: SourcePublicEnv,

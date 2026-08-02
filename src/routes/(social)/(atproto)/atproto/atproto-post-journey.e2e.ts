@@ -19,7 +19,7 @@ const parentPostUri = 'at://did:plc:journeyfixture/app.bsky.feed.post/2parent'
 const replyPostUri = 'at://did:plc:journeyfixture/app.bsky.feed.post/4reply'
 const postPath = `/atproto/post/${encodeURIComponent(postUri)}`
 const actorPath = `/atproto/actor/${encodeURIComponent('did:plc:journeyfixture')}`
-const atprotoBskyProxyRoute = new RegExp(`/api-proxy/${encodeURIComponent(sourceBindingId(bindings[Source.Atproto_Xrpc]))}/0/`)
+const atprotoBskyProxyRoute = new RegExp(`/api-proxy/${encodeURIComponent(sourceBindingId(bindings[Source.Atproto_Xrpc][0]))}/0/`)
 const postView = {
 	author: {
 		did: 'did:plc:journeyfixture',

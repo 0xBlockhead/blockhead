@@ -8,7 +8,7 @@ import {
 } from '$/sources/Arweave/Graphql/queries.ts'
 import * as httpRestClient from '$/sources/_shared/wire/HttpRest/client.ts'
 
-const binding = bindings[Source.Arweave_Graphql]
+const binding = bindings[Source.Arweave_Graphql][0]
 
 const transactionId = 'A'.repeat(43)
 const ownerAddress = 'B'.repeat(43)

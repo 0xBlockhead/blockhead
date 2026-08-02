@@ -23,7 +23,7 @@ const {
 	getBlockByNumber,
 } = await import('$/sources/TronGrid/Rest/queries.ts')
 
-const binding = bindings[Source.TronGrid_Rest]
+const binding = bindings[Source.TronGrid_Rest][0]
 
 it('routes POST and GET reads through the declared HTTP proxy binding', async () => {
 	sourceFetch.mockResolvedValueOnce(new Response('{}'))

@@ -9,7 +9,7 @@ import type {
 import bindings from '$/sources/SubstrateSidecar/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.SubstrateSidecar_Rest]
+const binding = bindings[Source.SubstrateSidecar_Rest][0]
 
 export const getBlock = ({
 	blockId,

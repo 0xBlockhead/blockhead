@@ -17,7 +17,7 @@ import type {
 import bindings from '$/sources/Tzkt/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Tzkt_Rest]
+const binding = bindings[Source.Tzkt_Rest][0]
 const baseUrl = firstHttpUrlForBinding(binding).replace(/\/$/, '')
 const tzktBlock = arktype({
 	level: 'number.integer >= 0',

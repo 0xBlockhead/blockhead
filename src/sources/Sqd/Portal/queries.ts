@@ -10,7 +10,7 @@ import {
 } from '$/sources/Sqd/Portal/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.SqdPortal_RawHttp]
+const binding = bindings[Source.SqdPortal_RawHttp][0]
 
 const finalizedHead = (response: Response): SqdPortalFinalizedHead | undefined => {
 	const number = response.headers.get('x-sqd-finalized-head-number')

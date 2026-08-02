@@ -15,7 +15,7 @@ import type {
 	LndNodeInfoResponse,
 } from '$/sources/LightningLnd/Rest/types.ts'
 
-const binding = bindings[Source.LightningLnd_Rest]
+const binding = bindings[Source.LightningLnd_Rest][0]
 
 const lndHeaders = (macaroonHex: string) => ({
 	'Grpc-Metadata-macaroon': macaroonHex,

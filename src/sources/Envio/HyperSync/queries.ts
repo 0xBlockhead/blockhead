@@ -12,7 +12,7 @@ import {
 	EnvioHyperSyncResolution,
 } from '$/sources/Envio/HyperSync/types.ts'
 
-const binding = bindings[Source.EnvioHyperSync_RawHttp]
+const binding = bindings[Source.EnvioHyperSync_RawHttp][0]
 
 export const getEvmBlockRangePage = async ({
 	fromBlock,

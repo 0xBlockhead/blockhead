@@ -26,7 +26,7 @@ import {
 } from '$/sources/LightningMempoolSpace/Rest/queries.ts'
 import lightningMempoolSpaceResolvers from '$/resolvers/LightningMempoolSpace-Rest.ts'
 
-const binding = bindings[Source.LightningMempoolSpace_Rest]
+const binding = bindings[Source.LightningMempoolSpace_Rest][0]
 const networkTimestampResolver = lightningMempoolSpaceResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.LightningNetwork_Timestamp
 	&& 'nodeCount' in resolver.projections

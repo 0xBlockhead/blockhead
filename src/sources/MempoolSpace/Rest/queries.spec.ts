@@ -20,7 +20,7 @@ const {
 	getRecommendedFees,
 } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 
-const binding = bindings[Source.MempoolSpace_Rest]
+const binding = bindings[Source.MempoolSpace_Rest][0]
 
 describe('mempool.space Bitcoin REST binding', () => {
 	beforeEach(() => {
@@ -33,7 +33,7 @@ describe('mempool.space Bitcoin REST binding', () => {
 		await getRecommendedFees()
 
 		expect(binding).not.toBe(
-			lightningBindings[Source.LightningMempoolSpace_Rest]
+			lightningBindings[Source.LightningMempoolSpace_Rest][0]
 		)
 		expect(sourceGetJson.mock.calls).toEqual([
 			[

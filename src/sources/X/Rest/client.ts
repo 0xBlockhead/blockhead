@@ -8,7 +8,7 @@ import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import bindings from '$/sources/X/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.X_Rest]
+const binding = bindings[Source.X_Rest][0]
 
 export const xApiV2Get = async <T>(
 	publicEnv: SourcePublicEnv,

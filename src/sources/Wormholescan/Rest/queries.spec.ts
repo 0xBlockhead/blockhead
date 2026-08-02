@@ -23,7 +23,7 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 }))
 
 const queries = await import('$/sources/Wormholescan/Rest/queries.ts')
-const binding = bindings[Source.Wormholescan]
+const binding = bindings[Source.Wormholescan][0]
 
 describe('Wormholescan OpenAPI operations', () => {
 	beforeEach(() => {

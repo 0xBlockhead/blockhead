@@ -16,7 +16,7 @@ const {
 	fetchAgentList,
 } = await import('$/sources/Eip8004Scan/Rest/queries.ts')
 
-const binding = bindings[Source.Eip8004Scan_Rest]
+const binding = bindings[Source.Eip8004Scan_Rest][0]
 
 describe('EIP-8004 Scan endpoints', () => {
 	beforeEach(() => {

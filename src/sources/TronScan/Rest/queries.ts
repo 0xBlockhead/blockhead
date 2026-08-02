@@ -16,7 +16,7 @@ import type {
 import bindings from '$/sources/TronScan/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.TronScan_Rest]
+const binding = bindings[Source.TronScan_Rest][0]
 
 const tronScanUrl = (path: string) => new URL(path, firstHttpUrlForBinding(binding))
 
