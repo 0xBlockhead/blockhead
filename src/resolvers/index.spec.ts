@@ -1239,19 +1239,21 @@ describe('resolver registry live resolver architecture', () => {
 				},
 				indexInTransaction: 0,
 			},
-			$transaction: {
-				[EntityMetaKey.Selector]: {
-					$network,
-					txHash,
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmBlob, [], '$block')]: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						blockNumber: 100n,
+					},
 				},
-			},
-			$block: {
-				[EntityMetaKey.Selector]: {
-					$network,
-					blockNumber: 100n,
+				[entityFieldAddressKey(EntityType.EvmBlob, [], '$transaction')]: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						txHash,
+					},
 				},
+				[entityFieldAddressKey(EntityType.EvmBlob, [], 'versionedHash')]: versionedHash,
 			},
-			versionedHash,
 		}])
 
 		const logResolver = allSourceResolverDefinitions.find((candidate) => (

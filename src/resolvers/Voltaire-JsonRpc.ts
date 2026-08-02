@@ -393,21 +393,23 @@ const evmBlobEntityRefsFromVoltaireTx = ({
 				},
 				indexInTransaction: blobIndex,
 			},
-			$transaction: {
-				[EntityMetaKey.Selector]: {
-					$network,
-					txHash,
-				},
-			} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
-			...(blockNumber != null && {
-				$block: {
+			[EntityMetaKey.Fields]: {
+				...(blockNumber != null && {
+					[entityFieldAddressKey(EntityType.EvmBlob, [], '$block')]: {
+						[EntityMetaKey.Selector]: {
+							$network,
+							blockNumber,
+						},
+					} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+				}),
+				[entityFieldAddressKey(EntityType.EvmBlob, [], '$transaction')]: {
 					[EntityMetaKey.Selector]: {
 						$network,
-						blockNumber,
+						txHash,
 					},
-				} satisfies Entity<typeof schema, EntityType.EvmBlock>,
-			}),
-			versionedHash: versionedHash as `0x01${string}`,
+				} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
+				[entityFieldAddressKey(EntityType.EvmBlob, [], 'versionedHash')]: versionedHash as `0x01${string}`,
+			},
 		}]
 	})
 )
