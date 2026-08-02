@@ -41,22 +41,6 @@ export const listSubredditLinks = (
 	)
 )
 
-export const getLinkComments = (
-	publicEnv: SourcePublicEnv,
-	permalink: string,
-	limit: number
-) => (
-	oauthGetJson<RedditApiListing[]>(
-		publicEnv,
-		`${permalink.startsWith('/') ? permalink : `/${permalink}`}.json?${(
-			new URLSearchParams({
-				limit: String(limit),
-				raw_json: '1',
-			}).toString()
-		)}`
-	)
-)
-
 export const getLinkCommentsByArticleId = (
 	publicEnv: SourcePublicEnv,
 	articleId: string,

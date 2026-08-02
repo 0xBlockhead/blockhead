@@ -165,27 +165,6 @@ export const listSubredditLinks = async (
 	)
 }
 
-export const getComments = async (
-	permalink: string,
-	limit: number
-) => {
-	const boundedLimit = redditListingLimit(limit)
-	if (boundedLimit === 0)
-		return [
-			{ kind: 'Listing', data: { children: [] } },
-			{ kind: 'Listing', data: { children: [] } },
-		] satisfies RedditPublicApiListing[]
-
-	return redditJsonGet<RedditPublicApiListing[]>(
-		`${permalink.startsWith('/') ? permalink : `/${permalink}`}.json?${(
-			new URLSearchParams({
-				limit: String(boundedLimit),
-				raw_json: '1',
-			}).toString()
-		)}`
-	)
-}
-
 export const getCommentsByArticleId = async (
 	articleId: string,
 	limit: number
