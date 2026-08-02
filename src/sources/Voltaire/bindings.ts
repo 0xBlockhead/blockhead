@@ -258,7 +258,7 @@ const voltaireJsonRpcTargets10143Through11155420 = [
 	},
 ] as const
 
-export default indexSourceBindings<readonly SourceBinding<Source.Voltaire_JsonRpc>[]>([
+export default indexSourceBindings([
 	{
 		source: Source.Voltaire_JsonRpc,
 		target: {

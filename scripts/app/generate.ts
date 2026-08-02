@@ -7832,7 +7832,6 @@ const generateSourceProviderBindingsFile = (
 	}
 	const renderedBindingPlan = (() => {
 		const direct = {
-			boundedSources: undefined,
 			declarations: [],
 			expression: [
 			'[',
@@ -7843,10 +7842,7 @@ const generateSourceProviderBindingsFile = (
 		const compactBySource = new Map(renderedSourcePlans.flatMap((sourcePlan) => {
 			const matrix = bindingMatrices.get(sourcePlan.source)
 			if (matrix != null)
-				return [[sourcePlan.source, {
-					boundedSources: undefined,
-					...renderBindingMatrix(matrix),
-				}] as const]
+				return [[sourcePlan.source, renderBindingMatrix(matrix)] as const]
 
 			const matrices = (partialBindingMatrices.get(sourcePlan.source) ?? [])
 				.map((partialMatrix) => ({
@@ -7886,7 +7882,6 @@ const generateSourceProviderBindingsFile = (
 				})
 
 			return [[sourcePlan.source, {
-				boundedSources: [sourcePlan.source],
 				declarations: matrices.flatMap(({ declarations }) => declarations),
 				expression: [
 					'[',
@@ -7904,9 +7899,6 @@ const generateSourceProviderBindingsFile = (
 			compactBySource.get(renderedSourcePlans[0]?.source ?? '')
 		:
 			{
-				boundedSources: renderedSourcePlans.flatMap(({ source }) => (
-					compactBySource.get(source)?.boundedSources ?? []
-				)),
 				declarations: renderedSourcePlans.flatMap(({ source }) => {
 					const sourceCompact = compactBySource.get(source)
 					return sourceCompact == null ? [] : [
@@ -7945,8 +7937,6 @@ const generateSourceProviderBindingsFile = (
 		...(bindings.some(({ binding }) => binding.operationGroups.length > 0) ? ['SourceOperationGroup'] : []),
 	]
 
-	// Partial array spreads otherwise expose a large structural union to the
-	// binding-index generic. Its explicit source boundary preserves index keys.
 	return tsFile(
 		`src/sources/${provider.provider}/bindings.ts`,
 		{
@@ -7982,12 +7972,7 @@ const generateSourceProviderBindingsFile = (
 				)),
 				...renderedBindingPlan.declarations,
 				...(renderedBindingPlan.declarations.length === 0 ? [] : ['']),
-				`export default indexSourceBindings${
-					renderedBindingPlan.boundedSources == null || renderedBindingPlan.boundedSources.length === 0 ?
-						''
-					:
-						`<readonly SourceBinding<${renderedBindingPlan.boundedSources.map((source) => enumAccess('Source', source)).join(' | ')}>[]>`
-				}(${renderedBindingPlan.expression})`,
+				`export default indexSourceBindings(${renderedBindingPlan.expression})`,
 			],
 		}
 	)

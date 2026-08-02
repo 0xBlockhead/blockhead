@@ -3012,7 +3012,7 @@ test('emits every source-axis enum and only valid enum references in provider ro
 			assert.match(source, /\} satisfies SourceBinding\)\)/)
 		else
 			assert.match(source, /export default indexSourceBindings\(\[[\s\S]*?satisfies readonly SourceBinding\[\]\)/)
-		assert.match(source, /export default indexSourceBindings(?:<readonly SourceBinding<[^>]+>\[\]>)?\(/)
+		assert.match(source, /export default indexSourceBindings\(/)
 		assert.doesNotMatch(source, /SourceCredentialScope\.None|generated: false/)
 		assert.doesNotMatch(source, /^\s*\[Source\.[A-Za-z0-9_]+\]: \{/m)
 		assert.doesNotMatch(source, /^const [A-Za-z0-9_$]+Credentials = \[\] as const$/m)
@@ -3082,7 +3082,6 @@ test('emits every source-axis enum and only valid enum references in provider ro
 	assert.doesNotMatch(renderedVoltaireBindings, /voltaireJsonRpcEvmExecutionJsonRpc(?:RemoteLive|HttpProxy|BrowserDirect)BindingAxes/)
 	assert.match(renderedVoltaireBindings, /credentials: \[\]/)
 	assert.equal((renderedVoltaireBindings.match(/artifacts: voltaireJsonRpcArtifacts/g) ?? []).length, voltaireBindingCount)
-	assert.match(renderedVoltaireBindings, /export default indexSourceBindings<readonly SourceBinding<Source\.Voltaire_JsonRpc>\[]>\(\[/)
 	assert.equal((renderedVoltaireBindings.match(/Targets[0-9]+Through[0-9]+\.flatMap/g) ?? []).length, 4)
 	for (const targetRange of [
 		'10Through480',
