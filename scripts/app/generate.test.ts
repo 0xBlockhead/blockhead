@@ -862,7 +862,8 @@ test('generated views and pages import exactly the dependencies they use', () =>
 		importPlanningStart,
 		generatorSource.indexOf('\n\tconst markup =', importPlanningStart)
 	)
-	assert.match(importPlanningSource, /renderedCollectionRouteExpressions\.length > 0/)
+	assert.match(importPlanningSource, /viewCollectionRoutes\.length > 0/)
+	assert.doesNotMatch(importPlanningSource, /renderedCollectionRouteExpressions/)
 	assert.doesNotMatch(importPlanningSource, /renderCollectionRouteValueExpression\(/)
 
 	const dependencyContracts = [
@@ -5781,12 +5782,17 @@ test('derives reusable entity hrefs from selector detail pages without empty hre
 	const evmNetworkActorCoinBalancesView = compiledApp.generatedFiles.find((generatedFile) => (
 		generatedFile.path === 'src/views/EvmNetworkActorCoinBalancesView.svelte'
 	))
+	const coinBridgeCapabilityViews = [
+		'src/views/CoinBridgeCapabilityView.svelte',
+		'src/views/CoinBridgeCapabilitiesView.svelte',
+	].map((viewPath) => compiledApp.generatedFiles.find((generatedFile) => generatedFile.path === viewPath))
 
 	assert.ok(youtubeVideoView)
 	assert.ok(youtubeVideosView)
 	assert.ok(evmBlobView)
 	assert.ok(evmBlobsView)
 	assert.ok(evmNetworkActorCoinBalancesView)
+	assert.equal(coinBridgeCapabilityViews.every(Boolean), true)
 	const renderedYoutubeVideoView = renderGeneratedFile(youtubeVideoView)
 	const renderedYoutubeVideosView = renderGeneratedFile(youtubeVideosView)
 	const renderedEvmBlobView = renderGeneratedFile(evmBlobView)
@@ -5821,6 +5827,13 @@ test('derives reusable entity hrefs from selector detail pages without empty hre
 	assert.match(renderedEvmNetworkActorCoinBalancesView, /\{@const contract = evmNetworkActorCoinBalance\.\$contract\}/)
 	assert.match(renderedEvmNetworkActorCoinBalancesView, /contract != null\s+&& contract\.\$network\.caip2 != null \?/)
 	assert.doesNotMatch(renderedEvmNetworkActorCoinBalancesView, /contract\.\$network\.caip2\.reference != null/)
+	for (const coinBridgeCapabilityView of coinBridgeCapabilityViews) {
+		assert.ok(coinBridgeCapabilityView)
+		const source = renderGeneratedFile(coinBridgeCapabilityView)
+		assert.match(source, /&& \(fromInstance\.type === 'NativeCurrency' \|\| '\$contract' in fromInstance\)/)
+		assert.match(source, /&& \(toInstance\.type === 'NativeCurrency' \|\| '\$contract' in toInstance\)/)
+		assert.doesNotMatch(source, /\$fromInstance\.type|\$toInstance\.type/)
+	}
 
 	const lensPostTimestampsView = compiledApp.generatedFiles.find((generatedFile) => (
 		generatedFile.path === 'src/views/LensPost_TimestampsView.svelte'

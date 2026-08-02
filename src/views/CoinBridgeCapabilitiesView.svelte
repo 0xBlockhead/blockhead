@@ -45,9 +45,9 @@
 			entitySelector={coinBridgeCapabilitySelector}
 			href={
 				'caip2' in fromInstance.$network
-				&& (coinBridgeCapabilitySelector.$fromInstance.type === 'NativeCurrency' || '$contract' in fromInstance)
+				&& (fromInstance.type === 'NativeCurrency' || '$contract' in fromInstance)
 				&& 'caip2' in toInstance.$network
-				&& (coinBridgeCapabilitySelector.$toInstance.type === 'NativeCurrency' || '$contract' in toInstance) ?
+				&& (toInstance.type === 'NativeCurrency' || '$contract' in toInstance) ?
 					resolve(
 						'/(assets)/bridge-capability/[fromChainId=eip155ChainId]/[fromCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toChainId=eip155ChainId]/[toCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toolKey=stringSegment]',
 						{

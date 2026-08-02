@@ -45,9 +45,9 @@
 		href === undefined ?
 			(
 				'caip2' in fromInstance.$network
-				&& (selection.entitySelector.$fromInstance.type === 'NativeCurrency' || '$contract' in fromInstance)
+				&& (fromInstance.type === 'NativeCurrency' || '$contract' in fromInstance)
 				&& 'caip2' in toInstance.$network
-				&& (selection.entitySelector.$toInstance.type === 'NativeCurrency' || '$contract' in toInstance) ?
+				&& (toInstance.type === 'NativeCurrency' || '$contract' in toInstance) ?
 					resolve(
 						'/(assets)/bridge-capability/[fromChainId=eip155ChainId]/[fromCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toChainId=eip155ChainId]/[toCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toolKey=stringSegment]',
 						{

@@ -674,22 +674,6 @@ const typeScriptExpressionReferenceCount = (
 	)
 }
 
-const typeScriptSubexpressionReferenceCount = (
-	source: string,
-	reference: string
-) => {
-	if (source.trim() === '')
-		return 0
-
-	const parsedSource = parseTypeScriptExpression(source)
-	const referenceSource = parseTypeScriptExpression(reference)
-	const referenceText = unwrapParenthesizedExpression(referenceSource.expression).getText(referenceSource.sourceFile)
-	return typeScriptNodeReferenceCount(
-		parsedSource.expression,
-		(node) => ts.isExpression(node) && node.getText(parsedSource.sourceFile) === referenceText
-	)
-}
-
 const typeScriptExpressionReferencesBinding = (
 	source: string,
 	binding: string
@@ -10859,9 +10843,9 @@ const generateSingularViewFile = (
 			section.selection.sources,
 		] as const] : []
 	))).values()]
-	// Canonical collection hrefs are TypeScript expressions. Their declared
-	// expression imports are selected from those expressions, never from markup.
-	const renderedCollectionRouteExpressions = [
+	// Collection routes carry their expression imports with their APP facts; the
+	// emitted TypeScript does not need to be parsed to rediscover provenance.
+	const viewCollectionRoutes = [
 		...[
 			...sections,
 			...detailsTabSections,
@@ -10875,14 +10859,9 @@ const generateSingularViewFile = (
 			)
 				return []
 
-			const expression = renderCollectionRouteValueExpression(
-				entity,
-				indexes,
-				section.field,
-				fieldDefinition.entityType,
-				'selection.entitySelector'
-			)
-			return expression == null ? [] : [expression]
+			return indexes.collectionRoutesBySourceField[
+				collectionSourceFieldKey(entity.entityType, section.field, fieldDefinition.entityType)
+			] ?? []
 		}),
 		...carouselsToRender.flatMap((carousel) => carousel.sections.flatMap((section) => {
 			if (section.field == null || section.link != null)
@@ -10892,31 +10871,14 @@ const generateSingularViewFile = (
 			if (fieldDefinition?.type !== EntityFieldType.EntitiesReference || fieldDefinition.entityType == null)
 				return []
 
-			const expression = renderCollectionRouteValueExpression(
-				entity,
-				indexes,
-				section.field,
-				fieldDefinition.entityType,
-				'selection.entitySelector'
-			)
-			return expression == null ? [] : [expression]
+			return indexes.collectionRoutesBySourceField[
+				collectionSourceFieldKey(entity.entityType, section.field, fieldDefinition.entityType)
+			] ?? []
 		})),
 	]
-	const collectionRouteImports = mergeImports(
-		Object.entries(indexes.collectionRoutesBySourceField)
-			.filter(([key]) => key.startsWith(`${entity.entityType}:`))
-			.flatMap(([, hrefs]) => hrefs.flatMap((href) => importSpecsFromMap(
-				Object.values(href.params).reduce((imports, param) => expressionImports(param.value, imports), new Map<string, Set<string>>())
-			)))
-	)
-		.filter((importSpec) => (importSpec.names ?? []).some((name) => (
-			renderedCollectionRouteExpressions.some((expression) => (
-				typeScriptExpressionReferencesBinding(
-					expression,
-					typeof name === 'string' ? name : name.alias
-				)
-			))
-		)))
+	const collectionRouteImports = mergeImports(viewCollectionRoutes.flatMap((route) => importSpecsFromMap(
+		Object.values(route.params).reduce((imports, param) => expressionImports(param.value, imports), new Map<string, Set<string>>())
+	)))
 	const typeAnnotationTooltipMarkup = (
 		singularView?.TypeAnnotationTooltip != null ?
 			renderRawLines(singularView.TypeAnnotationTooltip.raw, 2)
@@ -10928,7 +10890,7 @@ const generateSingularViewFile = (
 		...((
 			entityHrefExpression != null
 			|| allViewItems(entity, indexes).some((item) => typeof item === 'object' && 'link' in item && item.link != null)
-			|| renderedCollectionRouteExpressions.length > 0
+			|| viewCollectionRoutes.length > 0
 			|| sections.some((section) => {
 				const fieldDefinition = fieldDefinitionByReference(entity, section.field, indexes)
 				return (
@@ -12361,33 +12323,62 @@ const entityRouteHrefPlan = (
 				indexes,
 				entity.entityType,
 				fieldsExpression,
-				undefined,
-				usesResolvedEntity
+				{
+					resolvedFields: usesResolvedEntity,
+				}
 			)
 	)
-	const referenceCountByField = new Map(entity.fields.flatMap((field) => (
-		field.entityType == null || directExpression == null ?
+	const parsedExpression = directExpression == null ? undefined : parseTypeScriptExpression(directExpression)
+	const fieldByExpression = new Map(entity.fields.flatMap((field) => (
+		field.entityType == null ?
 			[]
 		:
-			[[
-				field.name,
-				typeScriptSubexpressionReferenceCount(
-					directExpression,
-					fieldExpression(fieldsExpression, field.name)
-				),
-			] as const]
+			[[fieldExpression(fieldsExpression, field.name), field.name] as const]
 	)))
-	const fieldBindings = entityRouteFieldBindings(entity, referenceCountByField, fieldsExpression, declaration, reservedNames)
+	const fieldReferences: {
+		fieldName: string
+		start: number
+		end: number
+	}[] = []
+	if (parsedExpression != null) {
+		const expressionStart = parsedExpression.expression.getStart(parsedExpression.sourceFile)
+		const visit = (node: ts.Node) => {
+			const fieldName = ts.isExpression(node) ? fieldByExpression.get(node.getText(parsedExpression.sourceFile)) : undefined
+			if (fieldName != null) {
+				fieldReferences.push({
+					fieldName,
+					start: node.getStart(parsedExpression.sourceFile) - expressionStart,
+					end: node.end - expressionStart,
+				})
+				return
+			}
+
+			ts.forEachChild(node, visit)
+		}
+		visit(parsedExpression.expression)
+	}
+	const fieldReferencesByName = Map.groupBy(fieldReferences, ({ fieldName }) => fieldName)
+	const fieldBindings = entityRouteFieldBindings(
+		entity,
+		new Map([...fieldReferencesByName].map(([fieldName, references]) => [fieldName, references.length])),
+		fieldsExpression,
+		declaration,
+		reservedNames
+	)
 
 	return {
-		expression: fieldBindings.length === 0 ? directExpression : renderEntityRouteLinkExpression(
-			indexes,
-			entity.entityType,
-			fieldsExpression,
-			undefined,
-			usesResolvedEntity,
-			Object.fromEntries(fieldBindings.map(({ fieldName, name }) => [fieldName, name]))
-		),
+		expression: fieldBindings.length === 0 || directExpression == null ? directExpression : fieldBindings
+			.flatMap(({ fieldName, name }) => (
+				(fieldReferencesByName.get(fieldName) ?? []).map(({ start, end }) => ({
+					end,
+					name,
+					start,
+				}))
+			))
+			.toSorted((left, right) => right.start - left.start)
+			.reduce((expression, replacement) => (
+				`${expression.slice(0, replacement.start)}${replacement.name}${expression.slice(replacement.end)}`
+			), directExpression),
 		fieldBindings,
 	}
 }
@@ -12425,10 +12416,9 @@ const renderCollectionRouteValueExpression = (
 		indexes,
 		entity.entityType,
 		fieldsExpression,
-		undefined,
-		false,
-		undefined,
-		collectionRoutes
+		{
+			routeLinks: collectionRoutes,
+		}
 	)
 }
 
@@ -12439,8 +12429,7 @@ const entityPathConditions = (
 	entityType: string,
 	fieldsExpression: string,
 	mode: 'selector' | 'resolved',
-	fieldPaths: readonly string[][],
-	fieldExpressionByName?: Readonly<Record<string, string>>
+	fieldPaths: readonly string[][]
 ) => [...new Map(fieldPaths.flatMap((fieldPath) => {
 	let entity = indexes.entityByType[entityType]
 	const conditions: ConditionTerm[] = []
@@ -12466,7 +12455,7 @@ const entityPathConditions = (
 		:
 			fieldPath.slice(1, index + (mode === 'resolved' ? 1 : 0)).reduce(
 				(expression, pathPart) => `${expression}${propertyAccess(pathPart)}`,
-				fieldExpressionByName?.[fieldPath[0] ?? ''] ?? fieldExpression(fieldsExpression, fieldPath[0] ?? '')
+				fieldExpression(fieldsExpression, fieldPath[0] ?? '')
 			)
 		const condition = mode === 'selector' ?
 			(
@@ -12516,10 +12505,15 @@ const renderEntityRouteLinkExpression = (
 	indexes: GenerationIndexes,
 	entityType: string,
 	fieldsExpression: string,
-	selectorName?: string,
-	resolvedFields = false,
-	fieldExpressionByName?: Readonly<Record<string, string>>,
-	routeLinks: readonly EntityRouteLink[] = indexes.entityRouteLinksByType[entityType] ?? []
+	{
+		resolvedFields = false,
+		routeLinks = indexes.entityRouteLinksByType[entityType] ?? [],
+		selectorName,
+	}: {
+		resolvedFields?: boolean
+		routeLinks?: readonly EntityRouteLink[]
+		selectorName?: string
+	} = {}
 ) => {
 	const renderHrefCondition = (conditionGroups: readonly HrefConditionGroup[]) => (
 		hrefConditionPlan(conditionGroups).expression
@@ -12567,7 +12561,6 @@ const renderEntityRouteLinkExpression = (
 			param,
 			value: renderPresentRouteParamExpression(routeParamValue.value, {
 				fields: fieldsExpression,
-				fieldExpressionByName,
 				entity: indexes.entityByType[entityType],
 				indexes,
 			}, routeParamValue.decode),
@@ -12580,8 +12573,7 @@ const renderEntityRouteLinkExpression = (
 					entityType,
 					fieldsExpression,
 					resolvedFields ? 'resolved' : 'selector',
-					[[condition.field]],
-					fieldExpressionByName
+					[[condition.field]]
 				),
 				...conditionTerms(
 					condition,
@@ -12589,8 +12581,7 @@ const renderEntityRouteLinkExpression = (
 					indexes.entityByType[entityType],
 					indexes,
 					false,
-					false,
-					fieldExpressionByName
+					false
 				),
 			])
 		const entityConditionGroup = entityConditionTerms.length === 0 ? undefined : {
@@ -12609,8 +12600,7 @@ const renderEntityRouteLinkExpression = (
 					entityType,
 					fieldsExpression,
 					resolvedFields ? 'resolved' : 'selector',
-					fieldPaths,
-					fieldExpressionByName
+					fieldPaths
 				)
 			)
 		)) : []
@@ -15604,7 +15594,9 @@ const generatePageFile = (
 			indexes,
 			viewEntity,
 			`{ ...pageSelection.entitySelector, ${canonicalFieldName}: resolvedField }`,
-			canonicalSelectorName
+			{
+				selectorName: canonicalSelectorName,
+			}
 		)
 		if (canonicalEntityHrefExpression == null)
 			throw new Error(`${routePath} canonical alias has no renderable canonical entity href`)
