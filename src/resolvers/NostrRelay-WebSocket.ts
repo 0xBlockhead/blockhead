@@ -2,7 +2,7 @@ import {
 	resolverContextRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
-import { nostrNoteFieldValuesFromEvent } from '$/resolvers/NostrBand-Rest.ts'
+import { nostrNoteFieldValues } from '$/resolvers/Nostr.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
@@ -14,7 +14,7 @@ import { validateNostrEvent } from '$/sources/NostrRelay/Nip01/event.ts'
 
 const noteFromRelayEvent = (event: NostrRelayEvent) => {
 	try {
-		return nostrNoteFieldValuesFromEvent(validateNostrEvent(event, { kinds: [1] }))
+		return nostrNoteFieldValues(validateNostrEvent(event, { kinds: [1] }))
 	} catch {
 		return undefined
 	}

@@ -434,11 +434,11 @@ describe('Nostr thread references', () => {
 		const articleVersions = [
 			signedEvent([['d', 'target'], ['title', 'Version A']], 30_023, 'article A'),
 			signedEvent([['d', 'target'], ['title', 'Version B']], 30_023, 'article B'),
-		].sort((left, right) => right.id.localeCompare(left.id))
+		].sort((left, right) => left.id.localeCompare(right.id))
 		const profileVersions = [
 			signedEvent([], 0, JSON.stringify({ display_name: 'Profile A', lud06: 'lnurl-a' })),
 			signedEvent([], 0, JSON.stringify({ display_name: 'Profile B', lud06: 'lnurl-b' })),
-		].sort((left, right) => right.id.localeCompare(left.id))
+		].sort((left, right) => left.id.localeCompare(right.id))
 		const articleResolver = nostrBand.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.NostrArticle
 			&& '$$events' in candidate.projections
@@ -517,7 +517,7 @@ describe('Nostr thread references', () => {
 		const articleVersions = [
 			signedEvent([['d', 'target'], ['title', 'Version B']], 30_023, 'article B'),
 			signedEvent([['d', 'target'], ['title', 'Version A']], 30_023, 'article A'),
-		].sort((left, right) => right.id.localeCompare(left.id))
+		].sort((left, right) => left.id.localeCompare(right.id))
 		const profileVersions = [
 			signedEvent([], 0, JSON.stringify({
 				display_name: 'Profile B',
@@ -528,7 +528,7 @@ describe('Nostr thread references', () => {
 			signedEvent([], 0, JSON.stringify({ display_name: 'Profile A', lud06: 'lnurl-a' })),
 		].sort((left, right) => (
 			right.created_at - left.created_at
-			|| right.id.localeCompare(left.id)
+			|| left.id.localeCompare(right.id)
 		))
 		const articleResolver = primal.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.NostrArticle
