@@ -7167,14 +7167,16 @@ const emitSourceBindingBase = (
 ])
 
 // Repeated binding values are declared once beside the rows that consume them.
+type RepeatedBindingValue = {
+	identity: string
+	expression?: string
+	valueName: string
+}
+
 const planRepeatedBindingValues = (
 	scope: string,
 	fallbackValueName: string,
-	rows: readonly {
-		identity: string
-		expression?: string
-		valueName: string
-	}[]
+	rows: readonly RepeatedBindingValue[]
 ) => {
 	const sharedRows = [...Map.groupBy(rows, ({ identity }) => identity).values()]
 		.flatMap((matchingRows) => {
@@ -7191,6 +7193,9 @@ const planRepeatedBindingValues = (
 			:
 				[]
 		})
+	if (sharedRows.length === 0)
+		return
+
 	const scopeName = pascal(scope)
 	const scopedSharedRows = sharedRows.map((row) => ({
 		...row,
@@ -7212,9 +7217,14 @@ const planRepeatedBindingValues = (
 
 	return {
 		declarations: sharedRows.map(({ identity, expression }) => `const ${nameByIdentity.get(identity)} = ${expression} as const`),
-		reference: ({ identity, expression }: typeof rows[number]) => nameByIdentity.get(identity) ?? expression,
+		nameByIdentity,
 	}
 }
+
+const bindingValueReference = (
+	plan: ReturnType<typeof planRepeatedBindingValues>,
+	{ identity, expression }: RepeatedBindingValue
+) => plan?.nameByIdentity.get(identity) ?? expression
 
 const generateSourceProviderBindingsFile = (
 	provider: SourceProviderDefinition,
@@ -7381,9 +7391,9 @@ const generateSourceProviderBindingsFile = (
 			if (binding == null || baseIdentifier == null)
 				return []
 			return [`const ${baseIdentifier} = ${emitSourceBindingBase(source, binding, {
-				operationGroups: properties.operationGroups.reference(group[0].operationGroups) ?? '[]',
-				credentials: properties.credentials.reference(group[0].credentials) ?? '[]',
-				artifacts: properties.artifacts.reference(group[0].artifacts),
+				operationGroups: bindingValueReference(properties.operationGroups, group[0].operationGroups) ?? '[]',
+				credentials: bindingValueReference(properties.credentials, group[0].credentials) ?? '[]',
+				artifacts: bindingValueReference(properties.artifacts, group[0].artifacts),
 			})} as const`]
 		}),
 		bindings: sourceBindingRows.map(({
@@ -7393,10 +7403,10 @@ const generateSourceProviderBindingsFile = (
 			credentials,
 			artifacts,
 		}) => emitSourceBinding(source, binding, {
-				endpoints: properties.endpoints.reference(endpoints) ?? '[]',
-				operationGroups: properties.operationGroups.reference(operationGroups) ?? '[]',
-				credentials: properties.credentials.reference(credentials) ?? '[]',
-				artifacts: properties.artifacts.reference(artifacts),
+				endpoints: bindingValueReference(properties.endpoints, endpoints) ?? '[]',
+				operationGroups: bindingValueReference(properties.operationGroups, operationGroups) ?? '[]',
+				credentials: bindingValueReference(properties.credentials, credentials) ?? '[]',
+				artifacts: bindingValueReference(properties.artifacts, artifacts),
 			}, bindingBaseNameByBinding.get(binding))),
 	}))
 	// A source matrix is compact only when it reconstructs the authored binding
@@ -7603,8 +7613,8 @@ const generateSourceProviderBindingsFile = (
 				}] satisfies ImportSpec[] : []),
 			],
 			body: [
-				...Object.values(properties).flatMap(({ declarations }) => declarations),
-				...(Object.values(properties).some(({ declarations }) => declarations.length > 0) ? [''] : []),
+				...Object.values(properties).flatMap((property) => property?.declarations ?? []),
+				...(Object.values(properties).some((property) => property != null) ? [''] : []),
 				...renderedSourcePlans.flatMap(({ declarations }) => (
 					declarations.length === 0 ? [] : [...declarations, '']
 				)),

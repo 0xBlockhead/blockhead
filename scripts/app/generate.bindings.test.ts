@@ -186,6 +186,20 @@ test('uses authored binding identity instead of synthetic row indexes', async ()
 	assert.match(bindingsEmitter, /orderedMatrixRows\.some\(\(row, index\) => \(\n\t\t\trow !== sourcePlan\.sourceBindingRows\[index\]/)
 })
 
+test('retains repeated binding plans only when they emit declarations', async () => {
+	const generatorSource = await readFile('scripts/app/generate.ts', 'utf8')
+	const repeatedValuePlanner = generatorSource.slice(
+		generatorSource.indexOf('const planRepeatedBindingValues ='),
+		generatorSource.indexOf('const generateSourceProviderBindingsFile =')
+	)
+
+	assert.match(repeatedValuePlanner, /if \(sharedRows\.length === 0\)\n\t\treturn/)
+	assert.match(repeatedValuePlanner, /return \{\n\t\tdeclarations:[\s\S]*?\n\t\tnameByIdentity,\n\t\}/)
+	assert.doesNotMatch(repeatedValuePlanner, /reference:/)
+	assert.match(repeatedValuePlanner, /const bindingValueReference = \([\s\S]*?plan\?\.nameByIdentity\.get\(identity\) \?\? expression/)
+	assert.equal((generatorSource.match(/bindingValueReference\(properties\./g) ?? []).length, 7)
+})
+
 test('owns Esplora target identities without object stringification', () => {
 	assert.deepEqual(
 		sourceBindingRows
