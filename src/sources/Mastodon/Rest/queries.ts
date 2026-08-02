@@ -93,23 +93,30 @@ export const getAccountByAcct = (
 	mastodonGet<MastodonApiV1Account>(instanceOrigin, '/accounts/lookup', { acct })
 )
 
-export const getAccountByActivityStreamsUri = async (
-	activityStreamsUri: string
+const searchByActivityStreamsUri = async <_Result extends { uri?: string }>(
+	activityStreamsUri: string,
+	queryType: 'accounts' | 'statuses',
+	resultsFromSearch: (search: MastodonApiV2Search) => _Result[] | undefined,
+	resultLabel: 'actor' | 'note'
 ) => {
-	const account = (await mastodonGet<MastodonApiV2Search>(
+	const result = resultsFromSearch(await mastodonGet<MastodonApiV2Search>(
 		new URL(activityStreamsUri).origin,
 		'/search',
 		{
 			q: activityStreamsUri,
 			resolve: 'true',
-			type: 'accounts',
+			type: queryType,
 		},
 		'v2'
-	)).accounts?.find((account) => account.uri === activityStreamsUri)
-	if (account == null)
-		throw new Error('Mastodon_Rest: ActivityPub actor URI not found')
-	return account
+	))?.find((result) => result.uri === activityStreamsUri)
+	if (result == null)
+		throw new Error(`Mastodon_Rest: ActivityPub ${resultLabel} URI not found`)
+	return result
 }
+
+export const getAccountByActivityStreamsUri = (activityStreamsUri: string) => (
+	searchByActivityStreamsUri(activityStreamsUri, 'accounts', ({ accounts }) => accounts, 'actor')
+)
 
 export const getStatus = (
 	instanceOrigin: string,
@@ -118,23 +125,9 @@ export const getStatus = (
 	mastodonGet<MastodonApiV1Status>(instanceOrigin, `/statuses/${encodeURIComponent(localStatusId)}`)
 )
 
-export const getStatusByActivityStreamsUri = async (
-	activityStreamsUri: string
-) => {
-	const status = (await mastodonGet<MastodonApiV2Search>(
-		new URL(activityStreamsUri).origin,
-		'/search',
-		{
-			q: activityStreamsUri,
-			resolve: 'true',
-			type: 'statuses',
-		},
-		'v2'
-	)).statuses?.find((status) => status.uri === activityStreamsUri)
-	if (status == null)
-		throw new Error('Mastodon_Rest: ActivityPub note URI not found')
-	return status
-}
+export const getStatusByActivityStreamsUri = (activityStreamsUri: string) => (
+	searchByActivityStreamsUri(activityStreamsUri, 'statuses', ({ statuses }) => statuses, 'note')
+)
 
 export const getStatusContext = (
 	instanceOrigin: string,
