@@ -585,19 +585,19 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 44 | Blobscan | Blobscan_Rest | Eip155Chain | 560048 | HttpRest | RestJson | GenericRead | HttpProxy |
 | 45 | Blockchair | Blockchair_Rest | Global | blockchair | HttpRest | RestJson | GenericRead | HttpProxy |
 | 46 | Blockfrost | Blockfrost_Rest | Caip2Network | cip34:1-764824073 | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
-| 47 | Blockscout | Blockscout_Rest | Eip155Chain | 1 | HttpRest | BlockscoutRestV2 | GenericRead, BlockscoutAccountAbstraction | HttpProxy |
+| 47 | Blockscout | Blockscout_Rest | Eip155Chain | 1 | HttpRest | BlockscoutRestV2 | BlockscoutAccountAbstraction, GenericRead | HttpProxy |
 | 48 | Blockscout | Blockscout_Rest | Eip155Chain | 1 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
-| 49 | Blockscout | Blockscout_Rest | Eip155Chain | 10 | HttpRest | BlockscoutRestV2 | GenericRead, BlockscoutAccountAbstraction | HttpProxy |
+| 49 | Blockscout | Blockscout_Rest | Eip155Chain | 10 | HttpRest | BlockscoutRestV2 | BlockscoutAccountAbstraction, GenericRead | HttpProxy |
 | 50 | Blockscout | Blockscout_Rest | Eip155Chain | 10 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
-| 51 | Blockscout | Blockscout_Rest | Eip155Chain | 100 | HttpRest | BlockscoutRestV2 | GenericRead, BlockscoutAccountAbstraction | HttpProxy |
+| 51 | Blockscout | Blockscout_Rest | Eip155Chain | 100 | HttpRest | BlockscoutRestV2 | BlockscoutAccountAbstraction, GenericRead | HttpProxy |
 | 52 | Blockscout | Blockscout_Rest | Eip155Chain | 100 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
-| 53 | Blockscout | Blockscout_Rest | Eip155Chain | 137 | HttpRest | BlockscoutRestV2 | GenericRead, BlockscoutAccountAbstraction | HttpProxy |
+| 53 | Blockscout | Blockscout_Rest | Eip155Chain | 137 | HttpRest | BlockscoutRestV2 | BlockscoutAccountAbstraction, GenericRead | HttpProxy |
 | 54 | Blockscout | Blockscout_Rest | Eip155Chain | 137 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
-| 55 | Blockscout | Blockscout_Rest | Eip155Chain | 8453 | HttpRest | BlockscoutRestV2 | GenericRead, BlockscoutAccountAbstraction | HttpProxy |
+| 55 | Blockscout | Blockscout_Rest | Eip155Chain | 8453 | HttpRest | BlockscoutRestV2 | BlockscoutAccountAbstraction, GenericRead | HttpProxy |
 | 56 | Blockscout | Blockscout_Rest | Eip155Chain | 8453 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
-| 57 | Blockscout | Blockscout_Rest | Eip155Chain | 42161 | HttpRest | BlockscoutRestV2 | GenericRead, BlockscoutAccountAbstraction | HttpProxy |
+| 57 | Blockscout | Blockscout_Rest | Eip155Chain | 42161 | HttpRest | BlockscoutRestV2 | BlockscoutAccountAbstraction, GenericRead | HttpProxy |
 | 58 | Blockscout | Blockscout_Rest | Eip155Chain | 42161 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
-| 59 | Blockscout | Blockscout_Rest | Eip155Chain | 11155111 | HttpRest | BlockscoutRestV2 | GenericRead, BlockscoutAccountAbstraction | HttpProxy |
+| 59 | Blockscout | Blockscout_Rest | Eip155Chain | 11155111 | HttpRest | BlockscoutRestV2 | BlockscoutAccountAbstraction, GenericRead | HttpProxy |
 | 60 | Blockscout | Blockscout_Rest | Eip155Chain | 11155111 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
 | 61 | Caips | Caips_Github | GitRepository | ChainAgnostic/CAIPs@main:CAIPs | HttpRest | GithubContentsApi | GithubRepositoryContents | BrowserDirect |
 | 62 | Caips | CaipNamespaces_Github | GitRepository | ChainAgnostic/namespaces@main:namespaces | HttpRest | GithubContentsApi | GithubRepositoryContents | BrowserDirect |
@@ -693,7 +693,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 152 | HederaWalletConnect | HederaWalletConnect_SignClient | LocalDevice | hedera-walletconnect | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
 | 153 | Helius | Helius | Caip2Network | solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp | HttpRest | RestJson | GenericRead | BrowserDirect |
 | 154 | Helius | Helius | Caip2Network | solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp | JsonRpc2 | MetaplexDasJsonRpc | GenericRead | BrowserDirect |
-| 155 | HuggingFace | HuggingFaceHub_Rest | Global | huggingface-hub | HttpRest | RestJson | AiArtifactCatalog, RepositoryMetadata, GenericRead | RemoteQuery |
+| 155 | HuggingFace | HuggingFaceHub_Rest | Global | huggingface-hub | HttpRest | RestJson | AiArtifactCatalog, GenericRead, RepositoryMetadata | RemoteQuery |
 | 156 | Hyperliquid | Hyperliquid | NetworkSlug | hyperliquid | HttpRest | RestJson | GenericRead | BrowserDirect |
 | 157 | Hyperliquid | Hyperliquid | Eip155Chain | 999 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | BrowserDirect |
 | 158 | HyperliquidDocs | HyperliquidDocs_Rest | Global | hyperliquid-docs | RawHttp | StaticWebsite | GenericRead | BrowserDirect |
@@ -764,10 +764,10 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 223 | NostrRelay | NostrRelay_Nip11_Http | Feed | wss://relay.damus.io | HttpRest | NostrRelay | NostrRelayRead | HttpProxy |
 | 224 | NostrRelay | NostrRelay_Nip11_Http | Feed | wss://nos.lol | HttpRest | NostrRelay | NostrRelayRead | HttpProxy |
 | 225 | NostrRelay | NostrRelay_Nip11_Http | Feed | wss://relay.primal.net | HttpRest | NostrRelay | NostrRelayRead | HttpProxy |
-| 226 | NostrRelay | NostrRelay_WebSocket | Feed | wss://relay.damus.io | WebSocketMessages | NostrRelay | NostrRelayRead, GenericSubscribe | RemoteLive |
-| 227 | NostrRelay | NostrRelay_WebSocket | Feed | wss://nos.lol | WebSocketMessages | NostrRelay | NostrRelayRead, GenericSubscribe | RemoteLive |
-| 228 | NostrRelay | NostrRelay_WebSocket | Feed | wss://relay.primal.net | WebSocketMessages | NostrRelay | NostrRelayRead, GenericSubscribe | RemoteLive |
-| 229 | OciRegistry | OciRegistry_Distribution | Global | oci-registry | OciDistribution | OciDistributionApi | SoftwareArtifactRegistry, RepositoryMetadata | RemoteQuery |
+| 226 | NostrRelay | NostrRelay_WebSocket | Feed | wss://relay.damus.io | WebSocketMessages | NostrRelay | GenericSubscribe, NostrRelayRead | RemoteLive |
+| 227 | NostrRelay | NostrRelay_WebSocket | Feed | wss://nos.lol | WebSocketMessages | NostrRelay | GenericSubscribe, NostrRelayRead | RemoteLive |
+| 228 | NostrRelay | NostrRelay_WebSocket | Feed | wss://relay.primal.net | WebSocketMessages | NostrRelay | GenericSubscribe, NostrRelayRead | RemoteLive |
+| 229 | OciRegistry | OciRegistry_Distribution | Global | oci-registry | OciDistribution | OciDistributionApi | RepositoryMetadata, SoftwareArtifactRegistry | RemoteQuery |
 | 230 | Ogmios | Ogmios_JsonRpc | Caip2Network | cip34:1-764824073 | JsonRpc2 | JsonRpcApi | GenericRead | RemoteQuery |
 | 231 | Onnx | OnnxArtifact_Local | LocalDevice | onnx-artifact | LocalFile | LocalParser | AiArtifactCatalog, DocumentClaimExtraction | LocalOnly |
 | 232 | OpenAI | OpenAI_Rest | Global | openai-api | HttpRest | RestJson | AiModelCatalog, AiProviderOperationCatalog, GenericRead | HttpProxy |
@@ -809,7 +809,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 268 | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 1 | HttpRest | RestJson | GenericRead | HttpProxy |
 | 269 | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 100 | HttpRest | RestJson | GenericRead | HttpProxy |
 | 270 | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 8453 | HttpRest | RestJson | GenericRead | HttpProxy |
-| 271 | SigstoreRekor | SigstoreRekor | Global | transparency-log | HttpRest | OpenApiHttp | SoftwareArtifactRegistry, GenericRead | BrowserDirect |
+| 271 | SigstoreRekor | SigstoreRekor | Global | transparency-log | HttpRest | OpenApiHttp | GenericRead, SoftwareArtifactRegistry | BrowserDirect |
 | 272 | SnapshotHub | SnapshotHub_Graphql | Global | snapshot-hub | Graphql | GraphqlHttp | GenericRead | BrowserDirect |
 | 273 | Snapchain | Snapchain_Rest | Global | farcaster-snapchain | HttpRest | RestJson | GenericRead | HttpProxy |
 | 274 | SpaceAndTime | SpaceAndTime_MakeInfinite | Caip2Network | eip155:1 | HttpRest | RestJson | GenericRead | HttpProxy |
@@ -940,7 +940,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 399 | WakuNode | WakuNode | LocalDevice | waku-node | HttpRest | RestJson | GenericRead | LocalOnly |
 | 400 | WalletConnect | WalletConnect_SignClient | LocalDevice | walletconnect-sign-client | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
 | 401 | WalletStandard | WalletStandard_WalletApi | LocalDevice | wallet-standard | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
-| 402 | WebTorrent | WebTorrent_Client | LocalDevice | webtorrent-client | InProcess | WebTorrentApi | GenericRead, BitTorrentAnnounce | BrowserDirect |
+| 402 | WebTorrent | WebTorrent_Client | LocalDevice | webtorrent-client | InProcess | WebTorrentApi | BitTorrentAnnounce, GenericRead | BrowserDirect |
 | 403 | WebTorrent | WebTorrent_Dht | TorrentSwarm | webtorrent-dht | InProcess | BitTorrentDht | BitTorrentDhtLookup | BrowserDirect |
 | 404 | WebTorrent | WebTorrent_Tracker | TorrentSwarm | webtorrent-tracker | WebSocketMessages | BitTorrentTracker | BitTorrentAnnounce, GenericSubscribe | RemoteLive |
 | 405 | Wormholescan | Wormholescan | Global | wormholescan-api | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
@@ -1448,7 +1448,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 7 | 1 | RuntimeSecret | no | ANTHROPIC_API_KEY |
 | 8 | 1 | UserDelegated | no |  |
 | 16 | 1 | PublicConfig | yes | PUBLIC_AVAIL_RPC_URL |
-| 19 | 1 | RuntimeSecret | no | AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_BEDROCK_REGION |
+| 19 | 1 | RuntimeSecret | no | AWS_ACCESS_KEY_ID, AWS_BEDROCK_REGION, AWS_SECRET_ACCESS_KEY |
 | 21 | 1 | RuntimeSecret | no | AZURE_AI_FOUNDRY_API_KEY |
 | 25 | 1 | PublicConfig | yes | PUBLIC_BEACONCHAIN_API_KEY |
 | 26 | 1 | PublicConfig | yes | PUBLIC_BEACONCHAIN_API_KEY |
@@ -1572,112 +1572,112 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | --- | --- | --- | --- | --- | --- | --- |
 | 2 | 1 | HandwrittenTypes | src/sources/Acp/Rest/types.ts | no |  |  |
 | 5 | 1 | HandwrittenTypes | src/sources/Allium/Rest/types.ts | no |  |  |
-| 6 | 1 | GraphqlSchema | src/sources/Amboss/Graphql/schema.graphql | yes |  |  |
-| 6 | 2 | GenerationManifest | src/sources/Amboss/Graphql/schema-source.ts | no |  |  |
+| 6 | 1 | GenerationManifest | src/sources/Amboss/Graphql/schema-source.ts | no |  |  |
+| 6 | 2 | GraphqlSchema | src/sources/Amboss/Graphql/schema.graphql | yes |  |  |
 | 6 | 3 | GraphqlTypes | src/sources/Amboss/Graphql/graphql-env.d.ts | yes |  |  |
-| 9 | 1 | OpenApiSpec | src/sources/AptosFullnode/OpenApi/spec.yaml | no |  |  |
-| 9 | 2 | GenerationManifest | src/sources/AptosFullnode/OpenApi/schema-source.ts | no |  |  |
+| 9 | 1 | GenerationManifest | src/sources/AptosFullnode/OpenApi/schema-source.ts | no |  |  |
+| 9 | 2 | OpenApiSpec | src/sources/AptosFullnode/OpenApi/spec.yaml | no |  |  |
 | 9 | 3 | OpenApiTypes | src/sources/AptosFullnode/OpenApi/openapi.d.ts | yes |  |  |
-| 10 | 1 | GraphqlSchema | src/sources/AptosIndexer/Graphql/schema.graphql | yes | https://api.mainnet.aptoslabs.com/v1/graphql |  |
-| 10 | 2 | GenerationManifest | src/sources/AptosIndexer/Graphql/schema-source.ts | no |  |  |
+| 10 | 1 | GenerationManifest | src/sources/AptosIndexer/Graphql/schema-source.ts | no |  |  |
+| 10 | 2 | GraphqlSchema | src/sources/AptosIndexer/Graphql/schema.graphql | yes | https://api.mainnet.aptoslabs.com/v1/graphql |  |
 | 10 | 3 | GraphqlTypes | src/sources/AptosIndexer/Graphql/graphql-env.d.ts | yes |  |  |
 | 11 | 1 | HandwrittenTypes | src/sources/Arweave/Rest/types.ts | no |  |  |
-| 12 | 1 | GraphqlSchema | src/sources/Arweave/Graphql/schema.graphql | yes | https://arweave.net/graphql |  |
-| 12 | 2 | GenerationManifest | src/sources/Arweave/Graphql/schema-source.ts | no |  |  |
+| 12 | 1 | GenerationManifest | src/sources/Arweave/Graphql/schema-source.ts | no |  |  |
+| 12 | 2 | GraphqlSchema | src/sources/Arweave/Graphql/schema.graphql | yes | https://arweave.net/graphql |  |
 | 12 | 3 | GraphqlTypes | src/sources/Arweave/Graphql/graphql-env.d.ts | yes |  |  |
-| 13 | 1 | Lexicon | src/sources/AtprotoBsky/Lexicon | no |  |  |
-| 13 | 2 | GenerationManifest | src/sources/AtprotoBsky/Lexicon/schema-source.ts | no |  |  |
-| 14 | 1 | Lexicon | src/sources/AtprotoBskySocial/Lexicon | no |  |  |
-| 14 | 2 | GenerationManifest | src/sources/AtprotoBskySocial/Lexicon/schema-source.ts | no |  |  |
-| 22 | 1 | OpenApiSpec | src/sources/Beacon/OpenApi/beacon-node-oapi.yaml | no |  |  |
-| 22 | 2 | GenerationManifest | src/sources/Beacon/OpenApi/schema-source.ts | no |  |  |
+| 13 | 1 | GenerationManifest | src/sources/AtprotoBsky/Lexicon/schema-source.ts | no |  |  |
+| 13 | 2 | Lexicon | src/sources/AtprotoBsky/Lexicon | no |  |  |
+| 14 | 1 | GenerationManifest | src/sources/AtprotoBskySocial/Lexicon/schema-source.ts | no |  |  |
+| 14 | 2 | Lexicon | src/sources/AtprotoBskySocial/Lexicon | no |  |  |
+| 22 | 1 | GenerationManifest | src/sources/Beacon/OpenApi/schema-source.ts | no |  |  |
+| 22 | 2 | OpenApiSpec | src/sources/Beacon/OpenApi/beacon-node-oapi.yaml | no |  |  |
 | 22 | 3 | OpenApiTypes | src/sources/Beacon/OpenApi/openapi.d.ts | yes |  |  |
-| 23 | 1 | OpenApiSpec | src/sources/Beacon/OpenApi/beacon-node-oapi.yaml | no |  |  |
-| 23 | 2 | GenerationManifest | src/sources/Beacon/OpenApi/schema-source.ts | no |  |  |
+| 23 | 1 | GenerationManifest | src/sources/Beacon/OpenApi/schema-source.ts | no |  |  |
+| 23 | 2 | OpenApiSpec | src/sources/Beacon/OpenApi/beacon-node-oapi.yaml | no |  |  |
 | 23 | 3 | OpenApiTypes | src/sources/Beacon/OpenApi/openapi.d.ts | yes |  |  |
-| 24 | 1 | OpenApiSpec | src/sources/Beacon/OpenApi/beacon-node-oapi.yaml | no |  |  |
-| 24 | 2 | GenerationManifest | src/sources/Beacon/OpenApi/schema-source.ts | no |  |  |
+| 24 | 1 | GenerationManifest | src/sources/Beacon/OpenApi/schema-source.ts | no |  |  |
+| 24 | 2 | OpenApiSpec | src/sources/Beacon/OpenApi/beacon-node-oapi.yaml | no |  |  |
 | 24 | 3 | OpenApiTypes | src/sources/Beacon/OpenApi/openapi.d.ts | yes |  |  |
 | 25 | 1 | HandwrittenTypes | src/sources/BeaconchaIn/Rest/types.ts | no |  |  |
 | 26 | 1 | HandwrittenTypes | src/sources/BeaconchaIn/Rest/types.ts | no |  |  |
 | 27 | 1 | HandwrittenTypes | src/sources/BeaconchaIn/Rest/types.ts | no |  |  |
-| 33 | 1 | OpenApiSpec | src/sources/Bithomp/OpenApi/openapi.yaml | yes | https://raw.githubusercontent.com/Bithomp/slate/master/source/bithomp-dhali.yaml |  |
-| 33 | 2 | GenerationManifest | src/sources/Bithomp/OpenApi/schema-source.ts | no |  |  |
+| 33 | 1 | GenerationManifest | src/sources/Bithomp/OpenApi/schema-source.ts | no |  |  |
+| 33 | 2 | OpenApiSpec | src/sources/Bithomp/OpenApi/openapi.yaml | yes | https://raw.githubusercontent.com/Bithomp/slate/master/source/bithomp-dhali.yaml |  |
 | 33 | 3 | OpenApiTypes | src/sources/Bithomp/OpenApi/openapi.d.ts | yes |  |  |
 | 34 | 1 | HandwrittenTypes | src/sources/Bittensor/JsonRpc/types.ts | no |  |  |
 | 41 | 1 | HandwrittenTypes | src/sources/Blobscan/Rest/types.ts | no |  |  |
 | 42 | 1 | HandwrittenTypes | src/sources/Blobscan/Rest/types.ts | no |  |  |
 | 43 | 1 | HandwrittenTypes | src/sources/Blobscan/Rest/types.ts | no |  |  |
 | 44 | 1 | HandwrittenTypes | src/sources/Blobscan/Rest/types.ts | no |  |  |
-| 46 | 1 | OpenApiSpec | src/sources/Blockfrost/OpenApi/openapi.yaml | no |  |  |
-| 46 | 2 | GenerationManifest | src/sources/Blockfrost/OpenApi/schema-source.ts | no |  |  |
+| 46 | 1 | GenerationManifest | src/sources/Blockfrost/OpenApi/schema-source.ts | no |  |  |
+| 46 | 2 | OpenApiSpec | src/sources/Blockfrost/OpenApi/openapi.yaml | no |  |  |
 | 46 | 3 | OpenApiTypes | src/sources/Blockfrost/OpenApi/openapi.d.ts | yes |  |  |
-| 47 | 1 | OpenApiSpec | src/sources/Blockscout/OpenApi/openapi.yaml | no |  |  |
-| 47 | 2 | GenerationManifest | src/sources/Blockscout/OpenApi/schema-source.ts | no |  |  |
+| 47 | 1 | GenerationManifest | src/sources/Blockscout/OpenApi/schema-source.ts | no |  |  |
+| 47 | 2 | OpenApiSpec | src/sources/Blockscout/OpenApi/openapi.yaml | no |  |  |
 | 47 | 3 | OpenApiTypes | src/sources/Blockscout/OpenApi/openapi.d.ts | yes |  |  |
-| 48 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 48 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 49 | 1 | OpenApiSpec | src/sources/Blockscout/OpenApi/openapi.yaml | no |  |  |
-| 49 | 2 | GenerationManifest | src/sources/Blockscout/OpenApi/schema-source.ts | no |  |  |
+| 48 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 48 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 49 | 1 | GenerationManifest | src/sources/Blockscout/OpenApi/schema-source.ts | no |  |  |
+| 49 | 2 | OpenApiSpec | src/sources/Blockscout/OpenApi/openapi.yaml | no |  |  |
 | 49 | 3 | OpenApiTypes | src/sources/Blockscout/OpenApi/openapi.d.ts | yes |  |  |
-| 50 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 50 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 51 | 1 | OpenApiSpec | src/sources/Blockscout/OpenApi/openapi.yaml | no |  |  |
-| 51 | 2 | GenerationManifest | src/sources/Blockscout/OpenApi/schema-source.ts | no |  |  |
+| 50 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 50 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 51 | 1 | GenerationManifest | src/sources/Blockscout/OpenApi/schema-source.ts | no |  |  |
+| 51 | 2 | OpenApiSpec | src/sources/Blockscout/OpenApi/openapi.yaml | no |  |  |
 | 51 | 3 | OpenApiTypes | src/sources/Blockscout/OpenApi/openapi.d.ts | yes |  |  |
-| 52 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 52 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 53 | 1 | OpenApiSpec | src/sources/Blockscout/OpenApi/openapi.yaml | no |  |  |
-| 53 | 2 | GenerationManifest | src/sources/Blockscout/OpenApi/schema-source.ts | no |  |  |
+| 52 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 52 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 53 | 1 | GenerationManifest | src/sources/Blockscout/OpenApi/schema-source.ts | no |  |  |
+| 53 | 2 | OpenApiSpec | src/sources/Blockscout/OpenApi/openapi.yaml | no |  |  |
 | 53 | 3 | OpenApiTypes | src/sources/Blockscout/OpenApi/openapi.d.ts | yes |  |  |
-| 54 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 54 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 55 | 1 | OpenApiSpec | src/sources/Blockscout/OpenApi/openapi.yaml | no |  |  |
-| 55 | 2 | GenerationManifest | src/sources/Blockscout/OpenApi/schema-source.ts | no |  |  |
+| 54 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 54 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 55 | 1 | GenerationManifest | src/sources/Blockscout/OpenApi/schema-source.ts | no |  |  |
+| 55 | 2 | OpenApiSpec | src/sources/Blockscout/OpenApi/openapi.yaml | no |  |  |
 | 55 | 3 | OpenApiTypes | src/sources/Blockscout/OpenApi/openapi.d.ts | yes |  |  |
-| 56 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 56 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 57 | 1 | OpenApiSpec | src/sources/Blockscout/OpenApi/openapi.yaml | no |  |  |
-| 57 | 2 | GenerationManifest | src/sources/Blockscout/OpenApi/schema-source.ts | no |  |  |
+| 56 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 56 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 57 | 1 | GenerationManifest | src/sources/Blockscout/OpenApi/schema-source.ts | no |  |  |
+| 57 | 2 | OpenApiSpec | src/sources/Blockscout/OpenApi/openapi.yaml | no |  |  |
 | 57 | 3 | OpenApiTypes | src/sources/Blockscout/OpenApi/openapi.d.ts | yes |  |  |
-| 58 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 58 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 59 | 1 | OpenApiSpec | src/sources/Blockscout/OpenApi/openapi.yaml | no |  |  |
-| 59 | 2 | GenerationManifest | src/sources/Blockscout/OpenApi/schema-source.ts | no |  |  |
+| 58 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 58 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 59 | 1 | GenerationManifest | src/sources/Blockscout/OpenApi/schema-source.ts | no |  |  |
+| 59 | 2 | OpenApiSpec | src/sources/Blockscout/OpenApi/openapi.yaml | no |  |  |
 | 59 | 3 | OpenApiTypes | src/sources/Blockscout/OpenApi/openapi.d.ts | yes |  |  |
-| 60 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 60 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 60 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 60 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | 68 | 1 | HandwrittenTypes | src/sources/Cashu/Mint/Rest/types.ts | no |  |  |
-| 70 | 1 | OpenRpcSpec | src/sources/Celestia/JsonRpc/openrpc.json | yes | https://docs.celestia.org/specs/openrpc-v0.28.4.json |  |
-| 70 | 2 | GenerationManifest | src/sources/Celestia/JsonRpc/schema-source.ts | no |  |  |
+| 70 | 1 | GenerationManifest | src/sources/Celestia/JsonRpc/schema-source.ts | no |  |  |
+| 70 | 2 | OpenRpcSpec | src/sources/Celestia/JsonRpc/openrpc.json | yes | https://docs.celestia.org/specs/openrpc-v0.28.4.json |  |
 | 73 | 1 | HandwrittenTypes | src/sources/Chainlist/Rest/types.ts | no |  |  |
-| 74 | 1 | OpenApiSpec | src/sources/CircleCctp/OpenApi/openapi.yaml | yes | https://developers.circle.com/openapi/cctp.yaml |  |
-| 74 | 2 | GenerationManifest | src/sources/CircleCctp/OpenApi/schema-source.ts | no |  |  |
+| 74 | 1 | GenerationManifest | src/sources/CircleCctp/OpenApi/schema-source.ts | no |  |  |
+| 74 | 2 | OpenApiSpec | src/sources/CircleCctp/OpenApi/openapi.yaml | yes | https://developers.circle.com/openapi/cctp.yaml |  |
 | 74 | 3 | OpenApiTypes | src/sources/CircleCctp/OpenApi/openapi.d.ts | yes |  |  |
-| 80 | 1 | OpenApiSpec | src/sources/Coingecko/OpenApi/demo-api.json | no |  |  |
-| 80 | 2 | GenerationManifest | src/sources/Coingecko/OpenApi/schema-source.ts | no |  |  |
+| 80 | 1 | GenerationManifest | src/sources/Coingecko/OpenApi/schema-source.ts | no |  |  |
+| 80 | 2 | OpenApiSpec | src/sources/Coingecko/OpenApi/demo-api.json | no |  |  |
 | 80 | 3 | OpenApiTypes | src/sources/Coingecko/OpenApi/openapi.d.ts | yes |  |  |
-| 81 | 1 | OpenApiSpec | src/sources/Coingecko/OpenApi/Pro/pro-api.json | no |  |  |
-| 81 | 2 | GenerationManifest | src/sources/Coingecko/OpenApi/Pro/schema-source.ts | no |  |  |
+| 81 | 1 | GenerationManifest | src/sources/Coingecko/OpenApi/Pro/schema-source.ts | no |  |  |
+| 81 | 2 | OpenApiSpec | src/sources/Coingecko/OpenApi/Pro/pro-api.json | no |  |  |
 | 81 | 3 | OpenApiTypes | src/sources/Coingecko/OpenApi/Pro/openapi.d.ts | yes |  |  |
 | 82 | 1 | HandwrittenTypes | src/sources/CoinMarketCap/Rest/types.ts | no |  |  |
-| 83 | 1 | OpenApiSpec | src/sources/Coinpaprika/OpenApi/openapi.yml | no |  |  |
-| 83 | 2 | GenerationManifest | src/sources/Coinpaprika/OpenApi/schema-source.ts | no |  |  |
+| 83 | 1 | GenerationManifest | src/sources/Coinpaprika/OpenApi/schema-source.ts | no |  |  |
+| 83 | 2 | OpenApiSpec | src/sources/Coinpaprika/OpenApi/openapi.yml | no |  |  |
 | 83 | 3 | OpenApiTypes | src/sources/Coinpaprika/OpenApi/openapi.d.ts | yes |  |  |
 | 85 | 1 | HandwrittenTypes | src/sources/CometBft/Rest/types.ts | no |  |  |
 | 90 | 1 | HandwrittenTypes | src/sources/CosmosSdk/Rest/types.ts | no |  |  |
-| 93 | 1 | OpenApiSpec | src/sources/Defillama/OpenApi/openapi.json | no |  |  |
-| 93 | 2 | GenerationManifest | src/sources/Defillama/OpenApi/schema-source.ts | no |  |  |
+| 93 | 1 | GenerationManifest | src/sources/Defillama/OpenApi/schema-source.ts | no |  |  |
+| 93 | 2 | OpenApiSpec | src/sources/Defillama/OpenApi/openapi.json | no |  |  |
 | 93 | 3 | OpenApiTypes | src/sources/Defillama/OpenApi/openapi.d.ts | yes |  |  |
-| 95 | 1 | OpenApiSpec | src/sources/Defillama/OpenApi/Pro/openapi.json | no |  |  |
-| 95 | 2 | GenerationManifest | src/sources/Defillama/OpenApi/Pro/schema-source.ts | no |  |  |
+| 95 | 1 | GenerationManifest | src/sources/Defillama/OpenApi/Pro/schema-source.ts | no |  |  |
+| 95 | 2 | OpenApiSpec | src/sources/Defillama/OpenApi/Pro/openapi.json | no |  |  |
 | 95 | 3 | OpenApiTypes | src/sources/Defillama/OpenApi/Pro/openapi.d.ts | yes |  |  |
-| 96 | 1 | OpenApiSpec | src/sources/Dexscreener/OpenApi/openapi.yml | no |  |  |
-| 96 | 2 | GenerationManifest | src/sources/Dexscreener/OpenApi/schema-source.ts | no |  |  |
+| 96 | 1 | GenerationManifest | src/sources/Dexscreener/OpenApi/schema-source.ts | no |  |  |
+| 96 | 2 | OpenApiSpec | src/sources/Dexscreener/OpenApi/openapi.yml | no |  |  |
 | 96 | 3 | OpenApiTypes | src/sources/Dexscreener/OpenApi/openapi.d.ts | yes |  |  |
 | 99 | 1 | HandwrittenTypes | src/sources/Dune/Rest/types.ts | no |  |  |
-| 100 | 1 | OpenApiSpec | src/sources/Dydx/OpenApi/openapi.json | yes | https://raw.githubusercontent.com/dydxprotocol/v4-chain/main/indexer/services/comlink/public/swagger.json |  |
-| 100 | 2 | GenerationManifest | src/sources/Dydx/OpenApi/schema-source.ts | no |  |  |
+| 100 | 1 | GenerationManifest | src/sources/Dydx/OpenApi/schema-source.ts | no |  |  |
+| 100 | 2 | OpenApiSpec | src/sources/Dydx/OpenApi/openapi.json | yes | https://raw.githubusercontent.com/dydxprotocol/v4-chain/main/indexer/services/comlink/public/swagger.json |  |
 | 100 | 3 | OpenApiTypes | src/sources/Dydx/OpenApi/openapi.d.ts | yes |  |  |
 | 103 | 1 | GenerationManifest | src/sources/EasScan/Graphql/schema-source.ts | no |  |  |
 | 103 | 2 | GraphqlSchema | src/sources/EasScan/Graphql/schema.graphql | no |  |  |
@@ -1717,46 +1717,46 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 114 | 3 | GraphqlTypes | src/sources/EasScan/Graphql/graphql-env.d.ts | yes |  |  |
 | 115 | 1 | HandwrittenTypes | src/sources/EigenExplorer/Rest/types.ts | no |  |  |
 | 117 | 1 | HandwrittenTypes | src/sources/Eip8004Scan/Rest/types.ts | no |  |  |
-| 119 | 1 | OpenApiSpec | src/sources/EnsMetadataService/OpenApi/openapi.json | yes | https://metadata.ens.domains/assets/doc_output.json |  |
-| 119 | 2 | GenerationManifest | src/sources/EnsMetadataService/OpenApi/schema-source.ts | no |  |  |
+| 119 | 1 | GenerationManifest | src/sources/EnsMetadataService/OpenApi/schema-source.ts | no |  |  |
+| 119 | 2 | OpenApiSpec | src/sources/EnsMetadataService/OpenApi/openapi.json | yes | https://metadata.ens.domains/assets/doc_output.json |  |
 | 119 | 3 | OpenApiTypes | src/sources/EnsMetadataService/OpenApi/openapi.d.ts | yes |  |  |
-| 120 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 120 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 120 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 120 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | 125 | 1 | HandwrittenTypes | src/sources/EthereumLists/Rest/types.ts | no |  |  |
 | 130 | 1 | HandwrittenTypes | src/sources/Etherscan/Rest/types.ts | no |  |  |
-| 131 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 131 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 131 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 131 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | 132 | 1 | HandwrittenTypes | src/sources/Envio/HyperSync/types.ts | no |  | https://docs.envio.dev/docs/HyperSync/overview |
 | 133 | 1 | HandwrittenTypes | src/sources/Farcaster/Rest/types.ts | no |  |  |
 | 138 | 1 | HandwrittenTypes | src/sources/Filfox/Rest/types.ts | no |  |  |
 | 141 | 1 | HandwrittenTypes | src/sources/FxEmbed/Rest/types.ts | no |  |  |
-| 142 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 142 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 142 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 142 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | 143 | 1 | HandwrittenTypes | src/sources/GetBlock/Yellowstone/types.ts | no |  | https://getblock.io/docs/yellowstone-grpc/ |
 | 147 | 1 | HandwrittenTypes | src/sources/Covalent/GoldRush/Rest/types.ts | no |  | https://goldrush.dev/docs/skills/goldrush-foundational-api/references/endpoints-transactions/ |
-| 151 | 1 | Proto | src/sources/HederaSdk/Grpc/proto | no |  |  |
-| 151 | 2 | GenerationManifest | src/sources/HederaSdk/Grpc/schema-source.ts | no |  |  |
+| 151 | 1 | GenerationManifest | src/sources/HederaSdk/Grpc/schema-source.ts | no |  |  |
+| 151 | 2 | Proto | src/sources/HederaSdk/Grpc/proto | no |  |  |
 | 153 | 1 | HandwrittenTypes | src/sources/Helius/Rest/types.ts | no |  |  |
-| 154 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/metaplex-das-api.json | no |  |  |
-| 154 | 2 | GenerationManifest | src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 154 | 1 | GenerationManifest | src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 154 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/metaplex-das-api.json | no |  |  |
 | 156 | 1 | HandwrittenTypes | src/sources/Hyperliquid/Rest/types.ts | no |  |  |
-| 157 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 157 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 168 | 1 | OpenApiSpec | src/sources/KaspaExplorer/OpenApi/openapi.json | yes | https://api.kaspa.org/openapi.json |  |
-| 168 | 2 | GenerationManifest | src/sources/KaspaExplorer/OpenApi/schema-source.ts | no |  |  |
+| 157 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 157 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 168 | 1 | GenerationManifest | src/sources/KaspaExplorer/OpenApi/schema-source.ts | no |  |  |
+| 168 | 2 | OpenApiSpec | src/sources/KaspaExplorer/OpenApi/openapi.json | yes | https://api.kaspa.org/openapi.json |  |
 | 168 | 3 | OpenApiTypes | src/sources/KaspaExplorer/OpenApi/openapi.d.ts | yes |  |  |
-| 169 | 1 | Proto | src/sources/KaspaNode/Grpc/proto | no |  |  |
-| 169 | 2 | GenerationManifest | src/sources/KaspaNode/Grpc/schema-source.ts | no |  |  |
+| 169 | 1 | GenerationManifest | src/sources/KaspaNode/Grpc/schema-source.ts | no |  |  |
+| 169 | 2 | Proto | src/sources/KaspaNode/Grpc/proto | no |  |  |
 | 177 | 1 | HandwrittenTypes | src/sources/L2Beat/Rest/types.ts | no |  |  |
-| 178 | 1 | OpenApiSpec | src/sources/LayerZeroScan/OpenApi/openapi.json | yes | https://scan.layerzero-api.com/v1/openapi |  |
-| 178 | 2 | GenerationManifest | src/sources/LayerZeroScan/OpenApi/schema-source.ts | no |  |  |
+| 178 | 1 | GenerationManifest | src/sources/LayerZeroScan/OpenApi/schema-source.ts | no |  |  |
+| 178 | 2 | OpenApiSpec | src/sources/LayerZeroScan/OpenApi/openapi.json | yes | https://scan.layerzero-api.com/v1/openapi |  |
 | 178 | 3 | OpenApiTypes | src/sources/LayerZeroScan/OpenApi/openapi.d.ts | yes |  |  |
-| 181 | 1 | GraphqlSchema | src/sources/Lens/Graphql/schema.graphql | no |  |  |
-| 181 | 2 | GenerationManifest | src/sources/Lens/Graphql/schema-source.ts | no |  |  |
+| 181 | 1 | GenerationManifest | src/sources/Lens/Graphql/schema-source.ts | no |  |  |
+| 181 | 2 | GraphqlSchema | src/sources/Lens/Graphql/schema.graphql | no |  |  |
 | 181 | 3 | GraphqlTypes | src/sources/Lens/Graphql/graphql-env.d.ts | yes |  |  |
-| 182 | 1 | OpenApiSpec | src/sources/Lifi/OpenApi/openapi.yaml | no |  |  |
-| 182 | 2 | OpenApiTypes | src/sources/Lifi/OpenApi/openapi.d.ts | yes |  |  |
-| 182 | 3 | GenerationManifest | src/sources/Lifi/OpenApi/schema-source.ts | no |  |  |
+| 182 | 1 | GenerationManifest | src/sources/Lifi/OpenApi/schema-source.ts | no |  |  |
+| 182 | 2 | OpenApiSpec | src/sources/Lifi/OpenApi/openapi.yaml | no |  |  |
+| 182 | 3 | OpenApiTypes | src/sources/Lifi/OpenApi/openapi.d.ts | yes |  |  |
 | 183 | 1 | HandwrittenTypes | src/sources/LightningLnd/Rest/types.ts | no |  |  |
 | 184 | 1 | HandwrittenTypes | src/sources/LightningMempoolSpace/Rest/types.ts | no |  |  |
 | 189 | 1 | HandwrittenTypes | src/sources/LogosBlockchainNode/Rest/types.ts | no |  |  |
@@ -1774,8 +1774,8 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 211 | 1 | HandwrittenTypes | src/sources/MoneroDaemonRpc/JsonRpc/types.ts | no |  |  |
 | 213 | 1 | HandwrittenTypes | src/sources/NearBlocks/Rest/types.ts | no |  |  |
 | 216 | 1 | HandwrittenTypes | src/sources/NearRpc/JsonRpc/types.ts | no |  |  |
-| 218 | 1 | OpenApiSpec | src/sources/Neynar/OpenApi/openapi.yaml | no |  |  |
-| 218 | 2 | GenerationManifest | src/sources/Neynar/OpenApi/schema-source.ts | no |  |  |
+| 218 | 1 | GenerationManifest | src/sources/Neynar/OpenApi/schema-source.ts | no |  |  |
+| 218 | 2 | OpenApiSpec | src/sources/Neynar/OpenApi/openapi.yaml | no |  |  |
 | 218 | 3 | OpenApiTypes | src/sources/Neynar/OpenApi/openapi.d.ts | yes |  |  |
 | 222 | 1 | HandwrittenTypes | src/sources/NostrBand/Rest/types.ts | no |  |  |
 | 223 | 1 | HandwrittenTypes | src/sources/NostrRelay/Http/types.ts | no |  |  |
@@ -1785,35 +1785,35 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 227 | 1 | HandwrittenTypes | src/sources/NostrRelay/WebSocket/types.ts | no |  |  |
 | 228 | 1 | HandwrittenTypes | src/sources/NostrRelay/WebSocket/types.ts | no |  |  |
 | 233 | 1 | HandwrittenTypes | src/sources/Openchain/Rest/types.ts | no |  |  |
-| 235 | 1 | OpenApiSpec | src/sources/OpenSea/OpenApi/openapi.json | no |  |  |
-| 235 | 2 | GenerationManifest | src/sources/OpenSea/OpenApi/schema-source.ts | no |  |  |
+| 235 | 1 | GenerationManifest | src/sources/OpenSea/OpenApi/schema-source.ts | no |  |  |
+| 235 | 2 | OpenApiSpec | src/sources/OpenSea/OpenApi/openapi.json | no |  |  |
 | 235 | 3 | OpenApiTypes | src/sources/OpenSea/OpenApi/openapi.d.ts | yes |  |  |
-| 236 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/openrpc.json | no |  |  |
-| 236 | 2 | GenerationManifest | src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 236 | 1 | GenerationManifest | src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 236 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/openrpc.json | no |  |  |
 | 239 | 1 | HandwrittenTypes | src/sources/Payjoin/Directory/Rest/queries.ts | no |  |  |
 | 241 | 1 | HandwrittenTypes | src/sources/Piped/Rest/types.ts | no |  |  |
 | 243 | 1 | HandwrittenTypes | src/sources/Polkadot/JsonRpc/types.ts | no |  |  |
 | 247 | 1 | HandwrittenTypes | src/sources/Primal/Rest/types.ts | no |  |  |
-| 250 | 1 | OpenApiSpec | src/sources/Pyth/OpenApi/openapi.json | yes | https://hermes.pyth.network/docs/openapi.json |  |
-| 250 | 2 | GenerationManifest | src/sources/Pyth/OpenApi/schema-source.ts | no |  |  |
+| 250 | 1 | GenerationManifest | src/sources/Pyth/OpenApi/schema-source.ts | no |  |  |
+| 250 | 2 | OpenApiSpec | src/sources/Pyth/OpenApi/openapi.json | yes | https://hermes.pyth.network/docs/openapi.json |  |
 | 250 | 3 | OpenApiTypes | src/sources/Pyth/OpenApi/openapi.d.ts | yes |  |  |
 | 254 | 1 | HandwrittenTypes | src/sources/QuilibriumNode/Grpc/types.ts | no |  |  |
 | 256 | 1 | HandwrittenTypes | src/sources/QuilibriumNodeRpc/Grpc/types.ts | no |  |  |
 | 261 | 1 | HandwrittenTypes | src/sources/Reddit/Rest/types.ts | no |  |  |
 | 263 | 1 | HandwrittenTypes | src/sources/RedditPublic/Rest/types.ts | no |  |  |
-| 264 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 264 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 264 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 264 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | 265 | 1 | HandwrittenTypes | src/sources/Rss/Rest/types.ts | no |  |  |
 | 266 | 1 | HandwrittenTypes | src/sources/Rss/Rest/types.ts | no |  |  |
 | 267 | 1 | HandwrittenTypes | src/sources/Rss2Json/Rest/types.ts | no |  |  |
 | 268 | 1 | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
 | 269 | 1 | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
 | 270 | 1 | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
-| 271 | 1 | OpenApiSpec | src/sources/SigstoreRekor/OpenApi/openapi.yaml | yes | https://raw.githubusercontent.com/sigstore/rekor/main/openapi.yaml |  |
-| 271 | 2 | GenerationManifest | src/sources/SigstoreRekor/OpenApi/schema-source.ts | no |  |  |
+| 271 | 1 | GenerationManifest | src/sources/SigstoreRekor/OpenApi/schema-source.ts | no |  |  |
+| 271 | 2 | OpenApiSpec | src/sources/SigstoreRekor/OpenApi/openapi.yaml | yes | https://raw.githubusercontent.com/sigstore/rekor/main/openapi.yaml |  |
 | 271 | 3 | OpenApiTypes | src/sources/SigstoreRekor/OpenApi/openapi.d.ts | yes |  |  |
-| 272 | 1 | GraphqlSchema | src/sources/SnapshotHub/Graphql/schema.graphql | yes | https://hub.snapshot.org/graphql |  |
-| 272 | 2 | GenerationManifest | src/sources/SnapshotHub/Graphql/schema-source.ts | no |  |  |
+| 272 | 1 | GenerationManifest | src/sources/SnapshotHub/Graphql/schema-source.ts | no |  |  |
+| 272 | 2 | GraphqlSchema | src/sources/SnapshotHub/Graphql/schema.graphql | yes | https://hub.snapshot.org/graphql |  |
 | 272 | 3 | GraphqlTypes | src/sources/SnapshotHub/Graphql/graphql-env.d.ts | yes |  |  |
 | 273 | 1 | HandwrittenTypes | src/sources/Snapchain/Rest/types.ts | no |  |  |
 | 274 | 1 | HandwrittenTypes | src/sources/SpaceAndTime/MakeInfinite/types.ts | no |  |  |
@@ -1821,28 +1821,28 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 276 | 1 | HandwrittenTypes | src/sources/Solana/JsonRpc/types.ts | no |  |  |
 | 279 | 1 | HandwrittenTypes | src/sources/Sourcify/Rest/types.ts | no |  |  |
 | 281 | 1 | HandwrittenTypes | src/sources/Sqd/Portal/types.ts | no |  |  |
-| 282 | 1 | OpenApiSpec | src/sources/Starkscan/OpenApi/openapi.yaml | no |  |  |
-| 282 | 2 | GenerationManifest | src/sources/Starkscan/OpenApi/schema-source.ts | no |  |  |
+| 282 | 1 | GenerationManifest | src/sources/Starkscan/OpenApi/schema-source.ts | no |  |  |
+| 282 | 2 | OpenApiSpec | src/sources/Starkscan/OpenApi/openapi.yaml | no |  |  |
 | 282 | 3 | OpenApiTypes | src/sources/Starkscan/OpenApi/openapi.d.ts | yes |  |  |
-| 283 | 1 | OpenApiSpec | src/sources/StellarExpert/OpenApi/openapi.yml | yes | https://raw.githubusercontent.com/stellar-expert/stellar-expert-explorer/master/ui/open-api/openapi.yml |  |
-| 283 | 2 | GenerationManifest | src/sources/StellarExpert/OpenApi/schema-source.ts | no |  |  |
+| 283 | 1 | GenerationManifest | src/sources/StellarExpert/OpenApi/schema-source.ts | no |  |  |
+| 283 | 2 | OpenApiSpec | src/sources/StellarExpert/OpenApi/openapi.yml | yes | https://raw.githubusercontent.com/stellar-expert/stellar-expert-explorer/master/ui/open-api/openapi.yml |  |
 | 283 | 3 | OpenApiTypes | src/sources/StellarExpert/OpenApi/openapi.d.ts | yes |  |  |
 | 288 | 1 | HandwrittenTypes | src/sources/Subscan/Rest/types.ts | no |  |  |
 | 289 | 1 | HandwrittenTypes | src/sources/SubstrateSidecar/Rest/types.ts | no |  |  |
-| 290 | 1 | GraphqlSchema | src/sources/Sui/Graphql/schema.graphql | yes | https://graphql.mainnet.sui.io/graphql |  |
-| 290 | 2 | GenerationManifest | src/sources/Sui/Graphql/schema-source.ts | no |  |  |
+| 290 | 1 | GenerationManifest | src/sources/Sui/Graphql/schema-source.ts | no |  |  |
+| 290 | 2 | GraphqlSchema | src/sources/Sui/Graphql/schema.graphql | yes | https://graphql.mainnet.sui.io/graphql |  |
 | 290 | 3 | GraphqlTypes | src/sources/Sui/Graphql/graphql-env.d.ts | yes |  |  |
-| 296 | 1 | OpenApiSpec | src/sources/Octez/OpenApi/openapi.json | yes | https://gitlab.com/tezos/tezos/-/raw/master/docs/api/rpc-openapi.json |  |
-| 296 | 2 | GenerationManifest | src/sources/Octez/OpenApi/schema-source.ts | no |  |  |
+| 296 | 1 | GenerationManifest | src/sources/Octez/OpenApi/schema-source.ts | no |  |  |
+| 296 | 2 | OpenApiSpec | src/sources/Octez/OpenApi/openapi.json | yes | https://gitlab.com/tezos/tezos/-/raw/master/docs/api/rpc-openapi.json |  |
 | 296 | 3 | OpenApiTypes | src/sources/Octez/OpenApi/openapi.d.ts | yes |  |  |
-| 297 | 1 | GraphqlSchema | src/sources/TheGraph/Graphql/Ens/schema.graphql | no |  |  |
-| 297 | 2 | GraphqlSchema | src/sources/TheGraph/Graphql/Ens/schema.patch.graphql | no |  |  |
-| 297 | 3 | GenerationManifest | src/sources/TheGraph/Graphql/Ens/schema-source.ts | no |  |  |
+| 297 | 1 | GenerationManifest | src/sources/TheGraph/Graphql/Ens/schema-source.ts | no |  |  |
+| 297 | 2 | GraphqlSchema | src/sources/TheGraph/Graphql/Ens/schema.graphql | no |  |  |
+| 297 | 3 | GraphqlSchema | src/sources/TheGraph/Graphql/Ens/schema.patch.graphql | no |  |  |
 | 297 | 4 | GraphqlTypes | src/sources/TheGraph/Graphql/Ens/graphql-env.d.ts | yes |  |  |
 | 298 | 1 | HandwrittenTypes | src/sources/ThreeXpl/Rest/types.ts | no |  |  |
 | 300 | 1 | HandwrittenTypes | src/sources/TonApi/Rest/types.ts | no |  |  |
-| 301 | 1 | OpenApiSpec | src/sources/TonCenter/OpenApi/openapi.json | yes | https://toncenter.com/api/v2/openapi.json |  |
-| 301 | 2 | GenerationManifest | src/sources/TonCenter/OpenApi/schema-source.ts | no |  |  |
+| 301 | 1 | GenerationManifest | src/sources/TonCenter/OpenApi/schema-source.ts | no |  |  |
+| 301 | 2 | OpenApiSpec | src/sources/TonCenter/OpenApi/openapi.json | yes | https://toncenter.com/api/v2/openapi.json |  |
 | 301 | 3 | OpenApiTypes | src/sources/TonCenter/OpenApi/openapi.d.ts | yes |  |  |
 | 303 | 1 | HandwrittenTypes | src/sources/TonCenter/V3/Rest/types.ts | no |  |  |
 | 307 | 1 | HandwrittenTypes | src/sources/TradingView/Rest/types.ts | no |  |  |
@@ -1850,180 +1850,180 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 310 | 1 | HandwrittenTypes | src/sources/TronGrid/Rest/types.ts | no |  |  |
 | 312 | 1 | HandwrittenTypes | src/sources/TronScan/Rest/types.ts | no |  |  |
 | 313 | 1 | HandwrittenTypes | src/sources/TronGrid/Rest/types.ts | no |  |  |
-| 318 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 318 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 319 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 319 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 320 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 320 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 321 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 321 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 322 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 322 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 323 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 323 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 324 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 324 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 325 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 325 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 326 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 326 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 327 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 327 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 328 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 328 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 329 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 329 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 330 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 330 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 331 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 331 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 332 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 332 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 333 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 333 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 334 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 334 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 335 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 335 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 336 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 336 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 337 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 337 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 338 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 338 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 339 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 339 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 340 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 340 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 341 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 341 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 342 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 342 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 343 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 343 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 344 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 344 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 345 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 345 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 346 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 346 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 347 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 347 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 348 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 348 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 349 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 349 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 350 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 350 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 351 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 351 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 352 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 352 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 353 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 353 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 354 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 354 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 355 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 355 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 356 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 356 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 357 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 357 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 358 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 358 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 359 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 359 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 360 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 360 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 361 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 361 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 362 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 362 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 363 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 363 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 364 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 364 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 365 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 365 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 366 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 366 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 367 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 367 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 368 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 368 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 369 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 369 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 370 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 370 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 371 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 371 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 372 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 372 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 373 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 373 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 374 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 374 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 375 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 375 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 376 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 376 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 377 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 377 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 378 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 378 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 379 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 379 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 380 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 380 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 381 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 381 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 382 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 382 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 383 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 383 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 384 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 384 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 385 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 385 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 386 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 386 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 387 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 387 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 388 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 388 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 389 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 389 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 390 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 390 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 391 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 391 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 392 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 392 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 393 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 393 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 394 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 394 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 395 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 395 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 396 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 396 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 397 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 397 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
-| 398 | 1 | OpenApiSpec | src/sources/Voyager/OpenApi/openapi.json | yes | https://docs.voyager.online/api-reference/openapi.json |  |
-| 398 | 2 | GenerationManifest | src/sources/Voyager/OpenApi/schema-source.ts | no |  |  |
+| 318 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 318 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 319 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 319 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 320 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 320 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 321 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 321 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 322 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 322 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 323 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 323 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 324 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 324 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 325 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 325 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 326 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 326 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 327 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 327 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 328 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 328 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 329 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 329 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 330 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 330 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 331 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 331 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 332 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 332 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 333 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 333 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 334 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 334 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 335 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 335 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 336 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 336 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 337 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 337 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 338 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 338 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 339 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 339 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 340 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 340 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 341 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 341 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 342 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 342 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 343 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 343 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 344 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 344 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 345 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 345 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 346 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 346 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 347 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 347 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 348 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 348 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 349 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 349 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 350 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 350 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 351 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 351 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 352 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 352 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 353 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 353 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 354 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 354 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 355 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 355 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 356 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 356 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 357 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 357 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 358 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 358 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 359 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 359 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 360 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 360 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 361 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 361 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 362 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 362 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 363 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 363 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 364 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 364 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 365 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 365 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 366 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 366 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 367 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 367 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 368 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 368 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 369 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 369 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 370 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 370 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 371 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 371 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 372 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 372 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 373 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 373 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 374 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 374 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 375 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 375 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 376 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 376 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 377 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 377 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 378 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 378 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 379 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 379 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 380 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 380 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 381 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 381 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 382 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 382 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 383 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 383 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 384 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 384 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 385 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 385 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 386 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 386 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 387 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 387 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 388 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 388 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 389 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 389 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 390 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 390 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 391 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 391 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 392 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 392 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 393 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 393 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 394 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 394 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 395 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 395 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 396 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 396 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 397 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 397 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| 398 | 1 | GenerationManifest | src/sources/Voyager/OpenApi/schema-source.ts | no |  |  |
+| 398 | 2 | OpenApiSpec | src/sources/Voyager/OpenApi/openapi.json | yes | https://docs.voyager.online/api-reference/openapi.json |  |
 | 398 | 3 | OpenApiTypes | src/sources/Voyager/OpenApi/openapi.d.ts | yes |  |  |
-| 405 | 1 | OpenApiSpec | src/sources/Wormholescan/OpenApi/openapi.json | yes | https://api.wormholescan.io/swagger.json |  |
-| 405 | 2 | GenerationManifest | src/sources/Wormholescan/OpenApi/schema-source.ts | no |  |  |
+| 405 | 1 | GenerationManifest | src/sources/Wormholescan/OpenApi/schema-source.ts | no |  |  |
+| 405 | 2 | OpenApiSpec | src/sources/Wormholescan/OpenApi/openapi.json | yes | https://api.wormholescan.io/swagger.json |  |
 | 405 | 3 | OpenApiTypes | src/sources/Wormholescan/OpenApi/openapi.d.ts | yes |  |  |
 | 406 | 1 | HandwrittenTypes | src/sources/X/Rest/types.ts | no |  |  |
 | 410 | 1 | HandwrittenTypes | src/sources/Xrpl/JsonRpc/types.ts | no |  |  |
-| 414 | 1 | GoogleDiscovery | src/sources/Youtube/Discovery/youtube-v3.json | no |  |  |
-| 414 | 2 | GenerationManifest | src/sources/Youtube/Discovery/schema-source.ts | no |  |  |
-| 418 | 1 | Proto | src/sources/ZcashLightwalletd/Grpc/proto | no |  |  |
-| 418 | 2 | GenerationManifest | src/sources/ZcashLightwalletd/Grpc/schema-source.ts | no |  |  |
-| 421 | 1 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
-| 421 | 2 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 414 | 1 | GenerationManifest | src/sources/Youtube/Discovery/schema-source.ts | no |  |  |
+| 414 | 2 | GoogleDiscovery | src/sources/Youtube/Discovery/youtube-v3.json | no |  |  |
+| 418 | 1 | GenerationManifest | src/sources/ZcashLightwalletd/Grpc/schema-source.ts | no |  |  |
+| 418 | 2 | Proto | src/sources/ZcashLightwalletd/Grpc/proto | no |  |  |
+| 421 | 1 | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| 421 | 2 | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | 422 | 1 | HandwrittenTypes | src/sources/ZeroG/StorageNode/JsonRpc/types.ts | no |  |  |
 | 423 | 1 | HandwrittenTypes | src/sources/ZeroG/ChainScan/Rest/types.ts | no |  |  |
 | 424 | 1 | HandwrittenTypes | src/sources/ZeroG/StorageScan/Rest/types.ts | no |  |  |
