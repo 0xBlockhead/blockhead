@@ -4878,36 +4878,25 @@ const resolveFieldReferences = (
 	if (value == null || typeof value !== 'object')
 		return value
 
-	if ('field' in value && (typeof value.field === 'string' || isProjectionFieldReference(value.field))) {
-		const field = fieldReferenceInProjection(
-			entity,
-			value.field,
-			entityFacetByPath,
-			currentFacetPath
-		)
-		validateFieldReference(entity, field, entityFacetByPath, currentFacetPath)
-
-		return Object.fromEntries(Object.entries({
-			...value,
-			field,
-		}).map(([entryKey, entryValue]) => [
-			entryKey,
-				entryKey === 'titleField' ?
-					entryValue
-				:
-					resolveFieldReferences(entity, entryValue, entityFacetByPath, currentFacetPath, entryKey),
-			]))
-	}
-
 	return Object.fromEntries(Object.entries(value).map(([entryKey, entryValue]) => {
 		if (
 			(entryKey === 'field' || entryKey === 'titleField')
 			&& (typeof entryValue === 'string' || isProjectionFieldReference(entryValue))
-		)
+		) {
+			const field = fieldReferenceInProjection(entity, entryValue, entityFacetByPath, currentFacetPath)
+			validateFieldReference(
+				entity,
+				field,
+				entityFacetByPath,
+				currentFacetPath,
+				entryKey === 'titleField'
+			)
+
 			return [
 				entryKey,
-				fieldReferenceInProjection(entity, entryValue, entityFacetByPath, currentFacetPath),
+				field,
 			]
+		}
 
 		return [
 			entryKey,

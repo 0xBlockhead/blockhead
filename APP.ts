@@ -2486,7 +2486,7 @@ export type _ViewListSection<
 	id?: string
 	label?: string
 	title?: string
-	titleField?: _FieldReference
+	titleField?: _EntityFieldReference
 	field?: _EntityFieldReference
 	component?: string
 	href?: `/(${string}`

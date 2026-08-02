@@ -2013,6 +2013,19 @@ test('validates facet fields through the canonical facet traversal', () => {
 		readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8'),
 		/const entityFields =/
 	)
+
+	const invalidTitleFieldApp = structuredClone(app)
+	const proposalKind = invalidTitleFieldApp.schema.entities.find((entity) => (
+		entity.entityType === EntityType.SpecificationProposalKind
+	))
+	const proposalList = proposalKind?.views.singular?.lists?.[0]
+	assert.ok(proposalList)
+	proposalList.titleField = 'missing'
+
+	assert.throws(
+		() => compileApp(invalidTitleFieldApp),
+		/SpecificationProposalKind view references missing field missing/
+	)
 })
 
 test('renders value display facts and their query dependencies in definition lists', () => {

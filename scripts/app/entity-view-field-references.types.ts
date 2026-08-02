@@ -143,6 +143,11 @@ entity({
 					field: 'missingListField',
 				}],
 			},
+			// @ts-expect-error List title fields must reference captured entity fields.
+			lists: [{
+				field: '$$items',
+				titleField: 'missingListTitleField',
+			}],
 			carousels: [{
 				label: 'Fixture carousel',
 				// @ts-expect-error Carousel conditions must reference captured entity fields.
