@@ -3452,10 +3452,28 @@ test('keeps Bsky Social transport in its provider-owned proxy binding', () => {
 	const source = app.sources.sources.find((candidate) => (
 		candidate.source === Source.Atproto_BskySocial_Xrpc
 	))
+	const publicAppViewSource = app.sources.sources.find((candidate) => (
+		candidate.source === Source.Atproto_Xrpc
+	))
 
 	assert.ok(source?.binding)
+	assert.ok(publicAppViewSource?.binding)
 	assert.equal(source.binding.delivery, SourceDelivery.HttpProxy)
 	assert.deepEqual(source.binding.endpoints.map((endpoint) => endpoint.corsEnabled), [false])
+	assert.deepEqual(source.binding.artifacts, [
+		{
+			kind: SourceArtifactKind.GenerationManifest,
+			path: 'src/sources/_shared/interfaces/BskyAppViewXrpc/Lexicon/schema-source.ts',
+		},
+		{
+			kind: SourceArtifactKind.Lexicon,
+			path: 'src/sources/_shared/interfaces/BskyAppViewXrpc/Lexicon',
+		},
+	])
+	assert.deepEqual(source.binding.artifacts, publicAppViewSource.binding.artifacts)
+	assert.equal(existsSync(path.join(root, 'src/sources/_shared/interfaces/BskyAppViewXrpc/Lexicon/schema-source.ts')), true)
+	assert.equal(existsSync(path.join(root, 'src/sources/AtprotoBsky/Lexicon')), false)
+	assert.equal(existsSync(path.join(root, 'src/sources/AtprotoBskySocial/Lexicon')), false)
 
 	const transportMutationApp = structuredClone(app)
 	const mutatedSource = transportMutationApp.sources.sources.find((candidate) => (

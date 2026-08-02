@@ -1585,10 +1585,10 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 11 | 2 | GraphqlSchema | src/sources/Arweave/Graphql/schema.graphql | yes | https://arweave.net/graphql |  |
 | 11 | 3 | GraphqlTypes | src/sources/Arweave/Graphql/graphql-env.d.ts | yes |  |  |
 | 12 | 1 | HandwrittenTypes | src/sources/Arweave/Rest/types.ts | no |  |  |
-| 13 | 1 | GenerationManifest | src/sources/AtprotoBskySocial/Lexicon/schema-source.ts | no |  |  |
-| 13 | 2 | Lexicon | src/sources/AtprotoBskySocial/Lexicon | no |  |  |
-| 14 | 1 | GenerationManifest | src/sources/AtprotoBsky/Lexicon/schema-source.ts | no |  |  |
-| 14 | 2 | Lexicon | src/sources/AtprotoBsky/Lexicon | no |  |  |
+| 13 | 1 | GenerationManifest | src/sources/_shared/interfaces/BskyAppViewXrpc/Lexicon/schema-source.ts | no |  |  |
+| 13 | 2 | Lexicon | src/sources/_shared/interfaces/BskyAppViewXrpc/Lexicon | no |  |  |
+| 14 | 1 | GenerationManifest | src/sources/_shared/interfaces/BskyAppViewXrpc/Lexicon/schema-source.ts | no |  |  |
+| 14 | 2 | Lexicon | src/sources/_shared/interfaces/BskyAppViewXrpc/Lexicon | no |  |  |
 | 22 | 1 | GenerationManifest | src/sources/Beacon/OpenApi/schema-source.ts | no |  |  |
 | 22 | 2 | OpenApiSpec | src/sources/Beacon/OpenApi/beacon-node-oapi.yaml | no |  |  |
 | 22 | 3 | OpenApiTypes | src/sources/Beacon/OpenApi/openapi.d.ts | yes |  |  |

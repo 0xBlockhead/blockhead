@@ -35,11 +35,11 @@ export default indexSourceBindings([
 		artifacts: [
 			{
 				kind: SourceArtifactKind.GenerationManifest,
-				path: 'src/sources/AtprotoBsky/Lexicon/schema-source.ts',
+				path: 'src/sources/_shared/interfaces/BskyAppViewXrpc/Lexicon/schema-source.ts',
 			},
 			{
 				kind: SourceArtifactKind.Lexicon,
-				path: 'src/sources/AtprotoBsky/Lexicon',
+				path: 'src/sources/_shared/interfaces/BskyAppViewXrpc/Lexicon',
 			},
 		],
 	},
