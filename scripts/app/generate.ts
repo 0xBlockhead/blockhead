@@ -1050,11 +1050,6 @@ const typeScriptExpressionIsDefinitelyTruthy = (expression: ts.Expression): bool
 	)
 }
 
-const expressionProducesString = (expression: string) => {
-	const parsedExpression = parseTypeScriptExpression(expression).expression
-	return typeScriptExpressionProducesString(parsedExpression)
-}
-
 const valueTypeProducesString = (
 	valueType: ValueTypeType | undefined,
 	valueTypeDefinition: ValueType | undefined
@@ -1134,15 +1129,13 @@ const appExpressionProducesString = (
 	return valueTypeProducesString(valueType, valueTypeDefinition)
 }
 
-const routeParamStringExpression = (
+const renderNonStringRouteParamExpression = (
 	expression: string,
 	decode?: _ExpressionDecode,
 	knownPresent = false
 ) => (
 	decode === _ExpressionDecode.DecodeURIComponent ?
-		`encodeURIComponent(${expressionProducesString(expression) ? expression : `String(${expression}${knownPresent ? '' : ' ?? \'\''})`})`
-	: expressionProducesString(expression) ?
-		expression
+		`encodeURIComponent(String(${expression}${knownPresent ? '' : ' ?? \'\''}))`
 	:
 		`String(${expression}${knownPresent ? '' : ' ?? \'\''})`
 )
@@ -1524,7 +1517,7 @@ const renderRouteParamExpression = (
 			:
 				renderedExpression
 
-		return routeParamStringExpression(
+		return renderNonStringRouteParamExpression(
 			renderedExpression,
 			decode,
 			knownPresent
@@ -1564,21 +1557,8 @@ const renderRouteParamExpression = (
 		:
 			looseExpression
 
-	return routeParamStringExpression(looseExpression, decode, knownPresent)
+	return renderNonStringRouteParamExpression(looseExpression, decode, knownPresent)
 }
-
-const renderPresentRouteParamExpression = (
-	expression: _Expression,
-	context: ExpressionContext,
-	decode?: _ExpressionDecode
-) => (
-	renderRouteParamExpression(
-		expression,
-		context,
-		decode,
-		true
-	)
-)
 
 const routeFileName = (kind: RouteFile['kind']) => {
 	if (kind === RouteFileKind.Page)
@@ -8802,13 +8782,11 @@ const renderValueMarkup = (
 				viewEntry.link.href,
 				(viewEntry.link.params ?? []).map((param) => [
 					param.param,
-					renderRouteParamValueExpression(
+					renderRouteParamExpression(
 						param.value,
-						fieldValuesExpression,
-						undefined,
-						false,
 						{
-							value: valueExpression,
+							fields: fieldValuesExpression,
+							fieldExpressionByName,
 						}
 					),
 				])
@@ -12384,24 +12362,6 @@ const entityRouteHrefPlan = (
 	}
 }
 
-// Relationship routes normally consume selectors. A route may read resolved
-// fields only when its compiled parameter expressions require non-selector data.
-const renderRouteParamValueExpression = (
-	expression: _Expression,
-	fieldsExpression: string,
-	decode?: _ExpressionDecode,
-	optional = false,
-	fieldExpressionByName?: Readonly<Record<string, string>>
-): string => renderRouteParamExpression(
-	expression,
-	{
-		fields: fieldsExpression,
-		fieldExpressionByName,
-		optional,
-	},
-	decode
-)
-
 const renderCollectionRouteValueExpression = (
 	entity: Entity,
 	indexes: GenerationIndexes,
@@ -12560,11 +12520,16 @@ const renderEntityRouteLinkExpression = (
 		)))
 		const params = Object.entries(entityRouteLink.params).map(([param, routeParamValue]) => ({
 			param,
-			value: renderPresentRouteParamExpression(routeParamValue.value, {
-				fields: fieldsExpression,
-				entity: indexes.entityByType[entityType],
-				indexes,
-			}, routeParamValue.decode),
+			value: renderRouteParamExpression(
+				routeParamValue.value,
+				{
+					fields: fieldsExpression,
+					entity: indexes.entityByType[entityType],
+					indexes,
+				},
+				routeParamValue.decode,
+				true
+			),
 		}))
 		const entityConditionTerms = (entityRouteLink.conditions ?? [])
 			.filter((condition) => !entitySelectorConditionIsGuaranteed(indexes, entityType, condition))
@@ -13363,7 +13328,9 @@ const renderCarouselSection = (
 			section.link.route,
 			(section.link.params ?? []).map((param) => [
 				param.param,
-				renderRouteParamValueExpression(param.value, 'selection.entitySelector'),
+				renderRouteParamExpression(param.value, {
+					fields: 'selection.entitySelector',
+				}),
 			])
 		)
 	const contentOwnsResourceState = (
@@ -13979,11 +13946,16 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 			pluralView.rowHref.route,
 			Object.entries(pluralView.rowHref.params).map(([param, value]) => [
 				param,
-				renderPresentRouteParamExpression(value, {
-					fields: itemSelectorName,
-					entity,
-					indexes,
-				}),
+				renderRouteParamExpression(
+					value,
+					{
+						fields: itemSelectorName,
+						entity,
+						indexes,
+					},
+					undefined,
+					true
+				),
 			])
 		)
 	const rowHrefExpression = rowHrefValueExpression == null || rowHrefCondition === '' ?
