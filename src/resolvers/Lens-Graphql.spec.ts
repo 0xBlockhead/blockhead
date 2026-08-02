@@ -14,9 +14,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
-	queryAccountByAddress,
-	queryAccountByLegacyProfileId,
-	queryAccountByLocalName,
+	queryAccount,
 	queryAccountStats,
 	queryAccounts,
 	queryFeed,
@@ -26,9 +24,7 @@ const {
 	queryPostComments,
 	queryPostsByAuthor,
 } = vi.hoisted(() => ({
-	queryAccountByAddress: vi.fn(),
-	queryAccountByLegacyProfileId: vi.fn(),
-	queryAccountByLocalName: vi.fn(),
+	queryAccount: vi.fn(),
 	queryAccountStats: vi.fn(),
 	queryAccounts: vi.fn(),
 	queryFeed: vi.fn(),
@@ -40,9 +36,7 @@ const {
 }))
 
 vi.mock('$/sources/Lens/Graphql/queries.ts', () => ({
-	queryAccountByAddress,
-	queryAccountByLegacyProfileId,
-	queryAccountByLocalName,
+	queryAccount,
 	queryAccountStats,
 	queryAccounts,
 	queryFeed,
@@ -68,9 +62,7 @@ const context = {
 describe('Lens_Graphql reading relationships', () => {
 	beforeEach(() => {
 		vi.restoreAllMocks()
-		queryAccountByAddress.mockReset()
-		queryAccountByLegacyProfileId.mockReset()
-		queryAccountByLocalName.mockReset()
+		queryAccount.mockReset()
 		queryAccountStats.mockReset()
 		queryAccounts.mockReset()
 		queryFeed.mockReset()
@@ -200,7 +192,7 @@ describe('Lens_Graphql reading relationships', () => {
 
 	it('normalizes account identity and materializes observation metrics as keyed fields', async () => {
 		vi.spyOn(Date, 'now').mockReturnValue(1_750_000_000_000)
-		queryAccountByAddress.mockResolvedValue({
+		queryAccount.mockResolvedValue({
 			account: {
 				address: 'ABCDEFabcdefABCDEFabcdefABCDEFabcdefABCD',
 				owner: '0x1111111111111111111111111111111111111111',
@@ -215,6 +207,8 @@ describe('Lens_Graphql reading relationships', () => {
 					picture: null,
 				},
 			},
+		})
+		queryAccountStats.mockResolvedValue({
 			accountStats: {
 				graphFollowStats: {
 					followers: 42,
@@ -244,9 +238,9 @@ describe('Lens_Graphql reading relationships', () => {
 				},
 			],
 		})
-		expect(queryAccountByAddress).toHaveBeenCalledWith(
-			'0xabcdefabcdefabcdefabcdefabcdefabcdefabcd'
-		)
+		expect(queryAccount).toHaveBeenCalledWith({
+			address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+		})
 		await expect(lensGraphql.resolvers[3].resolve.LensAccountTimestampMs.resolve(
 			resolvedAccount.$$timestamps[0][EntityMetaKey.Selector],
 			context
@@ -254,6 +248,54 @@ describe('Lens_Graphql reading relationships', () => {
 			followerCount: 42,
 			followingCount: 7,
 		})
+		expect(queryAccountStats).toHaveBeenCalledWith(
+			'0xabcdefabcdefabcdefabcdefabcdefabcdefabcd'
+		)
+	})
+
+	it('maps entity selectors to one account operation and rejects foreign identities', async () => {
+		queryAccount
+			.mockResolvedValueOnce({
+				account: {
+					address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+					owner: '0x1111111111111111111111111111111111111111',
+					score: 1,
+					createdAt: '2025-01-02T03:04:05.000Z',
+					username: { localName: 'alice' },
+					metadata: null,
+				},
+			})
+			.mockResolvedValueOnce({
+				account: {
+					address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+					owner: '0x1111111111111111111111111111111111111111',
+					score: 1,
+					createdAt: '2025-01-02T03:04:05.000Z',
+					username: null,
+					metadata: null,
+				},
+			})
+
+		await lensGraphql.resolvers[1].resolve.LocalName.resolve({
+			localName: 'alice',
+		}, context)
+		await lensGraphql.resolvers[1].resolve.LegacyProfileId.resolve({
+			legacyProfileId: '0x01',
+		}, context)
+
+		expect(queryAccount.mock.calls).toEqual([
+			[{ username: { localName: 'alice' } }],
+			[{ legacyProfileId: '0x01' }],
+		])
+
+		queryAccount.mockResolvedValueOnce({
+			account: {
+				address: '0x2222222222222222222222222222222222222222',
+			},
+		})
+		await expect(lensGraphql.resolvers[1].resolve.Address.resolve({
+			address: '0x1111111111111111111111111111111111111111',
+		}, context)).rejects.toThrow('account response does not match request')
 	})
 
 	it('preserves post author, thread references, text, and observation metrics', async () => {

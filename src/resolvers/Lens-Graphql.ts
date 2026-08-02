@@ -133,21 +133,12 @@ const lensPostCardReferenceFromWire = (
 }
 
 const lensAccountTimestampFieldsFromWire = (
-	wire: {
-		accountStats?: {
-			graphFollowStats: {
-				followers?: number | null
-				following?: number | null
-			}
-		}
-	}
+	wire: Awaited<ReturnType<
+		typeof import('$/sources/Lens/Graphql/queries.ts')['queryAccountStats']
+	>>
 ) => ({
-	...(wire.accountStats?.graphFollowStats.followers != null && {
-		followerCount: wire.accountStats.graphFollowStats.followers,
-	}),
-	...(wire.accountStats?.graphFollowStats.following != null && {
-		followingCount: wire.accountStats.graphFollowStats.following,
-	}),
+	followerCount: wire.accountStats.graphFollowStats.followers,
+	followingCount: wire.accountStats.graphFollowStats.following,
 })
 
 const lensPostTimestampFieldsFromWire = (
@@ -172,7 +163,7 @@ const lensPostTimestampFieldsFromWire = (
 
 const lensAccountFromWire = (
 	account: Awaited<ReturnType<
-		typeof import('$/sources/Lens/Graphql/queries.ts')['queryAccountByAddress']
+		typeof import('$/sources/Lens/Graphql/queries.ts')['queryAccount']
 	>>['account'],
 	selectedLocalName?: string,
 	legacyProfileId?: string
@@ -244,26 +235,46 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Address: {
 					resolve: async ({ address }) => {
-						const { queryAccountByAddress } = await import('$/sources/Lens/Graphql/queries.ts')
+						const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
+						const requestedAddress = zeroExLowerCase(address)
+						const account = (await queryAccount({ address: requestedAddress })).account
+						if (
+							account != null
+							&& lensEvmAddressFromWire(account.address) !== requestedAddress
+						)
+							throw new Error('Lens_Graphql: account response does not match request')
+
 						return lensAccountFromWire(
-							(await queryAccountByAddress(zeroExLowerCase(address))).account
+							account
 						)
 					},
 				},
 				LocalName: {
 					resolve: async ({ localName }) => {
-						const { queryAccountByLocalName } = await import('$/sources/Lens/Graphql/queries.ts')
+						if (localName.trim() === '')
+							throw new Error('Lens_Graphql: account identity must not be empty')
+
+						const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
+						const account = (await queryAccount({
+							username: { localName },
+						})).account
+						if (account != null && account.username?.localName !== localName)
+							throw new Error('Lens_Graphql: account response does not match request')
+
 						return lensAccountFromWire(
-							(await queryAccountByLocalName(localName)).account,
+							account,
 							localName
 						)
 					},
 				},
 				LegacyProfileId: {
 					resolve: async ({ legacyProfileId }) => {
-						const { queryAccountByLegacyProfileId } = await import('$/sources/Lens/Graphql/queries.ts')
+						if (legacyProfileId.trim() === '')
+							throw new Error('Lens_Graphql: account identity must not be empty')
+
+						const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 						return lensAccountFromWire(
-							(await queryAccountByLegacyProfileId(legacyProfileId)).account,
+							(await queryAccount({ legacyProfileId })).account,
 							undefined,
 							legacyProfileId
 						)
@@ -393,21 +404,23 @@ const lensGraphqlResolvers = {
 				LensAccountTimestampMs: {
 					resolve: async ({ $account }) => {
 						const {
-							queryAccountByAddress,
-							queryAccountByLegacyProfileId,
-							queryAccountByLocalName,
+							queryAccount,
 							queryAccountStats,
 						} = await import('$/sources/Lens/Graphql/queries.ts')
 						if ('address' in $account)
 							return lensAccountTimestampFieldsFromWire(
-								await queryAccountByAddress(zeroExLowerCase($account.address))
+								await queryAccountStats(zeroExLowerCase($account.address))
 							)
 
 						const account = (
 							'localName' in $account ?
-								await queryAccountByLocalName($account.localName)
+								await queryAccount({
+									username: { localName: $account.localName },
+								})
 							:
-								await queryAccountByLegacyProfileId($account.legacyProfileId)
+								await queryAccount({
+									legacyProfileId: $account.legacyProfileId,
+								})
 						).account
 						if (account == null) throw new Error('Lens_Graphql: account not found')
 						return lensAccountTimestampFieldsFromWire(

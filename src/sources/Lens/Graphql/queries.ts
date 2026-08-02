@@ -1,3 +1,5 @@
+import type { VariablesOf } from 'gql.tada'
+
 import {
 	graphql,
 	queryLens,
@@ -272,54 +274,12 @@ const LensRepostDetail = graphql(`
 	}
 `)
 
-const LensAccountByAddressDocument = graphql(`
-	query LensAccountByAddress(
-		$address: EvmAddress!
+const LensAccountDocument = graphql(`
+	query LensAccount(
+		$request: AccountRequest!
 	) {
 		account(
-			request: {
-				address: $address
-			}
-		) {
-			...LensAccount
-		}
-		accountStats(
-			request: {
-				account: $address
-			}
-		) {
-			graphFollowStats {
-				followers
-				following
-			}
-		}
-	}
-`, [LensAccount])
-
-const LensAccountByLocalNameDocument = graphql(`
-	query LensAccountByLocalName(
-		$localName: String!
-	) {
-		account(
-			request: {
-				username: {
-					localName: $localName
-				}
-			}
-		) {
-			...LensAccount
-		}
-	}
-`, [LensAccount])
-
-const LensAccountByLegacyProfileIdDocument = graphql(`
-	query LensAccountByLegacyProfileId(
-		$legacyProfileId: LegacyProfileId!
-	) {
-		account(
-			request: {
-				legacyProfileId: $legacyProfileId
-			}
+			request: $request
 		) {
 			...LensAccount
 		}
@@ -561,32 +521,12 @@ const LensFeedsDocument = graphql(`
 	}
 `, [LensFeed])
 
-const LensUsernameByLocalNameDocument = graphql(`
-	query LensUsernameByLocalName(
-		$namespace: EvmAddress!
-		$localName: String!
+const LensUsernameDocument = graphql(`
+	query LensUsername(
+		$request: UsernameRequest!
 	) {
 		username(
-			request: {
-				username: {
-					namespace: $namespace
-					localName: $localName
-				}
-			}
-		) {
-			...LensUsername
-		}
-	}
-`, [LensUsername])
-
-const LensUsernameByIdDocument = graphql(`
-	query LensUsernameById(
-		$id: ID!
-	) {
-		username(
-			request: {
-				id: $id
-			}
+			request: $request
 		) {
 			...LensUsername
 		}
@@ -661,52 +601,12 @@ const LensNamespacesDocument = graphql(`
 	}
 `, [LensUsernameNamespace])
 
-export const queryAccountByAddress = async (
-	address: `0x${string}`
-) => {
-	const response = await queryLens(
-		LensAccountByAddressDocument,
-		{ address }
-	)
-	if (
-		response.account != null
-		&& response.account.address.toLowerCase() !== address.toLowerCase()
-	)
-		throw new Error('Lens_Graphql: account response does not match request')
-
-	return response
-}
-
-export const queryAccountByLocalName = async (
-	localName: string
-) => {
-	if (localName.trim() === '')
-		throw new Error('Lens_Graphql: account identity must not be empty')
-
-	const response = await queryLens(
-		LensAccountByLocalNameDocument,
-		{ localName }
-	)
-	if (
-		response.account != null
-		&& response.account.username?.localName !== localName
-	)
-		throw new Error('Lens_Graphql: account response does not match request')
-
-	return response
-}
-
-export const queryAccountByLegacyProfileId = async (
-	legacyProfileId: string
-) => {
-	if (legacyProfileId.trim() === '')
-		throw new Error('Lens_Graphql: account identity must not be empty')
-
-	return queryLens(
-		LensAccountByLegacyProfileIdDocument,
-		{ legacyProfileId }
-	)
-}
+export const queryAccount = async (
+	request: VariablesOf<typeof LensAccountDocument>['request']
+) => queryLens(
+	LensAccountDocument,
+	{ request }
+)
 
 export const queryAccountStats = async (
 	address: `0x${string}`
@@ -860,33 +760,12 @@ export const queryFeeds = async (
 	),
 })
 
-export const queryUsernameById = async (
-	id: string
-) => {
-	if (id.trim() === '')
-		throw new Error('Lens_Graphql: username identity must not be empty')
-
-	return queryLens(
-		LensUsernameByIdDocument,
-		{ id }
-	)
-}
-
-export const queryUsernameByLocalName = async (
-	namespace: `0x${string}`,
-	localName: string
-) => {
-	if (localName.trim() === '')
-		throw new Error('Lens_Graphql: username identity must not be empty')
-
-	return queryLens(
-		LensUsernameByLocalNameDocument,
-		{
-			namespace,
-			localName,
-		}
-	)
-}
+export const queryUsername = async (
+	request: VariablesOf<typeof LensUsernameDocument>['request']
+) => queryLens(
+	LensUsernameDocument,
+	{ request }
+)
 
 export const queryUsernames = async (
 	limit = 10,

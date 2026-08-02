@@ -159,18 +159,12 @@ test('latest posts lead to a readable post, author, comments, and observations',
 			return
 		}
 
-		if (body.includes('query LensAccountByAddress')) {
-			lensOperations.push('LensAccountByAddress')
+		if (body.includes('query LensAccount')) {
+			lensOperations.push('LensAccount')
 			await route.fulfill({
 				json: {
 					data: {
 						account: author,
-						accountStats: {
-							graphFollowStats: {
-								followers: 42,
-								following: 7,
-							},
-						},
 					},
 				},
 			})
@@ -228,7 +222,7 @@ test('latest posts lead to a readable post, author, comments, and observations',
 		'LensLatestPosts',
 		'LensPost',
 		'LensPostComments',
-		'LensAccountByAddress',
+		'LensAccount',
 	]))
 	expect(unexpectedOperations).toEqual([])
 	expect(consoleErrors).toEqual([])
