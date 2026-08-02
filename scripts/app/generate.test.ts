@@ -1188,10 +1188,14 @@ test('generates one APP-ordered lazy resolver loader registry', () => {
 			...app,
 			resolvers: {
 				...app.resolvers,
-				modules: [...app.resolvers.modules, app.resolvers.modules[0]],
+				modules: [
+					app.resolvers.modules[0],
+					app.resolvers.modules[0],
+					...app.resolvers.modules.slice(1),
+				],
 			},
 		}),
-		/duplicate resolver module source/
+		/Resolver module definitions contains duplicate/
 	)
 	assert.throws(
 		() => compileApp({
@@ -3924,6 +3928,26 @@ test('rejects incompatible and empty authored bindings before compilation', () =
 })
 
 test('rejects unordered source registries and binding membership sets without sorting priority axes', () => {
+	const duplicateProviderRegistryApp = structuredClone(app)
+	Object.defineProperty(duplicateProviderRegistryApp.sources, 'providers', {
+		value: [
+			duplicateProviderRegistryApp.sources.providers[0],
+			duplicateProviderRegistryApp.sources.providers[0],
+			...duplicateProviderRegistryApp.sources.providers.slice(1),
+		],
+	})
+	assert.throws(() => compileApp(duplicateProviderRegistryApp), /Source provider definitions contains duplicate/)
+
+	const duplicateSourceRegistryApp = structuredClone(app)
+	Object.defineProperty(duplicateSourceRegistryApp.sources, 'sources', {
+		value: [
+			duplicateSourceRegistryApp.sources.sources[0],
+			duplicateSourceRegistryApp.sources.sources[0],
+			...duplicateSourceRegistryApp.sources.sources.slice(1),
+		],
+	})
+	assert.throws(() => compileApp(duplicateSourceRegistryApp), /Source definitions contains duplicate/)
+
 	const providerRegistryApp = structuredClone(app)
 	Object.defineProperty(providerRegistryApp.sources, 'providers', {
 		value: providerRegistryApp.sources.providers.toReversed(),

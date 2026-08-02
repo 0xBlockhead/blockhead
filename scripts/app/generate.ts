@@ -5549,10 +5549,6 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 				throw new Error(`${source}: ${binding.delivery} runtime secret template slot is absent from its endpoints`)
 		}
 	}
-	for (const [source, definitions] of Map.groupBy(sources, (definition) => definition.source))
-		if (definitions.length > 1)
-			throw new Error(`Duplicate source: ${source}`)
-
 	const sourceDefinitionById = nullPrototypeRecord(sources.map((source) => [
 		source.source,
 		source,
@@ -5607,17 +5603,13 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	const allEntityTypes = new Set(entityTypes)
 	const facetNames = new Set(facetEntries.map(({ facet }) => facet.name))
 	const errors: string[] = []
-	const resolverModuleSourceIds = new Set<Source>()
 	const resolverModulePaths = new Set<string>()
 	for (const resolverModule of resolverModules) {
 		if (!sourceIds.has(resolverModule.source))
 			errors.push(`resolver module ${resolverModule.path} references missing source ${resolverModule.source}`)
-		if (resolverModuleSourceIds.has(resolverModule.source))
-			errors.push(`duplicate resolver module source ${resolverModule.source}`)
 		if (resolverModulePaths.has(resolverModule.path))
 			errors.push(`duplicate resolver module path ${resolverModule.path}`)
 
-		resolverModuleSourceIds.add(resolverModule.source)
 		resolverModulePaths.add(resolverModule.path)
 	}
 	for (const entity of activeEntities) {
@@ -5758,7 +5750,6 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	}
 	expectUnique('entity type', entityTypes)
 	expectUnique('value type', app.schema.valueTypes.map((valueType) => valueType.id))
-	expectUnique('source provider', sourceProviders.map((provider) => provider.provider))
 	if (app.schema.entities.some((entity, index, entities) => (
 		index > 0 && compareEntityTypes(entities[index - 1]!.entityType, entity.entityType) > 0
 	)))
