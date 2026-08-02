@@ -23,13 +23,6 @@ export type GetBlockSolanaIndexedArchiveTransaction = {
 	instructions: GetBlockSolanaIndexedArchiveInstruction[]
 }
 
-export type GetBlockSolanaIndexedArchiveRequest = {
-	signature: string
-	include: {
-		instructions: true
-	}
-}
-
 export type GetBlockSolanaIndexedArchiveResponse = {
 	resolution: GetBlockSolanaIndexedArchiveResolution
 	transaction: GetBlockSolanaIndexedArchiveTransaction | null

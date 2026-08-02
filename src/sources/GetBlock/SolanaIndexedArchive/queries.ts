@@ -6,7 +6,6 @@ import {
 } from '$/sources/_runtime/http.ts'
 import {
 	GetBlockSolanaIndexedArchiveResolution,
-	type GetBlockSolanaIndexedArchiveRequest,
 	type GetBlockSolanaIndexedArchiveResponse,
 } from '$/sources/GetBlock/SolanaIndexedArchive/types.ts'
 
@@ -14,12 +13,6 @@ export const getSolanaTransaction = async (
 	binding: SourceBinding,
 	signature: string
 ) => {
-	const request: GetBlockSolanaIndexedArchiveRequest = {
-		signature,
-		include: {
-			instructions: true,
-		},
-	}
 	const response = await sourceFetch(
 		binding,
 		`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}/transactions`,
@@ -28,7 +21,12 @@ export const getSolanaTransaction = async (
 			headers: {
 				'content-type': 'application/json',
 			},
-			body: JSON.stringify(request),
+			body: JSON.stringify({
+				signature,
+				include: {
+					instructions: true,
+				},
+			}),
 		}
 	)
 	if (response.status === 404)
