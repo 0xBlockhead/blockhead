@@ -22,7 +22,6 @@ export default rssResolvers({
 				description: feedDescription,
 			}),
 			...(feedSiteUrl != null && {
-				link: feedSiteUrl,
 				siteUrl: feedSiteUrl,
 			}),
 			...(feedImageUrl != null && {

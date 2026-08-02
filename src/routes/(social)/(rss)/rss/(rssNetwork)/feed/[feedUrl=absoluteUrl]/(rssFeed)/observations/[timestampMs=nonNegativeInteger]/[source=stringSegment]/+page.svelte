@@ -44,7 +44,6 @@
 				fields: {
 					reachable: true,
 					observedItemCount: true,
-					fetchWindowKind: true,
 					error: true,
 				},
 			})

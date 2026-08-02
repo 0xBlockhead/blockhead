@@ -140,25 +140,6 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
-
-			<div>
-				<dt>Fetch window</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									fetchWindowKind: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{entity.fetchWindowKind}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
 		</dl>
 
 		<dl data-column-item="center">

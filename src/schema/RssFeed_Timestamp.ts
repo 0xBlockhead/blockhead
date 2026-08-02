@@ -32,10 +32,6 @@ export default entity({
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	fetchWindowKind: {
-		primitiveType: type.unit('Feed'),
-		cardinality: EntityFieldCardinality.One,
-	},
 	error: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,

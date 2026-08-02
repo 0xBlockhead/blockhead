@@ -9,8 +9,6 @@ import {
 } from '$/sources/_shared/interfaces/Rss/constants.ts'
 import type { ParsedRssFeed } from '$/sources/Rss/Rest/types.ts'
 
-const rssFetchWindowKind = 'Feed' as const
-
 export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_Rest>({
 	loadFeed,
 	source,
@@ -33,7 +31,6 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 							return {
 								...(feed.title != null && { title: feed.title }),
 								...(feed.description != null && { description: feed.description }),
-								...(feed.link != null && { link: feed.link }),
 								...(feed.siteUrl != null && { siteUrl: feed.siteUrl }),
 								...(includesNativeMetadata && feed.language != null && {
 									language: feed.language,
@@ -60,7 +57,6 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 			})({
 				title: (snapshot) => snapshot.title,
 				description: (snapshot) => snapshot.description,
-				link: (snapshot) => snapshot.link,
 				siteUrl: (snapshot) => snapshot.siteUrl,
 				...(includesNativeMetadata && {
 					language: (snapshot) => snapshot.language,
@@ -93,7 +89,6 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 							return {
 								itemIdentityKind,
 								itemIdentity,
-								...(feedItem.guid != null && { guid: feedItem.guid }),
 								...(feedItem.title != null && { title: feedItem.title }),
 								...(feedItem.link != null && { link: feedItem.link }),
 								...(feedItem.description != null && { description: feedItem.description }),
@@ -120,7 +115,6 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 			})({
 				itemIdentityKind: (snapshot) => snapshot.itemIdentityKind,
 				itemIdentity: (snapshot) => snapshot.itemIdentity,
-				guid: (snapshot) => snapshot.guid,
 				title: (snapshot) => snapshot.title,
 				link: (snapshot) => snapshot.link,
 				description: (snapshot) => snapshot.description,
@@ -158,7 +152,6 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 									source: selectorSource,
 									reachable: true,
 									observedItemCount: (await loadFeed(feedUrl)).items.length,
-									fetchWindowKind: rssFetchWindowKind,
 								}
 							} catch (error) {
 								return {
@@ -167,7 +160,6 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 									source: selectorSource,
 									reachable: false,
 									observedItemCount: 0,
-									fetchWindowKind: rssFetchWindowKind,
 									error: error instanceof Error ? error.message : String(error),
 								}
 							}
@@ -180,7 +172,6 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 				source: (snapshot) => snapshot.source,
 				reachable: (snapshot) => snapshot.reachable,
 				observedItemCount: (snapshot) => snapshot.observedItemCount,
-				fetchWindowKind: (snapshot) => snapshot.fetchWindowKind,
 				error: (snapshot) => snapshot.error,
 			}),
 
@@ -211,7 +202,6 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 									source: selectorSource,
 									observed: feedItem != null,
 									reachable: true,
-									fetchWindowKind: rssFetchWindowKind,
 								}
 							} catch (error) {
 								return {
@@ -220,7 +210,6 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 									source: selectorSource,
 									observed: false,
 									reachable: false,
-									fetchWindowKind: rssFetchWindowKind,
 									error: error instanceof Error ? error.message : String(error),
 								}
 							}
@@ -233,7 +222,6 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 				source: (snapshot) => snapshot.source,
 				observed: (snapshot) => snapshot.observed,
 				reachable: (snapshot) => snapshot.reachable,
-				fetchWindowKind: (snapshot) => snapshot.fetchWindowKind,
 				error: (snapshot) => snapshot.error,
 			}),
 		],

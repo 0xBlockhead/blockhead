@@ -198,7 +198,6 @@ export const parseRssFeedXml = (xml: string) => {
 			description: firstTagText(channelBlock, ['description', 'subtitle']),
 		}),
 		...(websiteUrl != null && {
-			link: websiteUrl,
 			siteUrl: websiteUrl,
 		}),
 		...(firstTagText(channelBlock, ['language']) != null && {

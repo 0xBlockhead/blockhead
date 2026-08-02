@@ -1783,7 +1783,6 @@ describe('resolver registry live resolver architecture', () => {
 			)
 			if (source === Source.Rss2Json_Rest)
 				expect(feedSnapshot).toMatchObject({
-					link: 'https://publisher.example/',
 					siteUrl: 'https://publisher.example/',
 				})
 			expect(feedItems.map((item) => item[EntityMetaKey.Selector])).toEqual([
@@ -1803,7 +1802,6 @@ describe('resolver registry live resolver architecture', () => {
 				itemIdentityKind: 'Guid',
 				itemIdentity: 'publisher-guid',
 			}, resolverContext)).resolves.toMatchObject({
-				guid: 'publisher-guid',
 				itemIdentityKind: 'Guid',
 				itemIdentity: 'publisher-guid',
 			})
@@ -1816,7 +1814,6 @@ describe('resolver registry live resolver architecture', () => {
 			}, resolverContext)).resolves.toMatchObject({
 				reachable: true,
 				observedItemCount: 2,
-				fetchWindowKind: 'Feed',
 			})
 			await expect(resolveItemObservation({
 				$item: {
@@ -1829,7 +1826,6 @@ describe('resolver registry live resolver architecture', () => {
 			}, resolverContext)).resolves.toMatchObject({
 				observed: true,
 				reachable: true,
-				fetchWindowKind: 'Feed',
 			})
 			await expect(resolveFeedObservation({
 				$feed: { feedUrl },

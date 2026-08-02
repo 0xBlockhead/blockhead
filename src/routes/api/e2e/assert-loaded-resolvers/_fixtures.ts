@@ -1741,10 +1741,6 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 
 	[EntityType.RssNetwork]: { scope: 'RssNetwork' },
 	[EntityType.RssFeed]: { feedUrl: 'https://hnrss.org/item?id=48592832' },
-	[EntityType.RssItem]: {
-		feedUrl: 'https://hnrss.org/item?id=48592832',
-		guid: 'https://news.ycombinator.com/item?id=48594706',
-	},
 
 	[EntityType.SwarmProtocol]: { scope: 'SwarmProtocol' },
 

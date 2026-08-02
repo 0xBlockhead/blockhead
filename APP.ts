@@ -52124,7 +52124,6 @@ export const schema = {
 				"feedUrl": { label: "Feed URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 				"title": { label: "Title", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"description": { label: "Description", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"link": { label: "Link", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
 				"siteUrl": { label: "Site URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
 				"language": { label: "Language", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"lastBuildDate": { label: "Last build", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -52150,7 +52149,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Rss_Rest, Source.Rss2Json_Rest],
-							fields: ["title", "description", "link", "siteUrl", "language", "lastBuildDate", "imageUrl"],
+							fields: ["title", "description", "siteUrl", "language", "lastBuildDate", "imageUrl"],
 							openFields: ["$$items", "$$timestamps"],
 						},
 						summary: {
@@ -52165,7 +52164,6 @@ export const schema = {
 							},
 							dl: [
 								[{ field: "feedUrl", format: "url" }],
-								[{ field: "link", format: "url" }],
 								[{ field: "siteUrl", format: "url" }],
 								[{ field: "language" }],
 								[{ field: "lastBuildDate", format: "timestamp" }],
@@ -52200,7 +52198,6 @@ export const schema = {
 				"source": { label: "Source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"reachable": { label: "Reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
 				"observedItemCount": { label: "Observed items", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
-				"fetchWindowKind": { label: "Fetch window", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, primitiveType: { unit: "Feed" } },
 				"error": { label: "Error", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
 				selectors: {
@@ -52220,7 +52217,6 @@ export const schema = {
 								[{ field: "source" }],
 								[{ field: "reachable" }],
 								[{ field: "observedItemCount", format: "number" }],
-								[{ field: "fetchWindowKind" }],
 								[{ field: "error" }],
 							],
 						},
@@ -52239,7 +52235,6 @@ export const schema = {
 			})({
 				"itemIdentityKind": { label: "Identity kind", description: "GUID when the publisher supplies one; otherwise link.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "RssItemIdentityKind" },
 				"itemIdentity": { label: "Identity", description: "The publisher GUID, falling back to the normalized item link only when GUID is absent.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "RssItemIdentity" },
-				"guid": { label: "GUID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"title": { label: "Title", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"link": { label: "Link", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
 				"description": { label: "Description", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -52307,7 +52302,6 @@ export const schema = {
 				"source": { label: "Source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"observed": { label: "Observed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
 				"reachable": { label: "Feed reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
-				"fetchWindowKind": { label: "Fetch window", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, primitiveType: { unit: "Feed" } },
 				"error": { label: "Error", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
 				selectors: {
@@ -52324,7 +52318,7 @@ export const schema = {
 							dl: [
 								[{ field: "$item" }],
 								[{ field: "timestampMs", format: "timestamp" }],
-								[{ field: "source" }, { field: "observed", format: "boolean" }, { field: "reachable", format: "boolean" }, { field: "fetchWindowKind" }],
+								[{ field: "source" }, { field: "observed", format: "boolean" }, { field: "reachable", format: "boolean" }],
 								[{ field: "error" }],
 							],
 						},

@@ -15,7 +15,6 @@ export type ParsedRssFeedItem = {
 export type ParsedRssFeed = {
 	title?: string
 	description?: string
-	link?: string
 	siteUrl?: string
 	language?: string
 	lastBuildDate?: number

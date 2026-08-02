@@ -26,10 +26,6 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	link: {
-		primitiveType: UrlString,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	siteUrl: {
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,

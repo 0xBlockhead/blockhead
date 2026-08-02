@@ -24,7 +24,6 @@
 		fields: {
 			title: true,
 			lastBuildDate: true,
-			link: true,
 			siteUrl: true,
 			language: true,
 			description: true,

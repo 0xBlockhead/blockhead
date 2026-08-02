@@ -28,7 +28,6 @@
 		fields: {
 			title: true,
 			description: true,
-			link: true,
 			siteUrl: true,
 			language: true,
 			lastBuildDate: true,
@@ -105,30 +104,6 @@
 					</a>
 				</dd>
 			</div>
-		</dl>
-
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={rssFeed}
-			>
-				{#snippet children(entity)}
-					{@const link = entity.link}
-					{#if link != null}
-						<div>
-							<dt>Link</dt>
-							<dd>
-								<a
-									href={link}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={link} />
-								</a>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">
