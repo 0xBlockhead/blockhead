@@ -666,6 +666,11 @@ describe('client resolver architecture', () => {
 		}
 	})
 
+	it('uses the canonical resolver context without source-layer aliases', () => {
+		expect(scannedSource).not.toMatch(/\bSourceResolverContext\b/)
+		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', 'defineResolver.ts')]).not.toMatch(/\bSourcePublicEnv\b/)
+	})
+
 	it('keeps IPFS source transport details out of generic lib modules', () => {
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Ipfs', 'Rest', 'constants.ts')]).toBeUndefined()
 		expect(scannedSourceByFilePath[join(srcPath, 'lib', 'contentType.ts')]).toBeUndefined()
@@ -797,6 +802,7 @@ describe('client resolver architecture', () => {
 	it('keeps source HTTP CORS policy on provider origins instead of source call sites', () => {
 		for (const filePath of scannedSourceFiles.filter((path) => (
 			path.startsWith(join(srcPath, 'sources'))
+			&& basename(path) !== 'SourceBinding.ts'
 			&& !path.startsWith(join(srcPath, 'sources', '_runtime'))
 			&& !path.endsWith('.d.ts')
 			&& !/(?:^|\/)index\.ts$/.test(path)

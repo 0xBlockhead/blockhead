@@ -1,7 +1,6 @@
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	type SourceResolverContext,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
@@ -234,7 +233,7 @@ const paymentTimestampFieldsFromLndPayment = (payment: LndPayment) => ({
 	preimage: payment.payment_preimage,
 })
 
-const lndChannels = async (context: SourceResolverContext) => {
+const lndChannels = async (context: ResolverContext) => {
 	const { listChannels } = await import('$/sources/LightningLnd/Rest/queries.ts')
 	return ((await listChannels({
 		publicEnv: context.publicEnv,
@@ -242,7 +241,7 @@ const lndChannels = async (context: SourceResolverContext) => {
 		.filter((channel) => channel.private === false)
 }
 
-const lndInfo = async (context: SourceResolverContext) => {
+const lndInfo = async (context: ResolverContext) => {
 	const { getInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
 	return getInfo({
 		publicEnv: context.publicEnv,

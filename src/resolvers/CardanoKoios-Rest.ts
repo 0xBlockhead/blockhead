@@ -1,7 +1,7 @@
 import { networkBySlug } from '$/constants/Network.ts'
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$resolvers.ts'
 import { cardanoGovernanceActionFields } from '$/resolvers/CardanoGovernance.ts'
-import { defineResolver, type RegisteredSourceResolverModule, type SourceResolverContext } from '$/resolvers/defineResolver.ts'
+import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
@@ -32,7 +32,7 @@ const assertCardanoMainnet = (
 const cardanoNetworkSelectors = <const _Snapshot extends object>(
 	resolve: (
 		network: EntitySelector<typeof schema, EntityType.Network>,
-		context: SourceResolverContext
+		context: ResolverContext
 	) => Promise<_Snapshot>
 ) => ({
 	Slug: { resolve },

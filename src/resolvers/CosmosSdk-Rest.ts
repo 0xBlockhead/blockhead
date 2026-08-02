@@ -1,7 +1,6 @@
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	type SourceResolverContext,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
@@ -57,7 +56,7 @@ const cosmosNetworkApplicability = [
 const cosmosNetworkResolverSelectors = <_Snapshot extends object>(
 	resolve: (
 		network: NetworkId,
-		context: SourceResolverContext
+		context: ResolverContext
 	) => Promise<_Snapshot>
 ) => ({
 	Caip2: {

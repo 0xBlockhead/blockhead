@@ -1,6 +1,6 @@
+import type { ResolverContext } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	type SourceResolverContext,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
@@ -113,7 +113,7 @@ const getTransaction = async (
 		$network: NetworkId
 		signature: string
 	},
-	context: SourceResolverContext
+	context: ResolverContext
 ) => {
 	assertSolanaMainnet($network)
 	const { getEnhancedTransactions } = await import('$/sources/Helius/Rest/queries.ts')

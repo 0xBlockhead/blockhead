@@ -1,7 +1,6 @@
 import type { EntityDefinitionForEntityType, EntityFacetDefinition, EntityFieldName, EntitySelectorForSelectorName, EntitySelectorName, EntityType, Schema } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
 import type { Source } from '$/sources/Source.ts'
-import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type {
 	FieldSelector,
 	ProjectionFieldSelector,
@@ -16,10 +15,6 @@ import type {
 export type RegisteredSourceResolverModule<
 	_Source extends Source,
 > = SourceResolverModule<typeof schema, _Source>
-
-export type SourceResolverContext = Omit<ResolverContext, 'publicEnv'> & {
-	readonly publicEnv: SourcePublicEnv
-}
 
 type ResolverSnapshotCandidate = ResolverComparable | object
 
@@ -58,7 +53,7 @@ type ResolveShape<
 				_EntityType,
 				Extract<_SelectorName, EntitySelectorName<typeof schema, _EntityType>>
 			>,
-			context: SourceResolverContext
+			context: ResolverContext
 		) => Promise<ResolverSnapshotCandidate>
 	}
 }>
@@ -80,7 +75,7 @@ type ResolverFields<
 		_EntityType,
 		_FieldName,
 		ResolverSnapshot<_Resolve>,
-		SourceResolverContext
+		ResolverContext
 	>
 }> & ResolverFacetFields<
 	_EntityType,
@@ -110,7 +105,7 @@ type ResolverFacetFieldsForDefinition<
 		_EntityType,
 		Extract<_Facet['fields'][number], { readonly name: _FieldName }>,
 		ResolverSnapshot<_Resolve>,
-		SourceResolverContext
+		ResolverContext
 	>
 }> & ResolverFacetFields<
 	_EntityType,

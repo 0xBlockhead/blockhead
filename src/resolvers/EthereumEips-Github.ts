@@ -4,11 +4,11 @@ import {
 } from '$/constants/SpecificationProposal.ts'
 import {
 	defineResolver,
-	type SourceResolverContext,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	resolverContextRowLimit,
+	type ResolverContext,
 } from '$/resolvers/$resolvers.ts'
 import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts'
 import { regex } from 'arkregex'
@@ -54,7 +54,7 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 		name: string
 		download_url?: string | null
 	}[]>
-	context: SourceResolverContext
+	context: ResolverContext
 }) => {
 	const ledgers = (
 		category === ProposalCategory.Erc ?

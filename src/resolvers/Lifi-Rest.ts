@@ -2,9 +2,9 @@ import { type } from 'arktype'
 
 import { bridgeToolByKey } from '$/constants/Bridge.ts'
 import { CoinId } from '$/constants/Coin.ts'
+import type { ResolverContext } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	type SourceResolverContext,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
@@ -268,7 +268,7 @@ const coinBridgeCapabilityRowsForCoin = async (
 
 const coinIdForBridgeInstanceSelector = async (
 	entitySelector: EntitySelector<typeof schema, EntityType.EvmCoinInstance>,
-	context: SourceResolverContext
+	context: ResolverContext
 ) => {
 	const lifiEntitySelector = lifiCoinInstanceSelector(entitySelector)
 	if (
@@ -291,7 +291,7 @@ const coinIdForBridgeInstanceSelector = async (
 
 const coinBridgeCapabilitiesForInstance = async (
 	entitySelector: EntitySelector<typeof schema, EntityType.EvmCoinInstance>,
-	context: SourceResolverContext,
+	context: ResolverContext,
 	direction: 'inbound' | 'outbound'
 ) => {
 	const { filterCoinBridgeCapabilityRowsForInstance } = await import(

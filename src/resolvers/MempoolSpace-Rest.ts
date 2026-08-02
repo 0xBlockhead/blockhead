@@ -1,7 +1,6 @@
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	type SourceResolverContext,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
@@ -88,12 +87,10 @@ const bitcoinMainnet = {
 	caip2: networkBySlug.bitcoin.caip2,
 } as const
 
-const bitcoinNetworkSelectors = <
-
-const _Snapshot extends object>(
+const bitcoinNetworkSelectors = <_Snapshot extends object>(
 	resolve: (
 		network: NetworkId,
-		context: SourceResolverContext
+		context: ResolverContext
 	) => Promise<_Snapshot>
 ) => ({
 	Caip2: {

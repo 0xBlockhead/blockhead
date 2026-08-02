@@ -1,7 +1,6 @@
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	type SourceResolverContext,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -60,7 +59,7 @@ const blockchairNetworkTimestampApplicability = [
 const blockchairNetworkSelectors = <_Snapshot extends object>(
 	resolve: (
 		network: NetworkId,
-		context: SourceResolverContext
+		context: ResolverContext
 	) => Promise<_Snapshot>
 ) => ({
 	Caip2: {
