@@ -1,7 +1,7 @@
 /**
 	* Etherscan API V2 client — **`GET`** **`https://api.etherscan.io/v2/api`** with **`chainid`** and optional **`apikey`**.
 	*
-	* **`apikey`**: `options.apiKey`, else `publicEnv.PUBLIC_ETHERSCAN_API_KEY`, else `publicEnv.PUBLIC_ETHERSCAN_API_KEY_{chainId}` (legacy monorepo pattern).
+	* **`apikey`**: `options.apiKey`, else `publicEnv.PUBLIC_ETHERSCAN_API_KEY`.
 	*
 	* @see https://docs.etherscan.io/v2-migration
 	* @see https://docs.etherscan.io/getting-started
@@ -66,18 +66,6 @@ export const etherscanV2UnwrapAccountResultArray = <T>(
 }
 
 /**
-	* Resolves Etherscan **`apikey`** for a request (optional; lower rate limits without a key).
-	*/
-export const etherscanResolvedApiKey = (
-	chainId: number,
-	publicEnv: SourcePublicEnv,
-	options?: { apiKey?: string }
-) => (
-	options?.apiKey?.trim()
-		?? optionalPublicEnvString(publicEnv, 'PUBLIC_ETHERSCAN_API_KEY')
-)
-
-/**
 	* **`GET`** V2 API with **`chainid`** merged into query string.
 	* Rejects chain ids outside the binding-owned support catalog.
 	*/
@@ -100,7 +88,10 @@ export const etherscanV2GetJson = async <T>({
 	for (const [key, value] of Object.entries(query)) {
 		if (value !== undefined) search.set(key, value)
 	}
-	const apiKey = etherscanResolvedApiKey(chainId, publicEnv, options)
+	const apiKey = (
+		options?.apiKey?.trim()
+		?? optionalPublicEnvString(publicEnv, 'PUBLIC_ETHERSCAN_API_KEY')
+	)
 	if (apiKey !== undefined) search.set('apikey', apiKey)
 	return sourceGetJson<T>(binding, `${firstHttpUrlForBinding(binding)}?${search}`)
 }
