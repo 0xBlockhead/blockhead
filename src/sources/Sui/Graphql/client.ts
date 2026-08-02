@@ -1,20 +1,14 @@
-import {
-	print,
-	type ExecutionResult,
-} from 'graphql'
+import { print } from 'graphql'
 import {
 	initGraphQLTada,
 	type TadaDocumentNode,
 } from 'gql.tada'
 
-import { throwHttpError } from '$/lib/http.ts'
 import bindings from '$/sources/Sui/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily } from '$/sources/SourceBinding.ts'
-import {
-	firstHttpUrlForBinding,
-	sourceFetch,
-} from '$/sources/_runtime/http.ts'
+import { graphql as queryGraphql } from '$/sources/_shared/wire/Graphql/client.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 import type { introspection } from './graphql-env.d.ts'
 
@@ -35,30 +29,18 @@ export const graphql = initGraphQLTada<{
 
 export const executeSui = async <
 	_Result extends object,
-	_Variables extends object,
+	_Variables extends JsonValue & object,
 >(
 	document: TadaDocumentNode<_Result, _Variables>,
 	variables: _Variables
 ) => {
-	const response = await sourceFetch(binding, firstHttpUrlForBinding(binding), {
-		method: 'POST',
-		headers: {
-		accept: 'application/json',
-		'content-type': 'application/json',
-		},
-		body: JSON.stringify({
-			query: print(document),
-			variables,
-		}),
+	const data = await queryGraphql<_Result>({
+		binding,
+		query: print(document),
+		variables,
 	})
-	if (!response.ok)
-		await throwHttpError('Sui GraphQL', response)
-
-	const payload = await response.json<ExecutionResult<_Result>>()
-	if (payload.errors?.[0] != null)
-		throw new Error(`Sui GraphQL: ${payload.errors[0].message}`)
-	if (payload.data == null)
+	if (data == null)
 		throw new Error('Sui GraphQL: response data is missing')
 
-	return payload.data
+	return data
 }
