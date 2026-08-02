@@ -2982,6 +2982,26 @@ const routeParamNamesFromExpression = (expression: _Expression): string[] => {
 	return []
 }
 
+const validateRouteParamDecode = (
+	paramName: string,
+	authoredDecode: _ExpressionDecode | _RouteParamTransform | undefined,
+	inferredDecode: _ExpressionDecode | _RouteParamTransform | undefined,
+	owner: string
+) => {
+	if (
+		authoredDecode != null
+		&& authoredDecode !== inferredDecode
+		&& (
+			typeof authoredDecode === 'string'
+			|| inferredDecode == null
+			|| typeof inferredDecode === 'string'
+			|| authoredDecode.from !== inferredDecode.from
+			|| authoredDecode.name !== inferredDecode.name
+		)
+	)
+		throw new Error(`${owner} parameter ${paramName} decoder disagrees with normalized route metadata`)
+}
+
 const normalizeRouteParamDecodes = (
 	expression: _Expression,
 	decodeByParam: ReadonlyMap<string, _ExpressionDecode | _RouteParamTransform | undefined>,
@@ -2997,23 +3017,7 @@ const normalizeRouteParamDecodes = (
 			valueTypeById?.[expectedField.valueType]?.routeParam?.decode
 		:
 			decodeByParam.get(expression.name)
-		if (
-			expression.decode != null
-			&& (
-				decode == null
-				|| typeof expression.decode !== typeof decode
-				|| (
-					typeof expression.decode === 'string'
-					&& expression.decode !== decode
-				)
-				|| (
-					typeof expression.decode !== 'string'
-					&& typeof decode !== 'string'
-					&& (expression.decode.from !== decode.from || expression.decode.name !== decode.name)
-				)
-			)
-		)
-			throw new Error(`${owner} parameter ${expression.name} decoder disagrees with normalized route metadata`)
+		validateRouteParamDecode(expression.name, expression.decode, decode, owner)
 
 		return decode == null ? expression : {
 			...expression,
@@ -3080,23 +3084,7 @@ const normalizeRouteParamDecodes = (
 					valueTypeById?.[selectorField.valueType]?.routeParam?.decode
 				:
 					decodeByParam.get(param.param)
-				if (
-					param.decode != null
-					&& (
-						decode == null
-						|| typeof param.decode !== typeof decode
-						|| (
-							typeof param.decode === 'string'
-							&& param.decode !== decode
-						)
-						|| (
-							typeof param.decode !== 'string'
-							&& typeof decode !== 'string'
-							&& (param.decode.from !== decode.from || param.decode.name !== decode.name)
-						)
-					)
-				)
-					throw new Error(`${owner} parameter ${param.param} decoder disagrees with normalized route metadata`)
+				validateRouteParamDecode(param.param, param.decode, decode, owner)
 
 				return decode == null ? param : {
 					...param,
