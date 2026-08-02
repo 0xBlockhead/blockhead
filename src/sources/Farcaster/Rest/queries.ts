@@ -73,8 +73,8 @@ export const getPrimaryAddress = async ({
 }) => {
 	const address = (
 		await farcasterGet<FarcasterPrimaryAddressResponse>('/fc/primary-address', {
-		fid,
-		protocol,
+			fid,
+			protocol,
 		})
 	).result?.address
 	if (
@@ -495,28 +495,6 @@ export const getDeveloperRewardsWinnerHistoryPage = ({
 			}
 		}>
 	>('/v1/developer-rewards-winner-history', { periodsAgo, cursor, limit })
-)
-
-/**
- * `GET /fc/primary-address`
- * @see https://docs.farcaster.xyz/reference/farcaster/api#get-user-primary-address
- */
-export const getPrimaryAddressResponse = ({
-	fid,
-	protocol,
-}: {
-	fid: number
-	protocol: 'ethereum' | 'solana'
-}) => (
-	farcasterGet<{
-		result: {
-			address: {
-				fid: number
-				protocol: 'ethereum' | 'solana'
-				address: string
-			}
-		}
-	}>('/fc/primary-address', { fid, protocol })
 )
 
 /**
