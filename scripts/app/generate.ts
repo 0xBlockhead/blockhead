@@ -5343,6 +5343,21 @@ const httpOriginFromLocator = (locator: string) => (
 // Compilation is the only phase that interprets APP.ts. It validates and indexes
 // domain facts first, then hands a closed set of facts to deterministic emitters.
 export const compileApp = (sourceApp: App): CompiledApp => {
+	for (const [label, values] of [
+		['ApiFamily', Object.values(ApiFamily)],
+		['Source', Object.values(Source)],
+		['SourceArtifactKind', Object.values(SourceArtifactKind)],
+		['SourceCredentialScope', Object.values(SourceCredentialScope)],
+		['SourceDelivery', Object.values(SourceDelivery)],
+		['SourceEndpointKind', Object.values(SourceEndpointKind)],
+		['SourceOperationGroup', Object.values(SourceOperationGroup)],
+		['SourceProvider', Object.values(SourceProvider)],
+		['SourceTargetKind', Object.values(SourceTargetKind)],
+		['WireProtocol', Object.values(WireProtocol)],
+	] as const)
+		if (values.some((value, index) => index > 0 && values[index - 1]!.localeCompare(value, 'en') >= 0))
+			throw new Error(`${label} members must be unique and alphabetized`)
+
 	validateSourceBindingCompatibility(sourceBindingCompatibility)
 	validateSourceBindingDeliveryCompatibility(sourceBindingDeliveryCompatibility)
 

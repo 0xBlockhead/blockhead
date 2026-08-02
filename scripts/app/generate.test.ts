@@ -2964,6 +2964,16 @@ test('emits every source-axis enum and only valid enum references in provider ro
 		SourceTargetKind,
 		WireProtocol,
 	}
+	for (const [enumName, sourceAxis] of Object.entries({
+		...sourceAxes,
+		Source,
+		SourceProvider,
+	}))
+		assert.deepEqual(
+			Object.values(sourceAxis),
+			Object.values(sourceAxis).toSorted((left, right) => left.localeCompare(right, 'en')),
+			`${enumName} must remain alphabetized`
+		)
 
 	for (const [enumName, sourceAxis] of Object.entries(sourceAxes)) {
 		const enumBody = renderedSourceBinding.match(new RegExp(`export enum ${enumName} \\{([\\s\\S]*?)\\n\\}`))?.[1]
