@@ -56,11 +56,8 @@ describe('source binding indexes', () => {
 
 		expect(indexSourceBindings([binding].flatMap((binding) => [binding]))[binding.source])
 			.toEqual([binding])
-		expect(indexSourceBindings([binding, binding].flatMap((binding) => [binding]))[binding.source])
-			.toEqual([
-				binding,
-				binding,
-			])
+		expect(() => indexSourceBindings([binding, binding].flatMap((binding) => [binding])))
+			.toThrow('must not contain duplicate stable identities')
 		expect(() => indexSourceBindings([])).toThrow('must contain at least one binding')
 	})
 

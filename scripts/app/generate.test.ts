@@ -3849,13 +3849,19 @@ test('rejects malformed source binding compatibility rows before compilation', (
 test('rejects ambiguous source binding delivery compatibility rows before compilation', () => {
 	assert.throws(
 		() => validateSourceBindingDeliveryCompatibility([
-			...sourceBindingDeliveryCompatibility,
+			sourceBindingDeliveryCompatibility[0],
 			{
 				...sourceBindingDeliveryCompatibility[0],
 				endpointLayout: sourceBindingDeliveryCompatibility[4].endpointLayout,
 			},
+			...sourceBindingDeliveryCompatibility.slice(1),
 		]),
-		/Ambiguous source binding delivery compatibility/
+		/contains duplicate/
+	)
+	const reversedCompatibility = [...sourceBindingDeliveryCompatibility].reverse()
+	assert.throws(
+		() => validateSourceBindingDeliveryCompatibility(reversedCompatibility),
+		/must be alphabetized/
 	)
 	assert.throws(
 		() => validateSourceBindingDeliveryCompatibility(sourceBindingDeliveryCompatibility.slice(1)),
@@ -3863,7 +3869,7 @@ test('rejects ambiguous source binding delivery compatibility rows before compil
 	)
 	const simultaneousIncludeExclude = structuredClone(sourceBindingDeliveryCompatibility)
 
-	Object.defineProperty(simultaneousIncludeExclude[2].wireProtocols, 'exclude', {
+	Object.defineProperty(simultaneousIncludeExclude[4].wireProtocols, 'exclude', {
 		value: [WireProtocol.JsonRpc2],
 	})
 	assert.throws(

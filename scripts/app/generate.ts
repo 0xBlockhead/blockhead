@@ -5226,6 +5226,19 @@ type SourceBindingDeliveryCompatibility = {
 	credentialLayout: SourceBindingDeliveryCredentialLayout
 }
 
+const sourceBindingDeliveryCompatibilityKey = (
+	compatibility: SourceBindingDeliveryCompatibility
+) => [
+	compatibility.deliveries.join(','),
+	compatibility.wireProtocols === true ?
+		'*'
+	: 'exclude' in compatibility.wireProtocols ?
+		`exclude:${compatibility.wireProtocols.exclude.join(',')}`
+	:
+		`include:${compatibility.wireProtocols.include.join(',')}`,
+	compatibility.apiFamilies === true ? '*' : compatibility.apiFamilies.join(','),
+].join('/')
+
 const sourceBindingMatchesDeliveryCompatibility = (
 	binding: {
 		delivery: SourceDelivery
@@ -5253,7 +5266,6 @@ const sourceBindingMatchesDeliveryCompatibility = (
 export const validateSourceBindingDeliveryCompatibility = (
 	compatibilityRows: readonly SourceBindingDeliveryCompatibility[]
 ) => {
-	const rowKeys = new Set<string>()
 	for (const compatibility of compatibilityRows) {
 		validateAlphabeticalSet('Delivery compatibility deliveries', compatibility.deliveries)
 		if (compatibility.deliveries.length === 0)
@@ -5275,12 +5287,11 @@ export const validateSourceBindingDeliveryCompatibility = (
 		if (compatibility.apiFamilies !== true)
 			validateAlphabeticalSet('Delivery compatibility API families', compatibility.apiFamilies)
 
-		const rowKey = JSON.stringify(compatibility)
-		if (rowKeys.has(rowKey))
-			throw new Error(`Duplicate source binding delivery compatibility row ${rowKey}`)
-
-		rowKeys.add(rowKey)
 	}
+	validateAlphabeticalSet(
+		'Source binding delivery compatibility rows',
+		compatibilityRows.map(sourceBindingDeliveryCompatibilityKey)
+	)
 
 	for (const delivery of Object.values(SourceDelivery))
 		if (!compatibilityRows.some((compatibility) => compatibility.deliveries.some((candidate) => candidate === delivery)))
@@ -7349,6 +7360,8 @@ export function indexSourceBindings(
 ): Partial<Record<Source, readonly SourceBinding[]>> {
 	if (bindings.length === 0)
 		throw new Error('Source binding indexes must contain at least one binding')
+	if (new Set(bindings.map(sourceBindingId)).size !== bindings.length)
+		throw new Error('Source binding indexes must not contain duplicate stable identities')
 
 	return Object.groupBy(bindings, ({ source }) => source)
 }`),

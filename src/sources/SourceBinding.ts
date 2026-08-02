@@ -351,11 +351,8 @@ type SourceBindingDelivery =
 		credentials: SourcePublicOrUserWithOptionalRuntimeSecret
 	}
 	| {
-		delivery: SourceDelivery.RemoteLive
-		wireProtocol: WireProtocol.Grpc
-		apiFamily: ApiFamily.GrpcService
-		endpoints: readonly SourceEndpoint<SourceEndpointKind.HttpUrl>[]
-		credentials: SourcePublicOrUserWithOptionalRuntimeSecret
+		delivery: SourceDelivery.LocalOnly | SourceDelivery.ServerOnly | SourceDelivery.Unsupported
+		credentials: readonly SourceCredentialRequirement[]
 	}
 	| {
 		delivery: SourceDelivery.RemoteLive
@@ -373,11 +370,14 @@ type SourceBindingDelivery =
 		credentials: SourcePublicOrUserWithOptionalRuntimeSecret
 	}
 	| {
-		delivery: SourceDelivery.RemoteQuery
-		credentials: readonly SourceCredentialRequirement[]
+		delivery: SourceDelivery.RemoteLive
+		wireProtocol: WireProtocol.Grpc
+		apiFamily: ApiFamily.GrpcService
+		endpoints: readonly SourceEndpoint<SourceEndpointKind.HttpUrl>[]
+		credentials: SourcePublicOrUserWithOptionalRuntimeSecret
 	}
 	| {
-		delivery: SourceDelivery.LocalOnly | SourceDelivery.ServerOnly | SourceDelivery.Unsupported
+		delivery: SourceDelivery.RemoteQuery
 		credentials: readonly SourceCredentialRequirement[]
 	}
 
@@ -532,6 +532,8 @@ export function indexSourceBindings(
 ): Partial<Record<Source, readonly SourceBinding[]>> {
 	if (bindings.length === 0)
 		throw new Error('Source binding indexes must contain at least one binding')
+	if (new Set(bindings.map(sourceBindingId)).size !== bindings.length)
+		throw new Error('Source binding indexes must not contain duplicate stable identities')
 
 	return Object.groupBy(bindings, ({ source }) => source)
 }
