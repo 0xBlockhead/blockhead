@@ -7704,19 +7704,19 @@ const generateSourceProviderBindingsFile = (
 				['locator', emitTypeScript(locator)],
 			])))} as const`],
 			expression: [
-			`${matrix.name}.${matrix.variants.length === 1 ? 'map' : 'flatMap'}(({`,
-			'\tkey,',
-			'\tlocator,',
-			...(matrix.variants.length === 1 ? [
-				'}) => ({',
-				...variant.slice(1, -1).map((line) => indent(line)),
-				'} satisfies SourceBinding))',
-			] : [
-				'}) => ([',
-				...matrix.variants.map((binding) => `${indent(binding)},`),
-				'] satisfies readonly SourceBinding[]))',
-			]),
-		].join('\n'),
+				`${matrix.name}.${matrix.variants.length === 1 ? 'map' : 'flatMap'}(({`,
+				'\tkey,',
+				'\tlocator,',
+				...(matrix.variants.length === 1 ? [
+					'}) => ({',
+					...variant.slice(1, -1).map((line) => indent(line)),
+					'} satisfies SourceBinding))',
+				] : [
+					'}) => ([',
+					...matrix.variants.map((binding) => `${indent(binding)},`),
+					'] satisfies readonly SourceBinding[]))',
+				]),
+			].join('\n'),
 		}
 	}
 	const renderedBindingPlan = (() => {
@@ -7728,16 +7728,6 @@ const generateSourceProviderBindingsFile = (
 			'] as const satisfies readonly SourceBinding[]',
 		].join('\n'),
 		}
-		if (renderedSourcePlans.length === 1) {
-			const sourcePlan = renderedSourcePlans[0]
-			const matrix = sourcePlan == null ? undefined : bindingMatrices.get(sourcePlan.source)
-			if (matrix == null)
-				return direct
-
-			const compact = renderBindingMatrix(matrix)
-			return [...compact.declarations, compact.expression].join('\n').length < direct.expression.length ? compact : direct
-		}
-
 		const compactBySource = new Map(renderedSourcePlans.flatMap((sourcePlan) => {
 			const matrix = bindingMatrices.get(sourcePlan.source)
 			return matrix == null ? [] : [[sourcePlan.source, renderBindingMatrix(matrix)] as const]
@@ -7745,30 +7735,35 @@ const generateSourceProviderBindingsFile = (
 		if (compactBySource.size === 0)
 			return direct
 
-		const compactDeclarations = renderedSourcePlans.flatMap(({ source }) => {
-			const compact = compactBySource.get(source)
-			return compact == null ? [] : [
-				...compact.declarations,
-				'',
-			]
-		})
-		const compact = {
-			declarations: compactDeclarations.slice(0, -1),
-			expression: [
-			'[',
-			...renderedSourcePlans.flatMap((sourcePlan) => {
-				const compactExpression = compactBySource.get(sourcePlan.source)?.expression
-				if (compactExpression == null)
-					return sourcePlan.bindings.map((binding) => `${indent(binding)},`)
+		const compact = renderedSourcePlans.length === 1 ?
+			compactBySource.get(renderedSourcePlans[0]?.source ?? '')
+		:
+			{
+				declarations: renderedSourcePlans.flatMap(({ source }) => {
+					const sourceCompact = compactBySource.get(source)
+					return sourceCompact == null ? [] : [
+						...sourceCompact.declarations,
+						'',
+					]
+				}).slice(0, -1),
+				expression: [
+					'[',
+					...renderedSourcePlans.flatMap((sourcePlan) => {
+						const compactExpression = compactBySource.get(sourcePlan.source)?.expression
+						if (compactExpression == null)
+							return sourcePlan.bindings.map((binding) => `${indent(binding)},`)
 
-				const compactExpressionLines = lines(compactExpression)
-				return compactExpressionLines.map((line, index) => (
-					`${index === 0 ? '\t...' : '\t'}${line}${index === compactExpressionLines.length - 1 ? ',' : ''}`
-				))
-			}),
-			'] satisfies readonly SourceBinding[]',
-		].join('\n'),
-		}
+						const compactExpressionLines = lines(compactExpression)
+						return compactExpressionLines.map((line, index) => (
+							`${index === 0 ? '\t...' : '\t'}${line}${index === compactExpressionLines.length - 1 ? ',' : ''}`
+						))
+					}),
+					'] satisfies readonly SourceBinding[]',
+				].join('\n'),
+			}
+		if (compact == null)
+			return direct
+
 		return [...compact.declarations, compact.expression].join('\n').length < direct.expression.length ? compact : direct
 	})()
 	const enumNames = [
