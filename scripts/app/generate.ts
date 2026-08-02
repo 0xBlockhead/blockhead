@@ -9904,6 +9904,7 @@ const generateSingularViewFile = (
 	const summaryAfterEntries = summaryPlan.headingAfter.entries
 	const rendersSerialTitle = summaryPlan.title.rendersSerial
 	const rendersSerialValue = summaryPlan.value.rendersSerial
+	const titleFallbackLiteralValue = typeScriptStringValue(titleFallbackExpression)
 	for (const viewEntry of summaryPlan.allEntries) {
 		const fieldReference = itemFieldReferences(viewEntry)[0]
 		if (
@@ -10662,7 +10663,7 @@ const generateSingularViewFile = (
 	const summaryTitleResolvesEntity = summaryPlan.title.resolvesEntity
 	const summaryValueResolvesEntity = summaryPlan.value.resolvesEntity
 	const entityViewOwnsTitleFallback = (
-		typeScriptStringValue(titleFallbackExpression) === entity.labels.singular
+		titleFallbackLiteralValue === entity.labels.singular
 		&& rawSnippets.length === 0
 		&& !(serial != null && rendersSerialTitle)
 		&& !summaryTitleResolvesEntity
@@ -10959,7 +10960,7 @@ const generateSingularViewFile = (
 			`const ${entityName} = $derived(${query === '{}' ? viewBindings.viewSelection : `${viewBindings.viewSelection}(${query})`})`,
 		] : []),
 		...(usesTitleFallbackBinding ? [
-			`const titleFallback = ${typeScriptStringValue(titleFallbackExpression) != null ? titleFallbackExpression : `$derived(${titleFallbackExpression})`}`,
+			`const titleFallback = ${titleFallbackLiteralValue != null ? titleFallbackExpression : `$derived(${titleFallbackExpression})`}`,
 		] : []),
 		...(usesViewDomId ? [
 			`const viewDomId = $derived(${emitTypeScript(`${entity.entityType
