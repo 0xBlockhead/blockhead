@@ -11,66 +11,42 @@ const zeroGResolvers = indexResolvers(
 	new Set([Source.ZeroGChain_JsonRpc])
 ).resolverDefinitions
 
-const ethereumNetwork = {
-	caip2: {
-		namespace: 'eip155',
-		reference: '1',
-	},
-} as const
+const expectNetworkApplicability = (reference: string, expected: boolean) => {
+	const network = {
+		caip2: {
+			namespace: 'eip155',
+			reference,
+		},
+	} as const
+	const selectors = [
+		{ $network: network, blockNumber: 1n },
+		{
+			$network: network,
+			$actor: { address: '0xd8da6bf26964af9d7eed9e403e826090792bed6a' },
+		},
+		{
+			$account: {
+				$network: network,
+				$actor: { address: '0xd8da6bf26964af9d7eed9e403e826090792bed6a' },
+			},
+			timestampMs: 0,
+			source: Source.ZeroGChain_JsonRpc,
+		},
+		{ $network: network, txHash: '0x00' },
+		{ $network: network, blockNumber: 1n },
+	] as const
+	expect(zeroGResolvers).toHaveLength(selectors.length)
 
-const zeroGNetwork = {
-	caip2: {
-		namespace: 'eip155',
-		reference: '16661',
-	},
-} as const
+	for (const [index, resolver] of zeroGResolvers.entries())
+		expect(resolver.appliesTo(Object.keys(resolver.resolve)[0], selectors[index] ?? {})).toBe(expected)
+}
 
 describe('ZeroGChain JSON-RPC source applicability', () => {
 	it('excludes Ethereum selectors before invoking 0G-only resolvers', () => {
-		const selectors = [
-			{ $network: ethereumNetwork, blockNumber: 1n },
-			{
-				$network: ethereumNetwork,
-				$actor: { address: '0xd8da6bf26964af9d7eed9e403e826090792bed6a' },
-			},
-			{
-				$account: {
-					$network: ethereumNetwork,
-					$actor: { address: '0xd8da6bf26964af9d7eed9e403e826090792bed6a' },
-				},
-				timestampMs: 0,
-				source: Source.ZeroGChain_JsonRpc,
-			},
-			{ $network: ethereumNetwork, txHash: '0x00' },
-			{ $network: ethereumNetwork, blockNumber: 1n },
-		] as const
-		expect(zeroGResolvers).toHaveLength(selectors.length)
-
-		for (const [index, resolver] of zeroGResolvers.entries())
-			expect(resolver.appliesTo(Object.keys(resolver.resolve)[0], selectors[index] ?? {})).toBe(false)
+		expectNetworkApplicability('1', false)
 	})
 
 	it('admits selectors for the binding-owned 0G chain', () => {
-		const selectors = [
-			{ $network: zeroGNetwork, blockNumber: 1n },
-			{
-				$network: zeroGNetwork,
-				$actor: { address: '0xd8da6bf26964af9d7eed9e403e826090792bed6a' },
-			},
-			{
-				$account: {
-					$network: zeroGNetwork,
-					$actor: { address: '0xd8da6bf26964af9d7eed9e403e826090792bed6a' },
-				},
-				timestampMs: 0,
-				source: Source.ZeroGChain_JsonRpc,
-			},
-			{ $network: zeroGNetwork, txHash: '0x00' },
-			{ $network: zeroGNetwork, blockNumber: 1n },
-		] as const
-		expect(zeroGResolvers).toHaveLength(selectors.length)
-
-		for (const [index, resolver] of zeroGResolvers.entries())
-			expect(resolver.appliesTo(Object.keys(resolver.resolve)[0], selectors[index] ?? {})).toBe(true)
+		expectNetworkApplicability('16661', true)
 	})
 })
