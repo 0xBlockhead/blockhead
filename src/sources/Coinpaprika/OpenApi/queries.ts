@@ -16,6 +16,7 @@ import type {
 	CoinpaprikaOhlcvHistoricalRows,
 	CoinpaprikaOhlcvTodayRows,
 	CoinpaprikaTicker,
+	CoinpaprikaTickers,
 } from '$/sources/Coinpaprika/OpenApi/types.ts'
 
 export const getCoinById = ({
@@ -88,6 +89,17 @@ export const getTickerById = ({
 	getCoinpaprikaJson<CoinpaprikaTicker>(
 		publicEnv,
 		`/tickers/${encodeURIComponent(coinpaprikaId)}`
+	)
+)
+
+export const getTickers = ({
+	publicEnv,
+}: {
+	publicEnv: SourcePublicEnv
+}) => (
+	getCoinpaprikaJson<CoinpaprikaTickers>(
+		publicEnv,
+		'/tickers?quotes=USD'
 	)
 )
 

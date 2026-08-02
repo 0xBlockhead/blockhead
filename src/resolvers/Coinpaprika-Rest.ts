@@ -388,38 +388,29 @@ export default {
 			resolve: {
 				Scope: {
 					resolve: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => {
-						const { CoinId, coinById } = await import('$/constants/Coin.ts')
-						const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-						const { getTickerById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
+						const { coinById } = await import('$/constants/Coin.ts')
+						const { getTickers } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
 						const lim = resolverContextRowLimit(context)
-						return (
-							(await Promise.all(
-								Object.values(CoinId)
-									.filter((coinId) => idByCoinId[coinId] != null && coinId in coinById)
-									.slice(0, lim)
-									.map(async (coinId) => {
-										const coinpaprikaId = idByCoinId[coinId]
-										if (coinpaprikaId == null)
-											return []
-										const ticker = await getTickerById({
-											publicEnv: context.publicEnv,
-											coinpaprikaId,
-										})
-										const updatedAtMs = coinpaprikaTickerTimestampMs(ticker)
-										if (!Number.isFinite(updatedAtMs))
-											return []
-										return [
-											{
-												[EntityMetaKey.Selector]: {
-													$market: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coinId]),
-													timestampMs: updatedAtMs,
-													feedKey: coinpaprikaId,
-												},
-											},
-										]
-									})
-							)).flat()
-						)
+						return (await getTickers({
+							publicEnv: context.publicEnv,
+						})).flatMap((ticker) => {
+							const coinId = coinIdByWireId.get(ticker.id)
+							const updatedAtMs = coinpaprikaTickerTimestampMs(ticker)
+							if (
+								coinId == null
+								|| !(coinId in coinById)
+								|| !Number.isFinite(updatedAtMs)
+							)
+								return []
+
+							return [{
+								[EntityMetaKey.Selector]: {
+									$market: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coinId]),
+									timestampMs: updatedAtMs,
+									feedKey: ticker.id,
+								},
+							}]
+						}).slice(0, lim)
 					},
 				}
 			},

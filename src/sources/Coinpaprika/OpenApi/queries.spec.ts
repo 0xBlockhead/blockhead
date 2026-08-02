@@ -7,6 +7,7 @@ import {
 	getCoins,
 	getExchangeMarkets,
 	getOhlcvHistorical,
+	getTickers,
 } from '$/sources/Coinpaprika/OpenApi/queries.ts'
 
 describe('Coinpaprika coin queries', () => {
@@ -17,6 +18,28 @@ describe('Coinpaprika coin queries', () => {
 
 	it('uses the current canonical AAVE API id', () => {
 		expect(idByCoinId[CoinId.AAVE]).toBe('aave-new')
+	})
+
+	it('loads all catalog tickers with one bulk request', async () => {
+		const tickers = [{
+			id: 'aave-new',
+			name: 'Aave',
+			symbol: 'AAVE',
+		}]
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify(tickers)))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getTickers({
+			publicEnv: {},
+		})).resolves.toEqual(tickers)
+		expect(fetchMock).toHaveBeenCalledOnce()
+		expect(fetchMock).toHaveBeenCalledWith(
+			expect.stringContaining(encodeURIComponent(
+				'https://api.coinpaprika.com/v1/tickers?quotes=USD'
+			)),
+			expect.any(Object)
+		)
 	})
 
 	it('loads the coin catalog through the registered browser proxy transport', async () => {

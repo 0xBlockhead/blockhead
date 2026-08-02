@@ -21,3 +21,4 @@ export type CoinpaprikaOhlcvHistoricalQuery = paths['/coins/{coin_id}/ohlcv/hist
 export type CoinpaprikaOhlcv = CoinpaprikaOhlcvTodayRows[number] | CoinpaprikaOhlcvHistoricalRows[number]
 
 export type CoinpaprikaTicker = paths['/tickers/{coin_id}']['get']['responses'][200]['content']['application/json']
+export type CoinpaprikaTickers = paths['/tickers']['get']['responses'][200]['content']['application/json']
