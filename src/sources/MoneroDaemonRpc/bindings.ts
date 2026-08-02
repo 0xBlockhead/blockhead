@@ -24,7 +24,7 @@ const moneroDaemonRpcJsonRpcArtifacts = [
 	},
 ] as const
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		source: Source.MoneroDaemonRpc_JsonRpc,
 		target: {
@@ -74,6 +74,4 @@ const bindings = [
 		],
 		artifacts: moneroDaemonRpcJsonRpcArtifacts,
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

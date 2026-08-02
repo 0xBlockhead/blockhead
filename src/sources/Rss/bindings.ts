@@ -41,7 +41,7 @@ const rssRestTargets = [
 	},
 ] as const
 
-const bindings = rssRestTargets.map(({
+export default indexSourceBindings(rssRestTargets.map(({
 	key,
 	locator,
 }) => ({
@@ -57,6 +57,4 @@ const bindings = rssRestTargets.map(({
 				corsEnabled: false,
 			},
 		],
-} satisfies SourceBinding))
-
-export default indexSourceBindings(bindings)
+} satisfies SourceBinding)))

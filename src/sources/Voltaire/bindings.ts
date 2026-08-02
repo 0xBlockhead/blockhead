@@ -59,7 +59,7 @@ const voltaireJsonRpcBrowserDirectBindingAxes = {
 	artifacts: voltaireJsonRpcArtifacts,
 } as const
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		source: Source.Voltaire_JsonRpc,
 		target: {
@@ -1190,6 +1190,4 @@ const bindings = [
 			},
 		],
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

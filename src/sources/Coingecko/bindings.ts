@@ -19,7 +19,7 @@ const coingeckoRestGenericReadOperationGroups = [
 	SourceOperationGroup.GenericRead,
 ] as const
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		source: Source.Coingecko_Rest,
 		target: {
@@ -102,6 +102,4 @@ const bindings = [
 			},
 		],
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

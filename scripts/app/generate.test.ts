@@ -2983,29 +2983,43 @@ test('emits every source-axis enum and only valid enum references in provider ro
 			assert.match(renderedSourceBinding, new RegExp(`\\b${enumReference[2]}\\s*=\\s*'${enumReference[2]}'`), `${enumReference[0]} in ${providerBindingPath} must be emitted by SourceBinding.ts`)
 	}
 
-	for (const generatedBindings of generatedFiles.filter(({ path }) => (
+	const generatedProviderBindingFiles = generatedFiles.filter(({ path }) => (
 		/^src\/sources\/[^/]+\/bindings\.ts$/.test(path)
-	))) {
+	))
+	assert.equal(generatedProviderBindingFiles.length, app.sources.providers.length)
+	for (const generatedBindings of generatedProviderBindingFiles) {
 		const source = renderGeneratedFile(generatedBindings)
+		const sourceFile = ts.createSourceFile(generatedBindings.path, source, ts.ScriptTarget.Latest, true)
+		assert.equal(sourceFile.statements.filter((statement) => (
+			ts.isVariableStatement(statement)
+			&& statement.declarationList.declarations.some((declaration) => (
+				ts.isIdentifier(declaration.name)
+				&& declaration.name.text === 'bindings'
+			))
+		)).length, 0)
+		assert.equal(sourceFile.statements.filter((statement) => (
+			ts.isExportAssignment(statement)
+			&& ts.isCallExpression(statement.expression)
+			&& ts.isIdentifier(statement.expression.expression)
+			&& statement.expression.expression.text === 'indexSourceBindings'
+		)).length, 1)
 		if (source.includes('.flatMap(({'))
 			assert.match(source, /\] satisfies readonly SourceBinding\[\]\)\)/)
 		else if (source.includes('.map(({'))
 			assert.match(source, /\} satisfies SourceBinding\)\)/)
 		else
-			assert.match(source, /const bindings = [\s\S]*?satisfies readonly SourceBinding\[\]/)
-		assert.match(source, /export default indexSourceBindings\(bindings\)/)
+			assert.match(source, /export default indexSourceBindings\(\[[\s\S]*?satisfies readonly SourceBinding\[\]\)/)
+		assert.match(source, /export default indexSourceBindings\(/)
 		assert.doesNotMatch(source, /SourceCredentialScope\.None|generated: false/)
-		assert.doesNotMatch(source, /typeof bindings\[\d+\]/)
 		assert.doesNotMatch(source, /^\s*\[Source\.[A-Za-z0-9_]+\]: \{/m)
 		assert.doesNotMatch(source, /^const [A-Za-z0-9_$]+Credentials = \[\] as const$/m)
 		for (const declaration of source.matchAll(/^const ([A-Za-z_$][\w$]*) =/gm))
-			if (declaration[1] !== 'bindings')
-				assert.ok(
-					(source.match(new RegExp(`\\b${declaration[1]}\\b`, 'g')) ?? []).length >= (
-						source.includes('.flatMap(({') || source.includes('.map(({') ? 2 : 3
-					),
-					`${generatedBindings.path}: ${declaration[1]} must replace at least two repeated values`
-				)
+			assert.ok(
+				(source.match(new RegExp(`\\b${declaration[1]}\\b`, 'g')) ?? []).length >= (
+					source.includes('.flatMap(({') || source.includes('.map(({') ? 2 : 3
+				),
+				`${generatedBindings.path}: ${declaration[1]} must replace at least two repeated values`
+			)
 	}
 
 	const blockscoutBindings = generatedFiles.find(({ path }) => path === 'src/sources/Blockscout/bindings.ts')
@@ -3013,7 +3027,7 @@ test('emits every source-axis enum and only valid enum references in provider ro
 	assert.ok(blockscoutBindings && blockscoutSource?.bindings)
 	const renderedBlockscoutBindings = renderGeneratedFile(blockscoutBindings)
 	assert.match(renderedBlockscoutBindings, /const blockscoutRestTargets = \[/)
-	assert.match(renderedBlockscoutBindings, /const bindings = blockscoutRestTargets\.flatMap/)
+	assert.match(renderedBlockscoutBindings, /export default indexSourceBindings\(blockscoutRestTargets\.flatMap/)
 	assert.match(renderedBlockscoutBindings, /locator: `\$\{locator\}\/api\/eth-rpc`/)
 	assert.equal(
 		(renderedBlockscoutBindings.match(/^\s*key: '[0-9]+',$/gm) ?? []).length,
@@ -3029,7 +3043,7 @@ test('emits every source-axis enum and only valid enum references in provider ro
 	assert.ok(easScanBindings)
 	const renderedEasScanBindings = renderGeneratedFile(easScanBindings)
 	assert.match(renderedEasScanBindings, /const easScanGraphqlBindingAxes =/)
-	assert.match(renderedEasScanBindings, /const bindings = easScanGraphqlTargets\.map\(/)
+	assert.match(renderedEasScanBindings, /export default indexSourceBindings\(easScanGraphqlTargets\.map\(/)
 	assert.doesNotMatch(renderedEasScanBindings, /\.flatMap\(/)
 
 	const mastodonBindings = generatedFiles.find(({ path }) => path === 'src/sources/Mastodon/bindings.ts')
@@ -3046,7 +3060,8 @@ test('emits every source-axis enum and only valid enum references in provider ro
 	assert.ok(nostrRelayBindings)
 	const renderedNostrRelayBindings = renderGeneratedFile(nostrRelayBindings)
 	assert.equal((renderedNostrRelayBindings.match(/Targets\.map\(/g) ?? []).length, 2)
-	assert.match(renderedNostrRelayBindings, /const bindings = \[\n\t\.\.\.nostrRelayNip11HttpBindings,\n\t\.\.\.nostrRelayWebSocketBindings,/)
+	assert.match(renderedNostrRelayBindings, /export default indexSourceBindings\(\[\n\t\.\.\.nostrRelayNip11HttpTargets\.map/)
+	assert.match(renderedNostrRelayBindings, /\n\t\.\.\.nostrRelayWebSocketTargets\.map/)
 	assert.doesNotMatch(
 		readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8'),
 		/bindingRows\.length\s*[<>]=?\s*[0-9]+/

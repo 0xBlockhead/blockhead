@@ -15,7 +15,7 @@ import {
 } from '$/sources/SourceBinding.ts'
 import { type as arktype } from 'arktype'
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		source: Source.Dune_Rest,
 		target: {
@@ -50,6 +50,4 @@ const bindings = [
 			},
 		],
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

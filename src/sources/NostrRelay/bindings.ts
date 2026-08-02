@@ -63,24 +63,6 @@ const nostrRelayNip11HttpTargets = [
 	},
 ] as const
 
-const nostrRelayNip11HttpBindings = nostrRelayNip11HttpTargets.map(({
-	key,
-	locator,
-}) => ({
-		...nostrRelayNip11HttpBindingAxes,
-		target: {
-			kind: SourceTargetKind.Feed,
-			key,
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator,
-				corsEnabled: false,
-			},
-		],
-} satisfies SourceBinding))
-
 const nostrRelayWebSocketTargets = [
 	{
 		key: 'wss://relay.damus.io',
@@ -96,26 +78,38 @@ const nostrRelayWebSocketTargets = [
 	},
 ] as const
 
-const nostrRelayWebSocketBindings = nostrRelayWebSocketTargets.map(({
-	key,
-	locator,
-}) => ({
-		...nostrRelayWebSocketBindingAxes,
-		target: {
-			kind: SourceTargetKind.Feed,
-			key,
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.WebSocketUrl,
-				locator,
+export default indexSourceBindings([
+	...nostrRelayNip11HttpTargets.map(({
+		key,
+		locator,
+	}) => ({
+			...nostrRelayNip11HttpBindingAxes,
+			target: {
+				kind: SourceTargetKind.Feed,
+				key,
 			},
-		],
-} satisfies SourceBinding))
-
-const bindings = [
-	...nostrRelayNip11HttpBindings,
-	...nostrRelayWebSocketBindings,
-] satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+			endpoints: [
+				{
+					endpointKind: SourceEndpointKind.HttpUrl,
+					locator,
+					corsEnabled: false,
+				},
+			],
+	} satisfies SourceBinding)),
+	...nostrRelayWebSocketTargets.map(({
+		key,
+		locator,
+	}) => ({
+			...nostrRelayWebSocketBindingAxes,
+			target: {
+				kind: SourceTargetKind.Feed,
+				key,
+			},
+			endpoints: [
+				{
+					endpointKind: SourceEndpointKind.WebSocketUrl,
+					locator,
+				},
+			],
+	} satisfies SourceBinding)),
+] satisfies readonly SourceBinding[])

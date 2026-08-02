@@ -36,7 +36,7 @@ const ethereumEipsGithubBindingAxes = {
 	credentials: [],
 } as const
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		...ethereumEipsGithubBindingAxes,
 		target: {
@@ -53,6 +53,4 @@ const bindings = [
 		},
 		endpoints: ethereumEipsGithubEndpoints,
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

@@ -17,7 +17,7 @@ const kaspaNodeGenericReadOperationGroups = [
 	SourceOperationGroup.GenericRead,
 ] as const
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		source: Source.KaspaNode_Grpc,
 		target: {
@@ -84,6 +84,4 @@ const bindings = [
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [],
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

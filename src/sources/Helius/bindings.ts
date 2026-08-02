@@ -27,7 +27,7 @@ const heliusCredentials = [
 	},
 ] as const
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		source: Source.Helius,
 		target: {
@@ -82,6 +82,4 @@ const bindings = [
 			},
 		],
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

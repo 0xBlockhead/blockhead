@@ -28,7 +28,7 @@ const caipsGithubRepositoryContentsOperationGroups = [
 	SourceOperationGroup.GithubRepositoryContents,
 ] as const
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		source: Source.Caips_Github,
 		target: {
@@ -55,6 +55,4 @@ const bindings = [
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

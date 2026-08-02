@@ -12,7 +12,7 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		source: Source.QuilibriumDocs_Rest,
 		target: {
@@ -39,6 +39,4 @@ const bindings = [
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

@@ -7715,17 +7715,16 @@ const generateSourceProviderBindingsFile = (
 		}] as const]
 	}))
 	const renderBindingMatrix = (
-		bindingName: string,
 		matrix: NonNullable<ReturnType<typeof bindingMatrices.get>>
 	) => {
 		const variant = lines(matrix.variants[0] ?? '')
-		return [
-			`const ${matrix.name} = ${emitArray(matrix.rows.map(({ key, locator }) => emitObject([
+		return {
+			declarations: [`const ${matrix.name} = ${emitArray(matrix.rows.map(({ key, locator }) => emitObject([
 				['key', emitTypeScript(key)],
 				['locator', emitTypeScript(locator)],
-			])))} as const`,
-			'',
-			`const ${bindingName} = ${matrix.name}.${matrix.variants.length === 1 ? 'map' : 'flatMap'}(({`,
+			])))} as const`],
+			expression: [
+			`${matrix.name}.${matrix.variants.length === 1 ? 'map' : 'flatMap'}(({`,
 			'\tkey,',
 			'\tlocator,',
 			...(matrix.variants.length === 1 ? [
@@ -7737,54 +7736,60 @@ const generateSourceProviderBindingsFile = (
 				...matrix.variants.map((binding) => `${indent(binding)},`),
 				'] satisfies readonly SourceBinding[]))',
 			]),
-		]
+		].join('\n'),
+		}
 	}
-	const renderedBindingBody = (() => {
-		const direct = [
-			'const bindings = [',
+	const renderedBindingPlan = (() => {
+		const direct = {
+			declarations: [],
+			expression: [
+			'[',
 			...renderedSourcePlans.flatMap(({ bindings }) => bindings.map((binding) => `${indent(binding)},`)),
 			'] as const satisfies readonly SourceBinding[]',
-		]
+		].join('\n'),
+		}
 		if (renderedSourcePlans.length === 1) {
 			const sourcePlan = renderedSourcePlans[0]
 			const matrix = sourcePlan == null ? undefined : bindingMatrices.get(sourcePlan.source)
 			if (matrix == null)
 				return direct
 
-			const compact = renderBindingMatrix('bindings', matrix)
-			return compact.join('\n').length < direct.join('\n').length ? compact : direct
+			const compact = renderBindingMatrix(matrix)
+			return [...compact.declarations, compact.expression].join('\n').length < direct.expression.length ? compact : direct
 		}
 
-		const compactSources = new Map(renderedSourcePlans.flatMap((sourcePlan) => {
+		const compactBySource = new Map(renderedSourcePlans.flatMap((sourcePlan) => {
 			const matrix = bindingMatrices.get(sourcePlan.source)
-			return matrix == null ? [] : [[sourcePlan.source, {
-				bindingName: `${camel(sourcePlan.source)}Bindings`,
-				matrix,
-			}] as const]
+			return matrix == null ? [] : [[sourcePlan.source, renderBindingMatrix(matrix)] as const]
 		}))
-		if (compactSources.size === 0)
+		if (compactBySource.size === 0)
 			return direct
 
 		const compactDeclarations = renderedSourcePlans.flatMap(({ source }) => {
-			const compactSource = compactSources.get(source)
-			return compactSource == null ? [] : [
-				...renderBindingMatrix(compactSource.bindingName, compactSource.matrix),
+			const compact = compactBySource.get(source)
+			return compact == null ? [] : [
+				...compact.declarations,
 				'',
 			]
 		})
-		const compact = [
-			...compactDeclarations,
-			'const bindings = [',
+		const compact = {
+			declarations: compactDeclarations.slice(0, -1),
+			expression: [
+			'[',
 			...renderedSourcePlans.flatMap((sourcePlan) => {
-				const compactSource = compactSources.get(sourcePlan.source)
-				return compactSource == null ?
-					sourcePlan.bindings.map((binding) => `${indent(binding)},`)
-				:
-					[`\t...${compactSource.bindingName},`]
+				const compactExpression = compactBySource.get(sourcePlan.source)?.expression
+				if (compactExpression == null)
+					return sourcePlan.bindings.map((binding) => `${indent(binding)},`)
+
+				const compactExpressionLines = lines(compactExpression)
+				return compactExpressionLines.map((line, index) => (
+					`${index === 0 ? '\t...' : '\t'}${line}${index === compactExpressionLines.length - 1 ? ',' : ''}`
+				))
 			}),
 			'] satisfies readonly SourceBinding[]',
-		]
-		return compact.join('\n').length < direct.join('\n').length ? compact : direct
+		].join('\n'),
+		}
+		return [...compact.declarations, compact.expression].join('\n').length < direct.expression.length ? compact : direct
 	})()
 	const enumNames = [
 		'ApiFamily',
@@ -7830,9 +7835,9 @@ const generateSourceProviderBindingsFile = (
 				...renderedSourcePlans.flatMap(({ declarations }) => (
 					declarations.length === 0 ? [] : [...declarations, '']
 				)),
-				...renderedBindingBody,
-				'',
-				'export default indexSourceBindings(bindings)',
+				...renderedBindingPlan.declarations,
+				...(renderedBindingPlan.declarations.length === 0 ? [] : ['']),
+				`export default indexSourceBindings(${renderedBindingPlan.expression})`,
 			],
 		}
 	)

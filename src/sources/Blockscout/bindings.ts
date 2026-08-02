@@ -91,7 +91,7 @@ const blockscoutRestTargets = [
 	},
 ] as const
 
-const bindings = blockscoutRestTargets.flatMap(({
+export default indexSourceBindings(blockscoutRestTargets.flatMap(({
 	key,
 	locator,
 }) => ([
@@ -123,6 +123,4 @@ const bindings = blockscoutRestTargets.flatMap(({
 			},
 		],
 	},
-] satisfies readonly SourceBinding[]))
-
-export default indexSourceBindings(bindings)
+] satisfies readonly SourceBinding[])))

@@ -17,7 +17,7 @@ const suiGenericReadOperationGroups = [
 	SourceOperationGroup.GenericRead,
 ] as const
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		source: Source.Sui,
 		target: {
@@ -73,6 +73,4 @@ const bindings = [
 		delivery: SourceDelivery.ServerOnly,
 		credentials: [],
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

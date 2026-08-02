@@ -45,7 +45,7 @@ const mevRelayRestTargets = [
 	},
 ] as const
 
-const bindings = mevRelayRestTargets.map(({
+export default indexSourceBindings(mevRelayRestTargets.map(({
 	key,
 	locator,
 }) => ({
@@ -61,6 +61,4 @@ const bindings = mevRelayRestTargets.map(({
 				corsEnabled: false,
 			},
 		],
-} satisfies SourceBinding))
-
-export default indexSourceBindings(bindings)
+} satisfies SourceBinding)))

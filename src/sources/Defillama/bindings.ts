@@ -19,7 +19,7 @@ const defillamaRestGenericReadOperationGroups = [
 	SourceOperationGroup.GenericRead,
 ] as const
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		source: Source.Defillama_Rest,
 		target: {
@@ -114,6 +114,4 @@ const bindings = [
 			},
 		],
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

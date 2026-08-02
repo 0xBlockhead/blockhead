@@ -16,7 +16,7 @@ const chainlinkDataFeedsGenericReadOperationGroups = [
 	SourceOperationGroup.GenericRead,
 ] as const
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		source: Source.ChainlinkDataFeeds_AddressCatalog,
 		target: {
@@ -53,6 +53,4 @@ const bindings = [
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

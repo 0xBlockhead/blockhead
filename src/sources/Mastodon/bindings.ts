@@ -38,7 +38,7 @@ const mastodonRestBindingAxes = {
 	],
 } as const
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		...mastodonRestBindingAxes,
 		target: {
@@ -69,6 +69,4 @@ const bindings = [
 		},
 		endpoints: mastodonRestEndpoints,
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

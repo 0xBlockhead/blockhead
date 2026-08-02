@@ -38,7 +38,7 @@ const ethereumSpecsGithubTargets = [
 	},
 ] as const
 
-const bindings = ethereumSpecsGithubTargets.map(({
+export default indexSourceBindings(ethereumSpecsGithubTargets.map(({
 	key,
 	locator,
 }) => ({
@@ -54,6 +54,4 @@ const bindings = ethereumSpecsGithubTargets.map(({
 				corsEnabled: true,
 			},
 		],
-} satisfies SourceBinding))
-
-export default indexSourceBindings(bindings)
+} satisfies SourceBinding)))

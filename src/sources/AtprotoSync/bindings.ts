@@ -12,7 +12,7 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		source: Source.AtprotoSync_Xrpc,
 		target: {
@@ -39,6 +39,4 @@ const bindings = [
 		delivery: SourceDelivery.RemoteLive,
 		credentials: [],
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

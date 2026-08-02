@@ -54,7 +54,7 @@ const beaconRestTargets = [
 	},
 ] as const
 
-const bindings = beaconRestTargets.map(({
+export default indexSourceBindings(beaconRestTargets.map(({
 	key,
 	locator,
 }) => ({
@@ -70,6 +70,4 @@ const bindings = beaconRestTargets.map(({
 				corsEnabled: true,
 			},
 		],
-} satisfies SourceBinding))
-
-export default indexSourceBindings(bindings)
+} satisfies SourceBinding)))

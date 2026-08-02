@@ -90,7 +90,7 @@ const easScanGraphqlTargets = [
 	},
 ] as const
 
-const bindings = easScanGraphqlTargets.map(({
+export default indexSourceBindings(easScanGraphqlTargets.map(({
 	key,
 	locator,
 }) => ({
@@ -106,6 +106,4 @@ const bindings = easScanGraphqlTargets.map(({
 				corsEnabled: false,
 			},
 		],
-} satisfies SourceBinding))
-
-export default indexSourceBindings(bindings)
+} satisfies SourceBinding)))

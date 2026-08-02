@@ -26,7 +26,7 @@ const zcashdCredentials = [
 	},
 ] as const
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		source: Source.Zcashd_JsonRpc,
 		target: {
@@ -58,6 +58,4 @@ const bindings = [
 		delivery: SourceDelivery.LocalOnly,
 		credentials: zcashdCredentials,
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

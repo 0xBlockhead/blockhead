@@ -18,7 +18,7 @@ const gitRepositoryContentsRepositoryMetadataOperationGroups = [
 	SourceOperationGroup.RepositoryMetadata,
 ] as const
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		source: Source.Git_Local,
 		target: {
@@ -64,6 +64,4 @@ const bindings = [
 			},
 		],
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

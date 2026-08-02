@@ -23,7 +23,7 @@ const tonCenterCredentials = [
 	},
 ] as const
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		source: Source.TonCenter,
 		target: {
@@ -104,6 +104,4 @@ const bindings = [
 			},
 		],
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

@@ -50,7 +50,7 @@ const safeTransactionServiceRestTargets = [
 	},
 ] as const
 
-const bindings = safeTransactionServiceRestTargets.map(({
+export default indexSourceBindings(safeTransactionServiceRestTargets.map(({
 	key,
 	locator,
 }) => ({
@@ -66,6 +66,4 @@ const bindings = safeTransactionServiceRestTargets.map(({
 				corsEnabled: false,
 			},
 		],
-} satisfies SourceBinding))
-
-export default indexSourceBindings(bindings)
+} satisfies SourceBinding)))

@@ -18,7 +18,7 @@ const xmtpGenericReadGenericSubscribeOperationGroups = [
 	SourceOperationGroup.GenericSubscribe,
 ] as const
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		source: Source.Xmtp_BrowserSdk,
 		target: {
@@ -63,6 +63,4 @@ const bindings = [
 			},
 		],
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

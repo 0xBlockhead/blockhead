@@ -25,7 +25,7 @@ const bitTorrentAnnounceOperationGroups = [
 	SourceOperationGroup.BitTorrentAnnounce,
 ] as const
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		source: Source.BitTorrent,
 		target: {
@@ -129,6 +129,4 @@ const bindings = [
 		delivery: SourceDelivery.ServerOnly,
 		credentials: [],
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

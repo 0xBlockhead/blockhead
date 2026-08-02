@@ -24,7 +24,7 @@ const lotusJsonRpcArtifacts = [
 	},
 ] as const
 
-const bindings = [
+export default indexSourceBindings([
 	{
 		source: Source.Lotus_JsonRpc,
 		target: {
@@ -69,6 +69,4 @@ const bindings = [
 		],
 		artifacts: lotusJsonRpcArtifacts,
 	},
-] as const satisfies readonly SourceBinding[]
-
-export default indexSourceBindings(bindings)
+] as const satisfies readonly SourceBinding[])

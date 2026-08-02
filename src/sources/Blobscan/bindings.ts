@@ -49,7 +49,7 @@ const blobscanRestTargets = [
 	},
 ] as const
 
-const bindings = blobscanRestTargets.map(({
+export default indexSourceBindings(blobscanRestTargets.map(({
 	key,
 	locator,
 }) => ({
@@ -65,6 +65,4 @@ const bindings = blobscanRestTargets.map(({
 				corsEnabled: false,
 			},
 		],
-} satisfies SourceBinding))
-
-export default indexSourceBindings(bindings)
+} satisfies SourceBinding)))
