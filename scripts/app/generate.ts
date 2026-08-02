@@ -7687,80 +7687,70 @@ const generateSourceProviderBindingsFile = (
 		if (bindingMatrices.has(sourcePlan.source))
 			return []
 
+		// Binding-base identity already contains every non-target semantic axis;
+		// endpoint kind and CORS complete each matrix variant signature.
 		const targetBlocks = groupAdjacentBy(sourcePlan.sourceBindingRows, ({ binding }) => JSON.stringify([
 			binding.target.kind,
 			binding.target.key,
-		]))
-		const targetBlockCountByIdentity = Map.groupBy(targetBlocks, (rows) => JSON.stringify([
-			rows[0]?.binding.target.kind,
-			rows[0]?.binding.target.key,
-		]))
-		// Binding-base identity already contains every non-target semantic axis;
-		// endpoint kind and CORS complete each matrix variant signature.
-		const matrices = groupAdjacentBy(targetBlocks, (rows, blockIndex) => {
+		])).map((rows, blockIndex) => {
 			const variants = rows.flatMap(({ binding }) => {
 				const baseIdentifier = sourcePlan.bindingBaseNameByBinding.get(binding)
 				const endpoint = binding.endpoints[0]
 				return baseIdentifier == null || endpoint == null || binding.endpoints.length !== 1 ?
 					[]
 				:
-					[JSON.stringify([
+					[{
 						baseIdentifier,
-						endpoint.endpointKind,
-						endpoint.corsEnabled,
-					])]
+						binding,
+						endpoint,
+						locatorName: `${camel(baseIdentifier.slice(
+							camel(sourcePlan.source).length,
+							-'BindingAxes'.length
+						))}Locator`,
+					}]
 			})
-			return variants.length === rows.length ?
-				JSON.stringify([
+			return {
+				identity: JSON.stringify([
 					rows[0]?.binding.target.kind,
-					variants,
-				])
-			:
-				`direct:${blockIndex}`
-		}).flatMap((blocks) => {
+					rows[0]?.binding.target.key,
+				]),
+				rows,
+				signature: variants.length === rows.length ?
+					JSON.stringify([
+						rows[0]?.binding.target.kind,
+						variants.map(({ baseIdentifier, endpoint }) => [
+							baseIdentifier,
+							endpoint.endpointKind,
+							endpoint.corsEnabled,
+						]),
+					])
+				:
+					`direct:${blockIndex}`,
+				variants,
+			}
+		})
+		const targetBlockCountByIdentity = Map.groupBy(targetBlocks, ({ identity }) => identity)
+		const matrices = groupAdjacentBy(targetBlocks, ({ signature }) => signature).flatMap((blocks) => {
 			const firstBlock = blocks[0]
 			if (
 				firstBlock == null
 				|| blocks.length < 2
-				|| blocks.some((rows) => (
-					targetBlockCountByIdentity.get(JSON.stringify([
-						rows[0]?.binding.target.kind,
-						rows[0]?.binding.target.key,
-					]))?.length !== 1
-				))
+				|| blocks.some(({ identity }) => targetBlockCountByIdentity.get(identity)?.length !== 1)
 			)
 				return []
 
-			const variants = firstBlock.flatMap(({ binding }) => {
-				const baseIdentifier = sourcePlan.bindingBaseNameByBinding.get(binding)
-				const endpoint = binding.endpoints[0]
-				if (baseIdentifier == null || endpoint == null)
-					return []
-
-				return [{
-					baseIdentifier,
-					binding,
-					endpoint,
-					locatorName: `${camel(baseIdentifier.slice(
-						camel(sourcePlan.source).length,
-						-'BindingAxes'.length
-					))}Locator`,
-				}]
-			})
-			if (
-				variants.length !== firstBlock.length
-				|| new Set(variants.map(({ locatorName }) => locatorName)).size !== variants.length
-			)
+			const variants = firstBlock.variants
+			if (new Set(variants.map(({ locatorName }) => locatorName)).size !== variants.length)
 				return []
 
-			const rows = blocks.map((block) => ({
-				key: block[0]?.binding.target.key ?? '',
+			const rows = blocks.map(({ rows: blockRows, variants: blockVariants }) => ({
+				key: blockRows[0]?.binding.target.key ?? '',
 				values: variants.map(({ locatorName }, variantIndex) => [
 					locatorName,
-					block[variantIndex]?.binding.endpoints[0]?.locator ?? '',
+					blockVariants[variantIndex]?.endpoint.locator ?? '',
 				] as const),
 			}))
-			const sourceRows = blocks.flat()
+			const sourceRows = blocks.flatMap(({ rows }) => rows)
 			if (JSON.stringify(rows.flatMap((row) => variants.map((variant, variantIndex) => ({
 				...variant.binding,
 				target: {
