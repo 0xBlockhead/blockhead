@@ -185,13 +185,15 @@ test('retains one record index for each entity and value type', async () => {
 	assert.match(routeValueTypeIndexer, /entityByType: Readonly<Record<string, Entity>>/)
 })
 
-test('derives provider partitions only at their emitter invocation', async () => {
+test('derives provider partitions once for their emitter inputs', async () => {
 	const generatorSource = await readFile('scripts/app/generate.ts', 'utf8')
 
 	assert.doesNotMatch(generatorSource, /CompiledSourceProviderFacts|sourceProviderPlans/)
 	assert.match(generatorSource, /type CompiledAppFacts = Readonly<\{[\s\S]*?sourceProviders: readonly SourceProviderDefinition\[\][\s\S]*?sources: readonly SourceDefinition\[\][\s\S]*?sourceDefinitionById: Readonly<Record<string, SourceDefinition>>[\s\S]*?sourceBindings: readonly SourceBindingEntry\[\]/)
 	assert.match(generatorSource, /type GenerationInput = Readonly<\{[\s\S]*?sourceProviders: readonly SourceProviderDefinition\[\][\s\S]*?sources: readonly SourceDefinition\[\]/)
-	assert.match(generatorSource, /sourceProviders\.flatMap\(\(provider\) => \{[\s\S]*?const providerBindings = indexes\.sourceBindings\.filter[\s\S]*?indexes\.sourceDefinitionById\[sourceBinding\.source\]\.provider === provider\.provider[\s\S]*?generateSourceProviderBindingsFile\(provider, providerBindings\)[\s\S]*?generationInput\.sources\.filter\(\(source\) => source\.provider === provider\.provider\)/)
+	assert.match(generatorSource, /const sourceBindingsByProvider = Object\.groupBy\(indexes\.sourceBindings, \(sourceBinding\) => \([\s\S]*?indexes\.sourceDefinitionById\[sourceBinding\.source\]\.provider[\s\S]*?const sourcesByProvider = Object\.groupBy\(generationInput\.sources, \(\{ provider \}\) => provider\)/)
+	assert.match(generatorSource, /sourceProviders\.flatMap\(\(provider\) => \[[\s\S]*?sourceBindingsByProvider\[provider\.provider\] \?\? \[\][\s\S]*?sourcesByProvider\[provider\.provider\] \?\? \[\]/)
+	assert.doesNotMatch(generatorSource, /generationInput\.sources\.filter\(\(source\) => source\.provider === provider\.provider\)/)
 })
 
 test('uses authored binding identity instead of synthetic row indexes', async () => {
@@ -201,11 +203,11 @@ test('uses authored binding identity instead of synthetic row indexes', async ()
 		generatorSource.indexOf('const generateSourceProviderDefinitionFile =')
 	)
 
-	assert.doesNotMatch(bindingsEmitter, /bindingGroupIndexByBinding|bindingIndex|row\?\.index|sourceBindingRows\[index\]\?\.index/)
+	assert.doesNotMatch(bindingsEmitter, /bindingGroupIndexByBinding|row\?\.index|sourceBindingRows\[index\]\?\.index/)
 	assert.doesNotMatch(bindingsEmitter, /bindings\.map\(\(\{ binding, source \}, index\) =>/)
 	assert.match(bindingsEmitter, /const bindingBaseNameByBinding = new Map\(bindingGroups\.flatMap\(\(group, groupIndex\) => \{[\s\S]*?bindingBaseName == null \?[\s\S]*?\[\][\s\S]*?group\.map\(\(\{ binding \}\) => \[binding, bindingBaseName\] as const\)/)
 	assert.match(bindingsEmitter, /}, bindingBaseNameByBinding\.get\(binding\)\)\)/)
-	assert.match(bindingsEmitter, /orderedMatrixRows\.some\(\(row, index\) => \(\n\t\t\trow !== sourcePlan\.sourceBindingRows\[index\]/)
+	assert.match(bindingsEmitter, /const parts = \[\][\s\S]*?let bindingIndex = 0[\s\S]*?bindingIndex < partialMatrix\.firstRowIndex[\s\S]*?bindingIndex \+= partialMatrix\.rowCount/)
 })
 
 test('retains repeated binding plans only when they emit declarations', async () => {
@@ -376,18 +378,16 @@ test('renders SOURCES.md exactly from APP', async () => {
 	})
 })
 
-test('keys source ownership independently of authored source row order', () => {
-	const shuffledApp = structuredClone(app)
-	Object.defineProperty(shuffledApp.sources, 'sources', {
-		value: shuffledApp.sources.sources.toReversed(),
-	})
-	const voyagerBindingRow = tableAfterHeading(
-		renderSourcesMarkdown(compileApp(shuffledApp)),
+test('keys every binding provider from canonical source definitions', () => {
+	const providerBySource = Object.fromEntries(app.sources.sources.map(({ source, provider }) => [
+		source,
+		provider,
+	]))
+	const bindingRows = tableAfterHeading(
+		renderSourcesMarkdown(compileApp(app)),
 		'## Bindings'
-	).rows.find((row) => row[2] === Source.Voyager)
+	).rows
 
-	assert.equal(
-		voyagerBindingRow?.[1],
-		app.sources.sources.find(({ source }) => source === Source.Voyager)?.provider
-	)
+	for (const bindingRow of bindingRows)
+		assert.equal(bindingRow[1], providerBySource[bindingRow[2] ?? ''])
 })

@@ -101,7 +101,6 @@ type ValueType =
 	}
 type ValueTypeType = App['schema']['valueTypes'][number]['type']
 type EntityCarouselSection = EntityCarousel['sections'][number]
-type PluralView = NonNullable<Entity['views']['plural']>
 type CollectionReferencePath = {
 	fields: readonly [FieldReference, ...FieldReference[]]
 	targetEntityType: EntityType
@@ -140,10 +139,6 @@ const projectionPathKey = (
 	path: readonly string[]
 ) => `${entityType}${path.join('')}`
 
-const entityLabel = (entity: Entity) => entity.labels.singular
-const entityLabelPlural = (entity: Entity) => entity.labels.plural
-const entitySingularView = (entity: Entity) => entity.views.singular
-const entityPluralView = (entity: Entity) => entity.views.plural
 const isProjectionFieldReference = (field: unknown): field is Extract<FieldReference, readonly string[]> => (
 	Array.isArray(field) && field.length > 1 && field.every((part) => typeof part === 'string')
 	&& /^[A-Z]/.test(field[0] ?? '')
@@ -938,10 +933,10 @@ const generatedIdentifier = (name: string) => localIdentifier(name.replaceAll(/[
 const singularComponentName = (entityType: string) => `${entityType}View`
 
 const pluralComponentName = (entity: Entity) => {
-	if (entityPluralView(entity)?.component == null)
+	if (entity.views.plural?.component == null)
 		throw new Error(`${entity.entityType} is missing pluralView.component`)
 
-	return entityPluralView(entity).component
+	return entity.views.plural.component
 }
 
 const isDefaultPluralViewComponent = (
@@ -1270,7 +1265,7 @@ const renderProjectionPathBoundaryLines = (
 	const conditions = projectionViewConditions(entity, indexes, projectionPath)
 		.slice(parentConditions.length)
 	if (conditions.length === 0 || !conditions.every(({ field }) => entitySelectorOwnsField(entity, field))) {
-		if (conditions.length === 0 || entitySingularView(entity)?.pending == null)
+		if (conditions.length === 0 || entity.views.singular?.pending == null)
 			return boundaryLines
 
 		return [
@@ -2538,8 +2533,8 @@ const namedSourceSelectionFromQuery = (
 )
 
 const declaredViewItems = (entity: Entity) => {
-	const singularView = entitySingularView(entity)
-	const pluralView = entityPluralView(entity)
+	const singularView = entity.views.singular
+	const pluralView = entity.views.plural
 
 	return [
 		singularView?.summary?.icon,
@@ -2564,8 +2559,8 @@ const declaredViewItems = (entity: Entity) => {
 }
 
 const entityNamedSourceSelections = (entity: Entity) => {
-	const singularView = entitySingularView(entity)
-	const pluralView = entityPluralView(entity)
+	const singularView = entity.views.singular
+	const pluralView = entity.views.plural
 	return [
 		...namedSourceSelectionFromQuery(singularView?.query),
 		...(singularView?.latest ?? []).flatMap((latest) => namedSourceSelectionFromQuery(latest.query)),
@@ -2589,7 +2584,7 @@ const rawSnippet = (snippet: _RawSnippet | undefined) => (
 )
 
 const singularViewRawSnippets = (entity: Entity) => {
-	const singularView = entitySingularView(entity)
+	const singularView = entity.views.singular
 
 	return [
 		...rawSnippet(singularView?.TypeAnnotationTooltip),
@@ -2605,7 +2600,7 @@ const singularViewRawSnippets = (entity: Entity) => {
 }
 
 const entityRawSnippets = (entity: Entity) => {
-	const pluralView = entityPluralView(entity)
+	const pluralView = entity.views.plural
 
 	return [
 		...singularViewRawSnippets(entity),
@@ -3841,7 +3836,7 @@ const compileRouteTree = (
 				.filter((param) => routeParams.some(({ name }) => name === param)))
 			if (projectionRouteParams.length > 1)
 				throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} projection subject ${mapping.projection?.entityType} has ambiguous route parameters ${projectionRouteParams.join(', ')}`)
-			const sourceSelection = entitySingularView(normalizedEntity)?.query?.sources
+			const sourceSelection = normalizedEntity.views.singular?.query?.sources
 
 			return {
 				entityType,
@@ -5798,8 +5793,8 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		errors.push('schema.valueTypes must be alphabetized')
 
 	for (const entity of activeEntities) {
-		const singularView = entitySingularView(entity)
-		if (entityLabelPlural(entity).trim() === '')
+		const singularView = entity.views.singular
+		if (entity.labels.plural.trim() === '')
 			errors.push(`${entity.entityType} is missing an explicit labels.plural value`)
 		expectUnique(`${entity.entityType} selector`, entity.selectors.map((selector) => selector.name))
 		for (const selector of entity.selectors) {
@@ -5891,12 +5886,12 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 					errors.push(`${entity.entityType} facet list references missing field ${list.field}`)
 			}
 		}
-		if (entityPluralView(entity)?.rowHref != null) {
+		if (entity.views.plural?.rowHref != null) {
 			const selectorFieldNames = new Set(entity.selectors.flatMap((selector) => selector.fields))
 			for (const [
 				param,
 				value,
-			] of Object.entries(entityPluralView(entity).rowHref.params)) {
+			] of Object.entries(entity.views.plural.rowHref.params)) {
 				for (const fieldPath of expressionFieldPaths(value)) {
 					const field = fieldPath[0]
 					if (field != null && !selectorFieldNames.has(field))
@@ -5925,7 +5920,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	const indexedRouteNodes = flattenRouteNodes(compiledRouteNodes)
 	const routeNodeByInternalPath = new Map(indexedRouteNodes.map((node) => [node.internalPath, node]))
 	for (const entity of activeEntities) {
-		const singularView = entitySingularView(entity)
+		const singularView = entity.views.singular
 		for (const list of [
 			...(singularView?.content?.lists ?? []),
 			...(singularView?.lists ?? []),
@@ -5944,17 +5939,21 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		selectorMappingEntries,
 		({ mapping }) => selectorRouteMappingKey(mapping.entityType, mapping.selectorName)
 	)
+	const entityTypesWithCanonicalRoutes = new Set(selectorMappingEntries.flatMap(({ node, mapping }) => (
+		mapping.href?.entityHref !== false
+		&& selectorMappingOwnsDetailPage(node, mapping) ?
+			[mapping.entityType]
+		:
+			[]
+	)))
 	for (const [key, entries] of routeMappingsByEntityTypeAndSelector)
 		if (entries.length > 1)
 			throw new Error(`Duplicate route selector mapping ${key}: ${entries.map(({ node }) => node.internalPath).join(', ')}`)
 	for (const { node, mapping } of selectorMappingEntries)
 		if (
 			mapping.href?.entityHref === false
-			&& !indexedRouteNodes.some((candidateNode) => candidateNode.selectorMappings.some((candidateMapping) => (
-				candidateMapping.entityType === mapping.entityType
-				&& candidateMapping.href?.entityHref !== false
-				&& selectorMappingOwnsDetailPage(candidateNode, candidateMapping)
-			))))
+			&& !entityTypesWithCanonicalRoutes.has(mapping.entityType)
+		)
 			throw new Error(`${node.internalPath} ${mapping.entityType}.${mapping.selectorName} suppresses its entity href without a canonical entity route`)
 	for (const { node, mapping } of selectorMappingEntries)
 		if (
@@ -6365,6 +6364,10 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 		]),
 	]).filter((file) => file != null)
 	const routeFiles = generationInput.physicalRouteFiles.flatMap((plan) => generateRouteFiles(plan, renderingIndexes))
+	const sourceBindingsByProvider = Object.groupBy(indexes.sourceBindings, (sourceBinding) => (
+		indexes.sourceDefinitionById[sourceBinding.source].provider
+	))
+	const sourcesByProvider = Object.groupBy(generationInput.sources, ({ provider }) => provider)
 	const files = [
 		// Schema contracts.
 		...([
@@ -6410,18 +6413,16 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 		),
 		generateSourceBindingFile(),
 		generateSourceProviderEnumFile(sourceProviderNames),
-		...sourceProviders.flatMap((provider) => {
-			const providerBindings = indexes.sourceBindings.filter((sourceBinding) => (
-				indexes.sourceDefinitionById[sourceBinding.source].provider === provider.provider
-			))
-			return [
-				generateSourceProviderBindingsFile(provider, providerBindings),
-				generateSourceProviderDefinitionFile(
-					provider,
-					generationInput.sources.filter((source) => source.provider === provider.provider)
-				),
-			]
-		}),
+		...sourceProviders.flatMap((provider) => [
+			generateSourceProviderBindingsFile(
+				provider,
+				sourceBindingsByProvider[provider.provider] ?? []
+			),
+			generateSourceProviderDefinitionFile(
+				provider,
+				sourcesByProvider[provider.provider] ?? []
+			),
+		]),
 		generateSourceProvidersFile(sourceProviderNames),
 		generateSourceServerCredentialsFile(indexes.sourceBindings),
 		...generateSourceSelectionFiles(namedSourceSelections),
@@ -6630,8 +6631,8 @@ const generateEntitySchemaFile = (entity: Entity, indexes: GenerationIndexes) =>
 		'export default entity({',
 			indent(`entityType: ${enumAccess('EntityType', entity.entityType)},`),
 			indent('labels: {'),
-			indent(`singular: ${emitTypeScript(entityLabel(entity))},`, 2),
-			indent(`plural: ${emitTypeScript(entityLabelPlural(entity))},`, 2),
+			indent(`singular: ${emitTypeScript(entity.labels.singular)},`, 2),
+			indent(`plural: ${emitTypeScript(entity.labels.plural)},`, 2),
 			indent('},'),
 			...(entity.description == null ? [] : [indent(`description: ${emitTypeScript(entity.description)},`)]),
 			`})({`,
@@ -8376,7 +8377,7 @@ const entitySelectorOwnsField = (entity: Entity, fieldReference: FieldReference)
 const pendingEntityExpression = 'pendingEntity'
 
 const renderPendingEntityDerived = (entity: Entity) => {
-	const pending = entitySingularView(entity)?.pending
+	const pending = entity.views.singular?.pending
 
 	return pending == null ?
 		[
@@ -9280,7 +9281,7 @@ const viewItemContextExpression = (
 	return entityFieldsExpression
 }
 
-const summarySerial = (entity: Entity) => entitySingularView(entity)?.summary?.serial
+const summarySerial = (entity: Entity) => entity.views.singular?.summary?.serial
 
 const declarativeSummaryQueryFieldReferences = (entity: Entity, indexes: GenerationIndexes, visitedEntityTypes = new Set<EntityType>()): FieldReference[] | undefined => {
 	const summaryPlan = summaryPlanFor(entity, indexes)
@@ -9333,7 +9334,7 @@ const declarativeSummaryQueryFieldReferences = (entity: Entity, indexes: Generat
 }
 
 const allViewItems = (entity: Entity, indexes: GenerationIndexes) => {
-	const singularView = entitySingularView(entity)
+	const singularView = entity.views.singular
 	const content = singularView?.content
 	const details = singularView?.details
 
@@ -9395,7 +9396,7 @@ const viewEntryEntityReferenceTypes = (entity: Entity, indexes: GenerationIndexe
 })
 
 const compileSummaryPlan = (entity: Entity, indexes: GenerationIndexes) => {
-	const singularView = entitySingularView(entity)
+	const singularView = entity.views.singular
 	const summary = singularView?.summary
 	const contentWarning = singularView?.contentWarning
 	const serial = summary?.serial
@@ -9492,7 +9493,7 @@ const summaryPlanFor = (entity: Entity, indexes: GenerationIndexes) => (
 )
 
 const compileSingularViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
-	const singularView = entitySingularView(entity)
+	const singularView = entity.views.singular
 	const contentWarning = singularView?.contentWarning
 	const summaryPlan = summaryPlanFor(entity, indexes)
 	const {
@@ -9614,7 +9615,7 @@ const compileSingularViewPlan = (entity: Entity, indexes: GenerationIndexes) => 
 	const titleFallbackExpression = renderWarningFallbackExpression(
 		[
 			serialFallbackTitleExpression,
-			...(serialFallbackTitleIsRequiredScalar ? [] : [emitTypeScript(displayLabel(entityLabel(entity)))]),
+			...(serialFallbackTitleIsRequiredScalar ? [] : [emitTypeScript(displayLabel(entity.labels.singular))]),
 		],
 		warningConditionExpression(pendingEntityExpression),
 		warningSummaryExpression(pendingEntityExpression)
@@ -9679,7 +9680,7 @@ const compileSingularViewPlan = (entity: Entity, indexes: GenerationIndexes) => 
 }
 
 const defaultContentDlGroups = (entity: Entity, indexes: GenerationIndexes) => {
-	const singularView = entitySingularView(entity)
+	const singularView = entity.views.singular
 	const content = singularView?.content
 	if (
 		(content?.dl ?? []).length > 0
@@ -9708,7 +9709,7 @@ const defaultContentDlGroups = (entity: Entity, indexes: GenerationIndexes) => {
 }
 
 const contentDlGroups = (entity: Entity, indexes: GenerationIndexes) => {
-	const singularView = entitySingularView(entity)
+	const singularView = entity.views.singular
 	const summaryFieldKeys = summaryPlanFor(entity, indexes).fieldKeys
 	const modeledDlGroups = singularView?.content?.dl ?? []
 	const openFieldKeys = new Set(modeledDlGroups.flatMap((viewEntries) => viewEntries.flatMap((viewEntry) => itemFieldReferences(viewEntry).map(fieldReferenceKey))))
@@ -9742,7 +9743,7 @@ const contentDlGroups = (entity: Entity, indexes: GenerationIndexes) => {
 }
 
 const declaredRelationshipViewSections = (entity: Entity) => {
-	const singularView = entitySingularView(entity)
+	const singularView = entity.views.singular
 	const carouselFieldKeys = new Set(
 		(singularView?.carousels ?? [])
 			.flatMap((carousel) => carousel.sections)
@@ -9931,7 +9932,7 @@ const generateSingularViewFile = (
 	indexes: GenerationIndexes,
 	plan: ReturnType<typeof compileSingularViewPlan>
 ) => {
-	const singularView = entitySingularView(entity)
+	const singularView = entity.views.singular
 	const viewQuery = singularView?.query
 	const content = singularView?.content
 	const details = singularView?.details
@@ -11459,7 +11460,7 @@ const renderIconSnippet = (
 	indexes: GenerationIndexes,
 	entityResourceExpression: string
 ) => {
-	const singularView = entitySingularView(entity)
+	const singularView = entity.views.singular
 	const renderIcon = (body: string[]) => [
 		'',
 		...renderSvelteSnippet(1, 'Icon()', body),
@@ -13847,15 +13848,15 @@ const renderFilterCondition = (
 }
 
 const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
-	const singularView = entitySingularView(entity)
+	const singularView = entity.views.singular
 	const summaryPlan = summaryPlanFor(entity, indexes)
-	const pluralView: PluralView | undefined = entityPluralView(entity)
+	const pluralView = entity.views.plural
 	const componentName = pluralComponentName(entity)
 	const contentWarning = singularView?.contentWarning
 	const entityValueName = camel(entity.entityType)
 	const usesCustomPluralId = pluralViewName(entity) !== `${entity.entityType}s`
 	const customPluralTitle = (
-		pluralView?.title === sentenceStart(entityLabelPlural(entity)) ?
+		pluralView?.title === sentenceStart(entity.labels.plural) ?
 			undefined
 		:
 			pluralView?.title
@@ -14129,7 +14130,7 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 				visitedEntityTypes,
 				entitySelectorExpression
 			),
-			emitTypeScript(displayLabel(entityLabel(summaryEntity))),
+			emitTypeScript(displayLabel(summaryEntity.labels.singular)),
 		])
 	}
 	const itemSelectionName = 'selection'
@@ -14193,7 +14194,7 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 						entitySelectorExpression,
 						projectedFieldExpressionByReference
 					),
-					emitTypeScript(displayLabel(entityLabel(entity))),
+					emitTypeScript(displayLabel(entity.labels.singular)),
 				])
 		)
 		const directSummaryValueExpression = renderDirectSummaryItemsExpression(
@@ -14233,7 +14234,7 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 				`${'\t'.repeat(level + 1)}{/snippet}`,
 			]
 		const directSummaryChildMarkup = trimBlankLineEdges([
-			...(directSummaryTitleExpression === emitTypeScript(entityLabel(entity)) ?
+			...(directSummaryTitleExpression === emitTypeScript(entity.labels.singular) ?
 				[]
 			:
 				renderSvelteSnippet(level + 1, 'Title()', [renderSvelteTextOrExpression(0, directSummaryTitleExpression)])),
@@ -14266,7 +14267,7 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 			selectorReferenceCount: [
 				entitySelectorExpression,
 				...(entityHrefExpression == null || itemHrefIsShared ? [] : [entityHrefExpression]),
-				...(directSummaryTitleExpression === emitTypeScript(entityLabel(entity)) ? [] : [directSummaryTitleExpression]),
+				...(directSummaryTitleExpression === emitTypeScript(entity.labels.singular) ? [] : [directSummaryTitleExpression]),
 				...(directSummaryValueExpression === 'undefined' ? [] : [directSummaryValueExpression]),
 				...(directSummaryAfterExpression === 'undefined' ? [] : [directSummaryAfterExpression]),
 			].reduce((count, expression) => (
@@ -15235,7 +15236,7 @@ const renderPageEntityTitleExpression = (
 			))} : '')`,
 			renderJoinedItemsExpression(entity, indexes, viewItems(serial.fallback), itemFieldsExpression),
 		])
-	const entityTypeLabel = emitTypeScript(displayLabel(entityLabel(entity)))
+	const entityTypeLabel = emitTypeScript(displayLabel(entity.labels.singular))
 	const pendingTitleExpression = renderFirstDeclaredExpression([pendingSerialTitle, entityTypeLabel])
 	const resolvedTitleExpression = renderFirstDeclaredExpression([resolvedSerialTitle, entityTypeLabel])
 	const titleExpression = (
@@ -15340,14 +15341,14 @@ const generatePageFile = (
 				condition,
 				value: (
 					singleMappedEntityType == null ?
-						`(${title}) + ${emitTypeScript(` • ${displayLabel(entityLabel(entity))} • Blockhead`)}`
+						`(${title}) + ${emitTypeScript(` • ${displayLabel(entity.labels.singular)} • Blockhead`)}`
 					:
 						title
 				),
 			})),
 			(
 				singleMappedEntityType == null ?
-					`(${finalContext.title}) + ${emitTypeScript(` • ${displayLabel(entityLabel(finalContext.entity))} • Blockhead`)}`
+					`(${finalContext.title}) + ${emitTypeScript(` • ${displayLabel(finalContext.entity.labels.singular)} • Blockhead`)}`
 				:
 					finalContext.title
 			)
@@ -15408,7 +15409,7 @@ const generatePageFile = (
 					singleMappedEntity == null ?
 						'<title>{documentTitle}</title>'
 					:
-						`<title>{pageTitle} • ${svelteText(displayLabel(entityLabel(singleMappedEntity)))} • Blockhead</title>`,
+						`<title>{pageTitle} • ${svelteText(displayLabel(singleMappedEntity.labels.singular))} • Blockhead</title>`,
 				],
 				markup: singleMappedEntityType == null ?
 					[
@@ -15531,14 +15532,14 @@ const generatePageFile = (
 	)
 	// Generated detail and collection markup owns selection imports; raw page content declares its own.
 	const usesGeneratedSelection = collection != null || isEntityDetailPage
-	const entityTypeLabel = viewEntityDefinition == null ? undefined : displayLabel(entityLabel(viewEntityDefinition))
+	const entityTypeLabel = viewEntityDefinition == null ? undefined : displayLabel(viewEntityDefinition.labels.singular)
 	const pageTitleLiteral = routeFile.page?.text?.title ?? routeFile.page?.text?.label ?? (
 		isEntityDetailPage ?
 			undefined
 		: collectionEntity != null && indexes.entityByType[collectionEntity] != null ?
-			sentenceStart(entityLabelPlural(indexes.entityByType[collectionEntity]))
+			sentenceStart(indexes.entityByType[collectionEntity].labels.plural)
 		: viewEntityDefinition != null ?
-			displayLabel(entityLabel(viewEntityDefinition))
+			displayLabel(viewEntityDefinition.labels.singular)
 		:
 			'Blockhead'
 	)
@@ -15886,11 +15887,11 @@ const renderCollectionPageMarkup = (
 	const collectionTitle = (
 		collection.page?.text?.title
 		?? routeFile.page?.text?.title
-		?? sentenceStart(entityLabelPlural(collectionEntity))
+		?? sentenceStart(collectionEntity.labels.plural)
 	)
 	const collectionUsesDefaultTitle = collectionTitle === (
-		entityPluralView(collectionEntity)?.title
-		?? sentenceStart(entityLabelPlural(collectionEntity))
+		collectionEntity.views.plural?.title
+		?? sentenceStart(collectionEntity.labels.plural)
 	)
 	const defaultPluralComponent = pluralComponentName(collectionEntity)
 	const rendersDefaultEntitiesList = (
@@ -15958,28 +15959,6 @@ const renderCollectionPageMarkup = (
 	]
 }
 
-const renderKeyedSvelteMarkup = (keyExpression: string | undefined, markup: string[]) => (
-	keyExpression == null ?
-		markup
-	:
-		[
-			`{#key ${keyExpression}}`,
-			...reindentLines(markup, 1),
-			'{/key}',
-		]
-)
-
-const renderDetailHrefBinding = (hrefExpression: string, reactive: boolean) => (
-	reactive ?
-		[
-			'const detailHref = $derived(',
-			indent(hrefExpression, 1),
-			')',
-		]
-	:
-		[`const detailHref = ${hrefExpression}`]
-)
-
 const generateLayoutFile = (routePath: string, routeFile: RouteFile) => {
 	if (routeFile.detailLayout != null) {
 		const hrefParamNames = routeParamNames(routeFile.detailLayout.href)
@@ -16045,7 +16024,15 @@ const generateLayoutFile = (routePath: string, routeFile: RouteFile) => {
 					'\tparams,',
 					'}: LayoutProps = $props()',
 					'',
-					...renderDetailHrefBinding(entityHrefExpression, keyExpression != null),
+					...(keyExpression == null ?
+						[`const detailHref = ${entityHrefExpression}`]
+					:
+						[
+							'const detailHref = $derived(',
+							indent(entityHrefExpression, 1),
+							')',
+						]
+					),
 					'',
 					'',
 					'// Components',
@@ -16053,7 +16040,16 @@ const generateLayoutFile = (routePath: string, routeFile: RouteFile) => {
 					'import ParentPageCollapsible from \'$/components/ParentPageCollapsible.svelte\'',
 					...routeFile.detailLayout.components.map((component) => `import ${componentIdentifier(component)} from '${viewModulePath(component)}'`),
 				],
-				markup: renderKeyedSvelteMarkup(keyExpression, parentPageCollapsibleLines),
+				markup: (
+					keyExpression == null ?
+						parentPageCollapsibleLines
+					:
+						[
+							`{#key ${keyExpression}}`,
+							...reindentLines(parentPageCollapsibleLines, 1),
+							'{/key}',
+						]
+				),
 			}
 		)
 	}
