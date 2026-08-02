@@ -5963,8 +5963,8 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		const entries = indexedEntries.filter((node) => node.page != null || node.selectorMappings.length > 0)
 		for (const [index, left] of entries.entries())
 			for (const right of entries.slice(index + 1)) {
-				const leftMappings = routeProbeMappingsByNode.get(left.internalPath)?.mappings ?? []
-				const rightMappings = routeProbeMappingsByNode.get(right.internalPath)?.mappings ?? []
+				const leftMappings = routeProbeMappingsByNode.get(left.internalPath) ?? []
+				const rightMappings = routeProbeMappingsByNode.get(right.internalPath) ?? []
 				const leftApplicabilities = (leftMappings.length === 0 ? [undefined] : leftMappings).map((mapping) => applicabilityFor(left, mapping))
 				const rightApplicabilities = (rightMappings.length === 0 ? [undefined] : rightMappings).map((mapping) => applicabilityFor(right, mapping))
 				if (routeApplicabilitySetsOverlap(leftApplicabilities, rightApplicabilities))

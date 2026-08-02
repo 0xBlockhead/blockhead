@@ -4322,6 +4322,74 @@ test('proves structurally disjoint encoded selector domains', () => {
 		)
 })
 
+test('uses indexed selector mappings to distinguish shared public route shapes', () => {
+	const disjointRouteApp = structuredClone(app)
+	const caip2Node = disjointRouteApp.routes.children['(explore)']?.children?.['(networks)']?.children?.network?.children?.['[network]']
+	const networkMappings = caip2Node?.selectors?.[EntityType.Network]
+	assert.ok(caip2Node)
+	assert.ok(networkMappings?.Caip2)
+	assert.ok(networkMappings.Slug)
+	const slugNode = structuredClone(caip2Node)
+	Object.defineProperties(caip2Node, {
+		children: {
+			enumerable: true,
+			value: {},
+		},
+		params: {
+			enumerable: true,
+			value: {
+				network: ['NetworkSlug'],
+			},
+		},
+		selectors: {
+			enumerable: true,
+			value: {
+				[EntityType.Network]: {
+					Caip2: networkMappings.Caip2,
+				},
+			},
+		},
+	})
+	Object.defineProperties(slugNode, {
+		children: {
+			enumerable: true,
+			value: {},
+		},
+		params: {
+			enumerable: true,
+			value: {
+				network: ['caip2'],
+			},
+		},
+		selectors: {
+			enumerable: true,
+			value: {
+				[EntityType.Network]: {
+					Slug: networkMappings.Slug,
+				},
+			},
+		},
+	})
+	disjointRouteApp.routes.outcomes = undefined
+	Object.defineProperty(disjointRouteApp.routes.children, '(network-slug-overlap)', {
+		enumerable: true,
+		value: {
+			children: {
+				network: {
+					children: {
+						'[network]': slugNode,
+					},
+				},
+			},
+		},
+	})
+
+	assert.doesNotThrow(() => compileApp(disjointRouteApp))
+	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
+	assert.match(generatorSource, /routeProbeMappingsByNode\.get\(left\.internalPath\) \?\? \[\]/)
+	assert.doesNotMatch(generatorSource, /routeProbeMappingsByNode\.get\([^\n]+\)\?\.mappings/)
+})
+
 test('fails closed for genuinely overlapping or unknown encoded domains', () => {
 	const network = app.schema.entities.find((entity) => entity.entityType === EntityType.Network)
 	const networkMappings = app.routes.children['(explore)']?.children?.['(networks)']?.children?.network?.children?.['[network]']?.selectors?.[EntityType.Network]
