@@ -195,12 +195,7 @@
 	{/snippet}
 
 	{#snippet Details()}
-		{@const proposalsResource = selection
-			.$$proposals({
-				sources: [
-					Source.Constants_Internal,
-				],
-			})}
+		{@const proposalsResource = selection.$$proposals}
 		<ResourceBoundary
 			resource={proposalsResource}
 		>

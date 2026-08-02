@@ -340,9 +340,6 @@
 									resource={
 										projection
 										.$$upgrades({
-											sources: [
-												Source.Constants_Internal,
-											],
 											fields: {
 												name: true,
 												activationBlock: true,
@@ -427,9 +424,6 @@
 									resource={
 										projection
 										.$$gasFeeBlocks({
-											sources: [
-												Source.Voltaire_JsonRpc,
-											],
 											fields: {
 												blockNumber: true,
 												baseFeePerGas: true,
@@ -472,9 +466,6 @@
 									resource={
 										projection
 										.$$txpoolTimestamps({
-											sources: [
-												Source.Voltaire_JsonRpc,
-											],
 											fields: {
 												timestampMs: true,
 												pendingCount: true,
@@ -522,9 +513,6 @@
 												resource={
 													selection.Evm
 													.$$beaconEpochs({
-														sources: [
-															Source.Beacon_Rest,
-														],
 														fields: {
 															epoch: true,
 															startSlot: true,
@@ -565,9 +553,6 @@
 												resource={
 													selection.Evm
 													.$$beaconSlots({
-														sources: [
-															Source.Beacon_Rest,
-														],
 														fields: {
 															slot: true,
 															epoch: true,
@@ -1589,9 +1574,6 @@
 									selection={
 										projection
 										.$$executionUpgrades({
-											sources: [
-												Source.Constants_Internal,
-											],
 											limit: 512,
 										})
 									}
@@ -1852,9 +1834,6 @@
 												selection={
 													selection.Evm
 													.$$consensusUpgrades({
-														sources: [
-															Source.Constants_Internal,
-														],
 														limit: 512,
 													})
 												}
@@ -2004,9 +1983,6 @@
 												selection={
 													selection.Evm
 													.$$mevRelays({
-														sources: [
-															Source.Constants_Internal,
-														],
 														limit: 64,
 													})
 												}
@@ -2021,9 +1997,6 @@
 												selection={
 													selection.Evm
 													.$$mevBuilders({
-														sources: [
-															Source.MevRelay_Rest,
-														],
 														limit: 16,
 													})
 												}
@@ -2038,9 +2011,6 @@
 												selection={
 													selection.Evm
 													.$$mevProposerPayloadDelivered({
-														sources: [
-															Source.MevRelay_Rest,
-														],
 														limit: 16,
 													})
 												}
@@ -2225,9 +2195,6 @@
 									selection={
 										projection
 										.$$precompiles({
-											sources: [
-												Source.Constants_Internal,
-											],
 											limit: 64,
 										})
 									}
@@ -2329,19 +2296,9 @@
 
 						</CollapsibleTabs>
 					{/if}
-					{@const evmAssetsNativeCoinResource = projection
-						.$nativeCoin({
-							sources: [
-								Source.Constants_Internal,
-							],
-						})}
+					{@const evmAssetsNativeCoinResource = projection.$nativeCoin}
 
-					{@const evmAssetsNativeInstanceResource = projection
-						.$nativeCoinInstance({
-							sources: [
-								Source.Constants_Internal,
-							],
-						})}
+					{@const evmAssetsNativeInstanceResource = projection.$nativeCoinInstance}
 
 					{@const evmAssetsSections = [
 							{
@@ -2963,9 +2920,6 @@
 									selection={
 										projection
 										.$$validators({
-											sources: [
-												Source.SubstrateSidecar_Rest,
-											],
 											limit: 16,
 										})
 									}
@@ -3696,14 +3650,7 @@
 
 						{#snippet SectionZcashShieldedPools({ id, label })}
 							<ZcashShieldedPoolsView
-								selection={
-									projection
-									.$$shieldedPools({
-										sources: [
-											Source.Constants_Internal,
-										],
-									})
-								}
+								selection={projection.$$shieldedPools}
 								collapsible={false}
 								title={label}
 								id={`${id}-list`}
@@ -3882,9 +3829,6 @@
 								selection={
 									projection
 									.$$timestamps({
-										sources: [
-											Source.ZeroGStorageScan_Rest,
-										],
 										limit: 16,
 									})
 								}
@@ -3904,9 +3848,6 @@
 								resource={
 									projection
 									.$$storageNodes({
-										sources: [
-											Source.ZeroGStorageScan_Rest,
-										],
 										limit: 16,
 									})()
 								}
@@ -3925,9 +3866,6 @@
 								selection={
 									projection
 									.$$dataBlobs({
-										sources: [
-											Source.ZeroGStorageScan_Rest,
-										],
 										limit: 16,
 									})
 								}
@@ -3942,9 +3880,6 @@
 								selection={
 									projection
 									.$$storageLogEntries({
-										sources: [
-											Source.ZeroGStorageScan_Rest,
-										],
 										limit: 16,
 									})
 								}
@@ -3993,9 +3928,6 @@
 								selection={
 									projection
 									.$$timestamps({
-										sources: [
-											Source.Lotus_JsonRpc,
-										],
 										limit: 16,
 									})
 								}
@@ -4010,9 +3942,6 @@
 								selection={
 									projection
 									.$$tipsets({
-										sources: [
-											Source.Lotus_JsonRpc,
-										],
 										limit: 16,
 									})
 								}
@@ -4403,9 +4332,6 @@
 								selection={
 									projection
 									.$$timestamps({
-										sources: [
-											Source.MoneroDaemonRpc_JsonRpc,
-										],
 										limit: 16,
 									})
 								}
@@ -4420,9 +4346,6 @@
 								selection={
 									projection
 									.$$blocks({
-										sources: [
-											Source.MoneroDaemonRpc_JsonRpc,
-										],
 										limit: 16,
 									})
 								}

@@ -243,9 +243,6 @@
 	{#snippet Details()}
 		{@const repliesResource = selection
 			.$$replies({
-				sources: [
-					Source.Youtube_Rest,
-				],
 				limit: 50,
 			})}
 		<ResourceBoundary
@@ -264,10 +261,6 @@
 		</ResourceBoundary>
 		{@const timestampsResource = selection
 			.$$timestamps({
-				sources: [
-					Source.Youtube_Rest,
-					Source.Piped_Rest,
-				],
 				limit: 50,
 			})}
 		<ResourceBoundary

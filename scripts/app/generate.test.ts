@@ -768,6 +768,68 @@ const retainedPluralEntities = app.schema.entities.filter((entity) => (
 	generatedPaths.has(`src/views/${entity.views.plural.component}.svelte`)
 ))
 
+test('omits exact field-default sources only from parent field queries', () => {
+	const literalSourceCountByPath = Object.fromEntries(generatedViewSources.flatMap(([filePath, source]) => {
+		const count = (source.match(/sources: \[\n(?:\s+Source\.[A-Za-z0-9_]+,\n)+\s+\]/g) ?? []).length
+		return count === 0 ? [] : [[filePath, count]]
+	}))
+	assert.equal(Object.values(literalSourceCountByPath).reduce((total, count) => total + count, 0), 36)
+	assert.deepEqual(
+		literalSourceCountByPath,
+		{
+			'src/views/AtprotoActorView.svelte': 1,
+			'src/views/BeaconEpochView.svelte': 1,
+			'src/views/CoinView.svelte': 3,
+			'src/views/CurrencyView.svelte': 2,
+			'src/views/EthereumExecutionUpgradeView.svelte': 1,
+			'src/views/FilecoinActorView.svelte': 1,
+			'src/views/FilecoinMinerView.svelte': 1,
+			'src/views/MarketView.svelte': 1,
+			'src/views/NetworkView.svelte': 24,
+			'src/views/NostrRelayView.svelte': 1,
+		}
+	)
+
+	const filecoinActorView = generatedSource('src/views/FilecoinActorView.svelte')
+	const filecoinParentQuery = filecoinActorView.slice(
+		filecoinActorView.indexOf('.$$timestamps({'),
+		filecoinActorView.indexOf('<FilecoinActor_TimestampView')
+	)
+	assert.doesNotMatch(filecoinParentQuery, /sources:/)
+	assert.match(
+		filecoinActorView.slice(filecoinActorView.indexOf('<FilecoinActor_TimestampView')),
+		/sources: \[\s+Source\.Lotus_JsonRpc,\s+\]/
+	)
+	assert.match(
+		generatedSource('src/views/CoinView.svelte'),
+		/\.\$\$marketsWithCoinAsBase\(\{\s+sources: \[\s+Source\.Constants_Internal,\s+\]/
+	)
+	assert.match(
+		generatedSource('src/views/NetworkView.svelte'),
+		/\.\$\$blocks\(\{\s+sources: voltaireJsonRpcSources,/
+	)
+	for (const rawView of [
+		generatedSource('src/views/AtprotoActorView.svelte'),
+		generatedSource('src/views/MarketView.svelte'),
+	])
+		assert.match(rawView, /sources: \[\s+Source\.(?:Atproto_Xrpc|Coingecko_Rest),\s+\]/)
+
+	const mutatedApp = structuredClone(app)
+	const filecoinActor = mutatedApp.schema.entities.find(({ entityType }) => entityType === EntityType.FilecoinActor)
+	assert.ok(filecoinActor)
+	const timestamps = filecoinActor.fields.find(({ name }) => name === '$$timestamps')
+	assert.ok(timestamps)
+	timestamps.defaultSources = [Source.Constants_Internal]
+	const mutatedFilecoinActorView = compileApp(mutatedApp).generatedFiles.find(({ path }) => (
+		path === 'src/views/FilecoinActorView.svelte'
+	))
+	assert.ok(mutatedFilecoinActorView)
+	assert.equal(
+		(renderGeneratedFile(mutatedFilecoinActorView).match(/sources: \[\s+Source\.Lotus_JsonRpc,\s+\]/g) ?? []).length,
+		2
+	)
+})
+
 test('generated views and pages import exactly the dependencies they use', () => {
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
 	const importPlanningStart = generatorSource.indexOf('const scriptBeforePendingEntity =')
@@ -6039,7 +6101,8 @@ test('loads sibling facet row fields only after eligibility through projection-o
 	for (const markup of [contentMarkup, detailsMarkup])
 		assert.match(markup, /resource=\{\s*selection\.entitySelector\.type === 'NativeCurrency' \?\s*selection\.NativeCurrency\s*:\s*selection\.Erc20Token\s*\}/)
 	assert.equal((singularView.match(/resource=\{selection\.(?:NativeCurrency|Erc20Token)\}/g) ?? []).length, 4)
-	assert.equal((singularView.match(/\.\$\$outboundBridgeCapabilities\(/g) ?? []).length, 1)
+	assert.equal((singularView.match(/\.\$\$outboundBridgeCapabilities\b/g) ?? []).length, 1)
+	assert.doesNotMatch(singularView, /\.\$\$outboundBridgeCapabilities\(/)
 	assert.doesNotMatch(singularView, /\{@const [^=\n]*\.[^=\n]* =/)
 	assert.doesNotMatch(rootResource, /NativeCurrency|Erc20Token|Blockscout_Rest|Constants_Internal|symbol|name/)
 })

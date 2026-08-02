@@ -7,7 +7,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -370,12 +369,7 @@
 			}
 		>
 			{#snippet Applicable(projection)}
-				{@const outboundBridgeCapabilitiesResource = projection
-					.$$outboundBridgeCapabilities({
-						sources: [
-							Source.Lifi_Rest,
-						],
-					})}
+				{@const outboundBridgeCapabilitiesResource = projection.$$outboundBridgeCapabilities}
 				<ResourceBoundary
 					resource={outboundBridgeCapabilitiesResource}
 				>
@@ -391,12 +385,7 @@
 					{/snippet}
 				</ResourceBoundary>
 
-				{@const inboundBridgeCapabilitiesResource = projection
-					.$$inboundBridgeCapabilities({
-						sources: [
-							Source.Lifi_Rest,
-						],
-					})}
+				{@const inboundBridgeCapabilitiesResource = projection.$$inboundBridgeCapabilities}
 				<ResourceBoundary
 					resource={inboundBridgeCapabilitiesResource}
 				>
