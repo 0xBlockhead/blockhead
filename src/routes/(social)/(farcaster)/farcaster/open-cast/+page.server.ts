@@ -1,7 +1,7 @@
 import { env } from '$env/dynamic/public'
 import { error, redirect } from '@sveltejs/kit'
 
-import { getCastByClientUrl } from '$/sources/Neynar/Rest/queries.ts'
+import { getCast } from '$/sources/Neynar/Rest/queries.ts'
 import {
 	parseFarcasterUrlIngress,
 	verifyFarcasterIngressCast,
@@ -37,11 +37,14 @@ export const load: PageServerLoad = async ({ url }) => {
 	if (ingress.kind === 'channel')
 		redirect(303, `/farcaster/channel/${encodeURIComponent(ingress.channelId)}`)
 
-	const cast = await getCastByClientUrl(
+	const cast = await getCast(
 		{
 			PUBLIC_NEYNAR_API_KEY: env.PUBLIC_NEYNAR_API_KEY,
 		},
-		ingress.clientUrl
+		{
+			identifier: ingress.clientUrl,
+			type: 'url',
+		}
 	)
 	if (cast == null)
 		error(503, 'Farcaster URL lookup is unavailable')

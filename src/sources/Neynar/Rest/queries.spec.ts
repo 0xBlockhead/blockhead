@@ -13,6 +13,7 @@ vi.mock('$/sources/Neynar/Rest/client.ts', () => ({
 
 const {
 	getBulkUsers,
+	getCast,
 	getCastConversation,
 	getFeed,
 } = await import('$/sources/Neynar/Rest/queries.ts')
@@ -119,6 +120,35 @@ describe('Neynar feed request identity', () => {
 		expect(neynarFetch).toHaveBeenLastCalledWith(
 			{},
 			`/v2/farcaster/feed/?${expected}`
+		)
+	})
+})
+
+describe('Neynar cast request identity', () => {
+	it.each([
+		{
+			query: {
+				identifier: '0xabcdef' as const,
+				type: 'hash' as const,
+			},
+			expected: 'identifier=0xabcdef&type=hash',
+		},
+		{
+			query: {
+				identifier: 'https://warpcast.com/alice/0xab+c/d',
+				type: 'url' as const,
+			},
+			expected: 'identifier=https%3A%2F%2Fwarpcast.com%2Falice%2F0xab%2Bc%2Fd&type=url',
+		},
+	])('looks up a cast by $query.type identity', async ({
+		query,
+		expected,
+	}) => {
+		await getCast({}, query)
+
+		expect(neynarFetch).toHaveBeenLastCalledWith(
+			{},
+			`/v2/farcaster/cast/?${expected}`
 		)
 	})
 })

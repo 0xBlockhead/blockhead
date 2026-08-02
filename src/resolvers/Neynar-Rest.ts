@@ -348,11 +348,14 @@ export default {
 				FidHash: {
 					resolve: async ({ fid, hash }, context) => {
 						const {
-							getCastByHash,
+							getCast,
 						} = await import('$/sources/Neynar/Rest/queries.ts')
-						const cast = await getCastByHash(
+						const cast = await getCast(
 							context.publicEnv,
-							zeroXLowerHexCastHash(hash)
+							{
+								identifier: zeroXLowerHexCastHash(hash),
+								type: 'hash',
+							}
 						)
 						if (cast == null)
 							return {
@@ -454,9 +457,12 @@ export default {
 				ClientUrl: {
 					resolve: async ({ clientUrl }, context) => {
 						const {
-							getCastByClientUrl,
+							getCast,
 						} = await import('$/sources/Neynar/Rest/queries.ts')
-						const cast = await getCastByClientUrl(context.publicEnv, clientUrl)
+						const cast = await getCast(context.publicEnv, {
+							identifier: clientUrl,
+							type: 'url',
+						})
 						if (cast == null)
 							throw new Error('Neynar_Rest: cast not found')
 						const castHash = zeroXLowerHexCastHash(cast.hash)

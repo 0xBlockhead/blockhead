@@ -12,8 +12,8 @@ import {
 } from '$/sources/Neynar/Rest/constants.ts'
 import type {
 	NeynarBulkUsersResponse,
+	NeynarCastQuery,
 	NeynarCastResponse,
-	NeynarConversationQuery,
 	NeynarConversationResponse,
 	NeynarFeedQuery,
 	NeynarFeedResponse,
@@ -84,32 +84,14 @@ export const getFeed = (
 	return neynarFetch<NeynarFeedResponse>(publicEnv, `/v2/farcaster/feed/?${searchParams}`)
 }
 
-export const getCastByHash = async (
+/** Cast lookup by its hash or public client URL. */
+export const getCast = async (
 	publicEnv: SourcePublicEnv,
-	hash: `0x${string}`
+	query: NeynarCastQuery
 ) => {
 	const searchParams = new URLSearchParams({
-		identifier: hash,
-		type: 'hash',
-	})
-	const response = await neynarFetch<NeynarCastResponse>(
-		publicEnv,
-		`/v2/farcaster/cast/?${searchParams}`
-	)
-	return response?.cast
-}
-
-/**
- * Cast by Farcaster / Warpcast web URL — `type=url` per
- * https://docs.neynar.com/reference/lookup-cast-by-hash-or-url
- */
-export const getCastByClientUrl = async (
-	publicEnv: SourcePublicEnv,
-	clientUrl: string
-) => {
-	const searchParams = new URLSearchParams({
-		identifier: clientUrl,
-		type: 'url',
+		identifier: query.identifier,
+		type: query.type,
 	})
 	const response = await neynarFetch<NeynarCastResponse>(
 		publicEnv,
@@ -124,7 +106,7 @@ export const getCastByClientUrl = async (
  */
 export const getCastConversation = (
 	publicEnv: SourcePublicEnv,
-	query: NeynarConversationQuery
+	query: NeynarCastQuery
 ) => {
 	const searchParams = new URLSearchParams({
 		identifier: query.identifier,

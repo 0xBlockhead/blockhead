@@ -11,13 +11,11 @@ import type {
 	NeynarCast,
 	NeynarUser,
 } from '$/sources/Neynar/Rest/types.ts'
-const getCastByHash = vi.hoisted(() => vi.fn())
-const getCastByClientUrl = vi.hoisted(() => vi.fn())
+const getCast = vi.hoisted(() => vi.fn())
 const getFeed = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Neynar/Rest/queries.ts', () => ({
-	getCastByHash,
-	getCastByClientUrl,
+	getCast,
 	getFeed,
 }))
 
@@ -491,7 +489,7 @@ describe('Neynar Farcaster feed resolver', () => {
 
 describe('Neynar Farcaster cast resolver', () => {
 	it('preserves selector identity when Neynar has no cast so another source can resolve detail', async () => {
-		getCastByHash.mockResolvedValueOnce(undefined)
+		getCast.mockResolvedValueOnce(undefined)
 
 		await expect(castResolver.resolve['FidHash'].resolve({
 			fid: 42,
@@ -500,6 +498,10 @@ describe('Neynar Farcaster cast resolver', () => {
 			fid: 42,
 			hash: '0xabcdef',
 		}))
+		expect(getCast).toHaveBeenLastCalledWith(resolverContext.publicEnv, {
+			identifier: '0xabcdef',
+			type: 'hash',
+		})
 	})
 
 	for (const {
@@ -560,12 +562,15 @@ describe('Neynar Farcaster cast resolver', () => {
 	]) {
 		it(`${label} for both public selectors`, async () => {
 			for (const {
-				getCast,
+				query,
 				selector,
 				resolve,
 			} of [
 				{
-					getCast: getCastByHash,
+					query: {
+						identifier: '0xabcdef',
+						type: 'hash',
+					} as const,
 					selector: {
 						fid: 42,
 						hash: '0xabcdef',
@@ -573,7 +578,10 @@ describe('Neynar Farcaster cast resolver', () => {
 					resolve: castResolver.resolve['FidHash'].resolve,
 				},
 				{
-					getCast: getCastByClientUrl,
+					query: {
+						identifier: 'https://warpcast.com/alice/0xabcdef',
+						type: 'url',
+					} as const,
 					selector: {
 						clientUrl: 'https://warpcast.com/alice/0xabcdef',
 					},
@@ -595,6 +603,10 @@ describe('Neynar Farcaster cast resolver', () => {
 					resolverContext
 				)
 
+				expect(getCast).toHaveBeenLastCalledWith(
+					resolverContext.publicEnv,
+					query
+				)
 				expect(cast).toEqual(expect.objectContaining(expected))
 				if (!('parentUrl' in expected))
 					expect(cast).not.toHaveProperty('parentUrl')

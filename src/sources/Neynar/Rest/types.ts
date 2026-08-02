@@ -8,7 +8,7 @@ import type {
 	operations,
 } from '$/sources/Neynar/OpenApi/openapi.d.ts'
 
-type NeynarConversationParameters = operations['lookup-cast-conversation']['parameters']['query']
+type NeynarCastParameters = operations['lookup-cast-by-hash-or-url']['parameters']['query']
 type NeynarFeedParameters = NonNullable<operations['fetch-feed']['parameters']['query']>
 type NeynarFeedType = NonNullable<NeynarFeedParameters['feed_type']>
 type NeynarFeedFilterType = NonNullable<NeynarFeedParameters['filter_type']>
@@ -25,14 +25,14 @@ export type NeynarConversationResponse = operations['lookup-cast-conversation'][
 export type NeynarFeedResponse = operations['fetch-feed']['responses'][200]['content']['application/json']
 export type NeynarBulkUsersResponse = operations['fetch-bulk-users']['responses'][200]['content']['application/json']
 
-export type NeynarConversationQuery =
+export type NeynarCastQuery =
 	| {
 		identifier: `0x${string}`
-		type: Extract<NeynarConversationParameters['type'], 'hash'>
+		type: Extract<NeynarCastParameters['type'], 'hash'>
 	}
 	| {
 		identifier: string
-		type: Extract<NeynarConversationParameters['type'], 'url'>
+		type: Extract<NeynarCastParameters['type'], 'url'>
 	}
 
 export type NeynarFeedQuery = (
