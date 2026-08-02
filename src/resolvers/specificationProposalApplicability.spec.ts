@@ -59,6 +59,7 @@ const sharedSpecificationProposalResolvers = [
 	dogecoinDips,
 	ensips,
 	filecoinFips,
+	hyperliquidDocs,
 	litecoinLips,
 	nearNeps,
 	polkadotRfcs,

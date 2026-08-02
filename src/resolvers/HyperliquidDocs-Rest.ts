@@ -2,14 +2,9 @@ import {
 	ProposalCategory,
 	SpecificationRealm,
 } from '$/constants/SpecificationProposal.ts'
-import {
-	defineResolver,
-	type RegisteredSourceResolverModule,
-} from '$/resolvers/defineResolver.ts'
-import {
-	EntityMetaKey,
-} from '$/schema/$schema.ts'
-import { EntityType } from '$/schema/EntityType.ts'
+import type { RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
+import defineSpecificationProposalResolvers from '$/resolvers/SpecificationProposal.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
 import { Source } from '$/sources/Source.ts'
 
 const hyperliquidHips = [
@@ -34,56 +29,31 @@ const hyperliquidHips = [
 export default {
 	source: Source.HyperliquidDocs_Rest,
 
-	resolvers: [
-		defineResolver({
-			entityType: EntityType.SpecificationProposal,
-			resolve: {
-				RealmCategoryNumber: {
-					appliesTo: [
-						{
-							realm: SpecificationRealm.Hyperliquid,
-							category: ProposalCategory.Hip,
-						},
-					],
-					resolve: async ({ category, number, realm }) => {
-						if (realm !== SpecificationRealm.Hyperliquid || category !== ProposalCategory.Hip)
-							throw new Error('HyperliquidDocs_Rest: proposal resolver only supports Hyperliquid HIPs')
-
-						const proposal = hyperliquidHips.find((hyperliquidHip) => hyperliquidHip.number === number)
-						if (proposal == null)
-							throw new Error(`HyperliquidDocs_Rest: HIP not found ${number.toString()}`)
-
-						return {
-							documentCategory: 'HIP',
-							documentTitle: proposal.title,
-							documentStatus: 'Documented',
-							documentBody: `HIP-${proposal.number.toString()}: ${proposal.title}`,
-						}
-					},
-				},
+	resolvers: defineSpecificationProposalResolvers({
+		appliesTo: [
+			{
+				realm: SpecificationRealm.Hyperliquid,
+				category: ProposalCategory.Hip,
 			},
-		})({
-				documentCategory: (snapshot) => snapshot.documentCategory,
-				documentTitle: (snapshot) => snapshot.documentTitle,
-				documentStatus: (snapshot) => snapshot.documentStatus,
-				documentBody: (snapshot) => snapshot.documentBody,
-			}),
+		],
+		resolveProposal: async ({ number }) => {
+			const proposal = hyperliquidHips.find((hyperliquidHip) => hyperliquidHip.number === number)
+			if (proposal == null)
+				throw new Error(`HyperliquidDocs_Rest: HIP not found ${number.toString()}`)
 
-		defineResolver({
-			entityType: EntityType._Global,
-			resolve: {
-				Scope: {
-					resolve: async () => hyperliquidHips.map(({ number }) => ({
-						[EntityMetaKey.Selector]: {
-							realm: SpecificationRealm.Hyperliquid,
-							category: ProposalCategory.Hip,
-							number,
-						},
-					})),
-				},
+			return {
+				documentBody: `HIP-${proposal.number.toString()}: ${proposal.title}`,
+				documentCategory: 'HIP',
+				documentStatus: 'Documented',
+				documentTitle: proposal.title,
+			}
+		},
+		resolveProposalIndex: async () => hyperliquidHips.map(({ number }) => ({
+			[EntityMetaKey.Selector]: {
+				realm: SpecificationRealm.Hyperliquid,
+				category: ProposalCategory.Hip,
+				number,
 			},
-		})({
-				$$proposals: (snapshot) => snapshot,
-			}),
-	],
+		})),
+	}),
 } satisfies RegisteredSourceResolverModule
