@@ -97603,28 +97603,16 @@ export const app = {
 	resolvers: {
 		modules: [
 			{
-				source: Source.Amboss_Graphql,
-				path: "src/resolvers/Amboss-Graphql.ts",
-			},
-			{
-				source: Source.Atproto_Xrpc,
-				path: "src/resolvers/Atproto-Xrpc.ts",
-			},
-			{
-				source: Source.Atproto_BskySocial_Xrpc,
-				path: "src/resolvers/Atproto-BskySocial-Xrpc.ts",
+				source: Source.AcpRegistry_Rest,
+				path: "src/resolvers/AcpRegistry-Rest.ts",
 			},
 			{
 				source: Source.Allium_Rest,
 				path: "src/resolvers/Allium-Rest.ts",
 			},
 			{
-				source: Source.Nodely,
-				path: "src/resolvers/AlgorandIndexer-Rest.ts",
-			},
-			{
-				source: Source.AcpRegistry_Rest,
-				path: "src/resolvers/AcpRegistry-Rest.ts",
+				source: Source.Amboss_Graphql,
+				path: "src/resolvers/Amboss-Graphql.ts",
 			},
 			{
 				source: Source.AptosFullnode_Rest,
@@ -97633,6 +97621,14 @@ export const app = {
 			{
 				source: Source.AptosIndexer_Graphql,
 				path: "src/resolvers/AptosIndexer-Graphql.ts",
+			},
+			{
+				source: Source.Atproto_BskySocial_Xrpc,
+				path: "src/resolvers/Atproto-BskySocial-Xrpc.ts",
+			},
+			{
+				source: Source.Atproto_Xrpc,
+				path: "src/resolvers/Atproto-Xrpc.ts",
 			},
 			{
 				source: Source.Beacon_Rest,
@@ -97671,6 +97667,10 @@ export const app = {
 				path: "src/resolvers/Bittensor-JsonRpc.ts",
 			},
 			{
+				source: Source.Blobscan_Rest,
+				path: "src/resolvers/Blobscan-Rest.ts",
+			},
+			{
 				source: Source.Blockchair_Rest,
 				path: "src/resolvers/Blockchair-Rest.ts",
 			},
@@ -97679,24 +97679,16 @@ export const app = {
 				path: "src/resolvers/Blockfrost-Rest.ts",
 			},
 			{
-				source: Source.CardanoKoios_Rest,
-				path: "src/resolvers/CardanoKoios-Rest.ts",
-			},
-			{
 				source: Source.Blockscout_Rest,
 				path: "src/resolvers/Blockscout-Rest.ts",
 			},
 			{
-				source: Source.Blobscan_Rest,
-				path: "src/resolvers/Blobscan-Rest.ts",
-			},
-			{
-				source: Source.Chainlist_Rest,
-				path: "src/resolvers/Chainlist-Rest.ts",
-			},
-			{
 				source: Source.Caips_Github,
 				path: "src/resolvers/Caips-Github.ts",
+			},
+			{
+				source: Source.CardanoKoios_Rest,
+				path: "src/resolvers/CardanoKoios-Rest.ts",
 			},
 			{
 				source: Source.CashuMint_Rest,
@@ -97707,12 +97699,28 @@ export const app = {
 				path: "src/resolvers/Celenium-Rest.ts",
 			},
 			{
-				source: Source.Constants_Internal,
-				path: "src/resolvers/Constants.ts",
+				source: Source.Chainlist_Rest,
+				path: "src/resolvers/Chainlist-Rest.ts",
+			},
+			{
+				source: Source.Coingecko_Rest,
+				path: "src/resolvers/Coingecko-Rest.ts",
+			},
+			{
+				source: Source.CoinMarketCap_Rest,
+				path: "src/resolvers/CoinMarketCap-Rest.ts",
+			},
+			{
+				source: Source.Coinpaprika_Rest,
+				path: "src/resolvers/Coinpaprika-Rest.ts",
 			},
 			{
 				source: Source.CometBft_Rest,
 				path: "src/resolvers/CometBft-Rest.ts",
+			},
+			{
+				source: Source.Constants_Internal,
+				path: "src/resolvers/Constants.ts",
 			},
 			{
 				source: Source.CosmosAdrs_Github,
@@ -97727,24 +97735,12 @@ export const app = {
 				path: "src/resolvers/CosmosSdk-Rest.ts",
 			},
 			{
-				source: Source.CoinMarketCap_Rest,
-				path: "src/resolvers/CoinMarketCap-Rest.ts",
-			},
-			{
-				source: Source.Coingecko_Rest,
-				path: "src/resolvers/Coingecko-Rest.ts",
-			},
-			{
-				source: Source.Coinpaprika_Rest,
-				path: "src/resolvers/Coinpaprika-Rest.ts",
+				source: Source.Defillama_Rest,
+				path: "src/resolvers/Defillama-Rest.ts",
 			},
 			{
 				source: Source.Dexscreener_Rest,
 				path: "src/resolvers/Dexscreener-Rest.ts",
-			},
-			{
-				source: Source.Defillama_Rest,
-				path: "src/resolvers/Defillama-Rest.ts",
 			},
 			{
 				source: Source.DogecoinCore_JsonRpc,
@@ -97763,44 +97759,68 @@ export const app = {
 				path: "src/resolvers/EasScan-Graphql.ts",
 			},
 			{
-				source: Source.EthereumEips_Github,
-				path: "src/resolvers/EthereumEips-Github.ts",
-			},
-			{
-				source: Source.EthereumSpecs_Github,
-				path: "src/resolvers/EthereumSpecs-Github.ts",
+				source: Source.EigenExplorer_Rest,
+				path: "src/resolvers/EigenExplorer-Rest.ts",
 			},
 			{
 				source: Source.Eip8004Scan_Rest,
 				path: "src/resolvers/Eip8004Scan-Rest.ts",
 			},
 			{
-				source: Source.EigenExplorer_Rest,
-				path: "src/resolvers/EigenExplorer-Rest.ts",
-			},
-			{
 				source: Source.Ensips_Github,
 				path: "src/resolvers/Ensips-Github.ts",
+			},
+			{
+				source: Source.EnvioHyperRpc_JsonRpc,
+				path: "src/resolvers/Envio-HyperRpc.ts",
+			},
+			{
+				source: Source.EnvioHyperSync_RawHttp,
+				path: "src/resolvers/Envio-HyperSync.ts",
 			},
 			{
 				source: Source.Esplora_Rest,
 				path: "src/resolvers/Esplora-Rest.ts",
 			},
 			{
+				source: Source.EthereumEips_Github,
+				path: "src/resolvers/EthereumEips-Github.ts",
+			},
+			{
 				source: Source.EthereumLists_Rest,
 				path: "src/resolvers/EthereumLists-Chains.ts",
+			},
+			{
+				source: Source.EthereumSpecs_Github,
+				path: "src/resolvers/EthereumSpecs-Github.ts",
 			},
 			{
 				source: Source.Etherscan_Rest,
 				path: "src/resolvers/Etherscan-Rest.ts",
 			},
 			{
-				source: Source.Filfox_Rest,
-				path: "src/resolvers/Filfox-Rest.ts",
+				source: Source.Farcaster_Rest,
+				path: "src/resolvers/Farcaster-Rest.ts",
 			},
 			{
 				source: Source.FilecoinFips_Github,
 				path: "src/resolvers/FilecoinFips-Github.ts",
+			},
+			{
+				source: Source.Filfox_Rest,
+				path: "src/resolvers/Filfox-Rest.ts",
+			},
+			{
+				source: Source.GetBlockRpc_JsonRpc,
+				path: "src/resolvers/GetBlock-Rpc.ts",
+			},
+			{
+				source: Source.GetBlockYellowstone_Grpc,
+				path: "src/resolvers/GetBlock-Yellowstone.ts",
+			},
+			{
+				source: Source.GoldRushFoundational_Rest,
+				path: "src/resolvers/GoldRush-Rest.ts",
 			},
 			{
 				source: Source.HederaMirrorNode_Rest,
@@ -97823,14 +97843,6 @@ export const app = {
 				path: "src/resolvers/HyperliquidDocs-Rest.ts",
 			},
 			{
-				source: Source.TheGraph_Graphql,
-				path: "src/resolvers/Ens-TheGraph.ts",
-			},
-			{
-				source: Source.ThreeXpl_Rest,
-				path: "src/resolvers/ThreeXpl-Rest.ts",
-			},
-			{
 				source: Source.Ipfs_Rest,
 				path: "src/resolvers/Ipfs-Rest.ts",
 			},
@@ -97843,12 +97855,12 @@ export const app = {
 				path: "src/resolvers/L2Beat-Rest.ts",
 			},
 			{
-				source: Source.Lifi_Rest,
-				path: "src/resolvers/Lifi-Rest.ts",
-			},
-			{
 				source: Source.Lens_Graphql,
 				path: "src/resolvers/Lens-Graphql.ts",
+			},
+			{
+				source: Source.Lifi_Rest,
+				path: "src/resolvers/Lifi-Rest.ts",
 			},
 			{
 				source: Source.LightningLnd_Rest,
@@ -97863,26 +97875,6 @@ export const app = {
 				path: "src/resolvers/LitecoinCore-JsonRpc.ts",
 			},
 			{
-				source: Source.Lotus_JsonRpc,
-				path: "src/resolvers/Lotus-JsonRpc.ts",
-			},
-			{
-				source: Source.MempoolSpace_Rest,
-				path: "src/resolvers/MempoolSpace-Rest.ts",
-			},
-			{
-				source: Source.Mintscan,
-				path: "src/resolvers/Mintscan.ts",
-			},
-			{
-				source: Source.Mlflow_Rest,
-				path: "src/resolvers/Mlflow-Rest.ts",
-			},
-			{
-				source: Source.MetadataVision_Rest,
-				path: "src/resolvers/MetadataVision-Rest.ts",
-			},
-			{
 				source: Source.LitecoinLips_Github,
 				path: "src/resolvers/LitecoinLips-Github.ts",
 			},
@@ -97895,56 +97887,56 @@ export const app = {
 				path: "src/resolvers/LogosBlockchainNode-Rest.ts",
 			},
 			{
+				source: Source.Lotus_JsonRpc,
+				path: "src/resolvers/Lotus-JsonRpc.ts",
+			},
+			{
 				source: Source.Mastodon_Rest,
 				path: "src/resolvers/Mastodon-Rest.ts",
 			},
 			{
-				source: Source.Farcaster_Rest,
-				path: "src/resolvers/Farcaster-Rest.ts",
+				source: Source.MempoolSpace_Rest,
+				path: "src/resolvers/MempoolSpace-Rest.ts",
 			},
 			{
-				source: Source.EnvioHyperRpc_JsonRpc,
-				path: "src/resolvers/Envio-HyperRpc.ts",
-			},
-			{
-				source: Source.EnvioHyperSync_RawHttp,
-				path: "src/resolvers/Envio-HyperSync.ts",
-			},
-			{
-				source: Source.GetBlockRpc_JsonRpc,
-				path: "src/resolvers/GetBlock-Rpc.ts",
-			},
-			{
-				source: Source.GetBlockYellowstone_Grpc,
-				path: "src/resolvers/GetBlock-Yellowstone.ts",
-			},
-			{
-				source: Source.GoldRushFoundational_Rest,
-				path: "src/resolvers/GoldRush-Rest.ts",
+				source: Source.MetadataVision_Rest,
+				path: "src/resolvers/MetadataVision-Rest.ts",
 			},
 			{
 				source: Source.MevRelay_Rest,
 				path: "src/resolvers/MevRelay-Rest.ts",
 			},
 			{
+				source: Source.Mintscan,
+				path: "src/resolvers/Mintscan.ts",
+			},
+			{
+				source: Source.Mlflow_Rest,
+				path: "src/resolvers/Mlflow-Rest.ts",
+			},
+			{
 				source: Source.MoneroDaemonRpc_JsonRpc,
 				path: "src/resolvers/MoneroDaemonRpc-JsonRpc.ts",
-			},
-			{
-				source: Source.Neynar_Rest,
-				path: "src/resolvers/Neynar-Rest.ts",
-			},
-			{
-				source: Source.NearNeps_Github,
-				path: "src/resolvers/NearNeps-Github.ts",
 			},
 			{
 				source: Source.NearBlocks_Rest,
 				path: "src/resolvers/NearBlocks-Rest.ts",
 			},
 			{
+				source: Source.NearNeps_Github,
+				path: "src/resolvers/NearNeps-Github.ts",
+			},
+			{
 				source: Source.NearRpc_JsonRpc,
 				path: "src/resolvers/NearRpc-JsonRpc.ts",
+			},
+			{
+				source: Source.Neynar_Rest,
+				path: "src/resolvers/Neynar-Rest.ts",
+			},
+			{
+				source: Source.Nodely,
+				path: "src/resolvers/AlgorandIndexer-Rest.ts",
 			},
 			{
 				source: Source.NostrBand_Rest,
@@ -97967,12 +97959,12 @@ export const app = {
 				path: "src/resolvers/Openchain-Rest.ts",
 			},
 			{
-				source: Source.PayjoinDirectory_Rest,
-				path: "src/resolvers/PayjoinDirectory-Rest.ts",
+				source: Source.Pathfinder,
+				path: "src/resolvers/Pathfinder.ts",
 			},
 			{
-				source: Source.Primal_Rest,
-				path: "src/resolvers/Primal-Rest.ts",
+				source: Source.PayjoinDirectory_Rest,
+				path: "src/resolvers/PayjoinDirectory-Rest.ts",
 			},
 			{
 				source: Source.Piped_Rest,
@@ -97987,6 +97979,10 @@ export const app = {
 				path: "src/resolvers/PolkadotRfcs-Github.ts",
 			},
 			{
+				source: Source.Primal_Rest,
+				path: "src/resolvers/Primal-Rest.ts",
+			},
+			{
 				source: Source.QuilibriumDocs_Rest,
 				path: "src/resolvers/QuilibriumDocs-Rest.ts",
 			},
@@ -97997,58 +97993,6 @@ export const app = {
 			{
 				source: Source.Reddit_PublicJson,
 				path: "src/resolvers/Reddit-PublicJson.ts",
-			},
-			{
-				source: Source.Snapchain_Rest,
-				path: "src/resolvers/Snapchain-Rest.ts",
-			},
-			{
-				source: Source.SpaceAndTime_MakeInfinite,
-				path: "src/resolvers/SpaceAndTime-MakeInfinite.ts",
-			},
-			{
-				source: Source.Sourcify_Rest,
-				path: "src/resolvers/Sourcify-Rest.ts",
-			},
-			{
-				source: Source.Subscan_Rest,
-				path: "src/resolvers/Subscan-Rest.ts",
-			},
-			{
-				source: Source.SubstrateSidecar_Rest,
-				path: "src/resolvers/SubstrateSidecar-Rest.ts",
-			},
-			{
-				source: Source.Solana_JsonRpc,
-				path: "src/resolvers/Solana-JsonRpc.ts",
-			},
-			{
-				source: Source.SolanaSimds_Github,
-				path: "src/resolvers/SolanaSimds-Github.ts",
-			},
-			{
-				source: Source.SqdPortal_RawHttp,
-				path: "src/resolvers/Sqd-Portal.ts",
-			},
-			{
-				source: Source.Pathfinder,
-				path: "src/resolvers/Pathfinder.ts",
-			},
-			{
-				source: Source.Starkscan,
-				path: "src/resolvers/Starkscan.ts",
-			},
-			{
-				source: Source.StellarExpert,
-				path: "src/resolvers/StellarExpert.ts",
-			},
-			{
-				source: Source.StellarHorizon_Rest,
-				path: "src/resolvers/StellarHorizon-Rest.ts",
-			},
-			{
-				source: Source.Sui,
-				path: "src/resolvers/Sui.ts",
 			},
 			{
 				source: Source.Reddit_Rest,
@@ -98063,24 +98007,80 @@ export const app = {
 				path: "src/resolvers/Rss2Json-Rest.ts",
 			},
 			{
-				source: Source.TradingView_Rest,
-				path: "src/resolvers/TradingView-Rest.ts",
+				source: Source.Snapchain_Rest,
+				path: "src/resolvers/Snapchain-Rest.ts",
 			},
 			{
-				source: Source.Swarm_Rest,
-				path: "src/resolvers/Swarm-Rest.ts",
+				source: Source.Solana_JsonRpc,
+				path: "src/resolvers/Solana-JsonRpc.ts",
+			},
+			{
+				source: Source.SolanaSimds_Github,
+				path: "src/resolvers/SolanaSimds-Github.ts",
+			},
+			{
+				source: Source.Sourcify_Rest,
+				path: "src/resolvers/Sourcify-Rest.ts",
+			},
+			{
+				source: Source.SpaceAndTime_MakeInfinite,
+				path: "src/resolvers/SpaceAndTime-MakeInfinite.ts",
+			},
+			{
+				source: Source.SqdPortal_RawHttp,
+				path: "src/resolvers/Sqd-Portal.ts",
+			},
+			{
+				source: Source.Starkscan,
+				path: "src/resolvers/Starkscan.ts",
+			},
+			{
+				source: Source.StellarExpert,
+				path: "src/resolvers/StellarExpert.ts",
+			},
+			{
+				source: Source.StellarHorizon_Rest,
+				path: "src/resolvers/StellarHorizon-Rest.ts",
+			},
+			{
+				source: Source.Subscan_Rest,
+				path: "src/resolvers/Subscan-Rest.ts",
+			},
+			{
+				source: Source.SubstrateSidecar_Rest,
+				path: "src/resolvers/SubstrateSidecar-Rest.ts",
+			},
+			{
+				source: Source.Sui,
+				path: "src/resolvers/Sui.ts",
 			},
 			{
 				source: Source.Superchain_Github,
 				path: "src/resolvers/Superchain-Github.ts",
 			},
 			{
-				source: Source.TonCenter,
-				path: "src/resolvers/TonCenter.ts",
+				source: Source.Swarm_Rest,
+				path: "src/resolvers/Swarm-Rest.ts",
+			},
+			{
+				source: Source.TheGraph_Graphql,
+				path: "src/resolvers/Ens-TheGraph.ts",
+			},
+			{
+				source: Source.ThreeXpl_Rest,
+				path: "src/resolvers/ThreeXpl-Rest.ts",
 			},
 			{
 				source: Source.TonApi_Rest,
 				path: "src/resolvers/TonApi-Rest.ts",
+			},
+			{
+				source: Source.TonCenter,
+				path: "src/resolvers/TonCenter.ts",
+			},
+			{
+				source: Source.TradingView_Rest,
+				path: "src/resolvers/TradingView-Rest.ts",
 			},
 			{
 				source: Source.TronFullNode_Rest,
@@ -98107,24 +98107,24 @@ export const app = {
 				path: "src/resolvers/Tzkt-Rest.ts",
 			},
 			{
-				source: Source.Youtube_Rest,
-				path: "src/resolvers/Youtube-Rest.ts",
-			},
-			{
 				source: Source.Voltaire_JsonRpc,
 				path: "src/resolvers/Voltaire-JsonRpc.ts",
-			},
-			{
-				source: Source.X_Rest,
-				path: "src/resolvers/X-Rest.ts",
 			},
 			{
 				source: Source.X_FxEmbed_Rest,
 				path: "src/resolvers/X-FxEmbed-Rest.ts",
 			},
 			{
+				source: Source.X_Rest,
+				path: "src/resolvers/X-Rest.ts",
+			},
+			{
 				source: Source.Xrpl_Rippled,
 				path: "src/resolvers/Xrpl-JsonRpc.ts",
+			},
+			{
+				source: Source.Youtube_Rest,
+				path: "src/resolvers/Youtube-Rest.ts",
 			},
 			{
 				source: Source.Zcashd_JsonRpc,

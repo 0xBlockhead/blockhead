@@ -5587,6 +5587,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		facetDependencyConditionsByPath,
 	} = normalizeApp(sourceApp)
 	const resolverModules = Object.freeze([...app.resolvers.modules])
+	validateAlphabeticalSet('Resolver module definitions', resolverModules.map(({ source }) => source))
 	const navigationItems = Object.freeze([...app.navigation.items])
 	const activeEntities = Object.freeze([...app.schema.entities]
 		.sort((left, right) => compareEntityTypes(left.entityType, right.entityType)))

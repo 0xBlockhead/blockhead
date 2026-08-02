@@ -1375,6 +1375,16 @@ test('rejects unordered schema registries before generation', () => {
 		],
 	})
 	assert.throws(() => compileApp(unorderedValueTypesApp), /schema.valueTypes must be alphabetized/)
+
+	const unorderedResolverModulesApp = structuredClone(app)
+	Object.defineProperty(unorderedResolverModulesApp.resolvers, 'modules', {
+		value: [
+			unorderedResolverModulesApp.resolvers.modules[1],
+			unorderedResolverModulesApp.resolvers.modules[0],
+			...unorderedResolverModulesApp.resolvers.modules.slice(2),
+		],
+	})
+	assert.throws(() => compileApp(unorderedResolverModulesApp), /Resolver module definitions must be alphabetized/)
 })
 
 test('rejects duplicate resolver module paths during compilation', () => {
