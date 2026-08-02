@@ -3096,6 +3096,16 @@ test('compacts source binding matrices only when their complete semantic order i
 })
 
 test('keeps ordered generated provider bindings semantically equal to APP', () => {
+	const generatedProviderFiles = baselineCompiledApp.generatedFiles.filter(({ path: generatedPath }) => (
+		/^src\/sources\/[^/]+\/index\.ts$/.test(generatedPath)
+	))
+	assert.equal(generatedProviderFiles.length, app.sources.providers.length)
+	for (const generatedProviderFile of generatedProviderFiles)
+		assert.match(
+			renderGeneratedFile(generatedProviderFile),
+			/} satisfies SourceProviderDefinition<typeof bindings>\n$/
+		)
+
 	assert.deepEqual(
 		sourceProviders.map(({ provider, bindings }) => ({
 			provider,
@@ -5827,6 +5837,8 @@ import {
 } from '${root}/src/resolvers/defineResolver.ts'
 import { EntityType } from '${root}/src/schema/EntityType.ts'
 import { Source } from '${root}/src/sources/Source.ts'
+import { SourceProvider } from '${root}/src/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '${root}/src/sources/SourceProviderDefinition.ts'
 import {
 	ApiFamily,
 	indexSourceBindings,
@@ -5898,6 +5910,18 @@ const acrossBinding = acrossBindings[Source.Across_Rest]
 const atprotoSyncBinding = atprotoSyncBindings[Source.AtprotoSync_Xrpc]
 const getBlockRpcBinding = getBlockBindings[Source.GetBlockRpc_JsonRpc]
 const voyagerBinding = voyagerBindings[Source.Voyager]
+const mismatchedVoyagerProvider = {
+	provider: SourceProvider.Voyager,
+	label: 'Voyager',
+	sources: [
+		{
+			// @ts-expect-error Provider source metadata must belong to its exact binding index.
+			source: Source.Wormholescan,
+			label: 'Wormholescan',
+		},
+	],
+	bindings: Object.values(voyagerBindings).flat(),
+} satisfies SourceProviderDefinition<typeof voyagerBindings>
 const acrossSource: Source.Across_Rest = acrossBinding.source
 const xrplClioBindingsForSource: readonly SourceBinding<Source.XrplClio_JsonRpc>[] = xrplClioBindings[Source.XrplClio_JsonRpc]
 const repeatedAcrossBindings = indexSourceBindings([
@@ -5956,6 +5980,7 @@ void validResolverEntry
 void swappedResolverEntry
 void typedSourceServerCredentials
 void mixedProxyCredentials
+void mismatchedVoyagerProvider
 `)
 		assertTypeChecks('generated-source-keys:typecheck', [fixturePath], true)
 	} finally {

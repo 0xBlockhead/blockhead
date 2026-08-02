@@ -31,4 +31,4 @@ export default {
 		},
 	],
 	bindings: Object.values(bindings).flat(),
-} satisfies SourceProviderDefinition
+} satisfies SourceProviderDefinition<typeof bindings>

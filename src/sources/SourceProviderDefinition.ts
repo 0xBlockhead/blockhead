@@ -1,11 +1,12 @@
-import type { Type } from 'arktype'
 import type {
 	SourceDefinition,
 	SourceProviderDefinition as SourceProviderDefinitionTemplate,
-	SourcePublicEnv,
 } from '$/sources/$sources.ts'
 import type { Source } from '$/sources/Source.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import type {
+	SourceBinding,
+	SourceBindingIndex,
+} from '$/sources/SourceBinding.ts'
 import type { SourceProvider } from '$/sources/SourceProvider.ts'
 
 export type SourceOrigin = {
@@ -13,8 +14,32 @@ export type SourceOrigin = {
 	corsEnabled: boolean
 }
 
-export type SourceProviderDefinition = SourceProviderDefinitionTemplate<SourceProvider, Source> & {
-	env?: Type<SourcePublicEnv>
-	sources: readonly SourceDefinition<Source>[]
-	bindings: readonly SourceBinding[]
-}
+type SourceBindingFromIndex<
+	_Bindings extends SourceBindingIndex | undefined,
+> = _Bindings extends SourceBindingIndex ?
+	(
+		| Extract<_Bindings[keyof _Bindings], SourceBinding>
+		| Extract<_Bindings[keyof _Bindings], readonly SourceBinding[]>[number]
+	)
+	:
+	SourceBinding
+
+type SourceFromIndex<
+	_Bindings extends SourceBindingIndex | undefined,
+> = _Bindings extends SourceBindingIndex ?
+	SourceBindingFromIndex<_Bindings>['source']
+	:
+	Source
+
+export type SourceProviderDefinition<
+	_Bindings extends SourceBindingIndex | undefined = undefined,
+> = (
+	Omit<
+		SourceProviderDefinitionTemplate<SourceProvider, Source>,
+		| 'sources'
+		| 'bindings'
+	> & {
+		sources: readonly SourceDefinition<SourceFromIndex<_Bindings>>[]
+		bindings: readonly SourceBindingFromIndex<_Bindings>[]
+	}
+)

@@ -7907,7 +7907,7 @@ const generateSourceProviderDefinitionFile = (
 				])},`, 2)),
 				indent('],'),
 				indent(bindings.length === 0 ? 'bindings: [],' : 'bindings: Object.values(bindings).flat(),'),
-				'} satisfies SourceProviderDefinition',
+				'} satisfies SourceProviderDefinition<typeof bindings>',
 			],
 		}
 	)
