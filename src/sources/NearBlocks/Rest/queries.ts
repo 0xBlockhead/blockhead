@@ -1,4 +1,3 @@
-import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import { getJson as getNearBlocksRestJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import type {
 	NearBlocksAccountResponse,
@@ -13,11 +12,9 @@ import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.NearBlocks_Rest][0]
 
-const getNearBlocksJson = <_Response>(
-	path: string
-) => {
-	return getNearBlocksRestJson<_Response>(binding, path)
-}
+const getNearBlocksJson = <_Response>(path: string) => (
+	getNearBlocksRestJson<_Response>(binding, path)
+)
 
 const assertNonnegativeIntegerString = (
 	value: string,
@@ -115,16 +112,12 @@ export const getAccountTransactions = async (
 			continuationToken: undefined,
 		}
 
-	const url = new URL(
-		`/v3/accounts/${encodeURIComponent(accountId)}/txns`,
-		firstHttpUrlForBinding(binding)
-	)
-	url.searchParams.set('limit', limit.toString())
+	const parameters = new URLSearchParams({ limit: limit.toString() })
 	if (next != null)
-		url.searchParams.set('next', next)
+		parameters.set('next', next)
 
 	const response = await getNearBlocksJson<NearBlocksV3Response<NearBlocksV3Transaction[]>>(
-		`${url.pathname}${url.search}`
+		`/v3/accounts/${encodeURIComponent(accountId)}/txns?${parameters}`
 	)
 	const transactions = assertV3Success(response, `account transactions ${accountId}`)
 	if (transactions.length > limit)
