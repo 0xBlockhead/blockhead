@@ -12511,23 +12511,29 @@ const renderEntityRouteLinkExpression = (
 			return coordinate
 		})
 	})
+	const expressionContext = {
+		fields: fieldsExpression,
+		entity: indexes.entityByType[entityType],
+		indexes,
+	}
+	const paramFieldPathConditions = (fieldPaths: readonly string[][]) => entityPathConditions(
+		indexes,
+		entityType,
+		fieldsExpression,
+		resolvedFields ? 'resolved' : 'selector',
+		fieldPaths
+	)
 	const routeCandidates = entityRouteLinks.map((entityRouteLink) => {
-		const paramFieldPaths = uniqueFieldPaths(Object.values(entityRouteLink.params).flatMap(({ value }) => (
-			expressionFieldPaths(value)
-		)))
-		const params = Object.fromEntries(Object.entries(entityRouteLink.params).map(([param, routeParamValue]) => [
+		const compiledParams = Object.entries(entityRouteLink.params).map(([param, { decode, value }]) => ({
+			conditionGroups: selectorName == null ?
+				routeExpressionConditions(expressionContext, value, paramFieldPathConditions)
+			:
+				[],
+			fieldPaths: expressionFieldPaths(value),
 			param,
-			renderRouteParamExpression(
-				routeParamValue.value,
-				{
-					fields: fieldsExpression,
-					entity: indexes.entityByType[entityType],
-					indexes,
-				},
-				routeParamValue.decode,
-				true
-			),
-		]))
+			value: renderRouteParamExpression(value, expressionContext, decode, true),
+		}))
+		const params = Object.fromEntries(compiledParams.map(({ param, value }) => [param, value]))
 		const entityConditionTerms = (entityRouteLink.conditions ?? [])
 			.filter((condition) => !entitySelectorConditionIsGuaranteed(indexes, entityType, condition))
 			.flatMap((condition) => [
@@ -12550,23 +12556,7 @@ const renderEntityRouteLinkExpression = (
 		const entityConditionGroup = entityConditionTerms.length === 0 ? undefined : {
 			terms: entityConditionTerms,
 		}
-		const paramConditionGroups = selectorName == null ? Object.values(entityRouteLink.params).flatMap(({ value }) => routeExpressionConditions(
-			{
-				fields: fieldsExpression,
-				entity: indexes.entityByType[entityType],
-				indexes,
-			},
-			value,
-			(fieldPaths) => (
-				entityPathConditions(
-					indexes,
-					entityType,
-					fieldsExpression,
-					resolvedFields ? 'resolved' : 'selector',
-					fieldPaths
-				)
-			)
-		)) : []
+		const paramConditionGroups = compiledParams.flatMap(({ conditionGroups }) => conditionGroups)
 		const conditionGroups = uniqueHrefConditionGroups([
 			...(entityConditionGroup == null ? [] : [entityConditionGroup]),
 			...paramConditionGroups,
@@ -12578,7 +12568,9 @@ const renderEntityRouteLinkExpression = (
 			hasRouteCondition: entityConditionGroup != null,
 			path: entityRouteLink.path,
 			params,
-			selectorVariantCoordinates: selectorVariantCoordinates(paramFieldPaths),
+			selectorVariantCoordinates: selectorVariantCoordinates(uniqueFieldPaths(
+				compiledParams.flatMap(({ fieldPaths }) => fieldPaths)
+			)),
 			selector: entityRouteLink.selector,
 			specificity: conditionGroups.length,
 		}

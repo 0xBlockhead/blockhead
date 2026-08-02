@@ -5190,6 +5190,10 @@ test('retains only rendered detail layout facts', () => {
 test('retains one keyed route parameter representation through href compilation', () => {
 	const appSource = readFileSync(path.join(root, 'APP.ts'), 'utf8')
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
+	const entityHrefCompilerSource = generatorSource.slice(
+		generatorSource.indexOf('const renderEntityRouteLinkExpression ='),
+		generatorSource.indexOf('const compileEntityPageSelection =')
+	)
 
 	assert.doesNotMatch(appSource, /params\?: \{\n\s+param: string\n\s+value: _Expression/)
 	assert.doesNotMatch(appSource, /params:\s*\[\s*\{\s*param:/)
@@ -5204,6 +5208,9 @@ test('retains one keyed route parameter representation through href compilation'
 		/routeParamAlternativesWithDecodes|alternative\.map\(\(\{ param, value \}\)|routeParams\.some\(\(\{ param \}\)|candidate\.params\.find|params\.map\(\(\{ param, value \}\): \[string, string\]/
 	)
 	assert.doesNotMatch(generatorSource, /const renderResolveExpression = \(path: string, params: readonly \[string, string\]\[\]/)
+	assert.equal((entityHrefCompilerSource.match(/Object\.entries\(entityRouteLink\.params\)/g) ?? []).length, 1)
+	assert.doesNotMatch(entityHrefCompilerSource, /Object\.values\(entityRouteLink\.params\)/)
+	assert.match(entityHrefCompilerSource, /const compiledParams = [\s\S]*?conditionGroups:[\s\S]*?fieldPaths:[\s\S]*?param,[\s\S]*?value:/)
 })
 
 test('normalizes nullish expressions without reparsing rendered text', () => {
