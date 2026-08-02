@@ -14,5 +14,5 @@ export default {
 			label: 'Tezos Dappetizer Postgres',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

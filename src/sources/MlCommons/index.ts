@@ -14,5 +14,5 @@ export default {
 			label: 'Croissant document',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

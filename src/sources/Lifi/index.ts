@@ -14,5 +14,5 @@ export default {
 			label: 'LI.FI REST',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

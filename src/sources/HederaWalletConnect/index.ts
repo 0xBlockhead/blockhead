@@ -14,5 +14,5 @@ export default {
 			label: 'Hedera WalletConnect sign client',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

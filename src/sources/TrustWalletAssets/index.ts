@@ -14,5 +14,5 @@ export default {
 			label: 'Trust Wallet Assets GitHub',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

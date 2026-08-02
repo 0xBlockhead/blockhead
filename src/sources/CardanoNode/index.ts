@@ -14,5 +14,5 @@ export default {
 			label: 'Cardano node local-state query',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

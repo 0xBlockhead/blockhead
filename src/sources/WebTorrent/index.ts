@@ -22,5 +22,5 @@ export default {
 			label: 'WebTorrent tracker',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

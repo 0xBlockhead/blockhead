@@ -14,5 +14,5 @@ export default {
 			label: 'Amboss Space GraphQL',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

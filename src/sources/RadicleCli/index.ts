@@ -14,5 +14,5 @@ export default {
 			label: 'Radicle CLI local',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

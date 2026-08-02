@@ -14,5 +14,5 @@ export default {
 			label: 'Stoic Wallet API',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

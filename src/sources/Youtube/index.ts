@@ -14,5 +14,5 @@ export default {
 			label: 'YouTube Data API v3',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

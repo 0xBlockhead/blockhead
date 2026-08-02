@@ -14,5 +14,5 @@ export default {
 			label: 'Substrate API Sidecar REST',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

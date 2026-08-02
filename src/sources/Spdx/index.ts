@@ -14,5 +14,5 @@ export default {
 			label: 'SPDX document',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

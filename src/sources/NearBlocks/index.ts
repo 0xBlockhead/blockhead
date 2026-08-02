@@ -14,5 +14,5 @@ export default {
 			label: 'NearBlocks REST',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

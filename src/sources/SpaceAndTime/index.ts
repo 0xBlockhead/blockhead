@@ -14,5 +14,5 @@ export default {
 			label: 'Space and Time MakeInfinite',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

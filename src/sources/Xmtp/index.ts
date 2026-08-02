@@ -18,5 +18,5 @@ export default {
 			label: 'XMTP Node SDK',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -53,7 +53,7 @@ import {
 	generatedHeader,
 	renderGeneratedFile as renderGeneratedFileUncached,
 } from './render.ts'
-import sourceProviders from '../../src/sources/$sourceProviders.ts'
+import sourceProviders, { sourceBindings } from '../../src/sources/$sourceProviders.ts'
 import sourceServerCredentialsById from '../../src/sources/$sourceServerCredentials.server.ts'
 import specificationProposalSources from '../../src/sources/specificationProposalSources.ts'
 
@@ -3144,13 +3144,18 @@ test('keeps ordered generated provider bindings semantically equal to APP', () =
 	for (const generatedProviderFile of generatedProviderFiles)
 		assert.match(
 			renderGeneratedFile(generatedProviderFile),
-			/} satisfies SourceProviderDefinition<typeof bindings>\n$/
+			/\tbindings,\n} satisfies SourceProviderDefinition<typeof bindings>\n$/
 		)
+	const flattenedProviderBindings = sourceProviders.flatMap(({ bindings }) => Object.values(bindings).flat())
+	assert.equal(sourceBindings.length, 424)
+	assert.deepEqual(sourceBindings, flattenedProviderBindings)
+	for (const [bindingIndex, binding] of sourceBindings.entries())
+		assert.equal(binding, flattenedProviderBindings[bindingIndex])
 
 	assert.deepEqual(
 		sourceProviders.map(({ provider, bindings }) => ({
 			provider,
-			bindings: bindings.map((binding) => ({
+			bindings: Object.values(bindings).flat().map((binding) => ({
 				source: binding.source,
 				target: binding.target,
 				endpoints: binding.endpoints,
@@ -5967,7 +5972,19 @@ const mismatchedVoyagerProvider = {
 			label: 'Wormholescan',
 		},
 	],
-	bindings: Object.values(voyagerBindings).flat(),
+	bindings: voyagerBindings,
+} satisfies SourceProviderDefinition<typeof voyagerBindings>
+const missingVoyagerBindings = {
+	provider: SourceProvider.Voyager,
+	label: 'Voyager',
+	sources: [
+		{
+			source: Source.Voyager,
+			label: 'Voyager',
+		},
+	],
+	// @ts-expect-error Provider definitions retain every key from their imported binding index.
+	bindings: {},
 } satisfies SourceProviderDefinition<typeof voyagerBindings>
 const acrossSource: Source.Across_Rest = acrossBinding.source
 const xrplClioBindingsForSource: readonly SourceBinding<Source.XrplClio_JsonRpc>[] = xrplClioBindings[Source.XrplClio_JsonRpc]
@@ -6030,6 +6047,7 @@ void inferredAmbossSource
 void typedSourceServerCredentials
 void mixedProxyCredentials
 void mismatchedVoyagerProvider
+void missingVoyagerBindings
 `)
 		assertTypeChecks('generated-source-keys:typecheck', [fixturePath], true)
 	} finally {
@@ -6238,8 +6256,8 @@ test('keeps runtime secret configuration in one server projection', () => {
 	assert.doesNotMatch(publicBindings, /(?:proxyId|serverCredentialId):/)
 	assert.doesNotMatch(publicBindings, /envKey:|injection:/)
 	assert.match(serverCredentials, /export default new Map<\n\tstring,\n\tSourceServerCredentialDefinition\n>/)
-	assert.match(serverCredentials, /import sourceProviders from '\$\/sources\/\$sourceProviders\.ts'/)
-	assert.match(serverCredentials, /const runtimeSecretBindingCandidates = sourceProviders\n\t\.flatMap<SourceBinding>\(\(\{ bindings \}\) => bindings\)[\s\S]*?scope === SourceCredentialScope\.RuntimeSecret[\s\S]*?&& keys == null/)
+	assert.match(serverCredentials, /import \{ sourceBindings \} from '\$\/sources\/\$sourceProviders\.ts'/)
+	assert.match(serverCredentials, /const runtimeSecretBindingCandidates = sourceBindings\.filter[\s\S]*?scope === SourceCredentialScope\.RuntimeSecret[\s\S]*?&& keys == null/)
 	assert.match(serverCredentials, /const runtimeSecretCredentials = \[/)
 	assert.equal((serverCredentials.match(/^\t\tSource\./gm) ?? []).length, 19)
 	assert.match(serverCredentials, /sourceBindingId\(runtimeSecretBinding\(source, targetKey\)\)/)

@@ -38,6 +38,7 @@ import {
 } from '$/sources/SourceBinding.ts'
 import {
 	enabledSources as browserEnabledSources,
+	sourceBindings,
 	sourceProviders,
 } from '$/sources/index.ts'
 import { loadResolvers } from '$/resolvers/index.ts'
@@ -46,10 +47,10 @@ import { networkBySlug } from '$/constants/Network.ts'
 import voltaireJsonRpc from '$/resolvers/Voltaire-JsonRpc.ts'
 
 const resolvers = await loadResolvers()
-const voltaireMainnetBinding = sourceProviders
-	.find((sourceProvider) => sourceProvider.provider === SourceProvider.Voltaire)
-	?.bindings
-	.find((binding) => binding.target.key === '1')
+const voltaireMainnetBinding = sourceBindings.find((binding) => (
+	binding.source === Source.Voltaire_JsonRpc
+	&& binding.target.key === '1'
+))
 const voltaireMainnetHttpEndpoint = voltaireMainnetBinding?.endpoints
 	.find((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
 

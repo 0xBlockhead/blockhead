@@ -18,5 +18,5 @@ export default {
 			label: 'CAIP namespaces GitHub',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

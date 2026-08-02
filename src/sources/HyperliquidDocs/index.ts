@@ -14,5 +14,5 @@ export default {
 			label: 'Hyperliquid docs REST',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

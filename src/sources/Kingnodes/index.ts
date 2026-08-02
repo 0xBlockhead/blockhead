@@ -14,5 +14,5 @@ export default {
 			label: 'Kingnodes dYdX node',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

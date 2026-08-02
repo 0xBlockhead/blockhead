@@ -14,5 +14,5 @@ export default {
 			label: 'Checked-in constants',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

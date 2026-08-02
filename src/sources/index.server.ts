@@ -1,4 +1,4 @@
-import sourceProviders from '$/sources/$sourceProviders.ts'
+import { sourceBindings } from '$/sources/$sourceProviders.ts'
 import sourceServerCredentialsById from '$/sources/$sourceServerCredentials.server.ts'
 import { sourceBindingId, SourceCredentialScope, SourceDelivery, SourceEndpointKind, sourceEndpointOrigin, type SourceBinding } from '$/sources/SourceBinding.ts'
 import { env as privateEnv } from '$env/dynamic/private'
@@ -7,9 +7,6 @@ const privateEnvHasValue = (key: string | undefined) => (
 	key != null
 	&& (privateEnv[key]?.trim() ?? '') !== ''
 )
-
-export const sourceBindings = sourceProviders
-	.flatMap((provider): readonly SourceBinding[] => provider.bindings)
 
 export const enabledSourceBindings = sourceBindings.filter((binding) => (
 	binding.credentials.every((credential) => (

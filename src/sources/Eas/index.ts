@@ -14,5 +14,5 @@ export default {
 			label: 'EAS contract catalog',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

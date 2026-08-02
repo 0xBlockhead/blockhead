@@ -14,5 +14,5 @@ export default {
 			label: 'Solana SIMDs GitHub',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

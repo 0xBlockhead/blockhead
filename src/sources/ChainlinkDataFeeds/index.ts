@@ -18,5 +18,5 @@ export default {
 			label: 'Chainlink Data Feeds contracts',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

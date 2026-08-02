@@ -14,5 +14,5 @@ export default {
 			label: 'Filecoin FIPs GitHub',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

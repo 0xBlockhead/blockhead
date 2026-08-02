@@ -14,5 +14,5 @@ export default {
 			label: 'Snapshot Hub GraphQL',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

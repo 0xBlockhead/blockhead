@@ -22,5 +22,5 @@ export default {
 			label: 'Kaspa node wRPC',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

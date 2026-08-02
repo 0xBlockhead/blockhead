@@ -14,5 +14,5 @@ export default {
 			label: 'TRON TIP-6963 wallet API',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

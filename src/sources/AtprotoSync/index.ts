@@ -14,5 +14,5 @@ export default {
 			label: 'AT Protocol sync XRPC',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

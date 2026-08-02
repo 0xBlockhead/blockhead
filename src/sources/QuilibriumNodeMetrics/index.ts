@@ -14,5 +14,5 @@ export default {
 			label: 'Quilibrium node Prometheus',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

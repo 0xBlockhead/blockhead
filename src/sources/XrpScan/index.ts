@@ -14,5 +14,5 @@ export default {
 			label: 'XRPScan REST',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

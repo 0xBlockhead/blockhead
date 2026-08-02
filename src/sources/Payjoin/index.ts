@@ -22,5 +22,5 @@ export default {
 			label: 'Payjoin directory REST',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

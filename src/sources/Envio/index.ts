@@ -18,5 +18,5 @@ export default {
 			label: 'Envio HyperSync',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

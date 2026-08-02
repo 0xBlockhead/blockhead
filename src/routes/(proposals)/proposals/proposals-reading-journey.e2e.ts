@@ -1,23 +1,20 @@
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
-import sourceProviderDefinitions from '$/sources/$sourceProviders.ts'
+import ethereumEipsBindings from '$/sources/EthereumEips/bindings.ts'
 import {
 	SourceTargetKind,
 	sourceBindingId,
 } from '$/sources/SourceBinding.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 
 const attach = { timeout: 120_000 }
 const proposalPath = '/proposals/ethereum/eip/EIP-1559'
 const contentsUrl = 'https://api.github.com/repos/ethereum/EIPs/contents/EIPS?ref=master'
 const markdownUrl = 'https://raw.githubusercontent.com/ethereum/EIPs/master/EIPS/eip-1559.md'
-const ethereumEipsBinding = sourceProviderDefinitions
-	.find(({ provider }) => provider === SourceProvider.EthereumEips)
-	?.bindings.find(({ target }) => (
+const ethereumEipsBinding = Object.values(ethereumEipsBindings).flat().find(({ target }) => (
 		target.kind === SourceTargetKind.GitRepository
 		&& target.key === 'ethereum/EIPs@master:EIPS'
-	))
+))
 if (ethereumEipsBinding == null)
 	throw new Error('Ethereum EIPs Git repository proxy binding is missing')
 

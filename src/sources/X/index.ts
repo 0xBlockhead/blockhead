@@ -14,5 +14,5 @@ export default {
 			label: 'X API v2',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

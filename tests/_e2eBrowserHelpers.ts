@@ -16,7 +16,7 @@ import {
 	redditNetworkSeedSubreddits,
 } from '$/constants/Social/Reddit.ts'
 import { rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
-import sourceProviderDefinitions from '$/sources/$sourceProviders.ts'
+import { sourceBindings } from '$/sources/$sourceProviders.ts'
 import { nostrEventId } from '$/sources/NostrRelay/Nip01/event.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
@@ -1888,13 +1888,11 @@ export const ipfsPublicGatewayGetWire = (url: string) => {
 export const swarmPublicGatewayGetWire = (url: string) => {
 	try {
 		const u = new URL(url)
-		if (!sourceProviderDefinitions.some((provider) => (
-				provider.bindings.some((binding) => (
-					binding.source === Source.Swarm_Rest
-					&& binding.endpoints.some((endpoint) => (
-						endpoint.origin === u.origin
-					))
-				))
+		if (!sourceBindings.some((binding) => (
+			binding.source === Source.Swarm_Rest
+			&& binding.endpoints.some((endpoint) => (
+				endpoint.origin === u.origin
+			))
 		)))
 			return false
 		return u.pathname.includes('/bzz/')

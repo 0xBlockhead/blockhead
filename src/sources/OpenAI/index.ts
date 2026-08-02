@@ -14,5 +14,5 @@ export default {
 			label: 'OpenAI REST',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

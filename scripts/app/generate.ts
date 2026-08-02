@@ -6344,8 +6344,7 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 				generateSourceProviderBindingsFile(provider, providerBindings),
 				generateSourceProviderDefinitionFile(
 					provider,
-					generationInput.sources.filter((source) => source.provider === provider.provider),
-					providerBindings
+					generationInput.sources.filter((source) => source.provider === provider.provider)
 				),
 			]
 		}),
@@ -7759,16 +7758,15 @@ const generateSourceProviderBindingsFile = (
 
 const generateSourceProviderDefinitionFile = (
 	provider: SourceProviderDefinition,
-	sources: readonly SourceDefinition[],
-	bindings: readonly SourceBindingEntry[]
+	sources: readonly SourceDefinition[]
 ) => tsFile(
 		`src/sources/${provider.provider}/index.ts`,
 		{
 			imports: [
-				...(bindings.length === 0 ? [] : [{
+				{
 					from: `$/sources/${provider.provider}/bindings.ts`,
 					defaultName: 'bindings',
-				}] satisfies ImportSpec[]),
+				},
 				{
 					from: '$/sources/Source.ts',
 					names: ['Source'],
@@ -7801,7 +7799,7 @@ const generateSourceProviderDefinitionFile = (
 					['env', emitEnvSchema(source.env)],
 				])},`, 2)),
 				indent('],'),
-				indent(bindings.length === 0 ? 'bindings: [],' : 'bindings: Object.values(bindings).flat(),'),
+				indent('bindings,'),
 				'} satisfies SourceProviderDefinition<typeof bindings>',
 			],
 		}
@@ -7816,14 +7814,22 @@ const generateSourceProvidersFile = (sourceProviderNames: readonly string[]) => 
 				defaultName: `${camel(provider)}SourceProvider`,
 			})),
 			{
+				from: './SourceBinding.ts',
+				typeNames: ['SourceBinding'],
+			},
+			{
 				from: './SourceProviderDefinition.ts',
 				typeNames: ['SourceProviderDefinition'],
 			},
 		],
 		body: [
-			'export default [',
+			'const sourceProviders = [',
 			...sourceProviderNames.map((provider) => `\t${camel(provider)}SourceProvider,`),
 			'] satisfies readonly SourceProviderDefinition[]',
+			'',
+			'export default sourceProviders',
+			'',
+			'export const sourceBindings = sourceProviders.flatMap(({ bindings }): readonly SourceBinding[] => Object.values(bindings).flat())',
 		],
 	}
 )
@@ -7862,7 +7868,7 @@ const generateSourceServerCredentialsFile = (
 			imports: [
 				{
 					from: '$/sources/$sourceProviders.ts',
-					defaultName: 'sourceProviders',
+					names: ['sourceBindings'],
 				},
 				{
 					from: '$/sources/Source.ts',
@@ -7875,17 +7881,14 @@ const generateSourceServerCredentialsFile = (
 						'SourceCredentialScope',
 					],
 					typeNames: [
-						'SourceBinding',
 						'SourceServerCredentialDefinition',
 					],
 				},
 			],
 			body: [
-				'const runtimeSecretBindingCandidates = sourceProviders',
-				'\t.flatMap<SourceBinding>(({ bindings }) => bindings)',
-				'\t.filter(({ credentials }) => credentials.some(({ scope, keys }) => (',
-				'\t\tscope === SourceCredentialScope.RuntimeSecret',
-				'\t\t&& keys == null',
+				'const runtimeSecretBindingCandidates = sourceBindings.filter(({ credentials }) => credentials.some(({ scope, keys }) => (',
+				'\tscope === SourceCredentialScope.RuntimeSecret',
+				'\t&& keys == null',
 				'\t)))',
 				'',
 				'const runtimeSecretBinding = (',

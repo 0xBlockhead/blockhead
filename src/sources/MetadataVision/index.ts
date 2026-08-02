@@ -14,5 +14,5 @@ export default {
 			label: 'Metadata Vision Open Graph',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

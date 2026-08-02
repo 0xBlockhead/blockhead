@@ -3,6 +3,7 @@ import { type as arktype, type Type } from 'arktype'
 import {
 	SourceCredentialScope,
 	type SourceBinding,
+	type SourceBindingIndex,
 } from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -27,7 +28,7 @@ export type SourceProviderDefinition<
 	label: string
 	env?: Type<SourcePublicEnv>
 	sources: readonly SourceDefinition<_Source>[]
-	bindings?: readonly SourceBinding[]
+	bindings?: SourceBindingIndex
 }
 
 export const requiredPublicEnvString = (
@@ -133,6 +134,11 @@ export const indexSourceProviders = <
 		if (providerSubset == null)
 			return []
 
+		const providerBindings = Object.values<
+			| SourceBinding
+			| readonly SourceBinding[]
+			| undefined
+		>(sourceProvider.bindings ?? {}).flatMap((bindings) => bindings ?? [])
 		return sourceProvider.sources.flatMap((sourceDefinition) => {
 			const sourceSubset = envSubsetFromSchema(
 				'env' in sourceDefinition ?
@@ -143,7 +149,7 @@ export const indexSourceProviders = <
 			if (sourceSubset == null)
 				return []
 
-			const sourceBindings = (sourceProvider.bindings ?? []).filter((binding) => (
+			const sourceBindings = providerBindings.filter((binding) => (
 				binding.source === sourceDefinition.source
 			))
 			const bindingSubsets = sourceBindings.flatMap((binding) => {

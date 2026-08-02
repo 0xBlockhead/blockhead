@@ -14,5 +14,5 @@ export default {
 			label: 'Cardano CIP-30 wallet API',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

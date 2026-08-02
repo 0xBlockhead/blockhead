@@ -26,5 +26,5 @@ export default {
 			label: 'Circle CCTP Stellar contracts',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

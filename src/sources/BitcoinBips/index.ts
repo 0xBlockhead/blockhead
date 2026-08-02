@@ -14,5 +14,5 @@ export default {
 			label: 'Bitcoin BIPs GitHub',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

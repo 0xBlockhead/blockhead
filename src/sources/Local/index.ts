@@ -14,5 +14,5 @@ export default {
 			label: 'Local Internal',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

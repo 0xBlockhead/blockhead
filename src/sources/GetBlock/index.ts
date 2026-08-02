@@ -18,5 +18,5 @@ export default {
 			label: 'GetBlock Yellowstone gRPC',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

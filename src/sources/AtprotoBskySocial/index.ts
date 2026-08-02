@@ -14,5 +14,5 @@ export default {
 			label: 'ATProto Bsky Social XRPC',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

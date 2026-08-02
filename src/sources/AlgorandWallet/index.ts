@@ -14,5 +14,5 @@ export default {
 			label: 'Algorand wallet API',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

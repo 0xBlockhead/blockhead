@@ -18,5 +18,5 @@ export default {
 			label: 'MCP package registry REST',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

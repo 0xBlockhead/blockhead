@@ -14,5 +14,5 @@ export default {
 			label: 'zcash_client_backend local store',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

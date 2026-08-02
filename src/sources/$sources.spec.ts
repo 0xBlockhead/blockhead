@@ -11,11 +11,10 @@ import {
 	resolve,
 } from 'node:path'
 
-import sourceProviderDefinitions from '$/sources/$sourceProviders.ts'
+import sourceProviderDefinitions, { sourceBindings } from '$/sources/$sourceProviders.ts'
 import { indexSourceProviders } from '$/sources/$sources.ts'
 import type { SourceProviderDefinition } from '$/sources/$sources.ts'
 import pipedBindings from '$/sources/Piped/bindings.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	evmExecutionOpenRpcArtifactFailures,
@@ -43,8 +42,7 @@ import {
 } from '$/sources/SourceBinding.ts'
 import { sourceProviders as appSourceProviders } from '$/sources/index.ts'
 
-const sourceBindingArtifacts = sourceProviderDefinitions.flatMap((provider) => provider.bindings)
-	.flatMap((binding) => binding.artifacts ?? [])
+const sourceBindingArtifacts = sourceBindings.flatMap((binding) => binding.artifacts ?? [])
 const {
 	transportsByChainId: voltaireJsonRpcTransportsByChainId,
 } = voltaireJsonRpcTransports
@@ -118,8 +116,7 @@ const fixtureSourceProviders = [
 
 describe('source provider registry', () => {
 	it('names every EVM execution binding missing OpenRPC authority', () => {
-		expect(evmExecutionOpenRpcArtifactFailures(sourceProviderDefinitions
-			.flatMap((provider) => provider.bindings)
+		expect(evmExecutionOpenRpcArtifactFailures(sourceBindings
 			.filter((binding) => (
 				binding.source === 'EnvioHyperRpc_JsonRpc'
 				|| binding.source === 'GetBlockRpc_JsonRpc'
@@ -278,7 +275,7 @@ describe('source provider registry', () => {
 			expect(sourceProvider.provider, sourceProvider.label).toBeDefined()
 			expect(sourceProvider.sources.length, String(sourceProvider.provider)).toBeGreaterThan(0)
 
-			for (const endpoint of sourceProvider.bindings.flatMap(({ endpoints }) => endpoints)) {
+			for (const endpoint of Object.values(sourceProvider.bindings).flat().flatMap(({ endpoints }) => endpoints)) {
 				const origin = sourceEndpointOrigin(endpoint)
 				if (origin != null) {
 					expect(new URL(origin).origin, `${sourceProvider.provider}: ${origin}`).toBe(origin)
@@ -305,9 +302,7 @@ describe('source provider registry', () => {
 	})
 
 	it('binds both public TRON REST sources to the canonical CAIP-2 mainnet', () => {
-		const bindings = sourceProviderDefinitions
-			.flatMap((provider) => provider.bindings)
-			.filter((binding) => (
+		const bindings = sourceBindings.filter((binding) => (
 				binding.source === Source.TronGrid_Rest
 				|| binding.source === Source.TronScan_Rest
 			))
@@ -361,7 +356,7 @@ describe('source provider registry', () => {
 	it('keeps every provider origin represented in the proxy allow-list source', () => {
 		const serverSource = readFileSync(join(process.cwd(), 'src', 'sources', 'index.server.ts'), 'utf8')
 
-		expect(serverSource).toMatch(/\bsourceProviders\s*\.flatMap\(\(provider\)(?:: readonly SourceBinding\[\])? => provider\.bindings\)/)
+		expect(serverSource).toMatch(/import \{ sourceBindings \} from '\$\/sources\/\$sourceProviders\.ts'/)
 		expect(serverSource).toMatch(/\bbinding\.delivery === SourceDelivery\.HttpProxy\b/)
 		expect(serverSource).toMatch(/\bendpoint\.endpointKind === SourceEndpointKind\.HttpUrl\b/)
 		expect(serverSource).not.toMatch(/\bnew Set\(\s*\[/)
@@ -462,9 +457,8 @@ describe('source provider registry', () => {
 			entries.map((entry) => entry.endpoint.locator)
 		)))).toEqual(
 			new Set(
-				sourceProviderDefinitions
-					.filter((provider) => provider.provider === SourceProvider.Voltaire)
-					.flatMap((provider) => provider.bindings)
+				sourceBindings
+					.filter((binding) => binding.source === Source.Voltaire_JsonRpc)
 					.flatMap((binding) => binding.endpoints)
 					.filter((endpoint) => (
 						endpoint.endpointKind === SourceEndpointKind.HttpUrl
@@ -476,9 +470,7 @@ describe('source provider registry', () => {
 	})
 
 	it('keeps every Voltaire executable transport joined to its canonical binding', () => {
-		const voltaireBindings = sourceProviderDefinitions
-			.find((provider) => provider.provider === SourceProvider.Voltaire)!
-			.bindings
+		const voltaireBindings = sourceBindings.filter((binding) => binding.source === Source.Voltaire_JsonRpc)
 
 		for (const [chainId, transports] of Object.entries(voltaireJsonRpcTransportsByChainId)) {
 			for (const transport of transports) {
@@ -496,9 +488,7 @@ describe('source provider registry', () => {
 	})
 
 	it('preserves every Voltaire binding and endpoint pair in the execution transport index', () => {
-		const voltaireBindings = sourceProviderDefinitions
-			.find((provider) => provider.provider === SourceProvider.Voltaire)!
-			.bindings
+		const voltaireBindings = sourceBindings.filter((binding) => binding.source === Source.Voltaire_JsonRpc)
 
 		for (const [chainId, transports] of Object.entries(voltaireJsonRpcTransportsByChainId)) {
 			expect(new Set(transports.map(({ binding, endpoint }) => (
@@ -564,9 +554,8 @@ describe('source provider registry', () => {
 			endpointKind: transport.endpoint.endpointKind,
 			rpcUrl: transport.endpoint.locator,
 		}))).toEqual(
-			sourceProviderDefinitions
-				.filter((provider) => provider.provider === SourceProvider.Voltaire)
-				.flatMap((provider) => provider.bindings)
+			sourceBindings
+				.filter((binding) => binding.source === Source.Voltaire_JsonRpc)
 				.flatMap((binding) => (
 					binding.endpoints.map((endpoint) => ({
 						chainId: Number(binding.target.key),
@@ -578,9 +567,8 @@ describe('source provider registry', () => {
 	})
 
 	it('keeps Quilibrium docs endpoints in generated APP binding metadata', () => {
-		expect(sourceProviderDefinitions
-			.filter((provider) => provider.provider === SourceProvider.QuilibriumDocs)
-			.flatMap((provider) => provider.bindings)
+		expect(sourceBindings
+			.filter((binding) => binding.source === Source.QuilibriumDocs_Rest)
 			.flatMap((binding) => binding.endpoints)
 			.map((endpoint) => ({
 				locator: endpoint.locator,

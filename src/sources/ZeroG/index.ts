@@ -26,5 +26,5 @@ export default {
 			label: '0G StorageScan REST',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

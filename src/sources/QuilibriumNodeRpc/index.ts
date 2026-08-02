@@ -14,5 +14,5 @@ export default {
 			label: 'Quilibrium node gRPC',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

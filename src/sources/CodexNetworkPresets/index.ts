@@ -14,5 +14,5 @@ export default {
 			label: 'Codex network presets GitHub',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

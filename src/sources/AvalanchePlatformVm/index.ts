@@ -14,5 +14,5 @@ export default {
 			label: 'Avalanche PlatformVM JSON-RPC',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

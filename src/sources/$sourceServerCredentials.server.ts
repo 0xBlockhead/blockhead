@@ -1,19 +1,16 @@
 // Generated from APP.ts.
 
-import sourceProviders from '$/sources/$sourceProviders.ts'
+import { sourceBindings } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	sourceBindingId,
 	SourceCredentialScope,
-	type SourceBinding,
 	type SourceServerCredentialDefinition,
 } from '$/sources/SourceBinding.ts'
 
-const runtimeSecretBindingCandidates = sourceProviders
-	.flatMap<SourceBinding>(({ bindings }) => bindings)
-	.filter(({ credentials }) => credentials.some(({ scope, keys }) => (
-		scope === SourceCredentialScope.RuntimeSecret
-		&& keys == null
+const runtimeSecretBindingCandidates = sourceBindings.filter(({ credentials }) => credentials.some(({ scope, keys }) => (
+	scope === SourceCredentialScope.RuntimeSecret
+	&& keys == null
 	)))
 
 const runtimeSecretBinding = (

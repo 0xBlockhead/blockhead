@@ -14,5 +14,5 @@ export default {
 			label: 'Ethereum EIPs GitHub',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

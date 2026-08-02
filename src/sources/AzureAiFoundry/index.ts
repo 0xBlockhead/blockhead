@@ -14,5 +14,5 @@ export default {
 			label: 'Azure AI Foundry REST',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

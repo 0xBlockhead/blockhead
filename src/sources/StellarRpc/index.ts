@@ -14,5 +14,5 @@ export default {
 			label: 'Stellar RPC JSON-RPC',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

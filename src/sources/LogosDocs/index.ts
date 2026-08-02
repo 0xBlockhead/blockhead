@@ -14,5 +14,5 @@ export default {
 			label: 'Logos docs',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

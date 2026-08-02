@@ -14,5 +14,5 @@ export default {
 			label: 'LND REST',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

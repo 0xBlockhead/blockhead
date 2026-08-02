@@ -85,7 +85,7 @@ import {
 	indexSourceProviders,
 } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceDelivery } from '$/sources/SourceBinding.ts'
+import { SourceDelivery, type SourceBinding } from '$/sources/SourceBinding.ts'
 
 
 export enum ClientEventType {
@@ -3610,7 +3610,11 @@ export const client = <
 		enabledSources
 	)
 	const sourceBindingsBySource = Object.groupBy(
-		sourceProviders.flatMap((sourceProvider) => sourceProvider.bindings ?? []),
+		sourceProviders.flatMap((sourceProvider) => Object.values<
+			| SourceBinding
+			| readonly SourceBinding[]
+			| undefined
+		>(sourceProvider.bindings ?? {}).flatMap((bindings) => bindings ?? [])),
 		(sourceBinding) => String(sourceBinding.source)
 	)
 	for (const liveSource of new Set([

@@ -14,5 +14,5 @@ export default {
 			label: 'Polkadot injected web3 wallet API',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

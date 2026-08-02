@@ -14,5 +14,5 @@ export default {
 			label: 'TON Lite Server ADNL',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

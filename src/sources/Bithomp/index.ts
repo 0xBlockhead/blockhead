@@ -14,5 +14,5 @@ export default {
 			label: 'Bithomp',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

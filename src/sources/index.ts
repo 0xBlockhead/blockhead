@@ -1,7 +1,7 @@
-import sourceProviders from '$/sources/$sourceProviders.ts'
+import sourceProviders, { sourceBindings as allSourceBindings } from '$/sources/$sourceProviders.ts'
 import { enabledSourcesFromBindings, indexSourceProviders, type SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceCredentialScope, SourceDelivery, SourceTargetKind, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { SourceCredentialScope, SourceDelivery, SourceTargetKind } from '$/sources/SourceBinding.ts'
 import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 import { env as publicEnv } from '$env/dynamic/public'
 
@@ -20,8 +20,6 @@ const browserDeliveries = new Set([
 	SourceDelivery.RemoteQuery,
 	SourceDelivery.RemoteLive,
 ])
-
-const allSourceBindings = sourceProviders.flatMap((provider): readonly SourceBinding[] => provider.bindings)
 
 export const sourceBindings = allSourceBindings
 	.filter((binding) => (

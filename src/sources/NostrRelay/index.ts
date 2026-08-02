@@ -18,5 +18,5 @@ export default {
 			label: 'Nostr relay WebSocket',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

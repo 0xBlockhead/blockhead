@@ -4,7 +4,6 @@ import {
 } from 'node:fs'
 
 import {
-	beforeAll,
 	describe,
 	expect,
 	it,
@@ -12,7 +11,6 @@ import {
 } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
-import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 import {
 	ApiFamily,
 	SourceArtifactKind,
@@ -25,7 +23,7 @@ import {
 	sourceEndpointOrigin,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-import generatedSourceProviders from '$/sources/$sourceProviders.ts'
+import generatedSourceProviders, { sourceBindings } from '$/sources/$sourceProviders.ts'
 import sourceServerCredentialsById from '$/sources/$sourceServerCredentials.server.ts'
 import { auditSourceProviders } from '$/sources/auditSourceProviders.ts'
 import {
@@ -45,13 +43,7 @@ import { redditTextGet } from '$/sources/RedditPublic/Rest/client.ts'
 import snapchainBindings from '$/sources/Snapchain/bindings.ts'
 import { snapchainGet } from '$/sources/Snapchain/Rest/client.ts'
 
-let sourceProviders: SourceProviderDefinition[]
-let sourceBindings: readonly SourceBinding[]
-
-beforeAll(() => {
-	sourceProviders = [...generatedSourceProviders]
-	sourceBindings = sourceProviders.flatMap((provider) => provider.bindings)
-})
+const sourceProviders = generatedSourceProviders
 
 const sourceMember = (
 	name: string

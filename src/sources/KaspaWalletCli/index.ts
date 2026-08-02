@@ -14,5 +14,5 @@ export default {
 			label: 'Kaspa wallet CLI API',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

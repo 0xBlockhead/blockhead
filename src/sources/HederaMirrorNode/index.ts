@@ -14,5 +14,5 @@ export default {
 			label: 'Hedera mirror node REST',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

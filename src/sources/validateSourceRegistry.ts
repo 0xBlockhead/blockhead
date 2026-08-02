@@ -22,10 +22,9 @@ import {
 	WireProtocol,
 	sourceEndpointOrigin,
 } from '$/sources/SourceBinding.ts'
-import sourceProviders from '$/sources/$sourceProviders.ts'
+import sourceProviders, { sourceBindings } from '$/sources/$sourceProviders.ts'
 import { auditSourceProviders } from '$/sources/auditSourceProviders.ts'
 
-const sourceBindings = sourceProviders.flatMap((provider) => provider.bindings)
 const browserSourceBindings = sourceBindings.filter((binding) => (
 		(
 			binding.delivery === SourceDelivery.BrowserDirect

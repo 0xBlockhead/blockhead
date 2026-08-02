@@ -18,5 +18,5 @@ export default {
 			label: 'Remote Git repository',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

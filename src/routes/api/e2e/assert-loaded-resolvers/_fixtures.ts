@@ -37,7 +37,7 @@ import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedActionKind.ts'
 import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPoolKind.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceCredentialScope } from '$/sources/SourceBinding.ts'
-import sourceProviderDefinitions from '$/sources/$sourceProviders.ts'
+import { sourceBindings } from '$/sources/$sourceProviders.ts'
 import { SolanaInstructionKind } from '$/schema/SolanaInstructionKind.ts'
 
 const { entityDefinitionByType } = indexSchema(schema)
@@ -3178,9 +3178,7 @@ export type AssertLoadedResolverProbeCategorySummary = Record<
 /** Sources for which every executable binding requires process environment credentials. */
 export const envGatedProbeSources = new Set<Source>(
 	Object.values(Source).filter((source) => {
-		const bindings = sourceProviderDefinitions
-			.flatMap((provider) => provider.bindings)
-			.filter((binding) => binding.source === source)
+		const bindings = sourceBindings.filter((binding) => binding.source === source)
 
 		return bindings.length > 0 && bindings.every((binding) => binding.credentials.some((credential) => (
 			credential.scope === SourceCredentialScope.PublicConfig

@@ -14,5 +14,5 @@ export default {
 			label: 'OCI distribution registry',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

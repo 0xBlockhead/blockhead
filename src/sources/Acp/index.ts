@@ -18,5 +18,5 @@ export default {
 			label: 'ACP registry REST',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

@@ -14,5 +14,5 @@ export default {
 			label: 'Bitcoin Cash CHIPs GitLab',
 		},
 	],
-	bindings: Object.values(bindings).flat(),
+	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>
