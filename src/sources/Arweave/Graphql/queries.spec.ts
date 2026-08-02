@@ -6,7 +6,11 @@ import {
 	getAccountTransactionsPage,
 	getTransactionById,
 } from '$/sources/Arweave/Graphql/queries.ts'
-import * as httpRestClient from '$/sources/_shared/wire/HttpRest/client.ts'
+import { graphql } from '$/sources/_shared/wire/Graphql/client.ts'
+
+vi.mock('$/sources/_shared/wire/Graphql/client.ts', () => ({
+	graphql: vi.fn(),
+}))
 
 const binding = bindings[Source.Arweave_Graphql][0]
 
@@ -50,10 +54,8 @@ const transaction = {
 
 describe('Arweave GraphQL public transaction discovery', () => {
 	it('preserves exact IDs, winston units, tags, and confirmed block identity', async () => {
-		vi.spyOn(httpRestClient, 'postJson').mockResolvedValue({
-			data: {
-				transaction,
-			},
+		vi.mocked(graphql).mockResolvedValue({
+			transaction,
 		})
 
 		await expect(getTransactionById(
@@ -71,22 +73,20 @@ describe('Arweave GraphQL public transaction discovery', () => {
 	})
 
 	it('keeps pending transactions blockless and advances opaque cursors', async () => {
-		vi.spyOn(httpRestClient, 'postJson').mockResolvedValue({
-			data: {
-				transactions: {
-					pageInfo: {
-						hasNextPage: true,
-					},
-					edges: [
-						{
-							cursor: 'cursor-2',
-							node: {
-								...transaction,
-								block: null,
-							},
-						},
-					],
+		vi.mocked(graphql).mockResolvedValue({
+			transactions: {
+				pageInfo: {
+					hasNextPage: true,
 				},
+				edges: [
+					{
+						cursor: 'cursor-2',
+						node: {
+							...transaction,
+							block: null,
+						},
+					},
+				],
 			},
 		})
 
@@ -111,14 +111,12 @@ describe('Arweave GraphQL public transaction discovery', () => {
 	})
 
 	it('rejects incomplete coordinates on confirmed blocks', async () => {
-		vi.spyOn(httpRestClient, 'postJson').mockResolvedValue({
-			data: {
-				transaction: {
-					...transaction,
-					block: {
-						...transaction.block,
-						id: null,
-					},
+		vi.mocked(graphql).mockResolvedValue({
+			transaction: {
+				...transaction,
+				block: {
+					...transaction.block,
+					id: null,
 				},
 			},
 		})
@@ -130,20 +128,17 @@ describe('Arweave GraphQL public transaction discovery', () => {
 	})
 
 	it('rejects foreign owner rows, duplicate cursors, and stalled pagination', async () => {
-		const postJson = vi.spyOn(httpRestClient, 'postJson')
-		postJson.mockResolvedValueOnce({
-			data: {
-				transactions: {
-					pageInfo: {
-						hasNextPage: false,
-					},
-					edges: [
-						{
-							cursor,
-							node: transaction,
-						},
-					],
+		vi.mocked(graphql).mockResolvedValueOnce({
+			transactions: {
+				pageInfo: {
+					hasNextPage: false,
 				},
+				edges: [
+					{
+						cursor,
+						node: transaction,
+					},
+				],
 			},
 		})
 		await expect(getAccountTransactionsPage(binding, {
@@ -152,19 +147,17 @@ describe('Arweave GraphQL public transaction discovery', () => {
 			first: 10,
 		})).rejects.toThrow('owner filter was violated')
 
-		postJson.mockResolvedValueOnce({
-			data: {
-				transactions: {
-					pageInfo: {
-						hasNextPage: true,
-					},
-					edges: [
-						{
-							cursor,
-							node: transaction,
-						},
-					],
+		vi.mocked(graphql).mockResolvedValueOnce({
+			transactions: {
+				pageInfo: {
+					hasNextPage: true,
 				},
+				edges: [
+					{
+						cursor,
+						node: transaction,
+					},
+				],
 			},
 		})
 		await expect(getAccountTransactionsPage(binding, {
