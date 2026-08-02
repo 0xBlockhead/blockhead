@@ -5374,6 +5374,8 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 
 	const sources = Object.freeze([...sourceApp.sources.sources])
 	const sourceProviders = Object.freeze([...sourceApp.sources.providers])
+	validateAlphabeticalSet('Source provider definitions', sourceProviders.map(({ provider }) => provider))
+	validateAlphabeticalSet('Source definitions', sources.map(({ source }) => source))
 	const sourceIds = new Set(sources.map((source) => source.source))
 	const sourceProviderIds = new Set(sourceProviders.map((provider) => provider.provider))
 	for (const source of Object.values(Source))

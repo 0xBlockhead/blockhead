@@ -12,11 +12,11 @@ export default {
 		[Source.ZeroGChain_JsonRpc]: {
 			label: '0G Chain JSON-RPC',
 		},
-		[Source.ZeroGStorageNode_JsonRpc]: {
-			label: '0G Storage node JSON-RPC',
-		},
 		[Source.ZeroGChainScan_Rest]: {
 			label: '0G ChainScan REST',
+		},
+		[Source.ZeroGStorageNode_JsonRpc]: {
+			label: '0G Storage node JSON-RPC',
 		},
 		[Source.ZeroGStorageScan_Rest]: {
 			label: '0G StorageScan REST',

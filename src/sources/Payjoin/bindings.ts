@@ -15,6 +15,41 @@ import {
 
 export default indexSourceBindings([
 	{
+		source: Source.PayjoinDirectory_Rest,
+		target: {
+			kind: SourceTargetKind.Global,
+			key: 'directory',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://payjo.in',
+				corsEnabled: false,
+			},
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'http://127.0.0.1:8080',
+				corsEnabled: false,
+			},
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'http://localhost:8080',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: genericReadOperationGroups,
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/Payjoin/Directory/Rest/queries.ts',
+			},
+		],
+	},
+	{
 		source: Source.PayjoinOhttpRelay_Http,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -51,40 +86,5 @@ export default indexSourceBindings([
 		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [],
-	},
-	{
-		source: Source.PayjoinDirectory_Rest,
-		target: {
-			kind: SourceTargetKind.Global,
-			key: 'directory',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://payjo.in',
-				corsEnabled: false,
-			},
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'http://127.0.0.1:8080',
-				corsEnabled: false,
-			},
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'http://localhost:8080',
-				corsEnabled: false,
-			},
-		],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: genericReadOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [],
-		artifacts: [
-			{
-				kind: SourceArtifactKind.HandwrittenTypes,
-				path: 'src/sources/Payjoin/Directory/Rest/queries.ts',
-			},
-		],
 	},
 ] as const satisfies readonly SourceBinding[])

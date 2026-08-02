@@ -15,42 +15,6 @@ import {
 
 export default indexSourceBindings([
 	{
-		source: Source.CircleCctpIris,
-		target: {
-			kind: SourceTargetKind.Global,
-			key: 'circle-cctp-iris-api',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://iris-api.circle.com',
-				corsEnabled: true,
-			},
-		],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.OpenApiHttp,
-		operationGroups: genericReadOperationGroups,
-		delivery: SourceDelivery.BrowserDirect,
-		credentials: [],
-		artifacts: [
-			{
-				kind: SourceArtifactKind.GenerationManifest,
-				path: 'src/sources/CircleCctp/OpenApi/schema-source.ts',
-			},
-			{
-				kind: SourceArtifactKind.OpenApiSpec,
-				path: 'src/sources/CircleCctp/OpenApi/openapi.yaml',
-				generated: true,
-				officialUrl: 'https://developers.circle.com/openapi/cctp.yaml',
-			},
-			{
-				kind: SourceArtifactKind.OpenApiTypes,
-				path: 'src/sources/CircleCctp/OpenApi/openapi.d.ts',
-				generated: true,
-			},
-		],
-	},
-	{
 		source: Source.CircleCctpContracts_Evm,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -103,5 +67,41 @@ export default indexSourceBindings([
 		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
+	},
+	{
+		source: Source.CircleCctpIris,
+		target: {
+			kind: SourceTargetKind.Global,
+			key: 'circle-cctp-iris-api',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://iris-api.circle.com',
+				corsEnabled: true,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.OpenApiHttp,
+		operationGroups: genericReadOperationGroups,
+		delivery: SourceDelivery.BrowserDirect,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/CircleCctp/OpenApi/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/CircleCctp/OpenApi/openapi.yaml',
+				generated: true,
+				officialUrl: 'https://developers.circle.com/openapi/cctp.yaml',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiTypes,
+				path: 'src/sources/CircleCctp/OpenApi/openapi.d.ts',
+				generated: true,
+			},
+		],
 	},
 ] as const satisfies readonly SourceBinding[])

@@ -9,9 +9,6 @@ export default {
 	provider: SourceProvider.CircleCctp,
 	label: 'Circle CCTP',
 	sources: {
-		[Source.CircleCctpIris]: {
-			label: 'Circle CCTP Iris',
-		},
 		[Source.CircleCctpContracts_Evm]: {
 			label: 'Circle CCTP EVM contracts',
 		},
@@ -20,6 +17,9 @@ export default {
 		},
 		[Source.CircleCctpContracts_Stellar]: {
 			label: 'Circle CCTP Stellar contracts',
+		},
+		[Source.CircleCctpIris]: {
+			label: 'Circle CCTP Iris',
 		},
 	},
 	bindings,

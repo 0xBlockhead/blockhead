@@ -52,6 +52,25 @@ export default indexSourceBindings([
 		credentials: [],
 	},
 	{
+		source: Source.PythBenchmarks_Rest,
+		target: {
+			kind: SourceTargetKind.Global,
+			key: 'pyth-benchmarks',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://benchmarks.pyth.network',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: genericReadOperationGroups,
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+	},
+	{
 		source: Source.PythHermes_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -90,24 +109,5 @@ export default indexSourceBindings([
 				generated: true,
 			},
 		],
-	},
-	{
-		source: Source.PythBenchmarks_Rest,
-		target: {
-			kind: SourceTargetKind.Global,
-			key: 'pyth-benchmarks',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://benchmarks.pyth.network',
-				corsEnabled: false,
-			},
-		],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: genericReadOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [],
 	},
 ] as const satisfies readonly SourceBinding[])

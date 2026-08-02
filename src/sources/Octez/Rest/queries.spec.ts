@@ -52,13 +52,13 @@ describe('Octez mainnet shell RPC operations', () => {
 			credentials: [],
 			artifacts: [
 				{
+					kind: SourceArtifactKind.GenerationManifest,
+					path: 'src/sources/Octez/OpenApi/schema-source.ts',
+				},
+				{
 					kind: SourceArtifactKind.OpenApiSpec,
 					path: 'src/sources/Octez/OpenApi/openapi.json',
 					generated: true,
-				},
-				{
-					kind: SourceArtifactKind.GenerationManifest,
-					path: 'src/sources/Octez/OpenApi/schema-source.ts',
 				},
 				{
 					kind: SourceArtifactKind.OpenApiTypes,

@@ -15,11 +15,11 @@ export default {
 		[Source.Pyth_SolanaProgram]: {
 			label: 'Pyth Solana program catalog',
 		},
-		[Source.PythHermes_Rest]: {
-			label: 'Pyth Hermes REST',
-		},
 		[Source.PythBenchmarks_Rest]: {
 			label: 'Pyth benchmarks REST',
+		},
+		[Source.PythHermes_Rest]: {
+			label: 'Pyth Hermes REST',
 		},
 	},
 	bindings,

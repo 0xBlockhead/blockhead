@@ -30,10 +30,10 @@ const caipsGithubRepositoryContentsOperationGroups = [
 
 export default indexSourceBindings([
 	{
-		source: Source.Caips_Github,
+		source: Source.CaipNamespaces_Github,
 		target: {
 			kind: SourceTargetKind.GitRepository,
-			key: 'ChainAgnostic/CAIPs@main:CAIPs',
+			key: 'ChainAgnostic/namespaces@main:namespaces',
 		},
 		endpoints: caipsEndpoints,
 		wireProtocol: WireProtocol.HttpRest,
@@ -43,10 +43,10 @@ export default indexSourceBindings([
 		credentials: [],
 	},
 	{
-		source: Source.CaipNamespaces_Github,
+		source: Source.Caips_Github,
 		target: {
 			kind: SourceTargetKind.GitRepository,
-			key: 'ChainAgnostic/namespaces@main:namespaces',
+			key: 'ChainAgnostic/CAIPs@main:CAIPs',
 		},
 		endpoints: caipsEndpoints,
 		wireProtocol: WireProtocol.HttpRest,

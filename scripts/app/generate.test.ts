@@ -3825,7 +3825,19 @@ test('rejects incompatible and empty authored bindings before compilation', () =
 	assert.throws(() => compileApp(templatedProxyApp), /HttpProxy requires a concrete HTTP origin/)
 })
 
-test('rejects unordered binding membership sets without sorting priority axes', () => {
+test('rejects unordered source registries and binding membership sets without sorting priority axes', () => {
+	const providerRegistryApp = structuredClone(app)
+	Object.defineProperty(providerRegistryApp.sources, 'providers', {
+		value: providerRegistryApp.sources.providers.toReversed(),
+	})
+	assert.throws(() => compileApp(providerRegistryApp), /Source provider definitions must be alphabetized/)
+
+	const sourceRegistryApp = structuredClone(app)
+	Object.defineProperty(sourceRegistryApp.sources, 'sources', {
+		value: sourceRegistryApp.sources.sources.toReversed(),
+	})
+	assert.throws(() => compileApp(sourceRegistryApp), /Source definitions must be alphabetized/)
+
 	const operationGroupApp = structuredClone(app)
 	const operationGroupBinding = operationGroupApp.sources.sources
 		.flatMap((source) => source.bindings ?? (source.binding == null ? [] : [source.binding]))

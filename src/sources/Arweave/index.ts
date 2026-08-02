@@ -9,11 +9,11 @@ export default {
 	provider: SourceProvider.Arweave,
 	label: 'Arweave',
 	sources: {
-		[Source.Arweave_Rest]: {
-			label: 'Arweave Gateway',
-		},
 		[Source.Arweave_Graphql]: {
 			label: 'Arweave GraphQL',
+		},
+		[Source.Arweave_Rest]: {
+			label: 'Arweave Gateway',
 		},
 	},
 	bindings,

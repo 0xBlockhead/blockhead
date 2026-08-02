@@ -9,14 +9,14 @@ export default {
 	provider: SourceProvider.Payjoin,
 	label: 'Payjoin',
 	sources: {
+		[Source.PayjoinDirectory_Rest]: {
+			label: 'Payjoin directory REST',
+		},
 		[Source.PayjoinOhttpRelay_Http]: {
 			label: 'Payjoin OHTTP relay',
 		},
 		[Source.PayjoinReceiver_Http]: {
 			label: 'Payjoin receiver HTTP',
-		},
-		[Source.PayjoinDirectory_Rest]: {
-			label: 'Payjoin directory REST',
 		},
 	},
 	bindings,

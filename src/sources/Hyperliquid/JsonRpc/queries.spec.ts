@@ -63,11 +63,11 @@ describe('Hyperliquid JSON-RPC transport', () => {
 			delivery: SourceDelivery.BrowserDirect,
 			credentials: [],
 			artifacts: [{
-				kind: SourceArtifactKind.OpenRpcSpec,
-				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
-			}, {
 				kind: SourceArtifactKind.GenerationManifest,
 				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			}, {
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
 			}],
 		})
 	})

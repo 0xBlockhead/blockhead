@@ -48,6 +48,31 @@ export default indexSourceBindings([
 		],
 	},
 	{
+		source: Source.ZeroGChainScan_Rest,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '16661',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://chainscan.0g.ai',
+				corsEnabled: true,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: genericReadOperationGroups,
+		delivery: SourceDelivery.BrowserDirect,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/ZeroG/ChainScan/Rest/types.ts',
+			},
+		],
+	},
+	{
 		source: Source.ZeroGStorageNode_JsonRpc,
 		target: {
 			kind: SourceTargetKind.LocalDevice,
@@ -73,31 +98,6 @@ export default indexSourceBindings([
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/ZeroG/StorageNode/JsonRpc/types.ts',
-			},
-		],
-	},
-	{
-		source: Source.ZeroGChainScan_Rest,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key: '16661',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://chainscan.0g.ai',
-				corsEnabled: true,
-			},
-		],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: genericReadOperationGroups,
-		delivery: SourceDelivery.BrowserDirect,
-		credentials: [],
-		artifacts: [
-			{
-				kind: SourceArtifactKind.HandwrittenTypes,
-				path: 'src/sources/ZeroG/ChainScan/Rest/types.ts',
 			},
 		],
 	},

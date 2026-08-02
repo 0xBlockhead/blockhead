@@ -9,11 +9,11 @@ export default {
 	provider: SourceProvider.Caips,
 	label: 'CAIPs',
 	sources: {
-		[Source.Caips_Github]: {
-			label: 'CAIPs GitHub',
-		},
 		[Source.CaipNamespaces_Github]: {
 			label: 'CAIP namespaces GitHub',
+		},
+		[Source.Caips_Github]: {
+			label: 'CAIPs GitHub',
 		},
 	},
 	bindings,
