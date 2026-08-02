@@ -10,9 +10,11 @@ import {
 
 const sourceFetch = vi.hoisted(() => vi.fn())
 const sourceGetText = vi.hoisted(() => vi.fn())
+const firstHttpUrlForBinding = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
+	firstHttpUrlForBinding,
 	sourceFetch,
 	sourceGetText,
 }))
@@ -21,6 +23,8 @@ const binding = bindings[Source.HuggingFaceHub_Rest][0]
 
 describe('Hugging Face typed queries', () => {
 	beforeEach(() => {
+		firstHttpUrlForBinding.mockReset()
+		firstHttpUrlForBinding.mockReturnValue('https://huggingface.co/api')
 		sourceFetch.mockReset()
 		sourceGetText.mockReset()
 	})
@@ -70,6 +74,7 @@ describe('Hugging Face typed queries', () => {
 	})
 
 	it('reads repository documents through the source delivery boundary', async () => {
+		firstHttpUrlForBinding.mockReturnValue('https://huggingface.example/api')
 		sourceGetText.mockResolvedValue('# Model card')
 
 		await expect(retrieveFileText({
@@ -79,7 +84,7 @@ describe('Hugging Face typed queries', () => {
 		})).resolves.toBe('# Model card')
 		expect(sourceGetText).toHaveBeenCalledWith(
 			binding,
-			'https://huggingface.co/org/model/resolve/abc123/README.md'
+			'https://huggingface.example/org/model/resolve/abc123/README.md'
 		)
 	})
 })

@@ -76,9 +76,10 @@ export const retrieveFileText = ({
 	repoId: string
 	revision: string
 	path: string
-}) => {
-	return sourceGetText(
-		binding,
-		`https://huggingface.co/${repoId}/resolve/${revision}/${path}`
-	)
-}
+}) => sourceGetText(
+	binding,
+	new URL(
+		`/${repoId}/resolve/${revision}/${path}`,
+		firstHttpUrlForBinding(binding)
+	).toString()
+)
