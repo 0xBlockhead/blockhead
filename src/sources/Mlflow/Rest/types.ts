@@ -26,18 +26,8 @@ export type MlflowRegisteredModel = {
 	latest_versions?: MlflowModelVersion[]
 }
 
-export type MlflowSearchRegisteredModelsResponse = {
-	registered_models?: MlflowRegisteredModel[]
-	next_page_token?: string
-}
-
 export type MlflowGetRegisteredModelResponse = {
 	registered_model: MlflowRegisteredModel
-}
-
-export type MlflowSearchModelVersionsResponse = {
-	model_versions?: MlflowModelVersion[]
-	next_page_token?: string
 }
 
 export type MlflowGetModelVersionResponse = {
