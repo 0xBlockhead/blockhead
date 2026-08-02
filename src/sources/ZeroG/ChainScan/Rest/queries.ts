@@ -12,11 +12,11 @@ export const getInfo = () => ({
 	url: firstHttpUrlForBinding(binding),
 	chainId: 16661,
 	features: [
-		'blocks',
-		'transactions',
 		'accounts',
-		'validators',
+		'blocks',
 		'contracts',
+		'transactions',
+		'validators',
 	],
 }) satisfies ZeroGChainScanInfo
 

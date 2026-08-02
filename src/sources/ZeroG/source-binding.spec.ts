@@ -61,7 +61,17 @@ describe('0G transport binding authority', () => {
 			},
 		})
 
-		expect(getInfo().url).toBe('https://chainscan.0g.ai')
+		expect(getInfo()).toEqual({
+			url: 'https://chainscan.0g.ai',
+			chainId: 16661,
+			features: [
+				'accounts',
+				'blocks',
+				'contracts',
+				'transactions',
+				'validators',
+			],
+		})
 		await getStorageMiner({
 			address: '0x0000000000000000000000000000000000000000',
 		})
