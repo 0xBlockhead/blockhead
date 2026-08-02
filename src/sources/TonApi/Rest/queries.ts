@@ -1,13 +1,7 @@
-import {
-	type as arktype,
-	type Type,
-} from 'arktype'
-
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
-import type {
+import {
 	TonApiAccount,
-	TonApiAccountTransactionWire,
 	TonApiAccountTransactionsWire,
 	TonApiMasterchainHead,
 } from '$/sources/TonApi/Rest/types.ts'
@@ -15,43 +9,6 @@ import bindings from '$/sources/TonApi/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.TonApi_Rest][0]
-
-const tonApiAccount = arktype({
-	address: 'string',
-	balance: 'string',
-	last_activity: 'number.integer >= 0',
-	status: "'uninit' | 'active' | 'frozen'",
-	interfaces: 'string[]',
-	get_methods: 'string[]',
-	is_wallet: 'boolean',
-}) satisfies Type<TonApiAccount>
-
-const tonApiMasterchainHead = arktype({
-	seqno: 'number.integer >= 0',
-	gen_utime: 'number.integer >= 0',
-}) satisfies Type<TonApiMasterchainHead>
-
-const tonApiAccountTransaction = arktype({
-	hash: 'string',
-	lt: 'number.integer >= 0',
-	account: {
-		address: 'string',
-		is_scam: 'boolean',
-		is_wallet: 'boolean',
-	},
-	success: 'boolean',
-	utime: 'number.integer >= 0',
-	total_fees: 'number.integer >= 0',
-	end_balance: 'number.integer >= 0',
-	transaction_type: 'string',
-	block: 'string',
-	aborted: 'boolean',
-	destroyed: 'boolean',
-}) satisfies Type<TonApiAccountTransactionWire>
-
-const tonApiAccountTransactions = arktype({
-	transactions: tonApiAccountTransaction.array(),
-}) satisfies Type<TonApiAccountTransactionsWire>
 
 const rawTonAddressCoordinates = (address: string) => {
 	const coordinates = /^(-?\d+):([0-9a-fA-F]{64})$/.exec(address)
@@ -71,7 +28,7 @@ export const getAccount = (
 	getTonApiRestJson<unknown>(
 		`/v2/accounts/${encodeURIComponent(accountId)}`
 	).then((wire) => {
-		const account = tonApiAccount.assert(wire)
+		const account = TonApiAccount.assert(wire)
 		if (!/^(?:0|[1-9]\d*)$/.test(account.balance))
 			throw new Error('TonApi_Rest: account balance is not a non-negative decimal integer')
 
@@ -83,7 +40,7 @@ export const getBlockchainMasterchainHead = () => (
 	getTonApiRestJson<unknown>(
 		'/v2/blockchain/masterchain-head'
 	).then((wire) => {
-		const masterchainHead = tonApiMasterchainHead.assert(wire)
+		const masterchainHead = TonApiMasterchainHead.assert(wire)
 		if (
 			!Number.isSafeInteger(masterchainHead.seqno)
 			|| !Number.isSafeInteger(masterchainHead.gen_utime * 1_000)
@@ -121,7 +78,7 @@ export const getBlockchainAccountTransactions = async (
 	})
 	if (beforeLt != null)
 		parameters.set('before_lt', beforeLt.toString())
-	const page = tonApiAccountTransactions.assert(await getTonApiRestJson<unknown>(
+	const page = TonApiAccountTransactionsWire.assert(await getTonApiRestJson<unknown>(
 		`/v2/blockchain/accounts/${encodeURIComponent(accountId)}/transactions?${parameters.toString()}`
 	))
 	if (page.transactions.length > limit)
