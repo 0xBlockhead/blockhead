@@ -16,10 +16,7 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 	getJson,
 }))
 
-const {
-	getGmpMessages,
-	getGmpMessagesByTransaction,
-} = await import('$/sources/Axelarscan/Rest/queries.ts')
+const { getGmpMessages } = await import('$/sources/Axelarscan/Rest/queries.ts')
 
 const binding = bindings[Source.Axelarscan_Rest][0]
 
@@ -208,7 +205,7 @@ describe('Axelarscan GMP queries', () => {
 	})
 
 	it('looks up only messages belonging to the requested transaction', async () => {
-		await getGmpMessagesByTransaction({
+		await getGmpMessages({
 			transactionHash: executionTransactionHash,
 		})
 		expect(getJson).toHaveBeenCalledWith(
@@ -216,13 +213,14 @@ describe('Axelarscan GMP queries', () => {
 			`/gmp/searchGMP?txHash=${encodeURIComponent(executionTransactionHash)}&size=100`
 		)
 
-		await expect(getGmpMessagesByTransaction({
+		await expect(getGmpMessages({
 			transactionHash: `0x${'9'.repeat(64)}`,
 		})).rejects.toThrow('foreign transaction message')
 	})
 
-	it('does not expose the former arbitrary-path query', async () => {
+	it('does not expose superseded query entry points', async () => {
 		const module = await import('$/sources/Axelarscan/Rest/queries.ts')
+		expect(module).not.toHaveProperty('getGmpMessagesByTransaction')
 		expect(module).not.toHaveProperty('query')
 	})
 })

@@ -151,21 +151,8 @@ const assertMessage = (message: AxelarscanGmpMessage) => {
 	)
 		throw new Error('Axelarscan_Rest: reversed message lifecycle')
 	for (const [name, value] of Object.entries(message.time_spent ?? {}))
-		assertSafeNonnegativeInteger(value, `time spent ${name}`)
-}
-
-const getMessages = async (
-	path: string,
-	size: number
-) => {
-	const response = await getJson<AxelarscanGmpResponse>(binding, path)
-	assertSafeNonnegativeInteger(response.total, 'total')
-	assertSafeNonnegativeInteger(response.time_spent, 'query time')
-	if (response.data.length > size)
-		throw new Error('Axelarscan_Rest: response exceeds requested size')
-	for (const message of response.data)
-		assertMessage(message)
-	return response
+		if (value != null)
+			assertSafeNonnegativeInteger(value, `time spent ${name}`)
 }
 
 const assertPage = (size: number, from: number) => {
@@ -175,65 +162,76 @@ const assertPage = (size: number, from: number) => {
 		throw new Error(`Axelarscan_Rest: invalid page offset ${from}`)
 }
 
-export const getGmpMessages = ({
-	size = 50,
-	from = 0,
-	sourceChain,
-	destinationChain,
-}: {
-	size?: number
-	from?: number
-	sourceChain?: string
-	destinationChain?: string
-}) => {
-	assertPage(size, from)
-	if (sourceChain != null)
-		assertOpaqueIdentity(sourceChain, 'source chain')
-	if (destinationChain != null)
-		assertOpaqueIdentity(destinationChain, 'destination chain')
-	return getMessages(
-		`/gmp/searchGMP?${new URLSearchParams({
-			size: String(size),
-			from: String(from),
-			...(sourceChain != null && { sourceChain }),
-			...(destinationChain != null && { destinationChain }),
-		})}`,
-		size
-	).then((response) => {
-		for (const message of response.data)
-			if (
-				sourceChain != null
-				&& !sameIdentity(message.call.chain, sourceChain)
-				|| destinationChain != null
-				&& !sameIdentity(message.call.returnValues.destinationChain, destinationChain)
-			)
-				throw new Error('Axelarscan_Rest: foreign chain message')
-		return response
-	})
-}
+export const getGmpMessages = (query:
+	| {
+		destinationChain?: never
+		from?: never
+		size?: never
+		sourceChain?: never
+		transactionHash: string
+	}
+	| {
+		destinationChain?: string
+		from?: number
+		size?: number
+		sourceChain?: string
+		transactionHash?: never
+	}
+) => {
+	const from = query.from ?? 0
+	const size = query.transactionHash == null ? query.size ?? 50 : 100
+	if (query.transactionHash == null) {
+		assertPage(size, from)
+		if (query.sourceChain != null)
+			assertOpaqueIdentity(query.sourceChain, 'source chain')
+		if (query.destinationChain != null)
+			assertOpaqueIdentity(query.destinationChain, 'destination chain')
+	} else
+		assertOpaqueIdentity(query.transactionHash, 'transaction hash')
 
-export const getGmpMessagesByTransaction = ({
-	transactionHash,
-}: {
-	transactionHash: string
-}) => {
-	assertOpaqueIdentity(transactionHash, 'transaction hash')
-	return getMessages(
-		`/gmp/searchGMP?${new URLSearchParams({
-			txHash: transactionHash,
-			size: '100',
-		})}`,
-		100
+	return getJson<AxelarscanGmpResponse>(
+		binding,
+		`/gmp/searchGMP?${new URLSearchParams(
+			query.transactionHash == null ?
+				{
+					size: String(size),
+					from: String(from),
+					...(query.sourceChain != null && { sourceChain: query.sourceChain }),
+					...(query.destinationChain != null && { destinationChain: query.destinationChain }),
+				}
+				:
+				{
+					txHash: query.transactionHash,
+					size: String(size),
+				}
+		)}`
 	).then((response) => {
-		if (
-			response.data.some((message) => ![
-				message.call.transactionHash,
-				message.gas_paid?.transactionHash,
-				message.approved?.transactionHash,
-				message.executed?.transactionHash,
-			].some((candidate) => candidate != null && sameIdentity(candidate, transactionHash)))
-		)
-			throw new Error('Axelarscan_Rest: foreign transaction message')
+		assertSafeNonnegativeInteger(response.total, 'total')
+		assertSafeNonnegativeInteger(response.time_spent, 'query time')
+		if (response.data.length > size)
+			throw new Error('Axelarscan_Rest: response exceeds requested size')
+		for (const message of response.data)
+			assertMessage(message)
+
+		if (query.transactionHash != null) {
+			if (
+				response.data.some((message) => ![
+					message.call.transactionHash,
+					message.gas_paid?.transactionHash,
+					message.approved?.transactionHash,
+					message.executed?.transactionHash,
+				].some((candidate) => candidate != null && sameIdentity(candidate, query.transactionHash)))
+			)
+				throw new Error('Axelarscan_Rest: foreign transaction message')
+		} else
+			for (const message of response.data)
+				if (
+					query.sourceChain != null
+					&& !sameIdentity(message.call.chain, query.sourceChain)
+					|| query.destinationChain != null
+					&& !sameIdentity(message.call.returnValues.destinationChain, query.destinationChain)
+				)
+					throw new Error('Axelarscan_Rest: foreign chain message')
 		return response
 	})
 }
