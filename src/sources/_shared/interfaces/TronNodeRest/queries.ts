@@ -42,6 +42,20 @@ export const tronNodeRest = ({
 			},
 		})
 	),
+	getBlockByNumber: ({
+		height,
+	}: {
+		height: bigint
+	}) => (
+		postJson<TronNodeBlock>({
+			binding,
+			path: `${endpointNamespace}/getblockbynum`,
+			body: {
+				num: Number(height),
+				visible: true,
+			},
+		})
+	),
 	getTransactionById: ({
 		transactionId,
 	}: {
