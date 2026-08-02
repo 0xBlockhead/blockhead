@@ -6749,4 +6749,10 @@ test('derives every view item field dependency from one canonical primitive', ()
 		(generatorSource.match(/viewItemEntityFieldsExpression\(entity, viewEntry, /g) ?? []).length,
 		2
 	)
+	assert.doesNotMatch(
+		generatorSource,
+		/const (?:importedViewItems|rawSnippetImportSpecs|declaredViewImportSpecs|renderedFieldReferences) =/
+	)
+	assert.doesNotMatch(generatorSource, /\.\.\.allViewItems\(entity, indexes\),\s*\.\.\.contentRows\.flat\(\)/)
+	assert.doesNotMatch(generatorSource, /viewUsesFormat\(entity, indexes,[^;]+\|\| contentRows\.some/)
 })

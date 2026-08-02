@@ -9802,20 +9802,16 @@ const generateSingularViewFile = (
 			'viewSelection',
 		]
 	)
-	const importedViewItems = viewItemImports(entity, indexes)
 	const iconMarkup = (
 		singularView?.summary?.Icon != null
 		|| singularView?.summary?.icon != null
 	) ? renderIconSnippet(entity, indexes, entityResourceExpression) : []
-	const rawSnippetImportSpecs = mergeImports(
-		rawSnippets.flatMap((snippet) => emitImportObject(snippet.imports))
-	)
 	const declaredImportSpecs = mergeImports([
 		...(entityHrefExpression == null ? [] : entityRouteImportSpecs(indexes, entity.entityType)),
 		...emitImportObject(singularView?.imports),
 		...emitImportObject(singularView?.pending?.imports),
-		...rawSnippetImportSpecs,
-		...importedViewItems,
+		...rawSnippets.flatMap((snippet) => emitImportObject(snippet.imports)),
+		...viewItemImports(entity, indexes),
 	])
 	const declaredComponentImportSpecs = declaredImportSpecs.filter((importSpec) => (
 		importSpec.from.endsWith('.svelte')
@@ -9826,15 +9822,7 @@ const generateSingularViewFile = (
 		!importSpec.from.endsWith('.svelte')
 		&& importSpec.from !== '$/routes/+layout.svelte'
 	))
-	const usesTruncatedValue = (
-		viewUsesFormat(entity, indexes, ['truncated', 'namespaceReference', 'url'])
-		|| contentRows.some((group) => group.some((item) => ['truncated', 'namespaceReference', 'url'].includes(viewItemFormat(entity, indexes, item) ?? '')))
-	)
-	const declaredViewImportSpecs = mergeImports([
-		...expressionImportSpecs,
-		...declaredComponentImportSpecs,
-		...declaredContextImportSpecs,
-	])
+	const usesTruncatedValue = viewUsesFormat(entity, indexes, ['truncated', 'namespaceReference', 'url'])
 	const contextImportSpecs = mergeImports([
 		...declaredContextImportSpecs,
 		...(generatedUsesSelect ? [{
@@ -10330,20 +10318,17 @@ const generateSingularViewFile = (
 		...detailBodyMarkup,
 		...detailBlockMarkup,
 	]
-	const renderedFieldReferences = [
-		...allViewItems(entity, indexes).flatMap(itemFieldReferences),
-		...contentRows.flatMap((viewEntries) => viewEntries.flatMap(itemFieldReferences)),
-		...sections.map((section) => section.field),
-		...detailsTabSections.map((section) => section.field),
-		...contentListRelationshipSections.map((section) => section.field),
-		...latestItems.map((latest) => latest.field),
-		...carouselsToRender.flatMap((carousel) => carousel.sections.flatMap((section) => (
-			section.field == null ? [] : [section.field]
-		))),
-	]
 	const generatedUsesProjectionBoundary = (
-		renderedFieldReferences.some(isProjectionFieldReference)
-		|| carouselsToRender.some((carousel) => carousel.projectionPath != null)
+		allViewItems(entity, indexes).some((viewEntry) => itemFieldReferences(viewEntry).some(isProjectionFieldReference))
+		|| sections.some((section) => isProjectionFieldReference(section.field))
+		|| latestItems.some((latest) => isProjectionFieldReference(latest.field))
+		|| carouselsToRender.some((carousel) => (
+			carousel.projectionPath != null
+			|| carousel.sections.some((section) => (
+				section.field != null
+				&& isProjectionFieldReference(section.field)
+			))
+		))
 	)
 	const generatedUsesIconComponent = (
 		singularView?.summary?.Icon == null
@@ -10414,10 +10399,7 @@ const generateSingularViewFile = (
 					&& fieldDefinition.cardinality !== EntityFieldCardinality.Many
 			)
 		}))
-		|| [
-			...allViewItems(entity, indexes),
-			...contentRows.flat(),
-		].some((viewEntry) => {
+		|| allViewItems(entity, indexes).some((viewEntry) => {
 			if (typeof viewEntry === 'object' && 'kind' in viewEntry && viewEntry.kind === _ViewItemKind.Text)
 				return false
 			if (typeof viewEntry === 'object' && 'kind' in viewEntry && viewEntry.kind === _ViewItemKind.Block)
@@ -10550,14 +10532,14 @@ const generateSingularViewFile = (
 		) ? [
 			'import { resolve } from \'$app/paths\'',
 		] : []),
-		...(generatedUsesProjectionBoundary && !declaredViewImportSpecs.some((importSpec) => (
+		...(generatedUsesProjectionBoundary && !declaredImportSpecs.some((importSpec) => (
 			importSpec.from === '$/components/ProjectionBoundary.svelte'
 			&& importSpec.defaultName === 'ProjectionBoundary'
 		)) ? ['import ProjectionBoundary from \'$/components/ProjectionBoundary.svelte\''] : []),
 		'import EntityView, { EntityLayout, type EntitySelectionViewProps } from \'$/components/EntityView.svelte\'',
 		...(
 			generatedUsesEntityMetaKey
-			&& !declaredViewImportSpecs.some((importSpec) => (
+			&& !declaredImportSpecs.some((importSpec) => (
 				importSpec.from === '$/schema/$schema.ts'
 				&& (importSpec.names ?? []).some((name) => importNameKey(name) === 'EntityMetaKey')
 			)) ?
@@ -10584,7 +10566,7 @@ const generateSingularViewFile = (
 				|| latestQueries.some((latestQuery) => typeScriptExpressionReferencesBinding(latestQuery, 'Source'))
 				|| carouselQueries.some((carouselQuery) => typeScriptExpressionReferencesBinding(carouselQuery, 'Source'))
 			)
-			&& !declaredViewImportSpecs.some((importSpec) => (
+			&& !declaredImportSpecs.some((importSpec) => (
 				importSpec.from === '$/sources/Source.ts'
 				&& (
 					importSpec.defaultName === 'Source'
@@ -10649,7 +10631,7 @@ const generateSingularViewFile = (
 		...(carouselMarkup.length === 0 ? [] : ['import HeadingComponent from \'$/components/Heading.svelte\'']),
 		...(
 			generatedUsesIconComponent
-			&& !declaredViewImportSpecs.some((importSpec) => (
+			&& !declaredImportSpecs.some((importSpec) => (
 				importSpec.from === '$/components/Icon.svelte'
 				&& importSpec.defaultName === 'IconComponent'
 			)) ?
@@ -10663,7 +10645,7 @@ const generateSingularViewFile = (
 				serial != null
 				|| viewUsesFormat(entity, indexes, ['currency', 'currencyScaled', 'number', 'numberValue', 'percent'])
 			)
-			&& !declaredViewImportSpecs.some((importSpec) => (
+			&& !declaredImportSpecs.some((importSpec) => (
 				importSpec.from === '$/components/NumberValue.svelte'
 				&& importSpec.defaultName === 'NumberValue'
 			)) ?
@@ -10671,22 +10653,16 @@ const generateSingularViewFile = (
 			:
 				[]
 		),
-		...(generatedUsesResourceBoundary && !declaredViewImportSpecs.some((importSpec) => (
+		...(generatedUsesResourceBoundary && !declaredImportSpecs.some((importSpec) => (
 			importSpec.from === '$/components/ResourceBoundary.svelte'
 			&& importSpec.defaultName === 'ResourceBoundary'
 		)) ? [
 			'import ResourceBoundary from \'$/components/ResourceBoundary.svelte\'',
 		] : []),
-		...(
-			viewUsesFormat(entity, indexes, ['timestamp', 'dateTime'])
-			|| contentRows.some((group) => group.some((item) => ['timestamp', 'dateTime'].includes(viewItemFormat(entity, indexes, item) ?? ''))) ?
-				['import Timestamp from \'$/components/Timestamp.svelte\'']
-			:
-				[]
-		),
+		...(viewUsesFormat(entity, indexes, ['timestamp', 'dateTime']) ? ['import Timestamp from \'$/components/Timestamp.svelte\''] : []),
 		...(
 			generatedUsesTooltip
-			&& !declaredViewImportSpecs.some((importSpec) => (
+			&& !declaredImportSpecs.some((importSpec) => (
 				importSpec.from === '$/components/Tooltip.svelte'
 				&& importSpec.defaultName === 'Tooltip'
 			)) ?
@@ -10696,7 +10672,7 @@ const generateSingularViewFile = (
 		),
 		...(
 			usesTruncatedValue
-			&& !declaredViewImportSpecs.some((importSpec) => (
+			&& !declaredImportSpecs.some((importSpec) => (
 				importSpec.from === '$/components/TruncatedValue.svelte'
 				&& importSpec.defaultName === 'TruncatedValue'
 			)) ?
@@ -10705,7 +10681,7 @@ const generateSingularViewFile = (
 				[]
 		),
 		...sectionComponents
-			.filter((component) => !declaredViewImportSpecs.some((importSpec) => (
+			.filter((component) => !declaredImportSpecs.some((importSpec) => (
 				importSpec.from === `$/views/${component}.svelte`
 				&& importSpec.defaultName === componentIdentifier(component)
 			)))
