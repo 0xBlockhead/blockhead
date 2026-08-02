@@ -130,10 +130,6 @@ export type SolanaRpcAddressSignature = {
 	confirmationStatus: SolanaRpcCommitment | null
 }
 
-export type SolanaRpcAddressTransaction = SolanaRpcAddressSignature & {
-	transaction: SolanaRpcTransaction
-}
-
 export type SolanaRpcVoteAccounts = {
 	current: SolanaRpcVoteAccount[]
 	delinquent: SolanaRpcVoteAccount[]
