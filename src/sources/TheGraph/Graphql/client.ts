@@ -12,13 +12,15 @@ import {
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
 import { Source } from '$/sources/Source.ts'
+import type { GraphqlResponse } from '$/sources/_shared/wire/Graphql/client.ts'
 import bindings from '$/sources/TheGraph/bindings.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 const binding = bindings[Source.TheGraph_Graphql][0]
 
 export const queryTheGraph = async <
 	_Result extends object,
-	_Variables extends object,
+	_Variables extends JsonValue & object,
 	>({
 	document,
 	publicEnv,
@@ -32,13 +34,6 @@ export const queryTheGraph = async <
 
 	if (apiKey == null)
 		throw new Error('PUBLIC_THEGRAPH_API_KEY is required for The Graph gateway queries')
-
-	type TheGraphPayloadWire = {
-		data?: _Result
-		errors?: {
-			message?: string
-		}[]
-	}
 
 	const response = await sourceFetch(
 		binding,
@@ -59,21 +54,19 @@ export const queryTheGraph = async <
 	if (!response.ok)
 		throw new Error(`The Graph query failed: ${response.status} ${response.statusText}`)
 
-	const payload = await response.json<TheGraphPayloadWire>()
-
-	if ((payload.errors?.length ?? 0) > 0) {
-		const errors = payload.errors ?? []
-
+	const payload = await response.json<GraphqlResponse<_Result>>()
+	if (payload.errors?.length) {
 		throw new Error(
 			`The Graph query error: ${
-				errors
+				payload.errors
 					.map((error) => error.message ?? 'Unknown error')
 					.join(', ')
 			}`
 		)
 	}
 
-	if (payload.data == null) throw new Error('The Graph query returned no data')
+	if (payload.data == null)
+		throw new Error('The Graph query returned no data')
 
 	return payload.data
 }
