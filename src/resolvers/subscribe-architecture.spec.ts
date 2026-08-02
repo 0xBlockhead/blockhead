@@ -435,6 +435,7 @@ describe('client resolver architecture', () => {
 		const source = [
 			join(srcPath, 'resolvers', 'Atproto-BskySocial-Xrpc.ts'),
 			join(srcPath, 'resolvers', 'Atproto-Xrpc.ts'),
+			join(srcPath, 'resolvers', 'BskyAppViewXrpc.ts'),
 			join(srcPath, 'resolvers', 'Farcaster-Rest.ts'),
 			join(srcPath, 'resolvers', 'Reddit-PublicJson.ts'),
 			join(srcPath, 'resolvers', 'Reddit-Rest.ts'),
@@ -534,11 +535,8 @@ describe('client resolver architecture', () => {
 				mempoolSpaceSource.indexOf('$$outputs: (outputs) => outputs') + '$$outputs: (outputs) => outputs'.length
 			),
 		].join('\n')
-		const atprotoSource = [
-			scannedSourceByFilePath[join(srcPath, 'resolvers', 'Atproto-Xrpc.ts')],
-			scannedSourceByFilePath[join(srcPath, 'resolvers', 'Atproto-BskySocial-Xrpc.ts')],
-		]
-			.flatMap((source) => source.split('defineResolver('))
+		const atprotoSource = scannedSourceByFilePath[join(srcPath, 'resolvers', 'BskyAppViewXrpc.ts')]
+			.split('defineResolver(')
 			.filter((resolverBlock) => (
 				(
 					resolverBlock.includes('entityType: EntityType.AtprotoActor,')
