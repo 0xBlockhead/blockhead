@@ -2,7 +2,7 @@ import { CoinId } from '$/constants/Coin.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 
 const catalog = [
-	{ coinId: CoinId.AAVE, wireId: 'aave-aave' },
+	{ coinId: CoinId.AAVE, wireId: 'aave-new' },
 	{ coinId: CoinId.ADA, wireId: 'ada-cardano' },
 	{ coinId: CoinId.APT, wireId: 'apt-aptos' },
 	{ coinId: CoinId.ARB, wireId: 'arb-arbitrum' },

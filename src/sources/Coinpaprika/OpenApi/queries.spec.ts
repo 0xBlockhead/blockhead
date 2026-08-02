@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { CoinId } from '$/constants/Coin.ts'
+import { idByCoinId } from '$/sources/Coinpaprika/OpenApi/constants.ts'
 import {
 	getCoinMarkets,
 	getCoins,
@@ -11,6 +13,10 @@ describe('Coinpaprika coin queries', () => {
 	afterEach(() => {
 		vi.restoreAllMocks()
 		vi.unstubAllGlobals()
+	})
+
+	it('uses the current canonical AAVE API id', () => {
+		expect(idByCoinId[CoinId.AAVE]).toBe('aave-new')
 	})
 
 	it('loads the coin catalog through the registered browser proxy transport', async () => {
