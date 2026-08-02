@@ -10,42 +10,33 @@ import type {
 	CashuMintKeysetsWire,
 } from '$/sources/Cashu/Mint/Rest/types.ts'
 
-const binding = bindings[Source.CashuMint_Rest][0]
+const bindingByMintUrl = Object.fromEntries(
+	bindings[Source.CashuMint_Rest].map((binding) => [binding.target.key, binding])
+)
 
-const assertMintUrl = (mintUrl: string) => {
-	if (binding.target.key !== mintUrl)
+const getMintJson = <_Wire>(
+	mintUrl: string,
+	path: string
+) => {
+	const binding = bindingByMintUrl[mintUrl]
+	if (binding == null)
 		throw new Error(`CashuMint_Rest: no binding for mint ${mintUrl}`)
+
+	return sourceGetJson<_Wire>(
+		binding,
+		`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}${path}`
+	)
 }
 
-export const getMintInfo = (
-	mintUrl: string
-) => (
-	assertMintUrl(mintUrl),
-	sourceGetJson<CashuMintInfoWire>(
-		binding,
-		`${firstHttpUrlForBinding(binding)}/v1/info`
-	)
-)
+export const getMintInfo = (mintUrl: string) => getMintJson<CashuMintInfoWire>(mintUrl, '/v1/info')
 
 export const getMintKeysets = (
 	mintUrl: string
-) => (
-	assertMintUrl(mintUrl),
-	sourceGetJson<CashuMintKeysetsWire>(
-		binding,
-		`${firstHttpUrlForBinding(binding)}/v1/keysets`
-	)
-)
+) => getMintJson<CashuMintKeysetsWire>(mintUrl, '/v1/keysets')
 
 export const getMintKeys = (
 	mintUrl: string
-) => (
-	assertMintUrl(mintUrl),
-	sourceGetJson<CashuMintKeysWire>(
-		binding,
-		`${firstHttpUrlForBinding(binding)}/v1/keys`
-	)
-)
+) => getMintJson<CashuMintKeysWire>(mintUrl, '/v1/keys')
 
 export const getMintKeysForKeyset = (
 	mintUrl: string,
@@ -54,10 +45,4 @@ export const getMintKeysForKeyset = (
 	}: {
 		keysetId: string
 	}
-) => (
-	assertMintUrl(mintUrl),
-	sourceGetJson<CashuMintKeysWire>(
-		binding,
-		`${firstHttpUrlForBinding(binding)}/v1/keys/${encodeURIComponent(keysetId)}`
-	)
-)
+) => getMintJson<CashuMintKeysWire>(mintUrl, `/v1/keys/${encodeURIComponent(keysetId)}`)
