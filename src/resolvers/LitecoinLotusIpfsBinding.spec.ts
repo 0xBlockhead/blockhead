@@ -88,6 +88,7 @@ describe('Litecoin, Lotus, and IPFS canonical resolver bindings', () => {
 
 		expect(getBlock).toHaveBeenCalledWith({
 			blockHash: 'litecoin-block',
+			verbosity: 2,
 		})
 		await expect(litecoinBlockResolver.resolve[
 			'NetworkHeightHash'

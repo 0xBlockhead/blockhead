@@ -72,6 +72,7 @@ describe('UTXO and Bittensor resolver binding ownership', () => {
 
 		expect(getBitcoinRawTransaction).toHaveBeenCalledWith({
 			txId: 'bitcoin-transaction',
+			verbose: true,
 		})
 	})
 
