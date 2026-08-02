@@ -107,6 +107,10 @@ const renderGeneratedFile = (
 	return renderedSource
 }
 
+const alphabetizeSourceDefinitions = (sourceApp: typeof app) => {
+	sourceApp.sources.sources.sort((left, right) => left.source.localeCompare(right.source, 'en'))
+}
+
 test('entity hrefs compile directly from routes without a parallel artifact family', () => {
 	const generatedFiles = baselineCompiledApp.generatedFiles
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
@@ -1315,11 +1319,24 @@ ${members.map((member) => `\t${member} = '${member}',`).join('\n')}
 
 test('keeps APP compiler registries internally aligned', () => {
 	const appEntityTypes = app.schema.entities.map((entity) => entity.entityType)
+	const appValueTypeIds = app.schema.valueTypes.map((valueType) => valueType.id)
 	const appSourceProviders = app.sources.providers.map((provider) => provider.provider)
 	const appSources = app.sources.sources.map((source) => source.source)
 	const appResolverModulePaths = app.resolvers.modules.map((resolverModule) => resolverModule.path)
 
 	assert.equal(appEntityTypes.length, new Set(appEntityTypes).size)
+	assert.deepEqual(
+		Object.values(EntityType),
+		Object.values(EntityType).toSorted((left, right) => left.localeCompare(right, 'en', {
+			sensitivity: 'base',
+			numeric: true,
+		}))
+	)
+	assert.deepEqual(appEntityTypes, Object.values(EntityType))
+	assert.deepEqual(
+		appValueTypeIds,
+		appValueTypeIds.toSorted((left, right) => left.localeCompare(right, 'en'))
+	)
 	assert.deepEqual(
 		Object.values(EntityType).filter((entityType) => !appEntityTypes.includes(entityType)),
 		[]
@@ -1335,6 +1352,28 @@ test('keeps APP compiler registries internally aligned', () => {
 	assert.equal(appSources.length, new Set(appSources).size)
 	assert.deepEqual(appSources.filter((source) => !(source in Source)), [])
 	assert.equal(appResolverModulePaths.length, new Set(appResolverModulePaths).size)
+})
+
+test('rejects unordered schema registries before generation', () => {
+	const unorderedEntitiesApp = structuredClone(app)
+	Object.defineProperty(unorderedEntitiesApp.schema, 'entities', {
+		value: [
+			unorderedEntitiesApp.schema.entities[1],
+			unorderedEntitiesApp.schema.entities[0],
+			...unorderedEntitiesApp.schema.entities.slice(2),
+		],
+	})
+	assert.throws(() => compileApp(unorderedEntitiesApp), /schema.entities must be alphabetized/)
+
+	const unorderedValueTypesApp = structuredClone(app)
+	Object.defineProperty(unorderedValueTypesApp.schema, 'valueTypes', {
+		value: [
+			unorderedValueTypesApp.schema.valueTypes[1],
+			unorderedValueTypesApp.schema.valueTypes[0],
+			...unorderedValueTypesApp.schema.valueTypes.slice(2),
+		],
+	})
+	assert.throws(() => compileApp(unorderedValueTypesApp), /schema.valueTypes must be alphabetized/)
 })
 
 test('rejects duplicate resolver module paths during compilation', () => {
@@ -3355,6 +3394,7 @@ test('keeps scope-prefix reduction collision-safe for shared binding values', ()
 		value: undefined,
 	})
 	collisionApp.sources.sources.push(collisionRest, collisionGraphql)
+	alphabetizeSourceDefinitions(collisionApp)
 
 	const generatedArweaveBindings = compileApp(collisionApp).generatedFiles.find(({ path }) => (
 		path === 'src/sources/Arweave/bindings.ts'
@@ -3546,8 +3586,16 @@ test('rejects duplicate stable source binding identities', () => {
 	const source = duplicateBindingApp.sources.sources.find((candidate) => (
 		candidate.source === Source.Ipfs_Rest
 	))
-	assert.ok(source)
-	duplicateBindingApp.sources.sources.push(structuredClone(source))
+	assert.ok(source?.binding)
+	Object.defineProperty(source, 'bindings', {
+		value: [
+			structuredClone(source.binding),
+			structuredClone(source.binding),
+		],
+	})
+	Object.defineProperty(source, 'binding', {
+		value: undefined,
+	})
 
 	assert.throws(
 		() => compileApp(duplicateBindingApp),
@@ -3607,10 +3655,11 @@ test('rejects operation groups split across indistinguishable provider sources',
 			return splitSource
 		})
 	)
+	alphabetizeSourceDefinitions(splitForgejoApp)
 
 	assert.throws(
 		() => compileApp(splitForgejoApp),
-		/Forgejo: source identities Forgejo_Rest, ForgejoRepos_Rest, ForgejoIssues_Rest, ForgejoPulls_Rest, ForgejoReleases_Rest share one transport and provenance; combine their operation groups on one source binding/
+		/Forgejo: source identities Forgejo_Rest, ForgejoIssues_Rest, ForgejoPulls_Rest, ForgejoReleases_Rest, ForgejoRepos_Rest share one transport and provenance; combine their operation groups on one source binding/
 	)
 })
 
@@ -3627,6 +3676,7 @@ test('allows same-provider sources with distinct transport or provenance', () =>
 	})
 	distinctEndpointSource.binding.endpoints[0].locator = 'https://{forgejo-mirror-host}/api/v1'
 	distinctEndpointApp.sources.sources.push(distinctEndpointSource)
+	alphabetizeSourceDefinitions(distinctEndpointApp)
 	assert.doesNotThrow(() => compileApp(distinctEndpointApp))
 
 	const distinctProtocolApp = structuredClone(app)
@@ -3642,6 +3692,7 @@ test('allows same-provider sources with distinct transport or provenance', () =>
 		value: ApiFamily.RestJson,
 	})
 	distinctProtocolApp.sources.sources.push(distinctProtocolSource)
+	alphabetizeSourceDefinitions(distinctProtocolApp)
 	assert.doesNotThrow(() => compileApp(distinctProtocolApp))
 
 	const distinctProvenanceApp = structuredClone(app)
@@ -3664,6 +3715,7 @@ test('allows same-provider sources with distinct transport or provenance', () =>
 		return repositorySource
 	})
 	distinctProvenanceApp.sources.sources.push(...distinctRepositorySources)
+	alphabetizeSourceDefinitions(distinctProvenanceApp)
 	assert.doesNotThrow(() => compileApp(distinctProvenanceApp))
 })
 

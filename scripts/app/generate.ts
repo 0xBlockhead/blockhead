@@ -5193,12 +5193,18 @@ const normalizeApp = (app: App) => {
 	}
 }
 
+const compareEntityTypes = (left: string, right: string) => left.localeCompare(right, 'en', {
+	sensitivity: 'base',
+	numeric: true,
+})
+
 const validateAlphabeticalSet = (
 	label: string,
-	values: readonly string[]
+	values: readonly string[],
+	compare: (left: string, right: string) => number = (left, right) => left.localeCompare(right, 'en')
 ) => {
 	for (const [index, value] of values.entries()) {
-		const comparison = index === 0 ? -1 : values[index - 1]!.localeCompare(value, 'en')
+		const comparison = index === 0 ? -1 : compare(values[index - 1]!, value)
 		if (comparison === 0)
 			throw new Error(`${label} contains duplicate ${value}`)
 		if (comparison > 0)
@@ -5368,6 +5374,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		['WireProtocol', Object.values(WireProtocol)],
 	] as const)
 		validateAlphabeticalSet(`${label} members`, values)
+	validateAlphabeticalSet('EntityType members', Object.values(EntityType), compareEntityTypes)
 
 	validateSourceBindingCompatibility(sourceBindingCompatibility)
 	validateSourceBindingDeliveryCompatibility(sourceBindingDeliveryCompatibility)
@@ -5603,10 +5610,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	const resolverModules = Object.freeze([...app.resolvers.modules])
 	const navigationItems = Object.freeze([...app.navigation.items])
 	const activeEntities = Object.freeze([...app.schema.entities]
-		.sort((left, right) => left.entityType.localeCompare(right.entityType, 'en', {
-			sensitivity: 'base',
-			numeric: true,
-		})))
+		.sort((left, right) => compareEntityTypes(left.entityType, right.entityType)))
 	const entityTypes = Object.freeze(activeEntities.map((entity) => entity.entityType))
 	const entityByType = nullPrototypeRecord(activeEntities.map((entity) => [
 		entity.entityType,
@@ -5784,6 +5788,14 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	expectUnique('entity type', entityTypes)
 	expectUnique('value type', app.schema.valueTypes.map((valueType) => valueType.id))
 	expectUnique('source provider', sourceProviders.map((provider) => provider.provider))
+	if (app.schema.entities.some((entity, index, entities) => (
+		index > 0 && compareEntityTypes(entities[index - 1]!.entityType, entity.entityType) > 0
+	)))
+		errors.push('schema.entities must be alphabetized')
+	if (app.schema.valueTypes.some((valueType, index, valueTypes) => (
+		index > 0 && valueTypes[index - 1]!.id.localeCompare(valueType.id, 'en') > 0
+	)))
+		errors.push('schema.valueTypes must be alphabetized')
 
 	for (const entity of activeEntities) {
 		const singularView = entitySingularView(entity)
