@@ -230,9 +230,9 @@ export const getContractAbiJsonString = async ({
 		},
 		options,
 	})
-	if (wire?.status === '1' && typeof wire.result === 'string' && wire.result.trim()) {
+	if (wire.status === '1' && typeof wire.result === 'string' && wire.result.trim())
 		return wire.result
-	}
+
 	const sourceRow = await getContractSourceCode({
 		publicEnv,
 		chainId,
@@ -268,7 +268,7 @@ export const getContractSourceCode = async ({
 		},
 		options,
 	})
-	if (wire == null || wire.status !== '1' || !Array.isArray(wire.result)) return null
+	if (wire.status !== '1' || !Array.isArray(wire.result)) return null
 	return wire.result[0] ?? null
 }
 
@@ -297,7 +297,7 @@ export const getContractCreation = async ({
 		},
 		options,
 	})
-	if (wire == null || wire.status !== '1' || !Array.isArray(wire.result)) return null
+	if (wire.status !== '1' || !Array.isArray(wire.result)) return null
 	return (
 		wire.result.find((row) => (
 			row.contractAddress?.toLowerCase() === address.toLowerCase()
@@ -386,28 +386,36 @@ export const getGasOracle = async ({
 		},
 		options,
 	})
-	if (wire == null || wire.status !== '1') return null
+	if (wire.status !== '1') return null
 	return wire.result
 }
 
+type EtherscanTokenTransferByAction = {
+	token1155tx: EtherscanErc1155TokenTransfer
+	tokennfttx: EtherscanErc721TokenTransfer
+	tokentx: EtherscanErc20TokenTransfer
+}
+
 /**
- * **`module=account`**, **`action=tokentx`** — ERC-20 token transfers by address.
+ * **`module=account`**, **`action=tokentx|tokennfttx|token1155tx`** — token transfers by address.
  * @see https://docs.etherscan.io/api-reference/endpoint/tokentx
  */
-export const getErc20TokenTransfersByAddress = ({
+const getTokenTransfersByAddressAction = <_Action extends keyof EtherscanTokenTransferByAction>({
 	publicEnv,
 	chainId,
 	address,
 	offset,
+	action,
 	options,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
 	offset: number
+	action: _Action
 	options?: { apiKey?: string }
 }) => (
-	etherscanAccountListRows<EtherscanErc20TokenTransfer>({
+	etherscanAccountListRows<EtherscanTokenTransferByAction[_Action]>({
 		publicEnv,
 		chainId,
 		query: {
@@ -415,69 +423,7 @@ export const getErc20TokenTransfersByAddress = ({
 				address,
 				offset,
 			}),
-			action: 'tokentx',
-		},
-		options,
-	})
-)
-
-/**
- * **`module=account`**, **`action=tokennfttx`** — ERC-721 token transfers by address.
- * @see https://docs.etherscan.io/api-reference/endpoint/tokennfttx
- */
-export const getErc721TokenTransfersByAddress = ({
-	publicEnv,
-	chainId,
-	address,
-	offset,
-	options,
-}: {
-	publicEnv: SourcePublicEnv
-	chainId: number
-	address: `0x${string}`
-	offset: number
-	options?: { apiKey?: string }
-}) => (
-	etherscanAccountListRows<EtherscanErc721TokenTransfer>({
-		publicEnv,
-		chainId,
-		query: {
-			...etherscanAccountListQuery({
-				address,
-				offset,
-			}),
-			action: 'tokennfttx',
-		},
-		options,
-	})
-)
-
-/**
- * **`module=account`**, **`action=token1155tx`** — ERC-1155 token transfers by address.
- * @see https://docs.etherscan.io/api-reference/endpoint/token1155tx
- */
-export const getErc1155TokenTransfersByAddress = ({
-	publicEnv,
-	chainId,
-	address,
-	offset,
-	options,
-}: {
-	publicEnv: SourcePublicEnv
-	chainId: number
-	address: `0x${string}`
-	offset: number
-	options?: { apiKey?: string }
-}) => (
-	etherscanAccountListRows<EtherscanErc1155TokenTransfer>({
-		publicEnv,
-		chainId,
-		query: {
-			...etherscanAccountListQuery({
-				address,
-				offset,
-			}),
-			action: 'token1155tx',
+			action,
 		},
 		options,
 	})
@@ -504,25 +450,28 @@ export const getTokenTransfersByAddress = async ({
 		erc721Rows,
 		erc1155Rows,
 	] = await Promise.all([
-		getErc20TokenTransfersByAddress({
+		getTokenTransfersByAddressAction({
 			publicEnv,
 			chainId,
 			address,
 			offset,
+			action: 'tokentx',
 			options,
 		}),
-		getErc721TokenTransfersByAddress({
+		getTokenTransfersByAddressAction({
 			publicEnv,
 			chainId,
 			address,
 			offset,
+			action: 'tokennfttx',
 			options,
 		}),
-		getErc1155TokenTransfersByAddress({
+		getTokenTransfersByAddressAction({
 			publicEnv,
 			chainId,
 			address,
 			offset,
+			action: 'token1155tx',
 			options,
 		}),
 	])
@@ -613,9 +562,8 @@ export const getTokenTransfersByTransaction = async ({
 		))
 	)
 	if (participantRows.some((rows) => rows == null)) return null
-	const merged = participantRows.flatMap((rows) => rows ?? [])
 	const seen = new Set<string>()
-	return merged.filter(({ standard, row }) => {
+	return participantRows.flatMap((rows) => rows ?? []).filter(({ standard, row }) => {
 		if (row.hash?.toLowerCase() !== normalizedTxHash) return false
 		const key = [
 			row.logIndex ?? '',
