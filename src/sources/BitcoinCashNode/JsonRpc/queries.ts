@@ -5,15 +5,21 @@ import type {
 	BitcoinCashTransaction,
 	BitcoinCashValidatedAddress,
 } from '$/sources/BitcoinCashNode/JsonRpc/types.ts'
-import type {
-	BitcoinCoreBlock,
-	BitcoinCoreMempoolInfo,
-} from '$/sources/_shared/interfaces/BitcoinCoreJsonRpc/types.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import type { BitcoinCoreBlock } from '$/sources/_shared/interfaces/BitcoinCoreJsonRpc/types.ts'
+import { bitcoinCoreJsonRpc } from '$/sources/_shared/interfaces/BitcoinCoreJsonRpc/queries.ts'
 import bindings from '$/sources/BitcoinCashNode/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.BitcoinCashNode_JsonRpc][0]
+
+export const {
+	getBlockHash,
+	getMempoolInfo,
+	getRawTransaction,
+} = bitcoinCoreJsonRpc<
+	BitcoinCoreBlock,
+	BitcoinCashTransaction
+>(binding, true)
 
 const assertCashAddress = (address: string) => {
 	if (!/^bitcoincash:[qpzr][qpzry9x8gf2tvdw0s3jn54khce6mua7l]{41,111}$/.test(address))
@@ -65,18 +71,6 @@ const assertTokenData = (tokenData: BitcoinCashTokenData) => {
 		throw new Error('BitcoinCashNode_JsonRpc: invalid CashToken NFT commitment')
 }
 
-export const getBlockHash = ({
-	height,
-}: {
-	height: bigint
-}) => {
-	return jsonRpc2<string>(
-		binding,
-		'getblockhash',
-		[Number(height)]
-	)
-}
-
 export const getBlock = <_Verbosity extends 0 | 1 | 2 = 2>({
 	blockHash,
 	verbosity,
@@ -91,29 +85,6 @@ export const getBlock = <_Verbosity extends 0 | 1 | 2 = 2>({
 			blockHash,
 			verbosity ?? 2,
 		]
-	)
-}
-
-export const getRawTransaction = ({
-	txId,
-}: {
-	txId: string
-}) => {
-	return jsonRpc2<BitcoinCashTransaction>(
-		binding,
-		'getrawtransaction',
-		[
-			txId,
-			true,
-		]
-	)
-}
-
-export const getMempoolInfo = () => {
-	return jsonRpc2<BitcoinCoreMempoolInfo>(
-		binding,
-		'getmempoolinfo',
-		[]
 	)
 }
 

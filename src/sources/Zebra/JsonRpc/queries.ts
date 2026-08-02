@@ -1,5 +1,5 @@
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { bitcoinCoreJsonRpc } from '$/sources/_shared/interfaces/BitcoinCoreJsonRpc/queries.ts'
 import type { ZebraTransparentAddressUtxos } from '$/sources/Zebra/JsonRpc/types.ts'
 import bindings from '$/sources/Zebra/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -9,6 +9,15 @@ import type {
 } from '$/sources/Zcashd/JsonRpc/types.ts'
 
 const binding = bindings[Source.Zebra_JsonRpc][0]
+
+export const {
+	getBlock,
+	getBlockHash,
+	getRawTransaction,
+} = bitcoinCoreJsonRpc<
+	ZcashBlock,
+	ZcashTransaction
+>(binding, true)
 
 const assertTransparentAddress = (address: string) => {
 	if (!/^t[13][1-9A-HJ-NP-Za-km-z]{33}$/.test(address))
@@ -29,44 +38,6 @@ const assertHash = (
 ) => {
 	if (!/^[0-9a-f]{64}$/.test(hash))
 		throw new Error(`Zebra_JsonRpc: invalid ${label}`)
-}
-
-export const getBlockHash = ({
-	height,
-}: {
-	height: bigint
-}) => {
-	return jsonRpc2<string>(binding, 'getblockhash', [Number(height)])
-}
-
-export const getBlock = ({
-	blockHash,
-}: {
-	blockHash: string
-}) => {
-	return jsonRpc2<ZcashBlock>(
-		binding,
-		'getblock',
-		[
-			blockHash,
-			2,
-		]
-	)
-}
-
-export const getRawTransaction = ({
-	txId,
-}: {
-	txId: string
-}) => {
-	return jsonRpc2<ZcashTransaction>(
-		binding,
-		'getrawtransaction',
-		[
-			txId,
-			true,
-		]
-	)
 }
 
 export const getTransparentAddressUtxos = async (
