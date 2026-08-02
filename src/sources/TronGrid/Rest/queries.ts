@@ -7,7 +7,6 @@ import {
 } from '$/sources/_runtime/http.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
-	TronGridAccountTransactions,
 	TronNodeAccount,
 	TronNodeAccountResource,
 	TronNodeBlock,
@@ -16,8 +15,9 @@ import type {
 	TronNodeTransaction,
 	TronNodeTransactionInfo,
 	TronNodeWitnesses,
-} from '$/sources/TronGrid/Rest/types.ts'
+} from '$/sources/_shared/interfaces/TronNodeRest/types.ts'
 import bindings from '$/sources/TronGrid/bindings.ts'
+import type { TronGridAccountTransactions } from '$/sources/TronGrid/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.TronGrid_Rest][0]

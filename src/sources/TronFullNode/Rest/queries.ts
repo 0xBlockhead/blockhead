@@ -9,7 +9,7 @@ import type {
 	TronNodeBlock,
 	TronNodeTransaction,
 	TronNodeTransactionInfo,
-} from '$/sources/TronGrid/Rest/types.ts'
+} from '$/sources/_shared/interfaces/TronNodeRest/types.ts'
 import bindings from '$/sources/TronFullNode/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 

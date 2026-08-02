@@ -93999,7 +93999,7 @@ export const app = {
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/TronGrid/Rest/types.ts",
+							path: "src/sources/_shared/interfaces/TronNodeRest/types.ts",
 						},
 					],
 				},
@@ -94028,6 +94028,10 @@ export const app = {
 					delivery: SourceDelivery.HttpProxy,
 					credentials: [],
 					artifacts: [
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/_shared/interfaces/TronNodeRest/types.ts",
+						},
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/TronGrid/Rest/types.ts",
@@ -94121,7 +94125,7 @@ export const app = {
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/TronGrid/Rest/types.ts",
+							path: "src/sources/_shared/interfaces/TronNodeRest/types.ts",
 						},
 					],
 				},

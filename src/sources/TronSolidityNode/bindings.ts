@@ -35,7 +35,7 @@ export default indexSourceBindings([
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
-				path: 'src/sources/TronGrid/Rest/types.ts',
+				path: 'src/sources/_shared/interfaces/TronNodeRest/types.ts',
 			},
 		],
 	},

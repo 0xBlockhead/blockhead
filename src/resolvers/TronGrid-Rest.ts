@@ -22,7 +22,7 @@ import type {
 	TronNodeTransaction,
 	TronNodeTransactionInfo,
 	TronNodeWitness,
-} from '$/sources/TronGrid/Rest/types.ts'
+} from '$/sources/_shared/interfaces/TronNodeRest/types.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
