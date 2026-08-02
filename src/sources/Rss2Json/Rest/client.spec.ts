@@ -65,10 +65,7 @@ test('encodes an arbitrary feed URL as one reserved query value', async () => {
 		items: [],
 	})
 
-	await getFeed(
-		'https://example.com/feed.xml?topic=a+b&redirect=https%3A%2F%2Fother.example%2Fx%3Fy%3D1%26z%3D2#latest',
-		17
-	)
+	await getFeed('https://example.com/feed.xml?topic=a+b&redirect=https%3A%2F%2Fother.example%2Fx%3Fy%3D1%26z%3D2#latest')
 
 	const requestUrl = new URL(sourceGetJson.mock.calls[0][1])
 	expect(requestUrl.origin).toBe('https://api.rss2json.com')
@@ -76,6 +73,7 @@ test('encodes an arbitrary feed URL as one reserved query value', async () => {
 	expect(requestUrl.searchParams.get('rss_url')).toBe(
 		'https://example.com/feed.xml?topic=a+b&redirect=https%3A%2F%2Fother.example%2Fx%3Fy%3D1%26z%3D2#latest'
 	)
+	expect(requestUrl.searchParams.has('count')).toBe(false)
 	expect(sourceGetJson.mock.calls[0][1]).toContain(
 		'rss_url=https%3A%2F%2Fexample.com%2Ffeed.xml%3Ftopic%3Da%2Bb%26redirect%3Dhttps%253A%252F%252Fother.example%252Fx%253Fy%253D1%2526z%253D2%23latest'
 	)

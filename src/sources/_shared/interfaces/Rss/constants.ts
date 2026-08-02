@@ -21,7 +21,7 @@ export const rssItemIdentityFromParts = (
 		} as const
 }
 
-export const rssPublishedAtMs = (value: string | undefined) => {
+export const rssTimestampMs = (value: string | undefined) => {
 	const trimmed = value?.trim()
 	return (
 		trimmed ?

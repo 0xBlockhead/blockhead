@@ -1,12 +1,15 @@
 import { fetchFailedMessage } from '$/lib/http.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
-import { normalizeRssFeedUrl } from '$/sources/Rss/Rest/constants.ts'
+import { normalizeRssFeedUrl } from '$/sources/_shared/interfaces/Rss/constants.ts'
 import { parseRssFeedXml } from '$/sources/Rss/Rest/parseFeed.ts'
 import type { ParsedRssFeed } from '$/sources/Rss/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/Rss/bindings.ts'
 
-const rssBindingByOrigin = new Map(
+const rssBindingByOrigin = new Map<
+	string,
+	(typeof bindings)[Source.Rss_Rest][number]
+>(
 	bindings[Source.Rss_Rest].map((binding) => [
 		binding.target.key,
 		binding,

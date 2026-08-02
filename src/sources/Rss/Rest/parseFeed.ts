@@ -1,3 +1,5 @@
+import { rssTimestampMs } from '$/sources/_shared/interfaces/Rss/constants.ts'
+
 const decodeXmlEntities = (value: string) => (
 	value
 		.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
@@ -59,8 +61,8 @@ const authorFromBlock = (
 
 const publishedAtFromBlock = (block: string) => {
 	for (const tagName of ['pubDate', 'published']) {
-		const value = firstTagText(block, [tagName])
-		if (value != null && Number.isFinite(Date.parse(value))) return Date.parse(value)
+		const timestampMs = rssTimestampMs(firstTagText(block, [tagName]))
+		if (timestampMs != null) return timestampMs
 	}
 	return undefined
 }
@@ -97,15 +99,9 @@ const commentsUrlFromBlock = (block: string) => {
 	return undefined
 }
 
-const updatedAtFromBlock = (block: string) => {
-	const value = firstTagText(block, ['updated'])
-	return (
-		value != null && Number.isFinite(Date.parse(value)) ?
-			Date.parse(value)
-		:
-			undefined
-	)
-}
+const updatedAtFromBlock = (block: string) => (
+	rssTimestampMs(firstTagText(block, ['updated']))
+)
 
 const imageUrlFromBlock = (block: string) => {
 	const rssImage = block.match(/<image[\s>][\s\S]*?<\/image>/i)?.[0]
@@ -192,7 +188,7 @@ export const parseRssFeedXml = (xml: string) => {
 			firstTagText(channelBlock, ['link'])
 			?? linkHrefFromBlock(channelBlock)
 	)
-	const lastBuildDateText = firstTagText(channelBlock, ['lastBuildDate', 'updated'])
+	const lastBuildDate = rssTimestampMs(firstTagText(channelBlock, ['lastBuildDate', 'updated']))
 	const imageUrl = imageUrlFromBlock(channelBlock)
 	return {
 		...(firstTagText(channelBlock, ['title']) != null && {
@@ -208,8 +204,8 @@ export const parseRssFeedXml = (xml: string) => {
 		...(firstTagText(channelBlock, ['language']) != null && {
 			language: firstTagText(channelBlock, ['language']),
 		}),
-		...(lastBuildDateText != null && Number.isFinite(Date.parse(lastBuildDateText)) && {
-			lastBuildDate: Date.parse(lastBuildDateText),
+		...(lastBuildDate != null && {
+			lastBuildDate,
 		}),
 		...(imageUrl != null && { imageUrl }),
 		items: itemBlocksFromXml(xml)

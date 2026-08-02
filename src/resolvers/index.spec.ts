@@ -1711,7 +1711,10 @@ describe('resolver registry live resolver architecture', () => {
 		}))
 		const getRss2JsonFeed = vi.fn(async () => ({
 			status: 'ok',
-			feed: {},
+			feed: {
+				url: 'https://api.example/feed.xml',
+				link: 'https://publisher.example/',
+			},
 			items: [
 				guidItem,
 				linkItem,
@@ -1737,6 +1740,17 @@ describe('resolver registry live resolver architecture', () => {
 			const [feedItemsResolver] = feedResolvers
 			expect(feedItemsResolver.projections).toHaveProperty('title')
 			expect(feedItemsResolver.projections).toHaveProperty('$$items')
+			if (source === Source.Rss_Rest) {
+				expect(feedItemsResolver.projections).toHaveProperty('language')
+				expect(feedItemsResolver.projections).toHaveProperty('lastBuildDate')
+				expect(itemResolver?.projections).toHaveProperty('updatedAt')
+				expect(itemResolver?.projections).toHaveProperty('commentsUrl')
+			} else {
+				expect(feedItemsResolver.projections).not.toHaveProperty('language')
+				expect(feedItemsResolver.projections).not.toHaveProperty('lastBuildDate')
+				expect(itemResolver?.projections).not.toHaveProperty('updatedAt')
+				expect(itemResolver?.projections).not.toHaveProperty('commentsUrl')
+			}
 			const feedObservationResolver = allSourceResolverDefinitions.find((resolver) => (
 				resolver.source === source
 				&& resolver.entityType === EntityType.RssFeed_Timestamp
@@ -1761,11 +1775,17 @@ describe('resolver registry live resolver architecture', () => {
 			)
 				throw new Error(`missing ${source} RSS resolver`)
 
+			const feedSnapshot = await resolveFeedItems({ feedUrl }, resolverContext)
 			const feedItems = resolverFieldSelector(feedItemsResolver, '$$items')(
-				await resolveFeedItems({ feedUrl }, resolverContext),
+				feedSnapshot,
 				{ feedUrl },
 				resolverContext
 			)
+			if (source === Source.Rss2Json_Rest)
+				expect(feedSnapshot).toMatchObject({
+					link: 'https://publisher.example/',
+					siteUrl: 'https://publisher.example/',
+				})
 			expect(feedItems.map((item) => item[EntityMetaKey.Selector])).toEqual([
 				{
 					$feed: { feedUrl },
@@ -1817,6 +1837,7 @@ describe('resolver registry live resolver architecture', () => {
 				source: source === Source.Rss_Rest ? Source.Rss2Json_Rest : Source.Rss_Rest,
 			}, resolverContext)).rejects.toThrow('unsupported source')
 		}
+		expect(getRss2JsonFeed.mock.calls.every((call) => call.length === 1)).toBe(true)
 
 		getNativeFeed.mockRejectedValueOnce(new Error('native feed unavailable'))
 		const nativeFeedObservationResolver = allSourceResolverDefinitions.find((resolver) => (

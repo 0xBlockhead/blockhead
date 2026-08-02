@@ -1,10 +1,7 @@
-import { normalizeRssFeedUrl } from '$/sources/Rss/Rest/constants.ts'
+import { normalizeRssFeedUrl } from '$/sources/_shared/interfaces/Rss/constants.ts'
 import { rss2JsonGet } from '$/sources/Rss2Json/Rest/client.ts'
 
-export const getFeed = async (
-	feedUrl: string,
-	limit: number
-) => {
+export const getFeed = async (feedUrl: string) => {
 	const params = new URLSearchParams({
 		rss_url: normalizeRssFeedUrl(feedUrl),
 	})
@@ -12,8 +9,5 @@ export const getFeed = async (
 	if (response.status !== 'ok') {
 		throw new Error(`Rss2Json_Rest: feed fetch failed for ${feedUrl}`)
 	}
-	return {
-		...response,
-		items: response.items?.slice(0, limit),
-	}
+	return response
 }
