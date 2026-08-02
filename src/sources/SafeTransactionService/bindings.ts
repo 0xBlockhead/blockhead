@@ -3,12 +3,12 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 	type SourceBinding,
@@ -18,9 +18,7 @@ const safeTransactionServiceRestBindingAxes = {
 	source: Source.SafeTransactionService_Rest,
 	wireProtocol: WireProtocol.HttpRest,
 	apiFamily: ApiFamily.RestJson,
-	operationGroups: [
-		SourceOperationGroup.GenericRead,
-	],
+	operationGroups: genericReadOperationGroups,
 	delivery: SourceDelivery.HttpProxy,
 	credentials: [
 		{

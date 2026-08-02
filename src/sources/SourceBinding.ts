@@ -152,6 +152,8 @@ export enum SourceOperationGroup {
 	WalletSign = 'WalletSign',
 }
 
+export const genericReadOperationGroups = [SourceOperationGroup.GenericRead] as const
+
 export enum SourceDelivery {
 	BrowserDirect = 'BrowserDirect',
 	HttpProxy = 'HttpProxy',

@@ -3,11 +3,11 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 	type SourceBinding,
@@ -44,9 +44,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [],
 		artifacts: [

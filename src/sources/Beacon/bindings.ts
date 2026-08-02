@@ -3,11 +3,11 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 	type SourceBinding,
@@ -17,9 +17,7 @@ const beaconRestBindingAxes = {
 	source: Source.Beacon_Rest,
 	wireProtocol: WireProtocol.HttpRest,
 	apiFamily: ApiFamily.EthereumBeaconRest,
-	operationGroups: [
-		SourceOperationGroup.GenericRead,
-	],
+	operationGroups: genericReadOperationGroups,
 	delivery: SourceDelivery.BrowserDirect,
 	credentials: [],
 	artifacts: [

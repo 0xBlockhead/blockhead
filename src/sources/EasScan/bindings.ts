@@ -3,11 +3,11 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 	type SourceBinding,
@@ -17,9 +17,7 @@ const easScanGraphqlBindingAxes = {
 	source: Source.EasScan_Graphql,
 	wireProtocol: WireProtocol.Graphql,
 	apiFamily: ApiFamily.GraphqlHttp,
-	operationGroups: [
-		SourceOperationGroup.GenericRead,
-	],
+	operationGroups: genericReadOperationGroups,
 	delivery: SourceDelivery.RemoteQuery,
 	credentials: [],
 	artifacts: [

@@ -3,21 +3,17 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 import { type as arktype } from 'arktype'
-
-const redditRestGenericReadOperationGroups = [
-	SourceOperationGroup.GenericRead,
-] as const
 
 export default indexSourceBindings([
 	{
@@ -35,7 +31,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RestJson,
-		operationGroups: redditRestGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [],
 		artifacts: [
@@ -60,7 +56,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RestJson,
-		operationGroups: redditRestGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [
 			{

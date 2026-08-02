@@ -3,11 +3,11 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 	type SourceBinding,
@@ -29,9 +29,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Prometheus,
 		apiFamily: ApiFamily.PrometheusText,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.ServerOnly,
 		credentials: [
 			{

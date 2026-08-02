@@ -3,18 +3,14 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceDelivery,
 	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-
-const nodelyGenericReadOperationGroups = [
-	SourceOperationGroup.GenericRead,
-] as const
 
 export default indexSourceBindings([
 	{
@@ -32,7 +28,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.AlgodRestApi,
-		operationGroups: nodelyGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [],
 	},
@@ -51,7 +47,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.AlgorandIndexerRestApi,
-		operationGroups: nodelyGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [],
 	},

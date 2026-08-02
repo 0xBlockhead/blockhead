@@ -3,19 +3,15 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-
-const circleCctpGenericReadOperationGroups = [
-	SourceOperationGroup.GenericRead,
-] as const
 
 export default indexSourceBindings([
 	{
@@ -33,7 +29,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.OpenApiHttp,
-		operationGroups: circleCctpGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 		artifacts: [
@@ -68,7 +64,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.CatalogRows,
-		operationGroups: circleCctpGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 	},
@@ -86,7 +82,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.CatalogRows,
-		operationGroups: circleCctpGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 	},
@@ -104,7 +100,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.CatalogRows,
-		operationGroups: circleCctpGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 	},

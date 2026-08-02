@@ -3,21 +3,18 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 import { type as arktype } from 'arktype'
 
-const heliusGenericReadOperationGroups = [
-	SourceOperationGroup.GenericRead,
-] as const
 const heliusCredentials = [
 	{
 		scope: SourceCredentialScope.PublicConfig,
@@ -43,7 +40,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RestJson,
-		operationGroups: heliusGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: heliusCredentials,
 		artifacts: [
@@ -68,7 +65,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.MetaplexDasJsonRpc,
-		operationGroups: heliusGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: heliusCredentials,
 		artifacts: [

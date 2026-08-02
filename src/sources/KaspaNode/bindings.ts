@@ -3,19 +3,15 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-
-const kaspaNodeGenericReadOperationGroups = [
-	SourceOperationGroup.GenericRead,
-] as const
 
 export default indexSourceBindings([
 	{
@@ -32,7 +28,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Grpc,
 		apiFamily: ApiFamily.GrpcService,
-		operationGroups: kaspaNodeGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.ServerOnly,
 		credentials: [],
 		artifacts: [
@@ -61,7 +57,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.KaspaRestApi,
-		operationGroups: kaspaNodeGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [],
 	},
@@ -80,7 +76,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Wrpc,
 		apiFamily: ApiFamily.KaspaWrpcApi,
-		operationGroups: kaspaNodeGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [],
 	},

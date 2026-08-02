@@ -3,20 +3,17 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
-const lotusJsonRpcGenericReadOperationGroups = [
-	SourceOperationGroup.GenericRead,
-] as const
 const lotusJsonRpcArtifacts = [
 	{
 		kind: SourceArtifactKind.HandwrittenTypes,
@@ -40,7 +37,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.FilecoinLotusJsonRpc,
-		operationGroups: lotusJsonRpcGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 		artifacts: lotusJsonRpcArtifacts,
@@ -60,7 +57,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.FilecoinLotusJsonRpc,
-		operationGroups: lotusJsonRpcGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.LocalOnly,
 		credentials: [
 			{

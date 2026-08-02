@@ -3,20 +3,17 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
-const tonCenterGenericReadOperationGroups = [
-	SourceOperationGroup.GenericRead,
-] as const
 const tonCenterCredentials = [
 	{
 		scope: SourceCredentialScope.RuntimeSecret,
@@ -39,7 +36,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.OpenApiHttp,
-		operationGroups: tonCenterGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
 		credentials: tonCenterCredentials,
 		artifacts: [
@@ -75,7 +72,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.OpenApiHttp,
-		operationGroups: tonCenterGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
 		credentials: tonCenterCredentials,
 	},
@@ -94,7 +91,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.TonCenterV3Api,
-		operationGroups: tonCenterGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [],
 		artifacts: [

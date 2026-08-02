@@ -3,18 +3,14 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceDelivery,
 	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-
-const chainlinkDataFeedsGenericReadOperationGroups = [
-	SourceOperationGroup.GenericRead,
-] as const
 
 export default indexSourceBindings([
 	{
@@ -31,7 +27,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.CatalogRows,
-		operationGroups: chainlinkDataFeedsGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 	},
@@ -49,7 +45,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.CatalogRows,
-		operationGroups: chainlinkDataFeedsGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 	},

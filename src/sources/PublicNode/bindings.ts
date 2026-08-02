@@ -3,6 +3,7 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
@@ -36,9 +37,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.SolanaJsonRpc,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [],
 		artifacts: solanaJsonRpcArtifacts,

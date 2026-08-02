@@ -3,6 +3,7 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceCredentialScope,
 	SourceDelivery,
@@ -12,10 +13,6 @@ import {
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-
-const internetComputerGenericReadOperationGroups = [
-	SourceOperationGroup.GenericRead,
-] as const
 
 export default indexSourceBindings([
 	{
@@ -32,7 +29,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Canister,
 		apiFamily: ApiFamily.IcCanister,
-		operationGroups: internetComputerGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [],
 	},
@@ -50,7 +47,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Canister,
 		apiFamily: ApiFamily.IcCanister,
-		operationGroups: internetComputerGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [],
 	},
@@ -69,7 +66,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.RawHttp,
 		apiFamily: ApiFamily.CertifiedHttpGateway,
-		operationGroups: internetComputerGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [],
 	},
@@ -88,7 +85,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RosettaApi,
-		operationGroups: internetComputerGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [],
 	},

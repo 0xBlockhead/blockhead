@@ -3,20 +3,17 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
-const moneroDaemonRpcJsonRpcGenericReadOperationGroups = [
-	SourceOperationGroup.GenericRead,
-] as const
 const moneroDaemonRpcJsonRpcArtifacts = [
 	{
 		kind: SourceArtifactKind.HandwrittenTypes,
@@ -45,7 +42,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.MoneroDaemonJsonRpc,
-		operationGroups: moneroDaemonRpcJsonRpcGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [],
 		artifacts: moneroDaemonRpcJsonRpcArtifacts,
@@ -65,7 +62,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.MoneroDaemonJsonRpc,
-		operationGroups: moneroDaemonRpcJsonRpcGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.LocalOnly,
 		credentials: [
 			{

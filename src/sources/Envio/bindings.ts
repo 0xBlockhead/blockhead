@@ -3,6 +3,7 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceCredentialScope,
@@ -67,9 +68,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.RawHttp,
 		apiFamily: ApiFamily.EnvioHyperSyncApi,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
 		credentials: envio1Credentials,
 		artifacts: [

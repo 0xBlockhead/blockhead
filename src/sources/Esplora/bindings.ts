@@ -3,10 +3,10 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceDelivery,
 	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 	type SourceBinding,
@@ -16,9 +16,7 @@ const esploraRestBindingAxes = {
 	source: Source.Esplora_Rest,
 	wireProtocol: WireProtocol.HttpRest,
 	apiFamily: ApiFamily.RestJson,
-	operationGroups: [
-		SourceOperationGroup.GenericRead,
-	],
+	operationGroups: genericReadOperationGroups,
 	delivery: SourceDelivery.BrowserDirect,
 	credentials: [],
 } as const

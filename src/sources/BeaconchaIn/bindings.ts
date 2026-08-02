@@ -3,12 +3,12 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 	type SourceBinding,
@@ -19,9 +19,7 @@ const beaconchaInRestBindingAxes = {
 	source: Source.BeaconchaIn_Rest,
 	wireProtocol: WireProtocol.HttpRest,
 	apiFamily: ApiFamily.RestJson,
-	operationGroups: [
-		SourceOperationGroup.GenericRead,
-	],
+	operationGroups: genericReadOperationGroups,
 	delivery: SourceDelivery.HttpProxy,
 	credentials: [
 		{

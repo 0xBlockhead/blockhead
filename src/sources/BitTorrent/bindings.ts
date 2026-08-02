@@ -3,6 +3,7 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceDelivery,
 	SourceEndpointKind,
@@ -123,9 +124,7 @@ export default indexSourceBindings([
 		endpoints: bitTorrentEndpoints,
 		wireProtocol: WireProtocol.Bencode,
 		apiFamily: ApiFamily.BitTorrentClient,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.ServerOnly,
 		credentials: [],
 	},

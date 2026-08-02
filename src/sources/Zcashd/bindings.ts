@@ -3,6 +3,7 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceCredentialScope,
 	SourceDelivery,
@@ -36,9 +37,7 @@ export default indexSourceBindings([
 		endpoints: zcashdEndpoints,
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.BitcoinJsonRpc,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.LocalOnly,
 		credentials: zcashdCredentials,
 	},

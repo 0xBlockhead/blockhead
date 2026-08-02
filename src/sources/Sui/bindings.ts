@@ -3,19 +3,15 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-
-const suiGenericReadOperationGroups = [
-	SourceOperationGroup.GenericRead,
-] as const
 
 export default indexSourceBindings([
 	{
@@ -33,7 +29,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Graphql,
 		apiFamily: ApiFamily.GraphqlHttp,
-		operationGroups: suiGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [],
 		artifacts: [
@@ -69,7 +65,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Grpc,
 		apiFamily: ApiFamily.GrpcService,
-		operationGroups: suiGenericReadOperationGroups,
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.ServerOnly,
 		credentials: [],
 	},

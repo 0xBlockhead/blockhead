@@ -6957,6 +6957,8 @@ const generateSourceBindingFile = () => tsFile(
 			'',
 			emitStringEnum('SourceOperationGroup', Object.values(SourceOperationGroup)),
 			'',
+			'export const genericReadOperationGroups = [SourceOperationGroup.GenericRead] as const',
+			'',
 			emitStringEnum('SourceDelivery', Object.values(SourceDelivery)),
 			'',
 			emitStringEnum('SourceCredentialScope', Object.values(SourceCredentialScope)),
@@ -7342,6 +7344,7 @@ const emitSourceBinding = (
 type RepeatedBindingValue = {
 	identity: string
 	expression?: string
+	reference?: string
 	valueName: string
 }
 
@@ -7353,7 +7356,7 @@ const planRepeatedBindingValues = (
 	const sharedRows = [...Map.groupBy(rows, ({ identity }) => identity).values()]
 		.flatMap((matchingRows) => {
 			const row = matchingRows[0]
-			return matchingRows.length > 1 && row?.expression != null ?
+			return matchingRows.length > 1 && row?.expression != null && row.reference == null ?
 				[{
 					identity: row.identity,
 					expression: row.expression,
@@ -7395,8 +7398,8 @@ const planRepeatedBindingValues = (
 
 const bindingValueReference = (
 	plan: ReturnType<typeof planRepeatedBindingValues>,
-	{ identity, expression }: RepeatedBindingValue
-) => plan?.nameByIdentity.get(identity) ?? expression
+	{ identity, expression, reference }: RepeatedBindingValue
+) => reference ?? plan?.nameByIdentity.get(identity) ?? expression
 
 const generateSourceProviderBindingsFile = (
 	provider: SourceProviderDefinition,
@@ -7441,6 +7444,10 @@ const generateSourceProviderBindingsFile = (
 			operationGroups: {
 				identity: JSON.stringify(binding.operationGroups),
 				expression: emitArray(binding.operationGroups.map((group) => enumAccess('SourceOperationGroup', group))),
+				reference: (
+					binding.operationGroups.length === 1
+					&& binding.operationGroups[0] === SourceOperationGroup.GenericRead
+				) ? 'genericReadOperationGroups' : undefined,
 				valueName: `${binding.operationGroups.join('')}OperationGroups`,
 			},
 			credentials: {
@@ -7916,6 +7923,10 @@ const generateSourceProviderBindingsFile = (
 
 		return [...compact.declarations, compact.expression].join('\n').length < direct.expression.length ? compact : direct
 	})()
+	const usesGenericReadOperationGroups = bindings.some(({ binding }) => (
+		binding.operationGroups.length === 1
+		&& binding.operationGroups[0] === SourceOperationGroup.GenericRead
+	))
 	const enumNames = [
 		'ApiFamily',
 		'SourceDelivery',
@@ -7924,7 +7935,13 @@ const generateSourceProviderBindingsFile = (
 		...(bindings.some(({ binding }) => binding.artifacts?.length) ? ['SourceArtifactKind'] : []),
 		...(bindings.some(({ binding }) => binding.credentials.length > 0) ? ['SourceCredentialScope'] : []),
 		...(bindings.some(({ binding }) => binding.endpoints.length > 0) ? ['SourceEndpointKind'] : []),
-		...(bindings.some(({ binding }) => binding.operationGroups.length > 0) ? ['SourceOperationGroup'] : []),
+		...(bindings.some(({ binding }) => (
+			binding.operationGroups.length > 0
+			&& !(
+				binding.operationGroups.length === 1
+				&& binding.operationGroups[0] === SourceOperationGroup.GenericRead
+			)
+		)) ? ['SourceOperationGroup'] : []),
 	]
 
 	return tsFile(
@@ -7937,9 +7954,10 @@ const generateSourceProviderBindingsFile = (
 				},
 				{
 					from: '$/sources/SourceBinding.ts',
-					names: [
-						...enumNames,
-						'indexSourceBindings',
+						names: [
+							...enumNames,
+							...(usesGenericReadOperationGroups ? ['genericReadOperationGroups'] : []),
+							'indexSourceBindings',
 					],
 					typeNames: ['SourceBinding'],
 				},
