@@ -3012,7 +3012,7 @@ test('emits every source-axis enum and only valid enum references in provider ro
 			assert.match(source, /\} satisfies SourceBinding\)\)/)
 		else
 			assert.match(source, /export default indexSourceBindings\(\[[\s\S]*?satisfies readonly SourceBinding\[\]\)/)
-		assert.match(source, /export default indexSourceBindings\(/)
+		assert.match(source, /export default indexSourceBindings(?:<readonly SourceBinding<[^>]+>\[\]>)?\(/)
 		assert.doesNotMatch(source, /SourceCredentialScope\.None|generated: false/)
 		assert.doesNotMatch(source, /^\s*\[Source\.[A-Za-z0-9_]+\]: \{/m)
 		assert.doesNotMatch(source, /^const [A-Za-z0-9_$]+Credentials = \[\] as const$/m)
@@ -3082,6 +3082,25 @@ test('emits every source-axis enum and only valid enum references in provider ro
 	assert.doesNotMatch(renderedVoltaireBindings, /voltaireJsonRpcEvmExecutionJsonRpc(?:RemoteLive|HttpProxy|BrowserDirect)BindingAxes/)
 	assert.match(renderedVoltaireBindings, /credentials: \[\]/)
 	assert.equal((renderedVoltaireBindings.match(/artifacts: voltaireJsonRpcArtifacts/g) ?? []).length, voltaireBindingCount)
+	assert.match(renderedVoltaireBindings, /export default indexSourceBindings<readonly SourceBinding<Source\.Voltaire_JsonRpc>\[]>\(\[/)
+	assert.equal((renderedVoltaireBindings.match(/Targets[0-9]+Through[0-9]+\.flatMap/g) ?? []).length, 4)
+	for (const targetRange of [
+		'10Through480',
+		'998Through999',
+		'1301Through4801',
+		'10143Through11155420',
+	])
+		assert.match(renderedVoltaireBindings, new RegExp(`const voltaireJsonRpcTargets${targetRange} =`))
+	assert.equal((renderedVoltaireBindings.match(/^\t\tkey: '[0-9]+',$/gm) ?? []).length, 38)
+	assert.equal((renderedVoltaireBindings.match(/^\t\t\tkey: '1',$/gm) ?? []).length, 2)
+	assert.equal((renderedVoltaireBindings.match(/^\t\t\tkey: '8453',$/gm) ?? []).length, 2)
+	assert.match(renderedVoltaireBindings, /httpProxyLocator: 'https:\/\/mainnet\.optimism\.io',[\s\S]*?remoteLiveLocator: 'wss:\/\/mainnet\.optimism\.io'/)
+	assert.doesNotMatch(renderedVoltaireBindings, /locator: `\$\{/)
+	assert.ok(renderedVoltaireBindings.split('\n').length < 600)
+	assert.doesNotMatch(
+		readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8'),
+		/Source\.Voltaire|provider\.provider\s*===?\s*['"]Voltaire['"]/
+	)
 
 	const forgejoBindings = generatedFiles.find(({ path }) => path === 'src/sources/Forgejo/bindings.ts')
 	const coingeckoBindings = generatedFiles.find(({ path }) => path === 'src/sources/Coingecko/bindings.ts')

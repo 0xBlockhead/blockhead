@@ -7651,7 +7651,10 @@ const generateSourceProviderBindingsFile = (
 			name: `${camel(sourcePlan.source)}Targets`,
 			rows: firstBindingGroup.map((targetRow) => ({
 				key: targetRow.binding.target.key,
-				locator: targetRow.binding.endpoints[0].locator,
+				values: [[
+					'locator',
+					targetRow.binding.endpoints[0].locator,
+				] as const],
 			})),
 			variants: sourcePlan.bindingGroups.map((group, groupIndex) => {
 				const binding = group[0]?.binding
@@ -7678,19 +7681,143 @@ const generateSourceProviderBindingsFile = (
 			}),
 		}] as const]
 	}))
+	// Sources that cannot form one whole matrix may still contain compact
+	// contiguous runs. Every variant locator remains explicit authored data.
+	const partialBindingMatrices = new Map(sourcePlans.flatMap((sourcePlan) => {
+		if (bindingMatrices.has(sourcePlan.source))
+			return []
+
+		const targetBlocks = groupAdjacentBy(sourcePlan.sourceBindingRows, ({ binding }) => JSON.stringify([
+			binding.target.kind,
+			binding.target.key,
+		]))
+		const targetBlockCountByIdentity = Map.groupBy(targetBlocks, (rows) => JSON.stringify([
+			rows[0]?.binding.target.kind,
+			rows[0]?.binding.target.key,
+		]))
+		// Binding-base identity already contains every non-target semantic axis;
+		// endpoint kind and CORS complete each matrix variant signature.
+		const matrices = groupAdjacentBy(targetBlocks, (rows, blockIndex) => {
+			const variants = rows.flatMap(({ binding }) => {
+				const baseIdentifier = sourcePlan.bindingBaseNameByBinding.get(binding)
+				const endpoint = binding.endpoints[0]
+				return baseIdentifier == null || endpoint == null || binding.endpoints.length !== 1 ?
+					[]
+				:
+					[JSON.stringify([
+						baseIdentifier,
+						endpoint.endpointKind,
+						endpoint.corsEnabled,
+					])]
+			})
+			return variants.length === rows.length ?
+				JSON.stringify([
+					rows[0]?.binding.target.kind,
+					variants,
+				])
+			:
+				`direct:${blockIndex}`
+		}).flatMap((blocks) => {
+			const firstBlock = blocks[0]
+			if (
+				firstBlock == null
+				|| blocks.length < 2
+				|| blocks.some((rows) => (
+					targetBlockCountByIdentity.get(JSON.stringify([
+						rows[0]?.binding.target.kind,
+						rows[0]?.binding.target.key,
+					]))?.length !== 1
+				))
+			)
+				return []
+
+			const variants = firstBlock.flatMap(({ binding }) => {
+				const baseIdentifier = sourcePlan.bindingBaseNameByBinding.get(binding)
+				const endpoint = binding.endpoints[0]
+				if (baseIdentifier == null || endpoint == null)
+					return []
+
+				return [{
+					baseIdentifier,
+					binding,
+					endpoint,
+					locatorName: `${camel(baseIdentifier.slice(
+						camel(sourcePlan.source).length,
+						-'BindingAxes'.length
+					))}Locator`,
+				}]
+			})
+			if (
+				variants.length !== firstBlock.length
+				|| new Set(variants.map(({ locatorName }) => locatorName)).size !== variants.length
+			)
+				return []
+
+			const rows = blocks.map((block) => ({
+				key: block[0]?.binding.target.key ?? '',
+				values: variants.map(({ locatorName }, variantIndex) => [
+					locatorName,
+					block[variantIndex]?.binding.endpoints[0]?.locator ?? '',
+				] as const),
+			}))
+			const sourceRows = blocks.flat()
+			if (JSON.stringify(rows.flatMap((row) => variants.map((variant, variantIndex) => ({
+				...variant.binding,
+				target: {
+					kind: variant.binding.target.kind,
+					key: row.key,
+				},
+				endpoints: [{
+					...variant.endpoint,
+					locator: row.values[variantIndex]?.[1],
+				}],
+			})))) !== JSON.stringify(sourceRows.map(({ binding }) => binding)))
+				throw new Error(`${sourcePlan.source}: partial binding matrix does not reconstruct authored rows`)
+
+			return [{
+				firstRowIndex: sourcePlan.sourceBindingRows.indexOf(sourceRows[0]),
+				name: `${camel(sourcePlan.source)}Targets${pascal(rows[0]?.key ?? '')}Through${pascal(rows.at(-1)?.key ?? '')}`,
+				rowCount: sourceRows.length,
+				rows,
+				variants: variants.map(({ baseIdentifier, binding, endpoint, locatorName }) => emitObject([
+					{
+						spread: baseIdentifier,
+					},
+					['target', `{
+	kind: ${enumAccess('SourceTargetKind', binding.target.kind)},
+	key,
+}`],
+					['endpoints', emitArray([`{
+	endpointKind: ${enumAccess('SourceEndpointKind', endpoint.endpointKind)},
+	locator: ${locatorName},${endpoint.corsEnabled == null ? '' : `
+	corsEnabled: ${String(endpoint.corsEnabled)},`}
+}`])],
+				])),
+			}]
+		})
+		return matrices.length === 0 ? [] : [[sourcePlan.source, matrices] as const]
+	}))
 	const renderBindingMatrix = (
-		matrix: NonNullable<ReturnType<typeof bindingMatrices.get>>
+		matrix: {
+			name: string
+			rows: readonly {
+				key: string
+				values: readonly (readonly [string, string])[]
+			}[]
+			variants: readonly string[]
+		}
 	) => {
 		const variant = lines(matrix.variants[0] ?? '')
+		const valueNames = matrix.rows[0]?.values.map(([name]) => name) ?? []
 		return {
-			declarations: [`const ${matrix.name} = ${emitArray(matrix.rows.map(({ key, locator }) => emitObject([
+			declarations: [`const ${matrix.name} = ${emitArray(matrix.rows.map(({ key, values }) => emitObject([
 				['key', emitTypeScript(key)],
-				['locator', emitTypeScript(locator)],
+				...values.map(([name, value]) => [name, emitTypeScript(value)] as const),
 			])))} as const`],
 			expression: [
 				`${matrix.name}.${matrix.variants.length === 1 ? 'map' : 'flatMap'}(({`,
 				'\tkey,',
-				'\tlocator,',
+				...valueNames.map((name) => `\t${name},`),
 				...(matrix.variants.length === 1 ? [
 					'}) => ({',
 					...variant.slice(1, -1).map((line) => indent(line)),
@@ -7705,6 +7832,7 @@ const generateSourceProviderBindingsFile = (
 	}
 	const renderedBindingPlan = (() => {
 		const direct = {
+			boundedSources: undefined,
 			declarations: [],
 			expression: [
 			'[',
@@ -7714,7 +7842,60 @@ const generateSourceProviderBindingsFile = (
 		}
 		const compactBySource = new Map(renderedSourcePlans.flatMap((sourcePlan) => {
 			const matrix = bindingMatrices.get(sourcePlan.source)
-			return matrix == null ? [] : [[sourcePlan.source, renderBindingMatrix(matrix)] as const]
+			if (matrix != null)
+				return [[sourcePlan.source, {
+					boundedSources: undefined,
+					...renderBindingMatrix(matrix),
+				}] as const]
+
+			const matrices = (partialBindingMatrices.get(sourcePlan.source) ?? [])
+				.map((partialMatrix) => ({
+					...partialMatrix,
+					...renderBindingMatrix(partialMatrix),
+				}))
+				.filter((partialMatrix) => (
+					[...partialMatrix.declarations, partialMatrix.expression].join('\n').length
+					< sourcePlan.bindings.slice(
+						partialMatrix.firstRowIndex,
+						partialMatrix.firstRowIndex + partialMatrix.rowCount
+					).join('\n').length
+				))
+			if (matrices.length === 0)
+				return []
+
+			// Matrix offsets are authored sequence boundaries. One forward pass
+			// interleaves compact runs without sorting or regrouping direct rows.
+			const parts = []
+			let bindingIndex = 0
+			for (const partialMatrix of matrices) {
+				for (; bindingIndex < partialMatrix.firstRowIndex; bindingIndex++)
+					parts.push({
+						expression: sourcePlan.bindings[bindingIndex] ?? '',
+						spread: false,
+					})
+				parts.push({
+					expression: partialMatrix.expression,
+					spread: true,
+				})
+				bindingIndex += partialMatrix.rowCount
+			}
+			for (; bindingIndex < sourcePlan.bindings.length; bindingIndex++)
+				parts.push({
+					expression: sourcePlan.bindings[bindingIndex] ?? '',
+					spread: false,
+				})
+
+			return [[sourcePlan.source, {
+				boundedSources: [sourcePlan.source],
+				declarations: matrices.flatMap(({ declarations }) => declarations),
+				expression: [
+					'[',
+					...parts.flatMap(({ expression, spread }) => lines(expression).map((line, lineIndex, expressionLines) => (
+						`${lineIndex === 0 && spread ? '\t...' : '\t'}${line}${lineIndex === expressionLines.length - 1 ? ',' : ''}`
+					))),
+					'] satisfies readonly SourceBinding[]',
+				].join('\n'),
+			}] as const]
 		}))
 		if (compactBySource.size === 0)
 			return direct
@@ -7723,6 +7904,9 @@ const generateSourceProviderBindingsFile = (
 			compactBySource.get(renderedSourcePlans[0]?.source ?? '')
 		:
 			{
+				boundedSources: renderedSourcePlans.flatMap(({ source }) => (
+					compactBySource.get(source)?.boundedSources ?? []
+				)),
 				declarations: renderedSourcePlans.flatMap(({ source }) => {
 					const sourceCompact = compactBySource.get(source)
 					return sourceCompact == null ? [] : [
@@ -7761,6 +7945,8 @@ const generateSourceProviderBindingsFile = (
 		...(bindings.some(({ binding }) => binding.operationGroups.length > 0) ? ['SourceOperationGroup'] : []),
 	]
 
+	// Partial array spreads otherwise expose a large structural union to the
+	// binding-index generic. Its explicit source boundary preserves index keys.
 	return tsFile(
 		`src/sources/${provider.provider}/bindings.ts`,
 		{
@@ -7796,7 +7982,12 @@ const generateSourceProviderBindingsFile = (
 				)),
 				...renderedBindingPlan.declarations,
 				...(renderedBindingPlan.declarations.length === 0 ? [] : ['']),
-				`export default indexSourceBindings(${renderedBindingPlan.expression})`,
+				`export default indexSourceBindings${
+					renderedBindingPlan.boundedSources == null || renderedBindingPlan.boundedSources.length === 0 ?
+						''
+					:
+						`<readonly SourceBinding<${renderedBindingPlan.boundedSources.map((source) => enumAccess('Source', source)).join(' | ')}>[]>`
+				}(${renderedBindingPlan.expression})`,
 			],
 		}
 	)
