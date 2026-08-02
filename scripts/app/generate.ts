@@ -4139,9 +4139,19 @@ const routeLinkFromCollection = (
 ): EntityRouteLink | undefined => {
 	const path = node.svelteKitPath
 	const selector = collection.source.selector
-	if (selector.kind === 'object') {
-		const routeParams = routeParamNames(path)
-		const params = Object.fromEntries(routeParams.flatMap((param) => {
+	if (selector.kind !== 'object' && selector.kind !== 'selector')
+		return routeParamNames(path).length === 0 ?
+			{
+				path,
+				params: {},
+				selector: '',
+			}
+		:
+			undefined
+
+	const routeParams = routeParamNames(path)
+	const params = Object.fromEntries(routeParams.flatMap((param) => {
+		if (selector.kind === 'object') {
 			const selectorField = selector.fields.find(({ value }) => (
 				typeof value !== 'string'
 					&& !('raw' in value)
@@ -4162,39 +4172,8 @@ const routeLinkFromCollection = (
 					...(typeof decode !== 'string' ? {} : { decode }),
 				},
 			] as const]
-		}))
-		if (Object.keys(params).length !== routeParams.length)
-			return undefined
-
-		return {
-			path,
-			params,
-			selector: '',
-			conditions: selector.fields.flatMap(({ name, value }) => (
-				typeof value !== 'string'
-				&& !('raw' in value)
-				&& value.kind === 'literal' ?
-					[{
-						field: name,
-						equals: value.value,
-					}]
-				:
-					[]
-			)),
 		}
-	}
-	if (selector.kind !== 'selector')
-		return routeParamNames(path).length === 0 ?
-			{
-				path,
-				params: {},
-				selector: '',
-			}
-		:
-			undefined
 
-	const routeParams = routeParamNames(path)
-	const params = Object.fromEntries(routeParams.flatMap((param) => {
 		const selectorParam = selector.params.find((item) => item.param === param)
 		if (selectorParam == null)
 			return []
@@ -4223,15 +4202,24 @@ const routeLinkFromCollection = (
 	return {
 		path,
 		params,
-		selector: selector.selector,
-		conditions: selector.params.flatMap((selectorParam) => (
-			'value' in selectorParam
-			&& typeof selectorParam.value !== 'string'
-			&& !('raw' in selectorParam.value)
-			&& selectorParam.value.kind === 'literal' ?
+		selector: selector.kind === 'selector' ? selector.selector : '',
+		conditions: (selector.kind === 'object' ?
+			selector.fields.map(({ name: field, value }) => ({
+				field,
+				value,
+			}))
+		:
+			selector.params.flatMap((selectorParam) => 'value' in selectorParam ? [{
+				field: selectorParam.field,
+				value: selectorParam.value,
+			}] : [])
+		).flatMap(({ field, value }) => (
+			typeof value !== 'string'
+			&& !('raw' in value)
+			&& value.kind === 'literal' ?
 				[{
-					field: selectorParam.field,
-					equals: selectorParam.value.value,
+					field,
+					equals: value.value,
 				}]
 			:
 				[]
