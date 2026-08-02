@@ -20,7 +20,7 @@ const sourceFetchConcurrency = 4
 export const httpOriginsForBinding = (
 	binding: SourceBinding
 ) => (
-	binding.endpoints.flatMap((endpoint) => {
+	[...binding.endpoints].flatMap((endpoint) => {
 		if (endpoint.endpointKind !== SourceEndpointKind.HttpUrl)
 			return []
 
@@ -35,7 +35,7 @@ export const httpOriginsForBinding = (
 export const firstHttpUrlForBinding = (
 	binding: SourceBinding
 ) => {
-	const endpoint = binding.endpoints.find((candidate) => (
+	const endpoint = [...binding.endpoints].find((candidate) => (
 		candidate.endpointKind === SourceEndpointKind.HttpUrl
 	))
 	if (endpoint == null)
@@ -49,7 +49,7 @@ export const sourceFetch = async (
 	url: string,
 	init?: RequestInit
 ) => {
-	const endpointIndex = binding.endpoints.findIndex((endpoint) => (
+	const endpointIndex = [...binding.endpoints].findIndex((endpoint) => (
 		endpoint.endpointKind === SourceEndpointKind.HttpUrl
 		&& sourceEndpointOrigin(endpoint) === new URL(url).origin
 		&& (

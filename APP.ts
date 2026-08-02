@@ -712,11 +712,18 @@ type _SourceEnv = {
 	}[]
 }
 
-type _SourceEndpoint<_Kind extends SourceEndpointKind = SourceEndpointKind> = {
-	endpointKind: _Kind
-	locator: string
-	corsEnabled?: boolean
-}
+type _SourceEndpoint<_Kind extends SourceEndpointKind = SourceEndpointKind> = (
+	_Kind extends SourceEndpointKind ? {
+		endpointKind: _Kind
+		locator: string
+	} & (
+		_Kind extends SourceEndpointKind.HttpUrl ? {
+			corsEnabled?: boolean
+		} : {
+			corsEnabled?: never
+		}
+	) : never
+)
 
 type _SourceArtifact<_Kind extends SourceArtifactKind = SourceArtifactKind> = (
 	_Kind extends SourceArtifactKind ? {
@@ -829,51 +836,151 @@ type _SourceBindingCompatibility<
 	artifacts?: _Row["artifactKinds"] extends readonly (infer _ArtifactKind extends SourceArtifactKind)[] ? _Row["artifactKinds"] extends readonly [] ? never : _SourceArtifact<_ArtifactKind>[] : _SourceArtifact[]
 } : never
 
-type _SourceBindingDelivery =
-	| {
-		delivery: SourceDelivery.BrowserDirect
-		endpoints: (
+export enum SourceBindingDeliveryEndpointLayout {
+	Compatible = "Compatible",
+	BrowserDirect = "BrowserDirect",
+	HttpOnly = "HttpOnly",
+	RemoteLiveWebSocket = "RemoteLiveWebSocket",
+}
+
+export enum SourceBindingDeliveryCredentialLayout {
+	Any = "Any",
+	PublicOrUser = "PublicOrUser",
+	PublicOrUserWithOptionalRuntimeSecret = "PublicOrUserWithOptionalRuntimeSecret",
+}
+
+type _SourceBindingDeliveryCompatibilityRow = {
+	deliveries: readonly [SourceDelivery, ...SourceDelivery[]]
+	wireProtocols:
+		| true
+		| {
+			include: readonly [WireProtocol, ...WireProtocol[]]
+			exclude?: never
+		}
+		| {
+			exclude: readonly [WireProtocol, ...WireProtocol[]]
+			include?: never
+		}
+	apiFamilies: true | readonly [ApiFamily, ...ApiFamily[]]
+	endpointLayout: SourceBindingDeliveryEndpointLayout
+	credentialLayout: SourceBindingDeliveryCredentialLayout
+}
+
+export const sourceBindingDeliveryCompatibility = [
+	{
+		deliveries: [SourceDelivery.BrowserDirect],
+		wireProtocols: true,
+		apiFamilies: true,
+		endpointLayout: SourceBindingDeliveryEndpointLayout.BrowserDirect,
+		credentialLayout: SourceBindingDeliveryCredentialLayout.PublicOrUser,
+	},
+	{
+		deliveries: [SourceDelivery.HttpProxy],
+		wireProtocols: true,
+		apiFamilies: true,
+		endpointLayout: SourceBindingDeliveryEndpointLayout.HttpOnly,
+		credentialLayout: SourceBindingDeliveryCredentialLayout.PublicOrUserWithOptionalRuntimeSecret,
+	},
+	{
+		deliveries: [SourceDelivery.RemoteLive],
+		wireProtocols: { include: [WireProtocol.Grpc] },
+		apiFamilies: [ApiFamily.GrpcService],
+		endpointLayout: SourceBindingDeliveryEndpointLayout.HttpOnly,
+		credentialLayout: SourceBindingDeliveryCredentialLayout.PublicOrUserWithOptionalRuntimeSecret,
+	},
+	{
+		deliveries: [SourceDelivery.RemoteLive],
+		wireProtocols: { exclude: [WireProtocol.Grpc] },
+		apiFamilies: true,
+		endpointLayout: SourceBindingDeliveryEndpointLayout.RemoteLiveWebSocket,
+		credentialLayout: SourceBindingDeliveryCredentialLayout.PublicOrUserWithOptionalRuntimeSecret,
+	},
+	{
+		deliveries: [SourceDelivery.RemoteQuery],
+		wireProtocols: true,
+		apiFamilies: true,
+		endpointLayout: SourceBindingDeliveryEndpointLayout.Compatible,
+		credentialLayout: SourceBindingDeliveryCredentialLayout.Any,
+	},
+	{
+		deliveries: [SourceDelivery.ServerOnly, SourceDelivery.LocalOnly, SourceDelivery.Unsupported],
+		wireProtocols: true,
+		apiFamilies: true,
+		endpointLayout: SourceBindingDeliveryEndpointLayout.Compatible,
+		credentialLayout: SourceBindingDeliveryCredentialLayout.Any,
+	},
+] as const satisfies readonly _SourceBindingDeliveryCompatibilityRow[]
+
+type _SourceBindingDeliveryWireProtocol<
+	_Row extends typeof sourceBindingDeliveryCompatibility[number],
+> = _Row["wireProtocols"] extends true ?
+	WireProtocol
+: _Row["wireProtocols"] extends { include: readonly (infer _WireProtocol extends WireProtocol)[] } ?
+	_WireProtocol
+: _Row["wireProtocols"] extends { exclude: readonly (infer _WireProtocol extends WireProtocol)[] } ?
+	Exclude<WireProtocol, _WireProtocol>
+:
+	never
+
+type _SourceBindingDeliveryApiFamily<
+	_Row extends typeof sourceBindingDeliveryCompatibility[number],
+> = _Row["apiFamilies"] extends true ?
+	ApiFamily
+: _Row["apiFamilies"] extends readonly (infer _ApiFamily extends ApiFamily)[] ?
+	_ApiFamily
+:
+	never
+
+type _SourceBindingDeliveryEndpoints<
+	_Layout extends SourceBindingDeliveryEndpointLayout,
+> = (
+	_Layout extends SourceBindingDeliveryEndpointLayout.BrowserDirect ?
+		readonly (
 			| (_SourceEndpoint<SourceEndpointKind.HttpUrl> & { corsEnabled: true })
 			| _SourceEndpoint<SourceEndpointKind.BrowserWalletProvider | SourceEndpointKind.InProcess>
 		)[]
-		credentials: _SourceCredential<SourceCredentialScope.PublicConfig | SourceCredentialScope.UserDelegated>[]
-	}
-	| {
-		delivery: SourceDelivery.HttpProxy
-		endpoints: _SourceEndpoint<SourceEndpointKind.HttpUrl>[]
-		credentials:
-			| _SourceCredential<SourceCredentialScope.PublicConfig | SourceCredentialScope.UserDelegated>[]
-			| [_SourceRuntimeSecret]
-	}
-	| {
-		delivery: SourceDelivery.RemoteLive
-		wireProtocol: WireProtocol.Grpc
-		apiFamily: ApiFamily.GrpcService
-		endpoints: [_SourceEndpoint<SourceEndpointKind.HttpUrl>, ..._SourceEndpoint<SourceEndpointKind.HttpUrl>[]]
-		credentials:
-			| _SourceCredential<SourceCredentialScope.PublicConfig | SourceCredentialScope.UserDelegated>[]
-			| [_SourceRuntimeSecret]
-	}
-	| {
-		delivery: SourceDelivery.RemoteLive
-		wireProtocol: Exclude<WireProtocol, WireProtocol.Grpc>
-		endpoints:
-			| [_SourceEndpoint<SourceEndpointKind.WebSocketUrl>, ..._SourceEndpoint<SourceEndpointKind.WebSocketUrl>[]]
-			| [_SourceEndpoint<SourceEndpointKind.HttpUrl>, _SourceEndpoint<SourceEndpointKind.WebSocketUrl>, ..._SourceEndpoint<SourceEndpointKind.WebSocketUrl>[]]
-		credentials:
-			| _SourceCredential<SourceCredentialScope.PublicConfig | SourceCredentialScope.UserDelegated>[]
-			| [_SourceRuntimeSecret]
-	}
-	| {
-		delivery: SourceDelivery.RemoteQuery
-		endpoints: _SourceEndpoint[]
-		credentials: _SourceCredential[]
-	}
-	| {
-		delivery: SourceDelivery.ServerOnly | SourceDelivery.LocalOnly | SourceDelivery.Unsupported
-		endpoints: _SourceEndpoint[]
-		credentials: _SourceCredential[]
-	}
+	: _Layout extends SourceBindingDeliveryEndpointLayout.HttpOnly ?
+		readonly _SourceEndpoint<SourceEndpointKind.HttpUrl>[]
+	: _Layout extends SourceBindingDeliveryEndpointLayout.RemoteLiveWebSocket ?
+		| readonly [
+			_SourceEndpoint<SourceEndpointKind.WebSocketUrl>,
+			..._SourceEndpoint<SourceEndpointKind.WebSocketUrl>[],
+		]
+		| readonly [
+			_SourceEndpoint<SourceEndpointKind.HttpUrl>,
+			_SourceEndpoint<SourceEndpointKind.WebSocketUrl>,
+			..._SourceEndpoint<SourceEndpointKind.WebSocketUrl>[],
+		]
+	:
+		readonly _SourceEndpoint[]
+)
+
+type _SourcePublicOrUserCredential = _SourceCredential<
+	| SourceCredentialScope.PublicConfig
+	| SourceCredentialScope.UserDelegated
+>
+
+type _SourceBindingDeliveryCredentials<
+	_Layout extends SourceBindingDeliveryCredentialLayout,
+> = (
+	_Layout extends SourceBindingDeliveryCredentialLayout.PublicOrUser ?
+		readonly _SourcePublicOrUserCredential[]
+	: _Layout extends SourceBindingDeliveryCredentialLayout.PublicOrUserWithOptionalRuntimeSecret ?
+		| readonly _SourcePublicOrUserCredential[]
+		| readonly [..._SourcePublicOrUserCredential[], _SourceRuntimeSecret]
+	:
+		readonly _SourceCredential[]
+)
+
+type _SourceBindingDelivery<
+	_Row extends typeof sourceBindingDeliveryCompatibility[number] = typeof sourceBindingDeliveryCompatibility[number],
+> = _Row extends typeof sourceBindingDeliveryCompatibility[number] ? {
+	delivery: _Row["deliveries"][number]
+	wireProtocol: _SourceBindingDeliveryWireProtocol<_Row>
+	apiFamily: _SourceBindingDeliveryApiFamily<_Row>
+	endpoints: _SourceBindingDeliveryEndpoints<_Row["endpointLayout"]>
+	credentials: _SourceBindingDeliveryCredentials<_Row["credentialLayout"]>
+} : never
 
 export type _SourceBinding = _SourceBindingBase & _SourceBindingCompatibility & _SourceBindingDelivery
 

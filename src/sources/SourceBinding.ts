@@ -205,11 +205,18 @@ export type SourceTarget =
 		key: string
 	}
 
-export type SourceEndpoint = {
-	endpointKind: SourceEndpointKind
+export type SourceEndpoint<
+	_Kind extends SourceEndpointKind = SourceEndpointKind,
+> = _Kind extends SourceEndpointKind ? {
+	endpointKind: _Kind
 	locator: string
-	corsEnabled?: boolean
-}
+} & (
+	_Kind extends SourceEndpointKind.HttpUrl ? {
+		corsEnabled?: boolean
+	} : {
+		corsEnabled?: never
+	}
+) : never
 
 export const sourceEndpointOrigin = ({
 	endpointKind,
@@ -223,34 +230,148 @@ export const sourceEndpointOrigin = ({
 		undefined
 )
 
-type SourceArtifactBase = {
-	kind: SourceArtifactKind
+export type SourceArtifact<
+	_Kind extends SourceArtifactKind = SourceArtifactKind,
+> = _Kind extends SourceArtifactKind ? {
+	kind: _Kind
 	path: string
 	generated?: true
-}
-
-export type SourceArtifact =
-	| SourceArtifactBase & {
-		kind: SourceArtifactKind.HandwrittenTypes
+} & (
+	_Kind extends SourceArtifactKind.HandwrittenTypes ? {
 		referenceUrl?: string
 		officialUrl?: never
-	}
-	| SourceArtifactBase & {
-		kind: Exclude<SourceArtifactKind, SourceArtifactKind.HandwrittenTypes>
+	} : {
 		officialUrl?: string
 		referenceUrl?: never
 	}
+) : never
 
-export type SourceCredentialRequirement =
-	| {
-		scope: SourceCredentialScope.PublicConfig
-		env?: Type<SourcePublicEnv>
+export type SourceCredentialRequirement<
+	_Scope extends SourceCredentialScope = SourceCredentialScope,
+> = _Scope extends SourceCredentialScope ? {
+	scope: _Scope
+	env?: Type<SourcePublicEnv>
+} & (
+	_Scope extends SourceCredentialScope.PublicConfig ? {
 		keys?: never
+	} : {
+		keys?: readonly string[]
+	}
+) : never
+
+type SourceBindingCompatibilityRow<
+	_WireProtocol extends WireProtocol,
+	_ApiFamily extends ApiFamily,
+	_EndpointKind extends SourceEndpointKind,
+	_OperationGroup extends SourceOperationGroup,
+	_ArtifactKind extends SourceArtifactKind,
+> = {
+	wireProtocol: _WireProtocol
+	apiFamily: _ApiFamily
+	endpoints: readonly [
+		SourceEndpoint<_EndpointKind>,
+		...SourceEndpoint<_EndpointKind>[],
+	]
+	operationGroups: readonly [
+		_OperationGroup,
+		..._OperationGroup[],
+	]
+	artifacts?: [_ArtifactKind] extends [never] ?
+		never
+	:
+		readonly SourceArtifact<_ArtifactKind>[]
+}
+
+type SourceBindingCompatibility =
+	| SourceBindingCompatibilityRow<WireProtocol.Adnl, ApiFamily.TonLiteServerAdnl, SourceEndpointKind.TcpAddress, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.Bencode, ApiFamily.BitTorrentClient, SourceEndpointKind.LocalFilePath | SourceEndpointKind.TcpAddress, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.Bencode, ApiFamily.BitTorrentDht | ApiFamily.BitTorrentTracker, SourceEndpointKind.UdpAddress, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.Canister, ApiFamily.IcCanister, SourceEndpointKind.CanisterId, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.Git, ApiFamily.GitObject, SourceEndpointKind.HttpUrl | SourceEndpointKind.LocalFilePath, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.Graphql, ApiFamily.GraphqlHttp, SourceEndpointKind.HttpUrl, SourceOperationGroup.GenericRead, SourceArtifactKind.GenerationManifest | SourceArtifactKind.GraphqlSchema | SourceArtifactKind.GraphqlTypes | SourceArtifactKind.HandwrittenTypes>
+	| SourceBindingCompatibilityRow<WireProtocol.Grpc, ApiFamily.GrpcService, SourceEndpointKind.HttpUrl | SourceEndpointKind.TcpAddress, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.HttpRest, ApiFamily.AlgodRestApi | ApiFamily.AlgorandIndexerRestApi | ApiFamily.ArweaveGateway | ApiFamily.BitTorrentClient | ApiFamily.BlockscoutRestV2 | ApiFamily.CosmosLcdApi | ApiFamily.EthereumBeaconRest | ApiFamily.EtherscanModuleAction | ApiFamily.FedimintGatewaydApi | ApiFamily.ForgejoRestApi | ApiFamily.GitObject | ApiFamily.GithubContentsApi | ApiFamily.GithubRestApi | ApiFamily.GitlabRestApi | ApiFamily.GoldRushFoundationalApi | ApiFamily.IpfsGateway | ApiFamily.KaspaRestApi | ApiFamily.NostrRelay | ApiFamily.RestJson | ApiFamily.RosettaApi | ApiFamily.SourcifyRestV2 | ApiFamily.SwarmGateway | ApiFamily.TezosNodeRpc | ApiFamily.TonCenterV3Api, SourceEndpointKind.HttpUrl, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.HttpRest, ApiFamily.OpenApiHttp, SourceEndpointKind.HttpUrl, SourceOperationGroup.GenericRead | SourceOperationGroup.SoftwareArtifactRegistry, SourceArtifactKind.GenerationManifest | SourceArtifactKind.OpenApiSpec | SourceArtifactKind.OpenApiTypes>
+	| SourceBindingCompatibilityRow<WireProtocol.InProcess, ApiFamily.BitTorrentDht | ApiFamily.CatalogRows | ApiFamily.WebTorrentApi | ApiFamily.XmtpClientApi, SourceEndpointKind.InProcess, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.InProcess, ApiFamily.CardanoLocalStateQuery | ApiFamily.LocalParser, SourceEndpointKind.LocalProcess, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.JsonRpc2, ApiFamily.AcpProtocol | ApiFamily.McpProtocol, SourceEndpointKind.LocalProcess, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.JsonRpc2, ApiFamily.BitcoinJsonRpc | ApiFamily.CelestiaNodeJsonRpc | ApiFamily.FilecoinLotusJsonRpc | ApiFamily.MetaplexDasJsonRpc | ApiFamily.MoneroDaemonJsonRpc | ApiFamily.StarknetJsonRpc | ApiFamily.SubstrateJsonRpc, SourceEndpointKind.HttpUrl, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.JsonRpc2, ApiFamily.JsonRpcApi | ApiFamily.SolanaJsonRpc, SourceEndpointKind.HttpUrl | SourceEndpointKind.WebSocketUrl, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.WebSocketMessages, ApiFamily.NostrRelay, SourceEndpointKind.WebSocketUrl, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.JsonRpc2, ApiFamily.EvmExecutionJsonRpc, SourceEndpointKind.HttpUrl | SourceEndpointKind.WebSocketUrl, SourceOperationGroup.EvmRpcCore | SourceOperationGroup.EvmRpcSubscribe | SourceOperationGroup.EvmRpcTrace | SourceOperationGroup.EvmRpcTxpool, SourceArtifactKind.GenerationManifest | SourceArtifactKind.OpenRpcSpec | SourceArtifactKind.OpenRpcTypes>
+	| SourceBindingCompatibilityRow<WireProtocol.LocalFile, ApiFamily.GitObject | ApiFamily.LocalParser | ApiFamily.LocalStateStore, SourceEndpointKind.LocalFilePath, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.OciDistribution, ApiFamily.OciDistributionApi, SourceEndpointKind.HttpUrl, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.Prometheus, ApiFamily.PrometheusText, SourceEndpointKind.HttpUrl, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.RawHttp, ApiFamily.BitTorrentTracker | ApiFamily.CertifiedHttpGateway | ApiFamily.EnvioHyperSyncApi | ApiFamily.RestJson | ApiFamily.SqdPortalStream | ApiFamily.StaticWebsite, SourceEndpointKind.HttpUrl, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.Sql, ApiFamily.Postgres, SourceEndpointKind.PostgresDsn, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.Uri, ApiFamily.UriScheme, SourceEndpointKind.InProcess, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.WalletProvider, ApiFamily.WalletApi, SourceEndpointKind.BrowserWalletProvider | SourceEndpointKind.InProcess | SourceEndpointKind.LocalProcess, SourceOperationGroup.WalletAccountRead | SourceOperationGroup.WalletSign, never>
+	| SourceBindingCompatibilityRow<WireProtocol.WebSocketMessages, ApiFamily.BitTorrentTracker, SourceEndpointKind.WebSocketUrl, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.Wrpc, ApiFamily.KaspaWrpcApi, SourceEndpointKind.HttpUrl, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.Xrpc, ApiFamily.AtprotoSync, SourceEndpointKind.HttpUrl | SourceEndpointKind.WebSocketUrl, SourceOperationGroup, SourceArtifactKind>
+	| SourceBindingCompatibilityRow<WireProtocol.Xrpc, ApiFamily.XrpcLexicon, SourceEndpointKind.HttpUrl, SourceOperationGroup, SourceArtifactKind>
+
+type SourcePublicOrUserCredential = SourceCredentialRequirement<
+	| SourceCredentialScope.PublicConfig
+	| SourceCredentialScope.UserDelegated
+>
+
+type SourceRuntimeSecretRequirement = {
+	scope: SourceCredentialScope.RuntimeSecret
+	env?: never
+	keys?: never
+}
+
+type SourcePublicOrUserWithOptionalRuntimeSecret =
+	| readonly SourcePublicOrUserCredential[]
+	| readonly [
+		...SourcePublicOrUserCredential[],
+		SourceRuntimeSecretRequirement,
+	]
+
+type SourceBindingDelivery =
+	| {
+		delivery: SourceDelivery.BrowserDirect
+		endpoints: readonly (
+			| (SourceEndpoint<SourceEndpointKind.HttpUrl> & { corsEnabled: true })
+			| SourceEndpoint<SourceEndpointKind.BrowserWalletProvider | SourceEndpointKind.InProcess>
+		)[]
+		credentials: readonly SourcePublicOrUserCredential[]
 	}
 	| {
-		scope: Exclude<SourceCredentialScope, SourceCredentialScope.PublicConfig>
-		env?: Type<SourcePublicEnv>
-		keys?: readonly string[]
+		delivery: SourceDelivery.HttpProxy
+		endpoints: readonly SourceEndpoint<SourceEndpointKind.HttpUrl>[]
+		credentials: SourcePublicOrUserWithOptionalRuntimeSecret
+	}
+	| {
+		delivery: SourceDelivery.RemoteLive
+		wireProtocol: WireProtocol.Grpc
+		apiFamily: ApiFamily.GrpcService
+		endpoints: readonly SourceEndpoint<SourceEndpointKind.HttpUrl>[]
+		credentials: SourcePublicOrUserWithOptionalRuntimeSecret
+	}
+	| {
+		delivery: SourceDelivery.RemoteLive
+		wireProtocol: Exclude<WireProtocol, WireProtocol.Grpc>
+		endpoints:
+			| readonly [
+				SourceEndpoint<SourceEndpointKind.WebSocketUrl>,
+				...SourceEndpoint<SourceEndpointKind.WebSocketUrl>[],
+			]
+			| readonly [
+				SourceEndpoint<SourceEndpointKind.HttpUrl>,
+				SourceEndpoint<SourceEndpointKind.WebSocketUrl>,
+				...SourceEndpoint<SourceEndpointKind.WebSocketUrl>[],
+			]
+		credentials: SourcePublicOrUserWithOptionalRuntimeSecret
+	}
+	| {
+		delivery: SourceDelivery.RemoteQuery
+		credentials: readonly SourceCredentialRequirement[]
+	}
+	| {
+		delivery: SourceDelivery.ServerOnly | SourceDelivery.LocalOnly | SourceDelivery.Unsupported
+		credentials: readonly SourceCredentialRequirement[]
 	}
 
 export type SourceServerCredentialInjection =
@@ -287,14 +408,7 @@ export type SourceBinding<
 > = {
 	source: _Source
 	target: SourceTarget
-	endpoints: readonly SourceEndpoint[]
-	wireProtocol: WireProtocol
-	apiFamily: ApiFamily
-	operationGroups: readonly SourceOperationGroup[]
-	delivery: SourceDelivery
-	credentials: readonly SourceCredentialRequirement[]
-	artifacts?: readonly SourceArtifact[]
-}
+} & SourceBindingCompatibility & SourceBindingDelivery
 
 export const sourceBindingId = ({
 	source,

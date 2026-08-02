@@ -37,6 +37,7 @@ import {
 	SourceTargetKind,
 	WireProtocol,
 	sourceBindingCompatibility,
+	sourceBindingDeliveryCompatibility,
 	_ExpressionDecode,
 	type _SourceSelection,
 } from '../../APP.ts'
@@ -46,6 +47,7 @@ import {
 	nearestApplicableSelectorAncestors,
 	sourceBindingId,
 	validateSourceBindingCompatibility,
+	validateSourceBindingDeliveryCompatibility,
 } from './generate.ts'
 import {
 	generatedHeader,
@@ -2916,7 +2918,10 @@ test('emits every source-axis enum and only valid enum references in provider ro
 	assert.doesNotMatch(renderedSourceBinding, /\bprovider: SourceProvider\b/)
 	assert.doesNotMatch(renderedSourceBinding, /\bNone\s*=\s*'None'/)
 	assert.match(renderedSourceBinding, /generated\?: true/)
-	assert.match(renderedSourceBinding, /scope: SourceCredentialScope\.PublicConfig[\s\S]*?keys\?: never/)
+	assert.match(renderedSourceBinding, /_Scope extends SourceCredentialScope\.PublicConfig \? \{[\s\S]*?keys\?: never/)
+	assert.equal((renderedSourceBinding.match(/^\t\| SourceBindingCompatibilityRow</gm) ?? []).length, sourceBindingCompatibility.length)
+	assert.doesNotMatch(renderedSourceBinding, /SourceBindingDelivery(?:Endpoint|Credential)Layout/)
+	assert.doesNotMatch(renderedSourceBinding, /endpoints: readonly SourceEndpoint\[\][\s\S]*?wireProtocol: WireProtocol[\s\S]*?apiFamily: ApiFamily[\s\S]*?operationGroups: readonly SourceOperationGroup\[\]/)
 	assert.match(
 		renderedSourceBinding,
 		/export const sourceBindingId = \(\{[\s\S]*?\) => JSON\.stringify\(\[\n\tsource,\n\ttarget\.kind,\n\ttarget\.key,\n\tdelivery,\n\tapiFamily,\n\]\)/
@@ -3594,6 +3599,32 @@ test('rejects malformed source binding compatibility rows before compilation', (
 	)
 })
 
+test('rejects ambiguous source binding delivery compatibility rows before compilation', () => {
+	assert.throws(
+		() => validateSourceBindingDeliveryCompatibility([
+			...sourceBindingDeliveryCompatibility,
+			{
+				...sourceBindingDeliveryCompatibility[0],
+				endpointLayout: sourceBindingDeliveryCompatibility[4].endpointLayout,
+			},
+		]),
+		/Ambiguous source binding delivery compatibility/
+	)
+	assert.throws(
+		() => validateSourceBindingDeliveryCompatibility(sourceBindingDeliveryCompatibility.slice(1)),
+		/BrowserDirect has no compatibility row/
+	)
+	const simultaneousIncludeExclude = structuredClone(sourceBindingDeliveryCompatibility)
+
+	Object.defineProperty(simultaneousIncludeExclude[2].wireProtocols, 'exclude', {
+		value: [WireProtocol.JsonRpc2],
+	})
+	assert.throws(
+		() => validateSourceBindingDeliveryCompatibility(simultaneousIncludeExclude),
+		/cannot include and exclude simultaneously/
+	)
+})
+
 test('rejects incompatible and empty authored bindings before compilation', () => {
 	const incompatibleApp = structuredClone(app)
 	const incompatibleBinding = incompatibleApp.sources.sources.find((source) => source.binding != null)?.binding
@@ -3637,6 +3668,146 @@ test('rejects incompatible and empty authored bindings before compilation', () =
 		value: 'https://{origin}/api/v2',
 	})
 	assert.throws(() => compileApp(templatedProxyApp), /HttpProxy requires a concrete HTTP origin/)
+})
+
+test('enforces canonical delivery endpoint and credential layouts during compilation', () => {
+	const mixedProxyCredentialsApp = structuredClone(app)
+	const mixedProxyCredentialsSource = mixedProxyCredentialsApp.sources.sources.find((source) => source.source === Source.GetBlockRpc_JsonRpc)
+	const mixedProxyCredentialsBinding = mixedProxyCredentialsSource?.binding ?? mixedProxyCredentialsSource?.bindings?.[0]
+
+	assert.ok(mixedProxyCredentialsBinding?.credentials[0])
+	Object.defineProperty(mixedProxyCredentialsBinding, 'credentials', {
+		value: [
+			{ scope: SourceCredentialScope.PublicConfig },
+			mixedProxyCredentialsBinding.credentials[0],
+		],
+	})
+	assert.doesNotThrow(() => compileApp(mixedProxyCredentialsApp))
+
+	const misplacedRuntimeSecretApp = structuredClone(mixedProxyCredentialsApp)
+	const misplacedRuntimeSecretSource = misplacedRuntimeSecretApp.sources.sources.find((source) => source.source === Source.GetBlockRpc_JsonRpc)
+	const misplacedRuntimeSecretBinding = misplacedRuntimeSecretSource?.binding ?? misplacedRuntimeSecretSource?.bindings?.[0]
+
+	assert.ok(misplacedRuntimeSecretBinding)
+	misplacedRuntimeSecretBinding.credentials.reverse()
+	assert.throws(() => compileApp(misplacedRuntimeSecretApp), /at most one trailing runtime secret/)
+
+	const repeatedRuntimeSecretApp = structuredClone(app)
+	const repeatedRuntimeSecretSource = repeatedRuntimeSecretApp.sources.sources.find((source) => source.source === Source.GetBlockRpc_JsonRpc)
+	const repeatedRuntimeSecretBinding = repeatedRuntimeSecretSource?.binding ?? repeatedRuntimeSecretSource?.bindings?.[0]
+
+	assert.ok(repeatedRuntimeSecretBinding?.credentials[0])
+	repeatedRuntimeSecretBinding.credentials.push(repeatedRuntimeSecretBinding.credentials[0])
+	assert.throws(() => compileApp(repeatedRuntimeSecretApp), /at most one trailing runtime secret/)
+
+	const localProxyCredentialApp = structuredClone(app)
+	const localProxyCredentialSource = localProxyCredentialApp.sources.sources.find((source) => source.source === Source.GetBlockRpc_JsonRpc)
+	const localProxyCredentialBinding = localProxyCredentialSource?.binding ?? localProxyCredentialSource?.bindings?.[0]
+
+	assert.ok(localProxyCredentialBinding)
+	Object.defineProperty(localProxyCredentialBinding, 'credentials', {
+		value: [{ scope: SourceCredentialScope.LocalSecret }],
+	})
+	assert.throws(() => compileApp(localProxyCredentialApp), /cannot require local secrets/)
+
+	const invalidGrpcEndpointApp = structuredClone(app)
+	const invalidGrpcEndpointSource = invalidGrpcEndpointApp.sources.sources.find((source) => source.source === Source.GetBlockYellowstone_Grpc)
+	const invalidGrpcEndpointBinding = invalidGrpcEndpointSource?.binding ?? invalidGrpcEndpointSource?.bindings?.[0]
+
+	assert.ok(invalidGrpcEndpointBinding?.endpoints[0])
+	Object.defineProperties(invalidGrpcEndpointBinding.endpoints[0], {
+		endpointKind: { value: SourceEndpointKind.TcpAddress },
+		corsEnabled: { value: undefined },
+	})
+	assert.throws(() => compileApp(invalidGrpcEndpointApp), /RemoteLive requires HTTP endpoints/)
+
+	const invalidRemoteSecretApp = structuredClone(app)
+	const invalidRemoteSecretSource = invalidRemoteSecretApp.sources.sources.find((source) => source.source === Source.GetBlockYellowstone_Grpc)
+	const invalidRemoteSecretBinding = invalidRemoteSecretSource?.binding ?? invalidRemoteSecretSource?.bindings?.[0]
+
+	assert.ok(invalidRemoteSecretBinding?.credentials[0])
+	Object.defineProperty(invalidRemoteSecretBinding.credentials[0], 'envKey', {
+		value: '',
+	})
+	assert.throws(() => compileApp(invalidRemoteSecretApp), /RemoteLive runtime secret requires envKey/)
+
+	const reversedLiveEndpointsApp = structuredClone(app)
+	const reversedLiveEndpointsSource = reversedLiveEndpointsApp.sources.sources.find((source) => source.source === Source.AtprotoSync_Xrpc)
+	const reversedLiveEndpointsBinding = reversedLiveEndpointsSource?.binding ?? reversedLiveEndpointsSource?.bindings?.[0]
+
+	assert.ok(reversedLiveEndpointsBinding)
+	reversedLiveEndpointsBinding.endpoints.reverse()
+	assert.throws(() => compileApp(reversedLiveEndpointsApp), /at most one leading HTTP endpoint/)
+
+	const missingLiveWebSocketApp = structuredClone(app)
+	const missingLiveWebSocketSource = missingLiveWebSocketApp.sources.sources.find((source) => source.source === Source.AtprotoSync_Xrpc)
+	const missingLiveWebSocketBinding = missingLiveWebSocketSource?.binding ?? missingLiveWebSocketSource?.bindings?.[0]
+
+	assert.ok(missingLiveWebSocketBinding?.endpoints[1])
+	Object.defineProperties(missingLiveWebSocketBinding.endpoints[1], {
+		endpointKind: { value: SourceEndpointKind.HttpUrl },
+		locator: { value: 'https://example.com' },
+	})
+	assert.throws(() => compileApp(missingLiveWebSocketApp), /at most one leading HTTP endpoint/)
+
+	const browserLocalEndpointApp = structuredClone(app)
+	const browserLocalEndpointSource = browserLocalEndpointApp.sources.sources.find((source) => source.source === Source.Git_Local)
+	const browserLocalEndpointBinding = browserLocalEndpointSource?.binding ?? browserLocalEndpointSource?.bindings?.[0]
+
+	assert.ok(browserLocalEndpointBinding)
+	Object.defineProperty(browserLocalEndpointBinding, 'delivery', {
+		value: SourceDelivery.BrowserDirect,
+	})
+	assert.throws(() => compileApp(browserLocalEndpointApp), /BrowserDirect requires browser-addressable endpoints/)
+
+	const remoteQueryLocalCredentialApp = structuredClone(app)
+	const remoteQueryLocalCredentialSource = remoteQueryLocalCredentialApp.sources.sources.find((source) => source.source === Source.Avail)
+	const remoteQueryLocalCredentialBinding = remoteQueryLocalCredentialSource?.binding ?? remoteQueryLocalCredentialSource?.bindings?.[0]
+
+	assert.ok(remoteQueryLocalCredentialBinding)
+	Object.defineProperty(remoteQueryLocalCredentialBinding, 'credentials', {
+		value: [{ scope: SourceCredentialScope.LocalSecret }],
+	})
+	assert.doesNotThrow(() => compileApp(remoteQueryLocalCredentialApp))
+
+	const publicConfigKeysApp = structuredClone(app)
+	const publicConfigKeysSource = publicConfigKeysApp.sources.sources.find((source) => source.source === Source.Avail)
+	const publicConfigKeysBinding = publicConfigKeysSource?.binding ?? publicConfigKeysSource?.bindings?.[0]
+
+	assert.ok(publicConfigKeysBinding?.credentials[0])
+	Object.defineProperty(publicConfigKeysBinding.credentials[0], 'keys', {
+		value: [],
+	})
+	assert.throws(() => compileApp(publicConfigKeysApp), /PublicConfig credentials derive keys from env/)
+
+	const requirementInjectionApp = structuredClone(app)
+	const requirementInjectionSource = requirementInjectionApp.sources.sources.find((source) => source.source === Source.Avail)
+	const requirementInjectionBinding = requirementInjectionSource?.binding ?? requirementInjectionSource?.bindings?.[0]
+
+	assert.ok(requirementInjectionBinding?.credentials[0])
+	Object.defineProperties(requirementInjectionBinding.credentials[0], {
+		envKey: { value: 'INVALID' },
+		injection: { value: { header: { name: 'x-invalid' } } },
+	})
+	assert.throws(() => compileApp(requirementInjectionApp), /credential requirements cannot declare server-secret injection/)
+
+	const managedSecretKeysApp = structuredClone(app)
+	const managedSecretKeysSource = managedSecretKeysApp.sources.sources.find((source) => source.source === Source.GetBlockRpc_JsonRpc)
+	const managedSecretKeysBinding = managedSecretKeysSource?.binding ?? managedSecretKeysSource?.bindings?.[0]
+
+	assert.ok(managedSecretKeysBinding?.credentials[0])
+	Object.defineProperty(managedSecretKeysBinding.credentials[0], 'keys', {
+		value: ['GETBLOCK_API_KEY'],
+	})
+	assert.throws(() => compileApp(managedSecretKeysApp), /managed runtime secrets cannot declare env or keys/)
+
+	const missingSecretInjectionApp = structuredClone(app)
+	const missingSecretInjectionSource = missingSecretInjectionApp.sources.sources.find((source) => source.source === Source.GetBlockRpc_JsonRpc)
+	const missingSecretInjectionBinding = missingSecretInjectionSource?.binding ?? missingSecretInjectionSource?.bindings?.[0]
+
+	assert.ok(missingSecretInjectionBinding?.credentials[0])
+	Reflect.deleteProperty(missingSecretInjectionBinding.credentials[0], 'injection')
+	assert.throws(() => compileApp(missingSecretInjectionApp), /runtime secret requires injection/)
 })
 
 test('consumes authored singular lists and plural query presentation defaults', () => {
@@ -5611,8 +5782,11 @@ test('correlates generated source, binding, and resolver selector keys at defini
 		writeFileSync(fixturePath, `import specificationProposalSources from '${root}/src/sources/specificationProposalSources.ts'
 import sourceServerCredentials from '${root}/src/sources/$sourceServerCredentials.server.ts'
 import acrossBindings from '${root}/src/sources/Across/bindings.ts'
+import atprotoSyncBindings from '${root}/src/sources/AtprotoSync/bindings.ts'
 import blockscoutBindings from '${root}/src/sources/Blockscout/bindings.ts'
+import getBlockBindings from '${root}/src/sources/GetBlock/bindings.ts'
 import lightningLndBindings from '${root}/src/sources/LightningLnd/bindings.ts'
+import voyagerBindings from '${root}/src/sources/Voyager/bindings.ts'
 import xrplClioBindings from '${root}/src/sources/XrplClio/bindings.ts'
 import {
 	defineResolver,
@@ -5621,7 +5795,14 @@ import {
 import { EntityType } from '${root}/src/schema/EntityType.ts'
 import { Source } from '${root}/src/sources/Source.ts'
 import {
+	ApiFamily,
 	indexSourceBindings,
+	SourceArtifactKind,
+	SourceCredentialScope,
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
+	WireProtocol,
 	type SourceBinding,
 	type SourceBindingIndex,
 	type SourceServerCredentialDefinition,
@@ -5681,6 +5862,9 @@ defineResolver({
 const validBindings = lightningLndBindings satisfies SourceBindingIndex
 const typedSourceServerCredentials: Map<string, SourceServerCredentialDefinition> = sourceServerCredentials
 const acrossBinding = acrossBindings[Source.Across_Rest]
+const atprotoSyncBinding = atprotoSyncBindings[Source.AtprotoSync_Xrpc]
+const getBlockRpcBinding = getBlockBindings[Source.GetBlockRpc_JsonRpc]
+const voyagerBinding = voyagerBindings[Source.Voyager]
 const acrossSource: Source.Across_Rest = acrossBinding.source
 const xrplClioBindingsForSource: readonly SourceBinding<Source.XrplClio_JsonRpc>[] = xrplClioBindings[Source.XrplClio_JsonRpc]
 const repeatedAcrossBindings = indexSourceBindings([
@@ -5692,6 +5876,39 @@ const repeatedAcrossBindingsForSource: readonly SourceBinding<Source.Across_Rest
 const repeatedAcrossBinding: SourceBinding<Source.Across_Rest> = repeatedAcrossBindings[Source.Across_Rest]
 const computedAcrossBindings = indexSourceBindings([acrossBinding, acrossBinding].flatMap((binding) => [binding]))
 const computedAcrossBindingsForSource: readonly SourceBinding<Source.Across_Rest>[] = computedAcrossBindings[Source.Across_Rest]
+const mixedProxyCredentials = {
+	...getBlockRpcBinding,
+	credentials: [
+		{ scope: SourceCredentialScope.PublicConfig },
+		getBlockRpcBinding.credentials[0],
+	],
+} as const satisfies SourceBinding
+// @ts-expect-error A wire protocol accepts only API families in its canonical compatibility row.
+const invalidProtocol = { ...acrossBinding, wireProtocol: WireProtocol.Graphql } as const satisfies SourceBinding
+// @ts-expect-error An API family accepts only its canonical wire protocol.
+const invalidApiFamily = { ...acrossBinding, apiFamily: ApiFamily.GraphqlHttp } as const satisfies SourceBinding
+// @ts-expect-error Endpoint kinds are constrained by the protocol/API compatibility row.
+const invalidEndpoint = { ...acrossBinding, endpoints: [{ endpointKind: SourceEndpointKind.WebSocketUrl, locator: 'wss://example.com' }] } as const satisfies SourceBinding
+// @ts-expect-error Endpoint tuples are nonempty.
+const emptyEndpoints = { ...acrossBinding, endpoints: [] } as const satisfies SourceBinding
+// @ts-expect-error Operation-group tuples are nonempty.
+const emptyOperationGroups = { ...acrossBinding, operationGroups: [] } as const satisfies SourceBinding
+// @ts-expect-error OpenAPI bindings accept only their canonical operation groups.
+const invalidOperationGroup = { ...voyagerBinding, operationGroups: [SourceOperationGroup.WalletSign] } as const satisfies SourceBinding
+// @ts-expect-error OpenAPI bindings accept only their canonical artifact kinds.
+const invalidArtifact = { ...voyagerBinding, artifacts: [{ kind: SourceArtifactKind.Candid, path: 'invalid.did' }] } as const satisfies SourceBinding
+// @ts-expect-error BrowserDirect HTTP endpoints must explicitly enable CORS.
+const invalidBrowserCors = { ...acrossBinding, delivery: SourceDelivery.BrowserDirect, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'https://example.com', corsEnabled: false }] } as const satisfies SourceBinding
+// @ts-expect-error Non-gRPC RemoteLive requires at least one WebSocket endpoint.
+const liveWithoutWebSocket = { ...atprotoSyncBinding, endpoints: [atprotoSyncBinding.endpoints[0]] } as const satisfies SourceBinding
+// @ts-expect-error Non-gRPC RemoteLive permits at most one leading HTTP endpoint.
+const liveWithTwoHttpEndpoints = { ...atprotoSyncBinding, endpoints: [atprotoSyncBinding.endpoints[0], atprotoSyncBinding.endpoints[0], atprotoSyncBinding.endpoints[1]] } as const satisfies SourceBinding
+// @ts-expect-error HttpProxy cannot require a LocalSecret.
+const localProxyCredential = { ...getBlockRpcBinding, credentials: [{ scope: SourceCredentialScope.LocalSecret }] } as const satisfies SourceBinding
+// @ts-expect-error HttpProxy permits at most one trailing RuntimeSecret.
+const repeatedRuntimeSecret = { ...getBlockRpcBinding, credentials: [getBlockRpcBinding.credentials[0], getBlockRpcBinding.credentials[0]] } as const satisfies SourceBinding
+// @ts-expect-error Managed runtime-secret projections cannot be widened with credential keys.
+const runtimeSecretWithKeys = { ...getBlockRpcBinding, credentials: [{ ...getBlockRpcBinding.credentials[0], keys: ['INVALID'] }] } as const satisfies SourceBinding
 const blockscoutBindingsForSource = blockscoutBindings[Source.Blockscout_Rest]
 const blockscoutTargetKey: '1' | '10' | '100' | '137' | '8453' | '42161' | '11155111' = blockscoutBindingsForSource[0].target.key
 // @ts-expect-error Compact generated binding targets retain their authored key union.
@@ -5705,6 +5922,7 @@ const swappedResolverEntry: SwappedResolverEntry = false
 void validResolverEntry
 void swappedResolverEntry
 void typedSourceServerCredentials
+void mixedProxyCredentials
 `)
 		assertTypeChecks('generated-source-keys:typecheck', [fixturePath], true)
 	} finally {

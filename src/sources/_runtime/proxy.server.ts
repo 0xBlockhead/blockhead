@@ -132,7 +132,7 @@ export const proxySourceHttpRequest = async (
 		endpoint,
 		...(
 				credentialDefinition == null ?
-				binding.endpoints.filter((candidate) => candidate !== endpoint)
+				[...binding.endpoints].filter((candidate) => candidate !== endpoint)
 			:
 				[]
 		),

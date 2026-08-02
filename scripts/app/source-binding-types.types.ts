@@ -344,13 +344,28 @@ const invalidServerOnlyProxyInjection = {
 	delivery: SourceDelivery.ServerOnly,
 	credentials: [{
 		scope: SourceCredentialScope.RuntimeSecret,
-		// @ts-expect-error Injection placement belongs only to HttpProxy runtime secrets.
+		// @ts-expect-error Injection placement belongs only to managed HttpProxy/RemoteLive runtime secrets.
 		envKey: 'FIXTURE_API_KEY',
 		injection: {
 			header: {
 				name: 'Authorization',
 			},
 		},
+	}],
+} as const satisfies _SourceBinding
+
+const invalidManagedRuntimeSecretKeys = {
+	...validRuntimeSecretProxyHeader,
+	credentials: [{
+		scope: SourceCredentialScope.RuntimeSecret,
+		envKey: 'FIXTURE_API_KEY',
+		injection: {
+			header: {
+				name: 'Authorization',
+			},
+		},
+		// @ts-expect-error Managed runtime secrets cannot also declare requirement keys.
+		keys: ['FIXTURE_API_KEY'],
 	}],
 } as const satisfies _SourceBinding
 
@@ -490,6 +505,7 @@ void [
 	invalidRuntimeSecretProxyMultiple,
 	invalidPublicProxyInjection,
 	invalidServerOnlyProxyInjection,
+	invalidManagedRuntimeSecretKeys,
 	invalidWalletOperation,
 	invalidOpenApiArtifact,
 	invalidEvmOperation,

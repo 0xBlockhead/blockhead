@@ -28,6 +28,8 @@ import {
 	EntityType,
 	Source,
 	SourceArtifactKind,
+	SourceBindingDeliveryCredentialLayout,
+	SourceBindingDeliveryEndpointLayout,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
@@ -36,6 +38,7 @@ import {
 	SourceTargetKind,
 	WireProtocol,
 	sourceBindingCompatibility,
+	sourceBindingDeliveryCompatibility,
 	_ExpressionDecode,
 	_RouteParamEncoding,
 	_ViewItemKind,
@@ -5339,6 +5342,108 @@ export const validateSourceBindingCompatibility = (compatibilityRows: readonly {
 	}
 }
 
+type SourceBindingDeliveryCompatibility = {
+	deliveries: readonly SourceDelivery[]
+	wireProtocols:
+		| true
+		| {
+			include: readonly WireProtocol[]
+			exclude?: never
+		}
+		| {
+			exclude: readonly WireProtocol[]
+			include?: never
+		}
+	apiFamilies: true | readonly ApiFamily[]
+	endpointLayout: SourceBindingDeliveryEndpointLayout
+	credentialLayout: SourceBindingDeliveryCredentialLayout
+}
+
+const sourceBindingMatchesDeliveryCompatibility = (
+	binding: {
+		delivery: SourceDelivery
+		wireProtocol: WireProtocol
+		apiFamily: ApiFamily
+	},
+	compatibility: SourceBindingDeliveryCompatibility
+) => (
+	compatibility.deliveries.some((delivery) => delivery === binding.delivery)
+	&& (
+		compatibility.wireProtocols === true
+		|| (
+			'include' in compatibility.wireProtocols ?
+				compatibility.wireProtocols.include.some((wireProtocol) => wireProtocol === binding.wireProtocol)
+			:
+				compatibility.wireProtocols.exclude.every((wireProtocol) => wireProtocol !== binding.wireProtocol)
+		)
+	)
+	&& (
+		compatibility.apiFamilies === true
+		|| compatibility.apiFamilies.some((apiFamily) => apiFamily === binding.apiFamily)
+	)
+)
+
+export const validateSourceBindingDeliveryCompatibility = (
+	compatibilityRows: readonly SourceBindingDeliveryCompatibility[]
+) => {
+	const rowKeys = new Set<string>()
+	for (const compatibility of compatibilityRows) {
+		if (compatibility.deliveries.length === 0)
+			throw new Error('Delivery compatibility row requires at least one delivery')
+		if (compatibility.wireProtocols !== true) {
+			if ('include' in compatibility.wireProtocols && 'exclude' in compatibility.wireProtocols)
+				throw new Error('Delivery compatibility wire protocols cannot include and exclude simultaneously')
+			const wireProtocols = 'include' in compatibility.wireProtocols ?
+				compatibility.wireProtocols.include
+			:
+				compatibility.wireProtocols.exclude
+			if (wireProtocols.length === 0)
+				throw new Error('Constrained delivery wire protocols must be nonempty')
+			if (new Set(wireProtocols).size !== wireProtocols.length)
+				throw new Error('Delivery compatibility row contains duplicate wire protocol')
+		}
+		if (compatibility.apiFamilies !== true && compatibility.apiFamilies.length === 0)
+			throw new Error('Constrained delivery API families must be nonempty')
+
+		for (const [label, values] of [
+			['delivery', compatibility.deliveries],
+			...(compatibility.apiFamilies === true ? [] : [['API family', compatibility.apiFamilies] as const]),
+		] as const)
+			if (new Set(values).size !== values.length)
+				throw new Error(`Delivery compatibility row contains duplicate ${label}`)
+
+		const rowKey = JSON.stringify(compatibility)
+		if (rowKeys.has(rowKey))
+			throw new Error(`Duplicate source binding delivery compatibility row ${rowKey}`)
+
+		rowKeys.add(rowKey)
+	}
+
+	for (const delivery of Object.values(SourceDelivery))
+		if (!compatibilityRows.some((compatibility) => compatibility.deliveries.some((candidate) => candidate === delivery)))
+			throw new Error(`Source delivery ${delivery} has no compatibility row`)
+
+	const deliveryProtocolApiFamilies = Object.values(SourceDelivery).flatMap((delivery) => (
+		Object.values(WireProtocol).flatMap((wireProtocol) => (
+			Object.values(ApiFamily).map((apiFamily) => ({
+				delivery,
+				wireProtocol,
+				apiFamily,
+			}))
+		))
+	))
+	for (const [compatibilityIndex, compatibility] of compatibilityRows.entries())
+		if (!deliveryProtocolApiFamilies.some((binding) => (
+			sourceBindingMatchesDeliveryCompatibility(binding, compatibility)
+		)))
+			throw new Error(`Source binding delivery compatibility row ${compatibilityIndex} matches no protocol/API combination`)
+	for (const binding of deliveryProtocolApiFamilies)
+		if (compatibilityRows.filter((compatibility) => (
+			sourceBindingMatchesDeliveryCompatibility(binding, compatibility)
+		)).length > 1)
+			throw new Error(`Ambiguous source binding delivery compatibility for ${binding.delivery}/${binding.wireProtocol}/${binding.apiFamily}`)
+}
+
 // HTTP endpoint locators own their authority. Paths and templates never need a
 // second origin field in APP.ts or generated bindings.
 const httpOriginFromLocator = (locator: string) => (
@@ -5353,6 +5458,7 @@ const httpOriginFromLocator = (locator: string) => (
 // domain facts first, then hands a closed set of facts to deterministic emitters.
 export const compileApp = (sourceApp: App): CompiledApp => {
 	validateSourceBindingCompatibility(sourceBindingCompatibility)
+	validateSourceBindingDeliveryCompatibility(sourceBindingDeliveryCompatibility)
 
 	const sources = Object.freeze([...sourceApp.sources.sources])
 	const sourceProviders = Object.freeze([...sourceApp.sources.providers])
@@ -5413,17 +5519,17 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		)
 			throw new Error(`${source}: artifact kind is incompatible with ${binding.apiFamily}`)
 
+		const deliveryCompatibilities = sourceBindingDeliveryCompatibility.filter((deliveryCompatibility) => (
+			sourceBindingMatchesDeliveryCompatibility(binding, deliveryCompatibility)
+		))
+		if (deliveryCompatibilities.length !== 1)
+			throw new Error(`${source}: binding must match exactly one delivery compatibility row`)
+
+		const deliveryCompatibility = deliveryCompatibilities[0]
+
 		for (const endpoint of binding.endpoints) {
 			if (endpoint.endpointKind !== SourceEndpointKind.HttpUrl && endpoint.corsEnabled != null)
 				throw new Error(`${source}: corsEnabled is only valid on HTTP endpoints`)
-			if (endpoint.endpointKind !== SourceEndpointKind.HttpUrl && binding.delivery === SourceDelivery.HttpProxy)
-				throw new Error(`${source}: HttpProxy requires HTTP endpoints`)
-			if (
-				endpoint.endpointKind === SourceEndpointKind.HttpUrl
-				&& binding.delivery === SourceDelivery.BrowserDirect
-				&& endpoint.corsEnabled !== true
-			)
-				throw new Error(`${source}: BrowserDirect HTTP endpoint requires corsEnabled true`)
 			if (
 				endpoint.endpointKind === SourceEndpointKind.HttpUrl
 				&& !endpoint.locator.startsWith('env:')
@@ -5442,62 +5548,102 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 				throw new Error(`${source}: HttpProxy requires a concrete HTTP origin`)
 		}
 
-		if (
-			binding.delivery === SourceDelivery.RemoteLive
-			&& binding.wireProtocol === WireProtocol.Grpc
-			&& (
-				binding.apiFamily !== ApiFamily.GrpcService
-				|| binding.endpoints.some((endpoint) => endpoint.endpointKind !== SourceEndpointKind.HttpUrl)
-			)
-		)
-			throw new Error(`${source}: managed RemoteLive gRPC requires GrpcService over HTTP endpoints`)
-		// RemoteLive endpoint order is never semantic: it requires WebSocket delivery and may expose one HTTP peer.
-		if (
-			binding.delivery === SourceDelivery.RemoteLive
-			&& binding.wireProtocol !== WireProtocol.Grpc
-		) {
-			const httpEndpointCount = binding.endpoints.filter(
-				(endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl
-			).length
-			const webSocketEndpointCount = binding.endpoints.filter(
-				(endpoint) => endpoint.endpointKind === SourceEndpointKind.WebSocketUrl
-			).length
-			if (
-				webSocketEndpointCount === 0
-				|| httpEndpointCount > 1
-				|| httpEndpointCount + webSocketEndpointCount !== binding.endpoints.length
-			)
-				throw new Error(`${source}: RemoteLive requires WebSocket endpoints and at most one HTTP endpoint`)
+		if (deliveryCompatibility.endpointLayout === SourceBindingDeliveryEndpointLayout.BrowserDirect) {
+			if (binding.endpoints.some((endpoint) => (
+				endpoint.endpointKind !== SourceEndpointKind.HttpUrl
+				&& endpoint.endpointKind !== SourceEndpointKind.BrowserWalletProvider
+				&& endpoint.endpointKind !== SourceEndpointKind.InProcess
+			)))
+				throw new Error(`${source}: BrowserDirect requires browser-addressable endpoints`)
+			if (binding.endpoints.some((endpoint) => (
+				endpoint.endpointKind === SourceEndpointKind.HttpUrl
+				&& endpoint.corsEnabled !== true
+			)))
+				throw new Error(`${source}: BrowserDirect HTTP endpoint requires corsEnabled true`)
 		}
 		if (
-			binding.delivery === SourceDelivery.BrowserDirect
+			deliveryCompatibility.endpointLayout === SourceBindingDeliveryEndpointLayout.HttpOnly
+			&& binding.endpoints.some((endpoint) => endpoint.endpointKind !== SourceEndpointKind.HttpUrl)
+		)
+			throw new Error(`${source}: ${binding.delivery} requires HTTP endpoints`)
+		if (deliveryCompatibility.endpointLayout === SourceBindingDeliveryEndpointLayout.RemoteLiveWebSocket) {
+			const [firstEndpoint, ...remainingEndpoints] = binding.endpoints
+			if (
+				(
+					firstEndpoint?.endpointKind !== SourceEndpointKind.WebSocketUrl
+					&& firstEndpoint?.endpointKind !== SourceEndpointKind.HttpUrl
+				)
+				|| (
+					firstEndpoint.endpointKind === SourceEndpointKind.HttpUrl
+					&& remainingEndpoints.length === 0
+				)
+				|| remainingEndpoints.some((endpoint) => endpoint.endpointKind !== SourceEndpointKind.WebSocketUrl)
+			)
+				throw new Error(`${source}: RemoteLive requires WebSocket endpoints with at most one leading HTTP endpoint`)
+		}
+
+		if (
+			deliveryCompatibility.credentialLayout === SourceBindingDeliveryCredentialLayout.PublicOrUser
 			&& binding.credentials.some((credential) => (
-				credential.scope === SourceCredentialScope.RuntimeSecret
-				|| credential.scope === SourceCredentialScope.LocalSecret
+				credential.scope !== SourceCredentialScope.PublicConfig
+				&& credential.scope !== SourceCredentialScope.UserDelegated
 			))
 		)
-			throw new Error(`${source}: browser delivery cannot require runtime/local secrets`)
-		if (
-			binding.delivery === SourceDelivery.HttpProxy
-			&& binding.credentials.some((credential) => credential.scope === SourceCredentialScope.LocalSecret)
-		)
-			throw new Error(`${source}: HttpProxy cannot require local secrets`)
+			throw new Error(`${source}: ${binding.delivery} accepts only public/user credentials`)
+		for (const credential of binding.credentials) {
+			if (
+				credential.scope === SourceCredentialScope.PublicConfig
+				&& 'keys' in credential
+			)
+				throw new Error(`${source}: PublicConfig credentials derive keys from env and cannot declare keys`)
+			if (
+				(
+					deliveryCompatibility.credentialLayout !== SourceBindingDeliveryCredentialLayout.PublicOrUserWithOptionalRuntimeSecret
+					|| credential.scope !== SourceCredentialScope.RuntimeSecret
+				)
+				&& ('envKey' in credential || 'injection' in credential)
+			)
+				throw new Error(`${source}: credential requirements cannot declare server-secret injection`)
+		}
 
 		const runtimeSecrets = binding.credentials.filter((credential) => (
 			credential.scope === SourceCredentialScope.RuntimeSecret
 		))
-		if (binding.delivery === SourceDelivery.HttpProxy && runtimeSecrets.length > 1)
-			throw new Error(`${source}: HttpProxy accepts one runtime secret`)
-		for (const runtimeSecret of binding.delivery === SourceDelivery.HttpProxy ? runtimeSecrets : []) {
+		if (deliveryCompatibility.credentialLayout === SourceBindingDeliveryCredentialLayout.PublicOrUserWithOptionalRuntimeSecret) {
+			if (binding.credentials.some((credential) => (
+				credential.scope !== SourceCredentialScope.PublicConfig
+				&& credential.scope !== SourceCredentialScope.UserDelegated
+				&& credential.scope !== SourceCredentialScope.RuntimeSecret
+			)))
+				throw new Error(`${source}: ${binding.delivery} cannot require local secrets`)
+			if (
+				runtimeSecrets.length > 1
+				|| (
+					runtimeSecrets.length === 1
+					&& binding.credentials.at(-1)?.scope !== SourceCredentialScope.RuntimeSecret
+				)
+			)
+				throw new Error(`${source}: ${binding.delivery} accepts at most one trailing runtime secret`)
+		}
+		for (const runtimeSecret of (
+			deliveryCompatibility.credentialLayout === SourceBindingDeliveryCredentialLayout.PublicOrUserWithOptionalRuntimeSecret ?
+				runtimeSecrets
+			:
+				[]
+		)) {
+			if ('env' in runtimeSecret || 'keys' in runtimeSecret)
+				throw new Error(`${source}: managed runtime secrets cannot declare env or keys`)
 			if (!('envKey' in runtimeSecret) || runtimeSecret.envKey.trim() === '')
-				throw new Error(`${source}: HttpProxy runtime secret requires envKey`)
+				throw new Error(`${source}: ${binding.delivery} runtime secret requires envKey`)
+			if (!('injection' in runtimeSecret))
+				throw new Error(`${source}: ${binding.delivery} runtime secret requires injection`)
 			if (
 				'endpointTemplate' in runtimeSecret.injection
 				&& !binding.endpoints.some((endpoint) => (
 					endpoint.locator.includes(`{${runtimeSecret.injection.endpointTemplate.slot}}`)
-				))
+					))
 			)
-				throw new Error(`${source}: HttpProxy runtime secret template slot is absent from its endpoints`)
+				throw new Error(`${source}: ${binding.delivery} runtime secret template slot is absent from its endpoints`)
 		}
 	}
 	for (const [source, definitions] of Map.groupBy(sources, (definition) => definition.source))
@@ -6982,11 +7128,18 @@ export type SourceTarget =
 		key: string
 	}
 
-export type SourceEndpoint = {
-	endpointKind: SourceEndpointKind
+export type SourceEndpoint<
+	_Kind extends SourceEndpointKind = SourceEndpointKind,
+> = _Kind extends SourceEndpointKind ? {
+	endpointKind: _Kind
 	locator: string
-	corsEnabled?: boolean
-}
+} & (
+	_Kind extends SourceEndpointKind.HttpUrl ? {
+		corsEnabled?: boolean
+	} : {
+		corsEnabled?: never
+	}
+) : never
 
 export const sourceEndpointOrigin = ({
 	endpointKind,
@@ -7000,35 +7153,131 @@ export const sourceEndpointOrigin = ({
 		undefined
 )
 
-type SourceArtifactBase = {
-	kind: SourceArtifactKind
+export type SourceArtifact<
+	_Kind extends SourceArtifactKind = SourceArtifactKind,
+> = _Kind extends SourceArtifactKind ? {
+	kind: _Kind
 	path: string
 	generated?: true
-}
-
-export type SourceArtifact =
-	| SourceArtifactBase & {
-		kind: SourceArtifactKind.HandwrittenTypes
+} & (
+	_Kind extends SourceArtifactKind.HandwrittenTypes ? {
 		referenceUrl?: string
 		officialUrl?: never
-	}
-	| SourceArtifactBase & {
-		kind: Exclude<SourceArtifactKind, SourceArtifactKind.HandwrittenTypes>
+	} : {
 		officialUrl?: string
 		referenceUrl?: never
 	}
+) : never
 
-export type SourceCredentialRequirement =
-	| {
-		scope: SourceCredentialScope.PublicConfig
-		env?: Type<SourcePublicEnv>
+export type SourceCredentialRequirement<
+	_Scope extends SourceCredentialScope = SourceCredentialScope,
+> = _Scope extends SourceCredentialScope ? {
+	scope: _Scope
+	env?: Type<SourcePublicEnv>
+} & (
+	_Scope extends SourceCredentialScope.PublicConfig ? {
 		keys?: never
-	}
-	| {
-		scope: Exclude<SourceCredentialScope, SourceCredentialScope.PublicConfig>
-		env?: Type<SourcePublicEnv>
+	} : {
 		keys?: readonly string[]
 	}
+) : never
+
+type SourceBindingCompatibilityRow<
+	_WireProtocol extends WireProtocol,
+	_ApiFamily extends ApiFamily,
+	_EndpointKind extends SourceEndpointKind,
+	_OperationGroup extends SourceOperationGroup,
+	_ArtifactKind extends SourceArtifactKind,
+> = {
+	wireProtocol: _WireProtocol
+	apiFamily: _ApiFamily
+	endpoints: readonly [
+		SourceEndpoint<_EndpointKind>,
+		...SourceEndpoint<_EndpointKind>[],
+	]
+	operationGroups: readonly [
+		_OperationGroup,
+		..._OperationGroup[],
+	]
+	artifacts?: [_ArtifactKind] extends [never] ?
+		never
+	:
+		readonly SourceArtifact<_ArtifactKind>[]
+}
+
+type SourceBindingCompatibility =
+${sourceBindingCompatibility.map((compatibility) => `\t| SourceBindingCompatibilityRow<${enumAccess('WireProtocol', compatibility.wireProtocol)}, ${compatibility.apiFamilies.map((apiFamily) => enumAccess('ApiFamily', apiFamily)).join(' | ')}, ${compatibility.endpointKinds.map((endpointKind) => enumAccess('SourceEndpointKind', endpointKind)).join(' | ')}, ${compatibility.operationGroups === true ? 'SourceOperationGroup' : compatibility.operationGroups.map((operationGroup) => enumAccess('SourceOperationGroup', operationGroup)).join(' | ')}, ${
+			compatibility.artifactKinds === true ?
+				'SourceArtifactKind'
+			: compatibility.artifactKinds.length === 0 ?
+				'never'
+			:
+				compatibility.artifactKinds.map((artifactKind) => enumAccess('SourceArtifactKind', artifactKind)).join(' | ')
+		}>`).join('\n')}
+
+type SourcePublicOrUserCredential = SourceCredentialRequirement<
+	| SourceCredentialScope.PublicConfig
+	| SourceCredentialScope.UserDelegated
+>
+
+type SourceRuntimeSecretRequirement = {
+	scope: SourceCredentialScope.RuntimeSecret
+	env?: never
+	keys?: never
+}
+
+type SourcePublicOrUserWithOptionalRuntimeSecret =
+	| readonly SourcePublicOrUserCredential[]
+	| readonly [
+		...SourcePublicOrUserCredential[],
+		SourceRuntimeSecretRequirement,
+	]
+
+type SourceBindingDelivery =
+${sourceBindingDeliveryCompatibility.map((compatibility) => [
+	'\t| {',
+	`\t\tdelivery: ${compatibility.deliveries.map((delivery) => enumAccess('SourceDelivery', delivery)).join(' | ')}`,
+	...(compatibility.wireProtocols === true ? [] : [
+		`\t\twireProtocol: ${
+			'include' in compatibility.wireProtocols ?
+				compatibility.wireProtocols.include.map((wireProtocol) => enumAccess('WireProtocol', wireProtocol)).join(' | ')
+			:
+				`Exclude<WireProtocol, ${compatibility.wireProtocols.exclude.map((wireProtocol) => enumAccess('WireProtocol', wireProtocol)).join(' | ')}>`
+		}`,
+	]),
+	...(compatibility.apiFamilies === true ? [] : [
+		`\t\tapiFamily: ${compatibility.apiFamilies.map((apiFamily) => enumAccess('ApiFamily', apiFamily)).join(' | ')}`,
+	]),
+	...(compatibility.endpointLayout === SourceBindingDeliveryEndpointLayout.Compatible ? [] :
+	compatibility.endpointLayout === SourceBindingDeliveryEndpointLayout.BrowserDirect ? [
+		'\t\tendpoints: readonly (',
+		'\t\t\t| (SourceEndpoint<SourceEndpointKind.HttpUrl> & { corsEnabled: true })',
+		'\t\t\t| SourceEndpoint<SourceEndpointKind.BrowserWalletProvider | SourceEndpointKind.InProcess>',
+		'\t\t)[]',
+	] : compatibility.endpointLayout === SourceBindingDeliveryEndpointLayout.HttpOnly ? [
+		'\t\tendpoints: readonly SourceEndpoint<SourceEndpointKind.HttpUrl>[]',
+	] : [
+		'\t\tendpoints:',
+		'\t\t\t| readonly [',
+		'\t\t\t\tSourceEndpoint<SourceEndpointKind.WebSocketUrl>,',
+		'\t\t\t\t...SourceEndpoint<SourceEndpointKind.WebSocketUrl>[],',
+		'\t\t\t]',
+		'\t\t\t| readonly [',
+		'\t\t\t\tSourceEndpoint<SourceEndpointKind.HttpUrl>,',
+		'\t\t\t\tSourceEndpoint<SourceEndpointKind.WebSocketUrl>,',
+		'\t\t\t\t...SourceEndpoint<SourceEndpointKind.WebSocketUrl>[],',
+		'\t\t\t]',
+	]),
+	`\t\tcredentials: ${
+		compatibility.credentialLayout === SourceBindingDeliveryCredentialLayout.PublicOrUser ?
+			'readonly SourcePublicOrUserCredential[]'
+		: compatibility.credentialLayout === SourceBindingDeliveryCredentialLayout.PublicOrUserWithOptionalRuntimeSecret ?
+			'SourcePublicOrUserWithOptionalRuntimeSecret'
+		:
+			'readonly SourceCredentialRequirement[]'
+	}`,
+	'\t}',
+].join('\n')).join('\n')}
 
 export type SourceServerCredentialInjection =
 	| {
@@ -7064,14 +7313,7 @@ export type SourceBinding<
 > = {
 	source: _Source
 	target: SourceTarget
-	endpoints: readonly SourceEndpoint[]
-	wireProtocol: WireProtocol
-	apiFamily: ApiFamily
-	operationGroups: readonly SourceOperationGroup[]
-	delivery: SourceDelivery
-	credentials: readonly SourceCredentialRequirement[]
-	artifacts?: readonly SourceArtifact[]
-}
+} & SourceBindingCompatibility & SourceBindingDelivery
 
 export const sourceBindingId = ({
 	source,
