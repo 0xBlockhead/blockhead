@@ -8544,9 +8544,19 @@ const fieldNeedsExplicitDisplayExpression = (indexes: GenerationIndexes, fieldDe
 
 const renderNullishExpression = (
 	valueExpression: string,
-	fallbackExpression: string
+	fallbackExpression?: string
 ) => {
-	const parsed = parseTypeScriptExpression(`(${valueExpression}) ?? (${fallbackExpression})`)
+	const parsed = parseTypeScriptExpression(
+		fallbackExpression == null ? valueExpression : `(${valueExpression}) ?? (${fallbackExpression})`
+	)
+	if (
+		fallbackExpression == null
+		&& (
+			!ts.isBinaryExpression(parsed.expression)
+			|| parsed.expression.operatorToken.kind !== ts.SyntaxKind.QuestionQuestionToken
+		)
+	)
+		return valueExpression
 	if (
 		!ts.isBinaryExpression(parsed.expression)
 		|| parsed.expression.operatorToken.kind !== ts.SyntaxKind.QuestionQuestionToken
@@ -8570,7 +8580,7 @@ const renderNullishExpression = (
 	if (firstOperand == null)
 		throw new Error(`Cannot render empty nullish expression: ${valueExpression} ?? ${fallbackExpression}`)
 
-	return ts.createPrinter().printNode(
+	const rendered = ts.createPrinter().printNode(
 		ts.EmitHint.Expression,
 		remainingOperands.reduce((left, right) => ts.factory.createBinaryExpression(
 			left,
@@ -8579,26 +8589,13 @@ const renderNullishExpression = (
 		), firstOperand),
 		parsed.sourceFile
 	)
-}
-
-const parenthesizedNullishExpression = (valueExpression: string) => {
-	const parsedValueExpression = parseTypeScriptExpression(valueExpression)
-	return (
-		ts.isBinaryExpression(parsedValueExpression.expression)
-		&& parsedValueExpression.expression.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken ?
-			`(${renderNullishExpression(
-				parsedValueExpression.expression.left.getText(parsedValueExpression.sourceFile),
-				parsedValueExpression.expression.right.getText(parsedValueExpression.sourceFile)
-			)})`
-		:
-			valueExpression
-	)
+	return fallbackExpression == null ? `(${rendered})` : rendered
 }
 
 const textExpression = (valueExpression: string) => {
 	const parsedValueExpression = parseTypeScriptExpression(valueExpression)
 	if (typeScriptExpressionProducesString(parsedValueExpression.expression))
-		return parenthesizedNullishExpression(valueExpression)
+		return renderNullishExpression(valueExpression)
 
 	return `String(${renderNullishExpression(valueExpression, '\'\'')})`
 }
@@ -8648,15 +8645,15 @@ const renderDisplayExpression = (
 	}
 
 	if (!typeScriptExpressionReferencesBinding(expression, 'value'))
-		return parenthesizedNullishExpression(expression)
+		return renderNullishExpression(expression)
 
 	if (fieldDefinition != null && fieldCardinalityIsMany(fieldDefinition))
 		return `${valueExpression}.values.map((value) => ${expression}).join(', ')`
 
 	return valueIsPresent ?
-		parenthesizedNullishExpression(replaceTypeScriptIdentifier(expression, 'value', valueExpression))
+		renderNullishExpression(replaceTypeScriptIdentifier(expression, 'value', valueExpression))
 	:
-		`${valueExpression} == null ? '' : ${parenthesizedNullishExpression(replaceTypeScriptIdentifier(expression, 'value', valueExpression))}`
+		`${valueExpression} == null ? '' : ${renderNullishExpression(replaceTypeScriptIdentifier(expression, 'value', valueExpression))}`
 }
 
 const viewItemFormat = (
@@ -8718,10 +8715,10 @@ const renderMappedDisplayExpression = (
 	if (typeof viewEntry !== 'object' || !('field' in viewEntry) || viewEntry.enumConstantMap == null)
 		return baseExpression
 
-	return parenthesizedNullishExpression(renderNullishExpression(
+	return `(${renderNullishExpression(
 		`${viewEntry.enumConstantMap}[${valueExpression}]?.${viewEntry.enumConstantProperty ?? 'label'}`,
 		baseExpression
-	))
+	)})`
 }
 
 const wrapWhen = (viewEntry: _ViewItem, openExpression: string, source: string[]) => {

@@ -5206,6 +5206,13 @@ test('retains one keyed route parameter representation through href compilation'
 	assert.doesNotMatch(generatorSource, /const renderResolveExpression = \(path: string, params: readonly \[string, string\]\[\]/)
 })
 
+test('normalizes nullish expressions without reparsing rendered text', () => {
+	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
+
+	assert.match(generatorSource, /const renderNullishExpression = \(\n\tvalueExpression: string,\n\tfallbackExpression\?: string/)
+	assert.doesNotMatch(generatorSource, /parenthesizedNullishExpression|renderNullishExpression\(renderNullishExpression/)
+})
+
 test('rejects undeclared regular and selector-variant route parameters upstream', () => {
 	const regularParamApp = structuredClone(app)
 	const networkMapping = regularParamApp.routes.children['(explore)']?.children?.['(networks)']?.children?.network?.children?.['[network]']?.selectors?.[EntityType.Network]?.Caip2
