@@ -65,25 +65,3 @@ export enum SqdPortalResolution {
 	Partial = 'Partial',
 	Reorg = 'Reorg',
 }
-
-export type SqdPortalEvmBlockResult =
-	| {
-			resolution: SqdPortalResolution.Complete
-			block: SqdPortalEvmBlock
-			finalizedHead?: SqdPortalFinalizedHead
-		}
-	| {
-			resolution: SqdPortalResolution.Empty
-			finalizedHead?: SqdPortalFinalizedHead
-		}
-	| {
-			resolution: SqdPortalResolution.Partial
-			blocks: readonly SqdPortalEvmBlock[]
-			nextBlock: number
-			finalizedHead?: SqdPortalFinalizedHead
-		}
-	| {
-			resolution: SqdPortalResolution.Reorg
-			previousBlocks: SqdPortalReorg['previousBlocks']
-			finalizedHead?: SqdPortalFinalizedHead
-		}

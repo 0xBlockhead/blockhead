@@ -11,10 +11,3 @@ export type MakeInfiniteActivityDayAggregateRow = {
 	END_BLOCK_NUMBER: number | string
 	INDEXED_THROUGH_TIMESTAMP: string
 }
-
-export type MakeInfiniteActivityDayAggregate = {
-	blockCount: number
-	transactionCount: number
-	endBlockNumber: number
-	indexedThroughTimestampMs: number
-}

@@ -58,8 +58,3 @@ export type TonApiAccountTransaction = {
 	aborted: boolean
 	destroyed: boolean
 }
-
-export type TonApiAccountTransactionsPage = {
-	transactions: TonApiAccountTransaction[]
-	nextBeforeLt?: bigint
-}
