@@ -5,9 +5,9 @@
 
 import { fetchFailedMessage } from '$/lib/http.ts'
 import {
-	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
+import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/Farcaster/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -17,18 +17,6 @@ const bindingByTargetKey = Object.fromEntries(
 		binding,
 	] as const))
 )
-
-const toQueryString = (params?: Record<string, string | number | boolean | undefined>) => {
-	const searchParams = new URLSearchParams()
-
-	for (const [key, value] of Object.entries(params ?? {})) {
-		if (value == null) continue
-		searchParams.set(key, String(value))
-	}
-
-	const queryString = searchParams.toString()
-	return queryString ? `?${queryString}` : ''
-}
 
 export async function farcasterGet<T>(
 	path: string,
@@ -40,7 +28,7 @@ export async function farcasterGet<T>(
 		:
 			bindingByTargetKey['client-api']
 	)
-	const url = `${firstHttpUrlForBinding(binding)}${path}${toQueryString(params)}`
+	const url = httpUrl(binding, path, params)
 	const response = await sourceFetch(binding, url)
 	if (!response.ok)
 		throw new Error(await fetchFailedMessage(url, response))

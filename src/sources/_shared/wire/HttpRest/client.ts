@@ -9,10 +9,16 @@ import {
 
 export const httpUrl = (
 	binding: SourceBinding,
-	path = ''
-) => (
-	new URL(path, firstHttpUrlForBinding(binding)).toString()
-)
+	path = '',
+	query?: Record<string, string | number | boolean | undefined>
+) => {
+	const url = new URL(path, firstHttpUrlForBinding(binding))
+	for (const [key, value] of Object.entries(query ?? {}))
+		if (value != null)
+			url.searchParams.set(key, String(value))
+
+	return url.toString()
+}
 
 export const getJson = <_Json>(
 	binding: SourceBinding,

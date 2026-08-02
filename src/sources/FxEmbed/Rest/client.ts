@@ -1,21 +1,11 @@
 import {
-	firstHttpUrlForBinding,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
+import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/FxEmbed/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.X_FxEmbed_Rest][0]
-
-const toQuery = (params: Record<string, string | number | undefined>) => {
-	const searchParams = new URLSearchParams()
-	for (const [key, value] of Object.entries(params)) {
-		if (value == null) continue
-		searchParams.set(key, String(value))
-	}
-	const query = searchParams.toString()
-	return query ? `?${query}` : ''
-}
 
 export const fxEmbedGet = async <T>(
 	path: `/${string}`,
@@ -27,10 +17,7 @@ export const fxEmbedGet = async <T>(
 		message?: string
 	}>(
 		binding,
-		new URL(
-			`/2${path}${toQuery(params ?? {})}`,
-			firstHttpUrlForBinding(binding)
-		).toString(),
+		httpUrl(binding, `/2${path}`, params),
 		acceptedErrorCodes
 	)
 	if (

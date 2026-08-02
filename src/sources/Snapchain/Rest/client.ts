@@ -4,25 +4,13 @@
  */
 
 import {
-	firstHttpUrlForBinding,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
+import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/Snapchain/bindings.ts'
 
 const snapchainBinding = bindings[Source.Snapchain_Rest][0]
-
-const toQueryString = (params?: Record<string, string | number | boolean | undefined>) => {
-	const searchParams = new URLSearchParams()
-
-	for (const [key, value] of Object.entries(params ?? {})) {
-		if (value == null) continue
-		searchParams.set(key, String(value))
-	}
-
-	const queryString = searchParams.toString()
-	return queryString ? `?${queryString}` : ''
-}
 
 export function snapchainGet<T>(
 	path: string,
@@ -30,6 +18,6 @@ export function snapchainGet<T>(
 ) {
 	return sourceGetJson<T>(
 		snapchainBinding,
-		`${firstHttpUrlForBinding(snapchainBinding)}${path}${toQueryString(params)}`
+		httpUrl(snapchainBinding, path, params)
 	)
 }
