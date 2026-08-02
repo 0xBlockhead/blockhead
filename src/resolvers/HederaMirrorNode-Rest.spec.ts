@@ -30,11 +30,10 @@ import {
 	getAccounts,
 	getAccountNfts,
 	getAccountTokens,
-	getAccountTransactions,
 	getBlock,
 	getBlocks,
-	getTransactionByConsensusTimestamp,
 	getTransactionByIdNonce,
+	getTransactions,
 } from '$/sources/HederaMirrorNode/Rest/queries.ts'
 import type {
 	HederaMirrorNodeAccount,
@@ -472,16 +471,19 @@ describe('Hedera Mirror Node account collections', () => {
 			} satisfies HederaMirrorNodeTransactions)))
 
 		await getAccounts(16)
-		await getAccountTransactions('0.0.98', 16)
+		await getTransactions({
+			accountId: '0.0.98',
+			limit: 16,
+		})
 		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
 			'https://mainnet-public.mirrornode.hedera.com/api/v1/accounts?limit=16&order=desc',
 			'https://mainnet-public.mirrornode.hedera.com/api/v1/transactions?account.id=0.0.98&limit=16&order=desc',
 		])
-		expect(() => getAccountTransactions(
-			'0.0.98',
-			16,
-			'/api/v1/transactions?account.id=0.0.99'
-		)).toThrow('continuation account does not match request')
+		expect(() => getTransactions({
+			accountId: '0.0.98',
+			continuationToken: '/api/v1/transactions?account.id=0.0.99',
+			limit: 16,
+		})).toThrow('continuation account does not match request')
 		expect(() => getAccounts(
 			16,
 			'https://example.com/api/v1/accounts?limit=16'
@@ -782,11 +784,11 @@ describe('Hedera Mirror Node account assets and allowances', () => {
 			16,
 			'/api/v1/accounts?limit=16&order=desc&account.id=lt:0.0.98&account.id=lt:0.0.97'
 		)).toThrow('invalid account list continuation')
-		expect(() => getAccountTransactions(
-			'0.0.98',
-			16,
-			'/api/v1/transactions?account.id=0.0.98&limit=16&order=desc&timestamp=lt:1710000001.0&result=success'
-		)).toThrow('invalid account transaction continuation')
+		expect(() => getTransactions({
+			accountId: '0.0.98',
+			continuationToken: '/api/v1/transactions?account.id=0.0.98&limit=16&order=desc&timestamp=lt:1710000001.0&result=success',
+			limit: 16,
+		})).toThrow('invalid account transaction continuation')
 	})
 
 	it('materializes canonical allowance identities across crypto, token, and NFT pages', async () => {
@@ -1133,9 +1135,9 @@ describe('Hedera Mirror Node transaction detail', () => {
 				transactions: [detailedTransaction],
 			})))
 
-		await expect(getTransactionByConsensusTimestamp(
-			detailedTransaction.consensus_timestamp
-		)).resolves.toMatchObject({
+		await expect(getTransactions({
+			consensusTimestamp: detailedTransaction.consensus_timestamp,
+		})).resolves.toMatchObject({
 			transactions: [{
 				consensus_timestamp: detailedTransaction.consensus_timestamp,
 			}],
@@ -1203,7 +1205,7 @@ describe('Hedera Mirror Node transaction detail', () => {
 	})
 
 	it('rejects ambiguous identities, malformed selectors, and unrepresentable children', async () => {
-		expect(() => getTransactionByConsensusTimestamp('not-a-timestamp')).toThrow(
+		expect(() => getTransactions({ consensusTimestamp: 'not-a-timestamp' })).toThrow(
 			'invalid transaction consensus timestamp'
 		)
 		expect(() => getTransactionByIdNonce('0.0.98/path', 0)).toThrow(

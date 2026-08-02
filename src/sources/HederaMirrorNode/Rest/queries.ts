@@ -201,59 +201,6 @@ export const getAccounts = (
 	return sourceGetHederaJson<HederaMirrorNodeAccounts>(url.toString())
 }
 
-export const getAccountTransactions = (
-	accountId: string,
-	limit: number,
-	continuationToken?: string
-) => {
-	if (!accountIdPattern.test(accountId))
-		throw new Error('HederaMirrorNode_Rest: invalid account selector')
-	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
-		throw new Error('HederaMirrorNode_Rest: invalid transaction list limit')
-
-	const url = paginatedUrl('/api/v1/transactions', continuationToken)
-	if (continuationToken == null) {
-		url.searchParams.set('account.id', accountId)
-		url.searchParams.set('limit', String(limit))
-		url.searchParams.set('order', 'desc')
-	} else if (url.searchParams.get('account.id') !== accountId)
-		throw new Error('HederaMirrorNode_Rest: continuation account does not match request')
-	else if (
-		url.searchParams.getAll('account.id').length !== 1
-		|| url.searchParams.getAll('limit').length !== 1
-		|| url.searchParams.get('limit') !== String(limit)
-		|| url.searchParams.getAll('order').length !== 1
-		|| url.searchParams.get('order') !== 'desc'
-		|| url.searchParams.getAll('timestamp').length === 0
-		|| url.searchParams.getAll('timestamp').some((timestamp) => (
-			!/^(?:(?:eq|gt|gte|lt|lte|ne):)?\d{1,10}(?:\.\d{1,9})?$/.test(timestamp)
-		))
-		|| [...url.searchParams.keys()].some((key) => ![
-			'account.id',
-			'limit',
-			'order',
-			'timestamp',
-		].includes(key))
-	)
-		throw new Error('HederaMirrorNode_Rest: invalid account transaction continuation')
-
-	return sourceGetHederaJson<HederaMirrorNodeTransactions>(url.toString())
-}
-
-export const getTransactionByConsensusTimestamp = (
-	consensusTimestamp: string
-) => {
-	if (!/^\d{1,10}(?:\.\d{1,9})?$/.test(consensusTimestamp))
-		throw new Error('HederaMirrorNode_Rest: invalid transaction consensus timestamp')
-
-	const url = new URL('/api/v1/transactions', firstHttpUrlForBinding(binding))
-	url.searchParams.set('limit', '2')
-	url.searchParams.set('order', 'desc')
-	url.searchParams.set('timestamp', `eq:${consensusTimestamp}`)
-
-	return sourceGetHederaJson<HederaMirrorNodeTransactions>(url.toString())
-}
-
 export const getTransactionByIdNonce = (
 	transactionId: string,
 	nonce: number
@@ -273,19 +220,59 @@ export const getTransactionByIdNonce = (
 }
 
 export const getTransactions = (
-	limit: number,
-	continuationToken?: string
+	query:
+		| {
+			accountId: string
+			consensusTimestamp?: never
+			continuationToken?: string
+			limit: number
+		}
+		| {
+			accountId?: never
+			consensusTimestamp: string
+			continuationToken?: never
+			limit?: never
+		}
+		| {
+			accountId?: never
+			consensusTimestamp?: never
+			continuationToken?: string
+			limit: number
+		}
 ) => {
-	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+	if (
+		query.consensusTimestamp != null
+		&& !/^\d{1,10}(?:\.\d{1,9})?$/.test(query.consensusTimestamp)
+	)
+		throw new Error('HederaMirrorNode_Rest: invalid transaction consensus timestamp')
+	if (query.accountId != null && !accountIdPattern.test(query.accountId))
+		throw new Error('HederaMirrorNode_Rest: invalid account selector')
+	if (
+		query.limit != null
+		&& (!Number.isSafeInteger(query.limit) || query.limit < 1 || query.limit > 100)
+	)
 		throw new Error('HederaMirrorNode_Rest: invalid transaction list limit')
 
-	const url = paginatedUrl('/api/v1/transactions', continuationToken)
-	if (continuationToken == null) {
-		url.searchParams.set('limit', String(limit))
+	const url = paginatedUrl('/api/v1/transactions', query.continuationToken)
+	if (query.consensusTimestamp != null) {
+		url.searchParams.set('limit', '2')
+		url.searchParams.set('order', 'desc')
+		url.searchParams.set('timestamp', `eq:${query.consensusTimestamp}`)
+	} else if (query.continuationToken == null) {
+		if (query.accountId != null)
+			url.searchParams.set('account.id', query.accountId)
+
+		url.searchParams.set('limit', String(query.limit))
 		url.searchParams.set('order', 'desc')
 	} else if (
-		url.searchParams.getAll('limit').length !== 1
-		|| url.searchParams.get('limit') !== String(limit)
+		query.accountId != null
+		&& url.searchParams.get('account.id') !== query.accountId
+	)
+		throw new Error('HederaMirrorNode_Rest: continuation account does not match request')
+	else if (
+		url.searchParams.getAll('account.id').length !== (query.accountId == null ? 0 : 1)
+		|| url.searchParams.getAll('limit').length !== 1
+		|| url.searchParams.get('limit') !== String(query.limit)
 		|| url.searchParams.getAll('order').length !== 1
 		|| url.searchParams.get('order') !== 'desc'
 		|| url.searchParams.getAll('timestamp').length === 0
@@ -293,12 +280,15 @@ export const getTransactions = (
 			!/^(?:(?:eq|gt|gte|lt|lte|ne):)?\d{1,10}(?:\.\d{1,9})?$/.test(timestamp)
 		))
 		|| [...url.searchParams.keys()].some((key) => ![
+			...(query.accountId == null ? [] : ['account.id']),
 			'limit',
 			'order',
 			'timestamp',
 		].includes(key))
 	)
-		throw new Error('HederaMirrorNode_Rest: invalid global transaction continuation')
+		throw new Error(
+			`HederaMirrorNode_Rest: invalid ${query.accountId == null ? 'global' : 'account'} transaction continuation`
+		)
 
 	return sourceGetHederaJson<HederaMirrorNodeTransactions>(url.toString())
 }

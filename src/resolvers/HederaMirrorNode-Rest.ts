@@ -423,13 +423,13 @@ export default {
 				NetworkAccountId: {
 					resolve: async (hederaAccount, context) => {
 						assertHederaMainnet(hederaAccount.$network)
-						const { getAccountTransactions } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const { getTransactions } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
 
-						return getAccountTransactions(
-							hederaAccount.accountId,
-							Math.min(resolverContextRowLimit(context), 100),
-							context.providerContinuationToken
-						)
+						return getTransactions({
+							accountId: hederaAccount.accountId,
+							continuationToken: context.providerContinuationToken,
+							limit: Math.min(resolverContextRowLimit(context), 100),
+						})
 					},
 				},
 			},
@@ -784,10 +784,10 @@ export default {
 				NetworkConsensusTimestamp: {
 					resolve: async ({ $network, consensusTimestamp }) => {
 						assertHederaMainnet($network)
-						const { getTransactionByConsensusTimestamp } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
-						const response = await getTransactionByConsensusTimestamp(
-							consensusTimestamp
-						)
+						const { getTransactions } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const response = await getTransactions({
+							consensusTimestamp,
+						})
 						if (
 							response.transactions.length !== 1
 							|| response.transactions[0].consensus_timestamp !== consensusTimestamp

@@ -29,7 +29,10 @@ const binding = bindings[Source.HederaMirrorNode_Rest][0]
 
 const cases = [
 	{
-		getPage: getTransactions,
+		getPage: (limit: number, continuationToken?: string) => getTransactions({
+			continuationToken,
+			limit,
+		}),
 		path: '/api/v1/transactions',
 		order: 'desc',
 		rowsKey: 'transactions',
@@ -105,7 +108,7 @@ describe('Hedera Mirror network collections', () => {
 	it('preserves integer-valued exponent and fractional transaction fields', async () => {
 		sourceGetText.mockResolvedValueOnce('{"transactions":[{"charged_tx_fee":9.007199254740993e15,"max_fee":-9.007199254740995e15,"valid_duration_seconds":1.1e1}],"links":{"next":null}}')
 
-		await expect(getTransactions(1)).resolves.toMatchObject({
+		await expect(getTransactions({ limit: 1 })).resolves.toMatchObject({
 			transactions: [{
 				charged_tx_fee: '9007199254740993',
 				max_fee: '-9007199254740995',
@@ -119,14 +122,14 @@ describe('Hedera Mirror network collections', () => {
 			.mockResolvedValueOnce('{"transactions":[],"links":{"next":null}}')
 			.mockResolvedValueOnce('{"transactions":[],"links":{"next":null}}')
 
-		await expect(getTransactions(
-			2,
-			'/api/v1/transactions?limit=2&order=desc&timestamp=ne:1750000000'
-		)).resolves.toMatchObject({ transactions: [] })
-		await expect(getTransactions(
-			2,
-			'/api/v1/transactions?limit=2&order=desc&timestamp=gte:1750000000&timestamp=lt:1750000001.000000001'
-		)).resolves.toMatchObject({ transactions: [] })
+		await expect(getTransactions({
+			continuationToken: '/api/v1/transactions?limit=2&order=desc&timestamp=ne:1750000000',
+			limit: 2,
+		})).resolves.toMatchObject({ transactions: [] })
+		await expect(getTransactions({
+			continuationToken: '/api/v1/transactions?limit=2&order=desc&timestamp=gte:1750000000&timestamp=lt:1750000001.000000001',
+			limit: 2,
+		})).resolves.toMatchObject({ transactions: [] })
 	})
 
 	it.each(cases)('preserves empty and provider-owned $rowsKey pages', async ({
@@ -152,15 +155,33 @@ describe('Hedera Mirror network collections', () => {
 	})
 
 	it('rejects invalid limits and cross-operation continuations', () => {
-		expect(() => getTransactions(0)).toThrow('invalid transaction list limit')
+		expect(() => getTransactions({ limit: 0 })).toThrow('invalid transaction list limit')
 		expect(() => getNodes(101)).toThrow('invalid node list limit')
-		expect(() => getTransactions(2, '/api/v1/network/nodes?limit=2')).toThrow('invalid continuation')
+		expect(() => getTransactions({
+			continuationToken: '/api/v1/network/nodes?limit=2',
+			limit: 2,
+		})).toThrow('invalid continuation')
 		expect(() => getNodes(2, '/api/v1/transactions?limit=2')).toThrow('invalid continuation')
-		expect(() => getTransactions(2, '/api/v1/transactions?account.id=0.0.3')).toThrow('invalid global transaction continuation')
-		expect(() => getTransactions(2, '/api/v1/transactions?limit=3&order=desc&timestamp=lt:1.0')).toThrow('invalid global transaction continuation')
-		expect(() => getTransactions(2, '/api/v1/transactions?limit=2&order=asc&timestamp=lt:1.0')).toThrow('invalid global transaction continuation')
-		expect(() => getTransactions(2, '/api/v1/transactions?limit=2&limit=2&order=desc&timestamp=lt:1.0')).toThrow('invalid global transaction continuation')
-		expect(() => getTransactions(2, '/api/v1/transactions?limit=2&order=desc&timestamp=drop')).toThrow('invalid global transaction continuation')
+		expect(() => getTransactions({
+			continuationToken: '/api/v1/transactions?account.id=0.0.3',
+			limit: 2,
+		})).toThrow('invalid global transaction continuation')
+		expect(() => getTransactions({
+			continuationToken: '/api/v1/transactions?limit=3&order=desc&timestamp=lt:1.0',
+			limit: 2,
+		})).toThrow('invalid global transaction continuation')
+		expect(() => getTransactions({
+			continuationToken: '/api/v1/transactions?limit=2&order=asc&timestamp=lt:1.0',
+			limit: 2,
+		})).toThrow('invalid global transaction continuation')
+		expect(() => getTransactions({
+			continuationToken: '/api/v1/transactions?limit=2&limit=2&order=desc&timestamp=lt:1.0',
+			limit: 2,
+		})).toThrow('invalid global transaction continuation')
+		expect(() => getTransactions({
+			continuationToken: '/api/v1/transactions?limit=2&order=desc&timestamp=drop',
+			limit: 2,
+		})).toThrow('invalid global transaction continuation')
 		expect(() => getNodes(2, '/api/v1/network/nodes?limit=2&order=asc&file.id=0.0.102')).toThrow('invalid node continuation')
 		expect(() => getNodes(2, '/api/v1/network/nodes?limit=2&order=asc&node.id=gt:4&node.id=gt:5')).toThrow('invalid node continuation')
 		expect(() => getNodes(2, '/api/v1/network/nodes?limit=2&order=asc&node.id=drop')).toThrow('invalid node continuation')
