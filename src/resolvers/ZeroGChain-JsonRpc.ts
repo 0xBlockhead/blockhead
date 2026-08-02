@@ -22,26 +22,30 @@ const zeroGChainId = 16661
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
-const assertZeroGMainnetChain = (network: NetworkId) => {
-	if (
-		!('caip2' in network)
-		|| network.caip2.namespace !== 'eip155'
-		|| network.caip2.reference !== String(zeroGChainId)
-	)
-		throw new Error('ZeroGChain_JsonRpc: unsupported chain')
-}
-
-const assertZeroGMainnet = (network: NetworkId) => {
-	if (!('slug' in network) || network.slug !== '0g')
-		throw new Error('ZeroGChain_JsonRpc: unsupported network')
-}
-
-const zeroGEvmNetworkId = {
+const zeroGNetworkApplicability = [{
 	caip2: {
 		namespace: 'eip155',
 		reference: String(zeroGChainId),
 	},
-} as const
+}] as const
+
+const zeroGNetworkReferenceApplicability = [{
+	$network: zeroGNetworkApplicability[0],
+}] as const
+
+const zeroGAccountTimestampApplicability = [{
+	$account: zeroGNetworkReferenceApplicability[0],
+	source: Source.ZeroGChain_JsonRpc,
+}] as const
+
+const assertZeroGMainnetChain = (network: NetworkId) => {
+	if (
+		!('caip2' in network)
+		|| network.caip2.namespace !== zeroGNetworkApplicability[0].caip2.namespace
+		|| network.caip2.reference !== zeroGNetworkApplicability[0].caip2.reference
+	)
+		throw new Error('ZeroGChain_JsonRpc: unsupported chain')
+}
 
 const quantityToBigInt = (value: string | undefined): bigint | undefined => (
 	value == null ?
@@ -105,6 +109,7 @@ export default {
 			entityType: EntityType.EvmBlock,
 			resolve: {
 				EvmNetworkBlockNumber: {
+					appliesTo: zeroGNetworkReferenceApplicability,
 					resolve: async ({ $network, blockNumber }) => {
 						assertZeroGMainnetChain($network)
 						const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
@@ -162,6 +167,7 @@ export default {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				EvmNetworkEvmAccount: {
+					appliesTo: zeroGNetworkReferenceApplicability,
 					resolve: async ({ $actor, $network }) => {
 						assertZeroGMainnetChain($network)
 						return {
@@ -189,6 +195,7 @@ export default {
 			entityType: EntityType.EvmNetworkAccount_Timestamp,
 			resolve: {
 				AccountTimestampMsSource: {
+					appliesTo: zeroGAccountTimestampApplicability,
 					resolve: async ({ $account }) => {
 						assertZeroGMainnetChain($account.$network)
 						const { getCode } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
@@ -212,6 +219,7 @@ export default {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				EvmNetworkTxHash: {
+					appliesTo: zeroGNetworkReferenceApplicability,
 					resolve: async ({ $network, txHash }) => {
 						assertZeroGMainnetChain($network)
 						const {
@@ -336,6 +344,7 @@ export default {
 			entityType: EntityType.EvmBlock,
 			resolve: {
 				EvmNetworkBlockNumber: {
+					appliesTo: zeroGNetworkReferenceApplicability,
 					resolve: async ({ $network, blockNumber }) => {
 					assertZeroGMainnetChain($network)
 					const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
