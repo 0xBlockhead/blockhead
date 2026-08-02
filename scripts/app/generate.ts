@@ -193,7 +193,7 @@ type SelectorRouteMapping = {
 		canonicalize?: true
 		conditions?: EntityRouteLink['conditions']
 	}
-	routeParamAlternatives: readonly RouteLink['params'][]
+	routeParamAlternatives: readonly RouteParamValues[]
 	fields: readonly {
 		field: string
 		value: _Expression
@@ -290,12 +290,12 @@ type RelationshipSection = {
 }
 type RouteLink = {
 	path: string
-	params: {
-		param: string
-		value: _Expression
-		decode?: _ExpressionDecode
-	}[]
+	params: RouteParamValues
 }
+type RouteParamValues = Readonly<Record<string, {
+	value: _Expression
+	decode?: _ExpressionDecode
+}>>
 type EntityRouteLink = RouteLink & {
 	selector: string
 	conditions?: {
@@ -2620,7 +2620,7 @@ type RouteAncestorSelector = {
 	entityType: string
 	selectorName: string
 	depth: number
-	routeParamAlternatives: readonly Readonly<Record<string, _Expression>>[]
+	routeParamAlternatives: readonly RouteParamValues[]
 	params: Extract<_Expression, { kind: 'selector' }>['params']
 	mapping: SelectorRouteMapping
 }
@@ -2642,34 +2642,55 @@ export const nearestApplicableSelectorAncestors = <_Ancestor>(candidates: readon
 
 export const composeSelectorRouteParamAlternatives = (
 	routeMappingId: string,
-	ownRouteParams: Readonly<Record<string, _Expression>>,
+	ownRouteParams: RouteParamValues,
 	bindingGroups: readonly {
 		field: string
-		alternatives: readonly Readonly<Record<string, _Expression>>[]
+		alternatives: readonly RouteParamValues[]
 	}[],
 	maximumAlternatives = 256
 ) => {
-	const routeParamsKey = (routeParams: Readonly<Record<string, _Expression>>) => JSON.stringify(
-		Object.entries(routeParams).toSorted(([leftParam], [rightParam]) => leftParam.localeCompare(rightParam))
+	const routeParamsKey = (routeParams: RouteParamValues) => JSON.stringify(
+		Object.entries(routeParams)
+			.toSorted(([leftParam], [rightParam]) => leftParam.localeCompare(rightParam))
+			.map(([param, { value }]) => [param, value])
 	)
 	let routeParamAlternatives = [ownRouteParams]
 	for (const bindingGroup of bindingGroups) {
 		if (bindingGroup.alternatives.length === 0)
 			throw new Error(`${routeMappingId} inherited field ${bindingGroup.field} has no applicable ancestor route parameter alternatives`)
 
-		const bindingRouteAlternatives = [...new Map(bindingGroup.alternatives.map((alternative) => [
-			routeParamsKey(alternative),
-			alternative,
-		])).values()]
-		const composedAlternatives = new Map<string, Readonly<Record<string, _Expression>>>()
+		const bindingRouteAlternativeByKey = new Map<string, RouteParamValues>()
+		for (const alternative of bindingGroup.alternatives) {
+			const alternativeKey = routeParamsKey(alternative)
+			const existingAlternative = bindingRouteAlternativeByKey.get(alternativeKey)
+			if (existingAlternative == null) {
+				bindingRouteAlternativeByKey.set(alternativeKey, alternative)
+				continue
+			}
+
+			const conflictingDecoderParam = Object.keys(alternative).find((param) => (
+				existingAlternative[param]?.decode !== alternative[param]?.decode
+			))
+			if (conflictingDecoderParam != null)
+				throw new Error(`${routeMappingId} inherited field ${bindingGroup.field} alternatives disagree on decoder for route parameter ${conflictingDecoderParam}`)
+		}
+		const bindingRouteAlternatives = [...bindingRouteAlternativeByKey.values()]
+		const composedAlternatives = new Map<string, RouteParamValues>()
 		for (const routeParams of routeParamAlternatives)
 			for (const bindingRouteParams of bindingRouteAlternatives) {
 				const conflictingParam = Object.keys(bindingRouteParams).find((param) => (
 					routeParams[param] != null
-					&& JSON.stringify(routeParams[param]) !== JSON.stringify(bindingRouteParams[param])
+					&& JSON.stringify(routeParams[param].value) !== JSON.stringify(bindingRouteParams[param].value)
 				))
 				if (conflictingParam != null)
 					throw new Error(`${routeMappingId} inherited field groups ambiguously bind route parameter ${conflictingParam}`)
+
+				const conflictingDecoderParam = Object.keys(bindingRouteParams).find((param) => (
+					routeParams[param] != null
+					&& routeParams[param].decode !== bindingRouteParams[param].decode
+				))
+				if (conflictingDecoderParam != null)
+					throw new Error(`${routeMappingId} inherited field groups disagree on decoder for route parameter ${conflictingDecoderParam}`)
 
 				const composedRouteParams = {
 					...routeParams,
@@ -3293,16 +3314,17 @@ const compileRouteTree = (
 				}
 			}),
 		]
-		const routeParamAlternativesWithDecodes = (
-			alternatives: readonly Readonly<Record<string, _Expression>>[]
-		) => alternatives.map((alternative) => Object.entries(alternative).map(([param, value]) => {
-			const decode = routeParams.find((routeParam) => routeParam.name === param)?.decode
+		const routeParamByName = new Map(routeParams.map((routeParam) => [routeParam.name, routeParam]))
+		const compileRouteParamValue = (
+			param: string,
+			value: _Expression
+		): RouteParamValues[string] => {
+			const decode = routeParamByName.get(param)?.decode
 			return {
-				param,
 				value,
 				...(typeof decode !== 'string' ? {} : { decode }),
 			}
-		}))
+		}
 		const normalizeExpression = (
 			owner: string,
 			expression: _Expression,
@@ -3406,23 +3428,29 @@ const compileRouteTree = (
 
 					return [
 						param,
-						encodedRouteParamValue(
-							fieldPath.slice(1).reduce<_Expression>((value, property) => ({
-								kind: 'property',
-								value,
-								property,
-							}), {
-								kind: 'field',
-								name: fieldName,
-							}),
-							valueTypeById.get(terminalField.valueType)?.routeParam
+						compileRouteParamValue(
+							param,
+							encodedRouteParamValue(
+								fieldPath.slice(1).reduce<_Expression>((value, property) => ({
+									kind: 'property',
+									value,
+									property,
+								}), {
+									kind: 'field',
+									name: fieldName,
+								}),
+								valueTypeById.get(terminalField.valueType)?.routeParam
+							)
 						),
 					]
 				})),
-				...Object.fromEntries(derivationRouteParams),
+				...Object.fromEntries(derivationRouteParams.map(([param, value]) => [
+					param,
+					compileRouteParamValue(param, value),
+				])),
 				...Object.fromEntries((mapping.href?.params ?? []).map(({ param, value }) => [
 					param,
-					value,
+					compileRouteParamValue(param, value),
 				])),
 			}
 			const decodedParamValue = (param: string, field: EntityField): _Expression => {
@@ -3794,11 +3822,14 @@ const compileRouteTree = (
 							&& candidate.selectorName === alternative.selectorName
 						))
 						return ancestor == null ? [] : ancestor.routeParamAlternatives.map((ancestorRouteParams) => Object.fromEntries(
-							Object.entries(ancestorRouteParams).map(([param, value]) => [
+							Object.entries(ancestorRouteParams).map(([param, routeParamValue]) => [
 								param,
-								alternative.referencePath.reduceRight<_Expression>((expression, referenceField) => (
-									routeExpressionThroughReference(expression, referenceField)
-								), value),
+								{
+									...routeParamValue,
+									value: alternative.referencePath.reduceRight<_Expression>((expression, referenceField) => (
+										routeExpressionThroughReference(expression, referenceField)
+									), routeParamValue.value),
+								},
 							])
 						))
 						}),
@@ -3839,7 +3870,7 @@ const compileRouteTree = (
 				),
 				...(mapping.boundaryLiveOptional == null ? {} : { boundaryLiveOptional: mapping.boundaryLiveOptional }),
 				...(href == null ? {} : { href }),
-				routeParamAlternatives: routeParamAlternativesWithDecodes(routeParamAlternatives),
+				routeParamAlternatives,
 				fields,
 				title,
 				...(mapping.when == null ? {} : { when: mapping.when }),
@@ -3940,9 +3971,12 @@ const compileRouteTree = (
 
 					return [
 						param,
-						encodedRouteParamValue(
-							value,
-							valueTypeById.get(terminalField.valueType)?.routeParam
+						compileRouteParamValue(
+							param,
+							encodedRouteParamValue(
+								value,
+								valueTypeById.get(terminalField.valueType)?.routeParam
+							)
 						),
 					]
 				})),
@@ -3956,11 +3990,17 @@ const compileRouteTree = (
 						entityByType,
 						new Map(routeParams.map((routeParam) => [routeParam.name, routeParam.valueTypes]))
 					)
-				))),
-				...Object.fromEntries((node.selectorVariant.href?.params ?? []).map(({ param, value }) => [param, value])),
+				)).map(([param, value]) => [
+					param,
+					compileRouteParamValue(param, value),
+				])),
+				...Object.fromEntries((node.selectorVariant.href?.params ?? []).map(({ param, value }) => [
+					param,
+					compileRouteParamValue(param, value),
+				])),
 			}
 			const routeParamAlternatives = owner.mapping.routeParamAlternatives.map((alternative) => ({
-				...Object.fromEntries(alternative.map(({ param, value }) => [param, value])),
+				...alternative,
 				...variantRouteParams,
 			}))
 			const variantId = routePath
@@ -3987,7 +4027,7 @@ const compileRouteTree = (
 						Object.keys(routeParamAlternatives[0] ?? {}),
 						1,
 						variantId,
-						Object.fromEntries((owner.mapping.routeParamAlternatives[0] ?? []).map(({ param }, index) => [
+						Object.fromEntries(Object.keys(owner.mapping.routeParamAlternatives[0] ?? {}).map((param, index) => [
 							param,
 							owner.mapping.probeAtoms[index],
 						]))
@@ -3998,7 +4038,7 @@ const compileRouteTree = (
 						canonicalize: node.selectorVariant.href?.canonicalize ?? owner.mapping.href?.canonicalize,
 						conditions: node.selectorVariant.href?.conditions ?? owner.mapping.href?.conditions,
 					},
-					routeParamAlternatives: routeParamAlternativesWithDecodes(routeParamAlternatives),
+					routeParamAlternatives,
 					fields: variantFields,
 					page: node.selectorVariant.page ?? {},
 				},
@@ -4016,10 +4056,7 @@ const compileRouteTree = (
 					selector.entityType === normalizedMapping.entityType
 					&& selector.selectorName === normalizedMapping.selectorName
 				))?.selector.params ?? [],
-				routeParamAlternatives: normalizedMapping.routeParamAlternatives.map((alternative) => Object.fromEntries(alternative.map(({ param, value }) => [
-					param,
-					value,
-				]))),
+				routeParamAlternatives: normalizedMapping.routeParamAlternatives,
 				mapping: normalizedMapping,
 				depth: routePath.split('/').length,
 			})),
@@ -4134,7 +4171,7 @@ const routeLinksFromMapping = (
 			}),
 			...(mapping.href?.conditions ?? []),
 		],
-		params: [...params],
+		params,
 	}))
 }
 
@@ -4150,27 +4187,31 @@ const routeLinkFromCollection = (
 	const path = node.svelteKitPath
 	const selector = collection.selector
 	if (selector.kind === 'object') {
-		const params: RouteLink['params'] = []
-		for (const param of routeParamNames(path)) {
+		const routeParams = routeParamNames(path)
+		const params = Object.fromEntries(routeParams.flatMap((param) => {
 			const selectorField = selector.fields.find(({ value }) => (
 				typeof value !== 'string'
-				&& !('raw' in value)
+					&& !('raw' in value)
 				&& value.kind === 'param'
-				&& value.name === param
+					&& value.name === param
 			))
 			if (selectorField == null)
-				return undefined
+				return []
 
 			const decode = node.params.find((routeParam) => routeParam.name === param)?.decode
-			params.push({
+			return [[
 				param,
-				value: {
-					kind: 'field',
-					name: selectorField.name,
+				{
+					value: {
+						kind: 'field' as const,
+						name: selectorField.name,
+					},
+					...(typeof decode !== 'string' ? {} : { decode }),
 				},
-				...(typeof decode !== 'string' ? {} : { decode }),
-			})
-		}
+			] as const]
+		}))
+		if (Object.keys(params).length !== routeParams.length)
+			return undefined
 
 		return {
 			path,
@@ -4193,34 +4234,38 @@ const routeLinkFromCollection = (
 		return routeParamNames(path).length === 0 ?
 			{
 				path,
-				params: [],
+				params: {},
 				selector: '',
 			}
 		:
 			undefined
 
-	const params: RouteLink['params'] = []
-	for (const param of routeParamNames(path)) {
+	const routeParams = routeParamNames(path)
+	const params = Object.fromEntries(routeParams.flatMap((param) => {
 		const selectorParam = selector.params.find((item) => item.param === param)
 		if (selectorParam == null)
-			return undefined
+			return []
 
-		params.push({
+		return [[
 			param,
-			value: (
-				'hrefValue' in selectorParam && selectorParam.hrefValue != null ?
-					selectorParam.hrefValue
-				: 'value' in selectorParam ?
-					selectorParam.value
-				:
-					{
-						kind: 'field',
-						name: selectorParam.field,
-					}
-			),
-			decode: selectorParam.decode,
-		})
-	}
+			{
+				value: (
+					'hrefValue' in selectorParam && selectorParam.hrefValue != null ?
+						selectorParam.hrefValue
+					: 'value' in selectorParam ?
+						selectorParam.value
+					:
+						{
+							kind: 'field' as const,
+							name: selectorParam.field,
+						}
+				),
+				decode: selectorParam.decode,
+			},
+		] as const]
+	}))
+	if (Object.keys(params).length !== routeParams.length)
+		return undefined
 
 	return {
 		path,
@@ -4719,7 +4764,7 @@ const validateRouteParamAlternativeCoverage = (indexedNodes: readonly RouteNode[
 	const errors = [
 		...indexedNodes.flatMap((node) => node.selectorMappings.flatMap((mapping) => [
 			...(!selectorMappingOwnsDetailPage(node, mapping) || mapping.href?.entityHref === false ? [] : mapping.routeParamAlternatives.flatMap((routeParams) => node.params.flatMap(({ name }) => (
-				routeParams.some(({ param }) => param === name) ?
+				Object.hasOwn(routeParams, name) ?
 					[]
 				:
 					[`${node.internalPath} ${mapping.entityType}.${mapping.selectorName} href is missing route parameter ${name}`]
@@ -4727,7 +4772,7 @@ const validateRouteParamAlternativeCoverage = (indexedNodes: readonly RouteNode[
 		])),
 		...indexedNodes.flatMap((node) => node.selectorVariant == null ? [] : [
 			...node.selectorVariant.routeParamAlternatives.flatMap((routeParams) => node.params.flatMap(({ name }) => (
-				routeParams.some(({ param }) => param === name) ?
+				Object.hasOwn(routeParams, name) ?
 					[]
 				:
 					[`${node.internalPath} ${node.selectorVariant.entityType}.${node.selectorVariant.selectorName} selector variant href is missing route parameter ${name}`]
@@ -10468,7 +10513,7 @@ const generateSingularViewFile = (
 		Object.entries(indexes.collectionRoutesBySourceField)
 			.filter(([key]) => key.startsWith(`${entity.entityType}:`))
 			.flatMap(([, hrefs]) => hrefs.flatMap((href) => importSpecsFromMap(
-				href.params.reduce((imports, param) => expressionImports(param.value, imports), new Map<string, Set<string>>())
+				Object.values(href.params).reduce((imports, param) => expressionImports(param.value, imports), new Map<string, Set<string>>())
 			)))
 	)
 		.filter((importSpec) => (importSpec.names ?? []).some((name) => (
@@ -11443,7 +11488,7 @@ const renderLatestContentItem = (
 		...[
 			...(latestOrderBy ?? []).map((order) => order.field),
 			...(indexes.entityRouteLinksByType[entityType] ?? [])
-				.flatMap((entityRouteLink) => entityRouteLink.params.flatMap((param) => expressionFieldPaths(param.value)))
+				.flatMap((entityRouteLink) => Object.values(entityRouteLink.params).flatMap(({ value }) => expressionFieldPaths(value)))
 				.map((fieldPath) => fieldPath[0])
 				.filter((fieldName): fieldName is string => fieldName != null),
 		].filter((fieldName) => !latestSelectorFieldNames.has(fieldName)),
@@ -11864,7 +11909,7 @@ const entityRouteImportSpecs = (
 	entityType: string
 ) => importSpecsFromMap(
 	(indexes.entityRouteLinksByType[entityType] ?? [])
-		.flatMap((href) => href.params)
+		.flatMap((href) => Object.values(href.params))
 		.reduce((imports, param) => expressionImports(param.value, imports), new Map<string, Set<string>>())
 )
 
@@ -12127,17 +12172,17 @@ const renderEntityRouteLinkExpression = (
 		})
 	})
 	const routeCandidates = entityRouteLinks.map((entityRouteLink) => {
-		const paramFieldPaths = uniqueFieldPaths(entityRouteLink.params.flatMap((param) => (
-			expressionFieldPaths(param.value)
+		const paramFieldPaths = uniqueFieldPaths(Object.values(entityRouteLink.params).flatMap(({ value }) => (
+			expressionFieldPaths(value)
 		)))
-		const params = entityRouteLink.params.map((param) => ({
-			param: param.param,
-			value: renderPresentRouteParamExpression(param.value, {
+		const params = Object.entries(entityRouteLink.params).map(([param, routeParamValue]) => ({
+			param,
+			value: renderPresentRouteParamExpression(routeParamValue.value, {
 				fields: fieldsExpression,
 				fieldExpressionByName,
 				entity: indexes.entityByType[entityType],
 				indexes,
-			}, param.decode),
+			}, routeParamValue.decode),
 		}))
 		const entityConditionTerms = (entityRouteLink.conditions ?? [])
 			.filter((condition) => !entitySelectorConditionIsGuaranteed(indexes, entityType, condition))
@@ -12163,13 +12208,13 @@ const renderEntityRouteLinkExpression = (
 		const entityConditionGroup = entityConditionTerms.length === 0 ? undefined : {
 			terms: entityConditionTerms,
 		}
-		const paramConditionGroups = selectorName == null ? entityRouteLink.params.flatMap((param) => routeExpressionConditions(
+		const paramConditionGroups = selectorName == null ? Object.values(entityRouteLink.params).flatMap(({ value }) => routeExpressionConditions(
 			{
 				fields: fieldsExpression,
 				entity: indexes.entityByType[entityType],
 				indexes,
 			},
-			param.value,
+			value,
 			(fieldPaths) => (
 				entityPathConditions(
 					indexes,
@@ -13295,7 +13340,7 @@ const renderEntitiesReferenceSection = (
 		indexes.collectionRoutesBySourceField[
 			collectionSourceFieldKey(entity.entityType, section.field, targetEntity)
 		] ?? []
-	).flatMap(({ params }) => params).flatMap((param) => expressionFieldPaths(param.value).flatMap((fieldPath) => (
+	).flatMap(({ params }) => Object.values(params)).flatMap((param) => expressionFieldPaths(param.value).flatMap((fieldPath) => (
 		fieldPath[0] == null ? [] : [fieldPath[0]]
 	))))
 	const hrefNeedsResolvedEntity = hrefFieldNames.some((fieldName) => (
@@ -13437,7 +13482,7 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 	const entityRoutes = indexes.entityRouteLinksByType[entity.entityType] ?? []
 	const entityRouteFieldNames = unique(entityRoutes.flatMap((route) => [
 		...(route.conditions ?? []).map(({ field }) => field),
-		...route.params.flatMap(({ value }) => expressionFieldPaths(value).flatMap(([field]) => field == null ? [] : [field])),
+		...Object.values(route.params).flatMap(({ value }) => expressionFieldPaths(value).flatMap(([field]) => field == null ? [] : [field])),
 	]))
 	const resolvedEntityRouteFieldNames = entityRoutes.length === 1 ?
 		entityRouteFieldNames.filter((fieldName) => !entitySelectorOwnsField(entity, fieldName))

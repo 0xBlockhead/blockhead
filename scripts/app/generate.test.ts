@@ -4610,6 +4610,17 @@ test('retains only rendered detail layout facts', () => {
 	assert.match(generatorSource, /const ownDetails = node\.selectorMappings\.flatMap/)
 })
 
+test('retains one keyed route parameter representation through href compilation', () => {
+	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
+
+	assert.match(generatorSource, /type RouteParamValues = Readonly<Record<string, \{\n\tvalue: _Expression\n\tdecode\?: _ExpressionDecode\n\}>>/)
+	assert.match(generatorSource, /type RouteLink = \{\n\tpath: string\n\tparams: RouteParamValues\n\}/)
+	assert.match(generatorSource, /routeParamAlternatives: readonly RouteParamValues\[\]/)
+	assert.match(generatorSource, /routeParamAlternatives: normalizedMapping\.routeParamAlternatives/)
+	assert.match(generatorSource, /Object\.hasOwn\(routeParams, name\)/)
+	assert.doesNotMatch(generatorSource, /routeParamAlternativesWithDecodes|alternative\.map\(\(\{ param, value \}\)|routeParams\.some\(\(\{ param \}\)/)
+})
+
 test('rejects undeclared regular and selector-variant route parameters upstream', () => {
 	const regularParamApp = structuredClone(app)
 	const networkMapping = regularParamApp.routes.children['(explore)']?.children?.['(networks)']?.children?.network?.children?.['[network]']?.selectors?.[EntityType.Network]?.Caip2
@@ -4748,20 +4759,28 @@ test('selects nearest ancestors only after reference-path applicability', () => 
 
 test('composes and independently deduplicates inherited route parameter alternatives', () => {
 	const caip2 = {
-		kind: 'field' as const,
-		name: 'caip2',
+		value: {
+			kind: 'field' as const,
+			name: 'caip2',
+		},
 	}
 	const slug = {
-		kind: 'field' as const,
-		name: 'slug',
+		value: {
+			kind: 'field' as const,
+			name: 'slug',
+		},
 	}
 	const owner = {
-		kind: 'field' as const,
-		name: 'owner',
+		value: {
+			kind: 'field' as const,
+			name: 'owner',
+		},
 	}
 	const scope = {
-		kind: 'field' as const,
-		name: 'scope',
+		value: {
+			kind: 'field' as const,
+			name: 'scope',
+		},
 	}
 	const alternatives = composeSelectorRouteParamAlternatives(
 		'Fixture.Route',
@@ -4794,6 +4813,25 @@ test('composes and independently deduplicates inherited route parameter alternat
 	])
 	assert.throws(
 		() => composeSelectorRouteParamAlternatives(
+			'Fixture.Decoder',
+			{},
+			[{
+				field: '$network',
+				alternatives: [
+					{ network: caip2 },
+					{
+						network: {
+							...caip2,
+							decode: _ExpressionDecode.Number,
+						},
+					},
+				],
+			}]
+		),
+		/inherited field \$network alternatives disagree on decoder for route parameter network/
+	)
+	assert.throws(
+		() => composeSelectorRouteParamAlternatives(
 			'Fixture.Ambiguous',
 			{},
 			[
@@ -4815,14 +4853,18 @@ test('keeps deep inherited href chains bounded', () => {
 	let alternatives = [
 		{
 			network: {
-				kind: 'field' as const,
-				name: 'caip2',
+				value: {
+					kind: 'field' as const,
+					name: 'caip2',
+				},
 			},
 		},
 		{
 			network: {
-				kind: 'field' as const,
-				name: 'slug',
+				value: {
+					kind: 'field' as const,
+					name: 'slug',
+				},
 			},
 		},
 	]
@@ -4842,8 +4884,10 @@ test('keeps deep inherited href chains bounded', () => {
 test('bounds duplicate-heavy route parameter composition before Cartesian growth', () => {
 	const wideAlternatives = Array.from({ length: 256 }, (_, index) => ({
 		route: {
-			kind: 'field' as const,
-			name: `route${index}`,
+			value: {
+				kind: 'field' as const,
+				name: `route${index}`,
+			},
 		},
 	}))
 	const alternatives = composeSelectorRouteParamAlternatives(
@@ -4858,8 +4902,10 @@ test('bounds duplicate-heavy route parameter composition before Cartesian growth
 				field: '$scope',
 				alternatives: Array.from({ length: 100_000 }, () => ({
 					scope: {
-						kind: 'field' as const,
-						name: 'scope',
+						value: {
+							kind: 'field' as const,
+							name: 'scope',
+						},
 					},
 				})),
 			},
@@ -4878,8 +4924,10 @@ test('bounds duplicate-heavy route parameter composition before Cartesian growth
 					...wideAlternatives,
 					{
 						route: {
-							kind: 'field',
-							name: 'route256',
+							value: {
+								kind: 'field',
+								name: 'route256',
+							},
 						},
 					},
 				],
