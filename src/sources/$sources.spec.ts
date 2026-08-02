@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from 'vitest'
-import { type as arktype } from 'arktype'
 import {
 	existsSync,
 	globSync,
@@ -13,7 +12,6 @@ import {
 
 import sourceProviderDefinitions, { sourceBindings } from '$/sources/$sourceProviders.ts'
 import { indexSourceProviders } from '$/sources/$sources.ts'
-import type { SourceProviderDefinition } from '$/sources/$sources.ts'
 import pipedBindings from '$/sources/Piped/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
@@ -47,66 +45,6 @@ const {
 	transportsByChainId: voltaireJsonRpcTransportsByChainId,
 } = voltaireJsonRpcTransports
 
-const fixtureSourceProviders = [
-	{
-		provider: 'ProviderWithEnv',
-		label: 'Provider with env',
-		env: arktype({
-			PUBLIC_PROVIDER_KEY: 'string',
-		}),
-		sources: {
-			ProviderOnlySource: {
-				label: 'Provider-only source',
-			},
-			ProviderAndSourceEnvSource: {
-				label: 'Provider and source env source',
-				env: arktype({
-					PUBLIC_SOURCE_KEY: 'string',
-				}),
-			},
-			FailingSourceEnvSource: {
-				label: 'Failing source env source',
-				env: arktype({
-					PUBLIC_FAILING_SOURCE_KEY: 'string',
-				}),
-			},
-		},
-	},
-	{
-		provider: 'ProviderWithoutEnv',
-		label: 'Provider without env',
-		sources: {
-			SourceOnlyEnvSource: {
-				label: 'Source-only env source',
-				env: arktype({
-					PUBLIC_SOURCE_ONLY_KEY: 'string',
-				}),
-			},
-			OpenSource: {
-				label: 'Open source',
-			},
-			OptionalEnvSource: {
-				label: 'Optional-env source',
-				env: arktype({
-					PUBLIC_OPTIONAL_KEY: 'string > 0?',
-				}),
-			},
-		},
-	},
-	{
-		provider: 'FailingProvider',
-		label: 'Failing provider',
-		env: arktype({
-			PUBLIC_FAILING_PROVIDER_KEY: 'string',
-		}),
-		sources: {
-			ProviderDisabledSource: {
-				label: 'Provider disabled source',
-			},
-		},
-	},
-] as const satisfies readonly SourceProviderDefinition<string, string>[]
-
 describe('source provider registry', () => {
 	it('names every EVM execution binding missing OpenRPC authority', () => {
 		expect(evmExecutionOpenRpcArtifactFailures(sourceBindings
@@ -123,37 +61,33 @@ describe('source provider registry', () => {
 		])
 	})
 
-	it('gates providers and sources by env schemas and rejects empty strings', () => {
-		const indexed = indexSourceProviders(
-			fixtureSourceProviders,
-			{
-				PUBLIC_PROVIDER_KEY: 'provider-secret',
-				PUBLIC_SOURCE_KEY: 'source-secret',
-				PUBLIC_SOURCE_ONLY_KEY: 'source-only-secret',
-				PUBLIC_FAILING_SOURCE_KEY: '   ',
-				PUBLIC_FAILING_PROVIDER_KEY: '',
-				PUBLIC_OPTIONAL_KEY: '   ',
-				PUBLIC_EXTRA_KEY: 'extra-public',
-			}
-		)
+	it('gates sources only through binding-owned public credential schemas', () => {
+		const missingRequiredEnv = indexSourceProviders(sourceProviderDefinitions, {
+			PUBLIC_EXTRA_KEY: 'extra-public',
+		})
 
-		expect([...indexed.enabledSources]).toEqual([
-			'ProviderOnlySource',
-			'ProviderAndSourceEnvSource',
-			'SourceOnlyEnvSource',
-			'OpenSource',
-			'OptionalEnvSource',
-		])
-		expect(indexed.resolverPublicEnvBySource.get('OptionalEnvSource')).toEqual({})
-		expect(indexed.resolverPublicEnvBySource.has('ProviderDisabledSource')).toBe(false)
-		expect(indexed.resolverPublicEnvBySource.has('FailingSourceEnvSource')).toBe(false)
-		expect(indexSourceProviders(
-			fixtureSourceProviders,
-			{
-				PUBLIC_OPTIONAL_KEY: 'optional-value',
-			}
-		).resolverPublicEnvBySource.get('OptionalEnvSource')).toEqual({
-			PUBLIC_OPTIONAL_KEY: 'optional-value',
+		expect(missingRequiredEnv.enabledSources.has(Source.Blockchair_Rest)).toBe(false)
+		expect(missingRequiredEnv.enabledSources.has(Source.Lens_Graphql)).toBe(true)
+		expect(missingRequiredEnv.resolverPublicEnvBySource.get(Source.Lens_Graphql)).toEqual({})
+		expect(missingRequiredEnv.resolverPublicEnvBySource.get(Source.Piped_Rest)).toEqual({
+			PUBLIC_EXTRA_KEY: 'extra-public',
+		})
+
+		const configured = indexSourceProviders(sourceProviderDefinitions, {
+			PUBLIC_BLOCKCHAIR_API_KEY: 'blockchair-secret',
+			PUBLIC_EXTRA_KEY: 'extra-public',
+			PUBLIC_LENS_API_KEY: 'lens-secret',
+		})
+		expect(configured.resolverPublicEnvBySource.get(Source.Blockchair_Rest)).toEqual({
+			PUBLIC_BLOCKCHAIR_API_KEY: 'blockchair-secret',
+		})
+		expect(configured.resolverPublicEnvBySource.get(Source.Lens_Graphql)).toEqual({
+			PUBLIC_LENS_API_KEY: 'lens-secret',
+		})
+		expect(configured.resolverPublicEnvBySource.get(Source.Piped_Rest)).toEqual({
+			PUBLIC_BLOCKCHAIR_API_KEY: 'blockchair-secret',
+			PUBLIC_EXTRA_KEY: 'extra-public',
+			PUBLIC_LENS_API_KEY: 'lens-secret',
 		})
 	})
 
@@ -212,54 +146,6 @@ describe('source provider registry', () => {
 			transactionIndex: '0x2',
 			logIndex: '0x3',
 			removed: false,
-		})
-	})
-
-	it('passes full public env only to sources without provider or source env schema', () => {
-		const indexed = indexSourceProviders(
-			fixtureSourceProviders,
-			{
-				PUBLIC_PROVIDER_KEY: 'provider-secret',
-				PUBLIC_SOURCE_KEY: 'source-secret',
-				PUBLIC_SOURCE_ONLY_KEY: 'source-only-secret',
-				PUBLIC_FAILING_SOURCE_KEY: 'failing-source-secret',
-				PUBLIC_FAILING_PROVIDER_KEY: 'failing-provider-secret',
-				PUBLIC_EXTRA_KEY: 'extra-public',
-			}
-		)
-
-		expect(indexed.resolverPublicEnvBySource.get('OpenSource')).toEqual({
-			PUBLIC_PROVIDER_KEY: 'provider-secret',
-			PUBLIC_SOURCE_KEY: 'source-secret',
-			PUBLIC_SOURCE_ONLY_KEY: 'source-only-secret',
-			PUBLIC_FAILING_SOURCE_KEY: 'failing-source-secret',
-			PUBLIC_FAILING_PROVIDER_KEY: 'failing-provider-secret',
-			PUBLIC_EXTRA_KEY: 'extra-public',
-		})
-	})
-
-	it('passes provider env to inherited sources and merged env to source-specific sources', () => {
-		const indexed = indexSourceProviders(
-			fixtureSourceProviders,
-			{
-				PUBLIC_PROVIDER_KEY: 'provider-secret',
-				PUBLIC_SOURCE_KEY: 'source-secret',
-				PUBLIC_SOURCE_ONLY_KEY: 'source-only-secret',
-				PUBLIC_FAILING_SOURCE_KEY: 'failing-source-secret',
-				PUBLIC_FAILING_PROVIDER_KEY: 'failing-provider-secret',
-				PUBLIC_EXTRA_KEY: 'extra-public',
-			}
-		)
-
-		expect(indexed.resolverPublicEnvBySource.get('ProviderOnlySource')).toEqual({
-			PUBLIC_PROVIDER_KEY: 'provider-secret',
-		})
-		expect(indexed.resolverPublicEnvBySource.get('ProviderAndSourceEnvSource')).toEqual({
-			PUBLIC_PROVIDER_KEY: 'provider-secret',
-			PUBLIC_SOURCE_KEY: 'source-secret',
-		})
-		expect(indexed.resolverPublicEnvBySource.get('SourceOnlyEnvSource')).toEqual({
-			PUBLIC_SOURCE_ONLY_KEY: 'source-only-secret',
 		})
 	})
 

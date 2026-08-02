@@ -3280,9 +3280,6 @@ test('keeps ordered generated provider bindings semantically equal to APP', () =
 			sources: Object.entries(sources).map(([source, definition]) => ({
 				source,
 				label: definition.label,
-				...(definition.env == null ? {} : {
-					env: definition.env.json,
-				}),
 			})),
 		})),
 		app.sources.providers.map(({ provider }) => ({
@@ -3292,14 +3289,6 @@ test('keeps ordered generated provider bindings semantically equal to APP', () =
 				.map((source) => ({
 					source: source.source,
 					label: source.label,
-					...(source.env == null ? {} : {
-						env: arktype(source.env.keys.length === 0 ? {
-							'[string]': 'string',
-						} : Object.fromEntries(source.env.keys.map(({ name, type }) => [
-							name,
-							type,
-						]))).json,
-					}),
 				})),
 		}))
 	)
@@ -6579,18 +6568,20 @@ test('isolates replacement-managed output and preserves unchanged generated file
 	}
 })
 
-test('omits empty public env schemas and keeps explicit public keys', () => {
-	const sourceProviderDefinitions = [
-		...globSync('src/sources/**/index.ts'),
-		...globSync('src/sources/**/bindings.ts'),
-	].map((sourceProviderPath) => readFileSync(
+test('emits environment schemas only on binding credentials', () => {
+	const sourceProviderDefinitions = globSync('src/sources/**/index.ts').map((sourceProviderPath) => readFileSync(
 		path.join(root, sourceProviderPath),
 		'utf8'
 	)).join('\n')
+	const sourceBindingDefinitions = globSync('src/sources/**/bindings.ts').map((sourceBindingPath) => readFileSync(
+		path.join(root, sourceBindingPath),
+		'utf8'
+	)).join('\n')
 
-	assert.doesNotMatch(sourceProviderDefinitions, /env: arktype\(\{\n\s+'\[string\]': 'string',\n\s+\}\)/)
-	assert.doesNotMatch(sourceProviderDefinitions, /env: arktype\(\{\n\s*\}\)/)
-	assert.match(sourceProviderDefinitions, /'PUBLIC_ALLIUM_API_KEY': 'string > 0'/)
+	assert.doesNotMatch(sourceProviderDefinitions, /\benv:|from 'arktype'/)
+	assert.doesNotMatch(sourceBindingDefinitions, /env: arktype\(\{\n\s+'\[string\]': 'string',\n\s+\}\)/)
+	assert.doesNotMatch(sourceBindingDefinitions, /env: arktype\(\{\n\s*\}\)/)
+	assert.match(sourceBindingDefinitions, /'PUBLIC_ALLIUM_API_KEY': 'string > 0'/)
 })
 
 test('keeps runtime secret configuration in one server projection', () => {

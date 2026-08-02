@@ -989,21 +989,33 @@ type _SourceProvider = `${SourceProvider}`
 type _SourceProviderDefinition = {
 	provider: _SourceProvider
 	label: string
-	env?: _SourceEnv
 }
 
 type _SourceDefinition<_Provider extends _SourceProvider> = {
 	source: Source
 	provider: _Provider
 	label: string
-	env?: _SourceEnv
 	binding?: _SourceBinding
 	bindings?: _SourceBinding[]
 }
 
-export const defineSources = <const _Providers extends readonly _SourceProviderDefinition[]>(providers: _Providers) => <
+type _ExactDefinition<_Definition, _Contract> = _Definition & {
+	[_Key in Exclude<keyof _Definition, keyof _Contract>]: never
+}
+
+export const defineSources = <const _Providers extends readonly _SourceProviderDefinition[]>(providers: _Providers & {
+	[_Index in keyof _Providers]: _Providers[_Index] extends _SourceProviderDefinition ?
+		_ExactDefinition<_Providers[_Index], _SourceProviderDefinition>
+	:
+		_Providers[_Index]
+}) => <
 	const _Sources extends readonly _SourceDefinition<_Providers[number]["provider"]>[],
->(sources: _Sources) => ({
+>(sources: _Sources & {
+	[_Index in keyof _Sources]: _Sources[_Index] extends _SourceDefinition<_Providers[number]["provider"]> ?
+		_ExactDefinition<_Sources[_Index], _SourceDefinition<_Providers[number]["provider"]>>
+	:
+		_Sources[_Index]
+}) => ({
 	providers,
 	sources,
 })

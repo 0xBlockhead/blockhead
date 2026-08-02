@@ -7371,7 +7371,9 @@ const generateSourceProviderEnumFile = (sourceProviderNames: readonly string[]) 
 	}
 )
 
-const emitEnvSchema = (env: App['sources']['providers'][number]['env']) => (
+const emitEnvSchema = (
+	env: NonNullable<Extract<SourceBinding['credentials'][number], { env?: object }>['env']> | undefined
+) => (
 	env == null ?
 		undefined
 	: env.keys.length === 0 ?
@@ -8014,23 +8016,14 @@ const generateSourceProviderDefinitionFile = (
 					from: '$/sources/SourceProviderDefinition.ts',
 					typeNames: ['SourceProviderDefinition'],
 				},
-				...(provider.env == null ? [] : [{
-					from: 'arktype',
-					names: [{
-						name: 'type',
-						alias: 'arktype',
-					}],
-				}]),
 			],
 			body: [
 				'export default {',
 				indent(`provider: ${enumAccess('SourceProvider', provider.provider)},`),
 				indent(`label: ${emitTypeScript(provider.label)},`),
-				...(provider.env == null ? [] : [indent(`env: ${emitEnvSchema(provider.env)},`)]),
 				indent('sources: {'),
 				...sources.map((source) => indent(`[${enumAccess('Source', source.source)}]: ${emitObject([
 					['label', emitTypeScript(source.label)],
-					['env', emitEnvSchema(source.env)],
 				])},`, 2)),
 				indent('},'),
 				indent('bindings,'),

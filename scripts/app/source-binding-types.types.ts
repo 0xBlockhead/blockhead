@@ -79,6 +79,35 @@ defineSources([
 	},
 ])
 
+defineSources([
+	{
+		provider: SourceProvider.Across,
+		label: 'Invalid provider env fixture',
+		// @ts-expect-error Environment requirements belong to executable binding credentials.
+		env: {
+			keys: [],
+		},
+	},
+])([])
+
+defineSources([
+	{
+		provider: SourceProvider.Across,
+		label: 'Fixture',
+	},
+])([
+	{
+		source: Source.Across_Rest,
+		provider: SourceProvider.Across,
+		label: 'Invalid source env fixture',
+		binding: validHttpBinding,
+		// @ts-expect-error Environment requirements belong to executable binding credentials.
+		env: {
+			keys: [],
+		},
+	},
+])
+
 const invalidProtocolFamily = {
 	...validHttpBinding,
 	wireProtocol: WireProtocol.JsonRpc2,
@@ -463,6 +492,19 @@ const invalidPublicConfigKeys = {
 	],
 } as const satisfies _SourceBinding
 
+const validPublicConfigEnv = {
+	...validHttpBinding,
+	credentials: [{
+		scope: SourceCredentialScope.PublicConfig,
+		env: {
+			keys: [{
+				name: 'PUBLIC_FIXTURE_KEY',
+				type: 'string',
+			}],
+		},
+	}],
+} as const satisfies _SourceBinding
+
 const invalidGeneratedReferenceArtifact = {
 	...validHttpBinding,
 	apiFamily: ApiFamily.OpenApiHttp,
@@ -512,4 +554,5 @@ void [
 	invalidEvmArtifact,
 	invalidHandwrittenOfficialArtifact,
 	invalidGeneratedReferenceArtifact,
+	validPublicConfigEnv,
 ]

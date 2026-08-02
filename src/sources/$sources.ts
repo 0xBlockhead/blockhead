@@ -19,7 +19,6 @@ export type SourceDefinition<
 > = {
 	source: _Source
 	label: string
-	env?: Type<SourcePublicEnv>
 }
 
 export type SourceDefinitionIndex<
@@ -34,7 +33,6 @@ export type SourceProviderDefinition<
 > = {
 	provider: _SourceProvider
 	label: string
-	env?: Type<SourcePublicEnv>
 	sources: Partial<SourceDefinitionIndex<_Source>>
 	bindings?: SourceBindingIndex
 }
@@ -133,15 +131,6 @@ export const indexSourceProviders = <
 	}
 
 	const enabledSourceEntries = sourceProviders.flatMap((sourceProvider) => {
-		const providerSubset = envSubsetFromSchema(
-			'env' in sourceProvider ?
-				sourceProvider.env
-			:
-				undefined
-		)
-		if (providerSubset == null)
-			return []
-
 		const providerBindings = Object.values<
 			| readonly SourceBinding[]
 			| undefined
@@ -149,15 +138,6 @@ export const indexSourceProviders = <
 		return Object.keys(sourceProvider.sources).flatMap((source) => {
 			const sourceDefinition = sourceProvider.sources[source]
 			if (sourceDefinition == null)
-				return []
-
-			const sourceSubset = envSubsetFromSchema(
-				'env' in sourceDefinition ?
-					sourceDefinition.env
-				:
-					undefined
-			)
-			if (sourceSubset == null)
 				return []
 
 			const sourceBindings = providerBindings.filter((binding) => (
@@ -181,21 +161,15 @@ export const indexSourceProviders = <
 			if (sourceBindings.length > 0 && bindingSubsets.length === 0)
 				return []
 
-			const merged = {
-				...providerSubset,
-				...sourceSubset,
-				...Object.assign({}, ...bindingSubsets),
-			}
+			const bindingEnv = Object.assign({}, ...bindingSubsets) satisfies SourcePublicEnv
 			return [{
 				source,
 				publicEnv: (
-					'env' in sourceProvider
-					|| 'env' in sourceDefinition
-					|| sourceBindings.some((binding) => binding.credentials.some((credential) => (
+					sourceBindings.some((binding) => binding.credentials.some((credential) => (
 						credential.scope === SourceCredentialScope.PublicConfig
 						&& credential.env != null
 					))) ?
-						merged
+						bindingEnv
 					:
 						resolverPublicEnv
 				),
