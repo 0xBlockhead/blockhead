@@ -1,6 +1,6 @@
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
-import type { BitcoinCoreMempoolInfo } from '$/sources/BitcoinCore/JsonRpc/types.ts'
+import type { BitcoinCoreMempoolInfo } from '$/sources/_shared/interfaces/BitcoinCoreJsonRpc/types.ts'
 import type {
 	ZcashBlock,
 	ZcashTransaction,

@@ -8,7 +8,7 @@ import type {
 import type {
 	BitcoinCoreBlock,
 	BitcoinCoreMempoolInfo,
-} from '$/sources/BitcoinCore/JsonRpc/types.ts'
+} from '$/sources/_shared/interfaces/BitcoinCoreJsonRpc/types.ts'
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import bindings from '$/sources/BitcoinCashNode/bindings.ts'
 import { Source } from '$/sources/Source.ts'

@@ -1,7 +1,7 @@
 import type {
 	BitcoinCoreBlock,
 	BitcoinCoreTransaction,
-} from '$/sources/BitcoinCore/JsonRpc/types.ts'
+} from '$/sources/_shared/interfaces/BitcoinCoreJsonRpc/types.ts'
 
 export type DogecoinCoreAuxPow = {
 	tx: BitcoinCoreTransaction

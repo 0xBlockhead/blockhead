@@ -12,9 +12,17 @@ vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
 	jsonRpc2,
 }))
 
-const { getBlock: getBitcoinBlock } = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
-const { getBlock: getDogecoinBlock } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
-const { getBlock: getLitecoinBlock } = await import('$/sources/LitecoinCore/JsonRpc/queries.ts')
+const {
+	getBlock: getBitcoinBlock,
+	getRawTransaction: getBitcoinRawTransaction,
+} = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
+const {
+	getBlock: getDogecoinBlock,
+} = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
+const {
+	getBlock: getLitecoinBlock,
+	getRawTransaction: getLitecoinRawTransaction,
+} = await import('$/sources/LitecoinCore/JsonRpc/queries.ts')
 
 const bitcoinMainnetBinding = bindings[Source.BitcoinCore_JsonRpc][0]
 const dogecoinMainnetBinding = dogecoinCoreBindings[Source.DogecoinCore_JsonRpc][0]
@@ -67,7 +75,6 @@ describe('Dogecoin Core JSON-RPC', () => {
 		jsonRpc2.mockResolvedValueOnce(block)
 
 		await expect(getDogecoinBlock({
-			binding: dogecoinMainnetBinding,
 			blockHash: block.hash,
 		})).resolves.toEqual(block)
 		expect(jsonRpc2).toHaveBeenCalledWith(
@@ -84,7 +91,6 @@ describe('Dogecoin Core JSON-RPC', () => {
 		jsonRpc2.mockRejectedValueOnce(new Error('JSON-RPC getblock: Block not found'))
 
 		await expect(getDogecoinBlock({
-			binding: dogecoinMainnetBinding,
 			blockHash: 'missing',
 		})).rejects.toThrow('Block not found')
 	})
@@ -93,15 +99,12 @@ describe('Dogecoin Core JSON-RPC', () => {
 		jsonRpc2.mockResolvedValue(block)
 
 		await getBitcoinBlock({
-			binding: bitcoinMainnetBinding,
 			blockHash: block.hash,
 		})
 		await getDogecoinBlock({
-			binding: dogecoinMainnetBinding,
 			blockHash: block.hash,
 		})
 		await getLitecoinBlock({
-			binding: litecoinMainnetBinding,
 			blockHash: block.hash,
 		})
 
@@ -109,6 +112,46 @@ describe('Dogecoin Core JSON-RPC', () => {
 			bitcoinMainnetBinding,
 			dogecoinMainnetBinding,
 			litecoinMainnetBinding,
+		])
+	})
+
+	it('preserves explicit block and transaction verbosity', async () => {
+		jsonRpc2.mockResolvedValue('wire-result')
+
+		await getBitcoinBlock({
+			blockHash: block.hash,
+			verbosity: 0,
+		})
+		await getBitcoinRawTransaction({
+			txId: 'bitcoin-transaction',
+		})
+		await getLitecoinRawTransaction({
+			txId: 'litecoin-transaction',
+			verbose: false,
+		})
+
+		expect(jsonRpc2.mock.calls.map((call) => call.slice(1))).toEqual([
+			[
+				'getblock',
+				[
+					block.hash,
+					0,
+				],
+			],
+			[
+				'getrawtransaction',
+				[
+					'bitcoin-transaction',
+					true,
+				],
+			],
+			[
+				'getrawtransaction',
+				[
+					'litecoin-transaction',
+					false,
+				],
+			],
 		])
 	})
 })

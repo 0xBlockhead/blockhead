@@ -3,7 +3,7 @@ import type {
 	BitcoinCoreBlock,
 	BitcoinCoreTransactionInput,
 	BitcoinCoreTransactionOutput,
-} from '$/sources/BitcoinCore/JsonRpc/types.ts'
+} from '$/sources/_shared/interfaces/BitcoinCoreJsonRpc/types.ts'
 
 export type ZcashBlock = BitcoinCoreBlock & {
 	finalsaplingroot?: string

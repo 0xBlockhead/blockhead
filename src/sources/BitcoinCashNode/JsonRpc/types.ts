@@ -1,7 +1,7 @@
 import type {
 	BitcoinCoreTransaction,
 	BitcoinCoreTransactionOutput,
-} from '$/sources/BitcoinCore/JsonRpc/types.ts'
+} from '$/sources/_shared/interfaces/BitcoinCoreJsonRpc/types.ts'
 
 export type BitcoinCashTokenData = {
 	category: string
