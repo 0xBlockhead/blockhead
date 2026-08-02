@@ -1675,6 +1675,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 97 | 1 | GenerationManifest | src/sources/Dexscreener/OpenApi/schema-source.ts | no |  |  |
 | 97 | 2 | OpenApiSpec | src/sources/Dexscreener/OpenApi/openapi.yml | no |  |  |
 | 97 | 3 | OpenApiTypes | src/sources/Dexscreener/OpenApi/openapi.d.ts | yes |  |  |
+| 100 | 1 | HandwrittenTypes | src/sources/Dune/Rest/types.ts | no |  |  |
 | 101 | 1 | GenerationManifest | src/sources/Dydx/OpenApi/schema-source.ts | no |  |  |
 | 101 | 2 | OpenApiSpec | src/sources/Dydx/OpenApi/openapi.json | yes | https://raw.githubusercontent.com/dydxprotocol/v4-chain/main/indexer/services/comlink/public/swagger.json |  |
 | 101 | 3 | OpenApiTypes | src/sources/Dydx/OpenApi/openapi.d.ts | yes |  |  |

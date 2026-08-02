@@ -5,6 +5,7 @@ import {
 	ApiFamily,
 	genericReadOperationGroups,
 	indexSourceBindings,
+	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
@@ -38,6 +39,12 @@ export default indexSourceBindings([
 				env: arktype({
 					'PUBLIC_DUNE_API_KEY': 'string > 0',
 				}),
+			},
+		],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/Dune/Rest/types.ts',
 			},
 		],
 	},

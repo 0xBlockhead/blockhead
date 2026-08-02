@@ -1,0 +1,39 @@
+import { sourceFetch, firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
+import { throwHttpError } from '$/lib/http.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
+
+const requestAzureAiFoundryJson = async ({
+	binding,
+	path,
+	credential,
+}: {
+	binding: SourceBinding
+	path: string
+	credential: string
+}) => {
+	const response = await sourceFetch(binding, new URL(path, firstHttpUrlForBinding(binding)).toString(), {
+		headers: {
+			'api-key': credential,
+		},
+	})
+
+	if (!response.ok)
+		await throwHttpError(binding.source, response)
+
+	return response.json<JsonValue>()
+}
+
+export const listDeployments = ({
+	binding,
+	credential,
+	apiVersion,
+}: {
+	binding: SourceBinding
+	credential: string
+	apiVersion: string
+}) => requestAzureAiFoundryJson({
+	binding,
+	path: `/openai/deployments?${new URLSearchParams({ 'api-version': apiVersion })}`,
+	credential,
+})

@@ -7,6 +7,8 @@ import type {
 	MlflowGetModelVersionResponse,
 	MlflowGetRegisteredModelResponse,
 	MlflowListArtifactsResponse,
+	MlflowSearchModelVersionsResponse,
+	MlflowSearchRegisteredModelsResponse,
 } from '$/sources/Mlflow/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -41,6 +43,44 @@ const fetchMlflowJson = async <_Result>({
 
 	return response.json<_Result>()
 }
+
+export const searchRegisteredModels = ({
+	credential,
+	filter,
+	publicEnv,
+}: {
+	credential?: string
+	filter?: string
+	publicEnv: SourcePublicEnv
+}) => fetchMlflowJson<MlflowSearchRegisteredModelsResponse>({
+	path: `/api/2.0/mlflow/registered-models/search${
+		filter == null || filter === '' ?
+			''
+		:
+			`?${new URLSearchParams({ filter })}`
+	}`,
+	credential,
+	publicEnv,
+})
+
+export const searchModelVersions = ({
+	credential,
+	filter,
+	publicEnv,
+}: {
+	credential?: string
+	filter?: string
+	publicEnv: SourcePublicEnv
+}) => fetchMlflowJson<MlflowSearchModelVersionsResponse>({
+	path: `/api/2.0/mlflow/model-versions/search${
+		filter == null || filter === '' ?
+			''
+		:
+			`?${new URLSearchParams({ filter })}`
+	}`,
+	credential,
+	publicEnv,
+})
 
 export const getRegisteredModel = ({
 	credential,

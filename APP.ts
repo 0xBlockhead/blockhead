@@ -87317,6 +87317,12 @@ export const app = {
 							},
 						},
 					],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/Dune/Rest/types.ts",
+						},
+					],
 				},
 			},
 			{
