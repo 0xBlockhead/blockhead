@@ -6,7 +6,7 @@ const binding = bindings[Source.TronFullNode_Rest][0]
 
 export const {
 	getAccount,
-	getBlockByNumber,
+	getBlockById,
 	getTransactionById,
 	getTransactionInfoById,
 } = tronNodeRest({

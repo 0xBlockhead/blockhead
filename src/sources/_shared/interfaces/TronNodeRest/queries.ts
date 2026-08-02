@@ -28,16 +28,16 @@ export const tronNodeRest = ({
 			},
 		})
 	),
-	getBlockByNumber: ({
-		height,
+	getBlockById: ({
+		hash,
 	}: {
-		height: bigint
+		hash: string
 	}) => (
 		postJson<TronNodeBlock>({
 			binding,
-			path: `${endpointNamespace}/getblockbynum`,
+			path: `${endpointNamespace}/getblockbyid`,
 			body: {
-				num: Number(height),
+				value: hash,
 				visible: true,
 			},
 		})

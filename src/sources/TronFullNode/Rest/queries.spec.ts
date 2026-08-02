@@ -11,8 +11,8 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 	sourceFetch,
 }))
 
-const { getBlockByNumber: getFullNodeBlockByNumber } = await import('$/sources/TronFullNode/Rest/queries.ts')
-const { getBlockByNumber: getSolidityNodeBlockByNumber } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
+const { getBlockById: getFullNodeBlockById } = await import('$/sources/TronFullNode/Rest/queries.ts')
+const { getBlockById: getSolidityNodeBlockById } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
 
 const binding = bindings[Source.TronFullNode_Rest][0]
 const solidityBinding = tronSolidityNodeBindings[Source.TronSolidityNode_Rest][0]
@@ -28,28 +28,36 @@ describe('TRON local node transport', () => {
 	})
 
 	it('uses the exact generated binding for endpoint and delivery authority', async () => {
-		await getFullNodeBlockByNumber({
-			height: 7n,
+		await getFullNodeBlockById({
+			hash: 'full-block',
 		})
 
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
-			'http://127.0.0.1:8090/wallet/getblockbynum',
+			'http://127.0.0.1:8090/wallet/getblockbyid',
 			expect.objectContaining({
+				body: JSON.stringify({
+					value: 'full-block',
+					visible: true,
+				}),
 				method: 'POST',
 			})
 		)
 	})
 
 	it('keeps SolidityNode requests on the walletsolidity namespace', async () => {
-		await getSolidityNodeBlockByNumber({
-			height: 8n,
+		await getSolidityNodeBlockById({
+			hash: 'solid-block',
 		})
 
 		expect(sourceFetch).toHaveBeenCalledWith(
 			solidityBinding,
-			'http://127.0.0.1:8091/walletsolidity/getblockbynum',
+			'http://127.0.0.1:8091/walletsolidity/getblockbyid',
 			expect.objectContaining({
+				body: JSON.stringify({
+					value: 'solid-block',
+					visible: true,
+				}),
 				method: 'POST',
 			})
 		)

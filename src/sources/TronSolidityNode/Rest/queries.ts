@@ -6,7 +6,7 @@ const binding = bindings[Source.TronSolidityNode_Rest][0]
 
 export const {
 	getAccount,
-	getBlockByNumber,
+	getBlockById,
 	getTransactionById,
 	getTransactionInfoById,
 } = tronNodeRest({
