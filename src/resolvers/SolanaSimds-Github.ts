@@ -1,101 +1,64 @@
 import {
-	ProposalCategory as OwnedProposalCategory,
-	SpecificationRealm as OwnedSpecificationRealm,
+	ProposalCategory,
+	SpecificationRealm,
 } from '$/constants/SpecificationProposal.ts'
-import {
-	defineResolver,
-	type RegisteredSourceResolverModule,
-} from '$/resolvers/defineResolver.ts'
+import type { RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
+import defineSpecificationProposalResolvers from '$/resolvers/SpecificationProposal.ts'
 import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts'
 import { regex } from 'arkregex'
-import {
-	EntityMetaKey,
-} from '$/schema/$schema.ts'
-import { EntityType } from '$/schema/EntityType.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
 import { Source } from '$/sources/Source.ts'
-const solanaSimdProposalRows = async (
-	entries: {
-		type: string
-		name: string
-	}[]
-) => {
-	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-	return entries.flatMap((githubContent) => {
-		const proposalNumberRaw = regex('^(?<proposalNumber>\\d+)-.+\\.md$').exec(githubContent.name)?.groups.proposalNumber
-		const proposalNumber = proposalNumberRaw != null ?
-			parseInt(proposalNumberRaw, 10)
-		:
-			null
-
-		return githubContent.type !== 'file' || proposalNumber == null ?
-			[]
-		:
-			[{
-				[EntityMetaKey.Selector]: {
-					realm: SpecificationRealm.Solana,
-					category: ProposalCategory.Simd,
-					number: proposalNumber,
-				},
-			}]
-	})
-}
 
 export default {
 	source: Source.SolanaSimds_Github,
 
-	resolvers: [
-		defineResolver({
-			entityType: EntityType.SpecificationProposal,
-			resolve: {
-				RealmCategoryNumber: {
-					appliesTo: [
-						{
-							realm: OwnedSpecificationRealm.Solana,
-							category: OwnedProposalCategory.Simd,
+	resolvers: defineSpecificationProposalResolvers({
+		appliesTo: [
+			{
+				realm: SpecificationRealm.Solana,
+				category: ProposalCategory.Simd,
+			},
+		],
+		resolveProposal: async ({ number }) => {
+			const { getProposalMarkdownText } = await import('$/sources/SolanaSimds/Github/queries.ts')
+			const text = await getProposalMarkdownText({ number })
+			const body = stripFrontmatter(text)
+			const frontmatter = parseFrontmatter(text)
+			return {
+				documentBody: body.length > 0 ? body : undefined,
+				documentCategory: frontmatter.category?.trim() || 'SIMD',
+				documentStatus: frontmatter.status?.trim() || undefined,
+				documentTitle: (
+					frontmatter.title?.trim()
+					|| body.match(/^#\s*(.+)$/m)?.[1]?.trim()
+				),
+			}
+		},
+		resolveProposalIndex: async () => {
+			const { getProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
+			const proposals = (await getProposalContents()).flatMap((githubContent) => {
+				const proposalNumber = regex('^(?<proposalNumber>\\d{4})-.+\\.md$').exec(githubContent.name)?.groups.proposalNumber
+				return githubContent.type !== 'file' || proposalNumber == null ?
+					[]
+				:
+					[{
+						[EntityMetaKey.Selector]: {
+							realm: SpecificationRealm.Solana,
+							category: ProposalCategory.Simd,
+							number: parseInt(proposalNumber, 10),
 						},
-					],
-					resolve: async ({ category, number, realm }) => {
-					const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-					if (realm !== SpecificationRealm.Solana || category !== ProposalCategory.Simd) {
-						throw new Error('SolanaSimds_Github: unsupported proposal id')
-					}
-					const { getProposalMarkdownText } = await import('$/sources/SolanaSimds/Github/queries.ts')
-					const text = await getProposalMarkdownText({
-						number: number,
-					})
-					const body = stripFrontmatter(text)
-					const frontmatter = parseFrontmatter(text)
-					return {
-						documentCategory: frontmatter.category.trim() || 'SIMD',
-						documentTitle: (
-							frontmatter.title.trim()
-							|| body.match(/^#\s*(.+)$/m)?.[1]?.trim()
-						),
-						documentStatus: frontmatter.status.trim() || undefined,
-						documentBody: body.length > 0 ? body : undefined,
-					}
-				},
-				}
-			}
-		})({
-			documentCategory: (snapshot) => snapshot.documentCategory,
-			documentTitle: (snapshot) => snapshot.documentTitle,
-			documentStatus: (snapshot) => snapshot.documentStatus,
-			documentBody: (snapshot) => snapshot.documentBody,
-		}),
+					}]
+			}).toSorted((left, right) => (
+				left[EntityMetaKey.Selector].number - right[EntityMetaKey.Selector].number
+			))
+			for (const [number, proposalsForNumber] of Map.groupBy(
+				proposals,
+				(proposal) => proposal[EntityMetaKey.Selector].number
+			))
+				if (proposalsForNumber.length > 1)
+					throw new Error(`SolanaSimds_Github: proposal ${number} has duplicate files`)
 
-		defineResolver({
-			entityType: EntityType._Global,
-			resolve: {
-				Scope: {
-					resolve: async () => {
-						const { getProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
-						return solanaSimdProposalRows(await getProposalContents())
-					},
-				}
-			}
-		})({
-			$$proposals: (snapshot) => snapshot,
-		}),
-	],
+			return proposals
+		},
+	}),
 } satisfies RegisteredSourceResolverModule
