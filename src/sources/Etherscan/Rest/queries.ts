@@ -59,19 +59,16 @@ const etherscanAccountListRows = async <T>({
 	publicEnv,
 	chainId,
 	query,
-	options,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	query: Record<string, string | undefined>
-	options?: { apiKey?: string }
 }) => (
 	etherscanV2UnwrapAccountResultArray(
 		await etherscanV2GetJson<EtherscanAccountArray<T>>({
 			chainId,
 			publicEnv,
 			query,
-			options,
 		})
 	)
 )
@@ -88,12 +85,10 @@ export const getTransactionByHash = async ({
 	publicEnv,
 	chainId,
 	txHash,
-	options,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	txHash: string
-	options?: { apiKey?: string }
 }) => {
 	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
 	if (normalizedTxHash == null) return null
@@ -106,7 +101,6 @@ export const getTransactionByHash = async ({
 			action: 'eth_getTransactionByHash',
 			txhash: normalizedTxHash,
 		},
-		options,
 	})
 }
 
@@ -118,12 +112,10 @@ export const getTransactionReceipt = async ({
 	publicEnv,
 	chainId,
 	txHash,
-	options,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	txHash: string
-	options?: { apiKey?: string }
 }) => {
 	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
 	if (normalizedTxHash == null) return null
@@ -136,7 +128,6 @@ export const getTransactionReceipt = async ({
 			action: 'eth_getTransactionReceipt',
 			txhash: normalizedTxHash,
 		},
-		options,
 	})
 }
 
@@ -147,11 +138,9 @@ export const getTransactionReceipt = async ({
 export const getBlockNumber = async ({
 	publicEnv,
 	chainId,
-	options,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
-	options?: { apiKey?: string }
 }) => {
 	const blockNumberHex = await etherscanV2GetProxyResult<string>({
 		chainId,
@@ -160,7 +149,6 @@ export const getBlockNumber = async ({
 			module: 'proxy',
 			action: 'eth_blockNumber',
 		},
-		options,
 	})
 	return typeof blockNumberHex === 'string' ? blockNumberHex : null
 }
@@ -174,13 +162,11 @@ export const getBlockByNumber = async ({
 	chainId,
 	tag,
 	boolean,
-	options,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	tag: string
 	boolean: boolean
-	options?: { apiKey?: string }
 }) => (
 	etherscanV2GetProxyResult<RpcBlockHeader>({
 		chainId,
@@ -191,7 +177,6 @@ export const getBlockByNumber = async ({
 			tag,
 			boolean: boolean ? 'true' : 'false',
 		},
-		options,
 	})
 )
 
@@ -204,12 +189,10 @@ export const getContractAbiJsonString = async ({
 	publicEnv,
 	chainId,
 	address,
-	options,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
-	options?: { apiKey?: string }
 }) => {
 	const wire = await etherscanV2GetJson<EtherscanStringStatus>({
 		chainId,
@@ -219,7 +202,6 @@ export const getContractAbiJsonString = async ({
 			action: 'getabi',
 			address,
 		},
-		options,
 	})
 	if (wire.status === '1' && typeof wire.result === 'string' && wire.result.trim())
 		return wire.result
@@ -228,7 +210,6 @@ export const getContractAbiJsonString = async ({
 		publicEnv,
 		chainId,
 		address,
-		options,
 	})
 	const abi = sourceRow?.ABI
 	return typeof abi === 'string' && abi.trim() ? abi : null
@@ -242,12 +223,10 @@ export const getContractSourceCode = async ({
 	publicEnv,
 	chainId,
 	address,
-	options,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
-	options?: { apiKey?: string }
 }) => {
 	const wire = await etherscanV2GetJson<import('$/sources/Etherscan/Rest/types.ts').EtherscanContractSourceCode>({
 		chainId,
@@ -257,7 +236,6 @@ export const getContractSourceCode = async ({
 			action: 'getsourcecode',
 			address,
 		},
-		options,
 	})
 	if (wire.status !== '1' || !Array.isArray(wire.result)) return null
 	return wire.result[0] ?? null
@@ -271,12 +249,10 @@ export const getContractCreation = async ({
 	publicEnv,
 	chainId,
 	address,
-	options,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
-	options?: { apiKey?: string }
 }) => {
 	const wire = await etherscanV2GetJson<import('$/sources/Etherscan/Rest/types.ts').EtherscanContractCreation>({
 		chainId,
@@ -286,7 +262,6 @@ export const getContractCreation = async ({
 			action: 'getcontractcreation',
 			contractaddresses: address,
 		},
-		options,
 	})
 	if (wire.status !== '1' || !Array.isArray(wire.result)) return null
 	return (
@@ -303,12 +278,10 @@ export const getCode = async ({
 	publicEnv,
 	chainId,
 	address,
-	options,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
-	options?: { apiKey?: string }
 }) => (
 	etherscanV2GetProxyResult<`0x${string}`>({
 		chainId,
@@ -319,7 +292,6 @@ export const getCode = async ({
 			address,
 			tag: 'latest',
 		},
-		options,
 	})
 )
 
@@ -329,13 +301,11 @@ export const getStorageAt = async ({
 	chainId,
 	address,
 	slotQuantityHex,
-	options,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
 	slotQuantityHex: `0x${string}`
-	options?: { apiKey?: string }
 }) => (
 	etherscanV2GetProxyResult<`0x${string}`>({
 		chainId,
@@ -347,7 +317,6 @@ export const getStorageAt = async ({
 			position: slotQuantityHex,
 			tag: 'latest',
 		},
-		options,
 	})
 )
 
@@ -358,11 +327,9 @@ export const getStorageAt = async ({
 export const getGasOracle = async ({
 	publicEnv,
 	chainId,
-	options,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
-	options?: { apiKey?: string }
 }) => {
 	const wire = await etherscanV2GetJson<EtherscanGasOracle>({
 		chainId,
@@ -371,7 +338,6 @@ export const getGasOracle = async ({
 			module: 'gastracker',
 			action: 'gasoracle',
 		},
-		options,
 	})
 	if (wire.status !== '1') return null
 	return wire.result
@@ -393,14 +359,12 @@ const getTokenTransfersByAddressAction = <_Action extends keyof EtherscanTokenTr
 	address,
 	offset,
 	action,
-	options,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
 	offset: number
 	action: _Action
-	options?: { apiKey?: string }
 }) => (
 	etherscanAccountListRows<EtherscanTokenTransferByAction[_Action]>({
 		publicEnv,
@@ -412,7 +376,6 @@ const getTokenTransfersByAddressAction = <_Action extends keyof EtherscanTokenTr
 			}),
 			action,
 		},
-		options,
 	})
 )
 
@@ -424,13 +387,11 @@ export const getTokenTransfersByAddress = async ({
 	chainId,
 	address,
 	offset,
-	options,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
 	offset: number
-	options?: { apiKey?: string }
 }) => {
 	const [
 		erc20Rows,
@@ -443,7 +404,6 @@ export const getTokenTransfersByAddress = async ({
 			address,
 			offset,
 			action: 'tokentx',
-			options,
 		}),
 		getTokenTransfersByAddressAction({
 			publicEnv,
@@ -451,7 +411,6 @@ export const getTokenTransfersByAddress = async ({
 			address,
 			offset,
 			action: 'tokennfttx',
-			options,
 		}),
 		getTokenTransfersByAddressAction({
 			publicEnv,
@@ -459,7 +418,6 @@ export const getTokenTransfersByAddress = async ({
 			address,
 			offset,
 			action: 'token1155tx',
-			options,
 		}),
 	])
 	if (erc20Rows == null || erc721Rows == null || erc1155Rows == null) return null
@@ -507,13 +465,11 @@ export const getTokenTransfersByTransaction = async ({
 	chainId,
 	txHash,
 	offset,
-	options,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	txHash: string
 	offset: number
-	options?: { apiKey?: string }
 }) => {
 	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
 	if (normalizedTxHash == null) return null
@@ -522,7 +478,6 @@ export const getTokenTransfersByTransaction = async ({
 		publicEnv,
 		chainId,
 		txHash: normalizedTxHash,
-		options,
 	})
 	if (tx == null) return null
 	const participantAddresses = [
@@ -544,7 +499,6 @@ export const getTokenTransfersByTransaction = async ({
 				chainId,
 				address,
 				offset,
-				options,
 			})
 		))
 	)
@@ -580,13 +534,11 @@ export const getInternalTransactionsByAddress = ({
 	chainId,
 	address,
 	offset,
-	options,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	address: `0x${string}`
 	offset: number
-	options?: { apiKey?: string }
 }) => (
 	etherscanAccountListRows<EtherscanInternalTransaction>({
 		publicEnv,
@@ -598,7 +550,6 @@ export const getInternalTransactionsByAddress = ({
 			}),
 			action: 'txlistinternal',
 		},
-		options,
 	})
 )
 
@@ -610,12 +561,10 @@ export const getInternalTransactionsByTxHash = async ({
 	publicEnv,
 	chainId,
 	txHash,
-	options,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	txHash: string
-	options?: { apiKey?: string }
 }) => {
 	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
 	if (normalizedTxHash == null) return null
@@ -628,6 +577,5 @@ export const getInternalTransactionsByTxHash = async ({
 			action: 'txlistinternal',
 			txhash: normalizedTxHash,
 		},
-		options,
 	})
 }

@@ -1,7 +1,7 @@
 /**
 	* Etherscan API V2 client — **`GET`** **`https://api.etherscan.io/v2/api`** with **`chainid`** and optional **`apikey`**.
 	*
-	* **`apikey`**: `options.apiKey`, else `publicEnv.PUBLIC_ETHERSCAN_API_KEY`.
+	* **`apikey`**: `publicEnv.PUBLIC_ETHERSCAN_API_KEY` when configured by the binding.
 	*
 	* @see https://docs.etherscan.io/v2-migration
 	* @see https://docs.etherscan.io/getting-started
@@ -73,12 +73,10 @@ export const etherscanV2GetJson = async <T>({
 	chainId,
 	query,
 	publicEnv,
-	options,
 }: {
 	chainId: number
 	query: Record<string, string | undefined>
 	publicEnv: SourcePublicEnv
-	options?: { apiKey?: string }
 }) => {
 	if (!supportedChainIds.some((supportedChainId) => supportedChainId === chainId))
 		throw new Error(`Etherscan_Rest: unsupported chain ${String(chainId)}`)
@@ -88,10 +86,7 @@ export const etherscanV2GetJson = async <T>({
 	for (const [key, value] of Object.entries(query)) {
 		if (value !== undefined) search.set(key, value)
 	}
-	const apiKey = (
-		options?.apiKey?.trim()
-		?? optionalPublicEnvString(publicEnv, 'PUBLIC_ETHERSCAN_API_KEY')
-	)
+	const apiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_ETHERSCAN_API_KEY')
 	if (apiKey !== undefined) search.set('apikey', apiKey)
 	return sourceGetJson<T>(binding, `${firstHttpUrlForBinding(binding)}?${search}`)
 }
