@@ -158,101 +158,94 @@
 	{/snippet}
 
 	{#snippet Details()}
-					{#if selection.entitySelector.marketKind === 'Spot'}
-						<ProjectionBoundary
-							resource={selection.Spot}
-						>
-							{#snippet Applicable(projection)}
-								<CollapsibleTabs
-									id={viewDomId + '-carousel-market-spot'}
-									sectionIdPrefix={viewDomId}
-									sections={
-										[
-											{
-												id: 'market-prices',
-												label: 'Spot',
-											},
-											{
-												id: 'market-ohlc',
-												label: 'Candles',
-											},
-										]
-									}
-									data-card
-									class='network-view-collapsible-spot'
-								>
-									{#snippet Summary()}
-										<header data-row-item="flexible" data-row="wrap gap-4">
-											<HeadingComponent>Spot</HeadingComponent>
-										</header>
-									{/snippet}
+		<ProjectionBoundary
+			resource={selection.Spot}
+		>
+			{#snippet Applicable(projection)}
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-market-spot'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'market-prices',
+								label: 'Spot',
+							},
+							{
+								id: 'market-ohlc',
+								label: 'Candles',
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-spot'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Spot</HeadingComponent>
+						</header>
+					{/snippet}
 
-									{#snippet SectionMarketPrices({ id, label })}
-										<MarketPricesView
-											selection={selection.$$marketPrices}
-											collapsible={false}
-											title={label}
-											emptyText='No spot market prices.'
-											id={`${id}-list`}
-										/>
-									{/snippet}
+					{#snippet SectionMarketPrices({ id, label })}
+						<MarketPricesView
+							selection={selection.$$marketPrices}
+							collapsible={false}
+							title={label}
+							emptyText='No spot market prices.'
+							id={`${id}-list`}
+						/>
+					{/snippet}
 
-									{#snippet SectionMarketOhlc({ id, label })}
-										<Market_TimeInterval_TimestampsView
-											selection={selection.$$marketTimeIntervalTimestamps}
-											collapsible={false}
-											title={label}
-											emptyText='No OHLC candles.'
-											id={`${id}-list`}
-										/>
-									{/snippet}
+					{#snippet SectionMarketOhlc({ id, label })}
+						<Market_TimeInterval_TimestampsView
+							selection={selection.$$marketTimeIntervalTimestamps}
+							collapsible={false}
+							title={label}
+							emptyText='No OHLC candles.'
+							id={`${id}-list`}
+						/>
+					{/snippet}
 
-								</CollapsibleTabs>
-							{/snippet}
-						</ProjectionBoundary>
-					{/if}
+				</CollapsibleTabs>
+			{/snippet}
+		</ProjectionBoundary>
 
-					{#if [
-			'Perpetual',
-			'Futures',
-		].includes(selection.entitySelector.marketKind)}
-						<ProjectionBoundary
-							resource={selection.Derivative}
-						>
-							{#snippet Applicable(projection)}
-								<CollapsibleTabs
-									id={viewDomId + '-carousel-market-derivatives'}
-									sectionIdPrefix={viewDomId}
-									sections={
-										[
-											{
-												id: 'market-derivative-timestamps',
-												label: 'Derivative observations',
-											},
-										]
-									}
-									data-card
-									class='network-view-collapsible-derivatives'
-								>
-									{#snippet Summary()}
-										<header data-row-item="flexible" data-row="wrap gap-4">
-											<HeadingComponent>Derivative observations</HeadingComponent>
-										</header>
-									{/snippet}
+		<ProjectionBoundary
+			resource={selection.Derivative}
+		>
+			{#snippet Applicable(projection)}
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-market-derivatives'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'market-derivative-timestamps',
+								label: 'Derivative observations',
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-derivatives'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Derivative observations</HeadingComponent>
+						</header>
+					{/snippet}
 
-									{#snippet SectionMarketDerivativeTimestamps({ id, label })}
-										<Market_Derivative_TimestampsView
-											selection={selection.$$derivativeTimestamps}
-											collapsible={false}
-											title={label}
-											emptyText='No derivative observations.'
-											id={`${id}-list`}
-										/>
-									{/snippet}
+					{#snippet SectionMarketDerivativeTimestamps({ id, label })}
+						<Market_Derivative_TimestampsView
+							selection={selection.$$derivativeTimestamps}
+							collapsible={false}
+							title={label}
+							emptyText='No derivative observations.'
+							id={`${id}-list`}
+						/>
+					{/snippet}
 
-								</CollapsibleTabs>
-							{/snippet}
-						</ProjectionBoundary>
-					{/if}
+				</CollapsibleTabs>
+			{/snippet}
+		</ProjectionBoundary>
 	{/snippet}
 </EntityView>

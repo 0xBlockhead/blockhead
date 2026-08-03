@@ -319,8 +319,9 @@ test('entity hrefs compile directly from routes without a parallel artifact fami
 	const marketAssetView = generatedFiles.find(({ path }) => path === 'src/views/MarketAssetView.svelte')
 	assert(marketAssetView)
 	const renderedMarketAssetView = renderGeneratedFile(marketAssetView)
-	assert.match(renderedMarketAssetView, /\{#if selection\.entitySelector\.kind === 'Coin'\}[\s\S]*?resource=\{selection\.Coin\}/)
-	assert.match(renderedMarketAssetView, /\{#if selection\.entitySelector\.kind === 'Currency'\}[\s\S]*?resource=\{selection\.Currency\}/)
+	assert.match(renderedMarketAssetView, /resource=\{selection\.Coin\}/)
+	assert.match(renderedMarketAssetView, /resource=\{selection\.Currency\}/)
+	assert.doesNotMatch(renderedMarketAssetView, /\{#if selection\.entitySelector\.kind/)
 	assert.doesNotMatch(renderedMarketAssetView, /'\$coin' in|'\$currency' in/)
 	assert.doesNotMatch(renderedMarketAssetView, /const marketAsset =|resource=\{marketAsset\}/)
 	assert.doesNotMatch(renderedMarketAssetView, /fields: \{\s*(?:kind|assetKey): true/)
@@ -2359,11 +2360,11 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 	const evmTopologyCarouselIndex = renderedNetworkView.indexOf("id={viewDomId + '-carousel-evm-network-topology'}")
 	const evmDetailsCarousels = renderedNetworkView.slice(
 		renderedNetworkView.lastIndexOf(
-			"{#if pendingEntity.executionModels != null && pendingEntity.executionModels.values.includes('Evm')}",
+			'\n\t\t<ProjectionBoundary\n\t\t\tresource={selection.Evm}',
 			evmTopologyCarouselIndex
 		),
 		renderedNetworkView.indexOf(
-			"{#if pendingEntity.executionModels != null && pendingEntity.executionModels.values.includes('CosmosSdk')}",
+			'\n\t\t<ProjectionBoundary\n\t\t\tresource={selection.Cosmos}',
 			evmTopologyCarouselIndex
 		)
 	)
@@ -2372,6 +2373,7 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 	assert.equal(evmDetailsCarousels.match(/\{#snippet Applicable\(projection\)\}/g)?.length, 2)
 	assert.match(evmDetailsCarousels, /<HeadingComponent>Topology<\/HeadingComponent>[\s\S]*?<HeadingComponent>Execution<\/HeadingComponent>[\s\S]*?resource=\{projection\.EthereumBeacon\}[\s\S]*?<HeadingComponent>Consensus and block production<\/HeadingComponent>[\s\S]*?<HeadingComponent>Contracts and accounts<\/HeadingComponent>[\s\S]*?<HeadingComponent>Assets<\/HeadingComponent>/)
 	assert.doesNotMatch(evmDetailsCarousels, /resource=\{selection\.Evm\.EthereumBeacon\}/)
+	assert.doesNotMatch(renderedNetworkView, /\{#if [^}]+\}\s*<ProjectionBoundary/)
 	assert.doesNotMatch(renderedNetworkView, /<ResourceBoundary[\s\S]{0,300}?<Projection projection=\{projectionValue\}>/)
 	assert.doesNotMatch(renderedNetworkView, /\{#snippet NotApplicable\(/)
 	assert.doesNotMatch(renderedNetworkView, /\{#snippet (?:Blocked|Unsupported)\(\)\}|data-section-state="projection-(?:blocked|unsupported)"/)
@@ -2585,10 +2587,10 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 		renderedNetworkView.indexOf('<dl data-column-item="center">')
 	)
 	assert.match(networkLatest, /<dt>Upgrade<\/dt>[\s\S]*?<dt>Block<\/dt>[\s\S]*?<dt>Fee market<\/dt>[\s\S]*?<dt>Mempool<\/dt>[\s\S]*?<dt>Epoch<\/dt>[\s\S]*?<dt>Slot<\/dt>/)
-	assert.equal(networkLatest.match(/pendingEntity\.executionModels != null && pendingEntity\.executionModels\.values\.includes\('Evm'\)/g)?.length, 1)
+	assert.doesNotMatch(networkLatest, /pendingEntity\.executionModels/)
 	assert.equal(networkLatest.match(/resource=\{selection\.Evm\}/g)?.length, 1)
 	assert.equal(networkLatest.match(/<ResourceBoundary/g)?.length, 6)
-	assert.match(networkLatest, /\{#snippet Applicable\(projection\)\}[\s\S]*?<dt>Mempool<\/dt>[\s\S]*?\{#if pendingEntity\.consensusProtocol === 'EthereumBeacon'\}[\s\S]*?resource=\{projection\.EthereumBeacon\}[\s\S]*?<dt>Epoch<\/dt>[\s\S]*?selection\.Evm\s*\.\$\$beaconEpochs\([\s\S]*?<dt>Slot<\/dt>[\s\S]*?selection\.Evm\s*\.\$\$beaconSlots\(/)
+	assert.match(networkLatest, /\{#snippet Applicable\(projection\)\}[\s\S]*?<dt>Mempool<\/dt>[\s\S]*?resource=\{projection\.EthereumBeacon\}[\s\S]*?<dt>Epoch<\/dt>[\s\S]*?selection\.Evm\s*\.\$\$beaconEpochs\([\s\S]*?<dt>Slot<\/dt>[\s\S]*?selection\.Evm\s*\.\$\$beaconSlots\(/)
 	const ethereumBeaconCarousel = renderedNetworkView.slice(
 		renderedNetworkView.indexOf('{#snippet SectionEvmConsensusUpgrades'),
 		renderedNetworkView.indexOf('{#snippet SectionEvmContractsPrecompiles')
@@ -3068,7 +3070,16 @@ test('renders selected entity titles on every multi-selector detail page', () =>
 	assert.doesNotMatch(renderGeneratedFile(networkLayout), /selectorName: string|EntitySelector<typeof schema/)
 })
 
-test('gates subject-specific carousels through schema facets', () => {
+test('renders facet applicability through projection boundaries', () => {
+	for (const generatedView of baselineCompiledApp.generatedFiles.filter(
+		(generatedFile) => generatedFile.path.startsWith('src/views/')
+	))
+		assert.doesNotMatch(
+			renderGeneratedFile(generatedView),
+			/\{#if [^}]+\}\s*<ProjectionBoundary/,
+			generatedView.path
+		)
+
 	const marketView = baselineCompiledApp.generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/MarketView.svelte')
 
 	assert.ok(marketView)

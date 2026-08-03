@@ -1203,53 +1203,19 @@ const projectionViewConditions = (
 	.flatMap(viewConditionFromFacetCondition)
 
 const renderProjectionPathBoundaryLines = (
-	entity: Entity,
-	indexes: GenerationIndexes,
-	projectionPath: readonly string[],
 	resourceExpression: string,
 	projectionName: string,
 	renderContent: () => string[],
-	level: number,
-	parentProjectionPath: readonly string[] = []
-) => {
-	const boundaryLines = [
+	level: number
+) => [
 		`${'\t'.repeat(level)}<ProjectionBoundary`,
 		renderSvelteAttribute(level + 1, 'resource', resourceExpression),
 		`${'\t'.repeat(level)}>`,
 		...renderSvelteSnippet(level + 1, `Applicable(${projectionName})`, renderContent()),
 		`${'\t'.repeat(level)}</ProjectionBoundary>`,
 	]
-	const parentConditions = parentProjectionPath.length === 0 ?
-		[]
-		:
-		projectionViewConditions(
-			entity,
-			indexes,
-			parentProjectionPath
-		)
-	const conditions = projectionViewConditions(entity, indexes, projectionPath)
-		.slice(parentConditions.length)
-	if (conditions.length === 0 || !conditions.every(({ field }) => entitySelectorOwnsField(entity, field))) {
-		if (conditions.length === 0 || entity.views.singular?.pending == null)
-			return boundaryLines
-
-		return [
-			`${'\t'.repeat(level)}{#if ${conditionExpression(conditions, pendingEntityExpression, entity, indexes, true, true)}}`,
-			...boundaryLines.map((line) => indent(line)),
-			`${'\t'.repeat(level)}{/if}`,
-		]
-	}
-
-	return [
-		`${'\t'.repeat(level)}{#if ${conditionExpression(conditions, 'selection.entitySelector', entity, indexes)}}`,
-		...boundaryLines.map((line) => indent(line)),
-		`${'\t'.repeat(level)}{/if}`,
-	]
-}
 
 const renderProjectionBoundaryLines = (
-	entity: Entity,
-	indexes: GenerationIndexes,
 	field: FieldReference,
 	renderContent: (
 		fieldResourceBase: string,
@@ -1262,9 +1228,6 @@ const renderProjectionBoundaryLines = (
 		return content
 
 	return renderProjectionPathBoundaryLines(
-		entity,
-		indexes,
-		field.slice(0, -1),
 		fieldResourceBaseExpression('selection', field),
 		'projection',
 		() => renderContent('projection', fieldNameForReference(field)),
@@ -1306,17 +1269,13 @@ const renderProjectionPathTree = <_Value>(
 			childFacetName,
 		]
 		return renderProjectionPathBoundaryLines(
-			entity,
-			indexes,
-			projectionPath,
 			`${parentProjectionPath.length === 0 ? 'selection' : 'projection'}${propertyAccess(childFacetName)}`,
 			'projection',
 			() => renderProjectionLevel(
 				group.map(({ value }) => value),
 				projectionPath
 			),
-			level,
-			parentProjectionPath
+			level
 		)
 	})
 
@@ -1381,7 +1340,7 @@ const renderProjectionOwnedGroups = <_Value>(
 		if (projectionFieldReferences.length !== matchingGroups.length)
 			return matchingGroups.flatMap(({ render }) => render())
 		if (matchingGroups.length === 1)
-			return renderProjectionBoundaryLines(entity, indexes, projectionFieldReferences[0]!, () => matchingGroups[0]!.render('projection'), level)
+			return renderProjectionBoundaryLines(projectionFieldReferences[0]!, () => matchingGroups[0]!.render('projection'), level)
 
 		const equalityConditions = projectionFieldReferences.map((fieldReference) => {
 			const conditions = projectionViewConditions(entity, indexes, fieldReference.slice(0, -1))
@@ -1392,7 +1351,7 @@ const renderProjectionOwnedGroups = <_Value>(
 			|| new Set(equalityConditions.map((condition) => condition?.field)).size !== 1
 			|| new Set(equalityConditions.map((condition) => condition?.equals)).size !== equalityConditions.length
 		)
-			return matchingGroups.flatMap(({ projectionFieldReference, render }) => renderProjectionBoundaryLines(entity, indexes, projectionFieldReference!, () => render('projection'), level))
+			return matchingGroups.flatMap(({ projectionFieldReference, render }) => renderProjectionBoundaryLines(projectionFieldReference!, () => render('projection'), level))
 
 		return [
 			`${'\t'.repeat(level)}<ProjectionBoundary`,
@@ -10321,19 +10280,7 @@ const generateSingularViewFile = (
 		if (carouselSectionComponent(entity, indexes, section) == null)
 			return []
 
-		const fieldDefinition = section.field == null ? undefined : fieldDefinitionByReference(entity, section.field, indexes)
-		const sources = section.selection?.sources ?? fieldDefinition?.defaultSources
-
-		return [renderQuery(
-			fieldDefinition?.type === EntityFieldType.EntityReference
-			|| entity.entityType === EntityType.Network
-				&& sources != null
-				&& networkSourceSelectionNeedsFiltering(indexes, sources) ?
-				section.selection
-			:
-				section.selection,
-			[]
-		)]
+		return [renderQuery(section.selection, [])]
 	}))
 	const {
 		expression: entityHrefExpression,
@@ -11806,8 +11753,6 @@ const renderContentItem = (
 		throw new Error(`${entity.entityType}.${fieldName} primitive list label comes from the schema field`)
 	if (projectionBoundary && isProjectionFieldReference(fieldReference))
 		return renderProjectionBoundaryLines(
-			entity,
-			indexes,
 			fieldReference,
 			(projectionFieldResourceBase) => renderContentItem(
 				entity,
@@ -12077,8 +12022,6 @@ const renderLatestContentItem = (
 		return renderConditionedLines(fieldResource.base, fieldResource.field)
 
 	return renderProjectionBoundaryLines(
-		entity,
-		indexes,
 		latest.field,
 		renderConditionedLines,
 		level
@@ -12248,8 +12191,6 @@ const renderRelationshipSection = (
 		level,
 		projectionFieldResourceBase == null ?
 			renderProjectionBoundaryLines(
-				entity,
-				indexes,
 				section.field,
 				renderSection,
 				level

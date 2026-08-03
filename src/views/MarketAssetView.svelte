@@ -76,79 +76,73 @@
 		</dl>
 
 		<dl data-column-item="center">
-			{#if selection.entitySelector.kind === 'Coin'}
-				<ProjectionBoundary
-					resource={selection.Coin}
-				>
-					{#snippet Applicable(projection)}
-						<div>
-							<dt>Coin</dt>
-							<dd>
-								<ResourceBoundary
-									resource={projection.$coin}
-								>
-									{#snippet children(coin)}
-										<CoinView
-											selection={select(EntityType.Coin, coin[EntityMetaKey.Selector])}
-											prefetched={coin}
-											layout={EntityLayout.Value}
-										/>
-									{/snippet}
-								</ResourceBoundary>
-							</dd>
-						</div>
-					{/snippet}
-				</ProjectionBoundary>
-			{/if}
+			<ProjectionBoundary
+				resource={selection.Coin}
+			>
+				{#snippet Applicable(projection)}
+					<div>
+						<dt>Coin</dt>
+						<dd>
+							<ResourceBoundary
+								resource={projection.$coin}
+							>
+								{#snippet children(coin)}
+									<CoinView
+										selection={select(EntityType.Coin, coin[EntityMetaKey.Selector])}
+										prefetched={coin}
+										layout={EntityLayout.Value}
+									/>
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/snippet}
+			</ProjectionBoundary>
 
-			{#if selection.entitySelector.kind === 'CoinInstance'}
-				<ProjectionBoundary
-					resource={selection.CoinInstance}
-				>
-					{#snippet Applicable(projection)}
-						<div>
-							<dt>Coin instance</dt>
-							<dd>
-								<ResourceBoundary
-									resource={projection.$coinInstance}
-								>
-									{#snippet children(evmCoinInstance)}
-										<EvmCoinInstanceView
-											selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-											layout={EntityLayout.Value}
-										/>
-									{/snippet}
-								</ResourceBoundary>
-							</dd>
-						</div>
-					{/snippet}
-				</ProjectionBoundary>
-			{/if}
+			<ProjectionBoundary
+				resource={selection.CoinInstance}
+			>
+				{#snippet Applicable(projection)}
+					<div>
+						<dt>Coin instance</dt>
+						<dd>
+							<ResourceBoundary
+								resource={projection.$coinInstance}
+							>
+								{#snippet children(evmCoinInstance)}
+									<EvmCoinInstanceView
+										selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+										layout={EntityLayout.Value}
+									/>
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/snippet}
+			</ProjectionBoundary>
 
-			{#if selection.entitySelector.kind === 'Currency'}
-				<ProjectionBoundary
-					resource={selection.Currency}
-				>
-					{#snippet Applicable(projection)}
-						<div>
-							<dt>Currency</dt>
-							<dd>
-								<ResourceBoundary
-									resource={projection.$currency}
-								>
-									{#snippet children(currency)}
-										<CurrencyView
-											selection={select(EntityType.Currency, currency[EntityMetaKey.Selector])}
-											prefetched={currency}
-											layout={EntityLayout.Value}
-										/>
-									{/snippet}
-								</ResourceBoundary>
-							</dd>
-						</div>
-					{/snippet}
-				</ProjectionBoundary>
-			{/if}
+			<ProjectionBoundary
+				resource={selection.Currency}
+			>
+				{#snippet Applicable(projection)}
+					<div>
+						<dt>Currency</dt>
+						<dd>
+							<ResourceBoundary
+								resource={projection.$currency}
+							>
+								{#snippet children(currency)}
+									<CurrencyView
+										selection={select(EntityType.Currency, currency[EntityMetaKey.Selector])}
+										prefetched={currency}
+										layout={EntityLayout.Value}
+									/>
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/snippet}
+			</ProjectionBoundary>
 		</dl>
 	{/snippet}
 </EntityView>
