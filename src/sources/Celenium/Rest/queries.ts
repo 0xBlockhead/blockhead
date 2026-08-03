@@ -106,6 +106,13 @@ const assertSafeInteger = (
 		throw new Error(`Celenium_Rest: ${label} exceeds lossless JSON integer range`)
 }
 
+const assertSafeIntegers = (
+	values: readonly (readonly [number, string])[]
+) => {
+	for (const [value, label] of values)
+		assertSafeInteger(value, label)
+}
+
 const assertDecimal = (
 	value: string,
 	label: string
@@ -149,13 +156,12 @@ export const getHead = async () => {
 		binding,
 		httpUrl(binding, '/v1/head')
 	))
-	for (const [value, label] of [
+	assertSafeIntegers([
 		[wire.last_height, 'head height'],
 		[wire.total_tx, 'transaction count'],
 		[wire.total_accounts, 'account count'],
 		[wire.total_blobs_size, 'total blob bytes'],
-	] satisfies [number, string][])
-		assertSafeInteger(value, label)
+	])
 	assertHash(wire.hash, 'head hash')
 	assertDecimal(wire.total_fee, 'total fee')
 	assertDecimal(wire.total_supply, 'total supply')
@@ -165,14 +171,13 @@ export const getHead = async () => {
 }
 
 const validatedBlockWire = (wire: typeof blockWire.infer) => {
-	for (const [value, label] of [
+	assertSafeIntegers([
 		[wire.height, 'block height'],
 		[wire.stats.tx_count, 'block transaction count'],
 		[wire.stats.blobs_count, 'block blob count'],
 		[wire.stats.blobs_size, 'block blob bytes'],
 		[wire.stats.bytes_in_block, 'block bytes'],
-	] satisfies [number, string][])
-		assertSafeInteger(value, label)
+	])
 	for (const [value, label] of [
 		[wire.hash, 'block hash'],
 		[wire.parent_hash, 'parent block hash'],
@@ -221,12 +226,11 @@ export const listBlocks = async ({
 }
 
 const validatedNamespaceWire = (wire: typeof namespaceWire.infer) => {
-	for (const [value, label] of [
+	assertSafeIntegers([
 		[wire.size, 'namespace bytes'],
 		[wire.blobs_count, 'namespace blob count'],
 		[wire.last_height, 'namespace last height'],
-	] satisfies [number, string][])
-		assertSafeInteger(value, label)
+	])
 	if (wire.version > 255)
 		throw new Error('Celenium_Rest: invalid namespace version')
 	if (!namespaceIdPattern.test(wire.namespace_id))
@@ -321,13 +325,12 @@ export const getTransaction = async (
 	))
 	if (wire.hash.toLowerCase() !== hash.toLowerCase())
 		throw new Error('Celenium_Rest: transaction response has mismatched identity')
-	for (const [value, label] of [
+	assertSafeIntegers([
 		[wire.height, 'transaction height'],
 		[wire.position, 'transaction position'],
 		[wire.gas_wanted, 'transaction gas wanted'],
 		[wire.gas_used, 'transaction gas used'],
-	] satisfies [number, string][])
-		assertSafeInteger(value, label)
+	])
 	assertDecimal(wire.fee, 'transaction fee')
 	for (const signer of wire.signers)
 		assertAddress(signer.hash)
