@@ -10034,11 +10034,13 @@ const generateSingularViewFile = (
 		}))
 		.filter((carousel) => carousel.sections.length > 0)
 	const carouselsToRender = [...carousels, ...contentWarningMediaCarousels]
-	const carouselSourceSelections = carouselsToRender.flatMap((carousel) => carousel.sections.flatMap((section) => {
-		const fieldDefinition = section.field == null ?
-			undefined
-			:
-			fieldDefinitionByReference(entity, section.field, indexes)
+	const carouselSectionPlans = carouselsToRender.flatMap((carousel) => carousel.sections.map((section) => ({
+		owner: 'carousel' as const,
+		section,
+		fieldDefinition: section.field == null ? undefined : fieldDefinitionByReference(entity, section.field, indexes),
+		component: carouselSectionComponent(entity, indexes, section),
+	})))
+	const carouselSourceSelections = carouselSectionPlans.flatMap(({ fieldDefinition, section }) => {
 		const sources = section.selection?.sources ?? fieldDefinition?.defaultSources
 		return (
 			sources == null
@@ -10047,7 +10049,7 @@ const generateSingularViewFile = (
 			:
 				[sources]
 		)
-	}))
+	})
 	const networkSourceApplicability = (
 		entity.entityType === EntityType.Network ?
 			renderNetworkSourceApplicabilityDeclarations(carouselSourceSelections)
@@ -10062,11 +10064,10 @@ const generateSingularViewFile = (
 		|| summaryEntityReferenceItems.length > 0
 		|| entityReferenceItems.length > 0
 		|| sections.some((section) => fieldDefinitionByReference(entity, section.field, indexes)?.type === EntityFieldType.EntityReference)
-		|| carouselsToRender.some((carousel) => carousel.sections.some((section) => (
-			section.field != null
-			&& carouselSectionComponent(entity, indexes, section) != null
-			&& fieldDefinitionByReference(entity, section.field, indexes)?.type === EntityFieldType.EntityReference
-		)))
+		|| carouselSectionPlans.some(({ component, fieldDefinition }) => (
+			component != null
+			&& fieldDefinition?.type === EntityFieldType.EntityReference
+		))
 	)
 	const declaredViewSourcesExpression = renderSourceSelectionExpression(viewQuery?.sources)
 	const viewSelectionExpression = (
@@ -10166,12 +10167,12 @@ const generateSingularViewFile = (
 	const usesItemSourceSelection = singularViewItems.some((viewItem) => (
 		viewItemSourceSelection(entity, indexes, viewItem) != null
 	))
-	const carouselQueries = carouselsToRender.flatMap((carousel) => carousel.sections.flatMap((section) => {
-		if (carouselSectionComponent(entity, indexes, section) == null)
+	const carouselQueries = carouselSectionPlans.flatMap(({ component, section }) => {
+		if (component == null)
 			return []
 
 		return [renderQuery(section.selection, [])]
-	}))
+	})
 	const {
 		expression: entityHrefExpression,
 		fieldBindings: hrefFieldBindings,
@@ -10280,41 +10281,34 @@ const generateSingularViewFile = (
 		renderRelationshipSection(entity, indexes, section, 2)
 	))
 	const sectionPlans = [
-		...sections.map((section) => ({
-			owner: 'relationship' as const,
-			section,
-		})),
-		...detailsTabSections.map((section) => ({
-			owner: 'detailsTab' as const,
-			section,
-		})),
-		...contentListRelationshipSections.map((section) => ({
-			owner: 'contentList' as const,
-			section,
-		})),
-		...carouselsToRender.flatMap((carousel) => carousel.sections.map((section) => ({
-			owner: 'carousel' as const,
-			section,
-		}))),
-	].map((plan) => {
-		const fieldDefinition = plan.section.field == null ? undefined : fieldDefinitionByReference(entity, plan.section.field, indexes)
-		const component = plan.owner === 'carousel' ?
-			carouselSectionComponent(entity, indexes, plan.section)
-			:
-			declaredRelationshipSectionComponent(plan.section, indexes)
-
-		return {
+		...[
+			...sections.map((section) => ({
+				owner: 'relationship' as const,
+				section,
+			})),
+			...detailsTabSections.map((section) => ({
+				owner: 'detailsTab' as const,
+				section,
+			})),
+			...contentListRelationshipSections.map((section) => ({
+				owner: 'contentList' as const,
+				section,
+			})),
+		].map((plan) => ({
 			...plan,
-			component,
-			fieldDefinition,
+			fieldDefinition: fieldDefinitionByReference(entity, plan.section.field, indexes),
+			component: declaredRelationshipSectionComponent(plan.section, indexes),
+		})),
+		...carouselSectionPlans,
+	].map((plan) => ({
+		...plan,
 			rendersDefaultEntitiesList: (
-				component != null
-				&& fieldDefinition?.type === EntityFieldType.EntitiesReference
-				&& fieldDefinition.entityType != null
-				&& isDefaultPluralViewComponent(indexes, fieldDefinition.entityType, component)
+				plan.component != null
+				&& plan.fieldDefinition?.type === EntityFieldType.EntitiesReference
+				&& plan.fieldDefinition.entityType != null
+				&& isDefaultPluralViewComponent(indexes, plan.fieldDefinition.entityType, plan.component)
 			),
-		}
-	})
+	}))
 	const sectionComponents = unique(sectionPlans.flatMap((plan) => (
 		plan.owner !== 'relationship' && plan.owner !== 'detailsTab'
 		|| plan.component == null
