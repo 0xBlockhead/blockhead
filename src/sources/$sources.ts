@@ -116,17 +116,10 @@ export const indexSourceProviders = <
 		const out = envSchema(subset)
 		if (out instanceof arktype.errors)
 			return null
+		if (Object.values(out).some((value) => value.trim() === ''))
+			return null
 
-		const subsetEntries: [string, string][] = []
-		for (const [key, value] of Object.entries(out)) {
-			if (value.trim() === '')
-				return null
-			subsetEntries.push([
-				key,
-				value,
-			])
-		}
-		return Object.fromEntries(subsetEntries)
+		return out
 	}
 
 	const enabledSourceEntries = sourceProviders.flatMap((sourceProvider) => {
@@ -135,8 +128,7 @@ export const indexSourceProviders = <
 			| undefined
 		>(sourceProvider.bindings).flatMap((bindings) => bindings ?? [])
 		return Object.keys(sourceProvider.sources).flatMap((source) => {
-			const sourceDefinition = sourceProvider.sources[source]
-			if (sourceDefinition == null)
+			if (sourceProvider.sources[source] == null)
 				return []
 
 			const sourceBindings = providerBindings.filter((binding) => (

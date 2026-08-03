@@ -10,6 +10,7 @@ import {
 	SourceTargetKind,
 	WireProtocol,
 	defineSources,
+	type _SourceArtifact,
 	type _SourceBinding,
 } from '../../APP.ts'
 
@@ -450,18 +451,11 @@ const invalidEvmArtifact = {
 } as const satisfies _SourceBinding
 
 const invalidHandwrittenOfficialArtifact = {
-	...validHttpBinding,
-	wireProtocol: WireProtocol.Graphql,
-	apiFamily: ApiFamily.GraphqlHttp,
-	artifacts: [
-		// @ts-expect-error Handwritten types cannot declare an official artifact URL.
-		{
-			kind: SourceArtifactKind.HandwrittenTypes,
-			path: 'types.ts',
-			officialUrl: 'https://example.test/openapi.json',
-		},
-	],
-} as const satisfies _SourceBinding
+	kind: SourceArtifactKind.HandwrittenTypes,
+	path: 'types.ts',
+	// @ts-expect-error Handwritten types cannot declare an official artifact URL.
+	officialUrl: 'https://example.test/openapi.json',
+} as const satisfies _SourceArtifact<SourceArtifactKind.HandwrittenTypes>
 
 const invalidFalseGeneratedArtifact = {
 	...validHttpBinding,
@@ -506,18 +500,12 @@ const validPublicConfigEnv = {
 } as const satisfies _SourceBinding
 
 const invalidGeneratedReferenceArtifact = {
-	...validHttpBinding,
-	apiFamily: ApiFamily.OpenApiHttp,
-	artifacts: [
-		// @ts-expect-error Generated official artifacts cannot declare a documentation reference URL.
-		{
-			kind: SourceArtifactKind.OpenApiTypes,
-			path: 'openapi.d.ts',
-			generated: true,
-			referenceUrl: 'https://example.test/docs',
-		},
-	],
-} as const satisfies _SourceBinding
+	kind: SourceArtifactKind.OpenApiTypes,
+	path: 'openapi.d.ts',
+	generated: true,
+	// @ts-expect-error Generated official artifacts cannot declare a documentation reference URL.
+	referenceUrl: 'https://example.test/docs',
+} as const satisfies _SourceArtifact<SourceArtifactKind.OpenApiTypes>
 
 void [
 	invalidProtocolFamily,
