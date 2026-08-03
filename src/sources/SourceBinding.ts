@@ -483,10 +483,16 @@ type SourceBindingsFor<
 	_Source extends Source,
 	_Matches extends readonly SourceBinding[] = [],
 > = number extends _Bindings['length'] ?
-	readonly [
-		SourceBindingFor<_Bindings[number], _Source>,
-		...SourceBindingFor<_Bindings[number], _Source>[],
-	]
+	_Matches extends readonly [SourceBinding, ...SourceBinding[]] ?
+		readonly [
+			..._Matches,
+			...SourceBindingFor<_Bindings[number], _Source>[],
+		]
+	:
+		readonly [
+			SourceBindingFor<_Bindings[number], _Source>,
+			...SourceBindingFor<_Bindings[number], _Source>[],
+		]
 : _Bindings extends readonly [
 	infer _Binding extends SourceBinding,
 	...infer _Remaining extends readonly SourceBinding[],
@@ -504,19 +510,33 @@ type SourceBindingsFor<
 
 type SourceBindingIndexFrom<
 	_Bindings extends readonly SourceBinding[],
-> = _Bindings extends readonly [SourceBinding, ...SourceBinding[]] ?
-	SourceBindingTupleHasWidenedSource<_Bindings> extends true ?
+> = _Bindings extends readonly [infer _First extends SourceBinding, ...SourceBinding[]] ?
+	number extends _Bindings['length'] ?
+		IsUnion<_First['source']> extends true ?
+			Partial<{
+				readonly [_Source in _Bindings[number]['source']]:
+					SourceBindingsFor<_Bindings, _Source>
+			}>
+		:
+			{
+				readonly [_Source in _First['source']]:
+					SourceBindingsFor<_Bindings, _Source>
+			} & Partial<{
+				readonly [_Source in Exclude<_Bindings[number]['source'], _First['source']>]:
+					SourceBindingsFor<_Bindings, _Source>
+			}>
+	: SourceBindingTupleHasWidenedSource<_Bindings> extends true ?
 		Partial<{
 			readonly [_Source in _Bindings[number]['source']]: readonly [
 				SourceBindingFor<_Bindings[number], _Source>,
 				...SourceBindingFor<_Bindings[number], _Source>[],
 			]
 		}>
-:
-	{
-		readonly [_Source in _Bindings[number]['source']]:
-			SourceBindingsFor<_Bindings, _Source>
-	}
+	:
+		{
+			readonly [_Source in _Bindings[number]['source']]:
+				SourceBindingsFor<_Bindings, _Source>
+		}
 :
 	Partial<{
 		readonly [_Source in _Bindings[number]['source']]:
@@ -525,13 +545,20 @@ type SourceBindingIndexFrom<
 
 // Native map/flatMap erase the nonempty target catalogs authored by APP.ts.
 // These overloads retain that cardinality so indexed source keys stay required.
+type SourceBindingsFromRows<
+	_Rows extends readonly unknown[],
+	_Binding extends SourceBinding,
+> = {
+	readonly [_Index in keyof _Rows]: _Binding
+}
+
 export function mapSourceBindings<
 	const _Rows extends readonly [unknown, ...unknown[]],
 	const _Binding extends SourceBinding,
 >(
 	rows: _Rows,
 	bindingFromRow: (row: _Rows[number]) => _Binding
-): readonly [_Binding, ..._Binding[]]
+): SourceBindingsFromRows<_Rows, _Binding>
 export function mapSourceBindings<_Row>(
 	rows: readonly _Row[],
 	bindingFromRow: (row: _Row) => SourceBinding
@@ -545,7 +572,7 @@ export function flatMapSourceBindings<
 	rows: _Rows,
 	bindingsFromRow: (row: _Rows[number]) => _Bindings
 ): readonly [
-	_Bindings[number],
+	..._Bindings,
 	..._Bindings[number][],
 ]
 export function flatMapSourceBindings<_Row>(

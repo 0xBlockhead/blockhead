@@ -6412,6 +6412,12 @@ const computedAcrossBindingsForSource: readonly [SourceBinding<Source.Across_Res
 const requiredComputedAcrossBindings: readonly SourceBinding<Source.Across_Rest>[] = computedAcrossBindings[Source.Across_Rest]
 const widenedBindings: readonly SourceBinding[] = [acrossBinding]
 const widenedAcrossBindings: readonly [SourceBinding<Source.Across_Rest>, ...SourceBinding<Source.Across_Rest>[]] | undefined = indexSourceBindings(widenedBindings)[Source.Across_Rest]
+const widenedVoyagerBindings: readonly SourceBinding<Source.Voyager>[] = [voyagerBinding]
+const prefixedBindings = indexSourceBindings([acrossBinding, ...widenedVoyagerBindings] as const)
+const prefixedAcrossBinding: typeof acrossBinding = prefixedBindings[Source.Across_Rest][0]
+const optionalPrefixedVoyagerBindings: readonly [SourceBinding<Source.Voyager>, ...SourceBinding<Source.Voyager>[]] | undefined = prefixedBindings[Source.Voyager]
+// @ts-expect-error A source present only in a possibly empty variadic tail is not required.
+const requiredPrefixedVoyagerBindings: readonly SourceBinding<Source.Voyager>[] = prefixedBindings[Source.Voyager]
 const unionBinding: SourceBinding<Source.Across_Rest | Source.Voyager> = acrossBinding
 const unionAcrossBindings: readonly [SourceBinding<Source.Across_Rest>, ...SourceBinding<Source.Across_Rest>[]] | undefined = indexSourceBindings([unionBinding].flatMap((binding) => [binding]))[Source.Across_Rest]
 const unionTupleAcrossBindings: readonly [SourceBinding<Source.Across_Rest>, ...SourceBinding<Source.Across_Rest>[]] | undefined = indexSourceBindings([unionBinding] as const)[Source.Across_Rest]
@@ -6474,6 +6480,8 @@ void typedSourceServerCredentials
 void mixedProxyCredentials
 void exactAcrossBindings
 void computedAcrossBindingsForSource
+void optionalPrefixedVoyagerBindings
+void prefixedAcrossBinding
 void nostrNip11Binding
 void nostrWebSocketBinding
 void requiredComputedAcrossBindings

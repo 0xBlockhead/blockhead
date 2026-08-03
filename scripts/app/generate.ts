@@ -7327,10 +7327,16 @@ type SourceBindingsFor<
 	_Source extends Source,
 	_Matches extends readonly SourceBinding[] = [],
 > = number extends _Bindings['length'] ?
-	readonly [
-		SourceBindingFor<_Bindings[number], _Source>,
-		...SourceBindingFor<_Bindings[number], _Source>[],
-	]
+	_Matches extends readonly [SourceBinding, ...SourceBinding[]] ?
+		readonly [
+			..._Matches,
+			...SourceBindingFor<_Bindings[number], _Source>[],
+		]
+	:
+		readonly [
+			SourceBindingFor<_Bindings[number], _Source>,
+			...SourceBindingFor<_Bindings[number], _Source>[],
+		]
 : _Bindings extends readonly [
 	infer _Binding extends SourceBinding,
 	...infer _Remaining extends readonly SourceBinding[],
@@ -7348,19 +7354,33 @@ type SourceBindingsFor<
 
 type SourceBindingIndexFrom<
 	_Bindings extends readonly SourceBinding[],
-> = _Bindings extends readonly [SourceBinding, ...SourceBinding[]] ?
-	SourceBindingTupleHasWidenedSource<_Bindings> extends true ?
+> = _Bindings extends readonly [infer _First extends SourceBinding, ...SourceBinding[]] ?
+	number extends _Bindings['length'] ?
+		IsUnion<_First['source']> extends true ?
+			Partial<{
+				readonly [_Source in _Bindings[number]['source']]:
+					SourceBindingsFor<_Bindings, _Source>
+			}>
+		:
+			{
+				readonly [_Source in _First['source']]:
+					SourceBindingsFor<_Bindings, _Source>
+			} & Partial<{
+				readonly [_Source in Exclude<_Bindings[number]['source'], _First['source']>]:
+					SourceBindingsFor<_Bindings, _Source>
+			}>
+	: SourceBindingTupleHasWidenedSource<_Bindings> extends true ?
 		Partial<{
 			readonly [_Source in _Bindings[number]['source']]: readonly [
 				SourceBindingFor<_Bindings[number], _Source>,
 				...SourceBindingFor<_Bindings[number], _Source>[],
 			]
 		}>
-:
-	{
-		readonly [_Source in _Bindings[number]['source']]:
-			SourceBindingsFor<_Bindings, _Source>
-	}
+	:
+		{
+			readonly [_Source in _Bindings[number]['source']]:
+				SourceBindingsFor<_Bindings, _Source>
+		}
 :
 	Partial<{
 		readonly [_Source in _Bindings[number]['source']]:
@@ -7369,13 +7389,20 @@ type SourceBindingIndexFrom<
 
 // Native map/flatMap erase the nonempty target catalogs authored by APP.ts.
 // These overloads retain that cardinality so indexed source keys stay required.
+type SourceBindingsFromRows<
+	_Rows extends readonly unknown[],
+	_Binding extends SourceBinding,
+> = {
+	readonly [_Index in keyof _Rows]: _Binding
+}
+
 export function mapSourceBindings<
 	const _Rows extends readonly [unknown, ...unknown[]],
 	const _Binding extends SourceBinding,
 >(
 	rows: _Rows,
 	bindingFromRow: (row: _Rows[number]) => _Binding
-): readonly [_Binding, ..._Binding[]]
+): SourceBindingsFromRows<_Rows, _Binding>
 export function mapSourceBindings<_Row>(
 	rows: readonly _Row[],
 	bindingFromRow: (row: _Row) => SourceBinding
@@ -7389,7 +7416,7 @@ export function flatMapSourceBindings<
 	rows: _Rows,
 	bindingsFromRow: (row: _Rows[number]) => _Bindings
 ): readonly [
-	_Bindings[number],
+	..._Bindings,
 	..._Bindings[number][],
 ]
 export function flatMapSourceBindings<_Row>(
@@ -7570,6 +7597,10 @@ const generateSourceProviderBindingsFile = (
 		}))
 		return {
 			binding,
+			publicBinding: {
+				...binding,
+				credentials: publicCredentials,
+			},
 			source: String(source),
 			endpoints: {
 				identity: JSON.stringify(binding.endpoints),
@@ -7617,14 +7648,14 @@ const generateSourceProviderBindingsFile = (
 		Object.groupBy(bindingRows, ({ source }) => source)
 	).map(([source, sourceBindingRows]) => {
 		const sourceTypeName = pascal(source)
-		const bindingGroups = [...Map.groupBy(sourceBindingRows, ({ binding }) => (
+		const bindingGroups = [...Map.groupBy(sourceBindingRows, ({ publicBinding }) => (
 			JSON.stringify([
-				binding.wireProtocol,
-				binding.apiFamily,
-				binding.operationGroups,
-				binding.delivery,
-				binding.credentials,
-				binding.artifacts ?? null,
+				publicBinding.wireProtocol,
+				publicBinding.apiFamily,
+				publicBinding.operationGroups,
+				publicBinding.delivery,
+				publicBinding.credentials,
+				publicBinding.artifacts ?? null,
 			])
 		)).values()]
 		const repeatedBindingGroups = bindingGroups.filter((group) => group.length > 1)
@@ -7662,17 +7693,17 @@ const generateSourceProviderBindingsFile = (
 		})
 		const repeatedBindingBaseByBinding = new Map(bindingGroups.flatMap((group, groupIndex) => {
 			const bindingBaseName = bindingBaseNames[groupIndex]
-			const binding = group[0]?.binding
-			if (bindingBaseName == null || binding == null)
+			const publicBinding = group[0]?.publicBinding
+			if (bindingBaseName == null || publicBinding == null)
 				return []
 
 			const base = {
 				identifier: bindingBaseName,
-				binding,
+				binding: publicBinding,
 			}
 			return group.map(({ binding: groupedBinding }) => [groupedBinding, base] as const)
 		}))
-		const bindingBaseByBinding = new Map(sourceBindingRows.flatMap(({ binding }) => {
+		const bindingBaseByBinding = new Map(sourceBindingRows.flatMap(({ binding, publicBinding }) => {
 			const repeatedBindingBase = repeatedBindingBaseByBinding.get(binding)
 			if (repeatedBindingBase != null)
 				return [[binding, repeatedBindingBase] as const]
@@ -7680,14 +7711,14 @@ const generateSourceProviderBindingsFile = (
 			// A unique capability extension is data on its target row; the shared
 			// transport/artifact axes still come from the repeated binding base.
 			const [compatibleBase, secondCompatibleBase] = unique([...repeatedBindingBaseByBinding.values()]).filter(({ binding: baseBinding }) => (
-				binding.wireProtocol === baseBinding.wireProtocol
-				&& binding.apiFamily === baseBinding.apiFamily
-				&& binding.delivery === baseBinding.delivery
-				&& JSON.stringify(binding.credentials) === JSON.stringify(baseBinding.credentials)
-				&& JSON.stringify(binding.artifacts ?? null) === JSON.stringify(baseBinding.artifacts ?? null)
-				&& baseBinding.operationGroups.length < binding.operationGroups.length
+				publicBinding.wireProtocol === baseBinding.wireProtocol
+				&& publicBinding.apiFamily === baseBinding.apiFamily
+				&& publicBinding.delivery === baseBinding.delivery
+				&& JSON.stringify(publicBinding.credentials) === JSON.stringify(baseBinding.credentials)
+				&& JSON.stringify(publicBinding.artifacts ?? null) === JSON.stringify(baseBinding.artifacts ?? null)
+				&& baseBinding.operationGroups.length < publicBinding.operationGroups.length
 				&& baseBinding.operationGroups.every((operationGroup, operationGroupIndex) => (
-					binding.operationGroups[operationGroupIndex] === operationGroup
+					publicBinding.operationGroups[operationGroupIndex] === operationGroup
 				))
 			))
 			return compatibleBase != null && secondCompatibleBase == null ?
@@ -7772,7 +7803,7 @@ const generateSourceProviderBindingsFile = (
 			binding.target.kind,
 			binding.target.key,
 		])).map((rows, blockIndex) => {
-			const variants = rows.flatMap(({ binding }) => {
+			const variants = rows.flatMap(({ binding, publicBinding }) => {
 				const base = sourcePlan.bindingBaseByBinding.get(binding)
 				const endpoint = binding.endpoints[0]
 				return base == null || endpoint == null || binding.endpoints.length !== 1 ?
@@ -7780,7 +7811,8 @@ const generateSourceProviderBindingsFile = (
 				:
 					[{
 						baseIdentifier: base.identifier,
-						binding,
+						baseBinding: base.binding,
+						binding: publicBinding,
 						endpoint,
 						operationGroups: (
 							JSON.stringify(binding.operationGroups) === JSON.stringify(base.binding.operationGroups) ?
@@ -7889,7 +7921,7 @@ const generateSourceProviderBindingsFile = (
 				] as const),
 			}))
 			if (JSON.stringify(rows.flatMap((row) => variants.map((variant, variantIndex) => ({
-				...variant.binding,
+				...variant.baseBinding,
 				...(row.operationGroups == null ? {} : {
 					operationGroups: row.operationGroups,
 				}),
@@ -7904,7 +7936,7 @@ const generateSourceProviderBindingsFile = (
 					:
 						row.values[variantIndex]?.[1],
 				}],
-			})))) !== JSON.stringify(sourceRows.map(({ binding }) => binding)))
+			})))) !== JSON.stringify(sourceRows.map(({ publicBinding }) => publicBinding)))
 				throw new Error(`${sourcePlan.source}: binding matrix does not reconstruct authored rows`)
 
 			return [{
