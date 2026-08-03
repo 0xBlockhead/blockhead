@@ -10279,38 +10279,44 @@ const generateSingularViewFile = (
 	const contentListSectionsFromDl = contentListRelationshipSections.flatMap((section) => (
 		renderRelationshipSection(entity, indexes, section, 2)
 	))
-	const sectionComponentPlans = [
-		...[...sections, ...detailsTabSections].map((section) => ({
-			kind: 'relationship' as const,
-			field: section.field,
-			component: declaredRelationshipSectionComponent(section, indexes),
+	const sectionPlans = [
+		...sections.map((section) => ({
+			owner: 'relationship' as const,
+			section,
+		})),
+		...detailsTabSections.map((section) => ({
+			owner: 'detailsTab' as const,
+			section,
 		})),
 		...contentListRelationshipSections.map((section) => ({
-			kind: 'contentList' as const,
-			field: section.field,
-			component: declaredRelationshipSectionComponent(section, indexes),
+			owner: 'contentList' as const,
+			section,
 		})),
 		...carouselsToRender.flatMap((carousel) => carousel.sections.map((section) => ({
-			kind: 'carousel' as const,
-			field: section.field,
-			component: carouselSectionComponent(entity, indexes, section),
+			owner: 'carousel' as const,
+			section,
 		}))),
 	].map((plan) => {
-		const fieldDefinition = plan.field == null ? undefined : fieldDefinitionByReference(entity, plan.field, indexes)
+		const fieldDefinition = plan.section.field == null ? undefined : fieldDefinitionByReference(entity, plan.section.field, indexes)
+		const component = plan.owner === 'carousel' ?
+			carouselSectionComponent(entity, indexes, plan.section)
+			:
+			declaredRelationshipSectionComponent(plan.section, indexes)
 
 		return {
 			...plan,
+			component,
 			fieldDefinition,
 			rendersDefaultEntitiesList: (
-				plan.component != null
+				component != null
 				&& fieldDefinition?.type === EntityFieldType.EntitiesReference
 				&& fieldDefinition.entityType != null
-				&& isDefaultPluralViewComponent(indexes, fieldDefinition.entityType, plan.component)
+				&& isDefaultPluralViewComponent(indexes, fieldDefinition.entityType, component)
 			),
 		}
 	})
-	const sectionComponents = unique(sectionComponentPlans.flatMap((plan) => (
-		plan.kind !== 'relationship'
+	const sectionComponents = unique(sectionPlans.flatMap((plan) => (
+		plan.owner !== 'relationship' && plan.owner !== 'detailsTab'
 		|| plan.component == null
 		|| plan.rendersDefaultEntitiesList ?
 			[]
@@ -10328,8 +10334,8 @@ const generateSingularViewFile = (
 		detailsTabs.flatMap((tab) => (
 			tab.items.flatMap((item) => item.component == null ? [] : [item.component])
 		)),
-		sectionComponentPlans.flatMap((plan) => (
-			plan.kind !== 'carousel'
+		sectionPlans.flatMap((plan) => (
+			plan.owner !== 'carousel'
 			|| plan.component == null
 			|| plan.rendersDefaultEntitiesList ?
 				[]
@@ -10340,9 +10346,9 @@ const generateSingularViewFile = (
 	))
 	// Only generated default collection branches introduce the shared list component.
 	// Authored raw snippets own their imports through the declared view import contract.
-	const usesGeneratedEntitiesList = sectionComponentPlans.some((plan) => (
+	const usesGeneratedEntitiesList = sectionPlans.some((plan) => (
 		plan.rendersDefaultEntitiesList
-		|| plan.kind === 'carousel'
+		|| plan.owner === 'carousel'
 			&& plan.fieldDefinition?.type === EntityFieldType.EntityReference
 			&& plan.fieldDefinition.cardinality === EntityFieldCardinality.Many
 	))
@@ -10573,15 +10579,9 @@ const generateSingularViewFile = (
 	]
 	const generatedUsesProjectionBoundary = (
 		singularViewItems.some((viewEntry) => itemFieldReferences(viewEntry).some(isProjectionFieldReference))
-		|| sections.some((section) => isProjectionFieldReference(section.field))
+		|| sectionPlans.some(({ section }) => section.field != null && isProjectionFieldReference(section.field))
 		|| latestItems.some((latest) => isProjectionFieldReference(latest.field))
-		|| carouselsToRender.some((carousel) => (
-			carousel.projectionPath != null
-			|| carousel.sections.some((section) => (
-				section.field != null
-				&& isProjectionFieldReference(section.field)
-			))
-		))
+		|| carouselsToRender.some((carousel) => carousel.projectionPath != null)
 	)
 	const generatedUsesIconComponent = (
 		singularView?.summary?.Icon == null
@@ -10604,18 +10604,11 @@ const generateSingularViewFile = (
 				&& !entitySelectorOwnsField(entity, fieldReference)
 			)
 		})
-		|| [
-			...sections,
-			...detailsTabSections,
-			...contentListRelationshipSections,
-		].some((section) => (
-			fieldDefinitionByReference(entity, section.field, indexes)?.type === EntityFieldType.EntityReference
-			&& !entitySelectorOwnsField(entity, section.field)
-		))
-		|| carouselsToRender.some((carousel) => carousel.sections.some((section) => (
+		|| sectionPlans.some(({ fieldDefinition, owner, section }) => (
 			section.field != null
-			&& fieldDefinitionByReference(entity, section.field, indexes)?.type === EntityFieldType.EntityReference
-		)))
+			&& fieldDefinition?.type === EntityFieldType.EntityReference
+			&& (owner === 'carousel' || !entitySelectorOwnsField(entity, section.field))
+		))
 	)
 	const generatedUsesResourceBoundary = (
 		contentWarning != null
@@ -10626,29 +10619,19 @@ const generateSingularViewFile = (
 			&& !summaryPlan.icon.items[0].selectorOwned
 		|| summaryPlan.title.raw == null && summaryPlan.title.resolvesEntity
 		|| summaryPlan.value.raw == null && summaryPlan.value.resolvesEntity
-		|| [
-			...sections,
-			...detailsTabSections,
-			...contentListRelationshipSections,
-		].some((section) => {
-			const fieldDefinition = fieldDefinitionByReference(entity, section.field, indexes)
-			return (
-				fieldDefinition?.type === EntityFieldType.EntitiesReference
-				|| fieldDefinition?.type === EntityFieldType.EntityReference
-					&& !entitySelectorOwnsField(entity, section.field)
+		|| sectionPlans.some(({ fieldDefinition, owner, section }) => (
+			section.field != null
+			&& (
+				owner === 'carousel' ?
+					fieldDefinition?.type === EntityFieldType.Primitive
+						|| fieldDefinition?.type === EntityFieldType.EntityReference
+							&& fieldDefinition.cardinality !== EntityFieldCardinality.Many
+				:
+					fieldDefinition?.type === EntityFieldType.EntitiesReference
+						|| fieldDefinition?.type === EntityFieldType.EntityReference
+							&& !entitySelectorOwnsField(entity, section.field)
 			)
-		})
-		|| carouselsToRender.some((carousel) => carousel.sections.some((section) => {
-			if (section.field == null)
-				return false
-
-			const fieldDefinition = fieldDefinitionByReference(entity, section.field, indexes)
-			return (
-				fieldDefinition?.type === EntityFieldType.Primitive
-				|| fieldDefinition?.type === EntityFieldType.EntityReference
-					&& fieldDefinition.cardinality !== EntityFieldCardinality.Many
-			)
-		}))
+		))
 		|| singularViewItems.some((viewEntry) => {
 			if (typeof viewEntry === 'object' && 'kind' in viewEntry && viewEntry.kind === _ViewItemKind.Text)
 				return false
@@ -10686,37 +10669,19 @@ const generateSingularViewFile = (
 	))).values()]
 	// Collection routes carry their expression imports with their APP facts; the
 	// emitted TypeScript does not need to be parsed to rediscover provenance.
-	const viewCollectionRoutes = [
-		...[
-			...sections,
-			...detailsTabSections,
-			...contentListRelationshipSections,
-		].flatMap((section) => {
-			const fieldDefinition = fieldDefinitionByReference(entity, section.field, indexes)
-			if (
-				section.href != null
-				|| fieldDefinition?.type !== EntityFieldType.EntitiesReference
-				|| fieldDefinition.entityType == null
-			)
-				return []
+	const viewCollectionRoutes = sectionPlans.flatMap((plan) => {
+		if (
+			plan.section.field == null
+			|| (plan.owner === 'carousel' ? plan.section.link != null : plan.section.href != null)
+			|| plan.fieldDefinition?.type !== EntityFieldType.EntitiesReference
+			|| plan.fieldDefinition.entityType == null
+		)
+			return []
 
-			return indexes.collectionRoutesBySourceField[
-				collectionSourceFieldKey(entity.entityType, section.field, fieldDefinition.entityType)
-			] ?? []
-		}),
-		...carouselsToRender.flatMap((carousel) => carousel.sections.flatMap((section) => {
-			if (section.field == null || section.link != null)
-				return []
-
-			const fieldDefinition = fieldDefinitionByReference(entity, section.field, indexes)
-			if (fieldDefinition?.type !== EntityFieldType.EntitiesReference || fieldDefinition.entityType == null)
-				return []
-
-			return indexes.collectionRoutesBySourceField[
-				collectionSourceFieldKey(entity.entityType, section.field, fieldDefinition.entityType)
-			] ?? []
-		})),
-	]
+		return indexes.collectionRoutesBySourceField[
+			collectionSourceFieldKey(entity.entityType, plan.section.field, plan.fieldDefinition.entityType)
+		] ?? []
+	})
 	const collectionRouteImports = mergeImports(viewCollectionRoutes.flatMap((route) => importSpecsFromMap(
 		Object.values(route.params).reduce((imports, param) => expressionImports(param.value, imports), new Map<string, Set<string>>())
 	)))
@@ -10732,24 +10697,15 @@ const generateSingularViewFile = (
 			entityHrefExpression != null
 			|| singularViewItems.some((item) => typeof item === 'object' && 'link' in item && item.link != null)
 			|| viewCollectionRoutes.length > 0
-			|| sections.some((section) => {
-				const fieldDefinition = fieldDefinitionByReference(entity, section.field, indexes)
-				return (
-					fieldDefinition?.type === EntityFieldType.EntitiesReference
-					&& section.href != null
+			|| sectionPlans.some((plan) => (
+				plan.fieldDefinition?.type === EntityFieldType.EntitiesReference
+				&& (
+					plan.owner === 'carousel' ?
+						plan.fieldDefinition.entityType != null && plan.section.link != null
+					:
+						plan.owner === 'relationship' && plan.section.href != null
 				)
-			})
-			|| carouselsToRender.some((carousel) => carousel.sections.some((section) => {
-				if (section.field == null)
-					return false
-
-				const fieldDefinition = fieldDefinitionByReference(entity, section.field, indexes)
-				return (
-					fieldDefinition?.type === EntityFieldType.EntitiesReference
-					&& fieldDefinition.entityType != null
-					&& section.link != null
-				)
-			}))
+			))
 		) ? [
 			'import { resolve } from \'$app/paths\'',
 		] : []),
