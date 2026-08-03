@@ -11,7 +11,7 @@ import type {
 	AvalanchePlatformVmValidators,
 } from '$/sources/AvalanchePlatformVm/JsonRpc/types.ts'
 
-export const request = <_Result>(
+const request = <_Result>(
 	binding: SourceBinding,
 	method: string,
 	params?: Readonly<Record<string, unknown>>

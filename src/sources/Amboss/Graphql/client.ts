@@ -11,8 +11,6 @@ import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 import type { introspection } from './graphql-env.d.ts'
 
-const binding = bindings[Source.Amboss_Graphql][0]
-
 export const graphql = initGraphQLTada<{
 	introspection: introspection
 }>()
@@ -25,7 +23,7 @@ export const queryAmboss = async <
 	variables?: _Variables
 ) => {
 	const data = await queryGraphql<_Result>({
-		binding,
+		binding: bindings[Source.Amboss_Graphql][0],
 		query: print(document),
 		variables,
 	})

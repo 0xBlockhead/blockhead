@@ -49,7 +49,7 @@ const touchesAccount = (
 	)) === true
 )
 
-export const query = <_Json>(
+const query = <_Json>(
 	path: string
 ) => (
 	getJson<_Json>(binding, path)

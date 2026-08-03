@@ -3,8 +3,6 @@ import bindings from '$/sources/BitcoinCashBcmr/bindings.ts'
 import type { BcmrRegistry } from '$/sources/BitcoinCashBcmr/Github/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.BitcoinCashBcmr_Github][0]
-
 const isIsoTimestamp = (value: string) => {
 	const timestampMs = Date.parse(value)
 	return !Number.isNaN(timestampMs) && new Date(timestampMs).toISOString() === value
@@ -22,7 +20,7 @@ export const getRegistry = (
 		)
 	)
 		throw new Error('BitcoinCashBcmr_Github: registry URL must use the declared GitHub source')
-	return sourceGetJson<BcmrRegistry>(binding, url)
+	return sourceGetJson<BcmrRegistry>(bindings[Source.BitcoinCashBcmr_Github][0], url)
 }
 
 export const getCategoryMetadata = async (

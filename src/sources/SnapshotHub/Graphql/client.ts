@@ -11,8 +11,6 @@ import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 import type { introspection } from './graphql-env.d.ts'
 
-const binding = bindings[Source.SnapshotHub_Graphql][0]
-
 export const maximumSnapshotHubGraphqlResponseBytes = 2_000_000
 
 export const graphql = initGraphQLTada<{
@@ -30,7 +28,7 @@ export const querySnapshotHub = async <
 	variables: _Variables
 ) => {
 	const data = await queryGraphql<_Result>({
-		binding,
+		binding: bindings[Source.SnapshotHub_Graphql][0],
 		maximumResponseBytes: maximumSnapshotHubGraphqlResponseBytes,
 		query: print(document),
 		variables,

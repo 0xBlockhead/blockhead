@@ -35,7 +35,7 @@ export const getRestEndpoints = () => [{
 	providerName: 'Koios',
 }]
 
-export const query = <_Response>(
+const query = <_Response>(
 	path: string
 ) => sourceGetJson<_Response>(binding, httpUrl(binding, path))
 

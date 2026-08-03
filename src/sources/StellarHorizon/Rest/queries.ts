@@ -10,8 +10,6 @@ import type {
 } from '$/sources/StellarHorizon/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.StellarHorizon_Rest][0]
-
 const assertAccountId = (
 	accountId: string,
 	label = 'account ID'
@@ -138,10 +136,10 @@ const touchesAccount = (
 	|| operation.funder === accountId
 )
 
-export const query = <_Json>(
+const query = <_Json>(
 	path: string
 ) => (
-	getJson<_Json>(binding, path)
+	getJson<_Json>(bindings[Source.StellarHorizon_Rest][0], path)
 )
 
 export const getAccount = async (

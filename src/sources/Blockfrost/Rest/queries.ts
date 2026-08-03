@@ -47,7 +47,7 @@ export const getRestEndpoints = () => [{
 	providerName: 'Blockfrost',
 }]
 
-export const request = async <_Response>({
+const request = async <_Response>({
 	path,
 }: {
 	path: string

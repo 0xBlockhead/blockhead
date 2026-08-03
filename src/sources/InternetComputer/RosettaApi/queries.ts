@@ -55,7 +55,7 @@ const assertAmount = (
 		throw new Error('InternetComputer_RosettaApi: unexpected account currency')
 }
 
-export const request = async <_Response>(
+const request = async <_Response>(
 	binding: SourceBinding,
 	path: string,
 	body: Readonly<Record<string, unknown>>

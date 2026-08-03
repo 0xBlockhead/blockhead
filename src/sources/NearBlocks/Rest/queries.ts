@@ -10,10 +10,8 @@ import type {
 import bindings from '$/sources/NearBlocks/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.NearBlocks_Rest][0]
-
 const getNearBlocksJson = <_Response>(path: string) => (
-	getNearBlocksRestJson<_Response>(binding, path)
+	getNearBlocksRestJson<_Response>(bindings[Source.NearBlocks_Rest][0], path)
 )
 
 const assertNonnegativeIntegerString = (

@@ -6,8 +6,6 @@ import { Source } from '$/sources/Source.ts'
 import { graphql as queryGraphql } from '$/sources/_shared/wire/Graphql/client.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-const binding = bindings[Source.AptosIndexer_Graphql][0]
-
 export const executeAptosIndexer = async <
 	_Result extends object,
 	_Variables extends JsonValue & object,
@@ -16,7 +14,7 @@ export const executeAptosIndexer = async <
 	variables: _Variables
 ) => {
 	const data = await queryGraphql<_Result>({
-		binding,
+		binding: bindings[Source.AptosIndexer_Graphql][0],
 		query: print(document),
 		variables,
 	})
