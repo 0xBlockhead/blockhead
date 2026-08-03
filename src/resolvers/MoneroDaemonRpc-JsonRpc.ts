@@ -23,6 +23,8 @@ import type {
 } from '$/sources/MoneroDaemonRpc/JsonRpc/types.ts'
 import { moneroMainnetRpcEndpoints } from '$/sources/MoneroDaemonRpc/JsonRpc/queries.ts'
 
+const loadMoneroDaemonRpcQueries = () => import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
+
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type MoneroBlockSelector = EntitySelectorForSelectorName<
 	typeof schema,
@@ -159,7 +161,7 @@ const getMoneroTransaction = async ({ $network, txHash }: {
 	txHash: string
 }) => {
 	assertMoneroMainnet($network)
-	const { getTransactions } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
+	const { getTransactions } = await loadMoneroDaemonRpcQueries()
 	const transaction = (await getTransactions({
 		txHashes: [txHash],
 	})).txs.at(0)
@@ -170,7 +172,7 @@ const getMoneroTransaction = async ({ $network, txHash }: {
 
 const resolveMoneroBlock = async (entitySelector: MoneroBlockSelector) => {
 	assertMoneroMainnet(entitySelector.$network)
-	const { getBlock } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
+	const { getBlock } = await loadMoneroDaemonRpcQueries()
 	const block = await getBlock({
 		height: entitySelector.height,
 	})
@@ -478,7 +480,7 @@ export default {
 				Network: {
 					resolve: async ({ $network }) => {
 						assertMoneroMainnet($network)
-						const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
+						const { getInfo } = await loadMoneroDaemonRpcQueries()
 						const info = await getInfo()
 						return [
 							{
@@ -508,7 +510,7 @@ export default {
 				Slug: {
 					resolve: async (network) => {
 						assertMoneroMainnet(network)
-						const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
+						const { getInfo } = await loadMoneroDaemonRpcQueries()
 						const info = await getInfo()
 						return [
 							{
@@ -540,7 +542,7 @@ export default {
 				NetworkTimestampMsSource: {
 					resolve: async ({ $network }) => {
 						assertMoneroMainnet($network)
-						const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
+						const { getInfo } = await loadMoneroDaemonRpcQueries()
 						return moneroNetworkTimestampFields(await getInfo())
 					},
 				}
@@ -553,7 +555,7 @@ export default {
 				Network: {
 					resolve: async ({ $network }, context) => {
 						assertMoneroMainnet($network)
-						const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
+						const { getInfo } = await loadMoneroDaemonRpcQueries()
 						const info = await getInfo()
 						const headBlockHeight = BigInt(info.height - 1)
 						return Array.from({
@@ -583,7 +585,7 @@ export default {
 				Slug: {
 					resolve: async (network, context) => {
 						assertMoneroMainnet(network)
-						const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
+						const { getInfo } = await loadMoneroDaemonRpcQueries()
 						const info = await getInfo()
 						const headBlockHeight = BigInt(info.height - 1)
 						return Array.from({

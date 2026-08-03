@@ -24,6 +24,8 @@ import type {
 	TronNodeWitness,
 } from '$/sources/_shared/interfaces/TronNodeRest/types.ts'
 
+const loadTronGridQueries = () => import('$/sources/TronGrid/Rest/queries.ts')
+
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const tronMainnetCaip2 = {
@@ -339,7 +341,7 @@ export default {
 			resolve: tronNetworkResolverSelectors(
 				async (network) => {
 					assertTronMainnet(network)
-					const { getRestEndpoints } = await import('$/sources/TronGrid/Rest/queries.ts')
+					const { getRestEndpoints } = await loadTronGridQueries()
 					return getRestEndpoints()
 				}
 			),
@@ -361,7 +363,7 @@ export default {
 							getNodeInfo,
 							getNowBlock,
 							listWitnesses,
-						} = await import('$/sources/TronGrid/Rest/queries.ts')
+						} = await loadTronGridQueries()
 						const block = await getNowBlock()
 						const witnesses = await listWitnesses()
 						const chainParameters = await getChainParameters()
@@ -405,7 +407,7 @@ export default {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, height }) => {
 						assertTronMainnet($network)
-						const { getBlockByNumber } = await import('$/sources/TronGrid/Rest/queries.ts')
+						const { getBlockByNumber } = await loadTronGridQueries()
 						return blockFields(
 							$network,
 							await getBlockByNumber({
@@ -437,7 +439,7 @@ export default {
 						const {
 							getTransactionById,
 							getTransactionInfoById,
-						} = await import('$/sources/TronGrid/Rest/queries.ts')
+						} = await loadTronGridQueries()
 						const transaction = await getTransactionById({
 							transactionId: transactionId,
 						})
@@ -477,7 +479,7 @@ export default {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, address }) => {
 						assertTronMainnet($network)
-						const { getAccount } = await import('$/sources/TronGrid/Rest/queries.ts')
+						const { getAccount } = await loadTronGridQueries()
 						const account = await getAccount({
 							address: address,
 						})
@@ -514,7 +516,7 @@ export default {
 						const {
 							getAccount,
 							getAccountResource,
-						} = await import('$/sources/TronGrid/Rest/queries.ts')
+						} = await loadTronGridQueries()
 						const [
 							account,
 							accountResource,
@@ -561,7 +563,7 @@ export default {
 					appliesTo: tronTransactionReferenceApplicability,
 					resolve: async ({ $transaction }) => {
 						assertTronMainnet($transaction.$network)
-						const { getTransactionInfoById } = await import('$/sources/TronGrid/Rest/queries.ts')
+						const { getTransactionInfoById } = await loadTronGridQueries()
 						return receiptFields(await getTransactionInfoById({
 							transactionId: $transaction.transactionId,
 						}))
@@ -583,7 +585,7 @@ export default {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, address }) => {
 						assertTronMainnet($network)
-						const { listWitnesses } = await import('$/sources/TronGrid/Rest/queries.ts')
+						const { listWitnesses } = await loadTronGridQueries()
 						const witness = (await listWitnesses()).witnesses
 							.find((tronAccount) => tronAccount.address === address)
 						if (witness == null) throw new Error(`TronGrid_Rest: witness not found for ${address}`)
@@ -615,7 +617,7 @@ export default {
 					appliesTo: tronWitnessTimestampApplicability,
 					resolve: async ({ $witness }) => {
 						assertTronMainnet($witness.$network)
-						const { listWitnesses } = await import('$/sources/TronGrid/Rest/queries.ts')
+						const { listWitnesses } = await loadTronGridQueries()
 						const witness = (await listWitnesses()).witnesses
 							.find((tronAccount) => tronAccount.address === $witness.address)
 						if (witness == null) throw new Error(`TronGrid_Rest: witness not found for ${$witness.address}`)
@@ -660,7 +662,7 @@ export default {
 			resolve: tronNetworkResolverSelectors(
 				async (network) => {
 					assertTronMainnet(network)
-					const { listWitnesses } = await import('$/sources/TronGrid/Rest/queries.ts')
+					const { listWitnesses } = await loadTronGridQueries()
 					return witnessRows(
 						network,
 						(await listWitnesses()).witnesses
@@ -678,7 +680,7 @@ export default {
 			resolve: tronNetworkResolverSelectors(
 				async (network, context) => {
 					assertTronMainnet(network)
-					const { getNowBlock } = await import('$/sources/TronGrid/Rest/queries.ts')
+					const { getNowBlock } = await loadTronGridQueries()
 					const block = await getNowBlock()
 					const headBlockHeight = BigInt(block.block_header?.raw_data?.number ?? 0)
 					return Array.from({
@@ -711,7 +713,7 @@ export default {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, address }, context) => {
 						assertTronMainnet($network)
-						const { getAccountTransactions } = await import('$/sources/TronGrid/Rest/queries.ts')
+						const { getAccountTransactions } = await loadTronGridQueries()
 						return (await getAccountTransactions({
 							address: address,
 							limit: resolverContextRowLimit(context),

@@ -19,6 +19,8 @@ import type {
 	RedditPublicApiThing,
 } from '$/sources/RedditPublic/Rest/types.ts'
 
+const loadRedditPublicQueries = () => import('$/sources/RedditPublic/Rest/queries.ts')
+
 const redditSubredditIconUrl = (
 	iconImg: string | undefined,
 	communityIcon: string | undefined
@@ -224,7 +226,7 @@ export default {
 			resolve: {
 				Name: {
 					resolve: async ({ name }) => {
-						const { getSubredditAbout } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const { getSubredditAbout } = await loadRedditPublicQueries()
 						const subredditAbout = (await getSubredditAbout(name)).data
 						const iconMedia = mediaFromUrl(redditSubredditIconUrl(subredditAbout.icon_img, subredditAbout.community_icon), MediaType.Image)
 						return {
@@ -271,7 +273,7 @@ export default {
 			resolve: {
 				Fullname: {
 					resolve: async ({ fullname }) => {
-						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const { getInfo } = await loadRedditPublicQueries()
 						const redditThing = redditThingFromInfo(await getInfo(fullname), fullname, 't3')
 						const sub = optionalNonemptyString(redditThing.data.subreddit?.trim())?.toLowerCase()
 						return {
@@ -334,7 +336,7 @@ export default {
 			resolve: {
 				Fullname: {
 					resolve: async ({ fullname }) => {
-						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const { getInfo } = await loadRedditPublicQueries()
 						const redditThing = redditThingFromInfo(await getInfo(fullname), fullname, 't1')
 						const linkId = optionalNonemptyString(redditThing.data.link_id)
 						const parentId = optionalNonemptyString(redditThing.data.parent_id)
@@ -387,7 +389,7 @@ export default {
 			resolve: {
 				SubredditTimestampMsSource: {
 					resolve: async ({ $subreddit }) => {
-						const { getSubredditAbout } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const { getSubredditAbout } = await loadRedditPublicQueries()
 						const subredditAbout = (await getSubredditAbout($subreddit.name)).data
 						return {
 							...(subredditAbout.subscribers != null && { subscriberCount: subredditAbout.subscribers }),
@@ -408,7 +410,7 @@ export default {
 			resolve: {
 				LinkTimestampMsSource: {
 					resolve: async ({ $link }) => {
-						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const { getInfo } = await loadRedditPublicQueries()
 						const redditThing = redditThingFromInfo(await getInfo($link.fullname), $link.fullname, 't3')
 						return {
 							...(redditThing.data.score != null && { score: redditThing.data.score }),
@@ -429,7 +431,7 @@ export default {
 			resolve: {
 				CommentTimestampMsSource: {
 					resolve: async ({ $comment }) => {
-						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const { getInfo } = await loadRedditPublicQueries()
 						const redditThing = redditThingFromInfo(await getInfo($comment.fullname), $comment.fullname, 't1')
 						return {
 							...(redditThing.data.score != null && { score: redditThing.data.score }),
@@ -446,7 +448,7 @@ export default {
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
-						const { listSubredditLinks } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const { listSubredditLinks } = await loadRedditPublicQueries()
 						const limit = resolverContextRowLimit(context)
 						const children = (await listSubredditLinks('popular', {
 							limit,
@@ -478,7 +480,7 @@ export default {
 			resolve: {
 				Name: {
 					resolve: async ({ name }, context) => {
-						const { listSubredditLinks } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const { listSubredditLinks } = await loadRedditPublicQueries()
 						return listSubredditLinks(name, {
 							after: context.providerContinuationToken,
 							limit: resolverContextRowLimit(context),
@@ -524,7 +526,7 @@ export default {
 						if (limit === 0)
 							return []
 
-						const { getCommentsByArticleId } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const { getCommentsByArticleId } = await loadRedditPublicQueries()
 						const articleId = redditLinkArticleIdFromFullname(fullname)
 						return redditCommentRefsFromForest(
 							(await getCommentsByArticleId(articleId, limit))[1]?.data.children,
@@ -546,7 +548,7 @@ export default {
 						if (limit === 0)
 							return []
 
-						const { getInfo, getCommentsByArticleId } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const { getInfo, getCommentsByArticleId } = await loadRedditPublicQueries()
 						const redditThing = redditThingFromInfo(await getInfo(fullname), fullname, 't1')
 						const linkId = optionalNonemptyString(redditThing.data.link_id)
 						if (linkId == null)

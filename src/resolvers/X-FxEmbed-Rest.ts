@@ -19,6 +19,8 @@ import type {
 	FxEmbedUser,
 } from '$/sources/FxEmbed/Rest/queries.ts'
 
+const loadFxEmbedQueries = () => import('$/sources/FxEmbed/Rest/queries.ts')
+
 const xUserFieldsFromFxEmbedUser = (
 	user: FxEmbedUser,
 	id: string
@@ -138,7 +140,7 @@ export default {
 			resolve: {
 				Id: {
 					resolve: async ({ id }) => {
-						const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
+						const { getUser } = await loadFxEmbedQueries()
 						const response = await getUser(id)
 						const user = response.user
 						if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
@@ -151,7 +153,7 @@ export default {
 				},
 				Username: {
 					resolve: async ({ username }) => {
-						const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
+						const { getUser } = await loadFxEmbedQueries()
 						const response = await getUser(username)
 						const user = response.user
 						if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
@@ -180,7 +182,7 @@ export default {
 			resolve: {
 				Id: {
 					resolve: async ({ id }) => {
-						const { getStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
+						const { getStatus } = await loadFxEmbedQueries()
 						const response = await getStatus(id)
 						const status = response.status
 						if (status == null || status.type !== 'status')
@@ -249,7 +251,7 @@ export default {
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
-						const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
+						const { searchStatuses } = await loadFxEmbedQueries()
 						return (await searchStatuses(resolverContextRowLimit(context))).results
 					},
 				},
@@ -272,7 +274,7 @@ export default {
 			resolve: {
 				Id: {
 					resolve: async ({ id }, context) => {
-						const { getUserStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
+						const { getUserStatuses } = await loadFxEmbedQueries()
 						const limit = resolverContextRowLimit(context)
 						return (await getUserStatuses(id, limit)).results
 							.flatMap((status) => (
@@ -285,7 +287,7 @@ export default {
 				},
 				Username: {
 					resolve: async ({ username }, context) => {
-						const { getUserStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
+						const { getUserStatuses } = await loadFxEmbedQueries()
 						const limit = resolverContextRowLimit(context)
 						return (await getUserStatuses(username, limit)).results
 							.flatMap((status) => (
@@ -306,7 +308,7 @@ export default {
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
-						const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
+						const { searchStatuses } = await loadFxEmbedQueries()
 						return (
 							await searchStatuses(
 								resolverContextRowLimit(context)

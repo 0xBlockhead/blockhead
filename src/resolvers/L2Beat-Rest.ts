@@ -25,6 +25,8 @@ import {
 import { Source } from '$/sources/Source.ts'
 import { type as arktype } from 'arktype'
 
+const loadL2BeatQueries = () => import('$/sources/L2Beat/Rest/queries.ts')
+
 export default {
 	source: Source.L2Beat_Rest,
 
@@ -51,7 +53,7 @@ export default {
 						const projectId = l2BeatProjectIdByChainId.get(entitySelector.caip2.reference)
 						const project = (
 							await (
-								await import('$/sources/L2Beat/Rest/queries.ts')
+								await loadL2BeatQueries()
 							).fetchScalingSummary()
 						).projects[projectId ?? '']
 						if (project == null)
@@ -99,7 +101,7 @@ export default {
 			resolve: {
 				EvmNetworkProjectId: {
 					resolve: async ({ projectId }) => {
-						const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
+						const { fetchScalingSummary } = await loadL2BeatQueries()
 						const project = (await fetchScalingSummary()).projects[projectId]
 						if (project == null)
 							throw new Error('L2Beat_Rest: rollup project not found')
@@ -184,7 +186,7 @@ export default {
 							}
 
 						const summary = await (
-							await import('$/sources/L2Beat/Rest/queries.ts')
+							await loadL2BeatQueries()
 						).fetchScalingSummary()
 						const project = projectId == null ? undefined : summary.projects[projectId]
 						const parentChainId = project == null ? undefined : l2BeatHostChainByLabel.get(project.hostChain)?.parentChainId

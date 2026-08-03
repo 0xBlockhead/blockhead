@@ -17,6 +17,8 @@ import type {
 	Event,
 } from '$/sources/_shared/interfaces/StarknetJsonRpc/types.ts'
 
+const loadPathfinderQueries = () => import('$/sources/Pathfinder/JsonRpc/queries.ts')
+
 type NetworkIdentity = EntitySelector<typeof schema, EntityType.Network>
 type StarknetContractIdentity = EntitySelector<typeof schema, EntityType.StarknetContract>
 
@@ -91,7 +93,7 @@ const resolveAccountState = async (
 	const { default: {
 		getClassHashAt,
 		getNonce,
-	} } = await import('$/sources/Pathfinder/JsonRpc/queries.ts')
+	} } = await loadPathfinderQueries()
 	const [nonce, classHash] = await Promise.all([
 		getNonce(blockId, address),
 		getClassHashAt(blockId, address),
@@ -175,7 +177,7 @@ export default {
 					resolve: async (contract) => {
 						assertStarknetMainnet(contract.$network.$network)
 						validatedFelt(contract.address, 'contract address')
-						const { default: { getBlockHashAndNumber } } = await import('$/sources/Pathfinder/JsonRpc/queries.ts')
+						const { default: { getBlockHashAndNumber } } = await loadPathfinderQueries()
 						const head = await getBlockHashAndNumber()
 						validatedFelt(head.block_hash, 'block hash')
 						const blockNumber = validatedBlockNumber(head.block_number, 'block number')
@@ -244,7 +246,7 @@ export default {
 					resolve: async (contract, context) => {
 						assertStarknetMainnet(contract.$network.$network)
 						const address = validatedFelt(contract.address, 'contract address')
-						const { default: { getEvents } } = await import('$/sources/Pathfinder/JsonRpc/queries.ts')
+						const { default: { getEvents } } = await loadPathfinderQueries()
 
 						return getEvents({
 							address,

@@ -10,6 +10,8 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
+const loadKaspaExplorerQueries = () => import('$/sources/KaspaExplorer/Rest/queries.ts')
+
 type KaspaNetworkId = EntitySelector<typeof schema, EntityType.KaspaNetwork>
 
 const kaspaAddressApplicability = [{
@@ -50,7 +52,7 @@ export default {
 							getAddressBalance,
 							getAddressTransactionCount,
 							getAddressUtxoCount,
-						} = await import('$/sources/KaspaExplorer/Rest/queries.ts')
+						} = await loadKaspaExplorerQueries()
 						const [
 							balance,
 							transactions,
@@ -90,7 +92,7 @@ export default {
 						if (limit === 0)
 							return []
 
-						const { getCompleteAddressUtxos } = await import('$/sources/KaspaExplorer/Rest/queries.ts')
+						const { getCompleteAddressUtxos } = await loadKaspaExplorerQueries()
 						const utxos = await getCompleteAddressUtxos({
 							kaspaAddress: address.address,
 						})
@@ -149,7 +151,7 @@ export default {
 						)
 							throw new Error('Kaspa Explorer: invalid address transaction continuation')
 
-						const { getAddressTransactionsPage } = await import('$/sources/KaspaExplorer/Rest/queries.ts')
+						const { getAddressTransactionsPage } = await loadKaspaExplorerQueries()
 						return {
 							before,
 							limit,

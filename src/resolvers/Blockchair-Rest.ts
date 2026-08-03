@@ -19,6 +19,8 @@ import type {
 	BlockchairBitcoinLikeTransaction,
 } from '$/sources/Blockchair/Rest/types.ts'
 
+const loadBlockchairQueries = () => import('$/sources/Blockchair/Rest/queries.ts')
+
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const blockchairNetworkSlugs = [
@@ -131,7 +133,7 @@ const getTransactionDashboard = async ({ $network, txId }: {
 	$network: NetworkId
 	txId: string
 }) => {
-	const { getBitcoinLikeTransactionDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
+	const { getBitcoinLikeTransactionDashboard } = await loadBlockchairQueries()
 	return firstDashboardRow(
 		(
 			await getBitcoinLikeTransactionDashboard({
@@ -147,7 +149,7 @@ const getAddressDashboard = async ({ $network, address }: {
 	$network: NetworkId
 	address: string
 }) => {
-	const { getBitcoinLikeAddressDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
+	const { getBitcoinLikeAddressDashboard } = await loadBlockchairQueries()
 	return firstDashboardRow(
 		(
 			await getBitcoinLikeAddressDashboard({
@@ -203,7 +205,7 @@ export default {
 			resolve: {
 				NetworkHeight: {
 					resolve: async ({ $network, height }) => {
-						const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
+						const { getBitcoinLikeBlockDashboard } = await loadBlockchairQueries()
 						const [hash, dashboard] = firstDashboardEntry(
 							(
 								await getBitcoinLikeBlockDashboard({
@@ -222,7 +224,7 @@ export default {
 				},
 				NetworkHeightHash: {
 					resolve: async ({ $network, hash }) => {
-						const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
+						const { getBitcoinLikeBlockDashboard } = await loadBlockchairQueries()
 						const dashboard = firstDashboardRow(
 							(
 								await getBitcoinLikeBlockDashboard({
@@ -450,7 +452,7 @@ export default {
 						if (source !== Source.Blockchair_Rest)
 							throw new Error(`Blockchair_Rest: unsupported network timestamp source ${source}`)
 
-						const { getBitcoinLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
+						const { getBitcoinLikeStats } = await loadBlockchairQueries()
 						const stats = (await getBitcoinLikeStats({
 							chain: blockchairChain($network),
 						})).data
@@ -533,7 +535,7 @@ export default {
 		defineResolver({
 			entityType: EntityType.Network,
 			resolve: blockchairNetworkSelectors(async (network) => {
-				const { getBitcoinLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
+				const { getBitcoinLikeStats } = await loadBlockchairQueries()
 				const stats = (await getBitcoinLikeStats({
 					chain: blockchairChain(network),
 				})).data
@@ -567,7 +569,7 @@ export default {
 		defineResolver({
 			entityType: EntityType.Network,
 			resolve: blockchairNetworkSelectors(async (network, context) => {
-				const { getBlocks } = await import('$/sources/Blockchair/Rest/queries.ts')
+				const { getBlocks } = await loadBlockchairQueries()
 				return (await getBlocks<BlockchairBitcoinLikeBlock>({
 					chain: blockchairChain(network),
 					params: {
@@ -591,7 +593,7 @@ export default {
 		defineResolver({
 			entityType: EntityType.Network,
 			resolve: blockchairNetworkSelectors(async (network, context) => {
-				const { getTransactions } = await import('$/sources/Blockchair/Rest/queries.ts')
+				const { getTransactions } = await loadBlockchairQueries()
 				return (await getTransactions<BlockchairBitcoinLikeTransaction>({
 					chain: blockchairChain(network),
 					params: {

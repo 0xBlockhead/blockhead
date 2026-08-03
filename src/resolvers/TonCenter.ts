@@ -22,6 +22,8 @@ import type {
 	TonCenterV3Page,
 } from '$/sources/TonCenter/V3/Rest/types.ts'
 
+const loadTonCenterV3Queries = () => import('$/sources/TonCenter/V3/Rest/queries.ts')
+
 type TonNetwork = EntitySelector<typeof schema, EntityType.Network>
 
 const tonNetworkApplicability = [
@@ -169,7 +171,7 @@ export const createTonCenterV3Resolvers = () => ({
 			entityType: EntityType.Network,
 			resolve: tonNetworkSelectors(async (network, context) => {
 				assertTonMainnet(network)
-				const { getTonCenterV3Blocks } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
+				const { getTonCenterV3Blocks } = await loadTonCenterV3Queries()
 				return resolvePage(context, (limit, pageOffset) => (
 					getTonCenterV3Blocks({
 						limit,
@@ -205,7 +207,7 @@ export const createTonCenterV3Resolvers = () => ({
 			entityType: EntityType.Network,
 			resolve: tonNetworkSelectors(async (network, context) => {
 				assertTonMainnet(network)
-				const { getTonCenterV3Transactions } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
+				const { getTonCenterV3Transactions } = await loadTonCenterV3Queries()
 				return resolvePage(context, (limit, pageOffset) => (
 					getTonCenterV3Transactions({
 						limit,
@@ -278,7 +280,7 @@ export const createTonCenterV3Resolvers = () => ({
 			entityType: EntityType.Network,
 			resolve: tonNetworkSelectors(async (network, context) => {
 				assertTonMainnet(network)
-				const { getTonCenterV3Messages } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
+				const { getTonCenterV3Messages } = await loadTonCenterV3Queries()
 				return resolvePage(context, (limit, pageOffset) => (
 					getTonCenterV3Messages({
 						limit,
@@ -300,7 +302,7 @@ export const createTonCenterV3Resolvers = () => ({
 			entityType: EntityType.Network,
 			resolve: tonNetworkSelectors(async (network, context) => {
 				assertTonMainnet(network)
-				const { getTonCenterV3CompletedTraces } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
+				const { getTonCenterV3CompletedTraces } = await loadTonCenterV3Queries()
 				return {
 					...await resolvePage(context, (limit, pageOffset) => (
 						getTonCenterV3CompletedTraces({
@@ -354,7 +356,7 @@ export const createTonCenterV3Resolvers = () => ({
 			entityType: EntityType.Network,
 			resolve: tonNetworkSelectors(async (network, context) => {
 				assertTonMainnet(network)
-				const { getTonCenterV3JettonMasters } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
+				const { getTonCenterV3JettonMasters } = await loadTonCenterV3Queries()
 				return {
 					...await resolvePage(context, (limit, pageOffset) => (
 						getTonCenterV3JettonMasters({
@@ -420,7 +422,7 @@ export const createTonCenterV3Resolvers = () => ({
 			entityType: EntityType.Network,
 			resolve: tonNetworkSelectors(async (network, context) => {
 				assertTonMainnet(network)
-				const { getTonCenterV3NftCollections } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
+				const { getTonCenterV3NftCollections } = await loadTonCenterV3Queries()
 				return {
 					...await resolvePage(context, (limit, pageOffset) => (
 						getTonCenterV3NftCollections({
@@ -491,7 +493,7 @@ export const createTonCenterV3Resolvers = () => ({
 			entityType: EntityType.Network,
 			resolve: tonNetworkSelectors(async (network, context) => {
 				assertTonMainnet(network)
-				const { getTonCenterV3NftItems } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
+				const { getTonCenterV3NftItems } = await loadTonCenterV3Queries()
 				return {
 					...await resolvePage(context, (limit, pageOffset) => (
 						getTonCenterV3NftItems({

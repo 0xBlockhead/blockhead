@@ -12,6 +12,8 @@ import { schema } from '$/schema/index.ts'
 import type { CardanoKoiosTransactionProposalProcedure } from '$/sources/CardanoKoios/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
+const loadCardanoKoiosQueries = () => import('$/sources/CardanoKoios/Rest/queries.ts')
+
 const assertCardanoMainnet = (
 	network: EntitySelector<typeof schema, EntityType.Network>
 ) => {
@@ -69,7 +71,7 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
 				assertCardanoMainnet(network)
-				const { getRestEndpoints } = await import('$/sources/CardanoKoios/Rest/queries.ts')
+				const { getRestEndpoints } = await loadCardanoKoiosQueries()
 				return getRestEndpoints()
 			}
 			),
@@ -84,7 +86,7 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
 				assertCardanoMainnet(network)
-				const { getTip } = await import('$/sources/CardanoKoios/Rest/queries.ts')
+				const { getTip } = await loadCardanoKoiosQueries()
 				const [tip] = await getTip()
 
 				return [{
@@ -114,7 +116,7 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
 				assertCardanoMainnet(network)
-				const { listBlocks } = await import('$/sources/CardanoKoios/Rest/queries.ts')
+				const { listBlocks } = await loadCardanoKoiosQueries()
 
 				return (await listBlocks(listLimit(context))).map((block) => ({
 					[EntityMetaKey.Selector]: {
@@ -141,7 +143,7 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
 				assertCardanoMainnet(network)
-				const { listLatestBlockTransactions } = await import('$/sources/CardanoKoios/Rest/queries.ts')
+				const { listLatestBlockTransactions } = await loadCardanoKoiosQueries()
 
 				return (await listLatestBlockTransactions(listLimit(context))).map(({ tx_hash }) => ({
 					[EntityMetaKey.Selector]: {
@@ -162,7 +164,7 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
 				assertCardanoMainnet(network)
-				const { listStakePools } = await import('$/sources/CardanoKoios/Rest/queries.ts')
+				const { listStakePools } = await loadCardanoKoiosQueries()
 
 				return (await listStakePools(listLimit(context))).map(({
 					pool_id_bech32,
@@ -191,7 +193,7 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
 					assertCardanoMainnet(network)
-					const { listDReps } = await import('$/sources/CardanoKoios/Rest/queries.ts')
+					const { listDReps } = await loadCardanoKoiosQueries()
 
 					return (await listDReps(listLimit(context))).map((dRep) => ({
 						[EntityMetaKey.Selector]: {
@@ -243,7 +245,7 @@ export default {
 					)
 						throw new Error('CardanoKoios_Rest: invalid governance proposals continuation')
 					const proposalLimit = listLimit(context)
-					const { listGovernanceProposals } = await import('$/sources/CardanoKoios/Rest/queries.ts')
+					const { listGovernanceProposals } = await loadCardanoKoiosQueries()
 					const proposals = await listGovernanceProposals(
 						proposalLimit,
 						proposalOffset
@@ -308,7 +310,7 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
 					assertCardanoMainnet(network)
-					const { listAssets } = await import('$/sources/CardanoKoios/Rest/queries.ts')
+					const { listAssets } = await loadCardanoKoiosQueries()
 
 					return (await listAssets(listLimit(context))).map((asset) => ({
 						[EntityMetaKey.Selector]: {
@@ -330,7 +332,7 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
 					assertCardanoMainnet(network)
-					const { getLatestProtocolParameters } = await import('$/sources/CardanoKoios/Rest/queries.ts')
+					const { getLatestProtocolParameters } = await loadCardanoKoiosQueries()
 					const [parameters] = await getLatestProtocolParameters()
 
 					return {
@@ -377,7 +379,7 @@ export default {
 					const {
 						getCommittee,
 						getTip,
-					} = await import('$/sources/CardanoKoios/Rest/queries.ts')
+					} = await loadCardanoKoiosQueries()
 					const [
 						[committee],
 						[tip],
@@ -421,7 +423,7 @@ export default {
 						proposalIndex,
 					}) => {
 						assertCardanoMainnet($network)
-						const { getTransactionInfo } = await import('$/sources/CardanoKoios/Rest/queries.ts')
+						const { getTransactionInfo } = await loadCardanoKoiosQueries()
 						const transaction = await getTransactionInfo(
 							proposalTxHash
 						)
@@ -475,7 +477,7 @@ export default {
 				NetworkHash: {
 					resolve: async (cardanoTransaction) => {
 						assertCardanoMainnet(cardanoTransaction.$network)
-						const { getTransactionInfo } = await import('$/sources/CardanoKoios/Rest/queries.ts')
+						const { getTransactionInfo } = await loadCardanoKoiosQueries()
 						const transaction = await getTransactionInfo(
 							cardanoTransaction.hash
 						)

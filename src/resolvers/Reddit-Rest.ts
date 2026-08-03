@@ -19,6 +19,8 @@ import type {
 	RedditApiThing,
 } from '$/sources/Reddit/Rest/types.ts'
 
+const loadRedditQueries = () => import('$/sources/Reddit/Rest/queries.ts')
+
 
 const redditSubredditIconUrl = (
 	iconImg: string | undefined,
@@ -86,7 +88,7 @@ export default {
 			resolve: {
 				Name: {
 					resolve: async ({ name }, context) => {
-						const { getSubredditAbout } = await import('$/sources/Reddit/Rest/queries.ts')
+						const { getSubredditAbout } = await loadRedditQueries()
 						const subredditAbout = (await getSubredditAbout(context.publicEnv, name)).data
 						const iconMedia = mediaFromUrl(redditSubredditIconUrl(subredditAbout.icon_img, subredditAbout.community_icon), MediaType.Image)
 						return {
@@ -133,7 +135,7 @@ export default {
 			resolve: {
 				Fullname: {
 					resolve: async ({ fullname }, context) => {
-						const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
+						const { getInfo } = await loadRedditQueries()
 						const redditThing = (await getInfo(context.publicEnv, fullname))
 							.data
 							.children[0]
@@ -199,7 +201,7 @@ export default {
 			resolve: {
 				Fullname: {
 					resolve: async ({ fullname }, context) => {
-						const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
+						const { getInfo } = await loadRedditQueries()
 						const redditThing = (await getInfo(context.publicEnv, fullname))
 							.data
 							.children[0]
@@ -255,7 +257,7 @@ export default {
 			resolve: {
 				SubredditTimestampMsSource: {
 					resolve: async ({ $subreddit }, context) => {
-						const { getSubredditAbout } = await import('$/sources/Reddit/Rest/queries.ts')
+						const { getSubredditAbout } = await loadRedditQueries()
 						const subredditAbout = (await getSubredditAbout(context.publicEnv, $subreddit.name)).data
 						return {
 							...(subredditAbout.subscribers != null && { subscriberCount: subredditAbout.subscribers }),
@@ -276,7 +278,7 @@ export default {
 			resolve: {
 				LinkTimestampMsSource: {
 					resolve: async ({ $link }, context) => {
-						const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
+						const { getInfo } = await loadRedditQueries()
 						const redditThing = (await getInfo(context.publicEnv, $link.fullname))
 							.data
 							.children[0]
@@ -300,7 +302,7 @@ export default {
 			resolve: {
 				CommentTimestampMsSource: {
 					resolve: async ({ $comment }, context) => {
-						const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
+						const { getInfo } = await loadRedditQueries()
 						const redditThing = (await getInfo(context.publicEnv, $comment.fullname))
 							.data
 							.children[0]
@@ -319,7 +321,7 @@ export default {
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
-						const { listSubredditLinks } = await import('$/sources/Reddit/Rest/queries.ts')
+						const { listSubredditLinks } = await loadRedditQueries()
 						const children = (
 							(await listSubredditLinks(
 								context.publicEnv,
@@ -363,7 +365,7 @@ export default {
 			resolve: {
 				Name: {
 					resolve: async ({ name }, context) => {
-						const { listSubredditLinks } = await import('$/sources/Reddit/Rest/queries.ts')
+						const { listSubredditLinks } = await loadRedditQueries()
 						return listSubredditLinks(
 							context.publicEnv,
 							name,
@@ -412,7 +414,7 @@ export default {
 			resolve: {
 				Fullname: {
 					resolve: async ({ fullname }, context) => {
-						const { getLinkCommentsByArticleId } = await import('$/sources/Reddit/Rest/queries.ts')
+						const { getLinkCommentsByArticleId } = await loadRedditQueries()
 						const publicEnv = context.publicEnv
 						const limit = resolverContextRowLimit(context)
 						const articleId = redditLinkArticleIdFromFullname(fullname)
@@ -437,7 +439,7 @@ export default {
 			resolve: {
 				Fullname: {
 					resolve: async ({ fullname }, context) => {
-						const { getInfo, getLinkCommentsByArticleId } = await import('$/sources/Reddit/Rest/queries.ts')
+						const { getInfo, getLinkCommentsByArticleId } = await loadRedditQueries()
 						const publicEnv = context.publicEnv
 						const limit = resolverContextRowLimit(context)
 						const redditThing = (await getInfo(publicEnv, fullname))
