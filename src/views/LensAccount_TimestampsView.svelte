@@ -36,16 +36,15 @@
 >
 	{#snippet Item({ item: lensAccountTimestamp })}
 		{@const lensAccountTimestampSelector = lensAccountTimestamp[EntityMetaKey.Selector]}
-		{@const account = lensAccountTimestampSelector.$account}
 		<EntityView
 			entityType={EntityType.LensAccount_Timestamp}
 			entitySelector={lensAccountTimestampSelector}
 			href={
-				'address' in account ?
+				'address' in lensAccountTimestampSelector.$account ?
 					resolve(
 						'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]/(lensAccount)/observations/[timestampMs=nonNegativeInteger]',
 						{
-							address: account.address,
+							address: lensAccountTimestampSelector.$account.address,
 							timestampMs: String(lensAccountTimestampSelector.timestampMs),
 						}
 					)

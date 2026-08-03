@@ -37,16 +37,15 @@
 >
 	{#snippet Item({ item: atprotoActorTimestamp })}
 		{@const atprotoActorTimestampSelector = atprotoActorTimestamp[EntityMetaKey.Selector]}
-		{@const actor = atprotoActorTimestampSelector.$actor}
 		<EntityView
 			entityType={EntityType.AtprotoActor_Timestamp}
 			entitySelector={atprotoActorTimestampSelector}
 			href={
-				'did' in actor ?
+				'did' in atprotoActorTimestampSelector.$actor ?
 					resolve(
 						'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 						{
-							did: encodeURIComponent(actor.did),
+							did: encodeURIComponent(atprotoActorTimestampSelector.$actor.did),
 							timestampMs: String(atprotoActorTimestampSelector.timestampMs),
 							source: atprotoActorTimestampSelector.source,
 						}

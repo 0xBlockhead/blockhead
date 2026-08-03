@@ -24,7 +24,6 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.LiquidityPool>, 'prefetched'> = $props()
 
-	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Dexscreener_Rest,
@@ -55,11 +54,11 @@
 	href={
 		href === undefined ?
 			(
-				'caip2' in network ?
+				'caip2' in selection.entitySelector.$network ?
 					resolve(
 						'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]',
 						{
-							chainId: network.caip2.reference,
+							chainId: selection.entitySelector.$network.caip2.reference,
 							poolId: selection.entitySelector.id,
 						}
 					)

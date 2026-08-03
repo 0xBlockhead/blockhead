@@ -21,8 +21,6 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.XUser_Timestamp>, 'prefetched'> = $props()
 
-	const user = $derived(selection.entitySelector.$user)
-
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
@@ -39,11 +37,11 @@
 	href={
 		href === undefined ?
 			(
-				'id' in user ?
+				'id' in selection.entitySelector.$user ?
 					resolve(
 						'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]/(xUser)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 						{
-							userId: user.id,
+							userId: selection.entitySelector.$user.id,
 							timestampMs: String(selection.entitySelector.timestampMs),
 							source: selection.entitySelector.source,
 						}

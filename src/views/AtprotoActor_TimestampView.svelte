@@ -23,7 +23,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AtprotoActor_Timestamp> = $props()
 
-	const actor = $derived(selection.entitySelector.$actor)
 	const atprotoActorTimestamp = $derived(selection({
 		fields: {
 			displayName: true,
@@ -48,11 +47,11 @@
 	href={
 		href === undefined ?
 			(
-				'did' in actor ?
+				'did' in selection.entitySelector.$actor ?
 					resolve(
 						'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 						{
-							did: encodeURIComponent(actor.did),
+							did: encodeURIComponent(selection.entitySelector.$actor.did),
 							timestampMs: String(selection.entitySelector.timestampMs),
 							source: selection.entitySelector.source,
 						}

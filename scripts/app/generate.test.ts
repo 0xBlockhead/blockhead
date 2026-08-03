@@ -127,9 +127,15 @@ test('entity hrefs compile directly from routes without a parallel artifact fami
 	const pluralHrefFieldBindingCount = generatedSvelteSources.reduce((count, source) => (
 		count + (source.match(/\{@const [A-Za-z_$][A-Za-z0-9_$]* = [A-Za-z0-9_$]+Selector\.\$[A-Za-z0-9_$]+\}/g) ?? []).length
 	), 0)
-	assert.equal(singularHrefFieldBindingCount, 121)
-	assert.equal(pluralHrefFieldBindingCount, 119)
-	assert.equal(singularHrefFieldBindingCount + pluralHrefFieldBindingCount, 240)
+	assert.equal(singularHrefFieldBindingCount, 115)
+	assert.equal(pluralHrefFieldBindingCount, 113)
+	assert.equal(singularHrefFieldBindingCount + pluralHrefFieldBindingCount, 228)
+	const hrefPlanSource = generatorSource.slice(
+		generatorSource.indexOf('const entityRouteFieldBindings'),
+		generatorSource.indexOf('const renderCollectionRouteValueExpression')
+	)
+	assert.doesNotMatch(hrefPlanSource, /parseTypeScriptExpression|candidateFieldBindings|candidateExpression/)
+	assert.match(hrefPlanSource, /fieldPathsByRoot = Map\.groupBy\([\s\S]*?expressionFieldPaths\(value\)/)
 	for (const source of generatedSvelteSources)
 		assert.doesNotMatch(source, /__BLOCKHEAD_COMPILED_HREF_FIELD_/)
 	for (const [viewPath, route] of [
@@ -223,7 +229,8 @@ test('entity hrefs compile directly from routes without a parallel artifact fami
 			1
 		)
 	const evmCoinInstancesSource = renderGeneratedFile(evmCoinInstancesView)
-	assert.match(evmCoinInstancesSource, /\{@const evmCoinInstanceHref = 'caip2' in network/)
+	assert.match(evmCoinInstancesSource, /\{@const evmCoinInstanceHref = 'caip2' in evmCoinInstanceSelector\.\$network/)
+	assert.doesNotMatch(evmCoinInstancesSource, /\{@const network = evmCoinInstanceSelector\.\$network\}/)
 	assert.equal((evmCoinInstancesSource.match(/href=\{evmCoinInstanceHref\}/g) ?? []).length, 2)
 
 	const tonTransactionView = generatedFiles.find(({ path }) => path === 'src/views/TonTransactionView.svelte')

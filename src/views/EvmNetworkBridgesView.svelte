@@ -38,12 +38,11 @@
 	{#snippet Item({ item: evmNetworkBridge })}
 		{@const evmNetworkBridgeSelector = evmNetworkBridge[EntityMetaKey.Selector]}
 		{@const fromNetwork = evmNetworkBridgeSelector.$fromNetwork}
-		{@const toNetwork = evmNetworkBridgeSelector.$toNetwork}
 		<EntityView
 			entityType={EntityType.EvmNetworkBridge}
 			entitySelector={evmNetworkBridgeSelector}
 			href={
-				'caip2' in toNetwork ?
+				'caip2' in evmNetworkBridgeSelector.$toNetwork ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]',
 						{
@@ -53,7 +52,7 @@
 								:
 									fromNetwork.slug
 							),
-							toCaip2: caip2StringFromValue(toNetwork.caip2),
+							toCaip2: caip2StringFromValue(evmNetworkBridgeSelector.$toNetwork.caip2),
 							url: encodeURIComponent(evmNetworkBridgeSelector.url),
 						}
 					)

@@ -35,8 +35,7 @@
 >
 	{#snippet Item({ item: evmCoinInstance })}
 		{@const evmCoinInstanceSelector = evmCoinInstance[EntityMetaKey.Selector]}
-		{@const network = evmCoinInstanceSelector.$network}
-		{@const evmCoinInstanceHref = 'caip2' in network
+		{@const evmCoinInstanceHref = 'caip2' in evmCoinInstanceSelector.$network
 			&& (
 				evmCoinInstanceSelector.type === 'NativeCurrency'
 				|| (
@@ -47,7 +46,7 @@
 				resolve(
 					'/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]',
 					{
-						chainId: network.caip2.reference,
+						chainId: evmCoinInstanceSelector.$network.caip2.reference,
 						coinInstanceSlug: (
 							evmCoinInstanceSelector.type === 'NativeCurrency' ?
 								'native'

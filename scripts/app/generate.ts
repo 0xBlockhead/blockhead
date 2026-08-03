@@ -12367,22 +12367,27 @@ const entityRouteImportSpecs = (
 		.reduce((imports, param) => expressionImports(param.value, imports), new Map<string, Set<string>>())
 )
 
-// Repeated relationship-selector roots are named once beside the view state.
-// The route stays a direct resolve() expression; this only removes duplicated
-// deep selector access from its conditions and parameter values.
+// Name a relationship selector only when route parameters read multiple
+// distinct members from it. A repeated guard/value access to one member stays
+// inline; a real structured route subject is shared once.
 const entityRouteFieldBindings = (
 	entity: Entity,
-	referenceCountByField: ReadonlyMap<string, number>,
+	routeLinks: readonly EntityRouteLink[],
 	fieldsExpression: string,
 	reservedNames: readonly string[]
 ) => {
 	const names = new Set(reservedNames)
+	const fieldPathsByRoot = Map.groupBy(
+		routeLinks.flatMap(({ params }) => Object.values(params).flatMap(({ value }) => (
+			expressionFieldPaths(value).filter((fieldPath) => fieldPath.length > 1)
+		))),
+		([fieldName]) => fieldName
+	)
 
 	return entity.fields.flatMap((field) => {
-		const expression = fieldExpression(fieldsExpression, field.name)
 		if (
 			field.entityType == null
-			|| (referenceCountByField.get(field.name) ?? 0) < 2
+			|| new Set(fieldPathsByRoot.get(field.name)?.map((fieldPath) => fieldPath[1])).size < 2
 		)
 			return []
 
@@ -12391,7 +12396,7 @@ const entityRouteFieldBindings = (
 		names.add(name)
 
 		return [{
-			expression,
+			expression: fieldExpression(fieldsExpression, field.name),
 			fieldName: field.name,
 			name,
 		}]
@@ -12405,8 +12410,16 @@ const entityRouteHrefPlan = (
 	reservedNames: readonly string[],
 	usesResolvedEntity = false
 ) => {
-	const directExpression = (
-		(indexes.entityRouteLinksByType[entity.entityType]?.length ?? 0) === 0 ?
+	const routeLinks = indexes.entityRouteLinksByType[entity.entityType] ?? []
+	const fieldBindings = entityRouteFieldBindings(
+		entity,
+		routeLinks,
+		fieldsExpression,
+		reservedNames
+	)
+
+	return {
+		expression: routeLinks.length === 0 ?
 			undefined
 		:
 			renderEntityRouteLinkExpression(
@@ -12414,76 +12427,11 @@ const entityRouteHrefPlan = (
 				entity.entityType,
 				fieldsExpression,
 				{
+					fieldExpressionByName: Object.fromEntries(fieldBindings.map(({ fieldName, name }) => [fieldName, name])),
 					resolvedFields: usesResolvedEntity,
+					routeLinks,
 				}
-			)
-	)
-	// Count the field roots in the expression that the route compiler actually
-	// emits, so route factoring and selector exhaustiveness stay authoritative.
-	const parsedExpression = directExpression == null ? undefined : parseTypeScriptExpression(directExpression)
-	const fieldByExpression = new Map(entity.fields.flatMap((field) => (
-		field.entityType == null ?
-			[]
-		:
-			[[fieldExpression(fieldsExpression, field.name), field.name] as const]
-	)))
-	const referencedFieldNames: string[] = []
-	if (parsedExpression != null) {
-		const visit = (node: ts.Node) => {
-			const fieldName = ts.isExpression(node) ? fieldByExpression.get(node.getText(parsedExpression.sourceFile)) : undefined
-			if (fieldName != null) {
-				referencedFieldNames.push(fieldName)
-				return
-			}
-
-			ts.forEachChild(node, visit)
-		}
-		visit(parsedExpression.expression)
-	}
-	const candidateFieldBindings = entityRouteFieldBindings(
-		entity,
-		new Map(
-			[...Map.groupBy(referencedFieldNames, (fieldName) => fieldName)]
-				.map(([fieldName, references]) => [fieldName, references.length])
-		),
-		fieldsExpression,
-		reservedNames
-	)
-	const candidateExpression = candidateFieldBindings.length === 0 || directExpression == null ? directExpression : renderEntityRouteLinkExpression(
-		indexes,
-		entity.entityType,
-		fieldsExpression,
-		{
-			fieldExpressionByName: Object.fromEntries(candidateFieldBindings.map(({ fieldName, name }) => [fieldName, name])),
-			resolvedFields: usesResolvedEntity,
-		}
-	)
-	// Raw route fragments cannot consume structured field overrides. Keep only
-	// bindings that the structured rerender actually references.
-	const fieldBindings = candidateExpression == null ? [] : candidateFieldBindings.filter(({ name }) => (
-		typeScriptExpressionReferencesBinding(candidateExpression, name)
-	))
-
-	return {
-		// Re-render the structured APP route expression with named field roots; the
-		// TypeScript AST is used only to count and verify emitted references.
-		expression: (
-			fieldBindings.length === 0 || directExpression == null ?
-				directExpression
-			:
-			fieldBindings.length === candidateFieldBindings.length ?
-				candidateExpression
-			:
-				renderEntityRouteLinkExpression(
-					indexes,
-					entity.entityType,
-					fieldsExpression,
-					{
-						fieldExpressionByName: Object.fromEntries(fieldBindings.map(({ fieldName, name }) => [fieldName, name])),
-						resolvedFields: usesResolvedEntity,
-					}
-				)
-		),
+			),
 		fieldBindings,
 	}
 }

@@ -48,16 +48,15 @@
 >
 	{#snippet Item({ item: liquidityPool })}
 		{@const liquidityPoolSelector = liquidityPool[EntityMetaKey.Selector]}
-		{@const network = liquidityPoolSelector.$network}
 		<EntityView
 			entityType={EntityType.LiquidityPool}
 			entitySelector={liquidityPoolSelector}
 			href={
-				'caip2' in network ?
+				'caip2' in liquidityPoolSelector.$network ?
 					resolve(
 						'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]',
 						{
-							chainId: network.caip2.reference,
+							chainId: liquidityPoolSelector.$network.caip2.reference,
 							poolId: liquidityPoolSelector.id,
 						}
 					)

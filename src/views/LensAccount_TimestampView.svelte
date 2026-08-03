@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.LensAccount_Timestamp>, 'prefetched'> = $props()
 
-	const account = $derived(selection.entitySelector.$account)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Lens_Graphql,
@@ -45,11 +44,11 @@
 	href={
 		href === undefined ?
 			(
-				'address' in account ?
+				'address' in selection.entitySelector.$account ?
 					resolve(
 						'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]/(lensAccount)/observations/[timestampMs=nonNegativeInteger]',
 						{
-							address: account.address,
+							address: selection.entitySelector.$account.address,
 							timestampMs: String(selection.entitySelector.timestampMs),
 						}
 					)

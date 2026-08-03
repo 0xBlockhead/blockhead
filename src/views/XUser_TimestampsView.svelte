@@ -37,16 +37,15 @@
 >
 	{#snippet Item({ item: xUserTimestamp })}
 		{@const xUserTimestampSelector = xUserTimestamp[EntityMetaKey.Selector]}
-		{@const user = xUserTimestampSelector.$user}
 		<EntityView
 			entityType={EntityType.XUser_Timestamp}
 			entitySelector={xUserTimestampSelector}
 			href={
-				'id' in user ?
+				'id' in xUserTimestampSelector.$user ?
 					resolve(
 						'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]/(xUser)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 						{
-							userId: user.id,
+							userId: xUserTimestampSelector.$user.id,
 							timestampMs: String(xUserTimestampSelector.timestampMs),
 							source: xUserTimestampSelector.source,
 						}

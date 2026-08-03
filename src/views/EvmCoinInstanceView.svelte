@@ -24,8 +24,6 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.EvmCoinInstance>, 'prefetched'> = $props()
 
-	const network = $derived(selection.entitySelector.$network)
-
 
 	// Components
 	import IconComponent from '$/components/Icon.svelte'
@@ -47,7 +45,7 @@
 	href={
 		href === undefined ?
 			(
-				'caip2' in network
+				'caip2' in selection.entitySelector.$network
 				&& (
 					selection.entitySelector.type === 'NativeCurrency'
 					|| (
@@ -58,7 +56,7 @@
 					resolve(
 						'/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]',
 						{
-							chainId: network.caip2.reference,
+							chainId: selection.entitySelector.$network.caip2.reference,
 							coinInstanceSlug: (
 								selection.entitySelector.type === 'NativeCurrency' ?
 									'native'

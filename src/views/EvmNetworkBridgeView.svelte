@@ -23,7 +23,6 @@
 	}: Omit<EntitySelectionViewProps<EntityType.EvmNetworkBridge>, 'prefetched'> = $props()
 
 	const fromNetwork = $derived(selection.entitySelector.$fromNetwork)
-	const toNetwork = $derived(selection.entitySelector.$toNetwork)
 	const evmNetworkBridge = $derived(selection({
 		fields: {
 			relationshipType: true,
@@ -45,7 +44,7 @@
 	href={
 		href === undefined ?
 			(
-				'caip2' in toNetwork ?
+				'caip2' in selection.entitySelector.$toNetwork ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]',
 						{
@@ -55,7 +54,7 @@
 								:
 									fromNetwork.slug
 							),
-							toCaip2: caip2StringFromValue(toNetwork.caip2),
+							toCaip2: caip2StringFromValue(selection.entitySelector.$toNetwork.caip2),
 							url: encodeURIComponent(selection.entitySelector.url),
 						}
 					)
