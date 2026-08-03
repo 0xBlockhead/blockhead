@@ -12,8 +12,10 @@
 		"gasUsed": "0x5208",
 		"effectiveGasPrice": "0x3b9aca00",
 		"status": "0x1",
+		"logsBloom": "0x00",
 		"logs": [
 			{
+				"transactionHash": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 				"logIndex": "0x0"
 			}
 		]

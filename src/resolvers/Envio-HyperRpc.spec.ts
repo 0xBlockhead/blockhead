@@ -94,18 +94,20 @@ describe('Envio HyperRPC query boundary', () => {
 
 		await expect(getEvmTransactionByHash(transaction.hash)).resolves.toEqual(transaction)
 		await expect(getEvmTransactionReceipt(transaction.hash)).resolves.toEqual(transactionReceipt)
-		expect(jsonRpc2.mock.calls).toEqual([
-			[
-				resolverBinding,
-				'eth_getTransactionByHash',
-				[transaction.hash],
-			],
-			[
-				resolverBinding,
-				'eth_getTransactionReceipt',
-				[transaction.hash],
-			],
-		])
+		expect(jsonRpc2).toHaveBeenNthCalledWith(
+			1,
+			expect.objectContaining({ source: resolverBinding.source }),
+			'eth_getTransactionByHash',
+			[transaction.hash],
+			undefined
+		)
+		expect(jsonRpc2).toHaveBeenNthCalledWith(
+			2,
+			expect.objectContaining({ source: resolverBinding.source }),
+			'eth_getTransactionReceipt',
+			[transaction.hash],
+			undefined
+		)
 	})
 
 	it('preserves complete-empty and transport failure outcomes', async () => {

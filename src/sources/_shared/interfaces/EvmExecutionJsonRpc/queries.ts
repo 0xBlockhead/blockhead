@@ -3,13 +3,16 @@ import type {
 	SourceEndpoint,
 } from '$/sources/SourceBinding.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
-import type {
-	RpcBlockHeader,
-	RpcFeeHistory,
-	RpcReceipt,
-	RpcTxpoolStatus,
-	RpcTransaction,
+import {
+	narrowRpcBlock,
+	narrowRpcReceipt,
+	narrowRpcTransaction,
+	type RpcBlockWire,
+	type RpcFeeHistory,
+	type RpcTxpoolStatus,
+	type RpcTransactionWire,
 } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 const blockParam = (blockNumber: bigint | 'latest') => (
 	blockNumber === 'latest' ?
@@ -25,6 +28,21 @@ const quantityHex = (value: bigint) => (
 type EvmExecutionJsonRpcRequest = {
 	binding: SourceBinding
 	endpoint?: SourceEndpoint
+}
+
+const narrowNullableResult = <_Result>(
+	result: JsonValue,
+	method: string,
+	narrow: (result: JsonValue) => _Result | null
+) => {
+	if (result === null)
+		return null
+
+	const narrowed = narrow(result)
+	if (narrowed == null)
+		throw new Error(`EVM execution JSON-RPC ${method}: malformed result`)
+
+	return narrowed
 }
 
 export const getBlockNumber = async (
@@ -64,53 +82,111 @@ export const getMaxPriorityFeePerGas = (
 	)
 )
 
-export const getBlockByNumber = ({
+type EvmExecutionBlockByNumberRequest<_TxObjects extends boolean> = {
+	blockNumber: bigint | 'latest'
+	txObjects: _TxObjects
+} & EvmExecutionJsonRpcRequest
+
+type RpcBlockWithTransactionObjects = Omit<RpcBlockWire, 'transactions'> & {
+	transactions: RpcTransactionWire[]
+}
+
+type RpcBlockWithTransactionHashes = Omit<RpcBlockWire, 'transactions'> & {
+	transactions: string[]
+}
+
+type EvmExecutionBlockByHashRequest<_TxObjects extends boolean> = {
+	blockHash: string
+	txObjects: _TxObjects
+} & EvmExecutionJsonRpcRequest
+
+export function getBlockByNumber(
+	request: EvmExecutionBlockByNumberRequest<true>
+): Promise<RpcBlockWithTransactionObjects | null>
+export function getBlockByNumber(
+	request: EvmExecutionBlockByNumberRequest<false>
+): Promise<RpcBlockWithTransactionHashes | null>
+export function getBlockByNumber(
+	request: EvmExecutionBlockByNumberRequest<boolean>
+): Promise<RpcBlockWire | null>
+export function getBlockByNumber({
 	binding,
 	endpoint,
 	blockNumber,
 	txObjects,
-}: {
-	blockNumber: bigint | 'latest'
-	txObjects: boolean
-} & EvmExecutionJsonRpcRequest) => (
-	jsonRpc2<RpcBlockHeader | null>(
+}: EvmExecutionBlockByNumberRequest<boolean>) {
+	return jsonRpc2<JsonValue>(
 		binding,
 		'eth_getBlockByNumber',
 		[blockParam(blockNumber), txObjects],
 		endpoint
-	)
-)
+	).then((result) => {
+		const block = narrowNullableResult(
+			result,
+			'eth_getBlockByNumber',
+			narrowRpcBlock
+		)
+		if (block?.transactions.some((transaction) => (
+			txObjects ? typeof transaction === 'string' : typeof transaction !== 'string'
+		)) === true)
+			throw new Error('EVM execution JSON-RPC eth_getBlockByNumber: malformed transaction representation')
 
-export const getBlockByHash = ({
+		return block
+	})
+}
+
+export function getBlockByHash(
+	request: EvmExecutionBlockByHashRequest<true>
+): Promise<RpcBlockWithTransactionObjects | null>
+export function getBlockByHash(
+	request: EvmExecutionBlockByHashRequest<false>
+): Promise<RpcBlockWithTransactionHashes | null>
+export function getBlockByHash(
+	request: EvmExecutionBlockByHashRequest<boolean>
+): Promise<RpcBlockWire | null>
+export function getBlockByHash({
 	binding,
 	endpoint,
 	blockHash,
 	txObjects,
-}: {
-	blockHash: `0x${string}`
-	txObjects: boolean
-} & EvmExecutionJsonRpcRequest) => (
-	jsonRpc2<RpcBlockHeader | null>(
+}: EvmExecutionBlockByHashRequest<boolean>) {
+	return jsonRpc2<JsonValue>(
 		binding,
 		'eth_getBlockByHash',
 		[blockHash, txObjects],
 		endpoint
-	)
-)
+	).then((result) => {
+		const block = narrowNullableResult(
+			result,
+			'eth_getBlockByHash',
+			narrowRpcBlock
+		)
+		if (block?.transactions.some((transaction) => (
+			txObjects ? typeof transaction === 'string' : typeof transaction !== 'string'
+		)) === true)
+			throw new Error('EVM execution JSON-RPC eth_getBlockByHash: malformed transaction representation')
+
+		return block
+	})
+}
 
 export const getTransactionByHash = ({
 	binding,
 	endpoint,
 	txHash,
 }: {
-	txHash: `0x${string}`
+	txHash: string
 } & EvmExecutionJsonRpcRequest) => (
-	jsonRpc2<RpcTransaction | null>(
+	jsonRpc2<JsonValue>(
 		binding,
 		'eth_getTransactionByHash',
 		[txHash],
 		endpoint
-	)
+	).then((result) => narrowNullableResult(
+		result,
+		'eth_getTransactionByHash',
+		narrowRpcTransaction
+	))
 )
 
 export const getTransactionReceipt = ({
@@ -118,14 +194,18 @@ export const getTransactionReceipt = ({
 	endpoint,
 	txHash,
 }: {
-	txHash: `0x${string}`
+	txHash: string
 } & EvmExecutionJsonRpcRequest) => (
-	jsonRpc2<RpcReceipt | null>(
+	jsonRpc2<JsonValue>(
 		binding,
 		'eth_getTransactionReceipt',
 		[txHash],
 		endpoint
-	)
+	).then((result) => narrowNullableResult(
+		result,
+		'eth_getTransactionReceipt',
+		narrowRpcReceipt
+	))
 )
 
 /**

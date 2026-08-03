@@ -11,7 +11,8 @@ import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import type { HyperliquidEvmTransaction } from '$/sources/Hyperliquid/JsonRpc/types.ts'
+import { hyperliquidJsonRpcBinding } from '$/sources/Hyperliquid/JsonRpc/transport.ts'
+import type { RpcTransactionWire } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 const assertHyperliquidMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug.hyperliquid.slug)
@@ -19,7 +20,7 @@ const assertHyperliquidMainnet = (network: NetworkId) => {
 }
 const hexToBigInt = (hex: string) => BigInt(hex)
 const hyperliquidTransactionEntity = (
-	transaction: HyperliquidEvmTransaction,
+	transaction: RpcTransactionWire,
 	network: NetworkId
 ) => ({
 	[EntityMetaKey.Selector]: {
@@ -36,14 +37,12 @@ const hyperliquidTransactionEntity = (
 				},
 			},
 		}),
-		...(transaction.from != null && {
-			[entityFieldAddressKey(EntityType.HyperliquidTransaction, [], '$account')]: {
-				[EntityMetaKey.Selector]: {
-					$network: network,
-					address: transaction.from,
-				},
+		[entityFieldAddressKey(EntityType.HyperliquidTransaction, [], '$account')]: {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				address: transaction.from,
 			},
-		}),
+		},
 	},
 })
 const resolveHyperliquidBlocks = async (
@@ -51,8 +50,8 @@ const resolveHyperliquidBlocks = async (
 	limit: number
 ) => {
 	assertHyperliquidMainnet(network)
-	const { getBlockNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-	const headBlockHeight = hexToBigInt(await getBlockNumber())
+	const { getBlockNumber } = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
+	const headBlockHeight = BigInt(await getBlockNumber(hyperliquidJsonRpcBinding))
 	return Array.from({
 		length: Math.min(
 			Number(headBlockHeight + 1n),
@@ -73,8 +72,8 @@ const resolveHyperliquidTransactions = async (
 	const {
 		getBlockByNumber,
 		getBlockNumber,
-	} = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-	const headBlockHeight = hexToBigInt(await getBlockNumber())
+	} = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
+	const headBlockHeight = BigInt(await getBlockNumber(hyperliquidJsonRpcBinding))
 	return (
 		await Promise.all(
 			Array.from({
@@ -84,8 +83,9 @@ const resolveHyperliquidTransactions = async (
 				),
 			}, (_value, blockOffset) => (
 				getBlockByNumber({
-					height: headBlockHeight - BigInt(blockOffset),
-					includeTransactions: true,
+					binding: hyperliquidJsonRpcBinding,
+					blockNumber: headBlockHeight - BigInt(blockOffset),
+					txObjects: true,
 				})
 			))
 		)
@@ -104,10 +104,11 @@ export const hyperliquidEvmResolvers = [
 			Height: {
 				resolve: async ({ $network, height }) => {
 					assertHyperliquidMainnet($network)
-					const { getBlockByNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+					const { getBlockByNumber } = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
 					const block = await getBlockByNumber({
-						height,
-						includeTransactions: true,
+						binding: hyperliquidJsonRpcBinding,
+						blockNumber: height,
+						txObjects: true,
 					})
 					if (block == null) throw new Error(`Hyperliquid EVM: block not found for ${height.toString()}`)
 					return {
@@ -131,8 +132,9 @@ export const hyperliquidEvmResolvers = [
 			NetworkTxHash: {
 				resolve: async ({ $network, txHash }) => {
 					assertHyperliquidMainnet($network)
-					const { getTransactionByHash } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+					const { getTransactionByHash } = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
 					const transaction = await getTransactionByHash({
+						binding: hyperliquidJsonRpcBinding,
 						txHash: txHash,
 					})
 					if (transaction == null) throw new Error(`Hyperliquid EVM: transaction not found for ${txHash}`)
@@ -145,14 +147,12 @@ export const hyperliquidEvmResolvers = [
 								},
 							},
 						}),
-						...(transaction.from != null && {
-							$account: {
-								[EntityMetaKey.Selector]: {
-									$network: $network,
-									address: transaction.from,
-								},
+						$account: {
+							[EntityMetaKey.Selector]: {
+								$network: $network,
+								address: transaction.from,
 							},
-						}),
+						},
 						actionType: 'evm',
 					}
 				},
@@ -187,8 +187,9 @@ export const hyperliquidEvmResolvers = [
 			TransactionTimestampMsSource: {
 				resolve: async ({ $transaction }) => {
 					assertHyperliquidMainnet($transaction.$network)
-					const { getTransactionReceipt } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+					const { getTransactionReceipt } = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
 					const receipt = await getTransactionReceipt({
+						binding: hyperliquidJsonRpcBinding,
 						txHash: $transaction.txHash,
 					})
 					return {

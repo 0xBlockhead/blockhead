@@ -29,12 +29,12 @@ import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
-import type { RpcLog } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
 import type {
-	VoltaireBlockRpc,
-	VoltaireCallTraceRpc,
-	VoltaireTxRpc,
-} from '$/sources/Voltaire/JsonRpc/types.ts'
+	RpcBlockWire,
+	RpcLog,
+	RpcTransactionWire,
+} from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
+import type { VoltaireCallTraceRpc } from '$/sources/Voltaire/JsonRpc/types.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -431,19 +431,16 @@ const allJsonRpcEndpointsFailedError = (
 
 const evmTransactionRefsForTxHashes = (
 	chainId: number,
-	transactions: readonly (string | VoltaireTxRpc)[] | undefined
+	transactions: readonly (string | RpcTransactionWire)[] | undefined
 ) => (
 	(transactions ?? [])
 		.map((transactionRef) => (
 			typeof transactionRef === 'string' ?
 				transactionRef
 			:
-				transactionRef.hash != null ?
-					transactionRef.hash
-				:
-					undefined
+				transactionRef.hash
 		))
-		.filter((hash): hash is string => hash != null && hash.length > 0)
+		.filter((hash) => hash.length > 0)
 		.map((hash) => hexLowerOfByteSize(hash, 32))
 		.filter((hash): hash is `0x${string}` => hash != null)
 		.map((txHash) => ({
@@ -557,19 +554,18 @@ const networkGasFeeBlockRefsFromFeeHistory = (
 const evmBlobEntitiesFromVoltaireBlockWire = (
 	chainId: number,
 	blockNumber: bigint,
-	wire: VoltaireBlockRpc
+	wire: RpcBlockWire
 ) => {
-	const txs = wire.transactions ?? []
+	const txs = wire.transactions
 	const out = []
 	for (const transactionRef of txs) {
 		if (typeof transactionRef === 'string') continue
-		const txHash = hexLowerOfByteSize(transactionRef.hash ?? '', 32)
+		const txHash = hexLowerOfByteSize(transactionRef.hash, 32)
 		if (txHash == null) continue
 		const bvh = transactionRef.blobVersionedHashes
 		if (bvh == null) continue
 		for (let blobIndex = 0; blobIndex < bvh.length; blobIndex += 1) {
 			const h = bvh[blobIndex]
-			if (typeof h !== 'string') continue
 			const versionedHash = hexLowerOfByteSize(h, 32)
 			if (versionedHash == null || !versionedHash.startsWith('0x01')) continue
 			out.push({
@@ -603,7 +599,7 @@ const evmBlobEntitiesFromVoltaireBlockWire = (
 
 const networkScopedEvmBlockFieldsFromVoltaireBlockRpc = (
 	chainId: number,
-	wire: VoltaireBlockRpc
+	wire: RpcBlockWire
 ) => {
 	const blockHash = hexLowerOfByteSize(wire.hash, 32)
 	const parentHash = hexLowerOfByteSize(wire.parentHash, 32)
@@ -637,7 +633,7 @@ const networkScopedEvmBlockFieldsFromVoltaireBlockRpc = (
 		baseFeePerGas: nonNegativeBigIntFromHex(wire.baseFeePerGas),
 		blobGasUsed: nonNegativeBigIntFromHex(wire.blobGasUsed),
 		excessBlobGas: nonNegativeBigIntFromHex(wire.excessBlobGas),
-		transactionCount: (wire.transactions ?? []).length,
+		transactionCount: wire.transactions.length,
 	}
 }
 
@@ -1044,10 +1040,7 @@ export default {
 									})
 									if (voltaireTransactionWire == null)
 										throw new Error('transaction not returned from RPC')
-									const jsonRpcTransaction = getRpcTx(
-										voltaireTransactionWire,
-										requestedTxHash
-									)
+									const jsonRpcTransaction = getRpcTx(voltaireTransactionWire)
 									const txHash = (
 										jsonRpcTransaction.hash != null ?
 											(hexLowerOfByteSize(jsonRpcTransaction.hash, 32) ?? requestedTxHash)

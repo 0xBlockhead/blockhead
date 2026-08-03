@@ -29,11 +29,11 @@ import {
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
 import {
-	narrowBlockRpc,
-	narrowTxRpc,
-	narrowVoltaireReceiptRpc,
-	parseVoltaireCallTraceRpc,
-} from '$/sources/Voltaire/JsonRpc/types.ts'
+	narrowRpcBlock,
+	narrowRpcReceipt,
+	narrowRpcTransaction,
+} from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
+import { parseVoltaireCallTraceRpc } from '$/sources/Voltaire/JsonRpc/types.ts'
 
 export type ExecutionTransport = {
 	binding: SourceBinding<Source.Voltaire_JsonRpc>
@@ -235,40 +235,15 @@ export const getBlockByNumberForEndpoint = async ({
 	blockNumber: bigint | 'latest'
 	fullTransactions?: boolean
 }) => {
-	if (endpoint.endpointKind === SourceEndpointKind.HttpUrl) {
-		const block = await getEvmBlockByNumber({
+	if (endpoint.endpointKind === SourceEndpointKind.HttpUrl)
+		return getEvmBlockByNumber({
 			binding,
 			endpoint,
 			blockNumber,
 			txObjects: fullTransactions,
 		})
-		if (
-			block == null
-			|| block.number == null
-			|| block.hash == null
-			|| block.parentHash == null
-			|| block.timestamp == null
-			|| block.miner == null
-			|| block.gasUsed == null
-			|| block.gasLimit == null
-		) return null
 
-		return {
-			number: block.number,
-			hash: block.hash,
-			parentHash: block.parentHash,
-			timestamp: block.timestamp,
-			miner: block.miner,
-			gasUsed: block.gasUsed,
-			gasLimit: block.gasLimit,
-			...(block.baseFeePerGas != null && { baseFeePerGas: block.baseFeePerGas }),
-			...(block.blobGasUsed != null && { blobGasUsed: block.blobGasUsed }),
-			...(block.excessBlobGas != null && { excessBlobGas: block.excessBlobGas }),
-			...(block.transactions != null && { transactions: block.transactions }),
-		}
-	}
-
-	return narrowBlockRpc(
+	return narrowRpcBlock(
 		await jsonValueFromProviderRequest(
 			(await getProviderForExecutionUrl({
 				binding,
@@ -293,40 +268,15 @@ export const getBlockByHashForEndpoint = async ({
 	blockHash: `0x${string}`
 	fullTransactions?: boolean
 }) => {
-	if (endpoint.endpointKind === SourceEndpointKind.HttpUrl) {
-		const block = await getEvmBlockByHash({
+	if (endpoint.endpointKind === SourceEndpointKind.HttpUrl)
+		return getEvmBlockByHash({
 			binding,
 			endpoint,
 			blockHash,
 			txObjects: fullTransactions,
 		})
-		if (
-			block == null
-			|| block.number == null
-			|| block.hash == null
-			|| block.parentHash == null
-			|| block.timestamp == null
-			|| block.miner == null
-			|| block.gasUsed == null
-			|| block.gasLimit == null
-		) return null
 
-		return {
-			number: block.number,
-			hash: block.hash,
-			parentHash: block.parentHash,
-			timestamp: block.timestamp,
-			miner: block.miner,
-			gasUsed: block.gasUsed,
-			gasLimit: block.gasLimit,
-			...(block.baseFeePerGas != null && { baseFeePerGas: block.baseFeePerGas }),
-			...(block.blobGasUsed != null && { blobGasUsed: block.blobGasUsed }),
-			...(block.excessBlobGas != null && { excessBlobGas: block.excessBlobGas }),
-			...(block.transactions != null && { transactions: block.transactions }),
-		}
-	}
-
-	return narrowBlockRpc(
+	return narrowRpcBlock(
 		await jsonValueFromProviderRequest(
 			(await getProviderForExecutionUrl({
 				binding,
@@ -390,7 +340,7 @@ export const getTransactionByHashForEndpoint = async ({
 			txHash,
 		})
 
-	return narrowTxRpc(
+	return narrowRpcTransaction(
 		await jsonValueFromProviderRequest(
 			(await getProviderForExecutionUrl({
 				binding,
@@ -417,7 +367,7 @@ export const getTransactionReceiptForEndpoint = async ({
 			txHash,
 		})
 
-	return narrowVoltaireReceiptRpc(
+	return narrowRpcReceipt(
 		await jsonValueFromProviderRequest(
 			(await getProviderForExecutionUrl({
 				binding,

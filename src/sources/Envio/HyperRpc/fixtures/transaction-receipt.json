@@ -4,8 +4,10 @@
 	"contractAddress": null,
 	"cumulativeGasUsed": "0x100000",
 	"effectiveGasPrice": "0x3b9aca00",
+	"from": "0x1111111111111111111111111111111111111111",
 	"gasUsed": "0x5208",
 	"blobGasUsed": "0x20000",
+	"logsBloom": "0x00",
 	"logs": [
 		{
 			"address": "0x3333333333333333333333333333333333333333",

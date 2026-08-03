@@ -13,7 +13,7 @@ import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { hyperliquidJsonRpcEndpoints } from '$/sources/Hyperliquid/JsonRpc/queries.ts'
+import { hyperliquidJsonRpcEndpoints } from '$/sources/Hyperliquid/JsonRpc/transport.ts'
 import { hyperliquidRestEndpoints } from '$/sources/Hyperliquid/Rest/queries.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>

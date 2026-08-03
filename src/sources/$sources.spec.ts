@@ -18,10 +18,10 @@ import {
 	evmExecutionOpenRpcArtifactFailures,
 } from '$/sources/validateSourceRegistry.ts'
 import {
-	getRpcTx,
 	narrowRpcLog,
-	narrowTxRpc,
-} from '$/sources/Voltaire/JsonRpc/types.ts'
+	narrowRpcTransaction,
+} from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
+import { getRpcTx } from '$/sources/Voltaire/JsonRpc/types.ts'
 
 import {
 	getGasPriceForEndpoint,
@@ -85,8 +85,17 @@ describe('source provider registry', () => {
 	})
 
 	it('keeps Voltaire transaction source narrowing from dropping signature and blob fields', () => {
-		const tx = narrowTxRpc({
+		const tx = narrowRpcTransaction({
 			hash: '0xtransaction',
+			blockHash: null,
+			blockNumber: null,
+			transactionIndex: null,
+			from: '0xfrom',
+			to: null,
+			value: '0x0',
+			nonce: '0x0',
+			input: '0x',
+			gas: '0x5208',
 			r: '0xr',
 			s: '0xs',
 			v: '0x1',
@@ -100,7 +109,7 @@ describe('source provider registry', () => {
 		if (tx == null)
 			throw new Error('Voltaire transaction narrowing rejected valid transaction wire')
 
-		expect(getRpcTx(tx, '0xtransaction')).toMatchObject({
+		expect(getRpcTx(tx)).toMatchObject({
 			hash: '0xtransaction',
 			r: '0xr',
 			s: '0xs',
