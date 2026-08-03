@@ -33,7 +33,7 @@ export type SourceProviderDefinition<
 	provider: _SourceProvider
 	label: string
 	sources: Partial<SourceDefinitionIndex<_Source>>
-	bindings?: SourceBindingIndex
+	bindings: SourceBindingIndex
 }
 
 export const requiredPublicEnvString = (
@@ -133,7 +133,7 @@ export const indexSourceProviders = <
 		const providerBindings = Object.values<
 			| readonly SourceBinding[]
 			| undefined
-		>(sourceProvider.bindings ?? {}).flatMap((bindings) => bindings ?? [])
+		>(sourceProvider.bindings).flatMap((bindings) => bindings ?? [])
 		return Object.keys(sourceProvider.sources).flatMap((source) => {
 			const sourceDefinition = sourceProvider.sources[source]
 			if (sourceDefinition == null)

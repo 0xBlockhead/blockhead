@@ -16,14 +16,14 @@ type SourceFromIndex<
 > = Extract<keyof _Bindings, Source>
 
 type SourceDefinitionsFromIndex<
-	_Bindings extends SourceBindingIndex | undefined,
-> = _Bindings extends SourceBindingIndex ?
-	SourceDefinitionIndex<SourceFromIndex<_Bindings>>
-:
+	_Bindings extends SourceBindingIndex,
+> = SourceBindingIndex extends _Bindings ?
 	Partial<SourceDefinitionIndex<Source>>
+:
+	SourceDefinitionIndex<SourceFromIndex<_Bindings>>
 
 export type SourceProviderDefinition<
-	_Bindings extends SourceBindingIndex | undefined = undefined,
+	_Bindings extends SourceBindingIndex = SourceBindingIndex,
 > = (
 	Omit<
 		SourceProviderDefinitionTemplate<SourceProvider, Source>,
@@ -31,6 +31,6 @@ export type SourceProviderDefinition<
 		| 'bindings'
 	> & {
 		sources: SourceDefinitionsFromIndex<_Bindings>
-		bindings: _Bindings extends SourceBindingIndex ? _Bindings : SourceBindingIndex
+		bindings: _Bindings
 	}
 )
