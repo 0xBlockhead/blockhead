@@ -1,14 +1,16 @@
+import { type } from 'arktype'
+
 import { throwHttpError } from '$/lib/http.ts'
 import { Source } from '$/sources/Source.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import bindings from '$/sources/MoneroDaemonRpc/bindings.ts'
 import { jsonRpc2 as requestMoneroDaemonJsonRpc } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
-import type {
+import {
 	MoneroRpcDecodedTransaction,
-	MoneroRpcBlock,
-	MoneroRpcInfo,
-	MoneroRpcTransaction,
+	MoneroRpcTransactionWire,
+	type MoneroRpcBlock,
+	type MoneroRpcInfo,
 } from '$/sources/MoneroDaemonRpc/JsonRpc/types.ts'
 import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
@@ -20,6 +22,11 @@ if (moneroMainnetBinding == null)
 	throw new Error('MoneroDaemonRpc_JsonRpc: no mainnet binding')
 
 const moneroMainnetHttpEndpoints = moneroMainnetBinding.endpoints
+
+const moneroTransactionsResponse = type({
+	txs: MoneroRpcTransactionWire.array(),
+	txs_as_hex: 'string[]',
+})
 
 export const moneroMainnetRpcEndpoints = moneroMainnetHttpEndpoints.map(({ locator: url }) => ({
 	url,
@@ -41,12 +48,13 @@ const queryMoneroMainnet = async <_Result>(
 	throw new Error(`MoneroDaemonRpc_JsonRpc: all mainnet endpoints failed${errors.length === 0 ? '' : `: ${errors.join('; ')}`}`)
 }
 
-const moneroTransactionWithDecodedJson = (transaction: MoneroRpcTransaction) => {
-	if (transaction.as_json == null) return transaction
-	const decoded_json: MoneroRpcDecodedTransaction = JSON.parse(transaction.as_json)
+const moneroTransactionWithDecodedJson = (transaction: MoneroRpcTransactionWire) => {
+	if (transaction.as_json == null)
+		return transaction
+
 	return {
 		...transaction,
-		decoded_json,
+		decoded_json: MoneroRpcDecodedTransaction.assert(JSON.parse(transaction.as_json)),
 	}
 }
 
@@ -83,10 +91,7 @@ export const getTransactions = ({
 	})
 	if (!response.ok)
 		await throwHttpError('MoneroDaemonRpc_JsonRpc /get_transactions', response)
-	const transactions = await response.json<{
-		txs: MoneroRpcTransaction[]
-		txs_as_hex: string[]
-	}>()
+	const transactions = moneroTransactionsResponse.assert(await response.json())
 	return {
 		...transactions,
 		txs: transactions.txs.map(moneroTransactionWithDecodedJson),

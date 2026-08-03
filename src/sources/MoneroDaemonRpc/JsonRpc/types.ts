@@ -1,3 +1,5 @@
+import { type } from 'arktype'
+
 export type MoneroRpcBlockHeader = {
 	block_size: number
 	block_weight: number
@@ -72,49 +74,56 @@ export type MoneroRpcInfo = {
 	wide_difficulty?: string
 }
 
-export type MoneroRpcTransaction = {
-	as_hex: string
-	as_json?: string
+export const MoneroRpcDecodedTransaction = type({
+	version: 'number',
+	unlock_time: 'number',
+	vin: type({
+		'gen?': {
+			height: 'number',
+		},
+		'key?': {
+			amount: 'number',
+			key_offsets: 'number[]',
+			k_image: 'string',
+		},
+	}).array(),
+	vout: type({
+		amount: 'number',
+		target: {
+			'key?': 'string',
+			'tagged_key?': {
+				key: 'string',
+				view_tag: 'string',
+			},
+		},
+	}).array(),
+	'rct_signatures?': {
+		'txnFee?': 'number | string',
+		'outPk?': type({
+			'mask?': 'string',
+		}).array(),
+	},
+})
+
+export type MoneroRpcDecodedTransaction = typeof MoneroRpcDecodedTransaction.infer
+
+export type MoneroRpcTransactionInput = MoneroRpcDecodedTransaction['vin'][number]
+
+export type MoneroRpcTransactionOutput = MoneroRpcDecodedTransaction['vout'][number]
+
+export const MoneroRpcTransactionWire = type({
+	as_hex: 'string',
+	'as_json?': 'string',
+	block_height: 'number',
+	block_timestamp: 'number',
+	double_spend_seen: 'boolean',
+	in_pool: 'boolean',
+	output_indices: 'number[]',
+	tx_hash: 'string',
+})
+
+export type MoneroRpcTransactionWire = typeof MoneroRpcTransactionWire.infer
+
+export type MoneroRpcTransaction = MoneroRpcTransactionWire & {
 	decoded_json?: MoneroRpcDecodedTransaction
-	block_height: number
-	block_timestamp: number
-	double_spend_seen: boolean
-	in_pool: boolean
-	output_indices: number[]
-	tx_hash: string
-}
-
-export type MoneroRpcDecodedTransaction = {
-	version: number
-	unlock_time: number
-	vin: MoneroRpcTransactionInput[]
-	vout: MoneroRpcTransactionOutput[]
-	rct_signatures?: {
-		txnFee?: number | string
-		outPk?: {
-			mask?: string
-		}[]
-	}
-}
-
-export type MoneroRpcTransactionInput = {
-	gen?: {
-		height: number
-	}
-	key?: {
-		amount: number
-		key_offsets: number[]
-		k_image: string
-	}
-}
-
-export type MoneroRpcTransactionOutput = {
-	amount: number
-	target: {
-		key?: string
-		tagged_key?: {
-			key: string
-			view_tag: string
-		}
-	}
 }
