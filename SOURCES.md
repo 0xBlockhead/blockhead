@@ -943,7 +943,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 402 | WebTorrent | WebTorrent_Dht | TorrentSwarm | webtorrent-dht | InProcess | BitTorrentDht | BitTorrentDhtLookup | BrowserDirect |
 | 403 | WebTorrent | WebTorrent_Tracker | TorrentSwarm | webtorrent-tracker | WebSocketMessages | BitTorrentTracker | BitTorrentAnnounce, GenericSubscribe | RemoteLive |
 | 404 | Wormholescan | Wormholescan | Global | wormholescan-api | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
-| 405 | FxEmbed | X_FxEmbed_Rest | Global | fxembed-api | HttpRest | RestJson | GenericRead | HttpProxy |
+| 405 | FxEmbed | X_FxEmbed_Rest | Global | fxembed-api | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
 | 406 | X | X_Rest | Global | api-v2 | HttpRest | RestJson | GenericRead | HttpProxy |
 | 407 | Xaman | Xaman_Api | LocalDevice | xaman | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
 | 408 | Xmtp | Xmtp_BrowserSdk | Global | xmtp | InProcess | XmtpClientApi | GenericRead, GenericSubscribe | BrowserDirect |
@@ -2015,7 +2015,9 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | 404 | 1 | GenerationManifest | src/sources/Wormholescan/OpenApi/schema-source.ts | no |  |  |
 | 404 | 2 | OpenApiSpec | src/sources/Wormholescan/OpenApi/openapi.json | yes | https://api.wormholescan.io/swagger.json |  |
 | 404 | 3 | OpenApiTypes | src/sources/Wormholescan/OpenApi/openapi.d.ts | yes |  |  |
-| 405 | 1 | HandwrittenTypes | src/sources/FxEmbed/Rest/types.ts | no |  |  |
+| 405 | 1 | GenerationManifest | src/sources/FxEmbed/OpenApi/schema-source.ts | no |  |  |
+| 405 | 2 | OpenApiSpec | src/sources/FxEmbed/OpenApi/openapi.json | yes | https://raw.githubusercontent.com/FxEmbed/FxEmbed/main/docs/specs/fxtwitter-openapi.json |  |
+| 405 | 3 | OpenApiTypes | src/sources/FxEmbed/OpenApi/openapi.d.ts | yes |  |  |
 | 406 | 1 | HandwrittenTypes | src/sources/X/Rest/types.ts | no |  |  |
 | 410 | 1 | HandwrittenTypes | src/sources/Xrpl/JsonRpc/types.ts | no |  |  |
 | 414 | 1 | GenerationManifest | src/sources/Youtube/Discovery/schema-source.ts | no |  |  |

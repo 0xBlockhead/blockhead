@@ -1,9 +1,34 @@
 import { fxEmbedGet } from '$/sources/FxEmbed/Rest/client.ts'
-import type {
-	FxEmbedSearchResults,
-	FxEmbedSocialThread,
-	FxEmbedUserResponse,
-} from '$/sources/FxEmbed/Rest/types.ts'
+import type { components } from '$/sources/FxEmbed/OpenApi/openapi.d.ts'
+
+export type FxEmbedUser = components['schemas']['APIUser']
+export type FxEmbedTwitterStatus = Omit<
+	components['schemas']['APITwitterStatus'],
+	'quote'
+> & {
+	quote?:
+		| FxEmbedTwitterStatus
+		| components['schemas']['APIStatusTombstone']
+}
+type FxEmbedSearchResults = Omit<
+	components['schemas']['APISearchResults'],
+	'results'
+> & {
+	results: FxEmbedTwitterStatus[]
+}
+type FxEmbedSocialThread = {
+	code: number
+	status:
+		| FxEmbedTwitterStatus
+		| components['schemas']['APIStatusTombstone']
+		| null
+	thread: (
+		| FxEmbedTwitterStatus
+		| components['schemas']['APIStatusTombstone']
+	)[] | null
+	author: FxEmbedUser | null
+}
+type FxEmbedUserResponse = components['schemas']['UserAPIResponse']
 
 const clampFxEmbedCount = (count: number) => (
 	Math.min(100, Math.max(1, count))

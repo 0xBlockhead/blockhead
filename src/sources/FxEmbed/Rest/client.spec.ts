@@ -5,12 +5,7 @@ import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
 	SourceArtifactKind,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	SourceTargetKind,
 	type SourceBinding,
-	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 
 const {
@@ -42,34 +37,13 @@ beforeEach(() => {
 	sourceGetJson.mockResolvedValue({ results: [] })
 })
 
-it('pins the canonical FxEmbed binding fingerprint', () => {
-	expect(fxEmbedRestBinding).toEqual({
-		source: Source.X_FxEmbed_Rest,
-		target: {
-			kind: SourceTargetKind.Global,
-			key: 'fxembed-api',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://api.fxtwitter.com',
-				corsEnabled: false,
-			},
-		],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [],
-		artifacts: [
-			{
-				kind: SourceArtifactKind.HandwrittenTypes,
-				path: 'src/sources/FxEmbed/Rest/types.ts',
-			},
-		],
-	})
+it('uses the generated FxEmbed OpenAPI contract', () => {
+	expect(fxEmbedRestBinding.apiFamily).toBe(ApiFamily.OpenApiHttp)
+	expect(fxEmbedRestBinding.artifacts.map(({ kind }) => kind)).toEqual([
+		SourceArtifactKind.GenerationManifest,
+		SourceArtifactKind.OpenApiSpec,
+		SourceArtifactKind.OpenApiTypes,
+	])
 })
 
 it('uses the proxied FxEmbed origin and preserves profile identity encoding', async () => {

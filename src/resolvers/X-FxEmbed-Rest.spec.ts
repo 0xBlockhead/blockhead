@@ -5,6 +5,8 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { MediaTransport } from '$/schema/MediaTransport.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 
 const fxEmbedQueries = vi.hoisted(() => ({
 	getStatus: vi.fn(),
@@ -40,6 +42,13 @@ describe('X FxEmbed reading materialization', () => {
 					id: 'user-1',
 					screen_name: 'reader',
 					name: 'Fixture Reader',
+					avatar_url: 'https://images.example/avatar.jpg',
+					banner_url: 'https://images.example/banner.jpg',
+					joined: '2026-01-01T00:00:00Z',
+					website: {
+						url: 'https://reader.example',
+						display_url: 'reader.example',
+					},
 				},
 			}],
 		})
@@ -50,33 +59,44 @@ describe('X FxEmbed reading materialization', () => {
 		)
 		const users = fxEmbedResolvers.resolvers[2].projections.$$xUsers(snapshot)
 		const posts = fxEmbedResolvers.resolvers[2].projections.$$xPosts(snapshot)
-
-		expect(users).toEqual([{
+		const expectedUserReference = {
 			[EntityMetaKey.Selector]: { id: 'user-1' },
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.XUser, [], 'username')]: 'reader',
 				[entityFieldAddressKey(EntityType.XUser, [], 'name')]: 'Fixture Reader',
+				[entityFieldAddressKey(EntityType.XUser, [], 'createdAt')]: 1_767_225_600_000,
+				[entityFieldAddressKey(EntityType.XUser, [], 'websiteUrl')]: 'https://reader.example',
+				[entityFieldAddressKey(EntityType.XUser, [], '$icon')]: {
+					[EntityMetaKey.Selector]: { url: 'https://images.example/avatar.jpg' },
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.Media, [], 'type')]: MediaType.Image,
+						[entityFieldAddressKey(EntityType.Media, [], 'transport')]: MediaTransport.Http,
+					},
+				},
+				[entityFieldAddressKey(EntityType.XUser, [], '$profileBanner')]: {
+					[EntityMetaKey.Selector]: { url: 'https://images.example/banner.jpg' },
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.Media, [], 'type')]: MediaType.Image,
+						[entityFieldAddressKey(EntityType.Media, [], 'transport')]: MediaTransport.Http,
+					},
+				},
 			},
-		}])
+		}
+
+		expect(users).toEqual([expectedUserReference])
 		expect(posts).toEqual([{
 			[EntityMetaKey.Selector]: { id: 'post-1' },
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.XPost, [], 'text')]: 'Readable fixture post',
 				[entityFieldAddressKey(EntityType.XPost, [], 'createdAt')]: 1_768_435_200_000,
-				[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
-					[EntityMetaKey.Selector]: { id: 'user-1' },
-					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.XUser, [], 'username')]: 'reader',
-						[entityFieldAddressKey(EntityType.XUser, [], 'name')]: 'Fixture Reader',
-					},
-				},
+				[entityFieldAddressKey(EntityType.XPost, [], '$author')]: expectedUserReference,
 			},
 		}])
 		expect(fxEmbedQueries.searchStatuses).toHaveBeenCalledOnce()
 		expect(fxEmbedQueries.searchStatuses).toHaveBeenCalledWith(64)
 	})
 
-	it('prefills profile posts without leaking tombstones into the reading list', async () => {
+	it('prefills profile posts only for the selected author', async () => {
 		fxEmbedQueries.getUserStatuses.mockResolvedValue({
 			results: [
 				{
@@ -89,12 +109,9 @@ describe('X FxEmbed reading materialization', () => {
 					},
 				},
 				{
-					type: 'tombstone',
-					id: 'removed-post',
-				},
-				{
 					type: 'status',
 					id: 'foreign-post',
+					created_timestamp: 1_768_435_202,
 					author: {
 						id: 'user-2',
 					},

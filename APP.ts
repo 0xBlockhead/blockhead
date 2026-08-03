@@ -96844,7 +96844,7 @@ export const app = {
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
+					apiFamily: ApiFamily.OpenApiHttp,
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
@@ -96852,8 +96852,19 @@ export const app = {
 					credentials: [],
 					artifacts: [
 						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/FxEmbed/Rest/types.ts",
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/FxEmbed/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/FxEmbed/OpenApi/openapi.json",
+							generated: true,
+							officialUrl: "https://raw.githubusercontent.com/FxEmbed/FxEmbed/main/docs/specs/fxtwitter-openapi.json",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiTypes,
+							path: "src/sources/FxEmbed/OpenApi/openapi.d.ts",
+							generated: true,
 						},
 					],
 				},

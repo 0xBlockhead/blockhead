@@ -59,14 +59,11 @@ describe('X FxEmbed global network', () => {
 				{
 					type: 'status',
 					id: 'post-2',
+					created_timestamp: 1_768_435_201,
 					author: {
 						id: 'user-2',
 						screen_name: 'second',
 					},
-				},
-				{
-					type: 'tombstone',
-					id: 'removed-post',
 				},
 			],
 		})
@@ -116,6 +113,8 @@ describe('X FxEmbed global network', () => {
 			{
 				[EntityMetaKey.Selector]: { id: 'post-2' },
 				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.XPost, [], 'createdAt')]:
+						1_768_435_201_000,
 					[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
 						[EntityMetaKey.Selector]: { id: 'user-2' },
 						[EntityMetaKey.Fields]: {
@@ -127,22 +126,16 @@ describe('X FxEmbed global network', () => {
 		])
 	})
 
-	it('drops malformed typed rows instead of fabricating selectors', async () => {
+	it('does not materialize directory users with empty handles', async () => {
 		fxEmbedQueries.searchStatuses.mockResolvedValue({
 			results: [
 				{
 					type: 'status',
 					id: 'valid-post',
+					created_timestamp: 1_768_435_203,
 					author: {
 						id: 'missing-handle',
-					},
-				},
-				{
-					type: 'tombstone',
-					id: 'removed-post',
-					author: {
-						id: 'removed-user',
-						screen_name: 'removed',
+						screen_name: '',
 					},
 				},
 			],
@@ -158,6 +151,8 @@ describe('X FxEmbed global network', () => {
 		expect(globalNetworkResolvers[0].projections.$$observedPosts(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: { id: 'valid-post' },
 			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.XPost, [], 'createdAt')]:
+					1_768_435_203_000,
 				[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
 					[EntityMetaKey.Selector]: { id: 'missing-handle' },
 				},
