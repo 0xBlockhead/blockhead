@@ -2747,13 +2747,13 @@ const routePageSelectorExpression = (
 	}, referencePath)
 }
 
-const resolveRouteParamFieldPath = (
+const resolveRouteParamField = (
 	entityByType: Readonly<Record<string, Entity>>,
 	entity: Entity,
 	fieldPath: readonly string[]
 ) => {
 	let fieldEntity = entity
-	const fields = fieldPath.map((fieldName, index) => {
+	const terminalField = fieldPath.map((fieldName, index) => {
 		const field = fieldEntity.fields.find((candidate) => candidate.name === fieldName)
 		if (field == null)
 			throw new Error(`${entity.entityType} route parameter path ${fieldPath.join('.')} references missing field ${fieldEntity.entityType}.${fieldName}`)
@@ -2770,15 +2770,11 @@ const resolveRouteParamFieldPath = (
 		}
 
 		return field
-	})
-	const terminalField = fields.at(-1)
+	}).at(-1)
 	if (terminalField?.type !== EntityFieldType.Primitive || terminalField.valueType == null)
 		throw new Error(`${entity.entityType} route parameter path ${fieldPath.join('.')} does not terminate at a primitive schema field`)
 
-	return {
-		fields,
-		terminalField,
-	}
+	return terminalField
 }
 
 const routeExpressionThroughReference = (
@@ -3011,7 +3007,7 @@ const indexRouteParamValueTypes = (
 						const entity = entityByType[entityType]
 						if (entity == null)
 							throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} references missing entity`)
-						const { terminalField } = resolveRouteParamFieldPath(entityByType, entity, fieldPath)
+						const terminalField = resolveRouteParamField(entityByType, entity, fieldPath)
 
 						valueTypesByOwner.set(owner, unique([
 							...(valueTypesByOwner.get(owner) ?? []),
@@ -3276,7 +3272,7 @@ const compileRouteTree = (
 			const paramBindings = Object.entries(mapping.params ?? {}).map(([param, fieldPath]) => ({
 				param,
 				fieldPath,
-				...resolveRouteParamFieldPath(entityByType, entity, fieldPath),
+				terminalField: resolveRouteParamField(entityByType, entity, fieldPath),
 			}))
 			const {
 				derivationRouteParams,
@@ -3705,14 +3701,14 @@ const compileRouteTree = (
 			const paramBindings = Object.entries(node.selectorVariant.params ?? {}).map(([param, fieldPath]) => {
 				if (!routeParams.some((routeParam) => routeParam.name === param))
 					throw new Error(`${routeId(routePath)} ${owner.entityType}.${owner.selectorName} selector variant binds missing route parameter ${param}`)
-				const resolved = resolveRouteParamFieldPath(entityByType, entity, fieldPath)
+				const terminalField = resolveRouteParamField(entityByType, entity, fieldPath)
 				if (fieldPath.length !== 1 || !selector.fields.includes(fieldPath[0] ?? ''))
 					throw new Error(`${routeId(routePath)} ${owner.entityType}.${owner.selectorName} selector variant parameter ${param} must bind one owned selector field`)
 
 				return {
 					param,
 					fieldPath,
-					...resolved,
+					terminalField,
 				}
 			})
 			for (const fieldName of Object.keys(node.selectorVariant.derivations ?? {}))
