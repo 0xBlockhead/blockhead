@@ -5478,7 +5478,7 @@ test('retains one keyed route parameter representation through href compilation'
 	assert.match(generatorSource, /type RouteParamValues = Readonly<Record<string, \{\n\tvalue: _Expression\n\tdecode\?: _ExpressionDecode\n\}>>/)
 	assert.match(generatorSource, /type RouteLink = \{\n\tpath: string\n\tparams: RouteParamValues\n\}/)
 	assert.match(generatorSource, /routeParamAlternatives: readonly RouteParamValues\[\]/)
-	assert.match(generatorSource, /routeParamAlternatives: selectorMapping\.routeParamAlternatives/)
+	assert.match(generatorSource, /ancestor\.mapping\.routeParamAlternatives/)
 	assert.match(generatorSource, /Object\.hasOwn\(routeParams, name\)/)
 	assert.match(generatorSource, /params: Readonly<Record<string, string>> = \{\}/)
 	assert.doesNotMatch(
@@ -5523,6 +5523,23 @@ test('rejects undeclared regular and selector-variant route parameters upstream'
 	assert.throws(
 		() => compileApp(variantParamApp),
 		/\/\(explore\)\/\(ipfs\)\/\[namespace\]\/\[target\]\/path\/\[\.\.\.contentPath\] IpfsResource\.ResourceAddress selector variant binds missing route parameter undeclared/
+	)
+
+	const unownedVariantApp = structuredClone(app)
+	const unownedVariant = unownedVariantApp.routes.children['(explore)']?.children?.['(ipfs)']?.children?.['[namespace]']?.children?.['[target]']?.children?.path?.children?.['[...contentPath]']?.selectorVariant
+	assert.ok(unownedVariant)
+	Object.defineProperty(unownedVariant, 'derivations', {
+		enumerable: true,
+		value: {
+			unowned: {
+				kind: 'param',
+				name: 'contentPath',
+			},
+		},
+	})
+	assert.throws(
+		() => compileApp(unownedVariantApp),
+		/\/\(explore\)\/\(ipfs\)\/\[namespace\]\/\[target\]\/path\/\[\.\.\.contentPath\] selector variant resolves 0 nearest ancestor selector owners/
 	)
 })
 

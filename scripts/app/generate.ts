@@ -3675,31 +3675,24 @@ const compileRouteTree = (
 			if (overriddenFieldNames.length === 0)
 				throw new Error(`${routeId(routePath)} selector variant does not override any selector fields`)
 
-			const compatibleAncestors = ancestorSelectorsAtNode.filter((ancestor) => {
-				const entity = entityByType[ancestor.mapping.entityType]
-				const selector = entity?.selectors.find((candidate) => candidate.name === ancestor.mapping.selectorName)
-
-				return selector != null && overriddenFieldNames.every((fieldName) => selector.fields.includes(fieldName))
-			})
+			const compatibleAncestors = ancestorSelectorsAtNode.filter(({ mapping }) => (
+				overriddenFieldNames.every((fieldName) => mapping.fields.some(({ name }) => name === fieldName))
+			))
 			const nearestDepth = Math.max(...compatibleAncestors.map(({ depth }) => depth))
 			const owners = compatibleAncestors.filter(({ depth }) => depth === nearestDepth)
-			if (owners.length !== 1)
-				throw new Error(`${routeId(routePath)} selector variant resolves ${owners.length} nearest ancestor selector owners`)
-
-			const owner = owners[0]
+			const owner = owners.length === 1 ? owners[0] : undefined
 			if (owner == null)
-				throw new Error(`${routeId(routePath)} selector variant has no ancestor selector owner`)
+				throw new Error(`${routeId(routePath)} selector variant resolves ${owners.length} nearest ancestor selector owners`)
 			const { entityType, selectorName } = owner.mapping
 			const entity = entityByType[entityType]
-			const selector = entity?.selectors.find((candidate) => candidate.name === selectorName)
-			if (entity == null || selector == null)
+			if (entity == null)
 				throw new Error(`${routeId(routePath)} selector variant owner ${entityType}.${selectorName} is missing`)
 
 			const paramBindings = Object.entries(node.selectorVariant.params ?? {}).map(([param, fieldPath]) => {
 				if (!routeParamByName.has(param))
 					throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} selector variant binds missing route parameter ${param}`)
 				const terminalField = resolveRouteParamField(entityByType, entity, fieldPath)
-				if (fieldPath.length !== 1 || !selector.fields.includes(fieldPath[0] ?? ''))
+				if (fieldPath.length !== 1)
 					throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} selector variant parameter ${param} must bind one owned selector field`)
 
 				return {
@@ -3708,9 +3701,6 @@ const compileRouteTree = (
 					terminalField,
 				}
 			})
-			for (const fieldName of Object.keys(node.selectorVariant.derivations ?? {}))
-				if (!selector.fields.includes(fieldName))
-					throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} selector variant derives unowned field ${fieldName}`)
 			for (const fieldName of overriddenFieldNames)
 				if (
 					Object.hasOwn(node.selectorVariant.derivations ?? {}, fieldName)
