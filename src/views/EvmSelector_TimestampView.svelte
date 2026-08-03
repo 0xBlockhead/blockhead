@@ -28,7 +28,7 @@
 			Source.Openchain_Rest,
 		],
 	}))
-	const titleFallback = $derived(prefetched.signatures.values.join(', ') || 'EVM selector observation')
+	const titleFallback = $derived((prefetched.signatures?.values.join(', ') ?? '') || 'EVM selector observation')
 
 
 	// Components
@@ -63,11 +63,7 @@
 	{#snippet Title()}
 		<ResourceBoundary
 			resource={
-				selection({
-					sources: selection.sources ?? [
-						Source.Openchain_Rest,
-					],
-				})({
+				viewSelection({
 					fields: {
 						signatures: true,
 					},

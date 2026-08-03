@@ -68,15 +68,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary
-			resource={
-				selection({
-					sources: selection.sources ?? [
-						Source.Constants_Internal,
-					],
-				})
-			}
-		>
+		<ResourceBoundary resource={viewSelection}>
 			{#snippet Pending()}
 				<TruncatedValue
 					value={selection.entitySelector.address}

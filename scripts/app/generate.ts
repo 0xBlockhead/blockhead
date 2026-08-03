@@ -8665,7 +8665,10 @@ const renderDisplayExpression = (
 			throw new Error(`${entity.entityType}.${fieldName} needs a valueType displayExpression before it can be rendered`)
 
 		if (fieldDefinition != null && fieldCardinalityIsMany(fieldDefinition))
-			return `${valueExpression}.values.join(', ')`
+			return valueIsPresent ?
+				`${valueExpression}.values.join(', ')`
+			:
+				`(${valueExpression}?.values.join(', ') ?? '')`
 		if (
 			valueTypeProducesString(valueTypeType, valueType)
 			|| !coercePrimitive
@@ -8691,7 +8694,10 @@ const renderDisplayExpression = (
 		return renderNullishExpression(expression)
 
 	if (fieldDefinition != null && fieldCardinalityIsMany(fieldDefinition))
-		return `${valueExpression}.values.map((value) => ${expression}).join(', ')`
+		return valueIsPresent ?
+			`${valueExpression}.values.map((value) => ${expression}).join(', ')`
+		:
+			`(${valueExpression}?.values.map((value) => ${expression}).join(', ') ?? '')`
 
 	return valueIsPresent ?
 		renderNullishExpression(replaceTypeScriptIdentifier(expression, 'value', valueExpression))
@@ -9025,11 +9031,17 @@ const renderItemExpression = (
 		fieldReference: FieldReference,
 		fieldDefinition: EntityField | undefined
 	) => (
-		fieldDefinition?.cardinality === EntityFieldCardinality.One
+		fieldDefinition != null
 		&& (
-			fieldsAreComplete
-			|| viewEntryFieldsExpression === 'selection.entitySelector'
-				&& entitySelectorOwnsField(entity, fieldReference)
+			fieldCardinalityIsMany(fieldDefinition) ?
+				fieldsAreComplete
+			:
+				fieldDefinition.cardinality === EntityFieldCardinality.One
+				&& (
+					fieldsAreComplete
+					|| viewEntryFieldsExpression === 'selection.entitySelector'
+						&& entitySelectorOwnsField(entity, fieldReference)
+				)
 		)
 	)
 	if (typeof viewEntry === 'string' || isProjectionFieldReference(viewEntry)) {
@@ -10184,12 +10196,6 @@ const generateSingularViewFile = (
 		)
 	)
 	const inlineEntityResource = resolvesEntity && entityResourceReferenceCount === 1
-	const entityResourceExpression = !inlineEntityResource ?
-		entityName
-	: query === '{}' ?
-		viewSelectionValueExpression
-	:
-		`${viewSelectionValueExpression}(${query})`
 	const sectionQueries = sections.map((section) => renderQuery(section.selection, []))
 	const latestQueries = latestItems.map((latest) => renderQuery(latest.query, latest.fields ?? []))
 	const usesItemSourceSelection = allViewItems(entity, indexes).some((viewItem) => (
@@ -10223,10 +10229,6 @@ const generateSingularViewFile = (
 			'viewSelection',
 		]
 	)
-	const iconMarkup = (
-		singularView?.summary?.Icon != null
-		|| singularView?.summary?.icon != null
-	) ? renderIconSnippet(entity, indexes, entityResourceExpression) : []
 	const declaredImportSpecs = mergeImports([
 		...(entityHrefExpression == null ? [] : entityRouteImportSpecs(indexes, entity.entityType)),
 		...emitImportObject(singularView?.imports),
@@ -10457,6 +10459,21 @@ const generateSingularViewFile = (
 		+ viewSelectionOwnedReferenceCount
 		+ rawViewSelectionReferenceCount
 	)
+	const usesViewSelection = (
+		declaredViewSourcesExpression != null
+		&& (
+			viewSelectionReferenceCount > 1
+			|| rawViewSelectionReferenceCount > 0
+		)
+	)
+	const entityResourceExpression = !inlineEntityResource ?
+		entityName
+	:
+		`${usesViewSelection ? viewSelectionExpression : viewSelectionValueExpression}${query === '{}' ? '' : `(${query})`}`
+	const iconMarkup = (
+		singularView?.summary?.Icon != null
+		|| singularView?.summary?.icon != null
+	) ? renderIconSnippet(entity, indexes, entityResourceExpression) : []
 	const renderViewSelectionOwnedMarkup = (selectionExpression: string) => ({
 		contentRowMarkup: renderProjectionOwnedGroups(
 			entity,
@@ -10842,13 +10859,6 @@ const generateSingularViewFile = (
 				&& !entitySelectorOwnsField(entity, fieldReference)
 			)
 		})
-	)
-	const usesViewSelection = (
-		declaredViewSourcesExpression != null
-		&& (
-			viewSelectionReferenceCount > 1
-			|| rawViewSelectionReferenceCount > 0
-		)
 	)
 	const viewBindings = {
 		titleFallback: usesTitleFallbackBinding ? 'titleFallback' : titleFallbackExpression,

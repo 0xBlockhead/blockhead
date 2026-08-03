@@ -354,10 +354,8 @@ test('entity hrefs compile directly from routes without a parallel artifact fami
 	const atprotoRepoCommitView = generatedFiles.find(({ path }) => path === 'src/views/AtprotoRepoCommitView.svelte')
 	assert(evmAccountView && mediaView && atprotoRepoCommitView)
 	assert.doesNotMatch(renderGeneratedFile(evmAccountView), /const evmAccount =/)
-	assert.match(
-		renderGeneratedFile(evmAccountView),
-		/<ResourceBoundary\s+resource=\{\s*selection\(\{\s*sources: selection\.sources \?\? \[\s*Source\.Constants_Internal,/
-	)
+	assert.match(renderGeneratedFile(evmAccountView), /const viewSelection = \$derived\(selection\(\{\s*sources: selection\.sources \?\? \[\s*Source\.Constants_Internal,/)
+	assert.match(renderGeneratedFile(evmAccountView), /<ResourceBoundary resource=\{viewSelection\}>/)
 	assert.match(renderGeneratedFile(evmAccountView), /<TruncatedValue value=\{selection\.entitySelector\.address\} \/>/)
 	assert.doesNotMatch(renderGeneratedFile(evmAccountView), /<TruncatedValue value=\{String\(selection\.entitySelector\.address\)\} \/>/)
 	assert.doesNotMatch(renderGeneratedFile(evmAccountView), /\{@const address\d* = selection\.entitySelector\.address\}/)
@@ -1082,6 +1080,17 @@ test('inlines generated resource selections with one consumer', () => {
 	const sourceSelectedView = generatedSource('src/views/Eip8004CrossRegistrationView.svelte')
 	assert.doesNotMatch(sourceSelectedView, /const viewSelection =/)
 	assert.match(sourceSelectedView, /resource=\{\s+selection\(\{\s+sources: selection\.sources/)
+	for (const filePath of [
+		'src/views/CurrencyView.svelte',
+		'src/views/EvmAccountView.svelte',
+		'src/views/EvmError_TimestampView.svelte',
+		'src/views/EvmSelector_TimestampView.svelte',
+		'src/views/EvmTopic_TimestampView.svelte',
+	]) {
+		const source = generatedSource(filePath)
+		assert.equal((source.match(/sources: selection\.sources \?\?/g) ?? []).length, 1, filePath)
+		assert.match(source, /resource=\{\s+viewSelection(?:\(\{)?/, filePath)
+	}
 
 	const oneConsumerPage = generatedSource(
 		'src/routes/(explore)/(protocols)/evm/(evmProtocol)/(errors)/error/[hex=zeroExHex]/+page.svelte'
@@ -1093,6 +1102,18 @@ test('inlines generated resource selections with one consumer', () => {
 	assert.match(sharedPageSelection, /const pageSelection = \$derived/)
 	assert.match(sharedPageSelection, /pageSelection\.entitySelector\.url/)
 	assert.match(sharedPageSelection, /selection=\{pageSelection\}/)
+})
+
+test('keeps prefetched collection summary fallbacks null-safe', () => {
+	for (const filePath of [
+		'src/views/EvmError_TimestampView.svelte',
+		'src/views/EvmSelector_TimestampView.svelte',
+		'src/views/EvmTopic_TimestampView.svelte',
+	]) {
+		const source = generatedSource(filePath)
+		assert.match(source, /prefetched\.signatures\?\.values\.join\(', '\)/, filePath)
+		assert.doesNotMatch(source, /prefetched\.signatures\.values/, filePath)
+	}
 })
 
 const stageReadOnlyGeneratedFixture = (generatedOutputRoot: string) => {

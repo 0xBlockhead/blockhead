@@ -67,11 +67,7 @@
 	{#snippet Title()}
 		<ResourceBoundary
 			resource={
-				selection({
-					sources: selection.sources ?? [
-						Source.Constants_Internal,
-					],
-				})({
+				viewSelection({
 					fields: {
 						name: true,
 						symbol: true,
@@ -138,11 +134,7 @@
 			{#if !contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
-							sources: selection.sources ?? [
-								Source.Constants_Internal,
-							],
-						})({
+						viewSelection({
 							fields: {
 								name: true,
 								symbol: true,
