@@ -277,8 +277,7 @@ type SourceBindingEntry = {
 type RouteFixturePlan = {
 	nodeId: string
 	routeId: string
-	parameterMatcherNames: readonly string[]
-	parameterEncodingByName: Readonly<Partial<Record<string, _RouteParamEncoding>>>
+	params: readonly RouteParam[]
 	mappings: readonly SelectorRouteMapping[]
 }
 type CompiledPhysicalRouteFileFacts = { path: string } & (
@@ -5817,10 +5816,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		return [{
 			nodeId: node.internalPath,
 			routeId: node.svelteKitPath,
-			parameterMatcherNames: node.params.map((param) => param.matcher),
-			parameterEncodingByName: Object.fromEntries(node.params.flatMap((param) => (
-				param.encoding == null ? [] : [[param.name, param.encoding]]
-			))),
+			params: node.params,
 			mappings,
 		}]
 	})
@@ -6009,7 +6005,7 @@ const generateFiles = (compiledApp: CompiledAppFacts): GeneratedFile[] => {
 // These emitters translate compiled entity/value/facet facts directly into the
 // runtime schema modules. They do not infer product behavior from generated code.
 const generateE2eRouteFixtureMetadataFile = (routeFixturePlans: readonly RouteFixturePlan[]) => {
-	const matcherNames = unique(routeFixturePlans.flatMap((plan) => plan.parameterMatcherNames))
+	const matcherNames = unique(routeFixturePlans.flatMap((plan) => plan.params.map((param) => param.matcher)))
 	return tsFile(
 	'tests/e2e/_generatedRouteFixtureMetadata.ts',
 	{
@@ -6044,16 +6040,16 @@ const generateE2eRouteFixtureMetadataFile = (routeFixturePlans: readonly RouteFi
 					metadata.nodeId,
 					emitObject([
 						['routeId', emitTypeScript(metadata.routeId)],
-						['parameterEncodingByName', Object.keys(metadata.parameterEncodingByName).length === 0 ?
+						['parameterEncodingByName', metadata.params.every((param) => param.encoding == null) ?
 							undefined
 						:
-							emitObject(Object.entries(metadata.parameterEncodingByName).map(([param, encoding]) => [
-								param,
-								emitTypeScript(encoding),
-							]))],
+							emitObject(metadata.params.flatMap((param) => param.encoding == null ? [] : [[
+								param.name,
+								emitTypeScript(param.encoding),
+							]]))],
 						['mappings', emitArray(metadata.mappings.map((mapping) => emitObject(routeMappingFixtureMetadataEntries(
 							mapping,
-							metadata.parameterMatcherNames.length
+							metadata.params.length
 						))))],
 						['boundaryLiveOptional', metadata.mappings.some((mapping) => mapping.boundaryLiveOptional) ? 'true' : undefined],
 					]),
