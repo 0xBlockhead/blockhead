@@ -16,7 +16,7 @@ import { Source } from '$/sources/Source.ts'
 import {
 	mastodonInstanceOrigins,
 	mastodonPublicTimelineOrigins,
-} from '$/sources/Mastodon/Rest/queries.ts'
+} from '$/sources/Mastodon/Rest/client.ts'
 import type {
 	MastodonApiV1Account,
 	MastodonApiV1MediaAttachment,

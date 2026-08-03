@@ -49,6 +49,9 @@ vi.mock('$/sources/Mastodon/Rest/queries.ts', () => ({
 	listInstanceModeratedDomains,
 	listInstancePeerDomains,
 	listPublicTimelinePage,
+}))
+
+vi.mock('$/sources/Mastodon/Rest/client.ts', () => ({
 	mastodonInstanceOrigins,
 	mastodonPublicTimelineOrigins,
 }))

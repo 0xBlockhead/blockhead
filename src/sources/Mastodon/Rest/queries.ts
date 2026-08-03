@@ -3,8 +3,8 @@ import {
 	mastodonFetchPublicTimelineUrl,
 	mastodonFetchUrl,
 	mastodonGet,
-	mastodonInstanceOrigins as clientMastodonInstanceOrigins,
-	mastodonPublicTimelineOrigins as clientMastodonPublicTimelineOrigins,
+	mastodonInstanceOrigins,
+	mastodonPublicTimelineOrigins,
 } from '$/sources/Mastodon/Rest/client.ts'
 import type {
 	MastodonApiV1Account,
@@ -14,9 +14,6 @@ import type {
 	MastodonApiV1Status,
 	MastodonApiV2Search,
 } from '$/sources/Mastodon/Rest/types.ts'
-
-export const mastodonInstanceOrigins = clientMastodonInstanceOrigins
-export const mastodonPublicTimelineOrigins = clientMastodonPublicTimelineOrigins
 
 const mastodonContinuationFromLink = (
 	linkHeader: string | null,
