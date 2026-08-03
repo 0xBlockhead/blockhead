@@ -6,6 +6,8 @@ import {
 	getBlockTransactions,
 	getBlocks,
 	getCode,
+	getErc4337BundlerList,
+	getErc4337SmartAccountList,
 	getSmartContract,
 	getStats,
 	getTokenTransfers,
@@ -84,6 +86,31 @@ describe('Blockscout account-abstraction queries', () => {
 
 		await expect(getStats({ chainId: 1 })).resolves.toBeNull()
 		await expect(getStats({ chainId: 1 })).rejects.toThrow('500')
+	})
+
+	it('softens only unavailable optional account-abstraction registries', async () => {
+		const fetchMock = vi.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(new Response(null, { status: 500 }))
+			.mockResolvedValueOnce(new Response(null, { status: 501 }))
+			.mockResolvedValueOnce(new Response(null, { status: 400 }))
+			.mockResolvedValueOnce(new Response(null, { status: 500 }))
+
+		await expect(getErc4337BundlerList({
+			chainId: 1,
+			limit: 16,
+		})).resolves.toEqual([])
+		await expect(getErc4337BundlerList({
+			chainId: 1,
+			limit: 16,
+		})).resolves.toEqual([])
+		await expect(getErc4337BundlerList({
+			chainId: 1,
+			limit: 16,
+		})).rejects.toThrow('400')
+		await expect(getErc4337SmartAccountList({
+			chainId: 1,
+			limit: 16,
+		})).rejects.toThrow('500')
 	})
 
 	it('routes execution methods through the shared JSON-RPC binding', async () => {

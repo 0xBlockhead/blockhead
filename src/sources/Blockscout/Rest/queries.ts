@@ -542,13 +542,21 @@ const getErc4337RegistryList = async ({
 	if (limit <= 0)
 		return []
 
-	return (await getBlockscoutJson<BlockscoutErc4337RegistryPage>({
+	const response = await getBlockscoutResponse({
 		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
 		path,
 		searchParams: {
 			page_size: blockscoutItemsCount(limit),
 		},
-	})).items
+	})
+	if (
+		path !== erc4337RegistryPath.smartAccount
+		&& (response.status === 500 || response.status === 501)
+	)
+		return []
+
+	await throwIfHttpNotOk(response, response.url)
+	return (await response.json<BlockscoutErc4337RegistryPage>()).items
 }
 
 export const getErc4337SmartAccountList = ({
