@@ -15,15 +15,18 @@ vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
 	jsonRpc2,
 }))
 
+const binding = bindings[Source.Voltaire_JsonRpc][0]
+const endpoint = binding.endpoints[0]
+const { evmExecutionJsonRpc } = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
 const {
 	getBlockByHash,
 	getBlockByNumber,
 	getTransactionByHash,
 	getTransactionReceipt,
-} = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
-
-const binding = bindings[Source.Voltaire_JsonRpc][0]
-const endpoint = binding.endpoints[0]
+} = evmExecutionJsonRpc({
+	binding,
+	endpoint,
+})
 
 const block = {
 	number: '0x2a',
@@ -84,25 +87,17 @@ describe('shared EVM execution JSON-RPC queries', () => {
 			.mockResolvedValueOnce(receipt)
 
 		await expect(getBlockByNumber({
-			binding,
-			endpoint,
 			blockNumber: 42n,
 			txObjects: true,
 		})).resolves.toEqual(blockWithTransactions)
 		await expect(getBlockByHash({
-			binding,
-			endpoint,
 			blockHash: '0xblock',
 			txObjects: false,
 		})).resolves.toEqual(block)
 		await expect(getTransactionByHash({
-			binding,
-			endpoint,
 			txHash: '0xtransaction',
 		})).resolves.toMatchObject(transaction)
 		await expect(getTransactionReceipt({
-			binding,
-			endpoint,
 			txHash: '0xtransaction',
 		})).resolves.toMatchObject(receipt)
 
@@ -140,6 +135,104 @@ describe('shared EVM execution JSON-RPC queries', () => {
 		])
 	})
 
+	it('uses one injected request capability for every bound scalar and structured query', async () => {
+		const request = vi.fn()
+			.mockResolvedValueOnce('0x20000000000001')
+			.mockResolvedValueOnce('0x2a')
+			.mockResolvedValueOnce('0x3')
+			.mockResolvedValueOnce({
+				oldestBlock: '0x20',
+				baseFeePerGas: ['0x1', '0x2'],
+				gasUsedRatio: [0.5],
+				baseFeePerBlobGas: ['0x3'],
+				blobGasUsedRatio: [0.25],
+				reward: [['0x4']],
+			})
+			.mockResolvedValueOnce('0xstorage')
+			.mockResolvedValueOnce('0xcode')
+			.mockResolvedValueOnce('0xcall')
+			.mockResolvedValueOnce({
+				pending: '0x5',
+				queued: '0x6',
+			})
+		const client = evmExecutionJsonRpc({
+			binding,
+			request,
+		})
+
+		await expect(client.getBlockNumber()).resolves.toBe(0x20000000000001n)
+		await expect(client.getGasPrice()).resolves.toBe('0x2a')
+		await expect(client.getMaxPriorityFeePerGas()).resolves.toBe('0x3')
+		await expect(client.getFeeHistory({
+			blockCount: 1,
+			newestBlock: 32n,
+			rewardPercentiles: [50],
+		})).resolves.toEqual({
+			oldestBlock: '0x20',
+			baseFeePerGas: ['0x1', '0x2'],
+			gasUsedRatio: [0.5],
+			baseFeePerBlobGas: ['0x3'],
+			blobGasUsedRatio: [0.25],
+			reward: [['0x4']],
+		})
+		await expect(client.getStorageAt({
+			address: '0xaddress',
+			slotQuantityHex: '0x0',
+		})).resolves.toBe('0xstorage')
+		await expect(client.getCode({ address: '0xaddress' })).resolves.toBe('0xcode')
+		await expect(client.getCall({
+			to: '0xaddress',
+			data: '0xdata',
+		})).resolves.toBe('0xcall')
+		await expect(client.getTxpoolStatus()).resolves.toEqual({
+			pending: '0x5',
+			queued: '0x6',
+		})
+
+		expect(request.mock.calls).toEqual([
+			['eth_blockNumber'],
+			['eth_gasPrice'],
+			['eth_maxPriorityFeePerGas'],
+			[
+				'eth_feeHistory',
+				[
+					'0x1',
+					'0x20',
+					[50],
+				],
+			],
+			[
+				'eth_getStorageAt',
+				[
+					'0xaddress',
+					'0x0',
+					'latest',
+				],
+			],
+			[
+				'eth_getCode',
+				[
+					'0xaddress',
+					'latest',
+				],
+			],
+			[
+				'eth_call',
+				[
+					{
+						to: '0xaddress',
+						data: '0xdata',
+					},
+					'latest',
+				],
+			],
+			[
+				'txpool_status',
+				[],
+			],
+		])
+	})
+
 	it('rejects block transaction representations that contradict txObjects', async () => {
 		jsonRpc2
 			.mockResolvedValueOnce(block)
@@ -148,22 +241,18 @@ describe('shared EVM execution JSON-RPC queries', () => {
 			.mockResolvedValueOnce(blockWithTransactions)
 
 		await expect(getBlockByNumber({
-			binding,
 			blockNumber: 42n,
 			txObjects: true,
 		})).rejects.toThrow('malformed transaction representation')
 		await expect(getBlockByNumber({
-			binding,
 			blockNumber: 42n,
 			txObjects: false,
 		})).rejects.toThrow('malformed transaction representation')
 		await expect(getBlockByHash({
-			binding,
 			blockHash: '0xblock',
 			txObjects: true,
 		})).rejects.toThrow('malformed transaction representation')
 		await expect(getBlockByHash({
-			binding,
 			blockHash: '0xblock',
 			txObjects: false,
 		})).rejects.toThrow('malformed transaction representation')
@@ -174,21 +263,17 @@ describe('shared EVM execution JSON-RPC queries', () => {
 
 		await expect(Promise.all([
 			getBlockByNumber({
-				binding,
 				blockNumber: 42n,
 				txObjects: false,
 			}),
 			getBlockByHash({
-				binding,
 				blockHash: '0xblock',
 				txObjects: false,
 			}),
 			getTransactionByHash({
-				binding,
 				txHash: '0xtransaction',
 			}),
 			getTransactionReceipt({
-				binding,
 				txHash: '0xtransaction',
 			}),
 		])).resolves.toEqual([
@@ -203,7 +288,6 @@ describe('shared EVM execution JSON-RPC queries', () => {
 		[
 			'eth_getBlockByNumber',
 			() => getBlockByNumber({
-				binding,
 				blockNumber: 42n,
 				txObjects: false,
 			}),
@@ -211,7 +295,6 @@ describe('shared EVM execution JSON-RPC queries', () => {
 		[
 			'eth_getBlockByHash',
 			() => getBlockByHash({
-				binding,
 				blockHash: '0xblock',
 				txObjects: false,
 			}),
@@ -219,14 +302,12 @@ describe('shared EVM execution JSON-RPC queries', () => {
 		[
 			'eth_getTransactionByHash',
 			() => getTransactionByHash({
-				binding,
 				txHash: '0xtransaction',
 			}),
 		],
 		[
 			'eth_getTransactionReceipt',
 			() => getTransactionReceipt({
-				binding,
 				txHash: '0xtransaction',
 			}),
 		],
@@ -242,14 +323,12 @@ describe('shared EVM execution JSON-RPC queries', () => {
 		[
 			'eth_getTransactionByHash',
 			() => getTransactionByHash({
-				binding,
 				txHash: '0xtransaction',
 			}),
 		],
 		[
 			'eth_getTransactionReceipt',
 			() => getTransactionReceipt({
-				binding,
 				txHash: '0xtransaction',
 			}),
 		],
@@ -268,7 +347,6 @@ describe('shared EVM execution JSON-RPC queries', () => {
 		})
 
 		await expect(getBlockByNumber({
-			binding,
 			blockNumber: 42n,
 			txObjects: true,
 		})).rejects.toThrow(

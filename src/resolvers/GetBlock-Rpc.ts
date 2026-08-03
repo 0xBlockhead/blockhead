@@ -59,8 +59,8 @@ export default {
 							getTransactionReceipt,
 						} = await import('$/sources/GetBlock/Rpc/queries.ts')
 						const [transaction, receipt] = await Promise.all([
-							getTransactionByHash(txHash),
-							getTransactionReceipt(txHash),
+							getTransactionByHash({ txHash }),
+							getTransactionReceipt({ txHash }),
 						])
 						if (transaction == null)
 							throw new Error(`GetBlockRpc_JsonRpc: transaction not found ${txHash}`)

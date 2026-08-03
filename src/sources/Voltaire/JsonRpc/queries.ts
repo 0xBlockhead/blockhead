@@ -1,170 +1,54 @@
 import type {
 	BlockInclude,
-	BlocksEvent,
 	BlockStreamEvent,
 	RetryOptions,
 } from '@tevm/voltaire/block'
 
+import { Source } from '$/sources/Source.ts'
 import {
 	SourceEndpointKind,
 	SourceOperationGroup,
+	sourceBindingId,
 	type SourceBinding,
 	type SourceEndpoint,
 } from '$/sources/SourceBinding.ts'
-import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/Voltaire/bindings.ts'
-import {
-	getBlockByHash as getEvmBlockByHash,
-	getBlockByNumber as getEvmBlockByNumber,
-	getTransactionByHash as getEvmTransactionByHash,
-	getTransactionReceipt as getEvmTransactionReceipt,
-	getBlockNumber,
-	getCode as getEvmCode,
-	getFeeHistory as getEvmFeeHistory,
-	getGasPrice as getEvmGasPrice,
-	getMaxPriorityFeePerGas as getEvmMaxPriorityFeePerGas,
-	getStorageAt as getEvmStorageAt,
-	getTxpoolStatus as getEvmTxpoolStatus,
-} from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts'
+import { parseVoltaireCallTraceRpc } from '$/sources/Voltaire/JsonRpc/CallTrace.ts'
+import { ens } from '$/sources/Voltaire/JsonRpc/ens.ts'
+import { evmExecutionJsonRpc } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
-import {
-	narrowRpcBlock,
-	narrowRpcReceipt,
-	narrowRpcTransaction,
-} from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
-import { parseVoltaireCallTraceRpc } from '$/sources/Voltaire/JsonRpc/CallTrace.ts'
 
-export type ExecutionTransport = {
-	binding: SourceBinding<Source.Voltaire_JsonRpc>
-	endpoint: SourceEndpoint
-	diagnosticLabel: string
-}
-
-export const voltaireJsonRpcTransports = (() => {
-	const transports = bindings[Source.Voltaire_JsonRpc].flatMap((binding) => (
-		binding.endpoints.map((endpoint) => ({
-			binding,
-			endpoint,
-			diagnosticLabel: `${endpoint.locator} (${endpoint.endpointKind})`,
-		}))
-	))
-	const transportsByChainId = Object.groupBy(
-		transports,
-		(transport) => Number(transport.binding.target.key)
-	)
-	const httpTransportsByChainId = Object.groupBy(
-		transports.filter(
-			(transport) => transport.endpoint.endpointKind === SourceEndpointKind.HttpUrl
-		),
-		(transport) => Number(transport.binding.target.key)
-	)
-
-	return {
-		transportsByChainId,
-		httpTransportsByChainId,
-		providerTransportsByChainId: Object.groupBy(
-			transports.filter((transport) => (
-				typeof window === 'undefined'
-				|| transport.endpoint.endpointKind !== SourceEndpointKind.WebSocketUrl
-			)),
-			(transport) => Number(transport.binding.target.key)
-		),
-		txpoolTransportsByChainId: Object.groupBy(
-			transports.filter((transport) => (
-				transport.endpoint.endpointKind === SourceEndpointKind.HttpUrl
-				&& transport.binding.operationGroups.some(
-					(operationGroup) => operationGroup === SourceOperationGroup.EvmRpcTxpool
-				)
-			)),
-			(transport) => Number(transport.binding.target.key)
-		),
-	}
-})()
-
-export const getFeeHistoryForEndpoint = ({
-	binding,
-	endpoint,
-	blockCount,
-	newestBlock,
-	rewardPercentiles,
-}: ExecutionTransport & {
-	blockCount: number
-	newestBlock: bigint | 'latest'
-	rewardPercentiles?: readonly number[]
-}) => (
-	getEvmFeeHistory({
-		binding,
-		endpoint,
-		blockCount,
-		newestBlock,
-		rewardPercentiles,
-	})
-)
-
-export const getGasPriceForEndpoint = ({ binding, endpoint }: ExecutionTransport) => (
-	getEvmGasPrice(binding, endpoint)
-)
-
-export const getMaxPriorityFeePerGasForEndpoint = ({ binding, endpoint }: ExecutionTransport) => (
-	getEvmMaxPriorityFeePerGas(binding, endpoint)
-)
-
-export const getTxpoolStatusForEndpoint = ({ binding, endpoint }: ExecutionTransport) => (
-	getEvmTxpoolStatus({
-		binding,
-		endpoint,
-	})
-)
-
-export const getStorageAtForEndpoint = ({
-	binding,
-	endpoint,
-	address,
-	slotQuantityHex,
-	blockTag,
-}: ExecutionTransport & {
-	address: `0x${string}`
-	slotQuantityHex: `0x${string}`
-	blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
-}) => (
-	getEvmStorageAt({
-		binding,
-		endpoint,
-		address,
-		slotQuantityHex,
-		blockTag,
-	})
-)
-
-export const getCodeForEndpoint = ({
-	binding,
-	endpoint,
-	address,
-	blockTag,
-}: ExecutionTransport & {
-	address: `0x${string}`
-	blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
-}) => (
-	getEvmCode({
-		binding,
-		endpoint,
-		address,
-		blockTag,
-	})
-)
-
-export type Provider = {
+type Provider = {
 	request: (request: {
 		method: string
 		params?: JsonValue[]
 	}) => Promise<unknown>
 }
 
-export const getProviderForExecutionUrl = async ({
-	binding,
-	endpoint,
-}: ExecutionTransport): Promise<Provider> => {
+type BlockStreamOptions = {
+	include?: BlockInclude
+	signal?: AbortSignal
+	fromBlock?: bigint
+	maxQueuedBlocks?: number
+	pollingInterval?: number
+	retry?: RetryOptions
+}
+
+const jsonValueFromProviderRequest = async (
+	// oxlint-disable-next-line typescript/no-restricted-types -- EIP-1193 Provider.request return
+	requestPromise: Promise<unknown>
+) => {
+	const result = await requestPromise
+	// @ts-expect-error EIP-1193 JSON-RPC result is JSON-shaped but untyped on Provider.request
+	const json: JsonValue = result
+	return json
+}
+
+const providerForExecutionEndpoint = async (
+	binding: SourceBinding<Source.Voltaire_JsonRpc>,
+	endpoint: SourceEndpoint
+): Promise<Provider> => {
 	if (
 		endpoint.endpointKind !== SourceEndpointKind.HttpUrl
 		&& endpoint.endpointKind !== SourceEndpointKind.WebSocketUrl
@@ -189,238 +73,129 @@ export const getProviderForExecutionUrl = async ({
 	)
 }
 
-const jsonValueFromProviderRequest = async (
-	// oxlint-disable-next-line typescript/no-restricted-types -- EIP-1193 Provider.request return
-	requestPromise: Promise<unknown>
+const executionTransport = (
+	binding: SourceBinding<Source.Voltaire_JsonRpc>,
+	endpoint: SourceEndpoint
 ) => {
-	const result = await requestPromise
-	// @ts-expect-error EIP-1193 JSON-RPC result is JSON-shaped but untyped on Provider.request
-	const json: JsonValue = result
-	return json
-}
-
-const getBlockSpec = (blockNumber: bigint | 'latest'): 'latest' | `0x${string}` => (
-	blockNumber === 'latest' ?
-		'latest'
-	:
-		`0x${blockNumber.toString(16)}`
-)
-
-export const getChainHeadNumberForEndpoint = async ({
-	binding,
-	endpoint,
-}: ExecutionTransport) => {
-	if (endpoint.endpointKind === SourceEndpointKind.HttpUrl)
-		return BigInt(await getBlockNumber(binding, endpoint))
-
-	const provider = await getProviderForExecutionUrl({
-		binding,
-		endpoint,
-	})
-	const hexUnknown = await provider.request({
-		method: 'eth_blockNumber',
-		params: [],
-	})
-	if (typeof hexUnknown !== 'string')
-		throw new Error('eth_blockNumber: expected hex string')
-	return BigInt(hexUnknown)
-}
-
-export const getBlockByNumberForEndpoint = async ({
-	binding,
-	endpoint,
-	blockNumber,
-	fullTransactions = false,
-}: ExecutionTransport & {
-	blockNumber: bigint | 'latest'
-	fullTransactions?: boolean
-}) => {
-	if (endpoint.endpointKind === SourceEndpointKind.HttpUrl)
-		return getEvmBlockByNumber({
-			binding,
-			endpoint,
-			blockNumber,
-			txObjects: fullTransactions,
-		})
-
-	return narrowRpcBlock(
-		await jsonValueFromProviderRequest(
-			(await getProviderForExecutionUrl({
+	const provider = () => providerForExecutionEndpoint(binding, endpoint)
+	const request: Provider['request'] = ({
+		method,
+		params,
+	}) => (
+		endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
+			jsonRpc2<JsonValue>(
 				binding,
-				endpoint,
-			})).request({
-				method: 'eth_getBlockByNumber',
-				params: [
-					getBlockSpec(blockNumber),
-					fullTransactions,
-				],
-			})
-		)
-	)
-}
-
-export const getBlockByHashForEndpoint = async ({
-	binding,
-	endpoint,
-	blockHash,
-	fullTransactions = false,
-}: ExecutionTransport & {
-	blockHash: `0x${string}`
-	fullTransactions?: boolean
-}) => {
-	if (endpoint.endpointKind === SourceEndpointKind.HttpUrl)
-		return getEvmBlockByHash({
-			binding,
-			endpoint,
-			blockHash,
-			txObjects: fullTransactions,
-		})
-
-	return narrowRpcBlock(
-		await jsonValueFromProviderRequest(
-			(await getProviderForExecutionUrl({
-				binding,
-				endpoint,
-			})).request({
-				method: 'eth_getBlockByHash',
-				params: [
-					blockHash,
-					fullTransactions,
-				],
-			})
-		)
-	)
-}
-
-export const getRecentBlockWiresForEndpoint = async ({
-	binding,
-	endpoint,
-	recentBlockDepth,
-}: ExecutionTransport & {
-	recentBlockDepth: number
-}) => {
-	const head = await getChainHeadNumberForEndpoint({
-		binding,
-		endpoint,
-	})
-	const blockNumbers = (
-		Array.from(
-			{ length: recentBlockDepth },
-			(_, index) => head - BigInt(index)
-		)
-			.filter((blockNumber) => blockNumber >= 0n)
-	)
-	return {
-		head,
-		blockNumbers,
-		wires: await Promise.all(
-			blockNumbers.map((blockNumber) => (
-				getBlockByNumberForEndpoint({
-					binding,
-					endpoint,
-					blockNumber,
-					fullTransactions: false,
-				})
-			))
-		),
-	}
-}
-
-export const getTransactionByHashForEndpoint = async ({
-	binding,
-	endpoint,
-	txHash,
-}: ExecutionTransport & {
-	txHash: `0x${string}`
-}) => {
-	if (endpoint.endpointKind === SourceEndpointKind.HttpUrl)
-		return getEvmTransactionByHash({
-			binding,
-			endpoint,
-			txHash,
-		})
-
-	return narrowRpcTransaction(
-		await jsonValueFromProviderRequest(
-			(await getProviderForExecutionUrl({
-				binding,
-				endpoint,
-			})).request({
-				method: 'eth_getTransactionByHash',
-				params: [txHash],
-			})
-		)
-	)
-}
-
-export const getTransactionReceiptForEndpoint = async ({
-	binding,
-	endpoint,
-	txHash,
-}: ExecutionTransport & {
-	txHash: `0x${string}`
-}) => {
-	if (endpoint.endpointKind === SourceEndpointKind.HttpUrl)
-		return getEvmTransactionReceipt({
-			binding,
-			endpoint,
-			txHash,
-		})
-
-	return narrowRpcReceipt(
-		await jsonValueFromProviderRequest(
-			(await getProviderForExecutionUrl({
-				binding,
-				endpoint,
-			})).request({
-				method: 'eth_getTransactionReceipt',
-				params: [txHash],
-			})
-		)
-	)
-}
-
-export const debugTraceTransactionForEndpoint = async ({
-	binding,
-	endpoint,
-	txHash,
-}: ExecutionTransport & {
-	txHash: `0x${string}`
-}) => {
-	if (endpoint.endpointKind === SourceEndpointKind.HttpUrl) {
-		try {
-			const traceJson = await jsonRpc2<JsonValue>(
-				binding,
-				'debug_traceTransaction',
-				[
-					txHash,
-					{ tracer: 'callTracer' },
-				],
+				method,
+				params,
 				endpoint
 			)
-			return isJsonObject(traceJson) ? parseVoltaireCallTraceRpc(traceJson) : null
-		} catch {
-			return null
-		}
-	}
+		:
+			provider().then((executionProvider) => executionProvider.request({
+				method,
+				params,
+			}))
+	)
+	const jsonRpc = evmExecutionJsonRpc({
+		binding,
+		endpoint,
+		request: (method, params) => jsonValueFromProviderRequest(request({
+			method,
+			params,
+		})),
+	})
 
-	try {
-		const traceJson = await jsonValueFromProviderRequest(
-			(await getProviderForExecutionUrl({
-				binding,
-				endpoint,
-			})).request({
-				method: 'debug_traceTransaction',
-				params: [
-					txHash,
-					{ tracer: 'callTracer' },
-				],
+	return {
+		diagnosticLabel: `${sourceBindingId(binding)} ${endpoint.endpointKind} ${endpoint.locator}`,
+		...jsonRpc,
+		...ens({ request }),
+		getRecentBlockWires: async ({
+			recentBlockDepth,
+		}: {
+			recentBlockDepth: number
+		}) => {
+			const head = await jsonRpc.getBlockNumber()
+			const blockNumbers = Array.from(
+				{ length: recentBlockDepth },
+				(_value, index) => head - BigInt(index)
+			).filter((blockNumber) => blockNumber >= 0n)
+
+			return {
+				head,
+				blockNumbers,
+				wires: await Promise.all(
+					blockNumbers.map((blockNumber) => jsonRpc.getBlockByNumber({
+						blockNumber,
+						txObjects: false,
+					}))
+				),
+			}
+		},
+		debugTraceTransaction: async ({
+			txHash,
+		}: {
+			txHash: `0x${string}`
+		}) => {
+			try {
+				const traceJson = await jsonValueFromProviderRequest(request({
+					method: 'debug_traceTransaction',
+					params: [
+						txHash,
+						{ tracer: 'callTracer' },
+					],
+				}))
+				return isJsonObject(traceJson) ? parseVoltaireCallTraceRpc(traceJson) : null
+			} catch {
+				return null
+			}
+		},
+		iterateBlockStreamEvents: async function* (options: BlockStreamOptions) {
+			yield* blockStreamEvents({
+				provider: await provider(),
+				...options,
 			})
-		)
-		return isJsonObject(traceJson) ? parseVoltaireCallTraceRpc(traceJson) : null
-	} catch {
-		return null
+		},
 	}
+}
+
+type ExecutionTransport = ReturnType<typeof executionTransport>
+
+const transportRows = bindings[Source.Voltaire_JsonRpc].flatMap((binding) => (
+	binding.endpoints.map((endpoint) => ({
+		chainId: Number(binding.target.key),
+		endpointKind: endpoint.endpointKind,
+		operationGroups: binding.operationGroups,
+		transport: executionTransport(binding, endpoint),
+	}))
+))
+
+const transportsByChainId = (
+	rows: typeof transportRows
+): Partial<Record<number, ExecutionTransport[]>> => Object.fromEntries(
+	Object.entries(Object.groupBy(rows, (row) => row.chainId)).map(([chainId, chainRows]) => [
+		chainId,
+		chainRows.map((row) => row.transport),
+	])
+)
+
+export const voltaireJsonRpcTransports = {
+	transportsByChainId: transportsByChainId(transportRows),
+	httpTransportsByChainId: transportsByChainId(
+		transportRows.filter((row) => row.endpointKind === SourceEndpointKind.HttpUrl)
+	),
+	providerTransportsByChainId: transportsByChainId(
+		transportRows.filter((row) => (
+			typeof window === 'undefined'
+			|| row.endpointKind !== SourceEndpointKind.WebSocketUrl
+		))
+	),
+	txpoolTransportsByChainId: transportsByChainId(
+		transportRows.filter((row) => (
+			row.endpointKind === SourceEndpointKind.HttpUrl
+			&& row.operationGroups.some(
+				(operationGroup) => operationGroup === SourceOperationGroup.EvmRpcTxpool
+			)
+		))
+	),
 }
 
 const createLiveBlockStream = (provider: Provider) => (
@@ -430,7 +205,7 @@ const createLiveBlockStream = (provider: Provider) => (
 	))
 )
 
-export async function* iterateBlockStreamEvents({
+const blockStreamEvents = async function* ({
 	provider,
 	include = 'header',
 	signal,
@@ -438,14 +213,8 @@ export async function* iterateBlockStreamEvents({
 	maxQueuedBlocks,
 	pollingInterval,
 	retry,
-}: {
+}: BlockStreamOptions & {
 	provider: Provider
-	include?: BlockInclude
-	signal?: AbortSignal
-	fromBlock?: bigint
-	maxQueuedBlocks?: number
-	pollingInterval?: number
-	retry?: RetryOptions
 }): AsyncGenerator<BlockStreamEvent<BlockInclude>, void, void> {
 	const stream = await createLiveBlockStream(provider)
 	for await (const event of stream.watch({
@@ -455,29 +224,6 @@ export async function* iterateBlockStreamEvents({
 		maxQueuedBlocks,
 		pollingInterval,
 		retry,
-	}))
-		yield event
-}
-
-export async function* iterateBlockStreamBackfill({
-	provider,
-	fromBlock,
-	toBlock,
-	include = 'header',
-	signal,
-}: {
-	provider: Provider
-	fromBlock: bigint
-	toBlock: bigint
-	include?: BlockInclude
-	signal?: AbortSignal
-}): AsyncGenerator<BlocksEvent<BlockInclude>, void, void> {
-	const stream = await createLiveBlockStream(provider)
-	for await (const event of stream.backfill({
-		fromBlock,
-		toBlock,
-		include,
-		signal,
 	}))
 		yield event
 }

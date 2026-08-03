@@ -442,16 +442,15 @@ export const getCode = async ({ chainId, address }: {
 	address: `0x${string}`
 }) => {
 	const {
-		getCode: getCodeFromExecutionRpc,
+		evmExecutionJsonRpc,
 	} = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
 	const normalized = hexLowerOfByteSize(address, 20)
 	if (normalized == null)
 		return null
 
-	return getCodeFromExecutionRpc({
+	return evmExecutionJsonRpc({
 		binding: requireBlockscoutBinding(chainId, ApiFamily.EvmExecutionJsonRpc),
-		address: normalized,
-	})
+	}).getCode({ address: normalized })
 }
 
 export const getStorageAt = async ({ chainId, address, slotQuantityHex }: {
@@ -460,14 +459,15 @@ export const getStorageAt = async ({ chainId, address, slotQuantityHex }: {
 	slotQuantityHex: `0x${string}`
 }) => {
 	const {
-		getStorageAt: getStorageAtFromExecutionRpc,
+		evmExecutionJsonRpc,
 	} = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
 	const normalized = hexLowerOfByteSize(address, 20)
 	if (normalized == null)
 		return null
 
-	return getStorageAtFromExecutionRpc({
+	return evmExecutionJsonRpc({
 		binding: requireBlockscoutBinding(chainId, ApiFamily.EvmExecutionJsonRpc),
+	}).getStorageAt({
 		address: normalized,
 		slotQuantityHex,
 	})

@@ -32,13 +32,9 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
-import {
-	SourceEndpointKind,
-	SourceTargetKind,
-} from '$/sources/SourceBinding.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import {
 	enabledSources as browserEnabledSources,
-	sourceBindings,
 	sourceProviders,
 } from '$/sources/index.ts'
 import { loadResolvers } from '$/resolvers/index.ts'
@@ -47,16 +43,6 @@ import { networkBySlug } from '$/constants/Network.ts'
 import voltaireJsonRpc from '$/resolvers/Voltaire-JsonRpc.ts'
 
 const resolvers = await loadResolvers()
-const voltaireMainnetBinding = sourceBindings.find((binding) => (
-	binding.source === Source.Voltaire_JsonRpc
-	&& binding.target.key === '1'
-))
-const voltaireMainnetHttpEndpoint = voltaireMainnetBinding?.endpoints
-	.find((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
-
-if (voltaireMainnetBinding == null || voltaireMainnetHttpEndpoint == null)
-	throw new Error('Voltaire_JsonRpc: missing canonical mainnet HTTP binding')
-
 const {
 	resolverDefinitions,
 	resolverParts,
@@ -504,7 +490,7 @@ describe('resolver registry live resolver architecture', () => {
 	it('publishes Voltaire live EVM network Many fields as one source row containing an array', async () => {
 		const replaceTimestampRows = vi.fn()
 		const replaceBlockRows = vi.fn()
-		const getRecentBlockWiresForEndpoint = vi.fn(async () => ({
+		const getRecentBlockWires = vi.fn(async () => ({
 			head: 12n,
 			blockNumbers: [12n],
 			wires: [{
@@ -544,32 +530,21 @@ describe('resolver registry live resolver architecture', () => {
 				reference: '1',
 			},
 		} satisfies EntitySelector<typeof schema, EntityType.Network>
-		vi.doMock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
-			getChainHeadNumberForEndpoint: vi.fn(async () => 12n),
-			getProviderForExecutionUrl: vi.fn(async () => ({})),
-			getRecentBlockWiresForEndpoint,
+		const jsonRpcTransport = {
+			diagnosticLabel: 'mainnet HTTP',
+			getRecentBlockWires,
 			iterateBlockStreamEvents,
+		}
+		vi.doMock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 			voltaireJsonRpcTransports: {
 				transportsByChainId: {
-					1: [{
-						binding: voltaireMainnetBinding,
-						endpoint: voltaireMainnetHttpEndpoint,
-						diagnosticLabel: 'mainnet HTTP',
-					}],
+					1: [jsonRpcTransport],
 				},
 				httpTransportsByChainId: {
-					1: [{
-						binding: voltaireMainnetBinding,
-						endpoint: voltaireMainnetHttpEndpoint,
-						diagnosticLabel: 'mainnet HTTP',
-					}],
+					1: [jsonRpcTransport],
 				},
 				providerTransportsByChainId: {
-					1: [{
-						binding: voltaireMainnetBinding,
-						endpoint: voltaireMainnetHttpEndpoint,
-						diagnosticLabel: 'mainnet HTTP',
-					}],
+					1: [jsonRpcTransport],
 				},
 			},
 		}))
@@ -660,10 +635,10 @@ describe('resolver registry live resolver architecture', () => {
 				expect(replaceBlockRows).toHaveBeenCalledOnce()
 				expect(iterateBlockStreamEvents).toHaveBeenCalledOnce()
 			})
-			expect(getRecentBlockWiresForEndpoint).toHaveBeenCalledWith(expect.objectContaining({
+			expect(getRecentBlockWires).toHaveBeenCalledWith(expect.objectContaining({
 				recentBlockDepth: 16,
 			}))
-			expect(getRecentBlockWiresForEndpoint).toHaveBeenCalledOnce()
+			expect(getRecentBlockWires).toHaveBeenCalledOnce()
 			expect(replaceTimestampRows).toHaveBeenCalledWith([{
 				source: Source.Voltaire_JsonRpc,
 				value: [{
@@ -1081,7 +1056,7 @@ describe('resolver registry live resolver architecture', () => {
 		const emitter = '0x6666666666666666666666666666666666666666'
 		const topic = '0x7777777777777777777777777777777777777777777777777777777777777777'
 		const versionedHash = `0x01${'88'.repeat(31)}`
-		const getBlockByHashForRpcUrl = vi.fn(async () => ({
+		const getBlockByHash = vi.fn(async () => ({
 			number: '0x64',
 			hash: blockHash,
 			parentHash,
@@ -1094,7 +1069,7 @@ describe('resolver registry live resolver architecture', () => {
 			excessBlobGas: '0x3',
 			transactions: [txHash],
 		}))
-		const getTransactionByHashForRpcUrl = vi.fn(async () => ({
+		const getTransactionByHash = vi.fn(async () => ({
 			hash: txHash,
 			blockNumber: '0x64',
 			blockHash,
@@ -1115,7 +1090,7 @@ describe('resolver registry live resolver architecture', () => {
 			maxFeePerBlobGas: '0x10',
 			blobVersionedHashes: [versionedHash],
 		}))
-		const getTransactionReceiptForRpcUrl = vi.fn(async () => ({
+		const getTransactionReceipt = vi.fn(async () => ({
 			status: '0x1',
 			gasUsed: '0x5208',
 			cumulativeGasUsed: '0xa410',
@@ -1133,25 +1108,20 @@ describe('resolver registry live resolver architecture', () => {
 				removed: false,
 			}],
 		}))
+		const jsonRpcTransport = {
+			debugTraceTransaction: vi.fn(async () => null),
+			diagnosticLabel: 'mainnet HTTP',
+			getBlockByHash,
+			getTransactionByHash,
+			getTransactionReceipt,
+		}
 		vi.doMock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
-			debugTraceTransactionForEndpoint: vi.fn(async () => null),
-			getBlockByHashForEndpoint: getBlockByHashForRpcUrl,
-			getTransactionByHashForEndpoint: getTransactionByHashForRpcUrl,
-			getTransactionReceiptForEndpoint: getTransactionReceiptForRpcUrl,
 			voltaireJsonRpcTransports: {
 				transportsByChainId: {
-					1: [{
-						binding: voltaireMainnetBinding,
-						endpoint: voltaireMainnetHttpEndpoint,
-						diagnosticLabel: 'mainnet HTTP',
-					}],
+					1: [jsonRpcTransport],
 				},
 				httpTransportsByChainId: {
-					1: [{
-						binding: voltaireMainnetBinding,
-						endpoint: voltaireMainnetHttpEndpoint,
-						diagnosticLabel: 'mainnet HTTP',
-					}],
+					1: [jsonRpcTransport],
 				},
 			},
 		}))

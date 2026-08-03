@@ -124,7 +124,7 @@ export const hyperliquidEvmResolvers = [
 				resolve: async ({ $network, txHash }) => {
 					assertHyperliquidMainnet($network)
 					const { getTransactionByHash } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-					const transaction = await getTransactionByHash(txHash)
+					const transaction = await getTransactionByHash({ txHash })
 					if (transaction == null) throw new Error(`Hyperliquid EVM: transaction not found for ${txHash}`)
 					return {
 						...(transaction.blockNumber != null && {
@@ -176,7 +176,7 @@ export const hyperliquidEvmResolvers = [
 				resolve: async ({ $transaction }) => {
 					assertHyperliquidMainnet($transaction.$network)
 					const { getTransactionReceipt } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-					const receipt = await getTransactionReceipt($transaction.txHash)
+					const receipt = await getTransactionReceipt({ txHash: $transaction.txHash })
 					return {
 						...(receipt?.status != null && {
 							status: receipt.status === '0x1' ? 'success' : 'failed',

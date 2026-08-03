@@ -81,10 +81,10 @@ describe('GetBlock RPC transaction source', () => {
 		sourceFetch
 			.mockResolvedValueOnce(new Response(transaction))
 			.mockResolvedValueOnce(new Response(receipt))
-		await expect(getTransactionByHash('0xaaaa')).resolves.toMatchObject({
+		await expect(getTransactionByHash({ txHash: '0xaaaa' })).resolves.toMatchObject({
 			hash: expect.any(String),
 		})
-		await expect(getTransactionReceipt('0xaaaa')).resolves.toMatchObject({
+		await expect(getTransactionReceipt({ txHash: '0xaaaa' })).resolves.toMatchObject({
 			status: '0x1',
 		})
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toMatchObject({
@@ -170,8 +170,8 @@ describe('GetBlock RPC transaction source', () => {
 			id: 1,
 			result: null,
 		})))
-		await expect(getTransactionByHash('0xmissing')).resolves.toBeNull()
+		await expect(getTransactionByHash({ txHash: '0xmissing' })).resolves.toBeNull()
 		sourceFetch.mockResolvedValueOnce(new Response('upstream failed', { status: 503 }))
-		await expect(getTransactionByHash('0xfailure')).rejects.toThrow()
+		await expect(getTransactionByHash({ txHash: '0xfailure' })).rejects.toThrow()
 	})
 })

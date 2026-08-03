@@ -644,9 +644,6 @@ export default {
 			resolve: {
 				EvmNetworkBlockNumber: {
 					resolve: async ({ $network, blockNumber: blockNumberSelector }) => {
-						const {
-							getBlockByNumberForEndpoint,
-						} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 						const chainId = chainIdFromEvmNetworkId($network)
 						const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
 						if (jsonRpcTransports.length === 0)
@@ -654,10 +651,9 @@ export default {
 						const errors: string[] = []
 						for (const jsonRpcTransport of jsonRpcTransports) {
 							try {
-								const voltaireBlockWire = await getBlockByNumberForEndpoint({
-									...jsonRpcTransport,
+								const voltaireBlockWire = await jsonRpcTransport.getBlockByNumber({
 									blockNumber: blockNumberSelector,
-									fullTransactions: false,
+									txObjects: false,
 								})
 								if (voltaireBlockWire == null)
 									throw new Error('block not returned from RPC')
@@ -704,9 +700,6 @@ export default {
 				},
 				EvmNetworkBlockHash: {
 					resolve: async ({ $network, hash }) => {
-						const {
-							getBlockByHashForEndpoint,
-						} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 						const chainId = chainIdFromEvmNetworkId($network)
 						const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
 						if (jsonRpcTransports.length === 0)
@@ -714,10 +707,9 @@ export default {
 						const errors: string[] = []
 						for (const jsonRpcTransport of jsonRpcTransports) {
 							try {
-								const voltaireBlockWire = await getBlockByHashForEndpoint({
-									...jsonRpcTransport,
+								const voltaireBlockWire = await jsonRpcTransport.getBlockByHash({
 									blockHash: hash,
-									fullTransactions: false,
+									txObjects: false,
 								})
 								if (voltaireBlockWire == null)
 									throw new Error('block not returned from RPC')
@@ -787,9 +779,6 @@ export default {
 			resolve: {
 				TransactionIndexInTransaction: {
 					resolve: async (entitySelector) => {
-						const {
-							getTransactionByHashForEndpoint,
-						} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 						const chainId = chainIdFromEvmNetworkId(entitySelector.$transaction.$network)
 						const txHash = hexLowerOfByteSize(entitySelector.$transaction.txHash, 32)
 						if (txHash == null)
@@ -800,8 +789,7 @@ export default {
 						const errors: string[] = []
 						for (const jsonRpcTransport of jsonRpcTransports) {
 							try {
-								const tx = await getTransactionByHashForEndpoint({
-									...jsonRpcTransport,
+								const tx = await jsonRpcTransport.getTransactionByHash({
 									txHash,
 								})
 								if (tx == null)
@@ -855,25 +843,18 @@ export default {
 			resolve: {
 				EvmNetworkBlockNumber: {
 					resolve: async (entitySelector) => {
-						const {
-							getChainHeadNumberForEndpoint,
-							getFeeHistoryForEndpoint,
-							getGasPriceForEndpoint,
-							getMaxPriorityFeePerGasForEndpoint,
-						} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 						const chainId = chainIdFromEvmNetworkId(entitySelector.$network)
 						const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
 						if (jsonRpcTransports.length === 0) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL for EvmNetwork_GasFee_Block')
 						const errors: string[] = []
 						for (const jsonRpcTransport of jsonRpcTransports) {
 							try {
-								const feeHistory = await getFeeHistoryForEndpoint({
-									...jsonRpcTransport,
+								const feeHistory = await jsonRpcTransport.getFeeHistory({
 									blockCount: 1,
 									newestBlock: entitySelector.blockNumber,
 									rewardPercentiles: [50],
 								})
-								const headBlockNumber = await getChainHeadNumberForEndpoint(jsonRpcTransport)
+								const headBlockNumber = await jsonRpcTransport.getBlockNumber()
 								const isHeadBlock = (
 									headBlockNumber === entitySelector.blockNumber
 								)
@@ -881,11 +862,11 @@ export default {
 								let maxPriorityFeePerGas: bigint | undefined
 								if (isHeadBlock) {
 									legacyGasPrice = nonNegativeBigIntFromHex(
-										await getGasPriceForEndpoint(jsonRpcTransport)
+										await jsonRpcTransport.getGasPrice()
 									)
 									try {
 										maxPriorityFeePerGas = nonNegativeBigIntFromHex(
-											await getMaxPriorityFeePerGasForEndpoint(jsonRpcTransport)
+											await jsonRpcTransport.getMaxPriorityFeePerGas()
 										)
 									} catch {
 										maxPriorityFeePerGas = undefined
@@ -924,14 +905,13 @@ export default {
 			resolve: {
 				NetworkTimestampMsSource: {
 					resolve: async (entitySelector) => {
-						const { getTxpoolStatusForEndpoint } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 						const chainId = chainIdFromEvmNetworkId(entitySelector.$network)
 						const jsonRpcTransports = (await voltaireJsonRpcTxpoolTransportsByChainId())[chainId] ?? []
 						if (jsonRpcTransports.length === 0) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL for EvmNetwork_Txpool_Timestamp')
 						const errors: string[] = []
 						for (const jsonRpcTransport of jsonRpcTransports) {
 							try {
-								const status = await getTxpoolStatusForEndpoint(jsonRpcTransport)
+								const status = await jsonRpcTransport.getTxpoolStatus()
 								return {
 									[EntityMetaKey.Selector]: entitySelector,
 									pendingCount: txpoolCountFromHex('pending', status.pending),
@@ -1008,11 +988,6 @@ export default {
 			resolve: {
 				EvmNetworkTxHash: {
 					resolve: async ({ $network, txHash: txHashSelector }) => {
-						const {
-							debugTraceTransactionForEndpoint,
-							getTransactionByHashForEndpoint,
-							getTransactionReceiptForEndpoint,
-						} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 						const chainId = chainIdFromEvmNetworkId($network)
 						const requestedTxHash = hexLowerOfByteSize(txHashSelector, 32)
 						if (requestedTxHash == null)
@@ -1029,24 +1004,21 @@ export default {
 						} = await (async () => {
 							for (const jsonRpcTransport of jsonRpcTransports) {
 								try {
-									const voltaireTransactionWire = await getTransactionByHashForEndpoint({
-										...jsonRpcTransport,
+									const voltaireTransactionWire = await jsonRpcTransport.getTransactionByHash({
 										txHash: requestedTxHash,
 									})
 									if (voltaireTransactionWire == null)
 										throw new Error('transaction not returned from RPC')
 									const jsonRpcTransaction = voltaireTransactionWire
 									const txHash = hexLowerOfByteSize(jsonRpcTransaction.hash, 32) ?? requestedTxHash
-									const receiptWire = await getTransactionReceiptForEndpoint({
-										...jsonRpcTransport,
+									const receiptWire = await jsonRpcTransport.getTransactionReceipt({
 										txHash,
 									})
 									return {
 										jsonRpcTransaction,
 										txHash,
 										receipt: receiptWire,
-										rawCallTrace: await debugTraceTransactionForEndpoint({
-											...jsonRpcTransport,
+										rawCallTrace: await jsonRpcTransport.debugTraceTransaction({
 											txHash,
 										}),
 									}
@@ -1219,9 +1191,6 @@ export default {
 			resolve: {
 				TransactionIndexInTransaction: {
 					resolve: async (entitySelector) => {
-						const {
-							getTransactionReceiptForEndpoint,
-						} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 						const chainId = chainIdFromEvmNetworkId(entitySelector.$transaction.$network)
 						const txHash = hexLowerOfByteSize(entitySelector.$transaction.txHash, 32)
 						if (txHash == null)
@@ -1232,8 +1201,7 @@ export default {
 						const errors: string[] = []
 						for (const jsonRpcTransport of jsonRpcTransports) {
 							try {
-								const receiptWire = await getTransactionReceiptForEndpoint({
-									...jsonRpcTransport,
+								const receiptWire = await jsonRpcTransport.getTransactionReceipt({
 									txHash,
 								})
 								const log = findReceiptLogWireForEvmLogId(
@@ -1346,10 +1314,6 @@ export default {
 								return
 							}
 
-							const {
-								getProviderForExecutionUrl,
-								iterateBlockStreamEvents,
-							} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 							const waitBeforeRetry = (ms: number) => (
 								new Promise<void>((resolve) => {
 									const timeout = setTimeout(resolve, ms)
@@ -1367,9 +1331,7 @@ export default {
 								jsonRpcTransport: (typeof candidateTransports)[number],
 								recentBlockDepth = 16
 							) => {
-								const { getRecentBlockWiresForEndpoint } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
-								const { head, wires } = await getRecentBlockWiresForEndpoint({
-									...jsonRpcTransport,
+								const { head, wires } = await jsonRpcTransport.getRecentBlockWires({
 									recentBlockDepth,
 								})
 								const evmBlocks = (
@@ -1409,9 +1371,6 @@ export default {
 
 							while (!signal.aborted) {
 								for (const jsonRpcTransport of candidateTransports) {
-									const provider = await getProviderForExecutionUrl({
-										...jsonRpcTransport,
-									})
 									let initialized = false
 									try {
 										const currentHead = await writeRecentBlocksForTransport(jsonRpcTransport)
@@ -1433,8 +1392,7 @@ export default {
 											value: Number(currentHead) + 1,
 										}])
 										initialized = true
-										for await (const event of iterateBlockStreamEvents({
-											provider,
+										for await (const event of jsonRpcTransport.iterateBlockStreamEvents({
 											include: 'transactions',
 											signal,
 											fromBlock: currentHead,
@@ -1532,10 +1490,7 @@ export default {
 			resolve: {
 				AddressInteropAddress: {
 					resolve: async ({ address }) => {
-						const {
-							normalizeEnsName,
-							resolveEnsReverseForEndpoint,
-						} = await import('$/sources/Voltaire/JsonRpc/ens.ts')
+						const { normalizeEnsName } = await import('$/sources/Voltaire/JsonRpc/ens.ts')
 						const chainId = ChainId.Ethereum
 						const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
 						if (jsonRpcTransports.length === 0)
@@ -1543,8 +1498,7 @@ export default {
 						const errors: string[] = []
 						for (const jsonRpcTransport of jsonRpcTransports) {
 							try {
-								const ensNameFromReverseLookup = await resolveEnsReverseForEndpoint({
-									...jsonRpcTransport,
+								const ensNameFromReverseLookup = await jsonRpcTransport.resolveEnsReverse({
 									address,
 								})
 								if (ensNameFromReverseLookup == null)
@@ -1571,7 +1525,6 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async (entitySelector) => {
-						const { getChainHeadNumberForEndpoint } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 						const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainIdFromEvmNetworkId(entitySelector)] ?? []
 						if (jsonRpcTransports.length === 0) throw new Error(`Voltaire_JsonRpc: no JSON-RPC URL for Network.$$timestamps on chain ${String(chainIdFromEvmNetworkId(entitySelector))}`)
 						const errors: string[] = []
@@ -1584,7 +1537,7 @@ export default {
 										source: Source.Voltaire_JsonRpc,
 									},
 									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: await getChainHeadNumberForEndpoint(jsonRpcTransport),
+										[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: await jsonRpcTransport.getBlockNumber(),
 									},
 								}]
 							} catch (error) {
@@ -1606,7 +1559,6 @@ export default {
 			resolve: {
 				NetworkTimestampMsSource: {
 					resolve: async (entitySelector) => {
-						const { getChainHeadNumberForEndpoint } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 						const jsonRpcTransports = (await voltaireJsonRpcTransportsByChainId())[chainIdFromEvmNetworkId(entitySelector.$network)] ?? []
 						if (jsonRpcTransports.length === 0) throw new Error(`Voltaire_JsonRpc: no JSON-RPC URL for EvmNetwork_Timestamp.blockHeight on chain ${String(chainIdFromEvmNetworkId(entitySelector.$network))}`)
 					const errors: string[] = []
@@ -1614,7 +1566,7 @@ export default {
 						try {
 							return {
 								[EntityMetaKey.Selector]: entitySelector,
-								blockHeight: await getChainHeadNumberForEndpoint(jsonRpcTransport),
+								blockHeight: await jsonRpcTransport.getBlockNumber(),
 							}
 						} catch (error) {
 							errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
@@ -1634,7 +1586,6 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async (entitySelector, context) => {
-						const { getFeeHistoryForEndpoint } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 						const blockCount = Math.min(
 							32,
 							Math.max(1, resolverContextRowLimit(context))
@@ -1644,8 +1595,7 @@ export default {
 						const errors: string[] = []
 						for (const jsonRpcTransport of jsonRpcTransports) {
 							try {
-								const feeHistory = await getFeeHistoryForEndpoint({
-									...jsonRpcTransport,
+								const feeHistory = await jsonRpcTransport.getFeeHistory({
 									blockCount,
 									newestBlock: 'latest',
 									rewardPercentiles: [50],
@@ -1670,11 +1620,10 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async (entitySelector) => {
-						const { getTxpoolStatusForEndpoint } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 						const jsonRpcTransports = (await voltaireJsonRpcTxpoolTransportsByChainId())[chainIdFromEvmNetworkId(entitySelector)] ?? []
 						for (const jsonRpcTransport of jsonRpcTransports) {
 							try {
-								const status = await getTxpoolStatusForEndpoint(jsonRpcTransport)
+								const status = await jsonRpcTransport.getTxpoolStatus()
 								return [
 									{
 										[EntityMetaKey.Selector]: {
@@ -1708,17 +1657,13 @@ export default {
 				Caip2: {
 					resolve: async (entitySelector, context) => {
 						const subsetRowLimit = resolverContextRowLimit(context)
-						const {
-							getRecentBlockWiresForEndpoint,
-						} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 						const chainId = chainIdFromEvmNetworkId(entitySelector)
 						const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
 						if (jsonRpcTransports.length === 0) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
 						const errors: string[] = []
 						for (const jsonRpcTransport of jsonRpcTransports) {
 							try {
-								const { wires } = await getRecentBlockWiresForEndpoint({
-									...jsonRpcTransport,
+								const { wires } = await jsonRpcTransport.getRecentBlockWires({
 									recentBlockDepth: subsetRowLimit,
 								})
 								return (
@@ -1765,16 +1710,13 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async (entitySelector) => {
-						const {
-							getChainHeadNumberForEndpoint,
-						} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 						const chainId = chainIdFromEvmNetworkId(entitySelector)
 						const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
 						if (jsonRpcTransports.length === 0) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL')
 						const errors: string[] = []
 						for (const jsonRpcTransport of jsonRpcTransports) {
 							try {
-								return Number(await getChainHeadNumberForEndpoint(jsonRpcTransport)) + 1
+								return Number(await jsonRpcTransport.getBlockNumber()) + 1
 							} catch (error) {
 								errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
 							}
@@ -1797,49 +1739,44 @@ export default {
 				Caip2: {
 					resolve: async (entitySelector, context) => {
 						const subsetRowLimit = resolverContextRowLimit(context)
-							const {
-								getBlockByNumberForEndpoint,
-								getChainHeadNumberForEndpoint,
-							} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
-							const chainId = chainIdFromEvmNetworkId(entitySelector)
-							const jsonRpcTransports = (await voltaireJsonRpcTransportsByChainId())[chainId] ?? []
-							if (jsonRpcTransports.length === 0)
-								throw new Error(`Voltaire_JsonRpc: no JSON-RPC URL for Network.$$blobs on chain ${String(chainId)}`)
+						const chainId = chainIdFromEvmNetworkId(entitySelector)
+						const jsonRpcTransports = (await voltaireJsonRpcTransportsByChainId())[chainId] ?? []
+						if (jsonRpcTransports.length === 0)
+							throw new Error(`Voltaire_JsonRpc: no JSON-RPC URL for Network.$$blobs on chain ${String(chainId)}`)
 
-							const depth = Math.min(Math.max(1, subsetRowLimit), 2)
-							const errors: string[] = []
-							for (const jsonRpcTransport of jsonRpcTransports) {
-								try {
-									const head = await getChainHeadNumberForEndpoint(jsonRpcTransport)
-									const evmBlobs = []
-									for (
-										const blockNumber of Array.from(
-											{ length: depth },
-											(_, index) => head - BigInt(index)
-										).filter((number) => number >= 0n)
-									) {
-										const wire = await getBlockByNumberForEndpoint({
-											...jsonRpcTransport,
+						const depth = Math.min(Math.max(1, subsetRowLimit), 2)
+						const errors: string[] = []
+						for (const jsonRpcTransport of jsonRpcTransports) {
+							try {
+								const head = await jsonRpcTransport.getBlockNumber()
+								const evmBlobs = []
+								for (
+									const blockNumber of Array.from(
+										{ length: depth },
+										(_, index) => head - BigInt(index)
+									).filter((number) => number >= 0n)
+								) {
+									const wire = await jsonRpcTransport.getBlockByNumber({
 											blockNumber,
-											fullTransactions: true,
+											txObjects: true,
 										})
-										if (wire != null)
-											evmBlobs.push(
-												...evmBlobEntitiesFromVoltaireBlockWire(
-													chainId,
-													blockNumber,
-													wire
-												)
+									if (wire != null)
+										evmBlobs.push(
+											...evmBlobEntitiesFromVoltaireBlockWire(
+												chainId,
+												blockNumber,
+												wire
 											)
-									}
-									return evmBlobs
-								} catch (error) {
-									errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
+										)
 								}
+								return evmBlobs
+							} catch (error) {
+								errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
 							}
-							throw allJsonRpcEndpointsFailedError(chainId, '$$blobs', errors)
-						},
-					}
+						}
+						throw allJsonRpcEndpointsFailedError(chainId, '$$blobs', errors)
+					},
+				},
 			},
 		})({
 			Evm: {
@@ -1852,7 +1789,6 @@ export default {
 			resolve: {
 				EvmNetworkTxHash: {
 					resolve: async ({ $network, txHash }) => {
-						const { getTransactionByHashForEndpoint } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 						const chainId = chainIdFromEvmNetworkId($network)
 						const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
 						if (normalizedTxHash == null)
@@ -1863,8 +1799,7 @@ export default {
 						const errors: string[] = []
 						for (const jsonRpcTransport of jsonRpcTransports) {
 							try {
-								const tx = await getTransactionByHashForEndpoint({
-									...jsonRpcTransport,
+								const tx = await jsonRpcTransport.getTransactionByHash({
 									txHash: normalizedTxHash,
 								})
 								if (tx == null)
@@ -1881,7 +1816,7 @@ export default {
 						}
 						throw allJsonRpcEndpointsFailedError(chainId, 'EvmTransaction.$$blobs', errors)
 					},
-				}
+				},
 			},
 		})({
 			Blob: {
@@ -1894,25 +1829,19 @@ export default {
 			resolve: {
 				AddressInteropAddress: {
 					resolve: async ({ address }) => {
-						const {
-							normalizeEnsName,
-							resolveEnsForwardForEndpoint,
-							resolveEnsReverseForEndpoint,
-						} = await import('$/sources/Voltaire/JsonRpc/ens.ts')
+						const { normalizeEnsName } = await import('$/sources/Voltaire/JsonRpc/ens.ts')
 						const { ensTextRecords } = await import('$/constants/Ens.ts')
 						const chainId = ChainId.Ethereum
 						for (const jsonRpcTransport of (
 							(await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
 						)) {
 							try {
-								const ensNameFromReverseLookup = await resolveEnsReverseForEndpoint({
-									...jsonRpcTransport,
+								const ensNameFromReverseLookup = await jsonRpcTransport.resolveEnsReverse({
 									address,
 								})
 								if (ensNameFromReverseLookup == null)
 									return {}
-								const { textRecords } = await resolveEnsForwardForEndpoint({
-									...jsonRpcTransport,
+								const { textRecords } = await jsonRpcTransport.resolveEnsForward({
 									name: normalizeEnsName(ensNameFromReverseLookup),
 									textKeys: ensTextRecords.map((row) => row.key),
 								})
@@ -1946,7 +1875,6 @@ export default {
 			resolve: {
 				EvmNetworkAddress: {
 					resolve: async ({ $network, address }, context) => {
-						const { getStorageAtForEndpoint } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 						const chainId = chainIdFromEvmNetworkId($network)
 						const jsonRpcTransports = (await voltaireJsonRpcTransportsByChainId())[chainId] ?? []
 						if (jsonRpcTransports.length === 0)
@@ -1956,11 +1884,10 @@ export default {
 						for (const jsonRpcTransport of jsonRpcTransports) {
 							try {
 								return await evmContractStorageSlotReadsFromEthGetStorageAt({
-									address: address,
+									address,
 									depth,
 									getStorageAt: (slotQuantityHex) => (
-										getStorageAtForEndpoint({
-											...jsonRpcTransport,
+										jsonRpcTransport.getStorageAt({
 											address,
 											slotQuantityHex,
 											blockTag: 'latest',
@@ -1984,7 +1911,6 @@ export default {
 			resolve: {
 				EvmNetworkAddress: {
 					resolve: async ({ $network, address }) => {
-						const { getCodeForEndpoint } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 						const chainId = chainIdFromEvmNetworkId($network)
 						const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
 						if (jsonRpcTransports.length === 0)
@@ -1992,8 +1918,7 @@ export default {
 						const errors: string[] = []
 						for (const jsonRpcTransport of jsonRpcTransports) {
 							try {
-								const codeHex = await getCodeForEndpoint({
-									...jsonRpcTransport,
+								const codeHex = await jsonRpcTransport.getCode({
 									address,
 									blockTag: 'latest',
 								})

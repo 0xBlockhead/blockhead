@@ -20,14 +20,11 @@ import { sourceBindings } from '$/sources/$sourceProviders.ts'
 import { nostrEventId } from '$/sources/NostrRelay/Nip01/event.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
-import { voltaireJsonRpcTransports } from '$/sources/Voltaire/JsonRpc/queries.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	ClientProbe as BlockheadClientProbe,
 	PersistenceTraceEvent,
 } from './e2e/$e2eProbe.ts'
-
-const { transportByChainId: voltaireJsonRpcTransportByChainId } = voltaireJsonRpcTransports
 
 export { e2eBrowserNewContextOptions } from '../playwright.env.ts'
 
@@ -4986,16 +4983,20 @@ export const blockStreamBlocksConsoleEvent = (page: Page, timeoutMs = 90_000) =>
 )
 
 /**
-	* HTTP JSON-RPC URL aligned with app `voltaireJsonRpcTransportByChainId`.
-	* Playwright preflight uses `fetch` only, so WebSocket-only chains cannot use this probe.
-	*/
+ * Browser-CORS-safe HTTP JSON-RPC URL from the canonical Voltaire bindings.
+ * Playwright preflight uses `fetch` only, so WebSocket-only chains cannot use this probe.
+ */
 export const publicJsonRpcHttpUrlForChainE2e = async (chainId: number) => {
-	if (!Object.hasOwn(voltaireJsonRpcTransportByChainId, chainId)) return null
-
-	const transport = voltaireJsonRpcTransportByChainId[chainId]
-	if (transport.endpoint.endpointKind !== SourceEndpointKind.HttpUrl) return null
-
-	return transport.endpoint.locator
+	return sourceBindings
+		.filter((binding) => (
+			binding.source === Source.Voltaire_JsonRpc
+				&& binding.target.key === String(chainId)
+		))
+		.flatMap((binding) => binding.endpoints)
+		.find((endpoint) => (
+			endpoint.endpointKind === SourceEndpointKind.HttpUrl
+				&& endpoint.corsEnabled === true
+		))?.locator ?? null
 }
 
 /** In-browser public RPC check — matches client `fetch` + `corsEnabled: true` (not `/api-proxy`). Two `eth_blockNumber` samples; fail-fast when the chain is stuck or rate-limited (429). */

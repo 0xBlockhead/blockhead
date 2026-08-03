@@ -56,8 +56,8 @@ export default {
 							getTransactionReceipt,
 						} = await import('$/sources/Envio/HyperRpc/queries.ts')
 						const [transaction, receipt] = await Promise.all([
-							getTransactionByHash(txHash),
-							getTransactionReceipt(txHash),
+							getTransactionByHash({ txHash }),
+							getTransactionReceipt({ txHash }),
 						])
 						if (transaction == null)
 							throw new Error(`EnvioHyperRpc_JsonRpc: transaction ${txHash} not found`)

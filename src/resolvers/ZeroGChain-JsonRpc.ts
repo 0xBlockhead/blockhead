@@ -200,7 +200,7 @@ export default {
 							throw new Error('ZeroGChain_JsonRpc: EvmNetworkAccount wallet address not normalized')
 
 						return {
-							isContract: await getCode(address) !== '0x',
+							isContract: await getCode({ address }) !== '0x',
 						}
 					},
 				},
@@ -220,9 +220,9 @@ export default {
 							getTransactionByHash,
 							getTransactionReceipt,
 						} = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
-						const transaction = await getTransactionByHash(txHash)
+						const transaction = await getTransactionByHash({ txHash })
 						if (transaction == null) throw new Error(`ZeroGChain_JsonRpc: transaction not found ${txHash}`)
-						const receipt = await getTransactionReceipt(txHash)
+						const receipt = await getTransactionReceipt({ txHash })
 						const value = quantityToBigInt(transaction.value) ?? 0n
 						const fromAddress = hexLowerOfByteSize(transaction.from, 20)
 						const toAddress = hexLowerOfByteSize(transaction.to ?? '', 20)

@@ -22,16 +22,13 @@ import {
 	narrowRpcTransaction,
 } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
 
-import {
-	getGasPriceForEndpoint,
-	voltaireJsonRpcTransports,
-} from '$/sources/Voltaire/JsonRpc/queries.ts'
+import { voltaireJsonRpcTransports } from '$/sources/Voltaire/JsonRpc/queries.ts'
+import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import {
 	beaconRestByChainId,
 } from '$/sources/Beacon/Rest/queries.ts'
 import {
 	SourceArtifactKind,
-	SourceDelivery,
 	SourceEndpointKind,
 	SourceTargetKind,
 	sourceBindingId,
@@ -332,48 +329,14 @@ describe('source provider registry', () => {
 		expect(beaconRestByChainId.has(10)).toBe(false)
 	})
 
-	it('keeps Voltaire transport endpoints aligned with canonical bindings', () => {
-		expect(new Set(Object.values(voltaireJsonRpcTransportsByChainId).flatMap((entries) => (
-			entries.map((entry) => entry.endpoint.locator)
-		)))).toEqual(
-			new Set(
-				sourceBindings
-					.filter((binding) => binding.source === Source.Voltaire_JsonRpc)
-					.flatMap((binding) => binding.endpoints)
-					.filter((endpoint) => (
-						endpoint.endpointKind === SourceEndpointKind.HttpUrl
-						|| endpoint.endpointKind === SourceEndpointKind.WebSocketUrl
-					))
-					.map((endpoint) => endpoint.locator)
-			)
-		)
-	})
-
-	it('keeps every Voltaire executable transport joined to its canonical binding', () => {
-		const voltaireBindings = sourceBindings.filter((binding) => binding.source === Source.Voltaire_JsonRpc)
-
-		for (const [chainId, transports] of Object.entries(voltaireJsonRpcTransportsByChainId)) {
-			for (const transport of transports) {
-				expect(voltaireBindings).toContain(transport.binding)
-				expect(transport.binding.endpoints).toContain(transport.endpoint)
-				expect(transport.binding.target.key).toBe(chainId)
-				if (transport.endpoint.endpointKind === SourceEndpointKind.WebSocketUrl)
-					expect(transport.binding.delivery).toBe(SourceDelivery.RemoteLive)
-				else if (transport.endpoint.corsEnabled !== true) {
-					expect(transport.binding.delivery).toBe(SourceDelivery.HttpProxy)
-					expect(sourceBindingId(transport.binding)).toBeTruthy()
-				}
-			}
-		}
-	})
-
 	it('preserves every Voltaire binding and endpoint pair in the execution transport index', () => {
 		const voltaireBindings = sourceBindings.filter((binding) => binding.source === Source.Voltaire_JsonRpc)
 
-		for (const [chainId, transports] of Object.entries(voltaireJsonRpcTransportsByChainId)) {
-			expect(new Set(transports.map(({ binding, endpoint }) => (
-				`${sourceBindingId(binding)} ${endpoint.endpointKind} ${endpoint.locator}`
-			)))).toEqual(new Set(
+		for (const chainId of new Set(voltaireBindings.map((binding) => binding.target.key))) {
+			expect(new Set(
+				(voltaireJsonRpcTransportsByChainId[Number(chainId)] ?? [])
+					.map((transport) => transport.diagnosticLabel)
+			)).toEqual(new Set(
 				voltaireBindings
 					.filter((binding) => binding.target.key === chainId)
 					.flatMap((binding) => (
@@ -386,17 +349,21 @@ describe('source provider registry', () => {
 	})
 
 	it('passes the owning Voltaire binding through the JSON-RPC call path', async () => {
-		const transports = Object.values(voltaireJsonRpcTransportsByChainId)
-			.flat()
-			.filter((transport) => (
-				transport.endpoint.endpointKind === SourceEndpointKind.HttpUrl
-			))
-		const transport = transports[0]
-		const otherBinding = transports.find((candidate) => (
-			candidate.binding !== transport.binding
-		))?.binding
-		if (otherBinding == null)
+		const [binding, otherBinding] = sourceBindings.filter(
+			(candidate) => candidate.source === Source.Voltaire_JsonRpc
+		)
+		const endpoint = binding.endpoints.find(
+			(candidate) => candidate.endpointKind === SourceEndpointKind.HttpUrl
+		)
+		if (endpoint == null)
 			throw new Error('Voltaire call-path test requires HTTP transports from two bindings')
+		const transport = voltaireJsonRpcTransportsByChainId[Number(binding.target.key)]?.find(
+			(candidate) => candidate.diagnosticLabel === (
+				`${sourceBindingId(binding)} ${endpoint.endpointKind} ${endpoint.locator}`
+			)
+		)
+		if (transport == null)
+			throw new Error('Voltaire call-path test requires the canonical executable transport')
 
 		const fetch = vi.fn(async () => (
 			new Response(JSON.stringify({
@@ -408,17 +375,19 @@ describe('source provider registry', () => {
 		vi.stubGlobal('fetch', fetch)
 
 		try {
-			await expect(getGasPriceForEndpoint(transport)).resolves.toBe('0x2a')
+			await expect(transport.getGasPrice()).resolves.toBe('0x2a')
 			expect(fetch).toHaveBeenCalledWith(
-				transport.endpoint.locator,
+				endpoint.locator,
 				expect.objectContaining({
 					method: 'POST',
 				})
 			)
-			await expect(getGasPriceForEndpoint({
-				binding: otherBinding,
-				endpoint: transport.endpoint,
-			})).rejects.toThrow('JSON-RPC endpoint is not declared by the binding')
+			await expect(jsonRpc2(
+				otherBinding,
+				'eth_gasPrice',
+				undefined,
+				endpoint
+			)).rejects.toThrow('JSON-RPC endpoint is not declared by the binding')
 			expect(fetch).toHaveBeenCalledTimes(1)
 		} finally {
 			vi.unstubAllGlobals()
@@ -428,22 +397,6 @@ describe('source provider registry', () => {
 	it('uses generated Voltaire bindings as the executable transport authority', () => {
 		expect(readFileSync(join(process.cwd(), 'src', 'sources', 'Voltaire', 'JsonRpc', 'queries.ts'), 'utf8'))
 			.not.toMatch(/executionEndpoints\.ts|voltaireJsonRpcTransportCandidates|bindingByEndpoint|bindingForEndpoint|supportsTxpool/)
-
-		expect(Object.values(voltaireJsonRpcTransportsByChainId).flat().map((transport) => ({
-			chainId: Number(transport.binding.target.key),
-			endpointKind: transport.endpoint.endpointKind,
-			rpcUrl: transport.endpoint.locator,
-		}))).toEqual(
-			sourceBindings
-				.filter((binding) => binding.source === Source.Voltaire_JsonRpc)
-				.flatMap((binding) => (
-					binding.endpoints.map((endpoint) => ({
-						chainId: Number(binding.target.key),
-						endpointKind: endpoint.endpointKind,
-						rpcUrl: endpoint.locator,
-					}))
-				))
-		)
 	})
 
 	it('keeps Quilibrium docs endpoints in generated APP binding metadata', () => {

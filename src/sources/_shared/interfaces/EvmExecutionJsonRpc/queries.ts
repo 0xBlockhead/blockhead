@@ -2,17 +2,36 @@ import type {
 	SourceBinding,
 	SourceEndpoint,
 } from '$/sources/SourceBinding.ts'
-import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import {
 	narrowRpcBlock,
 	narrowRpcReceipt,
 	narrowRpcTransaction,
 	type RpcBlockWire,
 	type RpcFeeHistory,
-	type RpcTxpoolStatus,
 	type RpcTransactionWire,
+	type RpcTxpoolStatus,
 } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
+import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
+import {
+	isJsonArray,
+	isJsonNumber,
+	isJsonObject,
+	isJsonString,
+	type JsonValue,
+} from '$/typescript/JsonValue.ts'
+
+type EvmExecutionJsonRpcRequest = (
+	method: string,
+	params?: JsonValue[]
+) => Promise<JsonValue>
+
+type RpcBlockWithTransactionObjects = Omit<RpcBlockWire, 'transactions'> & {
+	transactions: RpcTransactionWire[]
+}
+
+type RpcBlockWithTransactionHashes = Omit<RpcBlockWire, 'transactions'> & {
+	transactions: string[]
+}
 
 const blockParam = (blockNumber: bigint | 'latest') => (
 	blockNumber === 'latest' ?
@@ -24,11 +43,6 @@ const blockParam = (blockNumber: bigint | 'latest') => (
 const quantityHex = (value: bigint) => (
 	`0x${value.toString(16)}`
 )
-
-type EvmExecutionJsonRpcRequest = {
-	binding: SourceBinding
-	endpoint?: SourceEndpoint
-}
 
 const narrowNullableResult = <_Result>(
 	result: JsonValue,
@@ -45,275 +59,266 @@ const narrowNullableResult = <_Result>(
 	return narrowed
 }
 
-export const getBlockNumber = async (
-	binding: SourceBinding,
-	endpoint?: SourceEndpoint
-) => Number.parseInt(
-	await jsonRpc2<`0x${string}`>(
+const stringResult = (result: JsonValue, method: string) => {
+	if (!isJsonString(result))
+		throw new Error(`EVM execution JSON-RPC ${method}: malformed result`)
+
+	return result
+}
+
+const stringArray = (value: JsonValue | undefined) => (
+	isJsonArray(value) && value.every(isJsonString) ?
+		value
+	:
+		null
+)
+
+const numberArray = (value: JsonValue | undefined) => (
+	isJsonArray(value) && value.every(isJsonNumber) ?
+		value
+	:
+		null
+)
+
+const stringArrays = (value: JsonValue | undefined) => {
+	if (!isJsonArray(value))
+		return null
+
+	const rows = value.flatMap((row) => {
+		const strings = stringArray(row)
+		return strings == null ? [] : [[...strings]]
+	})
+	return rows.length === value.length ? rows : null
+}
+
+const feeHistoryResult = (result: JsonValue): RpcFeeHistory => {
+	if (!isJsonObject(result))
+		throw new Error('EVM execution JSON-RPC eth_feeHistory: malformed result')
+
+	const baseFeePerGas = stringArray(result['baseFeePerGas'])
+	const gasUsedRatio = numberArray(result['gasUsedRatio'])
+	const baseFeePerBlobGas = result['baseFeePerBlobGas'] == null ? undefined : stringArray(result['baseFeePerBlobGas'])
+	const blobGasUsedRatio = result['blobGasUsedRatio'] == null ? undefined : numberArray(result['blobGasUsedRatio'])
+	const reward = result['reward'] == null ? undefined : stringArrays(result['reward'])
+	if (
+		!isJsonString(result['oldestBlock'])
+		|| baseFeePerGas == null
+		|| gasUsedRatio == null
+		|| baseFeePerBlobGas === null
+		|| blobGasUsedRatio === null
+		|| reward === null
+	)
+		throw new Error('EVM execution JSON-RPC eth_feeHistory: malformed result')
+
+	return {
+		oldestBlock: result['oldestBlock'],
+		baseFeePerGas: [...baseFeePerGas],
+		gasUsedRatio: [...gasUsedRatio],
+		...(baseFeePerBlobGas != null && { baseFeePerBlobGas: [...baseFeePerBlobGas] }),
+		...(blobGasUsedRatio != null && { blobGasUsedRatio: [...blobGasUsedRatio] }),
+		...(reward != null && { reward }),
+	}
+}
+
+const txpoolStatusResult = (result: JsonValue): RpcTxpoolStatus => {
+	if (
+		!isJsonObject(result)
+		|| !isJsonString(result['pending'])
+		|| !isJsonString(result['queued'])
+	)
+		throw new Error('EVM execution JSON-RPC txpool_status: malformed result')
+
+	return {
+		pending: result['pending'],
+		queued: result['queued'],
+	}
+}
+
+export const evmExecutionJsonRpc = ({
+	binding,
+	endpoint,
+	request = (method, params) => jsonRpc2<JsonValue>(
 		binding,
-		'eth_blockNumber',
-		undefined,
+		method,
+		params,
 		endpoint
 	),
-	16
-)
-
-export const getGasPrice = (
-	binding: SourceBinding,
+}: {
+	binding: SourceBinding
 	endpoint?: SourceEndpoint
-) => (
-	jsonRpc2<`0x${string}`>(
-		binding,
-		'eth_gasPrice',
-		undefined,
-		endpoint
-	)
-)
-
-export const getMaxPriorityFeePerGas = (
-	binding: SourceBinding,
-	endpoint?: SourceEndpoint
-) => (
-	jsonRpc2<`0x${string}`>(
-		binding,
-		'eth_maxPriorityFeePerGas',
-		undefined,
-		endpoint
-	)
-)
-
-type EvmExecutionBlockByNumberRequest<_TxObjects extends boolean> = {
-	blockNumber: bigint | 'latest'
-	txObjects: _TxObjects
-} & EvmExecutionJsonRpcRequest
-
-type RpcBlockWithTransactionObjects = Omit<RpcBlockWire, 'transactions'> & {
-	transactions: RpcTransactionWire[]
-}
-
-type RpcBlockWithTransactionHashes = Omit<RpcBlockWire, 'transactions'> & {
-	transactions: string[]
-}
-
-type EvmExecutionBlockByHashRequest<_TxObjects extends boolean> = {
-	blockHash: string
-	txObjects: _TxObjects
-} & EvmExecutionJsonRpcRequest
-
-export function getBlockByNumber(
-	request: EvmExecutionBlockByNumberRequest<true>
-): Promise<RpcBlockWithTransactionObjects | null>
-export function getBlockByNumber(
-	request: EvmExecutionBlockByNumberRequest<false>
-): Promise<RpcBlockWithTransactionHashes | null>
-export function getBlockByNumber(
-	request: EvmExecutionBlockByNumberRequest<boolean>
-): Promise<RpcBlockWire | null>
-export function getBlockByNumber({
-	binding,
-	endpoint,
-	blockNumber,
-	txObjects,
-}: EvmExecutionBlockByNumberRequest<boolean>) {
-	return jsonRpc2<JsonValue>(
-		binding,
-		'eth_getBlockByNumber',
-		[blockParam(blockNumber), txObjects],
-		endpoint
-	).then((result) => {
-		const block = narrowNullableResult(
-			result,
+	request?: EvmExecutionJsonRpcRequest
+}) => {
+	function getBlockByNumber(requestParameters: {
+		blockNumber: bigint | 'latest'
+		txObjects: true
+	}): Promise<RpcBlockWithTransactionObjects | null>
+	function getBlockByNumber(requestParameters: {
+		blockNumber: bigint | 'latest'
+		txObjects: false
+	}): Promise<RpcBlockWithTransactionHashes | null>
+	function getBlockByNumber(requestParameters: {
+		blockNumber: bigint | 'latest'
+		txObjects: boolean
+	}): Promise<RpcBlockWire | null>
+	function getBlockByNumber({
+		blockNumber,
+		txObjects,
+	}: {
+		blockNumber: bigint | 'latest'
+		txObjects: boolean
+	}) {
+		return request(
 			'eth_getBlockByNumber',
-			narrowRpcBlock
-		)
-		if (block?.transactions.some((transaction) => (
-			txObjects ? typeof transaction === 'string' : typeof transaction !== 'string'
-		)) === true)
-			throw new Error('EVM execution JSON-RPC eth_getBlockByNumber: malformed transaction representation')
+			[blockParam(blockNumber), txObjects]
+		).then((result) => {
+			const block = narrowNullableResult(
+				result,
+				'eth_getBlockByNumber',
+				narrowRpcBlock
+			)
+			if (block?.transactions.some((transaction) => (
+				txObjects ? isJsonString(transaction) : !isJsonString(transaction)
+			)) === true)
+				throw new Error('EVM execution JSON-RPC eth_getBlockByNumber: malformed transaction representation')
 
-		return block
-	})
-}
+			return block
+		})
+	}
 
-export function getBlockByHash(
-	request: EvmExecutionBlockByHashRequest<true>
-): Promise<RpcBlockWithTransactionObjects | null>
-export function getBlockByHash(
-	request: EvmExecutionBlockByHashRequest<false>
-): Promise<RpcBlockWithTransactionHashes | null>
-export function getBlockByHash(
-	request: EvmExecutionBlockByHashRequest<boolean>
-): Promise<RpcBlockWire | null>
-export function getBlockByHash({
-	binding,
-	endpoint,
-	blockHash,
-	txObjects,
-}: EvmExecutionBlockByHashRequest<boolean>) {
-	return jsonRpc2<JsonValue>(
-		binding,
-		'eth_getBlockByHash',
-		[blockHash, txObjects],
-		endpoint
-	).then((result) => {
-		const block = narrowNullableResult(
-			result,
+	function getBlockByHash(requestParameters: {
+		blockHash: string
+		txObjects: true
+	}): Promise<RpcBlockWithTransactionObjects | null>
+	function getBlockByHash(requestParameters: {
+		blockHash: string
+		txObjects: false
+	}): Promise<RpcBlockWithTransactionHashes | null>
+	function getBlockByHash(requestParameters: {
+		blockHash: string
+		txObjects: boolean
+	}): Promise<RpcBlockWire | null>
+	function getBlockByHash({
+		blockHash,
+		txObjects,
+	}: {
+		blockHash: string
+		txObjects: boolean
+	}) {
+		return request(
 			'eth_getBlockByHash',
-			narrowRpcBlock
-		)
-		if (block?.transactions.some((transaction) => (
-			txObjects ? typeof transaction === 'string' : typeof transaction !== 'string'
-		)) === true)
-			throw new Error('EVM execution JSON-RPC eth_getBlockByHash: malformed transaction representation')
+			[blockHash, txObjects]
+		).then((result) => {
+			const block = narrowNullableResult(
+				result,
+				'eth_getBlockByHash',
+				narrowRpcBlock
+			)
+			if (block?.transactions.some((transaction) => (
+				txObjects ? isJsonString(transaction) : !isJsonString(transaction)
+			)) === true)
+				throw new Error('EVM execution JSON-RPC eth_getBlockByHash: malformed transaction representation')
 
-		return block
-	})
-}
+			return block
+		})
+	}
 
-export const getTransactionByHash = ({
-	binding,
-	endpoint,
-	txHash,
-}: {
-	txHash: string
-} & EvmExecutionJsonRpcRequest) => (
-	jsonRpc2<JsonValue>(
-		binding,
-		'eth_getTransactionByHash',
-		[txHash],
-		endpoint
-	).then((result) => narrowNullableResult(
-		result,
-		'eth_getTransactionByHash',
-		narrowRpcTransaction
-	))
-)
-
-export const getTransactionReceipt = ({
-	binding,
-	endpoint,
-	txHash,
-}: {
-	txHash: string
-} & EvmExecutionJsonRpcRequest) => (
-	jsonRpc2<JsonValue>(
-		binding,
-		'eth_getTransactionReceipt',
-		[txHash],
-		endpoint
-	).then((result) => narrowNullableResult(
-		result,
-		'eth_getTransactionReceipt',
-		narrowRpcReceipt
-	))
-)
-
-/**
- * Historical base fee and priority fee rewards — EIP-1559 fee market.
- * @see https://github.com/ethereum/execution-apis/blob/main/src/eth/fee_market.yaml
- */
-export const getFeeHistory = ({
-	binding,
-	endpoint,
-	blockCount,
-	newestBlock,
-	rewardPercentiles,
-}: {
-	blockCount: number
-	newestBlock: bigint | 'latest'
-	rewardPercentiles?: readonly number[]
-} & EvmExecutionJsonRpcRequest) => (
-	jsonRpc2<RpcFeeHistory>(
-		binding,
-		'eth_feeHistory',
-		[
-			quantityHex(BigInt(blockCount)),
-			newestBlock === 'latest' ? 'latest' : quantityHex(newestBlock),
-			[...(rewardPercentiles ?? [])],
-		],
-		endpoint
-	)
-)
-
-/** `eth_getStorageAt` — execution storage slot at `address` for `quantityHex` slot index. */
-export const getStorageAt = ({
-	binding,
-	endpoint,
-	address,
-	slotQuantityHex,
-	blockTag = 'latest',
-}: {
-	address: `0x${string}`
-	slotQuantityHex: `0x${string}`
-	blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
-} & EvmExecutionJsonRpcRequest) => (
-	jsonRpc2<`0x${string}`>(
-		binding,
-		'eth_getStorageAt',
-		[
+	return {
+		getBlockNumber: () => request('eth_blockNumber')
+			.then((result) => BigInt(stringResult(result, 'eth_blockNumber'))),
+		getGasPrice: () => request('eth_gasPrice')
+			.then((result) => stringResult(result, 'eth_gasPrice')),
+		getMaxPriorityFeePerGas: () => request('eth_maxPriorityFeePerGas')
+			.then((result) => stringResult(result, 'eth_maxPriorityFeePerGas')),
+		getBlockByNumber,
+		getBlockByHash,
+		getTransactionByHash: ({
+			txHash,
+		}: {
+			txHash: string
+		}) => request(
+			'eth_getTransactionByHash',
+			[txHash]
+		).then((result) => narrowNullableResult(
+			result,
+			'eth_getTransactionByHash',
+			narrowRpcTransaction
+		)),
+		getTransactionReceipt: ({
+			txHash,
+		}: {
+			txHash: string
+		}) => request(
+			'eth_getTransactionReceipt',
+			[txHash]
+		).then((result) => narrowNullableResult(
+			result,
+			'eth_getTransactionReceipt',
+			narrowRpcReceipt
+		)),
+		getFeeHistory: ({
+			blockCount,
+			newestBlock,
+			rewardPercentiles,
+		}: {
+			blockCount: number
+			newestBlock: bigint | 'latest'
+			rewardPercentiles?: readonly number[]
+		}) => request(
+			'eth_feeHistory',
+			[
+				quantityHex(BigInt(blockCount)),
+				blockParam(newestBlock),
+				[...(rewardPercentiles ?? [])],
+			]
+		).then(feeHistoryResult),
+		getStorageAt: ({
 			address,
 			slotQuantityHex,
-			blockTag,
-		],
-		endpoint
-	)
-)
-
-/** `eth_getCode` — runtime bytecode at `address` for `blockTag`. */
-export const getCode = ({
-	binding,
-	endpoint,
-	address,
-	blockTag = 'latest',
-}: {
-	address: `0x${string}`
-	blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
-} & EvmExecutionJsonRpcRequest) => (
-	jsonRpc2<`0x${string}`>(
-		binding,
-		'eth_getCode',
-		[
+			blockTag = 'latest',
+		}: {
+			address: `0x${string}`
+			slotQuantityHex: `0x${string}`
+			blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
+		}) => request(
+			'eth_getStorageAt',
+			[
+				address,
+				slotQuantityHex,
+				blockTag,
+			]
+		).then((result) => stringResult(result, 'eth_getStorageAt')),
+		getCode: ({
 			address,
-			blockTag,
-		],
-		endpoint
-	)
-)
-
-export const getCall = ({
-	binding,
-	endpoint,
-	to,
-	data,
-	blockTag = 'latest',
-}: {
-	to: `0x${string}`
-	data: `0x${string}`
-	blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
-} & EvmExecutionJsonRpcRequest) => (
-	jsonRpc2<`0x${string}`>(
-		binding,
-		'eth_call',
-		[
-			{
-				to,
-				data,
-			},
-			blockTag,
-		],
-		endpoint
-	)
-)
-
-/** Geth-compatible txpool inspection — often disabled on public RPCs. */
-export const getTxpoolStatus = ({
-	binding,
-	endpoint,
-}: EvmExecutionJsonRpcRequest) => (
-	jsonRpc2<RpcTxpoolStatus>(
-		binding,
-		'txpool_status',
-		[],
-		endpoint
-	)
-)
+			blockTag = 'latest',
+		}: {
+			address: `0x${string}`
+			blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
+		}) => request(
+			'eth_getCode',
+			[
+				address,
+				blockTag,
+			]
+		).then((result) => stringResult(result, 'eth_getCode')),
+		getCall: ({
+			to,
+			data,
+			blockTag = 'latest',
+		}: {
+			to: `0x${string}`
+			data: `0x${string}`
+			blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
+		}) => request(
+			'eth_call',
+			[
+				{
+					to,
+					data,
+				},
+				blockTag,
+			]
+		).then((result) => stringResult(result, 'eth_call')),
+		getTxpoolStatus: () => request('txpool_status', [])
+			.then(txpoolStatusResult),
+	}
+}
