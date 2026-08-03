@@ -5,6 +5,7 @@ import {
 	ApiFamily,
 	genericReadOperationGroups,
 	indexSourceBindings,
+	mapSourceBindings,
 	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
@@ -52,10 +53,12 @@ const beaconchaInRestTargets = [
 	},
 ] as const
 
-export default indexSourceBindings(beaconchaInRestTargets.map(({
-	key,
-	locator,
-}) => ({
+export default indexSourceBindings(mapSourceBindings(
+	beaconchaInRestTargets,
+	({
+		key,
+		locator,
+	}) => ({
 		...beaconchaInRestBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
@@ -68,4 +71,5 @@ export default indexSourceBindings(beaconchaInRestTargets.map(({
 				corsEnabled: false,
 			},
 		],
-} satisfies SourceBinding)))
+	} satisfies SourceBinding)
+))

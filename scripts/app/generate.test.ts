@@ -3186,11 +3186,13 @@ test('emits every source-axis enum and only valid enum references in provider ro
 			&& ts.isIdentifier(statement.expression.expression)
 			&& statement.expression.expression.text === 'indexSourceBindings'
 		)).length, 1)
-		if (source.includes('.flatMap(({'))
-			assert.match(source, /\] satisfies readonly SourceBinding\[\]\)\)/)
-		else if (source.includes('.map(({'))
-			assert.match(source, /\} satisfies SourceBinding\)\)/)
-		else {
+		if (source.includes('flatMapSourceBindings(') || source.includes('mapSourceBindings(')) {
+			if (source.includes('flatMapSourceBindings('))
+				assert.match(source, /\] as const satisfies readonly \[SourceBinding, \.\.\.SourceBinding\[\]\]\)\n/)
+			if (source.includes('mapSourceBindings('))
+				assert.match(source, /\} satisfies SourceBinding\)\n/)
+			assert.doesNotMatch(source, /Targets\.(?:flatMap|map)\(/)
+		} else {
 			assert.doesNotMatch(source, /type SourceBinding|satisfies (?:readonly )?SourceBinding/)
 			assert.match(source, /export default indexSourceBindings\(\[[\s\S]*?\n\]\)/)
 		}
@@ -3203,8 +3205,8 @@ test('emits every source-axis enum and only valid enum references in provider ro
 		assert.doesNotMatch(source, /operationGroups: \[\n\s*SourceOperationGroup\.WalletAccountRead,\n\s*SourceOperationGroup\.WalletSign,\n\s*\]/)
 		for (const declaration of source.matchAll(/^const ([A-Za-z_$][\w$]*) =/gm))
 			assert.ok(
-				(source.match(new RegExp(`\\b${declaration[1]}\\b`, 'g')) ?? []).length >= (
-					source.includes('.flatMap(({') || source.includes('.map(({') ? 2 : 3
+					(source.match(new RegExp(`\\b${declaration[1]}\\b`, 'g')) ?? []).length >= (
+						source.includes('mapSourceBindings(') || source.includes('flatMapSourceBindings(') ? 2 : 3
 				),
 				`${generatedBindings.path}: ${declaration[1]} must replace at least two repeated values`
 			)
@@ -3215,7 +3217,7 @@ test('emits every source-axis enum and only valid enum references in provider ro
 	assert.ok(blockscoutBindings && blockscoutSource?.bindings)
 	const renderedBlockscoutBindings = renderGeneratedFile(blockscoutBindings)
 	assert.match(renderedBlockscoutBindings, /const blockscoutRestTargets = \[/)
-	assert.match(renderedBlockscoutBindings, /export default indexSourceBindings\(blockscoutRestTargets\.flatMap/)
+	assert.match(renderedBlockscoutBindings, /export default indexSourceBindings\(flatMapSourceBindings\(\n\s*blockscoutRestTargets,/)
 	assert.match(renderedBlockscoutBindings, /locator: `\$\{locator\}\/api\/eth-rpc`/)
 	assert.equal(
 		(renderedBlockscoutBindings.match(/^\s*key: '[0-9]+',$/gm) ?? []).length,
@@ -3225,14 +3227,12 @@ test('emits every source-axis enum and only valid enum references in provider ro
 	assert.match(renderedBlockscoutBindings, /const blockscoutRestV2BindingAxes =/)
 	assert.match(renderedBlockscoutBindings, /const blockscoutRestEvmExecutionJsonRpcBindingAxes =/)
 	assert.doesNotMatch(renderedBlockscoutBindings, /blockscoutRest(?:V2|EvmExecutionJsonRpc)HttpProxyBindingAxes/)
-	assert.match(renderedBlockscoutBindings, /\.flatMap\(/)
 
 	const easScanBindings = generatedFiles.find(({ path }) => path === 'src/sources/EasScan/bindings.ts')
 	assert.ok(easScanBindings)
 	const renderedEasScanBindings = renderGeneratedFile(easScanBindings)
 	assert.match(renderedEasScanBindings, /const easScanGraphqlBindingAxes =/)
-	assert.match(renderedEasScanBindings, /export default indexSourceBindings\(easScanGraphqlTargets\.map\(/)
-	assert.doesNotMatch(renderedEasScanBindings, /\.flatMap\(/)
+	assert.match(renderedEasScanBindings, /export default indexSourceBindings\(mapSourceBindings\(\n\s*easScanGraphqlTargets,/)
 
 	const mastodonBindings = generatedFiles.find(({ path }) => path === 'src/sources/Mastodon/bindings.ts')
 	const esploraBindings = generatedFiles.find(({ path }) => path === 'src/sources/Esplora/bindings.ts')
@@ -3247,9 +3247,13 @@ test('emits every source-axis enum and only valid enum references in provider ro
 	const nostrRelayBindings = generatedFiles.find(({ path }) => path === 'src/sources/NostrRelay/bindings.ts')
 	assert.ok(nostrRelayBindings)
 	const renderedNostrRelayBindings = renderGeneratedFile(nostrRelayBindings)
-	assert.equal((renderedNostrRelayBindings.match(/Targets\.map\(/g) ?? []).length, 2)
-	assert.match(renderedNostrRelayBindings, /export default indexSourceBindings\(\[\n\t\.\.\.nostrRelayNip11HttpTargets\.map/)
-	assert.match(renderedNostrRelayBindings, /\n\t\.\.\.nostrRelayWebSocketTargets\.map/)
+	assert.equal((renderedNostrRelayBindings.match(/mapSourceBindings\(/g) ?? []).length, 2)
+	assert.doesNotMatch(renderedNostrRelayBindings, /flatMapSourceBindings\(/)
+	assert.match(renderedNostrRelayBindings, /mapSourceBindings\(\n\s*nostrRelayNip11HttpTargets,/)
+	assert.match(renderedNostrRelayBindings, /mapSourceBindings\(\n\s*nostrRelayWebSocketTargets,/)
+	assert.match(renderedNostrRelayBindings, /\.\.\.nostrRelayWebSocketBindingAxes\.operationGroups,\n\s*SourceOperationGroup\.NostrSearch,/)
+	assert.equal((renderedNostrRelayBindings.match(/SourceOperationGroup\.NostrSearch/g) ?? []).length, 1)
+	assert.doesNotMatch(renderedNostrRelayBindings, /const nostrRelayWebSocketArtifacts =/)
 	assert.doesNotMatch(
 		readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8'),
 		/bindingRows\.length\s*[<>]=?\s*[0-9]+|join\([^)]*\)\.length\s*<|direct\.expression\.length/
@@ -3267,11 +3271,11 @@ test('emits every source-axis enum and only valid enum references in provider ro
 	assert.doesNotMatch(renderedVoltaireBindings, /voltaireJsonRpcEvmExecutionJsonRpc(?:RemoteLive|HttpProxy|BrowserDirect)BindingAxes/)
 	assert.match(renderedVoltaireBindings, /credentials: \[\]/)
 	assert.equal((renderedVoltaireBindings.match(/artifacts: voltaireJsonRpcArtifacts/g) ?? []).length, voltaireBindingCount)
-	assert.equal((renderedVoltaireBindings.match(/^\t\.\.\.\(\[$/gm) ?? []).length, 4)
+	assert.equal((renderedVoltaireBindings.match(/flatMapSourceBindings\(/g) ?? []).length, 4)
 	assert.doesNotMatch(renderedVoltaireBindings, /const voltaireJsonRpc[^\n]*Targets|Through/)
-	assert.equal((renderedVoltaireBindings.match(/^\t\t\tkey: '[0-9]+',$/gm) ?? []).length, 42)
-	assert.equal((renderedVoltaireBindings.match(/^\t\t\tkey: '1',$/gm) ?? []).length, 2)
-	assert.equal((renderedVoltaireBindings.match(/^\t\t\tkey: '8453',$/gm) ?? []).length, 2)
+	assert.equal((renderedVoltaireBindings.match(/^\s+key: '[0-9]+',$/gm) ?? []).length, 42)
+	assert.equal((renderedVoltaireBindings.match(/^\s+key: '1',$/gm) ?? []).length, 2)
+	assert.equal((renderedVoltaireBindings.match(/^\s+key: '8453',$/gm) ?? []).length, 2)
 	assert.match(renderedVoltaireBindings, /httpProxyLocator: 'https:\/\/mainnet\.optimism\.io',[\s\S]*?remoteLiveLocator: 'wss:\/\/mainnet\.optimism\.io'/)
 	assert.doesNotMatch(renderedVoltaireBindings, /locator: `\$\{/)
 	assert.ok(renderedVoltaireBindings.split('\n').length < 600)
@@ -3347,7 +3351,6 @@ test('keeps ordered generated provider bindings semantically equal to APP', () =
 			/\tbindings,\n} satisfies SourceProviderDefinition<typeof bindings>\n$/
 		)
 	const flattenedProviderBindings = sourceProviders.flatMap(({ bindings }) => Object.values(bindings).flat())
-	assert.equal(sourceBindings.length, 424)
 	assert.deepEqual(sourceBindings, flattenedProviderBindings)
 	for (const [bindingIndex, binding] of sourceBindings.entries())
 		assert.equal(binding, flattenedProviderBindings[bindingIndex])
@@ -6242,6 +6245,7 @@ import arweaveBindings from '${root}/src/sources/Arweave/bindings.ts'
 import blockscoutBindings from '${root}/src/sources/Blockscout/bindings.ts'
 import getBlockBindings from '${root}/src/sources/GetBlock/bindings.ts'
 import lightningLndBindings from '${root}/src/sources/LightningLnd/bindings.ts'
+import nostrRelayBindings from '${root}/src/sources/NostrRelay/bindings.ts'
 import voyagerBindings from '${root}/src/sources/Voyager/bindings.ts'
 import xrplClioBindings from '${root}/src/sources/XrplClio/bindings.ts'
 import {
@@ -6451,7 +6455,9 @@ const repeatedRuntimeSecret = { ...getBlockRpcBinding, credentials: [getBlockRpc
 // @ts-expect-error Managed runtime-secret projections cannot be widened with credential keys.
 const runtimeSecretWithKeys = { ...getBlockRpcBinding, credentials: [{ ...getBlockRpcBinding.credentials[0], keys: ['INVALID'] }] } as const satisfies SourceBinding
 const blockscoutBindingsForSource = blockscoutBindings[Source.Blockscout_Rest]
-const blockscoutTargetKey: '1' | '10' | '100' | '137' | '8453' | '42161' | '11155111' | undefined = blockscoutBindingsForSource?.[0].target.key
+const blockscoutTargetKey: '1' | '10' | '100' | '137' | '8453' | '42161' | '11155111' = blockscoutBindingsForSource[0].target.key
+const nostrNip11Binding: SourceBinding<Source.NostrRelay_Nip11_Http> = nostrRelayBindings[Source.NostrRelay_Nip11_Http][0]
+const nostrWebSocketBinding: SourceBinding<Source.NostrRelay_WebSocket> = nostrRelayBindings[Source.NostrRelay_WebSocket][0]
 // @ts-expect-error Compact generated binding targets retain their authored key union.
 const invalidBlockscoutTargetKey: '999' = blockscoutBindingsForSource[0].target.key
 // @ts-expect-error Inferred binding indexes expose only source keys present in their row tuple.
@@ -6468,6 +6474,8 @@ void typedSourceServerCredentials
 void mixedProxyCredentials
 void exactAcrossBindings
 void computedAcrossBindingsForSource
+void nostrNip11Binding
+void nostrWebSocketBinding
 void requiredComputedAcrossBindings
 void widenedAcrossBindings
 void unionAcrossBindings

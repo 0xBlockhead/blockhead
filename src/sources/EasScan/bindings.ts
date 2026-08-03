@@ -5,6 +5,7 @@ import {
 	ApiFamily,
 	genericReadOperationGroups,
 	indexSourceBindings,
+	mapSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
@@ -88,10 +89,12 @@ const easScanGraphqlTargets = [
 	},
 ] as const
 
-export default indexSourceBindings(easScanGraphqlTargets.map(({
-	key,
-	locator,
-}) => ({
+export default indexSourceBindings(mapSourceBindings(
+	easScanGraphqlTargets,
+	({
+		key,
+		locator,
+	}) => ({
 		...easScanGraphqlBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
@@ -104,4 +107,5 @@ export default indexSourceBindings(easScanGraphqlTargets.map(({
 				corsEnabled: false,
 			},
 		],
-} satisfies SourceBinding)))
+	} satisfies SourceBinding)
+))

@@ -5,6 +5,7 @@ import {
 	ApiFamily,
 	genericReadOperationGroups,
 	indexSourceBindings,
+	mapSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
@@ -43,10 +44,12 @@ const mevRelayRestTargets = [
 	},
 ] as const
 
-export default indexSourceBindings(mevRelayRestTargets.map(({
-	key,
-	locator,
-}) => ({
+export default indexSourceBindings(mapSourceBindings(
+	mevRelayRestTargets,
+	({
+		key,
+		locator,
+	}) => ({
 		...mevRelayRestBindingAxes,
 		target: {
 			kind: SourceTargetKind.Feed,
@@ -59,4 +62,5 @@ export default indexSourceBindings(mevRelayRestTargets.map(({
 				corsEnabled: false,
 			},
 		],
-} satisfies SourceBinding)))
+	} satisfies SourceBinding)
+))

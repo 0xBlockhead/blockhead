@@ -4,6 +4,7 @@ import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
 	indexSourceBindings,
+	mapSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
@@ -12,13 +13,6 @@ import {
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-
-const nostrRelayWebSocketArtifacts = [
-	{
-		kind: SourceArtifactKind.HandwrittenTypes,
-		path: 'src/sources/NostrRelay/WebSocket/types.ts',
-	},
-] as const
 
 const nostrRelayNip11HttpBindingAxes = {
 	source: Source.NostrRelay_Nip11_Http,
@@ -47,7 +41,12 @@ const nostrRelayWebSocketBindingAxes = {
 	],
 	delivery: SourceDelivery.RemoteLive,
 	credentials: [],
-	artifacts: nostrRelayWebSocketArtifacts,
+	artifacts: [
+		{
+			kind: SourceArtifactKind.HandwrittenTypes,
+			path: 'src/sources/NostrRelay/WebSocket/types.ts',
+		},
+	],
 } as const
 
 const nostrRelayNip11HttpTargets = [
@@ -69,11 +68,36 @@ const nostrRelayNip11HttpTargets = [
 	},
 ] as const
 
+const nostrRelayWebSocketTargets = [
+	{
+		key: 'wss://nos.lol',
+		locator: 'wss://nos.lol',
+	},
+	{
+		key: 'wss://relay.damus.io',
+		locator: 'wss://relay.damus.io',
+	},
+	{
+		key: 'wss://relay.nostr.band',
+		locator: 'wss://relay.nostr.band',
+		operationGroups: [
+			...nostrRelayWebSocketBindingAxes.operationGroups,
+			SourceOperationGroup.NostrSearch,
+		],
+	},
+	{
+		key: 'wss://relay.primal.net',
+		locator: 'wss://relay.primal.net',
+	},
+] as const
+
 export default indexSourceBindings([
-	...nostrRelayNip11HttpTargets.map(({
-		key,
-		locator,
-	}) => ({
+	...mapSourceBindings(
+		nostrRelayNip11HttpTargets,
+		({
+			key,
+			locator,
+		}) => ({
 			...nostrRelayNip11HttpBindingAxes,
 			target: {
 				kind: SourceTargetKind.Feed,
@@ -86,67 +110,27 @@ export default indexSourceBindings([
 					corsEnabled: false,
 				},
 			],
-	} satisfies SourceBinding)),
-	{
-		...nostrRelayWebSocketBindingAxes,
-		target: {
-			kind: SourceTargetKind.Feed,
-			key: 'wss://nos.lol',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.WebSocketUrl,
-				locator: 'wss://nos.lol',
+		} satisfies SourceBinding)
+	),
+	...mapSourceBindings(
+		nostrRelayWebSocketTargets,
+		({
+			key,
+			locator,
+			...bindingOverrides
+		}) => ({
+			...nostrRelayWebSocketBindingAxes,
+			...bindingOverrides,
+			target: {
+				kind: SourceTargetKind.Feed,
+				key,
 			},
-		],
-	},
-	{
-		...nostrRelayWebSocketBindingAxes,
-		target: {
-			kind: SourceTargetKind.Feed,
-			key: 'wss://relay.damus.io',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.WebSocketUrl,
-				locator: 'wss://relay.damus.io',
-			},
-		],
-	},
-	{
-		source: Source.NostrRelay_WebSocket,
-		target: {
-			kind: SourceTargetKind.Feed,
-			key: 'wss://relay.nostr.band',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.WebSocketUrl,
-				locator: 'wss://relay.nostr.band',
-			},
-		],
-		wireProtocol: WireProtocol.WebSocketMessages,
-		apiFamily: ApiFamily.NostrRelay,
-		operationGroups: [
-			SourceOperationGroup.GenericSubscribe,
-			SourceOperationGroup.NostrRelayRead,
-			SourceOperationGroup.NostrSearch,
-		],
-		delivery: SourceDelivery.RemoteLive,
-		credentials: [],
-		artifacts: nostrRelayWebSocketArtifacts,
-	},
-	{
-		...nostrRelayWebSocketBindingAxes,
-		target: {
-			kind: SourceTargetKind.Feed,
-			key: 'wss://relay.primal.net',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.WebSocketUrl,
-				locator: 'wss://relay.primal.net',
-			},
-		],
-	},
-] satisfies readonly SourceBinding[])
+			endpoints: [
+				{
+					endpointKind: SourceEndpointKind.WebSocketUrl,
+					locator,
+				},
+			],
+		} satisfies SourceBinding)
+	),
+] as const satisfies readonly SourceBinding[])

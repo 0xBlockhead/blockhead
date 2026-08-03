@@ -3,6 +3,7 @@
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	flatMapSourceBindings,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
@@ -91,36 +92,39 @@ const blockscoutRestTargets = [
 	},
 ] as const
 
-export default indexSourceBindings(blockscoutRestTargets.flatMap(({
-	key,
-	locator,
-}) => ([
-	{
-		...blockscoutRestV2BindingAxes,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key,
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator,
-				corsEnabled: false,
+export default indexSourceBindings(flatMapSourceBindings(
+	blockscoutRestTargets,
+	({
+		key,
+		locator,
+	}) => ([
+		{
+			...blockscoutRestV2BindingAxes,
+			target: {
+				kind: SourceTargetKind.Eip155Chain,
+				key,
 			},
-		],
-	},
-	{
-		...blockscoutRestEvmExecutionJsonRpcBindingAxes,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
-			key,
+			endpoints: [
+				{
+					endpointKind: SourceEndpointKind.HttpUrl,
+					locator,
+					corsEnabled: false,
+				},
+			],
 		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: `${locator}/api/eth-rpc`,
-				corsEnabled: false,
+		{
+			...blockscoutRestEvmExecutionJsonRpcBindingAxes,
+			target: {
+				kind: SourceTargetKind.Eip155Chain,
+				key,
 			},
-		],
-	},
-] satisfies readonly SourceBinding[])))
+			endpoints: [
+				{
+					endpointKind: SourceEndpointKind.HttpUrl,
+					locator: `${locator}/api/eth-rpc`,
+					corsEnabled: false,
+				},
+			],
+		},
+	] as const satisfies readonly [SourceBinding, ...SourceBinding[]])
+))

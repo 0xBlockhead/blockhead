@@ -504,12 +504,7 @@ type SourceBindingsFor<
 
 type SourceBindingIndexFrom<
 	_Bindings extends readonly SourceBinding[],
-> = number extends _Bindings['length'] ?
-	Partial<{
-		readonly [_Source in _Bindings[number]['source']]:
-			SourceBindingsFor<_Bindings, _Source>
-	}>
-:
+> = _Bindings extends readonly [SourceBinding, ...SourceBinding[]] ?
 	SourceBindingTupleHasWidenedSource<_Bindings> extends true ?
 		Partial<{
 			readonly [_Source in _Bindings[number]['source']]: readonly [
@@ -522,6 +517,43 @@ type SourceBindingIndexFrom<
 		readonly [_Source in _Bindings[number]['source']]:
 			SourceBindingsFor<_Bindings, _Source>
 	}
+:
+	Partial<{
+		readonly [_Source in _Bindings[number]['source']]:
+			SourceBindingsFor<_Bindings, _Source>
+	}>
+
+// Native map/flatMap erase the nonempty target catalogs authored by APP.ts.
+// These overloads retain that cardinality so indexed source keys stay required.
+export function mapSourceBindings<
+	const _Rows extends readonly [unknown, ...unknown[]],
+	const _Binding extends SourceBinding,
+>(
+	rows: _Rows,
+	bindingFromRow: (row: _Rows[number]) => _Binding
+): readonly [_Binding, ..._Binding[]]
+export function mapSourceBindings<_Row>(
+	rows: readonly _Row[],
+	bindingFromRow: (row: _Row) => SourceBinding
+): readonly SourceBinding[] {
+	return rows.map(bindingFromRow)
+}
+export function flatMapSourceBindings<
+	const _Rows extends readonly [unknown, ...unknown[]],
+	const _Bindings extends readonly [SourceBinding, ...SourceBinding[]],
+>(
+	rows: _Rows,
+	bindingsFromRow: (row: _Rows[number]) => _Bindings
+): readonly [
+	_Bindings[number],
+	..._Bindings[number][],
+]
+export function flatMapSourceBindings<_Row>(
+	rows: readonly _Row[],
+	bindingsFromRow: (row: _Row) => readonly SourceBinding[]
+): readonly SourceBinding[] {
+	return rows.flatMap(bindingsFromRow)
+}
 
 export function indexSourceBindings<
 	const _Bindings extends readonly SourceBinding[],

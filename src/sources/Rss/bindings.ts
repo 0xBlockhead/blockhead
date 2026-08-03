@@ -5,6 +5,7 @@ import {
 	ApiFamily,
 	genericReadOperationGroups,
 	indexSourceBindings,
+	mapSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
@@ -39,10 +40,12 @@ const rssRestTargets = [
 	},
 ] as const
 
-export default indexSourceBindings(rssRestTargets.map(({
-	key,
-	locator,
-}) => ({
+export default indexSourceBindings(mapSourceBindings(
+	rssRestTargets,
+	({
+		key,
+		locator,
+	}) => ({
 		...rssRestBindingAxes,
 		target: {
 			kind: SourceTargetKind.Feed,
@@ -55,4 +58,5 @@ export default indexSourceBindings(rssRestTargets.map(({
 				corsEnabled: false,
 			},
 		],
-} satisfies SourceBinding)))
+	} satisfies SourceBinding)
+))

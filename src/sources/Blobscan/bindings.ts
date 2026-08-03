@@ -5,6 +5,7 @@ import {
 	ApiFamily,
 	genericReadOperationGroups,
 	indexSourceBindings,
+	mapSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
@@ -47,10 +48,12 @@ const blobscanRestTargets = [
 	},
 ] as const
 
-export default indexSourceBindings(blobscanRestTargets.map(({
-	key,
-	locator,
-}) => ({
+export default indexSourceBindings(mapSourceBindings(
+	blobscanRestTargets,
+	({
+		key,
+		locator,
+	}) => ({
 		...blobscanRestBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
@@ -63,4 +66,5 @@ export default indexSourceBindings(blobscanRestTargets.map(({
 				corsEnabled: false,
 			},
 		],
-} satisfies SourceBinding)))
+	} satisfies SourceBinding)
+))

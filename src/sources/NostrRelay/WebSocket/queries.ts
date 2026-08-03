@@ -546,7 +546,7 @@ type NostrRelaySnapshotOperationGroup =
 export const nostrRelaySnapshotBindings = (
 	operationGroup: NostrRelaySnapshotOperationGroup = SourceOperationGroup.NostrRelayRead
 ) => {
-	const selectedBindings = (bindings[Source.NostrRelay_WebSocket] ?? []).filter((binding) => (
+	const selectedBindings = bindings[Source.NostrRelay_WebSocket].filter((binding) => (
 		binding.operationGroups.some((candidate) => candidate === operationGroup)
 	))
 	if (selectedBindings.length === 0)

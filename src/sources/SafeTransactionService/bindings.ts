@@ -5,6 +5,7 @@ import {
 	ApiFamily,
 	genericReadOperationGroups,
 	indexSourceBindings,
+	mapSourceBindings,
 	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
@@ -48,10 +49,12 @@ const safeTransactionServiceRestTargets = [
 	},
 ] as const
 
-export default indexSourceBindings(safeTransactionServiceRestTargets.map(({
-	key,
-	locator,
-}) => ({
+export default indexSourceBindings(mapSourceBindings(
+	safeTransactionServiceRestTargets,
+	({
+		key,
+		locator,
+	}) => ({
 		...safeTransactionServiceRestBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
@@ -64,4 +67,5 @@ export default indexSourceBindings(safeTransactionServiceRestTargets.map(({
 				corsEnabled: false,
 			},
 		],
-} satisfies SourceBinding)))
+	} satisfies SourceBinding)
+))

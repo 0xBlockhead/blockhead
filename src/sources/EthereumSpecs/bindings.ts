@@ -4,6 +4,7 @@ import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
 	indexSourceBindings,
+	mapSourceBindings,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
@@ -38,10 +39,12 @@ const ethereumSpecsGithubTargets = [
 	},
 ] as const
 
-export default indexSourceBindings(ethereumSpecsGithubTargets.map(({
-	key,
-	locator,
-}) => ({
+export default indexSourceBindings(mapSourceBindings(
+	ethereumSpecsGithubTargets,
+	({
+		key,
+		locator,
+	}) => ({
 		...ethereumSpecsGithubBindingAxes,
 		target: {
 			kind: SourceTargetKind.GitRepository,
@@ -54,4 +57,5 @@ export default indexSourceBindings(ethereumSpecsGithubTargets.map(({
 				corsEnabled: true,
 			},
 		],
-} satisfies SourceBinding)))
+	} satisfies SourceBinding)
+))

@@ -7348,12 +7348,7 @@ type SourceBindingsFor<
 
 type SourceBindingIndexFrom<
 	_Bindings extends readonly SourceBinding[],
-> = number extends _Bindings['length'] ?
-	Partial<{
-		readonly [_Source in _Bindings[number]['source']]:
-			SourceBindingsFor<_Bindings, _Source>
-	}>
-:
+> = _Bindings extends readonly [SourceBinding, ...SourceBinding[]] ?
 	SourceBindingTupleHasWidenedSource<_Bindings> extends true ?
 		Partial<{
 			readonly [_Source in _Bindings[number]['source']]: readonly [
@@ -7366,6 +7361,43 @@ type SourceBindingIndexFrom<
 		readonly [_Source in _Bindings[number]['source']]:
 			SourceBindingsFor<_Bindings, _Source>
 	}
+:
+	Partial<{
+		readonly [_Source in _Bindings[number]['source']]:
+			SourceBindingsFor<_Bindings, _Source>
+	}>
+
+// Native map/flatMap erase the nonempty target catalogs authored by APP.ts.
+// These overloads retain that cardinality so indexed source keys stay required.
+export function mapSourceBindings<
+	const _Rows extends readonly [unknown, ...unknown[]],
+	const _Binding extends SourceBinding,
+>(
+	rows: _Rows,
+	bindingFromRow: (row: _Rows[number]) => _Binding
+): readonly [_Binding, ..._Binding[]]
+export function mapSourceBindings<_Row>(
+	rows: readonly _Row[],
+	bindingFromRow: (row: _Row) => SourceBinding
+): readonly SourceBinding[] {
+	return rows.map(bindingFromRow)
+}
+export function flatMapSourceBindings<
+	const _Rows extends readonly [unknown, ...unknown[]],
+	const _Bindings extends readonly [SourceBinding, ...SourceBinding[]],
+>(
+	rows: _Rows,
+	bindingsFromRow: (row: _Rows[number]) => _Bindings
+): readonly [
+	_Bindings[number],
+	..._Bindings[number][],
+]
+export function flatMapSourceBindings<_Row>(
+	rows: readonly _Row[],
+	bindingsFromRow: (row: _Row) => readonly SourceBinding[]
+): readonly SourceBinding[] {
+	return rows.flatMap(bindingsFromRow)
+}
 
 export function indexSourceBindings<
 	const _Bindings extends readonly SourceBinding[],
@@ -7415,12 +7447,15 @@ const emitSourceBinding = (
 		credentials: string
 		artifacts?: string
 	},
-	base?: string
+	base?: {
+		identifier: string
+		binding: NonNullable<App['sources']['sources'][number]['binding']>
+	}
 ) => emitObject([
 	...(base == null ? [
 		['source', enumAccess('Source', source)],
 	] as const : [{
-		spread: base,
+		spread: base.identifier,
 	}]),
 	['target', emitObject([
 		['kind', enumAccess('SourceTargetKind', binding.target.kind)],
@@ -7434,7 +7469,14 @@ const emitSourceBinding = (
 		['delivery', enumAccess('SourceDelivery', binding.delivery)],
 		['credentials', expressions.credentials],
 		['artifacts', expressions.artifacts],
-	] as const : []),
+	] as const : [
+		['operationGroups', (
+			JSON.stringify(binding.operationGroups) === JSON.stringify(base.binding.operationGroups) ?
+				undefined
+			:
+				expressions.operationGroups
+		)],
+	] as const),
 ])
 
 // Repeated binding values are declared once beside the rows that consume them.
@@ -7618,18 +7660,46 @@ const generateSourceProviderBindingsFile = (
 						''
 				}BindingAxes`
 		})
-		const bindingBaseNameByBinding = new Map(bindingGroups.flatMap((group, groupIndex) => {
+		const repeatedBindingBaseByBinding = new Map(bindingGroups.flatMap((group, groupIndex) => {
 			const bindingBaseName = bindingBaseNames[groupIndex]
-			return bindingBaseName == null ?
-				[]
+			const binding = group[0]?.binding
+			if (bindingBaseName == null || binding == null)
+				return []
+
+			const base = {
+				identifier: bindingBaseName,
+				binding,
+			}
+			return group.map(({ binding: groupedBinding }) => [groupedBinding, base] as const)
+		}))
+		const bindingBaseByBinding = new Map(sourceBindingRows.flatMap(({ binding }) => {
+			const repeatedBindingBase = repeatedBindingBaseByBinding.get(binding)
+			if (repeatedBindingBase != null)
+				return [[binding, repeatedBindingBase] as const]
+
+			// A unique capability extension is data on its target row; the shared
+			// transport/artifact axes still come from the repeated binding base.
+			const [compatibleBase, secondCompatibleBase] = unique([...repeatedBindingBaseByBinding.values()]).filter(({ binding: baseBinding }) => (
+				binding.wireProtocol === baseBinding.wireProtocol
+				&& binding.apiFamily === baseBinding.apiFamily
+				&& binding.delivery === baseBinding.delivery
+				&& JSON.stringify(binding.credentials) === JSON.stringify(baseBinding.credentials)
+				&& JSON.stringify(binding.artifacts ?? null) === JSON.stringify(baseBinding.artifacts ?? null)
+				&& baseBinding.operationGroups.length < binding.operationGroups.length
+				&& baseBinding.operationGroups.every((operationGroup, operationGroupIndex) => (
+					binding.operationGroups[operationGroupIndex] === operationGroup
+				))
+			))
+			return compatibleBase != null && secondCompatibleBase == null ?
+				[[binding, compatibleBase] as const]
 			:
-				group.map(({ binding }) => [binding, bindingBaseName] as const)
+				[]
 		}))
 		return {
 			source,
 			sourceBindingRows,
 			bindingGroups,
-			bindingBaseNameByBinding,
+			bindingBaseByBinding,
 			bindingBaseNames,
 		}
 	})
@@ -7639,11 +7709,17 @@ const generateSourceProviderBindingsFile = (
 		bindingRows[0]?.source ?? provider.provider
 	// A shared binding-axis object is one emitted consumer. Planning repeated
 	// values from those final consumers prevents aliases used only by that object.
-	const bindingAxisRows = sourcePlans.flatMap(({ bindingGroups, bindingBaseNames }) => (
-		bindingGroups.flatMap((group, groupIndex) => (
-			bindingBaseNames[groupIndex] == null ? group : group.slice(0, 1)
-		))
-	))
+	const bindingAxisRows = sourcePlans.flatMap(({
+		sourceBindingRows,
+		bindingGroups,
+		bindingBaseByBinding,
+		bindingBaseNames,
+	}) => [
+		...bindingGroups.flatMap((group, groupIndex) => (
+			bindingBaseNames[groupIndex] == null ? [] : group.slice(0, 1)
+		)),
+		...sourceBindingRows.filter(({ binding }) => !bindingBaseByBinding.has(binding)),
+	])
 	const properties = {
 		endpoints: planRepeatedBindingValues(sharedValueScope, 'Endpoints', bindingRows.map(({ endpoints }) => endpoints)),
 		operationGroups: planRepeatedBindingValues(sharedValueScope, 'OperationGroups', bindingAxisRows.map(({ operationGroups }) => operationGroups)),
@@ -7654,7 +7730,7 @@ const generateSourceProviderBindingsFile = (
 		source,
 		sourceBindingRows,
 		bindingGroups,
-		bindingBaseNameByBinding,
+		bindingBaseByBinding,
 		bindingBaseNames,
 	}) => ({
 		source,
@@ -7684,7 +7760,7 @@ const generateSourceProviderBindingsFile = (
 				operationGroups: bindingValueReference(properties.operationGroups, operationGroups) ?? '[]',
 				credentials: bindingValueReference(properties.credentials, credentials) ?? '[]',
 				artifacts: bindingValueReference(properties.artifacts, artifacts),
-			}, bindingBaseNameByBinding.get(binding))),
+			}, bindingBaseByBinding.get(binding))),
 	}))
 	// Ordered target blocks discover both whole-source and partial matrices.
 	// Whole matrices retain their compact shared locator and constant suffixes;
@@ -7697,16 +7773,27 @@ const generateSourceProviderBindingsFile = (
 			binding.target.key,
 		])).map((rows, blockIndex) => {
 			const variants = rows.flatMap(({ binding }) => {
-				const baseIdentifier = sourcePlan.bindingBaseNameByBinding.get(binding)
+				const base = sourcePlan.bindingBaseByBinding.get(binding)
 				const endpoint = binding.endpoints[0]
-				return baseIdentifier == null || endpoint == null || binding.endpoints.length !== 1 ?
+				return base == null || endpoint == null || binding.endpoints.length !== 1 ?
 					[]
 				:
 					[{
-						baseIdentifier,
+						baseIdentifier: base.identifier,
 						binding,
 						endpoint,
-						locatorName: `${camel(baseIdentifier.slice(
+						operationGroups: (
+							JSON.stringify(binding.operationGroups) === JSON.stringify(base.binding.operationGroups) ?
+								undefined
+							:
+								emitArray([
+									`...${base.identifier}.operationGroups`,
+									...binding.operationGroups
+										.slice(base.binding.operationGroups.length)
+										.map((operationGroup) => enumAccess('SourceOperationGroup', operationGroup)),
+								])
+						),
+						locatorName: `${camel(base.identifier.slice(
 							camel(sourcePlan.source).length,
 							-'BindingAxes'.length
 						))}Locator`,
@@ -7775,9 +7862,24 @@ const generateSourceProviderBindingsFile = (
 			const whole = locatorSuffixes.length === variants.length && locatorSuffixes.every((suffix) => suffix != null)
 			if (!whole && new Set(variants.map(({ locatorName }) => locatorName)).size !== variants.length)
 				return []
+			const hasBindingOverrides = blocks.some(({ variants: blockVariants }) => (
+				blockVariants.some(({ operationGroups }) => operationGroups != null)
+			))
+			// One row-level override can be spread declaratively into one variant.
+			// Multiple variants need distinct override names and stay direct.
+			if (hasBindingOverrides && variants.length !== 1)
+				return []
 
 			const rows = blocks.map(({ rows: blockRows, variants: blockVariants }) => ({
 				key: blockRows[0]?.binding.target.key ?? '',
+				operationGroups: blockVariants[0]?.operationGroups == null ?
+					undefined
+				:
+					blockRows[0]?.binding.operationGroups,
+				overrides: blockVariants[0]?.operationGroups == null ? [] : [[
+					'operationGroups',
+					blockVariants[0].operationGroups,
+				] as const],
 				values: whole ? [[
 					'locator',
 					blockVariants[0]?.endpoint.locator ?? '',
@@ -7788,6 +7890,9 @@ const generateSourceProviderBindingsFile = (
 			}))
 			if (JSON.stringify(rows.flatMap((row) => variants.map((variant, variantIndex) => ({
 				...variant.binding,
+				...(row.operationGroups == null ? {} : {
+					operationGroups: row.operationGroups,
+				}),
 				target: {
 					kind: variant.binding.target.kind,
 					key: row.key,
@@ -7811,6 +7916,9 @@ const generateSourceProviderBindingsFile = (
 					{
 						spread: baseIdentifier,
 					},
+					...(hasBindingOverrides ? [{
+						spread: 'bindingOverrides',
+					}] : []),
 					['target', `{
 	kind: ${enumAccess('SourceTargetKind', binding.target.kind)},
 	key,
@@ -7827,6 +7935,7 @@ const generateSourceProviderBindingsFile = (
 	corsEnabled: ${String(endpoint.corsEnabled)},`}
 }`])],
 				])),
+				hasBindingOverrides,
 				whole,
 			}]
 		})
@@ -7837,34 +7946,52 @@ const generateSourceProviderBindingsFile = (
 			name: string
 			rows: readonly {
 				key: string
+				overrides: readonly (readonly [string, string])[]
 				values: readonly (readonly [string, string])[]
 			}[]
 			variants: readonly string[]
+			hasBindingOverrides: boolean
 		},
 		inline = false
 	) => {
-		const variant = lines(matrix.variants[0] ?? '')
 		const valueNames = matrix.rows[0]?.values.map(([name]) => name) ?? []
-		const targetRows = emitArray(matrix.rows.map(({ key, values }) => emitObject([
+		const targetRows = emitArray(matrix.rows.map(({ key, overrides, values }) => emitObject([
 			['key', emitTypeScript(key)],
 			...values.map(([name, value]) => [name, emitTypeScript(value)] as const),
+			...overrides,
 		])))
 		return {
 			declarations: inline ? [] : [`const ${matrix.name} = ${targetRows} as const`],
-			expression: [
-				`${inline ? `(${targetRows} as const)` : matrix.name}.${matrix.variants.length === 1 ? 'map' : 'flatMap'}(({`,
-				'\tkey,',
-				...valueNames.map((name) => `\t${name},`),
-				...(matrix.variants.length === 1 ? [
-					'}) => ({',
-					...variant.slice(1, -1).map((line) => indent(line)),
-					'} satisfies SourceBinding))',
-				] : [
-					'}) => ([',
-					...matrix.variants.map((binding) => `${indent(binding)},`),
-					'] satisfies readonly SourceBinding[]))',
+			expression: (matrix.variants.length === 1 ? [
+				'mapSourceBindings(',
+				...lines(inline ? `(${targetRows} as const)` : matrix.name).map((line, lineIndex, rowLines) => (
+					`${indent(line)}${lineIndex === rowLines.length - 1 ? ',' : ''}`
+				)),
+				'\t({',
+				'\t\tkey,',
+				...valueNames.map((name) => `\t\t${name},`),
+				...(matrix.hasBindingOverrides ? ['\t\t...bindingOverrides'] : []),
+				'\t}) => ({',
+				...lines(matrix.variants[0] ?? '').slice(1, -1).map((line) => indent(line)),
+				'\t} satisfies SourceBinding)',
+				')',
+			] : [
+				'flatMapSourceBindings(',
+				...lines(inline ? `(${targetRows} as const)` : matrix.name).map((line, lineIndex, rowLines) => (
+					`${indent(line)}${lineIndex === rowLines.length - 1 ? ',' : ''}`
+				)),
+				'\t({',
+				'\t\tkey,',
+				...valueNames.map((name) => `\t\t${name},`),
+				'\t}) => ([',
+				...matrix.variants.flatMap((binding) => [
+					'\t\t{',
+					...lines(binding).slice(1, -1).map((line) => indent(line, 2)),
+					'\t\t},',
 				]),
-			].join('\n'),
+				'\t] as const satisfies readonly [SourceBinding, ...SourceBinding[]])',
+				')',
+			]).join('\n'),
 		}
 	}
 	const renderedBindingPlan = (() => {
@@ -7918,7 +8045,7 @@ const generateSourceProviderBindingsFile = (
 					...parts.flatMap(({ expression, spread }) => lines(expression).map((line, lineIndex, expressionLines) => (
 						`${lineIndex === 0 && spread ? '\t...' : '\t'}${line}${lineIndex === expressionLines.length - 1 ? ',' : ''}`
 					))),
-					'] satisfies readonly SourceBinding[]',
+					'] as const satisfies readonly SourceBinding[]',
 				].join('\n'),
 			}] as const]
 		}))
@@ -7948,7 +8075,7 @@ const generateSourceProviderBindingsFile = (
 							`${index === 0 ? '\t...' : '\t'}${line}${index === compactExpressionLines.length - 1 ? ',' : ''}`
 						))
 					}),
-					'] satisfies readonly SourceBinding[]',
+					'] as const satisfies readonly SourceBinding[]',
 				].join('\n'),
 			}
 		if (compact == null)
@@ -7986,8 +8113,10 @@ const generateSourceProviderBindingsFile = (
 						names: [
 							...enumNames,
 							...canonicalOperationGroupReferences,
+							...(renderedBindingPlan.expression.includes('flatMapSourceBindings') ? ['flatMapSourceBindings'] : []),
 							'indexSourceBindings',
-					],
+							...(renderedBindingPlan.expression.includes('mapSourceBindings') ? ['mapSourceBindings'] : []),
+						],
 					typeNames: renderedBindingPlan.expression.includes('SourceBinding') ? ['SourceBinding'] : [],
 				},
 				...(bindings.some(({ binding }) => binding.credentials.some((credential) => (
