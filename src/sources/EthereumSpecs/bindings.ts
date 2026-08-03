@@ -23,23 +23,21 @@ const ethereumSpecsGithubBindingAxes = {
 	credentials: [],
 } as const
 
-const ethereumSpecsGithubTargets = [
-	{
-		key: 'ethereum/consensus-specs@master:configs',
-		locator: 'https://raw.githubusercontent.com/ethereum/consensus-specs/master/configs/',
-	},
-	{
-		key: 'ethereum/go-ethereum@master:params/config.go',
-		locator: 'https://raw.githubusercontent.com/ethereum/go-ethereum/master/params/config.go',
-	},
-	{
-		key: 'ethereum/execution-specs@8dbde99b65d519ea4c96084d784f85957e9314d0:network-upgrades/mainnet-upgrades',
-		locator: 'https://raw.githubusercontent.com/ethereum/execution-specs/8dbde99b65d519ea4c96084d784f85957e9314d0/network-upgrades/mainnet-upgrades/',
-	},
-] as const
-
 export default indexSourceBindings(mapSourceBindings(
-	ethereumSpecsGithubTargets,
+	[
+		{
+			key: 'ethereum/consensus-specs@master:configs',
+			locator: 'https://raw.githubusercontent.com/ethereum/consensus-specs/master/configs/',
+		},
+		{
+			key: 'ethereum/go-ethereum@master:params/config.go',
+			locator: 'https://raw.githubusercontent.com/ethereum/go-ethereum/master/params/config.go',
+		},
+		{
+			key: 'ethereum/execution-specs@8dbde99b65d519ea4c96084d784f85957e9314d0:network-upgrades/mainnet-upgrades',
+			locator: 'https://raw.githubusercontent.com/ethereum/execution-specs/8dbde99b65d519ea4c96084d784f85957e9314d0/network-upgrades/mainnet-upgrades/',
+		},
+	] as const,
 	({
 		key,
 		locator,

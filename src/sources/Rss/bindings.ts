@@ -28,19 +28,17 @@ const rssRestBindingAxes = {
 	],
 } as const
 
-const rssRestTargets = [
-	{
-		key: 'https://hnrss.org',
-		locator: 'https://hnrss.org',
-	},
-	{
-		key: 'https://feeds.bbci.co.uk',
-		locator: 'https://feeds.bbci.co.uk',
-	},
-] as const
-
 export default indexSourceBindings(mapSourceBindings(
-	rssRestTargets,
+	[
+		{
+			key: 'https://hnrss.org',
+			locator: 'https://hnrss.org',
+		},
+		{
+			key: 'https://feeds.bbci.co.uk',
+			locator: 'https://feeds.bbci.co.uk',
+		},
+	] as const,
 	({
 		key,
 		locator,

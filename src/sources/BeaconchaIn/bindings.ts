@@ -37,23 +37,21 @@ const beaconchaInRestBindingAxes = {
 	],
 } as const
 
-const beaconchaInRestTargets = [
-	{
-		key: '1',
-		locator: 'https://beaconcha.in/api/v1',
-	},
-	{
-		key: '17000',
-		locator: 'https://holesky.beaconcha.in/api/v1',
-	},
-	{
-		key: '560048',
-		locator: 'https://hoodi.beaconcha.in/api/v1',
-	},
-] as const
-
 export default indexSourceBindings(mapSourceBindings(
-	beaconchaInRestTargets,
+	[
+		{
+			key: '1',
+			locator: 'https://beaconcha.in/api/v1',
+		},
+		{
+			key: '17000',
+			locator: 'https://holesky.beaconcha.in/api/v1',
+		},
+		{
+			key: '560048',
+			locator: 'https://hoodi.beaconcha.in/api/v1',
+		},
+	] as const,
 	({
 		key,
 		locator,

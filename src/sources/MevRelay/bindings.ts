@@ -28,23 +28,21 @@ const mevRelayRestBindingAxes = {
 	],
 } as const
 
-const mevRelayRestTargets = [
-	{
-		key: 'boost-relay.flashbots.net',
-		locator: 'https://boost-relay.flashbots.net',
-	},
-	{
-		key: 'relay.ultrasound.money',
-		locator: 'https://relay.ultrasound.money',
-	},
-	{
-		key: 'builder-relay-sepolia.flashbots.net',
-		locator: 'https://builder-relay-sepolia.flashbots.net',
-	},
-] as const
-
 export default indexSourceBindings(mapSourceBindings(
-	mevRelayRestTargets,
+	[
+		{
+			key: 'boost-relay.flashbots.net',
+			locator: 'https://boost-relay.flashbots.net',
+		},
+		{
+			key: 'relay.ultrasound.money',
+			locator: 'https://relay.ultrasound.money',
+		},
+		{
+			key: 'builder-relay-sepolia.flashbots.net',
+			locator: 'https://builder-relay-sepolia.flashbots.net',
+		},
+	] as const,
 	({
 		key,
 		locator,

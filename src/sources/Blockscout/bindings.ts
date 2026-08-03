@@ -60,39 +60,37 @@ const blockscoutRestEvmExecutionJsonRpcBindingAxes = {
 	],
 } as const
 
-const blockscoutRestTargets = [
-	{
-		key: '1',
-		locator: 'https://eth.blockscout.com',
-	},
-	{
-		key: '10',
-		locator: 'https://optimism.blockscout.com',
-	},
-	{
-		key: '100',
-		locator: 'https://gnosis.blockscout.com',
-	},
-	{
-		key: '137',
-		locator: 'https://polygon.blockscout.com',
-	},
-	{
-		key: '8453',
-		locator: 'https://base.blockscout.com',
-	},
-	{
-		key: '42161',
-		locator: 'https://arbitrum.blockscout.com',
-	},
-	{
-		key: '11155111',
-		locator: 'https://eth-sepolia.blockscout.com',
-	},
-] as const
-
 export default indexSourceBindings(flatMapSourceBindings(
-	blockscoutRestTargets,
+	[
+		{
+			key: '1',
+			locator: 'https://eth.blockscout.com',
+		},
+		{
+			key: '10',
+			locator: 'https://optimism.blockscout.com',
+		},
+		{
+			key: '100',
+			locator: 'https://gnosis.blockscout.com',
+		},
+		{
+			key: '137',
+			locator: 'https://polygon.blockscout.com',
+		},
+		{
+			key: '8453',
+			locator: 'https://base.blockscout.com',
+		},
+		{
+			key: '42161',
+			locator: 'https://arbitrum.blockscout.com',
+		},
+		{
+			key: '11155111',
+			locator: 'https://eth-sepolia.blockscout.com',
+		},
+	] as const,
 	({
 		key,
 		locator,

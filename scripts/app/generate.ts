@@ -7680,7 +7680,6 @@ const generateSourceProviderBindingsFile = (
 
 			return [{
 				firstRowIndex,
-				name: `${camel(sourcePlan.source)}Targets`,
 				rowCount: sourceRows.length,
 				rows,
 				variants: variants.map(({ baseIdentifier, binding, endpoint, locatorName }, variantIndex) => emitObject([
@@ -7714,7 +7713,6 @@ const generateSourceProviderBindingsFile = (
 	}))
 	const renderBindingMatrix = (
 		matrix: {
-			name: string
 			rows: readonly {
 				key: string
 				overrides: readonly (readonly [string, string])[]
@@ -7722,8 +7720,7 @@ const generateSourceProviderBindingsFile = (
 			}[]
 			variants: readonly string[]
 			hasBindingOverrides: boolean
-		},
-		inline = false
+		}
 	) => {
 		const valueNames = matrix.rows[0]?.values.map(([name]) => name) ?? []
 		const targetRows = emitArray(matrix.rows.map(({ key, overrides, values }) => emitObject([
@@ -7733,11 +7730,10 @@ const generateSourceProviderBindingsFile = (
 		])))
 		const bindingFunctionName = matrix.variants.length === 1 ? 'mapSourceBindings' : 'flatMapSourceBindings'
 		return {
-			declarations: inline ? [] : [`const ${matrix.name} = ${targetRows} as const`],
 			bindingFunctionNames: [bindingFunctionName],
 			expression: (matrix.variants.length === 1 ? [
 				`${bindingFunctionName}(`,
-				...lines(inline ? `${targetRows} as const` : matrix.name).map((line, lineIndex, rowLines) => (
+				...lines(`${targetRows} as const`).map((line, lineIndex, rowLines) => (
 					`${indent(line)}${lineIndex === rowLines.length - 1 ? ',' : ''}`
 				)),
 				'\t({',
@@ -7750,7 +7746,7 @@ const generateSourceProviderBindingsFile = (
 				')',
 			] : [
 				`${bindingFunctionName}(`,
-				...lines(inline ? `${targetRows} as const` : matrix.name).map((line, lineIndex, rowLines) => (
+				...lines(`${targetRows} as const`).map((line, lineIndex, rowLines) => (
 					`${indent(line)}${lineIndex === rowLines.length - 1 ? ',' : ''}`
 				)),
 				'\t({',
@@ -7769,7 +7765,6 @@ const generateSourceProviderBindingsFile = (
 	}
 	const renderedBindingPlan = (() => {
 		const direct = {
-			declarations: [],
 			bindingFunctionNames: [],
 			expression: [
 				'[',
@@ -7785,7 +7780,7 @@ const generateSourceProviderBindingsFile = (
 
 			const matrices = plannedMatrices.map((partialMatrix) => ({
 				...partialMatrix,
-				...renderBindingMatrix(partialMatrix, true),
+				...renderBindingMatrix(partialMatrix),
 			}))
 			if (matrices.length === 0)
 				return []
@@ -7813,7 +7808,6 @@ const generateSourceProviderBindingsFile = (
 				})
 
 			return [[sourcePlan.source, {
-				declarations: [],
 				bindingFunctionNames: unique(matrices.flatMap(({ bindingFunctionNames }) => bindingFunctionNames)),
 				expression: [
 					'[',
@@ -7831,13 +7825,6 @@ const generateSourceProviderBindingsFile = (
 			compactBySource.get(renderedSourcePlans[0]?.source ?? '')
 		:
 			{
-				declarations: renderedSourcePlans.flatMap(({ source }) => {
-					const sourceCompact = compactBySource.get(source)
-					return sourceCompact == null ? [] : [
-						...sourceCompact.declarations,
-						'',
-					]
-				}).slice(0, -1),
 				bindingFunctionNames: unique(renderedSourcePlans.flatMap(({ source }) => (
 					compactBySource.get(source)?.bindingFunctionNames ?? []
 				))),
@@ -7912,8 +7899,6 @@ const generateSourceProviderBindingsFile = (
 				...renderedSourcePlans.flatMap(({ declarations }) => (
 					declarations.length === 0 ? [] : [...declarations, '']
 				)),
-				...renderedBindingPlan.declarations,
-				...(renderedBindingPlan.declarations.length === 0 ? [] : ['']),
 				`export default indexSourceBindings(${renderedBindingPlan.expression})`,
 			],
 		}
@@ -14634,10 +14619,8 @@ const generatePageModuleFile = (
 	)
 }
 
-type CollectionMapping = CollectionRouteMapping
-
 const collectionSelectionPlan = (
-	collection: CollectionMapping,
+	collection: CollectionRouteMapping,
 	sourceSelection: string
 ) => {
 	const referencePath = collection.source.referencePath

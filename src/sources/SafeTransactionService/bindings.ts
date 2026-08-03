@@ -33,23 +33,21 @@ const safeTransactionServiceRestBindingAxes = {
 	],
 } as const
 
-const safeTransactionServiceRestTargets = [
-	{
-		key: '1',
-		locator: 'https://api.safe.global/tx-service/eth',
-	},
-	{
-		key: '100',
-		locator: 'https://api.safe.global/tx-service/gno',
-	},
-	{
-		key: '8453',
-		locator: 'https://api.safe.global/tx-service/base',
-	},
-] as const
-
 export default indexSourceBindings(mapSourceBindings(
-	safeTransactionServiceRestTargets,
+	[
+		{
+			key: '1',
+			locator: 'https://api.safe.global/tx-service/eth',
+		},
+		{
+			key: '100',
+			locator: 'https://api.safe.global/tx-service/gno',
+		},
+		{
+			key: '8453',
+			locator: 'https://api.safe.global/tx-service/base',
+		},
+	] as const,
 	({
 		key,
 		locator,

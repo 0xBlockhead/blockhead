@@ -48,51 +48,26 @@ const nostrRelayWebSocketBindingAxes = {
 	],
 } as const
 
-const nostrRelayNip11HttpTargets = [
-	{
-		key: 'wss://nos.lol',
-		locator: 'https://nos.lol',
-	},
-	{
-		key: 'wss://relay.damus.io',
-		locator: 'https://relay.damus.io',
-	},
-	{
-		key: 'wss://relay.nostr.band',
-		locator: 'https://relay.nostr.band',
-	},
-	{
-		key: 'wss://relay.primal.net',
-		locator: 'https://relay.primal.net',
-	},
-] as const
-
-const nostrRelayWebSocketTargets = [
-	{
-		key: 'wss://nos.lol',
-		locator: 'wss://nos.lol',
-	},
-	{
-		key: 'wss://relay.damus.io',
-		locator: 'wss://relay.damus.io',
-	},
-	{
-		key: 'wss://relay.nostr.band',
-		locator: 'wss://relay.nostr.band',
-		operationGroups: [
-			...nostrRelayWebSocketBindingAxes.operationGroups,
-			SourceOperationGroup.NostrSearch,
-		],
-	},
-	{
-		key: 'wss://relay.primal.net',
-		locator: 'wss://relay.primal.net',
-	},
-] as const
-
 export default indexSourceBindings([
 	...mapSourceBindings(
-		nostrRelayNip11HttpTargets,
+		[
+			{
+				key: 'wss://nos.lol',
+				locator: 'https://nos.lol',
+			},
+			{
+				key: 'wss://relay.damus.io',
+				locator: 'https://relay.damus.io',
+			},
+			{
+				key: 'wss://relay.nostr.band',
+				locator: 'https://relay.nostr.band',
+			},
+			{
+				key: 'wss://relay.primal.net',
+				locator: 'https://relay.primal.net',
+			},
+		] as const,
 		({
 			key,
 			locator,
@@ -112,7 +87,28 @@ export default indexSourceBindings([
 		})
 	),
 	...mapSourceBindings(
-		nostrRelayWebSocketTargets,
+		[
+			{
+				key: 'wss://nos.lol',
+				locator: 'wss://nos.lol',
+			},
+			{
+				key: 'wss://relay.damus.io',
+				locator: 'wss://relay.damus.io',
+			},
+			{
+				key: 'wss://relay.nostr.band',
+				locator: 'wss://relay.nostr.band',
+				operationGroups: [
+					...nostrRelayWebSocketBindingAxes.operationGroups,
+					SourceOperationGroup.NostrSearch,
+				],
+			},
+			{
+				key: 'wss://relay.primal.net',
+				locator: 'wss://relay.primal.net',
+			},
+		] as const,
 		({
 			key,
 			locator,

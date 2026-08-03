@@ -37,59 +37,57 @@ const easScanGraphqlBindingAxes = {
 	],
 } as const
 
-const easScanGraphqlTargets = [
-	{
-		key: '1',
-		locator: 'https://easscan.org/graphql',
-	},
-	{
-		key: '10',
-		locator: 'https://optimism.easscan.org/graphql',
-	},
-	{
-		key: '137',
-		locator: 'https://polygon.easscan.org/graphql',
-	},
-	{
-		key: '8453',
-		locator: 'https://base.easscan.org/graphql',
-	},
-	{
-		key: '42161',
-		locator: 'https://arbitrum.easscan.org/graphql',
-	},
-	{
-		key: '42170',
-		locator: 'https://arbitrum-nova.easscan.org/graphql',
-	},
-	{
-		key: '42220',
-		locator: 'https://celo.easscan.org/graphql',
-	},
-	{
-		key: '59144',
-		locator: 'https://linea.easscan.org/graphql',
-	},
-	{
-		key: '84532',
-		locator: 'https://base-sepolia.easscan.org/graphql',
-	},
-	{
-		key: '534352',
-		locator: 'https://scroll.easscan.org/graphql',
-	},
-	{
-		key: '11155111',
-		locator: 'https://sepolia.easscan.org/graphql',
-	},
-	{
-		key: '11155420',
-		locator: 'https://optimism-sepolia-bedrock.easscan.org/graphql',
-	},
-] as const
-
 export default indexSourceBindings(mapSourceBindings(
-	easScanGraphqlTargets,
+	[
+		{
+			key: '1',
+			locator: 'https://easscan.org/graphql',
+		},
+		{
+			key: '10',
+			locator: 'https://optimism.easscan.org/graphql',
+		},
+		{
+			key: '137',
+			locator: 'https://polygon.easscan.org/graphql',
+		},
+		{
+			key: '8453',
+			locator: 'https://base.easscan.org/graphql',
+		},
+		{
+			key: '42161',
+			locator: 'https://arbitrum.easscan.org/graphql',
+		},
+		{
+			key: '42170',
+			locator: 'https://arbitrum-nova.easscan.org/graphql',
+		},
+		{
+			key: '42220',
+			locator: 'https://celo.easscan.org/graphql',
+		},
+		{
+			key: '59144',
+			locator: 'https://linea.easscan.org/graphql',
+		},
+		{
+			key: '84532',
+			locator: 'https://base-sepolia.easscan.org/graphql',
+		},
+		{
+			key: '534352',
+			locator: 'https://scroll.easscan.org/graphql',
+		},
+		{
+			key: '11155111',
+			locator: 'https://sepolia.easscan.org/graphql',
+		},
+		{
+			key: '11155420',
+			locator: 'https://optimism-sepolia-bedrock.easscan.org/graphql',
+		},
+	] as const,
 	({
 		key,
 		locator,

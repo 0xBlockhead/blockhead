@@ -28,27 +28,25 @@ const blobscanRestBindingAxes = {
 	],
 } as const
 
-const blobscanRestTargets = [
-	{
-		key: '1',
-		locator: 'https://api.blobscan.com',
-	},
-	{
-		key: '11155111',
-		locator: 'https://api.sepolia.blobscan.com',
-	},
-	{
-		key: '100',
-		locator: 'https://api.gnosis.blobscan.com',
-	},
-	{
-		key: '560048',
-		locator: 'https://api.hoodi.blobscan.com',
-	},
-] as const
-
 export default indexSourceBindings(mapSourceBindings(
-	blobscanRestTargets,
+	[
+		{
+			key: '1',
+			locator: 'https://api.blobscan.com',
+		},
+		{
+			key: '11155111',
+			locator: 'https://api.sepolia.blobscan.com',
+		},
+		{
+			key: '100',
+			locator: 'https://api.gnosis.blobscan.com',
+		},
+		{
+			key: '560048',
+			locator: 'https://api.hoodi.blobscan.com',
+		},
+	] as const,
 	({
 		key,
 		locator,

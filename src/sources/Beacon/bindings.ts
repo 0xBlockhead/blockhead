@@ -37,23 +37,21 @@ const beaconRestBindingAxes = {
 	],
 } as const
 
-const beaconRestTargets = [
-	{
-		key: '1',
-		locator: 'https://ethereum-beacon-api.publicnode.com',
-	},
-	{
-		key: '11155111',
-		locator: 'https://ethereum-sepolia-beacon-api.publicnode.com',
-	},
-	{
-		key: '17000',
-		locator: 'https://ethereum-holesky-beacon-api.publicnode.com',
-	},
-] as const
-
 export default indexSourceBindings(mapSourceBindings(
-	beaconRestTargets,
+	[
+		{
+			key: '1',
+			locator: 'https://ethereum-beacon-api.publicnode.com',
+		},
+		{
+			key: '11155111',
+			locator: 'https://ethereum-sepolia-beacon-api.publicnode.com',
+		},
+		{
+			key: '17000',
+			locator: 'https://ethereum-holesky-beacon-api.publicnode.com',
+		},
+	] as const,
 	({
 		key,
 		locator,
