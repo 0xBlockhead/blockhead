@@ -92,7 +92,7 @@ const stateChannelDepositTimestampFields = (stateChannelDeposit: NormalizedState
 	lockedBalance: stateChannelDeposit.lockedBalance,
 })
 
-const normalizedBlockheadEnsNameSearchQuery = (query: string): string => {
+const normalizedBlockheadEnsNameSearchQuery = (query: string) => {
 	const trimmedQuery = query.trim()
 	if (trimmedQuery === '') throw new Error('Local_Internal: empty ENS name search query')
 	try {

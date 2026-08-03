@@ -121,7 +121,7 @@ const assertTronMainnet = (network: NetworkId) => {
 	throw new Error('TronScan_Rest: unsupported network')
 }
 
-const bigintFromWire = (value: number | string | null | undefined): bigint | undefined => (
+const bigintFromWire = (value: number | string | null | undefined) => (
 	value == null || value === '' ?
 		undefined
 	:
@@ -249,7 +249,7 @@ const transactionFieldsFromTronScanTransaction = (
 	}
 }
 
-const tokenIdFromTronScanToken = (token: TronScanToken): string | undefined => (
+const tokenIdFromTronScanToken = (token: TronScanToken) => (
 	token.contractAddress ?? token.address ?? token.tokenId?.toString() ?? token.id?.toString()
 )
 

@@ -15,7 +15,6 @@ import { Source } from '$/sources/Source.ts'
 import type { tronNodeRest } from '$/sources/_shared/interfaces/TronNodeRest/queries.ts'
 import type {
 	TronNodeBlock,
-	TronNodeContractValue,
 	TronNodeTransaction,
 	TronNodeTransactionInfo,
 } from '$/sources/_shared/interfaces/TronNodeRest/types.ts'
@@ -74,14 +73,14 @@ const assertTronMainnet = (
 	throw new Error(`${source}: unsupported network`)
 }
 
-const bigintFromNumberOrString = (value: number | string | undefined): bigint | undefined => (
+const bigintFromNumberOrString = (value: number | string | undefined) => (
 	value == null ?
 		undefined
 	:
 		BigInt(value)
 )
 
-const firstContractValue = (transaction: TronNodeTransaction): TronNodeContractValue | undefined => (
+const firstContractValue = (transaction: TronNodeTransaction) => (
 	transaction.raw_data?.contract?.[0]?.parameter?.value
 )
 

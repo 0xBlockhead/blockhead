@@ -47,14 +47,14 @@ const assertZeroGMainnetChain = (network: NetworkId) => {
 		throw new Error('ZeroGChain_JsonRpc: unsupported chain')
 }
 
-const quantityToBigInt = (value: string | undefined): bigint | undefined => (
+const quantityToBigInt = (value: string | undefined) => (
 	value == null ?
 		undefined
 	:
 		BigInt(value)
 )
 
-const quantityToNumber = (value: string | undefined): number | undefined => (
+const quantityToNumber = (value: string | undefined) => (
 	((number) => (
 		Number.isFinite(number) ? number : undefined
 	))(Number(quantityToBigInt(value)))

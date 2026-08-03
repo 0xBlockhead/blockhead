@@ -34,21 +34,21 @@ const assertLightningNetwork = (network: NetworkId) => {
 		throw new Error('LightningMempoolSpace_Rest: unsupported Lightning network')
 }
 
-const bigintFromWire = (value: number | string | null | undefined): bigint | undefined => (
+const bigintFromWire = (value: number | string | null | undefined) => (
 	value == null ?
 		undefined
 	:
 		BigInt(value)
 )
 
-const timestampMsFromSeconds = (seconds: number | null | undefined): number | undefined => (
+const timestampMsFromSeconds = (seconds: number | null | undefined) => (
 	seconds == null ?
 		undefined
 	:
 		seconds * 1000
 )
 
-const timestampMsFromIso = (iso: string | null | undefined): number | undefined => {
+const timestampMsFromIso = (iso: string | null | undefined) => {
 	if (iso == null)
 		return
 
@@ -56,7 +56,7 @@ const timestampMsFromIso = (iso: string | null | undefined): number | undefined 
 	return Number.isNaN(timestampMs) ? undefined : timestampMs
 }
 
-const statusFromMempoolSpace = (status: number | null | undefined): LightningChannelStatus => (
+const statusFromMempoolSpace = (status: number | null | undefined) => (
 	status === 1 ?
 		LightningChannelStatus.Open
 	:

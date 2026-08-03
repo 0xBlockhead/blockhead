@@ -18,7 +18,6 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	TronNodeBlock,
-	TronNodeContractValue,
 	TronNodeTransaction,
 	TronNodeTransactionInfo,
 	TronNodeWitness,
@@ -123,21 +122,21 @@ const assertTronMainnet = (network: NetworkId) => {
 	throw new Error('TronGrid_Rest: unsupported network')
 }
 
-const bigintFromNumberOrString = (value: number | string | undefined): bigint | undefined => (
+const bigintFromNumberOrString = (value: number | string | undefined) => (
 	value == null ?
 		undefined
 	:
 		BigInt(value)
 )
 
-const heightFromNodeInfoBlock = (block: string | undefined): bigint | undefined => (
+const heightFromNodeInfoBlock = (block: string | undefined) => (
 	block == null ?
 		undefined
 	:
 		BigInt(block.match(/Num:(\d+)/)?.[1] ?? 0)
 )
 
-const firstContractValue = (transaction: TronNodeTransaction): TronNodeContractValue | undefined => (
+const firstContractValue = (transaction: TronNodeTransaction) => (
 	transaction.raw_data?.contract?.[0]?.parameter?.value
 )
 

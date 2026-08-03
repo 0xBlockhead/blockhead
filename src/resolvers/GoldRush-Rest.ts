@@ -12,7 +12,7 @@ import { getTransaction } from '$/sources/Covalent/GoldRush/Rest/queries.ts'
 
 const nonnegativeBigInt = (
 	value: string
-): bigint => {
+) => {
 	const parsed = BigInt(value)
 	if (parsed < 0n)
 		throw new Error(`GoldRushFoundational_Rest: expected nonnegative integer, received ${String(value)}`)
@@ -22,7 +22,7 @@ const nonnegativeBigInt = (
 
 const nonnegativeSafeBigInt = (
 	value: number
-): bigint => {
+) => {
 	if (!Number.isSafeInteger(value) || value < 0)
 		throw new Error(`GoldRushFoundational_Rest: expected nonnegative safe integer, received ${String(value)}`)
 

@@ -12,7 +12,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { hexLowerOfByteSize, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
-const normalizedEnsSearchQuery = (query: string): string => {
+const normalizedEnsSearchQuery = (query: string) => {
 	const trimmedQuery = query.trim()
 	if (trimmedQuery === '') throw new Error('TheGraph_Graphql: empty ENS search query')
 	try {
