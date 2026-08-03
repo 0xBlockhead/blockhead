@@ -14,6 +14,15 @@ const bindingByTarget = Object.fromEntries(
 	bindings[Source.Esplora_Rest].map((binding) => [binding.target.key, binding])
 )
 
+const getEsploraJson = <_Response>(target: string, path: string) => {
+	const binding = bindingByTarget[target]
+
+	return sourceGetJson<_Response>(
+		binding,
+		`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}${path}`
+	)
+}
+
 export const getBlock = ({
 	blockHash,
 	target,
@@ -21,10 +30,7 @@ export const getBlock = ({
 	blockHash: string
 	target: string
 }) => (
-	sourceGetJson<EsploraBlock>(
-		bindingByTarget[target],
-		`${firstHttpUrlForBinding(bindingByTarget[target]).replace(/\/$/, '')}/block/${blockHash}`
-	)
+	getEsploraJson<EsploraBlock>(target, `/block/${blockHash}`)
 )
 
 export const getBlockHashByHeight = ({
@@ -34,10 +40,7 @@ export const getBlockHashByHeight = ({
 	height: bigint
 	target: string
 }) => (
-	sourceGetJson<string>(
-		bindingByTarget[target],
-		`${firstHttpUrlForBinding(bindingByTarget[target]).replace(/\/$/, '')}/block-height/${height.toString()}`
-	)
+	getEsploraJson<string>(target, `/block-height/${height.toString()}`)
 )
 
 export const getTransaction = ({
@@ -47,17 +50,11 @@ export const getTransaction = ({
 	target: string
 	txId: string
 }) => (
-	sourceGetJson<EsploraTransaction>(
-		bindingByTarget[target],
-		`${firstHttpUrlForBinding(bindingByTarget[target]).replace(/\/$/, '')}/tx/${txId}`
-	)
+	getEsploraJson<EsploraTransaction>(target, `/tx/${txId}`)
 )
 
 export const getMempoolTransactionIds = (target: string) => (
-	sourceGetJson<string[]>(
-		bindingByTarget[target],
-		`${firstHttpUrlForBinding(bindingByTarget[target]).replace(/\/$/, '')}/mempool/txids`
-	)
+	getEsploraJson<string[]>(target, '/mempool/txids')
 )
 
 export const getAsset = ({
@@ -67,10 +64,7 @@ export const getAsset = ({
 	assetId: string
 	target: string
 }) => (
-	sourceGetJson<EsploraAsset>(
-		bindingByTarget[target],
-		`${firstHttpUrlForBinding(bindingByTarget[target]).replace(/\/$/, '')}/asset/${assetId}`
-	)
+	getEsploraJson<EsploraAsset>(target, `/asset/${assetId}`)
 )
 
 export const listRegistryAssets = ({
@@ -78,8 +72,5 @@ export const listRegistryAssets = ({
 }: {
 	target: string
 }) => (
-	sourceGetJson<EsploraAsset[]>(
-		bindingByTarget[target],
-		`${firstHttpUrlForBinding(bindingByTarget[target]).replace(/\/$/, '')}/assets/registry`
-	)
+	getEsploraJson<EsploraAsset[]>(target, '/assets/registry')
 )
