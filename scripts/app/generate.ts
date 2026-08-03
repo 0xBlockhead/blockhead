@@ -4305,6 +4305,10 @@ const routeFixtureMetadataFromMapping = (mapping: SelectorRouteMapping): RouteFi
 const routeProjectionKey = (mapping: SelectorRouteMapping) => (
 	`${mapping.projection?.entityType ?? mapping.entityType}\0${(mapping.projection?.facetPath ?? []).join('\0')}`
 )
+const routeNodeSelectorMappings = (node: RouteNode) => [
+	...node.selectorMappings,
+	...(node.selectorVariant == null ? [] : [node.selectorVariant]),
+]
 
 // Compile semantic routes directly to their one physical file representation;
 // public-path projection owners decide whether a leaf needs its own load module.
@@ -4313,18 +4317,12 @@ const compilePhysicalRouteFiles = (
 	indexedNodes: readonly RouteNode[],
 	routeNodeByInternalPath: ReadonlyMap<string, RouteNode>
 ): CompiledPhysicalRouteFileFacts[] => {
-	const projectionOwnersByKey = Map.groupBy(indexedNodes.flatMap((node) => [
-		...node.selectorMappings,
-		...(node.selectorVariant == null ? [] : [node.selectorVariant]),
-	].flatMap((mapping) => mapping.projection == null ? [] : [{
+	const projectionOwnersByKey = Map.groupBy(indexedNodes.flatMap((node) => routeNodeSelectorMappings(node).flatMap((mapping) => mapping.projection == null ? [] : [{
 		href: publicRouteId(node.svelteKitPath),
 		key: routeProjectionKey(mapping),
 	}])), ({ key }) => key)
 	const compileNodes = (routeNodes: readonly RouteNode[]): CompiledPhysicalRouteFileFacts[] => routeNodes.flatMap((node) => {
-		const renderMappings = [
-			...node.selectorMappings,
-			...(node.selectorVariant == null ? [] : [node.selectorVariant]),
-		]
+		const renderMappings = routeNodeSelectorMappings(node)
 		const [firstMapping, ...remainingMappings] = renderMappings
 		const moduleMappings = firstMapping == null ? undefined : [firstMapping, ...remainingMappings] as const
 		const routeDirectory = node.svelteKitPath === '' ? 'src/routes' : `src/routes/${node.svelteKitPath.replace(/^\//, '')}`
@@ -5807,10 +5805,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 				])
 		}
 
-		for (const mapping of [
-			...node.selectorMappings,
-			...(node.selectorVariant == null ? [] : [node.selectorVariant]),
-		]) {
+		for (const mapping of routeNodeSelectorMappings(node)) {
 			const entityRouteLinks = routeLinksFromMapping(
 				node,
 				mapping,
