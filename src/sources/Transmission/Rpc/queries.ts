@@ -11,7 +11,7 @@ import type {
 
 const sessionHeader = 'x-transmission-session-id'
 
-export const request = async (
+const request = async (
 	binding: SourceBinding,
 	body: TransmissionRequest
 ) => {
