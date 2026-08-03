@@ -4,15 +4,13 @@ import {
 	getJson,
 	getText,
 } from '$/sources/_shared/wire/HttpRest/client.ts'
+import bindings from '$/sources/Arweave/bindings.ts'
 import type {
 	ArweaveTransactionStatus,
 	ArweaveTransactionWire,
 } from '$/sources/Arweave/Rest/types.ts'
-import {
-	SourceEndpointKind,
-	sourceEndpointOrigin,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
+import { sourceEndpointOrigin } from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
 import { type as arktype } from 'arktype'
 
 const gatewayUrlLastSegment = /([^/]+)$/
@@ -20,13 +18,13 @@ const transactionOffset = arktype({
 	offset: 'string',
 	size: 'string',
 })
+const binding = bindings[Source.Arweave_Rest][0]
 
 const trimSlashes = (value: string) => value.replace(/^\/+|\/+$/g, '')
 
-const arweaveGatewayEndpoints = (binding: SourceBinding) => {
+const arweaveGatewayEndpoints = () => {
 	const endpoints = binding.endpoints.filter((endpoint) => (
-		endpoint.endpointKind === SourceEndpointKind.HttpUrl
-		&& sourceEndpointOrigin(endpoint) != null
+		sourceEndpointOrigin(endpoint) != null
 	))
 	if (endpoints.length === 0)
 		throw new Error('Arweave_Rest: canonical gateway binding has no HTTP endpoints')
@@ -59,7 +57,6 @@ const assertUnsignedDecimal = (
 }
 
 export const getWalletBalance = async (
-	binding: SourceBinding,
 	address: string
 ) => {
 	assertBase64UrlId(address, 'wallet address')
@@ -72,7 +69,6 @@ export const getWalletBalance = async (
 }
 
 export const getTransaction = async (
-	binding: SourceBinding,
 	transactionId: string
 ) => {
 	assertBase64UrlId(transactionId, 'transaction ID')
@@ -97,7 +93,6 @@ export const getTransaction = async (
 }
 
 export const getTransactionStatus = async (
-	binding: SourceBinding,
 	transactionId: string
 ) => {
 	assertBase64UrlId(transactionId, 'transaction ID')
@@ -131,13 +126,11 @@ export const getGatewayUrl = ({
 }
 
 export const fetchBrowseResult = async ({
-	binding,
 	transactionId,
 	contentPath,
 	maxContentBytes = 1_048_576,
 	signal,
 }: {
-	binding: SourceBinding
 	transactionId: string
 	contentPath?: string
 	maxContentBytes?: number
@@ -150,7 +143,7 @@ export const fetchBrowseResult = async ({
 		throw new Error('Arweave_Rest: content inspection limit must be from 0 through 5242880 bytes')
 	const failures: string[] = []
 
-	for (const endpoint of arweaveGatewayEndpoints(binding)) {
+	for (const endpoint of arweaveGatewayEndpoints()) {
 		const gatewayUrl = getGatewayUrl({
 			transactionId: trimmedTransactionId,
 			contentPath: trimmedPath,

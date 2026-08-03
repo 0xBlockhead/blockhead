@@ -1,7 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import bindings from '$/sources/Arweave/bindings.ts'
-import { Source } from '$/sources/Source.ts'
 import {
 	getAccountTransactionsPage,
 	getTransactionById,
@@ -11,8 +9,6 @@ import { graphql } from '$/sources/_shared/wire/Graphql/client.ts'
 vi.mock('$/sources/_shared/wire/Graphql/client.ts', () => ({
 	graphql: vi.fn(),
 }))
-
-const binding = bindings[Source.Arweave_Graphql][0]
 
 const transactionId = 'A'.repeat(43)
 const ownerAddress = 'B'.repeat(43)
@@ -59,7 +55,6 @@ describe('Arweave GraphQL public transaction discovery', () => {
 		})
 
 		await expect(getTransactionById(
-			binding,
 			transactionId
 		)).resolves.toMatchObject({
 			id: transactionId,
@@ -90,7 +85,7 @@ describe('Arweave GraphQL public transaction discovery', () => {
 			},
 		})
 
-		await expect(getAccountTransactionsPage(binding, {
+		await expect(getAccountTransactionsPage({
 			address: ownerAddress,
 			role: 'owner',
 			first: 10,
@@ -122,7 +117,6 @@ describe('Arweave GraphQL public transaction discovery', () => {
 		})
 
 		await expect(getTransactionById(
-			binding,
 			transactionId
 		)).rejects.toThrow('incomplete confirmed block coordinates')
 	})
@@ -141,7 +135,7 @@ describe('Arweave GraphQL public transaction discovery', () => {
 				],
 			},
 		})
-		await expect(getAccountTransactionsPage(binding, {
+		await expect(getAccountTransactionsPage({
 			address: recipientAddress,
 			role: 'owner',
 			first: 10,
@@ -160,7 +154,7 @@ describe('Arweave GraphQL public transaction discovery', () => {
 				],
 			},
 		})
-		await expect(getAccountTransactionsPage(binding, {
+		await expect(getAccountTransactionsPage({
 			address: ownerAddress,
 			role: 'owner',
 			first: 10,

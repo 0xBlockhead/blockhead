@@ -34,7 +34,7 @@ describe('Cardanoscan public REST transport', () => {
 			status: 'ok',
 		})
 
-		await expect(query(binding, '/api/v1/block')).resolves.toEqual({
+		await expect(query('/api/v1/block')).resolves.toEqual({
 			status: 'ok',
 		})
 		expect(sourceGetJson).toHaveBeenCalledWith(

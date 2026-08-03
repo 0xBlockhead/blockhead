@@ -1,21 +1,23 @@
 import { type } from 'arktype'
 
-import { throwHttpError } from '$/lib/http.ts'
-import { Source } from '$/sources/Source.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import { TransportType } from '$/constants/TransportType.ts'
-import bindings from '$/sources/MoneroDaemonRpc/bindings.ts'
-import { jsonRpc2 as requestMoneroDaemonJsonRpc } from '$/sources/_shared/wire/JsonRpc2/client.ts'
+import { throwHttpError } from '$/lib/http.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
+import { jsonRpc2 as requestMoneroDaemonJsonRpc } from '$/sources/_shared/wire/JsonRpc2/client.ts'
+import bindings from '$/sources/MoneroDaemonRpc/bindings.ts'
 import {
 	MoneroRpcDecodedTransaction,
 	MoneroRpcTransactionWire,
 	type MoneroRpcBlock,
 	type MoneroRpcInfo,
 } from '$/sources/MoneroDaemonRpc/JsonRpc/types.ts'
+import { Source } from '$/sources/Source.ts'
 import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
 const moneroMainnetBinding = bindings[Source.MoneroDaemonRpc_JsonRpc].find(({ target }) => (
 	target.kind === SourceTargetKind.Caip2Network
+	&& target.key === `${networkBySlug.monero.caip2.namespace}:${networkBySlug.monero.caip2.reference}`
 ))
 
 if (moneroMainnetBinding == null)

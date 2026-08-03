@@ -1,5 +1,5 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
+import bindings from '$/sources/AvalanchePlatformVm/bindings.ts'
 import type {
 	AvalanchePlatformVmBalance,
 	AvalanchePlatformVmBlockchains,
@@ -10,58 +10,55 @@ import type {
 	AvalanchePlatformVmUtxos,
 	AvalanchePlatformVmValidators,
 } from '$/sources/AvalanchePlatformVm/JsonRpc/types.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.AvalanchePlatformVm_JsonRpc][0]
 
 const request = <_Result>(
-	binding: SourceBinding,
 	method: string,
 	params?: Readonly<Record<string, unknown>>
 ) => jsonRpc2<_Result>(binding, method, params)
 
-export const getHeight = (binding: SourceBinding) => (
-	request<AvalanchePlatformVmHeight>(binding, 'platform.getHeight')
+export const getHeight = () => (
+	request<AvalanchePlatformVmHeight>('platform.getHeight')
 )
 
-export const getBlockchains = (binding: SourceBinding) => (
-	request<AvalanchePlatformVmBlockchains>(binding, 'platform.getBlockchains')
+export const getBlockchains = () => (
+	request<AvalanchePlatformVmBlockchains>('platform.getBlockchains')
 )
 
 export const getCurrentValidators = (
-	binding: SourceBinding,
 	params: {
 		subnetID?: string
 		nodeIDs?: string[]
 	} = {}
 ) => (
-	request<AvalanchePlatformVmValidators>(binding, 'platform.getCurrentValidators', params)
+	request<AvalanchePlatformVmValidators>('platform.getCurrentValidators', params)
 )
 
 export const getBalance = (
-	binding: SourceBinding,
 	addresses: string[]
 ) => (
-	request<AvalanchePlatformVmBalance>(binding, 'platform.getBalance', { addresses })
+	request<AvalanchePlatformVmBalance>('platform.getBalance', { addresses })
 )
 
 export const getStake = (
-	binding: SourceBinding,
 	addresses: string[],
 	validatorsOnly = false
 ) => (
-	request<AvalanchePlatformVmStake>(binding, 'platform.getStake', {
+	request<AvalanchePlatformVmStake>('platform.getStake', {
 		addresses,
 		validatorsOnly,
 	})
 )
 
 export const getTxStatus = (
-	binding: SourceBinding,
 	txID: string
 ) => (
-	request<AvalanchePlatformVmTxStatus>(binding, 'platform.getTxStatus', { txID })
+	request<AvalanchePlatformVmTxStatus>('platform.getTxStatus', { txID })
 )
 
 export const getUtxos = async (
-	binding: SourceBinding,
 	addresses: string[],
 	limit: number
 ) => {
@@ -74,7 +71,7 @@ export const getUtxos = async (
 	let encoding = 'hex'
 	while (utxos.size < limit) {
 		const pageLimit = Math.min(limit - utxos.size, 1024)
-		const page = await request<AvalanchePlatformVmUtxos>(binding, 'platform.getUTXOs', {
+		const page = await request<AvalanchePlatformVmUtxos>('platform.getUTXOs', {
 			addresses,
 			limit: pageLimit,
 			...(startIndex != null && { startIndex }),

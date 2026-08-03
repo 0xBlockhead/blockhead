@@ -5,9 +5,6 @@ import {
 	vi,
 } from 'vitest'
 
-import bindings from '$/sources/AvalanchePlatformVm/bindings.ts'
-import { Source } from '$/sources/Source.ts'
-
 const jsonRpc2 = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
@@ -22,8 +19,6 @@ const {
 	getUtxos,
 } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
 
-const binding = bindings[Source.AvalanchePlatformVm_JsonRpc][0]
-
 beforeEach(() => {
 	jsonRpc2.mockReset()
 })
@@ -31,13 +26,13 @@ beforeEach(() => {
 it('uses official named parameters for exact account, stake, validator, and transaction reads', async () => {
 	jsonRpc2.mockResolvedValue({})
 
-	await getBalance(binding, ['P-avax1account'])
-	await getStake(binding, ['P-avax1account'], true)
-	await getCurrentValidators(binding, {
+	await getBalance(['P-avax1account'])
+	await getStake(['P-avax1account'], true)
+	await getCurrentValidators({
 		subnetID: 'primary',
 		nodeIDs: ['NodeID-validator'],
 	})
-	await getTxStatus(binding, 'transaction-id')
+	await getTxStatus('transaction-id')
 
 	expect(jsonRpc2.mock.calls.map(([, method, params]) => [method, params])).toEqual([
 		[
@@ -97,7 +92,6 @@ it('bounds, deduplicates, and advances UTXOs by the opaque end index', async () 
 		})
 
 	await expect(getUtxos(
-		binding,
 		['P-avax1account'],
 		3
 	)).resolves.toEqual({
@@ -132,7 +126,6 @@ it('bounds, deduplicates, and advances UTXOs by the opaque end index', async () 
 
 it('rejects invalid UTXO bounds before transport', async () => {
 	await expect(getUtxos(
-		binding,
 		['P-avax1account'],
 		-1
 	)).rejects.toThrow('UTXO limit must be a nonnegative safe integer')

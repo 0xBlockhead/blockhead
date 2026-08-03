@@ -9,7 +9,11 @@ const getBlock = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts', () => ({
 	getBlock,
-	moneroMainnetRpcEndpointUrls: ['https://monero.example'],
+	moneroMainnetRpcEndpoints: [{
+		url: 'https://monero.example',
+		transportType: 'Http',
+		providerName: 'Monero daemon',
+	}],
 }))
 
 const { default: moneroDaemonRpc } = await import('$/resolvers/MoneroDaemonRpc-JsonRpc.ts')

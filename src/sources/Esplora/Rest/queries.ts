@@ -10,12 +10,16 @@ import type {
 } from '$/sources/Esplora/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const bindingByTarget = Object.fromEntries(
-	bindings[Source.Esplora_Rest].map((binding) => [binding.target.key, binding])
+type EsploraTarget = typeof bindings[Source.Esplora_Rest][number]['target']['key']
+
+const bindingByTarget = new Map(
+	bindings[Source.Esplora_Rest].map((binding) => [binding.target.key, binding] as const)
 )
 
-const getEsploraJson = <_Response>(target: string, path: string) => {
-	const binding = bindingByTarget[target]
+const getEsploraJson = <_Response>(target: EsploraTarget, path: string) => {
+	const binding = bindingByTarget.get(target)
+	if (binding == null)
+		throw new Error(`Esplora_Rest: unsupported source target ${target}`)
 
 	return sourceGetJson<_Response>(
 		binding,
@@ -28,7 +32,7 @@ export const getBlock = ({
 	target,
 }: {
 	blockHash: string
-	target: string
+	target: EsploraTarget
 }) => (
 	getEsploraJson<EsploraBlock>(target, `/block/${blockHash}`)
 )
@@ -38,7 +42,7 @@ export const getBlockHashByHeight = ({
 	target,
 }: {
 	height: bigint
-	target: string
+	target: EsploraTarget
 }) => (
 	getEsploraJson<string>(target, `/block-height/${height.toString()}`)
 )
@@ -47,13 +51,13 @@ export const getTransaction = ({
 	target,
 	txId,
 }: {
-	target: string
+	target: EsploraTarget
 	txId: string
 }) => (
 	getEsploraJson<EsploraTransaction>(target, `/tx/${txId}`)
 )
 
-export const getMempoolTransactionIds = (target: string) => (
+export const getMempoolTransactionIds = (target: EsploraTarget) => (
 	getEsploraJson<string[]>(target, '/mempool/txids')
 )
 
@@ -62,7 +66,7 @@ export const getAsset = ({
 	target,
 }: {
 	assetId: string
-	target: string
+	target: EsploraTarget
 }) => (
 	getEsploraJson<EsploraAsset>(target, `/asset/${assetId}`)
 )
@@ -70,7 +74,7 @@ export const getAsset = ({
 export const listRegistryAssets = ({
 	target,
 }: {
-	target: string
+	target: EsploraTarget
 }) => (
 	getEsploraJson<EsploraAsset[]>(target, '/assets/registry')
 )

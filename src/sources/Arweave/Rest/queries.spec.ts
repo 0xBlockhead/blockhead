@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import bindings from '$/sources/Arweave/bindings.ts'
 import {
 	fetchBrowseResult,
 	getTransaction,
@@ -8,9 +7,6 @@ import {
 	getWalletBalance,
 } from '$/sources/Arweave/Rest/queries.ts'
 import * as httpRestClient from '$/sources/_shared/wire/HttpRest/client.ts'
-import { Source } from '$/sources/Source.ts'
-
-const binding = bindings[Source.Arweave_Rest][0]
 
 const transactionId = 'A'.repeat(43)
 const recipientAddress = 'B'.repeat(43)
@@ -23,7 +19,6 @@ describe('Arweave public gateway metadata', () => {
 	it('preserves wallet balances and transaction amounts as winston strings', async () => {
 		vi.spyOn(httpRestClient, 'getText').mockResolvedValue('9007199254740993')
 		await expect(getWalletBalance(
-			binding,
 			recipientAddress
 		)).resolves.toBe('9007199254740993')
 
@@ -42,7 +37,6 @@ describe('Arweave public gateway metadata', () => {
 			signature: 'signature',
 		})
 		await expect(getTransaction(
-			binding,
 			transactionId
 		)).resolves.toMatchObject({
 			quantity: '1000000000000',
@@ -56,7 +50,6 @@ describe('Arweave public gateway metadata', () => {
 			id: 'Z'.repeat(43),
 		})
 		await expect(getTransaction(
-			binding,
 			transactionId
 		)).rejects.toThrow('mismatched identity')
 
@@ -66,7 +59,6 @@ describe('Arweave public gateway metadata', () => {
 			number_of_confirmations: 1,
 		})
 		await expect(getTransactionStatus(
-			binding,
 			transactionId
 		)).rejects.toThrow('invalid status block hash')
 	})
@@ -96,7 +88,6 @@ describe('Arweave public gateway metadata', () => {
 		vi.stubGlobal('fetch', fetchMock)
 
 		await expect(fetchBrowseResult({
-			binding,
 			transactionId,
 		})).rejects.toThrow('invalid transaction offset size')
 		expect(fetchMock).toHaveBeenCalledTimes(2)
@@ -118,7 +109,6 @@ describe('Arweave public gateway metadata', () => {
 		vi.stubGlobal('fetch', fetchMock)
 
 		await expect(fetchBrowseResult({
-			binding,
 			transactionId,
 		})).rejects.toThrow('content exceeds 1048576 byte inspection limit')
 		expect(fetchMock).toHaveBeenCalledTimes(2)
@@ -145,7 +135,6 @@ describe('Arweave public gateway metadata', () => {
 		vi.stubGlobal('fetch', fetchMock)
 
 		await expect(fetchBrowseResult({
-			binding,
 			transactionId,
 		})).resolves.toMatchObject({
 			contentLength: 5,
@@ -163,7 +152,6 @@ describe('Arweave public gateway metadata', () => {
 		vi.stubGlobal('fetch', fetchMock)
 
 		await expect(fetchBrowseResult({
-			binding,
 			transactionId,
 			contentPath: 'assets/selected.txt',
 			maxContentBytes: 14,
@@ -198,7 +186,6 @@ describe('Arweave public gateway metadata', () => {
 		vi.stubGlobal('fetch', fetchMock)
 
 		await expect(fetchBrowseResult({
-			binding,
 			transactionId,
 		})).rejects.toThrow('content body exceeds declared or configured size')
 	})

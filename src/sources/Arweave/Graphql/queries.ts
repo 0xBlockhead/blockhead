@@ -2,12 +2,15 @@ import {
 	ArweaveGraphqlTransactionFragment,
 	type ArweaveGraphqlTransaction,
 } from '$/sources/Arweave/Graphql/types.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Arweave/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
 import {
 	graphql,
 	queryArweave,
 } from './client.ts'
+
+const binding = bindings[Source.Arweave_Graphql][0]
 
 const ArweaveTransaction = graphql(`
 	query ArweaveTransaction($id: ID!) {
@@ -106,14 +109,12 @@ const assertTransaction = (
 }
 
 const getTransactionPage = async ({
-	binding,
 	first,
 	after,
 	ids,
 	owners,
 	recipients,
 }: {
-	binding: SourceBinding
 	first: number
 	after?: string
 	ids?: string[]
@@ -166,7 +167,6 @@ const getTransactionPage = async ({
 }
 
 export const getTransactionById = async (
-	binding: SourceBinding,
 	transactionId: string
 ) => {
 	assertAddress(transactionId, 'transaction ID')
@@ -184,7 +184,6 @@ export const getTransactionById = async (
 }
 
 export const getAccountTransactionsPage = (
-	binding: SourceBinding,
 	{
 		address,
 		role,
@@ -198,7 +197,6 @@ export const getAccountTransactionsPage = (
 	}
 ) => (
 	getTransactionPage({
-		binding,
 		first,
 		after,
 		...(role === 'owner' ?
