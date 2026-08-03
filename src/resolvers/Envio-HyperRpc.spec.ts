@@ -8,11 +8,10 @@ import {
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import transaction from '$/sources/Envio/HyperRpc/fixtures/transaction.json'
 import transactionReceipt from '$/sources/Envio/HyperRpc/fixtures/transaction-receipt.json'
-import { envioHyperRpcBinding } from '$/sources/Envio/HyperRpc/transport.ts'
 import {
 	getTransactionByHash,
 	getTransactionReceipt,
-} from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts'
+} from '$/sources/Envio/HyperRpc/queries.ts'
 
 const {
 	jsonRpc2,
@@ -93,14 +92,8 @@ describe('Envio HyperRPC query boundary', () => {
 			.mockResolvedValueOnce(transaction)
 			.mockResolvedValueOnce(transactionReceipt)
 
-		await expect(getTransactionByHash({
-			binding: envioHyperRpcBinding,
-			txHash: transaction.hash,
-		})).resolves.toEqual(transaction)
-		await expect(getTransactionReceipt({
-			binding: envioHyperRpcBinding,
-			txHash: transaction.hash,
-		})).resolves.toEqual(transactionReceipt)
+		await expect(getTransactionByHash(transaction.hash)).resolves.toEqual(transaction)
+		await expect(getTransactionReceipt(transaction.hash)).resolves.toEqual(transactionReceipt)
 		expect(jsonRpc2).toHaveBeenNthCalledWith(
 			1,
 			expect.objectContaining({ source: resolverBinding.source }),
@@ -119,16 +112,10 @@ describe('Envio HyperRPC query boundary', () => {
 
 	it('preserves complete-empty and transport failure outcomes', async () => {
 		jsonRpc2.mockResolvedValueOnce(null)
-		await expect(getTransactionByHash({
-			binding: envioHyperRpcBinding,
-			txHash: transaction.hash,
-		})).resolves.toBeNull()
+		await expect(getTransactionByHash(transaction.hash)).resolves.toBeNull()
 
 		jsonRpc2.mockRejectedValueOnce(new Error('JSON-RPC rate limited'))
-		await expect(getTransactionReceipt({
-			binding: envioHyperRpcBinding,
-			txHash: transaction.hash,
-		})).rejects.toThrow('rate limited')
+		await expect(getTransactionReceipt(transaction.hash)).rejects.toThrow('rate limited')
 	})
 })
 

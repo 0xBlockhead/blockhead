@@ -15,10 +15,7 @@ import {
 	SourceOperationGroup,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
-const {
-	hyperliquidJsonRpcBinding,
-	hyperliquidJsonRpcEndpoints,
-} = await import('$/sources/Hyperliquid/JsonRpc/transport.ts')
+const { hyperliquidJsonRpcEndpoints } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
 
 const binding = bindings[Source.Hyperliquid].find(
 	({ apiFamily }) => apiFamily === ApiFamily.EvmExecutionJsonRpc
@@ -29,7 +26,6 @@ if (binding == null)
 
 describe('Hyperliquid JSON-RPC transport', () => {
 	it('uses the exact canonical HyperEVM binding axes', () => {
-		expect(hyperliquidJsonRpcBinding).toBe(binding)
 		expect(binding).toMatchObject({
 			endpoints: [{
 				endpointKind: SourceEndpointKind.HttpUrl,

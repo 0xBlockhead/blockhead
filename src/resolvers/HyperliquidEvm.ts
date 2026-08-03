@@ -11,7 +11,6 @@ import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { hyperliquidJsonRpcBinding } from '$/sources/Hyperliquid/JsonRpc/transport.ts'
 import type { RpcTransactionWire } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 const assertHyperliquidMainnet = (network: NetworkId) => {
@@ -50,8 +49,8 @@ const resolveHyperliquidBlocks = async (
 	limit: number
 ) => {
 	assertHyperliquidMainnet(network)
-	const { getBlockNumber } = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
-	const headBlockHeight = BigInt(await getBlockNumber(hyperliquidJsonRpcBinding))
+	const { getBlockNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+	const headBlockHeight = BigInt(await getBlockNumber())
 	return Array.from({
 		length: Math.min(
 			Number(headBlockHeight + 1n),
@@ -72,8 +71,8 @@ const resolveHyperliquidTransactions = async (
 	const {
 		getBlockByNumber,
 		getBlockNumber,
-	} = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
-	const headBlockHeight = BigInt(await getBlockNumber(hyperliquidJsonRpcBinding))
+	} = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+	const headBlockHeight = BigInt(await getBlockNumber())
 	return (
 		await Promise.all(
 			Array.from({
@@ -82,11 +81,7 @@ const resolveHyperliquidTransactions = async (
 					16
 				),
 			}, (_value, blockOffset) => (
-				getBlockByNumber({
-					binding: hyperliquidJsonRpcBinding,
-					blockNumber: headBlockHeight - BigInt(blockOffset),
-					txObjects: true,
-				})
+				getBlockByNumber(headBlockHeight - BigInt(blockOffset))
 			))
 		)
 	)
@@ -104,12 +99,8 @@ export const hyperliquidEvmResolvers = [
 			Height: {
 				resolve: async ({ $network, height }) => {
 					assertHyperliquidMainnet($network)
-					const { getBlockByNumber } = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
-					const block = await getBlockByNumber({
-						binding: hyperliquidJsonRpcBinding,
-						blockNumber: height,
-						txObjects: true,
-					})
+					const { getBlockByNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+					const block = await getBlockByNumber(height)
 					if (block == null) throw new Error(`Hyperliquid EVM: block not found for ${height.toString()}`)
 					return {
 						hash: block.hash,
@@ -132,11 +123,8 @@ export const hyperliquidEvmResolvers = [
 			NetworkTxHash: {
 				resolve: async ({ $network, txHash }) => {
 					assertHyperliquidMainnet($network)
-					const { getTransactionByHash } = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
-					const transaction = await getTransactionByHash({
-						binding: hyperliquidJsonRpcBinding,
-						txHash: txHash,
-					})
+					const { getTransactionByHash } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+					const transaction = await getTransactionByHash(txHash)
 					if (transaction == null) throw new Error(`Hyperliquid EVM: transaction not found for ${txHash}`)
 					return {
 						...(transaction.blockNumber != null && {
@@ -187,11 +175,8 @@ export const hyperliquidEvmResolvers = [
 			TransactionTimestampMsSource: {
 				resolve: async ({ $transaction }) => {
 					assertHyperliquidMainnet($transaction.$network)
-					const { getTransactionReceipt } = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
-					const receipt = await getTransactionReceipt({
-						binding: hyperliquidJsonRpcBinding,
-						txHash: $transaction.txHash,
-					})
+					const { getTransactionReceipt } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+					const receipt = await getTransactionReceipt($transaction.txHash)
 					return {
 						...(receipt?.status != null && {
 							status: receipt.status === '0x1' ? 'success' : 'failed',

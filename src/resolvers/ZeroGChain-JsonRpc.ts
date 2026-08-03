@@ -16,7 +16,6 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { zeroGChainJsonRpcBinding } from '$/sources/ZeroG/Chain/JsonRpc/transport.ts'
 
 const zeroGChainId = 16661
 
@@ -112,12 +111,8 @@ export default {
 					appliesTo: zeroGNetworkReferenceApplicability,
 					resolve: async ({ $network, blockNumber }) => {
 						assertZeroGMainnetChain($network)
-						const { getBlockByNumber } = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
-						const block = await getBlockByNumber({
-							binding: zeroGChainJsonRpcBinding,
-							blockNumber,
-							txObjects: false,
-						})
+						const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+						const block = await getBlockByNumber(blockNumber)
 						if (block == null) throw new Error(`ZeroGChain_JsonRpc: block not found ${blockNumber.toString()}`)
 						const minerAddress = hexLowerOfByteSize(block.miner, 20)
 						const parentHash = hexLowerOfByteSize(block.parentHash, 32)
@@ -189,8 +184,8 @@ export default {
 				},
 			},
 		})({
-				$$timestamps: (account) => account.$$timestamps,
-			}),
+			$$timestamps: (account) => account.$$timestamps,
+		}),
 
 		defineResolver({
 			entityType: EntityType.EvmNetworkAccount_Timestamp,
@@ -199,23 +194,20 @@ export default {
 					appliesTo: zeroGAccountTimestampApplicability,
 					resolve: async ({ $account }) => {
 						assertZeroGMainnetChain($account.$network)
-						const { getCode } = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
+						const { getCode } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
 						const address = hexLowerOfByteSize($account.$actor.address, 20)
 						if (address == null)
 							throw new Error('ZeroGChain_JsonRpc: EvmNetworkAccount wallet address not normalized')
 
 						return {
-							isContract: await getCode({
-								binding: zeroGChainJsonRpcBinding,
-								address,
-							}) !== '0x',
+							isContract: await getCode(address) !== '0x',
 						}
 					},
 				},
 			},
 		})({
-				isContract: (account) => account.isContract,
-			}),
+			isContract: (account) => account.isContract,
+		}),
 
 		defineResolver({
 			entityType: EntityType.EvmTransaction,
@@ -227,16 +219,10 @@ export default {
 						const {
 							getTransactionByHash,
 							getTransactionReceipt,
-						} = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
-						const transaction = await getTransactionByHash({
-							binding: zeroGChainJsonRpcBinding,
-							txHash,
-						})
+						} = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+						const transaction = await getTransactionByHash(txHash)
 						if (transaction == null) throw new Error(`ZeroGChain_JsonRpc: transaction not found ${txHash}`)
-						const receipt = await getTransactionReceipt({
-							binding: zeroGChainJsonRpcBinding,
-							txHash,
-						})
+						const receipt = await getTransactionReceipt(txHash)
 						const value = quantityToBigInt(transaction.value) ?? 0n
 						const fromAddress = hexLowerOfByteSize(transaction.from, 20)
 						const toAddress = hexLowerOfByteSize(transaction.to ?? '', 20)
@@ -351,12 +337,8 @@ export default {
 					appliesTo: zeroGNetworkReferenceApplicability,
 					resolve: async ({ $network, blockNumber }) => {
 					assertZeroGMainnetChain($network)
-					const { getBlockByNumber } = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
-					const block = await getBlockByNumber({
-						binding: zeroGChainJsonRpcBinding,
-						blockNumber,
-						txObjects: true,
-					})
+					const { getBlockWithTransactionsByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+					const block = await getBlockWithTransactionsByNumber(blockNumber)
 					if (block == null) throw new Error(`ZeroGChain_JsonRpc: block not found ${blockNumber.toString()}`)
 					return block.transactions.flatMap((transaction) => {
 						const txHash = hexLowerOfByteSize(transaction.hash, 32)

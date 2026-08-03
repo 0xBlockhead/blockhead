@@ -9,21 +9,10 @@ import {
 
 import { EvmTransactionExecutionStatus } from '$/constants/Evm.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	SourceTargetKind,
-	WireProtocol,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 import {
 	getTransactionByHash,
 	getTransactionReceipt,
-} from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts'
-import { getBlockRpcBinding } from '$/sources/GetBlock/Rpc/transport.ts'
+} from '$/sources/GetBlock/Rpc/queries.ts'
 
 const sourceFetch = vi.hoisted(() => vi.fn())
 const resolverBinding = vi.hoisted(() => ({
@@ -85,23 +74,6 @@ const context = {
 	sources: [],
 	publicEnv: {},
 }
-const queryBinding = {
-	source: Source.GetBlockRpc_JsonRpc,
-	target: {
-		kind: SourceTargetKind.Eip155Chain,
-		key: '1',
-	},
-	endpoints: [{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://go.getblock.io/runtime-token/',
-	}],
-	wireProtocol: WireProtocol.JsonRpc2,
-	apiFamily: ApiFamily.EvmExecutionJsonRpc,
-	operationGroups: [SourceOperationGroup.EvmRpcCore],
-	delivery: SourceDelivery.HttpProxy,
-	credentials: [],
-} as const satisfies SourceBinding
-
 describe('GetBlock RPC transaction source', () => {
 	beforeEach(() => vi.clearAllMocks())
 
@@ -109,16 +81,10 @@ describe('GetBlock RPC transaction source', () => {
 		sourceFetch
 			.mockResolvedValueOnce(new Response(transaction))
 			.mockResolvedValueOnce(new Response(receipt))
-		await expect(getTransactionByHash({
-			binding: getBlockRpcBinding,
-			txHash: '0xaaaa',
-		})).resolves.toMatchObject({
+		await expect(getTransactionByHash('0xaaaa')).resolves.toMatchObject({
 			hash: expect.any(String),
 		})
-		await expect(getTransactionReceipt({
-			binding: getBlockRpcBinding,
-			txHash: '0xaaaa',
-		})).resolves.toMatchObject({
+		await expect(getTransactionReceipt('0xaaaa')).resolves.toMatchObject({
 			status: '0x1',
 		})
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toMatchObject({
@@ -204,14 +170,8 @@ describe('GetBlock RPC transaction source', () => {
 			id: 1,
 			result: null,
 		})))
-		await expect(getTransactionByHash({
-			binding: getBlockRpcBinding,
-			txHash: '0xmissing',
-		})).resolves.toBeNull()
+		await expect(getTransactionByHash('0xmissing')).resolves.toBeNull()
 		sourceFetch.mockResolvedValueOnce(new Response('upstream failed', { status: 503 }))
-		await expect(getTransactionByHash({
-			binding: getBlockRpcBinding,
-			txHash: '0xfailure',
-		})).rejects.toThrow()
+		await expect(getTransactionByHash('0xfailure')).rejects.toThrow()
 	})
 })
