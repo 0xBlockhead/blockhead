@@ -3,6 +3,7 @@ import * as Hex from 'ox/Hex'
 import type { NostrRelaySocket } from '$/sources/NostrRelay/WebSocket/types.ts'
 import {
 	latestNostrRelayListFromEvents,
+	listRelayEvents,
 	nostrCommentFromEvent,
 	nostrRelayListFromEvent,
 	nostrZapReceiptFromEvent,
@@ -453,6 +454,144 @@ describe('Nostr relay WebSocket subscriptions', () => {
 		])
 		expect(socket.closed).toBe(true)
 		subscription.close()
+	})
+
+	it('collects raw snapshot events through EOSE and closes the subscription', async () => {
+		const socket = new RelaySocketFixture()
+		const event = signedEvent(30_023)
+		const invalidEvent = {
+			...event,
+			id: 'invalid-event-id',
+		}
+		const result = listRelayEvents({
+			relayUrl: 'https://relay.example/path',
+			filters: [{
+				kinds: [
+					6,
+					16,
+					30_023,
+				],
+				limit: 2,
+			}],
+			timeoutMs: 1_000,
+			socketFactory: () => socket as NostrRelaySocket,
+		})
+
+		socket.open()
+		socket.message([
+			'EVENT',
+			'blockhead-snapshot',
+			event,
+		])
+		socket.message([
+			'EVENT',
+			'blockhead-snapshot',
+			invalidEvent,
+		])
+		socket.message([
+			'EOSE',
+			'blockhead-snapshot',
+		])
+
+		await expect(result).resolves.toEqual([
+			event,
+			invalidEvent,
+		])
+		expect(socket.sent).toEqual([
+			JSON.stringify([
+				'REQ',
+				'blockhead-snapshot',
+				{
+					kinds: [
+						6,
+						16,
+						30_023,
+					],
+					limit: 2,
+				},
+			]),
+			JSON.stringify([
+				'CLOSE',
+				'blockhead-snapshot',
+			]),
+		])
+		expect(socket.closed).toBe(true)
+	})
+
+	it('rejects relay closure without sending a redundant CLOSE', async () => {
+		const socket = new RelaySocketFixture()
+		const result = listRelayEvents({
+			relayUrl: 'wss://relay.example',
+			filters: [{
+				kinds: [1],
+			}],
+			timeoutMs: 1_000,
+			socketFactory: () => socket as NostrRelaySocket,
+		})
+
+		socket.open()
+		socket.message([
+			'CLOSED',
+			'blockhead-snapshot',
+			'blocked',
+		])
+
+		await expect(result).rejects.toThrow('Nostr relay snapshot closed: blocked')
+		expect(socket.sent).toEqual([
+			JSON.stringify([
+				'REQ',
+				'blockhead-snapshot',
+				{
+					kinds: [1],
+				},
+			]),
+		])
+		expect(socket.closed).toBe(true)
+	})
+
+	it('aborts snapshot reads on caller cancellation and bounded timeout', async () => {
+		vi.useFakeTimers()
+		const cancelledSocket = new RelaySocketFixture()
+		const abortController = new AbortController()
+		const cancelledResult = listRelayEvents({
+			relayUrl: 'wss://relay.example',
+			filters: [{
+				kinds: [1],
+			}],
+			signal: abortController.signal,
+			timeoutMs: 1_000,
+			socketFactory: () => cancelledSocket as NostrRelaySocket,
+		})
+		const cancelledExpectation = expect(cancelledResult).rejects.toThrow('cancelled')
+		cancelledSocket.open()
+		abortController.abort(new Error('cancelled'))
+		await cancelledExpectation
+		expect(cancelledSocket.sent.at(-1)).toBe(JSON.stringify([
+			'CLOSE',
+			'blockhead-snapshot',
+		]))
+		expect(cancelledSocket.closed).toBe(true)
+
+		const timedOutSocket = new RelaySocketFixture()
+		const timedOutResult = listRelayEvents({
+			relayUrl: 'wss://relay.example',
+			filters: [{
+				kinds: [1],
+			}],
+			timeoutMs: 25,
+			socketFactory: () => timedOutSocket as NostrRelaySocket,
+		})
+		const timedOutExpectation = expect(timedOutResult).rejects.toThrow(
+			'Nostr relay snapshot timed out after 25ms'
+		)
+		timedOutSocket.open()
+		await vi.advanceTimersByTimeAsync(25)
+		await timedOutExpectation
+		expect(timedOutSocket.sent.at(-1)).toBe(JSON.stringify([
+			'CLOSE',
+			'blockhead-snapshot',
+		]))
+		expect(timedOutSocket.closed).toBe(true)
 	})
 
 	it('reconnects once, resumes inclusively, and cancels the active subscription', async () => {

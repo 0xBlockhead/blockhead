@@ -462,6 +462,80 @@ export const sendRelayMessage = (
 	socket.send(JSON.stringify(message))
 }
 
+export const listRelayEvents = ({
+	relayUrl,
+	filters,
+	signal,
+	timeoutMs = 10_000,
+	socketFactory = openRelaySocket,
+}: {
+	relayUrl: string
+	filters: readonly NostrRelayFilter[]
+	signal?: AbortSignal
+	timeoutMs?: number
+	socketFactory?: (relayUrl: string) => NostrRelaySocket
+}) => {
+	if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1)
+		throw new Error('Nostr relay snapshot timeout must be a positive integer')
+
+	return new Promise<NostrRelayEvent[]>((resolve, reject) => {
+		const timeoutController = new AbortController()
+		const querySignal = signal == null ?
+			timeoutController.signal
+		:
+			AbortSignal.any([
+				signal,
+				timeoutController.signal,
+			])
+		const events: NostrRelayEvent[] = []
+		let settled = false
+		let subscription: ReturnType<typeof openRelaySubscription> | undefined
+		const timeout = setTimeout(() => {
+			timeoutController.abort(new Error(`Nostr relay snapshot timed out after ${timeoutMs}ms`))
+		}, timeoutMs)
+		const settle = (
+			settlement: () => void,
+			closeSubscription = true
+		) => {
+			if (settled) return
+			settled = true
+			clearTimeout(timeout)
+			querySignal.removeEventListener('abort', abort)
+			if (closeSubscription)
+				subscription?.close()
+			settlement()
+		}
+		const abort = () => settle(() => reject(querySignal.reason))
+
+		querySignal.addEventListener('abort', abort, {
+			once: true,
+		})
+		subscription = openRelaySubscription({
+			relayUrl,
+			subscriptionId: 'blockhead-snapshot',
+			filters,
+			signal: querySignal,
+			socketFactory,
+			onEvent: (event) => {
+				if (event.type === 'event') {
+					events.push(event.event)
+					return
+				}
+				if (event.type === 'eose') {
+					settle(() => resolve(events))
+					return
+				}
+				settle(
+					() => reject(new Error(`Nostr relay snapshot closed: ${event.reason}`)),
+					false
+				)
+			},
+		})
+		if (querySignal.aborted)
+			abort()
+	})
+}
+
 export const openRelaySubscription = ({
 	relayUrl,
 	subscriptionId,
