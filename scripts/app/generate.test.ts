@@ -3133,7 +3133,8 @@ test('emits every source-axis enum and only valid enum references in provider ro
 	}
 	assert.match(renderedSourceBinding, /return Object\.groupBy\(bindings, \(\{ source \}\) => source\)/)
 	assert.match(renderedSourceBinding, /if \(bindings\.length === 0\)/)
-	assert.doesNotMatch(renderedSourceBinding, /sourceBindings\.length === 1|Object\.fromEntries\(/)
+	assert.doesNotMatch(renderedSourceBinding, /sourceBindings\.length === 1/)
+	assert.match(renderedSourceBinding, /export function mergeSourceBindingIndexes<[\s\S]*?Each source must belong to exactly one provider binding index[\s\S]*?return Object\.fromEntries\(entries\)/)
 
 	for (const providerBindingPath of [
 		'src/sources/Envio/bindings.ts',

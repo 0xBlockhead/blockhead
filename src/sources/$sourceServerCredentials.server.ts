@@ -5,10 +5,14 @@ import { Source } from '$/sources/Source.ts'
 import {
 	sourceBindingId,
 	SourceCredentialScope,
+	type SourceBinding,
 	type SourceServerCredentialDefinition,
 } from '$/sources/SourceBinding.ts'
 
-const runtimeSecretBindingCandidates = sourceBindings.filter(({ credentials }) => credentials.some(({ scope, keys }) => (
+const runtimeSecretBindingCandidates = sourceBindings.filter(({ credentials }: SourceBinding) => credentials.some(({
+	keys,
+	scope,
+}) => (
 	scope === SourceCredentialScope.RuntimeSecret
 	&& keys == null
 	)))

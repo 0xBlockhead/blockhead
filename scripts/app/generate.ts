@@ -7344,6 +7344,17 @@ type SourceBindingIndexFrom<
 			SourceBindingsFor<_Bindings, _Source>
 	}>
 
+type UnionToIntersection<_Union> = (
+	_Union extends unknown ? (_value: _Union) => void : never
+) extends ((_value: infer _Intersection) => void) ? _Intersection : never
+
+type MergedSourceBindingIndex<
+	_Indexes extends readonly SourceBindingIndex[],
+> = UnionToIntersection<_Indexes[number]> extends infer _Index extends SourceBindingIndex ?
+	_Index
+:
+	never
+
 // Native map/flatMap erase the nonempty target catalogs authored by APP.ts.
 // These overloads retain that cardinality so indexed source keys stay required.
 type SourceBindingsFromRows<
@@ -7397,6 +7408,21 @@ export function indexSourceBindings(
 		throw new Error('Source binding indexes must not contain duplicate stable identities')
 
 	return Object.groupBy(bindings, ({ source }) => source)
+}
+
+export function mergeSourceBindingIndexes<
+	const _Indexes extends readonly SourceBindingIndex[],
+>(
+	...indexes: _Indexes
+): MergedSourceBindingIndex<_Indexes>
+export function mergeSourceBindingIndexes(
+	...indexes: readonly SourceBindingIndex[]
+): SourceBindingIndex {
+	const entries = indexes.flatMap((index) => Object.entries(index))
+	if (new Set(entries.map(([source]) => source)).size !== entries.length)
+		throw new Error('Each source must belong to exactly one provider binding index')
+
+	return Object.fromEntries(entries)
 }`),
 		],
 	}
@@ -8187,6 +8213,7 @@ const generateSourceProvidersFile = (sourceProviderNames: readonly string[]) => 
 			})),
 			{
 				from: './SourceBinding.ts',
+				names: ['mergeSourceBindingIndexes'],
 				typeNames: ['CompleteSourceBindingIndex'],
 			},
 			{
@@ -8201,8 +8228,8 @@ const generateSourceProvidersFile = (sourceProviderNames: readonly string[]) => 
 			'',
 			'export default sourceProviders',
 			'',
-			'export const sourceBindingsBySource = Object.fromEntries(',
-			'\tsourceProviders.flatMap(({ bindings }) => Object.entries(bindings))',
+			'export const sourceBindingsBySource = mergeSourceBindingIndexes(',
+			'\t...sourceProviders.map(({ bindings }) => bindings)',
 			') satisfies CompleteSourceBindingIndex',
 			'',
 			'export const sourceBindings = Object.values(sourceBindingsBySource).flat()',
@@ -8257,12 +8284,16 @@ const generateSourceServerCredentialsFile = (
 						'SourceCredentialScope',
 					],
 					typeNames: [
+						'SourceBinding',
 						'SourceServerCredentialDefinition',
 					],
 				},
 			],
 			body: [
-				'const runtimeSecretBindingCandidates = sourceBindings.filter(({ credentials }) => credentials.some(({ scope, keys }) => (',
+				'const runtimeSecretBindingCandidates = sourceBindings.filter(({ credentials }: SourceBinding) => credentials.some(({',
+				'\tkeys,',
+				'\tscope,',
+				'}) => (',
 				'\tscope === SourceCredentialScope.RuntimeSecret',
 				'\t&& keys == null',
 				'\t)))',

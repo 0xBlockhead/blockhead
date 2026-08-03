@@ -188,7 +188,7 @@ import snapchainSourceProvider from './Snapchain/index.ts'
 import snapshotHubSourceProvider from './SnapshotHub/index.ts'
 import solanaMobileWalletAdapterSourceProvider from './SolanaMobileWalletAdapter/index.ts'
 import solanaSimdsSourceProvider from './SolanaSimds/index.ts'
-import type { CompleteSourceBindingIndex } from './SourceBinding.ts'
+import { mergeSourceBindingIndexes, type CompleteSourceBindingIndex } from './SourceBinding.ts'
 import type { SourceProviderDefinition } from './SourceProviderDefinition.ts'
 import sourcifySourceProvider from './Sourcify/index.ts'
 import spaceAndTimeSourceProvider from './SpaceAndTime/index.ts'
@@ -494,8 +494,8 @@ const sourceProviders = [
 
 export default sourceProviders
 
-export const sourceBindingsBySource = Object.fromEntries(
-	sourceProviders.flatMap(({ bindings }) => Object.entries(bindings))
+export const sourceBindingsBySource = mergeSourceBindingIndexes(
+	...sourceProviders.map(({ bindings }) => bindings)
 ) satisfies CompleteSourceBindingIndex
 
 export const sourceBindings = Object.values(sourceBindingsBySource).flat()

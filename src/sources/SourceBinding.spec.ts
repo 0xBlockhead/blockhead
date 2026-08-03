@@ -20,6 +20,7 @@ import {
 	SourceTargetKind,
 	WireProtocol,
 	indexSourceBindings,
+	mergeSourceBindingIndexes,
 	sourceBindingId,
 	sourceEndpointOrigin,
 	type SourceBinding,
@@ -59,6 +60,15 @@ describe('source binding indexes', () => {
 		expect(() => indexSourceBindings([binding, binding].flatMap((binding) => [binding])))
 			.toThrow('must not contain duplicate stable identities')
 		expect(() => indexSourceBindings([])).toThrow('must contain at least one binding')
+	})
+
+	it('rejects one source owned by multiple provider binding indexes', () => {
+		const binding = sourceBindings[0]
+
+		expect(() => mergeSourceBindingIndexes(
+			indexSourceBindings([binding]),
+			indexSourceBindings([binding])
+		)).toThrow('Each source must belong to exactly one provider binding index')
 	})
 
 	it('derives binding identity from only the five stable selection axes', () => {
