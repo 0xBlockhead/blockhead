@@ -59,7 +59,6 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Constants_Internal,
-			Source.NostrBand_Rest,
 		],
 	},
 	$$observedNotes: {
@@ -67,7 +66,6 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Constants_Internal,
-			Source.NostrBand_Rest,
 		],
 	},
 	$$observedRelays: {
@@ -75,25 +73,27 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Constants_Internal,
-			Source.NostrBand_Rest,
 		],
 	},
 	$$observedReposts: {
 		entityType: EntityType.NostrRepost,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.NostrBand_Rest,
+			Source.Constants_Internal,
 		],
 	},
 	$$observedReactions: {
 		entityType: EntityType.NostrReaction,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$observedArticles: {
 		entityType: EntityType.NostrArticle,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.NostrBand_Rest,
+			Source.Constants_Internal,
 		],
 	},
 	$$timestamps: {

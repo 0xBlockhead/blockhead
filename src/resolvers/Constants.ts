@@ -1770,38 +1770,44 @@ export default {
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => ({
-						docsUrl: 'https://github.com/nostr-protocol/nips',
-						homeUrl: 'https://nostr.com',
-						protocolName: 'Nostr',
-						registryName: 'Nostr public relay and indexer source window',
-						relationshipModel: 'Profiles, notes, reposts, reactions, and articles are signed events. Relays are WebSocket transports; they do not imply a single global canonical database.',
-						$$observedProfiles: nostrNetworkSeedProfiles.slice(0, resolverContextRowLimit(context)).map((profile) => ({
-							[EntityMetaKey.Selector]: {
-								pubkey: profile.pubkey,
-							},
-						})),
+						$$observedArticles: [],
 						$$observedNotes: nostrNetworkSeedNotes.slice(0, resolverContextRowLimit(context)).map((note) => ({
 							[EntityMetaKey.Selector]: {
 								eventId: note.eventId,
 							},
 						})),
+						$$observedProfiles: nostrNetworkSeedProfiles.slice(0, resolverContextRowLimit(context)).map((profile) => ({
+							[EntityMetaKey.Selector]: {
+								pubkey: profile.pubkey,
+							},
+						})),
+						$$observedReactions: [],
 						$$observedRelays: nostrNetworkSeedRelays.slice(0, resolverContextRowLimit(context)).map((relay) => ({
 							[EntityMetaKey.Selector]: {
 								relayUrl: relay.relayUrl,
 							},
 						})),
+						$$observedReposts: [],
+						docsUrl: 'https://github.com/nostr-protocol/nips',
+						homeUrl: 'https://nostr.com',
+						protocolName: 'Nostr',
+						registryName: 'Nostr public relay and indexer source window',
+						relationshipModel: 'Profiles, notes, reposts, reactions, and articles are signed events. Relays are WebSocket transports; they do not imply a single global canonical database.',
 					}),
 				}
 			},
 		})({
+				$$observedArticles: (network) => network.$$observedArticles,
+				$$observedNotes: (network) => network.$$observedNotes,
+				$$observedProfiles: (network) => network.$$observedProfiles,
+				$$observedReactions: (network) => network.$$observedReactions,
+				$$observedRelays: (network) => network.$$observedRelays,
+				$$observedReposts: (network) => network.$$observedReposts,
+				docsUrl: (network) => network.docsUrl,
+				homeUrl: (network) => network.homeUrl,
 				protocolName: (network) => network.protocolName,
 				registryName: (network) => network.registryName,
-				homeUrl: (network) => network.homeUrl,
-				docsUrl: (network) => network.docsUrl,
 				relationshipModel: (network) => network.relationshipModel,
-				$$observedProfiles: (network) => network.$$observedProfiles,
-				$$observedNotes: (network) => network.$$observedNotes,
-				$$observedRelays: (network) => network.$$observedRelays,
 			}),
 
 		defineResolver({
