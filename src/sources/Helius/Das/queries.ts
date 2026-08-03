@@ -72,7 +72,8 @@ export const getAssetsByOwner = async ({
 					ownerAddress,
 					limit,
 					...pagination,
-					options: {
+					// Helius's direct DAS wire names its provider extension `displayOptions`.
+					displayOptions: {
 						showFungible: true,
 					},
 				},

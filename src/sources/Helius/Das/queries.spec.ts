@@ -115,7 +115,7 @@ describe('Helius Metaplex DAS transport', () => {
 						ownerAddress,
 						limit: 1,
 						page: 1,
-						options: {
+						displayOptions: {
 							showFungible: true,
 						},
 					},
