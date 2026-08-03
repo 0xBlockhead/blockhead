@@ -2069,37 +2069,86 @@ const renderConditionedEntityLines = (
 	]
 }
 
-const expressionChildren = (expression: _Expression): readonly _Expression[] => {
-	if (typeof expression === 'string' || 'raw' in expression)
-		return []
-	if (expression.kind === 'object')
-		return expression.fields.map((field) => field.value)
-	if (expression.kind === 'selector')
-		return expression.params.flatMap((param) => (
-			'value' in param ?
-				[
-					param.value,
-					...(param.hrefValue == null ? [] : [param.hrefValue]),
-				]
-			:
-				[]
-		))
-	if (expression.kind === 'property')
-		return [expression.value]
-	if (expression.kind === 'catalogIndex')
-		return expression.key == null ? [] : [expression.key]
-	if (expression.kind === 'call')
-		return expression.args
-	if (expression.kind === 'template')
-		return expression.parts.filter((part): part is _Expression => typeof part !== 'string')
-	if (expression.kind === 'case')
-		return [
-			expression.value,
-			...expression.cases.map((item) => item.value),
-			expression.default,
-		]
+type ExpressionChildRole =
+	| readonly ['objectField', name: string]
+	| readonly ['selectorValue', entity: EntityType, field: string]
+	| readonly ['selectorHrefValue' | 'caseResult' | 'ordinary']
 
-	return []
+// Rebuild every recursive _Expression edge so transforms do not reimplement its grammar.
+const mapExpressionChildren = (
+	expression: _Expression,
+	mapChild: (child: _Expression, role: ExpressionChildRole) => _Expression
+) => {
+	if (typeof expression === 'string' || 'raw' in expression)
+		return expression
+	if (expression.kind === 'object')
+		return {
+			...expression,
+			fields: expression.fields.map((field) => ({
+				...field,
+				value: mapChild(field.value, ['objectField', field.name]),
+			})),
+		}
+	if (expression.kind === 'selector')
+		return {
+			...expression,
+			params: expression.params.map((param) => 'value' in param ? {
+				...param,
+				value: mapChild(param.value, ['selectorValue', expression.entity, param.field]),
+				...(param.hrefValue == null ? {} : {
+					hrefValue: mapChild(param.hrefValue, ['selectorHrefValue']),
+				}),
+			} : param),
+		}
+	if (expression.kind === 'property')
+		return {
+			...expression,
+			value: mapChild(expression.value, ['ordinary']),
+		}
+	if (expression.kind === 'catalogIndex')
+		return {
+			...expression,
+			...(expression.key == null ? {} : {
+				key: mapChild(expression.key, ['ordinary']),
+			}),
+		}
+	if (expression.kind === 'call')
+		return {
+			...expression,
+			args: expression.args.map((argument) => mapChild(argument, ['ordinary'])),
+		}
+	if (expression.kind === 'template')
+		return {
+			...expression,
+			parts: expression.parts.map((part) => (
+				typeof part === 'string' ? part : mapChild(part, ['ordinary'])
+			)),
+		}
+	if (expression.kind === 'case')
+		return {
+			...expression,
+			value: mapChild(expression.value, ['ordinary']),
+			cases: expression.cases.map((item) => ({
+				...item,
+				value: mapChild(item.value, ['caseResult']),
+			})),
+			default: mapChild(expression.default, ['caseResult']),
+		}
+
+	return expression
+}
+
+const expressionChildren = (
+	expression: _Expression,
+	includeChild: (child: _Expression, role: ExpressionChildRole) => boolean = () => true
+) => {
+	const children: _Expression[] = []
+	mapExpressionChildren(expression, (child, role) => (
+		includeChild(child, role) && children.push(child),
+		child
+	))
+
+	return children
 }
 
 const expressionImports = (expression: _Expression, imports = new Map<string, Set<string>>()) => {
@@ -2135,35 +2184,16 @@ const uniqueFieldPaths = (fieldPaths: string[][]) => [...new Map(
 	fieldPaths.map((fieldPath) => [fieldPath.join('\0'), fieldPath])
 ).values()]
 
-const expressionFieldPaths = (expression: _Expression): string[][] => {
-	if (typeof expression === 'string' || 'raw' in expression)
-		return []
-	if (expression.kind === 'field')
-		return [[expression.name]]
-	if (expression.kind === 'property')
-		return expressionFieldPaths(expression.value).map((fieldPath) => [...fieldPath, expression.property])
-	if (expression.kind === 'object')
-		return uniqueFieldPaths(expression.fields.flatMap((field) => expressionFieldPaths(field.value)))
-	if (expression.kind === 'selector')
-		return uniqueFieldPaths(expression.params.flatMap((param) => 'value' in param ? expressionFieldPaths(param.value) : []))
-	if (expression.kind === 'catalogIndex')
-		return uniqueFieldPaths([
-			...(expression.field == null ? [] : [[expression.field]]),
-			...(expression.key == null ? [] : expressionFieldPaths(expression.key)),
-		])
-	if (expression.kind === 'call')
-		return uniqueFieldPaths(expression.args.flatMap((argument) => expressionFieldPaths(argument)))
-	if (expression.kind === 'template')
-		return uniqueFieldPaths(expression.parts.flatMap((part) => typeof part === 'string' ? [] : expressionFieldPaths(part)))
-	if (expression.kind === 'case')
-		return uniqueFieldPaths([
-			...expressionFieldPaths(expression.value),
-			...expression.cases.flatMap((item) => expressionFieldPaths(item.value)),
-			...expressionFieldPaths(expression.default),
-		])
-
-	return []
-}
+const expressionFieldPaths = (expression: _Expression): string[][] => (
+	typeof expression === 'string' || 'raw' in expression ? []
+	: expression.kind === 'field' ? [[expression.name]]
+	: expression.kind === 'property' ? expressionFieldPaths(expression.value).map((fieldPath) => [...fieldPath, expression.property])
+	: uniqueFieldPaths([
+		...(expression.kind === 'catalogIndex' && expression.field != null ? [[expression.field]] : []),
+		...expressionChildren(expression, (_, [role]) => role !== 'selectorHrefValue')
+			.flatMap(expressionFieldPaths),
+	])
+)
 
 // Groups retain route-candidate identity and specificity while their terms
 // retain the atomic logic needed for rendering without reparsing TypeScript.
@@ -2762,11 +2792,11 @@ const resolveRouteParamFieldPath = (
 const routeExpressionThroughReference = (
 	expression: _Expression,
 	referenceField: string
-): _Expression => {
-	if (typeof expression === 'string' || 'raw' in expression)
-		return expression
-	if (expression.kind === 'field')
-		return {
+): _Expression => (
+	typeof expression === 'string' || 'raw' in expression ?
+		expression
+	: expression.kind === 'field' ?
+		{
 			kind: 'property',
 			value: {
 				kind: 'field',
@@ -2774,61 +2804,11 @@ const routeExpressionThroughReference = (
 			},
 			property: expression.name,
 		}
-	if (expression.kind === 'property')
-		return {
-			...expression,
-			value: routeExpressionThroughReference(expression.value, referenceField),
-		}
-	if (expression.kind === 'template')
-		return {
-			...expression,
-			parts: expression.parts.map((part) => (
-				typeof part === 'string' ? part : routeExpressionThroughReference(part, referenceField)
-			)),
-		}
-	if (expression.kind === 'call')
-		return {
-			...expression,
-			args: expression.args.map((argument) => routeExpressionThroughReference(argument, referenceField)),
-		}
-	if (expression.kind === 'catalogIndex')
-		return {
-			...expression,
-			...(expression.key == null ? {} : {
-				key: routeExpressionThroughReference(expression.key, referenceField),
-			}),
-		}
-	if (expression.kind === 'object')
-		return {
-			...expression,
-			fields: expression.fields.map((field) => ({
-				...field,
-				value: routeExpressionThroughReference(field.value, referenceField),
-			})),
-		}
-	if (expression.kind === 'selector')
-		return {
-			...expression,
-			params: expression.params.map((param) => (
-				'value' in param ? {
-					...param,
-					value: routeExpressionThroughReference(param.value, referenceField),
-				} : param
-			)),
-		}
-	if (expression.kind === 'case')
-		return {
-			...expression,
-			value: routeExpressionThroughReference(expression.value, referenceField),
-			cases: expression.cases.map((item) => ({
-				...item,
-				value: routeExpressionThroughReference(item.value, referenceField),
-			})),
-			default: routeExpressionThroughReference(expression.default, referenceField),
-		}
-
-	return expression
-}
+	:
+		mapExpressionChildren(expression, (child, role) => (
+		role[0] === 'selectorHrefValue' ? child : routeExpressionThroughReference(child, referenceField)
+		))
+)
 
 const routeParamValuesFromExpression = (
 	expression: _Expression,
@@ -2904,35 +2884,15 @@ const routeParamValuesFromExpression = (
 	return []
 }
 
-const routeParamNamesFromExpression = (expression: _Expression): string[] => {
-	if (typeof expression === 'string' || 'raw' in expression)
-		return []
-	if (expression.kind === 'param')
-		return [expression.name]
-	if (expression.kind === 'object')
-		return unique(expression.fields.flatMap((field) => routeParamNamesFromExpression(field.value)))
-	if (expression.kind === 'selector')
-		return unique(expression.params.flatMap((param) => (
-			'value' in param ? routeParamNamesFromExpression(param.value) : [param.param]
-		)))
-	if (expression.kind === 'catalogIndex')
-		return unique([
-			...(expression.param == null ? [] : [expression.param]),
-			...(expression.key == null ? [] : routeParamNamesFromExpression(expression.key)),
-		])
-	if (expression.kind === 'call')
-		return unique(expression.args.flatMap(routeParamNamesFromExpression))
-	if (expression.kind === 'template')
-		return unique(expression.parts.flatMap((part) => typeof part === 'string' ? [] : routeParamNamesFromExpression(part)))
-	if (expression.kind === 'case')
-		return unique([
-			...routeParamNamesFromExpression(expression.value),
-			...expression.cases.flatMap((item) => routeParamNamesFromExpression(item.value)),
-			...routeParamNamesFromExpression(expression.default),
-		])
-
-	return []
-}
+const routeParamNamesFromExpression = (expression: _Expression): string[] => (
+	typeof expression === 'string' || 'raw' in expression ? [] : unique([
+		...(expression.kind === 'param' ? [expression.name] : []),
+		...(expression.kind === 'catalogIndex' && expression.param != null ? [expression.param] : []),
+		...(expression.kind === 'selector' ? expression.params.flatMap((param) => 'value' in param ? [] : [param.param]) : []),
+		...expressionChildren(expression, (_, [role]) => role !== 'selectorHrefValue')
+			.flatMap(routeParamNamesFromExpression),
+	])
+)
 
 const validateRouteParamDecode = (
 	paramName: string,
@@ -2976,62 +2936,27 @@ const normalizeRouteParamDecodes = (
 			decode,
 		}
 	}
-	if (expression.kind === 'object') {
-		const referencedEntity = expectedField?.type === EntityFieldType.EntityReference && expectedField.entityType != null ?
-			entityByType?.[expectedField.entityType]
-		:
-			undefined
-		const objectDecodeByParam = expectedField?.type === EntityFieldType.Primitive ?
-			new Map<string, _ExpressionDecode | _RouteParamTransform | undefined>(
-				routeParamNamesFromExpression(expression).map((name) => [name, undefined])
-			)
-		:
-			decodeByParam
 
-		return {
-			...expression,
-			fields: expression.fields.map((field) => ({
-				...field,
-				value: normalizeRouteParamDecodes(
-					field.value,
-					objectDecodeByParam,
-					owner,
-					entityByType,
-					valueTypeById,
-					referencedEntity?.fields.find((candidate) => candidate.name === field.name)
-				),
-			})),
-		}
-	}
-	if (expression.kind === 'selector')
-		return {
+	const referencedEntity = expression.kind === 'object'
+		&& expectedField?.type === EntityFieldType.EntityReference
+		&& expectedField.entityType != null ?
+		entityByType?.[expectedField.entityType]
+	:
+		undefined
+	const objectDecodeByParam = expression.kind === 'object' && expectedField?.type === EntityFieldType.Primitive ?
+		new Map<string, _ExpressionDecode | _RouteParamTransform | undefined>()
+	:
+		decodeByParam
+	return mapExpressionChildren(
+		expression.kind === 'selector' ? {
 			...expression,
 			params: expression.params.map((param) => {
+				if ('value' in param)
+					return param
+
 				const selectorField = entityByType
 					?.[expression.entity]
 					?.fields.find((field) => field.name === param.field)
-				if ('value' in param) {
-					return {
-						...param,
-						value: normalizeRouteParamDecodes(
-							param.value,
-							decodeByParam,
-							owner,
-							entityByType,
-							valueTypeById,
-							selectorField
-						),
-						...(param.hrefValue == null ? {} : {
-							hrefValue: normalizeRouteParamDecodes(
-								param.hrefValue,
-								decodeByParam,
-								owner,
-								entityByType,
-								valueTypeById
-							),
-						}),
-					}
-				}
 				const decode = selectorField?.type === EntityFieldType.Primitive && selectorField.valueType != null ?
 					valueTypeById?.[selectorField.valueType]?.routeParam?.decode
 				:
@@ -3043,53 +2968,30 @@ const normalizeRouteParamDecodes = (
 					decode,
 				}
 			}),
-		}
-	if (expression.kind === 'property')
-		return {
+		} : expression.kind === 'catalogIndex' && expression.param != null ? {
 			...expression,
-			value: normalizeRouteParamDecodes(expression.value, decodeByParam, owner, entityByType, valueTypeById),
-		}
-	if (expression.kind === 'catalogIndex') {
-		const param = expression.param
-		return {
-			...expression,
-			...(param == null ? {} : { param: undefined }),
-			...(param == null && expression.key == null ? {} : {
-				key: normalizeRouteParamDecodes(
-					expression.key ?? {
-						kind: 'param',
-						name: param ?? '',
-					},
-					decodeByParam,
-					owner,
-					entityByType,
-					valueTypeById
-				),
-			}),
-		}
-	}
-	if (expression.kind === 'call')
-		return {
-			...expression,
-			args: expression.args.map((argument) => normalizeRouteParamDecodes(argument, decodeByParam, owner, entityByType, valueTypeById)),
-		}
-	if (expression.kind === 'template')
-		return {
-			...expression,
-			parts: expression.parts.map((part) => typeof part === 'string' ? part : normalizeRouteParamDecodes(part, decodeByParam, owner, entityByType, valueTypeById)),
-		}
-	if (expression.kind === 'case')
-		return {
-			...expression,
-			value: normalizeRouteParamDecodes(expression.value, decodeByParam, owner, entityByType, valueTypeById),
-			cases: expression.cases.map((item) => ({
-				...item,
-				value: normalizeRouteParamDecodes(item.value, decodeByParam, owner, entityByType, valueTypeById, expectedField),
-			})),
-			default: normalizeRouteParamDecodes(expression.default, decodeByParam, owner, entityByType, valueTypeById, expectedField),
-		}
-
-	return expression
+			param: undefined,
+			key: expression.key ?? {
+				kind: 'param',
+				name: expression.param,
+			},
+		} : expression,
+		(child, role) => normalizeRouteParamDecodes(
+			child,
+			role[0] === 'objectField' ? objectDecodeByParam : decodeByParam,
+			owner,
+			entityByType,
+			valueTypeById,
+			role[0] === 'objectField' ?
+				referencedEntity?.fields.find((candidate) => candidate.name === role[1])
+			: role[0] === 'selectorValue' ?
+				entityByType?.[role[1]]?.fields.find((field) => field.name === role[2])
+			: role[0] === 'caseResult' ?
+				expectedField
+			:
+				undefined
+		)
+	)
 }
 
 const indexRouteParamValueTypes = (
