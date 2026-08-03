@@ -5498,6 +5498,14 @@ test('normalizes nullish expressions without reparsing rendered text', () => {
 	assert.doesNotMatch(generatorSource, /parenthesizedNullishExpression|renderNullishExpression\(renderNullishExpression/)
 })
 
+test('derives reserved local identifiers from TypeScript syntax', () => {
+	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
+
+	assert.doesNotMatch(generatorSource, /javascriptReservedWords/)
+	assert.match(generatorSource, /ts\.stringToToken\(identifier\)/)
+	assert.match(generatorSource, /FirstKeyword[\s\S]*?LastReservedWord[\s\S]*?FirstFutureReservedWord[\s\S]*?LastFutureReservedWord[\s\S]*?AwaitKeyword[\s\S]*?UndefinedKeyword/)
+})
+
 test('rejects undeclared regular and selector-variant route parameters upstream', () => {
 	const regularParamApp = structuredClone(app)
 	const networkMapping = regularParamApp.routes.children['(explore)']?.children?.['(networks)']?.children?.network?.children?.['[network]']?.selectors?.[EntityType.Network]?.Caip2

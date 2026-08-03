@@ -835,49 +835,6 @@ const routeMatcherImport = (matcher: string) => ({
 	}],
 })
 
-const javascriptReservedWords = new Set([
-	'await',
-	'break',
-	'case',
-	'catch',
-	'class',
-	'const',
-	'continue',
-	'debugger',
-	'default',
-	'delete',
-	'do',
-	'else',
-	'enum',
-	'export',
-	'extends',
-	'false',
-	'finally',
-	'for',
-	'function',
-	'if',
-	'import',
-	'in',
-	'instanceof',
-	'new',
-	'null',
-	'private',
-	'return',
-	'super',
-	'switch',
-	'this',
-	'throw',
-	'true',
-	'try',
-	'typeof',
-	'undefined',
-	'var',
-	'void',
-	'while',
-	'with',
-	'yield',
-])
-
 const svelteKitResourceFieldNames = [
 	'catch',
 	'current',
@@ -905,7 +862,13 @@ const entityProxyResourceFieldNames = new Set([
 
 const localIdentifier = (name: string) => {
 	const identifier = camel(name)
-	return javascriptReservedWords.has(identifier) ? `${identifier}Value` : identifier
+	const token = ts.stringToToken(identifier)
+	return token != null && (
+		token >= ts.SyntaxKind.FirstKeyword && token <= ts.SyntaxKind.LastReservedWord
+		|| token >= ts.SyntaxKind.FirstFutureReservedWord && token <= ts.SyntaxKind.LastFutureReservedWord
+		|| token === ts.SyntaxKind.AwaitKeyword
+		|| token === ts.SyntaxKind.UndefinedKeyword
+	) ? `${identifier}Value` : identifier
 }
 
 const generatedIdentifier = (name: string) => localIdentifier(name.replaceAll(/[^A-Za-z0-9_-]+/g, '-'))
