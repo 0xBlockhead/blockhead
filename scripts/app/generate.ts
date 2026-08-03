@@ -280,7 +280,6 @@ type RouteFixturePlan = {
 	parameterMatcherNames: readonly string[]
 	parameterEncodingByName: Readonly<Partial<Record<string, _RouteParamEncoding>>>
 	mappings: readonly SelectorRouteMapping[]
-	boundaryLiveOptional: boolean
 }
 type CompiledPhysicalRouteFileFacts = { path: string } & (
 	| {
@@ -5823,7 +5822,6 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 				param.encoding == null ? [] : [[param.name, param.encoding]]
 			))),
 			mappings,
-			boundaryLiveOptional: mappings.some((mapping) => mapping.boundaryLiveOptional),
 		}]
 	})
 		.toSorted((left, right) => left.nodeId.localeCompare(right.nodeId, 'en', {
@@ -6057,7 +6055,7 @@ const generateE2eRouteFixtureMetadataFile = (routeFixturePlans: readonly RouteFi
 							mapping,
 							metadata.parameterMatcherNames.length
 						))))],
-						['boundaryLiveOptional', metadata.boundaryLiveOptional ? 'true' : undefined],
+						['boundaryLiveOptional', metadata.mappings.some((mapping) => mapping.boundaryLiveOptional) ? 'true' : undefined],
 					]),
 			]))} as const satisfies Record<string, E2eRouteFixtureMetadata>`,
 			'',
