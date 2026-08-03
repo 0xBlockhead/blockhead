@@ -18,9 +18,6 @@ import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { FarcasterChannel } from '$/sources/Farcaster/Rest/types.ts'
-
-const loadFarcasterQueries = () => import('$/sources/Farcaster/Rest/queries.ts')
-
 const normalizeMediaUrl = (value: string | null | undefined) => {
 	const raw = value ?? ''
 	if (raw.length === 0) return undefined
@@ -106,7 +103,7 @@ const farcasterChannelFields = (channel: FarcasterChannel) => {
 }
 
 const getFarcasterChannel = async (channelId: string) => {
-	const { getChannel } = await loadFarcasterQueries()
+	const { getChannel } = await import('$/sources/Farcaster/Rest/queries.ts')
 	const channel = await getChannel(channelId)
 	if (channel == null)
 		throw new Error('Farcaster_Rest: channel not found')
@@ -125,7 +122,7 @@ export default {
 			resolve: {
 				Fid: {
 					resolve: async ({ fid }) => {
-						const { getPrimaryAddress } = await loadFarcasterQueries()
+						const { getPrimaryAddress } = await import('$/sources/Farcaster/Rest/queries.ts')
 						const ethRaw = await getPrimaryAddress({ fid })
 						const solRaw = await getPrimaryAddress({
 							fid,
@@ -249,7 +246,7 @@ export default {
 			resolve: {
 				UsernameHashPrefix: {
 					resolve: async ({ username, hashPrefix }) => {
-						const { getUserThreadCasts } = await loadFarcasterQueries()
+						const { getUserThreadCasts } = await import('$/sources/Farcaster/Rest/queries.ts')
 						const casts = (await getUserThreadCasts({
 							username,
 							castHashPrefix: hashPrefix,
@@ -438,7 +435,7 @@ export default {
 			resolve: {
 				Scope: {
 					resolve: async (_selector, context) => {
-						const { getAllChannels } = await loadFarcasterQueries()
+						const { getAllChannels } = await import('$/sources/Farcaster/Rest/queries.ts')
 						const channels = await getAllChannels()
 						const offset = context.providerContinuationToken == null ?
 							context.pagination.offset ?? 0

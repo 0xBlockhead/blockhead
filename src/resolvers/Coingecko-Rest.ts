@@ -43,9 +43,6 @@ import type {
 } from '$/sources/Coingecko/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const loadCoingeckoConstants = () => import('$/sources/Coingecko/Rest/constants.ts')
-const loadCoingeckoQueries = () => import('$/sources/Coingecko/Rest/queries.ts')
-
 const coingeckoMarketSpot = (coin: CoingeckoCoin | undefined) => {
 	if (coin == null)
 		return undefined
@@ -176,8 +173,8 @@ const coingeckoSpotMarketSelectorsForCoin = async (
 	catalogCoinId: CoinId,
 	coingeckoId: string
 ) => {
-	const { coinIdByWireId } = await loadCoingeckoConstants()
-	const { getCoinTickers } = await loadCoingeckoQueries()
+	const { coinIdByWireId } = await import('$/sources/Coingecko/Rest/constants.ts')
+	const { getCoinTickers } = await import('$/sources/Coingecko/Rest/queries.ts')
 	const seen = new Set<string>()
 	return (await getCoinTickers({
 		publicEnv,
@@ -208,8 +205,8 @@ const coingeckoDerivativeMarketSelectors = async (
 	const {
 		coingeckoDerivativesExchangeIdByMarketVenueId,
 		coinIdByWireId,
-	} = await loadCoingeckoConstants()
-	const { getDerivativesExchange } = await loadCoingeckoQueries()
+	} = await import('$/sources/Coingecko/Rest/constants.ts')
+	const { getDerivativesExchange } = await import('$/sources/Coingecko/Rest/queries.ts')
 	const seen = new Set<string>()
 	return (await Promise.all(
 		Object.values(MarketVenueId)
@@ -257,7 +254,7 @@ const coingeckoDerivativeTickerForMarket = async (
 	const {
 		coingeckoDerivativesExchangeIdByMarketVenueId,
 		coinIdByWireId,
-	} = await loadCoingeckoConstants()
+	} = await import('$/sources/Coingecko/Rest/constants.ts')
 	const exchangeId = (
 		coingeckoDerivativesExchangeIdByMarketVenueId[
 			market.$marketVenue.marketVenueId
@@ -268,7 +265,7 @@ const coingeckoDerivativeTickerForMarket = async (
 			`Coingecko_Rest: derivatives exchange not mapped for venue ${market.$marketVenue.marketVenueId}`
 		)
 
-	const { getDerivativesExchange } = await loadCoingeckoQueries()
+	const { getDerivativesExchange } = await import('$/sources/Coingecko/Rest/queries.ts')
 	const ticker = (await getDerivativesExchange({
 		publicEnv,
 		id: exchangeId,
@@ -394,7 +391,7 @@ export default {
 			resolve: {
 				CoinId: {
 					resolve: async ({ coinId }, context) => {
-						const { idByCoinId } = await loadCoingeckoConstants()
+						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 						const coingeckoId = idByCoinId[coinId]
 
 						return [
@@ -425,8 +422,8 @@ export default {
 				CoinId: {
 					resolve: async ({ coinId }, context) => {
 						const { coinById } = await import('$/constants/Coin.ts')
-						const { idByCoinId } = await loadCoingeckoConstants()
-						const { getCoin } = await loadCoingeckoQueries()
+						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
+						const { getCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const coingeckoId = idByCoinId[coinId]
 						const coin = await getCoin({
 							publicEnv: context.publicEnv,
@@ -477,8 +474,8 @@ export default {
 			resolve: {
 				CoinTimestampMsSource: {
 					resolve: async ({ $coin, timestampMs: timestampMsSelector }, context) => {
-						const { idByCoinId } = await loadCoingeckoConstants()
-						const { getCoin } = await loadCoingeckoQueries()
+						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
+						const { getCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const coingeckoId = idByCoinId[$coin.coinId]
 						const coin = await getCoin({
 							publicEnv: context.publicEnv,
@@ -526,8 +523,8 @@ export default {
 						const {
 							coingeckoAssetPlatformIdByChainId,
 							coinIdByWireId,
-						} = await loadCoingeckoConstants()
-						const { getCoinByContract } = await loadCoingeckoQueries()
+						} = await import('$/sources/Coingecko/Rest/constants.ts')
+						const { getCoinByContract } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const publicEnv = context.publicEnv
 						const contractAddress = EvmAddress.assert($contract.address.toLowerCase())
 						const caip19 = `eip155:${Number($network.caip2.reference)}/erc20:${contractAddress}`
@@ -587,8 +584,8 @@ export default {
 							throw new Error('Market source: market base must be catalog coin')
 						if (!isSeededCoinCurrencyMarket($market))
 							throw new Error('Coingecko_Rest: Market_Timestamp is catalog coin USD market only')
-						const { idByCoinId } = await loadCoingeckoConstants()
-						const { getCoin } = await loadCoingeckoQueries()
+						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
+						const { getCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const coinId = $market.$base.assetKey
 						const coingeckoId = idByCoinId[coinId]
 						if (feedKey !== coingeckoId)
@@ -641,8 +638,8 @@ export default {
 							throw new Error('Market source: market base must be catalog coin')
 						if (!isSeededCoinCurrencyMarket($market))
 							throw new Error('Coingecko_Rest: OHLC is catalog coin USD market only')
-						const { idByCoinId } = await loadCoingeckoConstants()
-						const { getCoinOhlc } = await loadCoingeckoQueries()
+						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
+						const { getCoinOhlc } = await import('$/sources/Coingecko/Rest/queries.ts')
 						if (timeInterval.unit !== marketOhlcDailyTimeInterval.unit || timeInterval.value !== marketOhlcDailyTimeInterval.value)
 							throw new Error('Coingecko_Rest: OHLC timeInterval must be daily')
 						const coinId = $market.$base.assetKey
@@ -683,8 +680,8 @@ export default {
 			resolve: {
 				Scope: {
 					resolve: async (_globalScopeEntitySelector, context) => {
-						const { coinIdByWireId } = await loadCoingeckoConstants()
-						const { getCoinsMarkets } = await loadCoingeckoQueries()
+						const { coinIdByWireId } = await import('$/sources/Coingecko/Rest/constants.ts')
+						const { getCoinsMarkets } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const lim = Math.min(resolverContextRowLimit(context), 250)
 						const markets = await getCoinsMarkets({
 							publicEnv: context.publicEnv,
@@ -723,8 +720,8 @@ export default {
 						const {
 							coingeckoCatalogCoinIds,
 							idByCoinId,
-						} = await loadCoingeckoConstants()
-						const { getCoin } = await loadCoingeckoQueries()
+						} = await import('$/sources/Coingecko/Rest/constants.ts')
+						const { getCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const lim = resolverContextRowLimit(context)
 						return (
 							(await Promise.all(
@@ -765,8 +762,8 @@ export default {
 						const {
 							coingeckoCatalogCoinIds,
 							idByCoinId,
-						} = await loadCoingeckoConstants()
-						const { getCoinOhlc } = await loadCoingeckoQueries()
+						} = await import('$/sources/Coingecko/Rest/constants.ts')
+						const { getCoinOhlc } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const lim = resolverContextRowLimit(context)
 						return (
 							(await Promise.all(coingeckoCatalogCoinIds
@@ -808,7 +805,7 @@ export default {
 			resolve: {
 				CoinId: {
 					resolve: async ({ coinId }, context) => {
-						const { idByCoinId } = await loadCoingeckoConstants()
+						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 						const { fetchCoinInstanceStubsForCoin } = await import(
 							'$/resolvers/Coingecko/Rest/coinInstances.ts'
 						)
@@ -1010,8 +1007,8 @@ export default {
 							return []
 						if (!isSeededCoinCurrencyMarket(entitySelector))
 							return []
-						const { idByCoinId } = await loadCoingeckoConstants()
-						const { getCoinOhlc } = await loadCoingeckoQueries()
+						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
+						const { getCoinOhlc } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const coinId = entitySelector.$base.assetKey
 						const coingeckoId = idByCoinId[coinId]
 						const lim = resolverContextRowLimit(context)
@@ -1049,8 +1046,8 @@ export default {
 							return []
 						if (!isSeededCoinCurrencyMarket($market))
 							return []
-						const { idByCoinId } = await loadCoingeckoConstants()
-						const { getCoin } = await loadCoingeckoQueries()
+						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
+						const { getCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const coinId = $market.$base.assetKey
 						const coingeckoId = idByCoinId[coinId]
 						const spot = coingeckoMarketSpot(await getCoin({

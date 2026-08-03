@@ -18,9 +18,6 @@ import type {
 	LndInvoice,
 	LndPayment,
 } from '$/sources/LightningLnd/Rest/types.ts'
-
-const loadLightningLndQueries = () => import('$/sources/LightningLnd/Rest/queries.ts')
-
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const lightningNetwork = {
@@ -236,7 +233,7 @@ const paymentTimestampFieldsFromLndPayment = (payment: LndPayment) => ({
 })
 
 const lndChannels = async (context: ResolverContext) => {
-	const { listChannels } = await loadLightningLndQueries()
+	const { listChannels } = await import('$/sources/LightningLnd/Rest/queries.ts')
 	return ((await listChannels({
 		publicEnv: context.publicEnv,
 	})).channels ?? [])
@@ -244,7 +241,7 @@ const lndChannels = async (context: ResolverContext) => {
 }
 
 const lndInfo = async (context: ResolverContext) => {
-	const { getInfo } = await loadLightningLndQueries()
+	const { getInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
 	return getInfo({
 		publicEnv: context.publicEnv,
 	})
@@ -413,7 +410,7 @@ export default {
 				NetworkPaymentHash: {
 					resolve: async ({ $network, paymentHash }, context) => {
 						assertLightningNetwork($network)
-						const { listInvoices } = await loadLightningLndQueries()
+						const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
 						const invoice = (
 							(await listInvoices({
 								publicEnv: context.publicEnv,
@@ -443,7 +440,7 @@ export default {
 					resolve: async ({ $invoice, source }, context) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($invoice.$network)
-						const { listInvoices } = await loadLightningLndQueries()
+						const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
 						const invoice = (
 							(await listInvoices({
 								publicEnv: context.publicEnv,
@@ -473,7 +470,7 @@ export default {
 				NetworkPaymentHash: {
 					resolve: async ({ $network, paymentHash }, context) => {
 						assertLightningNetwork($network)
-						const { listPayments } = await loadLightningLndQueries()
+						const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
 						const payment = (
 							(await listPayments({
 								publicEnv: context.publicEnv,
@@ -500,7 +497,7 @@ export default {
 					resolve: async ({ $payment, source }, context) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($payment.$network)
-						const { listPayments } = await loadLightningLndQueries()
+						const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
 						const payment = (
 							(await listPayments({
 								publicEnv: context.publicEnv,
@@ -568,7 +565,7 @@ export default {
 				Network: {
 					resolve: async ({ $network }, context) => {
 						assertLightningNetwork($network)
-						const { listInvoices } = await loadLightningLndQueries()
+						const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
 						return (
 							(await listInvoices({
 								publicEnv: context.publicEnv,
@@ -601,7 +598,7 @@ export default {
 				Network: {
 					resolve: async ({ $network }, context) => {
 						assertLightningNetwork($network)
-						const { listPayments } = await loadLightningLndQueries()
+						const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
 						return (
 							(await listPayments({
 								publicEnv: context.publicEnv,

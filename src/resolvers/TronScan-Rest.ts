@@ -24,8 +24,6 @@ import type {
 	TronScanTrc20Transfer,
 } from '$/sources/TronScan/Rest/types.ts'
 
-const loadTronScanQueries = () => import('$/sources/TronScan/Rest/queries.ts')
-
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const tronMainnetCaip2 = {
@@ -434,7 +432,7 @@ export default {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, height }) => {
 						assertTronMainnet($network)
-						const { getBlock } = await loadTronScanQueries()
+						const { getBlock } = await import('$/sources/TronScan/Rest/queries.ts')
 						const block = (await getBlock(
 							height
 						)).data.at(0)
@@ -461,7 +459,7 @@ export default {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, address }) => {
 						assertTronMainnet($network)
-						const { getAccount } = await loadTronScanQueries()
+						const { getAccount } = await import('$/sources/TronScan/Rest/queries.ts')
 						const account = await getAccount(address)
 						return {
 							name: account.name,
@@ -522,7 +520,7 @@ export default {
 								transactions: [],
 							}
 
-						const { getAccountTransactions } = await loadTronScanQueries()
+						const { getAccountTransactions } = await import('$/sources/TronScan/Rest/queries.ts')
 						const page = await getAccountTransactions(
 							address,
 							limit,
@@ -576,7 +574,7 @@ export default {
 					appliesTo: tronAccountTimestampApplicability,
 					resolve: async ({ $account }) => {
 						assertTronMainnet($account.$network)
-						const { getAccount } = await loadTronScanQueries()
+						const { getAccount } = await import('$/sources/TronScan/Rest/queries.ts')
 						const account = await getAccount($account.address)
 						return {
 							balanceSun: bigintFromWire(account.balanceStr ?? account.balance),
@@ -607,7 +605,7 @@ export default {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, transactionId }) => {
 						assertTronMainnet($network)
-						const { getTransaction } = await loadTronScanQueries()
+						const { getTransaction } = await import('$/sources/TronScan/Rest/queries.ts')
 						const detail = await getTransaction(transactionId)
 						return transactionFieldsFromTronScanTransaction(
 							$network,
@@ -638,7 +636,7 @@ export default {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, address }) => {
 						assertTronMainnet($network)
-						const { getContract } = await loadTronScanQueries()
+						const { getContract } = await import('$/sources/TronScan/Rest/queries.ts')
 						const contract = (await getContract(address)).data.at(0)
 						if (contract == null) throw new Error(`TronScan_Rest: contract not found for ${address}`)
 						return contractFieldsFromTronScanContract($network, address, contract)
@@ -661,7 +659,7 @@ export default {
 					appliesTo: tronContractTimestampApplicability,
 					resolve: async ({ $contract }) => {
 						assertTronMainnet($contract.$network)
-						const { getContract } = await loadTronScanQueries()
+						const { getContract } = await import('$/sources/TronScan/Rest/queries.ts')
 						const contract = (await getContract(
 							$contract.address
 						)).data.at(0)
@@ -696,7 +694,7 @@ export default {
 					appliesTo: tronTransactionReferenceApplicability,
 					resolve: async ({ $transaction }) => {
 						assertTronMainnet($transaction.$network)
-						const { getTransaction } = await loadTronScanQueries()
+						const { getTransaction } = await import('$/sources/TronScan/Rest/queries.ts')
 						const transaction = await getTransaction(
 							$transaction.transactionId
 						)
@@ -722,7 +720,7 @@ export default {
 						const {
 							getTokenOverview,
 							getTrc10Token,
-						} = await loadTronScanQueries()
+						} = await import('$/sources/TronScan/Rest/queries.ts')
 						const token = (
 							(await getTokenOverview(tokenId)).tokens[0]
 						?? (await getTrc10Token(tokenId)).data.at(0)
@@ -749,7 +747,7 @@ export default {
 						const {
 							getTokenOverview,
 							getTrc10Token,
-						} = await loadTronScanQueries()
+						} = await import('$/sources/TronScan/Rest/queries.ts')
 						const token = (
 							(await getTokenOverview($token.tokenId)).tokens[0]
 						?? (await getTrc10Token($token.tokenId)).data.at(0)
@@ -779,7 +777,7 @@ export default {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, transactionId, transferIndex }) => {
 						assertTronMainnet($network)
-						const { getTrc20Transfers } = await loadTronScanQueries()
+						const { getTrc20Transfers } = await import('$/sources/TronScan/Rest/queries.ts')
 						const transfer = (
 							(await getTrc20Transfers(
 								transactionId,
@@ -814,7 +812,7 @@ export default {
 					resolve: async ({ $account, $token }, context) => {
 						assertTronMainnet($token.$network)
 						assertTronMainnet($account.$network)
-						const { getAccountTokens } = await loadTronScanQueries()
+						const { getAccountTokens } = await import('$/sources/TronScan/Rest/queries.ts')
 						const token = (await getAccountTokens(
 							$account.address,
 							resolverContextRowLimit(context)
@@ -842,7 +840,7 @@ export default {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, address }, context) => {
 						assertTronMainnet($network)
-						const { getAccountTokens } = await loadTronScanQueries()
+						const { getAccountTokens } = await import('$/sources/TronScan/Rest/queries.ts')
 							return (await getAccountTokens(
 								address,
 								resolverContextRowLimit(context)
@@ -898,7 +896,7 @@ export default {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, transactionId }, context) => {
 						assertTronMainnet($network)
-						const { getTrc20Transfers } = await loadTronScanQueries()
+						const { getTrc20Transfers } = await import('$/sources/TronScan/Rest/queries.ts')
 						return (
 							(await getTrc20Transfers(
 								transactionId,

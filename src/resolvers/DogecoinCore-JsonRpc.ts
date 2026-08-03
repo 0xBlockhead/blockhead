@@ -10,9 +10,6 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-
-const loadDogecoinCoreQueries = () => import('$/sources/DogecoinCore/JsonRpc/queries.ts')
-
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertDogecoinMainnet = (network: NetworkId) => {
@@ -39,7 +36,7 @@ export default {
 				Block: {
 					resolve: async ({ $block }) => {
 						assertDogecoinMainnet($block.$network)
-						const { getBlock } = await loadDogecoinCoreQueries()
+						const { getBlock } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
 						const block = await getBlock({
 							blockHash: $block.hash,
 						})
@@ -86,7 +83,7 @@ export default {
 				AuxPowBranchKind: {
 					resolve: async ({ $auxPow, branchKind }) => {
 						assertDogecoinMainnet($auxPow.$block.$network)
-						const { getBlock } = await loadDogecoinCoreQueries()
+						const { getBlock } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
 						const block = await getBlock({
 							blockHash: $auxPow.$block.hash,
 						})
@@ -123,7 +120,7 @@ export default {
 				AuxPow: {
 					resolve: async ({ $auxPow }) => {
 						assertDogecoinMainnet($auxPow.$block.$network)
-						const { getBlock } = await loadDogecoinCoreQueries()
+						const { getBlock } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
 						const block = await getBlock({
 							blockHash: $auxPow.$block.hash,
 						})
@@ -171,7 +168,7 @@ export default {
 						assertDogecoinMainnet($network)
 						const {
 							getBlock,
-						} = await loadDogecoinCoreQueries()
+						} = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
 						const block = await getBlock({
 							blockHash: hash,
 						})
@@ -238,7 +235,7 @@ export default {
 				NetworkTxId: {
 					resolve: async ({ $network, txId }) => {
 						assertDogecoinMainnet($network)
-						const { getRawTransaction } = await loadDogecoinCoreQueries()
+						const { getRawTransaction } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
 						const transaction = await getRawTransaction({
 							txId: txId,
 						})

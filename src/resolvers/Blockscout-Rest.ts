@@ -44,9 +44,6 @@ import type {
 	BlockscoutUserOperationListItem,
 } from '$/sources/Blockscout/Rest/types.ts'
 
-const loadBlockscoutConstants = () => import('$/sources/Blockscout/Rest/constants.ts')
-const loadBlockscoutQueries = () => import('$/sources/Blockscout/Rest/queries.ts')
-
 type EvmNetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const evmContractRuntimeCodeFromGetCodeHex = (
@@ -651,7 +648,7 @@ const evmTokenTransferEntitiesFromBlockscoutAddressWires = ({
 						evmTokenTransferEntitiesFromBlockscoutWires({
 							$network,
 							txHash: normalizedTxHash,
-							receiptLogs: await (await loadBlockscoutQueries()).getTransactionLogs({
+							receiptLogs: await (await import('$/sources/Blockscout/Rest/queries.ts')).getTransactionLogs({
 								chainId,
 								txHash: normalizedTxHash,
 							}),
@@ -794,14 +791,14 @@ const gasEstimateObservationFromBlockscoutStats = (
 const blockscoutStatsForChain = async (
 	chainId: number
 ) => {
-	const { getStats } = await loadBlockscoutQueries()
+	const { getStats } = await import('$/sources/Blockscout/Rest/queries.ts')
 	return getStats({ chainId })
 }
 
 const blockscoutStatsForNativeCoinId = async (
 	coinId: string
 ) => {
-	const { blockscoutNativeCoinOverrides } = await loadBlockscoutConstants()
+	const { blockscoutNativeCoinOverrides } = await import('$/sources/Blockscout/Rest/constants.ts')
 	for (const chainId of blockscoutGenericReadChainIds) {
 		const nativeCoinId = (
 			blockscoutNativeCoinOverrides.find((override) => override.chainId === chainId)?.nativeCoinId
@@ -905,7 +902,7 @@ export default {
 			resolve: {
 				EvmNetworkBlockNumber: {
 					resolve: async ({ $network, blockNumber }) => {
-						const { getBlockByNumber } = await loadBlockscoutQueries()
+						const { getBlockByNumber } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const chainId = evmChainIdFromNetworkSelector($network)
 						const wire = await getBlockByNumber({
 							chainId,
@@ -980,7 +977,7 @@ export default {
 						const {
 							getTransactionByHash,
 							getTransactionLogs,
-						} = await loadBlockscoutQueries()
+						} = await import('$/sources/Blockscout/Rest/queries.ts')
 						const transaction = await getTransactionByHash({
 							chainId: evmChainIdFromNetworkSelector($network),
 							txHash: txHashSelector,
@@ -1152,7 +1149,7 @@ export default {
 			resolve: {
 				TransactionIndexInTransaction: {
 					resolve: async (entitySelector) => {
-						const { getTransactionLogs } = await loadBlockscoutQueries()
+						const { getTransactionLogs } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const logs = await getTransactionLogs({
 							chainId: evmChainIdFromNetworkSelector(entitySelector.$transaction.$network),
 							txHash: entitySelector.$transaction.txHash,
@@ -1192,11 +1189,11 @@ export default {
 					}, context) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const {
 							getTransactionLogs,
 							getTransactionTokenTransfers,
-						} = await loadBlockscoutQueries()
+						} = await import('$/sources/Blockscout/Rest/queries.ts')
 						return evmTokenTransferEntitiesFromBlockscoutWires({
 							$network: $transaction.$network,
 							txHash: $transaction.txHash,
@@ -1237,11 +1234,11 @@ export default {
 					resolve: async (entitySelector) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const {
 							getTransactionLogs,
 							getTransactionTokenTransfers,
-						} = await loadBlockscoutQueries()
+						} = await import('$/sources/Blockscout/Rest/queries.ts')
 						const wires = await getTransactionTokenTransfers({
 							chainId: evmChainIdFromNetworkSelector(entitySelector.$log.$transaction.$network),
 							txHash: entitySelector.$log.$transaction.txHash,
@@ -1298,7 +1295,7 @@ export default {
 							throw new Error('Blockscout_Rest: EvmCoinInstance requires ERC-20 token contract selector')
 
 						const chainId = evmChainIdFromNetworkSelector($network)
-						const { getAddressDetails } = await loadBlockscoutQueries()
+						const { getAddressDetails } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const detail = await getAddressDetails({
 							chainId,
 							address: $contract.address,
@@ -1345,8 +1342,8 @@ export default {
 					resolve: async (entitySelector) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
-						const { getTransactionInternalTransactions } = await loadBlockscoutQueries()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
+						const { getTransactionInternalTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const wires = await getTransactionInternalTransactions({
 							chainId: evmChainIdFromNetworkSelector(entitySelector.$transaction.$network),
 							txHash: entitySelector.$transaction.txHash,
@@ -1393,7 +1390,7 @@ export default {
 			resolve: {
 				EvmNetworkAddress: {
 					resolve: async (entitySelector) => {
-						const { getErc4337SmartAccountDetail } = await loadBlockscoutQueries()
+						const { getErc4337SmartAccountDetail } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const wire = await getErc4337SmartAccountDetail({
 							chainId: evmChainIdFromNetworkSelector(entitySelector.$network),
 							address: entitySelector.address,
@@ -1436,7 +1433,7 @@ export default {
 					resolve: async ({ $account, timestampMs, source }) => {
 						if (source !== Source.Blockscout_Rest)
 							throw new Error(`Blockscout_Rest: unsupported source ${source}`)
-						const { getErc4337SmartAccountDetail } = await loadBlockscoutQueries()
+						const { getErc4337SmartAccountDetail } = await import('$/sources/Blockscout/Rest/queries.ts')
 
 						return {
 							$account,
@@ -1488,7 +1485,7 @@ export default {
 					resolve: async ({ $network, hash }) => {
 						const {
 							getUserOperationDetail,
-						} = await loadBlockscoutQueries()
+						} = await import('$/sources/Blockscout/Rest/queries.ts')
 						const wire = await getUserOperationDetail({
 							chainId: evmChainIdFromNetworkSelector($network),
 							hash,
@@ -1797,7 +1794,7 @@ export default {
 			resolve: {
 				EvmNetworkEvmAccount: {
 					resolve: async ({ $actor, $network }) => {
-						const { getAddressCounters } = await loadBlockscoutQueries()
+						const { getAddressCounters } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const address = hexLowerOfByteSize($actor.address, 20)
 						if (address == null)
 							throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
@@ -1833,7 +1830,7 @@ export default {
 			resolve: {
 				EvmNetworkBlockNumber: {
 					resolve: async ({ $network, blockNumber }) => {
-						const { getBlockByNumber } = await loadBlockscoutQueries()
+						const { getBlockByNumber } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const wire = await getBlockByNumber({
 							chainId: evmChainIdFromNetworkSelector($network),
 							blockNumber,
@@ -1855,12 +1852,12 @@ export default {
 					resolve: async (entitySelector, context) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const limit = Math.min(
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
-						const { getBlocks } = await loadBlockscoutQueries()
+						const { getBlocks } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const wires = await getBlocks({
 							chainId: evmChainIdFromNetworkSelector(entitySelector),
 							limit,
@@ -1902,12 +1899,12 @@ export default {
 					resolve: async (entitySelector, context) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const limit = Math.min(
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
-						const { getTransactions } = await loadBlockscoutQueries()
+						const { getTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const wires = await getTransactions({
 							chainId: evmChainIdFromNetworkSelector(entitySelector),
 							limit,
@@ -1945,12 +1942,12 @@ export default {
 					resolve: async ({ $actor, $network }, context) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const limit = Math.min(
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
-						const { getAddressTransactions } = await loadBlockscoutQueries()
+						const { getAddressTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const address = hexLowerOfByteSize($actor.address, 20)
 						if (address == null)
 							throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
@@ -1991,10 +1988,10 @@ export default {
 					resolve: async ({ $actor, $network }, context) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const {
 							getAddressTokenTransfers,
-						} = await loadBlockscoutQueries()
+						} = await import('$/sources/Blockscout/Rest/queries.ts')
 						const limit = Math.min(
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
@@ -2027,10 +2024,10 @@ export default {
 					resolve: async ({ $actor, $network }, context) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const {
 							getAddressInternalTransactions,
-						} = await loadBlockscoutQueries()
+						} = await import('$/sources/Blockscout/Rest/queries.ts')
 						const limit = Math.min(
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
@@ -2062,11 +2059,11 @@ export default {
 					resolve: async (entitySelector, context) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const {
 							getTransactionLogs,
 							getTokenTransfers,
-						} = await loadBlockscoutQueries()
+						} = await import('$/sources/Blockscout/Rest/queries.ts')
 						const chainId = evmChainIdFromNetworkSelector(entitySelector)
 						const limit = Math.min(
 							resolverContextRowLimit(context),
@@ -2130,7 +2127,7 @@ export default {
 					resolve: async (entitySelector, context) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const limit = Math.min(
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
@@ -2138,7 +2135,7 @@ export default {
 						const {
 							normalizeAddressFromContractListWire,
 							getSmartContracts,
-						} = await loadBlockscoutQueries()
+						} = await import('$/sources/Blockscout/Rest/queries.ts')
 						const smartContracts = await getSmartContracts({
 							chainId: evmChainIdFromNetworkSelector(entitySelector),
 							limit,
@@ -2174,7 +2171,7 @@ export default {
 					resolve: async (entitySelector, context) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const chainId = evmChainIdFromNetworkSelector(entitySelector)
 						if (!blockscoutAccountAbstractionChainIds.has(chainId))
 							return []
@@ -2183,7 +2180,7 @@ export default {
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
-						const { getErc4337SmartAccountList } = await loadBlockscoutQueries()
+						const { getErc4337SmartAccountList } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const wires = await getErc4337SmartAccountList({
 							chainId,
 							limit,
@@ -2208,7 +2205,7 @@ export default {
 					resolve: async (entitySelector, context) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const chainId = evmChainIdFromNetworkSelector(entitySelector)
 						if (!blockscoutAccountAbstractionChainIds.has(chainId))
 							return []
@@ -2217,7 +2214,7 @@ export default {
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
-						const { getErc4337BundlerList } = await loadBlockscoutQueries()
+						const { getErc4337BundlerList } = await import('$/sources/Blockscout/Rest/queries.ts')
 						return erc4337RegistryEntitiesFromBlockscoutWires({
 							chainId,
 							items: await getErc4337BundlerList({
@@ -2241,7 +2238,7 @@ export default {
 					resolve: async (entitySelector, context) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const chainId = evmChainIdFromNetworkSelector(entitySelector)
 						if (!blockscoutAccountAbstractionChainIds.has(chainId))
 							return []
@@ -2250,7 +2247,7 @@ export default {
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
-						const { getErc4337PaymasterList } = await loadBlockscoutQueries()
+						const { getErc4337PaymasterList } = await import('$/sources/Blockscout/Rest/queries.ts')
 						return erc4337RegistryEntitiesFromBlockscoutWires({
 							chainId,
 							items: await getErc4337PaymasterList({
@@ -2274,7 +2271,7 @@ export default {
 					resolve: async (entitySelector, context) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const chainId = evmChainIdFromNetworkSelector(entitySelector)
 						if (!blockscoutAccountAbstractionChainIds.has(chainId))
 							return []
@@ -2283,7 +2280,7 @@ export default {
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
-						const { getErc4337AccountFactoryList } = await loadBlockscoutQueries()
+						const { getErc4337AccountFactoryList } = await import('$/sources/Blockscout/Rest/queries.ts')
 						return erc4337RegistryEntitiesFromBlockscoutWires({
 							chainId,
 							items: await getErc4337AccountFactoryList({
@@ -2307,7 +2304,7 @@ export default {
 					resolve: async (entitySelector, context) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const chainId = evmChainIdFromNetworkSelector(entitySelector)
 						if (!blockscoutAccountAbstractionChainIds.has(chainId))
 							return []
@@ -2316,7 +2313,7 @@ export default {
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
-						const { getUserOperationsPage } = await loadBlockscoutQueries()
+						const { getUserOperationsPage } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const wires = await getUserOperationsPage({
 							chainId,
 							limit,
@@ -2458,11 +2455,11 @@ export default {
 					resolve: async ({ $network, txHash }, context) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const {
 							getTransactionLogs,
 							getTransactionTokenTransfers,
-						} = await loadBlockscoutQueries()
+						} = await import('$/sources/Blockscout/Rest/queries.ts')
 						const limit = Math.min(
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
@@ -2495,8 +2492,8 @@ export default {
 					resolve: async ({ $network, txHash }, context) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
-						const { getTransactionInternalTransactions } = await loadBlockscoutQueries()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
+						const { getTransactionInternalTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const limit = Math.min(
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
@@ -2527,14 +2524,14 @@ export default {
 					resolve: async ({ $network, txHash }, context) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						if (!blockscoutAccountAbstractionChainIds.has(evmChainIdFromNetworkSelector($network)))
 							return []
 						const limit = Math.min(
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
-						const { getUserOperationsPage } = await loadBlockscoutQueries()
+						const { getUserOperationsPage } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const wires = await getUserOperationsPage({
 							chainId: evmChainIdFromNetworkSelector($network),
 							limit,
@@ -2561,12 +2558,12 @@ export default {
 					resolve: async ({ $network, blockNumber }, context) => {
 						const {
 							blockscoutV2ItemsCountMax,
-						} = await loadBlockscoutConstants()
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const limit = Math.min(
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
-						const { getBlockTransactions } = await loadBlockscoutQueries()
+						const { getBlockTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const wires = await getBlockTransactions({
 							chainId: evmChainIdFromNetworkSelector($network),
 							blockNumber,
@@ -2600,7 +2597,7 @@ export default {
 			resolve: {
 				EvmNetworkAddress: {
 					resolve: async ({ $network, address: addressSelector }) => {
-						const { getAddressDetails } = await loadBlockscoutQueries()
+						const { getAddressDetails } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const address = hexLowerOfByteSize(addressSelector, 20)
 						if (address == null)
 							throw new Error('Blockscout_Rest: address not normalized')
@@ -2641,7 +2638,7 @@ export default {
 			resolve: {
 				EvmNetworkAddress: {
 					resolve: async ({ $network, address: addressSelector }) => {
-						const { getSmartContract } = await loadBlockscoutQueries()
+						const { getSmartContract } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const address = hexLowerOfByteSize(addressSelector, 20)
 						if (address == null)
 							throw new Error('Blockscout_Rest: address not normalized')
@@ -2684,7 +2681,7 @@ export default {
 			resolve: {
 				EvmNetworkAddress: {
 					resolve: async ({ $network, address: addressSelector }) => {
-						const { getCode } = await loadBlockscoutQueries()
+						const { getCode } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const address = hexLowerOfByteSize(addressSelector, 20)
 						if (address == null)
 							throw new Error('Blockscout_Rest: address not normalized')
@@ -2716,7 +2713,7 @@ export default {
 			resolve: {
 				EvmNetworkAddress: {
 					resolve: async ({ $network, address: addressSelector }, context) => {
-						const { getStorageAt } = await loadBlockscoutQueries()
+						const { getStorageAt } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const address = hexLowerOfByteSize(addressSelector, 20)
 						if (address == null)
 							throw new Error('Blockscout_Rest: EvmContract address not normalized')

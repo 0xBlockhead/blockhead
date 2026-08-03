@@ -19,9 +19,6 @@ import type {
 	Eip8004ScanAgentListItem,
 } from '$/sources/Eip8004Scan/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
-
-const loadEip8004ScanQueries = () => import('$/sources/Eip8004Scan/Rest/queries.ts')
-
 const agentFromWire = (row: Eip8004ScanAgentListItem) => {
 	const tokenId = row.token_id.trim()
 	const contractAddress = hexLowerOfByteSize(row.contract_address, 20)
@@ -116,7 +113,7 @@ export default {
 						if (!Number.isSafeInteger(chainId) || chainId <= 0)
 							throw new Error('Eip8004Scan_Rest: invalid registration chain ID')
 
-						const { fetchAgentDetail } = await loadEip8004ScanQueries()
+						const { fetchAgentDetail } = await import('$/sources/Eip8004Scan/Rest/queries.ts')
 						const detail = agentDetailFromWire(
 							(await fetchAgentDetail(
 								{
@@ -185,7 +182,7 @@ export default {
 						if (!Number.isSafeInteger(chainId) || chainId <= 0)
 							throw new Error('Eip8004Scan_Rest: invalid service endpoint chain ID')
 
-						const { fetchAgentDetail } = await loadEip8004ScanQueries()
+						const { fetchAgentDetail } = await import('$/sources/Eip8004Scan/Rest/queries.ts')
 						const detail = agentDetailFromWire(
 							(await fetchAgentDetail(
 								{
@@ -236,7 +233,7 @@ export default {
 				EvmContractTokenId: {
 					resolve: async ({ $contract, tokenId }) => {
 						const chainId = evmChainIdFromNetworkSelector($contract.$network)
-						const { fetchAgentDetail } = await loadEip8004ScanQueries()
+						const { fetchAgentDetail } = await import('$/sources/Eip8004Scan/Rest/queries.ts')
 						const detail = agentDetailFromWire(
 							(await fetchAgentDetail(
 								{
@@ -310,7 +307,7 @@ export default {
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
-						const { fetchAgentList } = await loadEip8004ScanQueries()
+						const { fetchAgentList } = await import('$/sources/Eip8004Scan/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (
 							(await fetchAgentList(

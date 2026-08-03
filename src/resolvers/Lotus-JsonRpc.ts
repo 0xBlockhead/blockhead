@@ -14,8 +14,6 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { LotusTipset } from '$/sources/Lotus/JsonRpc/types.ts'
 
-const loadLotusQueries = () => import('$/sources/Lotus/JsonRpc/queries.ts')
-
 type NetworkSelector = EntitySelector<typeof schema, EntityType.Network>
 
 const assertFilecoinMainnet = (network: NetworkSelector) => {
@@ -41,7 +39,7 @@ const getSelectedTipset = async (
 	selectorTipsetKey: string
 ) => {
 	assertFilecoinMainnet(network)
-	const { getTipSetByHeight } = await loadLotusQueries()
+	const { getTipSetByHeight } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 	const tipset = await getTipSetByHeight({
 		height,
 	})
@@ -128,7 +126,7 @@ const sectorSnapshots = async ({ $network, minerAddress, tipsetKey }: {
 	tipsetKey: LotusTipset['Cids']
 }) => {
 	assertFilecoinMainnet($network)
-	const { getMinerSectors } = await loadLotusQueries()
+	const { getMinerSectors } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 	return (await getMinerSectors({
 		minerAddress,
 		tipsetKey,
@@ -148,7 +146,7 @@ const sectorSnapshots = async ({ $network, minerAddress, tipsetKey }: {
 
 const latestNetworkTimestampReference = async (network: NetworkSelector) => {
 	assertFilecoinMainnet(network)
-	const { getHead } = await loadLotusQueries()
+	const { getHead } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 	const head = await getHead()
 	return [{
 		[EntityMetaKey.Selector]: {
@@ -168,7 +166,7 @@ const recentTipsetReferences = async (
 	const {
 		getTipSetByHeight,
 		getHead,
-	} = await loadLotusQueries()
+	} = await import('$/sources/Lotus/JsonRpc/queries.ts')
 	const head = await getHead()
 	return Promise.all(Array.from({
 		length: Math.min(
@@ -198,7 +196,7 @@ export default {
 				Network: {
 					resolve: async ({ $network }) => {
 						assertFilecoinMainnet($network)
-						const { getRpcEndpoints } = await loadLotusQueries()
+						const { getRpcEndpoints } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						return {
 							$network: {
 								[EntityMetaKey.Selector]: $network,
@@ -219,7 +217,7 @@ export default {
 				Slug: {
 					resolve: async (network) => {
 						assertFilecoinMainnet(network)
-						const { getRpcEndpoints } = await loadLotusQueries()
+						const { getRpcEndpoints } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						return {
 							filecoinRpcEndpoints: getRpcEndpoints(),
 						}
@@ -246,7 +244,7 @@ export default {
 							getMinerPower,
 							getNetworkVersion,
 							getVersion,
-						} = await loadLotusQueries()
+						} = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						const head = await getHead()
 						const [
 							lotusVersion,
@@ -344,7 +342,7 @@ export default {
 				NetworkCid: {
 					resolve: async ({ $network, cid }) => {
 						assertFilecoinMainnet($network)
-						const { getHead } = await loadLotusQueries()
+						const { getHead } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						const head = await getHead()
 						const block = blockSnapshots(
 							$network,
@@ -367,7 +365,7 @@ export default {
 			resolve: {
 				FilecoinMinerSectorNumber: {
 					resolve: async ({ $miner, sectorNumber }) => {
-						const { getHead } = await loadLotusQueries()
+						const { getHead } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						const head = await getHead()
 						const sector = (await sectorSnapshots({
 							...$miner,
@@ -392,7 +390,7 @@ export default {
 				NetworkAddress: {
 					resolve: async ({ $network, address }) => {
 						assertFilecoinMainnet($network)
-						const { getHead } = await loadLotusQueries()
+						const { getHead } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						const head = await getHead()
 						return {
 							$$timestamps: [{
@@ -427,7 +425,7 @@ export default {
 						const {
 							getActor,
 							getIdAddress,
-						} = await loadLotusQueries()
+						} = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						const tipset = await getSelectedTipset($actor.$network, height, selectorTipsetKey)
 						const timestamp = tipset.Blocks.at(0)?.Timestamp
 						if (timestamp == null)
@@ -486,7 +484,7 @@ export default {
 						if (source !== Source.Lotus_JsonRpc)
 							throw new Error(`Lotus_JsonRpc: unsupported sector observation source ${source}`)
 
-						const { getHead } = await loadLotusQueries()
+						const { getHead } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						const head = await getHead()
 						if (head.Blocks[0].Timestamp * 1000 !== timestampMs)
 							throw new Error(`Lotus_JsonRpc: sector observation does not match ${timestampMs.toString()}`)
@@ -523,7 +521,7 @@ export default {
 							getMinerInfo,
 							getMinerPower,
 							getMinerSectorCount,
-						} = await loadLotusQueries()
+						} = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						const head = await getHead()
 						if (BigInt(head.Height) !== height || tipsetKey(head.Cids) !== selectorTipsetKey)
 							throw new Error(`Lotus_JsonRpc: miner observation ${height.toString()}/${selectorTipsetKey} is not the current head`)
@@ -656,7 +654,7 @@ export default {
 			resolve: {
 				NetworkMinerAddress: {
 					resolve: async (entitySelector, context) => {
-						const { getHead } = await loadLotusQueries()
+						const { getHead } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						const head = await getHead()
 						return {
 							sectors: (await sectorSnapshots({

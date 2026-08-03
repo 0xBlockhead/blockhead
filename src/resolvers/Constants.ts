@@ -120,8 +120,6 @@ import { standardPrecompiles } from '$/constants/precompiles/standard.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPoolKind.ts'
 
-const loadEthereumNetworkUpgrades = () => import('$/constants/EthereumNetworkUpgrades.ts')
-
 const blockheadSources = sourceProviders.flatMap(({ provider, sources }) => (
 	Object.entries(sources).map(([source, definition]) => ({
 		id: source,
@@ -459,7 +457,7 @@ export default {
 							networkUpgradeByChainIdAndUpgradeId,
 							networkExecutionUpgradeByChainIdAndUpgradeId,
 							networkConsensusUpgradeByChainIdAndUpgradeId,
-						} = await loadEthereumNetworkUpgrades()
+						} = await import('$/constants/EthereumNetworkUpgrades.ts')
 						const networkUpgradeKey = `${$network.caip2.reference}:${upgradeId}`
 						if (!Object.hasOwn(networkUpgradeByChainIdAndUpgradeId, networkUpgradeKey))
 							throw new Error(`Constants_Internal: NetworkUpgrade ${$network.caip2.reference}:${upgradeId} not found`)
@@ -516,7 +514,7 @@ export default {
 							networkUpgradeByChainIdAndRouteSegment,
 							networkExecutionUpgradeByChainIdAndUpgradeId,
 							networkConsensusUpgradeByChainIdAndUpgradeId,
-						} = await loadEthereumNetworkUpgrades()
+						} = await import('$/constants/EthereumNetworkUpgrades.ts')
 						const networkUpgrade = networkUpgradeByChainIdAndRouteSegment[`${$network.caip2.reference}:${slug}`]
 						if (networkUpgrade == null)
 							throw new Error(`Constants_Internal: NetworkUpgrade ${$network.caip2.reference}:${slug} not found`)
@@ -598,7 +596,7 @@ export default {
 			resolve: {
 				EvmNetworkUpgradeId: {
 					resolve: async ({ $network, upgradeId }) => {
-						const { networkExecutionUpgradeByChainIdAndUpgradeId } = await loadEthereumNetworkUpgrades()
+						const { networkExecutionUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
 						const networkExecutionUpgradeKey = `${$network.caip2.reference}:${upgradeId}`
 						if (!Object.hasOwn(networkExecutionUpgradeByChainIdAndUpgradeId, networkExecutionUpgradeKey))
 							throw new Error(`Constants_Internal: ExecutionUpgrade ${$network.caip2.reference}:${upgradeId} not found`)
@@ -614,7 +612,7 @@ export default {
 				},
 				EvmNetworkSlug: {
 					resolve: async ({ $network, slug }) => {
-						const { networkExecutionUpgradeByChainIdAndRouteSegment } = await loadEthereumNetworkUpgrades()
+						const { networkExecutionUpgradeByChainIdAndRouteSegment } = await import('$/constants/EthereumNetworkUpgrades.ts')
 						const networkExecutionUpgradeKey = `${$network.caip2.reference}:${slug}`
 						if (!Object.hasOwn(networkExecutionUpgradeByChainIdAndRouteSegment, networkExecutionUpgradeKey))
 							throw new Error(`Constants_Internal: ExecutionUpgrade ${$network.caip2.reference}:${slug} not found`)
@@ -654,7 +652,7 @@ export default {
 							networkConsensusUpgradeByChainIdAndUpgradeId,
 							networkExecutionUpgradeByChainIdAndUpgradeId,
 							networkUpgradeByChainIdAndConsensusUpgradeId,
-						} = await loadEthereumNetworkUpgrades()
+						} = await import('$/constants/EthereumNetworkUpgrades.ts')
 						const networkConsensusUpgradeKey = `${$network.caip2.reference}:${upgradeId}`
 						if (!Object.hasOwn(networkConsensusUpgradeByChainIdAndUpgradeId, networkConsensusUpgradeKey))
 							throw new Error(`Constants_Internal: ConsensusUpgrade ${$network.caip2.reference}:${upgradeId} not found`)
@@ -680,7 +678,7 @@ export default {
 							networkConsensusUpgradeByChainIdAndUpgradeId,
 							networkExecutionUpgradeByChainIdAndUpgradeId,
 							networkUpgradeByChainIdAndConsensusUpgradeId,
-						} = await loadEthereumNetworkUpgrades()
+						} = await import('$/constants/EthereumNetworkUpgrades.ts')
 						const networkConsensusUpgradeKey = `${$network.caip2.reference}:${slug}`
 						if (!Object.hasOwn(networkConsensusUpgradeByChainIdAndRouteSegment, networkConsensusUpgradeKey))
 							throw new Error(`Constants_Internal: ConsensusUpgrade ${$network.caip2.reference}:${slug} not found`)
@@ -2267,7 +2265,7 @@ export default {
 							networkUpgrades,
 							networkExecutionUpgradeByChainIdAndUpgradeId,
 							networkConsensusUpgradeByChainIdAndUpgradeId,
-						} = await loadEthereumNetworkUpgrades()
+						} = await import('$/constants/EthereumNetworkUpgrades.ts')
 						return networkUpgrades.map((networkUpgrade) => (
 							evmNetworkUpgradeEntityFromRow(
 								networkUpgrade,
@@ -2874,7 +2872,7 @@ export default {
 							networkUpgradesByChainId,
 							networkExecutionUpgradeByChainIdAndUpgradeId,
 							networkConsensusUpgradeByChainIdAndUpgradeId,
-						} = await loadEthereumNetworkUpgrades()
+						} = await import('$/constants/EthereumNetworkUpgrades.ts')
 						const network = networkBySlug[slug]
 						if (!('caip2' in network))
 							return []
@@ -2895,7 +2893,7 @@ export default {
 							networkUpgradesByChainId,
 							networkExecutionUpgradeByChainIdAndUpgradeId,
 							networkConsensusUpgradeByChainIdAndUpgradeId,
-						} = await loadEthereumNetworkUpgrades()
+						} = await import('$/constants/EthereumNetworkUpgrades.ts')
 						return (networkUpgradesByChainId[Number(caip2.reference)] ?? [])
 							.map((networkUpgrade) => (
 								evmNetworkUpgradeEntityFromRow(
@@ -2918,7 +2916,7 @@ export default {
 			resolve: {
 				Slug: {
 					resolve: async ({ slug }) => {
-						const { networkExecutionUpgradesByChainId } = await loadEthereumNetworkUpgrades()
+						const { networkExecutionUpgradesByChainId } = await import('$/constants/EthereumNetworkUpgrades.ts')
 						const network = networkBySlug[slug]
 						if (!('caip2' in network))
 							return []
@@ -2931,7 +2929,7 @@ export default {
 				},
 				Caip2: {
 					resolve: async ({ caip2 }) => {
-						const { networkExecutionUpgradesByChainId } = await loadEthereumNetworkUpgrades()
+						const { networkExecutionUpgradesByChainId } = await import('$/constants/EthereumNetworkUpgrades.ts')
 						return (
 							networkExecutionUpgradesByChainId[Number(caip2.reference)] ?? []
 						)
@@ -2950,7 +2948,7 @@ export default {
 			resolve: {
 				Slug: {
 					resolve: async ({ slug }) => {
-						const { networkConsensusUpgradesByChainId } = await loadEthereumNetworkUpgrades()
+						const { networkConsensusUpgradesByChainId } = await import('$/constants/EthereumNetworkUpgrades.ts')
 						const network = networkBySlug[slug]
 						if (!('caip2' in network))
 							return []
@@ -2963,7 +2961,7 @@ export default {
 				},
 				Caip2: {
 					resolve: async ({ caip2 }) => {
-						const { networkConsensusUpgradesByChainId } = await loadEthereumNetworkUpgrades()
+						const { networkConsensusUpgradesByChainId } = await import('$/constants/EthereumNetworkUpgrades.ts')
 						return (
 							networkConsensusUpgradesByChainId[Number(caip2.reference)] ?? []
 						)

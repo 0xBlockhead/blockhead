@@ -25,8 +25,6 @@ import {
 	beaconRestByChainId,
 } from '$/sources/Beacon/Rest/queries.ts'
 
-const loadBeaconQueries = () => import('$/sources/Beacon/Rest/queries.ts')
-
 const beaconNetworkApplicability = [...beaconRestByChainId.values()].map(({ chainId }) => ({
 	caip2: {
 		namespace: 'eip155',
@@ -93,7 +91,7 @@ const beaconForkScheduleEntryForNetworkConsensusUpgrade = async (
 	if (activationEpoch == null)
 		return undefined
 
-	const { getForkSchedule } = await loadBeaconQueries()
+	const { getForkSchedule } = await import('$/sources/Beacon/Rest/queries.ts')
 	const schedule = await getForkSchedule(chainId)
 	return schedule.find((forkScheduleEntry) => (
 		Number.parseInt(forkScheduleEntry.epoch, 10) === activationEpoch
@@ -179,7 +177,7 @@ export default {
 				EvmNetworkSlot: {
 					appliesTo: eip155NetworkApplicability,
 					resolve: async ({ $network, slot }) => {
-						const { getHeader } = await loadBeaconQueries()
+						const { getHeader } = await import('$/sources/Beacon/Rest/queries.ts')
 						const header = await getHeader(
 							eip155ChainId($network),
 							slot
@@ -215,7 +213,7 @@ export default {
 				NetworkIndexInNetwork: {
 					appliesTo: eip155NetworkApplicability,
 					resolve: async ({ $network, indexInNetwork }) => {
-						const { getValidatorAtHead } = await loadBeaconQueries()
+						const { getValidatorAtHead } = await import('$/sources/Beacon/Rest/queries.ts')
 						const validator = await getValidatorAtHead(
 							eip155ChainId($network),
 							indexInNetwork
@@ -249,7 +247,7 @@ export default {
 				EvmNetworkSlotIndexInSlot: {
 					appliesTo: eip155NetworkApplicability,
 					resolve: async ({ $network, slot, indexInSlot }) => {
-						const { getCommittees } = await loadBeaconQueries()
+						const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
 						const committee = (
 							await getCommittees(
 								eip155ChainId($network),
@@ -273,7 +271,7 @@ export default {
 				EvmNetworkPeriod: {
 					appliesTo: eip155NetworkApplicability,
 					resolve: async ({ $network }) => {
-						const { getSyncCommittee } = await loadBeaconQueries()
+						const { getSyncCommittee } = await import('$/sources/Beacon/Rest/queries.ts')
 						const committee = await getSyncCommittee(
 							eip155ChainId($network),
 							'head'
@@ -295,7 +293,7 @@ export default {
 				EvmNetworkSlotIndexInSlot: {
 					appliesTo: eip155NetworkApplicability,
 					resolve: async ({ $network, slot, indexInSlot }) => {
-						const { getBlockDutySummary } = await loadBeaconQueries()
+						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 						const attestation = (
 							await getBlockDutySummary(
 								eip155ChainId($network),
@@ -321,7 +319,7 @@ export default {
 				EvmNetworkSlotIndexInSlot: {
 					appliesTo: eip155NetworkApplicability,
 					resolve: async ({ $network, slot, indexInSlot }) => {
-						const { getBlockDutySummary } = await loadBeaconQueries()
+						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 						const withdrawal = (
 							await getBlockDutySummary(
 								eip155ChainId($network),
@@ -364,7 +362,7 @@ export default {
 				EvmNetworkSlotKindIndexInSlot: {
 					appliesTo: eip155NetworkApplicability,
 					resolve: async ({ $network, slot, kind, indexInSlot }) => {
-						const { getBlockDutySummary } = await loadBeaconQueries()
+						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 						const slashing = (
 							await getBlockDutySummary(
 								eip155ChainId($network),
@@ -400,7 +398,7 @@ export default {
 					appliesTo: eip155NetworkApplicability,
 					resolve: async ({ $network }) => {
 						const chainId = eip155ChainId($network)
-						const { getFinalityCheckpoints } = await loadBeaconQueries()
+						const { getFinalityCheckpoints } = await import('$/sources/Beacon/Rest/queries.ts')
 						const checkpoints = await getFinalityCheckpoints(chainId)
 						if (checkpoints == null) {
 							throw new Error(
@@ -454,7 +452,7 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async ({ caip2 }, context) => {
-						const { getHeadSlot } = await loadBeaconQueries()
+						const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 						const chainId = Number(caip2.reference)
 						const headEpoch = Math.floor(
 							safeIntegerFromDecimal(
@@ -495,7 +493,7 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async ({ caip2 }, context) => {
-						const { getHeadSlot } = await loadBeaconQueries()
+						const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 						const chainId = Number(caip2.reference)
 						const headSlot = safeIntegerFromDecimal(
 							await getHeadSlot(chainId),
@@ -534,7 +532,7 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async ({ caip2 }, context) => {
-						const { getRecentProposerValidatorIndices } = await loadBeaconQueries()
+						const { getRecentProposerValidatorIndices } = await import('$/sources/Beacon/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						const chainId = Number(caip2.reference)
 						return (
@@ -568,7 +566,7 @@ export default {
 				EvmNetworkSlot: {
 					appliesTo: eip155NetworkApplicability,
 					resolve: async ({ $network, slot }, context) => {
-						const { getCommittees } = await loadBeaconQueries()
+						const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
 						return (
 							(await getCommittees(
 								eip155ChainId($network),
@@ -596,7 +594,7 @@ export default {
 				EvmNetworkSlot: {
 					appliesTo: eip155NetworkApplicability,
 					resolve: async ({ $network, slot }, context) => {
-						const { getBlockDutySummary } = await loadBeaconQueries()
+						const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 						const summary = await getBlockDutySummary(
 							eip155ChainId($network),
 							slot
@@ -646,7 +644,7 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async ({ caip2 }, context) => {
-						const { getCommittees } = await loadBeaconQueries()
+						const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
 						const chainId = Number(caip2.reference)
 						return (
 							(await getCommittees(chainId))
@@ -673,7 +671,7 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async ({ caip2 }) => {
-						const { getHeadSlot } = await loadBeaconQueries()
+						const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 						const chainId = Number(caip2.reference)
 						return [
 							{
@@ -704,7 +702,7 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async ({ caip2 }, context) => {
-						const { getBlockDutySummary, getHeadSlot } = await loadBeaconQueries()
+						const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 						const chainId = Number(caip2.reference)
 						const slot = safeIntegerFromDecimal(
 							await getHeadSlot(chainId),

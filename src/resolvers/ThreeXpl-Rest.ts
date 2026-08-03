@@ -12,9 +12,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { ThreeXplBlockEvent } from '$/sources/ThreeXpl/Rest/types.ts'
-
-const loadThreeXplQueries = () => import('$/sources/ThreeXpl/Rest/queries.ts')
-
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const threeXplBlockchain = (network: NetworkId) => {
@@ -60,7 +57,7 @@ export default {
 			resolve: {
 				NetworkHeightHash: {
 					resolve: async ({ $network, hash, height }) => {
-						const { fetchBlock } = await loadThreeXplQueries()
+						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireBlock = await fetchBlock({
 							blockchain: threeXplBlockchain($network),
 							block: height.toString(),
@@ -100,7 +97,7 @@ export default {
 			resolve: {
 				NetworkHeightHash: {
 					resolve: async ({ $network, hash, height }) => {
-						const { fetchBlock } = await loadThreeXplQueries()
+						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireBlock = await fetchBlock({
 							blockchain: threeXplBlockchain($network),
 							block: hash,
@@ -124,7 +121,7 @@ export default {
 			resolve: {
 				NetworkBlockNumberHash: {
 					resolve: async ({ $network, blockNumber, hash }) => {
-						const { fetchBlock } = await loadThreeXplQueries()
+						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireBlock = await fetchBlock({
 							blockchain: threeXplBlockchain($network),
 							block: hash,
@@ -144,7 +141,7 @@ export default {
 			resolve: {
 				Slot: {
 					resolve: async ({ $network, slot }) => {
-						const { fetchBlock } = await loadThreeXplQueries()
+						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireBlock = await fetchBlock({
 							blockchain: threeXplBlockchain($network),
 							block: slot.toString(),
@@ -191,7 +188,7 @@ export default {
 			resolve: {
 				NetworkSignature: {
 					resolve: async ({ $network, signature }) => {
-						const { fetchTransaction } = await loadThreeXplQueries()
+						const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireTransaction = await fetchTransaction({
 							blockchain: threeXplBlockchain($network),
 							transaction: signature,
@@ -218,7 +215,7 @@ export default {
 			resolve: {
 				NetworkHeightHash: {
 					resolve: async ({ $network, hash, height }) => {
-						const { fetchBlock } = await loadThreeXplQueries()
+						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireBlock = await fetchBlock({
 							blockchain: threeXplBlockchain($network),
 							block: hash,
@@ -261,7 +258,7 @@ export default {
 			resolve: {
 				NetworkTransactionId: {
 					resolve: async ({ $network, transactionId }) => {
-						const { fetchTransaction } = await loadThreeXplQueries()
+						const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireTransaction = await fetchTransaction({
 							blockchain: threeXplBlockchain($network),
 							transaction: transactionId,
@@ -296,7 +293,7 @@ export default {
 			resolve: {
 				NetworkHeightHash: {
 					resolve: async ({ $network, height, hash }) => {
-						const { fetchBlock } = await loadThreeXplQueries()
+						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireBlock = await fetchBlock({
 							blockchain: threeXplBlockchain($network),
 							block: hash,

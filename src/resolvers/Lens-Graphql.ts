@@ -12,9 +12,6 @@ import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
-const loadLensGraphqlQueries = () => import('$/sources/Lens/Graphql/queries.ts')
-
-
 /** Lens / subgraph wire — may omit `0x` or use mixed case. */
 const lensEvmAddressFromWire = (address: string): `0x${string}` => {
 	if (address === '') throw new Error('Lens_Graphql: invalid EVM address')
@@ -219,7 +216,7 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
-						const { queryLatestPosts } = await loadLensGraphqlQueries()
+						const { queryLatestPosts } = await import('$/sources/Lens/Graphql/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (await queryLatestPosts(limit)).posts.items.flatMap((lensPost) => {
 							const reference = lensPostCardReferenceFromWire(lensPost)
@@ -237,7 +234,7 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Address: {
 					resolve: async ({ address }) => {
-						const { queryAccount } = await loadLensGraphqlQueries()
+						const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 						const requestedAddress = zeroExLowerCase(address)
 						const account = (await queryAccount({ address: requestedAddress })).account
 						if (
@@ -256,7 +253,7 @@ const lensGraphqlResolvers = {
 						if (localName.trim() === '')
 							throw new Error('Lens_Graphql: account identity must not be empty')
 
-						const { queryAccount } = await loadLensGraphqlQueries()
+						const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 						const account = (await queryAccount({
 							username: { localName },
 						})).account
@@ -274,7 +271,7 @@ const lensGraphqlResolvers = {
 						if (legacyProfileId.trim() === '')
 							throw new Error('Lens_Graphql: account identity must not be empty')
 
-						const { queryAccount } = await loadLensGraphqlQueries()
+						const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 						return lensAccountFromWire(
 							(await queryAccount({ legacyProfileId })).account,
 							undefined,
@@ -302,7 +299,7 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Id: {
 					resolve: async ({ id }) => {
-						const { queryPost } = await loadLensGraphqlQueries()
+						const { queryPost } = await import('$/sources/Lens/Graphql/queries.ts')
 						const p = (await queryPost(id)).post
 						if (p == null) throw new Error('Lens_Graphql: post not found')
 
@@ -408,7 +405,7 @@ const lensGraphqlResolvers = {
 						const {
 							queryAccount,
 							queryAccountStats,
-						} = await loadLensGraphqlQueries()
+						} = await import('$/sources/Lens/Graphql/queries.ts')
 						if ('address' in $account)
 							return lensAccountTimestampFieldsFromWire(
 								await queryAccountStats(zeroExLowerCase($account.address))
@@ -441,7 +438,7 @@ const lensGraphqlResolvers = {
 			resolve: {
 				LensPostTimestampMs: {
 					resolve: async ({ $post }) => {
-						const { queryPost } = await loadLensGraphqlQueries()
+						const { queryPost } = await import('$/sources/Lens/Graphql/queries.ts')
 						const p = (await queryPost($post.id)).post
 						if (p == null) throw new Error('Lens_Graphql: post not found')
 						if (p.__typename !== 'Post') return {}
@@ -463,7 +460,7 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Id: {
 					resolve: async ({ id }, context) => {
-						const { queryPostComments } = await loadLensGraphqlQueries()
+						const { queryPostComments } = await import('$/sources/Lens/Graphql/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (await queryPostComments(id, limit)).postReferences.items.flatMap((lensPost) => {
 							if (
@@ -486,7 +483,7 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Address: {
 					resolve: async ({ address }, context) => {
-						const { queryPostsByAuthor } = await loadLensGraphqlQueries()
+						const { queryPostsByAuthor } = await import('$/sources/Lens/Graphql/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (await queryPostsByAuthor(zeroExLowerCase(address), limit)).posts.items.flatMap((lensPost) => {
 							const reference = lensPostCardReferenceFromWire(lensPost)
@@ -510,7 +507,7 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
-						const { queryAccounts } = await loadLensGraphqlQueries()
+						const { queryAccounts } = await import('$/sources/Lens/Graphql/queries.ts')
 						return (await queryAccounts(resolverContextRowLimit(context))).accounts.items.map((account) => {
 							const lensAccount = lensAccountFromWire(account)
 
@@ -540,7 +537,7 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Address: {
 					resolve: async ({ address }) => {
-						const { queryFeed } = await loadLensGraphqlQueries()
+						const { queryFeed } = await import('$/sources/Lens/Graphql/queries.ts')
 						const feed = (await queryFeed(zeroExLowerCase(address))).feed
 						if (feed == null) throw new Error('Lens_Graphql: feed not found')
 						if (lensEvmAddressFromWire(feed.address) !== zeroExLowerCase(address))
@@ -568,7 +565,7 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Address: {
 					resolve: async ({ address }, context) => {
-						const { queryFeedPosts } = await loadLensGraphqlQueries()
+						const { queryFeedPosts } = await import('$/sources/Lens/Graphql/queries.ts')
 						return (await queryFeedPosts(
 							zeroExLowerCase(address),
 							resolverContextRowLimit(context)

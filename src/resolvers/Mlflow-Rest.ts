@@ -3,8 +3,6 @@ import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
-const loadMlflowQueries = () => import('$/sources/Mlflow/Rest/queries.ts')
-
 const providerSelector = {
 	providerId: 'mlflow',
 } as const
@@ -46,7 +44,7 @@ export const mlflowResolvers = [
 				ProviderModelId: {
 					resolve: async ({ $provider, providerModelId }, context) => {
 						assertProvider($provider)
-						const { getRegisteredModel } = await loadMlflowQueries()
+						const { getRegisteredModel } = await import('$/sources/Mlflow/Rest/queries.ts')
 						return (await getRegisteredModel({
 							name: providerModelId,
 							publicEnv: context.publicEnv,
@@ -76,7 +74,7 @@ export const mlflowResolvers = [
 				ModelVersionId: {
 					resolve: async ({ $model, versionId }, context) => {
 						assertProvider($model.$provider)
-						const { getModelVersion } = await loadMlflowQueries()
+						const { getModelVersion } = await import('$/sources/Mlflow/Rest/queries.ts')
 						return (await getModelVersion({
 							name: $model.providerModelId,
 							publicEnv: context.publicEnv,
@@ -112,7 +110,7 @@ export const mlflowResolvers = [
 					resolve: async ({ $provider, providerArtifactId }, context) => {
 						assertProvider($provider)
 						const artifact = parseArtifactId(providerArtifactId)
-						const { listArtifacts } = await loadMlflowQueries()
+						const { listArtifacts } = await import('$/sources/Mlflow/Rest/queries.ts')
 						return {
 							...artifact,
 							listing: await listArtifacts({
@@ -148,7 +146,7 @@ export const mlflowResolvers = [
 					resolve: async ({ documentKind, $artifact }, context) => {
 						assertProvider($artifact.$provider)
 						const artifact = parseArtifactId($artifact.providerArtifactId)
-						const { listArtifacts } = await loadMlflowQueries()
+						const { listArtifacts } = await import('$/sources/Mlflow/Rest/queries.ts')
 						await listArtifacts({
 							path: artifact.path,
 							publicEnv: context.publicEnv,

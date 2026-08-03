@@ -9,9 +9,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-
-const loadCashuMintQueries = () => import('$/sources/Cashu/Mint/Rest/queries.ts')
-
 export default {
 	source: Source.CashuMint_Rest,
 
@@ -45,7 +42,7 @@ export default {
 						const {
 							getMintKeysets,
 							getMintKeysForKeyset,
-						} = await loadCashuMintQueries()
+						} = await import('$/sources/Cashu/Mint/Rest/queries.ts')
 						const keyset = (
 							await getMintKeysets($mint.mintUrl)
 						).keysets.find((row) => row.id === keysetId)
@@ -90,7 +87,7 @@ export default {
 						if (source !== Source.CashuMint_Rest)
 							throw new Error(`CashuMint_Rest: unsupported source ${source}`)
 
-						const { getMintInfo } = await loadCashuMintQueries()
+						const { getMintInfo } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
 						const info = await getMintInfo($mint.mintUrl)
 						return {
 							$mint: { [EntityMetaKey.Selector]: $mint },
@@ -148,7 +145,7 @@ export default {
 						if (source !== Source.CashuMint_Rest)
 							throw new Error(`CashuMint_Rest: unsupported source ${source}`)
 
-						const { getMintKeysets } = await loadCashuMintQueries()
+						const { getMintKeysets } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
 						const keyset = (
 							await getMintKeysets($keyset.$mint.mintUrl)
 						).keysets.find((row) => row.id === $keyset.keysetId)
@@ -182,7 +179,7 @@ export default {
 			resolve: {
 				MintUrl: {
 					resolve: async ({ mintUrl }, context) => {
-						const { getMintKeysets } = await loadCashuMintQueries()
+						const { getMintKeysets } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
 						return (await getMintKeysets(mintUrl)).keysets
 							.slice(0, resolverContextRowLimit(context))
 							.map((keyset) => ({

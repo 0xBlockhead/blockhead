@@ -8,9 +8,6 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import type { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-
-const loadEasScanQueries = () => import('$/sources/EasScan/Graphql/queries.ts')
-
 type NetworkSelector = EntitySelector<typeof schema, EntityType.Network>
 
 const zeroAddress = `0x${'0'.repeat(40)}`
@@ -64,7 +61,7 @@ const easAttestationResolver = defineResolver({
 		NetworkUid: {
 			resolve: async (entitySelector) => {
 				const network = easScanNetwork(entitySelector.$network)
-				const { getAttestation } = await loadEasScanQueries()
+				const { getAttestation } = await import('$/sources/EasScan/Graphql/queries.ts')
 				const attestation = await getAttestation({
 					network,
 					uid: entitySelector.uid,
@@ -144,7 +141,7 @@ const easAttestationTimestampResolver = defineResolver({
 					throw new Error('EasScan_Graphql: observation source mismatch')
 
 				const network = easScanNetwork($attestation.$network)
-				const { getAttestation } = await loadEasScanQueries()
+				const { getAttestation } = await import('$/sources/EasScan/Graphql/queries.ts')
 				const attestation = await getAttestation({
 					network,
 					uid: $attestation.uid,
@@ -186,7 +183,7 @@ const easSchemaResolver = defineResolver({
 				const {
 					getAttestationsBySchema,
 					getSchema,
-				} = await loadEasScanQueries()
+				} = await import('$/sources/EasScan/Graphql/queries.ts')
 				const schema = await getSchema({
 					network,
 					schemaUid: entitySelector.schemaUid,

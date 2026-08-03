@@ -3,7 +3,6 @@ import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
-const loadHuggingFaceQueries = () => import('$/sources/HuggingFace/Rest/queries.ts')
 const providerSelector = {
 	providerId: 'huggingface',
 } as const
@@ -57,7 +56,7 @@ export const huggingFaceHubResolvers = [
 				ProviderModelId: {
 					resolve: async ({ $provider, providerModelId }) => {
 						assertProvider($provider)
-						const { retrieveModel } = await loadHuggingFaceQueries()
+						const { retrieveModel } = await import('$/sources/HuggingFace/Rest/queries.ts')
 						return retrieveModel({
 							repoId: providerModelId,
 						})
@@ -84,7 +83,7 @@ export const huggingFaceHubResolvers = [
 			resolve: {
 				HuggingFaceRepoRevision: {
 					resolve: async ({ huggingFaceRepo, revision }) => {
-						const { retrieveModel } = await loadHuggingFaceQueries()
+						const { retrieveModel } = await import('$/sources/HuggingFace/Rest/queries.ts')
 						return retrieveModel({
 							repoId: huggingFaceRepo,
 							revision,
@@ -112,7 +111,7 @@ export const huggingFaceHubResolvers = [
 					resolve: async ({ $provider, providerArtifactId }) => {
 						assertProvider($provider)
 						const artifact = parseArtifactId(providerArtifactId)
-						const { retrieveModel } = await loadHuggingFaceQueries()
+						const { retrieveModel } = await import('$/sources/HuggingFace/Rest/queries.ts')
 						return {
 							...artifact,
 							model: await retrieveModel({
@@ -146,7 +145,7 @@ export const huggingFaceHubResolvers = [
 						if (match == null)
 							throw new Error('HuggingFaceHub_Rest: unsupported document URL')
 
-						const { retrieveFileText } = await loadHuggingFaceQueries()
+						const { retrieveFileText } = await import('$/sources/HuggingFace/Rest/queries.ts')
 						await retrieveFileText({
 							repoId: match[1],
 							revision: match[2],

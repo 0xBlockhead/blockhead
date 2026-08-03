@@ -17,9 +17,6 @@ import type {
 	CosmosChainRegistryAssetList,
 	CosmosChainRegistryChain,
 } from '$/sources/CosmosChainRegistry/Github/types.ts'
-
-const loadCosmosChainRegistryQueries = () => import('$/sources/CosmosChainRegistry/Github/queries.ts')
-
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertCosmosRegistryNetwork = (network: NetworkId) => {
@@ -100,7 +97,7 @@ export default {
 		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cosmosNetworkSelectors(async (entitySelector) => {
-				const { getChain } = await loadCosmosChainRegistryQueries()
+				const { getChain } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
 				const chain = await getChain({
 					chainName: chainNameForNetwork(entitySelector),
 				})
@@ -141,7 +138,7 @@ export default {
 					resolve: async ({ $network, assetKey, kind }) => {
 						assertCosmosRegistryNetwork($network)
 						if (kind !== AssetInstanceKind.Denom) throw new Error('CosmosChainRegistry_Github: only denom asset instances are supported')
-						const { getAssetList } = await loadCosmosChainRegistryQueries()
+						const { getAssetList } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
 						const asset = (await getAssetList({
 							chainName: chainNameForNetwork($network),
 						})).assets.find((registryAsset) => registryAsset.base === assetKey)
@@ -159,7 +156,7 @@ export default {
 		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cosmosNetworkSelectors(async (entitySelector) => {
-				const { getAssetList } = await loadCosmosChainRegistryQueries()
+				const { getAssetList } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
 				return assetInstanceRows(
 					entitySelector,
 					await getAssetList({

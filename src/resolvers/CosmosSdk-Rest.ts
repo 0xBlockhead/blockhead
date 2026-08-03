@@ -25,8 +25,6 @@ import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { schema } from '$/schema/index.ts'
 import { cosmosSdkRestEndpoints } from '$/sources/CosmosSdk/Rest/queries.ts'
 
-const loadCosmosSdkQueries = () => import('$/sources/CosmosSdk/Rest/queries.ts')
-
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertCosmosHub = (network: NetworkId) => {
@@ -394,7 +392,7 @@ const getCosmosAccountSnapshot = async (
 	limit: number
 ) => {
 	assertCosmosHub(network)
-	const { getAccounts } = await loadCosmosSdkQueries()
+	const { getAccounts } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 	const response = await getAccounts({
 		limit,
 	})
@@ -420,7 +418,7 @@ const getCosmosValidatorSnapshot = async (
 	limit: number
 ) => {
 	assertCosmosHub(network)
-	const { getValidators } = await loadCosmosSdkQueries()
+	const { getValidators } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 	const response = await getValidators({
 		limit,
 	})
@@ -440,7 +438,7 @@ const getCosmosProposalSnapshot = async (
 	limit: number
 ) => {
 	assertCosmosHub(network)
-	const { getProposals } = await loadCosmosSdkQueries()
+	const { getProposals } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 	const response = await getProposals({
 		limit,
 	})
@@ -460,7 +458,7 @@ const getCosmosBlockReferences = async (
 	limit: number
 ) => {
 	assertCosmosHub(network)
-	const { getLatestBlock } = await loadCosmosSdkQueries()
+	const { getLatestBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 	const latestBlock = await getLatestBlock()
 	const latestBlockHeight = BigInt(latestBlock.block.header.height)
 	return Array.from({
@@ -507,7 +505,7 @@ export default {
 							getStakingPool,
 							getSyncing,
 							getValidators,
-						} = await loadCosmosSdkQueries()
+						} = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const [
 							latestBlock,
 							nodeInfo,
@@ -579,7 +577,7 @@ export default {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async ({ $network, height }) => {
 
-						const { getBlock } = await loadCosmosSdkQueries()
+						const { getBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const wireBlock = await getBlock({
 							height,
 						})
@@ -607,7 +605,7 @@ export default {
 					resolve: async (entitySelector) => {
 						assertCosmosHub(entitySelector.$network)
 
-						const { getTx } = await loadCosmosSdkQueries()
+						const { getTx } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const wireTransaction = await getTx({
 							txHash: entitySelector.txHash,
 						})
@@ -647,7 +645,7 @@ export default {
 						const {
 							getAccount,
 							getLatestBlock,
-						} = await loadCosmosSdkQueries()
+						} = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const [
 							{ account },
 							latestBlock,
@@ -707,7 +705,7 @@ export default {
 						if (source !== Source.CosmosSdk_Rest)
 							throw new Error(`CosmosSdk_Rest: unsupported account timestamp source ${source}`)
 
-						const { getAccount } = await loadCosmosSdkQueries()
+						const { getAccount } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const account = (await getAccount({
 							address: $account.address,
 						})).account
@@ -740,7 +738,7 @@ export default {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
 						const { $network, operatorAddress } = entitySelector
-						const { getValidator } = await loadCosmosSdkQueries()
+						const { getValidator } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const validator = (await getValidator({
 							operatorAddress: operatorAddress,
 						})).validator
@@ -769,7 +767,7 @@ export default {
 						timestampMs,
 						source,
 					}) => {
-						const { getValidator } = await loadCosmosSdkQueries()
+						const { getValidator } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosValidatorTimestampFields(
 							$validator,
 							(await getValidator({
@@ -795,7 +793,7 @@ export default {
 				TransactionIndexInTransaction: {
 					appliesTo: cosmosTransactionReferenceApplicability,
 					resolve: async ({ $transaction, indexInTransaction }) => {
-						const { getTx } = await loadCosmosSdkQueries()
+						const { getTx } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const message = (
 							await getTx({
 								txHash: $transaction.txHash,
@@ -819,7 +817,7 @@ export default {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
 						const { $network, proposalId } = entitySelector
-						const { getProposal } = await loadCosmosSdkQueries()
+						const { getProposal } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const proposal = (await getProposal({
 							proposalId: proposalId,
 						})).proposal
@@ -852,7 +850,7 @@ export default {
 						timestampMs,
 						source,
 					}) => {
-						const { getProposal } = await loadCosmosSdkQueries()
+						const { getProposal } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return {
 							$proposal: {
 								[EntityMetaKey.Selector]: $proposal,
@@ -879,7 +877,7 @@ export default {
 				NetworkDenom: {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async ({ $network, denom }) => {
-						const { getDenomMetadata } = await loadCosmosSdkQueries()
+						const { getDenomMetadata } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const metadata = (await getDenomMetadata({
 							denom: denom,
 						})).metadata
@@ -903,7 +901,7 @@ export default {
 				NetworkModuleName: {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async ({ $network, moduleName }) => {
-						const { getModuleAccount } = await loadCosmosSdkQueries()
+						const { getModuleAccount } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const moduleAccount = await getModuleAccount({
 							moduleName: moduleName,
 						})
@@ -930,7 +928,7 @@ export default {
 				NetworkAddress: {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async ({ $network, address }) => {
-						const { getContractInfo } = await loadCosmosSdkQueries()
+						const { getContractInfo } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const contractInfo = (await getContractInfo({
 							address: address,
 						})).contract_info
@@ -1070,7 +1068,7 @@ export default {
 						if (!Number.isSafeInteger(prefixLimit) || prefixLimit < 1)
 							throw new Error('CosmosSdk_Rest: invalid account transaction limit')
 
-						const { getTransactionsByEvent } = await loadCosmosSdkQueries()
+						const { getTransactionsByEvent } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const [senderPage, recipientPage] = await Promise.all([
 							getTransactionsByEvent({
 								event: `message.sender='${cosmosAccount.address}'`,

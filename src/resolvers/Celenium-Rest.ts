@@ -13,8 +13,6 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { Hex } from '@tevm/voltaire/Hex'
 
-const loadCeleniumQueries = () => import('$/sources/Celenium/Rest/queries.ts')
-
 const assertCelestiaMainnet = (
 	network: EntitySelector<typeof schema, EntityType.Network>
 ) => {
@@ -32,7 +30,7 @@ export default {
 				Network: {
 					resolve: async ({ $network }) => {
 						assertCelestiaMainnet($network)
-						const { getHead } = await loadCeleniumQueries()
+						const { getHead } = await import('$/sources/Celenium/Rest/queries.ts')
 						const head = await getHead()
 						const timestampMs = Date.parse(head.last_time)
 						if (!Number.isFinite(timestampMs))
@@ -65,7 +63,7 @@ export default {
 						if (limit === 0)
 							return []
 
-						const { listBlocks } = await loadCeleniumQueries()
+						const { listBlocks } = await import('$/sources/Celenium/Rest/queries.ts')
 						return (
 							await listBlocks({
 								limit,
@@ -96,7 +94,7 @@ export default {
 						if (limit === 0)
 							return []
 
-						const { listNamespaces } = await loadCeleniumQueries()
+						const { listNamespaces } = await import('$/sources/Celenium/Rest/queries.ts')
 						const timestampMs = Date.now()
 						return (
 							await listNamespaces({
@@ -153,7 +151,7 @@ export default {
 						if (limit === 0)
 							return []
 
-						const { listBlobMetadata } = await loadCeleniumQueries()
+						const { listBlobMetadata } = await import('$/sources/Celenium/Rest/queries.ts')
 						return (
 							await listBlobMetadata({
 								limit,
@@ -201,7 +199,7 @@ export default {
 				NetworkHeight: {
 					resolve: async ({ $network, height }) => {
 						assertCelestiaMainnet($network.$network)
-						const { getBlock } = await loadCeleniumQueries()
+						const { getBlock } = await import('$/sources/Celenium/Rest/queries.ts')
 						const block = await getBlock(height)
 						const timestampMs = Date.parse(block.time)
 						if (!Number.isFinite(timestampMs))
@@ -234,7 +232,7 @@ export default {
 				NetworkTxHash: {
 					resolve: async ({ $network, txHash }) => {
 						assertCelestiaMainnet($network)
-						const { getTransaction } = await loadCeleniumQueries()
+						const { getTransaction } = await import('$/sources/Celenium/Rest/queries.ts')
 						const transaction = await getTransaction(txHash)
 						return {
 							$block: {
@@ -272,7 +270,7 @@ export default {
 						assertCelestiaMainnet($network.$network)
 						if (source !== Source.Celenium_Rest)
 							throw new Error(`Celenium_Rest: unsupported observation source ${source}`)
-						const { getHead } = await loadCeleniumQueries()
+						const { getHead } = await import('$/sources/Celenium/Rest/queries.ts')
 						const head = await getHead()
 						const latestBlockTimeMs = Date.parse(head.last_time)
 						if (!Number.isFinite(latestBlockTimeMs))
