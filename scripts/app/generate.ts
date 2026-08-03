@@ -10067,6 +10067,15 @@ const generateSingularViewFile = (
 			&& !entitySelectorOwnsField(entity, summaryIconFieldName)
 		|| rawSnippetReferences.has('resolvedEntity')
 	)
+	const contentRowResourceOwners = contentRows.flatMap((viewEntries) => viewEntries.flatMap((viewEntry) => {
+		const fieldReferences = unresolvedPrimitiveContentFieldReferences(entity, indexes, viewEntry)
+		return fieldReferences == null ? [] : [
+			fieldReferences.every((field) => queryFieldKeys.has(fieldReferenceKey(field))) ?
+				'entity' as const
+			:
+				'viewSelection' as const,
+		]
+	}))
 	// Every branch that consumes the shared entity query declares one reference.
 	// A single consumer receives the query expression directly; multiple consumers
 	// share one durable derived resource.
@@ -10108,13 +10117,7 @@ const generateSingularViewFile = (
 			:
 				0
 		)
-		+ contentRows
-			.flat()
-			.filter((viewEntry) => {
-				const fieldReferences = unresolvedPrimitiveContentFieldReferences(entity, indexes, viewEntry)
-				return fieldReferences?.every((field) => queryFieldKeys.has(fieldReferenceKey(field))) === true
-			})
-			.length
+		+ contentRowResourceOwners.filter((owner) => owner === 'entity').length
 		+ (
 			content?.body != null
 			&& queryFieldKeys.has(fieldReferenceKey(content.body.field)) ?
@@ -10349,13 +10352,7 @@ const generateSingularViewFile = (
 	// selection. Selector fields, projection fields, and relationship resources
 	// use their own explicit resource bases.
 	const viewSelectionOwnedReferenceCount = (
-		contentRowsToRender
-			.flat()
-			.filter((viewEntry) => {
-				const fieldReferences = unresolvedPrimitiveContentFieldReferences(entity, indexes, viewEntry)
-				return fieldReferences != null && !fieldReferences.every((field) => queryFieldKeys.has(fieldReferenceKey(field)))
-			})
-			.length
+		contentRowResourceOwners.filter((owner) => owner === 'viewSelection').length
 		+ (
 			contentBody != null
 			&& contentWarning == null
