@@ -5346,6 +5346,8 @@ test('retains only physical route file facts consumed by route emitters', () => 
 	assert.match(physicalRoutePlanSource, /const inheritedMappings = [^\n]+[\s\S]*?routeFile: inheritedMappings \? \{[\s\S]*?mappings: pageModule\?\.mappings/)
 	assert.match(physicalRoutePlanSource, /const generatedPageModule = [\s\S]*?plan\.generatedPageModule === true/)
 	assert.match(physicalRoutePlanSource, /routeNeedsPageModule[\s\S]*?!routeProjectionOwnedByAncestor/)
+	assert.doesNotMatch(generatorSource, /seenRouteFiles|Duplicate generated route file/)
+	assert.equal(generatorSource.match(/Duplicate physical route file plans/g)?.length, 1)
 })
 
 test('compiles each collection reference path once into its canonical route mapping', () => {

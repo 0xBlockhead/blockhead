@@ -5966,16 +5966,6 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		}
 	}
 
-	const seenRouteFiles = new Set<string>()
-	for (const entry of routeEntryList) {
-		for (const routeFile of entry.files) {
-			const filePath = `${entry.routePath === '' ? 'src/routes' : `src/routes/${entry.routePath}`}/${routeFileName(routeFile.kind)}`
-			if (seenRouteFiles.has(filePath))
-				errors.push(`Duplicate generated route file: ${filePath}`)
-			seenRouteFiles.add(filePath)
-		}
-	}
-
 	if (errors.length > 0)
 		throw new Error(errors.join('\n'))
 
@@ -6037,8 +6027,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 					...newEntityRouteLinks,
 				])
 		}
-	}
-	for (const node of indexedRouteNodes) {
+
 		for (const mapping of node.selectorMappings) {
 			const mappingMetadata = routeFixtureMetadataFromMapping(mapping)
 			const projectionPath = mappingMetadata.projectionPath ?? []
@@ -6055,6 +6044,11 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	}
 
 	const physicalRouteFiles = compilePhysicalRouteFilePlans(routeEntryList)
+	const duplicatePhysicalPaths = physicalRouteFiles
+		.map((routeFile) => routeFile.path)
+		.filter((filePath, index, paths) => paths.indexOf(filePath) !== index)
+	if (duplicatePhysicalPaths.length > 0)
+		errors.push(`Duplicate physical route file plans:\n${unique(duplicatePhysicalPaths).join('\n')}`)
 	const routeFixturePlans = physicalRouteFiles.flatMap((physicalRouteFile) => {
 		if (
 			physicalRouteFile.routeFile.kind !== RouteFileKind.Page
@@ -6132,12 +6126,6 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		collectionRoutesBySourceField: nullPrototypeRecord([...collectionRoutesBySourceField]),
 		entityRouteLinksByType: nullPrototypeRecord([...entityRouteLinksByType]),
 	} satisfies CompiledAppFacts
-
-	const duplicatePhysicalPaths = compiledApp.physicalRouteFiles
-		.map((routeFile) => routeFile.path)
-		.filter((filePath, index, paths) => paths.indexOf(filePath) !== index)
-	if (duplicatePhysicalPaths.length > 0)
-		throw new Error(`Duplicate physical route file plans:\n${unique(duplicatePhysicalPaths).join('\n')}`)
 
 	return freezeCompiled({
 		generatedFiles: generateFiles(compiledApp),
