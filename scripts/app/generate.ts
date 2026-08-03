@@ -8002,10 +8002,12 @@ const generateSourceProviderBindingsFile = (
 			...values.map(([name, value]) => [name, emitTypeScript(value)] as const),
 			...overrides,
 		])))
+		const bindingFunctionName = matrix.variants.length === 1 ? 'mapSourceBindings' : 'flatMapSourceBindings'
 		return {
 			declarations: inline ? [] : [`const ${matrix.name} = ${targetRows} as const`],
+			bindingFunctionNames: [bindingFunctionName],
 			expression: (matrix.variants.length === 1 ? [
-				'mapSourceBindings(',
+				`${bindingFunctionName}(`,
 				...lines(inline ? `${targetRows} as const` : matrix.name).map((line, lineIndex, rowLines) => (
 					`${indent(line)}${lineIndex === rowLines.length - 1 ? ',' : ''}`
 				)),
@@ -8018,7 +8020,7 @@ const generateSourceProviderBindingsFile = (
 				'\t})',
 				')',
 			] : [
-				'flatMapSourceBindings(',
+				`${bindingFunctionName}(`,
 				...lines(inline ? `${targetRows} as const` : matrix.name).map((line, lineIndex, rowLines) => (
 					`${indent(line)}${lineIndex === rowLines.length - 1 ? ',' : ''}`
 				)),
@@ -8039,6 +8041,7 @@ const generateSourceProviderBindingsFile = (
 	const renderedBindingPlan = (() => {
 		const direct = {
 			declarations: [],
+			bindingFunctionNames: [],
 			expression: [
 				'[',
 				...renderedSourcePlans.flatMap(({ bindings }) => bindings.map((binding) => `${indent(binding)},`)),
@@ -8082,6 +8085,7 @@ const generateSourceProviderBindingsFile = (
 
 			return [[sourcePlan.source, {
 				declarations: [],
+				bindingFunctionNames: unique(matrices.flatMap(({ bindingFunctionNames }) => bindingFunctionNames)),
 				expression: [
 					'[',
 					...parts.flatMap(({ expression, spread }) => lines(expression).map((line, lineIndex, expressionLines) => (
@@ -8105,6 +8109,9 @@ const generateSourceProviderBindingsFile = (
 						'',
 					]
 				}).slice(0, -1),
+				bindingFunctionNames: unique(renderedSourcePlans.flatMap(({ source }) => (
+					compactBySource.get(source)?.bindingFunctionNames ?? []
+				))),
 				expression: [
 					'[',
 					...renderedSourcePlans.flatMap((sourcePlan) => {
@@ -8152,13 +8159,12 @@ const generateSourceProviderBindingsFile = (
 				},
 				{
 					from: '$/sources/SourceBinding.ts',
-						names: [
-							...enumNames,
-							...canonicalOperationGroupReferences,
-							...(renderedBindingPlan.expression.includes('flatMapSourceBindings') ? ['flatMapSourceBindings'] : []),
-							'indexSourceBindings',
-							...(renderedBindingPlan.expression.includes('mapSourceBindings') ? ['mapSourceBindings'] : []),
-						],
+					names: [
+						...enumNames,
+						...canonicalOperationGroupReferences,
+						...renderedBindingPlan.bindingFunctionNames,
+						'indexSourceBindings',
+					],
 				},
 				...(bindings.some(({ binding }) => binding.credentials.some((credential) => (
 					!('envKey' in credential)
