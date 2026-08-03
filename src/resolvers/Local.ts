@@ -92,12 +92,6 @@ const stateChannelDepositTimestampFields = (stateChannelDeposit: NormalizedState
 	lockedBalance: stateChannelDeposit.lockedBalance,
 })
 
-const coinInstanceIdForNormalizedStateChannelRow = async (
-	...args: Parameters<typeof import('$/resolvers/Local/Internal/catalog.ts').coinInstanceIdForNormalizedStateChannelRow>
-			) => (
-	(await import('$/resolvers/Local/Internal/catalog.ts')).coinInstanceIdForNormalizedStateChannelRow(...args)
-)
-
 const normalizedBlockheadEnsNameSearchQuery = (query: string): string => {
 	const trimmedQuery = query.trim()
 	if (trimmedQuery === '') throw new Error('Local_Internal: empty ENS name search query')
@@ -107,12 +101,6 @@ const normalizedBlockheadEnsNameSearchQuery = (query: string): string => {
 		return trimmedQuery.toLowerCase()
 	}
 }
-
-const findNormalizedBridgeTransactionRow = async (
-	...args: Parameters<typeof import('$/resolvers/Local/Internal/catalog.ts').findNormalizedBridgeTransactionRow>
-			) => (
-	(await import('$/resolvers/Local/Internal/catalog.ts')).findNormalizedBridgeTransactionRow(...args)
-)
 
 export default {
 	source: Source.Local_Internal,
@@ -730,7 +718,7 @@ export default {
 						if (stateChannel == null)
 							throw new Error('Local_Internal: BlockheadStateChannel not present in local catalog')
 
-						const assetId = await coinInstanceIdForNormalizedStateChannelRow(stateChannel)
+						const assetId = await (await import('$/resolvers/Local/Internal/catalog.ts')).coinInstanceIdForNormalizedStateChannelRow(stateChannel)
 						return {
 							$network: { [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(stateChannel.chainId) } } },
 							$participant0: { [EntityMetaKey.Selector]: { address: EvmAddress.assert(stateChannel.participant0) } },
@@ -1548,7 +1536,7 @@ export default {
 					resolve: async (
 					scopedEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadBridgeTransaction>
 				) => {
-					const blockheadBridgeTransaction = await findNormalizedBridgeTransactionRow(
+					const blockheadBridgeTransaction = await (await import('$/resolvers/Local/Internal/catalog.ts')).findNormalizedBridgeTransactionRow(
 						await readNormalizedLocalInternal(),
 						scopedEntitySelector
 					)

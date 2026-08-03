@@ -11,10 +11,6 @@ const clampPrimalLimit = (limit: number) => (
 	Math.min(1000, Math.max(1, limit))
 )
 
-const encodeProfileId = (pubkeyOrNpub: string) => (
-	encodeURIComponent(pubkeyOrNpub)
-)
-
 const normalizePubkey = (pubkey: string) => (
 	pubkey.toLowerCase()
 )
@@ -40,7 +36,7 @@ const profileTimelinePost = (
 export const getProfile = (
 	pubkeyOrNpub: string
 ) => (
-	primalGet<PrimalProfile>(`/profile/${encodeProfileId(pubkeyOrNpub)}`)
+	primalGet<PrimalProfile>(`/profile/${encodeURIComponent(pubkeyOrNpub)}`)
 )
 
 /**

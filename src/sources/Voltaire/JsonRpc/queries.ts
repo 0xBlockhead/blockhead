@@ -161,10 +161,6 @@ export type Provider = {
 	}) => Promise<unknown>
 }
 
-const getVoltaireProviderRuntime = () => import('@tevm/voltaire/provider')
-
-const getVoltaireBlockRuntime = () => import('@tevm/voltaire/block')
-
 export const getProviderForExecutionUrl = async ({
 	binding,
 	endpoint,
@@ -178,7 +174,7 @@ export const getProviderForExecutionUrl = async ({
 	return (
 		endpoint.endpointKind === SourceEndpointKind.WebSocketUrl ?
 			typeof window === 'undefined' ?
-				getVoltaireProviderRuntime().then(({ WebSocketProvider }) => new WebSocketProvider(endpoint.locator))
+				import('@tevm/voltaire/provider').then(({ WebSocketProvider }) => new WebSocketProvider(endpoint.locator))
 			:
 				Promise.reject(new Error('Voltaire_JsonRpc: RemoteLive WebSocket is unavailable directly in the browser'))
 		:
@@ -478,7 +474,7 @@ export const debugTraceTransactionForEndpoint = async ({
 }
 
 const createLiveBlockStream = (provider: Provider) => (
-	getVoltaireBlockRuntime().then(({ BlockStream }) => (
+	import('@tevm/voltaire/block').then(({ BlockStream }) => (
 		// @ts-expect-error Provider is structurally compatible at runtime for JSON-RPC block streaming
 		BlockStream({ provider })
 	))

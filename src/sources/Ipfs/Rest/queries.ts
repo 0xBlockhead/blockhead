@@ -13,8 +13,6 @@ const binding = bindings[Source.Ipfs_Rest][0]
 
 const gatewayUrlLastSegment = /([^/]+)$/
 
-const ipfsGatewayEndpoints = () => binding.endpoints
-
 const resolvedIpfsNamespace = ({
 	target,
 	namespace,
@@ -63,7 +61,7 @@ export const fetchBrowseResult = async ({
 	})
 	const failures: string[] = []
 
-	for (const endpoint of ipfsGatewayEndpoints()) {
+	for (const endpoint of binding.endpoints) {
 		const gatewayUrl = getGatewayUrl({
 			namespace: resolvedNamespace,
 			target: trimmedTarget,
