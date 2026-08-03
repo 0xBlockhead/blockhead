@@ -2711,6 +2711,15 @@ const entitySelectorReferencePaths = (
 		.map((referencePath) => referencePath.split('\0').filter(Boolean))
 }
 
+const propertyExpression = (
+	value: _Expression,
+	properties: readonly string[]
+) => properties.reduce<_Expression>((propertyValue, property) => ({
+	kind: 'property',
+	value: propertyValue,
+	property,
+}), value)
+
 const routePageSelectorExpression = (
 	entityByType: Readonly<Record<string, Entity>>,
 	ancestorSelectors: readonly RouteAncestorSelector[],
@@ -2736,13 +2745,9 @@ const routePageSelectorExpression = (
 	if (referencePath == null)
 		return undefined
 
-	return referencePath.reduce<_Expression>((value, property) => ({
-		kind: 'property',
-		value,
-		property,
-	}), {
+	return propertyExpression({
 		kind: 'pageSelector',
-	})
+	}, referencePath)
 }
 
 const resolveRouteParamFieldPath = (
@@ -3155,6 +3160,8 @@ const compileRouteTree = (
 			}),
 		]
 		const routeParamByName = new Map(routeParams.map((routeParam) => [routeParam.name, routeParam]))
+		const routeParamDecodeByName = new Map(routeParams.map((routeParam) => [routeParam.name, routeParam.decode]))
+		const routeParamValueTypesByName = new Map(routeParams.map((routeParam) => [routeParam.name, routeParam.valueTypes]))
 		const compileRouteParamValue = (
 			param: string,
 			value: _Expression
@@ -3171,7 +3178,7 @@ const compileRouteTree = (
 			expectedField?: EntityField
 		) => normalizeRouteParamDecodes(
 			expression,
-			new Map(routeParams.map((routeParam) => [routeParam.name, routeParam.decode])),
+			routeParamDecodeByName,
 			`${routeId(routePath)} ${owner}`,
 			entityByType,
 			valueTypeById,
@@ -3195,10 +3202,7 @@ const compileRouteTree = (
 						name: fieldName,
 					},
 					entityByType,
-					new Map(routeParams.map((routeParam) => [
-						routeParam.name,
-						routeParam.valueTypes,
-					]))
+					routeParamValueTypesByName
 				)
 			))
 			return {
@@ -3214,14 +3218,10 @@ const compileRouteTree = (
 							compileRouteParamValue(
 								param,
 								encodedRouteParamValue(
-									fieldPath.slice(1).reduce<_Expression>((value, property) => ({
-										kind: 'property',
-										value,
-										property,
-									}), {
+									propertyExpression({
 										kind: 'field',
 										name: fieldName,
-									}),
+									}, fieldPath.slice(1)),
 									valueTypeById[terminalField.valueType]?.routeParam
 								)
 							),
@@ -3299,7 +3299,7 @@ const compileRouteTree = (
 					throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} binds route parameter ${param} more than once`)
 				if (Object.hasOwn(mapping.href?.params ?? {}, param))
 					continue
-				const valueTypes = routeParams.toReversed().find((routeParam) => routeParam.name === param)?.valueTypes ?? []
+				const valueTypes = routeParamByName.get(param)?.valueTypes ?? []
 				if (valueTypes.length === 0)
 					throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} derived parameter ${param} has no schema route parameter type`)
 
@@ -3310,7 +3310,7 @@ const compileRouteTree = (
 					throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} binds route parameter ${param} more than once`)
 				if (routeParamValueTypes.has(param))
 					continue
-				const explicitValueTypes = routeParams.toReversed().find((routeParam) => routeParam.name === param)?.explicitValueTypes ?? []
+				const explicitValueTypes = routeParamByName.get(param)?.explicitValueTypes ?? []
 				if (explicitValueTypes.length === 0)
 					throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} href parameter ${param} has no explicit schema route parameter type`)
 
@@ -3382,13 +3382,9 @@ const compileRouteTree = (
 							},
 						])).values()],
 					} satisfies SelectorAncestorBinding,
-					value: targetReferencePath.reduce<_Expression>((value, property) => ({
-						kind: 'property',
-						value,
-						property,
-					}), {
+					value: propertyExpression({
 						kind: 'pageSelector',
-					}),
+					}, targetReferencePath),
 				}
 			}
 			const ancestorBindingByField = new Map<string, SelectorAncestorBinding>()
@@ -7317,7 +7313,7 @@ const generateSourceProviderBindingsFile = (
 		Object.groupBy(bindingRows, ({ source }) => source)
 	).map(([source, sourceBindingRows]) => {
 		const sourceTypeName = pascal(source)
-		const bindingGroups = [...Map.groupBy(sourceBindingRows, ({ publicBinding }) => (
+		const groupedBindings = [...Map.groupBy(sourceBindingRows, ({ publicBinding }) => (
 			JSON.stringify([
 				publicBinding.wireProtocol,
 				publicBinding.apiFamily,
@@ -7327,7 +7323,7 @@ const generateSourceProviderBindingsFile = (
 				publicBinding.artifacts ?? null,
 			])
 		)).values()]
-		const repeatedBindingGroups = bindingGroups.filter((group) => group.length > 1)
+		const repeatedBindingGroups = groupedBindings.filter((group) => group.length > 1)
 		// One repeated group needs only its source name. Multiple groups append the
 		// shortest existing binding axis that distinguishes every emitted object.
 		const bindingBaseDiscriminator = (
@@ -7343,34 +7339,36 @@ const generateSourceProviderBindingsFile = (
 		if (bindingBaseDiscriminator === null)
 			throw new Error(`${source}: repeated binding groups need a unique delivery or API-family discriminator`)
 
-		const bindingBaseNames = bindingGroups.map((group) => {
-			const binding = group[0]?.binding
-			return binding == null || group.length < 2 ?
-				undefined
-			:
-				`${camel(source)}${
-					bindingBaseDiscriminator === 'delivery' ?
-						binding.delivery
-					: bindingBaseDiscriminator === 'apiFamily' ?
-						binding.apiFamily.startsWith(sourceTypeName) ?
-							binding.apiFamily.slice(sourceTypeName.length)
+		const bindingGroups = groupedBindings.map((rows) => {
+			const binding = rows[0]?.binding
+			return {
+				rows,
+				baseIdentifier: binding == null || rows.length < 2 ?
+					undefined
+				:
+					`${camel(source)}${
+						bindingBaseDiscriminator === 'delivery' ?
+							binding.delivery
+						: bindingBaseDiscriminator === 'apiFamily' ?
+							binding.apiFamily.startsWith(sourceTypeName) ?
+								binding.apiFamily.slice(sourceTypeName.length)
+							:
+								binding.apiFamily
 						:
-							binding.apiFamily
-					:
-						''
-				}BindingAxes`
+							''
+					}BindingAxes`,
+			}
 		})
-		const repeatedBindingBaseByBinding = new Map(bindingGroups.flatMap((group, groupIndex) => {
-			const bindingBaseName = bindingBaseNames[groupIndex]
-			const publicBinding = group[0]?.publicBinding
-			if (bindingBaseName == null || publicBinding == null)
+		const repeatedBindingBaseByBinding = new Map(bindingGroups.flatMap(({ baseIdentifier, rows }) => {
+			const publicBinding = rows[0]?.publicBinding
+			if (baseIdentifier == null || publicBinding == null)
 				return []
 
 			const base = {
-				identifier: bindingBaseName,
+				identifier: baseIdentifier,
 				binding: publicBinding,
 			}
-			return group.map(({ binding: groupedBinding }) => [groupedBinding, base] as const)
+			return rows.map(({ binding: groupedBinding }) => [groupedBinding, base] as const)
 		}))
 		const bindingBaseByBinding = new Map(sourceBindingRows.flatMap(({ binding, publicBinding }) => {
 			const repeatedBindingBase = repeatedBindingBaseByBinding.get(binding)
@@ -7400,7 +7398,6 @@ const generateSourceProviderBindingsFile = (
 			sourceBindingRows,
 			bindingGroups,
 			bindingBaseByBinding,
-			bindingBaseNames,
 		}
 	})
 	const sharedValueScope = providerHasMultipleSources ?
@@ -7413,10 +7410,9 @@ const generateSourceProviderBindingsFile = (
 		sourceBindingRows,
 		bindingGroups,
 		bindingBaseByBinding,
-		bindingBaseNames,
 	}) => [
-		...bindingGroups.flatMap((group, groupIndex) => (
-			bindingBaseNames[groupIndex] == null ? [] : group.slice(0, 1)
+		...bindingGroups.flatMap(({ baseIdentifier, rows }) => (
+			baseIdentifier == null ? [] : rows.slice(0, 1)
 		)),
 		...sourceBindingRows.filter(({ binding }) => !bindingBaseByBinding.has(binding)),
 	])
@@ -7798,11 +7794,9 @@ const generateSourceProviderBindingsFile = (
 				...sourcePlans.flatMap(({
 					source,
 					bindingGroups,
-					bindingBaseNames,
 				}) => {
-					const declarations = bindingGroups.flatMap((group, groupIndex) => {
-						const binding = group[0]?.binding
-						const baseIdentifier = bindingBaseNames[groupIndex]
+					const declarations = bindingGroups.flatMap(({ baseIdentifier, rows }) => {
+						const binding = rows[0]?.binding
 						if (binding == null || baseIdentifier == null)
 							return []
 
@@ -7810,10 +7804,10 @@ const generateSourceProviderBindingsFile = (
 							['source', enumAccess('Source', source)],
 							['wireProtocol', enumAccess('WireProtocol', binding.wireProtocol)],
 							['apiFamily', enumAccess('ApiFamily', binding.apiFamily)],
-							['operationGroups', bindingValueReference(properties.operationGroups, group[0].operationGroups) ?? '[]'],
+							['operationGroups', bindingValueReference(properties.operationGroups, rows[0].operationGroups) ?? '[]'],
 							['delivery', enumAccess('SourceDelivery', binding.delivery)],
-							['credentials', bindingValueReference(properties.credentials, group[0].credentials) ?? '[]'],
-							['artifacts', bindingValueReference(properties.artifacts, group[0].artifacts)],
+							['credentials', bindingValueReference(properties.credentials, rows[0].credentials) ?? '[]'],
+							['artifacts', bindingValueReference(properties.artifacts, rows[0].artifacts)],
 						])} as const`]
 					})
 					return declarations.length === 0 ? [] : [...declarations, '']
@@ -9318,7 +9312,7 @@ const compileSummaryPlan = (entity: Entity, indexes: GenerationIndexes) => {
 			items: serialItems,
 		},
 		everySelectorOwnsSerial,
-		fieldKeys: new Set(allEntries.flatMap(itemFieldReferences).map(fieldReferenceKey)),
+		fieldKeys: new Set(allItems.flatMap(({ primaryFieldReferences }) => primaryFieldReferences).map(fieldReferenceKey)),
 		queryFields: [...new Map([
 			...(singularView?.query?.fields ?? []),
 			...(contentWarning == null ? [] : [
@@ -9421,7 +9415,7 @@ const compileSingularViewPlan = (entity: Entity, indexes: GenerationIndexes) => 
 	const serialIsRequiredScalar = (
 		serial != null
 		&& everySelectorOwnsSerial
-		&& summaryItemsRenderRequiredScalar(indexes, compileSummaryItems(entity, indexes, [serial.field]))
+		&& summaryItemsRenderRequiredScalar(indexes, serial.items.slice(0, 1))
 	)
 	const serialFallbackTitleExpression = serial == null ?
 		pendingTitleIsRequiredScalar ?
