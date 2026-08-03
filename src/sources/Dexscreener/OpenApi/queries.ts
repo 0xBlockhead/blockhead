@@ -37,7 +37,7 @@ const normalizeTimeframeNumbers = (
 	values: Record<string, number> | undefined,
 	label: string,
 	nonnegative = true
-): Partial<Record<string, number>> => {
+) => {
 	const entries = Object.entries(values ?? {})
 	if (entries.length > maximumTimeframes)
 		throw new Error(`Dexscreener_Rest: excessive ${label} timeframes`)

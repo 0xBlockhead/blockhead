@@ -21,7 +21,6 @@ import {
 	type TonCenterV3MessageWire,
 	type TonCenterV3NftCollectionWire,
 	type TonCenterV3Order,
-	type TonCenterV3Page,
 } from '$/sources/TonCenter/V3/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -72,7 +71,7 @@ const page = <_Row>(
 	rows: _Row[],
 	limit: number,
 	offset: number
-): TonCenterV3Page<_Row> => {
+) => {
 	if (rows.length > limit)
 		throw new Error('TON Center v3: response exceeds requested limit')
 

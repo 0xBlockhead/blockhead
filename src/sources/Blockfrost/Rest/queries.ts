@@ -13,7 +13,6 @@ import type {
 	BlockfrostCommittee,
 	BlockfrostCommitteeVotes,
 	BlockfrostDReps,
-	BlockfrostDRepListItem,
 	BlockfrostDRep,
 	BlockfrostDRepMetadata,
 	BlockfrostDRepVotes,
@@ -202,7 +201,7 @@ export const getStakePoolMetadata = (poolId: string) => (
 
 export const listDReps = (count: number) => (
 	listPage<BlockfrostDReps[number]>('governance/dreps', count).then((dReps) => (
-		dReps.map(({ metadata, ...dRep }): BlockfrostDRepListItem => {
+		dReps.map(({ metadata, ...dRep }) => {
 			const identityMetadata = blockfrostDRepIdentityMetadata(metadata?.json_metadata)
 
 			return {

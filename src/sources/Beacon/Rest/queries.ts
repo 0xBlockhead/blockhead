@@ -84,7 +84,7 @@ export const getHeadSlot = async (chainId: number) => {
 
 export const getHeaderFromWire = (
 	wire: JsonValue
-): BeaconHeaderWire | undefined => {
+) => {
 	if (!isJsonObject(wire)) return undefined
 	const header = beaconHeaderWire(wire.data)
 	if (
@@ -151,7 +151,7 @@ export const getRecentProposerValidatorIndices = async ({
 	return ordered
 }
 
-const nonNegativeDecimalBigIntFromWire = (raw: string | undefined): bigint | undefined => (
+const nonNegativeDecimalBigIntFromWire = (raw: string | undefined) => (
 	raw != null && /^[0-9]+$/.test(raw) ?
 		BigInt(raw)
 	:
@@ -176,7 +176,7 @@ const beaconValidatorWire = arktype({
 
 export const getValidatorFromWire = (
 	wire: JsonValue
-): components['schemas']['ValidatorResponse'] | undefined => {
+) => {
 	if (!isJsonObject(wire)) return undefined
 	const validator = beaconValidatorWire(wire.data)
 	if (
@@ -258,7 +258,7 @@ const isNonNegativeSafeIntegerWire = (value: string) => (
 
 export const getFinalityCheckpointsFromWire = (
 	wire: JsonValue
-): BeaconFinalityCheckpointsWire | undefined => {
+) => {
 	if (!isJsonObject(wire)) return undefined
 	const checkpoints = beaconFinalityCheckpointsWire(wire.data)
 	if (
@@ -284,7 +284,7 @@ export const getFinalityCheckpoints = async (
 
 export const getForkScheduleFromWire = (
 	wire: JsonValue
-): components['schemas']['Fork'][] => {
+) => {
 	if (!isJsonObject(wire)) return []
 	const data = wire.data
 	if (!Array.isArray(data)) return []
@@ -334,7 +334,7 @@ export const getGenesisTimeSeconds = async (
 
 export const getCommitteesFromWire = (
 	wire: JsonValue
-): components['schemas']['Committee'][] => {
+) => {
 	if (!isJsonObject(wire)) return []
 	const data = wire.data
 	if (!Array.isArray(data)) return []
@@ -365,7 +365,7 @@ export const getCommittees = async (
 
 export const getSyncCommitteeFromWire = (
 	wire: JsonValue
-): components['schemas']['SyncCommitteeByValidatorIndices'] | undefined => {
+) => {
 	if (!isJsonObject(wire)) return undefined
 	const committee = beaconSyncCommitteeWire(wire.data)
 	if (

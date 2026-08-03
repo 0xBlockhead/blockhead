@@ -4,7 +4,6 @@ import bindings from '$/sources/Sqd/bindings.ts'
 import {
 	SqdPortalEvmBlock,
 	type SqdPortalEvmBlockRequest,
-	type SqdPortalFinalizedHead,
 	SqdPortalReorg,
 	SqdPortalResolution,
 } from '$/sources/Sqd/Portal/types.ts'
@@ -12,7 +11,7 @@ import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.SqdPortal_RawHttp][0]
 
-const finalizedHead = (response: Response): SqdPortalFinalizedHead | undefined => {
+const finalizedHead = (response: Response) => {
 	const number = response.headers.get('x-sqd-finalized-head-number')
 	const hash = response.headers.get('x-sqd-finalized-head-hash')
 	if (number == null || hash == null)

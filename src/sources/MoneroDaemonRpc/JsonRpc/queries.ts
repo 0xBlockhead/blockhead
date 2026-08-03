@@ -51,7 +51,7 @@ const queryMoneroMainnet = async <_Result>(
 	throw new Error(`MoneroDaemonRpc_JsonRpc: all mainnet endpoints failed${errors.length === 0 ? '' : `: ${errors.join('; ')}`}`)
 }
 
-const moneroTransactionWithDecodedJson = (transaction: MoneroRpcTransaction): MoneroRpcTransaction => {
+const moneroTransactionWithDecodedJson = (transaction: MoneroRpcTransaction) => {
 	if (transaction.as_json == null) return transaction
 	const decoded_json: MoneroRpcDecodedTransaction = JSON.parse(transaction.as_json)
 	return {

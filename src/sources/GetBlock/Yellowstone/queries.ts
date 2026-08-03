@@ -6,7 +6,6 @@ import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/GetBlock/bindings.ts'
 import type {
 	GetBlockYellowstoneAccountRequest,
-	GetBlockYellowstoneAccountUpdate,
 } from '$/sources/GetBlock/Yellowstone/types.ts'
 import {
 	decodeGetBlockYellowstoneAccountUpdate,
@@ -18,7 +17,7 @@ const binding = bindings[Source.GetBlockYellowstone_Grpc][0]
 export const subscribeSolanaAccountUpdates = async function* (
 	accountRequest: GetBlockYellowstoneAccountRequest,
 	signal?: AbortSignal
-): AsyncGenerator<GetBlockYellowstoneAccountUpdate> {
+) {
 	for await (const message of iterateGrpcLive({
 		binding,
 		operationGroup: SourceOperationGroup.GenericSubscribe,

@@ -1,6 +1,4 @@
-import type { MagnetUri } from '$/sources/MagnetUri/Uri/types.ts'
-
-export const parseMagnetUri = (uri: string): MagnetUri => {
+export const parseMagnetUri = (uri: string) => {
 	const url = new URL(uri)
 	const params = url.searchParams
 	const displayName = params.get('dn')

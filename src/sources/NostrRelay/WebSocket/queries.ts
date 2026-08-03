@@ -278,7 +278,7 @@ export const relayWebSocketUrl = (relayUrl: string) => {
 export const nostrRelayListFromEvent = (
 	event: NostrRelayEvent,
 	pubkey?: string
-): NostrRelayList => {
+) => {
 	const validatedEvent = validateNostrEvent(event, {
 		pubkey,
 		kinds: [10_002],
@@ -346,7 +346,7 @@ export const latestNostrRelayListFromEvents = (
 
 export const nostrZapRequestFromEvent = (
 	event: NostrRelayEvent
-): NostrZapRequest => {
+) => {
 	const validatedEvent = validateNostrEvent(event, {
 		kinds: [9_734],
 	})
@@ -399,7 +399,7 @@ export const nostrZapReceiptFromEvent = (
 		receiptPubkey?: string
 		recipientPubkey?: string
 	} = {}
-): NostrZapReceipt => {
+) => {
 	const validatedEvent = validateNostrEvent(event, {
 		pubkey: expected.receiptPubkey,
 		kinds: [9_735],
@@ -441,7 +441,7 @@ export const nostrZapReceiptFromEvent = (
 
 export const nostrCommentFromEvent = (
 	event: NostrRelayEvent
-): NostrComment => {
+) => {
 	const validatedEvent = validateNostrEvent(event, {
 		kinds: [1_111],
 	})
