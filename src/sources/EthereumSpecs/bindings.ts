@@ -10,7 +10,6 @@ import {
 	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const ethereumSpecsGithubBindingAxes = {
@@ -57,5 +56,5 @@ export default indexSourceBindings(mapSourceBindings(
 				corsEnabled: true,
 			},
 		],
-	} satisfies SourceBinding)
+	})
 ))

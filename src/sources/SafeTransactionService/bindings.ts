@@ -12,7 +12,6 @@ import {
 	SourceEndpointKind,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const safeTransactionServiceRestBindingAxes = {
@@ -67,5 +66,5 @@ export default indexSourceBindings(mapSourceBindings(
 				corsEnabled: false,
 			},
 		],
-	} satisfies SourceBinding)
+	})
 ))

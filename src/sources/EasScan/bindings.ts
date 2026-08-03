@@ -11,7 +11,6 @@ import {
 	SourceEndpointKind,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const easScanGraphqlBindingAxes = {
@@ -107,5 +106,5 @@ export default indexSourceBindings(mapSourceBindings(
 				corsEnabled: false,
 			},
 		],
-	} satisfies SourceBinding)
+	})
 ))

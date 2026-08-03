@@ -11,7 +11,6 @@ import {
 	SourceEndpointKind,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const beaconRestBindingAxes = {
@@ -71,5 +70,5 @@ export default indexSourceBindings(mapSourceBindings(
 				corsEnabled: true,
 			},
 		],
-	} satisfies SourceBinding)
+	})
 ))

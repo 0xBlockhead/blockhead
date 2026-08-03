@@ -11,7 +11,6 @@ import {
 	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const voltaireJsonRpcEvmRpcCoreEvmRpcTraceEvmRpcTxpoolOperationGroups = [
@@ -219,7 +218,7 @@ export default indexSourceBindings([
 					},
 				],
 			},
-		] as const satisfies readonly [SourceBinding, ...SourceBinding[]])
+		] as const)
 	),
 	...flatMapSourceBindings(
 		[
@@ -266,7 +265,7 @@ export default indexSourceBindings([
 					},
 				],
 			},
-		] as const satisfies readonly [SourceBinding, ...SourceBinding[]])
+		] as const)
 	),
 	...flatMapSourceBindings(
 		[
@@ -323,7 +322,7 @@ export default indexSourceBindings([
 					},
 				],
 			},
-		] as const satisfies readonly [SourceBinding, ...SourceBinding[]])
+		] as const)
 	),
 	{
 		...voltaireJsonRpcHttpProxyBindingAxes,
@@ -501,6 +500,6 @@ export default indexSourceBindings([
 					},
 				],
 			},
-		] as const satisfies readonly [SourceBinding, ...SourceBinding[]])
+		] as const)
 	),
-] as const satisfies readonly SourceBinding[])
+] as const)

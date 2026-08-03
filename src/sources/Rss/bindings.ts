@@ -11,7 +11,6 @@ import {
 	SourceEndpointKind,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const rssRestBindingAxes = {
@@ -58,5 +57,5 @@ export default indexSourceBindings(mapSourceBindings(
 				corsEnabled: false,
 			},
 		],
-	} satisfies SourceBinding)
+	})
 ))

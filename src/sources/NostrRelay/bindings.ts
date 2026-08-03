@@ -11,7 +11,6 @@ import {
 	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const nostrRelayNip11HttpBindingAxes = {
@@ -110,7 +109,7 @@ export default indexSourceBindings([
 					corsEnabled: false,
 				},
 			],
-		} satisfies SourceBinding)
+		})
 	),
 	...mapSourceBindings(
 		nostrRelayWebSocketTargets,
@@ -131,6 +130,6 @@ export default indexSourceBindings([
 					locator,
 				},
 			],
-		} satisfies SourceBinding)
+		})
 	),
-] as const satisfies readonly SourceBinding[])
+] as const)

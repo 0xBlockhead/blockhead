@@ -8015,7 +8015,7 @@ const generateSourceProviderBindingsFile = (
 				...(matrix.hasBindingOverrides ? ['\t\t...bindingOverrides'] : []),
 				'\t}) => ({',
 				...lines(matrix.variants[0] ?? '').slice(1, -1).map((line) => indent(line)),
-				'\t} satisfies SourceBinding)',
+				'\t})',
 				')',
 			] : [
 				'flatMapSourceBindings(',
@@ -8031,7 +8031,7 @@ const generateSourceProviderBindingsFile = (
 					...lines(binding).slice(1, -1).map((line) => indent(line, 2)),
 					'\t\t},',
 				]),
-				'\t] as const satisfies readonly [SourceBinding, ...SourceBinding[]])',
+				'\t] as const)',
 				')',
 			]).join('\n'),
 		}
@@ -8087,7 +8087,7 @@ const generateSourceProviderBindingsFile = (
 					...parts.flatMap(({ expression, spread }) => lines(expression).map((line, lineIndex, expressionLines) => (
 						`${lineIndex === 0 && spread ? '\t...' : '\t'}${line}${lineIndex === expressionLines.length - 1 ? ',' : ''}`
 					))),
-					'] as const satisfies readonly SourceBinding[]',
+					'] as const',
 				].join('\n'),
 			}] as const]
 		}))
@@ -8117,7 +8117,7 @@ const generateSourceProviderBindingsFile = (
 							`${index === 0 ? '\t...' : '\t'}${line}${index === compactExpressionLines.length - 1 ? ',' : ''}`
 						))
 					}),
-					'] as const satisfies readonly SourceBinding[]',
+					'] as const',
 				].join('\n'),
 			}
 		if (compact == null)
@@ -8159,7 +8159,6 @@ const generateSourceProviderBindingsFile = (
 							'indexSourceBindings',
 							...(renderedBindingPlan.expression.includes('mapSourceBindings') ? ['mapSourceBindings'] : []),
 						],
-					typeNames: renderedBindingPlan.expression.includes('SourceBinding') ? ['SourceBinding'] : [],
 				},
 				...(bindings.some(({ binding }) => binding.credentials.some((credential) => (
 					!('envKey' in credential)

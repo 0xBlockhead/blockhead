@@ -11,7 +11,6 @@ import {
 	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
 const blockscoutRestV2BindingAxes = {
@@ -126,5 +125,5 @@ export default indexSourceBindings(flatMapSourceBindings(
 				},
 			],
 		},
-	] as const satisfies readonly [SourceBinding, ...SourceBinding[]])
+	] as const)
 ))

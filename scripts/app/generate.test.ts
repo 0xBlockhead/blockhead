@@ -3173,6 +3173,8 @@ test('emits every source-axis enum and only valid enum references in provider ro
 			source.includes('operationGroups: walletReadAndSignOperationGroups')
 		)
 		assert.equal(sourceBindingImportNames.has('SourceOperationGroup'), /SourceOperationGroup\./.test(source))
+		assert.equal(sourceBindingImportNames.has('SourceBinding'), false)
+		assert.doesNotMatch(source, /satisfies (?:readonly )?(?:\[)?SourceBinding/)
 		assert.equal(sourceFile.statements.filter((statement) => (
 			ts.isVariableStatement(statement)
 			&& statement.declarationList.declarations.some((declaration) => (
@@ -3188,12 +3190,11 @@ test('emits every source-axis enum and only valid enum references in provider ro
 		)).length, 1)
 		if (source.includes('flatMapSourceBindings(') || source.includes('mapSourceBindings(')) {
 			if (source.includes('flatMapSourceBindings('))
-				assert.match(source, /\] as const satisfies readonly \[SourceBinding, \.\.\.SourceBinding\[\]\]\)\n/)
+				assert.match(source, /\] as const\)\n/)
 			if (source.includes('mapSourceBindings('))
-				assert.match(source, /\} satisfies SourceBinding\)\n/)
+				assert.match(source, /^\s*\}\)\n/m)
 			assert.doesNotMatch(source, /Targets\.(?:flatMap|map)\(/)
 		} else {
-			assert.doesNotMatch(source, /type SourceBinding|satisfies (?:readonly )?SourceBinding/)
 			assert.match(source, /export default indexSourceBindings\(\[[\s\S]*?\n\]\)/)
 		}
 		assert.match(source, /export default indexSourceBindings\(/)
@@ -6259,7 +6260,9 @@ import { SourceProvider } from '${root}/src/sources/SourceProvider.ts'
 import type { SourceProviderDefinition } from '${root}/src/sources/SourceProviderDefinition.ts'
 import {
 	ApiFamily,
+	flatMapSourceBindings,
 	indexSourceBindings,
+	mapSourceBindings,
 	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
@@ -6437,6 +6440,21 @@ const emptyAcrossBindingIndex = {
 	// @ts-expect-error A present source key must retain at least one binding.
 	[Source.Across_Rest]: [],
 } satisfies SourceBindingIndex
+mapSourceBindings([0] as const, () => ({
+	...acrossBinding,
+	// @ts-expect-error mapSourceBindings retains the SourceBinding endpoint contract.
+	endpoints: [],
+}))
+flatMapSourceBindings([0] as const, () => ([{
+	...acrossBinding,
+	// @ts-expect-error flatMapSourceBindings retains the SourceBinding endpoint contract.
+	endpoints: [],
+}] as const))
+indexSourceBindings([{
+	...acrossBinding,
+	// @ts-expect-error indexSourceBindings retains the SourceBinding endpoint contract.
+	endpoints: [],
+}] as const)
 const mixedProxyCredentials = {
 	...getBlockRpcBinding,
 	credentials: [
