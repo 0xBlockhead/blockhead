@@ -29,7 +29,6 @@
 			Source.X_Rest,
 			Source.X_FxEmbed_Rest,
 		],
-	})({
 		fields: {
 			id: true,
 			username: true,

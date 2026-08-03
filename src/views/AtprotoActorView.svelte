@@ -103,7 +103,6 @@
 								sources: selection.sources ?? [
 									Source.Atproto_Xrpc,
 								],
-							})({
 								fields: {
 									did: true,
 								},

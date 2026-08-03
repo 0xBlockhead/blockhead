@@ -24,7 +24,6 @@
 		sources: selection.sources ?? [
 			Source.MoneroDaemonRpc_JsonRpc,
 		],
-	})({
 		fields: {
 			publicKey: true,
 			commitment: true,

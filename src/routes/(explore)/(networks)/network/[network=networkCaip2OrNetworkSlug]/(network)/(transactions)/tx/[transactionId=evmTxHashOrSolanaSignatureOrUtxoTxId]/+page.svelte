@@ -16,20 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const documentTitle = $derived(
-		(
-			data.entityType === EntityType.EvmTransaction ?
-				(data.selector.txHash || 'EVM transaction') + ' • EVM transaction • Blockhead'
-			:
-			data.entityType === EntityType.SolanaTransaction ?
-				(data.selector.signature || 'solana transaction') + ' • solana transaction • Blockhead'
-			:
-			data.entityType === EntityType.CardanoTransaction ?
-				(data.selector.hash || 'Cardano transaction') + ' • Cardano transaction • Blockhead'
-			:
-				(data.selector.txId || 'UTXO transaction') + ' • UTXO transaction • Blockhead'
-		)
-	)
 	const entityViewByType = {
 		[EntityType.EvmTransaction]: EvmTransactionView,
 		[EntityType.SolanaTransaction]: SolanaTransactionView,
@@ -47,7 +33,20 @@
 
 
 <svelte:head>
-	<title>{documentTitle}</title>
+	<title>{
+		(
+			data.entityType === EntityType.EvmTransaction ?
+				(data.selector.txHash || 'EVM transaction') + ' • EVM transaction • Blockhead'
+			:
+			data.entityType === EntityType.SolanaTransaction ?
+				(data.selector.signature || 'solana transaction') + ' • solana transaction • Blockhead'
+			:
+			data.entityType === EntityType.CardanoTransaction ?
+				(data.selector.hash || 'Cardano transaction') + ' • Cardano transaction • Blockhead'
+			:
+				(data.selector.txId || 'UTXO transaction') + ' • UTXO transaction • Blockhead'
+		)
+	}</title>
 </svelte:head>
 
 

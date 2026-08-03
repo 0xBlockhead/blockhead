@@ -46,20 +46,6 @@
 				})
 		)
 	)
-	const documentTitle = $derived(
-		(
-			data.entityType === EntityType.EvmBlock ?
-				(pageSelection.entity == null ? `Block #${data.selector.blockNumber}` : (String(data.selector.blockNumber ?? '') ? 'Block #' + String(data.selector.blockNumber ?? '') : '') || (pageSelection.entity.hash ?? '') || 'EVM block') + ' • EVM block • Blockhead'
-			:
-			data.entityType === EntityType.SolanaBlock ?
-				((String(data.selector.slot ?? '') ? 'Slot #' + String(data.selector.slot ?? '') : '') || 'solana block') + ' • solana block • Blockhead'
-			:
-			data.entityType === EntityType.UtxoBlock ?
-				(pageSelection.entity == null ? `Block #${data.selector.height}` : (String(data.selector.height ?? '') ? 'Block #' + String(data.selector.height ?? '') : '') || (pageSelection.entity.hash ?? '') || 'UTXO block') + ' • UTXO block • Blockhead'
-			:
-				(pageSelection.entity == null ? `Block #${data.selector.blockNumber}` : (String(data.selector.blockNumber ?? '') ? 'Block #' + String(data.selector.blockNumber ?? '') : '') || (pageSelection.entity.hash ?? '') || 'Polkadot block') + ' • Polkadot block • Blockhead'
-		)
-	)
 	const entityViewByType = {
 		[EntityType.EvmBlock]: EvmBlockView,
 		[EntityType.SolanaBlock]: SolanaBlockView,
@@ -77,7 +63,20 @@
 
 
 <svelte:head>
-	<title>{documentTitle}</title>
+	<title>{
+		(
+			data.entityType === EntityType.EvmBlock ?
+				(pageSelection.entity == null ? `Block #${data.selector.blockNumber}` : (String(data.selector.blockNumber ?? '') ? 'Block #' + String(data.selector.blockNumber ?? '') : '') || (pageSelection.entity.hash ?? '') || 'EVM block') + ' • EVM block • Blockhead'
+			:
+			data.entityType === EntityType.SolanaBlock ?
+				((String(data.selector.slot ?? '') ? 'Slot #' + String(data.selector.slot ?? '') : '') || 'solana block') + ' • solana block • Blockhead'
+			:
+			data.entityType === EntityType.UtxoBlock ?
+				(pageSelection.entity == null ? `Block #${data.selector.height}` : (String(data.selector.height ?? '') ? 'Block #' + String(data.selector.height ?? '') : '') || (pageSelection.entity.hash ?? '') || 'UTXO block') + ' • UTXO block • Blockhead'
+			:
+				(pageSelection.entity == null ? `Block #${data.selector.blockNumber}` : (String(data.selector.blockNumber ?? '') ? 'Block #' + String(data.selector.blockNumber ?? '') : '') || (pageSelection.entity.hash ?? '') || 'Polkadot block') + ' • Polkadot block • Blockhead'
+		)
+	}</title>
 </svelte:head>
 
 

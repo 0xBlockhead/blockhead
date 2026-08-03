@@ -30,7 +30,6 @@
 		sources: selection.sources ?? [
 			Source.Blockfrost_Rest,
 		],
-	})({
 		fields: {
 			addressKind: true,
 		},

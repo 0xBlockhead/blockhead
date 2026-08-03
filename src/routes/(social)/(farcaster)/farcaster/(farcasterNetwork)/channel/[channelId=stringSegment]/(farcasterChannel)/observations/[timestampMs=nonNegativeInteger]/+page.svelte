@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{'Farcaster channel observation'} • Farcaster channel observation • Blockhead</title>
+	<title>Farcaster channel observation • Farcaster channel observation • Blockhead</title>
 </svelte:head>
 
 

@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{'currency timestamp'} • currency timestamp • Blockhead</title>
+	<title>currency timestamp • currency timestamp • Blockhead</title>
 </svelte:head>
 
 

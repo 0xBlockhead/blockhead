@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{'ActivityPub actor observation'} • ActivityPub actor observation • Blockhead</title>
+	<title>ActivityPub actor observation • ActivityPub actor observation • Blockhead</title>
 </svelte:head>
 
 

@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{'allowance'} • allowance • Blockhead</title>
+	<title>allowance • allowance • Blockhead</title>
 </svelte:head>
 
 

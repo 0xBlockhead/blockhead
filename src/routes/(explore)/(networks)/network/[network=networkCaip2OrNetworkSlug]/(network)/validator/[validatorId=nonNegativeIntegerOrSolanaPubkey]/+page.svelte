@@ -16,14 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const documentTitle = $derived(
-		(
-			data.entityType === EntityType.BeaconValidator ?
-				((String(data.selector.indexInNetwork ?? '') ? 'Validator #' + String(data.selector.indexInNetwork ?? '') : '') || 'beacon validator') + ' • beacon validator • Blockhead'
-			:
-				(data.selector.votePubkey || 'solana validator') + ' • solana validator • Blockhead'
-		)
-	)
 	const entityViewByType = {
 		[EntityType.BeaconValidator]: BeaconValidatorView,
 		[EntityType.SolanaValidator]: SolanaValidatorView,
@@ -37,7 +29,14 @@
 
 
 <svelte:head>
-	<title>{documentTitle}</title>
+	<title>{
+		(
+			data.entityType === EntityType.BeaconValidator ?
+				((String(data.selector.indexInNetwork ?? '') ? 'Validator #' + String(data.selector.indexInNetwork ?? '') : '') || 'beacon validator') + ' • beacon validator • Blockhead'
+			:
+				(data.selector.votePubkey || 'solana validator') + ' • solana validator • Blockhead'
+		)
+	}</title>
 </svelte:head>
 
 

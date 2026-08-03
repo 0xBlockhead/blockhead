@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{'ENS hub observation'} • ENS hub observation • Blockhead</title>
+	<title>ENS hub observation • ENS hub observation • Blockhead</title>
 </svelte:head>
 
 

@@ -21,7 +21,6 @@
 			Source.Local_Internal,
 			Source.TheGraph_Graphql,
 		],
-	})({
 		fields: {
 			createdAt: true,
 			resultLimit: true,

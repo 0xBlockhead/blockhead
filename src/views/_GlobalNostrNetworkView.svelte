@@ -22,7 +22,6 @@
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	})({
 		fields: {
 			protocolName: true,
 			registryName: true,

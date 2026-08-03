@@ -161,7 +161,6 @@
 						sources: selection.sources ?? [
 							Source.Blockscout_Rest,
 						],
-					})({
 						fields: {
 							data: true,
 						},

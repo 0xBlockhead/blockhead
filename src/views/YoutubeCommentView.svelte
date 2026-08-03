@@ -29,7 +29,6 @@
 			Source.Youtube_Rest,
 			Source.Piped_Rest,
 		],
-	})({
 		fields: {
 			text: true,
 			authorDisplayName: true,

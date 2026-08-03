@@ -25,7 +25,6 @@
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	})({
 		fields: {
 			peerId: true,
 			sharedAt: true,

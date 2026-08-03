@@ -55,7 +55,6 @@
 					sources: selection.sources ?? [
 						Source.Constants_Internal,
 					],
-				})({
 					fields: {
 						label: true,
 						labelPlural: true,
@@ -88,7 +87,6 @@
 						sources: selection.sources ?? [
 							Source.Constants_Internal,
 						],
-					})({
 						fields: {
 							label: true,
 							labelPlural: true,
@@ -119,7 +117,6 @@
 								sources: selection.sources ?? [
 									Source.Constants_Internal,
 								],
-							})({
 								fields: {
 									label: true,
 									labelPlural: true,

@@ -23,7 +23,6 @@
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	})({
 		fields: {
 			peerInboxId: true,
 			topic: true,

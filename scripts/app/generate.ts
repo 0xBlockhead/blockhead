@@ -475,14 +475,23 @@ const commaTerminatedExpressionLines = (expression: string, level = 1) => {
 	return expressionLines
 }
 
+const leadingIndentWidth = (line: string) => [...(line.match(/^[\t ]*/)?.[0] ?? '')]
+	.reduce((width, character) => width + (character === '\t' ? 4 : 1), 0)
+
 const reindentLines = (source: string[], level: number) => {
 	const sourceLines = source.flatMap((line) => line.split('\n'))
 	const indentedLines = sourceLines.filter((line) => line.trim() !== '')
-	const indentLevel = indentedLines.length === 0 ? 0 : Math.min(...indentedLines
-		.map((line) => line.match(/^\t*/)?.[0].length ?? 0)
+	const indentWidth = indentedLines.length === 0 ? 0 : Math.min(...indentedLines
+		.map(leadingIndentWidth)
 	)
 
-	return sourceLines.map((line) => line.trim() === '' ? '' : `${'\t'.repeat(level)}${line.slice(indentLevel)}`)
+	return sourceLines.map((line) => {
+		if (line.trim() === '')
+			return ''
+
+		const relativeIndentWidth = leadingIndentWidth(line) - indentWidth
+		return `${'\t'.repeat(level + Math.floor(relativeIndentWidth / 4))}${' '.repeat(relativeIndentWidth % 4)}${line.trimStart()}`
+	})
 }
 
 const renderSvelteSnippet = (level: number, declaration: string, body: string[]) => [
@@ -6231,10 +6240,17 @@ const generateFiles = (compiledApp: CompiledAppFacts): GeneratedFile[] => {
 			}
 		),
 		generateSourceBindingFile(),
-		generateSourceProviderEnumFile(sourceProviderNames),
+		tsFile(
+			'src/sources/SourceProvider.ts',
+			{
+				body: [
+					emitStringEnum('SourceProvider', sourceProviderNames),
+				],
+			}
+		),
 		...sourceProviders.flatMap((provider) => [
 			generateSourceProviderBindingsFile(
-				provider,
+				provider.provider,
 				sourceBindingsByProvider[provider.provider] ?? []
 			),
 			generateSourceProviderDefinitionFile(
@@ -7298,15 +7314,6 @@ export function mergeSourceBindingIndexes(
 	}
 )
 
-const generateSourceProviderEnumFile = (sourceProviderNames: readonly string[]) => tsFile(
-	'src/sources/SourceProvider.ts',
-	{
-		body: [
-			emitStringEnum('SourceProvider', sourceProviderNames),
-		],
-	}
-)
-
 const emitEnvSchema = (
 	env: NonNullable<Extract<SourceBinding['credentials'][number], { env?: object }>['env']> | undefined
 ) => (
@@ -7421,13 +7428,13 @@ const bindingValueReference = (
 ) => reference ?? plan?.nameByIdentity.get(identity) ?? expression
 
 const generateSourceProviderBindingsFile = (
-	provider: SourceProviderDefinition,
+	provider: string,
 	bindings: readonly SourceBindingEntry[]
 ) => {
 	// Binding rows keep scalars inline and share repeated arrays across the
 	// provider file, including when sibling sources use the same endpoint or
 	// credential catalog.
-	const providerName = pascal(provider.provider)
+	const providerName = pascal(provider)
 	const providerHasMultipleSources = new Set(bindings.map(({ source }) => source)).size > 1
 	const bindingRows = bindings.map(({ binding, source }) => {
 		const sourceName = pascal(String(source))
@@ -7448,6 +7455,7 @@ const generateSourceProviderBindingsFile = (
 				}
 			),
 		}))
+		const operationGroupsIdentity = JSON.stringify(binding.operationGroups)
 		return {
 			binding,
 			publicBinding: {
@@ -7465,9 +7473,9 @@ const generateSourceProviderBindingsFile = (
 				valueName: providerHasMultipleSources ? `${targetSuffix}Endpoints` : 'Endpoints',
 			},
 			operationGroups: {
-				identity: JSON.stringify(binding.operationGroups),
+				identity: operationGroupsIdentity,
 				expression: emitArray(binding.operationGroups.map((group) => enumAccess('SourceOperationGroup', group))),
-				reference: canonicalOperationGroupReferenceByIdentity.get(JSON.stringify(binding.operationGroups)),
+				reference: canonicalOperationGroupReferenceByIdentity.get(operationGroupsIdentity),
 				valueName: `${binding.operationGroups.join('')}OperationGroups`,
 			},
 			credentials: {
@@ -7588,9 +7596,9 @@ const generateSourceProviderBindingsFile = (
 		}
 	})
 	const sharedValueScope = providerHasMultipleSources ?
-		provider.provider
+		provider
 	:
-		bindingRows[0]?.source ?? provider.provider
+		bindingRows[0]?.source ?? provider
 	// A shared binding-axis object is one emitted consumer. Planning repeated
 	// values from those final consumers prevents aliases used only by that object.
 	const bindingAxisRows = sourcePlans.flatMap(({
@@ -7993,7 +8001,7 @@ const generateSourceProviderBindingsFile = (
 	]
 
 	return tsFile(
-		`src/sources/${provider.provider}/bindings.ts`,
+		`src/sources/${provider}/bindings.ts`,
 		{
 			imports: [
 				{
@@ -8124,8 +8132,9 @@ const generateSourceServerCredentialsFile = (
 			runtimeSecret,
 		}]
 	})
+	const runtimeSecretBindingsBySource = Object.groupBy(runtimeSecretBindings, ({ source }) => source)
 	const bindingSelectorExpressions = ({ source, binding }: SourceBindingEntry) => {
-		const sourceRuntimeSecretBindings = runtimeSecretBindings.filter((candidate) => candidate.source === source)
+		const sourceRuntimeSecretBindings = runtimeSecretBindingsBySource[source] ?? []
 		const targetKey = sourceRuntimeSecretBindings.length === 1 ? undefined : binding.target.key
 		if (sourceRuntimeSecretBindings.filter((candidate) => (
 			targetKey === undefined
@@ -8404,27 +8413,6 @@ const renderPendingEntityDerived = (entity: Entity) => {
 			...reindentLines(trimBlankLineEdges(lines(pending.expression)), 1),
 			')',
 		]
-}
-
-const viewResolvedFieldReferences = (
-	entity: Entity,
-	indexes: GenerationIndexes,
-	selectorName?: string
-) => {
-	const selectorFieldNames = (
-		selectorName == null ?
-			entitySelectorFieldNames(entity)
-		:
-			new Set(entity.selectors.find((selector) => selector.name === selectorName)?.fields ?? [])
-	)
-
-	return [...new Map(
-		allViewItems(entity, indexes)
-			.flatMap(itemFieldReferences)
-			.map((fieldReference) => [fieldReferenceKey(fieldReference), fieldReference])
-	).values()].filter((fieldReference) => (
-		isProjectionFieldReference(fieldReference) || !selectorFieldNames.has(fieldReference)
-	))
 }
 
 const viewItems = (viewEntries: _ViewItem[] | _ViewItem | undefined): _ViewItem[] => (
@@ -10466,10 +10454,17 @@ const generateSingularViewFile = (
 			|| rawViewSelectionReferenceCount > 0
 		)
 	)
-	const entityResourceExpression = !inlineEntityResource ?
-		entityName
-	:
+	const resolvedEntitySelectionExpression = usesViewSelection || declaredViewSourcesExpression == null ?
 		`${usesViewSelection ? viewSelectionExpression : viewSelectionValueExpression}${query === '{}' ? '' : `(${query})`}`
+	:
+		`selection(${renderQuery(
+			viewQuery,
+			queryFields,
+			`selection.sources ?? ${declaredViewSourcesExpression}`,
+			undefined,
+			universalSelectorFieldNames
+		)})`
+	const entityResourceExpression = inlineEntityResource ? resolvedEntitySelectionExpression : entityName
 	const iconMarkup = (
 		singularView?.summary?.Icon != null
 		|| singularView?.summary?.icon != null
@@ -11023,7 +11018,7 @@ const generateSingularViewFile = (
 			`const viewSelection = $derived(${viewSelectionValueExpression})`,
 		]),
 		...(resolvesEntity && !inlineEntityResource ? [
-			`const ${entityName} = $derived(${query === '{}' ? viewBindings.viewSelection : `${viewBindings.viewSelection}(${query})`})`,
+			`const ${entityName} = $derived(${resolvedEntitySelectionExpression})`,
 		] : []),
 		...(usesTitleFallbackBinding ? [
 			`const titleFallback = ${titleFallbackLiteralValue != null ? titleFallbackExpression : `$derived(${titleFallbackExpression})`}`,
@@ -15210,6 +15205,8 @@ const generatePageFile = (
 	if ((routeFile.mappings?.length ?? 0) > 1) {
 		const mappings = routeFile.mappings ?? []
 		const mappingsByEntityType = Object.groupBy(mappings, ({ entityType }) => entityType)
+		const mappedEntityTypes = [...new Set(mappings.map(({ entityType }) => entityType))]
+		const singleMappedEntityType = mappedEntityTypes.length === 1 ? mappedEntityTypes[0] : undefined
 		const mappingContexts = mappings.map((mapping) => {
 			const entity = indexes.entityByType[mapping.entityType]
 			if (entity == null)
@@ -15226,7 +15223,9 @@ const generatePageFile = (
 			return {
 				mapping,
 				entity,
-				condition: mappingsByEntityType[mapping.entityType]?.length === 1 ?
+				condition: singleMappedEntityType != null ?
+					`data.selectorName === ${emitTypeScript(mapping.selectorName)}`
+				: mappingsByEntityType[mapping.entityType]?.length === 1 ?
 					`data.entityType === EntityType.${mapping.entityType}`
 				:
 					(
@@ -15247,8 +15246,6 @@ const generatePageFile = (
 		const finalContext = mappingContexts.at(-1)
 		if (finalContext == null)
 			throw new Error(`${routePath} has no final selector mapping`)
-		const mappedEntityTypes = [...new Set(mappingContexts.map(({ mapping }) => mapping.entityType))]
-		const singleMappedEntityType = mappedEntityTypes.length === 1 ? mappedEntityTypes[0] : undefined
 		const singleMappedEntity = singleMappedEntityType == null ? undefined : indexes.entityByType[singleMappedEntityType]
 		const sharedSourcesExpression = finalContext.selection.sourcesExpression
 		// Selector variants with one source contract can request their combined
@@ -15297,6 +15294,7 @@ const generatePageFile = (
 					finalContext.title.expression
 			)
 		)
+		const literalPageTitle = typeScriptStringValue(pageTitleExpression)
 		const pageSelectionReference = (
 			typeScriptExpressionReferencesBinding(pageTitleExpression, 'pageSelection') ?
 				'pageSelection'
@@ -15326,9 +15324,6 @@ const generatePageFile = (
 						indent(pageSelectionExpression, 1),
 						')',
 					] : []),
-					`const ${singleMappedEntityType == null ? 'documentTitle' : 'pageTitle'} = $derived(`,
-					indent(pageTitleExpression, 1),
-					')',
 					...(singleMappedEntityType == null ? [
 						'const entityViewByType = {',
 						...mappedEntityTypes.flatMap((entityType) => {
@@ -15349,12 +15344,16 @@ const generatePageFile = (
 						`import ${singularComponentIdentifier(entityType)} from '${viewModulePath(singularComponentName(entityType))}'`
 					)),
 				],
-				head: [
-					singleMappedEntity == null ?
-						'<title>{documentTitle}</title>'
-					:
-						`<title>{pageTitle} • ${svelteText(displayLabel(singleMappedEntity.labels.singular))} • Blockhead</title>`,
-				],
+				head: literalPageTitle == null ?
+					[
+						'<title>{',
+						...reindentLines(lines(pageTitleExpression), 1),
+						`}${singleMappedEntity == null ? '' : ` • ${svelteText(displayLabel(singleMappedEntity.labels.singular))} • Blockhead`}</title>`,
+					]
+				:
+					[
+						`<title>${svelteText(literalPageTitle)}${singleMappedEntity == null ? '' : ` • ${svelteText(displayLabel(singleMappedEntity.labels.singular))} • Blockhead`}</title>`,
+					],
 				markup: singleMappedEntityType == null ?
 					[
 						'<Page>',
@@ -15502,6 +15501,7 @@ const generatePageFile = (
 	:
 		undefined
 	const pageEntityTitleExpression = pageTitle?.expression
+	const literalPageEntityTitle = pageEntityTitleExpression == null ? undefined : typeScriptStringValue(pageEntityTitleExpression)
 	const pageSelectionReference = (
 		pageSelectionExpression == null ?
 			undefined
@@ -15694,7 +15694,10 @@ const generatePageFile = (
 			head: (
 				pageEntityTitleExpression != null && entityTypeLabel != null ?
 					[
-						`<title>{${pageEntityTitleExpression}} • ${entityTypeLabel} • Blockhead</title>`,
+						literalPageEntityTitle == null ?
+							`<title>{${pageEntityTitleExpression}} • ${entityTypeLabel} • Blockhead</title>`
+						:
+							`<title>${svelteText(literalPageEntityTitle)} • ${entityTypeLabel} • Blockhead</title>`,
 					]
 				: pageTitleLiteral == null ?
 					undefined

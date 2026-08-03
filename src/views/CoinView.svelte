@@ -29,7 +29,6 @@
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	})({
 		fields: {
 			symbol: true,
 			name: true,

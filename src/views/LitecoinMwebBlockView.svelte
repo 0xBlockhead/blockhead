@@ -24,7 +24,6 @@
 		sources: selection.sources ?? [
 			Source.LitecoinCore_JsonRpc,
 		],
-	})({
 		fields: {
 			hogExTransactionId: true,
 			kernelRoot: true,

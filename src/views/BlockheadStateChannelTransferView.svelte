@@ -24,7 +24,6 @@
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	})({
 		fields: {
 			timestamp: true,
 			status: true,

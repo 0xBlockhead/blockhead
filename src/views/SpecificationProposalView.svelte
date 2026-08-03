@@ -44,18 +44,18 @@
 	id={viewDomId}
 	title={
 		title ?? (([
-		    [(proposalCategoryById[selection.entitySelector.category]?.label ?? selection.entitySelector.category) + '-', String(selection.entitySelector.number)].filter(Boolean).join(''),
-		    (prefetched.documentTitle ?? ''),
+			[(proposalCategoryById[selection.entitySelector.category]?.label ?? selection.entitySelector.category) + '-', String(selection.entitySelector.number)].filter(Boolean).join(''),
+			(prefetched.documentTitle ?? ''),
 		]
-		    .filter(Boolean)
-		    .join(': ')
-		    || [
-		        (proposalCategoryById[selection.entitySelector.category]?.label ?? selection.entitySelector.category),
-		        String(selection.entitySelector.number),
-		    ]
-		        .filter(Boolean)
-		        .join('-'))
-		    || 'Specification proposal')
+			.filter(Boolean)
+			.join(': ')
+			|| [
+				(proposalCategoryById[selection.entitySelector.category]?.label ?? selection.entitySelector.category),
+				String(selection.entitySelector.number),
+			]
+				.filter(Boolean)
+				.join('-'))
+			|| 'Specification proposal')
 	}
 	href={
 		href === undefined ?

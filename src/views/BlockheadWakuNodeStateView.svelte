@@ -20,7 +20,6 @@
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	})({
 		fields: {
 			endpoint: true,
 		},

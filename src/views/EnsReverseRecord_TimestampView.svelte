@@ -25,7 +25,6 @@
 			Source.TheGraph_Graphql,
 			Source.Voltaire_JsonRpc,
 		],
-	})({
 		fields: {
 			verified: true,
 		},

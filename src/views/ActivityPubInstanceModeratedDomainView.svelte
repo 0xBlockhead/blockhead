@@ -25,7 +25,6 @@
 		sources: selection.sources ?? [
 			Source.Mastodon_Rest,
 		],
-	})({
 		fields: {
 			severity: true,
 			comment: true,

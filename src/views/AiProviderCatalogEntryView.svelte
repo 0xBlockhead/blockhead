@@ -26,7 +26,6 @@
 			Source.Anthropic_Rest,
 			Source.OpenAI_Rest,
 		],
-	})({
 		fields: {
 			entryLabel: true,
 			subjectKind: true,

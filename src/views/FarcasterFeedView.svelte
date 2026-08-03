@@ -25,7 +25,6 @@
 			Source.Farcaster_Rest,
 			Source.Neynar_Rest,
 		],
-	})({
 		fields: {
 			label: true,
 			fid: true,

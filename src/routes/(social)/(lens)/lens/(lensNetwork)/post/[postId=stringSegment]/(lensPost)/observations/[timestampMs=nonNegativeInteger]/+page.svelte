@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{'Lens post observation'} • Lens post observation • Blockhead</title>
+	<title>Lens post observation • Lens post observation • Blockhead</title>
 </svelte:head>
 
 

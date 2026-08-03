@@ -24,7 +24,6 @@
 			Source.Rss_Rest,
 			Source.Rss2Json_Rest,
 		],
-	})({
 		fields: {
 			title: true,
 			description: true,

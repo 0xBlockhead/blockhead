@@ -57,7 +57,6 @@
 						Source.LightningMempoolSpace_Rest,
 						Source.LightningLnd_Rest,
 					],
-				})({
 					fields: {
 						name: true,
 					},

@@ -23,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{'X post observation'} • X post observation • Blockhead</title>
+	<title>X post observation • X post observation • Blockhead</title>
 </svelte:head>
 
 

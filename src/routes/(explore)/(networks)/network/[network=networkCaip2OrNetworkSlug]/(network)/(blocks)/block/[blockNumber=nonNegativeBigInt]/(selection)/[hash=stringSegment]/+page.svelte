@@ -15,14 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const documentTitle = $derived(
-		(
-			data.entityType === EntityType.PolkadotBlock ?
-				((String(data.selector.blockNumber ?? '') ? 'Block #' + String(data.selector.blockNumber ?? '') : '') || (data.selector.hash ?? '') || 'Polkadot block') + ' • Polkadot block • Blockhead'
-			:
-				((String(data.selector.height ?? '') ? 'Block #' + String(data.selector.height ?? '') : '') || (data.selector.hash ?? '') || 'UTXO block') + ' • UTXO block • Blockhead'
-		)
-	)
 	const entityViewByType = {
 		[EntityType.PolkadotBlock]: PolkadotBlockView,
 		[EntityType.UtxoBlock]: UtxoBlockView,
@@ -36,7 +28,14 @@
 
 
 <svelte:head>
-	<title>{documentTitle}</title>
+	<title>{
+		(
+			data.entityType === EntityType.PolkadotBlock ?
+				((String(data.selector.blockNumber ?? '') ? 'Block #' + String(data.selector.blockNumber ?? '') : '') || (data.selector.hash ?? '') || 'Polkadot block') + ' • Polkadot block • Blockhead'
+			:
+				((String(data.selector.height ?? '') ? 'Block #' + String(data.selector.height ?? '') : '') || (data.selector.hash ?? '') || 'UTXO block') + ' • UTXO block • Blockhead'
+		)
+	}</title>
 </svelte:head>
 
 

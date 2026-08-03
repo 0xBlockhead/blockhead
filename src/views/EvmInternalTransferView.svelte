@@ -29,7 +29,6 @@
 		sources: selection.sources ?? [
 			Source.Blockscout_Rest,
 		],
-	})({
 		fields: {
 			value: true,
 			callType: true,

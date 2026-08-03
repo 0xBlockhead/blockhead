@@ -24,7 +24,6 @@
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
 		],
-	})({
 		fields: {
 			codeHash: true,
 			codeSizeBytes: true,

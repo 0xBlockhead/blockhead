@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{'Verified Farcaster connection'} • Blockhead Farcaster account connection • Blockhead</title>
+	<title>Verified Farcaster connection • Blockhead Farcaster account connection • Blockhead</title>
 </svelte:head>
 
 

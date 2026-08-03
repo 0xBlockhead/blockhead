@@ -25,7 +25,6 @@
 		sources: selection.sources ?? [
 			Source.LitecoinCore_JsonRpc,
 		],
-	})({
 		fields: {
 			kernelOffset: true,
 		},

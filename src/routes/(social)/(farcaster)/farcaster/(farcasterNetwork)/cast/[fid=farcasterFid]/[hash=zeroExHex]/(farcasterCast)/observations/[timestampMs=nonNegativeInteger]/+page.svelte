@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{'Farcaster cast observation'} • Farcaster cast observation • Blockhead</title>
+	<title>Farcaster cast observation • Farcaster cast observation • Blockhead</title>
 </svelte:head>
 
 

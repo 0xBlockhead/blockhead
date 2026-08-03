@@ -27,7 +27,6 @@
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	})({
 		fields: {
 			indexInSequence: true,
 			actionType: true,

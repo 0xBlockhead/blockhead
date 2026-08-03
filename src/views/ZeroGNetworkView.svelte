@@ -27,7 +27,6 @@
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	})({
 		fields: {
 			name: true,
 			namespace: true,

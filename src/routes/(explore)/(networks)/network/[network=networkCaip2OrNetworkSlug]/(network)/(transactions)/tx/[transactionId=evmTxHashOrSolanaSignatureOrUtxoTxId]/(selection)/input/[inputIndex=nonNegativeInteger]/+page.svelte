@@ -16,14 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const documentTitle = $derived(
-		(
-			data.entityType === EntityType.CardanoTxInput ?
-				('Input ' + String(data.selector.inputIndex)) + ' • Cardano transaction input • Blockhead'
-			:
-				((String(data.selector.indexInTransaction ?? '') ? 'Input #' + String(data.selector.indexInTransaction ?? '') : '') || 'UTXO input') + ' • UTXO input • Blockhead'
-		)
-	)
 	const entityViewByType = {
 		[EntityType.CardanoTxInput]: CardanoTxInputView,
 		[EntityType.UtxoInput]: UtxoInputView,
@@ -37,7 +29,14 @@
 
 
 <svelte:head>
-	<title>{documentTitle}</title>
+	<title>{
+		(
+			data.entityType === EntityType.CardanoTxInput ?
+				('Input ' + String(data.selector.inputIndex)) + ' • Cardano transaction input • Blockhead'
+			:
+				((String(data.selector.indexInTransaction ?? '') ? 'Input #' + String(data.selector.indexInTransaction ?? '') : '') || 'UTXO input') + ' • UTXO input • Blockhead'
+		)
+	}</title>
 </svelte:head>
 
 

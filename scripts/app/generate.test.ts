@@ -1104,6 +1104,37 @@ test('inlines generated resource selections with one consumer', () => {
 	assert.match(sharedPageSelection, /selection=\{pageSelection\}/)
 })
 
+test('merges view source and field refinements into one resource query', () => {
+	for (const generatedFile of baselineCompiledApp.generatedFiles) {
+		if (!generatedFile.path.startsWith('src/views/') || generatedFile.kind !== 'svelte')
+			continue
+
+		assert.doesNotMatch(
+			renderGeneratedFile(generatedFile),
+			/const \w+ = \$derived\(selection\(\{[\s\S]*?\}\)\(\{/,
+			generatedFile.path
+		)
+	}
+
+	for (const filePath of [
+		'src/views/AccountView.svelte',
+		'src/views/NetworkView.svelte',
+		'src/views/SpecificationRealmView.svelte',
+	]) {
+		const source = generatedSource(filePath)
+		assert.match(source, /selection\(\{\s+sources: selection\.sources \?\?[\s\S]*?fields: \{/)
+	}
+})
+
+test('normalizes generated Svelte expression indentation to tabs', () => {
+	for (const generatedFile of baselineCompiledApp.generatedFiles) {
+		if (generatedFile.kind !== 'svelte')
+			continue
+
+		assert.doesNotMatch(renderGeneratedFile(generatedFile), /^\t+ +\S/m, generatedFile.path)
+	}
+})
+
 test('keeps prefetched collection summary fallbacks null-safe', () => {
 	for (const filePath of [
 		'src/views/EvmError_TimestampView.svelte',
@@ -3012,6 +3043,8 @@ test('renders selected entity titles on every multi-selector detail page', () =>
 	for (const generatedPage of baselineCompiledApp.generatedFiles.filter((file) => file.path.endsWith('/+page.svelte'))) {
 		const source = renderGeneratedFile(generatedPage)
 		assert.doesNotMatch(source, /const pageEntity =/)
+		assert.doesNotMatch(source, /const (?:documentTitle|pageTitle) = \$derived/, generatedPage.path)
+		assert.doesNotMatch(source, /<title>\{\s*['"]/, generatedPage.path)
 		assert.doesNotMatch(source, /\{ \.\.\.[^,]+\.entitySelector, \.\.\.[^}]+\.entity \}/)
 	}
 
@@ -3039,9 +3072,9 @@ test('renders selected entity titles on every multi-selector detail page', () =>
 			assert.equal(pageSelectionOccurrences, 0, page.path)
 			assert.match(page.source, /<EntityView[\s\S]*?selection=\{[\s\S]*?select\(EntityType\./, page.path)
 		}
-		assert.match(page.source, /const documentTitle = \$derived\([\s\S]*?data\.entityType/, page.path)
-		assert.match(page.source, /<svelte:head>\s*<title>\{documentTitle\}<\/title>\s*<\/svelte:head>/, page.path)
-		assert.doesNotMatch(page.source, /const pageTitle = |data\.selectorName|<title>[^<]*data\.entityType/, page.path)
+		assert.doesNotMatch(page.source, /const (?:documentTitle|pageTitle) = /, page.path)
+		assert.match(page.source, /<svelte:head>[\s\S]*?<title>\{[\s\S]*?data\.entityType[\s\S]*?Blockhead[\s\S]*?<\/title>[\s\S]*?<\/svelte:head>/, page.path)
+		assert.doesNotMatch(page.source, /data\.selectorName/, page.path)
 		assert.ok((page.source.match(/ • [^']+ • Blockhead'/g) ?? []).length > 1, page.path)
 		assert.doesNotMatch(page.source, /entityDefinitionByType/, page.path)
 		assert.doesNotMatch(page.source, /entityViewByType[\s\S]*?label:/, page.path)
@@ -3063,10 +3096,10 @@ test('renders selected entity titles on every multi-selector detail page', () =>
 	assert.match(networkPage.source, /data\.selector\.caip2/)
 	assert.doesNotMatch(networkPage.source, /const entityViewByType =/)
 	assert.doesNotMatch(networkPage.source, /\{@const EntityView =/)
-	assert.match(networkPage.source, /<title>\{pageTitle\} • Network • Blockhead<\/title>/)
-	assert.match(networkPage.source, /data\.entityType === EntityType\.Network\s*&& data\.selectorName === 'Caip2'/)
+	assert.match(networkPage.source, /<title>\{[\s\S]*?data\.selectorName === 'Caip2'[\s\S]*?\} • Network • Blockhead<\/title>/)
+	assert.doesNotMatch(networkPage.source, /data\.entityType === EntityType\.Network/)
 	assert.equal((networkPage.source.match(/data\.selectorName/g) ?? []).length, 1)
-	assert.doesNotMatch(networkPage.source, /const documentTitle =/)
+	assert.doesNotMatch(networkPage.source, /const (?:documentTitle|pageTitle) =/)
 	assert.match(networkPage.source, /<NetworkView\s+selection=\{pageSelection\}/)
 	assert.doesNotMatch(networkPage.source, /pageSelection\.entitySelector\.(?:name|caip2)/)
 	assert.doesNotMatch(networkPage.source, /\.\.\.pageSelection\.entitySelector/)
@@ -7255,7 +7288,7 @@ test('defaults Network base sources without widening protocol facet sources', ()
 	)
 	const cosmosProjection = generatedView.slice(generatedView.indexOf('resource={selection.Cosmos}'))
 
-	assert.match(rootResource, /const network = \$derived\(selection\(\{\s*sources: selection\.sources \?\? \[\s*Source\.Constants_Internal,?\s*\],\s*\}\)\(\{/)
+	assert.match(rootResource, /const network = \$derived\(selection\(\{\s*sources: selection\.sources \?\? \[\s*Source\.Constants_Internal,?\s*\],\s*fields: \{/)
 	assert.doesNotMatch(
 		rootResource,
 		/Source\.(?:Chainlist_Rest|CosmosChainRegistry_Github|EthereumLists_Rest|Superchain_Github)/

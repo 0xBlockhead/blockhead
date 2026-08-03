@@ -16,32 +16,6 @@
 		data,
 	}: PageProps = $props()
 
-	const documentTitle = $derived(
-		(
-			data.entityType === EntityType.PolkadotAccount ?
-				(data.selector.accountId || 'Polkadot account') + ' • Polkadot account • Blockhead'
-			:
-			data.entityType === EntityType.CosmosAccount ?
-				(data.selector.address || 'Cosmos account') + ' • Cosmos account • Blockhead'
-			:
-			data.entityType === EntityType.HederaAccount ?
-				(data.selector.accountId || 'hedera account') + ' • hedera account • Blockhead'
-			:
-			data.entityType === EntityType.CardanoAddress ?
-				(data.selector.address || 'Cardano address') + ' • Cardano address • Blockhead'
-			:
-			data.entityType === EntityType.EvmNetworkAccount ?
-				('EVM network account') + ' • EVM network account • Blockhead'
-			:
-			data.entityType === EntityType.SolanaAccount ?
-				(data.selector.pubkey || 'solana account') + ' • solana account • Blockhead'
-			:
-			data.entityType === EntityType.TonAccount ?
-				('TON account') + ' • TON account • Blockhead'
-			:
-				(data.selector.account || 'XRPL account') + ' • XRPL account • Blockhead'
-		)
-	)
 	const entityViewByType = {
 		[EntityType.PolkadotAccount]: PolkadotAccountView,
 		[EntityType.CosmosAccount]: CosmosAccountView,
@@ -67,7 +41,32 @@
 
 
 <svelte:head>
-	<title>{documentTitle}</title>
+	<title>{
+		(
+			data.entityType === EntityType.PolkadotAccount ?
+				(data.selector.accountId || 'Polkadot account') + ' • Polkadot account • Blockhead'
+			:
+			data.entityType === EntityType.CosmosAccount ?
+				(data.selector.address || 'Cosmos account') + ' • Cosmos account • Blockhead'
+			:
+			data.entityType === EntityType.HederaAccount ?
+				(data.selector.accountId || 'hedera account') + ' • hedera account • Blockhead'
+			:
+			data.entityType === EntityType.CardanoAddress ?
+				(data.selector.address || 'Cardano address') + ' • Cardano address • Blockhead'
+			:
+			data.entityType === EntityType.EvmNetworkAccount ?
+				('EVM network account') + ' • EVM network account • Blockhead'
+			:
+			data.entityType === EntityType.SolanaAccount ?
+				(data.selector.pubkey || 'solana account') + ' • solana account • Blockhead'
+			:
+			data.entityType === EntityType.TonAccount ?
+				('TON account') + ' • TON account • Blockhead'
+			:
+				(data.selector.account || 'XRPL account') + ' • XRPL account • Blockhead'
+		)
+	}</title>
 </svelte:head>
 
 

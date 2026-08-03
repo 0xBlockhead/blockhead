@@ -24,7 +24,6 @@
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	})({
 		fields: {
 			protocolName: true,
 			homeUrl: true,

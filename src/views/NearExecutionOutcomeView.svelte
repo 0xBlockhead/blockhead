@@ -24,7 +24,6 @@
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
 		],
-	})({
 		fields: {
 			status: true,
 			gasBurnt: true,

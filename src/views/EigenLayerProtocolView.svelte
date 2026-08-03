@@ -31,7 +31,6 @@
 			Source.Etherscan_Rest,
 			Source.Voltaire_JsonRpc,
 		],
-	})({
 		fields: {
 			protocolName: true,
 		},

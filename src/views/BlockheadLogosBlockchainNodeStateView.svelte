@@ -21,7 +21,6 @@
 			Source.Local_Internal,
 			Source.LogosBlockchainNode_Rest,
 		],
-	})({
 		fields: {
 			endpoint: true,
 		},

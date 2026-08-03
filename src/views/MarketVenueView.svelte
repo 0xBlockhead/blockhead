@@ -54,7 +54,6 @@
 					sources: selection.sources ?? [
 						Source.Constants_Internal,
 					],
-				})({
 					fields: {
 						label: true,
 					},

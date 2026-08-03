@@ -24,7 +24,6 @@
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	})({
 		fields: {
 			totalDeposited: true,
 			balance0: true,

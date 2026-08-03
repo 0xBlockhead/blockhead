@@ -29,7 +29,6 @@
 			Source.NostrRelay_WebSocket,
 			Source.Primal_Rest,
 		],
-	})({
 		fields: {
 			kind: true,
 			pubkey: true,

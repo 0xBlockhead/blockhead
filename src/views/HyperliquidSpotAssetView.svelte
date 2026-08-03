@@ -27,7 +27,6 @@
 		sources: selection.sources ?? [
 			Source.Hyperliquid,
 		],
-	})({
 		fields: {
 			name: true,
 			szDecimals: true,

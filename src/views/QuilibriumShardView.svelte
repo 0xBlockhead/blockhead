@@ -25,7 +25,6 @@
 		sources: selection.sources ?? [
 			Source.QuilibriumNode_Grpc,
 		],
-	})({
 		fields: {
 			shardKind: true,
 		},

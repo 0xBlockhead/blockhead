@@ -15,9 +15,6 @@
 		data,
 	}: PageProps = $props()
 
-	const pageTitle = $derived(
-		'EVM coin instance'
-	)
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -26,7 +23,7 @@
 
 
 <svelte:head>
-	<title>{pageTitle} • EVM coin instance • Blockhead</title>
+	<title>EVM coin instance • EVM coin instance • Blockhead</title>
 </svelte:head>
 
 

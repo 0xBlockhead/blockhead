@@ -24,7 +24,7 @@
 
 
 <svelte:head>
-	<title>{'wallet connection'} • wallet connection • Blockhead</title>
+	<title>wallet connection • wallet connection • Blockhead</title>
 </svelte:head>
 
 

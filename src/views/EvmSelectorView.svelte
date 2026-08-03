@@ -52,7 +52,6 @@
 					sources: selection.sources ?? [
 						Source.Openchain_Rest,
 					],
-				})({
 					fields: {
 						signatures: true,
 					},

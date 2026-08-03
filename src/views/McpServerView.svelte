@@ -27,7 +27,6 @@
 			Source.Eip8004Scan_Rest,
 			Source.McpDeclared_Protocol,
 		],
-	})({
 		fields: {
 			transportKind: true,
 			endpointUrl: true,

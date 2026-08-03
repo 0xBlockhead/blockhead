@@ -30,7 +30,6 @@
 			Source.Starkscan,
 			Source.Voyager,
 		],
-	})({
 		fields: {
 			chainId: true,
 		},

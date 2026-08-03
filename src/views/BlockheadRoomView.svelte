@@ -23,7 +23,6 @@
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	})({
 		fields: {
 			name: true,
 			createdAt: true,

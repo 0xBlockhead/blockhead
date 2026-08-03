@@ -29,7 +29,6 @@
 		sources: selection.sources ?? [
 			Source.Mastodon_Rest,
 		],
-	})({
 		fields: {
 			displayName: true,
 			username: true,

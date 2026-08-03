@@ -24,7 +24,6 @@
 		sources: selection.sources ?? [
 			Source.AcpLocal_JsonRpc,
 		],
-	})({
 		fields: {
 			role: true,
 			createdAt: true,

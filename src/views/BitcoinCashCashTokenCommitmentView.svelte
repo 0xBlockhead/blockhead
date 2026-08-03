@@ -25,7 +25,6 @@
 		sources: selection.sources ?? [
 			Source.BitcoinCashNode_JsonRpc,
 		],
-	})({
 		fields: {
 			commitmentHex: true,
 		},

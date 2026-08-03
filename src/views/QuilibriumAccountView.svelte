@@ -24,7 +24,6 @@
 		sources: selection.sources ?? [
 			Source.QuilibriumNode_Grpc,
 		],
-	})({
 		fields: {
 			accountKind: true,
 		},
