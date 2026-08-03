@@ -7157,14 +7157,22 @@ type SourceBindingCompatibilityRow<
 }
 
 type SourceBindingCompatibility =
-${sourceBindingCompatibility.map((compatibility) => `\t| SourceBindingCompatibilityRow<${enumAccess('WireProtocol', compatibility.wireProtocol)}, ${compatibility.apiFamilies.map((apiFamily) => enumAccess('ApiFamily', apiFamily)).join(' | ')}, ${compatibility.endpointKinds.map((endpointKind) => enumAccess('SourceEndpointKind', endpointKind)).join(' | ')}, ${compatibility.operationGroups === true ? 'SourceOperationGroup' : compatibility.operationGroups.map((operationGroup) => enumAccess('SourceOperationGroup', operationGroup)).join(' | ')}, ${
-			compatibility.artifactKinds === true ?
-				'SourceArtifactKind'
-			: compatibility.artifactKinds.length === 0 ?
-				'never'
-			:
-				compatibility.artifactKinds.map((artifactKind) => enumAccess('SourceArtifactKind', artifactKind)).join(' | ')
-		}>`).join('\n')}
+${sourceBindingCompatibility.map((compatibility) => [
+	'\t| SourceBindingCompatibilityRow<',
+	`\t\t${enumAccess('WireProtocol', compatibility.wireProtocol)},`,
+	`\t\t${compatibility.apiFamilies.map((apiFamily) => enumAccess('ApiFamily', apiFamily)).join(' | ')},`,
+	`\t\t${compatibility.endpointKinds.map((endpointKind) => enumAccess('SourceEndpointKind', endpointKind)).join(' | ')},`,
+	`\t\t${compatibility.operationGroups === true ? 'SourceOperationGroup' : compatibility.operationGroups.map((operationGroup) => enumAccess('SourceOperationGroup', operationGroup)).join(' | ')},`,
+	`\t\t${
+		compatibility.artifactKinds === true ?
+			'SourceArtifactKind'
+		: compatibility.artifactKinds.length === 0 ?
+			'never'
+		:
+			compatibility.artifactKinds.map((artifactKind) => enumAccess('SourceArtifactKind', artifactKind)).join(' | ')
+	}`,
+	'\t>',
+].join('\n')).join('\n')}
 
 type SourcePublicOrUserCredential = SourceCredentialRequirement<
 	| SourceCredentialScope.PublicConfig
@@ -7998,7 +8006,7 @@ const generateSourceProviderBindingsFile = (
 			declarations: inline ? [] : [`const ${matrix.name} = ${targetRows} as const`],
 			expression: (matrix.variants.length === 1 ? [
 				'mapSourceBindings(',
-				...lines(inline ? `(${targetRows} as const)` : matrix.name).map((line, lineIndex, rowLines) => (
+				...lines(inline ? `${targetRows} as const` : matrix.name).map((line, lineIndex, rowLines) => (
 					`${indent(line)}${lineIndex === rowLines.length - 1 ? ',' : ''}`
 				)),
 				'\t({',
@@ -8011,7 +8019,7 @@ const generateSourceProviderBindingsFile = (
 				')',
 			] : [
 				'flatMapSourceBindings(',
-				...lines(inline ? `(${targetRows} as const)` : matrix.name).map((line, lineIndex, rowLines) => (
+				...lines(inline ? `${targetRows} as const` : matrix.name).map((line, lineIndex, rowLines) => (
 					`${indent(line)}${lineIndex === rowLines.length - 1 ? ',' : ''}`
 				)),
 				'\t({',

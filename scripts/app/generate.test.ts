@@ -6474,6 +6474,12 @@ const blockscoutBindingsForSource = blockscoutBindings[Source.Blockscout_Rest]
 const blockscoutTargetKey: '1' | '10' | '100' | '137' | '8453' | '42161' | '11155111' = blockscoutBindingsForSource[0].target.key
 const nostrNip11Binding: SourceBinding<Source.NostrRelay_Nip11_Http> = nostrRelayBindings[Source.NostrRelay_Nip11_Http][0]
 const nostrWebSocketBinding: SourceBinding<Source.NostrRelay_WebSocket> = nostrRelayBindings[Source.NostrRelay_WebSocket][0]
+// @ts-expect-error NIP-11 HTTP bindings expose relay reads, not subscriptions.
+const invalidNostrHttpOperationGroup = { ...nostrNip11Binding, operationGroups: [SourceOperationGroup.GenericSubscribe] } as const satisfies SourceBinding
+// @ts-expect-error Nostr WebSocket bindings expose only Nostr subscribe/read/search operations.
+const invalidNostrWebSocketOperationGroup = { ...nostrWebSocketBinding, operationGroups: [SourceOperationGroup.WalletSign] } as const satisfies SourceBinding
+// @ts-expect-error Nostr bindings use their handwritten wire types, not OpenAPI artifacts.
+const invalidNostrArtifact = { ...nostrWebSocketBinding, artifacts: [{ kind: SourceArtifactKind.OpenApiSpec, path: 'invalid.json' }] } as const satisfies SourceBinding
 // @ts-expect-error Compact generated binding targets retain their authored key union.
 const invalidBlockscoutTargetKey: '999' = blockscoutBindingsForSource[0].target.key
 // @ts-expect-error Inferred binding indexes expose only source keys present in their row tuple.
@@ -6498,6 +6504,9 @@ void optionalPrefixedVoyagerBindings
 void prefixedAcrossBinding
 void nostrNip11Binding
 void nostrWebSocketBinding
+void invalidNostrHttpOperationGroup
+void invalidNostrWebSocketOperationGroup
+void invalidNostrArtifact
 void requiredComputedAcrossBindings
 void widenedAcrossBindings
 void unionAcrossBindings

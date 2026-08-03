@@ -130,7 +130,7 @@ export default indexSourceBindings([
 		],
 	},
 	...flatMapSourceBindings(
-		([
+		[
 			{
 				key: '10',
 				httpProxyLocator: 'https://mainnet.optimism.io',
@@ -186,7 +186,7 @@ export default indexSourceBindings([
 				httpProxyLocator: 'https://worldchain-mainnet.g.alchemy.com/public',
 				remoteLiveLocator: 'wss://worldchain-mainnet.g.alchemy.com/public',
 			},
-		] as const),
+		] as const,
 		({
 			key,
 			httpProxyLocator,
@@ -222,7 +222,7 @@ export default indexSourceBindings([
 		] as const satisfies readonly [SourceBinding, ...SourceBinding[]])
 	),
 	...flatMapSourceBindings(
-		([
+		[
 			{
 				key: '998',
 				browserDirectLocator: 'https://hyperliquid-testnet.drpc.org',
@@ -233,7 +233,7 @@ export default indexSourceBindings([
 				browserDirectLocator: 'https://hyperliquid.drpc.org',
 				remoteLiveLocator: 'wss://hyperliquid.drpc.org',
 			},
-		] as const),
+		] as const,
 		({
 			key,
 			browserDirectLocator,
@@ -269,7 +269,7 @@ export default indexSourceBindings([
 		] as const satisfies readonly [SourceBinding, ...SourceBinding[]])
 	),
 	...flatMapSourceBindings(
-		([
+		[
 			{
 				key: '1301',
 				httpProxyLocator: 'https://sepolia.unichain.org',
@@ -290,7 +290,7 @@ export default indexSourceBindings([
 				httpProxyLocator: 'https://worldchain-sepolia.g.alchemy.com/public',
 				remoteLiveLocator: 'wss://worldchain-sepolia.g.alchemy.com/public',
 			},
-		] as const),
+		] as const,
 		({
 			key,
 			httpProxyLocator,
@@ -362,7 +362,7 @@ export default indexSourceBindings([
 		],
 	},
 	...flatMapSourceBindings(
-		([
+		[
 			{
 				key: '10143',
 				httpProxyLocator: 'https://testnet-rpc.monad.xyz',
@@ -468,7 +468,7 @@ export default indexSourceBindings([
 				httpProxyLocator: 'https://sepolia.optimism.io',
 				remoteLiveLocator: 'wss://sepolia.optimism.io',
 			},
-		] as const),
+		] as const,
 		({
 			key,
 			httpProxyLocator,
