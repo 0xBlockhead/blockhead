@@ -7480,46 +7480,19 @@ const generateSourceProviderBindingsFile = (
 		credentials: planRepeatedBindingValues(sharedValueScope, 'Credentials', bindingAxisRows.map(({ credentials }) => credentials)),
 		artifacts: planRepeatedBindingValues(sharedValueScope, 'Artifacts', bindingAxisRows.map(({ artifacts }) => artifacts)),
 	}
-	const renderedSourcePlans = sourcePlans.map(({
-		source,
-		sourceBindingRows,
-		bindingGroups,
-		bindingBaseByBinding,
-		bindingBaseNames,
-	}) => ({
-		source,
-		declarations: bindingGroups.flatMap((group, groupIndex) => {
-			const binding = group[0]?.binding
-			const baseIdentifier = bindingBaseNames[groupIndex]
-			if (binding == null || baseIdentifier == null)
-				return []
-			return [`const ${baseIdentifier} = ${emitObject([
-				['source', enumAccess('Source', source)],
-				['wireProtocol', enumAccess('WireProtocol', binding.wireProtocol)],
-				['apiFamily', enumAccess('ApiFamily', binding.apiFamily)],
-				['operationGroups', bindingValueReference(properties.operationGroups, group[0].operationGroups) ?? '[]'],
-				['delivery', enumAccess('SourceDelivery', binding.delivery)],
-				['credentials', bindingValueReference(properties.credentials, group[0].credentials) ?? '[]'],
-				['artifacts', bindingValueReference(properties.artifacts, group[0].artifacts)],
-			])} as const`]
-		}),
-		bindings: sourceBindingRows.map(({
-			binding,
-			endpoints,
-			operationGroups,
-			credentials,
-			artifacts,
-		}) => emitSourceBinding(source, binding, {
-				endpoints: bindingValueReference(properties.endpoints, endpoints) ?? '[]',
-				operationGroups: bindingValueReference(properties.operationGroups, operationGroups) ?? '[]',
-				credentials: bindingValueReference(properties.credentials, credentials) ?? '[]',
-				artifacts: bindingValueReference(properties.artifacts, artifacts),
-			}, bindingBaseByBinding.get(binding))),
-	}))
+	const emitBinding = (
+		sourcePlan: (typeof sourcePlans)[number],
+		bindingRow: (typeof bindingRows)[number]
+	) => emitSourceBinding(sourcePlan.source, bindingRow.binding, {
+		endpoints: bindingValueReference(properties.endpoints, bindingRow.endpoints) ?? '[]',
+		operationGroups: bindingValueReference(properties.operationGroups, bindingRow.operationGroups) ?? '[]',
+		credentials: bindingValueReference(properties.credentials, bindingRow.credentials) ?? '[]',
+		artifacts: bindingValueReference(properties.artifacts, bindingRow.artifacts),
+	}, sourcePlan.bindingBaseByBinding.get(bindingRow.binding))
 	// Ordered target blocks discover both whole-source and partial matrices.
 	// Whole matrices retain their compact shared locator and constant suffixes;
 	// partial matrices keep every variant locator as explicit authored data.
-	const bindingMatrices = new Map(sourcePlans.flatMap((sourcePlan) => {
+	const bindingMatrices = sourcePlans.map((sourcePlan) => {
 		// Binding-base identity already contains every non-target semantic axis;
 		// endpoint kind and CORS complete each matrix variant signature.
 		const targetBlocks = groupAdjacentBy(sourcePlan.sourceBindingRows, ({ binding }) => JSON.stringify([
@@ -7693,8 +7666,8 @@ const generateSourceProviderBindingsFile = (
 				whole,
 			}]
 		})
-		return matrices.length === 0 ? [] : [[sourcePlan.source, matrices] as const]
-	}))
+		return matrices
+	})
 	const renderBindingMatrix = (
 		matrix: {
 			rows: readonly {
@@ -7748,50 +7721,42 @@ const generateSourceProviderBindingsFile = (
 		}
 	}
 	const renderedBindingPlan = (() => {
-		const direct = {
-			bindingFunctionNames: [],
-			expression: [
-				'[',
-				...renderedSourcePlans.flatMap(({ bindings }) => bindings.map((binding) => `${indent(binding)},`)),
-				']',
-			].join('\n'),
-		}
-		const compactBySource = new Map(renderedSourcePlans.flatMap((sourcePlan) => {
-			const plannedMatrices = bindingMatrices.get(sourcePlan.source) ?? []
+		const compactBindingPlans = sourcePlans.map((sourcePlan, sourcePlanIndex) => {
+			const plannedMatrices = bindingMatrices[sourcePlanIndex] ?? []
 			const wholeMatrix = plannedMatrices.find(({ whole }) => whole)
 			if (wholeMatrix != null)
-				return [[sourcePlan.source, renderBindingMatrix(wholeMatrix)] as const]
+				return renderBindingMatrix(wholeMatrix)
 
 			const matrices = plannedMatrices.map((partialMatrix) => ({
 				...partialMatrix,
 				...renderBindingMatrix(partialMatrix),
 			}))
 			if (matrices.length === 0)
-				return []
+				return undefined
 
-			// Matrix offsets are authored sequence boundaries. One forward pass
-			// interleaves compact runs without sorting or regrouping direct rows.
-			const parts = []
-			let bindingIndex = 0
-			for (const partialMatrix of matrices) {
-				for (; bindingIndex < partialMatrix.firstRowIndex; bindingIndex++)
-					parts.push({
-						expression: sourcePlan.bindings[bindingIndex] ?? '',
-						spread: false,
-					})
-				parts.push({
-					expression: partialMatrix.expression,
-					spread: true,
-				})
-				bindingIndex += partialMatrix.rowCount
-			}
-			for (; bindingIndex < sourcePlan.bindings.length; bindingIndex++)
-				parts.push({
-					expression: sourcePlan.bindings[bindingIndex] ?? '',
+			// Matrix offsets are authored sequence boundaries. Each compact run owns
+			// the direct rows since the preceding run and, for the last run, its tail.
+			const parts = matrices.flatMap((partialMatrix, matrixIndex) => {
+				const previousMatrix = matrices[matrixIndex - 1]
+				const directPart = (bindingRow: (typeof bindingRows)[number]) => ({
+					expression: emitBinding(sourcePlan, bindingRow),
 					spread: false,
 				})
+				return [
+					...sourcePlan.sourceBindingRows
+						.slice(previousMatrix == null ? 0 : previousMatrix.firstRowIndex + previousMatrix.rowCount, partialMatrix.firstRowIndex)
+						.map(directPart),
+					{
+						expression: partialMatrix.expression,
+						spread: true,
+					},
+					...(matrixIndex === matrices.length - 1 ? sourcePlan.sourceBindingRows
+						.slice(partialMatrix.firstRowIndex + partialMatrix.rowCount)
+						.map(directPart) : []),
+				]
+			})
 
-			return [[sourcePlan.source, {
+			return {
 				bindingFunctionNames: unique(matrices.flatMap(({ bindingFunctionNames }) => bindingFunctionNames)),
 				expression: [
 					'[',
@@ -7800,37 +7765,41 @@ const generateSourceProviderBindingsFile = (
 					))),
 					'] as const',
 				].join('\n'),
-			}] as const]
-		}))
-		if (compactBySource.size === 0)
-			return direct
-
-		const compact = renderedSourcePlans.length === 1 ?
-			compactBySource.get(renderedSourcePlans[0]?.source ?? '')
-		:
-			{
-				bindingFunctionNames: unique(renderedSourcePlans.flatMap(({ source }) => (
-					compactBySource.get(source)?.bindingFunctionNames ?? []
-				))),
+			}
+		})
+		if (compactBindingPlans.every((compactBindingPlan) => compactBindingPlan == null))
+			return {
+				bindingFunctionNames: [],
 				expression: [
 					'[',
-					...renderedSourcePlans.flatMap((sourcePlan) => {
-						const compactExpression = compactBySource.get(sourcePlan.source)?.expression
-						if (compactExpression == null)
-							return sourcePlan.bindings.map((binding) => `${indent(binding)},`)
-
-						const compactExpressionLines = lines(compactExpression)
-						return compactExpressionLines.map((line, index) => (
-							`${index === 0 ? '\t...' : '\t'}${line}${index === compactExpressionLines.length - 1 ? ',' : ''}`
-						))
-					}),
-					'] as const',
+					...sourcePlans.flatMap((sourcePlan) => sourcePlan.sourceBindingRows.map((bindingRow) => `${indent(emitBinding(sourcePlan, bindingRow))},`)),
+					']',
 				].join('\n'),
 			}
-		if (compact == null)
-			return direct
 
-		return compact
+		const onlyCompactBindingPlan = compactBindingPlans.length === 1 ? compactBindingPlans[0] : undefined
+		if (onlyCompactBindingPlan != null)
+			return onlyCompactBindingPlan
+
+		return {
+			bindingFunctionNames: unique(compactBindingPlans.flatMap((compactBindingPlan) => (
+				compactBindingPlan?.bindingFunctionNames ?? []
+			))),
+			expression: [
+				'[',
+				...sourcePlans.flatMap((sourcePlan, sourcePlanIndex) => {
+					const compactExpression = compactBindingPlans[sourcePlanIndex]?.expression
+					if (compactExpression == null)
+						return sourcePlan.sourceBindingRows.map((bindingRow) => `${indent(emitBinding(sourcePlan, bindingRow))},`)
+
+					const compactExpressionLines = lines(compactExpression)
+					return compactExpressionLines.map((line, lineIndex) => (
+						`${lineIndex === 0 ? '\t...' : '\t'}${line}${lineIndex === compactExpressionLines.length - 1 ? ',' : ''}`
+					))
+				}),
+				'] as const',
+			].join('\n'),
+		}
 	})()
 	const canonicalOperationGroupReferences = unique(bindingRows.flatMap(({ operationGroups }) => (
 		operationGroups.reference == null ? [] : [operationGroups.reference]
@@ -7880,9 +7849,29 @@ const generateSourceProviderBindingsFile = (
 			body: [
 				...Object.values(properties).flatMap((property) => property?.declarations ?? []),
 				...(Object.values(properties).some((property) => property != null) ? [''] : []),
-				...renderedSourcePlans.flatMap(({ declarations }) => (
-					declarations.length === 0 ? [] : [...declarations, '']
-				)),
+				...sourcePlans.flatMap(({
+					source,
+					bindingGroups,
+					bindingBaseNames,
+				}) => {
+					const declarations = bindingGroups.flatMap((group, groupIndex) => {
+						const binding = group[0]?.binding
+						const baseIdentifier = bindingBaseNames[groupIndex]
+						if (binding == null || baseIdentifier == null)
+							return []
+
+						return [`const ${baseIdentifier} = ${emitObject([
+							['source', enumAccess('Source', source)],
+							['wireProtocol', enumAccess('WireProtocol', binding.wireProtocol)],
+							['apiFamily', enumAccess('ApiFamily', binding.apiFamily)],
+							['operationGroups', bindingValueReference(properties.operationGroups, group[0].operationGroups) ?? '[]'],
+							['delivery', enumAccess('SourceDelivery', binding.delivery)],
+							['credentials', bindingValueReference(properties.credentials, group[0].credentials) ?? '[]'],
+							['artifacts', bindingValueReference(properties.artifacts, group[0].artifacts)],
+						])} as const`]
+					})
+					return declarations.length === 0 ? [] : [...declarations, '']
+				}),
 				`export default indexSourceBindings(${renderedBindingPlan.expression})`,
 			],
 		}
