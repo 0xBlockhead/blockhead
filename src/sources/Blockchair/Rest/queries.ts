@@ -123,7 +123,7 @@ export const getBitcoinLikeAddressDashboard = ({
  * `GET /{chain}/blocks` — Blockchair infinitable table; supports `q`, `s`, `a`,
  * `limit`, and `offset` through `params`.
  */
-export const getBlocks = <_Block = BlockchairBitcoinLikeBlock>({
+export const getBlocks = ({
 	chain,
 	params,
 	options,
@@ -132,7 +132,7 @@ export const getBlocks = <_Block = BlockchairBitcoinLikeBlock>({
 	params?: BlockchairInfinitableParams
 	options?: BlockchairRequestOptions
 }) => (
-	getBlockchairJson<BlockchairResponse<_Block[]>>({
+	getBlockchairJson<BlockchairResponse<BlockchairBitcoinLikeBlock[]>>({
 		path: `/${chain}/blocks`,
 		searchParams: infinitableSearchParams(params),
 		options,
@@ -143,9 +143,7 @@ export const getBlocks = <_Block = BlockchairBitcoinLikeBlock>({
  * `GET /{chain}/transactions` — Blockchair infinitable table; supports `q`, `s`,
  * `a`, `limit`, and `offset` through `params`.
  */
-export const getTransactions = <
-	_Transaction = BlockchairBitcoinLikeTransaction,
->({
+export const getTransactions = ({
 	chain,
 	params,
 	options,
@@ -154,7 +152,7 @@ export const getTransactions = <
 	params?: BlockchairInfinitableParams
 	options?: BlockchairRequestOptions
 }) => (
-	getBlockchairJson<BlockchairResponse<_Transaction[]>>({
+	getBlockchairJson<BlockchairResponse<BlockchairBitcoinLikeTransaction[]>>({
 		path: `/${chain}/transactions`,
 		searchParams: infinitableSearchParams(params),
 		options,

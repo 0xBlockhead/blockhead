@@ -10,26 +10,16 @@ import type {
 	MoneroRpcInfo,
 	MoneroRpcTransaction,
 } from '$/sources/MoneroDaemonRpc/JsonRpc/types.ts'
-import {
-	SourceEndpointKind,
-	SourceTargetKind,
-	type SourceBinding,
-	type SourceEndpoint,
-} from '$/sources/SourceBinding.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
-const moneroMainnetBinding = new Map<SourceTargetKind, SourceBinding<Source.MoneroDaemonRpc_JsonRpc>>(
-	bindings[Source.MoneroDaemonRpc_JsonRpc].map((binding) => [
-		binding.target.kind,
-		binding,
-	] as const)
-).get(SourceTargetKind.Caip2Network)
+const moneroMainnetBinding = bindings[Source.MoneroDaemonRpc_JsonRpc].find(({ target }) => (
+	target.kind === SourceTargetKind.Caip2Network
+))
 
 if (moneroMainnetBinding == null)
 	throw new Error('MoneroDaemonRpc_JsonRpc: no mainnet binding')
 
-const moneroMainnetHttpEndpoints = moneroMainnetBinding.endpoints.filter(
-	(endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl
-)
+const moneroMainnetHttpEndpoints = moneroMainnetBinding.endpoints
 
 export const moneroMainnetRpcEndpoints = moneroMainnetHttpEndpoints.map(({ locator: url }) => ({
 	url,
@@ -38,7 +28,7 @@ export const moneroMainnetRpcEndpoints = moneroMainnetHttpEndpoints.map(({ locat
 }))
 
 const queryMoneroMainnet = async <_Result>(
-	query: (endpoint: SourceEndpoint) => Promise<_Result>
+	query: (endpoint: (typeof moneroMainnetHttpEndpoints)[number]) => Promise<_Result>
 ) => {
 	const errors: string[] = []
 	for (const endpoint of moneroMainnetHttpEndpoints) {

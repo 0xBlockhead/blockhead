@@ -85,10 +85,7 @@ const normalizePair = (pair: DexscreenerPair) => {
 	const fdv = optionalFiniteNumber(pair.fdv, 'FDV')
 	const marketCap = optionalFiniteNumber(pair.marketCap, 'market cap')
 	const pairCreatedAt = optionalFiniteNumber(pair.pairCreatedAt, 'pair creation time', true)
-	const normalizedTransactions: Partial<Record<string, {
-		buys: number
-		sells: number
-	}>> = Object.fromEntries(txns.map(([timeframe, counts]) => [
+	const normalizedTransactions = Object.fromEntries(txns.map(([timeframe, counts]) => [
 		timeframe,
 		{
 			buys: optionalFiniteNumber(counts.buys ?? 0, `${timeframe} buys`, true) ?? 0,

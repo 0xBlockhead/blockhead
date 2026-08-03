@@ -8,7 +8,6 @@ import bindings from '$/sources/SpaceAndTime/bindings.ts'
 import {
 	makeInfiniteTable,
 	type MakeInfiniteActivityDayAggregateRow,
-	type MakeInfiniteSqlRequest,
 } from '$/sources/SpaceAndTime/MakeInfinite/types.ts'
 
 const millisecondsPerUtcDay = 86_400_000
@@ -54,7 +53,7 @@ export const getActivityDay = async ({
 	)
 		throw new Error(`SpaceAndTime_MakeInfinite: invalid UTC day ${dayStartTimestampMs}`)
 
-	const request: MakeInfiniteSqlRequest = {
+	const request = {
 		sqlText: sqlForCompletedUtcDay(dayStartTimestampMs),
 	}
 	const response = await sourceFetch(

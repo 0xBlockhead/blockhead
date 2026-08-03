@@ -13,10 +13,8 @@ import {
 	NetworkLedgerModel,
 } from '$/constants/Network.ts'
 import type {
-	BlockchairBitcoinLikeBlock,
 	BlockchairBitcoinLikeBlockDashboard,
 	BlockchairBitcoinLikeChain,
-	BlockchairBitcoinLikeTransaction,
 } from '$/sources/Blockchair/Rest/types.ts'
 
 const loadBlockchairQueries = () => import('$/sources/Blockchair/Rest/queries.ts')
@@ -570,7 +568,7 @@ export default {
 			entityType: EntityType.Network,
 			resolve: blockchairNetworkSelectors(async (network, context) => {
 				const { getBlocks } = await loadBlockchairQueries()
-				return (await getBlocks<BlockchairBitcoinLikeBlock>({
+				return (await getBlocks({
 					chain: blockchairChain(network),
 					params: {
 						sort: 'id(desc)',
@@ -594,7 +592,7 @@ export default {
 			entityType: EntityType.Network,
 			resolve: blockchairNetworkSelectors(async (network, context) => {
 				const { getTransactions } = await loadBlockchairQueries()
-				return (await getTransactions<BlockchairBitcoinLikeTransaction>({
+				return (await getTransactions({
 					chain: blockchairChain(network),
 					params: {
 						sort: 'id(desc)',
