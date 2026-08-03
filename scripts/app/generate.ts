@@ -7616,7 +7616,7 @@ const generateSourceProviderBindingsFile = (
 		const bindingFunctionName = matrix.variants.length === 1 ? 'mapSourceBindings' : 'flatMapSourceBindings'
 		return {
 			bindingFunctionNames: [bindingFunctionName],
-			expression: (matrix.variants.length === 1 ? [
+			expression: [
 				`${bindingFunctionName}(`,
 				...lines(`${targetRows} as const`).map((line, lineIndex, rowLines) => (
 					`${indent(line)}${lineIndex === rowLines.length - 1 ? ',' : ''}`
@@ -7624,28 +7624,20 @@ const generateSourceProviderBindingsFile = (
 				'\t({',
 				'\t\tkey,',
 				...valueNames.map((name) => `\t\t${name},`),
-				...(matrix.hasBindingOverrides ? ['\t\t...bindingOverrides'] : []),
-				'\t}) => ({',
-				...lines(matrix.variants[0] ?? '').slice(1, -1).map((line) => indent(line)),
-				'\t})',
+				...(matrix.variants.length === 1 && matrix.hasBindingOverrides ? ['\t\t...bindingOverrides'] : []),
+				`\t}) => (${matrix.variants.length === 1 ? '{' : '['}`,
+				...(matrix.variants.length === 1 ?
+					lines(matrix.variants[0] ?? '').slice(1, -1).map((line) => indent(line))
+				:
+					matrix.variants.flatMap((binding) => [
+						'\t\t{',
+						...lines(binding).slice(1, -1).map((line) => indent(line, 2)),
+						'\t\t},',
+					])
+				),
+				matrix.variants.length === 1 ? '\t})' : '\t] as const)',
 				')',
-			] : [
-				`${bindingFunctionName}(`,
-				...lines(`${targetRows} as const`).map((line, lineIndex, rowLines) => (
-					`${indent(line)}${lineIndex === rowLines.length - 1 ? ',' : ''}`
-				)),
-				'\t({',
-				'\t\tkey,',
-				...valueNames.map((name) => `\t\t${name},`),
-				'\t}) => ([',
-				...matrix.variants.flatMap((binding) => [
-					'\t\t{',
-					...lines(binding).slice(1, -1).map((line) => indent(line, 2)),
-					'\t\t},',
-				]),
-				'\t] as const)',
-				')',
-			]).join('\n'),
+			].join('\n'),
 		}
 	}
 	const renderedBindingPlan = (() => {
