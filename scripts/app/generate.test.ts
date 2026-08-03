@@ -5286,7 +5286,8 @@ test('returns discriminated route identity for detail dispatch', () => {
 test('groups inherited selector fields under one route mapping', () => {
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
 
-	assert.match(generatorSource, /type SelectorAncestorBinding = \{[\s\S]*?field: string[\s\S]*?alternatives: readonly \{[\s\S]*?ancestorNodeId: string[\s\S]*?referencePath: readonly string\[\]/)
+	assert.match(generatorSource, /type SelectorAncestorBinding = \{\n\talternatives: readonly \{\n\t\tancestor: RouteAncestorSelector\n\t\treferencePath: readonly string\[\]/)
+	assert.doesNotMatch(generatorSource, /candidate\.ancestorNodeId === alternative\.ancestorNodeId/)
 	assert.doesNotMatch(generatorSource, /hrefParamCandidates|\bhrefs\?:/)
 	assert.match(generatorSource, /\.\.\.selectorMappings\.map\(\(selectorMapping\) => \(\{[\s\S]*?routeParamAlternatives: selectorMapping\.routeParamAlternatives[\s\S]*?mapping: selectorMapping/)
 	assert.doesNotMatch(generatorSource, /compiledSelectorMappings|normalizedSelectorMappings/)

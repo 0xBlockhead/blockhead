@@ -141,11 +141,8 @@ type RouteParamCompilationContext = RouteParam & {
 	explicitValueTypes: readonly string[]
 }
 type SelectorAncestorBinding = {
-	field: string
 	alternatives: readonly {
-		ancestorNodeId: string
-		entityType: string
-		selectorName: string
+		ancestor: RouteAncestorSelector
 		referencePath: readonly string[]
 	}[]
 }
@@ -3366,7 +3363,6 @@ const compileRouteTree = (
 
 				return {
 					binding: {
-						field: field.name,
 						alternatives: [...new Map(nearestAncestors.map(({ ancestor, referencePath }) => [
 							JSON.stringify([
 								ancestor.ancestorNodeId,
@@ -3375,9 +3371,7 @@ const compileRouteTree = (
 								referencePath,
 							]),
 							{
-								ancestorNodeId: ancestor.ancestorNodeId,
-								entityType: ancestor.entityType,
-								selectorName: ancestor.selectorName,
+								ancestor,
 								referencePath,
 							},
 						])).values()],
@@ -3394,10 +3388,7 @@ const compileRouteTree = (
 
 				const bindingValue = ancestorBindingValue(field)
 				if (bindingValue != null) {
-					ancestorBindingByField.set(bindingField, {
-						...bindingValue.binding,
-						field: bindingField,
-					})
+					ancestorBindingByField.set(bindingField, bindingValue.binding)
 
 					return bindingValue.value
 				}
@@ -3524,26 +3515,21 @@ const compileRouteTree = (
 			const routeParamAlternatives = composeSelectorRouteParamAlternatives(
 				`${routeId(routePath)} ${entityType}.${selectorName}`,
 				ownRouteParams,
-				[...ancestorBindingByField.values()].map((binding) => ({
-					field: binding.field,
-					alternatives: binding.alternatives.flatMap((alternative) => {
-						const ancestor = ancestorSelectorsAtNode.find((candidate) => (
-							candidate.ancestorNodeId === alternative.ancestorNodeId
-							&& candidate.entityType === alternative.entityType
-							&& candidate.selectorName === alternative.selectorName
-						))
-						return ancestor == null ? [] : ancestor.routeParamAlternatives.map((ancestorRouteParams) => Object.fromEntries(
+				[...ancestorBindingByField].map(([field, binding]) => ({
+					field,
+					alternatives: binding.alternatives.flatMap(({ ancestor, referencePath }) => (
+						ancestor.routeParamAlternatives.map((ancestorRouteParams) => Object.fromEntries(
 							Object.entries(ancestorRouteParams).map(([param, routeParamValue]) => [
 								param,
 								{
 									...routeParamValue,
-									value: alternative.referencePath.reduceRight<_Expression>((expression, referenceField) => (
+									value: referencePath.reduceRight<_Expression>((expression, referenceField) => (
 										routeExpressionThroughReference(expression, referenceField)
 									), routeParamValue.value),
 								},
 							])
 						))
-					}),
+					)),
 				}))
 			)
 
