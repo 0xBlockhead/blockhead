@@ -14,7 +14,7 @@ export const {
 	getSystemHealth,
 } = substrateJsonRpcQueries(binding)
 
-export const getRpcEndpoints = () => binding.endpoints.map((endpoint) => ({
+export const rpcEndpoints = binding.endpoints.map((endpoint) => ({
 	url: endpoint.locator,
 	transportType: TransportType.Http,
 	providerName: 'Parity',

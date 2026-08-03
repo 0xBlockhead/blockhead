@@ -196,12 +196,11 @@ export default {
 				Network: {
 					resolve: async ({ $network }) => {
 						assertFilecoinMainnet($network)
-						const { getRpcEndpoints } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						return {
 							$network: {
 								[EntityMetaKey.Selector]: $network,
 							},
-							rpcEndpoints: getRpcEndpoints(),
+							rpcEndpoints: (await import('$/sources/Lotus/JsonRpc/queries.ts')).rpcEndpoints,
 						}
 					},
 				}
@@ -217,9 +216,8 @@ export default {
 				Slug: {
 					resolve: async (network) => {
 						assertFilecoinMainnet(network)
-						const { getRpcEndpoints } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						return {
-							filecoinRpcEndpoints: getRpcEndpoints(),
+							filecoinRpcEndpoints: (await import('$/sources/Lotus/JsonRpc/queries.ts')).rpcEndpoints,
 						}
 					},
 				}

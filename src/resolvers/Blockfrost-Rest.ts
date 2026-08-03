@@ -668,8 +668,7 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
 					assertCardanoMainnet(network)
-					const { getRestEndpoints } = await import('$/sources/Blockfrost/Rest/queries.ts')
-					return getRestEndpoints()
+					return (await import('$/sources/Blockfrost/Rest/queries.ts')).restEndpoints
 				}
 			),
 		})({

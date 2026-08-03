@@ -4,7 +4,6 @@ import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/Celenium/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 const binding = bindings[Source.Celenium_Rest][0]
 const celeniumHash = /^[0-9a-fA-F]{64}$/
@@ -145,10 +144,6 @@ const assertPage = ({
 		throw new Error('Celenium_Rest: page limit must be from 1 through 100')
 	if (!Number.isSafeInteger(offset) || offset < 0 || offset > 1_000_000)
 		throw new Error('Celenium_Rest: page offset must be from 0 through 1000000')
-}
-
-export const query = (path: string) => {
-	return sourceGetJson<JsonValue>(binding, httpUrl(binding, path))
 }
 
 export const getHead = async () => {

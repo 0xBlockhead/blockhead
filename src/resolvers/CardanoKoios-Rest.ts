@@ -67,10 +67,9 @@ export default {
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
-				assertCardanoMainnet(network)
-				const { getRestEndpoints } = await import('$/sources/CardanoKoios/Rest/queries.ts')
-				return getRestEndpoints()
-			}
+					assertCardanoMainnet(network)
+					return (await import('$/sources/CardanoKoios/Rest/queries.ts')).restEndpoints
+				}
 			),
 		})({
 			Cardano: {

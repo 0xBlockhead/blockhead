@@ -64,8 +64,7 @@ export default {
 				Slug: {
 					resolve: async (network) => {
 						assertPolkadotMainnet(network)
-						const { getRpcEndpoints } = await import('$/sources/Polkadot/JsonRpc/queries.ts')
-						return getRpcEndpoints()
+						return (await import('$/sources/Polkadot/JsonRpc/queries.ts')).rpcEndpoints
 					},
 				}
 			},

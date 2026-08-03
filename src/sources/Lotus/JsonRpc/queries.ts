@@ -22,7 +22,7 @@ const binding = bindings[Source.Lotus_JsonRpc].find(({ target }) => (
 if (binding == null)
 	throw new Error('Lotus_JsonRpc: no Filecoin binding')
 
-export const getRpcEndpoints = () => binding.endpoints.map((endpoint) => ({
+export const rpcEndpoints = binding.endpoints.map((endpoint) => ({
 	url: endpoint.locator,
 	transportType: TransportType.Http,
 	providerName: 'GLIF',

@@ -8,7 +8,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 
 vi.mock('$/sources/TronGrid/Rest/queries.ts', () => ({
-	getRestEndpoints: () => [{
+	restEndpoints: [{
 		url: 'https://api.trongrid.io',
 		transportType: 'Http',
 		providerName: 'TronGrid',

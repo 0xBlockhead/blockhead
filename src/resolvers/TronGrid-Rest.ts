@@ -337,8 +337,7 @@ export default {
 			resolve: tronNetworkResolverSelectors(
 				async (network) => {
 					assertTronMainnet(network)
-					const { getRestEndpoints } = await import('$/sources/TronGrid/Rest/queries.ts')
-					return getRestEndpoints()
+					return (await import('$/sources/TronGrid/Rest/queries.ts')).restEndpoints
 				}
 			),
 		})({

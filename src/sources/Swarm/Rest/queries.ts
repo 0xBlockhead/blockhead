@@ -6,8 +6,6 @@ import bindings from '$/sources/Swarm/bindings.ts'
 
 const binding = bindings[Source.Swarm_Rest][0]
 
-const swarmGatewayEndpoints = () => binding.endpoints
-
 const stripHexPrefix = (value: string) => (
 	value.toLowerCase().startsWith('0x') ?
 		value.slice(2)
@@ -60,7 +58,7 @@ export const fetchBrowseResult = async ({
 	const trimmedPath = trimSlashes(contentPath?.trim() ?? '')
 	const failures: string[] = []
 
-	for (const endpoint of swarmGatewayEndpoints()) {
+	for (const endpoint of binding.endpoints) {
 		const gatewayUrl = getGatewayUrl({
 			reference: trimmedReference,
 			contentPath: trimmedPath,
@@ -115,7 +113,7 @@ export const getGatewayReachability = async ({
 }: {
 	signal?: AbortSignal
 } = {}) => {
-	const endpoints = swarmGatewayEndpoints()
+	const endpoints = binding.endpoints
 	const reachableAccessEndpointCount = (
 		await Promise.all(endpoints.map(async (endpoint) => {
 			try {
