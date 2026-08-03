@@ -504,6 +504,39 @@ describe('resolver registry live resolver architecture', () => {
 	it('publishes Voltaire live EVM network Many fields as one source row containing an array', async () => {
 		const replaceTimestampRows = vi.fn()
 		const replaceBlockRows = vi.fn()
+		const getRecentBlockWiresForEndpoint = vi.fn(async () => ({
+			head: 12n,
+			blockNumbers: [12n],
+			wires: [{
+				number: '0xc',
+				hash: `0x${'12'.repeat(32)}`,
+				parentHash: `0x${'34'.repeat(32)}`,
+				timestamp: '0x64',
+				miner: `0x${'56'.repeat(20)}`,
+				gasUsed: '0x1',
+				gasLimit: '0x2',
+				transactions: [],
+			}],
+		}))
+		const iterateBlockStreamEvents = vi.fn(async function* ({
+			fromBlock,
+			signal,
+		}: {
+			fromBlock: bigint
+			signal: AbortSignal
+		}) {
+			expect(fromBlock).toBe(12n)
+			yield {
+				type: 'blocks',
+				blocks: [],
+				metadata: {
+					chainHead: 12n,
+				},
+			}
+			await new Promise<void>((resolve) => {
+				signal.addEventListener('abort', () => resolve(), { once: true })
+			})
+		})
 		const abortController = new AbortController()
 		const $network = {
 			caip2: {
@@ -514,23 +547,8 @@ describe('resolver registry live resolver architecture', () => {
 		vi.doMock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 			getChainHeadNumberForEndpoint: vi.fn(async () => 12n),
 			getProviderForExecutionUrl: vi.fn(async () => ({})),
-			getRecentBlockWiresForEndpoint: vi.fn(async () => ({
-				wires: [{
-					number: '0xc',
-					hash: `0x${'12'.repeat(32)}`,
-					parentHash: `0x${'34'.repeat(32)}`,
-					timestamp: '0x64',
-					miner: `0x${'56'.repeat(20)}`,
-					gasUsed: '0x1',
-					gasLimit: '0x2',
-					transactions: [],
-				}],
-			})),
-			iterateBlockStreamEvents: async function* ({ signal }: { signal: AbortSignal }) {
-				await new Promise<void>((resolve) => {
-					signal.addEventListener('abort', () => resolve(), { once: true })
-				})
-			},
+			getRecentBlockWiresForEndpoint,
+			iterateBlockStreamEvents,
 			voltaireJsonRpcTransports: {
 				transportsByChainId: {
 					1: [{
@@ -640,7 +658,12 @@ describe('resolver registry live resolver architecture', () => {
 			await vi.waitFor(() => {
 				expect(replaceTimestampRows).toHaveBeenCalledOnce()
 				expect(replaceBlockRows).toHaveBeenCalledOnce()
+				expect(iterateBlockStreamEvents).toHaveBeenCalledOnce()
 			})
+			expect(getRecentBlockWiresForEndpoint).toHaveBeenCalledWith(expect.objectContaining({
+				recentBlockDepth: 16,
+			}))
+			expect(getRecentBlockWiresForEndpoint).toHaveBeenCalledOnce()
 			expect(replaceTimestampRows).toHaveBeenCalledWith([{
 				source: Source.Voltaire_JsonRpc,
 				value: [{

@@ -1504,7 +1504,6 @@ export default {
 								'$$beaconEpochs',
 								'$$beaconSlots',
 							] as const
-							const recentBlockDepth = Math.max(1, resolverContextRowLimit(ctx.trigger))
 							const backstop = setInterval(
 								() => { void fields.invalidate(allLiveFieldNames) },
 								30_000
@@ -1525,73 +1524,135 @@ export default {
 							}
 
 							const {
-								getChainHeadNumberForEndpoint,
 								getProviderForExecutionUrl,
 								iterateBlockStreamEvents,
-								} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
-								const waitBeforeRetry = (ms: number) => (
-									new Promise<void>((resolve) => {
-										const timeout = setTimeout(resolve, ms)
-										signal.addEventListener(
-											'abort',
-											() => {
-												clearTimeout(timeout)
-												resolve()
-											},
-											{ once: true }
+							} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
+							const waitBeforeRetry = (ms: number) => (
+								new Promise<void>((resolve) => {
+									const timeout = setTimeout(resolve, ms)
+									signal.addEventListener(
+										'abort',
+										() => {
+											clearTimeout(timeout)
+											resolve()
+										},
+										{ once: true }
+									)
+								})
+							)
+							const writeRecentBlocksForTransport = async (
+								jsonRpcTransport: (typeof candidateTransports)[number],
+								recentBlockDepth = 16
+							) => {
+								const { getRecentBlockWiresForEndpoint } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
+								const { head, wires } = await getRecentBlockWiresForEndpoint({
+									...jsonRpcTransport,
+									recentBlockDepth,
+								})
+								const evmBlocks = (
+									wires.flatMap((wire) => {
+										if (wire == null) return []
+
+										const value = networkScopedEvmBlockFieldsFromVoltaireBlockRpc(
+											chainIdFromEvmNetworkId(parentEntitySelector),
+											wire
+										)
+										return (
+											value == null ?
+												[]
+											:
+												[{
+													[EntityMetaKey.Selector]: value[EntityMetaKey.Selector],
+													[EntityMetaKey.Fields]: Object.fromEntries(
+														Object.entries(value)
+															.filter(([fieldName]) => fieldName !== EntityMetaKey.Selector)
+															.map(([fieldName, fieldValue]) => [
+																entityFieldAddressKey(EntityType.EvmBlock, [], fieldName),
+																fieldValue,
+															])
+													),
+												}]
 										)
 									})
 								)
-								const writeRecentBlocksForTransport = async (
-									jsonRpcTransport: (typeof candidateTransports)[number],
-									recentBlockDepth = 16
-								) => {
-									const { getRecentBlockWiresForEndpoint } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
-									const { wires } = await getRecentBlockWiresForEndpoint({
+								if (evmBlocks.length > 0)
+									fields.$$blocks.replaceRows([{
+										source: Source.Voltaire_JsonRpc,
+										value: evmBlocks,
+									}])
+
+								return head
+							}
+
+							while (!signal.aborted) {
+								for (const jsonRpcTransport of candidateTransports) {
+									const provider = await getProviderForExecutionUrl({
 										...jsonRpcTransport,
-										recentBlockDepth,
 									})
-									const evmBlocks = (
-										wires.flatMap((wire) => {
-											if (wire == null) return []
-
-											const value = networkScopedEvmBlockFieldsFromVoltaireBlockRpc(
-												chainIdFromEvmNetworkId(parentEntitySelector),
-												wire
-											)
-											return (
-												value == null ?
-													[]
-												:
-													[{
-														[EntityMetaKey.Selector]: value[EntityMetaKey.Selector],
-														[EntityMetaKey.Fields]: Object.fromEntries(
-															Object.entries(value)
-																.filter(([fieldName]) => fieldName !== EntityMetaKey.Selector)
-																.map(([fieldName, fieldValue]) => [
-																	entityFieldAddressKey(EntityType.EvmBlock, [], fieldName),
-																	fieldValue,
-																])
-														),
-													}]
-											)
-										})
-									)
-									if (evmBlocks.length > 0)
-										fields.$$blocks.replaceRows([{
+									let initialized = false
+									try {
+										const currentHead = await writeRecentBlocksForTransport(jsonRpcTransport)
+										fields.$$timestamps.replaceRows([{
 											source: Source.Voltaire_JsonRpc,
-											value: evmBlocks,
+											value: [{
+												[EntityMetaKey.Selector]: {
+													$network: parentEntitySelector,
+													timestampMs: Date.now(),
+													source: Source.Voltaire_JsonRpc,
+												},
+												[EntityMetaKey.Fields]: {
+													[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: currentHead,
+												},
+											}],
 										}])
-								}
+										fields.$$blocks.count.replaceRows([{
+											source: Source.Voltaire_JsonRpc,
+											value: Number(currentHead) + 1,
+										}])
+										initialized = true
+										for await (const event of iterateBlockStreamEvents({
+											provider,
+											include: 'transactions',
+											signal,
+											fromBlock: currentHead,
+											maxQueuedBlocks: 16,
+											pollingInterval: 1_000,
+											retry: {
+												initialDelay: 1_000,
+												maxDelay: 10_000,
+												maxRetries: 5,
+											},
+										})) {
+											if (event.type === 'reorg') {
+												await fields.invalidate(allLiveFieldNames)
+												try {
+													const chainHead = await writeRecentBlocksForTransport(jsonRpcTransport)
+													fields.$$timestamps.replaceRows([{
+														source: Source.Voltaire_JsonRpc,
+														value: [{
+															[EntityMetaKey.Selector]: {
+																$network: parentEntitySelector,
+																timestampMs: Date.now(),
+																source: Source.Voltaire_JsonRpc,
+															},
+															[EntityMetaKey.Fields]: {
+																[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: chainHead,
+															},
+														}],
+													}])
+													fields.$$blocks.count.replaceRows([{
+														source: Source.Voltaire_JsonRpc,
+														value: Number(chainHead) + 1,
+													}])
+												} catch {
+													// Invalidation owns the retry if the replacement read also fails.
+												}
+												continue
+											}
 
-								while (!signal.aborted) {
-									for (const jsonRpcTransport of candidateTransports) {
-										const provider = await getProviderForExecutionUrl({
-											...jsonRpcTransport,
-										})
-										let initialized = false
-										try {
-											const currentHead = await getChainHeadNumberForEndpoint(jsonRpcTransport)
+											if (event.metadata.chainHead <= currentHead)
+												continue
+
 											fields.$$timestamps.replaceRows([{
 												source: Source.Voltaire_JsonRpc,
 												value: [{
@@ -1601,92 +1662,32 @@ export default {
 														source: Source.Voltaire_JsonRpc,
 													},
 													[EntityMetaKey.Fields]: {
-														[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: currentHead,
+														[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: event.metadata.chainHead,
 													},
 												}],
 											}])
 											fields.$$blocks.count.replaceRows([{
 												source: Source.Voltaire_JsonRpc,
-												value: Number(currentHead) + 1,
+												value: Number(event.metadata.chainHead) + 1,
 											}])
-											await writeRecentBlocksForTransport(jsonRpcTransport, recentBlockDepth)
-											initialized = true
-											for await (const event of iterateBlockStreamEvents({
-												provider,
-												include: 'transactions',
-												signal,
-												fromBlock: currentHead + 1n,
-												maxQueuedBlocks: 16,
-												pollingInterval: 1_000,
-												retry: {
-													initialDelay: 1_000,
-													maxDelay: 10_000,
-													maxRetries: 5,
-												},
-											})) {
-												if (event.type === 'reorg') {
-													await fields.invalidate(allLiveFieldNames)
-													try {
-														const chainHead = await getChainHeadNumberForEndpoint(jsonRpcTransport)
-														fields.$$timestamps.replaceRows([{
-															source: Source.Voltaire_JsonRpc,
-															value: [{
-																[EntityMetaKey.Selector]: {
-																	$network: parentEntitySelector,
-																	timestampMs: Date.now(),
-																	source: Source.Voltaire_JsonRpc,
-																},
-																[EntityMetaKey.Fields]: {
-																	[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: chainHead,
-																},
-															}],
-														}])
-														fields.$$blocks.count.replaceRows([{
-															source: Source.Voltaire_JsonRpc,
-															value: Number(chainHead) + 1,
-														}])
-														await writeRecentBlocksForTransport(jsonRpcTransport, recentBlockDepth)
-													} catch {
-														// invalidate scheduled refetch
-													}
-													continue
-												}
+											await writeRecentBlocksForTransport(jsonRpcTransport)
 
-												fields.$$timestamps.replaceRows([{
-													source: Source.Voltaire_JsonRpc,
-													value: [{
-														[EntityMetaKey.Selector]: {
-															$network: parentEntitySelector,
-															timestampMs: Date.now(),
-															source: Source.Voltaire_JsonRpc,
-														},
-														[EntityMetaKey.Fields]: {
-															[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: event.metadata.chainHead,
-														},
-													}],
-												}])
-												fields.$$blocks.count.replaceRows([{
-													source: Source.Voltaire_JsonRpc,
-													value: Number(event.metadata.chainHead) + 1,
-												}])
-												await writeRecentBlocksForTransport(jsonRpcTransport, recentBlockDepth)
-
-												if (event.blocks.length > 0)
-													await fields.invalidate(activityFields)
-											}
-											await waitBeforeRetry(1_000)
-											break
-										} catch (error) {
-											console.warn('Voltaire: block stream ended', {
-												error,
-												transport: jsonRpcTransport.diagnosticLabel,
-											})
-											await waitBeforeRetry(1_000)
-											if (initialized)
-												break
+											if (event.blocks.length > 0)
+												await fields.invalidate(activityFields)
 										}
+										await waitBeforeRetry(1_000)
+										break
+									} catch (error) {
+										console.warn('Voltaire: block stream ended', {
+											error,
+											transport: jsonRpcTransport.diagnosticLabel,
+										})
+										await waitBeforeRetry(1_000)
+										if (initialized)
+											break
 									}
 								}
+							}
 						})()
 					},
 				},

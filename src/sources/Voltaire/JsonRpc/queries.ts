@@ -383,20 +383,16 @@ export const getRecentBlockWiresForEndpoint = async ({
 			.filter((blockNumber) => blockNumber >= 0n)
 	)
 	return {
+		head,
 		blockNumbers,
 		wires: await Promise.all(
 			blockNumbers.map((blockNumber) => (
-				Promise.race([
-					getBlockByNumberForEndpoint({
-						binding,
-						endpoint,
-						blockNumber,
-						fullTransactions: false,
-					}),
-					new Promise<null>((resolve) => {
-						setTimeout(() => resolve(null), 8_000)
-					}),
-				])
+				getBlockByNumberForEndpoint({
+					binding,
+					endpoint,
+					blockNumber,
+					fullTransactions: false,
+				})
 			))
 		),
 	}
