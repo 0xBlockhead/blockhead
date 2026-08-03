@@ -8084,7 +8084,10 @@ const generateSourceProvidersFile = (sourceProviderNames: readonly string[]) => 
 			{
 				from: './SourceBinding.ts',
 				names: ['mergeSourceBindingIndexes'],
-				typeNames: ['CompleteSourceBindingIndex'],
+				typeNames: [
+					'CompleteSourceBindingIndex',
+					'SourceBinding',
+				],
 			},
 			{
 				from: './SourceProviderDefinition.ts',
@@ -8102,7 +8105,8 @@ const generateSourceProvidersFile = (sourceProviderNames: readonly string[]) => 
 			'\t...sourceProviders.map(({ bindings }) => bindings)',
 			') satisfies CompleteSourceBindingIndex',
 			'',
-			'export const sourceBindings = Object.values(sourceBindingsBySource).flat()',
+			'export const sourceBindings = Object.values(sourceBindingsBySource)',
+			'\t.flatMap((bindings): readonly SourceBinding[] => bindings)',
 		],
 	}
 )

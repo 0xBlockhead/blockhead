@@ -1,6 +1,6 @@
 import { sourceBindings } from '$/sources/$sourceProviders.ts'
 import sourceServerCredentialsById from '$/sources/$sourceServerCredentials.server.ts'
-import { sourceBindingId, SourceCredentialScope, SourceDelivery, SourceEndpointKind, sourceEndpointOrigin, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { sourceBindingId, SourceCredentialScope, SourceDelivery, sourceEndpointOrigin, type SourceBinding } from '$/sources/SourceBinding.ts'
 import { env as privateEnv } from '$env/dynamic/private'
 
 const privateEnvHasValue = (key: string | undefined) => (
@@ -8,7 +8,7 @@ const privateEnvHasValue = (key: string | undefined) => (
 	&& (privateEnv[key]?.trim() ?? '') !== ''
 )
 
-export const enabledSourceBindings = sourceBindings.filter((binding: SourceBinding) => (
+export const enabledSourceBindings = sourceBindings.filter((binding) => (
 	binding.credentials.every((credential) => (
 		(
 			credential.scope !== SourceCredentialScope.RuntimeSecret
@@ -30,9 +30,8 @@ export const enabledSources = new Set(
 
 export const httpProxyOrigins = new Set(
 	enabledSourceBindings
-		.filter((binding: SourceBinding) => binding.delivery === SourceDelivery.HttpProxy)
+		.filter((binding) => binding.delivery === SourceDelivery.HttpProxy)
 		.flatMap((binding) => binding.endpoints)
-		.filter((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
 		.flatMap((endpoint) => sourceEndpointOrigin(endpoint) ?? [])
 )
 

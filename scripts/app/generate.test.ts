@@ -3127,10 +3127,16 @@ test('renders facet applicability through projection boundaries', () => {
 test('emits every source-axis enum and only valid enum references in provider rows', () => {
 	const generatedFiles = baselineCompiledApp.generatedFiles
 	const sourceBinding = generatedFiles.find((generatedFile) => generatedFile.path === 'src/sources/SourceBinding.ts')
+	const sourceProviders = generatedFiles.find((generatedFile) => generatedFile.path === 'src/sources/$sourceProviders.ts')
 
 	assert.ok(sourceBinding)
+	assert.ok(sourceProviders)
 
 	const renderedSourceBinding = renderGeneratedFile(sourceBinding)
+	const renderedSourceProviders = renderGeneratedFile(sourceProviders)
+	assert.match(renderedSourceProviders, /import \{ mergeSourceBindingIndexes, type CompleteSourceBindingIndex, type SourceBinding \}/)
+	assert.match(renderedSourceProviders, /Object\.values\(sourceBindingsBySource\)\n\t\.flatMap\(\(bindings\): readonly SourceBinding\[\] => bindings\)/)
+	assert.doesNotMatch(renderedSourceProviders, /sourceBindingsBySource\)\.flat\(\)/)
 	assert.doesNotMatch(renderedSourceBinding, /\bprovider: SourceProvider\b/)
 	assert.doesNotMatch(renderedSourceBinding, /\bNone\s*=\s*'None'/)
 	assert.match(renderedSourceBinding, /generated\?: true/)
