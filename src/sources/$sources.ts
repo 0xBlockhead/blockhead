@@ -11,7 +11,6 @@ import { Source } from '$/sources/Source.ts'
 
 export type SourcePublicEnv = {
 	readonly [key: string]: string
-	readonly [key: `PUBLIC_${string}`]: string
 }
 
 export type SourceDefinition<
@@ -40,7 +39,7 @@ export type SourceProviderDefinition<
 export const requiredPublicEnvString = (
 	publicEnv: SourcePublicEnv,
 	key: string
-): string => {
+) => {
 	const value = (publicEnv[key] ?? '').trim()
 	if (value === '')
 		throw new Error(`Missing or empty required env: ${key}`)
@@ -51,7 +50,7 @@ export const requiredPublicEnvString = (
 export const optionalPublicEnvString = (
 	publicEnv: SourcePublicEnv,
 	key: string
-): string | undefined => {
+) => {
 	const value = (publicEnv[key] ?? '').trim()
 	if (value === '')
 		return undefined
@@ -99,7 +98,7 @@ export const indexSourceProviders = <
 
 	const envSubsetFromSchema = (
 		envSchema: Type<SourcePublicEnv> | undefined
-	): SourcePublicEnv | null => {
+	) => {
 		if (envSchema == null)
 			return {}
 
