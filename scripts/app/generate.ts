@@ -7661,16 +7661,6 @@ const generateSourceProviderBindingsFile = (
 				].join('\n'),
 			}
 		})
-		if (compactBindingPlans.every((compactBindingPlan) => compactBindingPlan == null))
-			return {
-				bindingFunctionNames: [],
-				expression: [
-					'[',
-					...sourcePlans.flatMap((sourcePlan) => sourcePlan.sourceBindingRows.map((bindingRow) => `${indent(emitBinding(sourcePlan, bindingRow))},`)),
-					']',
-				].join('\n'),
-			}
-
 		const onlyCompactBindingPlan = compactBindingPlans.length === 1 ? compactBindingPlans[0] : undefined
 		if (onlyCompactBindingPlan != null)
 			return onlyCompactBindingPlan
@@ -7691,7 +7681,7 @@ const generateSourceProviderBindingsFile = (
 						`${lineIndex === 0 ? '\t...' : '\t'}${line}${lineIndex === compactExpressionLines.length - 1 ? ',' : ''}`
 					))
 				}),
-				'] as const',
+				compactBindingPlans.some((compactBindingPlan) => compactBindingPlan != null) ? '] as const' : ']',
 			].join('\n'),
 		}
 	})()
