@@ -2099,29 +2099,25 @@ test('keeps projection fields resolved when their terminal name matches a select
 	assert.ok(accountView)
 	const renderedAccountView = renderGeneratedFile(accountView)
 	assert.match(renderedAccountView, /<ProjectionBoundary[\s\S]*?resource=\{selection\.Evm\}[\s\S]*?projection\.caip10/)
+	assert.match(renderedAccountView, /\{#snippet HeadingAfter\(\)\}[\s\S]*?<ProjectionBoundary[\s\S]*?resource=\{selection\.Evm\}[\s\S]*?projection\.caip10/)
 	assert.doesNotMatch(renderedAccountView, /selection\.entitySelector\.Evm\.caip10/)
 
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
-	const summaryItemSource = generatorSource.slice(
-		generatorSource.indexOf('const renderSummaryItemMarkup ='),
-		generatorSource.indexOf('const renderSummaryItemsMarkup =')
+	const summaryItemCompilerSource = generatorSource.slice(
+		generatorSource.indexOf('const compileSummaryItems ='),
+		generatorSource.indexOf('const summaryItemsRenderRequiredScalar =')
 	)
 	assert.equal(
-		(summaryItemSource.match(/entitySelectorOwnsField\(entity, fieldReference\)/g) ?? []).length,
-		2
+		(summaryItemCompilerSource.match(/entitySelectorOwnsField\(entity, fieldReference\)/g) ?? []).length,
+		1
 	)
-	assert.doesNotMatch(summaryItemSource, /entitySelectorOwnsField\(entity, fieldName\)/)
-	for (const functionName of [
-		'const renderSummaryAfterItem =',
-		'const renderEntityReferenceDlItem =',
-	]) {
-		const functionSource = generatorSource.slice(
-			generatorSource.indexOf(functionName),
-			generatorSource.indexOf('\nconst ', generatorSource.indexOf(functionName) + functionName.length)
-		)
-		assert.match(functionSource, /entitySelectorOwnsField\(entity, fieldReference\)/)
-		assert.doesNotMatch(functionSource, /entitySelectorOwnsField\(entity, fieldName\)/)
-	}
+	assert.doesNotMatch(summaryItemCompilerSource, /entitySelectorOwnsField\(entity, fieldName\)/)
+	const entityReferenceDlItemSource = generatorSource.slice(
+		generatorSource.indexOf('const renderEntityReferenceDlItem ='),
+		generatorSource.indexOf('\nconst ', generatorSource.indexOf('const renderEntityReferenceDlItem =') + 1)
+	)
+	assert.match(entityReferenceDlItemSource, /entitySelectorOwnsField\(entity, fieldReference\)/)
+	assert.doesNotMatch(entityReferenceDlItemSource, /entitySelectorOwnsField\(entity, fieldName\)/)
 })
 
 test('validates facet fields through the canonical facet traversal', () => {
