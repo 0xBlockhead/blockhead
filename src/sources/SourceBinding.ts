@@ -437,12 +437,14 @@ export const sourceBindingId = ({
 	apiFamily,
 ])
 
-export type SourceBindingIndex = {
-	readonly [_Source in Source]?: readonly [
+export type CompleteSourceBindingIndex = {
+	readonly [_Source in Source]: readonly [
 		SourceBinding<_Source>,
 		...SourceBinding<_Source>[],
 	]
 }
+
+export type SourceBindingIndex = Partial<CompleteSourceBindingIndex>
 
 type SourceBindingFor<
 	_Binding extends SourceBinding,

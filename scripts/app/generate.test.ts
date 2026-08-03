@@ -6238,6 +6238,7 @@ test('correlates generated source, binding, and resolver selector keys at defini
 	try {
 		const fixturePath = path.join(typeTestRoot, 'generated-source-key-types.ts')
 		writeFileSync(fixturePath, `import specificationProposalSources from '${root}/src/sources/specificationProposalSources.ts'
+import { sourceBindingsBySource } from '${root}/src/sources/$sourceProviders.ts'
 import sourceServerCredentials from '${root}/src/sources/$sourceServerCredentials.server.ts'
 import acrossBindings from '${root}/src/sources/Across/bindings.ts'
 import atprotoSyncBindings from '${root}/src/sources/AtprotoSync/bindings.ts'
@@ -6265,6 +6266,7 @@ import {
 	SourceEndpointKind,
 	SourceOperationGroup,
 	WireProtocol,
+	type CompleteSourceBindingIndex,
 	type SourceBinding,
 	type SourceBindingIndex,
 	type SourceServerCredentialDefinition,
@@ -6328,6 +6330,14 @@ defineResolver({
 	},
 })({})
 const validBindings = lightningLndBindings satisfies SourceBindingIndex
+const completeSourceBindings = sourceBindingsBySource satisfies CompleteSourceBindingIndex
+const completeAcrossBinding: SourceBinding<Source.Across_Rest> = sourceBindingsBySource[Source.Across_Rest][0]
+const {
+	[Source.Across_Rest]: omittedAcrossBindings,
+	...incompleteSourceBindings
+} = sourceBindingsBySource
+// @ts-expect-error Every Source enum key is required in the complete generated binding index.
+const invalidCompleteSourceBindings: CompleteSourceBindingIndex = incompleteSourceBindings
 const typedSourceServerCredentials: Map<string, SourceServerCredentialDefinition> = sourceServerCredentials
 const acrossBinding = acrossBindings[Source.Across_Rest][0]
 const atprotoSyncBinding = atprotoSyncBindings[Source.AtprotoSync_Xrpc][0]
@@ -6477,6 +6487,10 @@ void validResolverEntry
 void swappedResolverEntry
 void inferredAmbossSource
 void typedSourceServerCredentials
+void completeSourceBindings
+void completeAcrossBinding
+void omittedAcrossBindings
+void invalidCompleteSourceBindings
 void mixedProxyCredentials
 void exactAcrossBindings
 void computedAcrossBindingsForSource

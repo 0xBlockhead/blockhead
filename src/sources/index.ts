@@ -1,4 +1,7 @@
-import sourceProviders, { sourceBindings as allSourceBindings } from '$/sources/$sourceProviders.ts'
+import sourceProviders, {
+	sourceBindings as allSourceBindings,
+	sourceBindingsBySource as allSourceBindingsBySource,
+} from '$/sources/$sourceProviders.ts'
 import { enabledSourcesFromBindings, indexSourceProviders } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceCredentialScope, SourceDelivery, SourceTargetKind } from '$/sources/SourceBinding.ts'
@@ -38,8 +41,6 @@ export const sourceBindings = allSourceBindings
 
 export const enabledSources = enabledSourcesFromBindings<Source>(sourceBindings)
 
-const sourceBindingsBySource = Map.groupBy(allSourceBindings, ({ source }) => source)
-
 export const networkApplicableSources = (
 	sourceSelection: readonly Source[],
 	network: {
@@ -50,8 +51,8 @@ export const networkApplicableSources = (
 		}
 	}
 ) => sourceSelection.filter((source) => {
-	const bindings = sourceBindingsBySource.get(source)
-	return bindings == null || bindings.some(({ target }) => (
+	const bindings = allSourceBindingsBySource[source]
+	return bindings.some(({ target }) => (
 		target.kind === SourceTargetKind.NetworkSlug ?
 			target.key === network.slug
 		: target.kind === SourceTargetKind.Caip2Network ?

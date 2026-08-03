@@ -7281,12 +7281,14 @@ export const sourceBindingId = ({
 ${sourceBindingIdentityAxes.map(([expression]) => `\t${expression},`).join('\n')}
 ])
 
-export type SourceBindingIndex = {
-	readonly [_Source in Source]?: readonly [
+export type CompleteSourceBindingIndex = {
+	readonly [_Source in Source]: readonly [
 		SourceBinding<_Source>,
 		...SourceBinding<_Source>[],
 	]
 }
+
+export type SourceBindingIndex = Partial<CompleteSourceBindingIndex>
 
 type SourceBindingFor<
 	_Binding extends SourceBinding,
@@ -8225,7 +8227,7 @@ const generateSourceProvidersFile = (sourceProviderNames: readonly string[]) => 
 			})),
 			{
 				from: './SourceBinding.ts',
-				typeNames: ['SourceBinding'],
+				typeNames: ['CompleteSourceBindingIndex'],
 			},
 			{
 				from: './SourceProviderDefinition.ts',
@@ -8239,7 +8241,11 @@ const generateSourceProvidersFile = (sourceProviderNames: readonly string[]) => 
 			'',
 			'export default sourceProviders',
 			'',
-			'export const sourceBindings = sourceProviders.flatMap(({ bindings }): readonly SourceBinding[] => Object.values(bindings).flat())',
+			'export const sourceBindingsBySource = Object.fromEntries(',
+			'\tsourceProviders.flatMap(({ bindings }) => Object.entries(bindings))',
+			') satisfies CompleteSourceBindingIndex',
+			'',
+			'export const sourceBindings = Object.values(sourceBindingsBySource).flat()',
 		],
 	}
 )
