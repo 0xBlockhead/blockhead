@@ -22,9 +22,6 @@
 		],
 		fields: {
 			name: true,
-			symbol: true,
-			minorUnitExponent: true,
-			catalogSortWeight: true,
 		},
 	}))
 

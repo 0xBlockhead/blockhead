@@ -51,33 +51,9 @@
 					sources: [
 						Source.Blockfrost_Rest,
 					],
-					fields: {
-						lovelace: true,
-						address: true,
-						$address: true,
-						datumHash: true,
-						referenceScriptHash: true,
-					},
 				})
 			:
-				select(EntityType.UtxoOutput, data.selector, {
-					fields: {
-						$address: true,
-						isSpent: true,
-						valueSats: true,
-						scriptPubKeyType: true,
-						isConfidential: true,
-						scriptPubKeyAsm: true,
-						scriptPubKeyHex: true,
-						assetCommitment: true,
-						valueCommitment: true,
-						nonceCommitment: true,
-						surjectionProof: true,
-						rangeProof: true,
-						$bitcoinCashCashTokenFungibleAmount: true,
-						$bitcoinCashCashTokenNft: true,
-					},
-				})
+				select(EntityType.UtxoOutput, data.selector)
 		}
 	/>
 </Page>

@@ -22,9 +22,6 @@
 		],
 		fields: {
 			displayName: true,
-			credentialKind: true,
-			anchorUrl: true,
-			anchorHash: true,
 		},
 	}))
 

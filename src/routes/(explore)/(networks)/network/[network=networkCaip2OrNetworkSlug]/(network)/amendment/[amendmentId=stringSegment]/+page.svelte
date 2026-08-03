@@ -29,12 +29,6 @@
 
 <Page>
 	<XrplAmendmentView
-		selection={
-			select(EntityType.XrplAmendment, data.selector, {
-				fields: {
-					name: true,
-				},
-			})
-		}
+		selection={select(EntityType.XrplAmendment, data.selector)}
 	/>
 </Page>

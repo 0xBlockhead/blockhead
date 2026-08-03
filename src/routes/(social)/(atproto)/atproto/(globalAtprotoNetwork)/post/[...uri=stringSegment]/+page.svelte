@@ -22,13 +22,6 @@
 		],
 		fields: {
 			text: true,
-			createdAt: true,
-			$author: true,
-			$parent: true,
-			$root: true,
-			indexedAt: true,
-			langs: true,
-			selfLabelValues: true,
 		},
 	}))
 

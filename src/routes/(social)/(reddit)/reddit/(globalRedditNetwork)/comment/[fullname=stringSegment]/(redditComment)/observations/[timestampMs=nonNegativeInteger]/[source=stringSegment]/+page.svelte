@@ -29,9 +29,6 @@
 			timestampMs: Number(params.timestampMs),
 			source: params.source,
 		}).source],
-		fields: {
-			score: true,
-		},
 	}))
 
 

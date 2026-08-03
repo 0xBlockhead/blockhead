@@ -22,11 +22,6 @@
 		],
 		fields: {
 			body: true,
-			createdAt: true,
-			author: true,
-			depth: true,
-			$link: true,
-			$parentComment: true,
 		},
 	}))
 

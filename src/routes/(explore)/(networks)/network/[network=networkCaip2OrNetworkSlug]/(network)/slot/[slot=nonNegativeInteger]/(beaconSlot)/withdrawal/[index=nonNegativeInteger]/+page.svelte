@@ -25,12 +25,6 @@
 		sources: [
 			Source.Beacon_Rest,
 		],
-		fields: {
-			amountGwei: true,
-			validatorIndex: true,
-			$validator: true,
-			$account: true,
-		},
 	}))
 
 

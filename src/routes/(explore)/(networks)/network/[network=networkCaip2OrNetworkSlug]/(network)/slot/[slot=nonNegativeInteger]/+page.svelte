@@ -15,18 +15,7 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BeaconSlot, data.selector, {
-		fields: {
-			$epoch: true,
-			proposerIndex: true,
-			root: true,
-			canonical: true,
-			parentRoot: true,
-			stateRoot: true,
-			bodyRoot: true,
-			signature: true,
-		},
-	}))
+	const pageSelection = $derived(select(EntityType.BeaconSlot, data.selector))
 
 
 	// Components

@@ -25,12 +25,6 @@
 		],
 		fields: {
 			content: true,
-			createdAt: true,
-			kind: true,
-			pubkey: true,
-			$author: true,
-			$targetNote: true,
-			$targetArticle: true,
 		},
 	}))
 

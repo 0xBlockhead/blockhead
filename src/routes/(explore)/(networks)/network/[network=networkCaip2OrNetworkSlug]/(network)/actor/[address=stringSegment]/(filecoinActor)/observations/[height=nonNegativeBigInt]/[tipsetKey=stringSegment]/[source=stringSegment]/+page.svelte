@@ -30,12 +30,6 @@
 		}).source],
 		fields: {
 			timestampMs: true,
-			balanceAttoFil: true,
-			$tipset: true,
-			idAddress: true,
-			actorCodeCid: true,
-			nonce: true,
-			stateRootCid: true,
 		},
 	}))
 

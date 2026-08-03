@@ -15,11 +15,7 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.Erc4337Bundler, data.selector, {
-		fields: {
-			$contract: true,
-		},
-	}))
+	const pageSelection = $derived(select(EntityType.Erc4337Bundler, data.selector))
 
 
 	// Components

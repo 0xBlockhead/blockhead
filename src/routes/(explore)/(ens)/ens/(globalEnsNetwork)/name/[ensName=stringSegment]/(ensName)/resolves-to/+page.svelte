@@ -15,18 +15,7 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EnsName, data.selector, {
-		fields: {
-			normalizedName: true,
-			node: true,
-			labelName: true,
-			labelhash: true,
-			$parent: true,
-			$resolverContract: true,
-			$subgraphResolvedActor: true,
-			$ownerActor: true,
-		},
-	}))
+	const pageSelection = $derived(select(EntityType.EnsName, data.selector))
 
 
 	// Components

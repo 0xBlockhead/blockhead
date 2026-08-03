@@ -17,14 +17,6 @@
 
 	const pageSelection = $derived(select(EntityType.CardanoCommittee_Epoch, data.selector, {
 		sources: [data.selector.source],
-		fields: {
-			memberCount: true,
-			dissolved: true,
-			govActionId: true,
-			$seatingProposal: true,
-			quorumNumerator: true,
-			quorumDenominator: true,
-		},
 	}))
 
 

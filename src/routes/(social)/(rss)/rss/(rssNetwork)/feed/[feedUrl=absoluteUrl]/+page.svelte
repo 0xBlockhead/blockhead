@@ -23,10 +23,6 @@
 		],
 		fields: {
 			title: true,
-			lastBuildDate: true,
-			siteUrl: true,
-			language: true,
-			description: true,
 		},
 	}))
 

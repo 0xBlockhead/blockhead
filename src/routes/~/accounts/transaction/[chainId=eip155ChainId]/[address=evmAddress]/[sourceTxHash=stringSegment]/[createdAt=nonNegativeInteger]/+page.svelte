@@ -34,9 +34,6 @@
 		sources: [
 			Source.Local_Internal,
 		],
-		fields: {
-			$bridgeTransfer: true,
-		},
 	}))
 
 

@@ -15,15 +15,7 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.SolanaTokenAccount, data.selector, {
-		fields: {
-			$mint: true,
-			$account: true,
-			$owner: true,
-			$delegate: true,
-			$closeAuthority: true,
-		},
-	}))
+	const pageSelection = $derived(select(EntityType.SolanaTokenAccount, data.selector))
 
 
 	// Components

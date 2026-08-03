@@ -29,12 +29,6 @@
 		fields: {
 			reachable: true,
 			statusCode: true,
-			error: true,
-			deliveredPayloadSampleCount: true,
-			builderSampleCount: true,
-			sampleLimit: true,
-			windowStartSlot: true,
-			windowEndSlot: true,
 		},
 	}))
 

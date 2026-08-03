@@ -21,15 +21,9 @@
 			Source.Lens_Graphql,
 		],
 		fields: {
-			$icon: true,
 			displayName: true,
 			localName: true,
 			legacyProfileId: true,
-			createdAt: true,
-			owner: true,
-			score: true,
-			iconUrl: true,
-			bio: true,
 		},
 	}))
 

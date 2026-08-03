@@ -29,13 +29,6 @@
 
 <Page>
 	<XrplTrustlineView
-		selection={
-			select(EntityType.XrplTrustline, data.selector, {
-				fields: {
-					$account: true,
-					$issuerAccount: true,
-				},
-			})
-		}
+		selection={select(EntityType.XrplTrustline, data.selector)}
 	/>
 </Page>

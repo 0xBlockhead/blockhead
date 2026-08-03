@@ -19,23 +19,6 @@
 		fields: {
 			proposalKind: true,
 			governanceActionId: true,
-			$transaction: true,
-			$previousAction: true,
-			depositLovelace: true,
-			returnAddress: true,
-			anchorUrl: true,
-			anchorHash: true,
-			policyHash: true,
-			hardForkMajor: true,
-			hardForkMinor: true,
-			treasuryWithdrawals: true,
-			committeeRemovedCredentials: true,
-			committeeAdditions: true,
-			committeeQuorumNumerator: true,
-			committeeQuorumDenominator: true,
-			constitutionAnchorUrl: true,
-			constitutionAnchorHash: true,
-			constitutionScript: true,
 		},
 	}))
 

@@ -23,11 +23,6 @@
 		],
 		fields: {
 			text: true,
-			publishedAtMs: true,
-			authorDisplayName: true,
-			$author: true,
-			$video: true,
-			$parentComment: true,
 		},
 	}))
 

@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { htmlToPlainText } from '$/lib/html.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,14 +21,9 @@
 			Source.Mastodon_Rest,
 		],
 		fields: {
-			$icon: true,
 			displayName: true,
 			acct: true,
 			username: true,
-			profileUrl: true,
-			activityStreamsUri: true,
-			createdAt: true,
-			note: true,
 		},
 	}))
 

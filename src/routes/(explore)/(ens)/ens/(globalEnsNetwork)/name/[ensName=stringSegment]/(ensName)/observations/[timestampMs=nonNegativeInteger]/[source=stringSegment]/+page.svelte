@@ -44,14 +44,6 @@
 					timestampMs: Number(params.timestampMs),
 					source: params.source,
 				}).source],
-				fields: {
-					$resolvedActor: true,
-					$resolverContract: true,
-					$ownerActor: true,
-					subdomainCount: true,
-					ttl: true,
-					isMigrated: true,
-				},
 			})
 		}
 	/>

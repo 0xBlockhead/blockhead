@@ -35,12 +35,6 @@
 				sources: [
 					Source.Constants_Internal,
 				],
-				fields: {
-					$registryContract: true,
-					$ethRegistrarController: true,
-					$reverseRegistrar: true,
-					$nameWrapper: true,
-				},
 			})
 		}
 	/>

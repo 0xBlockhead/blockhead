@@ -28,15 +28,6 @@
 		fields: {
 			text: true,
 			hash: true,
-			fid: true,
-			timestamp: true,
-			$author: true,
-			$channel: true,
-			$parentCast: true,
-			parentUrl: true,
-			rootParentUrl: true,
-			threadHash: true,
-			clientUrl: true,
 		},
 	}))
 

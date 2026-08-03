@@ -23,10 +23,6 @@
 		],
 		fields: {
 			shortChannelId: true,
-			$node1: true,
-			fundingTransactionId: true,
-			fundingOutputIndex: true,
-			openedAtMs: true,
 		},
 	}))
 

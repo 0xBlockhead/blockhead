@@ -26,20 +26,6 @@
 			slot: Number(params.slot),
 			source: params.source,
 		}).source],
-		fields: {
-			status: true,
-			balanceGwei: true,
-			effectiveBalanceGwei: true,
-			slashed: true,
-			activationEligibilityEpoch: true,
-			activationEpoch: true,
-			exitEpoch: true,
-			withdrawableEpoch: true,
-			withdrawalCredentials: true,
-			finalized: true,
-			executionOptimistic: true,
-			timestampMs: true,
-		},
 	}))
 
 

@@ -21,10 +21,6 @@
 			Source.TheGraph_Graphql,
 			Source.Voltaire_JsonRpc,
 		],
-		fields: {
-			recordKind: true,
-			coinType: true,
-		},
 	}))
 
 

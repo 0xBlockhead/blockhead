@@ -3037,8 +3037,8 @@ test('renders selected entity titles on every multi-selector detail page', () =>
 		source: renderGeneratedFile(networkGeneratedPage),
 	}
 	assert.ok(networkPage)
-	assert.match(networkPage.source, /Evm: \{[\s\S]*?consensusProtocol: true,[\s\S]*?registryStatus: true,[\s\S]*?\}/)
-	assert.match(networkPage.source, /fields: \{[\s\S]*?caip2: true,/)
+	assert.match(networkPage.source, /fields: \{\s*name: true,\s*caip2: true,\s*\}/)
+	assert.doesNotMatch(networkPage.source, /Evm: \{|consensusProtocol: true|registryStatus: true/)
 	assert.match(networkPage.source, /data\.selector\.caip2/)
 	assert.doesNotMatch(networkPage.source, /const entityViewByType =/)
 	assert.doesNotMatch(networkPage.source, /\{@const EntityView =/)
@@ -3055,7 +3055,7 @@ test('renders selected entity titles on every multi-selector detail page', () =>
 		1
 	)
 	assert.equal((networkPage.source.match(/\bcaip2: true,/g) ?? []).length, 1)
-	assert.equal((networkPage.source.match(/\bconsensusProtocol: true,/g) ?? []).length, 1)
+	assert.equal((networkPage.source.match(/\bconsensusProtocol: true,/g) ?? []).length, 0)
 	assert.equal((networkPage.source.match(/\bSource\.Constants_Internal,/g) ?? []).length, 1)
 	const evmCoinInstancePage = baselineCompiledApp.generatedFiles.find((file) => (
 		file.path.endsWith('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]/+page.svelte')
@@ -3066,15 +3066,38 @@ test('renders selected entity titles on every multi-selector detail page', () =>
 		(evmCoinInstancePageSource.match(/select\(EntityType\.EvmCoinInstance, data\.selector/g) ?? []).length,
 		1
 	)
-	assert.equal((evmCoinInstancePageSource.match(/\bNativeCurrency: \{/g) ?? []).length, 1)
-	assert.equal((evmCoinInstancePageSource.match(/\bErc20Token: \{/g) ?? []).length, 1)
-	assert.equal((evmCoinInstancePageSource.match(/\$contract: true,/g) ?? []).length, 1)
+	assert.doesNotMatch(evmCoinInstancePageSource, /fields: \{|NativeCurrency: \{|Erc20Token: \{|\$contract: true/)
 	const networkLayout = baselineCompiledApp.generatedFiles.find((file) => (
 		file.path.endsWith('/network/[network=networkCaip2OrNetworkSlug]/+layout.ts')
 	))
 	assert.ok(networkLayout)
 	assert.match(renderGeneratedFile(networkLayout), /readonly selectorName: 'Caip2'[\s\S]*?EntitySelectorForSelectorName<[\s\S]*?EntityType\.Network,[\s\S]*?'Caip2'[\s\S]*?readonly selectorName: 'Slug'[\s\S]*?'Slug'/)
 	assert.doesNotMatch(renderGeneratedFile(networkLayout), /selectorName: string|EntitySelector<typeof schema/)
+})
+
+test('keeps detail-page selections limited to page-owned title fields and sources', () => {
+	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
+	const pageSelectionCompiler = generatorSource.slice(
+		generatorSource.indexOf('const compileEntityPageSelection ='),
+		generatorSource.indexOf('const renderCarousel =')
+	)
+
+	assert.doesNotMatch(pageSelectionCompiler, /allViewItems|viewResolvedFieldReferences|pageSelectionFieldDefaultSources/)
+	assert.match(generatorSource, /mapping\.sourceSelection,\s*title\.resolvedFields/)
+	assert.match(generatorSource, /mapping\?\.sourceSelection,\s*pageTitle\?\.resolvedFields/)
+
+	const currencyPage = baselineCompiledApp.generatedFiles.find((file) => (
+		file.path.endsWith('/currency/[iso4217=iso4217]/+page.svelte')
+	))
+	const transactionPage = baselineCompiledApp.generatedFiles.find((file) => (
+		file.path.endsWith('/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/+page.svelte')
+	))
+	assert(currencyPage)
+	assert(transactionPage)
+	assert.match(renderGeneratedFile(currencyPage), /fields: \{\s*name: true,\s*\}/)
+	assert.doesNotMatch(renderGeneratedFile(currencyPage), /symbol: true|minorUnitExponent: true|catalogSortWeight: true/)
+	assert.doesNotMatch(renderGeneratedFile(transactionPage), /fields: \{/)
+	assert.match(renderGeneratedFile(transactionPage), /sources: \[[\s\S]*?Source\.Voltaire_JsonRpc/)
 })
 
 test('renders facet applicability through projection boundaries', () => {
@@ -6331,10 +6354,12 @@ test('carries field-conditioned view sources into initial route selections', () 
 
 	assert.ok(proposalPage)
 	const renderedProposalPage = renderGeneratedFile(proposalPage)
-	assert.match(renderedProposalPage, /const pageEntitySelector = \$derived\(\{[\s\S]*?realm:[\s\S]*?category:/)
+	assert.match(renderedProposalPage, /const entitySelector = \$derived\(\{[\s\S]*?realm:[\s\S]*?category:/)
 	assert.match(renderedProposalPage, /import specificationProposalSources from '\$\/sources\/specificationProposalSources\.ts'/)
-	assert.match(renderedProposalPage, /sources: specificationProposalSources\(\{\s*realm: pageEntitySelector\.realm,\s*category: pageEntitySelector\.category,\s*\}\)/)
-	assert.match(renderedProposalPage, /select\(EntityType\.SpecificationProposal, pageEntitySelector, \{/)
+	assert.match(renderedProposalPage, /sources: specificationProposalSources\(\{\s*realm: entitySelector\.realm,\s*category: entitySelector\.category,\s*\}\)/)
+	assert.match(renderedProposalPage, /select\(EntityType\.SpecificationProposal, entitySelector, \{/)
+	assert.match(renderedProposalPage, /fields: \{\s*documentTitle: true,\s*\}/)
+	assert.doesNotMatch(renderedProposalPage, /documentCategory: true|documentStatus: true|documentBody: true/)
 	assert.doesNotMatch(renderedProposalPage, /sources: \[\s*Source\.BitcoinBips_Github,[\s\S]*?Source\.ZcashZips_Github,?\s*\],/)
 	assert.doesNotMatch(renderedProposalPage, /String\([^)]*\)\]\.join\(':'\)/)
 })

@@ -26,16 +26,6 @@
 			timestampMs: Number(params.timestampMs),
 			source: params.source,
 		}).source],
-		fields: {
-			balanceSats: true,
-			transactionCount: true,
-			fundedOutputCount: true,
-			fundedValueSats: true,
-			spentOutputCount: true,
-			spentValueSats: true,
-			unspentOutputCount: true,
-			mempoolTransactionCount: true,
-		},
 	}))
 
 

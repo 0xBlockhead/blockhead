@@ -27,10 +27,6 @@
 		fields: {
 			callType: true,
 			value: true,
-			success: true,
-			$from: true,
-			$to: true,
-			$createdContract: true,
 		},
 	}))
 

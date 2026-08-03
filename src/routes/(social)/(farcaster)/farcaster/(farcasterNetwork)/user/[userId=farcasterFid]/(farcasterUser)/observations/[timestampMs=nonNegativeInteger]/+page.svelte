@@ -41,10 +41,6 @@
 					Source.Snapchain_Rest,
 					Source.Neynar_Rest,
 				],
-				fields: {
-					followerCount: true,
-					followingCount: true,
-				},
 			})
 		}
 	/>

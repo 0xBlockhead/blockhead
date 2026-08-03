@@ -41,11 +41,6 @@
 					timestampMs: Number(params.timestampMs),
 					source: params.source,
 				}).source],
-				fields: {
-					observed: true,
-					reachable: true,
-					error: true,
-				},
 			})
 		}
 	/>

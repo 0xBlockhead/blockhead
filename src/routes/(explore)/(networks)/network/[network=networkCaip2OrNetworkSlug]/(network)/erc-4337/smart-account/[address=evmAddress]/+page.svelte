@@ -20,10 +20,6 @@
 		sources: [
 			Source.Blockscout_Rest,
 		],
-		fields: {
-			$contract: true,
-			$factory: true,
-		},
 	}))
 
 

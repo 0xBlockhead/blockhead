@@ -23,11 +23,6 @@
 		fields: {
 			upgradeId: true,
 			name: true,
-			activationBlock: true,
-			activationEpoch: true,
-			activationTimestampMs: true,
-			$networkExecutionUpgrade: true,
-			$networkConsensusUpgrade: true,
 		},
 	}))
 

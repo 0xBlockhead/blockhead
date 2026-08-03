@@ -26,52 +26,22 @@
 					],
 					fields: {
 						hash: true,
-						transactionCount: true,
-						timestamp: true,
-						gasUsed: true,
-						gasLimit: true,
-						baseFeePerGas: true,
-						blobGasUsed: true,
-						excessBlobGas: true,
-						$parent: true,
-						$miner: true,
 					},
 				})
 			:
 			data.entityType === EntityType.SolanaBlock ?
-				select(EntityType.SolanaBlock, data.selector, {
-					fields: {
-						blockHeight: true,
-						blockHash: true,
-						previousBlockHash: true,
-						parentSlot: true,
-						timestampMs: true,
-						transactionCount: true,
-						$parent: true,
-					},
-				})
+				select(EntityType.SolanaBlock, data.selector)
 			:
 			data.entityType === EntityType.UtxoBlock ?
 				select(EntityType.UtxoBlock, data.selector, {
 					fields: {
 						hash: true,
-						transactionCount: true,
-						timestampMs: true,
-						merkleRoot: true,
-						nonce: true,
-						difficulty: true,
-						sizeBytes: true,
-						weightUnits: true,
-						$parent: true,
 					},
 				})
 			:
 				select(EntityType.PolkadotBlock, data.selector, {
 					fields: {
 						hash: true,
-						stateRoot: true,
-						extrinsicsRoot: true,
-						$parent: true,
 					},
 				})
 		)

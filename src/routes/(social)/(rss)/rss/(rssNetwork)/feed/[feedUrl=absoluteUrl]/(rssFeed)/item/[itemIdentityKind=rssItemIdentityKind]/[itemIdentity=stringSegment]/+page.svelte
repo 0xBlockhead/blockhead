@@ -23,13 +23,6 @@
 		],
 		fields: {
 			title: true,
-			publishedAt: true,
-			author: true,
-			link: true,
-			updatedAt: true,
-			enclosureUrl: true,
-			commentsUrl: true,
-			content: true,
 		},
 	}))
 

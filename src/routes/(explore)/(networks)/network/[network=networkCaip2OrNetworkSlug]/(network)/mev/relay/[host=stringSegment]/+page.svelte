@@ -15,11 +15,7 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.MevRelay, data.selector, {
-		fields: {
-			url: true,
-		},
-	}))
+	const pageSelection = $derived(select(EntityType.MevRelay, data.selector))
 
 
 	// Components

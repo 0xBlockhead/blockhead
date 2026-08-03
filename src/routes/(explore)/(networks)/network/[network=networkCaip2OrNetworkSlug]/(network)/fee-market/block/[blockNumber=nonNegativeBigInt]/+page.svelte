@@ -18,12 +18,6 @@
 	const pageSelection = $derived(select(EntityType.EvmNetwork_GasFee_Block, data.selector, {
 		fields: {
 			baseFeePerGas: true,
-			legacyGasPrice: true,
-			maxPriorityFeePerGas: true,
-			gasUsedRatio: true,
-			priorityFeeRewardAt50thPercentile: true,
-			baseFeePerBlobGas: true,
-			blobGasUsedRatio: true,
 		},
 	}))
 

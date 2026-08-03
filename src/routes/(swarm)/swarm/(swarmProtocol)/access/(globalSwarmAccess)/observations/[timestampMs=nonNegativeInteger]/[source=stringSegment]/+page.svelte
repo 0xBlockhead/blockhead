@@ -44,13 +44,6 @@
 					timestampMs: Number(params.timestampMs),
 					source: params.source,
 				}).source],
-				fields: {
-					declaredAccessEndpointCount: true,
-					reachableAccessEndpointCount: true,
-					observedResourceCount: true,
-					seededExampleCount: true,
-					reachable: true,
-				},
 			})
 		}
 	/>

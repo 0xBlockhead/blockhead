@@ -32,38 +32,6 @@
 
 <Page>
 	<EvmCoinInstanceView
-		selection={
-			select(EntityType.EvmCoinInstance, data.selector, {
-				fields: {
-					NativeCurrency: {
-						fields: {
-							symbol: true,
-							name: true,
-							coinId: true,
-							decimals: true,
-							caip19: true,
-							representation: true,
-							iconUrl: true,
-							$canonicalInstance: true,
-							$icon: true,
-						},
-					},
-					Erc20Token: {
-						fields: {
-							symbol: true,
-							name: true,
-							coinId: true,
-							decimals: true,
-							caip19: true,
-							representation: true,
-							iconUrl: true,
-							$canonicalInstance: true,
-							$icon: true,
-						},
-					},
-					$contract: true,
-				},
-			})
-		}
+		selection={select(EntityType.EvmCoinInstance, data.selector)}
 	/>
 </Page>

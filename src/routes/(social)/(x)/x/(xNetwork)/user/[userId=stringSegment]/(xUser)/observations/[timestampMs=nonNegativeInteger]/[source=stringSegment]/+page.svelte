@@ -44,12 +44,6 @@
 					timestampMs: Number(params.timestampMs),
 					source: params.source,
 				}).source],
-				fields: {
-					followerCount: true,
-					followingCount: true,
-					tweetCount: true,
-					listedCount: true,
-				},
 			})
 		}
 	/>

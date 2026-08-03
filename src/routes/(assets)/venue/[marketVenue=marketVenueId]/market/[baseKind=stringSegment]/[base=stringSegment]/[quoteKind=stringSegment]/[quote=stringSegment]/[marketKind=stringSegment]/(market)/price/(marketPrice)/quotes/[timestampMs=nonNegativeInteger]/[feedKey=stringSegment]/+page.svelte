@@ -20,13 +20,6 @@
 		$market: data.selector,
 		timestampMs: Number(params.timestampMs),
 		feedKey: decodeURIComponent(params.feedKey),
-	}, {
-		fields: {
-			price: true,
-			transport: true,
-			providerAssetId: true,
-			caip19: true,
-		},
 	}))
 
 

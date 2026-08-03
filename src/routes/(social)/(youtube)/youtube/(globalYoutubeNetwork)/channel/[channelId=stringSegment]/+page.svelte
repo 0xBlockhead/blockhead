@@ -23,11 +23,7 @@
 			Source.Constants_Internal,
 		],
 		fields: {
-			$icon: true,
 			title: true,
-			description: true,
-			customUrl: true,
-			publishedAtMs: true,
 		},
 	}))
 

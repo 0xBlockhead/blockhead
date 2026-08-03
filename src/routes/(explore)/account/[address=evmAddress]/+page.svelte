@@ -22,11 +22,6 @@
 		sources: [
 			Source.Constants_Internal,
 		],
-		fields: {
-			interopAddress: true,
-			avatarUrl: true,
-			$primaryName: true,
-		},
 	}))
 
 

@@ -22,10 +22,6 @@
 		],
 		fields: {
 			ticker: true,
-			vrfKeyHash: true,
-			name: true,
-			description: true,
-			homepage: true,
 		},
 	}))
 

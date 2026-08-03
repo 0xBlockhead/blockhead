@@ -20,13 +20,6 @@
 			uri: decodeURIComponent(params.uri),
 		},
 		timestampMs: Number(params.timestampMs),
-	}, {
-		fields: {
-			likeCount: true,
-			repostCount: true,
-			replyCount: true,
-			quoteCount: true,
-		},
 	}))
 
 

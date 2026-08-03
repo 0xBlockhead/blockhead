@@ -30,17 +30,6 @@
 		}).source],
 		fields: {
 			timestampMs: true,
-			qualityAdjustedPower: true,
-			$tipset: true,
-			$owner: true,
-			$worker: true,
-			peerId: true,
-			rawBytePower: true,
-			networkRawBytePower: true,
-			networkQualityAdjustedPower: true,
-			activeSectorCount: true,
-			liveSectorCount: true,
-			faultySectorCount: true,
 		},
 	}))
 

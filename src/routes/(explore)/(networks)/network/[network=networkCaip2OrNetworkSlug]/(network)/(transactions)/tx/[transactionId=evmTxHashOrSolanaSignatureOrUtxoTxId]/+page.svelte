@@ -62,84 +62,19 @@
 						Source.Blockscout_Rest,
 						Source.Voltaire_JsonRpc,
 					],
-					fields: {
-						$block: true,
-						$from: true,
-						$to: true,
-						ContractCreation: {
-							fields: {
-								$contract: true,
-							},
-						},
-						kind: true,
-						value: true,
-						executionStatus: true,
-						gasUsed: true,
-						gas: true,
-						gasPrice: true,
-						effectiveGasPrice: true,
-						FeeMarket: {
-							fields: {
-								maxFeePerGas: true,
-								maxPriorityFeePerGas: true,
-							},
-						},
-						cumulativeGasUsed: true,
-						envelopeType: true,
-						nonce: true,
-						indexInBlock: true,
-						input: true,
-						r: true,
-						s: true,
-						v: true,
-						Blob: {
-							fields: {
-								blobGasUsed: true,
-								maxFeePerBlobGas: true,
-							},
-						},
-					},
 				})
 			:
 			data.entityType === EntityType.SolanaTransaction ?
-				select(EntityType.SolanaTransaction, data.selector, {
-					fields: {
-						status: true,
-						slot: true,
-						feeLamports: true,
-						computeUnitsConsumed: true,
-						$block: true,
-						$feePayer: true,
-					},
-				})
+				select(EntityType.SolanaTransaction, data.selector)
 			:
 			data.entityType === EntityType.CardanoTransaction ?
 				select(EntityType.CardanoTransaction, data.selector, {
 					sources: [
 						Source.Blockfrost_Rest,
 					],
-					fields: {
-						blockSlot: true,
-						fee: true,
-						deposit: true,
-						sizeBytes: true,
-						validityStartSlot: true,
-						ttlSlot: true,
-					},
 				})
 			:
-				select(EntityType.UtxoTransaction, data.selector, {
-					fields: {
-						feeSats: true,
-						isCoinbase: true,
-						version: true,
-						lockTime: true,
-						sizeBytes: true,
-						virtualSizeBytes: true,
-						weightUnits: true,
-						$block: true,
-					},
-				})
+				select(EntityType.UtxoTransaction, data.selector)
 		}
 	/>
 </Page>

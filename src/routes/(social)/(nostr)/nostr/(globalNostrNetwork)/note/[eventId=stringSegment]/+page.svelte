@@ -24,12 +24,6 @@
 		],
 		fields: {
 			content: true,
-			createdAt: true,
-			kind: true,
-			pubkey: true,
-			$author: true,
-			$replyToNote: true,
-			$rootNote: true,
 		},
 	}))
 

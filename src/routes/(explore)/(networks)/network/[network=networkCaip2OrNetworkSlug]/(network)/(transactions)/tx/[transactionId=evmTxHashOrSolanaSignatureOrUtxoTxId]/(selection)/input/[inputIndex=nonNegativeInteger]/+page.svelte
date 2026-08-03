@@ -51,24 +51,9 @@
 					sources: [
 						Source.Blockfrost_Rest,
 					],
-					fields: {
-						inputKind: true,
-						spentTxHash: true,
-						spentOutputIndex: true,
-						$spentOutput: true,
-						redeemerIndex: true,
-					},
 				})
 			:
-				select(EntityType.UtxoInput, data.selector, {
-					fields: {
-						$spentOutput: true,
-						coinbaseScript: true,
-						scriptSigAsm: true,
-						sequence: true,
-						witness: true,
-					},
-				})
+				select(EntityType.UtxoInput, data.selector)
 		}
 	/>
 </Page>

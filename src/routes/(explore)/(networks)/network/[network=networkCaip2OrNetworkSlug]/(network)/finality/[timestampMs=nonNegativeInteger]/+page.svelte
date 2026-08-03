@@ -18,11 +18,6 @@
 	const pageSelection = $derived(select(EntityType.EthereumBeaconFinality_Timestamp, data.selector, {
 		fields: {
 			finalizedCheckpointEpoch: true,
-			finalizedCheckpointRoot: true,
-			currentJustifiedCheckpointEpoch: true,
-			currentJustifiedCheckpointRoot: true,
-			previousJustifiedCheckpointEpoch: true,
-			previousJustifiedCheckpointRoot: true,
 		},
 	}))
 

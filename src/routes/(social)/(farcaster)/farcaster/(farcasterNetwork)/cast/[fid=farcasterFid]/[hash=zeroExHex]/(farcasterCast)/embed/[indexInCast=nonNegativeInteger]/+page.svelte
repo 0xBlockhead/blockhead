@@ -27,12 +27,8 @@
 			Source.Snapchain_Rest,
 		],
 		fields: {
-			$icon: true,
 			title: true,
 			url: true,
-			$embeddedCast: true,
-			quotedPreviewText: true,
-			description: true,
 		},
 	}))
 

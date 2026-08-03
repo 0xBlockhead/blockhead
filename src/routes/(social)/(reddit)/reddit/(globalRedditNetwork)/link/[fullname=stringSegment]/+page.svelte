@@ -22,12 +22,6 @@
 		],
 		fields: {
 			title: true,
-			createdAt: true,
-			selftext: true,
-			author: true,
-			$subreddit: true,
-			url: true,
-			permalink: true,
 		},
 	}))
 

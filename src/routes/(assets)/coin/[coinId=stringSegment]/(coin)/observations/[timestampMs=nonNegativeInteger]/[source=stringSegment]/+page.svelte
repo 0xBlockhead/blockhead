@@ -44,15 +44,6 @@
 					timestampMs: Number(params.timestampMs),
 					source: params.source,
 				}).source],
-				fields: {
-					marketCap: true,
-					marketCapUsd: true,
-					change24hPercent: true,
-					marketCapRank: true,
-					totalSupply: true,
-					transport: true,
-					providerAssetId: true,
-				},
 			})
 		}
 	/>

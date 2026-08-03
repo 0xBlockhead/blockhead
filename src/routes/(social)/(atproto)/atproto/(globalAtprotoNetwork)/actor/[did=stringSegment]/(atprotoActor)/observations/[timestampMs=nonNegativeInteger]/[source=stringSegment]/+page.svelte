@@ -30,15 +30,8 @@
 			source: params.source,
 		}).source],
 		fields: {
-			$icon: true,
 			displayName: true,
 			handle: true,
-			indexedAt: true,
-			$banner: true,
-			followersCount: true,
-			followsCount: true,
-			postsCount: true,
-			description: true,
 		},
 	}))
 

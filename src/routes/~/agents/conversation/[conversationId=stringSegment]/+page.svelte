@@ -22,13 +22,6 @@
 		],
 		fields: {
 			name: true,
-			updatedAt: true,
-			pinned: true,
-			createdAt: true,
-			defaultConnectionId: true,
-			defaultModelId: true,
-			$profile: true,
-			systemPrompt: true,
 		},
 	}))
 

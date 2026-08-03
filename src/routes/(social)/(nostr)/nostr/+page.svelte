@@ -35,13 +35,6 @@
 				sources: [
 					Source.Constants_Internal,
 				],
-				fields: {
-					registryName: true,
-					protocolName: true,
-					homeUrl: true,
-					docsUrl: true,
-					relationshipModel: true,
-				},
 			})
 		}
 	/>

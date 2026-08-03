@@ -24,14 +24,6 @@
 		],
 		fields: {
 			text: true,
-			timestamp: true,
-			$author: true,
-			$channel: true,
-			$parentCast: true,
-			parentUrl: true,
-			rootParentUrl: true,
-			threadHash: true,
-			clientUrl: true,
 		},
 	}))
 

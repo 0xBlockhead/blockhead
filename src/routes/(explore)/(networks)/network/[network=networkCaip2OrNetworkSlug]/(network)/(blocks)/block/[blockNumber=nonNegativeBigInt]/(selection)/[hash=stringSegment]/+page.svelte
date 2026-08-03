@@ -46,26 +46,9 @@
 	<EntityView
 		selection={
 			data.entityType === EntityType.PolkadotBlock ?
-				select(EntityType.PolkadotBlock, data.selector, {
-					fields: {
-						stateRoot: true,
-						extrinsicsRoot: true,
-						$parent: true,
-					},
-				})
+				select(EntityType.PolkadotBlock, data.selector)
 			:
-				select(EntityType.UtxoBlock, data.selector, {
-					fields: {
-						transactionCount: true,
-						timestampMs: true,
-						merkleRoot: true,
-						nonce: true,
-						difficulty: true,
-						sizeBytes: true,
-						weightUnits: true,
-						$parent: true,
-					},
-				})
+				select(EntityType.UtxoBlock, data.selector)
 		}
 	/>
 </Page>

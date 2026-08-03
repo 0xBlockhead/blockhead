@@ -20,11 +20,6 @@
 		$network: data.selector,
 		slot: Number(params.slot),
 		indexInSlot: Number(params.index),
-	}, {
-		fields: {
-			committeeIndex: true,
-			aggregationBits: true,
-		},
 	}))
 
 

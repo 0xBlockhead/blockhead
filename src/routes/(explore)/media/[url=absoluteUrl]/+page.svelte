@@ -17,12 +17,6 @@
 
 	const pageSelection = $derived(select(EntityType.Media, {
 		url: decodeURIComponent(params.url),
-	}, {
-		fields: {
-			type: true,
-			transport: true,
-			hash: true,
-		},
 	}))
 
 

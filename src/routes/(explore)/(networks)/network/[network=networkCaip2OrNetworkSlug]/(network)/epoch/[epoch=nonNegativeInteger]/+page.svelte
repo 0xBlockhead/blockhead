@@ -21,18 +21,6 @@
 			Source.Beacon_Rest,
 			Source.BeaconchaIn_Rest,
 		],
-		fields: {
-			startSlot: true,
-			endSlot: true,
-			slotCount: true,
-			finalized: true,
-			globalParticipationRate: true,
-			validatorsCount: true,
-			attestationsCount: true,
-			withdrawalsCount: true,
-			attesterSlashingsCount: true,
-			proposerSlashingsCount: true,
-		},
 	}))
 
 

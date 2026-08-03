@@ -22,22 +22,6 @@
 		],
 		fields: {
 			canonicalUri: true,
-			contentType: true,
-			displayType: true,
-			gatewayUrl: true,
-			gatewayOrigin: true,
-			fileName: true,
-			extension: true,
-			contentLength: true,
-			isContentTypeInferred: true,
-			$media: true,
-			cidVersion: true,
-			cidMultibase: true,
-			cidMulticodecCode: true,
-			cidMultihashCode: true,
-			cidMultihashDigestHex: true,
-			isCidSubdomainSafe: true,
-			text: true,
 		},
 	}))
 

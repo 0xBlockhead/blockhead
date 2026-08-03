@@ -31,17 +31,6 @@
 		sources: [
 			Source.Dexscreener_Rest,
 		],
-		fields: {
-			tick: true,
-			$parentLiquidityPool: true,
-			sqrtPriceX96: true,
-			liquidity: true,
-			feeProtocol: true,
-			unlocked: true,
-			observationIndex: true,
-			observationCardinality: true,
-			observationCardinalityNext: true,
-		},
 	}))
 
 

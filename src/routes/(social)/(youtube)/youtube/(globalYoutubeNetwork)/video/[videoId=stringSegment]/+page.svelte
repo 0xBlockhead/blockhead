@@ -23,11 +23,7 @@
 			Source.Constants_Internal,
 		],
 		fields: {
-			$thumbnail: true,
 			title: true,
-			$author: true,
-			publishedAtMs: true,
-			description: true,
 		},
 	}))
 

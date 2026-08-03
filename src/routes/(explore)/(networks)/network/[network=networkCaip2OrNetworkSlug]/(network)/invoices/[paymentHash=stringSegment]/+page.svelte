@@ -22,13 +22,6 @@
 		],
 		fields: {
 			memo: true,
-			valueMsat: true,
-			createdAtMs: true,
-			expirySeconds: true,
-			private: true,
-			addIndex: true,
-			$localNodeState: true,
-			paymentRequest: true,
 		},
 	}))
 

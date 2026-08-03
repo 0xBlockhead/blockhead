@@ -19,9 +19,6 @@
 		sources: [data.selector.source],
 		fields: {
 			fastGwei: true,
-			slowGwei: true,
-			averageGwei: true,
-			transport: true,
 		},
 	}))
 

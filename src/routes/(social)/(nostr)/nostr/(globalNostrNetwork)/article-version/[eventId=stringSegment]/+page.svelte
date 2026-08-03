@@ -21,12 +21,6 @@
 		fields: {
 			title: true,
 			identifier: true,
-			createdAt: true,
-			$article: true,
-			$author: true,
-			publishedAt: true,
-			signature: true,
-			content: true,
 		},
 	}))
 

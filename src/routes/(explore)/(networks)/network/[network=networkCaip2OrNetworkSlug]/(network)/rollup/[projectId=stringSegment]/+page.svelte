@@ -18,10 +18,6 @@
 	const pageSelection = $derived(select(EntityType.EvmRollup, data.selector, {
 		fields: {
 			name: true,
-			type: true,
-			category: true,
-			hostChain: true,
-			$settlementNetwork: true,
 		},
 	}))
 

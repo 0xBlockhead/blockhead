@@ -18,10 +18,6 @@
 	const pageSelection = $derived(select(EntityType.MevRelay_ProposerPayloadDelivered, data.selector, {
 		fields: {
 			value: true,
-			$builder: true,
-			blockNumber: true,
-			builderPubkey: true,
-			$executionBlock: true,
 		},
 	}))
 

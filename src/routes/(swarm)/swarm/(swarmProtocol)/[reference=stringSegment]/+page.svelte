@@ -22,16 +22,6 @@
 		],
 		fields: {
 			canonicalUri: true,
-			contentType: true,
-			displayType: true,
-			gatewayUrl: true,
-			gatewayOrigin: true,
-			fileName: true,
-			extension: true,
-			contentLength: true,
-			isContentTypeInferred: true,
-			$media: true,
-			text: true,
 		},
 	}))
 

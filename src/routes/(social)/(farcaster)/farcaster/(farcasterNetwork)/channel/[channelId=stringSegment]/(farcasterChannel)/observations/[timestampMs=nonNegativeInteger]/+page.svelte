@@ -41,10 +41,6 @@
 					Source.Farcaster_Rest,
 					Source.Neynar_Rest,
 				],
-				fields: {
-					followerCount: true,
-					memberCount: true,
-				},
 			})
 		}
 	/>

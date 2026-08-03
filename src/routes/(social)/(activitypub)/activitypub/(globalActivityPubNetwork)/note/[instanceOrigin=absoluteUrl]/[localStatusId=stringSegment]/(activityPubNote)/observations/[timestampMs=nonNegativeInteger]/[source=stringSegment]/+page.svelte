@@ -46,11 +46,6 @@
 					timestampMs: Number(params.timestampMs),
 					source: params.source,
 				}).source],
-				fields: {
-					favouriteCount: true,
-					reblogCount: true,
-					replyCount: true,
-				},
 			})
 		}
 	/>

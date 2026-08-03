@@ -15,14 +15,7 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.ZcashShieldedAction, data.selector, {
-		fields: {
-			nullifier: true,
-			noteCommitment: true,
-			$pool: true,
-			valueCommitment: true,
-		},
-	}))
+	const pageSelection = $derived(select(EntityType.ZcashShieldedAction, data.selector))
 
 
 	// Components

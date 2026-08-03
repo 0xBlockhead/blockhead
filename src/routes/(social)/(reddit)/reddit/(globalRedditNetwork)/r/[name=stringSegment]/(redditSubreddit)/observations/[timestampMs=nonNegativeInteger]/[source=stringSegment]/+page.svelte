@@ -29,10 +29,6 @@
 			timestampMs: Number(params.timestampMs),
 			source: params.source,
 		}).source],
-		fields: {
-			subscriberCount: true,
-			activeUserCount: true,
-		},
 	}))
 
 

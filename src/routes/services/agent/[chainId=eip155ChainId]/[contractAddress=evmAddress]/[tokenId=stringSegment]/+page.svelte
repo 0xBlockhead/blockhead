@@ -33,23 +33,6 @@
 		],
 		fields: {
 			name: true,
-			standard: true,
-			format: true,
-			Eip8004Registration: {
-				fields: {
-					agentRegistry: true,
-					agentId: true,
-					agentUri: true,
-					contactEndpoint: true,
-					$agentWallet: true,
-					x402Support: true,
-					supportedTrust: true,
-					registrationTypeIri: true,
-					fetchedAt: true,
-				},
-			},
-			active: true,
-			description: true,
 		},
 	}))
 

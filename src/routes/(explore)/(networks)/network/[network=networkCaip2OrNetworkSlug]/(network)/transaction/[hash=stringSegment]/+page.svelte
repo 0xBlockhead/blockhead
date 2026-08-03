@@ -29,14 +29,6 @@
 
 <Page>
 	<XrplTransactionView
-		selection={
-			select(EntityType.XrplTransaction, data.selector, {
-				fields: {
-					transactionType: true,
-					account: true,
-					sequence: true,
-				},
-			})
-		}
+		selection={select(EntityType.XrplTransaction, data.selector)}
 	/>
 </Page>

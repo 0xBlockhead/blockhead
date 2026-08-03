@@ -15,13 +15,7 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.SolanaProgram, data.selector, {
-		fields: {
-			name: true,
-			$programAccount: true,
-			$upgradeAuthority: true,
-		},
-	}))
+	const pageSelection = $derived(select(EntityType.SolanaProgram, data.selector))
 
 
 	// Components

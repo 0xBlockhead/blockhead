@@ -24,8 +24,6 @@
 		],
 		fields: {
 			name: true,
-			createdAt: true,
-			createdBy: true,
 		},
 	}))
 

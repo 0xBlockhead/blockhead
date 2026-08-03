@@ -18,24 +18,6 @@
 	const pageSelection = $derived(select(EntityType.MarketAsset, {
 		kind: params.kind,
 		assetKey: params.assetKey,
-	}, {
-		fields: {
-			Coin: {
-				fields: {
-					$coin: true,
-				},
-			},
-			CoinInstance: {
-				fields: {
-					$coinInstance: true,
-				},
-			},
-			Currency: {
-				fields: {
-					$currency: true,
-				},
-			},
-		},
 	}))
 
 

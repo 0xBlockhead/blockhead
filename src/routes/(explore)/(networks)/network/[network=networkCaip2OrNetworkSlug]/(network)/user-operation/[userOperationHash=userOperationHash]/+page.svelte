@@ -20,32 +20,6 @@
 		sources: [
 			Source.Blockscout_Rest,
 		],
-		fields: {
-			successful: true,
-			timestampMs: true,
-			fee: true,
-			nonce: true,
-			entryPointVersion: true,
-			sponsorType: true,
-			$bundledTransaction: true,
-			$block: true,
-			$sender: true,
-			$paymaster: true,
-			$bundler: true,
-			$entryPoint: true,
-			callGasLimit: true,
-			verificationGasLimit: true,
-			preVerificationGas: true,
-			maxFeePerGas: true,
-			maxPriorityFeePerGas: true,
-			gas: true,
-			gasUsed: true,
-			gasPrice: true,
-			initCode: true,
-			callData: true,
-			paymasterAndData: true,
-			signature: true,
-		},
 	}))
 
 

@@ -36,13 +36,6 @@
 				instructionKind: params.instructionKind,
 				indexInTransaction: Number(params.indexInTransaction),
 				indexInInstruction: Number(params.indexInInstruction),
-			}, {
-				fields: {
-					parsedType: true,
-					stackHeight: true,
-					$program: true,
-					data: true,
-				},
 			})
 		}
 	/>

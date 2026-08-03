@@ -28,10 +28,6 @@
 		}).source],
 		fields: {
 			listingStage: true,
-			isArchived: true,
-			isUpcoming: true,
-			isUnderReview: true,
-			sourceUpdatedAt: true,
 		},
 	}))
 

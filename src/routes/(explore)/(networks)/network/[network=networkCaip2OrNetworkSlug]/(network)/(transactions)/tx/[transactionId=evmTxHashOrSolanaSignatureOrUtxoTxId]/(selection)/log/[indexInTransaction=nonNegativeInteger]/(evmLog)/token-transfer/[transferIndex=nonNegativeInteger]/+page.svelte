@@ -27,18 +27,6 @@
 		fields: {
 			standard: true,
 			amount: true,
-			Nft: {
-				fields: {
-					tokenId: true,
-				},
-			},
-			$from: true,
-			$to: true,
-			$coinInstance: true,
-			$tokenContract: true,
-			tokenSymbol: true,
-			tokenName: true,
-			tokenDecimals: true,
 		},
 	}))
 

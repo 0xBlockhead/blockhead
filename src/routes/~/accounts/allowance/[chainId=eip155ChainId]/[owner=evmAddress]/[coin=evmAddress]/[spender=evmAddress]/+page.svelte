@@ -54,10 +54,6 @@
 					Source.SqdPortal_RawHttp,
 					Source.Voltaire_JsonRpc,
 				],
-				fields: {
-					$actorCoin: true,
-					$spenderContract: true,
-				},
 			})
 		}
 	/>

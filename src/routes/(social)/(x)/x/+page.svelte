@@ -22,10 +22,6 @@
 		],
 		fields: {
 			protocolName: true,
-			registryName: true,
-			relationshipModel: true,
-			homeUrl: true,
-			docsUrl: true,
 		},
 	}))
 

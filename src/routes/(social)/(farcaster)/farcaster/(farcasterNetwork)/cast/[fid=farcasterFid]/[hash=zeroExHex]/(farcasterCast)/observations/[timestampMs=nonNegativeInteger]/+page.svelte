@@ -42,11 +42,6 @@
 					Source.Snapchain_Rest,
 					Source.Neynar_Rest,
 				],
-				fields: {
-					likeCount: true,
-					recastCount: true,
-					replyCount: true,
-				},
 			})
 		}
 	/>

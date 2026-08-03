@@ -28,19 +28,6 @@
 		}).source],
 		fields: {
 			name: true,
-			reachable: true,
-			software: true,
-			version: true,
-			supportedNips: true,
-			isPaid: true,
-			paymentsUrl: true,
-			termsOfServiceUrl: true,
-			iconUrl: true,
-			bannerUrl: true,
-			pubkey: true,
-			contact: true,
-			error: true,
-			description: true,
 		},
 	}))
 

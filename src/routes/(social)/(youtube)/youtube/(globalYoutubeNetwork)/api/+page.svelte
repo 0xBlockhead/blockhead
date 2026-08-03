@@ -17,8 +17,6 @@
 		],
 		fields: {
 			protocolName: true,
-			homeUrl: true,
-			docsUrl: true,
 		},
 	}))
 

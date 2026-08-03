@@ -21,11 +21,7 @@
 			Source.Reddit_PublicJson,
 		],
 		fields: {
-			$icon: true,
 			title: true,
-			publicDescription: true,
-			createdAt: true,
-			over18: true,
 		},
 	}))
 

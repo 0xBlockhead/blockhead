@@ -15,11 +15,7 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.PolkadotPallet, data.selector, {
-		fields: {
-			index: true,
-		},
-	}))
+	const pageSelection = $derived(select(EntityType.PolkadotPallet, data.selector))
 
 
 	// Components

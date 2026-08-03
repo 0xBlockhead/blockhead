@@ -21,12 +21,8 @@
 			Source.Snapchain_Rest,
 		],
 		fields: {
-			$icon: true,
 			displayName: true,
 			username: true,
-			url: true,
-			$primaryEvmAccount: true,
-			bio: true,
 		},
 	}))
 

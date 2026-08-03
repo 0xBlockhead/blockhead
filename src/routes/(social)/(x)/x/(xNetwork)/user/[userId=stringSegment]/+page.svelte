@@ -22,14 +22,8 @@
 			Source.X_FxEmbed_Rest,
 		],
 		fields: {
-			$icon: true,
 			name: true,
 			username: true,
-			createdAt: true,
-			verified: true,
-			location: true,
-			websiteUrl: true,
-			description: true,
 		},
 	}))
 

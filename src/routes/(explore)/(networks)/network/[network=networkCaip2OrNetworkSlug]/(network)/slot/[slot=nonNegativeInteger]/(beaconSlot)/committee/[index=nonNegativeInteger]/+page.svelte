@@ -20,10 +20,6 @@
 		$network: data.selector,
 		slot: Number(params.slot),
 		indexInSlot: Number(params.index),
-	}, {
-		fields: {
-			validatorIndices: true,
-		},
 	}))
 
 

@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { bridgeRouteTagByTag } from '$/constants/Bridge.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -21,15 +20,6 @@
 		sources: [
 			Source.Lifi_Rest,
 		],
-		fields: {
-			estimatedCostUsd: true,
-			estimatedDurationSeconds: true,
-			$fromNetwork: true,
-			$toNetwork: true,
-			toAmount: true,
-			toAmountMin: true,
-			tags: true,
-		},
 	}))
 
 

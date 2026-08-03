@@ -27,13 +27,6 @@
 		],
 		fields: {
 			userPrompt: true,
-			createdAt: true,
-			status: true,
-			providerId: true,
-			promptVersion: true,
-			parentId: true,
-			error: true,
-			assistantText: true,
 		},
 	}))
 

@@ -23,10 +23,6 @@
 		fields: {
 			upgradeId: true,
 			name: true,
-			protocol: true,
-			activationBlock: true,
-			activationEpoch: true,
-			activationTimestampMs: true,
 		},
 	}))
 

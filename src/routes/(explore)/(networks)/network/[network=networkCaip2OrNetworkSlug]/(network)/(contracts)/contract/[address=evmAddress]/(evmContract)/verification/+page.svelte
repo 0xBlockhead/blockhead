@@ -21,11 +21,6 @@
 		fields: {
 			match: true,
 			runtimeMatch: true,
-			creationMatch: true,
-			verifiedAtMs: true,
-			matchId: true,
-			$compilation: true,
-			$sourceBundle: true,
 		},
 	}))
 

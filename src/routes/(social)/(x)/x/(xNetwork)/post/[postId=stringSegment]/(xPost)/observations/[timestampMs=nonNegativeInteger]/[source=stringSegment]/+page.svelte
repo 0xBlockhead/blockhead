@@ -44,12 +44,6 @@
 					timestampMs: Number(params.timestampMs),
 					source: params.source,
 				}).source],
-				fields: {
-					likeCount: true,
-					retweetCount: true,
-					replyCount: true,
-					quoteCount: true,
-				},
 			})
 		}
 	/>

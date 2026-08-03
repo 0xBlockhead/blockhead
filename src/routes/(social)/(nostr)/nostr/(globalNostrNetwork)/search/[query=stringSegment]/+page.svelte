@@ -22,10 +22,6 @@
 		sources: [
 			Source.NostrRelay_WebSocket,
 		],
-		fields: {
-			resultCount: true,
-			completed: true,
-		},
 	}))
 
 

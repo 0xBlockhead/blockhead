@@ -15,11 +15,7 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BeaconSyncCommittee, data.selector, {
-		fields: {
-			validatorIndices: true,
-		},
-	}))
+	const pageSelection = $derived(select(EntityType.BeaconSyncCommittee, data.selector))
 
 
 	// Components

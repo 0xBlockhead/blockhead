@@ -32,18 +32,6 @@
 		sources: [
 			Source.Lifi_Rest,
 		],
-		fields: {
-			tool: true,
-			stepType: true,
-			$fromNetwork: true,
-			$toNetwork: true,
-			$fromToken: true,
-			$toToken: true,
-			railId: true,
-			settlementModel: true,
-			verificationModel: true,
-			assetOutcome: true,
-		},
 	}))
 
 

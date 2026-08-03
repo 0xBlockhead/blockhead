@@ -29,10 +29,6 @@
 		fields: {
 			deliveredPayloadCount: true,
 			deliveredValueWei: true,
-			relayCount: true,
-			windowStartSlot: true,
-			windowEndSlot: true,
-			sampleLimit: true,
 		},
 	}))
 

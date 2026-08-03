@@ -22,16 +22,6 @@
 		],
 		fields: {
 			text: true,
-			timestamp: true,
-			$author: true,
-			isEdited: true,
-			isDeleted: true,
-			contentUri: true,
-			metadataHash: true,
-			$commentOn: true,
-			$quoteOf: true,
-			$repostOf: true,
-			$root: true,
 		},
 	}))
 

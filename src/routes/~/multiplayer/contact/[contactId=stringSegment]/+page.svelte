@@ -24,13 +24,7 @@
 		],
 		fields: {
 			displayName: true,
-			isConnected: true,
 			peerId: true,
-			$room: true,
-			joinedAt: true,
-			lastSeenAt: true,
-			connectedAt: true,
-			disconnectedAt: true,
 		},
 	}))
 

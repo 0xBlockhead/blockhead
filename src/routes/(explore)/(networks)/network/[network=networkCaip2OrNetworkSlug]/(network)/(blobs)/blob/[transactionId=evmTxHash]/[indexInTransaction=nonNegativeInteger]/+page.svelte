@@ -21,11 +21,6 @@
 			Source.Voltaire_JsonRpc,
 			Source.Blobscan_Rest,
 		],
-		fields: {
-			versionedHash: true,
-			$block: true,
-			kzgCommitment: true,
-		},
 	}))
 
 

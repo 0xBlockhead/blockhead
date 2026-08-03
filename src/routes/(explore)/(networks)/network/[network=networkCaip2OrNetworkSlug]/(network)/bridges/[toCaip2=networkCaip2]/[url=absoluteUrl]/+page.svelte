@@ -15,11 +15,7 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.EvmNetworkBridge, data.selector, {
-		fields: {
-			relationshipType: true,
-		},
-	}))
+	const pageSelection = $derived(select(EntityType.EvmNetworkBridge, data.selector))
 
 
 	// Components

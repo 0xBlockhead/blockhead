@@ -25,8 +25,6 @@
 		fields: {
 			topic: true,
 			peerInboxId: true,
-			createdAtMs: true,
-			consentState: true,
 		},
 	}))
 

@@ -21,7 +21,6 @@
 			Source.Constants_Internal,
 		],
 		fields: {
-			$logo: true,
 			symbol: true,
 			name: true,
 		},

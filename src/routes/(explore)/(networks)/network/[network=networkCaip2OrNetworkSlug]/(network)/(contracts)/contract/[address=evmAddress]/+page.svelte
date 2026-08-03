@@ -23,12 +23,6 @@
 		],
 		fields: {
 			precompileName: true,
-			$deployer: true,
-			$creationTransaction: true,
-			$implementation: true,
-			$verification: true,
-			codeHash: true,
-			code: true,
 		},
 	}))
 

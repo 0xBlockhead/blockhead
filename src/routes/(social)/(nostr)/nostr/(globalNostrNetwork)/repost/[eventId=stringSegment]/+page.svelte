@@ -25,12 +25,6 @@
 		],
 		fields: {
 			repostedEventId: true,
-			createdAt: true,
-			kind: true,
-			pubkey: true,
-			$author: true,
-			$repostedNote: true,
-			$repostedArticle: true,
 		},
 	}))
 

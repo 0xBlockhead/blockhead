@@ -40,10 +40,6 @@
 				sources: [
 					Source.Lens_Graphql,
 				],
-				fields: {
-					followerCount: true,
-					followingCount: true,
-				},
 			})
 		}
 	/>

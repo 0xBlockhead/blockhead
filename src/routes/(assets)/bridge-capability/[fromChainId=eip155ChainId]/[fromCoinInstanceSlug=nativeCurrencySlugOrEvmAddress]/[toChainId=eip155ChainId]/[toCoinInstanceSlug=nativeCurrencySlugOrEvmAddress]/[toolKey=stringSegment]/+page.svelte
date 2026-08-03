@@ -79,13 +79,6 @@
 				}
 		),
 		toolKey: params.toolKey,
-	}, {
-		fields: {
-			railId: true,
-			settlementModel: true,
-			verificationModel: true,
-			assetOutcome: true,
-		},
 	}))
 
 

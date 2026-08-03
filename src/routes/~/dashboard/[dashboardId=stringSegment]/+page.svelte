@@ -22,9 +22,6 @@
 		sources: [
 			Source.Local_Internal,
 		],
-		fields: {
-			$workspace: true,
-		},
 	}))
 
 

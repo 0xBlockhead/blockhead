@@ -22,8 +22,6 @@
 	}, {
 		fields: {
 			eventName: true,
-			$pallet: true,
-			$extrinsic: true,
 		},
 	}))
 

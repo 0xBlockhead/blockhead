@@ -22,9 +22,6 @@
 			Source.NostrRelay_WebSocket,
 			Source.Primal_Rest,
 		],
-		fields: {
-			$latestMetadataEvent: true,
-		},
 	}))
 
 
@@ -35,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.pubkey ?? '') || 'Nostr profile' : pageSelection.entitySelector.pubkey || 'Nostr profile')} • Nostr profile • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.pubkey || 'Nostr profile')} • Nostr profile • Blockhead</title>
 </svelte:head>
 
 

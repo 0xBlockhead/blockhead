@@ -24,12 +24,6 @@
 		],
 		fields: {
 			name: true,
-			status: true,
-			updatedAt: true,
-			createdAt: true,
-			lockedAt: true,
-			$latestSimulation: true,
-			simulationCount: true,
 		},
 	}))
 

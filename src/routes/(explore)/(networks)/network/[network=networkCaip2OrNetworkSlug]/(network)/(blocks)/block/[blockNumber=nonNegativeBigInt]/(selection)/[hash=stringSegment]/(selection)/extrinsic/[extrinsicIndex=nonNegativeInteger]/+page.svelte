@@ -19,14 +19,6 @@
 	const pageSelection = $derived(select(EntityType.PolkadotExtrinsic, {
 		$block: data.selector,
 		indexInBlock: Number(params.extrinsicIndex),
-	}, {
-		fields: {
-			callName: true,
-			success: true,
-			hash: true,
-			$signer: true,
-			$pallet: true,
-		},
 	}))
 
 

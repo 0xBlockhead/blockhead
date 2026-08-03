@@ -98,10 +98,6 @@
 					sources: [
 						Source.Blockfrost_Rest,
 					],
-					fields: {
-						addressKind: true,
-						$stakeCredential: true,
-					},
 				})
 			:
 			data.entityType === EntityType.EvmNetworkAccount ?
@@ -115,12 +111,7 @@
 				})
 			:
 			data.entityType === EntityType.TonAccount ?
-				select(EntityType.TonAccount, data.selector, {
-					fields: {
-						workchain: true,
-						addressHash: true,
-					},
-				})
+				select(EntityType.TonAccount, data.selector)
 			:
 				select(EntityType.XrplAccount, data.selector, {
 					sources: [

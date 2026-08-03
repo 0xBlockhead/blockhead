@@ -7,7 +7,6 @@
 	import {
 		proposalCategoryById,
 		proposalCategoryBySlug,
-		specificationRealmById,
 		specificationRealmBySlug,
 	} from '$/constants/SpecificationProposal.ts'
 	import specificationProposalSources from '$/sources/specificationProposalSources.ts'
@@ -22,21 +21,18 @@
 		params,
 	}: PageProps = $props()
 
-	const pageEntitySelector = $derived({
+	const entitySelector = $derived({
 		realm: specificationRealmBySlug[params.specificationRealmSlug].id,
 		category: proposalCategoryBySlug[params.proposalKindSlug].id,
 		number: Number(params.proposalRef.slice(params.proposalRef.lastIndexOf('-') + 1)),
 	})
-	const pageSelection = $derived(select(EntityType.SpecificationProposal, pageEntitySelector, {
+	const pageSelection = $derived(select(EntityType.SpecificationProposal, entitySelector, {
 		sources: specificationProposalSources({
-			realm: pageEntitySelector.realm,
-			category: pageEntitySelector.category,
+			realm: entitySelector.realm,
+			category: entitySelector.category,
 		}),
 		fields: {
 			documentTitle: true,
-			documentCategory: true,
-			documentStatus: true,
-			documentBody: true,
 		},
 	}))
 

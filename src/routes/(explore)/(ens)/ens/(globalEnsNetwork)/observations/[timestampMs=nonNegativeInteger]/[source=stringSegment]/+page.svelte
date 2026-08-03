@@ -44,16 +44,6 @@
 					timestampMs: Number(params.timestampMs),
 					source: params.source,
 				}).source],
-				fields: {
-					observedNameCount: true,
-					observedRecordCount: true,
-					observedReverseRecordCount: true,
-					seededContractCount: true,
-					discoveredResolverContractCount: true,
-					subgraphBlockNumber: true,
-					rpcBlockNumber: true,
-					reachable: true,
-				},
 			})
 		}
 	/>

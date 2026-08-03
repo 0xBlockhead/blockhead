@@ -35,9 +35,6 @@
 		],
 		fields: {
 			symbol: true,
-			$coinInstance: true,
-			$network: true,
-			decimals: true,
 		},
 	}))
 

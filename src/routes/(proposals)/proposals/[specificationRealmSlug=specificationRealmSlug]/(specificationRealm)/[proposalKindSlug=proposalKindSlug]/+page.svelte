@@ -23,9 +23,6 @@
 		],
 		fields: {
 			labelPlural: true,
-			label: true,
-			slug: true,
-			$specificationRealm: true,
 		},
 	}))
 

@@ -23,15 +23,6 @@
 			value: params.timeIntervalValue,
 		},
 		timestampMs: Number(params.timestampMs),
-	}, {
-		fields: {
-			close: true,
-			open: true,
-			high: true,
-			low: true,
-			quoteVolume: true,
-			$parentMarket: true,
-		},
 	}))
 
 

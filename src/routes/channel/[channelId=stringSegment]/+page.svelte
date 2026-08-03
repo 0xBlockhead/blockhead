@@ -22,14 +22,6 @@
 		sources: [
 			Source.Local_Internal,
 		],
-		fields: {
-			createdAt: true,
-			$network: true,
-			$participant0: true,
-			$participant1: true,
-			$asset: true,
-			$room: true,
-		},
 	}))
 
 

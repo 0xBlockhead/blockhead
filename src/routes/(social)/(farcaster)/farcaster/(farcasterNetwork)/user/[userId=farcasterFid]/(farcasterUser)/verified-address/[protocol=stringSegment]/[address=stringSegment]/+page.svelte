@@ -19,12 +19,6 @@
 		fid: Number(params.userId),
 		protocol: params.protocol,
 		address: params.address,
-	}, {
-		fields: {
-			$user: true,
-			$evmAccount: true,
-			$solanaAccount: true,
-		},
 	}))
 
 

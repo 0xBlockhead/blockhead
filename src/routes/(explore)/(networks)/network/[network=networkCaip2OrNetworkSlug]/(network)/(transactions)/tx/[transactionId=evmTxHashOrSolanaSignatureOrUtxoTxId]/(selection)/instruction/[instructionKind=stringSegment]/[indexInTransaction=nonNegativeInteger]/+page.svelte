@@ -29,16 +29,6 @@
 
 <Page>
 	<SolanaInstructionView
-		selection={
-			select(EntityType.SolanaInstruction, data.selector, {
-				fields: {
-					indexInInstruction: true,
-					parsedType: true,
-					stackHeight: true,
-					$program: true,
-					data: true,
-				},
-			})
-		}
+		selection={select(EntityType.SolanaInstruction, data.selector)}
 	/>
 </Page>

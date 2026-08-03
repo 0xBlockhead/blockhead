@@ -22,8 +22,6 @@
 		],
 		fields: {
 			label: true,
-			labelPlural: true,
-			slug: true,
 		},
 	}))
 

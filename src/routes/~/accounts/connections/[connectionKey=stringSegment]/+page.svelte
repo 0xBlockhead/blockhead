@@ -37,19 +37,6 @@
 				sources: [
 					Source.Local_Internal,
 				],
-				fields: {
-					$wallet: true,
-					status: true,
-					protocol: true,
-					transportKind: true,
-					selected: true,
-					connectedAt: true,
-					disconnectedAt: true,
-					sessionId: true,
-					sessionTopic: true,
-					error: true,
-					$activeAccount: true,
-				},
 			})
 		}
 	/>

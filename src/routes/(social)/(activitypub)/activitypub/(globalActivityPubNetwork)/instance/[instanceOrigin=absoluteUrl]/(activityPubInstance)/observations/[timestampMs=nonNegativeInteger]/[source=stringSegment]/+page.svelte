@@ -31,8 +31,6 @@
 		}).source],
 		fields: {
 			title: true,
-			version: true,
-			description: true,
 		},
 	}))
 

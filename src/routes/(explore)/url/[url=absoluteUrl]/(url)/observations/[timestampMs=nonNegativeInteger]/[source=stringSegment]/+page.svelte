@@ -30,12 +30,7 @@
 			source: params.source,
 		}).source],
 		fields: {
-			$image: true,
 			title: true,
-			siteName: true,
-			previewStatus: true,
-			description: true,
-			imageUrl: true,
 		},
 	}))
 

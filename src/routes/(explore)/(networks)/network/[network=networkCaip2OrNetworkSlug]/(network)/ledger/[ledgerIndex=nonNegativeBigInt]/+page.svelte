@@ -29,18 +29,6 @@
 
 <Page>
 	<XrplLedgerView
-		selection={
-			select(EntityType.XrplLedger, data.selector, {
-				fields: {
-					ledgerHash: true,
-					closeTimeMs: true,
-					validated: true,
-					totalCoinsDrops: true,
-					parentHash: true,
-					accountHash: true,
-					transactionHash: true,
-				},
-			})
-		}
+		selection={select(EntityType.XrplLedger, data.selector)}
 	/>
 </Page>

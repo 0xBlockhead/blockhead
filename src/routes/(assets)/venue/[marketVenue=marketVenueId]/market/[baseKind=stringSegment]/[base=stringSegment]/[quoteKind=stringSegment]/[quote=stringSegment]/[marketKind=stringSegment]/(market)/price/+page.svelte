@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -30,20 +29,6 @@
 
 <Page>
 	<MarketPriceView
-		selection={
-			select(EntityType.MarketPrice, data.selector, {
-				sources: [
-					Source.Constants_Internal,
-					Source.Coingecko_Rest,
-					Source.CoinMarketCap_Rest,
-					Source.Coinpaprika_Rest,
-					Source.Defillama_Rest,
-					Source.TradingView_Rest,
-				],
-				fields: {
-					$parentMarket: true,
-				},
-			})
-		}
+		selection={select(EntityType.MarketPrice, data.selector)}
 	/>
 </Page>

@@ -23,10 +23,6 @@
 		],
 		fields: {
 			content: true,
-			createdAt: true,
-			$author: true,
-			statusUrl: true,
-			activityStreamsUri: true,
 		},
 	}))
 

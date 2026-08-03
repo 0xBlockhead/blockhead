@@ -20,14 +20,6 @@
 		sources: [
 			Source.LightningLnd_Rest,
 		],
-		fields: {
-			valueMsat: true,
-			createdAtMs: true,
-			paymentIndex: true,
-			$localNodeState: true,
-			$invoice: true,
-			paymentRequest: true,
-		},
 	}))
 
 

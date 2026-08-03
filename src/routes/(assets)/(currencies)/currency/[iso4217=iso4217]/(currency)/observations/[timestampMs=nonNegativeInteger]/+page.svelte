@@ -35,10 +35,6 @@
 					iso4217: params.iso4217,
 				},
 				timestampMs: Number(params.timestampMs),
-			}, {
-				fields: {
-					marketCap: true,
-				},
 			})
 		}
 	/>

@@ -20,14 +20,6 @@
 		sources: [
 			Source.Dexscreener_Rest,
 		],
-		fields: {
-			$baseToken: true,
-			$quoteToken: true,
-			$hooks: true,
-			fee: true,
-			tickSpacing: true,
-			v4PoolId: true,
-		},
 	}))
 
 

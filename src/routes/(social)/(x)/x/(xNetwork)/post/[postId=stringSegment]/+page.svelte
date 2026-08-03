@@ -23,10 +23,6 @@
 		],
 		fields: {
 			text: true,
-			createdAt: true,
-			$author: true,
-			$replyToPost: true,
-			$quotedPost: true,
 		},
 	}))
 

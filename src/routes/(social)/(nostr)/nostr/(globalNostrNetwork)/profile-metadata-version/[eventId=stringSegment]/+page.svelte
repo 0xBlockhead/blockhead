@@ -19,16 +19,9 @@
 		eventId: params.eventId,
 	}, {
 		fields: {
-			$icon: true,
 			displayName: true,
 			nip05: true,
 			pubkey: true,
-			createdAt: true,
-			$profile: true,
-			website: true,
-			lud16: true,
-			signature: true,
-			about: true,
 		},
 	}))
 

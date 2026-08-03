@@ -20,19 +20,6 @@
 		$market: data.selector,
 		timestampMs: Number(params.timestampMs),
 		feedKey: decodeURIComponent(params.feedKey),
-	}, {
-		fields: {
-			markPrice: true,
-			indexPrice: true,
-			fundingRate: true,
-			openInterestUsd: true,
-			indexBasisPercent: true,
-			expiredAtMs: true,
-			lastTradedAtMs: true,
-			providerAssetId: true,
-			transport: true,
-			$parentMarket: true,
-		},
 	}))
 
 

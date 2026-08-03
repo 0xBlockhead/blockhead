@@ -25,14 +25,6 @@
 		],
 		fields: {
 			label: true,
-			source: true,
-			provider: true,
-			endpointUrl: true,
-			transportKind: true,
-			authKind: true,
-			corsMode: true,
-			proxyMode: true,
-			environmentScope: true,
 		},
 	}))
 

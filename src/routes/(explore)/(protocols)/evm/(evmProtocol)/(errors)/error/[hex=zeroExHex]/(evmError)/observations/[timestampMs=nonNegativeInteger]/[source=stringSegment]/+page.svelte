@@ -31,9 +31,6 @@
 		}).source],
 		fields: {
 			signatures: true,
-			filteredSignatureCount: true,
-			verifiedCandidateCount: true,
-			reachable: true,
 		},
 	}))
 

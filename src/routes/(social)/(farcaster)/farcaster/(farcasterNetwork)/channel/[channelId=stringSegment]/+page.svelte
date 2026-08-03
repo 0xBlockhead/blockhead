@@ -21,14 +21,7 @@
 			Source.Farcaster_Rest,
 		],
 		fields: {
-			$icon: true,
 			name: true,
-			createdAt: true,
-			url: true,
-			$lead: true,
-			$moderator: true,
-			externalLinkUrl: true,
-			description: true,
 		},
 	}))
 

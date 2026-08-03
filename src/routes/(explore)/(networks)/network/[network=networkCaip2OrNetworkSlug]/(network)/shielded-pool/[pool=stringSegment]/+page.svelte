@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -16,15 +15,7 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.ZcashShieldedPool, data.selector, {
-		sources: [
-			Source.Constants_Internal,
-		],
-		fields: {
-			noteProtocol: true,
-			activationNetworkUpgrade: true,
-		},
-	}))
+	const pageSelection = $derived(select(EntityType.ZcashShieldedPool, data.selector))
 
 
 	// Components

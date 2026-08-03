@@ -29,16 +29,6 @@
 
 <Page>
 	<XrplAmmView
-		selection={
-			select(EntityType.XrplAmm, data.selector, {
-				fields: {
-					assetCurrency: true,
-					assetIssuer: true,
-					asset2Currency: true,
-					asset2Issuer: true,
-					lpTokenCurrency: true,
-				},
-			})
-		}
+		selection={select(EntityType.XrplAmm, data.selector)}
 	/>
 </Page>

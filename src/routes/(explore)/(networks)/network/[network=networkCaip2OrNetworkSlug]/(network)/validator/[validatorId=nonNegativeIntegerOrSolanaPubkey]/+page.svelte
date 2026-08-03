@@ -51,13 +51,6 @@
 					sources: [
 						Source.Beacon_Rest,
 					],
-					fields: {
-						status: true,
-						slashed: true,
-						balanceGwei: true,
-						effectiveBalanceGwei: true,
-						pubkey: true,
-					},
 				})
 			:
 				select(EntityType.SolanaValidator, data.selector)

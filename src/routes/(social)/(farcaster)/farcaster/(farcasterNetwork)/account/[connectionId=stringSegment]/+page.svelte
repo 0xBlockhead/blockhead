@@ -37,15 +37,6 @@
 				sources: [
 					Source.Local_Internal,
 				],
-				fields: {
-					$user: true,
-					authMethod: true,
-					signerAddress: true,
-					verifiedAt: true,
-					expiresAt: true,
-					associationFingerprint: true,
-					selected: true,
-				},
 			})
 		}
 	/>

@@ -9361,10 +9361,14 @@ const allViewItems = (entity: Entity, indexes: GenerationIndexes) => {
 	])
 }
 
-const viewItemImports = (entity: Entity, indexes: GenerationIndexes) => {
+const viewItemImports = (
+	entity: Entity,
+	indexes: GenerationIndexes,
+	entries: readonly _ViewItem[] = allViewItems(entity, indexes)
+) => {
 	const expressionImportMap = new Map<string, Set<string>>()
 	const displayImports: ImportSpec[] = []
-	for (const viewEntry of allViewItems(entity, indexes)) {
+	for (const viewEntry of entries) {
 		const fieldReference = itemFieldReferences(viewEntry)[0]
 		if (fieldReference != null) {
 			const fieldDefinition = fieldDefinitionByReference(entity, fieldReference, indexes)
@@ -12814,12 +12818,12 @@ const renderEntityRouteLinkExpression = (
 }
 
 const compileEntityPageSelection = (
-	indexes: GenerationIndexes,
 	entity: Entity | undefined,
 	entityType: string,
 	selectorExpression: string,
 	selectorName?: string,
-	sourceSelection?: readonly string[] | _SourceSelection
+	sourceSelection?: readonly string[] | _SourceSelection,
+	fields: readonly FieldReference[] = []
 ) => {
 	if (entity == null)
 		return {
@@ -12831,22 +12835,6 @@ const compileEntityPageSelection = (
 
 	const selector = entity.selectors.find((item) => item.name === selectorName)
 	const sourceSelectorField = selector?.fields.includes('source') === true
-	const selectorFieldNames = new Set(selector?.fields ?? [])
-	const fields = [...new Map(allViewItems(entity, indexes)
-		.filter((viewItem) => viewItemSourceSelection(entity, indexes, viewItem) == null)
-		.flatMap(viewItemFieldReferences)
-		.map((fieldReference) => [fieldReferenceKey(fieldReference), fieldReference])).values()]
-		.filter((fieldReference) => {
-			const fieldDefinition = fieldDefinitionByReference(entity, fieldReference, indexes)
-			return (
-				(
-					isProjectionFieldReference(fieldReference)
-					|| !selectorFieldNames.has(fieldReference)
-				)
-				&& fieldDefinition != null
-				&& fieldDefinition.type !== EntityFieldType.EntitiesReference
-			)
-		})
 	const selectorSourceExpression = selectorExpression.includes('\n') ?
 		`(${selectorExpression}).source`
 	:
@@ -12859,10 +12847,7 @@ const compileEntityPageSelection = (
 		sourcesExpression: sourceSelectorField ?
 			`[${selectorSourceExpression}]`
 		:
-			renderFieldConditionedSourceSelectionExpression(
-				sourceSelection ?? pageSelectionFieldDefaultSources(entity, indexes, fields),
-				selectorExpression
-			),
+			renderFieldConditionedSourceSelectionExpression(sourceSelection, selectorExpression),
 	}
 }
 
@@ -12877,39 +12862,20 @@ const renderCompiledEntityPageSelection = (
 }
 
 const renderEntityPageSelection = (
-	indexes: GenerationIndexes,
 	entity: Entity | undefined,
 	entityType: string,
 	selectorExpression: string,
 	selectorName?: string,
-	sourceSelection?: readonly string[] | _SourceSelection
+	sourceSelection?: readonly string[] | _SourceSelection,
+	fields: readonly FieldReference[] = []
 ) => renderCompiledEntityPageSelection(compileEntityPageSelection(
-	indexes,
 	entity,
 	entityType,
 	selectorExpression,
 	selectorName,
-	sourceSelection
+	sourceSelection,
+	fields
 ))
-
-const pageSelectionFieldDefaultSources = (
-	entity: Entity,
-	indexes: GenerationIndexes,
-	fields: readonly FieldReference[]
-) => {
-	const sourceSets = fields
-		.map((field) => fieldDefinitionByReference(entity, field, indexes)?.defaultSources)
-		.filter((sources) => sources != null)
-	if (sourceSets.length !== fields.length)
-		return undefined
-	const [firstSources] = sourceSets
-	if (firstSources == null)
-		return undefined
-	return sourceSets.every((sources) => sources.length === firstSources.length && sources.every((source, index) => source === firstSources[index])) ?
-		firstSources
-	:
-		undefined
-}
 
 const renderCarousel = (
 	entity: Entity,
@@ -15116,7 +15082,7 @@ const generateMultiCollectionPageFile = (
 	)
 }
 
-const renderPageEntityTitleExpression = (
+const compilePageEntityTitle = (
 	entity: Entity,
 	indexes: GenerationIndexes,
 	selectionExpression: string,
@@ -15126,6 +15092,11 @@ const renderPageEntityTitleExpression = (
 ) => {
 	const summaryPlan = summaryPlanFor(entity, indexes)
 	const serial = summaryPlan.serial
+	const titleItems = viewItemTree([
+		...summaryPlan.title.entries,
+		...summaryPlan.titleFallback.entries,
+		...viewItems(serial?.fallback),
+	])
 	const pendingSelectorFields = (
 		pendingSelectorName == null ?
 			undefined
@@ -15148,16 +15119,20 @@ const renderPageEntityTitleExpression = (
 			!isProjectionFieldReference(fieldReference)
 			&& pendingSelectorFields.has(fieldReferenceKey(fieldReference))
 	)
-	const itemUsesResolvedFields = (viewEntry: _ViewItem) => viewItemFieldReferences(viewEntry)
-		.some((fieldReference) => !pendingOwnsField(fieldReference))
-	const resolvedTitleUsesEntity = (
-		viewItemTree([
-			...summaryPlan.title.entries,
-			...summaryPlan.titleFallback.entries,
-			...viewItems(serial?.fallback),
-		]).some(itemUsesResolvedFields)
-		|| serial != null && !pendingOwnsField(serial.field)
+	const isResolvedTitleField = (fieldReference: FieldReference) => (
+		!pendingOwnsField(fieldReference)
+		&& !isProjectionFieldReference(fieldReference)
+		&& fieldDefinitionByReference(entity, fieldReference, indexes)?.type === EntityFieldType.Primitive
 	)
+	const itemUsesResolvedFields = (viewEntry: _ViewItem) => viewItemFieldReferences(viewEntry)
+		.some(isResolvedTitleField)
+	const resolvedFields = [...new Map(
+		titleItems
+			.flatMap(viewItemFieldReferences)
+			.concat(serial == null || pendingOwnsField(serial.field) ? [] : [serial.field])
+			.filter(isResolvedTitleField)
+			.map((fieldReference) => [fieldReferenceKey(fieldReference), fieldReference])
+	).values()]
 	const itemFieldsExpression = (viewEntry: _ViewItem) => {
 		const fieldReferences = viewItemFieldReferences(viewEntry)
 		const usesPendingFields = fieldReferences.some(pendingOwnsField)
@@ -15202,7 +15177,7 @@ const renderPageEntityTitleExpression = (
 	const pendingTitleExpression = renderFirstDeclaredExpression([pendingSerialTitle, entityTypeLabel])
 	const resolvedTitleExpression = renderFirstDeclaredExpression([resolvedSerialTitle, entityTypeLabel])
 	const titleExpression = (
-		resolvedTitleUsesEntity && pendingTitleExpression !== resolvedTitleExpression ?
+		resolvedFields.length > 0 && pendingTitleExpression !== resolvedTitleExpression ?
 			(
 				`${selectionExpression}.entity == null ? `
 				+ pendingTitleExpression
@@ -15213,10 +15188,14 @@ const renderPageEntityTitleExpression = (
 			resolvedTitleExpression
 	)
 
-	return dataTitleExpression == null ?
-		titleExpression
-	:
-		renderNullishExpression(dataTitleExpression, titleExpression)
+	return {
+		expression: dataTitleExpression == null ?
+			titleExpression
+		:
+			renderNullishExpression(dataTitleExpression, titleExpression),
+		resolvedFields,
+		imports: viewItemImports(entity, indexes, titleItems),
+	}
 }
 
 const generatePageFile = (
@@ -15233,6 +15212,14 @@ const generatePageFile = (
 			const entity = indexes.entityByType[mapping.entityType]
 			if (entity == null)
 				throw new Error(`${routePath} references missing entity ${mapping.entityType}`)
+			const title = compilePageEntityTitle(
+				entity,
+				indexes,
+				'pageSelection',
+				undefined,
+				'data.selector',
+				mapping.selectorName
+			)
 
 			return {
 				mapping,
@@ -15245,21 +15232,14 @@ const generatePageFile = (
 						+ `&& data.selectorName === ${emitTypeScript(mapping.selectorName)}`
 					),
 				selection: compileEntityPageSelection(
-					indexes,
 					entity,
 					mapping.entityType,
 					'data.selector',
 					mapping.selectorName,
-					mapping.sourceSelection
+					mapping.sourceSelection,
+					title.resolvedFields
 				),
-				title: renderPageEntityTitleExpression(
-					entity,
-					indexes,
-					'pageSelection',
-					undefined,
-					'data.selector',
-					mapping.selectorName
-				),
+				title,
 			}
 		})
 		const finalContext = mappingContexts.at(-1)
@@ -15270,7 +15250,7 @@ const generatePageFile = (
 		const singleMappedEntity = singleMappedEntityType == null ? undefined : indexes.entityByType[singleMappedEntityType]
 		const sharedSourcesExpression = finalContext.selection.sourcesExpression
 		// Selector variants with one source contract can request their combined
-		// view fields through one selection; other contracts retain exact dispatch.
+		// page-title fields through one selection; other contracts retain exact dispatch.
 		const composableSelection = (
 			singleMappedEntityType != null
 			&& mappingContexts.every(({ selection }) => (
@@ -15303,16 +15283,16 @@ const generatePageFile = (
 				condition,
 				value: (
 					singleMappedEntityType == null ?
-						`(${title}) + ${emitTypeScript(` • ${displayLabel(entity.labels.singular)} • Blockhead`)}`
+						`(${title.expression}) + ${emitTypeScript(` • ${displayLabel(entity.labels.singular)} • Blockhead`)}`
 					:
-						title
+						title.expression
 				),
 			})),
 			(
 				singleMappedEntityType == null ?
-					`(${finalContext.title}) + ${emitTypeScript(` • ${displayLabel(finalContext.entity.labels.singular)} • Blockhead`)}`
+					`(${finalContext.title.expression}) + ${emitTypeScript(` • ${displayLabel(finalContext.entity.labels.singular)} • Blockhead`)}`
 				:
-					finalContext.title
+					finalContext.title.expression
 			)
 		)
 		const pageSelectionReference = (
@@ -15322,7 +15302,7 @@ const generatePageFile = (
 				pageSelectionExpression
 		)
 		const pageSelectionImports = mergeImports(
-			mappingContexts.flatMap(({ entity }) => viewItemImports(entity, indexes))
+			mappingContexts.flatMap(({ title }) => title.imports)
 		).map(emitImport)
 
 		return svelteFile(
@@ -15444,17 +15424,6 @@ const generatePageFile = (
 		]),
 	])
 	const viewEntityDefinition = viewEntity == null ? undefined : indexes.entityByType[viewEntity]
-	const viewSelectionFields = viewEntityDefinition == null ?
-		[]
-	:
-		viewResolvedFieldReferences(viewEntityDefinition, indexes, viewSelector)
-			.filter((fieldName) => {
-				const fieldDefinition = fieldDefinitionByReference(viewEntityDefinition, fieldName, indexes)
-				return (
-					fieldDefinition != null
-					&& fieldDefinition.type !== EntityFieldType.EntitiesReference
-				)
-			})
 	const collectionRoute = collection == null ?
 		undefined
 	:
@@ -15505,21 +15474,9 @@ const generatePageFile = (
 		:
 			'Blockhead'
 	)
-	const hasFieldConditionedViewSources = isEntityDetailPage && isFieldConditionedSourceSelection(mapping?.sourceSelection)
-	const pageSelectionExpression = isEntityDetailPage && viewEntity != null ?
-		renderEntityPageSelection(
-			indexes,
-			viewEntityDefinition,
-			viewEntity,
-			hasFieldConditionedViewSources ? 'pageEntitySelector' : selectorExpression,
-			viewSelector,
-			mapping?.sourceSelection
-		)
-	:
-		undefined
-	const pageEntityTitleExpression = (
+	const pageTitle = (
 		isEntityDetailPage && viewEntityDefinition != null && entityTypeLabel != null ?
-			renderPageEntityTitleExpression(
+			compilePageEntityTitle(
 				viewEntityDefinition,
 				indexes,
 				'pageSelection',
@@ -15530,6 +15487,19 @@ const generatePageFile = (
 		:
 			undefined
 	)
+	const hasFieldConditionedSources = isEntityDetailPage && isFieldConditionedSourceSelection(mapping?.sourceSelection)
+	const pageSelectionExpression = isEntityDetailPage && viewEntity != null ?
+		renderEntityPageSelection(
+			viewEntityDefinition,
+			viewEntity,
+			hasFieldConditionedSources ? 'entitySelector' : selectorExpression,
+			viewSelector,
+			mapping?.sourceSelection,
+			pageTitle?.resolvedFields
+		)
+	:
+		undefined
+	const pageEntityTitleExpression = pageTitle?.expression
 	const pageSelectionReference = (
 		pageSelectionExpression == null ?
 			undefined
@@ -15548,18 +15518,16 @@ const generatePageFile = (
 		&& pageEntityTitleExpression != null
 		&& entityTypeLabel != null
 	) {
-		const canonicalFieldName = viewSelectionFields.length === 1 && !isProjectionFieldReference(viewSelectionFields[0]) ?
-			viewSelectionFields[0]
-		:
-			undefined
+		const canonicalSelectors = viewEntityDefinition.selectors.filter((selector) => (
+			selector.fields.length === 1
+			&& (indexes.entityRouteLinksByType[viewEntity] ?? []).some((routeLink) => routeLink.selector === selector.name)
+		))
+		const canonicalFieldName = canonicalSelectors.length === 1 ? canonicalSelectors[0]?.fields[0] : undefined
 		if (canonicalFieldName == null)
 			throw new Error(`${routePath} canonical alias must resolve exactly one canonical field`)
 		if ((indexes.entityRouteLinksByType[viewEntity]?.length ?? 0) === 0)
 			throw new Error(`${routePath} canonical alias has no canonical entity href`)
-		const canonicalSelectorName = viewEntityDefinition.selectors.find((selector) => (
-			selector.fields.length === 1
-			&& selector.fields[0] === canonicalFieldName
-		))?.name
+		const canonicalSelectorName = canonicalSelectors[0]?.name
 		if (canonicalSelectorName == null)
 			throw new Error(`${routePath} canonical alias field ${canonicalFieldName} is not a single-field selector`)
 		const canonicalEntityHrefExpression = renderEntityRouteLinkExpression(
@@ -15668,7 +15636,7 @@ const generatePageFile = (
 							...(inlineSelectorExpression == null ? [] : (mapping?.fields ?? []).flatMap((field) => (
 								importSpecsFromMap(expressionImports(field.value))
 							))),
-							...(isEntityDetailPage && viewEntityDefinition != null ? viewItemImports(viewEntityDefinition, indexes) : []),
+							...(pageTitle?.imports ?? []),
 						]).map(emitImport)
 				),
 				...emitImportObject(view?.imports).map(emitImport),
@@ -15691,8 +15659,8 @@ const generatePageFile = (
 				] : []),
 				...(pageSelectionExpression == null || pageEntityTitleExpression == null ? [] : [
 					'',
-					...(hasFieldConditionedViewSources ? [
-						`const pageEntitySelector = $derived(${selectorExpression})`,
+					...(hasFieldConditionedSources ? [
+						`const entitySelector = $derived(${selectorExpression})`,
 					] : []),
 					...(pageSelectionReference === 'pageSelection' ? [
 						`const pageSelection = $derived(${pageSelectionExpression})`,
@@ -15806,7 +15774,6 @@ const renderEntityPageMarkup = (
 			2,
 			'selection',
 			selectionBinding ?? renderEntityPageSelection(
-				indexes,
 				indexes.entityByType[entityType],
 				entityType,
 				selectorExpression,

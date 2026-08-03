@@ -17,14 +17,6 @@
 
 	const pageSelection = $derived(select(EntityType.Network_Activity_Day, data.selector, {
 		sources: [data.selector.source],
-		fields: {
-			transactionCount: true,
-			trustModel: true,
-			blockCount: true,
-			endBlockNumber: true,
-			indexedThroughTimestampMs: true,
-			resolvedAtMs: true,
-		},
 	}))
 
 

@@ -35,23 +35,6 @@
 		fields: {
 			baseTokenSymbol: true,
 			quoteTokenSymbol: true,
-			priceUsd: true,
-			liquidityUsd: true,
-			transport: true,
-			baseTokenDecimals: true,
-			quoteTokenDecimals: true,
-			pairCreatedAtMs: true,
-			dexId: true,
-			dexscreenerPairUrl: true,
-			priceNative: true,
-			volumeUsd24h: true,
-			priceChangePercent24h: true,
-			transactionBuys24h: true,
-			transactionSells24h: true,
-			marketCapUsd: true,
-			fdvUsd: true,
-			dexscreenerLabels: true,
-			$parentLiquidityPool: true,
 		},
 	}))
 

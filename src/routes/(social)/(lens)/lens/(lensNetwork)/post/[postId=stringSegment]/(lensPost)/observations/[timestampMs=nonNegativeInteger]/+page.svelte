@@ -40,14 +40,6 @@
 				sources: [
 					Source.Lens_Graphql,
 				],
-				fields: {
-					commentCount: true,
-					repostCount: true,
-					quoteCount: true,
-					bookmarkCount: true,
-					collectCount: true,
-					reactionCount: true,
-				},
 			})
 		}
 	/>
