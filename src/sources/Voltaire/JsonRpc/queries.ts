@@ -1,3 +1,10 @@
+import type {
+	BlockInclude,
+	BlocksEvent,
+	BlockStreamEvent,
+	RetryOptions,
+} from '@tevm/voltaire/block'
+
 import {
 	SourceEndpointKind,
 	SourceOperationGroup,
@@ -152,31 +159,6 @@ export type Provider = {
 		method: string
 		params?: JsonValue[]
 	}) => Promise<unknown>
-}
-
-export type BlockInclude = 'header' | 'transactions' | 'receipts'
-
-export type BlocksEvent<_BlockInclude extends BlockInclude> = {
-	type: 'blocks'
-	blocks: readonly unknown[]
-	metadata: {
-		chainHead: bigint
-	}
-}
-
-export type BlockStreamEvent<_BlockInclude extends BlockInclude> =
-	| BlocksEvent<_BlockInclude>
-	| {
-		type: 'reorg'
-		metadata: {
-			chainHead: bigint
-		}
-	}
-
-export type RetryOptions = {
-	maxRetries?: number
-	initialDelay?: number
-	maxDelay?: number
 }
 
 const getVoltaireProviderRuntime = () => import('@tevm/voltaire/provider')
