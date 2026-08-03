@@ -13,7 +13,8 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 	sourceGetText: vi.fn(),
 }))
 
-const { getBlockNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+const { zeroGChainJsonRpcBinding } = await import('$/sources/ZeroG/Chain/JsonRpc/transport.ts')
+const { getBlockNumber } = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
 const { getInfo } = await import('$/sources/ZeroG/ChainScan/Rest/queries.ts')
 const { getStatus } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
 const { getStorageMiner } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
@@ -33,7 +34,7 @@ describe('0G transport binding authority', () => {
 				status: 200,
 			}))
 
-		await getBlockNumber()
+		await getBlockNumber(zeroGChainJsonRpcBinding)
 		await getStatus()
 
 		expect(sourceFetch.mock.calls.map(([binding, url]) => [

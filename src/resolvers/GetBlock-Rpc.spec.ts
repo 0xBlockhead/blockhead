@@ -20,9 +20,10 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 import {
-	getEvmTransactionByHash,
-	getEvmTransactionReceipt,
-} from '$/sources/GetBlock/Rpc/queries.ts'
+	getTransactionByHash,
+	getTransactionReceipt,
+} from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts'
+import { getBlockRpcBinding } from '$/sources/GetBlock/Rpc/transport.ts'
 
 const sourceFetch = vi.hoisted(() => vi.fn())
 const resolverBinding = vi.hoisted(() => ({
@@ -108,10 +109,16 @@ describe('GetBlock RPC transaction source', () => {
 		sourceFetch
 			.mockResolvedValueOnce(new Response(transaction))
 			.mockResolvedValueOnce(new Response(receipt))
-		await expect(getEvmTransactionByHash('0xaaaa')).resolves.toMatchObject({
+		await expect(getTransactionByHash({
+			binding: getBlockRpcBinding,
+			txHash: '0xaaaa',
+		})).resolves.toMatchObject({
 			hash: expect.any(String),
 		})
-		await expect(getEvmTransactionReceipt('0xaaaa')).resolves.toMatchObject({
+		await expect(getTransactionReceipt({
+			binding: getBlockRpcBinding,
+			txHash: '0xaaaa',
+		})).resolves.toMatchObject({
 			status: '0x1',
 		})
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toMatchObject({
@@ -197,8 +204,14 @@ describe('GetBlock RPC transaction source', () => {
 			id: 1,
 			result: null,
 		})))
-		await expect(getEvmTransactionByHash('0xmissing')).resolves.toBeNull()
+		await expect(getTransactionByHash({
+			binding: getBlockRpcBinding,
+			txHash: '0xmissing',
+		})).resolves.toBeNull()
 		sourceFetch.mockResolvedValueOnce(new Response('upstream failed', { status: 503 }))
-		await expect(getEvmTransactionByHash('0xfailure')).rejects.toThrow()
+		await expect(getTransactionByHash({
+			binding: getBlockRpcBinding,
+			txHash: '0xfailure',
+		})).rejects.toThrow()
 	})
 })

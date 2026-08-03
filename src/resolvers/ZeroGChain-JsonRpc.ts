@@ -16,7 +16,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import type { RpcBlockHeader } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
+import { zeroGChainJsonRpcBinding } from '$/sources/ZeroG/Chain/JsonRpc/transport.ts'
 
 const zeroGChainId = 16661
 
@@ -112,14 +112,15 @@ export default {
 					appliesTo: zeroGNetworkReferenceApplicability,
 					resolve: async ({ $network, blockNumber }) => {
 						assertZeroGMainnetChain($network)
-						const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+						const { getBlockByNumber } = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
 						const block = await getBlockByNumber({
-							blockNumber: blockNumber,
+							binding: zeroGChainJsonRpcBinding,
+							blockNumber,
 							txObjects: false,
 						})
 						if (block == null) throw new Error(`ZeroGChain_JsonRpc: block not found ${blockNumber.toString()}`)
-						const minerAddress = hexLowerOfByteSize(block.miner ?? '', 20)
-						const parentHash = hexLowerOfByteSize(block.parentHash ?? '', 32)
+						const minerAddress = hexLowerOfByteSize(block.miner, 20)
+						const parentHash = hexLowerOfByteSize(block.parentHash, 32)
 						return {
 							blockNumber: quantityToBigInt(block.number) ?? blockNumber,
 							...(parentHash != null && {
@@ -133,35 +134,35 @@ export default {
 							...((timestamp) => (
 								timestamp != null && { timestamp: timestamp * 1000 }
 							))(quantityToNumber(block.timestamp)),
-						...(minerAddress != null && {
-							$miner: {
-								[EntityMetaKey.Selector]: {
-									address: minerAddress,
+							...(minerAddress != null && {
+								$miner: {
+									[EntityMetaKey.Selector]: {
+										address: minerAddress,
+									},
 								},
-							},
-						}),
-						...(quantityToBigInt(block.gasUsed) != null && { gasUsed: quantityToBigInt(block.gasUsed) }),
-						...(quantityToBigInt(block.gasLimit) != null && { gasLimit: quantityToBigInt(block.gasLimit) }),
-						...(quantityToBigInt(block.baseFeePerGas) != null && { baseFeePerGas: quantityToBigInt(block.baseFeePerGas) }),
-						...(quantityToBigInt(block.blobGasUsed) != null && { blobGasUsed: quantityToBigInt(block.blobGasUsed) }),
+							}),
+							...(quantityToBigInt(block.gasUsed) != null && { gasUsed: quantityToBigInt(block.gasUsed) }),
+							...(quantityToBigInt(block.gasLimit) != null && { gasLimit: quantityToBigInt(block.gasLimit) }),
+							...(quantityToBigInt(block.baseFeePerGas) != null && { baseFeePerGas: quantityToBigInt(block.baseFeePerGas) }),
+							...(quantityToBigInt(block.blobGasUsed) != null && { blobGasUsed: quantityToBigInt(block.blobGasUsed) }),
 							...(quantityToBigInt(block.excessBlobGas) != null && { excessBlobGas: quantityToBigInt(block.excessBlobGas) }),
-							...(block.transactions != null && { transactionCount: block.transactions.length }),
+							transactionCount: block.transactions.length,
 						}
 					},
 				},
 			},
 		})({
-				blockNumber: (block) => block.blockNumber,
-				$parent: (block) => block.$parent,
-				timestamp: (block) => block.timestamp,
+			blockNumber: (block) => block.blockNumber,
+			$parent: (block) => block.$parent,
+			timestamp: (block) => block.timestamp,
 			$miner: (block) => block.$miner,
 			gasUsed: (block) => block.gasUsed,
 			gasLimit: (block) => block.gasLimit,
 			baseFeePerGas: (block) => block.baseFeePerGas,
 			blobGasUsed: (block) => block.blobGasUsed,
-				excessBlobGas: (block) => block.excessBlobGas,
-				transactionCount: (block) => block.transactionCount,
-			}),
+			excessBlobGas: (block) => block.excessBlobGas,
+			transactionCount: (block) => block.transactionCount,
+		}),
 
 		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
@@ -198,13 +199,14 @@ export default {
 					appliesTo: zeroGAccountTimestampApplicability,
 					resolve: async ({ $account }) => {
 						assertZeroGMainnetChain($account.$network)
-						const { getCode } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+						const { getCode } = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
 						const address = hexLowerOfByteSize($account.$actor.address, 20)
 						if (address == null)
 							throw new Error('ZeroGChain_JsonRpc: EvmNetworkAccount wallet address not normalized')
 
 						return {
 							isContract: await getCode({
+								binding: zeroGChainJsonRpcBinding,
 								address,
 							}) !== '0x',
 						}
@@ -225,16 +227,18 @@ export default {
 						const {
 							getTransactionByHash,
 							getTransactionReceipt,
-						} = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+						} = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
 						const transaction = await getTransactionByHash({
-							txHash: txHash,
+							binding: zeroGChainJsonRpcBinding,
+							txHash,
 						})
 						if (transaction == null) throw new Error(`ZeroGChain_JsonRpc: transaction not found ${txHash}`)
 						const receipt = await getTransactionReceipt({
-							txHash: txHash,
+							binding: zeroGChainJsonRpcBinding,
+							txHash,
 						})
 						const value = quantityToBigInt(transaction.value) ?? 0n
-						const fromAddress = hexLowerOfByteSize(transaction.from ?? '', 20)
+						const fromAddress = hexLowerOfByteSize(transaction.from, 20)
 						const toAddress = hexLowerOfByteSize(transaction.to ?? '', 20)
 						const contractAddress = hexLowerOfByteSize(receipt?.contractAddress ?? '', 20)
 						const blockNumber = quantityToBigInt(transaction.blockNumber)
@@ -272,9 +276,9 @@ export default {
 							...(quantityToNumber(transaction.transactionIndex) != null && { indexInBlock: quantityToNumber(transaction.transactionIndex) }),
 							value,
 							...(quantityToNumber(transaction.nonce) != null && { nonce: quantityToNumber(transaction.nonce) }),
-							...(transaction.input != null && { input: with0xHex(transaction.input) }),
-							...(transaction.r != null && { r: with0xHex(transaction.r) }),
-							...(transaction.s != null && { s: with0xHex(transaction.s) }),
+							input: with0xHex(transaction.input),
+							r: with0xHex(transaction.r),
+							s: with0xHex(transaction.s),
 							...(transaction.v != null && { v: transaction.v }),
 							...(quantityToBigInt(transaction.gas) != null && { gas: quantityToBigInt(transaction.gas) }),
 							kind: transactionKind({
@@ -338,7 +342,7 @@ export default {
 				blobGasUsed: (transaction) => transaction.blobGasUsed,
 				maxFeePerBlobGas: (transaction) => transaction.maxFeePerBlobGas,
 			},
-			}),
+		}),
 
 		defineResolver({
 			entityType: EntityType.EvmBlock,
@@ -347,15 +351,15 @@ export default {
 					appliesTo: zeroGNetworkReferenceApplicability,
 					resolve: async ({ $network, blockNumber }) => {
 					assertZeroGMainnetChain($network)
-					const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+					const { getBlockByNumber } = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
 					const block = await getBlockByNumber({
-						blockNumber: blockNumber,
+						binding: zeroGChainJsonRpcBinding,
+						blockNumber,
 						txObjects: true,
 					})
 					if (block == null) throw new Error(`ZeroGChain_JsonRpc: block not found ${blockNumber.toString()}`)
-					return (block.transactions ?? []).flatMap((transaction) => {
-						if (typeof transaction === 'string') return []
-						const txHash = hexLowerOfByteSize(transaction.hash ?? '', 32)
+					return block.transactions.flatMap((transaction) => {
+						const txHash = hexLowerOfByteSize(transaction.hash, 32)
 						return txHash == null ?
 							[]
 						:
@@ -366,9 +370,9 @@ export default {
 								},
 							}]
 					})
+					},
 				},
-				}
-			}
+			},
 		})({
 			$$transactions: (transactions) => transactions,
 		}),

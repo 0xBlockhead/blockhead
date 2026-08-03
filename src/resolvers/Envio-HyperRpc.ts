@@ -12,6 +12,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import { envioHyperRpcBinding } from '$/sources/Envio/HyperRpc/transport.ts'
 
 const quantity = (
 	value: string,
@@ -52,12 +53,18 @@ export default {
 				EvmNetworkTxHash: {
 					resolve: async ({ $network, txHash }) => {
 						const {
-							getEvmTransactionByHash,
-							getEvmTransactionReceipt,
-						} = await import('$/sources/Envio/HyperRpc/queries.ts')
+							getTransactionByHash,
+							getTransactionReceipt,
+						} = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
 						const [transaction, receipt] = await Promise.all([
-							getEvmTransactionByHash(txHash),
-							getEvmTransactionReceipt(txHash),
+							getTransactionByHash({
+								binding: envioHyperRpcBinding,
+								txHash,
+							}),
+							getTransactionReceipt({
+								binding: envioHyperRpcBinding,
+								txHash,
+							}),
 						])
 						if (transaction == null)
 							throw new Error(`EnvioHyperRpc_JsonRpc: transaction ${txHash} not found`)

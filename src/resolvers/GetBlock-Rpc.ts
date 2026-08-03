@@ -8,6 +8,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import { getBlockRpcBinding } from '$/sources/GetBlock/Rpc/transport.ts'
 
 const quantity = (
 	value: string,
@@ -55,12 +56,18 @@ export default {
 							throw new Error(`GetBlockRpc_JsonRpc: unsupported network ${$network.caip2.namespace}:${$network.caip2.reference}`)
 
 						const {
-							getEvmTransactionByHash,
-							getEvmTransactionReceipt,
-						} = await import('$/sources/GetBlock/Rpc/queries.ts')
+							getTransactionByHash,
+							getTransactionReceipt,
+						} = await import('$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts')
 						const [transaction, receipt] = await Promise.all([
-							getEvmTransactionByHash(txHash),
-							getEvmTransactionReceipt(txHash),
+							getTransactionByHash({
+								binding: getBlockRpcBinding,
+								txHash,
+							}),
+							getTransactionReceipt({
+								binding: getBlockRpcBinding,
+								txHash,
+							}),
 						])
 						if (transaction == null)
 							throw new Error(`GetBlockRpc_JsonRpc: transaction not found ${txHash}`)
