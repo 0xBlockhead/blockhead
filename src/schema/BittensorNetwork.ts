@@ -5,10 +5,6 @@ import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
-const bittensorJsonRpcSources = [
-	Source.Bittensor_JsonRpc,
-] as const
-
 export default entity({
 	entityType: EntityType.BittensorNetwork,
 	labels: {
@@ -24,17 +20,23 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType.BittensorNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: bittensorJsonRpcSources,
+		defaultSources: [
+			Source.Bittensor_JsonRpc,
+		],
 	},
 	$$blocks: {
 		entityType: EntityType.BittensorBlock,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: bittensorJsonRpcSources,
+		defaultSources: [
+			Source.Bittensor_JsonRpc,
+		],
 	},
 	$$subnets: {
 		entityType: EntityType.BittensorSubnet,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: bittensorJsonRpcSources,
+		defaultSources: [
+			Source.Bittensor_JsonRpc,
+		],
 	},
 })({
 	selectors: {

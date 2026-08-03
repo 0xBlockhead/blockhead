@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const lotusJsonRpcSources = [
-	Source.Lotus_JsonRpc,
-] as const
-
 export default entity({
 	entityType: EntityType.FilecoinSector,
 	labels: {
@@ -28,17 +24,23 @@ export default entity({
 	sealedCid: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	activationEpoch: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	expirationEpoch: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 })({
 	selectors: {

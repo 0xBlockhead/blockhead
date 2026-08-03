@@ -8,69 +8,6 @@ import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const constantsInternalL2BeatRestSources = [
-	Source.Constants_Internal,
-	Source.L2Beat_Rest,
-] as const
-const constantsInternalSources = [
-	Source.Constants_Internal,
-] as const
-const voltaireJsonRpcSources = [
-	Source.Voltaire_JsonRpc,
-] as const
-const blockscoutRestSources = [
-	Source.Blockscout_Rest,
-] as const
-const beaconRestSources = [
-	Source.Beacon_Rest,
-] as const
-const mevRelayRestSources = [
-	Source.MevRelay_Rest,
-] as const
-const cosmosSdkRestSources = [
-	Source.CosmosSdk_Rest,
-] as const
-const polkadotJsonRpcSources = [
-	Source.Polkadot_JsonRpc,
-] as const
-const solanaJsonRpcSources = [
-	Source.Solana_JsonRpc,
-] as const
-const mempoolSpaceRestBlockchairRestSources = [
-	Source.MempoolSpace_Rest,
-	Source.Blockchair_Rest,
-] as const
-const bittensorJsonRpcSources = [
-	Source.Bittensor_JsonRpc,
-] as const
-const zeroGStorageScanRestSources = [
-	Source.ZeroGStorageScan_Rest,
-] as const
-const lotusJsonRpcSources = [
-	Source.Lotus_JsonRpc,
-] as const
-const nearRpcJsonRpcSources = [
-	Source.NearRpc_JsonRpc,
-] as const
-const moneroDaemonRpcJsonRpcSources = [
-	Source.MoneroDaemonRpc_JsonRpc,
-] as const
-const cardanoKoiosRestSources = [
-	Source.CardanoKoios_Rest,
-] as const
-const tronGridRestSources = [
-	Source.TronGrid_Rest,
-] as const
-const xrplRippledSources = [
-	Source.Xrpl_Rippled,
-] as const
-const hederaMirrorNodeRestSources = [
-	Source.HederaMirrorNode_Rest,
-] as const
-const hyperliquidSources = [
-	Source.Hyperliquid,
-] as const
-
 export default entity({
 	entityType: EntityType.Network,
 	labels: {
@@ -101,17 +38,26 @@ export default entity({
 	ledgerModels: {
 		primitiveType: type.enumerated(...Object.values(NetworkLedgerModel)),
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalL2BeatRestSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.L2Beat_Rest,
+		],
 	},
 	executionModels: {
 		primitiveType: type.enumerated(...Object.values(NetworkExecutionModel)),
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalL2BeatRestSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.L2Beat_Rest,
+		],
 	},
 	$networkStack: {
 		entityType: EntityType.NetworkStack,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalL2BeatRestSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.L2Beat_Rest,
+		],
 	},
 	environment: {
 		primitiveType: type('string'),
@@ -177,7 +123,9 @@ export default entity({
 			consensusProtocol: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 			$parent: {
 				entityType: EntityType.Network,
@@ -194,22 +142,30 @@ export default entity({
 			$$upgrades: {
 				entityType: EntityType.EthereumNetworkUpgrade,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 			$$executionUpgrades: {
 				entityType: EntityType.EthereumExecutionUpgrade,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 			$$consensusUpgrades: {
 				entityType: EntityType.EthereumConsensusUpgrade,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 			$$timestamps: {
 				entityType: EntityType.EvmNetwork_Timestamp,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
-				defaultSources: voltaireJsonRpcSources,
+				defaultSources: [
+					Source.Voltaire_JsonRpc,
+				],
 			},
 			$$blocks: {
 				entityType: EntityType.EvmBlock,
@@ -222,17 +178,23 @@ export default entity({
 			$$transactions: {
 				entityType: EntityType.EvmTransaction,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: blockscoutRestSources,
+				defaultSources: [
+					Source.Blockscout_Rest,
+				],
 			},
 			$$txpoolTimestamps: {
 				entityType: EntityType.EvmNetwork_Txpool_Timestamp,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
-				defaultSources: voltaireJsonRpcSources,
+				defaultSources: [
+					Source.Voltaire_JsonRpc,
+				],
 			},
 			$$gasFeeBlocks: {
 				entityType: EntityType.EvmNetwork_GasFee_Block,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
-				defaultSources: voltaireJsonRpcSources,
+				defaultSources: [
+					Source.Voltaire_JsonRpc,
+				],
 			},
 			$$gasEstimateTimestamps: {
 				entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
@@ -259,117 +221,163 @@ export default entity({
 					consensusProtocol: type.enumerated(...Object.values(ConsensusProtocol)),
 				}),
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: beaconRestSources,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 			},
 			$$beaconFinalityTimestamps: {
 				entityType: EntityType.EthereumBeaconFinality_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: beaconRestSources,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 			},
 			$$beaconEpochs: {
 				entityType: EntityType.BeaconEpoch,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: beaconRestSources,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 			},
 			$$beaconSlots: {
 				entityType: EntityType.BeaconSlot,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: beaconRestSources,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 			},
 			$$beaconCommittees: {
 				entityType: EntityType.BeaconCommittee,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: beaconRestSources,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 			},
 			$$beaconSyncCommittees: {
 				entityType: EntityType.BeaconSyncCommittee,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: beaconRestSources,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 			},
 			$$beaconAttestations: {
 				entityType: EntityType.BeaconAttestation,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: beaconRestSources,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 			},
 			$$beaconWithdrawals: {
 				entityType: EntityType.BeaconWithdrawal,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: beaconRestSources,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 			},
 			$$beaconSlashings: {
 				entityType: EntityType.BeaconSlashing,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: beaconRestSources,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 			},
 			$$beaconValidators: {
 				entityType: EntityType.BeaconValidator,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: beaconRestSources,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 			},
 			$$mevRelays: {
 				entityType: EntityType.MevRelay,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 			$$mevBuilders: {
 				entityType: EntityType.MevBuilder,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: mevRelayRestSources,
+				defaultSources: [
+					Source.MevRelay_Rest,
+				],
 			},
 			$$mevProposerPayloadDelivered: {
 				entityType: EntityType.MevRelay_ProposerPayloadDelivered,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: mevRelayRestSources,
+				defaultSources: [
+					Source.MevRelay_Rest,
+				],
 			},
 			$$blobs: {
 				entityType: EntityType.EvmBlob,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: voltaireJsonRpcSources,
+				defaultSources: [
+					Source.Voltaire_JsonRpc,
+				],
 			},
 			$$contracts: {
 				entityType: EntityType.EvmContract,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: blockscoutRestSources,
+				defaultSources: [
+					Source.Blockscout_Rest,
+				],
 			},
 			$$precompiles: {
 				entityType: EntityType.EvmContract,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 			$nativeCoin: {
 				entityType: EntityType.Coin,
 				cardinality: EntityFieldCardinality.ZeroOrOne,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 			$nativeCoinInstance: {
 				entityType: EntityType.EvmCoinInstance,
 				cardinality: EntityFieldCardinality.ZeroOrOne,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 			$$erc4337SmartAccounts: {
 				entityType: EntityType.Erc4337SmartAccount,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: blockscoutRestSources,
+				defaultSources: [
+					Source.Blockscout_Rest,
+				],
 			},
 			$$erc4337Bundlers: {
 				entityType: EntityType.Erc4337Bundler,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: blockscoutRestSources,
+				defaultSources: [
+					Source.Blockscout_Rest,
+				],
 			},
 			$$erc4337Paymasters: {
 				entityType: EntityType.Erc4337Paymaster,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: blockscoutRestSources,
+				defaultSources: [
+					Source.Blockscout_Rest,
+				],
 			},
 			$$erc4337AccountFactories: {
 				entityType: EntityType.Erc4337AccountFactory,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: blockscoutRestSources,
+				defaultSources: [
+					Source.Blockscout_Rest,
+				],
 			},
 			$$userOperations: {
 				entityType: EntityType.EvmUserOperation,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: blockscoutRestSources,
+				defaultSources: [
+					Source.Blockscout_Rest,
+				],
 			},
 			$$bridges: {
 				entityType: EntityType.EvmNetworkBridge,
@@ -378,12 +386,16 @@ export default entity({
 			$$erc20TokenTransfers: {
 				entityType: EntityType.EvmTokenTransfer,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: blockscoutRestSources,
+				defaultSources: [
+					Source.Blockscout_Rest,
+				],
 			},
 			$$nftTokenTransfers: {
 				entityType: EntityType.EvmTokenTransfer,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: blockscoutRestSources,
+				defaultSources: [
+					Source.Blockscout_Rest,
+				],
 			},
 			$$testnets: {
 				entityType: EntityType.Network,
@@ -425,27 +437,37 @@ export default entity({
 					providerName: type('string'),
 				}),
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: cosmosSdkRestSources,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
 			},
 			$$blocks: {
 				entityType: EntityType.CosmosBlock,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: cosmosSdkRestSources,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
 			},
 			$$accounts: {
 				entityType: EntityType.CosmosAccount,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: cosmosSdkRestSources,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
 			},
 			$$validators: {
 				entityType: EntityType.CosmosValidator,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: cosmosSdkRestSources,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
 			},
 			$$governanceProposals: {
 				entityType: EntityType.CosmosGovernanceProposal,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: cosmosSdkRestSources,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
 			},
 		}),
 		Polkadot: facet({
@@ -461,12 +483,16 @@ export default entity({
 					providerName: type('string'),
 				}),
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: polkadotJsonRpcSources,
+				defaultSources: [
+					Source.Polkadot_JsonRpc,
+				],
 			},
 			$$blocks: {
 				entityType: EntityType.PolkadotBlock,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: polkadotJsonRpcSources,
+				defaultSources: [
+					Source.Polkadot_JsonRpc,
+				],
 			},
 			$$validators: {
 				entityType: EntityType.PolkadotValidator,
@@ -489,42 +515,58 @@ export default entity({
 					providerName: type('string'),
 				}),
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: solanaJsonRpcSources,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 			},
 			$$blocks: {
 				entityType: EntityType.SolanaBlock,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: solanaJsonRpcSources,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 			},
 			$$transactions: {
 				entityType: EntityType.SolanaTransaction,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: solanaJsonRpcSources,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 			},
 			$$accounts: {
 				entityType: EntityType.SolanaAccount,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: solanaJsonRpcSources,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 			},
 			$$programs: {
 				entityType: EntityType.SolanaProgram,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: solanaJsonRpcSources,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 			},
 			$$tokenAccounts: {
 				entityType: EntityType.SolanaTokenAccount,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: solanaJsonRpcSources,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 			},
 			$$tokenMints: {
 				entityType: EntityType.SolanaTokenMint,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: solanaJsonRpcSources,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 			},
 			$$validators: {
 				entityType: EntityType.SolanaValidator,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: solanaJsonRpcSources,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 			},
 		}),
 		Utxo: facet({
@@ -536,12 +578,18 @@ export default entity({
 			$$blocks: {
 				entityType: EntityType.UtxoBlock,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: mempoolSpaceRestBlockchairRestSources,
+				defaultSources: [
+					Source.MempoolSpace_Rest,
+					Source.Blockchair_Rest,
+				],
 			},
 			$$transactions: {
 				entityType: EntityType.UtxoTransaction,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: mempoolSpaceRestBlockchairRestSources,
+				defaultSources: [
+					Source.MempoolSpace_Rest,
+					Source.Blockchair_Rest,
+				],
 			},
 		}),
 		CashTokens: facet({
@@ -559,7 +607,9 @@ export default entity({
 			$$shieldedPools: {
 				entityType: EntityType.ZcashShieldedPool,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 		}),
 		Bittensor: facet({
@@ -571,17 +621,23 @@ export default entity({
 			$$timestamps: {
 				entityType: EntityType.BittensorNetwork_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: bittensorJsonRpcSources,
+				defaultSources: [
+					Source.Bittensor_JsonRpc,
+				],
 			},
 			$$blocks: {
 				entityType: EntityType.BittensorBlock,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: bittensorJsonRpcSources,
+				defaultSources: [
+					Source.Bittensor_JsonRpc,
+				],
 			},
 			$$subnets: {
 				entityType: EntityType.BittensorSubnet,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: bittensorJsonRpcSources,
+				defaultSources: [
+					Source.Bittensor_JsonRpc,
+				],
 			},
 		}),
 		ZeroG: facet({
@@ -597,22 +653,30 @@ export default entity({
 			$$timestamps: {
 				entityType: EntityType.ZeroGNetwork_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: zeroGStorageScanRestSources,
+				defaultSources: [
+					Source.ZeroGStorageScan_Rest,
+				],
 			},
 			$$storageNodes: {
 				entityType: EntityType.ZeroGStorageNode,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: zeroGStorageScanRestSources,
+				defaultSources: [
+					Source.ZeroGStorageScan_Rest,
+				],
 			},
 			$$dataBlobs: {
 				entityType: EntityType.ZeroGDataBlob,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: zeroGStorageScanRestSources,
+				defaultSources: [
+					Source.ZeroGStorageScan_Rest,
+				],
 			},
 			$$storageLogEntries: {
 				entityType: EntityType.ZeroGStorageLogEntry,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: zeroGStorageScanRestSources,
+				defaultSources: [
+					Source.ZeroGStorageScan_Rest,
+				],
 			},
 		}),
 		Filecoin: facet({
@@ -628,17 +692,23 @@ export default entity({
 					providerName: type('string'),
 				}),
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: lotusJsonRpcSources,
+				defaultSources: [
+					Source.Lotus_JsonRpc,
+				],
 			},
 			$$timestamps: {
 				entityType: EntityType.FilecoinNetwork_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: lotusJsonRpcSources,
+				defaultSources: [
+					Source.Lotus_JsonRpc,
+				],
 			},
 			$$tipsets: {
 				entityType: EntityType.FilecoinTipset,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: lotusJsonRpcSources,
+				defaultSources: [
+					Source.Lotus_JsonRpc,
+				],
 			},
 		}),
 		Near: facet({
@@ -654,22 +724,30 @@ export default entity({
 					providerName: type('string'),
 				}),
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: nearRpcJsonRpcSources,
+				defaultSources: [
+					Source.NearRpc_JsonRpc,
+				],
 			},
 			$$timestamps: {
 				entityType: EntityType.NearNetwork_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: nearRpcJsonRpcSources,
+				defaultSources: [
+					Source.NearRpc_JsonRpc,
+				],
 			},
 			$$blocks: {
 				entityType: EntityType.NearBlock,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: nearRpcJsonRpcSources,
+				defaultSources: [
+					Source.NearRpc_JsonRpc,
+				],
 			},
 			$$validators: {
 				entityType: EntityType.NearValidator,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: nearRpcJsonRpcSources,
+				defaultSources: [
+					Source.NearRpc_JsonRpc,
+				],
 			},
 		}),
 		Monero: facet({
@@ -685,17 +763,23 @@ export default entity({
 					providerName: type('string'),
 				}),
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: moneroDaemonRpcJsonRpcSources,
+				defaultSources: [
+					Source.MoneroDaemonRpc_JsonRpc,
+				],
 			},
 			$$timestamps: {
 				entityType: EntityType.MoneroNetwork_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: moneroDaemonRpcJsonRpcSources,
+				defaultSources: [
+					Source.MoneroDaemonRpc_JsonRpc,
+				],
 			},
 			$$blocks: {
 				entityType: EntityType.MoneroBlock,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: moneroDaemonRpcJsonRpcSources,
+				defaultSources: [
+					Source.MoneroDaemonRpc_JsonRpc,
+				],
 			},
 		}),
 		Lightning: facet({
@@ -734,52 +818,72 @@ export default entity({
 					providerName: type('string'),
 				}),
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: cardanoKoiosRestSources,
+				defaultSources: [
+					Source.CardanoKoios_Rest,
+				],
 			},
 			$$timestamps: {
 				entityType: EntityType.CardanoNetwork_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: cardanoKoiosRestSources,
+				defaultSources: [
+					Source.CardanoKoios_Rest,
+				],
 			},
 			$$blocks: {
 				entityType: EntityType.CardanoBlock,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: cardanoKoiosRestSources,
+				defaultSources: [
+					Source.CardanoKoios_Rest,
+				],
 			},
 			$$transactions: {
 				entityType: EntityType.CardanoTransaction,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: cardanoKoiosRestSources,
+				defaultSources: [
+					Source.CardanoKoios_Rest,
+				],
 			},
 			$$stakePools: {
 				entityType: EntityType.CardanoStakePool,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: cardanoKoiosRestSources,
+				defaultSources: [
+					Source.CardanoKoios_Rest,
+				],
 			},
 			$$dReps: {
 				entityType: EntityType.CardanoDRep,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: cardanoKoiosRestSources,
+				defaultSources: [
+					Source.CardanoKoios_Rest,
+				],
 			},
 			$$governanceProposals: {
 				entityType: EntityType.CardanoGovernanceProposal,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: cardanoKoiosRestSources,
+				defaultSources: [
+					Source.CardanoKoios_Rest,
+				],
 			},
 			$$assets: {
 				entityType: EntityType.CardanoNativeAsset,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: cardanoKoiosRestSources,
+				defaultSources: [
+					Source.CardanoKoios_Rest,
+				],
 			},
 			$$protocolParameterEpochs: {
 				entityType: EntityType.CardanoProtocolParameters_Epoch,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: cardanoKoiosRestSources,
+				defaultSources: [
+					Source.CardanoKoios_Rest,
+				],
 			},
 			$$committeeEpochs: {
 				entityType: EntityType.CardanoCommittee_Epoch,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: cardanoKoiosRestSources,
+				defaultSources: [
+					Source.CardanoKoios_Rest,
+				],
 			},
 		}),
 		Tron: facet({
@@ -795,22 +899,30 @@ export default entity({
 					providerName: type('string'),
 				}),
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: tronGridRestSources,
+				defaultSources: [
+					Source.TronGrid_Rest,
+				],
 			},
 			$$timestamps: {
 				entityType: EntityType.TronNetwork_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: tronGridRestSources,
+				defaultSources: [
+					Source.TronGrid_Rest,
+				],
 			},
 			$$blocks: {
 				entityType: EntityType.TronBlock,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: tronGridRestSources,
+				defaultSources: [
+					Source.TronGrid_Rest,
+				],
 			},
 			$$witnesses: {
 				entityType: EntityType.TronWitness,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: tronGridRestSources,
+				defaultSources: [
+					Source.TronGrid_Rest,
+				],
 			},
 		}),
 		Ton: facet({
@@ -876,32 +988,44 @@ export default entity({
 			$$accounts: {
 				entityType: EntityType.XrplAccount,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: xrplRippledSources,
+				defaultSources: [
+					Source.Xrpl_Rippled,
+				],
 			},
 			$$amendments: {
 				entityType: EntityType.XrplAmendment,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: xrplRippledSources,
+				defaultSources: [
+					Source.Xrpl_Rippled,
+				],
 			},
 			$$amms: {
 				entityType: EntityType.XrplAmm,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: xrplRippledSources,
+				defaultSources: [
+					Source.Xrpl_Rippled,
+				],
 			},
 			$$ledgerEntries: {
 				entityType: EntityType.XrplLedgerEntry,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: xrplRippledSources,
+				defaultSources: [
+					Source.Xrpl_Rippled,
+				],
 			},
 			$$ledgers: {
 				entityType: EntityType.XrplLedger,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: xrplRippledSources,
+				defaultSources: [
+					Source.Xrpl_Rippled,
+				],
 			},
 			$$transactions: {
 				entityType: EntityType.XrplTransaction,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: xrplRippledSources,
+				defaultSources: [
+					Source.Xrpl_Rippled,
+				],
 			},
 		}),
 		Hedera: facet({
@@ -921,12 +1045,16 @@ export default entity({
 			$$blocks: {
 				entityType: EntityType.HederaBlock,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: hederaMirrorNodeRestSources,
+				defaultSources: [
+					Source.HederaMirrorNode_Rest,
+				],
 			},
 			$$accounts: {
 				entityType: EntityType.HederaAccount,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: hederaMirrorNodeRestSources,
+				defaultSources: [
+					Source.HederaMirrorNode_Rest,
+				],
 			},
 		}),
 		Hyperliquid: facet({
@@ -942,7 +1070,9 @@ export default entity({
 					providerName: type('string'),
 				}),
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: hyperliquidSources,
+				defaultSources: [
+					Source.Hyperliquid,
+				],
 			},
 			restEndpoints: {
 				primitiveType: type({
@@ -951,37 +1081,51 @@ export default entity({
 					providerName: type('string'),
 				}),
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: hyperliquidSources,
+				defaultSources: [
+					Source.Hyperliquid,
+				],
 			},
 			$$timestamps: {
 				entityType: EntityType.HyperliquidNetwork_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: hyperliquidSources,
+				defaultSources: [
+					Source.Hyperliquid,
+				],
 			},
 			$$blocks: {
 				entityType: EntityType.HyperliquidBlock,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: hyperliquidSources,
+				defaultSources: [
+					Source.Hyperliquid,
+				],
 			},
 			$$transactions: {
 				entityType: EntityType.HyperliquidTransaction,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: hyperliquidSources,
+				defaultSources: [
+					Source.Hyperliquid,
+				],
 			},
 			$$validators: {
 				entityType: EntityType.HyperliquidValidator,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: hyperliquidSources,
+				defaultSources: [
+					Source.Hyperliquid,
+				],
 			},
 			$$spotAssets: {
 				entityType: EntityType.HyperliquidSpotAsset,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: hyperliquidSources,
+				defaultSources: [
+					Source.Hyperliquid,
+				],
 			},
 			$$perpMarkets: {
 				entityType: EntityType.HyperliquidPerpMarket,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: hyperliquidSources,
+				defaultSources: [
+					Source.Hyperliquid,
+				],
 			},
 		}),
 	},

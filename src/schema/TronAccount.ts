@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const tronScanRestSources = [
-	Source.TronScan_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.TronAccount,
 	labels: {
@@ -28,12 +24,16 @@ export default entity({
 	name: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronScanRestSources,
+		defaultSources: [
+			Source.TronScan_Rest,
+		],
 	},
 	$contract: {
 		entityType: EntityType.TronContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronScanRestSources,
+		defaultSources: [
+			Source.TronScan_Rest,
+		],
 	},
 	$$timestamps: {
 		entityType: EntityType.TronAccount_Timestamp,
@@ -48,7 +48,9 @@ export default entity({
 	$$tokenBalanceTimestamps: {
 		entityType: EntityType.TronAccountTokenBalance_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: tronScanRestSources,
+		defaultSources: [
+			Source.TronScan_Rest,
+		],
 	},
 	$$transactions: {
 		entityType: EntityType.TronTransaction,

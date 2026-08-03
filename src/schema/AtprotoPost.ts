@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const atprotoXrpcSources = [
-	Source.Atproto_Xrpc,
-] as const
-
 export default entity({
 	entityType: EntityType.AtprotoPost,
 	labels: {
@@ -57,12 +53,16 @@ export default entity({
 	$$thread: {
 		entityType: EntityType.AtprotoPost,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: atprotoXrpcSources,
+		defaultSources: [
+			Source.Atproto_Xrpc,
+		],
 	},
 	$$timestamps: {
 		entityType: EntityType.AtprotoPost_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: atprotoXrpcSources,
+		defaultSources: [
+			Source.Atproto_Xrpc,
+		],
 	},
 })({
 	selectors: {

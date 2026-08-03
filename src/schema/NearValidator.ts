@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const nearRpcJsonRpcSources = [
-	Source.NearRpc_JsonRpc,
-] as const
-
 export default entity({
 	entityType: EntityType.NearValidator,
 	labels: {
@@ -28,37 +24,51 @@ export default entity({
 	publicKey: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: nearRpcJsonRpcSources,
+		defaultSources: [
+			Source.NearRpc_JsonRpc,
+		],
 	},
 	stakeYoctoNear: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: nearRpcJsonRpcSources,
+		defaultSources: [
+			Source.NearRpc_JsonRpc,
+		],
 	},
 	isSlashed: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: nearRpcJsonRpcSources,
+		defaultSources: [
+			Source.NearRpc_JsonRpc,
+		],
 	},
 	expectedBlocks: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: nearRpcJsonRpcSources,
+		defaultSources: [
+			Source.NearRpc_JsonRpc,
+		],
 	},
 	producedBlocks: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: nearRpcJsonRpcSources,
+		defaultSources: [
+			Source.NearRpc_JsonRpc,
+		],
 	},
 	expectedChunks: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: nearRpcJsonRpcSources,
+		defaultSources: [
+			Source.NearRpc_JsonRpc,
+		],
 	},
 	producedChunks: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: nearRpcJsonRpcSources,
+		defaultSources: [
+			Source.NearRpc_JsonRpc,
+		],
 	},
 })({
 	selectors: {

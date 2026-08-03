@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const solanaJsonRpcSources = [
-	Source.Solana_JsonRpc,
-] as const
-
 export default entity({
 	entityType: EntityType.SolanaValidator_Timestamp,
 	labels: {
@@ -36,37 +32,51 @@ export default entity({
 	nodePubkey: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: solanaJsonRpcSources,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+		],
 	},
 	activatedStakeLamports: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: solanaJsonRpcSources,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+		],
 	},
 	commission: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: solanaJsonRpcSources,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+		],
 	},
 	delinquent: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: solanaJsonRpcSources,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+		],
 	},
 	lastVoteSlot: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: solanaJsonRpcSources,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+		],
 	},
 	rootSlot: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: solanaJsonRpcSources,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+		],
 	},
 	epochCredits: {
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: solanaJsonRpcSources,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+		],
 	},
 })({
 	selectors: {

@@ -6,16 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const constantsInternalNostrRelayWebSocketSources = [
-	Source.Constants_Internal,
-	Source.NostrRelay_WebSocket,
-] as const
-const constantsInternalNostrRelayWebSocketPrimalRestSources = [
-	Source.Constants_Internal,
-	Source.NostrRelay_WebSocket,
-	Source.Primal_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.NostrNote,
 	labels: {
@@ -31,32 +21,52 @@ export default entity({
 	kind: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: constantsInternalNostrRelayWebSocketSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.NostrRelay_WebSocket,
+		],
 	},
 	pubkey: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: constantsInternalNostrRelayWebSocketSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.NostrRelay_WebSocket,
+		],
 	},
 	content: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalNostrRelayWebSocketSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.NostrRelay_WebSocket,
+		],
 	},
 	sensitive: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalNostrRelayWebSocketPrimalRestSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.NostrRelay_WebSocket,
+			Source.Primal_Rest,
+		],
 	},
 	contentWarning: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalNostrRelayWebSocketPrimalRestSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.NostrRelay_WebSocket,
+			Source.Primal_Rest,
+		],
 	},
 	createdAt: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalNostrRelayWebSocketSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.NostrRelay_WebSocket,
+		],
 	},
 	tags: {
 		primitiveType: type('unknown'),
@@ -65,37 +75,60 @@ export default entity({
 	$author: {
 		entityType: EntityType.NostrProfile,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalNostrRelayWebSocketSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.NostrRelay_WebSocket,
+		],
 	},
 	replyToEventId: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalNostrRelayWebSocketSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.NostrRelay_WebSocket,
+		],
 	},
 	rootEventId: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalNostrRelayWebSocketSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.NostrRelay_WebSocket,
+		],
 	},
 	$replyToNote: {
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalNostrRelayWebSocketPrimalRestSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.NostrRelay_WebSocket,
+			Source.Primal_Rest,
+		],
 	},
 	$rootNote: {
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalNostrRelayWebSocketPrimalRestSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.NostrRelay_WebSocket,
+			Source.Primal_Rest,
+		],
 	},
 	$$replies: {
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalNostrRelayWebSocketSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.NostrRelay_WebSocket,
+		],
 	},
 	$$reactions: {
 		entityType: EntityType.NostrReaction,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalNostrRelayWebSocketSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.NostrRelay_WebSocket,
+		],
 	},
 })({
 	selectors: {

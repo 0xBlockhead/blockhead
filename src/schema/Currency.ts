@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const constantsInternalSources = [
-	Source.Constants_Internal,
-] as const
-
 export default entity({
 	entityType: EntityType.Currency,
 	labels: {
@@ -45,12 +41,16 @@ export default entity({
 	$$marketsWithCurrencyAsBase: {
 		entityType: EntityType.Market,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$marketsWithCurrencyAsQuote: {
 		entityType: EntityType.Market,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 })({
 	selectors: {

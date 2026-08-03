@@ -6,12 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const constantsInternalYoutubeRestPipedRestSources = [
-	Source.Constants_Internal,
-	Source.Youtube_Rest,
-	Source.Piped_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType._GlobalYoutubeNetwork,
 	labels: {
@@ -26,12 +20,20 @@ export default entity({
 	$$observedChannels: {
 		entityType: EntityType.YoutubeChannel,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalYoutubeRestPipedRestSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.Youtube_Rest,
+			Source.Piped_Rest,
+		],
 	},
 	$$observedVideos: {
 		entityType: EntityType.YoutubeVideo,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalYoutubeRestPipedRestSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.Youtube_Rest,
+			Source.Piped_Rest,
+		],
 	},
 	$$observedPlaylists: {
 		entityType: EntityType.YoutubePlaylist,

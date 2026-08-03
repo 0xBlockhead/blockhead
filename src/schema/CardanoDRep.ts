@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const blockfrostRestSources = [
-	Source.Blockfrost_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.CardanoDRep,
 	labels: {
@@ -28,22 +24,30 @@ export default entity({
 	credentialKind: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	displayName: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	anchorUrl: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	anchorHash: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	$$timestamps: {
 		entityType: EntityType.CardanoDRep_Timestamp,
@@ -52,7 +56,9 @@ export default entity({
 	$$votes: {
 		entityType: EntityType.CardanoGovernanceVote,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 })({
 	selectors: {

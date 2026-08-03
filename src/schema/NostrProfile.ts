@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const nostrRelayWebSocketSources = [
-	Source.NostrRelay_WebSocket,
-] as const
-
 export default entity({
 	entityType: EntityType.NostrProfile,
 	labels: {
@@ -48,12 +44,16 @@ export default entity({
 	$$articles: {
 		entityType: EntityType.NostrArticle,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: nostrRelayWebSocketSources,
+		defaultSources: [
+			Source.NostrRelay_WebSocket,
+		],
 	},
 	$$reposts: {
 		entityType: EntityType.NostrRepost,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: nostrRelayWebSocketSources,
+		defaultSources: [
+			Source.NostrRelay_WebSocket,
+		],
 	},
 })({
 	selectors: {

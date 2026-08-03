@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const nearRpcJsonRpcSources = [
-	Source.NearRpc_JsonRpc,
-] as const
-
 export default entity({
 	entityType: EntityType.NearAccount,
 	labels: {
@@ -36,17 +32,23 @@ export default entity({
 	storageUsageBytes: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: nearRpcJsonRpcSources,
+		defaultSources: [
+			Source.NearRpc_JsonRpc,
+		],
 	},
 	$contract: {
 		entityType: EntityType.NearContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: nearRpcJsonRpcSources,
+		defaultSources: [
+			Source.NearRpc_JsonRpc,
+		],
 	},
 	$$accessKeys: {
 		entityType: EntityType.NearAccessKey,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: nearRpcJsonRpcSources,
+		defaultSources: [
+			Source.NearRpc_JsonRpc,
+		],
 	},
 })({
 	selectors: {

@@ -6,14 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const getBlockYellowstoneGrpcSources = [
-	Source.GetBlockYellowstone_Grpc,
-] as const
-const getBlockYellowstoneGrpcSolanaJsonRpcSources = [
-	Source.GetBlockYellowstone_Grpc,
-	Source.Solana_JsonRpc,
-] as const
-
 export default entity({
 	entityType: EntityType.SolanaAccount_Timestamp,
 	labels: {
@@ -36,37 +28,56 @@ export default entity({
 	timestampMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: getBlockYellowstoneGrpcSources,
+		defaultSources: [
+			Source.GetBlockYellowstone_Grpc,
+		],
 	},
 	lamports: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: getBlockYellowstoneGrpcSolanaJsonRpcSources,
+		defaultSources: [
+			Source.GetBlockYellowstone_Grpc,
+			Source.Solana_JsonRpc,
+		],
 	},
 	$ownerProgram: {
 		entityType: EntityType.SolanaProgram,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: getBlockYellowstoneGrpcSolanaJsonRpcSources,
+		defaultSources: [
+			Source.GetBlockYellowstone_Grpc,
+			Source.Solana_JsonRpc,
+		],
 	},
 	executable: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: getBlockYellowstoneGrpcSolanaJsonRpcSources,
+		defaultSources: [
+			Source.GetBlockYellowstone_Grpc,
+			Source.Solana_JsonRpc,
+		],
 	},
 	rentEpoch: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: getBlockYellowstoneGrpcSolanaJsonRpcSources,
+		defaultSources: [
+			Source.GetBlockYellowstone_Grpc,
+			Source.Solana_JsonRpc,
+		],
 	},
 	spaceBytes: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: getBlockYellowstoneGrpcSources,
+		defaultSources: [
+			Source.GetBlockYellowstone_Grpc,
+		],
 	},
 	dataEncoding: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: getBlockYellowstoneGrpcSolanaJsonRpcSources,
+		defaultSources: [
+			Source.GetBlockYellowstone_Grpc,
+			Source.Solana_JsonRpc,
+		],
 	},
 	parsedData: {
 		primitiveType: type('unknown'),

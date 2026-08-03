@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const snapchainRestSources = [
-	Source.Snapchain_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.FarcasterCastEmbed,
 	labels: {
@@ -28,37 +24,51 @@ export default entity({
 	url: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: snapchainRestSources,
+		defaultSources: [
+			Source.Snapchain_Rest,
+		],
 	},
 	$embeddedCast: {
 		entityType: EntityType.FarcasterCast,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: snapchainRestSources,
+		defaultSources: [
+			Source.Snapchain_Rest,
+		],
 	},
 	title: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: snapchainRestSources,
+		defaultSources: [
+			Source.Snapchain_Rest,
+		],
 	},
 	description: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: snapchainRestSources,
+		defaultSources: [
+			Source.Snapchain_Rest,
+		],
 	},
 	iconUrl: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: snapchainRestSources,
+		defaultSources: [
+			Source.Snapchain_Rest,
+		],
 	},
 	$icon: {
 		entityType: EntityType.Media,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: snapchainRestSources,
+		defaultSources: [
+			Source.Snapchain_Rest,
+		],
 	},
 	quotedPreviewText: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: snapchainRestSources,
+		defaultSources: [
+			Source.Snapchain_Rest,
+		],
 	},
 })({
 	selectors: {

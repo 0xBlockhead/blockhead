@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const cashuMintRestSources = [
-	Source.CashuMint_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.CashuMint,
 	labels: {
@@ -24,12 +20,16 @@ export default entity({
 	$$keysets: {
 		entityType: EntityType.CashuKeyset,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: cashuMintRestSources,
+		defaultSources: [
+			Source.CashuMint_Rest,
+		],
 	},
 	$$timestamps: {
 		entityType: EntityType.CashuMint_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: cashuMintRestSources,
+		defaultSources: [
+			Source.CashuMint_Rest,
+		],
 	},
 })({
 	selectors: {

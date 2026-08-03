@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const xFxEmbedRestSources = [
-	Source.X_FxEmbed_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.XNetwork,
 	labels: {
@@ -45,12 +41,16 @@ export default entity({
 	$$xUsers: {
 		entityType: EntityType.XUser,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: xFxEmbedRestSources,
+		defaultSources: [
+			Source.X_FxEmbed_Rest,
+		],
 	},
 	$$xPosts: {
 		entityType: EntityType.XPost,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: xFxEmbedRestSources,
+		defaultSources: [
+			Source.X_FxEmbed_Rest,
+		],
 	},
 })({
 	selectors: {

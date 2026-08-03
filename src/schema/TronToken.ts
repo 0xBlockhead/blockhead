@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const tronScanRestSources = [
-	Source.TronScan_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.TronToken,
 	labels: {
@@ -28,22 +24,30 @@ export default entity({
 	standard: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronScanRestSources,
+		defaultSources: [
+			Source.TronScan_Rest,
+		],
 	},
 	$owner: {
 		entityType: EntityType.TronAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronScanRestSources,
+		defaultSources: [
+			Source.TronScan_Rest,
+		],
 	},
 	$contract: {
 		entityType: EntityType.TronContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronScanRestSources,
+		defaultSources: [
+			Source.TronScan_Rest,
+		],
 	},
 	createdTimestampMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronScanRestSources,
+		defaultSources: [
+			Source.TronScan_Rest,
+		],
 	},
 	$$accountBalanceTimestamps: {
 		entityType: EntityType.TronAccountTokenBalance_Timestamp,
@@ -52,7 +56,9 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType.TronToken_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: tronScanRestSources,
+		defaultSources: [
+			Source.TronScan_Rest,
+		],
 	},
 })({
 	selectors: {

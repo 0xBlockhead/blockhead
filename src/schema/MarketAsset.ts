@@ -7,10 +7,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const constantsInternalSources = [
-	Source.Constants_Internal,
-] as const
-
 export default entity({
 	entityType: EntityType.MarketAsset,
 	labels: {
@@ -44,7 +40,9 @@ export default entity({
 			$coin: {
 				entityType: EntityType.Coin,
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 		}),
 		CoinInstance: facet({
@@ -67,7 +65,9 @@ export default entity({
 			$currency: {
 				entityType: EntityType.Currency,
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 		}),
 	},

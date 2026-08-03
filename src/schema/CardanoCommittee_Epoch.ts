@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const blockfrostRestSources = [
-	Source.Blockfrost_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.CardanoCommittee_Epoch,
 	labels: {
@@ -36,32 +32,44 @@ export default entity({
 	govActionId: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	$seatingProposal: {
 		entityType: EntityType.CardanoGovernanceProposal,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	dissolved: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	quorumNumerator: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	quorumDenominator: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	memberCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	members: {
 		primitiveType: type({
@@ -75,7 +83,9 @@ export default entity({
 			expiration_epoch: type('number'),
 		}),
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	threshold: {
 		primitiveType: type('unknown'),
@@ -84,7 +94,9 @@ export default entity({
 	$$votes: {
 		entityType: EntityType.CardanoGovernanceVote,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 })({
 	selectors: {

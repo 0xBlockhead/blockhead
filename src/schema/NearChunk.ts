@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const nearRpcJsonRpcSources = [
-	Source.NearRpc_JsonRpc,
-] as const
-
 export default entity({
 	entityType: EntityType.NearChunk,
 	labels: {
@@ -32,17 +28,23 @@ export default entity({
 	shardId: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: nearRpcJsonRpcSources,
+		defaultSources: [
+			Source.NearRpc_JsonRpc,
+		],
 	},
 	gasUsed: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: nearRpcJsonRpcSources,
+		defaultSources: [
+			Source.NearRpc_JsonRpc,
+		],
 	},
 	$$transactions: {
 		entityType: EntityType.NearTransaction,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: nearRpcJsonRpcSources,
+		defaultSources: [
+			Source.NearRpc_JsonRpc,
+		],
 	},
 })({
 	selectors: {

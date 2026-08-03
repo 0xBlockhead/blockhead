@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const lightningLndRestSources = [
-	Source.LightningLnd_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.BlockheadLightningPayment_Timestamp,
 	labels: {
@@ -32,22 +28,30 @@ export default entity({
 	status: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lightningLndRestSources,
+		defaultSources: [
+			Source.LightningLnd_Rest,
+		],
 	},
 	feeMsat: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lightningLndRestSources,
+		defaultSources: [
+			Source.LightningLnd_Rest,
+		],
 	},
 	failureReason: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lightningLndRestSources,
+		defaultSources: [
+			Source.LightningLnd_Rest,
+		],
 	},
 	preimage: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lightningLndRestSources,
+		defaultSources: [
+			Source.LightningLnd_Rest,
+		],
 	},
 })({
 	selectors: {

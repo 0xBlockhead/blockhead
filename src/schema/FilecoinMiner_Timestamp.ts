@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const lotusJsonRpcSources = [
-	Source.Lotus_JsonRpc,
-] as const
-
 export default entity({
 	entityType: EntityType.FilecoinMiner_Timestamp,
 	labels: {
@@ -40,57 +36,79 @@ export default entity({
 	$tipset: {
 		entityType: EntityType.FilecoinTipset,
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	$owner: {
 		entityType: EntityType.FilecoinActor,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	$worker: {
 		entityType: EntityType.FilecoinActor,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	peerId: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	rawBytePower: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	qualityAdjustedPower: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	networkRawBytePower: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	networkQualityAdjustedPower: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	activeSectorCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	liveSectorCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	faultySectorCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 })({
 	selectors: {

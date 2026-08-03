@@ -6,13 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const constantsInternalSources = [
-	Source.Constants_Internal,
-] as const
-const esploraRestSources = [
-	Source.Esplora_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.ElementsNetwork,
 	labels: {
@@ -28,32 +21,44 @@ export default entity({
 	$settlementNetwork: {
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	federationName: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	blockTimeSeconds: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$nativeAsset: {
 		entityType: EntityType.ElementsAsset,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: esploraRestSources,
+		defaultSources: [
+			Source.Esplora_Rest,
+		],
 	},
 	confidentialTransactionsDefault: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$assets: {
 		entityType: EntityType.ElementsAsset,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: esploraRestSources,
+		defaultSources: [
+			Source.Esplora_Rest,
+		],
 	},
 })({
 	selectors: {

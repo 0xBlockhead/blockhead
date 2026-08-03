@@ -6,18 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const tronGridRestTronFullNodeRestTronSolidityNodeRestTronScanRestSources = [
-	Source.TronGrid_Rest,
-	Source.TronFullNode_Rest,
-	Source.TronSolidityNode_Rest,
-	Source.TronScan_Rest,
-] as const
-const tronGridRestTronFullNodeRestTronSolidityNodeRestSources = [
-	Source.TronGrid_Rest,
-	Source.TronFullNode_Rest,
-	Source.TronSolidityNode_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.TronTransactionReceipt,
 	labels: {
@@ -32,12 +20,22 @@ export default entity({
 	feeSun: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestTronScanRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+			Source.TronScan_Rest,
+		],
 	},
 	result: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestTronScanRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+			Source.TronScan_Rest,
+		],
 	},
 	resMessageHex: {
 		primitiveType: type('string'),
@@ -58,7 +56,11 @@ export default entity({
 	energyUsageTotal: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+		],
 	},
 	energyFeeSun: {
 		primitiveType: type('bigint'),
@@ -71,7 +73,11 @@ export default entity({
 	netUsage: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+		],
 	},
 	netFeeSun: {
 		primitiveType: type('bigint'),
@@ -88,7 +94,11 @@ export default entity({
 	contractResultHex: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+		],
 	},
 })({
 	selectors: {

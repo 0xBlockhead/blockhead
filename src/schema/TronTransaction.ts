@@ -6,28 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const tronGridRestTronFullNodeRestTronSolidityNodeRestTronScanRestThreeXplRestSources = [
-	Source.TronGrid_Rest,
-	Source.TronFullNode_Rest,
-	Source.TronSolidityNode_Rest,
-	Source.TronScan_Rest,
-	Source.ThreeXpl_Rest,
-] as const
-const tronGridRestTronFullNodeRestTronSolidityNodeRestSources = [
-	Source.TronGrid_Rest,
-	Source.TronFullNode_Rest,
-	Source.TronSolidityNode_Rest,
-] as const
-const tronGridRestTronFullNodeRestTronSolidityNodeRestTronScanRestSources = [
-	Source.TronGrid_Rest,
-	Source.TronFullNode_Rest,
-	Source.TronSolidityNode_Rest,
-	Source.TronScan_Rest,
-] as const
-const tronScanRestSources = [
-	Source.TronScan_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.TronTransaction,
 	labels: {
@@ -56,77 +34,145 @@ export default entity({
 	blockHeight: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestTronScanRestThreeXplRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+			Source.TronScan_Rest,
+			Source.ThreeXpl_Rest,
+		],
 	},
 	timestampMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestTronScanRestThreeXplRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+			Source.TronScan_Rest,
+			Source.ThreeXpl_Rest,
+		],
 	},
 	expirationTimestampMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+		],
 	},
 	contractType: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestTronScanRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+			Source.TronScan_Rest,
+		],
 	},
 	result: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestTronScanRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+			Source.TronScan_Rest,
+		],
 	},
 	feeSun: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronScanRestSources,
+		defaultSources: [
+			Source.TronScan_Rest,
+		],
 	},
 	$owner: {
 		entityType: EntityType.TronAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestTronScanRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+			Source.TronScan_Rest,
+		],
 	},
 	$to: {
 		entityType: EntityType.TronAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestTronScanRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+			Source.TronScan_Rest,
+		],
 	},
 	$contract: {
 		entityType: EntityType.TronContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestTronScanRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+			Source.TronScan_Rest,
+		],
 	},
 	amountSun: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestTronScanRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+			Source.TronScan_Rest,
+		],
 	},
 	assetName: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestTronScanRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+			Source.TronScan_Rest,
+		],
 	},
 	rawDataHex: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+		],
 	},
 	signatures: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+		],
 	},
 	$receipt: {
 		entityType: EntityType.TronTransactionReceipt,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestTronScanRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+			Source.TronScan_Rest,
+		],
 	},
 	$$tokenTransfers: {
 		entityType: EntityType.TronTokenTransfer,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: tronScanRestSources,
+		defaultSources: [
+			Source.TronScan_Rest,
+		],
 	},
 })({
 	selectors: {

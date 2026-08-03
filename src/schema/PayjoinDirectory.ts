@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const payjoinDirectoryRestSources = [
-	Source.PayjoinDirectory_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.PayjoinDirectory,
 	labels: {
@@ -24,12 +20,16 @@ export default entity({
 	ohttpGatewayUrl: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: payjoinDirectoryRestSources,
+		defaultSources: [
+			Source.PayjoinDirectory_Rest,
+		],
 	},
 	ohttpKeyConfig: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: payjoinDirectoryRestSources,
+		defaultSources: [
+			Source.PayjoinDirectory_Rest,
+		],
 	},
 	maxPayloadBytes: {
 		primitiveType: type('number'),

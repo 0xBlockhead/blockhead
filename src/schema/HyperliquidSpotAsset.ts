@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const hyperliquidSources = [
-	Source.Hyperliquid,
-] as const
-
 export default entity({
 	entityType: EntityType.HyperliquidSpotAsset,
 	labels: {
@@ -28,22 +24,30 @@ export default entity({
 	name: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: hyperliquidSources,
+		defaultSources: [
+			Source.Hyperliquid,
+		],
 	},
 	szDecimals: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: hyperliquidSources,
+		defaultSources: [
+			Source.Hyperliquid,
+		],
 	},
 	weiDecimals: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: hyperliquidSources,
+		defaultSources: [
+			Source.Hyperliquid,
+		],
 	},
 	tokenId: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: hyperliquidSources,
+		defaultSources: [
+			Source.Hyperliquid,
+		],
 	},
 	$$basePairs: {
 		entityType: EntityType.HyperliquidSpotPair,

@@ -6,11 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const xRestXFxEmbedRestSources = [
-	Source.X_Rest,
-	Source.X_FxEmbed_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.XUser,
 	labels: {
@@ -61,12 +56,18 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType.XUser_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: xRestXFxEmbedRestSources,
+		defaultSources: [
+			Source.X_Rest,
+			Source.X_FxEmbed_Rest,
+		],
 	},
 	$$posts: {
 		entityType: EntityType.XPost,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: xRestXFxEmbedRestSources,
+		defaultSources: [
+			Source.X_Rest,
+			Source.X_FxEmbed_Rest,
+		],
 	},
 })({
 	selectors: {

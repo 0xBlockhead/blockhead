@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const nostrRelayWebSocketSources = [
-	Source.NostrRelay_WebSocket,
-] as const
-
 export default entity({
 	entityType: EntityType.NostrSearchQuery,
 	labels: {
@@ -25,17 +21,23 @@ export default entity({
 	resultCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: nostrRelayWebSocketSources,
+		defaultSources: [
+			Source.NostrRelay_WebSocket,
+		],
 	},
 	completed: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: nostrRelayWebSocketSources,
+		defaultSources: [
+			Source.NostrRelay_WebSocket,
+		],
 	},
 	$$profiles: {
 		entityType: EntityType.NostrProfile,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: nostrRelayWebSocketSources,
+		defaultSources: [
+			Source.NostrRelay_WebSocket,
+		],
 	},
 })({
 	selectors: {

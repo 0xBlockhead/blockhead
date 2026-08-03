@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const moneroDaemonRpcJsonRpcSources = [
-	Source.MoneroDaemonRpc_JsonRpc,
-] as const
-
 export default entity({
 	entityType: EntityType.MoneroTransaction,
 	labels: {
@@ -28,32 +24,44 @@ export default entity({
 	$block: {
 		entityType: EntityType.MoneroBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: moneroDaemonRpcJsonRpcSources,
+		defaultSources: [
+			Source.MoneroDaemonRpc_JsonRpc,
+		],
 	},
 	version: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: moneroDaemonRpcJsonRpcSources,
+		defaultSources: [
+			Source.MoneroDaemonRpc_JsonRpc,
+		],
 	},
 	unlockTime: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: moneroDaemonRpcJsonRpcSources,
+		defaultSources: [
+			Source.MoneroDaemonRpc_JsonRpc,
+		],
 	},
 	feeAtomicUnits: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: moneroDaemonRpcJsonRpcSources,
+		defaultSources: [
+			Source.MoneroDaemonRpc_JsonRpc,
+		],
 	},
 	$$keyImages: {
 		entityType: EntityType.MoneroKeyImage,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: moneroDaemonRpcJsonRpcSources,
+		defaultSources: [
+			Source.MoneroDaemonRpc_JsonRpc,
+		],
 	},
 	$$stealthOutputs: {
 		entityType: EntityType.MoneroStealthOutput,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: moneroDaemonRpcJsonRpcSources,
+		defaultSources: [
+			Source.MoneroDaemonRpc_JsonRpc,
+		],
 	},
 })({
 	selectors: {

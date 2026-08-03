@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const moneroDaemonRpcJsonRpcSources = [
-	Source.MoneroDaemonRpc_JsonRpc,
-] as const
-
 export default entity({
 	entityType: EntityType.MoneroStealthOutput,
 	labels: {
@@ -28,12 +24,16 @@ export default entity({
 	publicKey: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: moneroDaemonRpcJsonRpcSources,
+		defaultSources: [
+			Source.MoneroDaemonRpc_JsonRpc,
+		],
 	},
 	commitment: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: moneroDaemonRpcJsonRpcSources,
+		defaultSources: [
+			Source.MoneroDaemonRpc_JsonRpc,
+		],
 	},
 })({
 	selectors: {

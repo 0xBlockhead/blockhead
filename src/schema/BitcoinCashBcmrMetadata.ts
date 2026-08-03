@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const bitcoinCashBcmrGithubSources = [
-	Source.BitcoinCashBcmr_Github,
-] as const
-
 export default entity({
 	entityType: EntityType.BitcoinCashBcmrMetadata,
 	labels: {
@@ -32,22 +28,30 @@ export default entity({
 	name: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: bitcoinCashBcmrGithubSources,
+		defaultSources: [
+			Source.BitcoinCashBcmr_Github,
+		],
 	},
 	description: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: bitcoinCashBcmrGithubSources,
+		defaultSources: [
+			Source.BitcoinCashBcmr_Github,
+		],
 	},
 	symbol: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: bitcoinCashBcmrGithubSources,
+		defaultSources: [
+			Source.BitcoinCashBcmr_Github,
+		],
 	},
 	decimals: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: bitcoinCashBcmrGithubSources,
+		defaultSources: [
+			Source.BitcoinCashBcmr_Github,
+		],
 	},
 })({
 	selectors: {

@@ -8,24 +8,6 @@ import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const constantsInternalSources = [
-	Source.Constants_Internal,
-] as const
-const constantsInternalCoingeckoRestSources = [
-	Source.Constants_Internal,
-	Source.Coingecko_Rest,
-] as const
-const coingeckoRestSources = [
-	Source.Coingecko_Rest,
-] as const
-const lifiRestSources = [
-	Source.Lifi_Rest,
-] as const
-const blockscoutRestConstantsInternalSources = [
-	Source.Blockscout_Rest,
-	Source.Constants_Internal,
-] as const
-
 export default entity({
 	entityType: EntityType.EvmCoinInstance,
 	labels: {
@@ -68,22 +50,30 @@ export default entity({
 			coinId: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 			name: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 			symbol: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 			decimals: {
 				primitiveType: type('number'),
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 			iconUrl: {
 				primitiveType: UrlString,
@@ -96,27 +86,38 @@ export default entity({
 			caip19: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 			representation: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
-				defaultSources: constantsInternalCoingeckoRestSources,
+				defaultSources: [
+					Source.Constants_Internal,
+					Source.Coingecko_Rest,
+				],
 			},
 			$canonicalInstance: {
 				entityType: EntityType.EvmCoinInstance,
 				cardinality: EntityFieldCardinality.ZeroOrOne,
-				defaultSources: coingeckoRestSources,
+				defaultSources: [
+					Source.Coingecko_Rest,
+				],
 			},
 			$$outboundBridgeCapabilities: {
 				entityType: EntityType.CoinBridgeCapability,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
-				defaultSources: lifiRestSources,
+				defaultSources: [
+					Source.Lifi_Rest,
+				],
 			},
 			$$inboundBridgeCapabilities: {
 				entityType: EntityType.CoinBridgeCapability,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
-				defaultSources: lifiRestSources,
+				defaultSources: [
+					Source.Lifi_Rest,
+				],
 			},
 			$$marketsWithInstanceAsBase: {
 				entityType: EntityType.Market,
@@ -136,22 +137,34 @@ export default entity({
 			coinId: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: blockscoutRestConstantsInternalSources,
+				defaultSources: [
+					Source.Blockscout_Rest,
+					Source.Constants_Internal,
+				],
 			},
 			name: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
-				defaultSources: blockscoutRestConstantsInternalSources,
+				defaultSources: [
+					Source.Blockscout_Rest,
+					Source.Constants_Internal,
+				],
 			},
 			symbol: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: blockscoutRestConstantsInternalSources,
+				defaultSources: [
+					Source.Blockscout_Rest,
+					Source.Constants_Internal,
+				],
 			},
 			decimals: {
 				primitiveType: type('number'),
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: blockscoutRestConstantsInternalSources,
+				defaultSources: [
+					Source.Blockscout_Rest,
+					Source.Constants_Internal,
+				],
 			},
 			iconUrl: {
 				primitiveType: UrlString,
@@ -167,27 +180,38 @@ export default entity({
 			caip19: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
-				defaultSources: constantsInternalCoingeckoRestSources,
+				defaultSources: [
+					Source.Constants_Internal,
+					Source.Coingecko_Rest,
+				],
 			},
 			representation: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
-				defaultSources: coingeckoRestSources,
+				defaultSources: [
+					Source.Coingecko_Rest,
+				],
 			},
 			$canonicalInstance: {
 				entityType: EntityType.EvmCoinInstance,
 				cardinality: EntityFieldCardinality.ZeroOrOne,
-				defaultSources: coingeckoRestSources,
+				defaultSources: [
+					Source.Coingecko_Rest,
+				],
 			},
 			$$outboundBridgeCapabilities: {
 				entityType: EntityType.CoinBridgeCapability,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
-				defaultSources: lifiRestSources,
+				defaultSources: [
+					Source.Lifi_Rest,
+				],
 			},
 			$$inboundBridgeCapabilities: {
 				entityType: EntityType.CoinBridgeCapability,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
-				defaultSources: lifiRestSources,
+				defaultSources: [
+					Source.Lifi_Rest,
+				],
 			},
 			$$marketsWithInstanceAsBase: {
 				entityType: EntityType.Market,

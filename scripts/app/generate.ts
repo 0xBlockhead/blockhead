@@ -6602,24 +6602,7 @@ const generateEntitySchemaFile = (entity: Entity, indexes: GenerationIndexes) =>
 		...entity.fields,
 		...facetFields(entity.facets),
 	]
-	const repeatedDefaultSources = [...Map.groupBy(
-		fields.filter((field) => field.defaultSources != null),
-		(field) => JSON.stringify(field.defaultSources)
-	).entries()].flatMap(([identity, matchingFields]) => (
-		matchingFields.length > 1 && matchingFields[0]?.defaultSources != null ?
-			[{
-				identity,
-				sources: matchingFields[0].defaultSources,
-			}]
-		:
-			[]
-	))
-	const defaultSourcesReferenceByIdentity = new Map(repeatedDefaultSources.map(({ identity, sources }) => [
-		identity,
-		`${camel(sources.join('-'))}Sources`,
-	]))
-	if (new Set(defaultSourcesReferenceByIdentity.values()).size !== defaultSourcesReferenceByIdentity.size)
-		throw new Error(`${entity.entityType} repeated default-source tuples need distinct generated names`)
+	const defaultSources = fields.some((field) => field.defaultSources != null)
 	const localEnumNames = new Set((entity.enums ?? []).map((appEnum) => appEnum.name))
 	const valueTypeImports = fields.flatMap((field) => {
 		const valueType = field.valueType == null ? undefined : indexes.valueTypeById[field.valueType]
@@ -6638,10 +6621,6 @@ const generateEntitySchemaFile = (entity: Entity, indexes: GenerationIndexes) =>
 				))
 	})
 	const body = [
-		...repeatedDefaultSources.map(({ identity, sources }) => (
-			`const ${defaultSourcesReferenceByIdentity.get(identity)} = ${emitSourceArray(sources)} as const`
-		)),
-		...(repeatedDefaultSources.length === 0 ? [] : ['']),
 		'export default entity({',
 			indent(`entityType: ${enumAccess('EntityType', entity.entityType)},`),
 			indent('labels: {'),
@@ -6650,7 +6629,7 @@ const generateEntitySchemaFile = (entity: Entity, indexes: GenerationIndexes) =>
 			indent('},'),
 			...(entity.description == null ? [] : [indent(`description: ${emitTypeScript(entity.description)},`)]),
 			`})({`,
-			...entity.fields.flatMap((fieldDefinition) => emitSchemaFieldEntry(fieldDefinition, indexes, defaultSourcesReferenceByIdentity).map((line) => indent(line))),
+			...entity.fields.flatMap((fieldDefinition) => emitSchemaFieldEntry(fieldDefinition, indexes).map((line) => indent(line))),
 			`})({`,
 			indent('selectors: {'),
 			...entity.selectors.flatMap((selector) => [
@@ -6662,7 +6641,7 @@ const generateEntitySchemaFile = (entity: Entity, indexes: GenerationIndexes) =>
 			...(entity.facets == null || entity.facets.length === 0 ? [] : [
 				'',
 				indent('facets: {'),
-				...entity.facets.flatMap((facetDefinition) => emitSchemaFacetEntry(facetDefinition, indexes, defaultSourcesReferenceByIdentity).map((line) => indent(line, 2))),
+				...entity.facets.flatMap((facetDefinition) => emitSchemaFacetEntry(facetDefinition, indexes).map((line) => indent(line, 2))),
 				indent('},'),
 			]),
 		`})`,
@@ -6687,7 +6666,7 @@ const generateEntitySchemaFile = (entity: Entity, indexes: GenerationIndexes) =>
 			from: '$/schema/EntityType.ts',
 			names: ['EntityType'],
 		},
-		...(fields.some((field) => field.defaultSources != null) ? [{
+		...(defaultSources ? [{
 			from: '$/sources/Source.ts',
 			names: ['Source'],
 		}] satisfies ImportSpec[] : []),
@@ -6718,11 +6697,7 @@ const generateEntityEnumFiles = (entity: Entity) => (entity.enums ?? []).map((ap
 	}
 ))
 
-const emitSchemaFieldEntry = (
-	fieldDefinition: EntityField,
-	indexes: GenerationIndexes,
-	defaultSourcesReferenceByIdentity: ReadonlyMap<string, string>
-) => [
+const emitSchemaFieldEntry = (fieldDefinition: EntityField, indexes: GenerationIndexes) => [
 	`${objectPropertyKey(fieldDefinition.name)}: {`,
 	...emitObject([
 		[
@@ -6740,10 +6715,7 @@ const emitSchemaFieldEntry = (
 				enumAccess('EntityType', fieldDefinition.entityType),
 		],
 		['cardinality', enumAccess('EntityFieldCardinality', fieldDefinition.cardinality)],
-		['defaultSources', fieldDefinition.defaultSources == null ? undefined : (
-			defaultSourcesReferenceByIdentity.get(JSON.stringify(fieldDefinition.defaultSources))
-			?? emitSourceArray(fieldDefinition.defaultSources)
-		)],
+		['defaultSources', emitSourceArray(fieldDefinition.defaultSources)],
 		['normalize', fieldDefinition.normalize],
 	]).split('\n').slice(1, -1),
 	'},',
@@ -6751,14 +6723,13 @@ const emitSchemaFieldEntry = (
 
 const emitSchemaFacetEntry = (
 	facetDefinition: NonNullable<Entity['facets']>[number],
-	indexes: GenerationIndexes,
-	defaultSourcesReferenceByIdentity: ReadonlyMap<string, string>
+	indexes: GenerationIndexes
 ) => {
 	const fieldStage = (facetDefinition.fields?.length ?? 0) === 0 ? [
 		`${objectPropertyKey(facetDefinition.name)}: facet(${emitFacetCondition(facetDefinition.condition)})({})`,
 	] : [
 		`${objectPropertyKey(facetDefinition.name)}: facet(${emitFacetCondition(facetDefinition.condition)})({`,
-		...(facetDefinition.fields ?? []).flatMap((fieldDefinition) => emitSchemaFieldEntry(fieldDefinition, indexes, defaultSourcesReferenceByIdentity).map((line) => indent(line))),
+		...(facetDefinition.fields ?? []).flatMap((fieldDefinition) => emitSchemaFieldEntry(fieldDefinition, indexes).map((line) => indent(line))),
 		'})',
 	]
 	const finalFieldStageLine = fieldStage[fieldStage.length - 1] ?? ''
@@ -6772,7 +6743,7 @@ const emitSchemaFacetEntry = (
 		...fieldStage.slice(0, -1),
 		`${finalFieldStageLine}({`,
 		indent('facets: {'),
-		...facetDefinition.facets.flatMap((facet) => emitSchemaFacetEntry(facet, indexes, defaultSourcesReferenceByIdentity).map((line) => indent(line, 2))),
+		...facetDefinition.facets.flatMap((facet) => emitSchemaFacetEntry(facet, indexes).map((line) => indent(line, 2))),
 		indent('},'),
 		'}),',
 	]

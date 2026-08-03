@@ -6,14 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const solanaJsonRpcHeliusSources = [
-	Source.Solana_JsonRpc,
-	Source.Helius,
-] as const
-const solanaJsonRpcSources = [
-	Source.Solana_JsonRpc,
-] as const
-
 export default entity({
 	entityType: EntityType.SolanaTransaction_Timestamp,
 	labels: {
@@ -36,32 +28,48 @@ export default entity({
 	timestampMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: solanaJsonRpcHeliusSources,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+			Source.Helius,
+		],
 	},
 	feeLamports: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: solanaJsonRpcHeliusSources,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+			Source.Helius,
+		],
 	},
 	computeUnitsConsumed: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: solanaJsonRpcSources,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+		],
 	},
 	status: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: solanaJsonRpcHeliusSources,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+			Source.Helius,
+		],
 	},
 	confirmationStatus: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: solanaJsonRpcSources,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+		],
 	},
 	err: {
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: solanaJsonRpcHeliusSources,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+			Source.Helius,
+		],
 	},
 })({
 	selectors: {

@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const constantsInternalSources = [
-	Source.Constants_Internal,
-] as const
-
 export default entity({
 	entityType: EntityType.EthereumNetworkUpgrade,
 	labels: {
@@ -48,17 +44,23 @@ export default entity({
 	$networkExecutionUpgrade: {
 		entityType: EntityType.EthereumExecutionUpgrade,
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$networkConsensusUpgrade: {
 		entityType: EntityType.EthereumConsensusUpgrade,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$proposals: {
 		entityType: EntityType.SpecificationProposal,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 })({
 	selectors: {

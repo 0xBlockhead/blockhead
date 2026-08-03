@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const mastodonRestSources = [
-	Source.Mastodon_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType._GlobalActivityPubNetwork,
 	labels: {
@@ -24,12 +20,16 @@ export default entity({
 	$$observedActors: {
 		entityType: EntityType.ActivityPubActor,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: mastodonRestSources,
+		defaultSources: [
+			Source.Mastodon_Rest,
+		],
 	},
 	$$observedNotes: {
 		entityType: EntityType.ActivityPubNote,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: mastodonRestSources,
+		defaultSources: [
+			Source.Mastodon_Rest,
+		],
 	},
 	$$instances: {
 		entityType: EntityType.ActivityPubInstance,

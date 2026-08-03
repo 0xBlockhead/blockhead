@@ -7,11 +7,6 @@ import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const constantsInternalAtprotoXrpcSources = [
-	Source.Constants_Internal,
-	Source.Atproto_Xrpc,
-] as const
-
 export default entity({
 	entityType: EntityType._GlobalAtprotoNetwork,
 	labels: {
@@ -43,12 +38,18 @@ export default entity({
 	$$observedActors: {
 		entityType: EntityType.AtprotoActor,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalAtprotoXrpcSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.Atproto_Xrpc,
+		],
 	},
 	$$observedPosts: {
 		entityType: EntityType.AtprotoPost,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalAtprotoXrpcSources,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.Atproto_Xrpc,
+		],
 	},
 	$$timestamps: {
 		entityType: EntityType._GlobalAtprotoNetwork_Timestamp,

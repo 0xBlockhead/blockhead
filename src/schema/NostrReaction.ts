@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const nostrRelayWebSocketSources = [
-	Source.NostrRelay_WebSocket,
-] as const
-
 export default entity({
 	entityType: EntityType.NostrReaction,
 	labels: {
@@ -25,17 +21,23 @@ export default entity({
 	kind: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: nostrRelayWebSocketSources,
+		defaultSources: [
+			Source.NostrRelay_WebSocket,
+		],
 	},
 	pubkey: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: nostrRelayWebSocketSources,
+		defaultSources: [
+			Source.NostrRelay_WebSocket,
+		],
 	},
 	createdAt: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: nostrRelayWebSocketSources,
+		defaultSources: [
+			Source.NostrRelay_WebSocket,
+		],
 	},
 	tags: {
 		primitiveType: type('unknown'),
@@ -44,22 +46,30 @@ export default entity({
 	$author: {
 		entityType: EntityType.NostrProfile,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: nostrRelayWebSocketSources,
+		defaultSources: [
+			Source.NostrRelay_WebSocket,
+		],
 	},
 	$targetNote: {
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: nostrRelayWebSocketSources,
+		defaultSources: [
+			Source.NostrRelay_WebSocket,
+		],
 	},
 	$targetArticle: {
 		entityType: EntityType.NostrArticle,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: nostrRelayWebSocketSources,
+		defaultSources: [
+			Source.NostrRelay_WebSocket,
+		],
 	},
 	content: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: nostrRelayWebSocketSources,
+		defaultSources: [
+			Source.NostrRelay_WebSocket,
+		],
 	},
 })({
 	selectors: {

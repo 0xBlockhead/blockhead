@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const tronGridRestSources = [
-	Source.TronGrid_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.TronNetwork_Timestamp,
 	labels: {
@@ -32,62 +28,86 @@ export default entity({
 	latestBlockHeight: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+		],
 	},
 	latestBlockHash: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+		],
 	},
 	latestBlockTimeMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+		],
 	},
 	latestBlockTransactionCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+		],
 	},
 	witnessCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+		],
 	},
 	activeWitnessCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+		],
 	},
 	nodeBlockHeight: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+		],
 	},
 	solidityBlockHeight: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+		],
 	},
 	currentPeerCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+		],
 	},
 	maintenanceIntervalMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+		],
 	},
 	transactionFeeSun: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+		],
 	},
 	createAccountFeeSun: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: tronGridRestSources,
+		defaultSources: [
+			Source.TronGrid_Rest,
+		],
 	},
 })({
 	selectors: {

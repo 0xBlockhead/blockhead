@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const lotusJsonRpcSources = [
-	Source.Lotus_JsonRpc,
-] as const
-
 export default entity({
 	entityType: EntityType.FilecoinActor_Timestamp,
 	labels: {
@@ -40,32 +36,44 @@ export default entity({
 	$tipset: {
 		entityType: EntityType.FilecoinTipset,
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	idAddress: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	actorCodeCid: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	nonce: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	balanceAttoFil: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	stateRootCid: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 })({
 	selectors: {

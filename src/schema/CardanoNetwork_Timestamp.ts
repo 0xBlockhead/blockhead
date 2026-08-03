@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const blockfrostRestSources = [
-	Source.Blockfrost_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.CardanoNetwork_Timestamp,
 	labels: {
@@ -32,67 +28,93 @@ export default entity({
 	latestSlot: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	latestBlockNo: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	latestBlockHash: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	latestBlockTimeMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	latestBlockTransactionCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	epoch: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	epochBlockCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	epochTransactionCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	circulatingSupplyLovelace: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	totalSupplyLovelace: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	liveStakeLovelace: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	activeStakeLovelace: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 	backendHealthy: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: blockfrostRestSources,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+		],
 	},
 })({
 	selectors: {

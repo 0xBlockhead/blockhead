@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const constantsInternalSources = [
-	Source.Constants_Internal,
-] as const
-
 export default entity({
 	entityType: EntityType.Account,
 	labels: {
@@ -29,17 +25,23 @@ export default entity({
 	$network: {
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	namespace: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	address: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 })({
 	selectors: {
@@ -58,7 +60,9 @@ export default entity({
 			$account: {
 				entityType: EntityType.EvmNetworkAccount,
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 		}),
 		Aptos: facet({
@@ -70,7 +74,9 @@ export default entity({
 			$account: {
 				entityType: EntityType.AptosAccount,
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 		}),
 		Cardano: facet({
@@ -82,7 +88,9 @@ export default entity({
 			$account: {
 				entityType: EntityType.CardanoAddress,
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 		}),
 		Cosmos: facet({
@@ -94,7 +102,9 @@ export default entity({
 			$account: {
 				entityType: EntityType.CosmosAccount,
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 		}),
 		Hedera: facet({
@@ -106,7 +116,9 @@ export default entity({
 			$account: {
 				entityType: EntityType.HederaAccount,
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 		}),
 		Polkadot: facet({
@@ -118,7 +130,9 @@ export default entity({
 			$account: {
 				entityType: EntityType.PolkadotAccount,
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 		}),
 		Solana: facet({
@@ -130,7 +144,9 @@ export default entity({
 			$account: {
 				entityType: EntityType.SolanaAccount,
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 		}),
 		Starknet: facet({
@@ -142,7 +158,9 @@ export default entity({
 			$account: {
 				entityType: EntityType.StarknetContract,
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 		}),
 		Tron: facet({
@@ -154,7 +172,9 @@ export default entity({
 			$account: {
 				entityType: EntityType.TronAccount,
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 		}),
 		Ton: facet({
@@ -166,7 +186,9 @@ export default entity({
 			$account: {
 				entityType: EntityType.TonAccount,
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 		}),
 		Xrpl: facet({
@@ -178,7 +200,9 @@ export default entity({
 			$account: {
 				entityType: EntityType.XrplAccount,
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 		}),
 		Utxo: facet({
@@ -190,7 +214,9 @@ export default entity({
 			$account: {
 				entityType: EntityType.UtxoAddress,
 				cardinality: EntityFieldCardinality.One,
-				defaultSources: constantsInternalSources,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 			},
 		}),
 	},

@@ -6,13 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const constantsInternalSources = [
-	Source.Constants_Internal,
-] as const
-const localInternalSources = [
-	Source.Local_Internal,
-] as const
-
 export default entity({
 	entityType: EntityType._Global,
 	labels: {
@@ -40,22 +33,30 @@ export default entity({
 	$$networkUpgrades: {
 		entityType: EntityType.EthereumNetworkUpgrade,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$proposals: {
 		entityType: EntityType.SpecificationProposal,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$specificationRealms: {
 		entityType: EntityType.SpecificationRealm,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$proposalKinds: {
 		entityType: EntityType.SpecificationProposalKind,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$coins: {
 		entityType: EntityType.Coin,
@@ -64,7 +65,9 @@ export default entity({
 	$$markets: {
 		entityType: EntityType.Market,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$marketVenues: {
 		entityType: EntityType.MarketVenue,
@@ -112,7 +115,9 @@ export default entity({
 	$$blockheadAccounts: {
 		entityType: EntityType.BlockheadAccount,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: localInternalSources,
+		defaultSources: [
+			Source.Local_Internal,
+		],
 	},
 	$$blockheadWalletTransportSessions: {
 		entityType: EntityType.BlockheadWalletTransportSession,
@@ -192,12 +197,16 @@ export default entity({
 	$$blockheadRoomPeers: {
 		entityType: EntityType.BlockheadRoomPeer,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: localInternalSources,
+		defaultSources: [
+			Source.Local_Internal,
+		],
 	},
 	$$blockheadRooms: {
 		entityType: EntityType.BlockheadRoom,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: localInternalSources,
+		defaultSources: [
+			Source.Local_Internal,
+		],
 	},
 	$$blockheadStateChannels: {
 		entityType: EntityType.BlockheadStateChannel,

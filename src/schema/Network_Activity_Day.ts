@@ -7,10 +7,6 @@ import { OptimisticProviderResult } from '$/schema/OptimisticProviderResult.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const spaceAndTimeMakeInfiniteSources = [
-	Source.SpaceAndTime_MakeInfinite,
-] as const
-
 export default entity({
 	entityType: EntityType.Network_Activity_Day,
 	labels: {
@@ -34,32 +30,44 @@ export default entity({
 	blockCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: spaceAndTimeMakeInfiniteSources,
+		defaultSources: [
+			Source.SpaceAndTime_MakeInfinite,
+		],
 	},
 	transactionCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: spaceAndTimeMakeInfiniteSources,
+		defaultSources: [
+			Source.SpaceAndTime_MakeInfinite,
+		],
 	},
 	endBlockNumber: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: spaceAndTimeMakeInfiniteSources,
+		defaultSources: [
+			Source.SpaceAndTime_MakeInfinite,
+		],
 	},
 	indexedThroughTimestampMs: {
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: spaceAndTimeMakeInfiniteSources,
+		defaultSources: [
+			Source.SpaceAndTime_MakeInfinite,
+		],
 	},
 	resolvedAtMs: {
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: spaceAndTimeMakeInfiniteSources,
+		defaultSources: [
+			Source.SpaceAndTime_MakeInfinite,
+		],
 	},
 	trustModel: {
 		primitiveType: type.enumerated(...Object.values(OptimisticProviderResult)),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: spaceAndTimeMakeInfiniteSources,
+		defaultSources: [
+			Source.SpaceAndTime_MakeInfinite,
+		],
 	},
 })({
 	selectors: {

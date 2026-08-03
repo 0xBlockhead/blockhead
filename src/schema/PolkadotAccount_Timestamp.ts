@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const substrateSidecarRestSources = [
-	Source.SubstrateSidecar_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.PolkadotAccount_Timestamp,
 	labels: {
@@ -32,12 +28,16 @@ export default entity({
 	nonce: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: substrateSidecarRestSources,
+		defaultSources: [
+			Source.SubstrateSidecar_Rest,
+		],
 	},
 	freeBalancePlancks: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: substrateSidecarRestSources,
+		defaultSources: [
+			Source.SubstrateSidecar_Rest,
+		],
 	},
 })({
 	selectors: {

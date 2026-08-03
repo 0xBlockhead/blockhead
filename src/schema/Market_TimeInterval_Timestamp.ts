@@ -6,12 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const coingeckoRestCoinpaprikaRestCoinMarketCapRestSources = [
-	Source.Coingecko_Rest,
-	Source.Coinpaprika_Rest,
-	Source.CoinMarketCap_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.Market_TimeInterval_Timestamp,
 	labels: {
@@ -47,22 +41,38 @@ export default entity({
 	open: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: coingeckoRestCoinpaprikaRestCoinMarketCapRestSources,
+		defaultSources: [
+			Source.Coingecko_Rest,
+			Source.Coinpaprika_Rest,
+			Source.CoinMarketCap_Rest,
+		],
 	},
 	high: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: coingeckoRestCoinpaprikaRestCoinMarketCapRestSources,
+		defaultSources: [
+			Source.Coingecko_Rest,
+			Source.Coinpaprika_Rest,
+			Source.CoinMarketCap_Rest,
+		],
 	},
 	low: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: coingeckoRestCoinpaprikaRestCoinMarketCapRestSources,
+		defaultSources: [
+			Source.Coingecko_Rest,
+			Source.Coinpaprika_Rest,
+			Source.CoinMarketCap_Rest,
+		],
 	},
 	close: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: coingeckoRestCoinpaprikaRestCoinMarketCapRestSources,
+		defaultSources: [
+			Source.Coingecko_Rest,
+			Source.Coinpaprika_Rest,
+			Source.CoinMarketCap_Rest,
+		],
 	},
 	quoteVolume: {
 		primitiveType: type('bigint'),

@@ -7,10 +7,6 @@ import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const constantsInternalSources = [
-	Source.Constants_Internal,
-] as const
-
 export default entity({
 	entityType: EntityType._GlobalNostrNetwork,
 	labels: {
@@ -26,57 +22,79 @@ export default entity({
 	protocolName: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	registryName: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	homeUrl: {
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	docsUrl: {
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	relationshipModel: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$observedProfiles: {
 		entityType: EntityType.NostrProfile,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$observedNotes: {
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$observedRelays: {
 		entityType: EntityType.NostrRelay,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$observedReposts: {
 		entityType: EntityType.NostrRepost,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$observedReactions: {
 		entityType: EntityType.NostrReaction,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$observedArticles: {
 		entityType: EntityType.NostrArticle,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: constantsInternalSources,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$timestamps: {
 		entityType: EntityType._GlobalNostrNetwork_Timestamp,

@@ -6,14 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const lotusJsonRpcFilfoxRestSources = [
-	Source.Lotus_JsonRpc,
-	Source.Filfox_Rest,
-] as const
-const lotusJsonRpcSources = [
-	Source.Lotus_JsonRpc,
-] as const
-
 export default entity({
 	entityType: EntityType.FilecoinBlock,
 	labels: {
@@ -32,22 +24,32 @@ export default entity({
 	$tipset: {
 		entityType: EntityType.FilecoinTipset,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcFilfoxRestSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
+		],
 	},
 	$miner: {
 		entityType: EntityType.FilecoinMiner,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcFilfoxRestSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
+		],
 	},
 	ticketVrFProof: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	winCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: lotusJsonRpcSources,
+		defaultSources: [
+			Source.Lotus_JsonRpc,
+		],
 	},
 	$$messages: {
 		entityType: EntityType.FilecoinMessage,

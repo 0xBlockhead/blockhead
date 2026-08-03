@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const bitcoinCashNodeJsonRpcSources = [
-	Source.BitcoinCashNode_JsonRpc,
-] as const
-
 export default entity({
 	entityType: EntityType.BitcoinCashCashTokenNft,
 	labels: {
@@ -24,17 +20,23 @@ export default entity({
 	$category: {
 		entityType: EntityType.BitcoinCashCashTokenCategory,
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: bitcoinCashNodeJsonRpcSources,
+		defaultSources: [
+			Source.BitcoinCashNode_JsonRpc,
+		],
 	},
 	$commitment: {
 		entityType: EntityType.BitcoinCashCashTokenCommitment,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: bitcoinCashNodeJsonRpcSources,
+		defaultSources: [
+			Source.BitcoinCashNode_JsonRpc,
+		],
 	},
 	capability: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: bitcoinCashNodeJsonRpcSources,
+		defaultSources: [
+			Source.BitcoinCashNode_JsonRpc,
+		],
 	},
 })({
 	selectors: {

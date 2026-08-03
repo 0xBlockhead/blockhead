@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const hederaMirrorNodeRestSources = [
-	Source.HederaMirrorNode_Rest,
-] as const
-
 export default entity({
 	entityType: EntityType.HederaAccount,
 	labels: {
@@ -28,27 +24,37 @@ export default entity({
 	$$allowances: {
 		entityType: EntityType.HederaAllowance,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: hederaMirrorNodeRestSources,
+		defaultSources: [
+			Source.HederaMirrorNode_Rest,
+		],
 	},
 	$$tokens: {
 		entityType: EntityType.HederaTokenAssociation,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: hederaMirrorNodeRestSources,
+		defaultSources: [
+			Source.HederaMirrorNode_Rest,
+		],
 	},
 	$$nfts: {
 		entityType: EntityType.HederaNft,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: hederaMirrorNodeRestSources,
+		defaultSources: [
+			Source.HederaMirrorNode_Rest,
+		],
 	},
 	$$transactions: {
 		entityType: EntityType.HederaTransaction,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: hederaMirrorNodeRestSources,
+		defaultSources: [
+			Source.HederaMirrorNode_Rest,
+		],
 	},
 	$$timestamps: {
 		entityType: EntityType.HederaAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: hederaMirrorNodeRestSources,
+		defaultSources: [
+			Source.HederaMirrorNode_Rest,
+		],
 	},
 })({
 	selectors: {

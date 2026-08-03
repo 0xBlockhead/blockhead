@@ -6,10 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-const xrplRippledSources = [
-	Source.Xrpl_Rippled,
-] as const
-
 export default entity({
 	entityType: EntityType.XrplAccount,
 	labels: {
@@ -28,17 +24,23 @@ export default entity({
 	$$ledgerEntries: {
 		entityType: EntityType.XrplLedgerEntry,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: xrplRippledSources,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+		],
 	},
 	$$transactions: {
 		entityType: EntityType.XrplTransaction,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: xrplRippledSources,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+		],
 	},
 	$$trustlines: {
 		entityType: EntityType.XrplTrustline,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: xrplRippledSources,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+		],
 	},
 	$$timestamps: {
 		entityType: EntityType.XrplAccount_Timestamp,
