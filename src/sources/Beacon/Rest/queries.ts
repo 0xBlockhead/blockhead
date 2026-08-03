@@ -394,7 +394,7 @@ export const getBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySum
 		attestations: [],
 		withdrawals: [],
 		slashings: [],
-	} satisfies BeaconBlockDutySummary
+	}
 	if (!isJsonObject(wire)) return empty
 	const data = wire.data
 	if (!isJsonObject(data)) return empty

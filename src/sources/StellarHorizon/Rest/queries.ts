@@ -193,7 +193,7 @@ const getAccountPage = async <_Record extends {
 			_embedded: {
 				records: [],
 			},
-		} satisfies StellarHorizonPage<_Record>
+		}
 	const page = await query<StellarHorizonPage<_Record>>(
 		`${accountPath(accountId)}/${resource}?${parameters.toString()}`
 	)

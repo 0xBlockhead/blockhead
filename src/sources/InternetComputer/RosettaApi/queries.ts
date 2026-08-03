@@ -137,7 +137,7 @@ export const getAccountTransactions = async (
 		return {
 			transactions: [],
 			total_count: 0,
-		} satisfies InternetComputerRosettaSearchTransactionsResponse
+		}
 
 	const result = await request<InternetComputerRosettaSearchTransactionsResponse>(
 		binding,

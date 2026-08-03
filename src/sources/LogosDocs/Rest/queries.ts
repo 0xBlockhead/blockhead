@@ -1,5 +1,3 @@
-import type { LogosDocsPage } from '$/sources/LogosDocs/Rest/types.ts'
-
 export const getPages = [
 	{
 		url: 'https://docs.logoslabs.io/learn/logos/aboutLogosNetwork',
@@ -13,4 +11,4 @@ export const getPages = [
 		url: 'https://docs.logoslabs.io/learn/substrate/sub-structure',
 		title: 'Substrate overview',
 	},
-] satisfies readonly LogosDocsPage[]
+]

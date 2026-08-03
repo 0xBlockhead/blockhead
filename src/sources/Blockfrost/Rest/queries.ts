@@ -15,7 +15,6 @@ import type {
 	BlockfrostDReps,
 	BlockfrostDRepListItem,
 	BlockfrostDRep,
-	BlockfrostDRepIdentity,
 	BlockfrostDRepMetadata,
 	BlockfrostDRepVotes,
 	BlockfrostEpoch,
@@ -233,7 +232,7 @@ export const getDRepMetadata = (drepId: string) => (
 			...(identityMetadata instanceof type.errors ? {} : {
 				displayName: identityMetadata.body.givenName,
 			}),
-		} satisfies BlockfrostDRepIdentity
+		}
 	})
 )
 

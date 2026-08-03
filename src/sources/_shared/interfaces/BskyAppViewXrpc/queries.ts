@@ -35,7 +35,7 @@ export const bskyAppViewXrpc = (binding: SourceBinding) => {
 		),
 		getPosts: async (uris: string[]) => (
 			uris.length === 0 ?
-				{ posts: [] } satisfies BskyAppViewGetPostsResponse
+				{ posts: [] }
 			:
 				get<BskyAppViewGetPostsResponse>(
 					'/app.bsky.feed.getPosts',

@@ -57,7 +57,7 @@ export const getTransparentAddressUtxos = async (
 			utxos: [],
 			hash: '0'.repeat(64),
 			height: 0,
-		} satisfies ZebraTransparentAddressUtxos
+		}
 
 	const result = await jsonRpc2<ZebraTransparentAddressUtxos>(
 		binding,

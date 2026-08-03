@@ -10,7 +10,6 @@ import bindings from '$/sources/CosmosSdk/bindings.ts'
 import type {
 	CosmosSdkAccountsResponse,
 	CosmosSdkAccountResponse,
-	CosmosSdkBalancesResponse,
 	CosmosSdkBlockResponse,
 	CosmosSdkContractInfoResponse,
 	CosmosSdkDelegationRewardsResponse,
@@ -471,7 +470,7 @@ export const getBalances = async ({
 				key: response.pagination.next_key,
 			}).toString(),
 		}),
-	} satisfies CosmosSdkBalancesResponse
+	}
 }
 
 export const getDelegations = ({

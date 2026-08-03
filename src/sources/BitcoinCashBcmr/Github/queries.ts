@@ -1,9 +1,6 @@
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/BitcoinCashBcmr/bindings.ts'
-import type {
-	BcmrIdentitySnapshot,
-	BcmrRegistry,
-} from '$/sources/BitcoinCashBcmr/Github/types.ts'
+import type { BcmrRegistry } from '$/sources/BitcoinCashBcmr/Github/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.BitcoinCashBcmr_Github][0]
@@ -66,6 +63,6 @@ export const getCategoryMetadata = async (
 		throw new Error('BitcoinCashBcmr_Github: invalid token decimals')
 	return {
 		revision,
-		snapshot: snapshot satisfies BcmrIdentitySnapshot,
+		snapshot,
 	}
 }
