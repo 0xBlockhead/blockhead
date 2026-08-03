@@ -143,6 +143,7 @@ export enum SourceOperationGroup {
 	GitRepositoryContents = 'GitRepositoryContents',
 	IssueTracking = 'IssueTracking',
 	NostrRelayRead = 'NostrRelayRead',
+	NostrSearch = 'NostrSearch',
 	PaymentNegotiation = 'PaymentNegotiation',
 	PullRequestReview = 'PullRequestReview',
 	ReleaseMetadata = 'ReleaseMetadata',

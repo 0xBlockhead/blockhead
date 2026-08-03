@@ -20,7 +20,7 @@
 		query: params.query,
 	}, {
 		sources: [
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 		fields: {
 			resultCount: true,

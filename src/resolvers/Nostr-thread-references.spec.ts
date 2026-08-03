@@ -11,24 +11,20 @@ import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { nostrEventId } from '$/sources/NostrRelay/Nip01/event.ts'
 
-const getNostrBandEventById = vi.hoisted(() => vi.fn())
 const getPrimalEventById = vi.hoisted(() => vi.fn())
 const getPrimalProfile = vi.hoisted(() => vi.fn())
-const listNostrBandAuthorEvents = vi.hoisted(() => vi.fn())
-const listNostrBandRecentEvents = vi.hoisted(() => vi.fn())
-const listNostrBandTopProfiles = vi.hoisted(() => vi.fn())
-const listNostrBandNoteReactions = vi.hoisted(() => vi.fn())
-const listNostrBandNoteReplies = vi.hoisted(() => vi.fn())
+const listNostrRelayEvents = vi.hoisted(() => vi.fn())
+const nostrRelaySnapshotBindings = vi.hoisted(() => vi.fn(() => [{
+	target: {
+		key: 'wss://relay.nostr.band',
+	},
+}]))
 const getPrimalProfileArticles = vi.hoisted(() => vi.fn())
 const getPrimalNoteActions = vi.hoisted(() => vi.fn())
 
-vi.mock('$/sources/NostrBand/Rest/queries.ts', () => ({
-	getEventById: getNostrBandEventById,
-	listAuthorEvents: listNostrBandAuthorEvents,
-	listRecentEvents: listNostrBandRecentEvents,
-	listTopProfiles: listNostrBandTopProfiles,
-	listNoteReactions: listNostrBandNoteReactions,
-	listNoteReplies: listNostrBandNoteReplies,
+vi.mock('$/sources/NostrRelay/WebSocket/queries.ts', () => ({
+	listNostrRelayEvents,
+	nostrRelaySnapshotBindings,
 }))
 vi.mock('$/sources/Primal/Rest/queries.ts', () => ({
 	getEventById: getPrimalEventById,
@@ -38,10 +34,10 @@ vi.mock('$/sources/Primal/Rest/queries.ts', () => ({
 }))
 
 const [
-	{ default: nostrBand },
+	{ default: nostrRelay },
 	{ default: primal },
 ] = await Promise.all([
-	import('$/resolvers/NostrBand-Rest.ts'),
+	import('$/resolvers/NostrRelay-WebSocket.ts'),
 	import('$/resolvers/Primal-Rest.ts'),
 ])
 
@@ -88,10 +84,10 @@ describe('Nostr thread references', () => {
 		wire,
 	} of [
 		{
-			source: 'NostrBand',
-			resolvers: nostrBand.resolvers,
-			getEventById: getNostrBandEventById,
-			wire: (event: object) => ({ event }),
+			source: 'NostrRelay',
+			resolvers: nostrRelay.resolvers,
+			getEventById: listNostrRelayEvents,
+			wire: (event: object) => [event],
 		},
 		{
 			source: 'Primal',
@@ -245,13 +241,13 @@ describe('Nostr thread references', () => {
 				eventId: embeddedArticleRepost.id,
 			}, resolverContext)).resolves.toEqual(expect.objectContaining({
 				repostedEventId: targetArticle.id,
-				$repostedArticle: {
+				$repostedArticle: expect.objectContaining({
 					[EntityMetaKey.Selector]: {
 						kind: 30_023,
 						pubkey,
 						identifier: 'validated-article',
 					},
-				},
+				}),
 			}))
 		})
 
@@ -282,13 +278,23 @@ describe('Nostr thread references', () => {
 			getEventById.mockResolvedValueOnce(wire(event))
 			await expect(resolver.resolve['CanonicalEventId'].resolve({
 				eventId: '6'.repeat(64),
-			}, resolverContext)).rejects.toThrow(/requested event id/)
+			}, resolverContext)).rejects.toThrow(
+				source === 'NostrRelay' ?
+					/note not found/
+				:
+					/requested event id/
+			)
 
 			const reaction = signedEvent([], 7)
 			getEventById.mockResolvedValueOnce(wire(reaction))
 			await expect(resolver.resolve['CanonicalEventId'].resolve({
 				eventId: reaction.id,
-			}, resolverContext)).rejects.toThrow(/kind/)
+			}, resolverContext)).rejects.toThrow(
+				source === 'NostrRelay' ?
+					/note not found/
+				:
+					/kind/
+			)
 		})
 
 		it(`${source} filters invalid collection rows and uses protocol target semantics`, async () => {
@@ -314,9 +320,10 @@ describe('Nostr thread references', () => {
 				['e', rootEventId],
 			], 7, '+')
 
-			if (source === 'NostrBand') {
-				listNostrBandNoteReplies.mockResolvedValueOnce({ events: [invalidReply, wrongReply, validReply] })
-				listNostrBandNoteReactions.mockResolvedValueOnce({ events: [wrongReaction, validReaction] })
+			if (source === 'NostrRelay') {
+				listNostrRelayEvents
+					.mockResolvedValueOnce([invalidReply, wrongReply, validReply])
+					.mockResolvedValueOnce([wrongReaction, validReaction])
 			} else {
 				getPrimalNoteActions
 					.mockResolvedValueOnce({ events: [invalidReply, wrongReply, validReply] })
@@ -346,6 +353,23 @@ describe('Nostr thread references', () => {
 					7,
 					expect.any(Number)
 				)
+			} else {
+				expect(listNostrRelayEvents.mock.calls.slice(-2)).toEqual([
+					[{
+						filters: [{
+							'#e': [replyEventId],
+							kinds: [1],
+							limit: expect.any(Number),
+						}],
+					}],
+					[{
+						filters: [{
+							'#e': [replyEventId],
+							kinds: [7],
+							limit: expect.any(Number),
+						}],
+					}],
+				])
 			}
 		})
 
@@ -356,8 +380,8 @@ describe('Nostr thread references', () => {
 				content: 'mutated after signing',
 			}
 			const target = signedEvent([['d', 'target']], 30_023, 'target')
-			if (source === 'NostrBand')
-				listNostrBandAuthorEvents.mockResolvedValueOnce({ events: [sibling, invalidTarget, target] })
+			if (source === 'NostrRelay')
+				listNostrRelayEvents.mockResolvedValueOnce([sibling, invalidTarget, target])
 			else
 				getPrimalProfileArticles.mockResolvedValueOnce({ events: [sibling, invalidTarget, target] })
 
@@ -369,14 +393,17 @@ describe('Nostr thread references', () => {
 			await expect(resolvedArticle).resolves.toEqual(expect.objectContaining({
 				identifier: 'target',
 			}))
-			if (source === 'NostrBand')
-				expect(listNostrBandAuthorEvents).toHaveBeenLastCalledWith(
-					pubkey,
-					expect.any(Number),
-					[30_023]
-				)
-			if (source === 'NostrBand')
-				listNostrBandAuthorEvents.mockResolvedValueOnce({ events: [sibling, invalidTarget] })
+			if (source === 'NostrRelay')
+				expect(listNostrRelayEvents).toHaveBeenLastCalledWith({
+					filters: [{
+						'#d': ['target'],
+						authors: [pubkey],
+						kinds: [30_023],
+						limit: 1,
+					}],
+				})
+			if (source === 'NostrRelay')
+				listNostrRelayEvents.mockResolvedValueOnce([sibling, invalidTarget])
 			else
 				getPrimalProfileArticles.mockResolvedValueOnce({ events: [sibling, invalidTarget] })
 
@@ -388,69 +415,33 @@ describe('Nostr thread references', () => {
 		})
 	}
 
-	it('NostrBand discovery keeps valid profile and note rows beside invalid signed envelopes', async () => {
-		const validProfile = signedEvent([], 0, JSON.stringify({ display_name: 'Valid profile' }))
-		const invalidProfile = {
-			...signedEvent([], 0, JSON.stringify({ display_name: 'Invalid profile' })),
-			id: '6'.repeat(64),
-		}
-		const validNote = signedEvent([], 1, 'Valid note')
-		const invalidNote = {
-			...signedEvent([], 1, 'Invalid note'),
-			sig: '7'.repeat(128),
-		}
-		const profilesResolver = nostrBand.resolvers.find((candidate) => '$$observedProfiles' in candidate.projections)
-		const notesResolver = nostrBand.resolvers.find((candidate) => '$$observedNotes' in candidate.projections)
-		if (profilesResolver == null || notesResolver == null)
-			throw new Error('NostrBand spec missing discovery resolvers')
-
-		listNostrBandTopProfiles.mockResolvedValueOnce({
-			profiles: [
-				{ pubkey: invalidProfile.pubkey, profile: invalidProfile },
-				{ pubkey: validProfile.pubkey, profile: validProfile },
-			],
-		})
-		listNostrBandRecentEvents.mockResolvedValueOnce({ events: [invalidNote, validNote] })
-
-		await expect(profilesResolver.resolve['Scope'].resolve(
-			{},
-			resolverContext
-		)).resolves.toEqual([{
-			[EntityMetaKey.Selector]: { pubkey: validProfile.pubkey },
-		}])
-		await expect(notesResolver.resolve['Scope'].resolve(
-			{},
-			resolverContext
-		)).resolves.toEqual([{
-			[EntityMetaKey.Selector]: { eventId: validNote.id },
-		}])
-		expect(listNostrBandRecentEvents).toHaveBeenCalledWith(
-			expect.any(Number),
-			[1]
-		)
-	})
-
-	it('NostrBand materializes signed profile and article versions with deterministic latest references', async () => {
+	it('Nostr relay materializes signed latest profile and article events', async () => {
 		const articleVersions = [
+			signedEvent([['d', 'target'], ['title', 'Version B']], 30_023, 'article B', 1_700_000_010),
 			signedEvent([['d', 'target'], ['title', 'Version A']], 30_023, 'article A'),
-			signedEvent([['d', 'target'], ['title', 'Version B']], 30_023, 'article B'),
-		].sort((left, right) => left.id.localeCompare(right.id))
-		const profileVersions = [
-			signedEvent([], 0, JSON.stringify({ display_name: 'Profile A', lud06: 'lnurl-a' })),
-			signedEvent([], 0, JSON.stringify({ display_name: 'Profile B', lud06: 'lnurl-b' })),
-		].sort((left, right) => left.id.localeCompare(right.id))
-		const articleResolver = nostrBand.resolvers.find((candidate) => (
-			candidate.entityType === EntityType.NostrArticle
-			&& '$$events' in candidate.projections
+		].sort((left, right) => (
+			right.created_at - left.created_at
+			|| left.id.localeCompare(right.id)
 		))
-		const articleEventResolver = nostrBand.resolvers.find((candidate) => (
+		const profileVersions = [
+			signedEvent([], 0, JSON.stringify({ display_name: 'Profile B', lud06: 'lnurl-b' }), 1_700_000_010),
+			signedEvent([], 0, JSON.stringify({ display_name: 'Profile A', lud06: 'lnurl-a' })),
+		].sort((left, right) => (
+			right.created_at - left.created_at
+			|| left.id.localeCompare(right.id)
+		))
+		const articleResolver = nostrRelay.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.NostrArticle
+			&& '$latestEvent' in candidate.projections
+		))
+		const articleEventResolver = nostrRelay.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.NostrArticleEvent
 		))
-		const profileResolver = nostrBand.resolvers.find((candidate) => (
+		const profileResolver = nostrRelay.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.NostrProfile
-			&& '$$metadataEvents' in candidate.projections
+			&& '$latestMetadataEvent' in candidate.projections
 		))
-		const profileEventResolver = nostrBand.resolvers.find((candidate) => (
+		const profileEventResolver = nostrRelay.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.NostrProfileMetadataEvent
 		))
 		if (
@@ -458,9 +449,9 @@ describe('Nostr thread references', () => {
 			|| articleEventResolver == null
 			|| profileResolver == null
 			|| profileEventResolver == null
-		) throw new Error('NostrBand spec missing version materialization resolver')
+		) throw new Error('Nostr relay spec missing latest event materialization resolver')
 
-		listNostrBandAuthorEvents.mockResolvedValueOnce({ events: articleVersions.toReversed() })
+		listNostrRelayEvents.mockResolvedValueOnce(articleVersions.toReversed())
 		const article = await articleResolver.resolve['CanonicalCoordinate'].resolve({
 			identifier: 'target',
 			kind: 30_023,
@@ -468,16 +459,16 @@ describe('Nostr thread references', () => {
 		}, resolverContext)
 		expect(article).not.toHaveProperty('content')
 		expect(article.$latestEvent[EntityMetaKey.Selector]).toEqual({ eventId: articleVersions[0].id })
-		expect(article.$$events.map((event) => event[EntityMetaKey.Selector])).toEqual(
-			articleVersions.map((event) => ({ eventId: event.id }))
-		)
-		expect(listNostrBandAuthorEvents).toHaveBeenLastCalledWith(
-			pubkey,
-			expect.any(Number),
-			[30_023]
-		)
+		expect(listNostrRelayEvents).toHaveBeenLastCalledWith({
+			filters: [{
+				'#d': ['target'],
+				authors: [pubkey],
+				kinds: [30_023],
+				limit: 1,
+			}],
+		})
 
-		getNostrBandEventById.mockResolvedValueOnce({ event: articleVersions[0] })
+		listNostrRelayEvents.mockResolvedValueOnce([articleVersions[0]])
 		await expect(articleEventResolver.resolve['CanonicalEventId'].resolve({
 			eventId: articleVersions[0].id,
 		}, resolverContext)).resolves.toEqual(expect.objectContaining({
@@ -487,22 +478,21 @@ describe('Nostr thread references', () => {
 			tags: articleVersions[0].tags,
 		}))
 
-		listNostrBandAuthorEvents.mockResolvedValueOnce({ events: profileVersions.toReversed() })
+		listNostrRelayEvents.mockResolvedValueOnce(profileVersions.toReversed())
 		const profile = await profileResolver.resolve['CanonicalPubkey'].resolve({
 			pubkey,
 		}, resolverContext)
 		expect(profile).not.toHaveProperty('displayName')
 		expect(profile.$latestMetadataEvent[EntityMetaKey.Selector]).toEqual({ eventId: profileVersions[0].id })
-		expect(profile.$$metadataEvents.map((event) => event[EntityMetaKey.Selector])).toEqual(
-			profileVersions.map((event) => ({ eventId: event.id }))
-		)
-		expect(listNostrBandAuthorEvents).toHaveBeenLastCalledWith(
-			pubkey,
-			expect.any(Number),
-			[0]
-		)
+		expect(listNostrRelayEvents).toHaveBeenLastCalledWith({
+			filters: [{
+				authors: [pubkey],
+				kinds: [0],
+				limit: 1,
+			}],
+		})
 
-		getNostrBandEventById.mockResolvedValueOnce({ event: profileVersions[0] })
+		listNostrRelayEvents.mockResolvedValueOnce([profileVersions[0]])
 		await expect(profileEventResolver.resolve['CanonicalEventId'].resolve({
 			eventId: profileVersions[0].id,
 		}, resolverContext)).resolves.toEqual(expect.objectContaining({

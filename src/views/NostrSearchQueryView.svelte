@@ -21,7 +21,7 @@
 
 	const nostrSearchQuery = $derived(selection({
 		sources: selection.sources ?? [
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	})({
 		fields: {

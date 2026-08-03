@@ -22,21 +22,21 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 	pubkey: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 	createdAt: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 	tags: {
@@ -47,28 +47,28 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 	$author: {
 		entityType: EntityType.NostrProfile,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 	$repostedNote: {
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 	$repostedArticle: {
 		entityType: EntityType.NostrArticle,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 })({

@@ -166,7 +166,6 @@ export enum Source {
 	Neynar_Rest = 'Neynar_Rest',
 	Nfid_WalletApi = 'Nfid_WalletApi',
 	Nodely = 'Nodely',
-	NostrBand_Rest = 'NostrBand_Rest',
 	NostrRelay_Nip11_Http = 'NostrRelay_Nip11_Http',
 	NostrRelay_WebSocket = 'NostrRelay_WebSocket',
 	OciRegistry_Distribution = 'OciRegistry_Distribution',

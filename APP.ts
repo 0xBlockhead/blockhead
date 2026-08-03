@@ -139,6 +139,7 @@ export enum SourceOperationGroup {
 	GitRepositoryContents = "GitRepositoryContents",
 	IssueTracking = "IssueTracking",
 	NostrRelayRead = "NostrRelayRead",
+	NostrSearch = "NostrSearch",
 	PaymentNegotiation = "PaymentNegotiation",
 	PullRequestReview = "PullRequestReview",
 	ReleaseMetadata = "ReleaseMetadata",
@@ -346,7 +347,6 @@ export enum Source {
 	Neynar_Rest = "Neynar_Rest",
 	Nfid_WalletApi = "Nfid_WalletApi",
 	Nodely = "Nodely",
-	NostrBand_Rest = "NostrBand_Rest",
 	NostrRelay_Nip11_Http = "NostrRelay_Nip11_Http",
 	NostrRelay_WebSocket = "NostrRelay_WebSocket",
 	OciRegistry_Distribution = "OciRegistry_Distribution",
@@ -608,7 +608,6 @@ export enum SourceProvider {
 	Neynar = "Neynar",
 	Nfid = "Nfid",
 	Nodely = "Nodely",
-	NostrBand = "NostrBand",
 	NostrRelay = "NostrRelay",
 	OciRegistry = "OciRegistry",
 	Octez = "Octez",
@@ -48049,14 +48048,14 @@ export const schema = {
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.NostrArticleEvent,
-					defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest],
+					defaultSources: [Source.NostrRelay_WebSocket, Source.Primal_Rest],
 				},
 				"$$events": {
 					label: "Signed versions",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrArticleEvent,
-					defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest],
+					defaultSources: [Source.Primal_Rest],
 				},
 			})({
 				selectors: {
@@ -48065,7 +48064,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.NostrBand_Rest, Source.Primal_Rest],
+							sources: [Source.NostrRelay_WebSocket, Source.Primal_Rest],
 						},
 						summary: {
 							title: ["$latestEvent", "identifier"],
@@ -48208,31 +48207,31 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
 					valueType: "number",
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
+					defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket],
 				},
 				"pubkey": {
 					label: "Pubkey",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
 					valueType: "string",
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
+					defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket],
 				},
 				"content": {
 					label: "Text",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					valueType: "string",
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
+					defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket],
 				},
-				"sensitive": { label: "Sensitive", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest, Source.Primal_Rest] },
-				"contentWarning": { label: "Content warning", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest, Source.Primal_Rest] },
+				"sensitive": { label: "Sensitive", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket, Source.Primal_Rest] },
+				"contentWarning": { label: "Content warning", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket, Source.Primal_Rest] },
 				"createdAt": {
 					label: "Created",
 					description: "The event creation time normalized to Unix milliseconds.",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					valueType: "number",
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
+					defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket],
 				},
 				"tags": {
 					label: "Tags",
@@ -48245,49 +48244,49 @@ export const schema = {
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.NostrProfile,
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
+					defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket],
 				},
 				"replyToEventId": {
 					label: "Reply to event ID",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					valueType: "string",
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
+					defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket],
 				},
 				"rootEventId": {
 					label: "Root event ID",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					valueType: "string",
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
+					defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket],
 				},
 				"$replyToNote": {
 					label: "Reply to note",
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.NostrNote,
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest, Source.Primal_Rest],
+					defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket, Source.Primal_Rest],
 				},
 				"$rootNote": {
 					label: "Root note",
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.NostrNote,
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest, Source.Primal_Rest],
+					defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket, Source.Primal_Rest],
 				},
 				"$$replies": {
 					label: "Replies",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrNote,
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
+					defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket],
 				},
 				"$$reactions": {
 					label: "Reactions",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrReaction,
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
+					defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket],
 				},
 			})({
 				selectors: {
@@ -48301,7 +48300,7 @@ export const schema = {
 							fallbackText: "Sensitive content",
 						},
 						query: {
-							sources: [Source.Constants_Internal, Source.NostrBand_Rest, Source.Primal_Rest],
+							sources: [Source.Constants_Internal, Source.NostrRelay_WebSocket, Source.Primal_Rest],
 							fields: [
 								"kind",
 								"pubkey",
@@ -48398,35 +48397,35 @@ export const schema = {
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.NostrProfileMetadataEvent,
-					defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest],
+					defaultSources: [Source.NostrRelay_WebSocket, Source.Primal_Rest],
 				},
 				"$$metadataEvents": {
 					label: "Signed metadata versions",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrProfileMetadataEvent,
-					defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest],
+					defaultSources: [Source.Primal_Rest],
 				},
 				"$$notes": {
 					label: "Notes",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrNote,
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
+					defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket],
 				},
 				"$$articles": {
 					label: "Articles",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrArticle,
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.NostrRelay_WebSocket],
 				},
 				"$$reposts": {
 					label: "Reposts",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrRepost,
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.NostrRelay_WebSocket],
 				},
 			})({
 				selectors: {
@@ -48435,7 +48434,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Constants_Internal, Source.NostrBand_Rest, Source.Primal_Rest],
+							sources: [Source.Constants_Internal, Source.NostrRelay_WebSocket, Source.Primal_Rest],
 						},
 						summary: {
 							title: ["$latestMetadataEvent"],
@@ -48553,21 +48552,21 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
 					valueType: "number",
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.NostrRelay_WebSocket],
 				},
 				"pubkey": {
 					label: "Pubkey",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
 					valueType: "string",
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.NostrRelay_WebSocket],
 				},
 				"createdAt": {
 					label: "Created",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					valueType: "number",
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.NostrRelay_WebSocket],
 				},
 				"tags": {
 					label: "Tags",
@@ -48580,28 +48579,28 @@ export const schema = {
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.NostrProfile,
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.NostrRelay_WebSocket],
 				},
 				"$targetNote": {
 					label: "Target note",
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.NostrNote,
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.NostrRelay_WebSocket],
 				},
 				"$targetArticle": {
 					label: "Target article",
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.NostrArticle,
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.NostrRelay_WebSocket],
 				},
 				"content": {
 					label: "Reaction",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					valueType: "string",
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.NostrRelay_WebSocket],
 				},
 			})({
 				selectors: {
@@ -48610,7 +48609,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Primal_Rest, Source.NostrBand_Rest],
+							sources: [Source.NostrRelay_WebSocket, Source.Primal_Rest],
 							fields: [
 								"kind",
 								"pubkey",
@@ -48733,7 +48732,6 @@ export const schema = {
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrRelay_Timestamp,
 					defaultSources: [
-						Source.NostrBand_Rest,
 						Source.NostrRelay_Nip11_Http,
 					],
 				},
@@ -48748,10 +48746,9 @@ export const schema = {
 								field: "$$timestamps",
 								label: "Latest observation",
 								query: {
-									limit: 2,
-									sources: [
-										Source.NostrBand_Rest,
-										Source.NostrRelay_Nip11_Http,
+								limit: 2,
+								sources: [
+									Source.NostrRelay_Nip11_Http,
 									],
 								},
 								sort: "timestampMs",
@@ -48791,10 +48788,9 @@ export const schema = {
 								label: "Observation history",
 								emptyText: "No Nostr relay observations.",
 								query: {
-									limit: 64,
-									sources: [
-										Source.NostrBand_Rest,
-										Source.NostrRelay_Nip11_Http,
+								limit: 64,
+								sources: [
+									Source.NostrRelay_Nip11_Http,
 									],
 								},
 							},
@@ -48884,9 +48880,6 @@ export const schema = {
 				"pubkey": { label: "Public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"contact": { label: "Contact", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"isPaid": { label: "Paid relay", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
-				"activeUsers": { label: "Active users", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"eventsPerDay": { label: "Events per day", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"rank": { label: "Rank", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"reachable": { label: "Reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"error": { label: "Error", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
@@ -48901,7 +48894,7 @@ export const schema = {
 							body: { field: "description", format: "longText" },
 							dl: [
 								[{ field: "timestampMs", format: "timestamp" }, "source", "name", "software", "version"],
-								["supportedNips", "isPaid", "activeUsers", "eventsPerDay", "rank", "reachable"],
+								["supportedNips", "isPaid", "reachable"],
 								[{ field: "paymentsUrl", format: "url" }, { field: "termsOfServiceUrl", format: "url" }, { field: "iconUrl", format: "url" }, { field: "bannerUrl", format: "url" }],
 								["pubkey", "contact", "error", "$relay"],
 							],
@@ -48930,21 +48923,21 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
 					valueType: "number",
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.NostrRelay_WebSocket],
 				},
 				"pubkey": {
 					label: "Pubkey",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.One,
 					valueType: "string",
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.NostrRelay_WebSocket],
 				},
 				"createdAt": {
 					label: "Created",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					valueType: "number",
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.NostrRelay_WebSocket],
 				},
 				"tags": {
 					label: "Tags",
@@ -48957,28 +48950,28 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					valueType: "string",
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.NostrRelay_WebSocket],
 				},
 				"$author": {
 					label: "Author",
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.NostrProfile,
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.NostrRelay_WebSocket],
 				},
 				"$repostedNote": {
 					label: "Reposted note",
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.NostrNote,
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.NostrRelay_WebSocket],
 				},
 				"$repostedArticle": {
 					label: "Reposted article",
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.NostrArticle,
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.NostrRelay_WebSocket],
 				},
 			})({
 				selectors: {
@@ -48987,7 +48980,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Primal_Rest, Source.NostrBand_Rest],
+							sources: [Source.NostrRelay_WebSocket, Source.Primal_Rest],
 							fields: [
 								"kind",
 								"pubkey",
@@ -49065,12 +49058,12 @@ export const schema = {
 					singular: "Nostr profile search",
 					plural: "Nostr profile searches",
 				},
-				description: "A bounded NostrBand profile search addressed by its normalized query.",
+				description: "A bounded NIP-50 relay profile search addressed by its normalized query. Completion means the selected relay emitted EOSE; results are observed, not globally exhaustive.",
 			})({
 				"query": { label: "Query", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"resultCount": { label: "Results", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.NostrBand_Rest] },
-				"completed": { label: "Completed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.NostrBand_Rest] },
-				"$$profiles": { label: "Profiles", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NostrProfile, defaultSources: [Source.NostrBand_Rest] },
+				"resultCount": { label: "Results", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.NostrRelay_WebSocket] },
+				"completed": { label: "Completed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.NostrRelay_WebSocket] },
+				"$$profiles": { label: "Profiles", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NostrProfile, defaultSources: [Source.NostrRelay_WebSocket] },
 			})({
 				selectors: {
 					"Query": ["query"],
@@ -49078,7 +49071,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.NostrBand_Rest],
+							sources: [Source.NostrRelay_WebSocket],
 							fields: ["resultCount", "completed"],
 						},
 						summary: {
@@ -83161,10 +83154,6 @@ export const app = {
 				label: "Nodely",
 			},
 			{
-				provider: "NostrBand",
-				label: "NostrBand",
-			},
-			{
 				provider: "NostrRelay",
 				label: "Nostr relay",
 			},
@@ -90577,41 +90566,36 @@ export const app = {
 				],
 			},
 			{
-				source: Source.NostrBand_Rest,
-				provider: "NostrBand",
-				label: "NostrBand REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "api",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.nostr.band",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/NostrBand/Rest/types.ts",
-						},
-					],
-				},
-			},
-			{
 				source: Source.NostrRelay_Nip11_Http,
 				provider: "NostrRelay",
 				label: "Nostr relay NIP-11 HTTP",
 				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Feed,
+							key: "wss://nos.lol",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://nos.lol",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.NostrRelay,
+						operationGroups: [
+							SourceOperationGroup.NostrRelayRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/NostrRelay/Http/types.ts",
+							},
+						],
+					},
 					{
 						target: {
 							kind: SourceTargetKind.Feed,
@@ -90641,12 +90625,12 @@ export const app = {
 					{
 						target: {
 							kind: SourceTargetKind.Feed,
-							key: "wss://nos.lol",
+							key: "wss://relay.nostr.band",
 						},
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "https://nos.lol",
+								locator: "https://relay.nostr.band",
 								corsEnabled: false,
 							},
 						],
@@ -90700,6 +90684,32 @@ export const app = {
 					{
 						target: {
 							kind: SourceTargetKind.Feed,
+							key: "wss://nos.lol",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.WebSocketUrl,
+								locator: "wss://nos.lol",
+							},
+						],
+						wireProtocol: WireProtocol.WebSocketMessages,
+						apiFamily: ApiFamily.NostrRelay,
+						operationGroups: [
+							SourceOperationGroup.GenericSubscribe,
+							SourceOperationGroup.NostrRelayRead,
+						],
+						delivery: SourceDelivery.RemoteLive,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/NostrRelay/WebSocket/types.ts",
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Feed,
 							key: "wss://relay.damus.io",
 						},
 						endpoints: [
@@ -90726,12 +90736,12 @@ export const app = {
 					{
 						target: {
 							kind: SourceTargetKind.Feed,
-							key: "wss://nos.lol",
+							key: "wss://relay.nostr.band",
 						},
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.WebSocketUrl,
-								locator: "wss://nos.lol",
+								locator: "wss://relay.nostr.band",
 							},
 						],
 						wireProtocol: WireProtocol.WebSocketMessages,
@@ -90739,6 +90749,7 @@ export const app = {
 						operationGroups: [
 							SourceOperationGroup.GenericSubscribe,
 							SourceOperationGroup.NostrRelayRead,
+							SourceOperationGroup.NostrSearch,
 						],
 						delivery: SourceDelivery.RemoteLive,
 						credentials: [],
@@ -97347,10 +97358,6 @@ export const app = {
 			{
 				source: Source.Nodely,
 				path: "src/resolvers/AlgorandIndexer-Rest.ts",
-			},
-			{
-				source: Source.NostrBand_Rest,
-				path: "src/resolvers/NostrBand-Rest.ts",
 			},
 			{
 				source: Source.NostrRelay_Nip11_Http,

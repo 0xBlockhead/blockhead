@@ -3582,7 +3582,7 @@ const e2eNostrProfileEvent = signedNostrEvent({
 	content: JSON.stringify({
 		name: 'blockhead-e2e',
 		display_name: 'Blockhead E2E',
-		about: 'NostrBand e2e profile stub',
+		about: 'Nostr relay e2e profile stub',
 		website: 'https://blockhead.info',
 		nip05: 'e2e@blockhead.info',
 	}),
@@ -3638,7 +3638,7 @@ const e2eNostrArticleEvent = signedNostrEvent({
 	tags: [
 		['d', e2eNostrArticleIdentifier],
 		['title', 'Blockhead E2E Nostr article'],
-		['summary', 'NostrBand e2e article stub'],
+		['summary', 'Nostr relay e2e article stub'],
 		['published_at', '1710000240'],
 	],
 	content: 'Blockhead Nostr e2e article body',

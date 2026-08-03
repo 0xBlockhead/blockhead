@@ -20,8 +20,8 @@
 		eventId: params.eventId,
 	}, {
 		sources: [
+			Source.NostrRelay_WebSocket,
 			Source.Primal_Rest,
-			Source.NostrBand_Rest,
 		],
 		fields: {
 			repostedEventId: true,

@@ -30,7 +30,7 @@ export default entity({
 		entityType: EntityType.NostrArticleEvent,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 			Source.Primal_Rest,
 		],
 	},
@@ -38,7 +38,6 @@ export default entity({
 		entityType: EntityType.NostrArticleEvent,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.NostrBand_Rest,
 			Source.Primal_Rest,
 		],
 	},

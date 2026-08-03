@@ -22,7 +22,7 @@ export default entity({
 		entityType: EntityType.NostrProfileMetadataEvent,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 			Source.Primal_Rest,
 		],
 	},
@@ -30,7 +30,6 @@ export default entity({
 		entityType: EntityType.NostrProfileMetadataEvent,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.NostrBand_Rest,
 			Source.Primal_Rest,
 		],
 	},
@@ -39,21 +38,21 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Constants_Internal,
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 	$$articles: {
 		entityType: EntityType.NostrArticle,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 	$$reposts: {
 		entityType: EntityType.NostrRepost,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 })({

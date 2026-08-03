@@ -149,7 +149,6 @@ import nearWalletSelectorSourceProvider from './NearWalletSelector/index.ts'
 import neynarSourceProvider from './Neynar/index.ts'
 import nfidSourceProvider from './Nfid/index.ts'
 import nodelySourceProvider from './Nodely/index.ts'
-import nostrBandSourceProvider from './NostrBand/index.ts'
 import nostrRelaySourceProvider from './NostrRelay/index.ts'
 import ociRegistrySourceProvider from './OciRegistry/index.ts'
 import octezSourceProvider from './Octez/index.ts'
@@ -397,7 +396,6 @@ const sourceProviders = [
 	neynarSourceProvider,
 	nfidSourceProvider,
 	nodelySourceProvider,
-	nostrBandSourceProvider,
 	nostrRelaySourceProvider,
 	ociRegistrySourceProvider,
 	octezSourceProvider,

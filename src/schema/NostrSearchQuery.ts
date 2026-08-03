@@ -12,7 +12,7 @@ export default entity({
 		singular: 'Nostr profile search',
 		plural: 'Nostr profile searches',
 	},
-	description: 'A bounded NostrBand profile search addressed by its normalized query.',
+	description: 'A bounded NIP-50 relay profile search addressed by its normalized query. Completion means the selected relay emitted EOSE; results are observed, not globally exhaustive.',
 })({
 	query: {
 		primitiveType: type('string'),
@@ -22,21 +22,21 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 	completed: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 	$$profiles: {
 		entityType: EntityType.NostrProfile,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 })({

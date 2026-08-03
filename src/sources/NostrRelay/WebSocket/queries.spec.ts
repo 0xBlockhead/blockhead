@@ -1,8 +1,13 @@
 import { schnorr } from '@noble/curves/secp256k1.js'
 import * as Hex from 'ox/Hex'
-import type { NostrRelaySocket } from '$/sources/NostrRelay/WebSocket/types.ts'
+import bindings from '$/sources/NostrRelay/bindings.ts'
+import type {
+	NostrRelayEvent,
+	NostrRelaySocket,
+} from '$/sources/NostrRelay/WebSocket/types.ts'
 import {
 	latestNostrRelayListFromEvents,
+	listNostrRelayEvents,
 	listRelayEvents,
 	nostrCommentFromEvent,
 	nostrRelayListFromEvent,
@@ -11,6 +16,8 @@ import {
 	openRelaySubscription,
 	relayWebSocketUrl,
 } from '$/sources/NostrRelay/WebSocket/queries.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceOperationGroup } from '$/sources/SourceBinding.ts'
 import {
 	nostrEventId,
 	type NostrEventEnvelope,
@@ -592,6 +599,142 @@ describe('Nostr relay WebSocket subscriptions', () => {
 			'blockhead-snapshot',
 		]))
 		expect(timedOutSocket.closed).toBe(true)
+	})
+
+	it('fans out concurrently and deterministically merges successful binding snapshots', async () => {
+		const relayUrls = [...new Set(
+			bindings[Source.NostrRelay_WebSocket].flatMap((binding) => (
+				binding.endpoints.map((endpoint) => endpoint.locator)
+			))
+		)]
+		expect(relayUrls.length).toBeGreaterThanOrEqual(3)
+		const pendingReads = relayUrls.map(() => Promise.withResolvers<NostrRelayEvent[]>())
+		const readRelayEvents = vi.fn<typeof listRelayEvents>(({ relayUrl }) => (
+			pendingReads[relayUrls.indexOf(relayUrl)].promise
+		))
+		const filters = [{
+			kinds: [
+				6,
+				16,
+				30_023,
+			],
+			limit: 8,
+		}]
+		const result = listNostrRelayEvents({
+			filters,
+			timeoutMs: 250,
+			readRelayEvents,
+		})
+
+		expect(readRelayEvents).toHaveBeenCalledTimes(relayUrls.length)
+		expect(readRelayEvents.mock.calls.map(([options]) => options.relayUrl)).toEqual(relayUrls)
+		pendingReads[0].resolve([
+			{
+				id: 'event-z',
+				created_at: 20,
+				content: 'first binding envelope',
+			},
+			{
+				id: 'event-b',
+				created_at: 10,
+			},
+		])
+		pendingReads[1].reject(new Error('relay unavailable'))
+		for (const pendingRead of pendingReads.slice(2))
+			pendingRead.resolve([
+				{
+					id: 'event-a',
+					created_at: 20,
+				},
+				{
+					id: 'event-z',
+					created_at: 20,
+					content: 'later duplicate envelope',
+				},
+			])
+
+		await expect(result).resolves.toEqual([
+			{
+				id: 'event-a',
+				created_at: 20,
+			},
+			{
+				id: 'event-z',
+				created_at: 20,
+				content: 'first binding envelope',
+			},
+			{
+				id: 'event-b',
+				created_at: 10,
+			},
+		])
+	})
+
+	it('defaults snapshot fanout to read-capable bindings', async () => {
+		const selectedRelayUrls = bindings[Source.NostrRelay_WebSocket].flatMap((binding) => (
+			binding.operationGroups.includes(SourceOperationGroup.NostrRelayRead) ?
+				binding.endpoints.map((endpoint) => endpoint.locator)
+			:
+				[]
+		))
+		const readRelayEvents = vi.fn<typeof listRelayEvents>().mockResolvedValue([])
+
+		await expect(listNostrRelayEvents({
+			filters: [{
+				kinds: [0],
+			}],
+			readRelayEvents,
+		})).resolves.toEqual([])
+		expect(readRelayEvents.mock.calls.map(([options]) => options.relayUrl)).toEqual(selectedRelayUrls)
+	})
+
+	it('caps merged relay results to the requested filter limits', async () => {
+		const readRelayEvents = vi.fn<typeof listRelayEvents>().mockResolvedValue([
+			{
+				id: 'event-c',
+				created_at: 30,
+			},
+			{
+				id: 'event-b',
+				created_at: 20,
+			},
+			{
+				id: 'event-a',
+				created_at: 10,
+			},
+		])
+
+		await expect(listNostrRelayEvents({
+			filters: [{
+				kinds: [1],
+				limit: 2,
+			}],
+			readRelayEvents,
+		})).resolves.toEqual([
+			{
+				id: 'event-c',
+				created_at: 30,
+			},
+			{
+				id: 'event-b',
+				created_at: 20,
+			},
+		])
+	})
+
+	it('throws an aggregate failure only when every selected relay fails', async () => {
+		const relayCount = bindings[Source.NostrRelay_WebSocket].length
+		const readRelayEvents = vi.fn<typeof listRelayEvents>().mockRejectedValue(
+			new Error('relay unavailable')
+		)
+
+		await expect(listNostrRelayEvents({
+			filters: [{
+				kinds: [1],
+			}],
+			readRelayEvents,
+		})).rejects.toThrow('All Nostr relay snapshot bindings failed')
+		expect(readRelayEvents).toHaveBeenCalledTimes(relayCount)
 	})
 
 	it('reconnects once, resumes inclusively, and cancels the active subscription', async () => {

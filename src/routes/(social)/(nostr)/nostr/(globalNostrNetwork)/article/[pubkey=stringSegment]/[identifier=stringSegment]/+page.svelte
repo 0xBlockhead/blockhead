@@ -22,7 +22,7 @@
 		identifier: params.identifier,
 	}, {
 		sources: [
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 			Source.Primal_Rest,
 		],
 		fields: {

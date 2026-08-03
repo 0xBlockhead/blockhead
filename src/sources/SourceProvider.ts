@@ -150,7 +150,6 @@ export enum SourceProvider {
 	Neynar = 'Neynar',
 	Nfid = 'Nfid',
 	Nodely = 'Nodely',
-	NostrBand = 'NostrBand',
 	NostrRelay = 'NostrRelay',
 	OciRegistry = 'OciRegistry',
 	Octez = 'Octez',

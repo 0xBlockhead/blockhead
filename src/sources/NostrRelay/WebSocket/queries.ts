@@ -5,10 +5,13 @@ import type {
 	NostrRelaySocket,
 	NostrRelaySubscriptionEvent,
 } from '$/sources/NostrRelay/WebSocket/types.ts'
+import bindings from '$/sources/NostrRelay/bindings.ts'
 import {
 	validateNostrEvent,
 	validatedNostrEventFromContent,
 } from '$/sources/NostrRelay/Nip01/event.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceOperationGroup } from '$/sources/SourceBinding.ts'
 import {
 	isJsonArray,
 	isJsonNumber,
@@ -534,6 +537,81 @@ export const listRelayEvents = ({
 		if (querySignal.aborted)
 			abort()
 	})
+}
+
+type NostrRelaySnapshotOperationGroup =
+	| SourceOperationGroup.NostrRelayRead
+	| SourceOperationGroup.NostrSearch
+
+export const nostrRelaySnapshotBindings = (
+	operationGroup: NostrRelaySnapshotOperationGroup = SourceOperationGroup.NostrRelayRead
+) => {
+	const selectedBindings = (bindings[Source.NostrRelay_WebSocket] ?? []).filter((binding) => (
+		binding.operationGroups.some((candidate) => candidate === operationGroup)
+	))
+	if (selectedBindings.length === 0)
+		throw new Error('Nostr relay snapshot has no selected WebSocket bindings')
+
+	return selectedBindings
+}
+
+export const listNostrRelayEvents = async ({
+	filters,
+	operationGroup = SourceOperationGroup.NostrRelayRead,
+	signal,
+	timeoutMs = 10_000,
+	readRelayEvents = listRelayEvents,
+}: {
+	filters: readonly NostrRelayFilter[]
+	operationGroup?: NostrRelaySnapshotOperationGroup
+	signal?: AbortSignal
+	timeoutMs?: number
+	readRelayEvents?: typeof listRelayEvents
+}) => {
+	const relayUrls = [...new Set(
+		nostrRelaySnapshotBindings(operationGroup).flatMap((binding) => (
+			binding.endpoints.map((endpoint) => endpoint.locator)
+		))
+	)]
+
+	const results = await Promise.allSettled(relayUrls.map((relayUrl) => (
+		readRelayEvents({
+			relayUrl,
+			filters,
+			signal,
+			timeoutMs,
+		})
+	)))
+	const failures = results.flatMap((result) => (
+		result.status === 'rejected' ?
+			[result.reason]
+		:
+			[]
+	))
+	if (failures.length === results.length)
+		throw new AggregateError(failures, 'All Nostr relay snapshot bindings failed')
+
+	const eventById = new Map<string, NostrRelayEvent>()
+	for (const result of results) {
+		if (result.status === 'rejected') continue
+		for (const event of result.value)
+			if (!eventById.has(event.id))
+				eventById.set(event.id, event)
+	}
+
+	return (
+		[...eventById.values()]
+			.sort((left, right) => (
+				right.created_at - left.created_at
+				|| left.id.localeCompare(right.id)
+			))
+			.slice(0, filters.reduce<number | undefined>((limit, filter) => (
+				limit == null || filter.limit == null ?
+					undefined
+				:
+					limit + filter.limit
+			), 0))
+	)
 }
 
 export const openRelaySubscription = ({

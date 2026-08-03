@@ -29,7 +29,6 @@ export default entity({
 		entityType: EntityType.NostrRelay_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.NostrBand_Rest,
 			Source.NostrRelay_Nip11_Http,
 		],
 	},

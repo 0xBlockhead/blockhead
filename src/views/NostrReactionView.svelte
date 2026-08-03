@@ -26,8 +26,8 @@
 
 	const nostrReaction = $derived(selection({
 		sources: selection.sources ?? [
+			Source.NostrRelay_WebSocket,
 			Source.Primal_Rest,
-			Source.NostrBand_Rest,
 		],
 	})({
 		fields: {

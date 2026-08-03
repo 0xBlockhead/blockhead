@@ -17,8 +17,16 @@ import type { NostrRelaySubscriptionEvent } from '$/sources/NostrRelay/WebSocket
 import { nostrEventId } from '$/sources/NostrRelay/Nip01/event.ts'
 
 const openRelaySubscription = vi.hoisted(() => vi.fn())
+const listNostrRelayEvents = vi.hoisted(() => vi.fn())
+const nostrRelaySnapshotBindings = vi.hoisted(() => vi.fn(() => [{
+	target: {
+		key: 'wss://relay.nostr.band',
+	},
+}]))
 
 vi.mock('$/sources/NostrRelay/WebSocket/queries.ts', () => ({
+	listNostrRelayEvents,
+	nostrRelaySnapshotBindings,
 	openRelaySubscription,
 }))
 

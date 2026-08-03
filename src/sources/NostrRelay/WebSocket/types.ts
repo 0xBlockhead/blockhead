@@ -5,10 +5,15 @@ import type {
 
 export type NostrRelayMessage = readonly JsonValue[]
 
-export type NostrRelayFilter = JsonObject & {
+export type NostrRelayFilter = {
+	ids?: readonly string[]
+	authors?: readonly string[]
+	kinds?: readonly number[]
+	limit?: number
+	search?: string
 	since?: number
 	until?: number
-}
+} & Partial<Record<`#${string}`, readonly string[]>>
 
 export type NostrRelayEvent = JsonObject & {
 	id: string

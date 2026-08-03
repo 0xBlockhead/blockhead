@@ -1537,7 +1537,7 @@ describe('resolver registry live resolver architecture', () => {
 		}])
 	})
 
-	it('keeps Nostr relay observations source-scoped and preserves failure evidence', async () => {
+	it('keeps NIP-11 relay observations source-scoped and preserves failure evidence', async () => {
 		const resolverContext = {
 			filters: [],
 			sorts: [],
@@ -1565,17 +1565,7 @@ describe('resolver registry live resolver architecture', () => {
 				}],
 			},
 		}))
-		const listTopRelays = vi.fn(async () => ({
-			relays: [{
-				url: relayUrl,
-				name: 'Indexed relay',
-				nips: [1, 11, 66],
-				users: 42,
-				events: 120,
-			}],
-		}))
 		vi.doMock('$/sources/NostrRelay/Http/queries.ts', () => ({ fetchRelayInformation }))
-		vi.doMock('$/sources/NostrBand/Rest/queries.ts', () => ({ listTopRelays }))
 
 		const nip11RelayResolver = allSourceResolverDefinitions.find((resolver) => (
 			resolver.source === Source.NostrRelay_Nip11_Http
@@ -1585,40 +1575,20 @@ describe('resolver registry live resolver architecture', () => {
 			resolver.source === Source.NostrRelay_Nip11_Http
 			&& resolver.entityType === EntityType.NostrRelay_Timestamp
 		))
-		const nostrBandRelayResolver = allSourceResolverDefinitions.find((resolver) => (
-			resolver.source === Source.NostrBand_Rest
-			&& resolver.entityType === EntityType.NostrRelay
-		))
-		const nostrBandObservationResolver = allSourceResolverDefinitions.find((resolver) => (
-			resolver.source === Source.NostrBand_Rest
-			&& resolver.entityType === EntityType.NostrRelay_Timestamp
-		))
 		const resolveNip11Relay = nip11RelayResolver?.resolve['RelayUrl']
 		const resolveNip11Observation = nip11ObservationResolver?.resolve['RelayTimestampMsSource']
-		const resolveNostrBandRelay = nostrBandRelayResolver?.resolve['RelayUrl']
-		const resolveNostrBandObservation = nostrBandObservationResolver?.resolve['RelayTimestampMsSource']
 		if (
 			resolveNip11Relay == null
 			|| resolveNip11Observation == null
-			|| resolveNostrBandRelay == null
-			|| resolveNostrBandObservation == null
 		)
-			throw new Error('missing Nostr relay observation resolver')
+			throw new Error('missing NIP-11 relay observation resolver')
 
 		expect(nip11ObservationResolver.appliesTo(
 			'RelayTimestampMsSource',
 			{
 				$relay: { relayUrl },
 				timestampMs,
-				source: Source.NostrBand_Rest,
-			}
-		)).toBe(false)
-		expect(nostrBandObservationResolver.appliesTo(
-			'RelayTimestampMsSource',
-			{
-				$relay: { relayUrl },
-				timestampMs,
-				source: Source.NostrRelay_Nip11_Http,
+				source: Source.NostrRelay_WebSocket,
 			}
 		)).toBe(false)
 
@@ -1659,7 +1629,7 @@ describe('resolver registry live resolver architecture', () => {
 		await expect(resolveNip11Observation({
 			$relay: { relayUrl },
 			timestampMs,
-			source: Source.NostrBand_Rest,
+			source: Source.NostrRelay_WebSocket,
 		}, resolverContext)).rejects.toThrow('unsupported source')
 		fetchRelayInformation.mockRejectedValueOnce(new Error('relay unavailable'))
 		await expect(resolveNip11Observation({
@@ -1670,40 +1640,6 @@ describe('resolver registry live resolver architecture', () => {
 			reachable: false,
 			error: 'relay unavailable',
 		})
-
-		expect(resolverFieldSelector(nostrBandRelayResolver, '$$timestamps')(
-			await resolveNostrBandRelay({ relayUrl }, resolverContext),
-			{ relayUrl },
-			resolverContext
-		)[0][EntityMetaKey.Selector]).toMatchObject({
-			$relay: { relayUrl },
-			source: Source.NostrBand_Rest,
-		})
-		await expect(resolveNostrBandObservation({
-			$relay: { relayUrl },
-			timestampMs,
-			source: Source.NostrBand_Rest,
-		}, resolverContext)).resolves.toMatchObject({
-			name: 'Indexed relay',
-			supportedNips: [1, 11, 66],
-			activeUsers: 42,
-			eventsPerDay: 120,
-			rank: 1,
-			reachable: true,
-		})
-		await expect(resolveNostrBandObservation({
-			$relay: { relayUrl: 'wss://missing.example' },
-			timestampMs,
-			source: Source.NostrBand_Rest,
-		}, resolverContext)).resolves.toMatchObject({
-			reachable: false,
-			error: 'NostrBand_Rest: relay not found',
-		})
-		await expect(resolveNostrBandObservation({
-			$relay: { relayUrl },
-			timestampMs,
-			source: Source.NostrRelay_Nip11_Http,
-		}, resolverContext)).rejects.toThrow('unsupported source')
 	})
 
 	it('converges RSS item identity and keeps fetch state source-scoped', async () => {

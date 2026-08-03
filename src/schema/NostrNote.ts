@@ -23,7 +23,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.Constants_Internal,
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 	pubkey: {
@@ -31,7 +31,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.Constants_Internal,
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 	content: {
@@ -39,7 +39,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Constants_Internal,
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 	sensitive: {
@@ -47,7 +47,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Constants_Internal,
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 			Source.Primal_Rest,
 		],
 	},
@@ -56,7 +56,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Constants_Internal,
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 			Source.Primal_Rest,
 		],
 	},
@@ -65,7 +65,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Constants_Internal,
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 	tags: {
@@ -77,7 +77,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Constants_Internal,
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 	replyToEventId: {
@@ -85,7 +85,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Constants_Internal,
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 	rootEventId: {
@@ -93,7 +93,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Constants_Internal,
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 	$replyToNote: {
@@ -101,7 +101,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Constants_Internal,
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 			Source.Primal_Rest,
 		],
 	},
@@ -110,7 +110,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Constants_Internal,
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 			Source.Primal_Rest,
 		],
 	},
@@ -119,7 +119,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Constants_Internal,
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 	$$reactions: {
@@ -127,7 +127,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Constants_Internal,
-			Source.NostrBand_Rest,
+			Source.NostrRelay_WebSocket,
 		],
 	},
 })({

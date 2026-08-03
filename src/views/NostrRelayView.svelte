@@ -72,7 +72,6 @@
 							selection
 							.$$timestamps({
 								sources: [
-									Source.NostrBand_Rest,
 									Source.NostrRelay_Nip11_Http,
 								],
 								limit: 1,
@@ -90,7 +89,6 @@
 									selection={
 										select(EntityType.NostrRelay_Timestamp, nostrRelayTimestampSelector, {
 											sources: [
-												Source.NostrBand_Rest,
 												Source.NostrRelay_Nip11_Http,
 											],
 										})
@@ -121,7 +119,6 @@
 		{@const timestampsResource = selection
 			.$$timestamps({
 				sources: [
-					Source.NostrBand_Rest,
 					Source.NostrRelay_Nip11_Http,
 				],
 				limit: 64,

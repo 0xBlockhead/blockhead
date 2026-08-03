@@ -2,10 +2,13 @@
 /** Relay `relayUrl` is a public `wss://` endpoint (NIP-11 metadata optional). */
 export const nostrNetworkSeedRelays = [
 	{
+		relayUrl: 'wss://nos.lol',
+	},
+	{
 		relayUrl: 'wss://relay.damus.io',
 	},
 	{
-		relayUrl: 'wss://nos.lol',
+		relayUrl: 'wss://relay.nostr.band',
 	},
 	{
 		relayUrl: 'wss://relay.primal.net',
