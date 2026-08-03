@@ -13,6 +13,8 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { hexLowerOfByteSize, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 
+const loadEnsTheGraphQueries = () => import('$/sources/TheGraph/Graphql/Ens/queries.ts')
+
 const normalizedEnsSearchQuery = (query: string): string => {
 	const trimmedQuery = query.trim()
 	if (trimmedQuery === '') throw new Error('TheGraph_Graphql: empty ENS search query')
@@ -68,7 +70,7 @@ export default {
 						let reachable = true
 						try {
 							await (
-								await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
+								await loadEnsTheGraphQueries()
 							).getEnsSubgraphReachability({
 								publicEnv: context.publicEnv,
 							})
@@ -101,7 +103,7 @@ export default {
 			resolve: {
 				NormalizedName: {
 					resolve: async ({ name }, context) => {
-						const { getName } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
+						const { getName } = await loadEnsTheGraphQueries()
 						const normalizedName = ensToString(ensNormalizeNode(name))
 						const matchingEnsDomain = (
 							await getName({
@@ -238,7 +240,7 @@ export default {
 						if (source !== Source.TheGraph_Graphql)
 							throw new Error('TheGraph_Graphql: EnsName_Timestamp selector source mismatch')
 
-						const { getName } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
+						const { getName } = await loadEnsTheGraphQueries()
 						const normalizedName = ensToString(ensNormalizeNode($name.name))
 						const matchingEnsDomain = (
 							await getName({
@@ -316,7 +318,7 @@ export default {
 			resolve: {
 				AddressInteropAddress: {
 					resolve: async ({ address }, context) => {
-						const { getDomainsByOwner } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
+						const { getDomainsByOwner } = await loadEnsTheGraphQueries()
 						return (
 							(await getDomainsByOwner({
 								publicEnv: context.publicEnv,
@@ -369,7 +371,7 @@ export default {
 			resolve: {
 				Query: {
 					resolve: async ({ query: querySelector }, context) => {
-					const { getDomainsContaining } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
+					const { getDomainsContaining } = await loadEnsTheGraphQueries()
 					const limit = resolverContextRowLimit(context)
 					const query = normalizedEnsSearchQuery(querySelector)
 					return (
