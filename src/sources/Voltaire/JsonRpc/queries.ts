@@ -33,7 +33,7 @@ import {
 	narrowRpcReceipt,
 	narrowRpcTransaction,
 } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
-import { parseVoltaireCallTraceRpc } from '$/sources/Voltaire/JsonRpc/types.ts'
+import { parseVoltaireCallTraceRpc } from '$/sources/Voltaire/JsonRpc/CallTrace.ts'
 
 export type ExecutionTransport = {
 	binding: SourceBinding<Source.Voltaire_JsonRpc>

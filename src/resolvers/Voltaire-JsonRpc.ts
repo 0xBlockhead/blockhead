@@ -34,7 +34,7 @@ import type {
 	RpcLog,
 	RpcTransactionWire,
 } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
-import type { VoltaireCallTraceRpc } from '$/sources/Voltaire/JsonRpc/types.ts'
+import type { VoltaireCallTraceRpc } from '$/sources/Voltaire/JsonRpc/CallTrace.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -217,27 +217,26 @@ const evmLogIndexFromWire = (
 				)
 )
 
-const evmLogRpcQuantityToBigInt = (
-	raw: string | undefined
-): bigint | undefined => (
-	raw == null ?
-		undefined
-	:
-		((value) => (
-		value < 0n ?
-			undefined
-		:
-			value
-		))(
-			(() => {
-				try {
-					return BigInt(raw)
-				} catch {
-					return undefined
-				}
-			})() ?? -1n
-		)
-)
+const rpcQuantityToBigInt = (
+	raw: string | null | undefined
+) => {
+	if (raw == null)
+		return undefined
+
+	try {
+		const value = BigInt(raw)
+		return value < 0n ? undefined : value
+	} catch {
+		return undefined
+	}
+}
+
+const rpcQuantityToNumber = (
+	raw: string | null | undefined
+) => {
+	const value = rpcQuantityToBigInt(raw)
+	return value == null || value > BigInt(Number.MAX_SAFE_INTEGER) ? undefined : Number(value)
+}
 
 const evmLogEntitySelectorFromWire = ({
 	$network,
@@ -268,7 +267,7 @@ const evmLogEntityFromIdAndWire = (
 ) => {
 	const address = hexLowerOfByteSize(log.address ?? '', 20)
 	const blockHash = hexLowerOfByteSize(log.blockHash ?? '', 32)
-	const blockNumber = evmLogRpcQuantityToBigInt(log.blockNumber)
+	const blockNumber = rpcQuantityToBigInt(log.blockNumber)
 	const data = log.data == null ? undefined : with0xHex(log.data)
 	const topics = (
 		(log.topics ?? [])
@@ -1014,10 +1013,6 @@ export default {
 							getTransactionByHashForEndpoint,
 							getTransactionReceiptForEndpoint,
 						} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
-						const {
-							getRpcReceipt,
-							getRpcTx,
-						} = await import('$/sources/Voltaire/JsonRpc/types.ts')
 						const chainId = chainIdFromEvmNetworkId($network)
 						const requestedTxHash = hexLowerOfByteSize(txHashSelector, 32)
 						if (requestedTxHash == null)
@@ -1040,13 +1035,8 @@ export default {
 									})
 									if (voltaireTransactionWire == null)
 										throw new Error('transaction not returned from RPC')
-									const jsonRpcTransaction = getRpcTx(voltaireTransactionWire)
-									const txHash = (
-										jsonRpcTransaction.hash != null ?
-											(hexLowerOfByteSize(jsonRpcTransaction.hash, 32) ?? requestedTxHash)
-										:
-											requestedTxHash
-									)
+									const jsonRpcTransaction = voltaireTransactionWire
+									const txHash = hexLowerOfByteSize(jsonRpcTransaction.hash, 32) ?? requestedTxHash
 									const receiptWire = await getTransactionReceiptForEndpoint({
 										...jsonRpcTransport,
 										txHash,
@@ -1054,7 +1044,7 @@ export default {
 									return {
 										jsonRpcTransaction,
 										txHash,
-										receipt: receiptWire == null ? null : getRpcReceipt(receiptWire),
+										receipt: receiptWire,
 										rawCallTrace: await debugTraceTransactionForEndpoint({
 											...jsonRpcTransport,
 											txHash,
@@ -1066,25 +1056,8 @@ export default {
 							}
 							throw allJsonRpcEndpointsFailedError(chainId, 'EvmTransaction', errors)
 						})()
-						const containingBlockNumber = (
-							jsonRpcTransaction.blockNumber != null ? ((value) => (
-							value == null || value < 0n ? undefined : value
-							))((() => {
-							try {
-								return BigInt(jsonRpcTransaction.blockNumber)
-							} catch {
-								return undefined
-							}
-							})())
-							:
-								undefined
-						)
-						const from = (
-							jsonRpcTransaction.from != null ?
-								hexLowerOfByteSize(jsonRpcTransaction.from, 20)
-							:
-								undefined
-						)
+						const containingBlockNumber = rpcQuantityToBigInt(jsonRpcTransaction.blockNumber)
+						const from = hexLowerOfByteSize(jsonRpcTransaction.from, 20)
 						if (from == null)
 							throw new Error('Voltaire_JsonRpc: transaction is missing from address')
 
@@ -1094,16 +1067,7 @@ export default {
 							:
 								undefined
 						)
-						const rpcTypeByte = (
-							jsonRpcTransaction.type != null ? ((parsed) => (
-							Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
-								parsed
-							:
-								undefined
-							))(Number(jsonRpcTransaction.type))
-							:
-								undefined
-						)
+						const rpcTypeByte = rpcQuantityToNumber(jsonRpcTransaction.type)
 						const envelopeType = evmTransactionEnvelopeTypeFromRpcTypeByte(rpcTypeByte)
 						const evmTransactionEntityBase = {
 							[EntityMetaKey.Selector]: {
@@ -1130,114 +1094,24 @@ export default {
 									},
 								} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 							}),
-							indexInBlock: (
-								jsonRpcTransaction.transactionIndex != null ? ((parsed) => (
-								Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
-									parsed
-								:
-									undefined
-								))(Number(jsonRpcTransaction.transactionIndex))
-								:
-									undefined
-							),
-							value: (
-								jsonRpcTransaction.value != null ? ((value) => (
-								value == null || value < 0n ? 0n : value
-								))((() => {
-								try {
-									return BigInt(jsonRpcTransaction.value)
-								} catch {
-									return undefined
-								}
-								})())
-								:
-									0n
-							),
-							nonce: (
-								jsonRpcTransaction.nonce != null ? ((parsed) => (
-								Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
-									parsed
-								:
-									undefined
-								))(Number(jsonRpcTransaction.nonce))
-								:
-									undefined
-							),
-							...(jsonRpcTransaction.input != null && { input: with0xHex(jsonRpcTransaction.input) }),
-							...(jsonRpcTransaction.r != null && { r: with0xHex(jsonRpcTransaction.r) }),
-							...(jsonRpcTransaction.s != null && { s: with0xHex(jsonRpcTransaction.s) }),
+							indexInBlock: rpcQuantityToNumber(jsonRpcTransaction.transactionIndex),
+							value: rpcQuantityToBigInt(jsonRpcTransaction.value) ?? 0n,
+							nonce: rpcQuantityToNumber(jsonRpcTransaction.nonce),
+							input: with0xHex(jsonRpcTransaction.input),
+							r: with0xHex(jsonRpcTransaction.r),
+							s: with0xHex(jsonRpcTransaction.s),
 							...(jsonRpcTransaction.v != null && { v: jsonRpcTransaction.v }),
-							gas: (
-								jsonRpcTransaction.gas != null ? ((value) => (
-								value == null || value < 0n ? undefined : value
-								))((() => {
-								try {
-									return BigInt(jsonRpcTransaction.gas)
-								} catch {
-									return undefined
-								}
-								})())
-								:
-									undefined
-							),
-							gasPrice: (
-								jsonRpcTransaction.gasPrice != null ? ((value) => (
-								value == null || value < 0n ? undefined : value
-								))((() => {
-								try {
-									return BigInt(jsonRpcTransaction.gasPrice)
-								} catch {
-									return undefined
-								}
-								})())
-								:
-									undefined
-							),
+							gas: rpcQuantityToBigInt(jsonRpcTransaction.gas),
+							gasPrice: rpcQuantityToBigInt(jsonRpcTransaction.gasPrice),
 							...(
 								(
 								envelopeType === EvmTransactionEnvelopeType.FeeMarket
 								|| envelopeType === EvmTransactionEnvelopeType.Blob
 								|| envelopeType === EvmTransactionEnvelopeType.SetCode
 								) && {
-									maxFeePerGas: (
-									jsonRpcTransaction.maxFeePerGas != null ? ((value) => (
-										value == null || value < 0n ? undefined : value
-									))((() => {
-										try {
-											return BigInt(jsonRpcTransaction.maxFeePerGas)
-										} catch {
-											return undefined
-										}
-									})())
-									:
-										undefined
-									),
-									maxPriorityFeePerGas: (
-									jsonRpcTransaction.maxPriorityFeePerGas != null ? ((value) => (
-										value == null || value < 0n ? undefined : value
-									))((() => {
-										try {
-											return BigInt(jsonRpcTransaction.maxPriorityFeePerGas)
-										} catch {
-											return undefined
-										}
-									})())
-									:
-										undefined
-									),
-									maxFeePerBlobGas: (
-									jsonRpcTransaction.maxFeePerBlobGas != null ? ((value) => (
-										value == null || value < 0n ? undefined : value
-									))((() => {
-										try {
-											return BigInt(jsonRpcTransaction.maxFeePerBlobGas)
-										} catch {
-											return undefined
-										}
-									})())
-									:
-										undefined
-									),
+									maxFeePerGas: rpcQuantityToBigInt(jsonRpcTransaction.maxFeePerGas),
+									maxPriorityFeePerGas: rpcQuantityToBigInt(jsonRpcTransaction.maxPriorityFeePerGas),
+									maxFeePerBlobGas: rpcQuantityToBigInt(jsonRpcTransaction.maxFeePerBlobGas),
 								}
 							),
 						}
@@ -1259,60 +1133,18 @@ export default {
 							...(receipt == null && { executionStatus: EvmTransactionExecutionStatus.Pending }),
 							...(Number(receipt?.status) === 1 && { executionStatus: EvmTransactionExecutionStatus.Success }),
 							...(Number(receipt?.status) === 0 && { executionStatus: EvmTransactionExecutionStatus.Failed }),
-							...(receipt?.gasUsed != null && ((value) => (
-								value != null
-							&& !(value < 0n)
-							&& { gasUsed: value }
-							))((() => {
-							try {
-								return BigInt(receipt.gasUsed)
-							} catch {
-								return undefined
-							}
-							})())),
-							...(receipt?.cumulativeGasUsed != null && ((value) => (
-								value != null
-							&& !(value < 0n)
-							&& { cumulativeGasUsed: value }
-							))((() => {
-							try {
-								return BigInt(receipt.cumulativeGasUsed)
-							} catch {
-								return undefined
-							}
-							})())),
-							...(receipt?.effectiveGasPrice != null && ((value) => (
-								value != null
-							&& !(value < 0n)
-							&& { effectiveGasPrice: value }
-							))((() => {
-							try {
-								return BigInt(receipt.effectiveGasPrice)
-							} catch {
-								return undefined
-							}
-							})())),
-							...(receipt?.blobGasUsed != null && ((value) => (
-								value != null
-							&& !(value < 0n)
-							&& { blobGasUsed: value }
-							))((() => {
-							try {
-								return BigInt(receipt.blobGasUsed)
-							} catch {
-								return undefined
-							}
-							})())),
-							...(receipt?.contractAddress != null && ((address) => (
-								address != null && {
-									$contract: {
-										[EntityMetaKey.Selector]: {
-											$network,
-											address,
-										},
-									} satisfies Entity<typeof schema, EntityType.EvmContract>,
-								}
-							))(createdContractAddress)),
+							gasUsed: rpcQuantityToBigInt(receipt?.gasUsed),
+							cumulativeGasUsed: rpcQuantityToBigInt(receipt?.cumulativeGasUsed),
+							effectiveGasPrice: rpcQuantityToBigInt(receipt?.effectiveGasPrice),
+							blobGasUsed: rpcQuantityToBigInt(receipt?.blobGasUsed),
+							...(createdContractAddress != null && {
+								$contract: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										address: createdContractAddress,
+									},
+								} satisfies Entity<typeof schema, EntityType.EvmContract>,
+							}),
 							$$logs: (
 								(receipt?.logs ?? [])
 									.flatMap((log) => {
@@ -1390,7 +1222,6 @@ export default {
 						const {
 							getTransactionReceiptForEndpoint,
 						} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
-						const { getRpcReceipt } = await import('$/sources/Voltaire/JsonRpc/types.ts')
 						const chainId = chainIdFromEvmNetworkId(entitySelector.$transaction.$network)
 						const txHash = hexLowerOfByteSize(entitySelector.$transaction.txHash, 32)
 						if (txHash == null)
@@ -1405,9 +1236,8 @@ export default {
 									...jsonRpcTransport,
 									txHash,
 								})
-								const receipt = receiptWire == null ? null : getRpcReceipt(receiptWire)
 								const log = findReceiptLogWireForEvmLogId(
-									receipt?.logs,
+									receiptWire?.logs,
 									entitySelector.indexInTransaction
 								)
 								if (log == null)

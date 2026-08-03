@@ -21,7 +21,6 @@ import {
 	narrowRpcLog,
 	narrowRpcTransaction,
 } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
-import { getRpcTx } from '$/sources/Voltaire/JsonRpc/types.ts'
 
 import {
 	getGasPriceForEndpoint,
@@ -109,7 +108,7 @@ describe('source provider registry', () => {
 		if (tx == null)
 			throw new Error('Voltaire transaction narrowing rejected valid transaction wire')
 
-		expect(getRpcTx(tx)).toMatchObject({
+		expect(tx).toMatchObject({
 			hash: '0xtransaction',
 			r: '0xr',
 			s: '0xs',
