@@ -216,7 +216,6 @@ type SelectorOutcome =
 type RouteNode = {
 	internalPath: string
 	svelteKitPath: string
-	publicPath: string
 	params: readonly RouteParam[]
 	collectionMappings: readonly CollectionRouteMapping[]
 	selectorMappings: readonly SelectorRouteMapping[]
@@ -3828,7 +3827,6 @@ const compileRouteTree = (
 		return {
 			internalPath: routeId(routePath),
 			svelteKitPath,
-			publicPath: publicRouteId(routePath),
 			params: routeParams.map(({
 				explicitValueTypes: _explicitValueTypes,
 				...routeParam
@@ -3989,7 +3987,7 @@ const svelteKitRoutePath = (
 	(_segment, rest: string | undefined, param: string) => `[${rest ?? ''}${param}=${params.find((candidate) => candidate.name === param)?.matcher}]`
 )
 
-const publicRouteShape = (publicPath: string) => publicPath
+const publicRouteShape = (internalPath: string) => publicRouteId(internalPath)
 	.split('/')
 	.map((segment) => segment.startsWith('[') ? '[]' : segment)
 	.join('/')
@@ -4210,7 +4208,7 @@ const routeApplicability = (
 ): RouteApplicability => {
 	const allowedScalarsByPath = new Map<string, ReadonlySet<string>>()
 	const encodedDomainsByPath = new Map<string, readonly EncodedRouteParamDomain[]>()
-	for (const [index, param] of routeParamNames(node.publicPath).entries()) {
+	for (const [index, param] of routeParamNames(publicRouteId(node.internalPath)).entries()) {
 		const valueTypes = mapping?.routeParamMatchers.find((routeParam) => routeParam.param === param)?.valueTypes
 			?? node.params.find((routeParam) => routeParam.name === param)?.valueTypes
 			?? []
@@ -5600,7 +5598,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		indexedRouteNodes,
 		routeNodeByInternalPath
 	))
-	const routeNodesByPublicShape = Map.groupBy(indexedRouteNodes, (node) => publicRouteShape(node.publicPath))
+	const routeNodesByPublicShape = Map.groupBy(indexedRouteNodes, (node) => publicRouteShape(node.internalPath))
 	const selectorMappingEntries = indexedRouteNodes.flatMap((node) => node.selectorMappings.map((mapping) => ({
 		node,
 		mapping,
@@ -5763,7 +5761,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 				const leftApplicabilities = (leftMappings.length === 0 ? [undefined] : leftMappings).map((mapping) => applicabilityFor(left, mapping))
 				const rightApplicabilities = (rightMappings.length === 0 ? [undefined] : rightMappings).map((mapping) => applicabilityFor(right, mapping))
 				if (routeApplicabilitySetsOverlap(leftApplicabilities, rightApplicabilities))
-					errors.push(`${left.internalPath} and ${right.internalPath} overlap public route shape ${publicRouteShape(left.publicPath)} with overlapping or unknown applicability`)
+					errors.push(`${left.internalPath} and ${right.internalPath} overlap public route shape ${publicRouteShape(left.internalPath)} with overlapping or unknown applicability`)
 			}
 	}
 
