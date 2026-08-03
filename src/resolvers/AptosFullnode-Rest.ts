@@ -16,6 +16,8 @@ import type {
 	AptosWriteSetChange,
 } from '$/sources/AptosFullnode/Rest/types.ts'
 
+const loadAptosFullnodeQueries = () => import('$/sources/AptosFullnode/Rest/queries.ts')
+
 type AptosNetworkIdentity = EntitySelector<typeof schema, EntityType.AptosNetwork>
 type AptosTransactionIdentity = EntitySelector<typeof schema, EntityType.AptosTransaction>
 type AptosTransactionHashIdentity = EntitySelectorForSelectorName<
@@ -312,7 +314,7 @@ const stateChangeFields = (
 
 const transactionByHash = async (selector: AptosTransactionHashIdentity) => {
 	assertAptosMainnet(selector.$network.$network)
-	const { getTransactionByHash } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+	const { getTransactionByHash } = await loadAptosFullnodeQueries()
 	const committed = committedTransaction((await getTransactionByHash(selector.hash)).body)
 	if (committed.hash !== selector.hash)
 		throw new Error('AptosFullnode_Rest: transaction hash mismatch')
@@ -322,7 +324,7 @@ const transactionByHash = async (selector: AptosTransactionHashIdentity) => {
 
 const transactionByVersion = async (selector: AptosTransactionVersionIdentity) => {
 	assertAptosMainnet(selector.$network.$network)
-	const { getTransactionByVersion } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+	const { getTransactionByVersion } = await loadAptosFullnodeQueries()
 	const committed = committedTransaction((await getTransactionByVersion(selector.version)).body)
 	if (bigintFromWire(committed.version, 'transaction version') !== selector.version)
 		throw new Error('AptosFullnode_Rest: transaction version mismatch')
@@ -341,7 +343,7 @@ export default {
 					appliesTo: aptosNetworkApplicability,
 					resolve: async (entitySelector) => {
 						assertAptosMainnet(entitySelector.$network)
-						const { getLedgerInfo } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const { getLedgerInfo } = await loadAptosFullnodeQueries()
 						const ledger = metadataFields((await getLedgerInfo()).metadata)
 
 						return [{
@@ -375,7 +377,7 @@ export default {
 					resolve: async ({ $network, ledgerVersion, source }) => {
 						assertAptosMainnet($network.$network)
 						assertSource(source)
-						const { getLedgerInfo } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const { getLedgerInfo } = await loadAptosFullnodeQueries()
 						const response = await getLedgerInfo()
 						const fields = metadataFields(response.metadata)
 						if (fields.ledgerVersion !== ledgerVersion)
@@ -407,7 +409,7 @@ export default {
 					appliesTo: aptosNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
 						assertAptosMainnet(entitySelector.$network.$network)
-						const { getAccount } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const { getAccount } = await loadAptosFullnodeQueries()
 						const ledgerVersion = metadataFields((await getAccount(entitySelector.address)).metadata).ledgerVersion
 
 						return [{
@@ -431,7 +433,7 @@ export default {
 					appliesTo: aptosNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
 						assertAptosMainnet(entitySelector.$network.$network)
-						const { getAccountResources } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const { getAccountResources } = await loadAptosFullnodeQueries()
 
 						return (await getAccountResources(entitySelector.address)).body.map((resource) => ({
 							[EntityMetaKey.Selector]: {
@@ -463,7 +465,7 @@ export default {
 					resolve: async ({ $account, ledgerVersion, source }) => {
 						assertAptosMainnet($account.$network.$network)
 						assertSource(source)
-						const { getAccount } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const { getAccount } = await loadAptosFullnodeQueries()
 						const response = await getAccount($account.address, ledgerVersion)
 						const ledgerSnapshot = metadataFields(response.metadata)
 						if (ledgerSnapshot.ledgerVersion !== ledgerVersion)
@@ -494,7 +496,7 @@ export default {
 					appliesTo: aptosAccountReferenceApplicability,
 					resolve: async (entitySelector) => {
 						assertAptosMainnet(entitySelector.$account.$network.$network)
-						const { getAccountResources } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const { getAccountResources } = await loadAptosFullnodeQueries()
 						const response = await getAccountResources(entitySelector.$account.address)
 						const ledgerVersion = metadataFields(response.metadata).ledgerVersion
 						if (!response.body.some((resource) => resource.type === entitySelector.resourceType))
@@ -531,7 +533,7 @@ export default {
 					resolve: async ({ $resource, ledgerVersion, source }) => {
 						assertAptosMainnet($resource.$account.$network.$network)
 						assertSource(source)
-						const { getAccountResources } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const { getAccountResources } = await loadAptosFullnodeQueries()
 						const response = await getAccountResources($resource.$account.address, ledgerVersion)
 						if (metadataFields(response.metadata).ledgerVersion !== ledgerVersion)
 							throw new Error('AptosFullnode_Rest: resource observation ledger version mismatch')
@@ -554,7 +556,7 @@ export default {
 					appliesTo: aptosNetworkReferenceApplicability,
 					resolve: async ({ $network, height }) => {
 						assertAptosMainnet($network.$network)
-						const { getBlockByHeight } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const { getBlockByHeight } = await loadAptosFullnodeQueries()
 						const block = (await getBlockByHeight(height)).body
 						if (bigintFromWire(block.block_height, 'block height') !== height)
 							throw new Error('AptosFullnode_Rest: block height mismatch')
@@ -566,7 +568,7 @@ export default {
 					appliesTo: aptosNetworkReferenceApplicability,
 					resolve: async ({ $network, version }) => {
 						assertAptosMainnet($network.$network)
-						const { getBlockByVersion } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const { getBlockByVersion } = await loadAptosFullnodeQueries()
 						const block = (await getBlockByVersion(version)).body
 						if (version < bigintFromWire(block.first_version, 'block first version') || version > bigintFromWire(block.last_version, 'block last version'))
 							throw new Error('AptosFullnode_Rest: block does not contain requested version')
@@ -624,7 +626,7 @@ export default {
 						assertSource(source)
 						if ('version' in $transaction && $transaction.version !== ledgerVersion)
 							throw new Error('AptosFullnode_Rest: transaction observation ledger version mismatch')
-						const { getTransactionByVersion } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const { getTransactionByVersion } = await loadAptosFullnodeQueries()
 						const transaction = committedTransaction((await getTransactionByVersion(ledgerVersion)).body)
 						if ('hash' in $transaction && transaction.hash !== $transaction.hash)
 							throw new Error('AptosFullnode_Rest: transaction hash mismatch')
@@ -658,7 +660,7 @@ export default {
 					appliesTo: aptosNetworkReferenceApplicability,
 					resolve: async ({ $network, transactionVersion, eventIndex }) => {
 						assertAptosMainnet($network.$network)
-						const { getTransactionByVersion } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const { getTransactionByVersion } = await loadAptosFullnodeQueries()
 						const transaction = committedTransaction((await getTransactionByVersion(transactionVersion)).body)
 						const event = ('events' in transaction ? transaction.events : []).at(eventIndex)
 						if (event == null)
@@ -691,7 +693,7 @@ export default {
 					],
 					resolve: async ({ $transaction, changeIndex }) => {
 						assertAptosMainnet($transaction.$network.$network)
-						const { getTransactionByHash, getTransactionByVersion } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const { getTransactionByHash, getTransactionByVersion } = await loadAptosFullnodeQueries()
 						const transaction = committedTransaction(
 							'version' in $transaction ?
 								(await getTransactionByVersion($transaction.version)).body

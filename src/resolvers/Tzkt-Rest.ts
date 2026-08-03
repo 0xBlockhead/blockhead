@@ -22,6 +22,8 @@ import type {
 	TzktTokenTransfer,
 } from '$/sources/Tzkt/Rest/types.ts'
 
+const loadTzktQueries = () => import('$/sources/Tzkt/Rest/queries.ts')
+
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertTezosMainnet = (network: NetworkId) => {
@@ -195,7 +197,7 @@ export default {
 				NetworkAddress: {
 					resolve: async (account) => {
 						assertTezosMainnet(account.$network.$network)
-						const { getAccount } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { getAccount } = await loadTzktQueries()
 						const snapshot = await getAccount({
 							address: account.address,
 						})
@@ -246,7 +248,7 @@ export default {
 						const {
 							listAccountOperations,
 							listOperationsByHash,
-						} = await import('$/sources/Tzkt/Rest/queries.ts')
+						} = await loadTzktQueries()
 						const operations = await listAccountOperations({
 							address: account.address,
 							offset,
@@ -350,7 +352,7 @@ export default {
 						assertTezosMainnet(account.$network.$network)
 						const offset = accountOffset(context.providerContinuationToken)
 						const limit = Math.min(resolverContextRowLimit(context), 1_000)
-						const { listAccountTokenBalances } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { listAccountTokenBalances } = await loadTzktQueries()
 						const balances = await listAccountTokenBalances({
 							address: account.address,
 							offset,
@@ -426,7 +428,7 @@ export default {
 						assertTezosMainnet(account.$network.$network)
 						const offset = accountOffset(context.providerContinuationToken)
 						const limit = Math.min(resolverContextRowLimit(context), 1_000)
-						const { listAccountTokenTransfers } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { listAccountTokenTransfers } = await loadTzktQueries()
 						const transfers = await listAccountTokenTransfers({
 							address: account.address,
 							offset,
@@ -527,7 +529,7 @@ export default {
 						if (level < 0n || level > BigInt(Number.MAX_SAFE_INTEGER))
 							throw new Error(`Tzkt_Rest: unsupported block level ${level.toString()}`)
 
-						const { getBlock } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { getBlock } = await loadTzktQueries()
 						const block = await getBlock({
 							level,
 						})
@@ -564,7 +566,7 @@ export default {
 				Network: {
 					resolve: async ({ $network }, context) => {
 						assertTezosMainnet($network)
-						const { listBigMaps } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { listBigMaps } = await loadTzktQueries()
 						return (await listBigMaps({
 							limit: resolverContextRowLimit(context),
 						})).map((bigMap) => ({
@@ -589,7 +591,7 @@ export default {
 				Network: {
 					resolve: async ({ $network }, context) => {
 						assertTezosMainnet($network)
-						const { listBigMapUpdates } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { listBigMapUpdates } = await loadTzktQueries()
 						return (await listBigMapUpdates({
 							limit: resolverContextRowLimit(context),
 						})).flatMap((update) => (
@@ -625,7 +627,7 @@ export default {
 				Network: {
 					resolve: async ({ $network }, context) => {
 						assertTezosMainnet($network)
-						const { listBigMaps, listBigMapKeys } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { listBigMaps, listBigMapKeys } = await loadTzktQueries()
 						const bigMaps = await listBigMaps({
 							limit: Math.min(resolverContextRowLimit(context), 5),
 						})
@@ -678,7 +680,7 @@ export default {
 				Network: {
 					resolve: async ({ $network }, context) => {
 						assertTezosMainnet($network)
-						const { listBigMaps, listBigMapKeys } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { listBigMaps, listBigMapKeys } = await loadTzktQueries()
 						const bigMaps = await listBigMaps({
 							limit: Math.min(resolverContextRowLimit(context), 5),
 						})
@@ -723,7 +725,7 @@ export default {
 				NetworkAddress: {
 					resolve: async ({ $network, address }) => {
 						assertTezosMainnet($network.$network)
-						const { getContract } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { getContract } = await loadTzktQueries()
 						await getContract({
 							address,
 						})
@@ -747,7 +749,7 @@ export default {
 				NetworkAddress: {
 					resolve: async ({ $network, address }, context) => {
 						assertTezosMainnet($network.$network)
-						const { listBigMaps } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { listBigMaps } = await loadTzktQueries()
 						return (await listBigMaps({
 							contract: address,
 							limit: resolverContextRowLimit(context),
@@ -773,7 +775,7 @@ export default {
 				NetworkOperationHash: {
 					resolve: async ({ $network, operationHash }) => {
 						assertTezosMainnet($network.$network)
-						const { listOperationsByHash } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { listOperationsByHash } = await loadTzktQueries()
 						const operations = await listOperationsByHash({
 							operationHash,
 						})
@@ -799,7 +801,7 @@ export default {
 				NetworkOperationHash: {
 					resolve: async ({ $network, operationHash }) => {
 						assertTezosMainnet($network.$network)
-						const { listOperationsByHash } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { listOperationsByHash } = await loadTzktQueries()
 						const operations = await listOperationsByHash({
 							operationHash,
 						})
@@ -828,7 +830,7 @@ export default {
 				OperationGroupContentIndex: {
 					resolve: async ({ $operationGroup, contentIndex }) => {
 						assertTezosMainnet($operationGroup.$network.$network)
-						const { listOperationsByHash } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { listOperationsByHash } = await loadTzktQueries()
 						const operations = await listOperationsByHash({
 							operationHash: $operationGroup.operationHash,
 						})
@@ -858,7 +860,7 @@ export default {
 				OperationGroupContentIndex: {
 					resolve: async ({ $operationGroup, contentIndex }) => {
 						assertTezosMainnet($operationGroup.$network.$network)
-						const { listOperationsByHash, listBigMapUpdates } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { listOperationsByHash, listBigMapUpdates } = await loadTzktQueries()
 						const operations = await listOperationsByHash({
 							operationHash: $operationGroup.operationHash,
 						})
@@ -897,7 +899,7 @@ export default {
 				ContractBigMapId: {
 					resolve: async ({ $contract, bigMapId }) => {
 						assertTezosMainnet($contract.$network.$network)
-						const { getBigMap } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { getBigMap } = await loadTzktQueries()
 						const bigMap = await getBigMap({
 							bigMapId,
 						})
@@ -933,7 +935,7 @@ export default {
 				ContractBigMapId: {
 					resolve: async ({ $contract, bigMapId }, context) => {
 						assertTezosMainnet($contract.$network.$network)
-						const { listBigMapKeys } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { listBigMapKeys } = await loadTzktQueries()
 						return (await listBigMapKeys({
 							bigMapId,
 							limit: resolverContextRowLimit(context),
@@ -959,7 +961,7 @@ export default {
 				ContractBigMapId: {
 					resolve: async ({ $contract, bigMapId }, context) => {
 						assertTezosMainnet($contract.$network.$network)
-						const { listBigMapUpdates } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { listBigMapUpdates } = await loadTzktQueries()
 						return (await listBigMapUpdates({
 							bigMapId,
 							limit: resolverContextRowLimit(context),
@@ -986,7 +988,7 @@ export default {
 				BigMapKeyHash: {
 					resolve: async ({ $bigMap, keyHash }, context) => {
 						assertTezosMainnet($bigMap.$contract.$network.$network)
-						const { listBigMapUpdates } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { listBigMapUpdates } = await loadTzktQueries()
 						return (await listBigMapUpdates({
 							bigMapId: $bigMap.bigMapId,
 							keyHash,
@@ -1016,7 +1018,7 @@ export default {
 						assertTezosMainnet($bigMap.$contract.$network.$network)
 						if (source !== Source.Tzkt_Rest)
 							throw new Error(`Tzkt_Rest: unsupported observation source ${source}`)
-						const { getBigMap, getBlock } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { getBigMap, getBlock } = await loadTzktQueries()
 						const [
 							bigMap,
 							block,
@@ -1066,7 +1068,7 @@ export default {
 						keyHash,
 					}) => {
 						assertTezosMainnet($operation.$operationGroup.$network.$network)
-						const { listOperationsByHash, listBigMapUpdates } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { listOperationsByHash, listBigMapUpdates } = await loadTzktQueries()
 						const operations = await listOperationsByHash({
 							operationHash: $operation.$operationGroup.operationHash,
 						})
@@ -1109,7 +1111,7 @@ export default {
 				BigMapKeyHash: {
 					resolve: async ({ $bigMap, keyHash }) => {
 						assertTezosMainnet($bigMap.$contract.$network.$network)
-						const { getBigMapKey } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { getBigMapKey } = await loadTzktQueries()
 						const key = await getBigMapKey({
 							bigMapId: $bigMap.bigMapId,
 							keyHash,
@@ -1135,7 +1137,7 @@ export default {
 						assertTezosMainnet($bigMapKey.$bigMap.$contract.$network.$network)
 						if (source !== Source.Tzkt_Rest)
 							throw new Error(`Tzkt_Rest: unsupported observation source ${source}`)
-						const { getBigMapKey, getBlock } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const { getBigMapKey, getBlock } = await loadTzktQueries()
 						const [
 							key,
 							block,

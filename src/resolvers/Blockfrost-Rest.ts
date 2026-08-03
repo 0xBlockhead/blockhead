@@ -12,6 +12,8 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { BlockfrostBlock } from '$/sources/Blockfrost/Rest/types.ts'
 
+const loadBlockfrostQueries = () => import('$/sources/Blockfrost/Rest/queries.ts')
+
 const assertCardanoMainnet = (
 	network: EntitySelector<typeof schema, EntityType.Network>
 ) => {
@@ -73,7 +75,7 @@ const cardanoTransactionUtxos = async (
 	cardanoTransaction: EntitySelector<typeof schema, EntityType.CardanoTransaction>
 ) => {
 	assertCardanoMainnet(cardanoTransaction.$network)
-	const { getTransactionUtxos } = await import('$/sources/Blockfrost/Rest/queries.ts')
+	const { getTransactionUtxos } = await loadBlockfrostQueries()
 	const transactionUtxos = await getTransactionUtxos(
 		cardanoTransaction.hash
 	)
@@ -114,7 +116,7 @@ const networkObservation = async () => {
 		getLatestBlock,
 		getLatestEpoch,
 		getNetwork,
-	} = await import('$/sources/Blockfrost/Rest/queries.ts')
+	} = await loadBlockfrostQueries()
 	const [
 		block,
 		epoch,
@@ -156,7 +158,7 @@ const committeeEpoch = async (
 		getCommittee,
 		getLatestEpoch,
 		listCommitteeVotes,
-	} = await import('$/sources/Blockfrost/Rest/queries.ts')
+	} = await loadBlockfrostQueries()
 	const [
 		committee,
 		epoch,
@@ -226,7 +228,7 @@ export default {
 							getAddress,
 							getAddressTotal,
 							getLatestBlock,
-						} = await import('$/sources/Blockfrost/Rest/queries.ts')
+						} = await loadBlockfrostQueries()
 						const [
 							address,
 							total,
@@ -296,7 +298,7 @@ export default {
 						if (!Number.isSafeInteger(page) || page < 1)
 							throw new Error('Blockfrost_Rest: invalid address transaction continuation')
 
-						const { listAddressTransactions } = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const { listAddressTransactions } = await loadBlockfrostQueries()
 
 						return {
 							limit,
@@ -350,7 +352,7 @@ export default {
 						if (!Number.isSafeInteger(page) || page < 1)
 							throw new Error('Blockfrost_Rest: invalid address UTXO continuation')
 
-						const { listAddressUtxos } = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const { listAddressUtxos } = await loadBlockfrostQueries()
 
 						return {
 							limit,
@@ -458,7 +460,7 @@ export default {
 				NetworkHash: {
 					resolve: async (cardanoTransaction) => {
 						assertCardanoMainnet(cardanoTransaction.$network)
-						const { getTransaction } = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const { getTransaction } = await loadBlockfrostQueries()
 						const transaction = await getTransaction(cardanoTransaction.hash)
 						if (transaction.hash !== cardanoTransaction.hash)
 							throw new Error('Blockfrost_Rest: transaction response does not match the subject')
@@ -668,7 +670,7 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
 					assertCardanoMainnet(network)
-					const { getRestEndpoints } = await import('$/sources/Blockfrost/Rest/queries.ts')
+					const { getRestEndpoints } = await loadBlockfrostQueries()
 					return getRestEndpoints()
 				}
 			),
@@ -724,7 +726,7 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
 					assertCardanoMainnet(network)
-					const { listBlocks } = await import('$/sources/Blockfrost/Rest/queries.ts')
+					const { listBlocks } = await loadBlockfrostQueries()
 
 					return (await listBlocks(
 						Math.min(resolverContextRowLimit(context), 100)
@@ -758,7 +760,7 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
 					assertCardanoMainnet(network)
-					const { listLatestBlockTransactions } = await import('$/sources/Blockfrost/Rest/queries.ts')
+					const { listLatestBlockTransactions } = await loadBlockfrostQueries()
 
 					return (await listLatestBlockTransactions(
 						Math.min(resolverContextRowLimit(context), 100)
@@ -781,7 +783,7 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
 					assertCardanoMainnet(network)
-					const { listStakePools } = await import('$/sources/Blockfrost/Rest/queries.ts')
+					const { listStakePools } = await loadBlockfrostQueries()
 
 					return (await listStakePools(
 						Math.min(resolverContextRowLimit(context), 100)
@@ -804,7 +806,7 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
 					assertCardanoMainnet(network)
-					const { listDReps } = await import('$/sources/Blockfrost/Rest/queries.ts')
+					const { listDReps } = await loadBlockfrostQueries()
 
 					return (await listDReps(
 						Math.min(resolverContextRowLimit(context), 100)
@@ -833,7 +835,7 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
 					assertCardanoMainnet(network)
-					const { listGovernanceProposals } = await import('$/sources/Blockfrost/Rest/queries.ts')
+					const { listGovernanceProposals } = await loadBlockfrostQueries()
 					const {
 						page,
 						previousLastIdentity,
@@ -907,7 +909,7 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network, context) => {
 					assertCardanoMainnet(network)
-					const { listAssets } = await import('$/sources/Blockfrost/Rest/queries.ts')
+					const { listAssets } = await loadBlockfrostQueries()
 
 					return (await listAssets(
 						Math.min(resolverContextRowLimit(context), 100)
@@ -936,7 +938,7 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
 					assertCardanoMainnet(network)
-					const { getLatestProtocolParameters } = await import('$/sources/Blockfrost/Rest/queries.ts')
+					const { getLatestProtocolParameters } = await loadBlockfrostQueries()
 					const parameters = await getLatestProtocolParameters()
 
 					if (
@@ -1103,7 +1105,7 @@ export default {
 							getGovernanceProposal,
 							getLatestEpoch,
 							listGovernanceProposalVotes,
-						} = await import('$/sources/Blockfrost/Rest/queries.ts')
+						} = await loadBlockfrostQueries()
 						const {
 							page,
 							previousLastIdentity,
@@ -1283,7 +1285,7 @@ export default {
 						proposalIndex,
 					}) => {
 						assertCardanoMainnet($network)
-						const { getGovernanceProposalMetadata } = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const { getGovernanceProposalMetadata } = await loadBlockfrostQueries()
 						const metadata = await getGovernanceProposalMetadata(proposalTxHash, proposalIndex)
 						if (
 							metadata != null
@@ -1324,7 +1326,7 @@ export default {
 						const {
 							getGovernanceProposal,
 							getLatestEpoch,
-						} = await import('$/sources/Blockfrost/Rest/queries.ts')
+						} = await loadBlockfrostQueries()
 						const [
 							proposal,
 							latestEpoch,
@@ -1369,7 +1371,7 @@ export default {
 						const {
 							getDRep,
 							listDRepVotes,
-						} = await import('$/sources/Blockfrost/Rest/queries.ts')
+						} = await loadBlockfrostQueries()
 						const [
 							drep,
 							votes,
@@ -1417,7 +1419,7 @@ export default {
 				NetworkDrepCredential: {
 					resolve: async ({ $network, drepCredential }) => {
 						assertCardanoMainnet($network)
-						const { getDRepMetadata } = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const { getDRepMetadata } = await loadBlockfrostQueries()
 						const metadata = await getDRepMetadata(drepCredential)
 						return {
 							displayName: metadata?.displayName,
@@ -1441,7 +1443,7 @@ export default {
 						assertCardanoMainnet($network)
 						const {
 							getStakePool,
-						} = await import('$/sources/Blockfrost/Rest/queries.ts')
+						} = await loadBlockfrostQueries()
 						const pool = await getStakePool(poolId)
 
 						return pool
@@ -1458,7 +1460,7 @@ export default {
 				NetworkPoolId: {
 					resolve: async ({ $network, poolId }) => {
 						assertCardanoMainnet($network)
-						const { getStakePoolMetadata } = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const { getStakePoolMetadata } = await loadBlockfrostQueries()
 						const metadata = await getStakePoolMetadata(poolId)
 						return {
 							name: metadata?.name,
@@ -1522,7 +1524,7 @@ export default {
 				NetworkHash: {
 					resolve: async ({ $network, hash }) => {
 						assertCardanoMainnet($network)
-						const { getBlock } = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const { getBlock } = await loadBlockfrostQueries()
 						const block = blockFields(await getBlock(hash))
 						if (block.hash !== hash)
 							throw new Error('Blockfrost_Rest: block hash does not match the requested selector')
@@ -1533,7 +1535,7 @@ export default {
 				NetworkSlot: {
 					resolve: async ({ $network, slot }) => {
 						assertCardanoMainnet($network)
-						const { getBlock } = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const { getBlock } = await loadBlockfrostQueries()
 						const block = blockFields(await getBlock(slot.toString()))
 						if (block.slot !== slot)
 							throw new Error('Blockfrost_Rest: block slot does not match the requested selector')
@@ -1544,7 +1546,7 @@ export default {
 				NetworkBlockNo: {
 					resolve: async ({ $network, blockNo }) => {
 						assertCardanoMainnet($network)
-						const { getBlock } = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const { getBlock } = await loadBlockfrostQueries()
 						const block = blockFields(await getBlock(blockNo.toString()))
 						if (block.blockNo !== blockNo)
 							throw new Error('Blockfrost_Rest: block number does not match the requested selector')
