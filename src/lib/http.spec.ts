@@ -139,6 +139,40 @@ describe('HTTP error helpers', () => {
 		}
 	})
 
+	it('allows the server proxy budget to finish without extending direct provider requests', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response('ok'))
+		const timeout = vi.spyOn(AbortSignal, 'timeout')
+			.mockImplementation(() => new AbortController().signal)
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+		try {
+			await corsFetch('https://registered.example/proxy', {
+				delivery: SourceDelivery.HttpProxy,
+				origins: [{
+					origin: 'https://registered.example',
+					corsEnabled: false,
+				}],
+				proxy: {
+					proxyId: 'registered-proxy',
+					endpointIndex: 0,
+				},
+			})
+			await corsFetch('https://registered.example/direct', {
+				delivery: SourceDelivery.BrowserDirect,
+				origins: [{
+					origin: 'https://registered.example',
+					corsEnabled: true,
+				}],
+			})
+
+			expect(timeout).toHaveBeenNthCalledWith(1, 35_000)
+			expect(timeout).toHaveBeenNthCalledWith(2, 10_000)
+		} finally {
+			timeout.mockRestore()
+			vi.unstubAllGlobals()
+		}
+	})
+
 	it('rejects browser HTTP for remote resource deliveries', async () => {
 		const fetchMock = vi.fn<typeof fetch>()
 		vi.stubGlobal('fetch', fetchMock)

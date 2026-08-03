@@ -18,18 +18,22 @@ const defaultRetry: Required<RetryOptions> = {
 	maxDelayMs: 30_000,
 }
 
-const fetchTimeoutMs = 10_000
+const directFetchTimeoutMs = 10_000
+const httpProxyFetchTimeoutMs = 35_000
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 
-const withTimeout = (init: RequestInit | undefined): RequestInit => ({
+const withTimeout = (
+	init: RequestInit | undefined,
+	timeoutMs = directFetchTimeoutMs
+): RequestInit => ({
 	...init,
 	signal: init?.signal == null ?
-		AbortSignal.timeout(fetchTimeoutMs)
+		AbortSignal.timeout(timeoutMs)
 	:
 		AbortSignal.any([
 			init.signal,
-			AbortSignal.timeout(fetchTimeoutMs),
+			AbortSignal.timeout(timeoutMs),
 		]),
 })
 
@@ -96,7 +100,7 @@ const doFetch = async (
 
 		return fetch(
 			`/api-proxy/${encodeURIComponent(options.proxy.proxyId)}/${options.proxy.endpointIndex}/${encodeURIComponent(url)}`,
-			withTimeout(options.init)
+			withTimeout(options.init, httpProxyFetchTimeoutMs)
 		)
 	}
 
