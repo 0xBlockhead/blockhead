@@ -5210,6 +5210,7 @@ test('groups inherited selector fields under one route mapping', () => {
 	assert.doesNotMatch(generatorSource, /hrefParamCandidates|\bhrefs\?:/)
 	assert.match(generatorSource, /\.\.\.normalizedSelectorMappings\.map\(\(normalizedMapping\) => \(\{[\s\S]*?routeParamAlternatives: normalizedMapping\.routeParamAlternatives/)
 	assert.match(generatorSource, /const compiledRouteNodes = compileRouteTree\(/)
+	assert.doesNotMatch(generatorSource, /validateRouteNodes|ancestorValueTypeByParam/)
 	assert.doesNotMatch(generatorSource, /\b(?:compiledRoutes|compiledNodes)\b|children\.nodes/)
 	assert.match(generatorSource, /type RouteParam = \{[\s\S]*?encoding\?: _RouteParamEncoding\n\}\ntype RouteParamCompilationContext = RouteParam & \{\n\texplicitValueTypes: readonly string\[\]/)
 	assert.match(generatorSource, /params: routeParams\.map\(\(\{\n\s+explicitValueTypes: _explicitValueTypes,\n\s+\.\.\.routeParam/)
@@ -5218,6 +5219,92 @@ test('groups inherited selector fields under one route mapping', () => {
 	assert.match(generatorSource, /type RouteDetailLayoutPlan = \{\n\tcomponents:/)
 	assert.doesNotMatch(generatorSource, /type RouteDetail =/)
 	assert.doesNotMatch(generatorSource, /duplicate detail selector plans/)
+})
+
+test('validates route authoring hygiene in the authoritative compiler traversal', () => {
+	for (const {
+		segment,
+		node,
+		error,
+	} of [
+		{
+			segment: '[local]',
+			node: {
+				params: {
+					missing: ['caip2'],
+				},
+			},
+			error: /defines schema type metadata for non-local parameter missing/,
+		},
+		{
+			segment: '[invalid=stringSegment]',
+			node: {},
+			error: /encodes matcher metadata in its semantic segment key/,
+		},
+		{
+			segment: '[NativeCurrency]',
+			node: {},
+			error: /route parameter NativeCurrency collides with a facet identifier/,
+		},
+		{
+			segment: 'by',
+			node: {},
+			error: /uses visible \/by route segment/,
+		},
+		{
+			segment: 'repeat',
+			node: {
+				children: {
+					repeat: {},
+				},
+			},
+			error: /repeats visible route segment repeat/,
+		},
+	]) {
+		const mutatedApp = structuredClone(app)
+		Object.defineProperty(mutatedApp.routes.children, segment, {
+			enumerable: true,
+			value: node,
+		})
+		assert.throws(() => compileApp(mutatedApp), error)
+	}
+
+	const mutatedApp = structuredClone(app)
+	const networkNode = mutatedApp.routes.children['(explore)']?.children?.['(networks)']?.children?.network?.children?.['[network]']
+	assert(networkNode)
+	Object.defineProperty(networkNode, 'params', {
+		enumerable: true,
+		value: {
+			network: ['caip2'],
+		},
+	})
+	assert.throws(
+		() => compileApp(mutatedApp),
+		/route parameter network duplicates selector-derived schema types caip2/
+	)
+})
+
+test('rejects route mappings that omit a selector field in the authoritative compiler', () => {
+	const mutatedApp = structuredClone(app)
+	const networkNode = mutatedApp.routes.children['(explore)']?.children?.['(networks)']?.children?.network?.children?.['[network]']
+	const mapping = networkNode?.selectors?.[EntityType.Network]?.Caip2
+
+	assert(networkNode)
+	assert(mapping)
+	Object.defineProperty(networkNode, 'params', {
+		enumerable: true,
+		value: {
+			network: ['caip2'],
+		},
+	})
+	Object.defineProperty(mapping, 'params', {
+		enumerable: true,
+		value: {},
+	})
+	assert.throws(
+		() => compileApp(mutatedApp),
+		/Network\.Caip2 does not bind selector field caip2/
+	)
 })
 
 test('retains only physical route file facts consumed by route emitters', () => {

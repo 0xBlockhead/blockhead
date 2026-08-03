@@ -3136,6 +3136,7 @@ const compileRouteTree = (
 	indexes: {
 		entityByType: Readonly<Record<string, Entity>>
 		entityFacetByPath: Readonly<Record<string, EntityFacetEntry>>
+		facetNames: ReadonlySet<string>
 		valueTypeById: Readonly<Record<string, ValueType>>
 		routeParamValueTypesByOwner: ReadonlyMap<string, readonly string[]>
 	},
@@ -3180,6 +3181,24 @@ const compileRouteTree = (
 	)
 	return Object.entries(nodes).map(([segment, node]) => {
 		const routePath = [parentPath, segment].filter(Boolean).join('/')
+		const localRouteParamNames = routeParamNames(segment)
+		for (const param of Object.keys(node.params ?? {}))
+			if (!localRouteParamNames.includes(param))
+				throw new Error(`${routePath} defines schema type metadata for non-local parameter ${param}`)
+		if (/\[[^\]]+=/.test(segment))
+			throw new Error(`${routePath} encodes matcher metadata in its semantic segment key`)
+		for (const param of routeParamNames(routeId(routePath)))
+			if (indexes.facetNames.has(param))
+				throw new Error(`${routePath} route parameter ${param} collides with a facet identifier`)
+		const visibleSegments = publicRouteId(routePath)
+			.split('/')
+			.filter((pathSegment) => pathSegment !== '' && !pathSegment.startsWith('['))
+		for (const [index, pathSegment] of visibleSegments.entries()) {
+			if (pathSegment === 'by')
+				throw new Error(`${routePath} uses visible /by route segment`)
+			if (pathSegment === visibleSegments[index + 1])
+				throw new Error(`${routePath} repeats visible route segment ${pathSegment}`)
+		}
 		const selectorMappings = Object.entries(node.selectors ?? {}).flatMap(([entityType, selectors]) => (
 			Object.entries(selectors).map(([selectorName, mapping]) => ({
 				entityType,
@@ -3189,9 +3208,12 @@ const compileRouteTree = (
 		))
 		const routeParams = [
 			...ancestorRouteParams,
-			...routeParamNames(segment).map((name): RouteParamCompilationContext => {
+			...localRouteParamNames.map((name): RouteParamCompilationContext => {
 				const explicitValueTypes = node.params?.[name] ?? []
 				const boundValueTypes = indexes.routeParamValueTypesByOwner.get(`${routeId(routePath)}\0${name}`) ?? []
+				const duplicateValueTypes = explicitValueTypes.filter((valueType) => boundValueTypes.includes(valueType))
+				if (duplicateValueTypes.length > 0)
+					throw new Error(`${routePath} route parameter ${name} duplicates selector-derived schema types ${duplicateValueTypes.join(', ')}`)
 				const valueTypes = unique([
 					...explicitValueTypes,
 					...boundValueTypes,
@@ -5606,106 +5628,6 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 
 	const routeParamValueTypesByOwner = indexRouteParamValueTypes(app.routes.children, entityByType)
 
-	const validateRouteNodes = (
-		nodes: App['routes']['children'],
-		parentPath = '',
-		ancestorEntityTypes: readonly string[] = [],
-		ancestorParams: readonly string[] = [],
-		ancestorValueTypeByParam: ReadonlyMap<string, string> = new Map()
-	) => {
-		for (const [segment, node] of Object.entries(nodes)) {
-			const routePath = [parentPath, segment].filter(Boolean).join('/')
-			const valueTypeByParam = new Map(ancestorValueTypeByParam)
-			const localRouteParams = routeParamNames(segment)
-			for (const param of localRouteParams) {
-				const explicitValueTypes = node.params?.[param] ?? []
-				const boundValueTypes = routeParamValueTypesByOwner.get(`${routeId(routePath)}\0${param}`) ?? []
-				const duplicateValueTypes = explicitValueTypes.filter((valueType) => boundValueTypes.includes(valueType))
-				if (duplicateValueTypes.length > 0)
-					errors.push(`${routePath} route parameter ${param} duplicates selector-derived schema types ${duplicateValueTypes.join(', ')}`)
-				const valueTypes = unique([
-					...explicitValueTypes,
-					...boundValueTypes,
-				])
-				if (
-					valueTypes.length === 0
-					|| valueTypes.some((valueType) => valueTypeById[valueType]?.routeParam == null)
-				) {
-					errors.push(`${routePath} route parameter ${param} has no schema route parameter type`)
-					continue
-				}
-				const valueType = valueTypes[0]
-				if (valueTypes.length === 1 && valueType != null)
-					valueTypeByParam.set(param, valueType)
-			}
-			for (const param of Object.keys(node.params ?? {}))
-				if (!localRouteParams.includes(param))
-					errors.push(`${routePath} defines schema type metadata for non-local parameter ${param}`)
-			if (/\[[^\]]+=/.test(segment))
-				errors.push(`${routePath} encodes matcher metadata in its semantic segment key`)
-			for (const param of routeParamNames(routeId(routePath)))
-				if (facetNames.has(param))
-					errors.push(`${routePath} route parameter ${param} collides with a facet identifier`)
-			const visibleSegments = publicRouteId(routePath)
-				.split('/')
-				.filter((pathSegment) => pathSegment !== '' && !pathSegment.startsWith('['))
-			for (const [index, pathSegment] of visibleSegments.entries()) {
-				if (pathSegment === 'by')
-					errors.push(`${routePath} uses visible /by route segment`)
-				if (pathSegment === visibleSegments[index + 1])
-					errors.push(`${routePath} repeats visible route segment ${pathSegment}`)
-			}
-			const routeParams = new Set([
-				...ancestorParams,
-				...localRouteParams,
-			])
-			const localEntityTypes = Object.keys(node.selectors ?? {})
-			for (const [entityType, selectors] of Object.entries(node.selectors ?? {})) {
-				const entity = entityByType[entityType]
-				if (entity == null)
-					continue
-
-				for (const [selectorName, mapping] of Object.entries(selectors)) {
-					const selector = entity.selectors.find((candidate) => candidate.name === selectorName)
-					if (selector == null)
-						continue
-
-					for (const [param, fieldPath] of Object.entries(mapping.params ?? {})) {
-						if (!routeParams.has(param))
-							errors.push(`${routePath} selector ${entityType}.${selectorName} binds unknown route param ${param}`)
-						const routeValueType = valueTypeByParam.get(param)
-						const fieldValueType = entity.fields.find((field) => field.name === fieldPath[0])?.valueType
-						if (routeValueType != null && fieldValueType != null && routeValueType !== fieldValueType)
-							errors.push(`${routePath} parameter ${param} type ${routeValueType} does not match ${entityType}.${fieldPath.join('.')} type ${fieldValueType}`)
-					}
-
-					for (const fieldName of selector.fields) {
-						if (
-							Object.values(mapping.params ?? {}).some((fieldPath) => fieldPath[0] === fieldName)
-							|| Object.hasOwn(mapping.derivations ?? {}, fieldName)
-							|| ancestorEntityTypes.includes(entity.fields.find((field) => field.name === fieldName)?.entityType ?? '')
-						)
-							continue
-
-						errors.push(`${routePath} selector ${entityType}.${selectorName} does not satisfy ${fieldName}`)
-					}
-				}
-			}
-
-			if (node.children != null)
-				validateRouteNodes(
-					node.children,
-					routePath,
-					[...ancestorEntityTypes, ...localEntityTypes],
-					[...routeParams],
-					valueTypeByParam
-				)
-		}
-	}
-	validateRouteNodes(app.routes.children)
-	if (errors.length > 0)
-		throw new Error(errors.join('\n'))
-
 	if (Object.hasOwn(app.schema, 'externalEntityTypes'))
 		errors.push('APP schema must not use externalEntityTypes; migrate rows into schema.entities')
 	if (Object.hasOwn(app.schema, 'migrationBacklogEntityTypes'))
@@ -5849,6 +5771,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		{
 			entityByType,
 			entityFacetByPath,
+			facetNames,
 			valueTypeById,
 			routeParamValueTypesByOwner,
 		}
