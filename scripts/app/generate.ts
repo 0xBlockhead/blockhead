@@ -2662,10 +2662,9 @@ export const composeSelectorRouteParamAlternatives = (
 			if (conflictingDecoderParam != null)
 				throw new Error(`${routeMappingId} inherited field ${bindingGroup.field} alternatives disagree on decoder for route parameter ${conflictingDecoderParam}`)
 		}
-		const bindingRouteAlternatives = [...bindingRouteAlternativeByKey.values()]
 		const composedAlternatives = new Map<string, RouteParamValues>()
 		for (const routeParams of routeParamAlternatives)
-			for (const bindingRouteParams of bindingRouteAlternatives) {
+			for (const bindingRouteParams of bindingRouteAlternativeByKey.values()) {
 				const conflictingParam = Object.keys(bindingRouteParams).find((param) => (
 					routeParams[param] != null
 					&& JSON.stringify(routeParams[param].value) !== JSON.stringify(bindingRouteParams[param].value)
@@ -10438,11 +10437,6 @@ const generateSingularViewFile = (
 		3
 	)))
 	const latestMarkup = renderLatestContentItems(entity, indexes, latestItems, 3)
-	const contentDlViewEntries = (viewEntries: readonly _ViewItem[]) => viewEntries.filter((viewEntry) => {
-		const fieldName = itemFieldReferences(viewEntry)[0]
-		const fieldDefinition = fieldName == null ? undefined : fieldDefinitionByReference(entity, fieldName, indexes)
-		return fieldDefinition?.type !== EntityFieldType.EntitiesReference
-	})
 	const relationshipFieldKeys = new Set(sections.map((section) => fieldReferenceKey(section.field)))
 	const carouselFieldKeys = new Set(
 		declaredCarousels
@@ -10539,7 +10533,11 @@ const generateSingularViewFile = (
 			&& plan.fieldDefinition.cardinality === EntityFieldCardinality.Many
 	))
 	const contentRowsToRender = contentRows
-		.map((viewEntries) => contentDlViewEntries(viewEntries))
+		.map((viewEntries) => viewEntries.filter((viewEntry) => {
+			const fieldName = itemFieldReferences(viewEntry)[0]
+			const fieldDefinition = fieldName == null ? undefined : fieldDefinitionByReference(entity, fieldName, indexes)
+			return fieldDefinition?.type !== EntityFieldType.EntitiesReference
+		}))
 		.filter((viewEntries) => viewEntries.length > 0)
 	const contentBody = content?.body
 	const contentUsesOpen = (
@@ -11444,7 +11442,6 @@ const renderBodySection = (
 		:
 			`${querySelectionExpression}(${query})`
 	)
-	const bodyFieldValue = fieldExpression('entity', body.field)
 	const bodyFieldDefinition = fieldDefinitionByReference(entity, body.field, indexes)
 	if (bodyFieldDefinition == null)
 		throw new Error(`${entity.entityType}.${body.field} body references an unknown field`)
@@ -11455,7 +11452,7 @@ const renderBodySection = (
 		renderSvelteAttribute(resourceLevel + 1, 'resource', resourceExpression),
 		`${'\t'.repeat(resourceLevel)}>`,
 		`${'\t'.repeat(resourceLevel + 1)}{#snippet children(entity)}`,
-		`${'\t'.repeat(resourceLevel + 2)}{@const ${localIdentifier(body.field)} = ${bodyFieldValue}}`,
+		`${'\t'.repeat(resourceLevel + 2)}{@const ${localIdentifier(body.field)} = ${fieldExpression('entity', body.field)}}`,
 		`${'\t'.repeat(resourceLevel + 2)}{#if ${bodyFieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne ? `${localIdentifier(body.field)} != null && ` : ''}${localIdentifier(body.field)} !== ''}`,
 		...renderValueMarkup(entity, indexes, bodyViewEntry, body.field, localIdentifier(body.field), `({ value: ${localIdentifier(body.field)} })`, resourceLevel + 3),
 		...(body.emptyText == null ? [] : [
@@ -12008,9 +12005,8 @@ const renderLatestContentItem = (
 ) => {
 	const latestFieldDefinition = fieldDefinitionByReference(entity, latest.field, indexes)
 	const entityType = latestTargetEntityType(entity, indexes, latest)
-	const fieldEntityType = latestFieldDefinition?.entityType
 	const component = latestComponentName(entity, indexes, latest)
-	if (latestFieldDefinition == null || entityType == null || fieldEntityType == null || component == null)
+	if (latestFieldDefinition?.entityType == null || entityType == null || component == null)
 		throw new Error(`${entity.entityType}.${latest.field} latest reference is missing target entity/component metadata`)
 	const latestEntityName = camel(entityType)
 	const latestEntitiesName = `${latestEntityName}s`
@@ -12465,11 +12461,10 @@ const entityRouteFieldBindings = (
 	const names = new Set(reservedNames)
 
 	return entity.fields.flatMap((field) => {
-		const actualOccurrenceCount = referenceCountByField.get(field.name) ?? 0
 		const expression = fieldExpression(fieldsExpression, field.name)
 		if (
 			field.entityType == null
-			|| actualOccurrenceCount < 2
+			|| (referenceCountByField.get(field.name) ?? 0) < 2
 		)
 			return []
 
