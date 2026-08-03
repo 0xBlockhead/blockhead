@@ -105,11 +105,6 @@ type CollectionReferencePath = {
 	fields: readonly [FieldReference, ...FieldReference[]]
 	targetEntityType: EntityType
 }
-enum RouteFileKind {
-	Page = 'page',
-	Layout = 'layout',
-	PageModule = 'page-module',
-}
 type RoutePage = NonNullable<App['routes']['children'][string]['page']>
 type RouteLayout = NonNullable<App['routes']['children'][string]['layout']>
 type CollectionRouteMapping = {
@@ -125,15 +120,6 @@ type CollectionRouteMapping = {
 	query?: _ViewQuery
 	page?: RoutePage
 }
-type RouteFile = {
-	kind: RouteFileKind
-	sharedLayout?: true
-	layout?: RouteLayout
-	detailLayout?: RouteDetailLayoutPlan
-	page?: RoutePage
-	mappings?: readonly SelectorRouteMapping[]
-	collections?: readonly CollectionRouteMapping[]
-}
 const projectionPathKey = (
 	entityType: string,
 	path: readonly string[]
@@ -143,11 +129,6 @@ const isProjectionFieldReference = (field: unknown): field is Extract<FieldRefer
 	Array.isArray(field) && field.length > 1 && field.every((part) => typeof part === 'string')
 	&& /^[A-Z]/.test(field[0] ?? '')
 )
-type RouteRenderEntry = {
-	internalPath: string
-	routePath: string
-	files: RouteFile[]
-}
 type RouteParam = {
 	name: string
 	matcher: string
@@ -317,13 +298,32 @@ type RouteFixturePlan = {
 	mappings: readonly RouteFixtureMetadata[]
 	boundaryLiveOptional: boolean
 }
-type CompiledPhysicalRouteFileFacts = {
-	path: string
-	appRoutePath: string
-	semanticNodeId: string
-	routeFile: RouteFile
-	generatedPageModule?: boolean
-}
+type CompiledPhysicalRouteFileFacts = { path: string } & (
+	| {
+		kind: 'page'
+		appRoutePath: string
+		semanticNodeId: string
+		page: RoutePage
+		mappings: readonly SelectorRouteMapping[]
+		collections: readonly CollectionRouteMapping[]
+		generatedPageModule: boolean
+	}
+	| {
+		kind: 'layoutModule' | 'pageModule'
+		mappings: readonly [SelectorRouteMapping, ...SelectorRouteMapping[]]
+	}
+	| {
+		kind: 'layout'
+		layout: RouteLayout
+	}
+	| {
+		kind: 'detailLayout'
+		detailLayout: RouteDetailLayoutPlan
+	}
+)
+type CompiledPageRouteFileFacts = Extract<CompiledPhysicalRouteFileFacts, { kind: 'page' }>
+type CompiledPageModuleRouteFileFacts = Extract<CompiledPhysicalRouteFileFacts, { kind: 'layoutModule' | 'pageModule' }>
+type CompiledLayoutRouteFileFacts = Extract<CompiledPhysicalRouteFileFacts, { kind: 'detailLayout' | 'layout' }>
 type CompiledAppFacts = Readonly<{
 	activeEntities: readonly Entity[]
 	entityByType: Readonly<Record<string, Entity>>
@@ -1516,17 +1516,6 @@ const renderRouteParamExpression = (
 			looseExpression
 
 	return renderNonStringRouteParamExpression(looseExpression, decode, knownPresent)
-}
-
-const routeFileName = (kind: RouteFile['kind']) => {
-	if (kind === RouteFileKind.Page)
-		return '+page.svelte'
-	if (kind === RouteFileKind.PageModule)
-		return '+page.ts'
-	if (kind === RouteFileKind.Layout)
-		return '+layout.svelte'
-
-	throw new Error(`Unsupported route file kind: ${kind}`)
 }
 
 const emitFacetCondition = (condition: _AppFacetCondition): string => (
@@ -4394,133 +4383,137 @@ const routeFixtureMetadataFromMapping = (mapping: SelectorRouteMapping): RouteFi
 	boundaryLiveOptional: mapping.boundaryLiveOptional,
 })
 
-const compileRouteEntries = (
+const routeProjectionKey = (mapping: SelectorRouteMapping) => (
+	`${mapping.projection?.entityType ?? mapping.entityType}\0${(mapping.projection?.facetPath ?? []).join('\0')}`
+)
+
+// Compile semantic routes directly to their one physical file representation;
+// public-path projection owners decide whether a leaf needs its own load module.
+const compilePhysicalRouteFiles = (
 	nodes: readonly RouteNode[],
+	indexedNodes: readonly RouteNode[],
 	routeNodeByInternalPath: ReadonlyMap<string, RouteNode>
-): RouteRenderEntry[] => nodes.flatMap((node) => {
-	const renderMappings = [
+): CompiledPhysicalRouteFileFacts[] => {
+	const projectionOwnersByKey = Map.groupBy(indexedNodes.flatMap((node) => [
 		...node.selectorMappings,
 		...(node.selectorVariant == null ? [] : [node.selectorVariant]),
-	]
-	const mappingPages = [
-		...renderMappings.flatMap((mapping) => mapping.page == null ? [] : [mapping.page]),
-		...node.collectionMappings.flatMap((mapping) => mapping.page == null ? [] : [mapping.page]),
-	]
-	const page = node.page ?? (
-		mappingPages.length === 1 ? mappingPages[0]
-		: mappingPages.length > 1 ? {}
-		: undefined
-	)
-	const ownDetails = node.selectorMappings.flatMap((mapping) => (
-		selectorMappingOwnsDetailPage(node, mapping) ?
-			[{
-				entityType: mapping.entityType,
-				selectorName: mapping.selectorName,
-				component: mapping.page?.view?.component ?? node.page?.view?.component ?? singularComponentName(mapping.entityType),
-				...(mapping.sourceSelection == null ? {} : { sourceSelection: mapping.sourceSelection }),
-			}]
-		:
-			[]
-	))
-	const detailEntityTypes = unique(ownDetails.map((detail) => detail.entityType))
-	const detailLayout = ownDetails.length === 0 ? undefined : (() => {
-		for (const detailIdentity of detailEntityTypes) {
-			const entityDetails = ownDetails.filter((detail) => detail.entityType === detailIdentity)
-			if (unique(entityDetails.map((detail) => detail.component)).length > 1)
-				throw new Error(`${node.internalPath} detail layout assigns ambiguous components to ${detailIdentity}`)
-		}
-		const dispatchDetails = ownDetails.filter((detail, index) => (
-			ownDetails.findIndex((candidate) => (
-				candidate.entityType === detail.entityType
-				&& candidate.selectorName === detail.selectorName
-			)) === index
+	].flatMap((mapping) => mapping.projection == null ? [] : [{
+		href: publicRouteId(node.svelteKitPath),
+		key: routeProjectionKey(mapping),
+	}])), ({ key }) => key)
+	const compileNodes = (routeNodes: readonly RouteNode[]): CompiledPhysicalRouteFileFacts[] => routeNodes.flatMap((node) => {
+		const renderMappings = [
+			...node.selectorMappings,
+			...(node.selectorVariant == null ? [] : [node.selectorVariant]),
+		]
+		const [firstMapping, ...remainingMappings] = renderMappings
+		const moduleMappings = firstMapping == null ? undefined : [firstMapping, ...remainingMappings] as const
+		const routeDirectory = node.svelteKitPath === '' ? 'src/routes' : `src/routes/${node.svelteKitPath.replace(/^\//, '')}`
+		const publicHref = publicRouteId(node.svelteKitPath)
+		const projectedMappings = renderMappings.filter((mapping) => mapping.projection != null)
+		const projectionOwnedByAncestor = projectedMappings.length > 0 && projectedMappings.every((mapping) => (
+			projectionOwnersByKey.get(routeProjectionKey(mapping))?.some(({ href }) => (
+				href !== publicHref
+				&& publicHref.startsWith(`${href}/`)
+			)) === true
 		))
-		const componentDetails = dispatchDetails.filter((detail, index) => (
-			dispatchDetails.findIndex((candidate) => candidate.entityType === detail.entityType) === index
+		const moduleKind = moduleMappings == null ? undefined : (
+			node.children.length > 0 ?
+				'layoutModule'
+			: renderMappings.length > 1 || (
+				renderMappings.some((mapping) => mapping.projectionRouteParam != null)
+				&& !projectionOwnedByAncestor
+			) ?
+				'pageModule'
+			:
+				undefined
+		)
+		const mappingPages = [
+			...renderMappings.flatMap((mapping) => mapping.page == null ? [] : [mapping.page]),
+			...node.collectionMappings.flatMap((mapping) => mapping.page == null ? [] : [mapping.page]),
+		]
+		const page = node.page ?? (
+			mappingPages.length === 1 ? mappingPages[0]
+			: mappingPages.length > 1 ? {}
+			: undefined
+		)
+		const ownDetails = node.selectorMappings.flatMap((mapping) => (
+			selectorMappingOwnsDetailPage(node, mapping) ?
+				[{
+					entityType: mapping.entityType,
+					selectorName: mapping.selectorName,
+					component: mapping.page?.view?.component ?? node.page?.view?.component ?? singularComponentName(mapping.entityType),
+					...(mapping.sourceSelection == null ? {} : { sourceSelection: mapping.sourceSelection }),
+				}]
+			:
+				[]
 		))
-
+		const detailsByEntityType = Map.groupBy(ownDetails, ({ entityType }) => entityType)
+		for (const [entityType, details] of detailsByEntityType)
+			if (unique(details.map(({ component }) => component)).length > 1)
+				throw new Error(`${node.internalPath} detail layout assigns ambiguous components to ${entityType}`)
+		const detailEntityTypes = [...detailsByEntityType.keys()]
+		const dispatchDetails = [...Map.groupBy(
+			ownDetails,
+			(detail) => `${detail.entityType}\0${detail.selectorName}`
+		).values()].flatMap((details) => details.slice(0, 1))
 		const detailSourcesExpression = renderDispatchedSourceSelectionExpression(dispatchDetails)
-		return {
-			components: unique(ownDetails.map((detail) => detail.component)),
+		const detailEntityTypeExpression = detailEntityTypes.length === 1 ?
+			`EntityType.${detailEntityTypes[0]}`
+		:
+			'data.entityType'
+		const detailLayout = ownDetails.length === 0 ? undefined : {
+			components: unique(ownDetails.map(({ component }) => component)),
 			href: node.svelteKitPath,
-			detailViewExpression: componentDetails.reduceRight((alternate, detail, index) => (
-				index === componentDetails.length - 1 ?
+			detailViewExpression: [...detailsByEntityType.values()].flatMap((details) => details.slice(0, 1)).reduceRight((alternate, detail, index, details) => (
+				index === details.length - 1 ?
 					componentIdentifier(detail.component)
 				:
 					`data.entityType === EntityType.${detail.entityType} ? ${componentIdentifier(detail.component)} : ${alternate}`
 			), ''),
-			detailSelectionExpression: emitTypeScript({
-				kind: 'call',
-				callee: {
-					kind: 'raw',
-					source: 'select',
+			detailSelectionExpression: detailSourcesExpression == null ?
+				`select(${detailEntityTypeExpression}, data.selector)`
+			:
+				`select(${detailEntityTypeExpression}, data.selector, ${emitObject([['sources', detailSourcesExpression]])})`,
+		} satisfies RouteDetailLayoutPlan | undefined
+
+		return [
+			...(moduleKind == null || moduleMappings == null ? [] : [{
+				kind: moduleKind,
+				path: `${routeDirectory}/${moduleKind === 'layoutModule' ? '+layout.ts' : '+page.ts'}`,
+				mappings: moduleMappings,
+			} as const]),
+			...(page == null ? [] : [{
+				kind: 'page' as const,
+				path: `${routeDirectory}/+page.svelte`,
+				appRoutePath: node.svelteKitPath.replace(/^\//, ''),
+				semanticNodeId: node.internalPath,
+				page,
+				mappings: renderMappings,
+				collections: node.collectionMappings,
+				generatedPageModule: moduleKind != null,
+			}]),
+			...(node.layout == null ? [] : [{
+				kind: 'layout' as const,
+				path: `${routeDirectory}/+layout.svelte`,
+				layout: {
+					...node.layout,
+					...(node.layout.href == null ? {} : {
+						href: routeNodeByInternalPath.get(routeId(node.layout.href))?.svelteKitPath ?? node.layout.href,
+					}),
 				},
-				arguments: [
-					{
-						kind: 'raw',
-						source: detailEntityTypes.length === 1 ?
-							`EntityType.${detailEntityTypes[0]}`
-						:
-							'data.entityType',
-					},
-					{
-						kind: 'raw',
-						source: 'data.selector',
-					},
-					...(detailSourcesExpression == null ? [] : [{
-						kind: 'object' as const,
-						entries: [[
-							'sources',
-							{
-								kind: 'raw' as const,
-								source: detailSourcesExpression,
-							},
-						]],
-					}]),
-				],
-			}),
-		}
-	})()
-	const layout = node.layout == null ? undefined : {
-		kind: RouteFileKind.Layout,
-		layout: {
-			...node.layout,
-			...(node.layout.href == null ? {} : {
-				href: routeNodeByInternalPath.get(routeId(node.layout.href))?.svelteKitPath ?? node.layout.href,
-			}),
-		},
-	} satisfies RouteFile
-	const files = [
-		...(renderMappings.length === 0 ? [] : [{
-			kind: RouteFileKind.PageModule,
-			...(node.children.length === 0 ? {} : { sharedLayout: true as const }),
-			mappings: renderMappings,
-		} satisfies RouteFile]),
-		...(page == null ? [] : [{
-			kind: RouteFileKind.Page,
-			page,
-			mappings: renderMappings,
-			collections: node.collectionMappings,
-		} satisfies RouteFile]),
-		...(layout == null ? [] : [layout]),
-	]
-	return [
-		...(files.length === 0 ? [] : [{
-			internalPath: node.internalPath,
-			routePath: node.svelteKitPath.replace(/^\//, ''),
-			files,
-		}]),
-		...(detailLayout == null || node.children.length === 0 ? [] : [{
-			internalPath: node.internalPath,
-			routePath: `${node.svelteKitPath.replace(/^\//, '')}/(${detailEntityTypes.length === 1 ? camel(detailEntityTypes[0] ?? '') : 'selection'})`,
-			files: [{
-				kind: RouteFileKind.Layout,
+			}]),
+			...(detailLayout == null || node.children.length === 0 ? [] : [{
+				kind: 'detailLayout' as const,
+				path: `${routeDirectory}/(${detailEntityTypes.length === 1 ? camel(detailEntityTypes[0] ?? '') : 'selection'})/+layout.svelte`,
 				detailLayout,
-			}],
-		}]),
-		...compileRouteEntries(node.children, routeNodeByInternalPath),
-	]
-})
+			}]),
+			...compileNodes(node.children),
+		]
+	})
+
+	return compileNodes(nodes)
+}
 
 const validateRouteParamAlternativeCoverage = (indexedNodes: readonly RouteNode[]) => {
 	const errors = [
@@ -5699,7 +5692,11 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 				throw new Error(`${entity.entityType}.${list.field} list references missing internal route ${list.href}`)
 	}
 	validateRouteParamAlternativeCoverage(indexedRouteNodes)
-	const routeEntryList = Object.freeze(compileRouteEntries(compiledRouteNodes, routeNodeByInternalPath))
+	const physicalRouteFiles = Object.freeze(compilePhysicalRouteFiles(
+		compiledRouteNodes,
+		indexedRouteNodes,
+		routeNodeByInternalPath
+	))
 	const routeNodesByPublicShape = Map.groupBy(indexedRouteNodes, (node) => publicRouteShape(node.publicPath))
 	const selectorMappingEntries = indexedRouteNodes.flatMap((node) => node.selectorMappings.map((mapping) => ({
 		node,
@@ -5823,17 +5820,15 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	}
 	const routeProbeMappingsByNode = indexRouteProbeMappings(compiledRouteNodes)
 
-	for (const entry of routeEntryList) {
-		for (const routeFile of entry.files) {
-			if (
-				routeFile.page?.view?.component != null
-				&& routeFile.mappings?.length === 0
-				&& (routeFile.collections?.length ?? 0) === 0
-				&& !generatedComponents.has(routeFile.page.view.component)
-			)
-				errors.push(`${entry.routePath} view references missing generated component ${routeFile.page.view.component}`)
-		}
-	}
+	for (const routeFile of physicalRouteFiles)
+		if (
+			routeFile.kind === 'page'
+			&& routeFile.page.view?.component != null
+			&& routeFile.mappings.length === 0
+			&& routeFile.collections.length === 0
+			&& !generatedComponents.has(routeFile.page.view.component)
+		)
+			errors.push(`${routeFile.appRoutePath} view references missing generated component ${routeFile.page.view.component}`)
 
 	const enumMembersByName = new Map([
 		...(app.schema.enums ?? []),
@@ -5954,7 +5949,6 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		}
 	}
 
-	const physicalRouteFiles = compilePhysicalRouteFilePlans(routeEntryList)
 	const duplicatePhysicalPaths = physicalRouteFiles
 		.map((routeFile) => routeFile.path)
 		.filter((filePath, index, paths) => paths.indexOf(filePath) !== index)
@@ -5962,7 +5956,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		errors.push(`Duplicate physical route file plans:\n${unique(duplicatePhysicalPaths).join('\n')}`)
 	const routeFixturePlans = physicalRouteFiles.flatMap((physicalRouteFile) => {
 		if (
-			physicalRouteFile.routeFile.kind !== RouteFileKind.Page
+			physicalRouteFile.kind !== 'page'
 			|| routeParamNames(physicalRouteFile.appRoutePath).length === 0
 		)
 			return []
@@ -14312,112 +14306,17 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 
 // SvelteKit route output
 //
-// Physical file plans are compiled before rendering so route emitters only format
-// already-validated mappings, selections, layouts, and collection pages.
-const compilePhysicalRouteFilePlans = (renderEntries: readonly RouteRenderEntry[]) => renderEntries.flatMap((entry) => entry.files.flatMap((routeFile) => {
-	const routeDirectory = entry.routePath === '' ? 'src/routes' : `src/routes/${entry.routePath}`
-	const routePath = `${routeDirectory}/${routeFileName(routeFile.kind)}`
-	if (routeFile.kind === RouteFileKind.PageModule) {
-		if (routeFile.sharedLayout === true)
-			return [{
-				path: `${routeDirectory}/+layout.ts`,
-				appRoutePath: entry.routePath,
-				semanticNodeId: entry.internalPath,
-				routeFile,
-			}]
-		if ((routeFile.mappings?.length ?? 0) > 1 || routeNeedsPageModule(routePath, routeFile, renderEntries))
-			return [{
-				path: routePath,
-				appRoutePath: entry.routePath,
-				semanticNodeId: entry.internalPath,
-				routeFile,
-			}]
-
-		return []
-	}
-	if (routeFile.kind === RouteFileKind.Page) {
-		const pageModule = entry.files.find((file) => file.kind === RouteFileKind.PageModule)
-		const inheritedMappings = (routeFile.mappings?.length ?? 0) === 0 && (pageModule?.mappings?.length ?? 0) > 0
-		const generatedPageModule = pageModule != null && (
-			pageModule.sharedLayout === true
-			|| (pageModule.mappings?.length ?? 0) > 1
-			|| routeNeedsPageModule(routePath.replace(/\+page\.svelte$/, '+page.ts'), pageModule, renderEntries)
-		)
-		return [{
-			path: routePath,
-			appRoutePath: entry.routePath,
-			semanticNodeId: entry.internalPath,
-			routeFile: inheritedMappings ? {
-				...routeFile,
-				mappings: pageModule?.mappings,
-			} : routeFile,
-			generatedPageModule,
-		}]
-	}
-
-	return [{
-		path: routePath,
-		appRoutePath: entry.routePath,
-		semanticNodeId: entry.internalPath,
-		routeFile,
-	}]
-}))
-
 const generateRouteFiles = (
 	plan: CompiledPhysicalRouteFileFacts,
 	indexes: GenerationIndexes
 ) => (
-		plan.routeFile.kind === RouteFileKind.PageModule ?
-			[generatePageModuleFile(plan.path, plan.routeFile, indexes)]
-		: plan.routeFile.kind === RouteFileKind.Layout ?
-			[generateLayoutFile(plan.path, plan.routeFile)]
-	:
-		[generatePageFile(
-			plan.path,
-			plan.appRoutePath,
-			plan.routeFile,
-			indexes,
-			plan.generatedPageModule === true
-		)]
+		plan.kind === 'layoutModule' || plan.kind === 'pageModule' ?
+			[generatePageModuleFile(plan, indexes)]
+		: plan.kind === 'layout' || plan.kind === 'detailLayout' ?
+			[generateLayoutFile(plan)]
+		:
+			[generatePageFile(plan, indexes)]
 )
-
-const routeNeedsPageModule = (
-	routePath: string,
-	routeFile: RouteFile,
-	renderEntries: readonly RouteRenderEntry[]
-) => (
-	routeFile.mappings?.some((mapping) => mapping.projectionRouteParam != null) === true
-		&& !routeProjectionOwnedByAncestor(routePath, routeFile, renderEntries)
-)
-
-const routeProjectionKey = (mapping: SelectorRouteMapping) => (
-	`${mapping.projection?.entityType ?? mapping.entityType}\0${(mapping.projection?.facetPath ?? []).join('\0')}`
-)
-
-const routeProjectionOwnedByAncestor = (
-	routePath: string,
-	routeFile: RouteFile,
-	renderEntries: readonly RouteRenderEntry[]
-) => {
-	const mappings = routeFile.mappings?.filter((mapping) => mapping.projection != null) ?? []
-	if (mappings.length === 0)
-		return false
-
-	const href = publicRouteId(routePath
-		.replace(/^src\/routes\//, '')
-		.replace(/\/\+(?:page|layout)\.ts$/, ''))
-	return mappings.every((mapping) => renderEntries.some((entry) => {
-		const entryHref = publicRouteId(entry.routePath)
-		return (
-			entryHref !== href
-			&& href.startsWith(`${entryHref}/`)
-			&& entry.files.some((file) => (
-				file.kind === RouteFileKind.PageModule
-				&& file.mappings?.some((candidate) => routeProjectionKey(candidate) === routeProjectionKey(mapping)) === true
-			))
-		)
-	}))
-}
 
 const logicalExpression = (
 	expressions: readonly string[],
@@ -14542,10 +14441,12 @@ const routeMappingContext = (
 	}
 }
 
-const generatePageModuleFile = (routePath: string, routeFile: RouteFile, indexes: GenerationIndexes) => {
-	const mappings = routeFile.mappings ?? []
-	if (mappings.length === 0)
-		throw new Error(`${routePath} page module has no selector mappings`)
+const generatePageModuleFile = (
+	routeFile: CompiledPageModuleRouteFileFacts,
+	indexes: GenerationIndexes
+) => {
+	const routePath = routeFile.path
+	const mappings = routeFile.mappings
 
 	if (mappings.length > 1) {
 		const contexts = mappings.map((mapping) => routeMappingContext(
@@ -14675,8 +14576,6 @@ const generatePageModuleFile = (routePath: string, routeFile: RouteFile, indexes
 	}
 
 	const mapping = mappings[0]
-	if (mapping == null)
-		throw new Error(`${routePath} page module has no selector mapping`)
 	const context = routeMappingContext(routePath, indexes, mapping)
 	const returnEntries: [string, string | undefined][] = [
 		['selector', context.selectorVariableName],
@@ -14758,7 +14657,7 @@ const generatePageModuleFile = (routePath: string, routeFile: RouteFile, indexes
 	)
 }
 
-type CollectionMapping = NonNullable<RouteFile['collections']>[number]
+type CollectionMapping = CollectionRouteMapping
 
 const collectionSelectionPlan = (
 	collection: CollectionMapping,
@@ -14813,12 +14712,11 @@ const renderPagePropsState = (props: readonly string[]) => [
 ]
 
 const generateMultiCollectionPageFile = (
-	routePath: string,
-	appRoutePath: string,
-	routeFile: RouteFile,
+	routeFile: CompiledPageRouteFileFacts,
 	indexes: GenerationIndexes
 ) => {
-	const unboundContexts = (routeFile.collections ?? []).map((collection, index) => {
+	const { appRoutePath, path: routePath } = routeFile
+	const unboundContexts = routeFile.collections.map((collection, index) => {
 		const collectionEntity = indexes.entityByType[collection.entity]
 		if (collectionEntity == null)
 			throw new Error(`${routePath} collection mapping references a missing entity`)
@@ -14949,7 +14847,7 @@ const generateMultiCollectionPageFile = (
 				])),
 			],
 			head: [
-				`<title>${pageTitle.length === 1 ? pageTitle[0] : routeFile.page?.text?.title ?? 'Collections'} • Blockhead</title>`,
+				`<title>${pageTitle.length === 1 ? pageTitle[0] : routeFile.page.text?.title ?? 'Collections'} • Blockhead</title>`,
 			],
 			markup: [
 				'<Page>',
@@ -15098,14 +14996,16 @@ const compilePageEntityTitle = (
 }
 
 const generatePageFile = (
-	routePath: string,
-	appRoutePath: string,
-	routeFile: RouteFile,
-	indexes: GenerationIndexes,
-	hasGeneratedPageModule = false
+	routeFile: CompiledPageRouteFileFacts,
+	indexes: GenerationIndexes
 ) => {
-	if ((routeFile.mappings?.length ?? 0) > 1) {
-		const mappings = routeFile.mappings ?? []
+	const {
+		appRoutePath,
+		generatedPageModule,
+		path: routePath,
+	} = routeFile
+	if (routeFile.mappings.length > 1) {
+		const mappings = routeFile.mappings
 		const mappingsByEntityType = Object.groupBy(mappings, ({ entityType }) => entityType)
 		const mappedEntityTypes = [...new Set(mappings.map(({ entityType }) => entityType))]
 		const singleMappedEntityType = mappedEntityTypes.length === 1 ? mappedEntityTypes[0] : undefined
@@ -15278,17 +15178,15 @@ const generatePageFile = (
 		)
 	}
 
-	if ((routeFile.collections?.length ?? 0) > 1)
+	if (routeFile.collections.length > 1)
 		return generateMultiCollectionPageFile(
-			routePath,
-			appRoutePath,
 			routeFile,
 			indexes
 		)
 
-	const mapping = routeFile.mappings?.[0]
-	const collection = routeFile.collections?.[0]
-	const view = routeFile.page?.view
+	const mapping = routeFile.mappings[0]
+	const collection = routeFile.collections[0]
+	const view = routeFile.page.view
 	const viewEntity = mapping?.entityType ?? view?.entity
 	const viewSelector = mapping?.selectorName ?? view?.selector
 	const collectionEntity = collection?.entity
@@ -15309,7 +15207,7 @@ const generatePageFile = (
 		&& collectionComponentFile != null
 		&& isDefaultPluralViewComponent(indexes, collectionEntity, collectionComponentFile)
 	)
-	const inlineSelectorExpression = hasGeneratedPageModule ?
+	const inlineSelectorExpression = generatedPageModule ?
 		undefined
 	: mapping == null ?
 		undefined
@@ -15347,7 +15245,7 @@ const generatePageFile = (
 	const selectorUsesParams = inlineSelectorExpression != null && typeScriptExpressionReferencesBinding(inlineSelectorExpression, 'params')
 	const selectorExpression = inlineSelectorExpression ?? 'data.selector'
 	const usesData = (
-		hasGeneratedPageModule
+		generatedPageModule
 		|| expressionUsesKind(collection?.source.selector, 'pageSelector')
 		|| (
 			collection == null
@@ -15367,7 +15265,7 @@ const generatePageFile = (
 	// Generated detail and collection markup owns selection imports; raw page content declares its own.
 	const usesGeneratedSelection = collection != null || isEntityDetailPage
 	const entityTypeLabel = viewEntityDefinition == null ? undefined : displayLabel(viewEntityDefinition.labels.singular)
-	const pageTitleLiteral = routeFile.page?.text?.title ?? routeFile.page?.text?.label ?? (
+	const pageTitleLiteral = routeFile.page.text?.title ?? routeFile.page.text?.label ?? (
 		isEntityDetailPage ?
 			undefined
 		: collectionEntity != null && indexes.entityByType[collectionEntity] != null ?
@@ -15642,15 +15540,15 @@ const generatePageFile = (
 }
 
 const renderEntityPageMarkup = (
-	routeFile: RouteFile,
+	routeFile: CompiledPageRouteFileFacts,
 	component: string | undefined,
 	selectorExpression: string,
 	currentRouteId: string,
 	indexes: GenerationIndexes,
 	selectionBinding?: string
 ) => {
-	const mapping = routeFile.mappings?.[0]
-	const view = routeFile.page?.view
+	const mapping = routeFile.mappings[0]
+	const view = routeFile.page.view
 	const entityType = mapping?.entityType ?? view?.entity
 	const selectorName = mapping?.selectorName ?? view?.selector
 	if (view?.Content != null)
@@ -15660,7 +15558,7 @@ const renderEntityPageMarkup = (
 			`\t<h1>${view.text}</h1>`,
 		]
 	if (component == null || entityType == null)
-		return routeFile.page?.text?.title == null ? [] : [`\t<h1>${routeFile.page.text.title}</h1>`]
+		return routeFile.page.text?.title == null ? [] : [`\t<h1>${routeFile.page.text.title}</h1>`]
 
 	return [
 		`\t<${component}`,
@@ -15693,7 +15591,7 @@ const renderEntityPageMarkup = (
 }
 
 const renderCollectionPageMarkup = (
-	routeFile: RouteFile,
+	routeFile: CompiledPageRouteFileFacts,
 	collection: CollectionRouteMapping,
 	collectionComponent: string | undefined,
 	href: string,
@@ -15724,7 +15622,7 @@ const renderCollectionPageMarkup = (
 		inlineSelection
 	const collectionTitle = (
 		collection.page?.text?.title
-		?? routeFile.page?.text?.title
+			?? routeFile.page.text?.title
 		?? sentenceStart(collectionEntity.labels.plural)
 	)
 	const collectionUsesDefaultTitle = collectionTitle === (
@@ -15797,8 +15695,9 @@ const renderCollectionPageMarkup = (
 	]
 }
 
-const generateLayoutFile = (routePath: string, routeFile: RouteFile) => {
-	if (routeFile.detailLayout != null) {
+const generateLayoutFile = (routeFile: CompiledLayoutRouteFileFacts) => {
+	const routePath = routeFile.path
+	if (routeFile.kind === 'detailLayout') {
 		const hrefParamNames = routeParamNames(routeFile.detailLayout.href)
 		const entityHrefExpression = renderResolveExpression(
 			routeFile.detailLayout.href,
@@ -15891,9 +15790,6 @@ const generateLayoutFile = (routePath: string, routeFile: RouteFile) => {
 			}
 		)
 	}
-
-	if (routeFile.layout == null)
-		throw new Error(`${routePath} layout route file is missing layout metadata`)
 
 	const { title, href } = routeFile.layout
 	const hrefParams = href == null ? [] : routeParamNames(href)

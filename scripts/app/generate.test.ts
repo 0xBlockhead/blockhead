@@ -5392,9 +5392,9 @@ test('rejects route mappings that omit a selector field in the authoritative com
 
 test('retains only physical route file facts consumed by route emitters', () => {
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
-	const physicalRoutePlanSource = generatorSource.slice(
+	const physicalRouteTypeSource = generatorSource.slice(
 		generatorSource.indexOf('type CompiledPhysicalRouteFileFacts ='),
-		generatorSource.indexOf('const routeProjectionKey =')
+		generatorSource.indexOf('type CompiledAppFacts =')
 	)
 	const physicalRouteFiles = baselineCompiledApp.generatedFiles.filter(({ path: filePath }) => (
 		filePath.startsWith('src/routes/')
@@ -5402,10 +5402,12 @@ test('retains only physical route file facts consumed by route emitters', () => 
 	))
 
 	assert.equal(physicalRouteFiles.length, 564)
-	assert.doesNotMatch(physicalRoutePlanSource, /\bplacement:|\binheritedMappings,|\bprojectionOwnedByAncestor\b|\bpageModuleOwnership:/)
-	assert.match(physicalRoutePlanSource, /const inheritedMappings = [^\n]+[\s\S]*?routeFile: inheritedMappings \? \{[\s\S]*?mappings: pageModule\?\.mappings/)
-	assert.match(physicalRoutePlanSource, /const generatedPageModule = [\s\S]*?plan\.generatedPageModule === true/)
-	assert.match(physicalRoutePlanSource, /routeNeedsPageModule[\s\S]*?!routeProjectionOwnedByAncestor/)
+	assert.match(physicalRouteTypeSource, /kind: 'page'[\s\S]*?generatedPageModule: boolean/)
+	assert.match(physicalRouteTypeSource, /kind: 'layoutModule' \| 'pageModule'[\s\S]*?mappings: readonly \[SelectorRouteMapping, \.\.\.SelectorRouteMapping\[\]\]/)
+	assert.match(physicalRouteTypeSource, /kind: 'layout'[\s\S]*?kind: 'detailLayout'/)
+	assert.doesNotMatch(generatorSource, /\bRouteFile\b|\bRouteRenderEntry\b|routeFileName|compileRouteEntries|compilePhysicalRouteFilePlans|routeNeedsPageModule|routeProjectionOwnedByAncestor|sharedLayout|inheritedMappings/)
+	assert.match(generatorSource, /href !== publicHref[\s\S]*?publicHref\.startsWith\(`\$\{href\}\/`\)/)
+	assert.match(generatorSource, /generatedPageModule: moduleKind != null/)
 	assert.doesNotMatch(generatorSource, /seenRouteFiles|Duplicate generated route file/)
 	assert.equal(generatorSource.match(/Duplicate physical route file plans/g)?.length, 1)
 })
@@ -5422,7 +5424,7 @@ test('compiles each collection reference path once into its canonical route mapp
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
 	const collectionMappingTypeSource = generatorSource.slice(
 		generatorSource.indexOf('type CollectionRouteMapping ='),
-		generatorSource.indexOf('type RouteFile =')
+		generatorSource.indexOf('const projectionPathKey =')
 	)
 	const routeNodeSource = generatorSource.slice(
 		generatorSource.indexOf('type RouteNode ='),
