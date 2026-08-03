@@ -305,10 +305,6 @@ type RouteFixtureMetadata = {
 	probeAtoms: readonly string[]
 	boundaryLiveOptional?: true
 }
-type NamedSourceSelectionPlan = {
-	selection: _SourceSelection
-	functionName: string
-}
 type CompositeRouteParamPlan = {
 	matcher: string
 	matchers: readonly string[]
@@ -374,17 +370,6 @@ type SourcesMarkdownInput = Readonly<{
 	sourceDefinitionById: Readonly<Record<string, SourceDefinition>>
 	sourceProviders: readonly SourceProviderDefinition[]
 	sources: readonly SourceDefinition[]
-}>
-type GenerationInput = Readonly<{
-	indexes: GenerationIndexes
-	entities: readonly Entity[]
-	sourceProviders: readonly SourceProviderDefinition[]
-	sources: readonly SourceDefinition[]
-	navigationItems: readonly App['navigation']['items'][number][]
-	resolverModules: readonly App['resolvers']['modules'][number][]
-	routeFixturePlans: readonly RouteFixturePlan[]
-	compositeRouteParams: readonly CompositeRouteParamPlan[]
-	physicalRouteFiles: readonly CompiledPhysicalRouteFileFacts[]
 }>
 export type CompiledApp = Readonly<{
 	generatedFiles: readonly GeneratedFile[]
@@ -6272,49 +6257,21 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	if (duplicatePhysicalPaths.length > 0)
 		throw new Error(`Duplicate physical route file plans:\n${unique(duplicatePhysicalPaths).join('\n')}`)
 
-	// Emitters receive only the indexes and ordered plans they consume. APP.ts is
-	// deliberately not available below this boundary.
-	const generationInput = {
-		indexes: {
-			collectionRouteByEntity: compiledApp.collectionRouteByEntity,
-			collectionRoutesBySourceField: compiledApp.collectionRoutesBySourceField,
-			entityByType: compiledApp.entityByType,
-			entityFacetByPath: compiledApp.entityFacetByPath,
-			entityRouteLinksByType: compiledApp.entityRouteLinksByType,
-			facetAncestorConditionsByPath: compiledApp.facetAncestorConditionsByPath,
-			facetDependencyConditionsByPath: compiledApp.facetDependencyConditionsByPath,
-			sourceBindings: compiledApp.sourceBindings,
-			sourceDefinitionById: compiledApp.sourceDefinitionById,
-			valueTypeById: compiledApp.valueTypeById,
-		},
-		entities: compiledApp.activeEntities,
-		sourceProviders: compiledApp.sourceProviders,
-		sources: compiledApp.sources,
-		navigationItems: compiledApp.navigationItems,
-		resolverModules: compiledApp.resolverModules,
-		routeFixturePlans: compiledApp.routeFixturePlans,
-		compositeRouteParams: compiledApp.compositeRouteParams,
-		physicalRouteFiles: compiledApp.physicalRouteFiles,
-	} satisfies GenerationInput
-
 	return freezeCompiled({
-		generatedFiles: generateFiles(generationInput),
+		generatedFiles: generateFiles(compiledApp),
 	})
 }
 
 // The manifest below is the complete generated product. Its ordering is stable,
 // and publication removes generated files that are no longer in this manifest.
-const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
-	const indexes = generationInput.indexes
-	const entityTypes = generationInput.entities.map(({ entityType }) => entityType)
-	const sourceProviders = generationInput.sourceProviders
+const generateFiles = (compiledApp: CompiledAppFacts): GeneratedFile[] => {
+	const indexes = compiledApp
+	const entityTypes = compiledApp.activeEntities.map(({ entityType }) => entityType)
+	const sourceProviders = compiledApp.sourceProviders
 	const sourceProviderNames = sourceProviders.map(({ provider }) => provider)
-	const namedSourceSelections = [...new Map(unique(generationInput.entities.flatMap(entityNamedSourceSelections))
-		.map((selection) => [sourceSelectionFunctionName(selection), {
-			selection,
-			functionName: sourceSelectionFunctionName(selection),
-		}] as const)).values()]
-	const summaryPlanByEntityType = new Map(generationInput.entities.map((entity) => [
+	const sourceSelections = [...new Map(unique(compiledApp.activeEntities.flatMap(entityNamedSourceSelections))
+		.map((selection) => [sourceSelectionFunctionName(selection), selection] as const)).values()]
+	const summaryPlanByEntityType = new Map(compiledApp.activeEntities.map((entity) => [
 		entity.entityType,
 		compileSummaryPlan(entity, indexes),
 	]))
@@ -6324,7 +6281,7 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 	}
 	// Nested singular views need the target component's exact prefetched prop
 	// contract, so compile that contract before rendering any view file.
-	const singularViewPlans = generationInput.entities.map((entity) => ({
+	const singularViewPlans = compiledApp.activeEntities.map((entity) => ({
 		entity,
 		plan: compileSingularViewPlan(entity, summaryPlanningIndexes),
 	}))
@@ -6334,11 +6291,11 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 			:
 			[]
 	)))
-	const pluralViewPlanByEntityType = new Map(generationInput.entities.map((entity) => [
+	const pluralViewPlanByEntityType = new Map(compiledApp.activeEntities.map((entity) => [
 		entity.entityType,
 		generatePluralViewPlan(entity, summaryPlanningIndexes),
 	]))
-	const defaultPluralViewEntityTypes = new Set(generationInput.entities.flatMap((entity) => (
+	const defaultPluralViewEntityTypes = new Set(compiledApp.activeEntities.flatMap((entity) => (
 		pluralViewPlanByEntityType.get(entity.entityType)?.isExactDefault === true ?
 			[entity.entityType]
 		:
@@ -6355,11 +6312,11 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 			pluralViewPlanByEntityType.get(entity.entityType)?.file,
 		]),
 	]).filter((file) => file != null)
-	const routeFiles = generationInput.physicalRouteFiles.flatMap((plan) => generateRouteFiles(plan, renderingIndexes))
+	const routeFiles = compiledApp.physicalRouteFiles.flatMap((plan) => generateRouteFiles(plan, renderingIndexes))
 	const sourceBindingsByProvider = Object.groupBy(indexes.sourceBindings, (sourceBinding) => (
 		indexes.sourceDefinitionById[sourceBinding.source].provider
 	))
-	const sourcesByProvider = Object.groupBy(generationInput.sources, ({ provider }) => provider)
+	const sourcesByProvider = Object.groupBy(compiledApp.sources, ({ provider }) => provider)
 	const files = [
 		// Schema contracts.
 		...([
@@ -6381,8 +6338,8 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 				],
 			}
 		),
-		...generationInput.entities.flatMap(generateEntityEnumFiles),
-		...generationInput.entities.map((entity) => generateEntitySchemaFile(entity, indexes)),
+		...compiledApp.activeEntities.flatMap(generateEntityEnumFiles),
+		...compiledApp.activeEntities.map((entity) => generateEntitySchemaFile(entity, indexes)),
 		// Source registry, bindings, credentials, documentation, and resolver index.
 		generateSchemaIndexFile(entityTypes),
 		{
@@ -6392,14 +6349,14 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 				sourceBindings: indexes.sourceBindings,
 				sourceDefinitionById: indexes.sourceDefinitionById,
 				sourceProviders,
-				sources: generationInput.sources,
+				sources: compiledApp.sources,
 			})),
 		},
 		tsFile(
 			'src/sources/Source.ts',
 			{
 				body: [
-					emitStringEnum('Source', generationInput.sources.map(({ source }) => source)),
+					emitStringEnum('Source', compiledApp.sources.map(({ source }) => source)),
 				],
 			}
 		),
@@ -6417,13 +6374,13 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 		]),
 		generateSourceProvidersFile(sourceProviderNames),
 		generateSourceServerCredentialsFile(indexes.sourceBindings),
-		...generateSourceSelectionFiles(namedSourceSelections),
-		generateNavigationItemsFile(generationInput.navigationItems),
-		generateResolverIndexFile(generationInput.resolverModules),
-		generateE2eRouteFixtureMetadataFile(generationInput.routeFixturePlans),
+		...generateSourceSelectionFiles(sourceSelections),
+		generateNavigationItemsFile(compiledApp.navigationItems),
+		generateResolverIndexFile(compiledApp.resolverModules),
+		generateE2eRouteFixtureMetadataFile(compiledApp.routeFixturePlans),
 		// Product views, route matchers, and physical SvelteKit route files.
 		...entityViewFiles,
-		...generationInput.compositeRouteParams.map((routeParam) => tsFile(
+		...compiledApp.compositeRouteParams.map((routeParam) => tsFile(
 			`src/params/${routeParam.matcher}.ts`,
 			{
 				imports: routeParam.matchers.map((matcher) => ({
@@ -6953,14 +6910,6 @@ const emitCompiledSourcesMarkdown = (sourcesMarkdown: SourcesMarkdownInput) => {
 			...table,
 		]),
 	].join('\n')
-}
-
-export const renderSourcesMarkdown = ({ generatedFiles }: Pick<CompiledApp, 'generatedFiles'>) => {
-	const sourcesMarkdown = generatedFiles.find((generatedFile) => generatedFile.path === 'SOURCES.md')
-	if (sourcesMarkdown?.kind !== 'text')
-		throw new Error('Compiled APP render IR does not contain SOURCES.md')
-
-	return sourcesMarkdown.body.join('\n')
 }
 
 type SourceBindingIdentityInput = Pick<
@@ -8367,11 +8316,8 @@ const generateSourceServerCredentialsFile = (
 	)
 }
 
-const generateSourceSelectionFiles = (sourceSelections: readonly NamedSourceSelectionPlan[]) => sourceSelections.map(({
-	selection,
-	functionName,
-}) => tsFile(
-	`src/sources/${functionName}.ts`,
+const generateSourceSelectionFiles = (sourceSelections: readonly _SourceSelection[]) => sourceSelections.map((selection) => tsFile(
+	`src/sources/${sourceSelectionFunctionName(selection)}.ts`,
 	{
 		imports: [
 			{

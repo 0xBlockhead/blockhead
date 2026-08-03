@@ -8,7 +8,7 @@ import {
 	SourceCredentialScope,
 	SourceEndpointKind,
 } from '../../APP.ts'
-import { compileApp, renderSourcesMarkdown } from './generate.ts'
+import { compileApp } from './generate.ts'
 
 const sourceBindingRows = app.sources.sources.flatMap((source) => [
 	...(source.binding == null ? [] : [source.binding]),
@@ -18,6 +18,11 @@ const sourceBindingRows = app.sources.sources.flatMap((source) => [
 	provider: source.provider,
 	source: source.source,
 })))
+
+const sourcesMarkdown = compileApp(app).generatedFiles.find((generatedFile) => generatedFile.path === 'SOURCES.md')
+assert.ok(sourcesMarkdown)
+assert.equal(sourcesMarkdown.kind, 'text')
+const sourcesMarkdownText = sourcesMarkdown.body.join('\n')
 
 const domainTargetBySource = {
 	[Source.ChainlinkDataFeeds_AddressCatalog]: {
@@ -163,8 +168,9 @@ test('retains only canonical source binding facts in compiler rows', async () =>
 		(generatorSource.match(/const sourceDefinitionById = nullPrototypeRecord\(/g) ?? []).length,
 		1
 	)
-	assert.match(generatorSource, /sourceDefinitionById: compiledApp\.sourceDefinitionById/)
-	assert.doesNotMatch(generatorSource, /nullPrototypeRecord\(generationInput\.sources\.map/)
+	assert.match(generatorSource, /const indexes = compiledApp/)
+	assert.doesNotMatch(generatorSource, /sourceDefinitionById: compiledApp\.sourceDefinitionById/)
+	assert.doesNotMatch(generatorSource, /nullPrototypeRecord\(compiledApp\.sources\.map/)
 	assert.doesNotMatch(generatorSource, /nullPrototypeRecord\(sourcesMarkdown\.sources\.map/)
 	assert.match(generatorSource, /sourceBindingRows\.flatMap\(\(\{ binding, bindingNumber \}\) => \(binding\.artifacts \?\? \[\]\)\.map/)
 })
@@ -190,8 +196,8 @@ test('derives provider partitions once for their emitter inputs', async () => {
 
 	assert.doesNotMatch(generatorSource, /CompiledSourceProviderFacts|sourceProviderPlans/)
 	assert.match(generatorSource, /type CompiledAppFacts = Readonly<\{[\s\S]*?sourceProviders: readonly SourceProviderDefinition\[\][\s\S]*?sources: readonly SourceDefinition\[\][\s\S]*?sourceDefinitionById: Readonly<Record<string, SourceDefinition>>[\s\S]*?sourceBindings: readonly SourceBindingEntry\[\]/)
-	assert.match(generatorSource, /type GenerationInput = Readonly<\{[\s\S]*?sourceProviders: readonly SourceProviderDefinition\[\][\s\S]*?sources: readonly SourceDefinition\[\]/)
-	assert.match(generatorSource, /const sourceBindingsByProvider = Object\.groupBy\(indexes\.sourceBindings, \(sourceBinding\) => \([\s\S]*?indexes\.sourceDefinitionById\[sourceBinding\.source\]\.provider[\s\S]*?const sourcesByProvider = Object\.groupBy\(generationInput\.sources, \(\{ provider \}\) => provider\)/)
+	assert.doesNotMatch(generatorSource, /GenerationInput|generationInput/)
+	assert.match(generatorSource, /const sourceBindingsByProvider = Object\.groupBy\(indexes\.sourceBindings, \(sourceBinding\) => \([\s\S]*?indexes\.sourceDefinitionById\[sourceBinding\.source\]\.provider[\s\S]*?const sourcesByProvider = Object\.groupBy\(compiledApp\.sources, \(\{ provider \}\) => provider\)/)
 	assert.match(generatorSource, /sourceProviders\.flatMap\(\(provider\) => \[[\s\S]*?sourceBindingsByProvider\[provider\.provider\] \?\? \[\][\s\S]*?sourcesByProvider\[provider\.provider\] \?\? \[\]/)
 	assert.doesNotMatch(generatorSource, /generationInput\.sources\.filter\(\(source\) => source\.provider === provider\.provider\)/)
 })
@@ -205,8 +211,9 @@ test('uses authored binding identity instead of synthetic row indexes', async ()
 
 	assert.doesNotMatch(bindingsEmitter, /bindingGroupIndexByBinding|row\?\.index|sourceBindingRows\[index\]\?\.index/)
 	assert.doesNotMatch(bindingsEmitter, /bindings\.map\(\(\{ binding, source \}, index\) =>/)
-	assert.match(bindingsEmitter, /const bindingBaseNameByBinding = new Map\(bindingGroups\.flatMap\(\(group, groupIndex\) => \{[\s\S]*?bindingBaseName == null \?[\s\S]*?\[\][\s\S]*?group\.map\(\(\{ binding \}\) => \[binding, bindingBaseName\] as const\)/)
-	assert.match(bindingsEmitter, /}, bindingBaseNameByBinding\.get\(binding\)\)\)/)
+	assert.match(bindingsEmitter, /const repeatedBindingBaseByBinding = new Map\(bindingGroups\.flatMap\(\(group, groupIndex\) => \{[\s\S]*?bindingBaseName == null \|\| publicBinding == null[\s\S]*?return \[\][\s\S]*?group\.map\(\(\{ binding: groupedBinding \}\) => \[groupedBinding, base\] as const\)/)
+	assert.match(bindingsEmitter, /const bindingBaseByBinding = new Map\(sourceBindingRows\.flatMap\(\(\{ binding, publicBinding \}\) => \{/)
+	assert.match(bindingsEmitter, /}, bindingBaseByBinding\.get\(binding\)\)\)/)
 	assert.match(bindingsEmitter, /const parts = \[\][\s\S]*?let bindingIndex = 0[\s\S]*?bindingIndex < partialMatrix\.firstRowIndex[\s\S]*?bindingIndex \+= partialMatrix\.rowCount/)
 })
 
@@ -261,7 +268,7 @@ test('renders SOURCES.md exactly from APP', async () => {
 
 	assert.equal(
 		sourceDoc,
-		`${renderSourcesMarkdown(compileApp(app))}\n`
+		`${sourcesMarkdownText}\n`
 	)
 	assert.deepEqual(tableAfterHeading(sourceDoc, '## Providers'), {
 		headings: [
@@ -384,7 +391,7 @@ test('keys every binding provider from canonical source definitions', () => {
 		provider,
 	]))
 	const bindingRows = tableAfterHeading(
-		renderSourcesMarkdown(compileApp(app)),
+		sourcesMarkdownText,
 		'## Bindings'
 	).rows
 

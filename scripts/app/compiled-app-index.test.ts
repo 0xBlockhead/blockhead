@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import { app, EntityType } from '../../APP.ts'
-import { compileApp, renderSourcesMarkdown } from './generate.ts'
+import { compileApp } from './generate.ts'
 import { renderGeneratedFile } from './render.ts'
 
 
@@ -58,7 +58,10 @@ test('exports only complete immutable generated-file IR', () => {
 	assert.ok(compiledApp.generatedFiles.some((generatedFile) => generatedFile.path.endsWith('/+layout.svelte') && generatedFile.kind === 'svelte'))
 	assert.ok(compiledApp.generatedFiles.some((generatedFile) => generatedFile.path.endsWith('/+page.svelte') && generatedFile.kind === 'svelte'))
 	assert.ok(compiledApp.generatedFiles.some((generatedFile) => generatedFile.path.endsWith('/+page.ts') && generatedFile.kind === 'ts'))
-	assert.ok(renderSourcesMarkdown(compiledApp).includes('# Blockhead Sources'))
+	const sourcesMarkdown = compiledApp.generatedFiles.find((generatedFile) => generatedFile.path === 'SOURCES.md')
+	assert.ok(sourcesMarkdown)
+	assert.equal(sourcesMarkdown.kind, 'text')
+	assert.equal(sourcesMarkdown.body.includes('# Blockhead Sources'), true)
 })
 
 test('keeps same-named facet fields source-precise in generated IR', () => {
