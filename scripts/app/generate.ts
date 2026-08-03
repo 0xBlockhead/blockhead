@@ -274,20 +274,12 @@ type SourceBindingEntry = {
 	readonly source: SourceDefinition['source']
 	readonly binding: SourceBinding
 }
-type RouteFixtureMetadata = {
-	id: string
-	projectionEntity?: EntityType
-	projectionPath?: readonly [string, ...string[]]
-	probeCaseId?: string
-	probeAtoms: readonly string[]
-	boundaryLiveOptional?: true
-}
 type RouteFixturePlan = {
 	nodeId: string
 	routeId: string
 	parameterMatcherNames: readonly string[]
 	parameterEncodingByName: Readonly<Partial<Record<string, _RouteParamEncoding>>>
-	mappings: readonly RouteFixtureMetadata[]
+	mappings: readonly SelectorRouteMapping[]
 	boundaryLiveOptional: boolean
 }
 type CompiledPhysicalRouteFileFacts = { path: string } & (
@@ -4241,15 +4233,6 @@ const indexRouteProbeMappings = (
 	return mappingsByNode
 }
 
-const routeFixtureMetadataFromMapping = (mapping: SelectorRouteMapping): RouteFixtureMetadata => ({
-	id: `${mapping.entityType}.${mapping.selectorName}`,
-	projectionEntity: mapping.projection?.entityType,
-	projectionPath: mapping.projection?.facetPath,
-	probeCaseId: mapping.probeCaseId,
-	probeAtoms: mapping.probeAtoms,
-	boundaryLiveOptional: mapping.boundaryLiveOptional,
-})
-
 const routeProjectionKey = (mapping: SelectorRouteMapping) => (
 	`${mapping.projection?.entityType ?? mapping.entityType}\0${(mapping.projection?.facetPath ?? []).join('\0')}`
 )
@@ -4480,19 +4463,20 @@ const sourceIdentityTransportKey = ({
 ])
 
 const routeMappingFixtureMetadataEntries = (
-	metadata: RouteFixtureMetadata,
+	mapping: SelectorRouteMapping,
 	parameterCount: number
 ) => {
-	if (metadata.probeAtoms.length % parameterCount !== 0)
-		throw new Error(`${metadata.id} has incomplete route fixture probe cases`)
+	const id = `${mapping.entityType}.${mapping.selectorName}`
+	if (mapping.probeAtoms.length % parameterCount !== 0)
+		throw new Error(`${id} has incomplete route fixture probe cases`)
 
-	const probeAtomPrefixes = unique(metadata.probeAtoms.map((probeAtom) => (
+	const probeAtomPrefixes = unique(mapping.probeAtoms.map((probeAtom) => (
 		probeAtom.slice(0, probeAtom.lastIndexOf('.', probeAtom.lastIndexOf('.') - 1))
 	)))
 	const probeCases = Array.from(
-		{ length: metadata.probeAtoms.length / parameterCount },
+		{ length: mapping.probeAtoms.length / parameterCount },
 		(_, index) => [...Map.groupBy(
-				metadata.probeAtoms
+				mapping.probeAtoms
 					.slice(index * parameterCount, (index + 1) * parameterCount)
 					.map((probeAtom) => {
 						const fieldSeparator = probeAtom.lastIndexOf('.')
@@ -4508,7 +4492,7 @@ const routeMappingFixtureMetadataEntries = (
 		).values()].map((references) => {
 			const reference = references[0]
 			if (reference == null)
-				throw new Error(`${metadata.id} produced an empty route fixture ownership group`)
+				throw new Error(`${id} produced an empty route fixture ownership group`)
 
 			return `[${[
 				String(reference.prefixIndex),
@@ -4519,13 +4503,13 @@ const routeMappingFixtureMetadataEntries = (
 	)
 
 	return [
-		['id', emitTypeScript(metadata.id)],
-		['projectionEntity', metadata.projectionEntity == null ? undefined : emitTypeScript(metadata.projectionEntity)],
-		['probeCaseId', metadata.probeCaseId == null ? undefined : emitTypeScript(metadata.probeCaseId)],
+		['id', emitTypeScript(id)],
+		['projectionEntity', mapping.projection?.entityType == null ? undefined : emitTypeScript(mapping.projection.entityType)],
+		['probeCaseId', mapping.probeCaseId == null ? undefined : emitTypeScript(mapping.probeCaseId)],
 		['probeAtomPrefixes', `[${probeAtomPrefixes.map(emitTypeScript).join(', ')}]`],
 		['probeCases', `[${probeCases.map((probeCase) => `[${probeCase.join(', ')}]`).join(', ')}]`],
-		['projectionPath', metadata.projectionPath == null ? undefined : emitArray(metadata.projectionPath.map(emitTypeScript))],
-		['boundaryLiveOptional', metadata.boundaryLiveOptional == null ? undefined : 'true'],
+		['projectionPath', mapping.projection == null ? undefined : emitArray(mapping.projection.facetPath.map(emitTypeScript))],
+		['boundaryLiveOptional', mapping.boundaryLiveOptional == null ? undefined : 'true'],
 	] as const
 }
 
@@ -5779,16 +5763,15 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		}
 
 		for (const mapping of node.selectorMappings) {
-			const mappingMetadata = routeFixtureMetadataFromMapping(mapping)
-			const projectionPath = mappingMetadata.projectionPath ?? []
-			const projectionEntityType = mappingMetadata.projectionEntity
+			const projectionPath = mapping.projection?.facetPath ?? []
+			const projectionEntityType = mapping.projection?.entityType
 			const facetKey = projectionEntityType == null ? undefined : projectionPathKey(projectionEntityType, projectionPath)
 			const facetEntry = projectionPath.length === 0 || facetKey == null ? undefined : entityFacetByPath[facetKey]
 			if (projectionPath.length > 0) {
 				if (projectionEntityType == null)
-					errors.push(`${node.internalPath} mapping ${mappingMetadata.id} must declare projectionEntity for projection [${projectionPath.map(emitTypeScript).join(', ')}]`)
+					errors.push(`${node.internalPath} mapping ${mapping.entityType}.${mapping.selectorName} must declare projectionEntity for projection [${projectionPath.map(emitTypeScript).join(', ')}]`)
 				else if (facetEntry == null)
-					errors.push(`${node.internalPath} mapping ${mappingMetadata.id} references missing ${projectionEntityType} projection [${projectionPath.map(emitTypeScript).join(', ')}]`)
+					errors.push(`${node.internalPath} mapping ${mapping.entityType}.${mapping.selectorName} references missing ${projectionEntityType} projection [${projectionPath.map(emitTypeScript).join(', ')}]`)
 			}
 		}
 	}
@@ -5809,16 +5792,17 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		if (node == null)
 			throw new Error(`${physicalRouteFile.path} has no normalized route node ${physicalRouteFile.semanticNodeId}`)
 
-		const mappings = (routeProbeMappingsByNode.get(node.internalPath) ?? []).map(routeFixtureMetadataFromMapping)
+		const mappings = routeProbeMappingsByNode.get(node.internalPath) ?? []
 		if (mappings.length === 0)
 			errors.push(`${physicalRouteFile.path} has no selector-owned probe cases`)
 
 		const routeParams = node.params.map(({ name }) => name)
 		for (const mapping of mappings) {
+			const mappingId = `${mapping.entityType}.${mapping.selectorName}`
 			if (mapping.probeAtoms.length === 0)
-				errors.push(`${physicalRouteFile.path} mapping ${mapping.id} has no probe cases`)
+				errors.push(`${physicalRouteFile.path} mapping ${mappingId} has no probe cases`)
 			if (mapping.probeAtoms.length % routeParams.length !== 0)
-				errors.push(`${physicalRouteFile.path} mapping ${mapping.id} probe atoms do not form complete cases`)
+				errors.push(`${physicalRouteFile.path} mapping ${mappingId} probe atoms do not form complete cases`)
 			for (let index = 0; index < mapping.probeAtoms.length; index += routeParams.length) {
 				const caseParams = mapping.probeAtoms.slice(index, index + routeParams.length).map((atom) => (
 					atom.slice(atom.lastIndexOf('.') + 1)
@@ -5827,7 +5811,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 					routeParams.some((param) => !caseParams.includes(param))
 					|| caseParams.some((param) => !routeParams.includes(param))
 				)
-					errors.push(`${physicalRouteFile.path} mapping ${mapping.id} probe case parameters do not match the route`)
+					errors.push(`${physicalRouteFile.path} mapping ${mappingId} probe case parameters do not match the route`)
 			}
 		}
 
