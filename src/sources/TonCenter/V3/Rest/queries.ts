@@ -24,14 +24,13 @@ import {
 } from '$/sources/TonCenter/V3/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = Object.fromEntries(
-	bindings[Source.TonCenter]
-		.filter((binding) => binding.apiFamily === ApiFamily.TonCenterV3Api)
-		.map((binding) => [
-			binding.target.key,
-			binding,
-		])
-)['ton:-239']
+const binding = bindings[Source.TonCenter].find(({ apiFamily, target }) => (
+	apiFamily === ApiFamily.TonCenterV3Api
+	&& target.key === 'ton:-239'
+))
+
+if (binding == null)
+	throw new Error('TON Center v3 mainnet binding is missing')
 
 const decimalString = /^(?:0|[1-9]\d*)$/
 const signedInt32Maximum = (2 ** 31) - 1

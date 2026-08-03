@@ -9,12 +9,12 @@ import type {
 	AlgorandIndexerTransactionsPage,
 } from '$/sources/AlgorandIndexer/Rest/types.ts'
 
-const binding = Object.fromEntries(
-	bindings[Source.Nodely].map((sourceBinding) => [
-		sourceBinding.apiFamily,
-		sourceBinding,
-	])
-)[ApiFamily.AlgorandIndexerRestApi]
+const binding = bindings[Source.Nodely].find(({ apiFamily }) => (
+	apiFamily === ApiFamily.AlgorandIndexerRestApi
+))
+
+if (binding == null)
+	throw new Error('AlgorandIndexer_Rest: binding is missing')
 
 const assertAddress = (
 	address: string,

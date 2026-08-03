@@ -3,7 +3,6 @@ import { TransportType } from '$/constants/TransportType.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import bindings from '$/sources/Lotus/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type {
 	LotusActor,
 	LotusMinerInfo,
@@ -16,12 +15,9 @@ import type {
 	LotusVersion,
 } from '$/sources/Lotus/JsonRpc/types.ts'
 
-const binding = new Map<string, SourceBinding<Source.Lotus_JsonRpc>>(
-	bindings[Source.Lotus_JsonRpc].map((binding) => [
-		binding.target.key,
-		binding,
-	] as const)
-).get(`${networkBySlug.filecoin.caip2.namespace}:${networkBySlug.filecoin.caip2.reference}`)
+const binding = bindings[Source.Lotus_JsonRpc].find(({ target }) => (
+	target.key === `${networkBySlug.filecoin.caip2.namespace}:${networkBySlug.filecoin.caip2.reference}`
+))
 
 if (binding == null)
 	throw new Error('Lotus_JsonRpc: no Filecoin binding')

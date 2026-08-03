@@ -20,12 +20,12 @@ import {
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/PublicNode/bindings.ts'
 
-const binding = Object.fromEntries(
-	bindings[Source.Solana_JsonRpc].map((binding) => ([
-		binding.delivery,
-		binding,
-	] as const))
-)[SourceDelivery.HttpProxy]
+const binding = bindings[Source.Solana_JsonRpc].find(({ delivery }) => (
+	delivery === SourceDelivery.HttpProxy
+))
+
+if (binding == null)
+	throw new Error('Solana_JsonRpc: HTTP proxy binding is missing')
 
 export const solanaRpcEndpoints = bindings[Source.Solana_JsonRpc].flatMap(({ endpoints }) => (
 	endpoints.map((endpoint) => ({
