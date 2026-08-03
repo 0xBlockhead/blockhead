@@ -7564,7 +7564,6 @@ const generateSourceProviderBindingsFile = (
 	corsEnabled: ${String(endpoint.corsEnabled)},`}
 }`])],
 				])),
-				hasBindingOverrides,
 				whole,
 			}]
 		})
@@ -7578,7 +7577,6 @@ const generateSourceProviderBindingsFile = (
 				values: readonly (readonly [string, string])[]
 			}[]
 			variants: readonly string[]
-			hasBindingOverrides: boolean
 		}
 	) => {
 		const valueNames = matrix.rows[0]?.values.map(([name]) => name) ?? []
@@ -7598,7 +7596,7 @@ const generateSourceProviderBindingsFile = (
 				'\t({',
 				'\t\tkey,',
 				...valueNames.map((name) => `\t\t${name},`),
-				...(matrix.variants.length === 1 && matrix.hasBindingOverrides ? ['\t\t...bindingOverrides'] : []),
+				...(matrix.variants.length === 1 && matrix.rows.some(({ overrides }) => overrides.length > 0) ? ['\t\t...bindingOverrides'] : []),
 				`\t}) => (${matrix.variants.length === 1 ? '{' : '['}`,
 				...(matrix.variants.length === 1 ?
 					lines(matrix.variants[0] ?? '').slice(1, -1).map((line) => indent(line))
