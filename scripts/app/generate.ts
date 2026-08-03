@@ -5079,21 +5079,41 @@ const normalizeApp = (app: App) => {
 		].flatMap(viewConditionFromFacetCondition)),
 	]))
 	const normalizedEntities = entities.map((entity) => {
-		for (const field of [
-			...(entity.views.singular?.query?.fields ?? []),
-			...(entity.views.singular?.query?.openFields ?? []),
-		])
-			validateFieldReference(entity, field, entityFacetByPath, [], true)
+		const validateQuery = (
+			query: _ViewQuery | undefined,
+			projectionPath: readonly string[]
+		) => {
+			for (const [kind, fields] of [
+				['fields', query?.fields],
+				['openFields', query?.openFields],
+			] as const) {
+				for (const field of fields ?? []) {
+					validateFieldReference(entity, field, entityFacetByPath, projectionPath, true)
+					const resolvedField = fieldReferenceInProjection(entity, field, entityFacetByPath, projectionPath)
+					const fieldDefinition = fieldDefinitionByReference(entity, resolvedField, { entityFacetByPath })
+					const redundancy = (
+						typeof resolvedField === 'string'
+						&& entity.selectors.length > 0
+						&& entity.selectors.every((selector) => selector.fields.includes(resolvedField)) ?
+							'selector-owned'
+						: fieldDefinition?.type === EntityFieldType.EntityReference || fieldDefinition?.type === EntityFieldType.EntitiesReference ?
+							'relationship'
+						:
+							undefined
+					)
+					if (redundancy != null)
+						throw new Error(`${entity.entityType}${projectionPath.length === 0 ? '' : `.${projectionPath.join('.')}`} singular query.${kind} redundantly includes ${redundancy} field ${fieldReferenceKey(resolvedField)}`)
+				}
+			}
+		}
+
+		validateQuery(entity.views.singular?.query, [])
 
 		const normalizedViews = resolveFieldReferences(entity, entity.views, entityFacetByPath) as Entity['views']
 		const singularView = facetEntries
 			.filter((facetEntry) => facetEntry.entityType === entity.entityType)
 			.reduce((view, { facet, projectionPath }) => {
-				for (const field of [
-					...(facet.singularView?.query?.fields ?? []),
-					...(facet.singularView?.query?.openFields ?? []),
-				])
-					validateFieldReference(entity, field, entityFacetByPath, projectionPath, true)
+				validateQuery(facet.singularView?.query, projectionPath)
 
 				const resolvedFacetSingularView = resolveFieldReferences(
 					entity,

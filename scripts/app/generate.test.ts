@@ -854,6 +854,36 @@ test('preserves explicit view source selections independently of field defaults'
 	)
 })
 
+test('rejects selector-owned and relationship fields in singular query plans', () => {
+	const selectorApp = structuredClone(app)
+	const selectorQuery = selectorApp.schema.entities.find(({ entityType }) => (
+		entityType === EntityType.XPost
+	))?.views.singular?.query
+	assert.ok(selectorQuery)
+	selectorQuery.fields = [
+		...(selectorQuery.fields ?? []),
+		'id',
+	]
+	assert.throws(
+		() => compileApp(selectorApp),
+		/XPost singular query\.fields redundantly includes selector-owned field id/
+	)
+
+	const relationshipApp = structuredClone(app)
+	const relationshipQuery = relationshipApp.schema.entities.find(({ entityType }) => (
+		entityType === EntityType.XPost
+	))?.views.singular?.query
+	assert.ok(relationshipQuery)
+	relationshipQuery.openFields = [
+		...(relationshipQuery.openFields ?? []),
+		'$$timestamps',
+	]
+	assert.throws(
+		() => compileApp(relationshipApp),
+		/XPost singular query\.openFields redundantly includes relationship field \$\$timestamps/
+	)
+})
+
 test('keeps divergent field sources at their exact item consumers', () => {
 	const xPostView = generatedSource('src/views/XPostView.svelte')
 	const postUrlStart = xPostView.indexOf('<dt>Post URL</dt>')

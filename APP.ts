@@ -4766,8 +4766,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Constants_Internal, Source.Mastodon_Rest],
-							fields: ["scope"],
-							openFields: ["$$observedActors", "$$observedNotes", "$$instances", "$$timestamps"],
 						},
 						summary: {
 							value: ["scope"],
@@ -4856,7 +4854,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Mastodon_Rest],
-							fields: ["$hub", "timestampMs", "source"],
 							openFields: ["instanceOrigin", "instanceTitle", "instanceDescription", "instanceVersion", "activeUserCount", "observedActorCount", "observedNoteCount", "seededInstanceCount", "knownPeerDomainCount", "moderatedDomainCount", "reachable"],
 						},
 						summary: {
@@ -5192,8 +5189,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: ["Arweave_Graphql", "Arweave_Rest", Source.Constants_Internal],
-							fields: ["scope"],
-							openFields: ["$$observedNetworks", "$$observedBlocks", "$$observedTransactions", "$$observedResources"],
 						},
 						summary: {
 							value: ["scope"],
@@ -5293,7 +5288,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Constants_Internal],
-							openFields: ["$$observedActors", "$$observedPosts"],
 						},
 						summary: {
 							title: ["protocolName"],
@@ -5498,7 +5492,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Constants_Internal],
-							openFields: ["$registryContract", "$ethRegistrarController", "$reverseRegistrar", "$nameWrapper", "$$timestamps"],
 						},
 						summary: {
 							value: [{ kind: _ViewItemKind.Text, label: "ENS" }],
@@ -5589,8 +5582,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["scope"],
-							openFields: ["$$observedTopics", "$$observedSelectors", "$$observedErrors", "$$timestamps"],
 						},
 						summary: {
 							value: [{ field: "scope" }],
@@ -5677,7 +5668,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Constants_Internal], openFields: ["$$observedResources"] },
+						query: { sources: [Source.Constants_Internal] },
 						summary: {
 							value: [{ kind: _ViewItemKind.Text, label: "IPFS gateway access" }],
 						},
@@ -5797,13 +5788,6 @@ export const schema = {
 								"homeUrl",
 								"docsUrl",
 								"relationshipModel",
-							],
-							openFields: [
-								"$$observedProfiles",
-								"$$observedNotes",
-								"$$observedRelays",
-								"$$observedReposts",
-								"$$observedArticles",
 							],
 						},
 						summary: {
@@ -5941,7 +5925,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Reddit_PublicJson],
-							openFields: ["$$observedSubreddits", "$$observedLinks"],
 						},
 						carousels: [
 							{
@@ -6018,7 +6001,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Constants_Internal], openFields: ["$$observedResources", "$$timestamps"] },
+						query: { sources: [Source.Constants_Internal] },
 						summary: {
 							value: [{ kind: _ViewItemKind.Text, label: "Swarm gateway access" }],
 						},
@@ -6097,8 +6080,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.X_Rest, Source.X_FxEmbed_Rest],
-							fields: ["scope"],
-							openFields: ["$$observedUsers", "$$observedPosts"],
 						},
 						summary: {
 							value: [{ field: "scope" }],
@@ -6358,8 +6339,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Eip8004Scan_Rest],
-							fields: ["agentCardUrl"],
-							openFields: ["$$snapshots", "$$documents"],
 						},
 						summary: { title: ["agentCardUrl"] },
 						closed: ["agentCardUrl"],
@@ -6410,8 +6389,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [],
-							fields: ["$card", "contentHashAlgorithm", "contentHash"],
-							openFields: ["fetchedAt", "snapshotKind", "name", "description", "version", "protocolVersion", "providerName", "providerUrl", "preferredTransport", "defaultInputModes", "defaultOutputModes", "capabilities", "extensions", "securitySchemes", "security", "signatures", "$$interfaces", "$$services", "$$skills"],
+							openFields: ["fetchedAt", "snapshotKind", "name", "description", "version", "protocolVersion", "providerName", "providerUrl", "preferredTransport", "defaultInputModes", "defaultOutputModes", "capabilities", "extensions", "securitySchemes", "security", "signatures"],
 						},
 						summary: { title: ["name"], titleFallback: ["contentHash"], value: ["version"], HeadingAfter: ["protocolVersion"] },
 						closed: ["$card", "contentHash", "name", "version"],
@@ -6453,7 +6431,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [],
-							fields: ["$cardSnapshot", "protocolBinding", "url"],
 							openFields: ["protocolVersion", "transportKind", "mediaType", "serviceParameters"],
 						},
 						summary: { title: ["protocolBinding"], value: ["url"], HeadingAfter: ["transportKind"] },
@@ -6486,8 +6463,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [],
-							fields: ["$card", "protocolBinding", "endpointUrl"],
-							openFields: ["transportKind", "authKind", "$$tasks", "$$timestamps"],
+							openFields: ["transportKind", "authKind"],
 						},
 						summary: { title: ["endpointUrl"], value: ["protocolBinding"], HeadingAfter: ["transportKind"] },
 						closed: ["$card", "protocolBinding", "endpointUrl"],
@@ -6525,7 +6501,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [],
-							fields: ["$service", "timestampMs", "source"],
 							openFields: ["health", "protocolVersion", "reachable", "latencyMs", "statusCode", "error"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["health"], HeadingAfter: ["reachable"] },
@@ -6559,7 +6534,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [],
-							fields: ["$cardSnapshot", "skillId"],
 							openFields: ["name", "description", "tags", "examples", "inputModes", "outputModes"],
 						},
 						summary: { title: ["name"], titleFallback: ["skillId"], value: ["$cardSnapshot"] },
@@ -6592,8 +6566,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [],
-							fields: ["$task", "artifactId"],
-							openFields: ["name", "description", "createdAt", "$aiArtifact", "$$parts"],
+							openFields: ["name", "description", "createdAt"],
 						},
 						summary: { title: ["name"], titleFallback: ["artifactId"], value: ["$task"], HeadingAfter: [{ field: "createdAt", format: "timestamp" }] },
 						closed: ["$task", "artifactId", "name"],
@@ -6625,8 +6598,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [],
-							fields: ["$task", "messageId"],
-							openFields: ["role", "contextId", "createdAt", "$$parts"],
+							openFields: ["role", "contextId", "createdAt"],
 						},
 						summary: { title: ["messageId"], value: ["role"], HeadingAfter: [{ field: "createdAt", format: "timestamp" }] },
 						closed: ["$task", "messageId", "role"],
@@ -6662,8 +6634,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [],
-							fields: ["$message", "partIndex"],
-							openFields: ["$artifact", "partKind", "text", "uri", "mimeType", "payload", "$aiArtifact"],
+							openFields: ["partKind", "text", "uri", "mimeType", "payload"],
 						},
 						summary: { title: ["partIndex"], value: ["partKind"], HeadingAfter: ["mimeType"] },
 						closed: ["$message", "$artifact", "partIndex", "partKind"],
@@ -6696,7 +6667,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [],
-							fields: ["$task", "configId"],
 							openFields: ["url", "authKind", "authentication", "createdAt", "deletedAt", "status"],
 						},
 						summary: { title: ["configId"], value: ["status"], HeadingAfter: ["url"] },
@@ -6737,7 +6707,7 @@ export const schema = {
 						query: {
 							sources: [],
 							fields: ["taskId"],
-							openFields: ["$service", "providerTaskId", "contextId", "createdAt", "updatedAt", "cancelledAt", "listed", "$$events", "$$messages", "$$artifacts", "$$pushNotificationConfigs", "$$timestamps"],
+							openFields: ["providerTaskId", "contextId", "createdAt", "updatedAt", "cancelledAt", "listed"],
 						},
 						summary: { title: ["taskId"], titleFallback: ["providerTaskId"], value: ["contextId"], HeadingAfter: [{ field: "updatedAt", format: "timestamp" }] },
 						closed: ["taskId", "$service", "providerTaskId"],
@@ -6790,7 +6760,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [],
-							fields: ["$task", "timestampMs", "source"],
 							openFields: ["state", "statusMessage", "error", "rawStatus"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["state"], HeadingAfter: ["error"] },
@@ -6824,8 +6793,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [],
-							fields: ["$task", "sequence"],
-							openFields: ["eventKind", "timestampMs", "state", "final", "$artifact", "payload"],
+							openFields: ["eventKind", "timestampMs", "state", "final", "payload"],
 						},
 						summary: { title: ["sequence"], value: ["eventKind"], HeadingAfter: [{ field: "timestampMs", format: "timestamp" }] },
 						closed: ["$task", "sequence", "eventKind"],
@@ -6929,7 +6897,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Constants_Internal],
-							fields: ["caip10", "$network", "namespace", "address"],
+							fields: ["namespace", "address"],
 						},
 						summary: {
 							title: ["caip10"],
@@ -6996,8 +6964,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.AcpRegistry_Rest],
-							fields: ["$program", "version"],
-							openFields: ["$artifact", "releaseDate", "distributionKind", "distribution", "command", "arguments", "environmentKeys", "$$documents"],
+							fields: ["version"],
+							openFields: ["releaseDate", "distributionKind", "distribution", "command", "arguments", "environmentKeys"],
 						},
 						summary: { title: ["version"], titleFallback: ["$artifact"], value: ["$program"], HeadingAfter: ["distributionKind"] },
 						closed: ["$program", "version", "$artifact"],
@@ -7032,8 +7000,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.AcpLocal_JsonRpc, Source.Local_Internal],
-							fields: ["runtimeId"],
-							openFields: ["$source", "$programVersion", "$programInstall", "transportKind", "processId", "initializedAt", "$$sessions", "$$timestamps"],
+							openFields: ["transportKind", "processId", "initializedAt"],
 						},
 						summary: { title: ["runtimeId"], value: ["$programVersion"], HeadingAfter: ["transportKind"] },
 						closed: ["runtimeId", "$programVersion", "transportKind"],
@@ -7074,7 +7041,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.AcpLocal_JsonRpc],
-							fields: ["$runtime", "timestampMs", "source"],
 							openFields: ["health", "protocolVersion", "supportedProtocolVersions", "agentCapabilities", "clientCapabilities", "authMethods", "agentInfo", "clientInfo", "error"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["health"], HeadingAfter: ["protocolVersion"] },
@@ -7111,7 +7077,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.AcpLocal_JsonRpc],
-							fields: ["$session", "operationId"],
 							openFields: ["operationKind", "path", "startLine", "endLine", "contentHashAlgorithm", "contentHash", "timestampMs", "status", "error"],
 						},
 						summary: { title: ["operationId"], value: ["operationKind"], HeadingAfter: ["path"] },
@@ -7142,8 +7107,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.AcpLocal_JsonRpc],
-							fields: ["$session", "messageId"],
-							openFields: ["role", "createdAt", "$$parts"],
+							openFields: ["role", "createdAt"],
 						},
 						summary: { title: ["messageId"], value: ["role"], HeadingAfter: [{ field: "createdAt", format: "timestamp" }] },
 						closed: ["$session", "messageId", "role"],
@@ -7177,8 +7141,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.AcpLocal_JsonRpc],
-							fields: ["$message", "partIndex"],
-							openFields: ["partKind", "text", "uri", "mimeType", "payload", "$artifact"],
+							openFields: ["partKind", "text", "uri", "mimeType", "payload"],
 						},
 						summary: { title: ["partKind"], value: [{ field: "partIndex", format: "number" }], HeadingAfter: ["mimeType"] },
 						closed: ["$message", { field: "partIndex", format: "number" }, "partKind"],
@@ -7210,7 +7173,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.AcpLocal_JsonRpc],
-							fields: ["$session", "requestId"],
 							openFields: ["requestKind", "createdAt", "resolvedAt", "decision", "payload"],
 						},
 						summary: { title: ["requestId"], value: ["requestKind"], HeadingAfter: ["decision"] },
@@ -7244,7 +7206,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.AcpLocal_JsonRpc],
-							fields: ["$session", "turnId"],
 							openFields: ["startedAt", "completedAt", "cancelledAt", "stopReason", "userPromptHashAlgorithm", "userPromptHash"],
 						},
 						summary: { title: ["turnId"], value: ["stopReason"], HeadingAfter: [{ field: "startedAt", format: "timestamp" }] },
@@ -7281,8 +7242,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.AcpLocal_JsonRpc],
-							fields: ["sessionId"],
-							openFields: ["$runtime", "createdAt", "closedAt", "deletedAt", "loadedFromSessionId", "workspaceUri", "mode", "listed", "status", "$$promptTurns"],
+							openFields: ["createdAt", "closedAt", "deletedAt", "loadedFromSessionId", "workspaceUri", "mode", "listed", "status"],
 						},
 						summary: { title: ["sessionId"], value: ["$runtime"], HeadingAfter: ["workspaceUri"] },
 						closed: ["sessionId", "$runtime", "workspaceUri"],
@@ -7315,7 +7275,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.AcpLocal_JsonRpc],
-							fields: ["$session", "sequence"],
 							openFields: ["updateKind", "timestampMs", "payload"],
 						},
 						summary: { serial: { field: "sequence", label: "Update" }, value: ["updateKind"], HeadingAfter: [{ field: "timestampMs", format: "timestamp" }] },
@@ -7348,8 +7307,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.AcpLocal_JsonRpc],
-							fields: ["$session", "terminalId"],
-							openFields: ["command", "cwd", "createdAt", "releasedAt", "$$timestamps"],
+							openFields: ["command", "cwd", "createdAt", "releasedAt"],
 						},
 						summary: { title: ["terminalId"], value: ["command"], HeadingAfter: ["cwd"] },
 						closed: ["$session", "terminalId", "command"],
@@ -7382,7 +7340,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.AcpLocal_JsonRpc],
-							fields: ["$terminal", "timestampMs", "source"],
 							openFields: ["exitCode", "status", "outputBytes", "error"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["status"], HeadingAfter: [{ field: "exitCode", format: "number" }] },
@@ -7419,8 +7376,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.AcpLocal_JsonRpc],
-							fields: ["$promptTurn", "toolCallId"],
-							openFields: ["toolName", "serverName", "startedAt", "completedAt", "inputHashAlgorithm", "inputHash", "outputHashAlgorithm", "outputHash", "$$timestamps"],
+							openFields: ["toolName", "serverName", "startedAt", "completedAt", "inputHashAlgorithm", "inputHash", "outputHashAlgorithm", "outputHash"],
 						},
 						summary: { title: ["toolCallId"], value: ["toolName"], HeadingAfter: ["serverName"] },
 						closed: ["$promptTurn", "toolCallId", "toolName"],
@@ -7453,7 +7409,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.AcpLocal_JsonRpc],
-							fields: ["$toolCall", "timestampMs", "source"],
 							openFields: ["status", "latencyMs", "error", "payload"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["status"], HeadingAfter: [{ field: "latencyMs", format: "number" }] },
@@ -7508,8 +7463,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Mastodon_Rest],
-							fields: ["displayName", "username", "acct", "localAccountId", "activityStreamsUri", "profileUrl", "createdAt", "$icon", "note"],
-							openFields: ["$$timestamps", "$$notes"],
+							fields: ["displayName", "username", "acct", "localAccountId", "activityStreamsUri", "profileUrl", "createdAt", "note"],
 						},
 						summary: {
 							icon: "$icon",
@@ -7609,8 +7563,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Mastodon_Rest],
-							fields: ["instanceOrigin"],
-							openFields: ["$$timestamps"],
 						},
 						summary: {
 							title: [{ field: "instanceOrigin", format: "url" }],
@@ -7655,8 +7607,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Mastodon_Rest],
-							fields: ["$instance", "timestampMs", "source"],
-							openFields: ["title", "description", "version", "$$peers", "$$moderatedDomains"],
+							openFields: ["title", "description", "version"],
 						},
 						summary: {
 							title: ["title", { field: "timestampMs", format: "timestamp" }],
@@ -7698,7 +7649,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Mastodon_Rest],
-							fields: ["$observation", "domain", "severity", "comment"],
+							fields: ["severity", "comment"],
 						},
 						summary: {
 							title: ["domain", "severity", "comment"],
@@ -7733,7 +7684,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Mastodon_Rest],
-							fields: ["$observation", "peerDomain"],
 						},
 						summary: {
 							title: ["peerDomain"],
@@ -7790,7 +7740,6 @@ export const schema = {
 						query: {
 							sources: [Source.Constants_Internal],
 							fields: ["protocolName", "homeUrl", "docsUrl"],
-							openFields: ["$$activityPubActors", "$$activityPubNotes"],
 						},
 						summary: {
 							title: [{ field: "protocolName" }],
@@ -7853,8 +7802,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Mastodon_Rest],
-							fields: ["content", "createdAt", "$author", "statusUrl", "activityStreamsUri"],
-							openFields: ["$$thread", "$$timestamps"],
+							fields: ["content", "createdAt", "statusUrl", "activityStreamsUri"],
 						},
 						contentWarning: {
 							sensitiveField: "sensitive",
@@ -7970,8 +7918,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Eip8004Scan_Rest, Source.Ipfs_Rest],
-							fields: ["subjectKind", "subjectSelector", "identityKind", "objectKind", "objectSelector", "source", "timestampMs"],
-							openFields: ["confidence", "verificationMethod", "$document", "evidenceUri", "evidenceHashAlgorithm", "evidenceHash", "signature"],
+							openFields: ["confidence", "verificationMethod", "evidenceUri", "evidenceHashAlgorithm", "evidenceHash", "signature"],
 						},
 						summary: { title: ["identityKind"], value: ["subjectKind", "objectKind"], HeadingAfter: [{ field: "timestampMs", format: "timestamp" }] },
 						content: {
@@ -8069,8 +8016,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.HuggingFaceHub_Rest, Source.Ipfs_Rest, Source.Mlflow_Rest],
-							fields: ["$provider", "providerArtifactId"],
-							openFields: ["uri", "mediaType", "artifactType", "configDescriptor", "layerDescriptors", "subjectDescriptor", "annotations", "size", "$$documents", "$$attestations"],
+							fields: ["providerArtifactId"],
+							openFields: ["uri", "mediaType", "artifactType", "configDescriptor", "layerDescriptors", "subjectDescriptor", "annotations", "size"],
 						},
 						summary: { title: ["artifactType"], titleFallback: ["providerArtifactId", "ociDigest", "ipfsCid", "arweaveId", "gitObject", "digest"], value: ["mediaType"], HeadingAfter: [{ field: "size", format: "number" }] },
 						closed: ["$provider", "providerArtifactId", "artifactType", "mediaType", "size"],
@@ -8111,7 +8058,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Eip8004Scan_Rest, Source.Ipfs_Rest],
-							fields: ["$artifact", "attestationKind"],
 							openFields: ["logEntryId", "signatureHashAlgorithm", "signatureHash", "certificateIdentity", "certificateIssuer", "logIndex", "integratedTime"],
 						},
 						summary: { title: ["attestationKind"], value: ["$artifact"], HeadingAfter: ["logEntryId"] },
@@ -8229,7 +8175,7 @@ export const schema = {
 						query: {
 							sources: [Source.Eip8004Scan_Rest, Source.HuggingFaceHub_Rest, Source.Ipfs_Rest, Source.Mlflow_Rest],
 							fields: ["documentKind"],
-							openFields: ["contentHashAlgorithm", "contentHash", "$artifact", "documentUrl", "mediaType", "schemaVersion", "conformsTo", "sourceFormat", "declaredSubjectKind", "declaredSubjectSelector", "$$claims"],
+							openFields: ["contentHashAlgorithm", "contentHash", "documentUrl", "mediaType", "schemaVersion", "conformsTo", "sourceFormat", "declaredSubjectKind", "declaredSubjectSelector"],
 						},
 						summary: { title: ["documentKind"], value: ["mediaType"], HeadingAfter: ["documentUrl"] },
 						closed: ["documentKind", "$artifact", "documentUrl"],
@@ -8270,7 +8216,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Eip8004Scan_Rest, Source.Ipfs_Rest],
-							fields: ["$document", "extractorId", "claimPath", "claimKind"],
+							fields: ["claimKind"],
 							openFields: ["value", "subjectKind", "subjectSelector", "metadataKey", "formatObjectId", "formatObjectKind", "checksumAlgorithm", "checksumValue", "relationshipKind", "normalizedSelector", "confidence"],
 						},
 						summary: { title: ["claimPath"], value: ["claimKind"], HeadingAfter: [{ field: "confidence", format: "number" }] },
@@ -8361,8 +8307,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Anthropic_Rest, Source.HuggingFaceHub_Rest, Source.Mlflow_Rest, Source.OpenAI_Rest],
-							fields: ["$provider", "providerModelId"],
-							openFields: ["providerResourceName", "baseModelId", "label", "modelFamily", "providerOwnedBy", "providerCreatedAt", "$$versions", "$$documents", "$$timestamps"],
+							openFields: ["providerResourceName", "baseModelId", "label", "modelFamily", "providerOwnedBy", "providerCreatedAt"],
 						},
 						summary: { title: ["label"], titleFallback: ["providerModelId"], value: ["$provider"], HeadingAfter: ["modelFamily"] },
 						closed: ["$provider", "providerModelId", "label"],
@@ -8444,7 +8389,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Anthropic_Rest, Source.OpenAI_Rest],
-							fields: ["$model", "timestampMs", "source"],
 							openFields: ["providerObjectType", "providerDisplayName", "providerDescription", "providerVersion", "providerOwnedBy", "availabilityStatus", "providerLifecycleStatus", "releaseDate", "deprecationDate", "deprecated", "deleted", "contextWindowTokens", "maxInputTokens", "maxOutputTokens", "inputModalities", "outputModalities", "supportedActions", "supportedGenerationMethods", "supportedEndpoints", "defaultEndpoints", "supportedCustomizationTypes", "supportedInferenceTypes", "supportedToolUse", "supportedStructuredOutput", "supportedJsonMode", "supportedStreaming", "supportedThinking", "tokenizerUrl", "samplingDefaults", "inputPricePerMillionTokens", "outputPricePerMillionTokens", "cacheReadPricePerMillionTokens", "cacheWritePricePerMillionTokens", "rateLimitTier", "raw"],
 						},
 						summary: { title: ["providerDisplayName"], titleFallback: ["$model"], value: ["availabilityStatus"], HeadingAfter: ["providerLifecycleStatus"] },
@@ -8537,8 +8481,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.HuggingFaceHub_Rest, Source.Mlflow_Rest],
-							fields: ["$model", "versionId", "$artifact", "huggingFaceRepo", "revision", "mlflowRegisteredModelName", "mlflowModelVersion"],
-							openFields: ["onnxIrVersion", "onnxOpsetImports", "createdAt", "trainingCutoff", "quantization", "fineTuneKind", "$$documents"],
+							fields: ["versionId", "huggingFaceRepo", "revision", "mlflowRegisteredModelName", "mlflowModelVersion"],
+							openFields: ["onnxIrVersion", "onnxOpsetImports", "createdAt", "trainingCutoff", "quantization", "fineTuneKind"],
 						},
 						summary: { title: ["versionId"], titleFallback: ["revision", "$artifact"], value: ["$model"], HeadingAfter: ["quantization"] },
 						closed: ["$model", "versionId", "$artifact"],
@@ -8572,8 +8516,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Anthropic_Rest, Source.OpenAI_Rest],
-							fields: ["$provider", "operationId"],
-							openFields: ["label", "operationKind", "httpMethod", "pathTemplate", "documentUrl", "$$timestamps"],
+							openFields: ["label", "operationKind", "httpMethod", "pathTemplate", "documentUrl"],
 						},
 						summary: { title: ["label"], titleFallback: ["operationId"], value: ["operationKind"], HeadingAfter: ["pathTemplate"] },
 						closed: ["$provider", "operationId", "operationKind"],
@@ -8615,7 +8558,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Anthropic_Rest, Source.OpenAI_Rest],
-							fields: ["$operation", "timestampMs", "source"],
 							openFields: ["availabilityStatus", "supportedModelSelectors", "inputModalities", "outputModalities", "supportedStreaming", "supportedToolUse", "supportedStructuredOutput", "supportedJsonMode", "supportedReasoningEffort", "contextPolicy", "rateLimitPolicy", "pricingPolicy", "error"],
 						},
 						summary: { title: ["$operation"], value: ["availabilityStatus"], HeadingAfter: ["error"] },
@@ -8649,8 +8591,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Anthropic_Rest, Source.OpenAI_Rest],
-							fields: ["$provider", "catalogKind", "providerEntryId"],
-							openFields: ["entryLabel", "subjectKind", "subjectSelector", "$$timestamps"],
+							openFields: ["entryLabel", "subjectKind", "subjectSelector"],
 						},
 						summary: { title: ["entryLabel"], titleFallback: ["providerEntryId"], value: ["catalogKind"], HeadingAfter: ["subjectKind"] },
 						closed: ["$provider", "catalogKind", "providerEntryId"],
@@ -8687,7 +8628,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Anthropic_Rest, Source.OpenAI_Rest],
-							fields: ["$entry", "timestampMs", "source"],
 							openFields: ["availabilityStatus", "raw"],
 						},
 						summary: { title: ["$entry"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: ["availabilityStatus"] },
@@ -8731,8 +8671,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Eip8004Scan_Rest, Source.Ipfs_Rest],
-							fields: ["subjectKind", "subjectSelector", "relationshipKind", "objectKind", "objectSelector", "source", "timestampMs"],
-							openFields: ["confidence", "$document", "$documentClaim", "evidenceUri", "evidenceHashAlgorithm", "evidenceHash", "signature"],
+							openFields: ["confidence", "evidenceUri", "evidenceHashAlgorithm", "evidenceHash", "signature"],
 						},
 						summary: { title: ["relationshipKind"], value: ["subjectKind", "objectKind"], HeadingAfter: [{ field: "timestampMs", format: "timestamp" }] },
 						content: {
@@ -10519,15 +10458,8 @@ export const schema = {
 								"name",
 							],
 							openFields: [
-								"$icon",
 								"coinId",
 								"decimals",
-								"$$metadata",
-								"$$tokenProgramExtensions",
-								"$$regulatedProfiles",
-								"$$transferRestrictions",
-								"$$nftCollections",
-								"$$payouts",
 							],
 						},
 						summary: {
@@ -10779,7 +10711,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Atproto_Xrpc],
-							openFields: ["$$posts", "$$timestamps"],
 						},
 						summary: {
 							title: [
@@ -11147,13 +11078,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Atproto_Xrpc],
-							openFields: [
-								"$author",
-								"$parent",
-								"$root",
-								"$$thread",
-								"$$timestamps",
-							],
 						},
 						summary: {
 							title: [
@@ -12703,8 +12627,6 @@ export const schema = {
 							sources: [Source.Beacon_Rest],
 							openFields: [
 								"validatorIndex",
-								"$validator",
-								"$account",
 							],
 						},
 						summary: {
@@ -12917,7 +12839,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Bittensor_JsonRpc],
-							openFields: ["$parent"],
 						},
 						summary: {
 							title: [{ field: "blockNumber", format: "number" }],
@@ -13030,8 +12951,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Bittensor_JsonRpc],
-							fields: ["$network"],
-							openFields: ["$$timestamps", "$$blocks", "$$subnets"],
 						},
 						summary: {
 							title: ["$network"],
@@ -13211,7 +13130,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Constants_Internal, Source.Bittensor_JsonRpc],
-							openFields: ["$$metagraphTimestamps", "$$neurons"],
 						},
 						summary: {
 							title: ["name", { field: "netuid", format: "number" }],
@@ -13706,7 +13624,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$account"],
 						},
 						summary: {
 							title: ["$account"],
@@ -13753,8 +13670,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$sessionAction", "outcomeKind", "createdAt"],
-							openFields: ["$walletRequest", "$intentOrder", "$simulation", "transactionHash", "transactionId", "bridgeTransferId", "outcomePayloadHash", "$$timestamps"],
+							fields: ["outcomeKind", "createdAt"],
+							openFields: ["transactionHash", "transactionId", "bridgeTransferId", "outcomePayloadHash"],
 						},
 						summary: { title: ["outcomeKind"], value: ["transactionHash"], HeadingAfter: [{ field: "createdAt", format: "timestamp" }] },
 						closed: ["$sessionAction", "outcomeKind", { field: "createdAt", format: "timestamp" }],
@@ -13792,7 +13709,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$outcome", "timestampMs", "source", "status"],
+							fields: ["status"],
 							openFields: ["finality", "transactionHash", "transactionId", "bridgeTransferId", "sourcePayloadHash", "error"],
 						},
 						summary: { title: ["status"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: ["source"] },
@@ -13834,8 +13751,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$sessionAction", "checkKind", "createdAt"],
-							openFields: ["networkCaip2", "accountCaip10", "assetCaip19", "chainId", "accountAddress", "tokenAddress", "spenderAddress", "capabilityKey", "requiredAmount", "$$timestamps"],
+							fields: ["checkKind", "createdAt"],
+							openFields: ["networkCaip2", "accountCaip10", "assetCaip19", "chainId", "accountAddress", "tokenAddress", "spenderAddress", "capabilityKey", "requiredAmount"],
 						},
 						summary: { title: ["checkKind"], value: ["capabilityKey"], HeadingAfter: [{ field: "createdAt", format: "timestamp" }] },
 						closed: ["$sessionAction", "checkKind", { field: "createdAt", format: "timestamp" }],
@@ -13878,7 +13795,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$readinessCheck", "timestampMs", "source", "status"],
+							fields: ["status"],
 							openFields: ["observedAmount", "requiredAmount", "deficitAmount", "observedCapabilityStatus", "sourcePayloadHash", "error"],
 						},
 						summary: { title: ["status"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: ["source"] },
@@ -13912,8 +13829,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["connectionId"],
-							openFields: ["$profile", "$source", "connectionKind", "endpointUrl", "authKind", "enabled", "$$timestamps"],
+							openFields: ["connectionKind", "endpointUrl", "authKind", "enabled"],
 						},
 						summary: { title: ["connectionId"], value: ["connectionKind"], HeadingAfter: ["enabled"] },
 						closed: ["connectionId", "$profile", "authKind"],
@@ -13953,7 +13869,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Anthropic_Rest, Source.Local_Internal, Source.McpDeclared_Protocol, Source.OpenAI_Rest],
-							fields: ["$connection", "timestampMs", "source"],
 							openFields: ["health", "latencyMs", "statusCode", "error"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["health"], HeadingAfter: [{ field: "latencyMs", format: "number" }] },
@@ -13995,7 +13910,7 @@ export const schema = {
 						query: {
 							sources: [Source.Local_Internal],
 							fields: ["name", "pinned", "createdAt", "updatedAt"],
-							openFields: ["systemPrompt", "defaultConnectionId", "defaultModelId", "$profile", "$$turns"],
+							openFields: ["systemPrompt", "defaultConnectionId", "defaultModelId"],
 						},
 						summary: {
 							title: ["name"],
@@ -14057,7 +13972,7 @@ export const schema = {
 						query: {
 							sources: [Source.Local_Internal],
 							fields: ["userPrompt", "assistantText", "status", "createdAt"],
-							openFields: ["$conversation", "providerId", "promptVersion", "parentId", "error", "$$providerCalls"],
+							openFields: ["providerId", "promptVersion", "parentId", "error"],
 						},
 						summary: {
 							title: [{ field: "userPrompt", format: "truncated" }],
@@ -14106,8 +14021,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["credentialId"],
-							openFields: ["$connection", "credentialKind", "label", "createdAt", "updatedAt", "$$timestamps"],
+							openFields: ["credentialKind", "label", "createdAt", "updatedAt"],
 						},
 						summary: { title: ["label"], titleFallback: ["credentialId"], value: ["credentialKind"], HeadingAfter: ["$connection"] },
 						closed: ["credentialId", "credentialKind", "label"],
@@ -14146,7 +14060,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$credential", "timestampMs", "source"],
 							openFields: ["status", "expiresAt", "error"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["status"], HeadingAfter: ["source"] },
@@ -14184,8 +14097,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["profileId"],
-							openFields: ["label", "$mcpServer", "$eip8004Registration", "$model", "createdAt", "updatedAt"],
+							openFields: ["label", "createdAt", "updatedAt"],
 						},
 						summary: { title: ["label"], titleFallback: ["profileId"], value: ["$model"], HeadingAfter: [{ field: "updatedAt", format: "timestamp" }] },
 						closed: ["profileId", "label", "$model"],
@@ -14226,8 +14138,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["installId"],
-							openFields: ["$source", "installPath", "command", "argsHashAlgorithm", "argsHash", "environmentScope", "createdAt", "updatedAt", "$$timestamps"],
+							openFields: ["installPath", "command", "argsHashAlgorithm", "argsHash", "environmentScope", "createdAt", "updatedAt"],
 						},
 						summary: { title: ["installId"], value: ["command"], HeadingAfter: [{ field: "updatedAt", format: "timestamp" }] },
 						closed: ["installId", "command"],
@@ -14269,7 +14180,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$install", "timestampMs", "source"],
 							openFields: ["status", "versionProbe", "executableHashAlgorithm", "executableHash", "error"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["status"], HeadingAfter: ["source"] },
@@ -14324,8 +14234,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$turn", "indexInTurn"],
-							openFields: ["$connection", "$provider", "$model", "$operation", "$mcpToolCall", "$a2aTask", "$acpSession", "$acpPromptTurn", "providerRequestId", "providerResponseId", "startedAt", "completedAt", "status", "requestHashAlgorithm", "requestHash", "responseHashAlgorithm", "responseHash", "inputTokenCount", "outputTokenCount", "cost", "latencyMs", "error"],
+							openFields: ["providerRequestId", "providerResponseId", "startedAt", "completedAt", "status", "requestHashAlgorithm", "requestHash", "responseHashAlgorithm", "responseHash", "inputTokenCount", "outputTokenCount", "cost", "latencyMs", "error"],
 						},
 						summary: { serial: { field: "indexInTurn", label: "Call" }, value: ["status"] },
 						closed: ["$turn", { field: "indexInTurn", format: "number" }, "status"],
@@ -14372,8 +14281,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["nodeId", "participationId"],
-							openFields: ["$account", "$network", "firstValidRound", "lastValidRound", "keyDilution", "selectionKey", "votingKey", "stateProofKey", "effectiveFirstRound", "effectiveLastRound", "lastSyncedAt"],
+							openFields: ["firstValidRound", "lastValidRound", "keyDilution", "selectionKey", "votingKey", "stateProofKey", "effectiveFirstRound", "effectiveLastRound", "lastSyncedAt"],
 						},
 						summary: { title: ["participationId"], value: ["nodeId"], HeadingAfter: [{ field: "firstValidRound", format: "number" }] },
 						closed: ["nodeId", "participationId", "$account"],
@@ -14417,8 +14325,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["nodeId", "txId", "observedAtMs"],
-							openFields: ["$network", "sender", "transactionType", "fee", "firstValidRound", "lastValidRound", "group", "poolPriority"],
+							openFields: ["sender", "transactionType", "fee", "firstValidRound", "lastValidRound", "group", "poolPriority"],
 						},
 						summary: { title: ["txId"], value: ["transactionType"], HeadingAfter: [{ field: "observedAtMs", format: "timestamp" }] },
 						closed: ["nodeId", "txId", { field: "observedAtMs", format: "timestamp" }],
@@ -14454,8 +14361,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["nodeId"],
-							openFields: ["$network", "nodeIp", "nodePopPublicKey", "nodePopProofOfPossession", "$$timestamps"],
+							openFields: ["nodeIp", "nodePopPublicKey", "nodePopProofOfPossession"],
 						},
 						summary: { title: ["nodeId"], value: ["$network"], HeadingAfter: ["nodeIp"] },
 						closed: ["nodeId", "$network", "nodeIp"],
@@ -14499,7 +14405,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$nodeState", "timestampMs", "source"],
 							openFields: ["networkName", "nodeVersion", "databaseVersion", "gitCommit", "rpcProtocolVersion", "connectedPeerCount", "uptimePercent", "vmVersions", "lastSyncedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["nodeVersion", "networkName"], HeadingAfter: [{ field: "connectedPeerCount", format: "number" }] },
@@ -14681,8 +14586,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$sessionAction"],
-							openFields: ["fromNetworkCaip2", "toNetworkCaip2", "assetCaip19", "fromAssetCaip19", "toAssetCaip19", "fromChainId", "toChainId", "coinId", "fromTokenAddress", "toTokenAddress", "$fromNetwork", "$toNetwork", "$fromEvmNetwork", "$toEvmNetwork", "$fromToken", "$toToken", "amount", "slippage", "$$quotes"],
+							openFields: ["fromNetworkCaip2", "toNetworkCaip2", "assetCaip19", "fromAssetCaip19", "toAssetCaip19", "fromChainId", "toChainId", "coinId", "fromTokenAddress", "toTokenAddress", "amount", "slippage"],
 						},
 						summary: { title: ["$sessionAction"], value: [{ field: "amount", format: "number" }], HeadingAfter: ["$fromNetwork", "$toNetwork"] },
 						closed: ["$sessionAction", "fromNetworkCaip2", "toNetworkCaip2", "assetCaip19"],
@@ -14721,8 +14625,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$account", "$sourceTx", "createdAt"],
-							openFields: ["$bridgeTransfer"],
 						},
 						summary: {
 							title: [{ field: "createdAt", format: "timestamp" }],
@@ -15215,8 +15117,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["connectionId", "peerId"],
-							openFields: ["endpoint", "signedPeerRecord", "$$timestamps", "$$storedData"],
+							openFields: ["endpoint", "signedPeerRecord"],
 						},
 						summary: { title: ["peerId"], value: ["connectionId"], HeadingAfter: [{ field: "endpoint", format: "url" }] },
 						closed: ["connectionId", "peerId", { field: "endpoint", format: "url" }],
@@ -15258,7 +15159,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$nodeState", "timestampMs", "source"],
 							openFields: ["version", "revision", "repoPath", "listenAddresses", "announceAddresses", "peerCount", "totalBlocks", "quotaMaxBytes", "quotaUsedBytes", "quotaReservedBytes"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["version"], HeadingAfter: [{ field: "peerCount", format: "number" }] },
@@ -15295,8 +15195,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$nodeState", "cid"],
-							openFields: ["$dataset", "firstSeenAt", "$$timestamps"],
+							openFields: ["firstSeenAt"],
 						},
 						summary: { title: ["cid"], value: ["$nodeState"], HeadingAfter: [{ field: "firstSeenAt", format: "timestamp" }] },
 						closed: ["$nodeState", "cid", "$dataset"],
@@ -15331,7 +15230,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$storedData", "timestampMs", "source"],
 							openFields: ["hasLocalBlock", "availableLocally", "downloadStatus", "error"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["downloadStatus"], HeadingAfter: ["source"] },
@@ -15361,8 +15259,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal, Source.TheGraph_Graphql],
-							fields: ["query", "createdAt", "resultLimit"],
-							openFields: ["$$matchingNames"],
+							fields: ["createdAt", "resultLimit"],
 						},
 						summary: {
 							title: ["query"],
@@ -15413,7 +15310,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$user", "authMethod", "selected"],
+							fields: ["authMethod", "selected"],
 							openFields: ["signerAddress", "verifiedAt", "expiresAt", "associationFingerprint"],
 						},
 						summary: {
@@ -15606,8 +15503,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$session", "modality", "createdAt"],
-							openFields: ["sourceEntityType", "targetEntityType", "sourcePlacement", "targetPlacement", "invocationPayloadHash", "resolvedIntentType", "intentDefinitionKey", "intentDefinitionHash", "selectedOptionIndex", "selectedOptionHash", "$createdAction"],
+							fields: ["modality", "createdAt"],
+							openFields: ["sourceEntityType", "targetEntityType", "sourcePlacement", "targetPlacement", "invocationPayloadHash", "resolvedIntentType", "intentDefinitionKey", "intentDefinitionHash", "selectedOptionIndex", "selectedOptionHash"],
 						},
 						summary: { title: ["modality"], value: ["resolvedIntentType"], HeadingAfter: [{ field: "createdAt", format: "timestamp" }] },
 						closed: ["$session", "modality", "sourceEntityType", "targetEntityType"],
@@ -15650,7 +15547,7 @@ export const schema = {
 						query: {
 							sources: [Source.Local_Internal],
 							fields: ["source", "orderId", "providerProtocol", "submittedAt"],
-							openFields: ["$quote", "$sessionAction", "signatureHash", "orderPayloadHash", "$$timestamps"],
+							openFields: ["signatureHash", "orderPayloadHash"],
 						},
 						summary: { title: ["orderId"], value: ["providerProtocol"], HeadingAfter: [{ field: "submittedAt", format: "timestamp" }] },
 						closed: ["source", "orderId", "providerProtocol", { field: "submittedAt", format: "timestamp" }],
@@ -15687,7 +15584,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$order", "timestampMs", "source", "status"],
+							fields: ["status"],
 							openFields: ["fillTxHash", "claimTxHash", "gasUsed", "statusPayloadHash", "error"],
 						},
 						summary: { title: ["status"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: ["source"] },
@@ -15725,7 +15622,7 @@ export const schema = {
 						query: {
 							sources: [Source.Local_Internal],
 							fields: ["source", "quoteRequestHash", "providerProtocol", "requestedAt"],
-							openFields: ["$sessionAction", "intentType", "userInteropAddress", "requestPayloadHash", "$$timestamps"],
+							openFields: ["intentType", "userInteropAddress", "requestPayloadHash"],
 						},
 						summary: { title: ["providerProtocol"], value: ["source"], HeadingAfter: [{ field: "requestedAt", format: "timestamp" }] },
 						closed: ["source", "providerProtocol", { field: "requestedAt", format: "timestamp" }],
@@ -15765,7 +15662,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$quote", "timestampMs", "source"],
 							openFields: ["quoteId", "solverId", "validUntil", "estimatedFillSeconds", "quotePayloadHash", "integrityChecksum", "error"],
 						},
 						summary: { title: ["quoteId"], titleFallback: ["source"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: ["solverId"] },
@@ -15797,8 +15693,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["connectionId", "$network"],
-							openFields: ["rpcUrl", "encoding", "networkId", "$$timestamps"],
+							openFields: ["rpcUrl", "encoding", "networkId"],
 						},
 						summary: { title: ["connectionId"], value: ["$network"], HeadingAfter: ["networkId"] },
 						closed: ["connectionId", "$network", "networkId"],
@@ -15841,7 +15736,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$nodeState", "timestampMs", "source"],
 							openFields: ["serverVersion", "isSynced", "hasUtxoIndex", "virtualDaaScore", "virtualSelectedParentHash", "pruningPointHash", "peerCount", "lastSyncedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["isSynced", "hasUtxoIndex"], HeadingAfter: [{ field: "peerCount", format: "number" }] },
@@ -15879,8 +15773,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.LightningLnd_Rest, Source.Local_Internal],
-							fields: ["$localNodeState", "$channel"],
-							openFields: ["private", "initiator", "$$timestamps", "$$htlcs"],
+							openFields: ["private", "initiator"],
 						},
 						summary: { title: ["$channel"], value: ["$localNodeState"], HeadingAfter: ["private"] },
 						closed: ["$localNodeState", "$channel", "private"],
@@ -15925,7 +15818,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.LightningLnd_Rest, Source.Local_Internal],
-							fields: ["$channelState", "timestampMs", "source"],
 							openFields: ["localBalanceSats", "remoteBalanceSats", "unsettledBalanceSats", "active", "commitFeeSats", "commitWeight", "feePerKw", "numUpdates", "lastSyncedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["active"], HeadingAfter: [{ field: "localBalanceSats", format: "number" }] },
@@ -15966,8 +15858,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.LightningLnd_Rest, Source.Local_Internal],
-							fields: ["$channelState", "htlcIndex"],
-							openFields: ["$channel", "direction", "amountMsat", "expiryHeight", "hashLock", "state"],
+							openFields: ["direction", "amountMsat", "expiryHeight", "hashLock", "state"],
 						},
 						summary: { title: [{ field: "htlcIndex", prefix: "HTLC " }], value: ["$channel"], HeadingAfter: ["direction"] },
 						closed: ["$channelState", "$channel", { field: "htlcIndex", format: "number" }],
@@ -16009,7 +15900,7 @@ export const schema = {
 						query: {
 							sources: [Source.LightningLnd_Rest],
 							fields: ["memo", "valueMsat", "paymentRequest"],
-							openFields: ["createdAtMs", "expirySeconds", "private", "addIndex", "$localNodeState", "$$timestamps"],
+							openFields: ["createdAtMs", "expirySeconds", "private", "addIndex"],
 						},
 						summary: {
 							title: ["memo"],
@@ -16086,8 +15977,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.LightningLnd_Rest, Source.Local_Internal],
-							fields: ["connectionId", "$network"],
-							openFields: ["lndPubkey", "alias", "macaroonPermissions", "$node", "$$timestamps", "$$channelStates", "$$channels", "$$invoices", "$$payments"],
+							openFields: ["lndPubkey", "alias", "macaroonPermissions"],
 						},
 						summary: { title: ["alias"], titleFallback: ["connectionId"], value: ["$network"], HeadingAfter: ["$node"] },
 						closed: ["connectionId", "$network", "lndPubkey", "alias"],
@@ -16158,7 +16048,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.LightningLnd_Rest, Source.Local_Internal],
-							fields: ["$localNodeState", "timestampMs", "source"],
 							openFields: ["syncedToChain", "syncedToGraph", "blockHeight", "bestHeaderTimestampMs", "walletBalanceSats", "channelBalanceSats", "pendingChannelBalanceSats", "peerCount", "activeChannelCount", "inactiveChannelCount", "pendingChannelCount"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["syncedToChain", "syncedToGraph"], HeadingAfter: [{ field: "blockHeight", format: "number" }] },
@@ -16201,7 +16090,7 @@ export const schema = {
 						query: {
 							sources: [Source.LightningLnd_Rest],
 							fields: ["valueMsat", "paymentRequest"],
-							openFields: ["createdAtMs", "paymentIndex", "$localNodeState", "$invoice", "$$timestamps"],
+							openFields: ["createdAtMs", "paymentIndex"],
 						},
 						summary: {
 							title: [{ field: "paymentHash", format: "truncated" }],
@@ -16276,8 +16165,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["walletId", "commitment", "$network"],
-							openFields: ["$wallet", "$publicOutput", "amountLitoshis", "address", "account", "label", "$$timestamps"],
+							openFields: ["amountLitoshis", "address", "account", "label"],
 						},
 						summary: { title: ["commitment"], value: ["walletId"], HeadingAfter: [{ field: "amountLitoshis", format: "number" }] },
 						closed: ["walletId", "$network", "commitment"],
@@ -16319,7 +16207,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$outputState", "timestampMs", "source"],
 							openFields: ["spent", "spendTransactionId", "receivedAtHeight", "spentAtHeight", "confirmations", "lastScannedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["spent"], HeadingAfter: [{ field: "confirmations", format: "number" }] },
@@ -16355,8 +16242,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["walletId", "$network"],
-							openFields: ["$wallet", "$$outputs", "$$timestamps"],
 						},
 						summary: { title: ["walletId"], value: ["$network"], HeadingAfter: ["$wallet"] },
 						closed: ["walletId", "$wallet", "$network"],
@@ -16401,7 +16286,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$walletState", "timestampMs", "source"],
 							openFields: ["mwebAddress", "transparentAddress", "balanceLitoshis", "mwebBalanceLitoshis", "transparentBalanceLitoshis", "unconfirmedBalanceLitoshis", "immatureBalanceLitoshis", "lastScannedHeight", "lastSyncedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: [{ field: "balanceLitoshis", format: "number" }], HeadingAfter: ["source"] },
@@ -16441,8 +16325,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["ingestId", "createdAt"],
-							openFields: ["fileName", "mimeType", "size", "sha256", "$media", "$$timestamps"],
+							fields: ["createdAt"],
+							openFields: ["fileName", "mimeType", "size", "sha256"],
 						},
 						summary: { title: ["fileName"], titleFallback: [{ field: "ingestId", format: "truncated" }], value: ["mimeType"], HeadingAfter: [{ field: "createdAt", format: "timestamp" }] },
 						content: { dl: [["ingestId", "fileName", "mimeType", { field: "size", format: "number" }, "sha256", "$media"], [{ field: "createdAt", format: "timestamp" }]] },
@@ -16473,7 +16357,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$ingest", "timestampMs", "source", "status"],
+							fields: ["status"],
 							openFields: ["uri", "error"],
 						},
 						summary: { title: ["status"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: ["source"] },
@@ -16503,8 +16387,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal, Source.LogosBlockchainNode_Rest],
-							fields: ["connectionId", "peerId"],
-							openFields: ["endpoint", "$$timestamps"],
+							openFields: ["endpoint"],
 						},
 						summary: { title: ["peerId"], value: ["connectionId"], HeadingAfter: [{ field: "endpoint", format: "url" }] },
 						closed: ["connectionId", "peerId", { field: "endpoint", format: "url" }],
@@ -16543,7 +16426,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.LogosBlockchainNode_Rest],
-							fields: ["$nodeState", "timestampMs", "source"],
 							openFields: ["listenAddresses", "peerCount", "connectionCount", "pendingConnectionCount"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: [{ field: "peerCount", format: "number" }], HeadingAfter: ["source"] },
@@ -16577,8 +16459,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal, Source.LogosBlockchainNode_Rest],
-							fields: ["$nodeState", "publicKey"],
-							openFields: ["$$timestamps"],
 						},
 						summary: { title: ["publicKey"], value: ["$nodeState"] },
 						closed: ["$nodeState", "publicKey"],
@@ -16612,7 +16492,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.LogosBlockchainNode_Rest],
-							fields: ["$walletKeyState", "timestampMs", "source"],
 							openFields: ["tip", "balance", "address"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: [{ field: "balance", format: "number" }], HeadingAfter: ["source"] },
@@ -16656,8 +16535,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["walletId", "txHash", "outputIndex", "$network"],
-							openFields: ["$wallet", "$stealthOutput", "accountIndex", "addressIndex", "amountAtomicUnits", "keyImage", "keyImageSignature", "globalOutputIndex", "$$timestamps"],
+							openFields: ["accountIndex", "addressIndex", "amountAtomicUnits", "keyImage", "keyImageSignature", "globalOutputIndex"],
 						},
 						summary: { title: ["txHash"], value: [{ field: "outputIndex", format: "number" }], HeadingAfter: [{ field: "amountAtomicUnits", format: "number" }] },
 						closed: ["walletId", "txHash", { field: "outputIndex", format: "number" }],
@@ -16699,7 +16577,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$outputState", "timestampMs", "source"],
 							openFields: ["spent", "unlocked", "confirmations", "exportHeight", "lastCheckedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["spent", "unlocked"], HeadingAfter: [{ field: "confirmations", format: "number" }] },
@@ -16738,8 +16615,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["walletId", "accountIndex", "addressIndex", "$network"],
-							openFields: ["$wallet", "address", "label", "$$timestamps"],
+							openFields: ["address", "label"],
 						},
 						summary: { title: ["address"], titleFallback: ["walletId"], value: [{ field: "accountIndex", format: "number" }, { field: "addressIndex", format: "number" }], HeadingAfter: ["label"] },
 						closed: ["walletId", { field: "accountIndex", format: "number" }, { field: "addressIndex", format: "number" }],
@@ -16781,7 +16657,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$subaddressState", "timestampMs", "source"],
 							openFields: ["used", "balanceAtomicUnits", "unlockedBalanceAtomicUnits", "numUnspentOutputs", "blocksToUnlock", "timeToUnlockSeconds", "lastSyncedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: [{ field: "balanceAtomicUnits", format: "number" }], HeadingAfter: ["used"] },
@@ -16829,8 +16704,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["walletId", "txHash", "transferIndex", "direction", "$network"],
-							openFields: ["$wallet", "$transaction", "accountIndex", "addressIndex", "amountAtomicUnits", "feeAtomicUnits", "paymentId", "note", "keyImage", "timestampMs", "$$timestamps"],
+							fields: ["direction"],
+							openFields: ["accountIndex", "addressIndex", "amountAtomicUnits", "feeAtomicUnits", "paymentId", "note", "keyImage", "timestampMs"],
 						},
 						summary: { title: ["txHash"], value: ["direction"], HeadingAfter: [{ field: "amountAtomicUnits", format: "number" }] },
 						closed: ["walletId", "txHash", "direction"],
@@ -16871,7 +16746,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$transferState", "timestampMs", "source"],
 							openFields: ["confirmations", "unlockTime", "spent", "lastCheckedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["spent"], HeadingAfter: [{ field: "confirmations", format: "number" }] },
@@ -16914,8 +16788,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["walletId", "$network"],
-							openFields: ["$wallet", "primaryAddress", "viewOnly", "trustedDaemon", "viewKeyFingerprint", "spendKeyAvailable", "$$timestamps", "$$subaddresses", "$$outputs", "$$transfers"],
+							openFields: ["primaryAddress", "viewOnly", "trustedDaemon", "viewKeyFingerprint", "spendKeyAvailable"],
 						},
 						summary: { title: ["walletId"], value: ["primaryAddress"], HeadingAfter: ["$network"] },
 						closed: ["walletId", "$network", "primaryAddress"],
@@ -16975,7 +16848,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$walletState", "timestampMs", "source"],
 							openFields: ["height", "balanceAtomicUnits", "unlockedBalanceAtomicUnits", "multisigImportNeeded", "outputsExportedAt", "keyImagesExportedAt", "lastSyncedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: [{ field: "balanceAtomicUnits", format: "number" }], HeadingAfter: ["source"] },
@@ -17015,7 +16887,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$panelTree", "indexInParent", "kind"],
+							fields: ["indexInParent", "kind"],
 							openFields: ["parentPanelId", "entityType", "selector"],
 						},
 						summary: { title: ["kind"], value: ["entityType"], HeadingAfter: [{ field: "indexInParent", format: "number" }] },
@@ -17044,8 +16916,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["id"],
-							openFields: ["$workspace", "$$panels"],
 						},
 						summary: {
 							title: [{ field: "id", format: "truncated" }],
@@ -17143,8 +17013,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal, Source.QuilibriumNode_Grpc],
-							fields: ["connectionId", "$network", "accountAddress", "$account"],
-							openFields: ["accountKind", "allowanceAddress", "signatureKeyAddress", "keyRingRefCount", "$$pendingTransactions", "$$timestamps"],
+							openFields: ["accountKind", "allowanceAddress", "signatureKeyAddress", "keyRingRefCount"],
 						},
 						summary: { title: ["accountAddress"], value: ["$network"], HeadingAfter: ["accountKind"] },
 						closed: ["connectionId", "$network", "$account"],
@@ -17183,7 +17052,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal, Source.QuilibriumNode_Grpc],
-							fields: ["$accountState", "timestampMs", "source"],
 							openFields: ["balance", "balanceObservedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: [{ field: "balance", format: "number" }], HeadingAfter: ["source"] },
@@ -17223,8 +17091,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal, Source.QuilibriumNodeMetrics_Prometheus, Source.QuilibriumNode_Grpc],
-							fields: ["connectionId", "$network"],
-							openFields: ["endpoint", "grpcPort", "restPort", "peerId", "$$frames", "$$provers", "$$timestamps"],
+							openFields: ["endpoint", "grpcPort", "restPort", "peerId"],
 						},
 						summary: { title: ["connectionId"], value: ["$network"], HeadingAfter: [{ field: "endpoint", format: "url" }] },
 						closed: ["connectionId", "$network", { field: "endpoint", format: "url" }],
@@ -17284,7 +17151,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal, Source.QuilibriumNodeMetrics_Prometheus, Source.QuilibriumNode_Grpc],
-							fields: ["$nodeState", "timestampMs", "source"],
 							openFields: ["nodeVersion", "engineState", "latestFrameNumber", "latestFrameHash", "difficulty", "peerCount", "pendingMessageCount", "frameStoreHead", "lastSyncedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["engineState"], HeadingAfter: [{ field: "latestFrameNumber", format: "number" }] },
@@ -17325,8 +17191,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal, Source.QuilibriumNode_Grpc],
-							fields: ["$accountState", "transactionAddress"],
-							openFields: ["$account", "$refundAccount", "coinAddress", "amount", "deliveryType", "deliveryAddress", "observedAt"],
+							openFields: ["coinAddress", "amount", "deliveryType", "deliveryAddress", "observedAt"],
 						},
 						summary: { title: ["transactionAddress"], value: [{ field: "amount", format: "number" }], HeadingAfter: ["deliveryType"] },
 						closed: ["$accountState", "transactionAddress", "deliveryType"],
@@ -17364,7 +17229,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$node", "timestampMs", "source", "status"],
+							fields: ["status"],
 							openFields: ["repositoryCount", "connectedPeerCount", "routingTableSize", "advertisedRids"],
 						},
 						summary: { title: ["status"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: [{ field: "repositoryCount", format: "number" }] },
@@ -17405,8 +17270,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["connectionId", "nodeId"],
-							openFields: ["did", "publicKey", "homePath", "$$peers", "$$inventoryTimestamps", "$$seedObservations", "$$syncSessions", "$$timestamps"],
+							openFields: ["did", "publicKey", "homePath"],
 						},
 						summary: { title: ["nodeId"], value: ["did"], HeadingAfter: ["connectionId"] },
 						closed: ["connectionId", "nodeId", "did"],
@@ -17472,7 +17336,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$nodeState", "timestampMs", "source"],
 							openFields: ["alias", "listenAddresses", "externalAddresses", "nodeVersion", "policy", "lastSyncedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["alias", "nodeVersion"], HeadingAfter: ["source"] },
@@ -17510,7 +17373,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$node", "peerNodeId"],
 							openFields: ["connectionKind", "addresses", "lastSeenMs", "remoteAlias", "remoteDid"],
 						},
 						summary: { title: ["peerNodeId"], value: ["connectionKind"], HeadingAfter: ["remoteAlias"] },
@@ -17549,8 +17411,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$repository", "nodeId", "timestampMs", "source"],
-							openFields: ["$observerNode", "advertised", "reachable", "refCount", "objectCount"],
+							openFields: ["advertised", "reachable", "refCount", "objectCount"],
 						},
 						summary: { title: ["nodeId"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: ["$repository"] },
 						closed: ["$repository", "nodeId", { field: "timestampMs", format: "timestamp" }],
@@ -17591,8 +17452,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["sessionId", "$localNode", "remoteNodeId", "startedAt", "status"],
-							openFields: ["$repository", "rid", "completedAt", "requestedRefs", "receivedObjects", "error"],
+							fields: ["remoteNodeId", "startedAt", "status"],
+							openFields: ["rid", "completedAt", "requestedRefs", "receivedObjects", "error"],
 						},
 						summary: { title: ["sessionId"], value: ["status"], HeadingAfter: [{ field: "startedAt", format: "timestamp" }] },
 						closed: ["sessionId", "$localNode", "remoteNodeId"],
@@ -17628,7 +17489,6 @@ export const schema = {
 						query: {
 							sources: [Source.Local_Internal],
 							fields: ["name", "createdAt", "createdBy"],
-							openFields: ["$$peers"],
 						},
 						summary: {
 							title: ["name"],
@@ -17676,7 +17536,7 @@ export const schema = {
 						query: {
 							sources: [Source.Local_Internal],
 							fields: ["displayName", "peerId", "isConnected", "joinedAt"],
-							openFields: ["$room", "lastSeenAt", "connectedAt", "disconnectedAt"],
+							openFields: ["lastSeenAt", "connectedAt", "disconnectedAt"],
 						},
 						summary: {
 							title: ["displayName"],
@@ -17739,7 +17599,7 @@ export const schema = {
 						query: {
 							sources: [Source.Local_Internal],
 							fields: ["name", "status", "createdAt", "updatedAt"],
-							openFields: ["lockedAt", "$latestSimulation", "simulationCount", "$$actions", "$$intentInvocations", "$$simulations"],
+							openFields: ["lockedAt", "simulationCount"],
 						},
 						summary: {
 							title: ["name"],
@@ -17823,8 +17683,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$session", "indexInSequence", "actionType", "createdAt", "updatedAt"],
-							openFields: ["selectedProtocol", "actionParams", "$originInvocation", "$$readinessChecks", "$$quotes", "$$orders", "$$walletRequests", "$$outcomes"],
+							fields: ["indexInSequence", "actionType", "createdAt", "updatedAt"],
+							openFields: ["selectedProtocol", "actionParams"],
 						},
 						summary: { title: ["actionType"], value: ["selectedProtocol"], HeadingAfter: [{ field: "indexInSequence", format: "number" }] },
 						closed: ["$session", "actionId", { field: "indexInSequence", format: "number" }],
@@ -17890,8 +17750,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$session", "status", "createdAt", "paramsHash"],
-							openFields: ["completedAt", "forkBlockNumber", "forkRpcOrigin", "actionCount", "gasUsed", "resultSummary", "resultPayloadHash", "error", "$$calls", "$$logs"],
+							fields: ["status", "createdAt", "paramsHash"],
+							openFields: ["completedAt", "forkBlockNumber", "forkRpcOrigin", "actionCount", "gasUsed", "resultSummary", "resultPayloadHash", "error"],
 						},
 						summary: { title: ["status"], value: [{ field: "createdAt", format: "timestamp" }], HeadingAfter: ["$session"] },
 						closed: ["$session", "status", { field: "createdAt", format: "timestamp" }],
@@ -18003,7 +17863,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$network", "$room", "peerId", "$account", "sharedAt"],
+							fields: ["peerId", "sharedAt"],
 						},
 						summary: {
 							title: [{ field: "$account" }],
@@ -18134,7 +17994,7 @@ export const schema = {
 						query: {
 							sources: [Source.Local_Internal],
 							fields: ["status", "protocol", "createdAt", "updatedAt"],
-							openFields: ["name", "authorKey", "$walletConnection", "$agentConversation", "text", "$$media", "publishedEntityType", "publishedSelector", "lockedAt"],
+							openFields: ["name", "authorKey", "text", "publishedEntityType", "publishedSelector", "lockedAt"],
 						},
 						summary: {
 							title: ["name"],
@@ -18184,7 +18044,7 @@ export const schema = {
 						query: {
 							sources: [Source.Constants_Internal, Source.Local_Internal],
 							fields: ["label", "source", "provider", "endpointUrl"],
-							openFields: ["transportKind", "authKind", "corsMode", "proxyMode", "environmentScope", "$$timestamps"],
+							openFields: ["transportKind", "authKind", "corsMode", "proxyMode", "environmentScope"],
 						},
 						summary: {
 							title: ["label"],
@@ -18282,8 +18142,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$network", "$participant0", "$participant1", "$asset", "$room", "createdAt"],
-							openFields: ["$$timestamps", "$$transfers", "$$states", "$$deposits"],
+							fields: ["createdAt"],
 						},
 						summary: {
 							title: [{ field: "id", format: "truncated" }],
@@ -18389,8 +18248,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$channel", "$account", "$network"],
-							openFields: ["$$timestamps"],
 						},
 						summary: { title: ["$account"], value: ["$network"], HeadingAfter: ["$channel"] },
 						closed: ["$channel", "$account", "$network"],
@@ -18423,7 +18280,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$deposit", "timestampMs", "source", "availableBalance", "lockedBalance"],
+							fields: ["availableBalance", "lockedBalance"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["source"], HeadingAfter: [{ field: "availableBalance", format: "number" }] },
 						closed: ["$deposit", { field: "timestampMs", format: "timestamp" }, "source"],
@@ -18547,8 +18404,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$sessionAction"],
-							openFields: ["networkCaip2", "assetInCaip19", "assetOutCaip19", "chainId", "tokenInAddress", "tokenOutAddress", "$network", "$evmNetwork", "$tokenIn", "$tokenOut", "amount", "slippage", "$$quotes"],
+							openFields: ["networkCaip2", "assetInCaip19", "assetOutCaip19", "chainId", "tokenInAddress", "tokenOutAddress", "amount", "slippage"],
 						},
 						summary: { title: ["$sessionAction"], value: [{ field: "amount", format: "number" }], HeadingAfter: ["$network"] },
 						closed: ["$sessionAction", "networkCaip2", "assetInCaip19", "assetOutCaip19"],
@@ -18601,8 +18457,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$sessionAction"],
-							openFields: ["fromCaip10", "toCaip10", "networkCaip2", "assetCaip19", "fromAddress", "toAddress", "chainId", "tokenAddress", "$fromAccount", "$toAccount", "$from", "$to", "$network", "$evmNetwork", "$token", "amount"],
+							openFields: ["fromCaip10", "toCaip10", "networkCaip2", "assetCaip19", "fromAddress", "toAddress", "chainId", "tokenAddress", "amount"],
 						},
 						summary: { title: ["$sessionAction"], value: [{ field: "amount", format: "number" }], HeadingAfter: ["$network"] },
 						closed: ["$sessionAction", "fromCaip10", "toCaip10", "assetCaip19"],
@@ -18689,7 +18544,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$nodeState", "messageHash", "timestampMs", "source"],
 							openFields: ["pubsubTopic", "contentTopic", "payloadHash", "payloadSizeBytes", "version", "ephemeral", "senderPeerId", "protocolPath"],
 						},
 						summary: { title: ["messageHash"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: ["contentTopic"] },
@@ -18725,8 +18579,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["connectionId", "nodeId"],
-							openFields: ["endpoint", "$$timestamps", "$$messageObservations"],
+							openFields: ["endpoint"],
 						},
 						summary: { title: ["nodeId"], value: ["connectionId"], HeadingAfter: [{ field: "endpoint", format: "url" }] },
 						closed: ["connectionId", "nodeId", { field: "endpoint", format: "url" }],
@@ -18774,7 +18627,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$nodeState", "timestampMs", "source"],
 							openFields: ["health", "version", "peerCount", "listenAddresses", "enrUri", "relayEnabled", "storeEnabled", "filterEnabled", "lightpushEnabled", "rlnRelayEnabled", "subscribedPubsubTopics", "subscribedContentTopics"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["health"], HeadingAfter: [{ field: "peerCount", format: "number" }] },
@@ -18821,7 +18673,7 @@ export const schema = {
 						query: {
 							sources: [Source.Local_Internal],
 							fields: ["name", "protocol", "discoveryKind", "transportKind"],
-							openFields: ["icon", "rdns", "websiteUrl", "capabilities", "$connectionMethod", "adapterId", "sourceWalletKey", "detectedAt"],
+							openFields: ["icon", "rdns", "websiteUrl", "capabilities", "adapterId", "sourceWalletKey", "detectedAt"],
 						},
 						summary: {
 							title: ["name"],
@@ -18872,7 +18724,7 @@ export const schema = {
 						query: {
 							sources: [Source.Local_Internal],
 							fields: ["protocol", "verified"],
-							openFields: ["$connection", "$account", "statement", "domain", "uri", "nonce", "issuedAt", "expirationTime", "notBefore", "chainId", "signature", "verifiedAt", "error"],
+							openFields: ["statement", "domain", "uri", "nonce", "issuedAt", "expirationTime", "notBefore", "chainId", "signature", "verifiedAt", "error"],
 						},
 						summary: {
 							title: ["authenticationId"],
@@ -18924,7 +18776,7 @@ export const schema = {
 						query: {
 							sources: [Source.Local_Internal],
 							fields: ["authorizationKind", "issuer", "audience"],
-							openFields: ["$connection", "$account", "methods", "resources", "issuedAt", "notBefore", "expiresAt", "revokedAt", "proofKind", "proofSummary", "rawGrant"],
+							openFields: ["methods", "resources", "issuedAt", "notBefore", "expiresAt", "revokedAt", "proofKind", "proofSummary", "rawGrant"],
 						},
 						summary: {
 							title: ["grantId"],
@@ -18984,8 +18836,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["connectionKey", "status", "protocol", "transportKind", "selected"],
-							openFields: ["connectedAt", "disconnectedAt", "sessionId", "sessionTopic", "error", "$activeAccount", "$$accounts"],
+							fields: ["status", "protocol", "transportKind", "selected"],
+							openFields: ["connectedAt", "disconnectedAt", "sessionId", "sessionTopic", "error"],
 						},
 						summary: {
 							title: [{ field: "$wallet" }],
@@ -19043,7 +18895,7 @@ export const schema = {
 						query: {
 							sources: [Source.Local_Internal],
 							fields: ["requestKind", "requestMethod", "requestedAt"],
-							openFields: ["$sessionAction", "$intentOrder", "$walletConnection", "walletProtocol", "caip10", "chainId", "fromAddress", "toAddress", "value", "callCount", "atomicRequired", "requestPayloadHash", "walletCallBundleId", "submittedAt", "$$calls", "$$timestamps"],
+							openFields: ["walletProtocol", "caip10", "chainId", "fromAddress", "toAddress", "value", "callCount", "atomicRequired", "requestPayloadHash", "walletCallBundleId", "submittedAt"],
 						},
 						summary: { title: ["requestKind"], value: ["requestMethod"], HeadingAfter: [{ field: "requestedAt", format: "timestamp" }] },
 						closed: ["requestKind", "requestMethod", { field: "requestedAt", format: "timestamp" }],
@@ -19085,7 +18937,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$walletRequest", "timestampMs", "source", "status"],
+							fields: ["status"],
 							openFields: ["walletStatusCode", "walletCallBundleStatus", "atomic", "receiptCount", "transactionHash", "transactionId", "signatureHash", "statusPayloadHash", "error"],
 						},
 						summary: { title: ["status"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: ["source"] },
@@ -19117,7 +18969,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["$walletRequest", "callIndex"],
 							openFields: ["caip2", "toAddress", "value", "inputDataHash"],
 						},
 						summary: { serial: { field: "callIndex", label: "Call" }, value: ["toAddress"] },
@@ -19161,7 +19012,7 @@ export const schema = {
 						query: {
 							sources: [Source.Local_Internal],
 							fields: ["transportKind", "sessionKind", "status"],
-							openFields: ["$connection", "topic", "peerId", "relayProtocol", "bridgeUrl", "manifestUrl", "origin", "deviceId", "createdAt", "updatedAt", "expiresAt"],
+							openFields: ["topic", "peerId", "relayProtocol", "bridgeUrl", "manifestUrl", "origin", "deviceId", "createdAt", "updatedAt", "expiresAt"],
 						},
 						summary: {
 							title: ["transportSessionId"],
@@ -19201,8 +19052,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["id", "createdAt", "updatedAt"],
-							openFields: ["name", "$activePanelTree"],
+							fields: ["createdAt", "updatedAt"],
+							openFields: ["name"],
 						},
 						summary: {
 							title: ["name"],
@@ -19245,8 +19096,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal, Source.ZcashClientBackend_Local, Source.ZcashLightwalletd_Grpc, Source.ZcashdWallet_JsonRpc],
-							fields: ["walletId", "pool", "noteCommitment"],
-							openFields: ["$wallet", "$shieldedAction", "nullifier", "valueZatoshis", "memo", "diversifier", "recipientAddress", "receivedTransactionId", "receivedAtHeight", "$$timestamps"],
+							openFields: ["nullifier", "valueZatoshis", "memo", "diversifier", "recipientAddress", "receivedTransactionId", "receivedAtHeight"],
 						},
 						summary: { title: ["noteCommitment"], value: ["pool"], HeadingAfter: [{ field: "valueZatoshis", format: "number" }] },
 						closed: ["walletId", "pool", "noteCommitment"],
@@ -19290,7 +19140,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal, Source.ZcashClientBackend_Local, Source.ZcashLightwalletd_Grpc, Source.ZcashdWallet_JsonRpc],
-							fields: ["$noteState", "timestampMs", "source"],
 							openFields: ["spent", "spendTransactionId", "spentAtHeight", "confirmations", "witnessAvailable", "lastScannedHeight", "lastScannedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["spent"], HeadingAfter: [{ field: "confirmations", format: "number" }] },
@@ -19336,8 +19185,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal, Source.ZcashClientBackend_Local, Source.ZcashdWallet_JsonRpc],
-							fields: ["walletId", "keyFingerprint", "$network", "keyKind", "canViewIncoming", "canViewOutgoing", "canSpend", "importedAt"],
-							openFields: ["$wallet", "pools", "accountIndex", "birthdayHeight", "viewingKeyMaterial", "$$timestamps"],
+							fields: ["keyKind", "canViewIncoming", "canViewOutgoing", "canSpend", "importedAt"],
+							openFields: ["pools", "accountIndex", "birthdayHeight", "viewingKeyMaterial"],
 						},
 						summary: { title: ["keyFingerprint"], value: ["keyKind"], HeadingAfter: ["$network"] },
 						closed: ["walletId", "$network", "keyFingerprint"],
@@ -19378,7 +19227,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal, Source.ZcashClientBackend_Local, Source.ZcashLightwalletd_Grpc, Source.ZcashdWallet_JsonRpc],
-							fields: ["$viewingKey", "timestampMs", "source"],
 							openFields: ["lastScannedHeight", "lastScannedAt", "notesDiscovered", "nullifiersMatched"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: [{ field: "lastScannedHeight", format: "number" }], HeadingAfter: ["source"] },
@@ -19421,8 +19269,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal, Source.ZcashClientBackend_Local, Source.ZcashLightwalletd_Grpc, Source.ZcashdWallet_JsonRpc],
-							fields: ["walletId", "$network"],
-							openFields: ["$wallet", "accountIndex", "unifiedAddress", "transparentAddress", "saplingAddress", "orchardAddress", "birthdayHeight", "$$timestamps", "$$viewingKeys", "$$notes"],
+							openFields: ["accountIndex", "unifiedAddress", "transparentAddress", "saplingAddress", "orchardAddress", "birthdayHeight"],
 						},
 						summary: { title: ["walletId"], value: ["$network"], HeadingAfter: ["unifiedAddress"] },
 						closed: ["walletId", "$network", "accountIndex"],
@@ -19488,7 +19335,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal, Source.ZcashClientBackend_Local, Source.ZcashLightwalletd_Grpc, Source.ZcashdWallet_JsonRpc],
-							fields: ["$walletState", "timestampMs", "source"],
 							openFields: ["balanceZatoshis", "verifiedBalanceZatoshis", "spendableBalanceZatoshis", "unshieldedBalanceZatoshis", "saplingBalanceZatoshis", "orchardBalanceZatoshis", "changePendingConfirmationZatoshis", "valuePendingSpendabilityZatoshis", "uneconomicValueZatoshis", "lastScannedHeight", "chainTipHeight", "recoveryState", "lastSyncedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: [{ field: "balanceZatoshis", format: "number" }], HeadingAfter: ["recoveryState"] },
@@ -19530,8 +19376,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal, Source.ZeroGStorageNode_JsonRpc],
-							fields: ["connectionId", "$network", "nodeId"],
-							openFields: ["endpoint", "storagePath", "$$localChunks", "$$localProofs", "$$timestamps"],
+							openFields: ["endpoint", "storagePath"],
 						},
 						summary: { title: ["nodeId"], value: ["$network"], HeadingAfter: ["connectionId"] },
 						closed: ["connectionId", "$network", "nodeId"],
@@ -19586,7 +19431,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal, Source.ZeroGStorageNode_JsonRpc],
-							fields: ["$nodeState", "timestampMs", "source"],
 							openFields: ["syncedAt", "localFileCount", "localChunkCount", "localProofCount"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["$nodeState"], HeadingAfter: [{ field: "localChunkCount", format: "number" }] },
@@ -19627,8 +19471,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal, Source.ZeroGStorageNode_JsonRpc],
-							fields: ["$nodeState", "proofId", "verified"],
-							openFields: ["$dataBlob", "$chunk", "proofKind", "proofBytes", "verifiedAt", "verifiedAtBlock", "error"],
+							fields: ["verified"],
+							openFields: ["proofKind", "proofBytes", "verifiedAt", "verifiedAtBlock", "error"],
 						},
 						summary: { title: ["proofId"], value: ["verified"], HeadingAfter: ["proofKind"] },
 						closed: ["$nodeState", "proofId", "proofKind"],
@@ -19668,8 +19512,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal, Source.ZeroGStorageNode_JsonRpc],
-							fields: ["$nodeState", "dataRoot", "chunkIndex", "present"],
-							openFields: ["$dataBlob", "$publicChunk", "chunkRoot", "sizeBytes", "filePath", "lastCheckedAt"],
+							fields: ["present"],
+							openFields: ["chunkRoot", "sizeBytes", "filePath", "lastCheckedAt"],
 						},
 						summary: { title: ["dataRoot"], value: [{ field: "chunkIndex", format: "number" }], HeadingAfter: ["present"] },
 						closed: ["$nodeState", "dataRoot", { field: "chunkIndex", format: "number" }],
@@ -20209,8 +20053,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Lifi_Rest],
-							fields: ["$fromNetwork", "$toNetwork"],
-							openFields: ["fromAmount", "toAmount", "toAmountMin", "estimatedCostUsd", "estimatedDurationSeconds", "tags"],
+							openFields: ["toAmount", "toAmountMin", "estimatedCostUsd", "estimatedDurationSeconds", "tags"],
 						},
 						summary: {
 							title: [
@@ -20285,8 +20128,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							fields: ["source", "quoteRequestHash", "timestampMs", "$fromNetwork", "$toNetwork"],
-							openFields: ["providerQuoteId", "fromAmount", "toAmount", "toAmountMin", "estimatedCostUsd", "estimatedDurationSeconds", "approvalAddress", "transactionTo", "transactionDataHash", "tags", "$$steps"],
+							openFields: ["providerQuoteId", "fromAmount", "toAmount", "toAmountMin", "estimatedCostUsd", "estimatedDurationSeconds", "approvalAddress", "transactionTo", "transactionDataHash", "tags"],
 						},
 						summary: {
 							title: [
@@ -20356,8 +20198,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							fields: ["$quote", "indexInQuote"],
-							openFields: ["providerStepId", "stepType", "tool", "toolName", "$fromNetwork", "$toNetwork", "$fromToken", "$toToken", "fromAmount", "toAmount", "toAmountMin", "estimatedGas", "railId", "settlementModel", "verificationModel", "assetOutcome"],
+							openFields: ["providerStepId", "stepType", "tool", "toolName", "fromAmount", "toAmount", "toAmountMin", "estimatedGas", "railId", "settlementModel", "verificationModel", "assetOutcome"],
 						},
 						summary: {
 							serial: {
@@ -20409,7 +20250,7 @@ export const schema = {
 						query: {
 							sources: [Source.Lifi_Rest],
 							fields: [],
-							openFields: ["$fromNetwork", "$toNetwork", "$fromToken", "$toToken", "stepType", "tool", "railId", "settlementModel", "verificationModel", "assetOutcome"],
+							openFields: ["stepType", "tool", "railId", "settlementModel", "verificationModel", "assetOutcome"],
 						},
 						summary: {
 							serial: {
@@ -20465,8 +20306,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Lifi_Rest, Source.Allium_Rest, Source.Dune_Rest, Source.Voltaire_JsonRpc],
-							fields: ["source", "transferId"],
-							openFields: ["$sourceTx", "logIndex", "$destinationTx", "$sender", "$recipient", "$fromNetwork", "$toNetwork", "$fromToken", "$toToken", "amountIn", "amountOut", "railId", "settlementModel", "verificationModel", "assetOutcome", "$$timestamps"],
+							fields: ["transferId"],
+							openFields: ["logIndex", "amountIn", "amountOut", "railId", "settlementModel", "verificationModel", "assetOutcome"],
 						},
 						summary: {
 							title: ["transferId"],
@@ -20517,7 +20358,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Lifi_Rest, Source.Allium_Rest, Source.Dune_Rest, Source.Voltaire_JsonRpc],
-							fields: ["$transfer", "timestampMs", "source"],
 							openFields: ["status", "substatus", "sourceConfirmations", "requiredConfirmations", "destinationTxHash", "relayer", "refundTxHash", "estimatedCompletionMs", "completedAt", "error"],
 						},
 						summary: {
@@ -20625,8 +20465,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Blockfrost_Rest],
-							fields: ['$network', 'address'],
-							openFields: ['addressKind', '$stakeCredential', '$$utxos', '$$assets', '$$transactions', '$$timestamps'],
+							openFields: ['addressKind'],
 						},
 						summary: { title: ['address'], value: ['addressKind'] },
 						closed: ['$network', 'address', 'addressKind'],
@@ -20724,7 +20563,6 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							fields: ['$address', 'blockSlot', 'source'],
 							openFields: ['timestampMs', 'blockHash', 'lovelaceBalance', 'nativeAssetCount', 'utxoCount', 'transactionCount'],
 						},
 						summary: { title: [{ field: 'timestampMs', format: 'timestamp' }], titleFallback: ['blockSlot'], value: ['lovelaceBalance'], HeadingAfter: ['transactionCount'] },
@@ -21026,8 +20864,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Blockfrost_Rest],
-							fields: ["$network", "epoch", "source"],
-							openFields: ["govActionId", "$seatingProposal", "dissolved", "quorumNumerator", "quorumDenominator", "memberCount", "members", "$$votes"],
+							openFields: ["govActionId", "dissolved", "quorumNumerator", "quorumDenominator", "memberCount", "members"],
 						},
 						summary: { title: [{ field: "epoch", prefix: "Epoch " }], value: ["memberCount"] },
 						closed: ["epoch", "memberCount"],
@@ -21174,8 +21011,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Blockfrost_Rest],
-							fields: ["$network", "drepCredential"],
-							openFields: ["credentialKind", "anchorUrl", "anchorHash", "$$votes"],
+							openFields: ["credentialKind", "anchorUrl", "anchorHash"],
 						},
 						summary: { title: ["displayName", "drepCredential"], value: ["credentialKind"] },
 						closed: ["displayName", "drepCredential", "credentialKind"],
@@ -21458,8 +21294,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							fields: ["$network", "proposalTxHash", "proposalIndex"],
-							openFields: ["governanceActionId", "proposalKind", "$transaction", "depositLovelace", "returnAddress", "anchorUrl", "anchorHash", "$previousAction", "policyHash", "hardForkMajor", "hardForkMinor", "treasuryWithdrawals", "committeeRemovedCredentials", "committeeAdditions", "committeeQuorumNumerator", "committeeQuorumDenominator", "constitutionAnchorUrl", "constitutionAnchorHash", "constitutionScript", "$$timestamps", "$$votes"],
+							openFields: ["governanceActionId", "proposalKind", "depositLovelace", "returnAddress", "anchorUrl", "anchorHash", "policyHash", "hardForkMajor", "hardForkMinor", "treasuryWithdrawals", "committeeRemovedCredentials", "committeeAdditions", "committeeQuorumNumerator", "committeeQuorumDenominator", "constitutionAnchorUrl", "constitutionAnchorHash", "constitutionScript"],
 						},
 						summary: { title: ["proposalKind", "governanceActionId"], value: [{ field: "proposalTxHash", prefix: "Proposal " }, { field: "proposalIndex", prefix: "#" }] },
 						closed: ["proposalKind", "governanceActionId", "proposalTxHash", "proposalIndex"],
@@ -21609,7 +21444,6 @@ export const schema = {
 						singular: {
 							query: {
 								sources: [Source.Blockfrost_Rest],
-								fields: ["$proposal", "epoch", "source"],
 								openFields: ["status", "ratifiedEpoch", "enactedEpoch", "droppedEpoch", "expiredEpoch", "expirationEpoch"],
 							},
 							summary: { title: [{ field: "epoch", prefix: "Epoch " }], value: ["status"], HeadingAfter: ["source"] },
@@ -22450,7 +22284,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Blockfrost_Rest],
-							fields: ["$network", "poolId"],
 							openFields: ["vrfKeyHash", "name", "ticker", "description", "homepage"],
 						},
 						summary: { title: ["ticker", "poolId"], value: ["vrfKeyHash"] },
@@ -22714,7 +22547,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Blockfrost_Rest],
-							fields: ['$network', 'hash'],
 							openFields: ['blockSlot', 'fee', 'deposit', 'sizeBytes', 'validityStartSlot', 'ttlSlot', 'metadata'],
 						},
 						summary: { title: ['hash'], value: ['blockSlot'], HeadingAfter: ['fee'] },
@@ -22808,8 +22640,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Blockfrost_Rest],
-							fields: ['$transaction', 'inputIndex'],
-							openFields: ['inputKind', 'spentTxHash', 'spentOutputIndex', '$spentOutput', 'redeemerIndex'],
+							openFields: ['inputKind', 'spentTxHash', 'spentOutputIndex', 'redeemerIndex'],
 						},
 						summary: {
 							title: [{ field: 'inputIndex', format: 'number', prefix: 'Input ' }],
@@ -22915,8 +22746,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Blockfrost_Rest],
-							fields: ['$transaction', 'outputIndex'],
-							openFields: ['address', '$address', 'lovelace', 'datumHash', 'inlineDatum', 'referenceScriptHash'],
+							openFields: ['address', 'lovelace', 'datumHash', 'inlineDatum', 'referenceScriptHash'],
 						},
 						summary: { title: ['outputIndex'], value: ['lovelace'], HeadingAfter: ['address'] },
 						closed: ['$transaction', 'outputIndex', 'address', 'lovelace'],
@@ -22970,7 +22800,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							fields: ['$output', '$asset', 'quantity'],
+							fields: ['quantity'],
 						},
 						summary: {
 							title: ['$asset'],
@@ -23004,7 +22834,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.CashuMint_Rest],
-							fields: ["unit", "$$timestamps"],
+							fields: ["unit"],
 							openFields: ["keysByAmountJson"],
 						},
 						summary: {
@@ -23089,8 +22919,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.CashuMint_Rest],
-							fields: ["mintUrl", "$$timestamps"],
-							openFields: ["$$keysets"],
 						},
 						summary: {
 							title: ["mintUrl"],
@@ -23228,7 +23056,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.CircleCctpIris],
-							fields: ["$message", "timestampMs", "source"],
 							openFields: ["status", "attestation", "delayReason", "forwardState", "forwardTxHash", "requestId"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["status"], HeadingAfter: ["source"] },
@@ -23279,7 +23106,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.CircleCctpIris],
-							fields: ["$sourceDomain", "$destinationDomain", "timestampMs", "source"],
 							openFields: ["forward", "hyperCoreDeposit"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["$sourceDomain", "$destinationDomain"], HeadingAfter: ["source"] },
@@ -23323,8 +23149,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.CircleCctpContracts_Evm, Source.CircleCctpContracts_Solana, Source.CircleCctpContracts_Stellar, Source.CircleCctpIris],
-							fields: ["cctpVersion", "domainId", "name"],
-							openFields: ["$network", "standardTransferSource", "fastTransferSource", "forwardingDestination", "supportedTokens", "tokenMessengerAddress", "messageTransmitterAddress", "tokenMinterAddress", "$$messages", "$$burnFeeTimestamps"],
+							fields: ["name"],
+							openFields: ["standardTransferSource", "fastTransferSource", "forwardingDestination", "supportedTokens", "tokenMessengerAddress", "messageTransmitterAddress", "tokenMinterAddress"],
 						},
 						summary: { title: ["name"], value: ["domainId"], HeadingAfter: ["cctpVersion"] },
 						closed: ["cctpVersion", "domainId", "name"],
@@ -23442,8 +23268,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.CircleCctpContracts_Evm, Source.CircleCctpContracts_Solana, Source.CircleCctpContracts_Stellar, Source.CircleCctpIris],
-							fields: ["sourceDomain", "nonce"],
-							openFields: ["cctpVersion", "messageHash", "messageBytes", "sourceTransactionHash", "sourceLogIndex", "$sourceDomain", "$destinationDomain", "destinationDomain", "sender", "recipient", "destinationCaller", "burnToken", "mintRecipient", "amount", "messageSender", "maxFee", "feeExecuted", "expirationBlock", "hookData", "minFinalityThreshold", "finalityThresholdExecuted", "$$attestationTimestamps"],
+							openFields: ["cctpVersion", "messageHash", "messageBytes", "sourceTransactionHash", "sourceLogIndex", "destinationDomain", "sender", "recipient", "destinationCaller", "burnToken", "mintRecipient", "amount", "messageSender", "maxFee", "feeExecuted", "expirationBlock", "hookData", "minFinalityThreshold", "finalityThresholdExecuted"],
 						},
 						summary: { title: ["nonce"], value: ["sourceDomain"], HeadingAfter: ["messageHash"] },
 						closed: ["sourceDomain", "nonce"],
@@ -23778,8 +23603,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["cid"],
-							openFields: ["treeCid", "datasetSizeBytes", "blockSizeBytes", "filename", "mimetype", "$$localCopies"],
+							openFields: ["treeCid", "datasetSizeBytes", "blockSizeBytes", "filename", "mimetype"],
 						},
 						summary: { title: ["filename"], titleFallback: ["cid"], value: ["mimetype"], HeadingAfter: [{ field: "datasetSizeBytes", format: "number" }] },
 						closed: ["cid", "filename", "mimetype"],
@@ -23892,10 +23716,6 @@ export const schema = {
 							fields: ["symbol"],
 							openFields: [
 								"name",
-								"$logo",
-								"$$timestamps",
-								"$$coinInstances",
-								"$$bridgeCapabilities",
 							],
 						},
 						latest: [
@@ -24762,9 +24582,6 @@ export const schema = {
 							openFields: [
 								"minorUnitExponent",
 								"catalogSortWeight",
-								"$$timestamps",
-								"$$marketsWithCurrencyAsBase",
-								"$$marketsWithCurrencyAsQuote",
 							],
 						},
 						latest: [
@@ -24903,7 +24720,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.DogecoinCore_JsonRpc],
-							fields: ["$auxPow", "branchKind"],
 							openFields: ["branchHashes", "index"],
 						},
 						summary: {
@@ -24941,7 +24757,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.DogecoinCore_JsonRpc],
-							fields: ["$auxPow"],
 							openFields: ["hash", "merkleRoot", "nonce"],
 						},
 						summary: {
@@ -24979,8 +24794,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.DogecoinCore_JsonRpc],
-							fields: ["$block"],
-							openFields: ["$parentBlockHeader", "$coinbaseBranch", "$chainBranch"],
 						},
 						summary: {
 							title: ["$block"],
@@ -25019,8 +24832,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
-							fields: ["$network", "ticker"],
-							openFields: ["baseAsset", "quoteAsset", "marketKind", "$$timestamps"],
+							openFields: ["baseAsset", "quoteAsset", "marketKind"],
 						},
 						summary: { title: ["ticker"], value: ["marketKind"], HeadingAfter: ["baseAsset"] },
 						closed: ["$network", "ticker", "baseAsset", "quoteAsset"],
@@ -25054,7 +24866,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
-							fields: ["$market", "timestampMs", "source"],
 							openFields: ["oraclePrice", "fundingRate", "openInterest", "status", "nextFundingAtMs"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["status"] },
@@ -25086,8 +24897,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
-							fields: ["$network"],
-							openFields: ["$$timestamps", "$$markets", "$$subaccounts", "$$orders", "$$positions"],
 						},
 						summary: { title: ["$network"] },
 						closed: ["$network"],
@@ -25150,7 +24959,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
-							fields: ["$network", "timestampMs", "source"],
 							openFields: ["blockHeight", "indexerHeight", "marketCount", "subaccountCount", "openOrderCount", "openPositionCount", "health"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["health"] },
@@ -25186,8 +24994,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
-							fields: ["$subaccount", "orderId"],
-							openFields: ["$market", "side", "orderType", "timeInForce", "clientId", "goodTilBlock", "goodTilBlockTimeMs", "$$timestamps"],
+							openFields: ["side", "orderType", "timeInForce", "clientId", "goodTilBlock", "goodTilBlockTimeMs"],
 						},
 						summary: { title: ["orderId"], value: ["side"], HeadingAfter: ["orderType"] },
 						closed: ["$subaccount", "orderId", "$market"],
@@ -25223,7 +25030,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
-							fields: ["$order", "timestampMs", "source"],
 							openFields: ["blockHeight", "status", "price", "size", "remainingSize", "filledSize", "totalFilled"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["status"] },
@@ -25260,7 +25066,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
-							fields: ["$subaccount", "$market", "timestampMs", "source"],
 							openFields: ["blockHeight", "side", "size", "entryPrice", "unrealizedPnl", "realizedPnl", "fundingIndex"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["side"] },
@@ -25292,8 +25097,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
-							fields: ["$network", "$account", "subaccountNumber"],
-							openFields: ["$$positions", "$$orders", "$$timestamps"],
 						},
 						summary: { title: ["$account"], value: [{ field: "subaccountNumber", format: "number" }] },
 						closed: ["$network", "$account", { field: "subaccountNumber", format: "number" }],
@@ -25346,7 +25149,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
-							fields: ["$subaccount", "timestampMs", "source"],
 							openFields: ["blockHeight", "equity", "freeCollateral", "marginUsage", "openPositionCount", "openOrderCount"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["$subaccount"] },
@@ -25387,8 +25189,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Blockscout_Rest, Source.EasContracts_Evm, Source.EasScan_Graphql, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
-							fields: ["$network", "uid", "schemaUid", "recipient", "attester"],
-							openFields: ["$schema", "$recipientAccount", "$attesterAccount", "refUid", "$refAttestation", "attestedAt", "expirationTime", "revocable", "data", "$$timestamps"],
+							fields: ["schemaUid", "recipient", "attester"],
+							openFields: ["refUid", "attestedAt", "expirationTime", "revocable", "data"],
 						},
 						summary: { title: ["uid"], value: ["$schema"], HeadingAfter: ["recipient", "attester"] },
 						closed: ["uid", "$schema", "recipient", "attester"],
@@ -25434,7 +25236,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Blockscout_Rest, Source.EasContracts_Evm, Source.EasScan_Graphql, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
-							fields: ["$attestation", "timestampMs", "source"],
 							openFields: ["revoked", "revocationTime", "valid", "expired", "blockNumber", "transactionHash", "logIndex", "revokedTransactionHash", "revokedLogIndex"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["valid"], HeadingAfter: ["revoked"] },
@@ -25477,8 +25278,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Blockscout_Rest, Source.EasContracts_Evm, Source.EasScan_Graphql, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
-							fields: ["$network", "schemaUid", "schema"],
-							openFields: ["resolver", "$resolverContract", "revocable", "registerer", "$registererAccount", "registeredAt", "registeredTransactionHash", "registeredLogIndex", "$$attestations"],
+							fields: ["schema"],
+							openFields: ["resolver", "revocable", "registerer", "registeredAt", "registeredTransactionHash", "registeredLogIndex"],
 						},
 						summary: { title: ["schemaUid"], value: ["schema"], HeadingAfter: ["resolver"] },
 						closed: ["schemaUid", "schema", "resolver"],
@@ -25560,8 +25361,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
-							fields: ["$network", "avsAddress"],
-							openFields: ["$avsAccount", "metadataUri", "name", "website", "description", "$$timestamps", "$$operators", "$$allocations", "$$slashingEvents"],
+							openFields: ["metadataUri", "name", "website", "description"],
 						},
 						summary: { title: ["avsAddress"], value: ["name"], HeadingAfter: ["$network"] },
 						closed: ["avsAddress", "name", "$$timestamps"],
@@ -25696,8 +25496,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
-							fields: ["$network", "operatorAddress"],
-							openFields: ["$operatorAccount", "earningsReceiver", "delegationApprover", "stakerOptOutWindowBlocks", "metadataUri", "name", "website", "description", "$$delegations", "$$allocations", "$$rewards", "$$slashingEvents"],
+							openFields: ["earningsReceiver", "delegationApprover", "stakerOptOutWindowBlocks", "metadataUri", "name", "website", "description"],
 						},
 						summary: { title: ["operatorAddress"], value: ["name"], HeadingAfter: ["$network"] },
 						closed: ["operatorAddress", "name", "$$delegations"],
@@ -25760,8 +25559,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Constants_Internal, Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
-							fields: ["$network"],
-							openFields: ["protocolName", "$delegationManager", "$strategyManager", "$avsDirectory", "$allocationManager", "$rewardsCoordinator", "$slasher", "$$operators", "$$avss", "$$strategies", "$$rewards", "$$slashingEvents"],
+							openFields: ["protocolName"],
 						},
 						summary: { title: ["protocolName"], value: ["$network"] },
 						closed: ["$network", "protocolName", "$$operators"],
@@ -25904,8 +25702,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
-							fields: ["$network", "strategyAddress"],
-							openFields: ["$strategyContract", "underlyingToken", "$underlyingCoin", "strategyKind", "$$timestamps", "$$delegations", "$$allocations"],
+							openFields: ["underlyingToken", "strategyKind"],
 						},
 						summary: { title: ["strategyAddress"], value: ["underlyingToken"], HeadingAfter: ["$network"] },
 						closed: ["strategyAddress", "underlyingToken", "$$timestamps"],
@@ -26030,8 +25827,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Eip8004Scan_Rest, Source.Voltaire_JsonRpc],
-							fields: ["namespace", "chainId", "identityRegistry", "agentId"],
-							openFields: ["$evmNft", "$$timestamps", "$$files"],
 						},
 						summary: { title: ["agentId"], value: ["namespace"], HeadingAfter: ["chainId"] },
 						closed: ["namespace", { field: "chainId", format: "number" }, "agentId"],
@@ -26074,7 +25869,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Eip8004Scan_Rest, Source.Voltaire_JsonRpc],
-							fields: ["$registration", "timestampMs", "source"],
 							openFields: ["agentUri", "ownerAddress", "agentWalletAddress", "active", "blockNumber", "transactionHash"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["active"], HeadingAfter: ["source"] },
@@ -26137,8 +25931,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Eip8004Scan_Rest],
-							fields: ["$registrationFile", "endpointKind", "endpointUrl"],
-							openFields: ["name", "version", "protocolKind", "active", "$mcpServer", "$$paymentRequirements"],
+							openFields: ["name", "version", "protocolKind", "active"],
 						},
 						summary: { title: [{ field: "endpointUrl", format: "url" }], value: ["endpointKind"], HeadingAfter: ["protocolKind"] },
 						closed: ["$registrationFile", "endpointKind", { field: "endpointUrl", format: "url" }],
@@ -26178,7 +25971,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Eip8004Scan_Rest],
-							fields: ["$registrationFile", "targetKind", "targetSelectorHashAlgorithm", "targetSelectorHash"],
 							openFields: ["targetSelector", "evidenceUri", "signature"],
 						},
 						summary: { title: ["targetKind"], value: ["targetSelectorHash"], HeadingAfter: ["targetSelectorHashAlgorithm"] },
@@ -26257,7 +26049,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Eip8004Scan_Rest, Source.Voltaire_JsonRpc],
-							fields: ["$registration", "clientAddress", "feedbackIndex", "timestampMs", "source"],
 							openFields: ["value", "valueDecimals", "tag1", "tag2", "endpoint", "feedbackUri", "feedbackHashAlgorithm", "feedbackHash", "revoked", "blockNumber", "transactionHash"],
 						},
 						summary: { title: ["value"], titleFallback: ["feedbackIndex"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: ["source"] },
@@ -26301,11 +26092,10 @@ export const schema = {
 					"RequestHashAlgorithmRequestHashTimestampMsSource": ["requestHashAlgorithm", "requestHash", "timestampMs", "source"],
 				},
 				views: {
-					singular: {
+						singular: {
 						query: {
 							sources: [Source.Eip8004Scan_Rest, Source.Voltaire_JsonRpc],
-							fields: ["requestHashAlgorithm", "requestHash", "timestampMs", "source"],
-							openFields: ["$registration", "validatorAddress", "requestUri", "response", "responseUri", "responseHashAlgorithm", "responseHash", "tag", "lastUpdate", "blockNumber", "transactionHash"],
+							openFields: ["validatorAddress", "requestUri", "response", "responseUri", "responseHashAlgorithm", "responseHash", "tag", "lastUpdate", "blockNumber", "transactionHash"],
 						},
 						summary: { title: ["requestHash"], value: ["response"], HeadingAfter: ["validatorAddress"] },
 						closed: ["requestHash", "validatorAddress", "response"],
@@ -26346,7 +26136,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Esplora_Rest],
-							openFields: ["$$timestamps", "$$issuances"],
 						},
 						summary: {
 							title: ["name", "ticker", { field: "assetId", format: "truncated" }],
@@ -26496,7 +26285,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Constants_Internal, Source.Esplora_Rest],
-							openFields: ["$settlementNetwork", "$nativeAsset", "$$assets"],
 						},
 						summary: {
 							title: ["$network"],
@@ -26693,8 +26481,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.TheGraph_Graphql, Source.Voltaire_JsonRpc],
-							fields: ["name", "normalizedName", "node", "labelName", "labelhash", "$parent"],
-							openFields: ["$resolverContract", "$subgraphResolvedActor", "$ownerActor", "$$subdomains", "$$records", "$$timestamps"],
+							fields: ["normalizedName", "node", "labelName", "labelhash"],
 						},
 						summary: {
 							title: ["name"],
@@ -27349,8 +27136,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Blockscout_Rest],
-							fields: ["$contract", "$factory", "$$timestamps"],
-							openFields: ["$$userOperations"],
 						},
 						summary: {
 							title: [{ field: "address", format: "truncated" }],
@@ -27471,8 +27256,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Blockscout_Rest, Source.Defillama_Rest, Source.Etherscan_Rest, Source.Sourcify_Rest, Source.Voltaire_JsonRpc],
-							fields: ["$contract", "$network"],
-							openFields: ["$asset", "$shareToken", "name", "symbol", "decimals", "$$blocks", "$$timestamps"],
+							openFields: ["name", "symbol", "decimals"],
 						},
 						summary: {
 							title: ["name", "symbol"],
@@ -27525,7 +27309,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.SqdPortal_RawHttp, Source.Voltaire_JsonRpc],
-							fields: ["$vault", "blockNumber", "source"],
 							openFields: ["totalAssets", "totalSupply", "assetsPerShare", "sharesPerAsset", "maxDepositAssets", "maxMintShares", "maxWithdrawAssets", "maxRedeemShares", "previewDepositShares", "previewMintAssets", "previewWithdrawShares", "previewRedeemAssets"],
 						},
 						summary: {
@@ -27573,7 +27356,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Defillama_Rest],
-							fields: ["$vault", "timestampMs", "source"],
 							openFields: ["apyBase", "apyReward", "apyTotal", "tvlUsd", "rewardTokens", "poolId", "projectSlug", "chainLabel"],
 						},
 						summary: {
@@ -27803,7 +27585,6 @@ export const schema = {
 							openFields: [
 								"previousForkVersion",
 								"currentForkVersion",
-								"$$proposals",
 							],
 						},
 						summary: {
@@ -27983,7 +27764,6 @@ export const schema = {
 								"activationEpoch",
 								"activationTimestampMs",
 							],
-							openFields: ["$$proposals"],
 						},
 						summary: {
 							value: ["upgradeId"],
@@ -28116,11 +27896,6 @@ export const schema = {
 								"activationEpoch",
 								"activationTimestampMs",
 							],
-							openFields: [
-								"$networkExecutionUpgrade",
-								"$networkConsensusUpgrade",
-								"$$proposals",
-							],
 						},
 						summary: {
 							value: ["upgradeId"],
@@ -28233,7 +28008,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Constants_Internal],
-							fields: ["address"],
 						},
 						summary: {
 							title: [{ field: "address", format: "truncated" }],
@@ -28325,8 +28099,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.EnvioHyperSync_RawHttp, Source.SqdPortal_RawHttp, Source.Voltaire_JsonRpc],
-							fields: ["$actor", "$contract", "$actorCoin", "$spender"],
-							openFields: ["interopAddress", "$spenderContract", "$$blocks"],
 						},
 						summary: {
 							title: ["$contract"],
@@ -28430,10 +28202,7 @@ export const schema = {
 						query: {
 							sources: [Source.Voltaire_JsonRpc, Source.Blobscan_Rest],
 							fields: [
-								"$transaction",
-								"indexInTransaction",
 								"versionedHash",
-								"$block",
 							],
 							openFields: ["kzgCommitment"],
 						},
@@ -28607,7 +28376,6 @@ export const schema = {
 						query: {
 							sources: [Source.SqdPortal_RawHttp, Source.Voltaire_JsonRpc],
 							fields: [
-								"$network",
 								"blockNumber",
 								"hash",
 								"timestamp",
@@ -28615,14 +28383,11 @@ export const schema = {
 							],
 							openFields: [
 								"parentHash",
-								"$parent",
-								"$miner",
 								"gasUsed",
 								"gasLimit",
 								"baseFeePerGas",
 								"blobGasUsed",
 								"excessBlobGas",
-								"$$transactions",
 							],
 						},
 						summary: {
@@ -28826,7 +28591,7 @@ export const schema = {
 								sources: [Source.Constants_Internal],
 								openSources: [Source.Constants_Internal, Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.Coingecko_Rest, Source.Lifi_Rest],
 								fields: ["symbol", "name"],
-								openFields: ["$icon", "coinId", "decimals", "caip19", "representation", "iconUrl", "$canonicalInstance", "$$outboundBridgeCapabilities", "$$inboundBridgeCapabilities", "$$marketsWithInstanceAsBase", "$$marketsWithInstanceAsQuote"],
+								openFields: ["coinId", "decimals", "caip19", "representation", "iconUrl"],
 							},
 							summary: { title: ["symbol", "name"], value: ["symbol"] },
 							closed: ["symbol", "name"],
@@ -28868,7 +28633,7 @@ export const schema = {
 								sources: [Source.Blockscout_Rest, Source.Constants_Internal],
 								openSources: [Source.Blockscout_Rest, Source.Constants_Internal, Source.Coingecko_Rest, Source.Lifi_Rest],
 								fields: ["symbol", "name"],
-								openFields: ["$icon", "coinId", "decimals", "caip19", "representation", "iconUrl", "$canonicalInstance", "$$outboundBridgeCapabilities", "$$inboundBridgeCapabilities", "$$marketsWithInstanceAsBase", "$$marketsWithInstanceAsQuote"],
+								openFields: ["coinId", "decimals", "caip19", "representation", "iconUrl"],
 							},
 							summary: { title: ["symbol", "name"], value: ["symbol"] },
 							closed: ["symbol", "name"],
@@ -28890,10 +28655,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: {
-							fields: ["type"],
-							openFields: ["$network", "$contract"],
-						},
 						content: {
 							dl: [
 								["type", "$network", "$contract"],
@@ -29230,8 +28991,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Openchain_Rest],
-							fields: ["hex", "signatures"],
-							openFields: ["$$timestamps"],
+							fields: ["signatures"],
 						},
 						summary: {
 							Title: {
@@ -29370,9 +29130,6 @@ export const schema = {
 						query: {
 							sources: [Source.Openchain_Rest],
 							fields: [
-								"$error",
-								"timestampMs",
-								"source",
 								"signatures",
 							],
 							openFields: [
@@ -29526,15 +29283,10 @@ export const schema = {
 						query: {
 							sources: [Source.Blockscout_Rest],
 							fields: [
-								"$transaction",
-								"indexInTransaction",
 								"value",
 								"callType",
 								"success",
-								"$from",
-								"$to",
 							],
-							openFields: ["$createdContract"],
 						},
 						summary: {
 							serial: {
@@ -29748,16 +29500,10 @@ export const schema = {
 						query: {
 							sources: [Source.Blockscout_Rest],
 							fields: [
-								"$transaction",
-								"indexInTransaction",
-								"$emitter",
-								"$$topics",
 								"data",
 							],
 							openFields: [
-								"$block",
 								"removed",
-								["Event", "TokenTransfer", "$$tokenTransfers"],
 							],
 						},
 						summary: {
@@ -30342,8 +30088,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Constants_Internal],
-							fields: ["$actor", "$contract", "$coinInstance", "symbol", "decimals"],
-							openFields: ["$$timestamps", "$$blocks"],
+							fields: ["symbol", "decimals"],
 						},
 						summary: {
 							title: ["symbol"],
@@ -30553,7 +30298,6 @@ export const schema = {
 								"tokenUri",
 								["Eip8004Registration", "agentUri"],
 								["Eip8004Registration", "contactEndpoint"],
-								["Eip8004Registration", "$agentWallet"],
 								["Eip8004Registration", "x402Support"],
 								"active",
 								["Eip8004Registration", "supportedTrust"],
@@ -30697,7 +30441,6 @@ export const schema = {
 						query: {
 							sources: [Source.Constants_Internal],
 							fields: [
-								"scope",
 								"protocolName",
 								"registryName",
 								"relationshipModel",
@@ -30705,9 +30448,6 @@ export const schema = {
 							openFields: [
 								"homeUrl",
 								"docsUrl",
-								"$$evmTopics",
-								"$$evmSelectors",
-								"$$evmErrors",
 							],
 						},
 						summary: {
@@ -30990,8 +30730,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Openchain_Rest],
-							fields: ["hex", "signatures"],
-							openFields: ["$$timestamps"],
+							fields: ["signatures"],
 						},
 						summary: {
 							Title: {
@@ -31130,9 +30869,6 @@ export const schema = {
 						query: {
 							sources: [Source.Openchain_Rest],
 							fields: [
-								"$selector",
-								"timestampMs",
-								"source",
 								"signatures",
 							],
 							openFields: [
@@ -31350,14 +31086,8 @@ export const schema = {
 						query: {
 							sources: [Source.Blockscout_Rest],
 							fields: [
-								"$log",
-								"indexInLog",
 								"standard",
 								"amount",
-								"$from",
-								"$to",
-								"$coinInstance",
-								"$tokenContract",
 							],
 							openFields: [
 								["Nft", "tokenId"],
@@ -31531,8 +31261,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Openchain_Rest],
-							fields: ["hex", "signatures"],
-							openFields: ["$$timestamps"],
+							fields: ["signatures"],
 						},
 						summary: {
 							Title: {
@@ -31671,9 +31400,6 @@ export const schema = {
 						query: {
 							sources: [Source.Openchain_Rest],
 							fields: [
-								"$topic",
-								"timestampMs",
-								"source",
 								"signatures",
 							],
 							openFields: [
@@ -32066,16 +31792,10 @@ export const schema = {
 						query: {
 							sources: [Source.Blockscout_Rest, Source.Voltaire_JsonRpc],
 							fields: [
-								"$network",
-								"txHash",
 								"kind",
 								"value",
 								"executionStatus",
 								"gasUsed",
-								"$block",
-								"$from",
-								"$to",
-								["ContractCreation", "$contract"],
 							],
 							openFields: [
 								"nonce",
@@ -32093,13 +31813,6 @@ export const schema = {
 								"v",
 								["Blob", "blobGasUsed"],
 								["Blob", "maxFeePerBlobGas"],
-								["Blob", "$$blobs"],
-								"$$logs",
-								"$$internalTransfers",
-								"$$tokenTransfers",
-								"$$userOperations",
-								["SetCode", "$$authorizations"],
-								"$$traces",
 							],
 						},
 						summary: {
@@ -32469,20 +32182,12 @@ export const schema = {
 						query: {
 							sources: [Source.Blockscout_Rest],
 							fields: [
-								"$network",
-								"hash",
 								"successful",
 								"timestampMs",
 								"fee",
 								"nonce",
-								"$bundledTransaction",
-								"$block",
 							],
 							openFields: [
-								"$sender",
-								"$paymaster",
-								"$bundler",
-								"$entryPoint",
 								"entryPointVersion",
 								"sponsorType",
 								"callGasLimit",
@@ -32719,7 +32424,7 @@ export const schema = {
 						query: {
 							sources: [Source.Snapchain_Rest, Source.Neynar_Rest, Source.Farcaster_Rest],
 							fields: ["text", "timestamp", "fid", "hash"],
-							openFields: ["$author", "$parentCast", "parentUrl", "rootParentUrl", "$channel", "$$directReplies", "$$embeds", "$$timestamps"],
+							openFields: ["parentUrl", "rootParentUrl"],
 						},
 						summary: {
 							title: [{ field: "text", format: "truncated" }, { field: "hash", format: "truncated" }],
@@ -32864,8 +32569,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Farcaster_Rest],
-							fields: ["name", "description", "$icon", "url"],
-							openFields: ["$lead", "$moderator", "$$casts", "$$timestamps"],
+							fields: ["name", "description", "url"],
 						},
 						summary: {
 							icon: "$icon",
@@ -32967,8 +32671,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Constants_Internal, Source.Farcaster_Rest, Source.Neynar_Rest],
-							fields: ["label", "variant", "fid", "channelId", "viewerFid"],
-							openFields: ["$$entries"],
+							fields: ["label", "fid", "channelId", "viewerFid"],
 						},
 						summary: {
 							title: [{ field: "label" }, { field: "variant" }],
@@ -33022,7 +32725,6 @@ export const schema = {
 						query: {
 							sources: [Source.Constants_Internal],
 							fields: ["protocolName", "homeUrl", "docsUrl", "registryName", "relationshipModel"],
-							openFields: ["$$feeds", "$$users", "$$channels"],
 						},
 						summary: {
 							title: [{ field: "protocolName" }],
@@ -33080,8 +32782,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Snapchain_Rest],
-							fields: ["displayName", "username", "$icon"],
-							openFields: ["bio", "url", "$primaryEvmAccount", "$$verifiedAddresses", "$$casts", "$$timestamps"],
+							fields: ["displayName", "username"],
+							openFields: ["bio", "url"],
 						},
 						summary: {
 							icon: "$icon",
@@ -33381,7 +33083,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Lotus_JsonRpc],
-							openFields: ["$$timestamps"],
 						},
 						latest: [
 							{
@@ -33443,7 +33144,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Lotus_JsonRpc],
-							openFields: ["$tipset"],
 						},
 						summary: {
 							title: [{ field: "timestampMs", format: "timestamp" }],
@@ -33495,7 +33195,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Lotus_JsonRpc, Source.Filfox_Rest],
-							openFields: ["$tipset", "$miner", "$$messages"],
 						},
 						summary: {
 							title: [{ field: "cid", format: "truncated" }],
@@ -33553,9 +33252,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: {
-							openFields: ["$provider", "$client", "$$timestamps"],
-						},
 						summary: {
 							title: [{ field: "dealId", format: "number" }],
 							value: ["$provider", "$client"],
@@ -33668,7 +33364,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Filfox_Rest],
-							openFields: ["$from", "$to"],
 						},
 						summary: {
 							title: [{ field: "cid", format: "truncated" }],
@@ -33723,7 +33418,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Filfox_Rest],
-							openFields: ["$tipset"],
 						},
 						summary: {
 							title: ["tipsetKey"],
@@ -33771,7 +33465,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Lotus_JsonRpc],
-							openFields: ["$$timestamps", "$$sectors"],
 						},
 						latest: [
 							{
@@ -33839,7 +33532,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Lotus_JsonRpc],
-							openFields: ["$tipset", "$owner", "$worker"],
 						},
 						summary: {
 							title: [{ field: "timestampMs", format: "timestamp" }],
@@ -33896,7 +33588,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Lotus_JsonRpc],
-							openFields: ["$$timestamps", "$$tipsets"],
 						},
 						summary: {
 							title: ["$network"],
@@ -33953,7 +33644,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Lotus_JsonRpc],
-							openFields: ["$headTipset", "$$headMiners"],
 						},
 						summary: {
 							title: [{ field: "timestampMs", format: "timestamp" }],
@@ -34059,7 +33749,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Lotus_JsonRpc],
-							openFields: ["$tipset"],
 						},
 						summary: {
 							title: [{ field: "timestampMs", format: "timestamp" }],
@@ -34110,7 +33799,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Lotus_JsonRpc, Source.Filfox_Rest],
-							openFields: ["$parent", "$$blocks"],
 						},
 						summary: {
 							title: [{ field: "height", format: "number" }],
@@ -34974,8 +34662,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.HederaMirrorNode_Rest],
-							fields: ["$network", "accountId"],
-							openFields: ["$$allowances", "$$tokens", "$$nfts", "$$transactions", "$$timestamps"],
 						},
 						summary: {
 							title: ["accountId"],
@@ -41350,8 +41036,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Ipfs_Rest],
-							fields: ["namespace", "target", "contentPath", "canonicalUri", "gatewayOrigin", "gatewayUrl", "fileName", "extension", "contentType", "contentLength", "displayType", "isContentTypeInferred"],
-							openFields: ["text", "$media", "cidVersion", "cidMultibase", "cidMulticodecCode", "cidMultihashCode", "cidMultihashDigestHex", "isCidSubdomainSafe"],
+							fields: ["canonicalUri", "gatewayOrigin", "gatewayUrl", "fileName", "extension", "contentType", "contentLength", "displayType", "isContentTypeInferred"],
+							openFields: ["text", "cidVersion", "cidMultibase", "cidMulticodecCode", "cidMultihashCode", "cidMultihashDigestHex", "isCidSubdomainSafe"],
 						},
 						summary: {
 							title: [{ field: "canonicalUri", format: "truncated" }],
@@ -41853,8 +41539,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Lens_Graphql],
-							fields: ["address", "displayName", "localName", "bio", "createdAt", "$icon"],
-							openFields: ["legacyProfileId", "owner", "score", "isMemberOf", "iconUrl", "$$posts", "$$timestamps"],
+							fields: ["address", "displayName", "localName", "bio", "createdAt"],
+							openFields: ["legacyProfileId", "owner", "score", "isMemberOf", "iconUrl"],
 						},
 						summary: {
 							icon: "$icon",
@@ -42050,7 +41736,6 @@ export const schema = {
 						query: {
 							sources: [Source.Constants_Internal],
 							fields: ["protocolName", "relationshipModel", "homeUrl", "docsUrl", "registryName"],
-							openFields: ["$$lensAccounts", "$$lensPosts"],
 						},
 						summary: {
 							title: [{ field: "protocolName" }],
@@ -42117,8 +41802,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Lens_Graphql],
-							fields: ["text", "timestamp", "$author", "isDeleted"],
-							openFields: ["isEdited", "contentUri", "metadataHash", "$commentOn", "$quoteOf", "$repostOf", "$root", "$$comments", "$$timestamps"],
+							fields: ["text", "timestamp", "isDeleted"],
+							openFields: ["isEdited", "contentUri", "metadataHash"],
 						},
 						summary: {
 							title: [{ field: "text", format: "truncated" }, { field: "id", format: "truncated" }],
@@ -42356,8 +42041,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest],
-							fields: ["shortChannelId", "$node1", "fundingTransactionId", "fundingOutputIndex"],
-							openFields: ["openedAtMs", "$$timestamps", "$$localStates"],
+							fields: ["shortChannelId", "fundingTransactionId", "fundingOutputIndex"],
+							openFields: ["openedAtMs"],
 						},
 						summary: {
 							title: ["shortChannelId"],
@@ -42437,8 +42122,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest],
-							fields: ["name", "$settlementNetwork"],
-							openFields: ["$$timestamps", "$$nodes", "$$channels", "$$invoices", "$$payments"],
+							fields: ["name"],
 						},
 						summary: {
 							title: ["name"],
@@ -42538,8 +42222,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest],
-							fields: ["$$timestamps"],
-						openFields: ["$$channels"],
 						},
 						summary: {
 							title: [{ field: "publicKey", format: "truncated" }],
@@ -42673,20 +42355,10 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Dexscreener_Rest],
-							fields: [
-								"$network",
-								"id",
-								"$baseToken",
-								"$quoteToken",
-							],
 							openFields: [
 								"fee",
 								"tickSpacing",
-								"$hooks",
 								"v4PoolId",
-								"$$timestamps",
-								"$$blocks",
-								"$$leverages",
 							],
 						},
 						summary: {
@@ -42948,8 +42620,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.LitecoinCore_JsonRpc],
-							fields: ["$block"],
-							openFields: ["hogExTransactionId", "kernelRoot", "$$transactions"],
+							openFields: ["hogExTransactionId", "kernelRoot"],
 						},
 						summary: { title: ["$block"], value: ["hogExTransactionId"], HeadingAfter: ["kernelRoot"] },
 						closed: ["$block", "hogExTransactionId", "kernelRoot"],
@@ -42986,7 +42657,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.LitecoinCore_JsonRpc],
-							fields: ["$transaction", "outputIndex"],
 							openFields: ["commitment", "senderPubkey"],
 						},
 						summary: { title: ["commitment"], titleFallback: ["$transaction"], value: [{ field: "outputIndex", format: "number" }] },
@@ -43020,8 +42690,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.LitecoinCore_JsonRpc],
-							fields: ["$transaction", "pegInIndex"],
-							openFields: ["$transparentOutput", "amountLitoshis"],
+							openFields: ["amountLitoshis"],
 						},
 						summary: { title: ["$transaction"], value: [{ field: "pegInIndex", format: "number" }], HeadingAfter: ["$transparentOutput"] },
 						closed: ["$transaction", { field: "pegInIndex", format: "number" }, "$transparentOutput"],
@@ -43054,8 +42723,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.LitecoinCore_JsonRpc],
-							fields: ["$transaction", "pegOutIndex"],
-							openFields: ["$transparentOutput", "amountLitoshis"],
+							openFields: ["amountLitoshis"],
 						},
 						summary: { title: ["$transaction"], value: [{ field: "pegOutIndex", format: "number" }], HeadingAfter: ["$transparentOutput"] },
 						closed: ["$transaction", { field: "pegOutIndex", format: "number" }, "$transparentOutput"],
@@ -43090,8 +42758,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.LitecoinCore_JsonRpc],
-							fields: ["$mwebBlock", "transactionIndex"],
-							openFields: ["kernelOffset", "$$outputs", "$$pegIns", "$$pegOuts"],
+							openFields: ["kernelOffset"],
 						},
 						summary: { title: ["$mwebBlock"], value: [{ field: "transactionIndex", format: "number" }], HeadingAfter: ["kernelOffset"] },
 						closed: ["$mwebBlock", { field: "transactionIndex", format: "number" }, "kernelOffset"],
@@ -43406,14 +43073,6 @@ export const schema = {
 								default: "Market_Derivative_TimestampView",
 							},
 						],
-						query: {
-							fields: [
-								"$base",
-								"$quote",
-								"$marketVenue",
-								"marketKind",
-							],
-						},
 						summary: {
 							Title: dedent `
 	{selection.entitySelector.$marketVenue.marketVenueId}:{selection.entitySelector.$base.assetKey}-{selection.entitySelector.$quote.assetKey}
@@ -43959,15 +43618,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: {
-							fields: [
-								"$market",
-								"$parentMarket",
-							],
-							openFields: [
-								"$$quotes",
-							],
-						},
 						latest: [
 							{
 								field: "$$quotes",
@@ -44131,8 +43781,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.McpDeclared_Protocol],
-							fields: ["$server", "name"],
-							openFields: ["title", "description", "argumentsSchema", "$$results"],
+							openFields: ["title", "description", "argumentsSchema"],
 						},
 						summary: { title: ["title"], titleFallback: ["name"], value: ["$server"] },
 						closed: ["$server", "name", "title"],
@@ -44173,7 +43822,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.McpDeclared_Protocol],
-							fields: ["$prompt", "argumentsHashAlgorithm", "argumentsHash", "timestampMs", "source"],
 							openFields: ["description", "messages", "raw", "error"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["$prompt"], HeadingAfter: ["error"] },
@@ -44213,8 +43861,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.McpDeclared_Protocol],
-							fields: ["$server", "uri"],
-							openFields: ["name", "title", "description", "mimeType", "annotations", "subscribed", "$$contentTimestamps"],
+							openFields: ["name", "title", "description", "mimeType", "annotations", "subscribed"],
 						},
 						summary: { title: ["title"], titleFallback: ["name", "uri"], value: ["mimeType"], HeadingAfter: ["subscribed"] },
 						closed: ["$server", "uri", "name"],
@@ -44258,7 +43905,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.McpDeclared_Protocol],
-							fields: ["$resource", "timestampMs", "source"],
 							openFields: ["contentKind", "text", "blobHashAlgorithm", "blobHash", "uri", "mimeType", "size", "annotations", "error"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["contentKind", "mimeType"], HeadingAfter: ["error"] },
@@ -44296,7 +43942,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.McpDeclared_Protocol],
-							fields: ["$server", "uriTemplate"],
 							openFields: ["name", "title", "description", "mimeType", "annotations"],
 						},
 						summary: { title: ["title"], titleFallback: ["name", "uriTemplate"], value: ["mimeType"] },
@@ -44336,8 +43981,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Eip8004Scan_Rest, Source.McpDeclared_Protocol],
-							fields: ["serverKey"],
-							openFields: ["$source", "$packageVersion", "transportKind", "endpointUrl", "$$tools", "$$resources", "$$resourceTemplates", "$$prompts", "$$timestamps"],
+							openFields: ["transportKind", "endpointUrl"],
 						},
 						summary: { title: ["serverKey"], value: ["transportKind"], HeadingAfter: ["endpointUrl"] },
 						closed: ["serverKey", "transportKind", "endpointUrl"],
@@ -44409,7 +44053,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.McpDeclared_Protocol],
-							fields: ["$server", "timestampMs", "source"],
 							openFields: ["health", "protocolVersion", "serverCapabilities", "toolsListChanged", "resourcesListChanged", "resourcesSubscribe", "promptsListChanged", "toolCount", "resourceCount", "promptCount", "nextCursor", "error"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["health"], HeadingAfter: ["error"] },
@@ -44486,8 +44129,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.McpPackageRegistry_Rest],
-							fields: ["$package", "version"],
-							openFields: ["$artifact", "releaseDate", "registryStatus", "publishedAt", "isLatest", "packageRegistryType", "packageRegistryBaseUrl", "packageIdentifier", "runtimeHint", "transportKind", "packages", "remotes", "packageArguments", "runtimeArguments", "environmentVariables", "publisherMeta", "$$documents"],
+							fields: ["version"],
+							openFields: ["releaseDate", "registryStatus", "publishedAt", "isLatest", "packageRegistryType", "packageRegistryBaseUrl", "packageIdentifier", "runtimeHint", "transportKind", "packages", "remotes", "packageArguments", "runtimeArguments", "environmentVariables", "publisherMeta"],
 						},
 						summary: { title: ["version"], titleFallback: ["$artifact"], value: ["$package"], HeadingAfter: ["registryStatus"] },
 						closed: ["$package", "version", "$artifact"],
@@ -44524,7 +44167,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.McpDeclared_Protocol],
-							fields: ["$server", "name"],
 							openFields: ["title", "description", "inputSchema", "outputSchema", "annotations"],
 						},
 						summary: { title: ["title"], titleFallback: ["name"], value: ["$server"] },
@@ -44564,8 +44206,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.McpDeclared_Protocol],
-							fields: ["$server", "callId"],
-							openFields: ["$tool", "startedAt", "completedAt", "inputHashAlgorithm", "inputHash", "outputHashAlgorithm", "outputHash", "$$timestamps"],
+							openFields: ["startedAt", "completedAt", "inputHashAlgorithm", "inputHash", "outputHashAlgorithm", "outputHash"],
 						},
 						summary: { title: ["callId"], value: ["$tool"], HeadingAfter: [{ field: "startedAt", format: "timestamp" }] },
 						closed: ["$server", "callId", "$tool"],
@@ -44611,7 +44252,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.McpDeclared_Protocol],
-							fields: ["$toolCall", "timestampMs", "source"],
 							openFields: ["status", "latencyMs", "isError", "protocolError", "content", "structuredContent", "resourceLinks", "embeddedResources", "error", "payload"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["status", "isError"], HeadingAfter: ["error"] },
@@ -45327,7 +44967,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.MoneroDaemonRpc_JsonRpc, Source.ThreeXpl_Rest],
-							openFields: ["$parent", "$$transactions"],
 						},
 						summary: {
 							title: [{ field: "height", format: "number" }],
@@ -45378,7 +45017,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.MoneroDaemonRpc_JsonRpc],
-							openFields: ["$ring"],
 						},
 						summary: {
 							title: [{ field: "keyImage", format: "truncated" }],
@@ -45421,7 +45059,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.MoneroDaemonRpc_JsonRpc],
-							openFields: ["$$timestamps", "$$blocks"],
 						},
 						summary: {
 							title: ["$network"],
@@ -45568,7 +45205,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.MoneroDaemonRpc_JsonRpc],
-							openFields: ["$$members"],
 						},
 						summary: {
 							title: ["$keyImage"],
@@ -45692,7 +45328,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.MoneroDaemonRpc_JsonRpc],
-							openFields: ["$block", "$$keyImages", "$$stealthOutputs"],
 						},
 						summary: {
 							title: [{ field: "txHash", format: "truncated" }],
@@ -46015,7 +45650,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest],
-							openFields: ["$contract", "$$accessKeys"],
 						},
 						summary: {
 							title: ["accountId"],
@@ -46164,7 +45798,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest, Source.ThreeXpl_Rest],
-							openFields: ["$parent", "$$chunks"],
 						},
 						summary: {
 							title: [{ field: "height", format: "number" }],
@@ -46216,7 +45849,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.NearRpc_JsonRpc],
-							openFields: ["$block", "$$transactions"],
 						},
 						summary: {
 							title: [{ field: "chunkHash", format: "truncated" }],
@@ -46406,7 +46038,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.NearRpc_JsonRpc],
-							openFields: ["$$receipts"],
 						},
 						summary: {
 							title: [{ field: "outcomeId", format: "truncated" }],
@@ -46456,7 +46087,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Constants_Internal, Source.NearRpc_JsonRpc],
-							openFields: ["$$timestamps", "$$blocks", "$$validators"],
 						},
 						summary: {
 							title: ["name", "slug"],
@@ -46586,7 +46216,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.NearRpc_JsonRpc],
-							openFields: ["$predecessor", "$receiver"],
 						},
 						summary: {
 							title: [{ field: "receiptId", format: "truncated" }],
@@ -46633,7 +46262,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest],
-							openFields: ["$signer", "$receiver", "$$actions", "$$executionOutcomes"],
 						},
 						summary: {
 							title: [{ field: "hash", format: "truncated" }],
@@ -48269,7 +47897,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Constants_Internal],
-							openFields: ["$$specificationProposals", "$$timestamps"],
 						},
 						summary: {
 							title: ["name", "upgradeId"],
@@ -48438,8 +48065,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.NostrBand_Rest, Source.Primal_Rest],
-							fields: ["kind", "pubkey", "identifier", "$latestEvent"],
-							openFields: ["$$events"],
 						},
 						summary: {
 							title: ["$latestEvent", "identifier"],
@@ -48507,7 +48132,7 @@ export const schema = {
 							fallbackText: "Sensitive content",
 						},
 						query: {
-							fields: ["eventId", "$article", "identifier", "createdAt", "signature", "title", "publishedAt", "$author"],
+							fields: ["identifier", "createdAt", "signature", "title", "publishedAt"],
 							openFields: ["content", "tags"],
 						},
 						summary: {
@@ -48677,14 +48302,11 @@ export const schema = {
 						query: {
 							sources: [Source.Constants_Internal, Source.NostrBand_Rest, Source.Primal_Rest],
 							fields: [
-								"eventId",
 								"kind",
 								"pubkey",
 								"content",
 								"createdAt",
-								"$author",
 							],
-							openFields: ["$replyToNote", "$rootNote", "$$replies", "$$reactions"],
 						},
 						summary: {
 							title: [{ field: "content", format: "longText" }],
@@ -48813,8 +48435,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Constants_Internal, Source.NostrBand_Rest, Source.Primal_Rest],
-							fields: ["pubkey", "$latestMetadataEvent"],
-							openFields: ["$$metadataEvents", "$$notes", "$$articles", "$$reposts"],
 						},
 						summary: {
 							title: ["$latestMetadataEvent"],
@@ -48893,7 +48513,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							fields: ["eventId", "$profile", "pubkey", "createdAt", "signature", "displayName", "about", "nip05", "lud16", "website", "$icon"],
+							fields: ["pubkey", "createdAt", "signature", "displayName", "about", "nip05", "lud16", "website"],
 							openFields: ["content", "tags", "lud06", "iconUrl", "bannerUrl"],
 						},
 						summary: {
@@ -48991,14 +48611,10 @@ export const schema = {
 						query: {
 							sources: [Source.Primal_Rest, Source.NostrBand_Rest],
 							fields: [
-								"eventId",
 								"kind",
 								"pubkey",
 								"createdAt",
 								"content",
-								"$author",
-								"$targetNote",
-								"$targetArticle",
 							],
 						},
 						summary: {
@@ -49126,9 +48742,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: {
-							fields: ["relayUrl", "$$notes", "$$timestamps"],
-						},
 						latest: [
 							{
 								field: "$$timestamps",
@@ -49375,14 +48988,10 @@ export const schema = {
 						query: {
 							sources: [Source.Primal_Rest, Source.NostrBand_Rest],
 							fields: [
-								"eventId",
 								"kind",
 								"pubkey",
 								"createdAt",
 								"repostedEventId",
-								"$author",
-								"$repostedNote",
-								"$repostedArticle",
 							],
 						},
 						summary: {
@@ -49469,8 +49078,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.NostrBand_Rest],
-							fields: ["query", "resultCount", "completed"],
-							openFields: ["$$profiles"],
+							fields: ["resultCount", "completed"],
 						},
 						summary: {
 							title: [{ kind: _ViewItemKind.Text, label: "Search: " }, { field: "query" }],
@@ -49642,7 +49250,7 @@ export const schema = {
 						query: {
 							sources: [Source.PayjoinDirectory_Rest],
 							fields: ["ohttpGatewayUrl", "ohttpKeyConfig"],
-							openFields: ["maxPayloadBytes", "$$blockheadSessions"],
+							openFields: ["maxPayloadBytes"],
 						},
 						summary: {
 							title: ["directoryUrl"],
@@ -50265,8 +49873,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.PythBenchmarks_Rest, Source.PythHermes_Rest, Source.Pyth_EvmContract, Source.Pyth_SolanaProgram],
-							fields: ["priceFeedId", "channel"],
-							openFields: ["symbol", "assetClass", "baseAsset", "quoteAsset", "$market", "$$timestamps"],
+							openFields: ["symbol", "assetClass", "baseAsset", "quoteAsset"],
 						},
 						summary: { title: ["symbol"], titleFallback: ["priceFeedId"], value: ["channel"], HeadingAfter: ["$market"] },
 						closed: ["priceFeedId", "symbol", "$market"],
@@ -50315,7 +49922,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.PythBenchmarks_Rest, Source.PythHermes_Rest, Source.Pyth_EvmContract, Source.Pyth_SolanaProgram],
-							fields: ["$feed", "publishTimeMs", "source"],
 							openFields: ["observedAtMs", "price", "conf", "expo", "emaPrice", "emaConf", "vaa", "updateDataHash", "slot", "sequence", "onChainNetwork", "onChainContract", "stale"],
 						},
 						summary: { title: [{ field: "publishTimeMs", format: "timestamp" }], value: ["price"], HeadingAfter: ["source"] },
@@ -50351,8 +49957,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.QuilibriumNode_Grpc],
-							fields: ["$network", "accountAddress"],
-							openFields: ["accountKind", "$$blockheadAccountStates"],
+							openFields: ["accountKind"],
 						},
 						summary: { title: ["accountAddress"], value: ["$network"], HeadingAfter: ["accountKind"] },
 						closed: ["accountAddress"],
@@ -50388,8 +49993,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.QuilibriumNode_Grpc],
-							fields: ["$network", "frameNumber", "shardKey"],
-							openFields: ["frameHash", "timestampMs", "difficulty", "$shard", "$prover"],
+							openFields: ["frameHash", "timestampMs", "difficulty"],
 						},
 						summary: { title: [{ field: "frameNumber", format: "number" }], value: ["shardKey"], HeadingAfter: ["frameHash"] },
 						closed: ["shardKey", { field: "frameNumber", format: "number" }],
@@ -50425,8 +50029,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.QuilibriumNode_Grpc],
-							fields: ["$network", "proverPeerId"],
-							openFields: ["publicKey", "version", "lastSeenAt", "$$frames"],
+							openFields: ["publicKey", "version", "lastSeenAt"],
 						},
 						summary: { title: ["proverPeerId"], value: ["$network"], HeadingAfter: ["version"] },
 						closed: ["proverPeerId"],
@@ -50463,8 +50066,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.QuilibriumNode_Grpc],
-							fields: ["$network", "shardKey"],
-							openFields: ["shardKind", "$applicationAccount", "$$frames"],
+							openFields: ["shardKind"],
 						},
 						summary: { title: ["shardKey"], value: ["$network"], HeadingAfter: ["shardKind"] },
 						closed: ["shardKey"],
@@ -51333,7 +50935,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Reddit_PublicJson],
-							openFields: ["$$replies", "$$timestamps", "$link", "$parentComment"],
 						},
 						summary: {
 							title: [
@@ -51563,7 +51164,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Reddit_PublicJson],
-							openFields: ["$$comments", "$$timestamps", "$subreddit"],
 						},
 						summary: {
 							title: [
@@ -51845,7 +51445,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Reddit_PublicJson],
-							openFields: ["$$links", "$$timestamps"],
 						},
 						summary: {
 							icon: "$icon",
@@ -52152,7 +51751,6 @@ export const schema = {
 						query: {
 							sources: [Source.Rss_Rest, Source.Rss2Json_Rest],
 							fields: ["title", "description", "siteUrl", "language", "lastBuildDate"],
-							openFields: ["$$items", "$$timestamps"],
 						},
 						summary: {
 							title: [{ field: "title" }, { field: "feedUrl" }],
@@ -52257,8 +51855,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Rss_Rest, Source.Rss2Json_Rest],
-							fields: ["title", "link", "publishedAt", "$feed"],
-							openFields: ["description", "content", "author", "updatedAt", "categories", "enclosureUrl", "commentsUrl", "$$timestamps"],
+							fields: ["title", "link", "publishedAt"],
+							openFields: ["description", "content", "author", "updatedAt", "categories", "enclosureUrl", "commentsUrl"],
 						},
 						summary: {
 							title: [{ field: "title" }, { field: "itemIdentity" }],
@@ -52366,7 +51964,6 @@ export const schema = {
 						query: {
 							sources: [Source.Constants_Internal],
 							fields: ["protocolName", "homeUrl", "docsUrl", "registryName", "relationshipModel"],
-							openFields: ["$$rssFeeds"],
 						},
 						summary: {
 							title: [{ field: "protocolName" }],
@@ -52732,7 +52329,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Solana_JsonRpc],
-							fields: ["$$timestamps"],
 						},
 						summary: { title: [{ field: "pubkey", format: "truncated" }], value: ["$network"] },
 						content: { dl: [[{ field: "pubkey", format: "truncated" }, "$network"]] },
@@ -53007,9 +52603,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: {
-							fields: ["$network", "mintAddress", "$$timestamps"],
-						},
 						summary: { title: [{ field: "mintAddress", format: "truncated" }], value: [{ field: "mintAddress", format: "truncated" }], HeadingAfter: ["$network"] },
 						content: { dl: [[{ field: "mintAddress", format: "truncated" }, "$network"]] },
 						carousels: [
@@ -53136,9 +52729,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: {
-							fields: ["$network", "votePubkey", "$$timestamps"],
-						},
 						summary: { title: [{ field: "votePubkey", format: "truncated" }], value: [{ field: "votePubkey", format: "truncated" }], HeadingAfter: ["$network"] },
 						content: { dl: [[{ field: "votePubkey", format: "truncated" }, "$network"]] },
 						carousels: [
@@ -53662,9 +53252,6 @@ export const schema = {
 						query: {
 							sources: specificationProposalSourceSelection,
 							fields: [
-								"realm",
-								"category",
-								"number",
 								"documentTitle",
 								"documentStatus",
 							],
@@ -53930,8 +53517,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Constants_Internal],
-							fields: ["label", "labelPlural", "slug", "$specificationRealm"],
-							openFields: ["$$proposals"],
+							fields: ["label", "labelPlural", "slug"],
 						},
 						summary: {
 							value: ["label"],
@@ -54029,7 +53615,6 @@ export const schema = {
 						query: {
 							sources: [Source.Constants_Internal],
 							fields: ["label", "labelPlural", "slug"],
-							openFields: ["$$proposalKinds", "$$proposals"],
 						},
 						summary: {
 							value: ["realm"],
@@ -54275,8 +53860,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Constants_Internal, Source.Juno_JsonRpc, Source.L2Beat_Rest, Source.Pathfinder, Source.Starkscan, Source.Voyager],
-							fields: ["$network"],
-							openFields: ["chainId", "$$timestamps", "$$blocks", "$$transactions", "$$contracts", "$$classes"],
+							openFields: ["chainId"],
 						},
 						summary: { title: ["$network"], value: ["chainId"] },
 						closed: ["$network", "chainId", "$$timestamps"],
@@ -57852,8 +57436,8 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Swarm_Rest],
-							fields: ["reference", "contentPath", "canonicalUri", "gatewayOrigin", "gatewayUrl", "fileName", "extension", "contentType", "contentLength", "displayType", "isContentTypeInferred"],
-							openFields: ["text", "$media"],
+							fields: ["canonicalUri", "gatewayOrigin", "gatewayUrl", "fileName", "extension", "contentType", "contentLength", "displayType", "isContentTypeInferred"],
+							openFields: ["text"],
 						},
 						summary: {
 							title: [{ field: "canonicalUri", format: "truncated" }],
@@ -63148,10 +62732,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: {
-							fields: ["$network", "address"],
-							openFields: ["$$timestamps", "$$outputs", "$$transactions"],
-						},
 						summary: { title: [{ field: "address", format: "truncated" }], value: [{ field: "address", format: "truncated" }], HeadingAfter: ["$network"] },
 						content: {
 							dl: [
@@ -63552,7 +63132,6 @@ export const schema = {
 						query: {
 							sources: [Source.Constants_Internal],
 							fields: ["protocolName", "homeUrl", "docsUrl", "registryName", "relationshipModel"],
-							openFields: ["$$xmtpConversations"],
 						},
 						summary: {
 							title: [{ field: "protocolName" }],
@@ -63622,7 +63201,6 @@ export const schema = {
 						query: {
 							sources: [Source.Constants_Internal],
 							fields: ["protocolName", "homeUrl", "docsUrl", "registryName", "relationshipModel"],
-							openFields: ["$$xUsers", "$$xPosts"],
 						},
 						summary: {
 							title: [{ field: "protocolName" }],
@@ -63684,8 +63262,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.X_Rest, Source.X_FxEmbed_Rest],
-							fields: ["text", "createdAt", "$author", "$replyToPost", "$quotedPost", "$$media"],
-							openFields: ["$$timestamps"],
+							fields: ["text", "createdAt"],
 						},
 						summary: {
 							title: [{ field: "text", format: "truncated" }, { field: "id" }],
@@ -63742,9 +63319,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: {
-							fields: ["$post", "timestampMs", "source"],
-						},
 						summary: {
 							title: [{ field: "$post" }],
 							value: [{ field: "timestampMs", format: "timestamp" }],
@@ -63825,8 +63399,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Xrpl_Rippled],
-							fields: ["$network", "account"],
-							openFields: ["$$ledgerEntries", "$$transactions", "$$trustlines", "$$timestamps"],
 						},
 						summary: {
 							title: ["account"],
@@ -63929,7 +63501,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Xrpl_Rippled],
-							fields: ["$account", "ledgerIndex", "source"],
 							openFields: ["timestampMs", "balanceDrops", "ownerCount", "sequence", "flags"],
 						},
 						summary: {
@@ -64702,8 +64273,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.X_Rest, Source.X_FxEmbed_Rest],
-							fields: ["id", "username", "name", "description", "location", "websiteUrl", "verified", "createdAt", "$icon"],
-							openFields: ["$$timestamps", "$$posts"],
+							fields: ["id", "username", "name", "description", "location", "websiteUrl", "verified", "createdAt"],
 						},
 						summary: {
 							icon: "$icon",
@@ -64761,9 +64331,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: {
-							fields: ["$user", "timestampMs", "source"],
-						},
 						summary: {
 							title: [{ field: "$user" }],
 							value: [{ field: "timestampMs", format: "timestamp" }],
@@ -65104,13 +64671,6 @@ export const schema = {
 								"text",
 								"authorDisplayName",
 								"publishedAtMs",
-								"$author",
-								"$video",
-								"$parentComment",
-							],
-							openFields: [
-								"$$timestamps",
-								"$$replies",
 							],
 						},
 						TypeAnnotationTooltip: dedent `
@@ -65427,7 +64987,6 @@ export const schema = {
 								Source.Piped_Rest,
 								Source.Constants_Internal,
 							],
-							openFields: ["$$videos", "$channel"],
 						},
 						summary: {
 							icon: "$thumbnail",
@@ -65959,8 +65518,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.ZeroGChainScan_Rest],
-							fields: ["$network", "consensusNetworkId"],
-							openFields: ["$$timestamps"],
 						},
 						summary: { title: ["consensusNetworkId"], value: ["$network"] },
 						content: {
@@ -66025,8 +65582,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.ZeroGChainScan_Rest, Source.ZeroGStorageNode_JsonRpc],
-							fields: ["$network", "nodeId"],
-							openFields: ["$quorum", "$operator", "endpoint"],
+							openFields: ["endpoint"],
 						},
 						summary: { title: ["nodeId"], value: ["$network"], HeadingAfter: ["$quorum"] },
 						content: {
@@ -66059,8 +65615,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.ZeroGChainScan_Rest, Source.ZeroGStorageNode_JsonRpc],
-							fields: ["$network", "quorumId"],
-							openFields: ["$consensusNetwork", "selectionMethod", "$$daNodes"],
+							openFields: ["selectionMethod"],
 						},
 						summary: { title: ["quorumId"], value: ["$network"], HeadingAfter: ["$consensusNetwork"] },
 						content: {
@@ -66100,8 +65655,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.ZeroGStorageScan_Rest, Source.ZeroGStorageNode_JsonRpc],
-							fields: ["$network", "dataRoot"],
-							openFields: ["$consensusNetwork", "$daQuorum", "sizeBytes", "erasureCodingScheme", "aggregatedSignature", "$$chunks", "$storageLogEntry"],
+							openFields: ["sizeBytes", "erasureCodingScheme", "aggregatedSignature"],
 						},
 						summary: { title: ["dataRoot"], value: ["$network"], HeadingAfter: [{ field: "sizeBytes", format: "number" }] },
 						content: {
@@ -66159,8 +65713,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.ZeroGStorageNode_JsonRpc, Source.ZeroGStorageScan_Rest],
-							fields: ["$network", "namespace", "key"],
-							openFields: ["$logEntry", "$owner", "valueHash"],
+							openFields: ["valueHash"],
 						},
 						summary: { title: ["key"], value: ["namespace"], HeadingAfter: ["$network"] },
 						content: {
@@ -66202,8 +65755,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Constants_Internal],
-							fields: ["slug", "name", "namespace", "environment", "chainId", "$executionNetwork"],
-							openFields: ["$consensusNetwork", "$$timestamps", "$$storageNodes", "$$dataBlobs"],
+							fields: ["name", "namespace", "environment", "chainId"],
 						},
 						summary: { title: ["name"], value: ["slug"], HeadingAfter: ["environment"] },
 						content: {
@@ -66320,8 +65872,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.ZeroGStorageNode_JsonRpc, Source.ZeroGStorageScan_Rest],
-							fields: ["$network", "providerId"],
-							openFields: ["serviceKind", "$operator", "verificationMethod", "$$requests"],
+							openFields: ["serviceKind", "verificationMethod"],
 						},
 						summary: { title: ["providerId"], value: ["serviceKind"], HeadingAfter: ["$network"] },
 						content: {
@@ -66358,8 +65909,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.ZeroGChain_JsonRpc, Source.ZeroGStorageNode_JsonRpc, Source.ZeroGStorageScan_Rest],
-							fields: ["$serviceProvider", "requestId"],
-							openFields: ["$requester", "requestHash", "responseHash", "$settlementTrace"],
+							openFields: ["requestHash", "responseHash"],
 						},
 						summary: { title: ["requestId"], value: ["$serviceProvider"], HeadingAfter: ["$requester"] },
 						content: {
@@ -66392,7 +65942,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.ZeroGChain_JsonRpc, Source.ZeroGStorageNode_JsonRpc, Source.ZeroGStorageScan_Rest],
-							fields: ["$serviceRequest", "traceId"],
 							openFields: ["settlementTransactionHash", "acknowledgementSignature", "rewardAmount"],
 						},
 						summary: { title: ["traceId"], value: ["$serviceRequest"], HeadingAfter: ["settlementTransactionHash"] },
@@ -66427,8 +65976,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.ZeroGStorageScan_Rest],
-							fields: ["$network", "logEntryId"],
-							openFields: ["$dataBlob", "$consensusNetwork", "sequenceNumber", "commitment"],
+							openFields: ["sequenceNumber", "commitment"],
 						},
 						summary: { title: ["logEntryId"], value: ["$network"], HeadingAfter: [{ field: "sequenceNumber", format: "number" }] },
 						content: {
@@ -66539,8 +66087,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.ZeroGStorageScan_Rest],
-							fields: ["$storageNode", "proofId"],
-							openFields: ["$dataBlob", "$consensusNetwork", "proofKind", "verifiedAtBlock"],
+							openFields: ["proofKind", "verifiedAtBlock"],
 						},
 						summary: { title: ["proofId"], value: ["$storageNode"], HeadingAfter: ["proofKind"] },
 						content: {
