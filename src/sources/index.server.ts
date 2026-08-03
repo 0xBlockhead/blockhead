@@ -8,7 +8,7 @@ const privateEnvHasValue = (key: string | undefined) => (
 	&& (privateEnv[key]?.trim() ?? '') !== ''
 )
 
-export const enabledSourceBindings = sourceBindings.filter((binding) => (
+export const enabledSourceBindings = sourceBindings.filter((binding: SourceBinding) => (
 	binding.credentials.every((credential) => (
 		(
 			credential.scope !== SourceCredentialScope.RuntimeSecret
@@ -30,7 +30,7 @@ export const enabledSources = new Set(
 
 export const httpProxyOrigins = new Set(
 	enabledSourceBindings
-		.filter((binding) => binding.delivery === SourceDelivery.HttpProxy)
+		.filter((binding: SourceBinding) => binding.delivery === SourceDelivery.HttpProxy)
 		.flatMap((binding) => binding.endpoints)
 		.filter((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
 		.flatMap((endpoint) => sourceEndpointOrigin(endpoint) ?? [])
