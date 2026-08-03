@@ -4813,55 +4813,37 @@ const combineSingularViewContributions = (
 	summary: {
 		...(base?.summary ?? {}),
 		...(facet.summary ?? {}),
-		icon: [
-			...viewItems(base?.summary?.icon),
-			...viewItems(facet.summary?.icon),
-		],
-		title: [
-			...viewItems(base?.summary?.title),
-			...viewItems(facet.summary?.title),
-		],
-		value: [
-			...viewItems(base?.summary?.value),
-			...viewItems(facet.summary?.value),
-		],
-		titleFallback: [
-			...viewItems(base?.summary?.titleFallback),
-			...viewItems(facet.summary?.titleFallback),
-		],
-		HeadingAfter: [
-			...viewItems(base?.summary?.HeadingAfter),
-			...viewItems(facet.summary?.HeadingAfter),
-		],
+		...Object.fromEntries(([
+			'icon',
+			'title',
+			'value',
+			'titleFallback',
+			'HeadingAfter',
+		] as const).map((slot) => [slot, [
+			...viewItems(base?.summary?.[slot]),
+			...viewItems(facet.summary?.[slot]),
+		]])),
 	},
 	query: base?.query,
 	content: {
 		...(base?.content ?? {}),
 		...(facet.content ?? {}),
-		dl: [
-			...(base?.content?.dl ?? []),
-			...(facet.content?.dl ?? []),
-		],
-		blocks: [
-			...(base?.content?.blocks ?? []),
-			...(facet.content?.blocks ?? []),
-		],
-		lists: [
-			...(base?.content?.lists ?? []),
-			...(facet.content?.lists ?? []),
-		],
+		...Object.fromEntries(([
+			'dl',
+			'blocks',
+			'lists',
+		] as const).map((slot) => [slot, [
+			...(base?.content?.[slot] ?? []),
+			...(facet.content?.[slot] ?? []),
+		]])),
 	},
 	details: {
 		...(base?.details ?? {}),
 		...(facet.details ?? {}),
-		blocks: [
-			...(base?.details?.blocks ?? []),
-			...(facet.details?.blocks ?? []),
-		],
-		tabs: [
-			...(base?.details?.tabs ?? []),
-			...(facet.details?.tabs ?? []),
-		],
+		...Object.fromEntries((['blocks', 'tabs'] as const).map((slot) => [slot, [
+			...(base?.details?.[slot] ?? []),
+			...(facet.details?.[slot] ?? []),
+		]])),
 	},
 	closed: [
 		...viewItems(base?.closed),
@@ -8392,6 +8374,32 @@ const fieldDefinitionByReference = (
 	))
 }
 
+const unresolvedPrimitiveContentFieldReferences = (
+	entity: Entity,
+	indexes: GenerationIndexes,
+	viewEntry: _ViewItem
+) => {
+	if (
+		viewItemSourceSelection(entity, indexes, viewEntry) != null
+		|| typeof viewEntry === 'object' && (
+			'kind' in viewEntry
+			|| 'primitiveList' in viewEntry && viewEntry.primitiveList != null
+		)
+	)
+		return
+
+	const fieldReference = itemFieldReferences(viewEntry)[0]
+	return (
+		fieldReference != null
+		&& !isProjectionFieldReference(fieldReference)
+		&& fieldDefinitionByReference(entity, fieldReference, indexes)?.type === EntityFieldType.Primitive
+		&& !entitySelectorOwnsField(entity, fieldReference) ?
+			viewItemFieldReferences(viewEntry)
+		:
+			undefined
+	)
+}
+
 const compileCollectionReferencePath = (
 	entity: Entity,
 	indexes: Pick<GenerationIndexes, 'entityByType' | 'entityFacetByPath'>,
@@ -10052,23 +10060,8 @@ const generateSingularViewFile = (
 		+ contentRows
 			.flat()
 			.filter((viewEntry) => {
-				if (
-					viewItemSourceSelection(entity, indexes, viewEntry) != null
-					|| typeof viewEntry === 'object' && (
-						'kind' in viewEntry
-						|| 'primitiveList' in viewEntry && viewEntry.primitiveList != null
-					)
-				)
-					return false
-
-				const fieldReference = itemFieldReferences(viewEntry)[0]
-				return (
-					fieldReference != null
-					&& !isProjectionFieldReference(fieldReference)
-					&& fieldDefinitionByReference(entity, fieldReference, indexes)?.type === EntityFieldType.Primitive
-					&& !entitySelectorOwnsField(entity, fieldReference)
-					&& viewItemFieldReferences(viewEntry).every((field) => queryFieldKeys.has(fieldReferenceKey(field)))
-				)
+				const fieldReferences = unresolvedPrimitiveContentFieldReferences(entity, indexes, viewEntry)
+				return fieldReferences?.every((field) => queryFieldKeys.has(fieldReferenceKey(field))) === true
 			})
 			.length
 		+ (
@@ -10305,24 +10298,8 @@ const generateSingularViewFile = (
 		contentRowsToRender
 			.flat()
 			.filter((viewEntry) => {
-				if (
-					viewItemSourceSelection(entity, indexes, viewEntry) != null
-					|| typeof viewEntry === 'object' && (
-						'kind' in viewEntry
-						|| 'primitiveList' in viewEntry && viewEntry.primitiveList != null
-					)
-				)
-					return false
-
-				const fieldReference = itemFieldReferences(viewEntry)[0]
-				const fieldDefinition = fieldReference == null ? undefined : fieldDefinitionByReference(entity, fieldReference, indexes)
-				return (
-					fieldReference != null
-					&& !isProjectionFieldReference(fieldReference)
-					&& fieldDefinition?.type === EntityFieldType.Primitive
-					&& !entitySelectorOwnsField(entity, fieldReference)
-					&& !viewItemFieldReferences(viewEntry).every((field) => queryFieldKeys.has(fieldReferenceKey(field)))
-				)
+				const fieldReferences = unresolvedPrimitiveContentFieldReferences(entity, indexes, viewEntry)
+				return fieldReferences != null && !fieldReferences.every((field) => queryFieldKeys.has(fieldReferenceKey(field)))
 			})
 			.length
 		+ (
