@@ -6,6 +6,13 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const blockfrostRestSources = [
+	Source.Blockfrost_Rest,
+] as const
+const cardanoKoiosRestSources = [
+	Source.CardanoKoios_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.CardanoTransaction,
 	labels: {
@@ -52,51 +59,37 @@ export default entity({
 	$$inputs: {
 		entityType: EntityType.CardanoTxInput,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Blockfrost_Rest,
-		],
+		defaultSources: blockfrostRestSources,
 	},
 	$$outputs: {
 		entityType: EntityType.CardanoTxOutput,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Blockfrost_Rest,
-		],
+		defaultSources: blockfrostRestSources,
 	},
 	$$certificates: {
 		entityType: EntityType.CardanoCertificate,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.CardanoKoios_Rest,
-		],
+		defaultSources: cardanoKoiosRestSources,
 	},
 	$$scripts: {
 		entityType: EntityType.CardanoScriptWitness,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.CardanoKoios_Rest,
-		],
+		defaultSources: cardanoKoiosRestSources,
 	},
 	$$governanceProposals: {
 		entityType: EntityType.CardanoGovernanceProposal,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.CardanoKoios_Rest,
-		],
+		defaultSources: cardanoKoiosRestSources,
 	},
 	$$governanceVotes: {
 		entityType: EntityType.CardanoGovernanceVote,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.CardanoKoios_Rest,
-		],
+		defaultSources: cardanoKoiosRestSources,
 	},
 	$$assets: {
 		entityType: EntityType.CardanoNativeAsset,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Blockfrost_Rest,
-		],
+		defaultSources: blockfrostRestSources,
 	},
 })({
 	selectors: {

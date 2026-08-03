@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const lightningMempoolSpaceRestSources = [
+	Source.LightningMempoolSpace_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.LightningNetwork_Timestamp,
 	labels: {
@@ -28,72 +32,52 @@ export default entity({
 	nodeCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	channelCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	totalCapacitySats: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	torNodeCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	clearnetNodeCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	unannouncedNodeCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	averageCapacitySats: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	medianCapacitySats: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	averageFeeRatePpm: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	medianFeeRatePpm: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 })({
 	selectors: {

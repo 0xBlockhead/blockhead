@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const tronScanRestSources = [
+	Source.TronScan_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.TronToken_Timestamp,
 	labels: {
@@ -32,37 +36,27 @@ export default entity({
 	name: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronScan_Rest,
-		],
+		defaultSources: tronScanRestSources,
 	},
 	symbol: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronScan_Rest,
-		],
+		defaultSources: tronScanRestSources,
 	},
 	decimals: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronScan_Rest,
-		],
+		defaultSources: tronScanRestSources,
 	},
 	totalSupply: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronScan_Rest,
-		],
+		defaultSources: tronScanRestSources,
 	},
 	holderCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronScan_Rest,
-		],
+		defaultSources: tronScanRestSources,
 	},
 	transferCount: {
 		primitiveType: type('number'),

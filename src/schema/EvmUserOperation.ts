@@ -7,6 +7,10 @@ import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const blockscoutRestSources = [
+	Source.Blockscout_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.EvmUserOperation,
 	labels: {
@@ -21,177 +25,127 @@ export default entity({
 	hash: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	$bundledTransaction: {
 		entityType: EntityType.EvmTransaction,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	$sender: {
 		entityType: EntityType.Erc4337SmartAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	$block: {
 		entityType: EntityType.EvmBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	timestampMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	successful: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	fee: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	nonce: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	callGasLimit: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	verificationGasLimit: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	preVerificationGas: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	maxFeePerGas: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	maxPriorityFeePerGas: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	gas: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	gasUsed: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	gasPrice: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	entryPointVersion: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	$entryPoint: {
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	initCode: {
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	callData: {
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	sponsorType: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	paymasterAndData: {
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	signature: {
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	$paymaster: {
 		entityType: EntityType.Erc4337Paymaster,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 	$bundler: {
 		entityType: EntityType.Erc4337Bundler,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-		],
+		defaultSources: blockscoutRestSources,
 	},
 })({
 	selectors: {

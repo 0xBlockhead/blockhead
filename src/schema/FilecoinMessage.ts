@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const filfoxRestSources = [
+	Source.Filfox_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.FilecoinMessage,
 	labels: {
@@ -24,44 +28,32 @@ export default entity({
 	$from: {
 		entityType: EntityType.FilecoinActor,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Filfox_Rest,
-		],
+		defaultSources: filfoxRestSources,
 	},
 	$to: {
 		entityType: EntityType.FilecoinActor,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Filfox_Rest,
-		],
+		defaultSources: filfoxRestSources,
 	},
 	method: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Filfox_Rest,
-		],
+		defaultSources: filfoxRestSources,
 	},
 	nonce: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Filfox_Rest,
-		],
+		defaultSources: filfoxRestSources,
 	},
 	valueAttoFil: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Filfox_Rest,
-		],
+		defaultSources: filfoxRestSources,
 	},
 	gasLimit: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Filfox_Rest,
-		],
+		defaultSources: filfoxRestSources,
 	},
 })({
 	selectors: {

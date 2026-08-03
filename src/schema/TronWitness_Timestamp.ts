@@ -7,6 +7,10 @@ import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const tronGridRestSources = [
+	Source.TronGrid_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.TronWitness_Timestamp,
 	labels: {
@@ -29,51 +33,37 @@ export default entity({
 	url: {
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronGrid_Rest,
-		],
+		defaultSources: tronGridRestSources,
 	},
 	voteCount: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronGrid_Rest,
-		],
+		defaultSources: tronGridRestSources,
 	},
 	totalProduced: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronGrid_Rest,
-		],
+		defaultSources: tronGridRestSources,
 	},
 	totalMissed: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronGrid_Rest,
-		],
+		defaultSources: tronGridRestSources,
 	},
 	latestBlockHeight: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronGrid_Rest,
-		],
+		defaultSources: tronGridRestSources,
 	},
 	latestSlotNumber: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronGrid_Rest,
-		],
+		defaultSources: tronGridRestSources,
 	},
 	active: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronGrid_Rest,
-		],
+		defaultSources: tronGridRestSources,
 	},
 })({
 	selectors: {

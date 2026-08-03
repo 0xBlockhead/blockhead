@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const blockfrostRestSources = [
+	Source.Blockfrost_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.CardanoAddress,
 	labels: {
@@ -24,9 +28,7 @@ export default entity({
 	addressKind: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockfrost_Rest,
-		],
+		defaultSources: blockfrostRestSources,
 	},
 	paymentCredential: {
 		primitiveType: type('string'),
@@ -39,37 +41,27 @@ export default entity({
 	$stakeCredential: {
 		entityType: EntityType.CardanoStakeCredential,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockfrost_Rest,
-		],
+		defaultSources: blockfrostRestSources,
 	},
 	$$utxos: {
 		entityType: EntityType.CardanoTxOutput,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Blockfrost_Rest,
-		],
+		defaultSources: blockfrostRestSources,
 	},
 	$$assets: {
 		entityType: EntityType.CardanoNativeAsset,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Blockfrost_Rest,
-		],
+		defaultSources: blockfrostRestSources,
 	},
 	$$transactions: {
 		entityType: EntityType.CardanoTransaction,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Blockfrost_Rest,
-		],
+		defaultSources: blockfrostRestSources,
 	},
 	$$timestamps: {
 		entityType: EntityType.CardanoAddress_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Blockfrost_Rest,
-		],
+		defaultSources: blockfrostRestSources,
 	},
 })({
 	selectors: {

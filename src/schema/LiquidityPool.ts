@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const dexscreenerRestSources = [
+	Source.Dexscreener_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.LiquidityPool,
 	labels: {
@@ -24,16 +28,12 @@ export default entity({
 	$baseToken: {
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	$quoteToken: {
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	fee: {
 		primitiveType: type('number'),
@@ -54,9 +54,7 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType.LiquidityPool_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	$$blocks: {
 		entityType: EntityType.LiquidityPool_Block,

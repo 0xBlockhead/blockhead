@@ -7,6 +7,11 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const blockscoutRestEtherscanRestSources = [
+	Source.Blockscout_Rest,
+	Source.Etherscan_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.EvmTokenTransfer,
 	labels: {
@@ -49,26 +54,17 @@ export default entity({
 	tokenSymbol: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-			Source.Etherscan_Rest,
-		],
+		defaultSources: blockscoutRestEtherscanRestSources,
 	},
 	tokenName: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-			Source.Etherscan_Rest,
-		],
+		defaultSources: blockscoutRestEtherscanRestSources,
 	},
 	tokenDecimals: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockscout_Rest,
-			Source.Etherscan_Rest,
-		],
+		defaultSources: blockscoutRestEtherscanRestSources,
 	},
 })({
 	selectors: {

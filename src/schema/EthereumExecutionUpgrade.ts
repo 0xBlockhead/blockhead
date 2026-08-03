@@ -7,6 +7,10 @@ import { ExecutionProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const constantsInternalSources = [
+	Source.Constants_Internal,
+] as const
+
 export default entity({
 	entityType: EntityType.EthereumExecutionUpgrade,
 	labels: {
@@ -25,37 +29,27 @@ export default entity({
 	name: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
+		defaultSources: constantsInternalSources,
 	},
 	slug: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
+		defaultSources: constantsInternalSources,
 	},
 	activationBlock: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
+		defaultSources: constantsInternalSources,
 	},
 	activationTimestampMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
+		defaultSources: constantsInternalSources,
 	},
 	activationEpoch: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
+		defaultSources: constantsInternalSources,
 	},
 	protocol: {
 		primitiveType: type.enumerated(...Object.values(ExecutionProtocol)),

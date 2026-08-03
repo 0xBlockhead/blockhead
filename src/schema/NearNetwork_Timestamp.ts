@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const nearRpcJsonRpcSources = [
+	Source.NearRpc_JsonRpc,
+] as const
+
 export default entity({
 	entityType: EntityType.NearNetwork_Timestamp,
 	labels: {
@@ -28,100 +32,72 @@ export default entity({
 	headHeight: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
+		defaultSources: nearRpcJsonRpcSources,
 	},
 	headHash: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
+		defaultSources: nearRpcJsonRpcSources,
 	},
 	epochId: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
+		defaultSources: nearRpcJsonRpcSources,
 	},
 	epochHeight: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
+		defaultSources: nearRpcJsonRpcSources,
 	},
 	epochStartHeight: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
+		defaultSources: nearRpcJsonRpcSources,
 	},
 	chunkCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
+		defaultSources: nearRpcJsonRpcSources,
 	},
 	gasPriceYoctoNear: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
+		defaultSources: nearRpcJsonRpcSources,
 	},
 	currentValidatorCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
+		defaultSources: nearRpcJsonRpcSources,
 	},
 	nextValidatorCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
+		defaultSources: nearRpcJsonRpcSources,
 	},
 	currentProposalCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
+		defaultSources: nearRpcJsonRpcSources,
 	},
 	protocolVersion: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
+		defaultSources: nearRpcJsonRpcSources,
 	},
 	latestProtocolVersion: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
+		defaultSources: nearRpcJsonRpcSources,
 	},
 	nodeVersion: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
+		defaultSources: nearRpcJsonRpcSources,
 	},
 	syncing: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
+		defaultSources: nearRpcJsonRpcSources,
 	},
 })({
 	selectors: {

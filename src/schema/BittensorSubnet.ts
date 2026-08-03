@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const bittensorJsonRpcSources = [
+	Source.Bittensor_JsonRpc,
+] as const
+
 export default entity({
 	entityType: EntityType.BittensorSubnet,
 	labels: {
@@ -40,16 +44,12 @@ export default entity({
 	$$metagraphTimestamps: {
 		entityType: EntityType.BittensorMetagraph_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Bittensor_JsonRpc,
-		],
+		defaultSources: bittensorJsonRpcSources,
 	},
 	$$neurons: {
 		entityType: EntityType.BittensorNeuron,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Bittensor_JsonRpc,
-		],
+		defaultSources: bittensorJsonRpcSources,
 	},
 })({
 	selectors: {

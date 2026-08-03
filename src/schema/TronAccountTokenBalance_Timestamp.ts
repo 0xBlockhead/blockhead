@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const tronScanRestSources = [
+	Source.TronScan_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.TronAccountTokenBalance_Timestamp,
 	labels: {
@@ -36,16 +40,12 @@ export default entity({
 	standard: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronScan_Rest,
-		],
+		defaultSources: tronScanRestSources,
 	},
 	balance: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronScan_Rest,
-		],
+		defaultSources: tronScanRestSources,
 	},
 	ownedSerialNumbers: {
 		primitiveType: type('bigint'),
@@ -54,23 +54,17 @@ export default entity({
 	tokenId: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronScan_Rest,
-		],
+		defaultSources: tronScanRestSources,
 	},
 	tokenName: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronScan_Rest,
-		],
+		defaultSources: tronScanRestSources,
 	},
 	tokenSymbol: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronScan_Rest,
-		],
+		defaultSources: tronScanRestSources,
 	},
 	frozenBalance: {
 		primitiveType: type('bigint'),

@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const blockfrostRestSources = [
+	Source.Blockfrost_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.CardanoStakePool,
 	labels: {
@@ -24,37 +28,27 @@ export default entity({
 	vrfKeyHash: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockfrost_Rest,
-		],
+		defaultSources: blockfrostRestSources,
 	},
 	name: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockfrost_Rest,
-		],
+		defaultSources: blockfrostRestSources,
 	},
 	ticker: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockfrost_Rest,
-		],
+		defaultSources: blockfrostRestSources,
 	},
 	description: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockfrost_Rest,
-		],
+		defaultSources: blockfrostRestSources,
 	},
 	homepage: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Blockfrost_Rest,
-		],
+		defaultSources: blockfrostRestSources,
 	},
 	$$timestamps: {
 		entityType: EntityType.CardanoStakePool_Timestamp,

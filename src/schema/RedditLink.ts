@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const redditPublicJsonSources = [
+	Source.Reddit_PublicJson,
+] as const
+
 export default entity({
 	entityType: EntityType.RedditLink,
 	labels: {
@@ -48,16 +52,12 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType.RedditLink_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Reddit_PublicJson,
-		],
+		defaultSources: redditPublicJsonSources,
 	},
 	$$comments: {
 		entityType: EntityType.RedditComment,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Reddit_PublicJson,
-		],
+		defaultSources: redditPublicJsonSources,
 	},
 })({
 	selectors: {

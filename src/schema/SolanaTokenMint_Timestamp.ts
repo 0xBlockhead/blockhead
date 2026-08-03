@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const solanaJsonRpcSources = [
+	Source.Solana_JsonRpc,
+] as const
+
 export default entity({
 	entityType: EntityType.SolanaTokenMint_Timestamp,
 	labels: {
@@ -32,37 +36,27 @@ export default entity({
 	supply: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Solana_JsonRpc,
-		],
+		defaultSources: solanaJsonRpcSources,
 	},
 	decimals: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Solana_JsonRpc,
-		],
+		defaultSources: solanaJsonRpcSources,
 	},
 	mintAuthorityPubkey: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Solana_JsonRpc,
-		],
+		defaultSources: solanaJsonRpcSources,
 	},
 	freezeAuthorityPubkey: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Solana_JsonRpc,
-		],
+		defaultSources: solanaJsonRpcSources,
 	},
 	isInitialized: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Solana_JsonRpc,
-		],
+		defaultSources: solanaJsonRpcSources,
 	},
 })({
 	selectors: {

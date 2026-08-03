@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const cashuMintRestSources = [
+	Source.CashuMint_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.CashuMint_Timestamp,
 	labels: {
@@ -28,37 +32,27 @@ export default entity({
 	reachable: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.CashuMint_Rest,
-		],
+		defaultSources: cashuMintRestSources,
 	},
 	name: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.CashuMint_Rest,
-		],
+		defaultSources: cashuMintRestSources,
 	},
 	pubkey: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.CashuMint_Rest,
-		],
+		defaultSources: cashuMintRestSources,
 	},
 	version: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.CashuMint_Rest,
-		],
+		defaultSources: cashuMintRestSources,
 	},
 	description: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.CashuMint_Rest,
-		],
+		defaultSources: cashuMintRestSources,
 	},
 	descriptionLong: {
 		primitiveType: type('string'),

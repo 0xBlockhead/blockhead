@@ -6,6 +6,13 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const constantsInternalSources = [
+	Source.Constants_Internal,
+] as const
+const nearRpcJsonRpcSources = [
+	Source.NearRpc_JsonRpc,
+] as const
+
 export default entity({
 	entityType: EntityType.NearNetwork,
 	labels: {
@@ -21,23 +28,17 @@ export default entity({
 	name: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
+		defaultSources: constantsInternalSources,
 	},
 	namespace: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
+		defaultSources: constantsInternalSources,
 	},
 	environment: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
+		defaultSources: constantsInternalSources,
 	},
 	rpcEndpoints: {
 		primitiveType: type({
@@ -46,30 +47,22 @@ export default entity({
 			providerName: type('string'),
 		}),
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
+		defaultSources: nearRpcJsonRpcSources,
 	},
 	$$timestamps: {
 		entityType: EntityType.NearNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
+		defaultSources: nearRpcJsonRpcSources,
 	},
 	$$blocks: {
 		entityType: EntityType.NearBlock,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
+		defaultSources: nearRpcJsonRpcSources,
 	},
 	$$validators: {
 		entityType: EntityType.NearValidator,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.NearRpc_JsonRpc,
-		],
+		defaultSources: nearRpcJsonRpcSources,
 	},
 })({
 	selectors: {

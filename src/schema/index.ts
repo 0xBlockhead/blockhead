@@ -26,13 +26,7 @@ import _GlobalSwarmAccessSchema from '$/schema/_GlobalSwarmAccess.ts'
 import _GlobalXNetworkSchema from '$/schema/_GlobalXNetwork.ts'
 import _GlobalYoutubeNetwork_TimestampSchema from '$/schema/_GlobalYoutubeNetwork_Timestamp.ts'
 import _GlobalYoutubeNetworkSchema from '$/schema/_GlobalYoutubeNetwork.ts'
-import {
-	indexSchema,
-	type EntityDefinition,
-	type EntityFieldDefinitions,
-	type EntitySelector,
-	type Schema,
-} from '$/schema/$schema.ts'
+import { indexSchema, type EntityFieldDefinitions, type EntitySelector, type Schema } from '$/schema/$schema.ts'
 import A2aAgentCard_SnapshotSchema from '$/schema/A2aAgentCard_Snapshot.ts'
 import A2aAgentCardSchema from '$/schema/A2aAgentCard.ts'
 import A2aAgentInterfaceSchema from '$/schema/A2aAgentInterface.ts'
@@ -1054,7 +1048,7 @@ const schemaChunk0 = [
 	AcpPermissionRequestSchema,
 	AcpPromptTurnSchema,
 	AcpSessionSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk1 = [
 	AcpSessionUpdateSchema,
@@ -1107,7 +1101,7 @@ const schemaChunk1 = [
 	AlgorandTransactionSchema,
 	AlgorandTransactionGroupSchema,
 	AlgorandTransactionProofSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk2 = [
 	AptosAccountSchema,
@@ -1160,7 +1154,7 @@ const schemaChunk2 = [
 	AvalancheValidator_TimestampSchema,
 	BeaconAttestationSchema,
 	BeaconCommitteeSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk3 = [
 	BeaconEpochSchema,
@@ -1213,7 +1207,7 @@ const schemaChunk3 = [
 	BlockheadAvalancheNodeState_TimestampSchema,
 	BlockheadBitTorrentClientStateSchema,
 	BlockheadBitTorrentClientState_TimestampSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk4 = [
 	BlockheadBitTorrentTransfer_TimestampSchema,
@@ -1266,7 +1260,7 @@ const schemaChunk4 = [
 	BlockheadMoneroOutputStateSchema,
 	BlockheadMoneroOutputState_TimestampSchema,
 	BlockheadMoneroSubaddressStateSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk5 = [
 	BlockheadMoneroSubaddressState_TimestampSchema,
@@ -1319,7 +1313,7 @@ const schemaChunk5 = [
 	BlockheadWalletRequestSchema,
 	BlockheadWalletRequest_TimestampSchema,
 	BlockheadWalletRequestCallSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk6 = [
 	BlockheadWalletTransportSessionSchema,
@@ -1372,7 +1366,7 @@ const schemaChunk6 = [
 	CardanoStakePoolSchema,
 	CardanoStakePool_TimestampSchema,
 	CardanoTransactionSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk7 = [
 	CardanoTxInputSchema,
@@ -1425,7 +1419,7 @@ const schemaChunk7 = [
 	DydxChainNetworkSchema,
 	DydxChainNetwork_TimestampSchema,
 	DydxChainOrderSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk8 = [
 	DydxChainOrder_TimestampSchema,
@@ -1478,7 +1472,7 @@ const schemaChunk8 = [
 	Erc4626Vault_BlockSchema,
 	Erc4626Vault_TimestampSchema,
 	EthereumBeaconFinality_TimestampSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk9 = [
 	EthereumConsensusUpgradeSchema,
@@ -1531,7 +1525,7 @@ const schemaChunk9 = [
 	FarcasterNetworkSchema,
 	FarcasterUserSchema,
 	FarcasterUser_TimestampSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk10 = [
 	FarcasterVerifiedAddressSchema,
@@ -1584,7 +1578,7 @@ const schemaChunk10 = [
 	HederaContract_TimestampSchema,
 	HederaContractActionSchema,
 	HederaContractLogSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk11 = [
 	HederaContractResultSchema,
@@ -1637,7 +1631,7 @@ const schemaChunk11 = [
 	IbcChannelSchema,
 	IbcClientSchema,
 	IbcConnectionSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk12 = [
 	IbcDenomTraceSchema,
@@ -1690,7 +1684,7 @@ const schemaChunk12 = [
 	LightningNetworkSchema,
 	LightningNetwork_TimestampSchema,
 	LightningNodeSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk13 = [
 	LightningNode_TimestampSchema,
@@ -1743,7 +1737,7 @@ const schemaChunk13 = [
 	MoveModuleSchema,
 	MoveModule_TimestampSchema,
 	MoveStructSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk14 = [
 	NearAccessKeySchema,
@@ -1796,7 +1790,7 @@ const schemaChunk14 = [
 	PolkadotAssetSchema,
 	PolkadotAsset_TimestampSchema,
 	PolkadotAssetBalance_TimestampSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk15 = [
 	PolkadotBlockSchema,
@@ -1849,7 +1843,7 @@ const schemaChunk15 = [
 	SolanaTokenAccount_TimestampSchema,
 	SolanaTokenMintSchema,
 	SolanaTokenMint_TimestampSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk16 = [
 	SolanaTransactionSchema,
@@ -1902,7 +1896,7 @@ const schemaChunk16 = [
 	SuiCoinBalance_TimestampSchema,
 	SuiCoinTypeSchema,
 	SuiDynamicFieldEdgeSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk17 = [
 	SuiDynamicFieldEdge_TimestampSchema,
@@ -1955,7 +1949,7 @@ const schemaChunk17 = [
 	TonAccountSchema,
 	TonAccount_TimestampSchema,
 	TonBlockSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk18 = [
 	TonContractSchema,
@@ -2008,7 +2002,7 @@ const schemaChunk18 = [
 	WalletConnectionMethodSchema,
 	XmtpConversationSchema,
 	XmtpNetworkSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 const schemaChunk19 = [
 	XNetworkSchema,
@@ -2056,7 +2050,7 @@ const schemaChunk19 = [
 	ZeroGStorageNodeSchema,
 	ZeroGStorageNode_TimestampSchema,
 	ZeroGStorageProofSchema,
-] as const satisfies EntityDefinition[]
+] as const
 
 export const schema = [
 	...schemaChunk0,

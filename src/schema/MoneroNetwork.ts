@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const moneroDaemonRpcJsonRpcSources = [
+	Source.MoneroDaemonRpc_JsonRpc,
+] as const
+
 export default entity({
 	entityType: EntityType.MoneroNetwork,
 	labels: {
@@ -25,23 +29,17 @@ export default entity({
 			providerName: type('string'),
 		}),
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	$$timestamps: {
 		entityType: EntityType.MoneroNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	$$blocks: {
 		entityType: EntityType.MoneroBlock,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 })({
 	selectors: {

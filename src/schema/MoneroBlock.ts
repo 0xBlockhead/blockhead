@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const moneroDaemonRpcJsonRpcSources = [
+	Source.MoneroDaemonRpc_JsonRpc,
+] as const
+
 export default entity({
 	entityType: EntityType.MoneroBlock,
 	labels: {
@@ -28,9 +32,7 @@ export default entity({
 	$parent: {
 		entityType: EntityType.MoneroBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	timestampMs: {
 		primitiveType: type('number'),
@@ -43,23 +45,17 @@ export default entity({
 	difficulty: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	weightBytes: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	$$transactions: {
 		entityType: EntityType.MoneroTransaction,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 })({
 	selectors: {

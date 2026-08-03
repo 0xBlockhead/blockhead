@@ -6,6 +6,13 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const tronScanRestSources = [
+	Source.TronScan_Rest,
+] as const
+const tronGridRestSources = [
+	Source.TronGrid_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.TronAccount_Timestamp,
 	labels: {
@@ -42,65 +49,47 @@ export default entity({
 	createdTimestampMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronScan_Rest,
-		],
+		defaultSources: tronScanRestSources,
 	},
 	latestOperationTimestampMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronScan_Rest,
-		],
+		defaultSources: tronScanRestSources,
 	},
 	totalTransactionCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronScan_Rest,
-		],
+		defaultSources: tronScanRestSources,
 	},
 	freeNetUsed: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronGrid_Rest,
-		],
+		defaultSources: tronGridRestSources,
 	},
 	freeNetLimit: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronGrid_Rest,
-		],
+		defaultSources: tronGridRestSources,
 	},
 	netUsed: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronGrid_Rest,
-		],
+		defaultSources: tronGridRestSources,
 	},
 	netLimit: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronGrid_Rest,
-		],
+		defaultSources: tronGridRestSources,
 	},
 	energyUsed: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronGrid_Rest,
-		],
+		defaultSources: tronGridRestSources,
 	},
 	energyLimit: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronGrid_Rest,
-		],
+		defaultSources: tronGridRestSources,
 	},
 	tronPowerUsed: {
 		primitiveType: type('bigint'),
@@ -113,9 +102,7 @@ export default entity({
 	isContract: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronScan_Rest,
-		],
+		defaultSources: tronScanRestSources,
 	},
 })({
 	selectors: {

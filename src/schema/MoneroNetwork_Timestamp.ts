@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const moneroDaemonRpcJsonRpcSources = [
+	Source.MoneroDaemonRpc_JsonRpc,
+] as const
+
 export default entity({
 	entityType: EntityType.MoneroNetwork_Timestamp,
 	labels: {
@@ -28,205 +32,147 @@ export default entity({
 	height: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	targetHeight: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	topBlockHash: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	difficulty: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	wideDifficulty: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	cumulativeDifficulty: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	wideCumulativeDifficulty: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	blockSizeLimit: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	blockSizeMedian: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	blockWeightLimit: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	blockWeightMedian: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	databaseSize: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	freeSpace: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	greyPeerlistSize: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	whitePeerlistSize: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	incomingConnections: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	outgoingConnections: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	txCount: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	txPoolSize: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	altBlocksCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	targetSeconds: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	rpcConnections: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	mainnet: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	nettype: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	offline: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	synchronized: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	wasBootstrapEverUsed: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	version: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 	status: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.MoneroDaemonRpc_JsonRpc,
-		],
+		defaultSources: moneroDaemonRpcJsonRpcSources,
 	},
 })({
 	selectors: {

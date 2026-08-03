@@ -6,6 +6,15 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const tronGridRestTronFullNodeRestTronSolidityNodeRestSources = [
+	Source.TronGrid_Rest,
+	Source.TronFullNode_Rest,
+	Source.TronSolidityNode_Rest,
+] as const
+const tronGridRestSources = [
+	Source.TronGrid_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.TronBlock,
 	labels: {
@@ -38,11 +47,7 @@ export default entity({
 	parentHash: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronGrid_Rest,
-			Source.TronFullNode_Rest,
-			Source.TronSolidityNode_Rest,
-		],
+		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestSources,
 	},
 	timestampMs: {
 		primitiveType: type('number'),
@@ -58,23 +63,17 @@ export default entity({
 	$witness: {
 		entityType: EntityType.TronWitness,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronGrid_Rest,
-		],
+		defaultSources: tronGridRestSources,
 	},
 	txTrieRoot: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronGrid_Rest,
-		],
+		defaultSources: tronGridRestSources,
 	},
 	version: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.TronGrid_Rest,
-		],
+		defaultSources: tronGridRestSources,
 	},
 	transactionCount: {
 		primitiveType: type('number'),
@@ -87,11 +86,7 @@ export default entity({
 	$$transactions: {
 		entityType: EntityType.TronTransaction,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.TronGrid_Rest,
-			Source.TronFullNode_Rest,
-			Source.TronSolidityNode_Rest,
-		],
+		defaultSources: tronGridRestTronFullNodeRestTronSolidityNodeRestSources,
 	},
 })({
 	selectors: {

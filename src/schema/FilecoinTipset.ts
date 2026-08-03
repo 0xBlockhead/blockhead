@@ -6,6 +6,11 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const lotusJsonRpcFilfoxRestSources = [
+	Source.Lotus_JsonRpc,
+	Source.Filfox_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.FilecoinTipset,
 	labels: {
@@ -28,10 +33,7 @@ export default entity({
 	$parent: {
 		entityType: EntityType.FilecoinTipset,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-			Source.Filfox_Rest,
-		],
+		defaultSources: lotusJsonRpcFilfoxRestSources,
 	},
 	parentWeight: {
 		primitiveType: type('bigint'),
@@ -43,18 +45,12 @@ export default entity({
 	timestampMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-			Source.Filfox_Rest,
-		],
+		defaultSources: lotusJsonRpcFilfoxRestSources,
 	},
 	$$blocks: {
 		entityType: EntityType.FilecoinBlock,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-			Source.Filfox_Rest,
-		],
+		defaultSources: lotusJsonRpcFilfoxRestSources,
 	},
 })({
 	selectors: {

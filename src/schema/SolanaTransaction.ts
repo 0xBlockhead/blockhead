@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const solanaJsonRpcSources = [
+	Source.Solana_JsonRpc,
+] as const
+
 export default entity({
 	entityType: EntityType.SolanaTransaction,
 	labels: {
@@ -48,16 +52,12 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType.SolanaTransaction_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Solana_JsonRpc,
-		],
+		defaultSources: solanaJsonRpcSources,
 	},
 	$$instructions: {
 		entityType: EntityType.SolanaInstruction,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Solana_JsonRpc,
-		],
+		defaultSources: solanaJsonRpcSources,
 	},
 })({
 	selectors: {

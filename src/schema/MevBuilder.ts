@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const mevRelayRestSources = [
+	Source.MevRelay_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.MevBuilder,
 	labels: {
@@ -24,16 +28,12 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType.MevBuilder_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.MevRelay_Rest,
-		],
+		defaultSources: mevRelayRestSources,
 	},
 	$$deliveredPayloads: {
 		entityType: EntityType.MevRelay_ProposerPayloadDelivered,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.MevRelay_Rest,
-		],
+		defaultSources: mevRelayRestSources,
 	},
 })({
 	selectors: {

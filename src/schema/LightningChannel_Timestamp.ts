@@ -7,6 +7,14 @@ import { LightningChannelStatus } from '$/schema/LightningChannelStatus.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const lightningMempoolSpaceRestLightningLndRestSources = [
+	Source.LightningMempoolSpace_Rest,
+	Source.LightningLnd_Rest,
+] as const
+const lightningMempoolSpaceRestSources = [
+	Source.LightningMempoolSpace_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.LightningChannel_Timestamp,
 	labels: {
@@ -29,60 +37,42 @@ export default entity({
 	status: {
 		primitiveType: type.enumerated(...Object.values(LightningChannelStatus)),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-			Source.LightningLnd_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestLightningLndRestSources,
 	},
 	capacitySats: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-			Source.LightningLnd_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestLightningLndRestSources,
 	},
 	feeRatePpm: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	updatedAtMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	closingTransactionId: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	closingFeeSats: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	closingReason: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	closedAtMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 })({
 	selectors: {

@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const lotusJsonRpcSources = [
+	Source.Lotus_JsonRpc,
+] as const
+
 export default entity({
 	entityType: EntityType.FilecoinMiner,
 	labels: {
@@ -24,16 +28,12 @@ export default entity({
 	$$sectors: {
 		entityType: EntityType.FilecoinSector,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-		],
+		defaultSources: lotusJsonRpcSources,
 	},
 	$$timestamps: {
 		entityType: EntityType.FilecoinMiner_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-		],
+		defaultSources: lotusJsonRpcSources,
 	},
 })({
 	selectors: {

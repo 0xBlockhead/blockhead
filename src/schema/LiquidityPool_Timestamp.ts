@@ -7,6 +7,10 @@ import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const dexscreenerRestSources = [
+	Source.Dexscreener_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.LiquidityPool_Timestamp,
 	labels: {
@@ -29,23 +33,17 @@ export default entity({
 	$parentLiquidityPool: {
 		entityType: EntityType.LiquidityPool,
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	baseTokenSymbol: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	quoteTokenSymbol: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	baseTokenDecimals: {
 		primitiveType: type('number'),
@@ -58,100 +56,72 @@ export default entity({
 	pairCreatedAtMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	dexscreenerLabels: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	dexId: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	dexscreenerPairUrl: {
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	priceUsd: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	priceNative: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	liquidityUsd: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	volumeUsd24h: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	priceChangePercent24h: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	transactionBuys24h: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	transactionSells24h: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	marketCapUsd: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	fdvUsd: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 	transport: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Dexscreener_Rest,
-		],
+		defaultSources: dexscreenerRestSources,
 	},
 })({
 	selectors: {

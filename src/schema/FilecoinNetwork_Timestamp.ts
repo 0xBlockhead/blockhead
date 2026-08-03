@@ -6,6 +6,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const lotusJsonRpcSources = [
+	Source.Lotus_JsonRpc,
+] as const
+
 export default entity({
 	entityType: EntityType.FilecoinNetwork_Timestamp,
 	labels: {
@@ -28,86 +32,62 @@ export default entity({
 	headHeight: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-		],
+		defaultSources: lotusJsonRpcSources,
 	},
 	headTipsetKey: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-		],
+		defaultSources: lotusJsonRpcSources,
 	},
 	headBlockCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-		],
+		defaultSources: lotusJsonRpcSources,
 	},
 	headTimestampMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-		],
+		defaultSources: lotusJsonRpcSources,
 	},
 	$headTipset: {
 		entityType: EntityType.FilecoinTipset,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-		],
+		defaultSources: lotusJsonRpcSources,
 	},
 	$$headMiners: {
 		entityType: EntityType.FilecoinMiner,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-		],
+		defaultSources: lotusJsonRpcSources,
 	},
 	networkVersion: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-		],
+		defaultSources: lotusJsonRpcSources,
 	},
 	lotusVersion: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-		],
+		defaultSources: lotusJsonRpcSources,
 	},
 	lotusAgent: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-		],
+		defaultSources: lotusJsonRpcSources,
 	},
 	blockDelaySeconds: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-		],
+		defaultSources: lotusJsonRpcSources,
 	},
 	totalRawBytePower: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-		],
+		defaultSources: lotusJsonRpcSources,
 	},
 	totalQualityAdjustedPower: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Lotus_JsonRpc,
-		],
+		defaultSources: lotusJsonRpcSources,
 	},
 })({
 	selectors: {

@@ -7,6 +7,10 @@ import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPoolKind.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const constantsInternalSources = [
+	Source.Constants_Internal,
+] as const
+
 export default entity({
 	entityType: EntityType.ZcashShieldedPool,
 	labels: {
@@ -25,16 +29,12 @@ export default entity({
 	activationNetworkUpgrade: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
+		defaultSources: constantsInternalSources,
 	},
 	noteProtocol: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Constants_Internal,
-		],
+		defaultSources: constantsInternalSources,
 	},
 })({
 	selectors: {

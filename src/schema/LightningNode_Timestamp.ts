@@ -6,6 +6,14 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const lightningMempoolSpaceRestLightningLndRestSources = [
+	Source.LightningMempoolSpace_Rest,
+	Source.LightningLnd_Rest,
+] as const
+const lightningMempoolSpaceRestSources = [
+	Source.LightningMempoolSpace_Rest,
+] as const
+
 export default entity({
 	entityType: EntityType.LightningNode_Timestamp,
 	labels: {
@@ -28,67 +36,47 @@ export default entity({
 	alias: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-			Source.LightningLnd_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestLightningLndRestSources,
 	},
 	color: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	capacitySats: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	channelCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-			Source.LightningLnd_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestLightningLndRestSources,
 	},
 	firstSeenMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	updatedAtMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	countryCode: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	city: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 	networkAddresses: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.LightningMempoolSpace_Rest,
-		],
+		defaultSources: lightningMempoolSpaceRestSources,
 	},
 })({
 	selectors: {

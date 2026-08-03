@@ -271,8 +271,8 @@ type SourceBindingCompatibilityRow<
 	_WireProtocol extends WireProtocol,
 	_ApiFamily extends ApiFamily,
 	_EndpointKind extends SourceEndpointKind,
-	_OperationGroup extends SourceOperationGroup,
-	_ArtifactKind extends SourceArtifactKind,
+	_OperationGroup extends SourceOperationGroup = SourceOperationGroup,
+	_ArtifactKind extends SourceArtifactKind = SourceArtifactKind,
 > = {
 	wireProtocol: _WireProtocol
 	apiFamily: _ApiFamily
@@ -294,37 +294,27 @@ type SourceBindingCompatibility =
 	| SourceBindingCompatibilityRow<
 		WireProtocol.Adnl,
 		ApiFamily.TonLiteServerAdnl,
-		SourceEndpointKind.TcpAddress,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.TcpAddress
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.Bencode,
 		ApiFamily.BitTorrentClient,
-		SourceEndpointKind.LocalFilePath | SourceEndpointKind.TcpAddress,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.LocalFilePath | SourceEndpointKind.TcpAddress
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.Bencode,
 		ApiFamily.BitTorrentDht | ApiFamily.BitTorrentTracker,
-		SourceEndpointKind.UdpAddress,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.UdpAddress
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.Canister,
 		ApiFamily.IcCanister,
-		SourceEndpointKind.CanisterId,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.CanisterId
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.Git,
 		ApiFamily.GitObject,
-		SourceEndpointKind.HttpUrl | SourceEndpointKind.LocalFilePath,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.HttpUrl | SourceEndpointKind.LocalFilePath
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.Graphql,
@@ -336,16 +326,12 @@ type SourceBindingCompatibility =
 	| SourceBindingCompatibilityRow<
 		WireProtocol.Grpc,
 		ApiFamily.GrpcService,
-		SourceEndpointKind.HttpUrl | SourceEndpointKind.TcpAddress,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.HttpUrl | SourceEndpointKind.TcpAddress
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.HttpRest,
 		ApiFamily.AlgodRestApi | ApiFamily.AlgorandIndexerRestApi | ApiFamily.ArweaveGateway | ApiFamily.BitTorrentClient | ApiFamily.BlockscoutRestV2 | ApiFamily.CosmosLcdApi | ApiFamily.EthereumBeaconRest | ApiFamily.EtherscanModuleAction | ApiFamily.FedimintGatewaydApi | ApiFamily.ForgejoRestApi | ApiFamily.GithubContentsApi | ApiFamily.GithubRestApi | ApiFamily.GitlabRestApi | ApiFamily.GitObject | ApiFamily.GoldRushFoundationalApi | ApiFamily.IpfsGateway | ApiFamily.KaspaRestApi | ApiFamily.RestJson | ApiFamily.RosettaApi | ApiFamily.SourcifyRestV2 | ApiFamily.SwarmGateway | ApiFamily.TezosNodeRpc | ApiFamily.TonCenterV3Api,
-		SourceEndpointKind.HttpUrl,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.HttpUrl
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.HttpRest,
@@ -364,30 +350,22 @@ type SourceBindingCompatibility =
 	| SourceBindingCompatibilityRow<
 		WireProtocol.InProcess,
 		ApiFamily.BitTorrentDht | ApiFamily.CatalogRows | ApiFamily.WebTorrentApi | ApiFamily.XmtpClientApi,
-		SourceEndpointKind.InProcess,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.InProcess
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.InProcess,
 		ApiFamily.CardanoLocalStateQuery | ApiFamily.LocalParser,
-		SourceEndpointKind.LocalProcess,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.LocalProcess
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.JsonRpc2,
 		ApiFamily.AcpProtocol | ApiFamily.McpProtocol,
-		SourceEndpointKind.LocalProcess,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.LocalProcess
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.JsonRpc2,
 		ApiFamily.BitcoinJsonRpc | ApiFamily.CelestiaNodeJsonRpc | ApiFamily.FilecoinLotusJsonRpc | ApiFamily.MetaplexDasJsonRpc | ApiFamily.MoneroDaemonJsonRpc | ApiFamily.StarknetJsonRpc | ApiFamily.SubstrateJsonRpc,
-		SourceEndpointKind.HttpUrl,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.HttpUrl
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.JsonRpc2,
@@ -399,51 +377,37 @@ type SourceBindingCompatibility =
 	| SourceBindingCompatibilityRow<
 		WireProtocol.JsonRpc2,
 		ApiFamily.JsonRpcApi | ApiFamily.SolanaJsonRpc,
-		SourceEndpointKind.HttpUrl | SourceEndpointKind.WebSocketUrl,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.HttpUrl | SourceEndpointKind.WebSocketUrl
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.LocalFile,
 		ApiFamily.GitObject | ApiFamily.LocalParser | ApiFamily.LocalStateStore,
-		SourceEndpointKind.LocalFilePath,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.LocalFilePath
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.OciDistribution,
 		ApiFamily.OciDistributionApi,
-		SourceEndpointKind.HttpUrl,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.HttpUrl
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.Prometheus,
 		ApiFamily.PrometheusText,
-		SourceEndpointKind.HttpUrl,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.HttpUrl
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.RawHttp,
 		ApiFamily.BitTorrentTracker | ApiFamily.CertifiedHttpGateway | ApiFamily.EnvioHyperSyncApi | ApiFamily.RestJson | ApiFamily.SqdPortalStream | ApiFamily.StaticWebsite,
-		SourceEndpointKind.HttpUrl,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.HttpUrl
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.Sql,
 		ApiFamily.Postgres,
-		SourceEndpointKind.PostgresDsn,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.PostgresDsn
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.Uri,
 		ApiFamily.UriScheme,
-		SourceEndpointKind.InProcess,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.InProcess
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.WalletProvider,
@@ -455,9 +419,7 @@ type SourceBindingCompatibility =
 	| SourceBindingCompatibilityRow<
 		WireProtocol.WebSocketMessages,
 		ApiFamily.BitTorrentTracker,
-		SourceEndpointKind.WebSocketUrl,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.WebSocketUrl
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.WebSocketMessages,
@@ -469,23 +431,17 @@ type SourceBindingCompatibility =
 	| SourceBindingCompatibilityRow<
 		WireProtocol.Wrpc,
 		ApiFamily.KaspaWrpcApi,
-		SourceEndpointKind.HttpUrl,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.HttpUrl
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.Xrpc,
 		ApiFamily.AtprotoSync,
-		SourceEndpointKind.HttpUrl | SourceEndpointKind.WebSocketUrl,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.HttpUrl | SourceEndpointKind.WebSocketUrl
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.Xrpc,
 		ApiFamily.XrpcLexicon,
-		SourceEndpointKind.HttpUrl,
-		SourceOperationGroup,
-		SourceArtifactKind
+		SourceEndpointKind.HttpUrl
 	>
 
 type SourcePublicOrUserCredential = SourceCredentialRequirement<

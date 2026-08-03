@@ -6,6 +6,13 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
+const aptosFullnodeRestSources = [
+	Source.AptosFullnode_Rest,
+] as const
+const aptosIndexerGraphqlSources = [
+	Source.AptosIndexer_Graphql,
+] as const
+
 export default entity({
 	entityType: EntityType.AptosAccount,
 	labels: {
@@ -24,30 +31,22 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType.AptosAccount_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.AptosFullnode_Rest,
-		],
+		defaultSources: aptosFullnodeRestSources,
 	},
 	$$balances: {
 		entityType: EntityType.AptosCoinBalance_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.AptosIndexer_Graphql,
-		],
+		defaultSources: aptosIndexerGraphqlSources,
 	},
 	$$resources: {
 		entityType: EntityType.AptosAccountResource,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.AptosFullnode_Rest,
-		],
+		defaultSources: aptosFullnodeRestSources,
 	},
 	$$transactions: {
 		entityType: EntityType.AptosTransaction,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.AptosIndexer_Graphql,
-		],
+		defaultSources: aptosIndexerGraphqlSources,
 	},
 })({
 	selectors: {
