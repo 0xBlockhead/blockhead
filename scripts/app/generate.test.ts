@@ -5288,7 +5288,8 @@ test('groups inherited selector fields under one route mapping', () => {
 
 	assert.match(generatorSource, /type SelectorAncestorBinding = \{[\s\S]*?field: string[\s\S]*?alternatives: readonly \{[\s\S]*?ancestorNodeId: string[\s\S]*?referencePath: readonly string\[\]/)
 	assert.doesNotMatch(generatorSource, /hrefParamCandidates|\bhrefs\?:/)
-	assert.match(generatorSource, /\.\.\.normalizedSelectorMappings\.map\(\(normalizedMapping\) => \(\{[\s\S]*?routeParamAlternatives: normalizedMapping\.routeParamAlternatives/)
+	assert.match(generatorSource, /\.\.\.selectorMappings\.map\(\(selectorMapping\) => \(\{[\s\S]*?routeParamAlternatives: selectorMapping\.routeParamAlternatives[\s\S]*?mapping: selectorMapping/)
+	assert.doesNotMatch(generatorSource, /compiledSelectorMappings|normalizedSelectorMappings/)
 	assert.match(generatorSource, /const compiledRouteNodes = compileRouteTree\(/)
 	assert.doesNotMatch(generatorSource, /validateRouteNodes|ancestorValueTypeByParam/)
 	assert.doesNotMatch(generatorSource, /\b(?:compiledRoutes|compiledNodes)\b|children\.nodes/)
@@ -5474,7 +5475,7 @@ test('retains one keyed route parameter representation through href compilation'
 	assert.match(generatorSource, /type RouteParamValues = Readonly<Record<string, \{\n\tvalue: _Expression\n\tdecode\?: _ExpressionDecode\n\}>>/)
 	assert.match(generatorSource, /type RouteLink = \{\n\tpath: string\n\tparams: RouteParamValues\n\}/)
 	assert.match(generatorSource, /routeParamAlternatives: readonly RouteParamValues\[\]/)
-	assert.match(generatorSource, /routeParamAlternatives: normalizedMapping\.routeParamAlternatives/)
+	assert.match(generatorSource, /routeParamAlternatives: selectorMapping\.routeParamAlternatives/)
 	assert.match(generatorSource, /Object\.hasOwn\(routeParams, name\)/)
 	assert.match(generatorSource, /params: Readonly<Record<string, string>> = \{\}/)
 	assert.doesNotMatch(
