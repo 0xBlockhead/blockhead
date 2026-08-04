@@ -14,21 +14,29 @@ import {
 	localMutationAuthorityKey,
 } from '$/client/$client.svelte.ts'
 import {
+	deleteLocalBlockheadAccount,
 	deleteLocalBlockheadPanel,
 	deleteLocalBlockheadSession,
 	deleteLocalBlockheadWalletConnection,
 	type LocalMutationContext,
+	updateLocalBlockheadSessionActionType,
+	writeLocalBlockheadAccount,
+	writeLocalBlockheadActionReadinessChecks,
+	writeLocalBlockheadEvmWalletRequest,
 	writeLocalBlockheadLocalMediaIngest,
 	writeLocalBlockheadPanel,
 	writeLocalBlockheadPanelTree,
 	writeLocalBlockheadSession,
 	writeLocalBlockheadSessionAction,
-	updateLocalBlockheadSessionActionType,
+	writeLocalBlockheadSessionSimulation,
 	writeLocalBlockheadSocialPostSession,
+	writeLocalBlockheadTransferIntent,
 	writeLocalBlockheadWorkspace,
 	writeLocalBlockheadWallet,
 	writeLocalBlockheadWalletConnection,
 	writeLocalBlockheadWalletRequest,
+	writeLocalBlockheadWalletRequest_Timestamp,
+	writeLocalBlockheadWalletRequestSubmittedAt,
 } from '$/collections/localMutations.ts'
 import { SocialProtocol } from '$/schema/SocialProtocol.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
@@ -51,16 +59,35 @@ const workspaceMutationSource = source.slice(
 	source.indexOf('export const writeLocalBlockheadWorkspace'),
 	source.indexOf('export const writeLocalBlockheadWallet')
 )
+const walletConnectionMutationSource = source.slice(
+	source.indexOf('export const writeLocalBlockheadWalletConnection'),
+	source.indexOf('export const deleteLocalBlockheadWalletConnection')
+)
+const walletRequestMutationSource = source.slice(
+	source.indexOf('export const writeLocalBlockheadEvmWalletRequest')
+)
+
+describe('local wallet connection mutations', () => {
+	it('coerces flat connection rows through the wallet connection state machine before persistence', () => {
+		expect(walletConnectionMutationSource).toContain('walletConnectionPersistRoundTrip(connection)')
+		expect(walletConnectionMutationSource).toContain('selected: persisted.selected')
+		expect(walletConnectionMutationSource).toContain('error: persisted.error')
+		expect(walletConnectionMutationSource).not.toContain('persistWalletConnection(connection)')
+	})
+})
 
 describe('local Farcaster account connection mutations', () => {
 	it('persists verified Farcaster connection state without proof material', () => {
-		expect(farcasterMutationSource).toContain('associationFingerprint: connection.associationFingerprint')
-		expect(farcasterMutationSource).toContain('expiresAt: connection.expiresAt')
+		expect(farcasterMutationSource).toContain('persistFarcasterAccountConnection(machine)')
+		expect(farcasterMutationSource).toContain('associationFingerprint: persisted.associationFingerprint')
+		expect(farcasterMutationSource).toContain('expiresAt: persisted.expiresAt')
+		expect(farcasterMutationSource).toContain('selected: persisted.selected')
 		expect(farcasterMutationSource).not.toMatch(/\b(?:challenge|signature|nonce)\b/)
 	})
 
 	it('keeps connection identity stable and disconnect deletion atomic', () => {
-		expect(farcasterMutationSource).toContain('connectionId: connection.connectionId')
+		expect(farcasterMutationSource).toContain('connectionId: persisted.connectionId')
+		expect(farcasterMutationSource).toContain('farcasterAccountConnectionFromPersisted')
 		expect(farcasterMutationSource).toContain('deleteLocalEntityFields(')
 		expect(farcasterMutationSource).toContain('deleteLocalPresence(')
 	})
@@ -86,15 +113,17 @@ describe('local mutation authority journal', () => {
 					rows: readonly MockRow[],
 					selectorKey: string,
 					authorityKey: string,
-					resolution: 'present' | 'resolved' | 'deleted'
-				): void
+					resolution: 'present' | 'resolved' | 'deleted',
+					onApplied?: () => void | Promise<void>
+				): Promise<void>
 				writeUpsert(row: MockRow | readonly MockRow[]): void
 				writeUpsertWithAuthority(
 					row: MockRow | readonly MockRow[],
 					selectorKey: string,
 					authorityKey: string,
-					resolution: 'present' | 'resolved' | 'deleted'
-				): void
+					resolution: 'present' | 'resolved' | 'deleted',
+					onApplied?: () => void | Promise<void>
+				): Promise<void>
 				deleteSelectorRowsAndAuthority(
 					predicate: (row: MockRow) => boolean,
 					selectorKey: string
@@ -124,13 +153,14 @@ describe('local mutation authority journal', () => {
 								rows.splice(index, 1)
 						rows.push(...nextRows)
 					},
-					replaceRowsWithAuthority: (predicate, nextRows, selectorKey, authorityKey, resolution) => {
+					replaceRowsWithAuthority: (predicate, nextRows, selectorKey, authorityKey, resolution, onApplied) => {
 						collection.utils.replaceRows(predicate, nextRows)
 						events.push({
 							selectorKey,
 							authorityKey,
 							resolution,
 						})
+						return Promise.resolve(onApplied?.()).then(() => {})
 					},
 					writeUpsert: (row) => {
 						for (const nextRow of Array.isArray(row) ? row : [row]) {
@@ -145,13 +175,14 @@ describe('local mutation authority journal', () => {
 							rows.push(nextRow)
 						}
 					},
-					writeUpsertWithAuthority: (row, selectorKey, authorityKey, resolution) => {
+					writeUpsertWithAuthority: (row, selectorKey, authorityKey, resolution, onApplied) => {
 						collection.utils.writeUpsert(row)
 						events.push({
 							selectorKey,
 							authorityKey,
 							resolution,
 						})
+						return Promise.resolve(onApplied?.()).then(() => {})
 					},
 					deleteSelectorRowsAndAuthority: (predicate, selectorKey) => {
 						collection.utils.replaceRows(predicate, [])
@@ -205,6 +236,21 @@ describe('local mutation authority journal', () => {
 			scopes: [],
 			accounts: [],
 		})
+
+		expect(context.entityFieldCollections[EntityType.BlockheadWalletConnection][entityFieldAddressKey(
+			EntityType.BlockheadWalletConnection,
+			[],
+			'selected'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: false,
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadWalletConnection][entityFieldAddressKey(
+			EntityType.BlockheadWalletConnection,
+			[],
+			'error'
+		)].toArray).toHaveLength(0)
 
 		expect(events).toEqual(expect.arrayContaining([
 			expect.objectContaining({
@@ -369,6 +415,8 @@ describe('local mutation authority journal', () => {
 		type MockRow = Record<string, object | string | number | boolean | bigint | undefined>
 		const rowsByAddress = new Map<string, MockRow[]>()
 		const persistedAddresses: string[] = []
+		let queueMutations = false
+		const queuedMutationApplications: (() => Promise<void>)[] = []
 		const events: {
 			selectorKey: string
 			authorityKey: string
@@ -402,17 +450,27 @@ describe('local mutation authority journal', () => {
 					nextRows: readonly MockRow[],
 					selectorKey: string,
 					authorityKey: string,
-					resolution: 'present' | 'resolved' | 'deleted'
+					resolution: 'present' | 'resolved' | 'deleted',
+					onApplied?: () => void | Promise<void>
 				) => {
-					const rows = rowsFor(address)
-					for (let index = rows.length - 1; index >= 0; index--)
-						if (predicate(rows[index]))
-							rows.splice(index, 1)
-					rows.push(...nextRows)
-					events.push({
-						selectorKey,
-						authorityKey,
-						resolution,
+					const apply = () => {
+						const rows = rowsFor(address)
+						for (let index = rows.length - 1; index >= 0; index--)
+							if (predicate(rows[index]))
+								rows.splice(index, 1)
+						rows.push(...nextRows)
+						events.push({
+							selectorKey,
+							authorityKey,
+							resolution,
+						})
+						return Promise.resolve(onApplied?.()).then(() => {})
+					}
+					if (!queueMutations)
+						return apply()
+
+					return new Promise<void>((resolve, reject) => {
+						queuedMutationApplications.push(() => apply().then(resolve, reject))
 					})
 				},
 				writeUpsert: (row: MockRow | readonly MockRow[]) => {
@@ -432,24 +490,34 @@ describe('local mutation authority journal', () => {
 					row: MockRow | readonly MockRow[],
 					selectorKey: string,
 					authorityKey: string,
-					resolution: 'present' | 'resolved' | 'deleted'
+					resolution: 'present' | 'resolved' | 'deleted',
+					onApplied?: () => void | Promise<void>
 				) => {
-					const rows = rowsFor(address)
-					for (const nextRow of Array.isArray(row) ? row : [row]) {
-						const index = rows.findIndex((existingRow) => (
-							existingRow[EntityMetaKey.Source] === nextRow[EntityMetaKey.Source]
-							&& existingRow[EntityMetaKey.ParentSelectorKey] === nextRow[EntityMetaKey.ParentSelectorKey]
-							&& existingRow[EntityMetaKey.SelectorKey] === nextRow[EntityMetaKey.SelectorKey]
-							&& existingRow.valueKey === nextRow.valueKey
-						))
-						if (index >= 0)
-							rows.splice(index, 1)
-						rows.push(nextRow)
+					const apply = () => {
+						const rows = rowsFor(address)
+						for (const nextRow of Array.isArray(row) ? row : [row]) {
+							const index = rows.findIndex((existingRow) => (
+								existingRow[EntityMetaKey.Source] === nextRow[EntityMetaKey.Source]
+								&& existingRow[EntityMetaKey.ParentSelectorKey] === nextRow[EntityMetaKey.ParentSelectorKey]
+								&& existingRow[EntityMetaKey.SelectorKey] === nextRow[EntityMetaKey.SelectorKey]
+								&& existingRow.valueKey === nextRow.valueKey
+							))
+							if (index >= 0)
+								rows.splice(index, 1)
+							rows.push(nextRow)
+						}
+						events.push({
+							selectorKey,
+							authorityKey,
+							resolution,
+						})
+						return Promise.resolve(onApplied?.()).then(() => {})
 					}
-					events.push({
-						selectorKey,
-						authorityKey,
-						resolution,
+					if (!queueMutations)
+						return apply()
+
+					return new Promise<void>((resolve, reject) => {
+						queuedMutationApplications.push(() => apply().then(resolve, reject))
 					})
 				},
 				deleteSelectorRowsAndAuthority: (
@@ -553,32 +621,12 @@ describe('local mutation authority journal', () => {
 			EntityType._Global,
 			[],
 			'$$blockheadAccounts'
-		)].toArray).toHaveLength(2)
+		)].toArray).toHaveLength(0)
 		expect(context.entityFieldCountCollections[EntityType._Global][entityFieldAddressKey(
 			EntityType._Global,
 			[],
 			'$$blockheadAccounts'
-		)]?.toArray).toEqual([
-			expect.objectContaining({
-				[EntityMetaKey.Value]: 2,
-				filterKey: stringify({}),
-			}),
-		])
-		expect(events).toEqual(expect.arrayContaining([
-			expect.objectContaining({
-				authorityKey: localMutationAuthorityKey({
-					source: Source.Local_Internal,
-					entityType: EntityType._Global,
-					selectorKey: stringify({
-						scope: '$$blockheadAccounts',
-					}),
-					fieldName: '$$blockheadAccounts',
-					fieldAddressKey: entityFieldAddressKey(EntityType._Global, [], '$$blockheadAccounts'),
-					facetPathKey: stringify([]),
-				}),
-				resolution: 'resolved',
-			}),
-		]))
+		)]?.toArray).toEqual([])
 		const activeAccountRow = context.entityFieldCollections[EntityType.BlockheadWalletConnection][entityFieldAddressKey(
 			EntityType.BlockheadWalletConnection,
 			[],
@@ -715,22 +763,170 @@ describe('local mutation authority journal', () => {
 			}),
 		]))
 
-		await deleteLocalBlockheadWalletConnection(context, connection.connectionKey)
+		const secondConnection = {
+			...connection,
+			connectionKey: 'connection-2',
+			accounts: [firstAccount],
+			activeAccount: firstAccount,
+		}
+		await writeLocalBlockheadWalletConnection(context, {
+			...connection,
+			status: BlockheadConnectionStatus.Connected,
+			selected: true,
+			disconnectedAt: undefined,
+			accounts: [firstAccount],
+			activeAccount: firstAccount,
+		})
+		await writeLocalBlockheadWalletConnection(context, secondConnection)
+
+		expect(context.entityCollections[EntityType.BlockheadAccount].toArray).toHaveLength(0)
 		expect(context.entityFieldCollections[EntityType._Global][entityFieldAddressKey(
 			EntityType._Global,
 			[],
 			'$$blockheadAccounts'
-		)].toArray).toHaveLength(2)
+		)].toArray).toHaveLength(0)
+		expect(context.entityFieldCountCollections[EntityType._Global][entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadAccounts'
+		)]?.toArray).toEqual([])
+
+		await writeLocalBlockheadAccount(context, firstAccount)
+		await writeLocalBlockheadAccount(context, firstAccount)
+		expect(context.entityCollections[EntityType.BlockheadAccount].toArray).toHaveLength(1)
+		expect(context.entityFieldCollections[EntityType._Global][entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadAccounts'
+		)].toArray).toHaveLength(1)
 		expect(context.entityFieldCountCollections[EntityType._Global][entityFieldAddressKey(
 			EntityType._Global,
 			[],
 			'$$blockheadAccounts'
 		)]?.toArray).toEqual([
 			expect.objectContaining({
-				[EntityMetaKey.Value]: 2,
+				[EntityMetaKey.Value]: 1,
 				filterKey: stringify({}),
 			}),
 		])
+		const blockheadAccountRows = context.entityFieldCollections[EntityType._Global][entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadAccounts'
+		)].toArray
+		blockheadAccountRows.push({
+			...blockheadAccountRows[0],
+			valueIndex: 99,
+		})
+		await writeLocalBlockheadAccount(context, firstAccount)
+		expect(blockheadAccountRows).toHaveLength(2)
+		expect(context.entityFieldCountCollections[EntityType._Global][entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadAccounts'
+		)]?.toArray).toEqual([
+				expect.objectContaining({
+					[EntityMetaKey.Value]: 1,
+					filterKey: stringify({}),
+				}),
+			])
+		blockheadAccountRows.splice(1)
+
+		await writeLocalBlockheadWalletConnection(context, {
+			...connection,
+			status: BlockheadConnectionStatus.Disconnected,
+			selected: false,
+			disconnectedAt: 3,
+			accounts: [firstAccount],
+			activeAccount: firstAccount,
+		})
+		expect(context.entityFieldCollections[EntityType._Global][entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadAccounts'
+		)].toArray).toHaveLength(1)
+
+		await writeLocalBlockheadWalletConnection(context, {
+			...secondConnection,
+			status: BlockheadConnectionStatus.Disconnected,
+			selected: false,
+			disconnectedAt: 4,
+		})
+		expect(context.entityFieldCountCollections[EntityType._Global][entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadAccounts'
+		)]?.toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 1,
+				filterKey: stringify({}),
+			}),
+		])
+		const exposedAccountRows = context.entityFieldCollections[EntityType.BlockheadWalletConnection][entityFieldAddressKey(
+			EntityType.BlockheadWalletConnection,
+			[],
+			'$$accounts'
+		)].toArray
+		const exposedAccountSelectorKey = entitySelectorKey(
+			schema,
+			entityDefinitionByType[EntityType.Account],
+			{
+				caip10: {
+					namespace: firstAccount.namespace,
+					reference: firstAccount.reference,
+					accountAddress: firstAccount.accountAddress,
+				},
+			}
+		)
+		expect(exposedAccountRows).toHaveLength(2)
+		expect(exposedAccountRows).toEqual(expect.arrayContaining([
+			expect.objectContaining({
+				[EntityMetaKey.ParentSelectorKey]: entitySelectorKey(
+					schema,
+					entityDefinitionByType[EntityType.BlockheadWalletConnection],
+					{ connectionKey: connection.connectionKey }
+				),
+				[EntityMetaKey.Value]: expect.objectContaining({
+					[EntityMetaKey.SelectorKey]: exposedAccountSelectorKey,
+				}),
+			}),
+			expect.objectContaining({
+				[EntityMetaKey.ParentSelectorKey]: entitySelectorKey(
+					schema,
+					entityDefinitionByType[EntityType.BlockheadWalletConnection],
+					{ connectionKey: secondConnection.connectionKey }
+				),
+				[EntityMetaKey.Value]: expect.objectContaining({
+					[EntityMetaKey.SelectorKey]: exposedAccountSelectorKey,
+				}),
+			}),
+		]))
+
+		await deleteLocalBlockheadAccount(context, firstAccount)
+		expect(context.entityCollections[EntityType.BlockheadAccount].toArray).toHaveLength(0)
+		expect(context.entityFieldCollections[EntityType._Global][entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadAccounts'
+		)].toArray).toHaveLength(0)
+		expect(context.entityFieldCountCollections[EntityType._Global][entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadAccounts'
+		)]?.toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 0,
+				filterKey: stringify({}),
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadWalletConnection][entityFieldAddressKey(
+			EntityType.BlockheadWalletConnection,
+			[],
+			'$$accounts'
+		)].toArray).toEqual(exposedAccountRows)
+
+		await deleteLocalBlockheadWalletConnection(context, connection.connectionKey)
+		await deleteLocalBlockheadWalletConnection(context, secondConnection.connectionKey)
 
 		writeLocalBlockheadSocialPostSession(context, {
 			id: 'social-session-1',
@@ -902,6 +1098,47 @@ describe('local mutation authority journal', () => {
 				[EntityMetaKey.Value]: 1,
 			}),
 		])
+
+		writeLocalBlockheadPanelTree(context, {
+			id: 'tree-duplicate',
+			workspaceId: 'workspace-1',
+		})
+		writeLocalBlockheadPanel(context, {
+			treeId: 'tree-duplicate',
+			panelId: 'root',
+			indexInParent: 0,
+			kind: 'empty',
+		})
+		const panelRows = context.entityFieldCollections[EntityType.BlockheadPanelTree][entityFieldAddressKey(
+			EntityType.BlockheadPanelTree,
+			[],
+			'$$panels'
+		)].toArray
+		const duplicatePanelRow = panelRows.find((row) => (
+			Object(row[EntityMetaKey.ParentSelector]).id === 'tree-duplicate'
+		))
+		expect(duplicatePanelRow).toBeDefined()
+		if (duplicatePanelRow !== undefined)
+			panelRows.push({
+				...duplicatePanelRow,
+				valueIndex: 1,
+			})
+		writeLocalBlockheadPanel(context, {
+			treeId: 'tree-duplicate',
+			panelId: 'root',
+			indexInParent: 0,
+			kind: 'empty',
+		})
+		expect(context.entityFieldCountCollections[EntityType.BlockheadPanelTree][entityFieldAddressKey(
+			EntityType.BlockheadPanelTree,
+			[],
+			'$$panels'
+		)]?.toArray).toContainEqual(expect.objectContaining({
+			[EntityMetaKey.ParentSelector]: {
+				id: 'tree-duplicate',
+			},
+			[EntityMetaKey.Value]: 1,
+		}))
 		expect(workspaceMutationSource).not.toMatch(/\b(?:focus|hover)\w*/i)
 
 		writeLocalBlockheadLocalMediaIngest(context, {
@@ -935,28 +1172,608 @@ describe('local mutation authority journal', () => {
 			'$media'
 		)].toArray).toHaveLength(0)
 
-		await writeLocalBlockheadWalletRequest(context, {
+		const walletRequestSelector = {
 			id: 'wallet-request-1',
-			walletConnectionKey: 'wallet-session',
-			walletProtocol: WalletProtocol.Eip6963,
+		}
+		const walletConnectionSelector = {
+			connectionKey: 'wallet-session',
+		}
+		const accountSelector = {
 			caip10: {
 				namespace: 'eip155',
 				reference: '1',
 				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
 			},
-			requestKind: 'message-signature',
-			requestMethod: 'personal_sign',
+		}
+		const networkSelector = {
+			caip2: {
+				namespace: 'eip155',
+				reference: '1',
+			},
+		}
+		const simulationSelector = {
+			id: 'wallet-request-simulation',
+		}
+		const sessionActionSelector = {
+			sessionId: 'wallet-request-session',
+			actionId: 'wallet-request-action',
+		}
+		const intentOrderSelector = {
+			id: 'wallet-request-order',
+		}
+		const walletRequestDefinition = {
+			id: 'wallet-request-1',
+			sessionAction: sessionActionSelector,
+			intentOrder: intentOrderSelector,
+			walletConnection: walletConnectionSelector,
+			account: accountSelector,
+			requestKind: 'transaction',
+			requestMethod: 'wallet_sendCalls',
+			atomicRequired: true,
 			requestPayloadHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
 			requestedAt: 1,
-			timestamps: [{
-				timestampMs: 1,
-				source: Source.Local_Internal,
-				status: 'requested',
-			}],
+			evm: {
+				network: networkSelector,
+				simulation: simulationSelector,
+				calls: [
+					{
+						toAddress: '0x1111111111111111111111111111111111111111',
+						value: 1n,
+						inputDataHash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+					},
+					{
+						toAddress: '0x2222222222222222222222222222222222222222',
+						value: 2n,
+						inputDataHash: '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+					},
+				],
+			},
+		} as const satisfies Parameters<typeof writeLocalBlockheadWalletRequest>[1]
+		await writeLocalBlockheadWalletRequest(context, walletRequestDefinition)
+		const evmWalletRequestSelector = {
+			$walletRequest: walletRequestSelector,
+		}
+		expect(context.entityCollections[EntityType.BlockheadEvmWalletRequest].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: evmWalletRequestSelector,
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadWalletRequest][entityFieldAddressKey(
+			EntityType.BlockheadWalletRequest,
+			[],
+			'$walletConnection'
+		)].toArray[0]?.[EntityMetaKey.Value]).toEqual(expect.objectContaining({
+			[EntityMetaKey.Selector]: walletConnectionSelector,
+		}))
+		expect(context.entityFieldCollections[EntityType.BlockheadWalletRequest][entityFieldAddressKey(
+			EntityType.BlockheadWalletRequest,
+			[],
+			'$account'
+		)].toArray[0]?.[EntityMetaKey.Value]).toEqual(expect.objectContaining({
+			[EntityMetaKey.Selector]: accountSelector,
+		}))
+		expect(context.entityFieldCollections[EntityType.BlockheadWalletRequest][entityFieldAddressKey(
+			EntityType.BlockheadWalletRequest,
+			[],
+			'$evmRequest'
+		)].toArray[0]?.[EntityMetaKey.Value]).toEqual(expect.objectContaining({
+			[EntityMetaKey.Selector]: evmWalletRequestSelector,
+		}))
+		expect(context.entityFieldCollections[EntityType.BlockheadEvmWalletRequest][entityFieldAddressKey(
+			EntityType.BlockheadEvmWalletRequest,
+			[],
+			'$walletRequest'
+		)].toArray[0]?.[EntityMetaKey.Value]).toEqual(expect.objectContaining({
+			[EntityMetaKey.Selector]: walletRequestSelector,
+		}))
+		expect(context.entityFieldCollections[EntityType.BlockheadEvmWalletRequest][entityFieldAddressKey(
+			EntityType.BlockheadEvmWalletRequest,
+			[],
+			'$network'
+		)].toArray[0]?.[EntityMetaKey.Value]).toEqual(expect.objectContaining({
+			[EntityMetaKey.Selector]: networkSelector,
+		}))
+		expect(context.entityFieldCollections[EntityType.BlockheadEvmWalletRequest][entityFieldAddressKey(
+			EntityType.BlockheadEvmWalletRequest,
+			[],
+			'$simulation'
+		)].toArray[0]?.[EntityMetaKey.Value]).toEqual(expect.objectContaining({
+			[EntityMetaKey.Selector]: simulationSelector,
+		}))
+		const walletRequestCallRows = context.entityFieldCollections[EntityType.BlockheadEvmWalletRequest][entityFieldAddressKey(
+			EntityType.BlockheadEvmWalletRequest,
+			[],
+			'$$calls'
+		)].toArray
+		expect(walletRequestCallRows.map((row) => ({
+			selector: Object(row[EntityMetaKey.Value])[EntityMetaKey.Selector],
+			valueIndex: row.valueIndex,
+		}))).toEqual([
+			{
+				selector: {
+					$evmRequest: evmWalletRequestSelector,
+					callIndex: 0,
+				},
+				valueIndex: 0,
+			},
+			{
+				selector: {
+					$evmRequest: evmWalletRequestSelector,
+					callIndex: 1,
+				},
+				valueIndex: 1,
+			},
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadWalletRequestCall][entityFieldAddressKey(
+			EntityType.BlockheadWalletRequestCall,
+			[],
+			'callIndex'
+		)].toArray.map((row) => row[EntityMetaKey.Value])).toEqual([0, 1])
+		await expect(writeLocalBlockheadWalletRequest(context, {
+			...walletRequestDefinition,
+			requestMethod: 'eth_sendTransaction',
+		})).rejects.toThrow('Wallet request definition already exists: wallet-request-1')
+		await expect(writeLocalBlockheadEvmWalletRequest(
+			context,
+			walletRequestSelector,
+			{
+				...walletRequestDefinition.evm,
+				calls: [],
+			}
+		)).rejects.toThrow('EVM wallet request detail already exists: wallet-request-1')
+		expect(context.entityFieldCollections[EntityType.BlockheadWalletRequest][entityFieldAddressKey(
+			EntityType.BlockheadWalletRequest,
+			[],
+			'requestMethod'
+		)].toArray[0]?.[EntityMetaKey.Value]).toBe('wallet_sendCalls')
+		expect(walletRequestMutationSource).not.toMatch(/\b(?:callCount|caip2)\b/)
+		await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+			timestampMs: 1,
+			source: Source.Local_Internal,
+			status: 'requested',
+			evmTransactions: [
+				{
+					$network: networkSelector,
+					txHash: '0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+				},
+				{
+					$network: networkSelector,
+					txHash: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+				},
+			],
 		})
+		await writeLocalBlockheadWalletRequestSubmittedAt(context, walletRequestSelector, 2)
+		await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+			timestampMs: 2,
+			source: Source.Local_Internal,
+			status: 'signed',
+			signatureHash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+		})
+		await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+			timestampMs: 3,
+			source: Source.Local_Internal,
+			status: 'audit-failed',
+			error: 'audit history persistence failed',
+		})
+		await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+			timestampMs: 3,
+			source: Source.Local_Internal,
+			status: 'tampered',
+			error: 'must not replace durable history',
+		})
+		expect(walletRequestCallRows.map((row) => row.valueIndex)).toEqual([0, 1])
+		expect(context.entityFieldCountCollections[EntityType.BlockheadEvmWalletRequest][entityFieldAddressKey(
+			EntityType.BlockheadEvmWalletRequest,
+			[],
+			'$$calls'
+		)]?.toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 2,
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadWalletRequest_Timestamp][entityFieldAddressKey(
+			EntityType.BlockheadWalletRequest_Timestamp,
+			[],
+			'$$evmTransactions'
+		)].toArray.map((row) => ({
+			selector: Object(row[EntityMetaKey.Value])[EntityMetaKey.Selector],
+			valueIndex: row.valueIndex,
+		}))).toEqual([
+			{
+				selector: {
+					$network: networkSelector,
+					txHash: '0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+				},
+				valueIndex: 0,
+			},
+			{
+				selector: {
+					$network: networkSelector,
+					txHash: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+				},
+				valueIndex: 1,
+			},
+		])
+		expect(context.entityCollections[EntityType.BlockheadWalletRequest_Timestamp].toArray).toHaveLength(3)
+		expect(context.entityFieldCollections[EntityType.BlockheadWalletRequest_Timestamp][entityFieldAddressKey(
+			EntityType.BlockheadWalletRequest_Timestamp,
+			[],
+			'status'
+		)].toArray.map((row) => row[EntityMetaKey.Value])).toEqual([
+			'requested',
+			'signed',
+			'audit-failed',
+		])
+		expect(context.entityFieldCountCollections[EntityType.BlockheadWalletRequest][entityFieldAddressKey(
+			EntityType.BlockheadWalletRequest,
+			[],
+			'$$timestamps'
+		)]?.toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 3,
+			}),
+		])
+
+		const preparationSessionSelector = {
+			id: 'session-preparation',
+		}
+		const preparationActionSelector = {
+			sessionId: preparationSessionSelector.id,
+			actionId: 'action-transfer',
+		}
+		await writeLocalBlockheadTransferIntent(context, {
+			...preparationActionSelector,
+			fromCaip10: {
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0x1111111111111111111111111111111111111111',
+			},
+			toCaip10: {
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0x2222222222222222222222222222222222222222',
+			},
+			chainId: 1,
+			amount: 1n,
+		})
+		await writeLocalBlockheadTransferIntent(context, {
+			...preparationActionSelector,
+			chainId: 1,
+			amount: 2n,
+		})
+		const transferIntentSelectorKey = entitySelectorKey(
+			schema,
+			entityDefinitionByType[EntityType.BlockheadTransferIntent],
+			preparationActionSelector
+		)
+		expect(context.entityCollections[EntityType.BlockheadTransferIntent].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.SelectorKey]: transferIntentSelectorKey,
+				[EntityMetaKey.Source]: Source.Local_Internal,
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadTransferIntent][entityFieldAddressKey(
+			EntityType.BlockheadTransferIntent,
+			[],
+			'amount'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.ParentSelectorKey]: transferIntentSelectorKey,
+				[EntityMetaKey.Value]: 2n,
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadTransferIntent][entityFieldAddressKey(
+			EntityType.BlockheadTransferIntent,
+			[],
+			'fromCaip10'
+		)].toArray).toHaveLength(0)
+		expect(context.entityFieldCollections[EntityType.BlockheadTransferIntent][entityFieldAddressKey(
+			EntityType.BlockheadTransferIntent,
+			[],
+			'$sessionAction'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: expect.objectContaining({
+					[EntityMetaKey.SelectorKey]: stringify(preparationActionSelector),
+				}),
+			}),
+		])
+
+		const readinessCheck = {
+			checkId: 'rpc-simulation',
+			checkKind: 'rpc-simulation',
+			chainId: 1,
+			createdAt: 10,
+		}
+		const readinessCheckSelector = {
+			...preparationActionSelector,
+			checkId: readinessCheck.checkId,
+		}
+		await writeLocalBlockheadActionReadinessChecks(
+			context,
+			preparationActionSelector,
+			[{
+				check: readinessCheck,
+				observation: {
+					timestampMs: 10,
+					source: Source.Voltaire_JsonRpc,
+					status: 'blocked',
+					error: 'first simulation failed',
+				},
+			}]
+		)
+		const recoveredReadiness = [{
+			check: readinessCheck,
+			observation: {
+				timestampMs: 11,
+				source: Source.Voltaire_JsonRpc,
+				status: 'ready',
+			},
+		}]
+		await writeLocalBlockheadActionReadinessChecks(
+			context,
+			preparationActionSelector,
+			recoveredReadiness
+		)
+		await writeLocalBlockheadActionReadinessChecks(
+			context,
+			preparationActionSelector,
+			recoveredReadiness
+		)
+		expect(context.entityCollections[EntityType.BlockheadActionReadinessCheck].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.SelectorKey]: stringify(readinessCheckSelector),
+				[EntityMetaKey.Source]: Source.Local_Internal,
+			}),
+		])
+		expect(context.entityCollections[EntityType.BlockheadActionReadinessCheck_Timestamp].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Source]: Source.Local_Internal,
+			}),
+			expect.objectContaining({
+				[EntityMetaKey.Source]: Source.Local_Internal,
+			}),
+		])
+		expect(context.entityFieldCountCollections[EntityType.BlockheadSessionAction][entityFieldAddressKey(
+			EntityType.BlockheadSessionAction,
+			[],
+			'$$readinessChecks'
+		)]?.toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 1,
+			}),
+		])
+		expect(context.entityFieldCountCollections[EntityType.BlockheadActionReadinessCheck][entityFieldAddressKey(
+			EntityType.BlockheadActionReadinessCheck,
+			[],
+			'$$timestamps'
+		)]?.toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 2,
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadActionReadinessCheck_Timestamp][entityFieldAddressKey(
+			EntityType.BlockheadActionReadinessCheck_Timestamp,
+			[],
+			'source'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: Source.Voltaire_JsonRpc,
+			}),
+			expect.objectContaining({
+				[EntityMetaKey.Value]: Source.Voltaire_JsonRpc,
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadActionReadinessCheck_Timestamp][entityFieldAddressKey(
+			EntityType.BlockheadActionReadinessCheck_Timestamp,
+			[],
+			'$readinessCheck'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: expect.objectContaining({
+					[EntityMetaKey.SelectorKey]: stringify(readinessCheckSelector),
+				}),
+			}),
+			expect.objectContaining({
+				[EntityMetaKey.Value]: expect.objectContaining({
+					[EntityMetaKey.SelectorKey]: stringify(readinessCheckSelector),
+				}),
+			}),
+		])
+
+		const firstSimulationSelector = {
+			id: 'simulation-1',
+		}
+		await writeLocalBlockheadSessionSimulation(
+			context,
+			preparationSessionSelector,
+			{
+				...firstSimulationSelector,
+				status: 'succeeded',
+				createdAt: 10,
+				completedAt: 11,
+				paramsHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+				forkBlockNumber: 1n,
+				forkRpcOrigin: 'https://ethereum.example',
+				actionCount: 1,
+				gasUsed: 21_000n,
+				resultPayloadHash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+			},
+			{
+				callPath: '0',
+				depth: 0,
+				callIndex: 0,
+				callType: 'CALL',
+				gasUsed: 21_000n,
+				reverted: false,
+			}
+		)
+		const failedSimulationSelector = {
+			id: 'simulation-2',
+		}
+		await writeLocalBlockheadSessionSimulation(
+			context,
+			preparationSessionSelector,
+			{
+				...failedSimulationSelector,
+				status: 'failed',
+				createdAt: 12,
+				completedAt: 12,
+				paramsHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+				actionCount: 1,
+				error: 'execution transport unavailable',
+			}
+		)
+		expect(context.entityCollections[EntityType.BlockheadSessionSimulation].toArray).toHaveLength(2)
+		expect(context.entityCollections[EntityType.BlockheadSessionSimulationCall].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.SelectorKey]: stringify({
+					simulationId: firstSimulationSelector.id,
+					callPath: '0',
+				}),
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadSessionSimulationCall][entityFieldAddressKey(
+			EntityType.BlockheadSessionSimulationCall,
+			[],
+			'$simulation'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: expect.objectContaining({
+					[EntityMetaKey.SelectorKey]: stringify(firstSimulationSelector),
+				}),
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadSessionSimulation][entityFieldAddressKey(
+			EntityType.BlockheadSessionSimulation,
+			[],
+			'resultPayloadHash'
+		)].toArray).toContainEqual(expect.objectContaining({
+			[EntityMetaKey.ParentSelector]: firstSimulationSelector,
+			[EntityMetaKey.Value]: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+		}))
+		expect(context.entityFieldCollections[EntityType.BlockheadSession][entityFieldAddressKey(
+			EntityType.BlockheadSession,
+			[],
+			'$latestSimulation'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: expect.objectContaining({
+					[EntityMetaKey.SelectorKey]: stringify(failedSimulationSelector),
+				}),
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadSession][entityFieldAddressKey(
+			EntityType.BlockheadSession,
+			[],
+			'simulationCount'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 2,
+			}),
+		])
+		expect(context.entityFieldCountCollections[EntityType.BlockheadSession][entityFieldAddressKey(
+			EntityType.BlockheadSession,
+			[],
+			'$$simulations'
+		)]?.toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 2,
+			}),
+		])
+		expect(context.entityFieldCountCollections[EntityType.BlockheadSessionSimulation][entityFieldAddressKey(
+			EntityType.BlockheadSessionSimulation,
+			[],
+			'$$calls'
+		)]?.toArray).toEqual(expect.arrayContaining([
+			expect.objectContaining({
+				[EntityMetaKey.ParentSelector]: firstSimulationSelector,
+				[EntityMetaKey.Value]: 1,
+			}),
+			expect.objectContaining({
+				[EntityMetaKey.ParentSelector]: failedSimulationSelector,
+				[EntityMetaKey.Value]: 0,
+			}),
+		]))
+		expect(context.entityFieldCollections[EntityType.BlockheadSessionSimulation][entityFieldAddressKey(
+			EntityType.BlockheadSessionSimulation,
+			[],
+			'error'
+		)].toArray).toContainEqual(expect.objectContaining({
+			[EntityMetaKey.ParentSelector]: failedSimulationSelector,
+			[EntityMetaKey.Value]: 'execution transport unavailable',
+		}))
+		const reloadedRowsByAddress = new Map([...rowsByAddress].map(([address, rows]) => [
+			address,
+			rows.map((row) => ({ ...row })),
+		]))
+		expect(reloadedRowsByAddress.get(`entity:${EntityType.BlockheadSessionSimulation}`)).toHaveLength(2)
+		expect(reloadedRowsByAddress.get(`field:${EntityType.BlockheadSession}:${entityFieldAddressKey(
+			EntityType.BlockheadSession,
+			[],
+			'$latestSimulation'
+		)}`)).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: expect.objectContaining({
+					[EntityMetaKey.SelectorKey]: stringify(failedSimulationSelector),
+				}),
+			}),
+		])
+		queueMutations = true
+		const queuedSimulationSelector = {
+			id: 'simulation-queued',
+		}
+		const queuedSimulationWrite = writeLocalBlockheadSessionSimulation(
+			context,
+			preparationSessionSelector,
+			{
+				...queuedSimulationSelector,
+				status: 'failed',
+				createdAt: 13,
+				completedAt: 13,
+				paramsHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+				actionCount: 1,
+				error: 'queued failure',
+			}
+		)
+		await Promise.resolve()
+		expect(context.entityCollections[EntityType.BlockheadSessionSimulation].toArray).toHaveLength(2)
+		expect(queuedMutationApplications.length).toBeGreaterThan(0)
+		queueMutations = false
+		while (queuedMutationApplications.length > 0) {
+			await queuedMutationApplications[0]()
+			queuedMutationApplications.splice(0, 1)
+		}
+		await queuedSimulationWrite
+		expect(context.entityCollections[EntityType.BlockheadSessionSimulation].toArray).toHaveLength(3)
+		expect(context.entityFieldCollections[EntityType.BlockheadSession][entityFieldAddressKey(
+			EntityType.BlockheadSession,
+			[],
+			'$latestSimulation'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: expect.objectContaining({
+					[EntityMetaKey.SelectorKey]: stringify(queuedSimulationSelector),
+				}),
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadSession][entityFieldAddressKey(
+			EntityType.BlockheadSession,
+			[],
+			'simulationCount'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 3,
+			}),
+		])
 		expect(persistedAddresses).toEqual(expect.arrayContaining([
 			`entity:${EntityType.BlockheadWalletRequest}`,
 			`entity:${EntityType.BlockheadWalletRequest_Timestamp}`,
+			`entity:${EntityType.BlockheadTransferIntent}`,
+			`entity:${EntityType.BlockheadActionReadinessCheck}`,
+			`entity:${EntityType.BlockheadActionReadinessCheck_Timestamp}`,
+			`entity:${EntityType.BlockheadSessionSimulation}`,
+			`entity:${EntityType.BlockheadSessionSimulationCall}`,
 			`field:${EntityType.BlockheadWalletRequest}:${entityFieldAddressKey(
 				EntityType.BlockheadWalletRequest,
 				[],
@@ -966,6 +1783,26 @@ describe('local mutation authority journal', () => {
 				EntityType._Global,
 				[],
 				'$$blockheadWalletRequests'
+			)}`,
+			`field:${EntityType.BlockheadSession}:${entityFieldAddressKey(
+				EntityType.BlockheadSession,
+				[],
+				'$latestSimulation'
+			)}`,
+			`field:${EntityType.BlockheadSession}:${entityFieldAddressKey(
+				EntityType.BlockheadSession,
+				[],
+				'simulationCount'
+			)}`,
+			`count:${EntityType.BlockheadSession}:${entityFieldAddressKey(
+				EntityType.BlockheadSession,
+				[],
+				'$$simulations'
+			)}`,
+			`count:${EntityType.BlockheadSessionSimulation}:${entityFieldAddressKey(
+				EntityType.BlockheadSessionSimulation,
+				[],
+				'$$calls'
 			)}`,
 		]))
 	})
