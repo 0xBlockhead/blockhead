@@ -52,6 +52,10 @@ const prepWithoutSendComposeSource = readFileSync(
 	new URL('../sessions/prepWithoutSendGrantRemoval.compose.spec.ts', import.meta.url),
 	'utf8'
 )
+const blockheadWalletRequestCallPrepComposeSource = readFileSync(
+	new URL('./blockheadWalletRequestCallPrep.compose.spec.ts', import.meta.url),
+	'utf8'
+)
 
 
 describe('walletRequestPreparation', () => {
@@ -70,6 +74,11 @@ describe('walletRequestPreparation', () => {
 		expect(prepWithoutSendComposeSource).toMatch(/resolveWalletRequestCallsPreparation/)
 		expect(prepWithoutSendComposeSource).toMatch(/WalletCapability\.SendTransaction/)
 		expect(prepWithoutSendComposeSource).toMatch(/isPreparedWalletRequestWithoutSend/)
+		expect(blockheadWalletRequestCallPrepComposeSource).toMatch(/resolveExecutableWalletRequestPrep/)
+		expect(blockheadWalletRequestCallPrepComposeSource).toMatch(/at least one BlockheadWalletRequestCall/)
+		expect(blockheadWalletRequestCallPrepComposeSource).toMatch(/non-empty inputDataHash/)
+		expect(blockheadWalletRequestCallPrepComposeSource).toMatch(/ordered BlockheadWalletRequestCall/)
+		expect(blockheadWalletRequestCallPrepComposeSource).toMatch(/prep-without-send/)
 	})
 
 	it('requires exactly one Connected+selected wallet before prep binding', () => {
