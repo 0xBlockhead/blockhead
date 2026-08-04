@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{zeroGKvEntry.$network.name || (zeroGKvEntrySelector.$network.caip2 == null ? '' : `${zeroGKvEntrySelector.$network.caip2.namespace}:${zeroGKvEntrySelector.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{zeroGKvEntry.$network.name || (zeroGKvEntry.$network.caip2 == null ? '' : `${zeroGKvEntry.$network.caip2.namespace}:${zeroGKvEntry.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

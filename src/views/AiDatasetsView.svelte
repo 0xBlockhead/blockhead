@@ -38,13 +38,12 @@
 	}
 >
 	{#snippet Item({ item: aiDataset })}
-		{@const aiDatasetSelector = aiDataset[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AiDataset}
-			entitySelector={aiDatasetSelector}
+			entitySelector={aiDataset[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{(aiDataset.label ?? '') || [(aiDatasetSelector.datasetUri ?? ''), (aiDatasetSelector.datasetName ?? ''), (aiDatasetSelector.huggingFaceDatasetId ?? '')].filter(Boolean).join(' ') || 'AI dataset'}
+				{(aiDataset.label ?? '') || [(aiDataset.datasetUri ?? ''), (aiDataset.datasetName ?? ''), (aiDataset.huggingFaceDatasetId ?? '')].filter(Boolean).join(' ') || 'AI dataset'}
 			{/snippet}
 
 			{#snippet Value()}

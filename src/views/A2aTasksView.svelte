@@ -36,13 +36,12 @@
 	}
 >
 	{#snippet Item({ item: a2aTask })}
-		{@const a2aTaskSelector = a2aTask[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.A2aTask}
-			entitySelector={a2aTaskSelector}
+			entitySelector={a2aTask[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{a2aTaskSelector.taskId || (a2aTaskSelector.providerTaskId ?? '') || 'A2A task'}
+				{a2aTask.taskId || (a2aTask.providerTaskId ?? '') || 'A2A task'}
 			{/snippet}
 
 			{#snippet Value()}

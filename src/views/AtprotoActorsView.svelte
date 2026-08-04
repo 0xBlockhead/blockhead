@@ -35,10 +35,9 @@
 	}
 >
 	{#snippet Item({ item: atprotoActor })}
-		{@const atprotoActorSelector = atprotoActor[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AtprotoActor}
-			entitySelector={atprotoActorSelector}
+			entitySelector={atprotoActor[EntityMetaKey.Selector]}
 			href={
 				resolve(
 					'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]',
@@ -49,7 +48,7 @@
 			}
 		>
 			{#snippet Title()}
-				{atprotoActorSelector.did || 'AT Protocol account'}
+				{atprotoActor.did || 'AT Protocol account'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

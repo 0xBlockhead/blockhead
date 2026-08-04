@@ -37,13 +37,12 @@
 	}
 >
 	{#snippet Item({ item: aiModelVersion })}
-		{@const aiModelVersionSelector = aiModelVersion[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AiModelVersion}
-			entitySelector={aiModelVersionSelector}
+			entitySelector={aiModelVersion[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{(aiModelVersionSelector.versionId ?? '') || [(aiModelVersionSelector.revision ?? ''), aiModelVersion.$artifact == null ? '' : (aiModelVersion.$artifact.artifactType ?? '') || [(aiModelVersion.$artifact.providerArtifactId ?? ''), (aiModelVersion.$artifact.ociDigest ?? ''), (aiModelVersion.$artifact.ipfsCid ?? ''), (aiModelVersion.$artifact.arweaveId ?? ''), (aiModelVersion.$artifact.gitObject ?? ''), (aiModelVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact'].filter(Boolean).join(' ') || 'AI model version'}
+				{(aiModelVersion.versionId ?? '') || [(aiModelVersion.revision ?? ''), aiModelVersion.$artifact == null ? '' : (aiModelVersion.$artifact.artifactType ?? '') || [(aiModelVersion.$artifact.providerArtifactId ?? ''), (aiModelVersion.$artifact.ociDigest ?? ''), (aiModelVersion.$artifact.ipfsCid ?? ''), (aiModelVersion.$artifact.arweaveId ?? ''), (aiModelVersion.$artifact.gitObject ?? ''), (aiModelVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact'].filter(Boolean).join(' ') || 'AI model version'}
 			{/snippet}
 
 			{#snippet Value()}

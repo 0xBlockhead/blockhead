@@ -38,13 +38,12 @@
 	}
 >
 	{#snippet Item({ item: mcpServerPackageVersion })}
-		{@const mcpServerPackageVersionSelector = mcpServerPackageVersion[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.McpServerPackageVersion}
-			entitySelector={mcpServerPackageVersionSelector}
+			entitySelector={mcpServerPackageVersion[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{(mcpServerPackageVersionSelector.version ?? '') || (mcpServerPackageVersion.$artifact == null ? '' : (mcpServerPackageVersion.$artifact.artifactType ?? '') || [(mcpServerPackageVersion.$artifact.providerArtifactId ?? ''), (mcpServerPackageVersion.$artifact.ociDigest ?? ''), (mcpServerPackageVersion.$artifact.ipfsCid ?? ''), (mcpServerPackageVersion.$artifact.arweaveId ?? ''), (mcpServerPackageVersion.$artifact.gitObject ?? ''), (mcpServerPackageVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact') || 'mcp server package version'}
+				{(mcpServerPackageVersion.version ?? '') || (mcpServerPackageVersion.$artifact == null ? '' : (mcpServerPackageVersion.$artifact.artifactType ?? '') || [(mcpServerPackageVersion.$artifact.providerArtifactId ?? ''), (mcpServerPackageVersion.$artifact.ociDigest ?? ''), (mcpServerPackageVersion.$artifact.ipfsCid ?? ''), (mcpServerPackageVersion.$artifact.arweaveId ?? ''), (mcpServerPackageVersion.$artifact.gitObject ?? ''), (mcpServerPackageVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact') || 'mcp server package version'}
 			{/snippet}
 
 			{#snippet Value()}

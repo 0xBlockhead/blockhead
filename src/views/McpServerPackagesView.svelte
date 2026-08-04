@@ -35,13 +35,12 @@
 	}
 >
 	{#snippet Item({ item: mcpServerPackage })}
-		{@const mcpServerPackageSelector = mcpServerPackage[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.McpServerPackage}
-			entitySelector={mcpServerPackageSelector}
+			entitySelector={mcpServerPackage[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{(mcpServerPackage.label ?? '') || [(mcpServerPackageSelector.registryServerName ?? ''), (mcpServerPackageSelector.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'MCP server package'}
+				{(mcpServerPackage.label ?? '') || [(mcpServerPackage.registryServerName ?? ''), (mcpServerPackage.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'MCP server package'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

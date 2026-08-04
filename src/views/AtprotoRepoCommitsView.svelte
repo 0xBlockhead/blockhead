@@ -44,7 +44,7 @@
 			entitySelector={atprotoRepoCommitSelector}
 		>
 			{#snippet Title()}
-				{[atprotoRepoCommitSelector.rev, atprotoRepoCommitSelector.commitCid].filter(Boolean).join(' ') || 'AT Protocol repo commit'}
+				{[atprotoRepoCommit.rev, atprotoRepoCommit.commitCid].filter(Boolean).join(' ') || 'AT Protocol repo commit'}
 			{/snippet}
 
 			{#snippet Value()}

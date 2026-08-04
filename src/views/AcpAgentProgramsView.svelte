@@ -36,17 +36,16 @@
 	}
 >
 	{#snippet Item({ item: acpAgentProgram })}
-		{@const acpAgentProgramSelector = acpAgentProgram[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AcpAgentProgram}
-			entitySelector={acpAgentProgramSelector}
+			entitySelector={acpAgentProgram[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{(acpAgentProgram.label ?? '') || [(acpAgentProgramSelector.registryAgentId ?? ''), (acpAgentProgramSelector.packageName ?? ''), (acpAgentProgramSelector.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'ACP agent program'}
+				{(acpAgentProgram.label ?? '') || [(acpAgentProgram.registryAgentId ?? ''), (acpAgentProgram.packageName ?? ''), (acpAgentProgram.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'ACP agent program'}
 			{/snippet}
 
 			{#snippet Value()}
-				{acpAgentProgramSelector.packageName ?? ''}
+				{acpAgentProgram.packageName ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

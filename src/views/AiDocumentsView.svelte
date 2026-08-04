@@ -35,13 +35,12 @@
 	}
 >
 	{#snippet Item({ item: aiDocument })}
-		{@const aiDocumentSelector = aiDocument[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AiDocument}
-			entitySelector={aiDocumentSelector}
+			entitySelector={aiDocument[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{aiDocumentSelector.documentKind || 'AI document'}
+				{aiDocument.documentKind || 'AI document'}
 			{/snippet}
 
 			{#snippet Value()}
@@ -49,7 +48,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{aiDocumentSelector.documentUrl ?? ''}</span>
+				<span data-text="annotation">{aiDocument.documentUrl ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

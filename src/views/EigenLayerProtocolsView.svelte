@@ -34,17 +34,16 @@
 	}
 >
 	{#snippet Item({ item: eigenLayerProtocol })}
-		{@const eigenLayerProtocolSelector = eigenLayerProtocol[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.EigenLayerProtocol}
-			entitySelector={eigenLayerProtocolSelector}
+			entitySelector={eigenLayerProtocol[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
 				{eigenLayerProtocol.protocolName || 'eigen layer protocol'}
 			{/snippet}
 
 			{#snippet Value()}
-				{eigenLayerProtocol.$network.name || (eigenLayerProtocolSelector.$network.caip2 == null ? '' : `${eigenLayerProtocolSelector.$network.caip2.namespace}:${eigenLayerProtocolSelector.$network.caip2.reference}`) || 'Network'}
+				{eigenLayerProtocol.$network.name || (eigenLayerProtocol.$network.caip2 == null ? '' : `${eigenLayerProtocol.$network.caip2.namespace}:${eigenLayerProtocol.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

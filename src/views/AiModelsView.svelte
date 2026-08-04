@@ -53,7 +53,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(aiModel.$provider.label ?? '') || [(aiModelSelector.$provider.providerId ?? ''), (aiModelSelector.$provider.domain ?? '')].filter(Boolean).join(' ') || 'AI model provider'}
+				{(aiModel.$provider.label ?? '') || [(aiModel.$provider.providerId ?? ''), (aiModel.$provider.domain ?? '')].filter(Boolean).join(' ') || 'AI model provider'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -41,13 +41,12 @@
 	}
 >
 	{#snippet Item({ item: aiArtifact })}
-		{@const aiArtifactSelector = aiArtifact[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AiArtifact}
-			entitySelector={aiArtifactSelector}
+			entitySelector={aiArtifact[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{(aiArtifact.artifactType ?? '') || [(aiArtifactSelector.providerArtifactId ?? ''), (aiArtifactSelector.ociDigest ?? ''), (aiArtifactSelector.ipfsCid ?? ''), (aiArtifactSelector.arweaveId ?? ''), (aiArtifactSelector.gitObject ?? ''), (aiArtifactSelector.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
+				{(aiArtifact.artifactType ?? '') || [(aiArtifact.providerArtifactId ?? ''), (aiArtifact.ociDigest ?? ''), (aiArtifact.ipfsCid ?? ''), (aiArtifact.arweaveId ?? ''), (aiArtifact.gitObject ?? ''), (aiArtifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
 			{/snippet}
 
 			{#snippet Value()}

@@ -74,15 +74,13 @@
 								sources: [
 									Source.NostrRelay_Nip11_Http,
 								],
-								limit: 1,
 								orderBy: [
 									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
 								],
-							})
+							}).first()
 						}
 					>
-						{#snippet children(nostrRelayTimestamps)}
-							{@const nostrRelayTimestamp = nostrRelayTimestamps.values[0]}
+						{#snippet children(nostrRelayTimestamp)}
 							{#if nostrRelayTimestamp != null}
 								{@const nostrRelayTimestampSelector = nostrRelayTimestamp[EntityMetaKey.Selector]}
 								<NostrRelay_TimestampView

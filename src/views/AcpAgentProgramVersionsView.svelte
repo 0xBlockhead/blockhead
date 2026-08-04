@@ -36,13 +36,12 @@
 	}
 >
 	{#snippet Item({ item: acpAgentProgramVersion })}
-		{@const acpAgentProgramVersionSelector = acpAgentProgramVersion[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AcpAgentProgramVersion}
-			entitySelector={acpAgentProgramVersionSelector}
+			entitySelector={acpAgentProgramVersion[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{(acpAgentProgramVersionSelector.version ?? '') || (acpAgentProgramVersion.$artifact == null ? '' : (acpAgentProgramVersion.$artifact.artifactType ?? '') || [(acpAgentProgramVersion.$artifact.providerArtifactId ?? ''), (acpAgentProgramVersion.$artifact.ociDigest ?? ''), (acpAgentProgramVersion.$artifact.ipfsCid ?? ''), (acpAgentProgramVersion.$artifact.arweaveId ?? ''), (acpAgentProgramVersion.$artifact.gitObject ?? ''), (acpAgentProgramVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact') || 'ACP agent program version'}
+				{(acpAgentProgramVersion.version ?? '') || (acpAgentProgramVersion.$artifact == null ? '' : (acpAgentProgramVersion.$artifact.artifactType ?? '') || [(acpAgentProgramVersion.$artifact.providerArtifactId ?? ''), (acpAgentProgramVersion.$artifact.ociDigest ?? ''), (acpAgentProgramVersion.$artifact.ipfsCid ?? ''), (acpAgentProgramVersion.$artifact.arweaveId ?? ''), (acpAgentProgramVersion.$artifact.gitObject ?? ''), (acpAgentProgramVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact') || 'ACP agent program version'}
 			{/snippet}
 
 			{#snippet Value()}

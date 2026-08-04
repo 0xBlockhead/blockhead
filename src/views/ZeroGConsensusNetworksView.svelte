@@ -44,7 +44,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{zeroGConsensusNetwork.$network.name || (zeroGConsensusNetworkSelector.$network.caip2 == null ? '' : `${zeroGConsensusNetworkSelector.$network.caip2.namespace}:${zeroGConsensusNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{zeroGConsensusNetwork.$network.name || (zeroGConsensusNetwork.$network.caip2 == null ? '' : `${zeroGConsensusNetwork.$network.caip2.namespace}:${zeroGConsensusNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

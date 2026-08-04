@@ -39,10 +39,9 @@
 	}
 >
 	{#snippet Item({ item: activityPubActor })}
-		{@const activityPubActorSelector = activityPubActor[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.ActivityPubActor}
-			entitySelector={activityPubActorSelector}
+			entitySelector={activityPubActor[EntityMetaKey.Selector]}
 			href={
 				resolve(
 					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]',
@@ -54,11 +53,11 @@
 			}
 		>
 			{#snippet Title()}
-				{[(activityPubActor.displayName ?? ''), activityPubActorSelector.acct, (activityPubActor.username ?? ''), activityPubActorSelector.localAccountId].filter(Boolean).join(' ') || 'ActivityPub actor'}
+				{[(activityPubActor.displayName ?? ''), activityPubActor.acct, (activityPubActor.username ?? ''), activityPubActor.localAccountId].filter(Boolean).join(' ') || 'ActivityPub actor'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[activityPubActorSelector.acct, activityPubActorSelector.localAccountId].filter(Boolean).join(' ')}
+				{[activityPubActor.acct, activityPubActor.localAccountId].filter(Boolean).join(' ')}
 			{/snippet}
 		</EntityView>
 	{/snippet}

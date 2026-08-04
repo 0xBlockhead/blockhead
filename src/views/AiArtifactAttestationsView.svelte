@@ -57,11 +57,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(aiArtifactAttestation.$artifact.artifactType ?? '') || [(aiArtifactAttestationSelector.$artifact.providerArtifactId ?? ''), (aiArtifactAttestationSelector.$artifact.ociDigest ?? ''), (aiArtifactAttestationSelector.$artifact.ipfsCid ?? ''), (aiArtifactAttestationSelector.$artifact.arweaveId ?? ''), (aiArtifactAttestationSelector.$artifact.gitObject ?? ''), (aiArtifactAttestationSelector.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
+				{(aiArtifactAttestation.$artifact.artifactType ?? '') || [(aiArtifactAttestation.$artifact.providerArtifactId ?? ''), (aiArtifactAttestation.$artifact.ociDigest ?? ''), (aiArtifactAttestation.$artifact.ipfsCid ?? ''), (aiArtifactAttestation.$artifact.arweaveId ?? ''), (aiArtifactAttestation.$artifact.gitObject ?? ''), (aiArtifactAttestation.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{aiArtifactAttestationSelector.logEntryId ?? ''}</span>
+				<span data-text="annotation">{aiArtifactAttestation.logEntryId ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

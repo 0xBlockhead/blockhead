@@ -37,13 +37,12 @@
 	}
 >
 	{#snippet Item({ item: aiBenchmark })}
-		{@const aiBenchmarkSelector = aiBenchmark[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AiBenchmark}
-			entitySelector={aiBenchmarkSelector}
+			entitySelector={aiBenchmark[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{(aiBenchmark.label ?? '') || [(aiBenchmarkSelector.benchmarkId ?? ''), (aiBenchmarkSelector.benchmarkUri ?? '')].filter(Boolean).join(' ') || 'AI benchmark'}
+				{(aiBenchmark.label ?? '') || [(aiBenchmark.benchmarkId ?? ''), (aiBenchmark.benchmarkUri ?? '')].filter(Boolean).join(' ') || 'AI benchmark'}
 			{/snippet}
 
 			{#snippet Value()}

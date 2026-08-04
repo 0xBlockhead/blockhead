@@ -6,6 +6,8 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { MarketAssetKind } from '$/constants/Market.ts'
+	import { seededCoinSpotUsdMarketByCoinId } from '$/constants/MarketCatalog.ts'
 	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
@@ -36,6 +38,9 @@
 	}))
 	const titleFallback = $derived([(prefetched.symbol ?? ''), (prefetched.name ?? '')].filter(Boolean).join(' ') || 'Coin')
 	const viewDomId = $derived('coin-' + encodeURIComponent(stringify(selection.entitySelector)))
+	const catalogUsdMarket = $derived(
+		seededCoinSpotUsdMarketByCoinId[selection.entitySelector.coinId]
+	)
 
 
 	// Components
@@ -45,6 +50,7 @@
 	import Coin_TimestampView from '$/views/Coin_TimestampView.svelte'
 	import EvmCoinInstancesView from '$/views/EvmCoinInstancesView.svelte'
 	import CoinBridgeCapabilitiesView from '$/views/CoinBridgeCapabilitiesView.svelte'
+	import MarketOhlcHub from '$/views/MarketOhlcHub.svelte'
 	import MarketsView from '$/views/MarketsView.svelte'
 	import MediaView from '$/views/MediaView.svelte'
 </script>
@@ -137,15 +143,13 @@
 									timestampMs: true,
 									source: true,
 								},
-								limit: 1,
 								orderBy: [
 									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
 								],
-							})
+							}).first()
 						}
 					>
-						{#snippet children(coinTimestamps)}
-							{@const coinTimestamp = coinTimestamps.values[0]}
+						{#snippet children(coinTimestamp)}
 							{#if coinTimestamp != null}
 								<Coin_TimestampView
 									selection={
@@ -267,6 +271,28 @@
 					title={label}
 					id={`${id}-list`}
 				/>
+
+				{#if catalogUsdMarket}
+					<MarketOhlcHub
+						candlesListTitle="Candles"
+						chartTitlePrefix={selection.entitySelector.coinId}
+						id={`${id}-ohlc`}
+						market={{
+							$base: {
+								kind: MarketAssetKind.Coin,
+								assetKey: catalogUsdMarket.baseCoinId,
+							},
+							$quote: {
+								kind: MarketAssetKind.Currency,
+								assetKey: catalogUsdMarket.quoteIso4217,
+							},
+							$marketVenue: {
+								marketVenueId: catalogUsdMarket.marketVenueId,
+							},
+							marketKind: catalogUsdMarket.marketKind,
+						}}
+					/>
+				{/if}
 			{/snippet}
 
 			{#snippet SectionMarketsWithCoinAsBase({ id, label })}

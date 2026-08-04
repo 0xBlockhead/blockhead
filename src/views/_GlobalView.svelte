@@ -30,6 +30,7 @@
 	import MarketVenuesView from '$/views/MarketVenuesView.svelte'
 	import CurrenciesView from '$/views/CurrenciesView.svelte'
 	import LiquidityPoolsView from '$/views/LiquidityPoolsView.svelte'
+	import UniswapV3PoolsView from '$/views/UniswapV3PoolsView.svelte'
 	import EvmNetworkActorCoinBalancesView from '$/views/EvmNetworkActorCoinBalancesView.svelte'
 	import MarketPricesView from '$/views/MarketPricesView.svelte'
 	import Market_TimeInterval_TimestampsView from '$/views/Market_TimeInterval_TimestampsView.svelte'
@@ -208,6 +209,10 @@
 						label: 'Liquidity pools',
 					},
 					{
+						id: 'global-uniswap-v3-pools',
+						label: 'Uniswap V3 pools',
+					},
+					{
 						id: 'global-actor-coins',
 						label: 'Actor coins',
 					},
@@ -298,6 +303,28 @@
 					collapsible={false}
 					title={label}
 					emptyText='No liquidity pools.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionGlobalUniswapV3Pools({ id, label })}
+				<UniswapV3PoolsView
+					selection={selection.$$uniswapV3Pools}
+					href={
+						selection.entitySelector.scope === '$$uniswapV3Pools' ?
+							true ?
+								resolve('/(assets)/pools')
+							:
+								true ?
+									resolve('/(assets)/uniswap-v3/pools')
+								:
+									undefined
+						:
+							undefined
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No Uniswap V3 pools.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
@@ -597,6 +624,12 @@
 			{#snippet SectionGlobalWalletsList({ id, label })}
 				<BlockheadWalletsView
 					selection={selection.$$blockheadWallets}
+					href={
+						selection.entitySelector.scope === '$$blockheadWallets' ?
+							resolve('/~/wallets')
+						:
+							undefined
+					}
 					collapsible={false}
 					title={label}
 					emptyText='No wallets.'
@@ -609,7 +642,7 @@
 					selection={selection.$$blockheadWalletConnections}
 					href={
 						selection.entitySelector.scope === '$$blockheadWalletConnections' ?
-							resolve('/~/accounts/connections')
+							resolve('/~/wallets/connections')
 						:
 							undefined
 					}
@@ -648,6 +681,12 @@
 			{#snippet SectionGlobalWalletRequests({ id, label })}
 				<BlockheadWalletRequestsView
 					selection={selection.$$blockheadWalletRequests}
+					href={
+						selection.entitySelector.scope === '$$blockheadWalletRequests' ?
+							resolve('/~/wallets/requests')
+						:
+							undefined
+					}
 					collapsible={false}
 					title={label}
 					emptyText='No wallet requests.'

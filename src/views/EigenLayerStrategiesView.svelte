@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{eigenLayerStrategy.$network.name || (eigenLayerStrategySelector.$network.caip2 == null ? '' : `${eigenLayerStrategySelector.$network.caip2.namespace}:${eigenLayerStrategySelector.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{eigenLayerStrategy.$network.name || (eigenLayerStrategy.$network.caip2 == null ? '' : `${eigenLayerStrategy.$network.caip2.namespace}:${eigenLayerStrategy.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

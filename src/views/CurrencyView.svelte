@@ -101,15 +101,13 @@
 									marketCap: true,
 									timestampMs: true,
 								},
-								limit: 1,
 								orderBy: [
 									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
 								],
-							})
+							}).first()
 						}
 					>
-						{#snippet children(currencyTimestamps)}
-							{@const currencyTimestamp = currencyTimestamps.values[0]}
+						{#snippet children(currencyTimestamp)}
 							{#if currencyTimestamp != null}
 								<Currency_TimestampView
 									selection={

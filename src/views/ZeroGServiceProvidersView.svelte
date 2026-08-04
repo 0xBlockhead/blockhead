@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{zeroGServiceProvider.$network.name || (zeroGServiceProviderSelector.$network.caip2 == null ? '' : `${zeroGServiceProviderSelector.$network.caip2.namespace}:${zeroGServiceProviderSelector.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{zeroGServiceProvider.$network.name || (zeroGServiceProvider.$network.caip2 == null ? '' : `${zeroGServiceProvider.$network.caip2.namespace}:${zeroGServiceProvider.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

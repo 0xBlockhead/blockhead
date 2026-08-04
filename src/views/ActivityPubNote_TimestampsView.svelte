@@ -64,7 +64,7 @@
 			}
 		>
 			{#snippet Title()}
-				{[activityPubNoteTimestamp.$note.content == null ? '' : htmlToPlainText(activityPubNoteTimestamp.$note.content), activityPubNoteTimestampSelector.$note.localStatusId].filter(Boolean).join(' ') || 'ActivityPub note'}
+				{[activityPubNoteTimestamp.$note.content == null ? '' : htmlToPlainText(activityPubNoteTimestamp.$note.content), activityPubNoteTimestamp.$note.localStatusId].filter(Boolean).join(' ') || 'ActivityPub note'}
 			{/snippet}
 
 			{#snippet Value()}

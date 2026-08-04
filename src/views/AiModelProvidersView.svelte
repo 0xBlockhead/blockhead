@@ -36,13 +36,12 @@
 	}
 >
 	{#snippet Item({ item: aiModelProvider })}
-		{@const aiModelProviderSelector = aiModelProvider[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AiModelProvider}
-			entitySelector={aiModelProviderSelector}
+			entitySelector={aiModelProvider[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{(aiModelProvider.label ?? '') || [(aiModelProviderSelector.providerId ?? ''), (aiModelProviderSelector.domain ?? '')].filter(Boolean).join(' ') || 'AI model provider'}
+				{(aiModelProvider.label ?? '') || [(aiModelProvider.providerId ?? ''), (aiModelProvider.domain ?? '')].filter(Boolean).join(' ') || 'AI model provider'}
 			{/snippet}
 
 			{#snippet Value()}

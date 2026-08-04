@@ -37,13 +37,12 @@
 	}
 >
 	{#snippet Item({ item: gitRepository })}
-		{@const gitRepositorySelector = gitRepository[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.GitRepository}
-			entitySelector={gitRepositorySelector}
+			entitySelector={gitRepository[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{[gitRepositorySelector.repositoryId, (gitRepositorySelector.canonicalRemoteUrl ?? '')].filter(Boolean).join(' ') || 'Git repository'}
+				{[gitRepository.repositoryId, (gitRepository.canonicalRemoteUrl ?? '')].filter(Boolean).join(' ') || 'Git repository'}
 			{/snippet}
 
 			{#snippet Value()}

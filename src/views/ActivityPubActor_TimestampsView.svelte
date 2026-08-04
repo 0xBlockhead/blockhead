@@ -57,7 +57,7 @@
 			}
 		>
 			{#snippet Title()}
-				{[(activityPubActorTimestamp.$actor.displayName ?? ''), activityPubActorTimestampSelector.$actor.acct, (activityPubActorTimestamp.$actor.username ?? ''), activityPubActorTimestampSelector.$actor.localAccountId].filter(Boolean).join(' ') || 'ActivityPub actor'}
+				{[(activityPubActorTimestamp.$actor.displayName ?? ''), activityPubActorTimestamp.$actor.acct, (activityPubActorTimestamp.$actor.username ?? ''), activityPubActorTimestamp.$actor.localAccountId].filter(Boolean).join(' ') || 'ActivityPub actor'}
 			{/snippet}
 
 			{#snippet Value()}
