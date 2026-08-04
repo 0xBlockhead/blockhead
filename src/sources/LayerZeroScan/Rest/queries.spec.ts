@@ -293,6 +293,21 @@ describe('LayerZero Scan public message queries', () => {
 			},
 			error: 'timestamps are reversed',
 		},
+		{
+			mutate: {
+				status: {
+					name: 'NOT_A_STATUS',
+					message: 'invented',
+				},
+			},
+			error: 'invalid message status',
+		},
+		{
+			mutate: {
+				status: undefined,
+			},
+			error: 'invalid message status',
+		},
 	])('rejects malformed observed messages', async ({ mutate, error }) => {
 		getJson.mockResolvedValue({
 			data: [{

@@ -1,9 +1,13 @@
 /**
  * LayerZero V2 mainnet EVM endpoint id → native chain id.
  * Built from https://metadata.layerzero-api.com/v1/metadata (ACTIVE EVM, v2 mainnet stage).
+ * Message status catalog from Scan docs / OpenAPI `/messages/status/{status}`.
  * @see https://docs.layerzero.network/v2/deployments/deployed-contracts
  * @see https://docs.layerzero.network/v2/tools/layerzeroscan/api
  */
+
+// Constants
+
 export const layerZeroEvmEndpoints = [
 	{ endpointId: 30101, chainId: 1, chainKey: 'ethereum' },
 	{ endpointId: 30102, chainId: 56, chainKey: 'bsc' },
@@ -145,9 +149,69 @@ export const layerZeroEvmEndpoints = [
 	{ endpointId: 30415, chainId: 72957, chainKey: 'rayls' },
 	{ endpointId: 30416, chainId: 4663, chainKey: 'robinhood' },
 	{ endpointId: 30417, chainId: 5042, chainKey: 'arc' },
-] as const
+] as const satisfies readonly {
+	endpointId: number
+	chainId: number
+	chainKey: string
+}[]
 
+/**
+ * Top-level Scan `status.name` values (path `/messages/status/{status}` + message body).
+ * @see https://docs.layerzero.network/v2/tools/layerzeroscan/api
+ */
+export const layerZeroMessageStatuses = [
+	{
+		name: 'INFLIGHT',
+		label: 'Waiting for source confirmation, verification, or execution',
+	},
+	{
+		name: 'CONFIRMING',
+		label: 'Destination transaction submitted, waiting for finality',
+	},
+	{
+		name: 'FAILED',
+		label: 'Delivered but execution failed on the destination chain',
+	},
+	{
+		name: 'DELIVERED',
+		label: 'Delivered and executed on the destination chain',
+	},
+	{
+		name: 'BLOCKED',
+		label: 'Cannot progress due to configuration issues',
+	},
+	{
+		name: 'PAYLOAD_STORED',
+		label: 'Payload stored on destination, awaiting manual execution',
+	},
+	{
+		name: 'APPLICATION_BURNED',
+		label: 'Burned by the receiving application',
+	},
+	{
+		name: 'APPLICATION_SKIPPED',
+		label: 'Skipped by the receiving application',
+	},
+	{
+		name: 'UNRESOLVABLE_COMMAND',
+		label: 'Command cannot be resolved (lzRead only)',
+	},
+	{
+		name: 'MALFORMED_COMMAND',
+		label: 'Command is malformed (lzRead only)',
+	},
+] as const satisfies readonly {
+	name: string
+	label: string
+}[]
+
+
+// Lookups
 
 export const layerZeroEvmChainIdByEndpointId = Object.fromEntries(
 	layerZeroEvmEndpoints.map(({ endpointId, chainId }) => [endpointId, chainId])
+)
+
+export const layerZeroMessageStatusByName = Object.fromEntries(
+	layerZeroMessageStatuses.map((row) => [row.name, row])
 )

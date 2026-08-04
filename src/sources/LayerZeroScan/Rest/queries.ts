@@ -6,6 +6,10 @@
 
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/LayerZeroScan/bindings.ts'
+import {
+	layerZeroMessageStatusByName,
+	layerZeroMessageStatuses,
+} from '$/sources/LayerZeroScan/Rest/constants.ts'
 import type { paths } from '$/sources/LayerZeroScan/OpenApi/openapi.d.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -19,24 +23,17 @@ type WalletMessagesResponse = paths['/messages/wallet/{srcAddress}']['get']['res
 type LayerZeroMessage = LatestMessagesResponse['data'][number]
 type LayerZeroSourceTransaction = NonNullable<NonNullable<LayerZeroMessage['source']>['tx']>
 type LayerZeroDestinationTransaction = NonNullable<NonNullable<LayerZeroMessage['destination']>['tx']>
-type LayerZeroMessageStatus = NonNullable<paths['/messages/status/{status}']['get']['parameters']['path']>['status']
+type LayerZeroMessageStatus = (typeof layerZeroMessageStatuses)[number]['name']
 
 const guidPattern = /^0x[0-9a-fA-F]{64}$/
 const integerStringPattern = /^(?:0|[1-9]\d*)$/
 const isoDatePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/
-const messageStatuses = [
-	'INFLIGHT',
-	'CONFIRMING',
-	'FAILED',
-	'DELIVERED',
-	'BLOCKED',
-	'PAYLOAD_STORED',
-	'APPLICATION_BURNED',
-	'APPLICATION_SKIPPED',
-	'UNRESOLVABLE_COMMAND',
-	'MALFORMED_COMMAND',
-] as const satisfies readonly LayerZeroMessageStatus[]
 const binding = bindings[Source.LayerZeroScan_Rest][0]
+
+const assertMessageStatus = (status: string | undefined) => {
+	if (status == null || !(status in layerZeroMessageStatusByName))
+		throw new Error(`LayerZeroScan_Rest: invalid message status ${status}`)
+}
 
 const assertEndpointId = (endpointId: number) => {
 	if (!Number.isSafeInteger(endpointId) || endpointId < 1)
@@ -139,6 +136,7 @@ const assertMessage = (message: LayerZeroMessage) => {
 	assertSourceTransaction(message.source.tx)
 	if (message.destination?.tx != null)
 		assertDestinationTransaction(message.destination.tx)
+	assertMessageStatus(message.status?.name)
 }
 
 const assertMessages = (
@@ -189,8 +187,8 @@ const messagesPath = (
 		assertOpaquePathAtom(ulnVersion, 'uln version')
 	if (nonce != null && (!Number.isSafeInteger(nonce) || nonce < 0))
 		throw new Error('LayerZeroScan_Rest: invalid pathway nonce')
-	if (status != null && !(messageStatuses as readonly string[]).includes(status))
-		throw new Error(`LayerZeroScan_Rest: invalid message status ${status}`)
+	if (status != null)
+		assertMessageStatus(status)
 	if (srcAddress != null)
 		assertOpaquePathAtom(srcAddress, 'source address')
 	for (const endpointId of [
@@ -389,8 +387,7 @@ export const getMessagesByStatus = async ({
 	start?: string
 	end?: string
 }) => {
-	if (!(messageStatuses as readonly string[]).includes(status))
-		throw new Error(`LayerZeroScan_Rest: invalid message status ${status}`)
+	assertMessageStatus(status)
 	const response = await getJson<StatusMessagesResponse>(
 		binding,
 		messagesPath(`/v1/messages/status/${encodeURIComponent(status)}`, {
