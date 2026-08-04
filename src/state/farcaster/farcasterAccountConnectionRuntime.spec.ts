@@ -330,7 +330,7 @@ describe('Farcaster account connection runtime', () => {
 			},
 		})
 
-		expect(current.selectConnection(challenge.connectionId)?.selected).toBe(true)
+		expect(current.selectConnection(challenge.connectionId)?.role).toBe('viewer')
 		expect(current.viewerFid()).toBe(challenge.fid)
 		expect(current.selectConnection('unverified-connection')).toBeUndefined()
 		expect(current.viewerFid()).toBe(challenge.fid)

@@ -2,6 +2,13 @@ import * as Hex from 'ox/Hex'
 import * as PersonalMessage from 'ox/PersonalMessage'
 import * as Secp256k1 from 'ox/Secp256k1'
 import * as Signature from 'ox/Signature'
+import {
+	applyFarcasterAccountConnectionSelection,
+	isCurrentFarcasterAccountConnection,
+	standbyFarcasterAccountConnection,
+	viewerFidFromFarcasterAccountConnections,
+	type FarcasterAccountConnection,
+} from '$/state/farcaster/farcasterAccountConnectionState.ts'
 
 
 export type FarcasterAccountAuthMethod = 'custody' | 'authAddress'
@@ -20,16 +27,7 @@ export type FarcasterAccountConnectionChallenge = {
 	expiresAt: number
 }
 
-export type FarcasterAccountConnection = {
-	connectionId: string
-	fid: number
-	signerAddress: string
-	authMethod: FarcasterAccountAuthMethod
-	verifiedAt: number
-	expiresAt: number
-	associationFingerprint: string
-	selected: boolean
-}
+export type { FarcasterAccountConnection }
 
 export type FarcasterAccountEvidence =
 	| {
@@ -150,7 +148,7 @@ export const createFarcasterAccountConnectionRuntime = ({
 			)
 				throw new Error('Farcaster auth address is not approved for the trusted app')
 
-			const connection = {
+			const connection = standbyFarcasterAccountConnection({
 				connectionId: challenge.connectionId,
 				fid: challenge.fid,
 				signerAddress: recoveredSigner,
@@ -158,8 +156,7 @@ export const createFarcasterAccountConnectionRuntime = ({
 				verifiedAt: now(),
 				expiresAt: challenge.expiresAt,
 				associationFingerprint: evidence.associationFingerprint,
-				selected: false,
-			} satisfies FarcasterAccountConnection
+			})
 			connectionById.set(connection.connectionId, connection)
 			return connection
 		} catch (error) {
@@ -175,7 +172,7 @@ export const createFarcasterAccountConnectionRuntime = ({
 		const connection = connectionById.get(connectionId)
 		if (connection == null) return undefined
 		if (
-			connection.expiresAt <= now()
+			!isCurrentFarcasterAccountConnection(connection, now())
 			|| connection.authMethod !== evidence.method
 			|| connection.associationFingerprint !== evidence.associationFingerprint
 			|| (
@@ -199,21 +196,16 @@ export const createFarcasterAccountConnectionRuntime = ({
 	}
 
 	const selectConnection = (connectionId: string) => {
-		const selectedConnection = connectionById.get(connectionId)
-		if (selectedConnection == null || selectedConnection.expiresAt <= now()) {
-			if (selectedConnection != null)
-				connectionById.delete(connectionId)
+		const { connections, viewer, selected } = applyFarcasterAccountConnectionSelection(
+			[...connectionById.values()],
+			connectionId,
+			now()
+		)
+		connectionById.clear()
+		for (const connection of connections)
+			connectionById.set(connection.connectionId, connection)
 
-			return undefined
-		}
-
-		for (const [id, connection] of connectionById)
-			connectionById.set(id, {
-				...connection,
-				selected: id === connectionId,
-			})
-
-		return connectionById.get(connectionId)
+		return selected ? viewer : undefined
 	}
 
 	return {
@@ -222,9 +214,18 @@ export const createFarcasterAccountConnectionRuntime = ({
 		revalidateConnection,
 		selectConnection,
 		disconnect: (connectionId: string) => connectionById.delete(connectionId),
-		connection: (connectionId: string) => connectionById.get(connectionId),
-		viewerFid: () => [...connectionById.values()].find(({ selected, expiresAt }) => (
-			selected && expiresAt > now()
-		))?.fid,
+		connection: (connectionId: string) => {
+			const connection = connectionById.get(connectionId)
+			if (connection == null) return undefined
+			if (!isCurrentFarcasterAccountConnection(connection, now())) {
+				connectionById.delete(connectionId)
+				return undefined
+			}
+			return connection
+		},
+		viewerFid: () => viewerFidFromFarcasterAccountConnections(
+			[...connectionById.values()],
+			now()
+		),
 	}
 }
