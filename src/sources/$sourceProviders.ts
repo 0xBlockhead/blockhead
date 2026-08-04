@@ -142,6 +142,7 @@ import mlCommonsSourceProvider from './MlCommons/index.ts'
 import mlflowSourceProvider from './Mlflow/index.ts'
 import moneroDaemonRpcSourceProvider from './MoneroDaemonRpc/index.ts'
 import moneroWalletRpcSourceProvider from './MoneroWalletRpc/index.ts'
+import morphoSourceProvider from './Morpho/index.ts'
 import nearBlocksSourceProvider from './NearBlocks/index.ts'
 import nearConnectSourceProvider from './NearConnect/index.ts'
 import nearNepsSourceProvider from './NearNeps/index.ts'
@@ -392,6 +393,7 @@ const sourceProviders = [
 	mlflowSourceProvider,
 	moneroDaemonRpcSourceProvider,
 	moneroWalletRpcSourceProvider,
+	morphoSourceProvider,
 	nearBlocksSourceProvider,
 	nearConnectSourceProvider,
 	nearNepsSourceProvider,

@@ -700,6 +700,7 @@ import MoneroRingSchema from '$/schema/MoneroRing.ts'
 import MoneroRingMemberSchema from '$/schema/MoneroRingMember.ts'
 import MoneroStealthOutputSchema from '$/schema/MoneroStealthOutput.ts'
 import MoneroTransactionSchema from '$/schema/MoneroTransaction.ts'
+import MorphoMarketSchema from '$/schema/MorphoMarket.ts'
 import MoveFunctionSchema from '$/schema/MoveFunction.ts'
 import MoveModule_TimestampSchema from '$/schema/MoveModule_Timestamp.ts'
 import MoveModuleSchema from '$/schema/MoveModule.ts'
@@ -1746,6 +1747,7 @@ const schemaChunk13 = [
 	MoneroRingMemberSchema,
 	MoneroStealthOutputSchema,
 	MoneroTransactionSchema,
+	MorphoMarketSchema,
 	MoveFunctionSchema,
 	MoveModuleSchema,
 ] as const

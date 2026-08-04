@@ -700,6 +700,7 @@ export enum EntityType {
 	MoneroRingMember = 'MoneroRingMember',
 	MoneroStealthOutput = 'MoneroStealthOutput',
 	MoneroTransaction = 'MoneroTransaction',
+	MorphoMarket = 'MorphoMarket',
 	MoveFunction = 'MoveFunction',
 	MoveModule = 'MoveModule',
 	MoveModule_Timestamp = 'MoveModule_Timestamp',

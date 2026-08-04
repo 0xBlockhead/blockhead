@@ -1,0 +1,129 @@
+import {
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from 'vitest'
+
+import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+
+const sourceGetJson = vi.hoisted(() => vi.fn())
+
+vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
+	sourceGetJson,
+}))
+
+const { default: morphoRest } = await import('$/resolvers/Morpho-Rest.ts')
+
+const baseNetwork = {
+	caip2: {
+		namespace: 'eip155',
+		reference: '8453',
+	},
+}
+
+const context = {
+	filters: [],
+	sorts: [],
+	pagination: {
+		limit: 16,
+	},
+	selectorKeys: [],
+	parentSelectorKeys: [],
+	sources: [],
+	publicEnv: {},
+}
+
+const morphoMarketResolver = morphoRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.MorphoMarket
+))
+
+const baseMarketId = '0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836'
+
+const baseMarketConfig = {
+	chain_id: 8453,
+	market_id: baseMarketId,
+	loan_token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+	collateral_token: '0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf',
+	oracle_address: '0x663BECd10daE6C4A3Dcd89F1d76c1174199639B9',
+	irm_address: '0x46415998764C29aB2a25CbeA6254146D50D22687',
+	lltv_wad: '860000000000000000',
+	creation_block_number: '19326981',
+} as const
+
+const baseMarketState = {
+	chain_id: 8453,
+	market_id: baseMarketId,
+	last_indexed_block: '49535496',
+	last_accrual_timestamp: 1785860339,
+	total_supply_assets: '1469324386999070',
+	total_supply_shares: '1335597548670035219493',
+	total_borrow_assets: '1309301819369210',
+	total_borrow_shares: '1175898795256045502042',
+	fee_wad: '0',
+} as const
+
+describe('Morpho Rest resolver module', () => {
+	beforeEach(() => {
+		sourceGetJson.mockReset()
+	})
+
+	it('registers under Morpho_Rest for MorphoMarket', () => {
+		expect(morphoRest.source).toBe(Source.Morpho_Rest)
+		expect(morphoMarketResolver).toBeDefined()
+	})
+
+	it('rejects non-eip155 networks before transport', async () => {
+		if (morphoMarketResolver == null)
+			throw new Error('missing MorphoMarket resolver')
+
+		await expect(
+			morphoMarketResolver.resolve.NetworkMarketId.resolve({
+				$network: {
+					caip2: {
+						namespace: 'cosmos',
+						reference: 'osmosis-1',
+					},
+				},
+				marketId: baseMarketId,
+			}, context)
+		).rejects.toThrow(`${Source.Morpho_Rest}: network must use the eip155 CAIP-2 namespace`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('resolves a Morpho market snapshot by network and market id', async () => {
+		if (morphoMarketResolver == null)
+			throw new Error('missing MorphoMarket resolver')
+
+		sourceGetJson
+			.mockResolvedValueOnce({
+				data: baseMarketConfig,
+			})
+			.mockResolvedValueOnce({
+				data: baseMarketState,
+			})
+
+		const snapshot = await morphoMarketResolver.resolve.NetworkMarketId.resolve({
+			$network: baseNetwork,
+			marketId: baseMarketId,
+		}, context)
+
+		expect(morphoMarketResolver.projections.marketId(snapshot)).toBe(baseMarketId)
+		expect(morphoMarketResolver.projections.loanAssetAddress(snapshot)).toBe(
+			'0x833589fcd6edb6e08f4c7c32d4f71b54bda02913'
+		)
+		expect(morphoMarketResolver.projections.lltvWad(snapshot)).toBe('860000000000000000')
+		expect(morphoMarketResolver.projections.totalSupplyAssets(snapshot)).toBe(
+			'1469324386999070'
+		)
+		expect(morphoMarketResolver.projections.lastIndexedBlock(snapshot)).toBe('49535496')
+		expect(morphoMarketResolver.projections.$network(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: baseNetwork,
+		})
+		expect(sourceGetJson).toHaveBeenCalledTimes(2)
+	})
+})
