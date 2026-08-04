@@ -380,14 +380,18 @@ describe('Hyperliquid market catalog resolvers', () => {
 			return {
 				ok: true,
 				json: async () => (
-					body.type === 'meta' ?
-						{
+					body.type === 'metaAndAssetCtxs' ?
+						[{
 							universe: [{
 								name: 'ETH',
 								szDecimals: 4,
 								maxLeverage: 25,
 							}],
-						}
+						}, [
+							{
+								markPx: '2000',
+							},
+						]]
 					: body.type === 'spotMeta' ?
 						{
 							tokens: [{
@@ -509,6 +513,35 @@ describe('Hyperliquid market catalog resolvers', () => {
 			'0xdfc24b077bc1425ad1dea75bcb6f8158e10df303',
 			'0x010461c14e146ac35fe42271bdc1134ee31c703a',
 		])
+	})
+
+	it('rejects a perp market snapshot without a context for every market', async () => {
+		const perpMarketTimestampResolver = hyperliquid.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.HyperliquidPerpMarket_Timestamp
+		))
+		expect(perpMarketTimestampResolver).toBeTruthy()
+
+		corsFetch.mockResolvedValue({
+			ok: true,
+			json: async () => [{
+				universe: [{
+					name: 'ETH',
+					szDecimals: 4,
+					maxLeverage: 25,
+				}],
+			}, []],
+		})
+
+		await expect(perpMarketTimestampResolver.resolve[
+			'PerpMarketTimestampMsSource'
+		].resolve({
+			$perpMarket: {
+				$network: account.$network,
+				coin: 'ETH',
+			},
+			timestampMs: 1_700_000_000_000,
+			source: Source.Hyperliquid,
+		}, context)).rejects.toThrow('perp universe and asset context count differ')
 	})
 
 	it('maps L2 book and candle snapshots onto market observation fields', async () => {

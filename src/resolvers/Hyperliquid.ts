@@ -15,6 +15,7 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { hyperliquidJsonRpcEndpoints } from '$/sources/Hyperliquid/JsonRpc/queries.ts'
 import { hyperliquidRestEndpoints } from '$/sources/Hyperliquid/Rest/queries.ts'
+import type { HyperliquidMetaAndAssetCtxs } from '$/sources/Hyperliquid/Rest/types.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -79,30 +80,58 @@ const hyperliquidCandleInterval = (
 	return interval
 }
 
+const assertPerpMarketSnapshot = ([
+	meta,
+	assetContexts,
+]: HyperliquidMetaAndAssetCtxs) => {
+	if (meta.universe.length !== assetContexts.length)
+		throw new Error('Hyperliquid_Rest: perp universe and asset context count differ')
+
+	const coins = new Set<string>()
+	for (const market of meta.universe) {
+		if (market.name === '')
+			throw new Error('Hyperliquid_Rest: invalid perp market coin')
+
+		if (!Number.isSafeInteger(market.szDecimals) || market.szDecimals < 0)
+			throw new Error(`Hyperliquid_Rest: invalid perp market size decimals for ${market.name}`)
+
+		if (!Number.isSafeInteger(market.maxLeverage) || market.maxLeverage < 1)
+			throw new Error(`Hyperliquid_Rest: invalid perp market max leverage for ${market.name}`)
+
+		if (coins.has(market.name))
+			throw new Error(`Hyperliquid_Rest: duplicate perp market ${market.name}`)
+
+		coins.add(market.name)
+	}
+
+	return meta
+}
+
 const resolveHyperliquidNetworkMetadata = async (
 	network: NetworkId,
 	limit: number
 ) => {
 	assertHyperliquidMainnet(network)
 	const {
-		getMeta,
+		getMetaAndAssetCtxs,
 		getSpotMeta,
 		getValidatorSummaries,
 		getVaultDetails,
 	} = await import('$/sources/Hyperliquid/Rest/queries.ts')
 	const [
-		perpMeta,
+		perpSnapshot,
 		spotMeta,
 		validators,
 		liquidityProviderVault,
 	] = await Promise.all([
-		getMeta(),
+		getMetaAndAssetCtxs(),
 		getSpotMeta(),
 		getValidatorSummaries(),
 		getVaultDetails({
 			vaultAddress: hyperliquidLiquidityProviderVaultAddress,
 		}),
 	])
+	const perpMeta = assertPerpMarketSnapshot(perpSnapshot)
 	if (liquidityProviderVault == null)
 		throw new Error('Hyperliquid_Rest: liquidity provider vault not found')
 
@@ -327,8 +356,8 @@ export default {
 				PerpMarketTimestampMsSource: {
 					resolve: async ({ $perpMarket }) => {
 						assertHyperliquidMainnet($perpMarket.$network)
-						const { getMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
-						const perpMarket = (await getMeta()).universe
+						const { getMetaAndAssetCtxs } = await import('$/sources/Hyperliquid/Rest/queries.ts')
+						const perpMarket = assertPerpMarketSnapshot(await getMetaAndAssetCtxs()).universe
 							.find((market) => market.name === $perpMarket.coin)
 						if (perpMarket == null)
 							throw new Error(`Hyperliquid_Rest: perp market not found for ${$perpMarket.coin}`)

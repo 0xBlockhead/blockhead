@@ -24,6 +24,7 @@ const {
 	getDelegatorSummary,
 	getHistoricalOrders,
 	getL2Book,
+	getMetaAndAssetCtxs,
 	getSpotClearinghouseState,
 	getUserAbstraction,
 	getUserDexAbstraction,
@@ -50,6 +51,12 @@ describe('Hyperliquid public account Info transport', () => {
 	})
 
 	it.each([
+		{
+			query: () => getMetaAndAssetCtxs(),
+			body: {
+				type: 'metaAndAssetCtxs',
+			},
+		},
 		{
 			query: () => getClearinghouseState({
 				user: '0x1111111111111111111111111111111111111111',

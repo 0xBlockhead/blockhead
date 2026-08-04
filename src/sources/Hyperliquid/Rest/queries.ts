@@ -16,6 +16,7 @@ import type {
 	HyperliquidHistoricalOrder,
 	HyperliquidL2Book,
 	HyperliquidMeta,
+	HyperliquidMetaAndAssetCtxs,
 	HyperliquidSpotClearinghouseState,
 	HyperliquidSpotMeta,
 	HyperliquidUserAbstraction,
@@ -64,6 +65,17 @@ export const getMeta = () => (
 	info<HyperliquidMeta>({
 		body: {
 			type: 'meta',
+		},
+	})
+)
+
+/**
+ * https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals
+ */
+export const getMetaAndAssetCtxs = () => (
+	info<HyperliquidMetaAndAssetCtxs>({
+		body: {
+			type: 'metaAndAssetCtxs',
 		},
 	})
 )

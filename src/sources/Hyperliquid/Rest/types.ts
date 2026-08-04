@@ -9,6 +9,11 @@ export type HyperliquidMeta = {
 	}[]
 }
 
+export type HyperliquidMetaAndAssetCtxs = [
+	HyperliquidMeta,
+	JsonValue[],
+]
+
 export type HyperliquidSpotMeta = {
 	tokens: {
 		name: string
