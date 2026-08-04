@@ -18,8 +18,6 @@ type MessageV2 = components['schemas']['MessageV2']
 type MessagesV2Response = components['schemas']['MessagesV2Response']
 type BurnFeeRow = components['schemas']['USDCBurnFeesResponseV2'][number]
 
-const irisCctpVersion = 2
-
 const assertIrisSource = (
 	source: string,
 	label: string
@@ -30,7 +28,8 @@ const assertIrisSource = (
 
 const assertDomainSelector = (
 	domain: CctpDomainSupportId,
-	label: string
+	label: string,
+	irisCctpVersion: number
 ) => {
 	if (!Number.isSafeInteger(domain.domainId) || domain.domainId < 0)
 		throw new Error(`CircleCctpIris_Rest: invalid ${label} domain id`)
@@ -80,10 +79,11 @@ const optionalZeroExHex = (
 }
 
 const domainRef = (
-	domainId: number
+	domainId: number,
+	cctpVersion: number
 ) => ({
 	[EntityMetaKey.Selector]: {
-		cctpVersion: irisCctpVersion,
+		cctpVersion,
 		domainId,
 	},
 })
@@ -106,7 +106,8 @@ const cctpMessageSnapshot = (
 	messageId: CctpMessageId,
 	result: MessagesV2Response,
 	message: MessageV2,
-	observedAtMs: number
+	observedAtMs: number,
+	irisCctpVersion: number
 ) => {
 	const decoded = message.decodedMessage
 	const body = decoded?.decodedMessageBody
@@ -128,6 +129,7 @@ const cctpMessageSnapshot = (
 			hexLowerOfByteSize(with0xHex(message.forwardTxHash), 32)
 	)
 	const sourceTransactionHash = hexLowerOfByteSize(with0xHex(result.sourceTxHash), 32)
+	const domainCctpVersion = message.cctpVersion ?? irisCctpVersion
 
 	return {
 		sourceDomain: messageId.sourceDomain,
@@ -141,10 +143,10 @@ const cctpMessageSnapshot = (
 		...(sourceTransactionHash != null && {
 			sourceTransactionHash,
 		}),
-		$sourceDomain: domainRef(sourceDomainFromWire ?? messageId.sourceDomain),
+		$sourceDomain: domainRef(sourceDomainFromWire ?? messageId.sourceDomain, domainCctpVersion),
 		...(destinationDomain != null && {
 			destinationDomain,
-			$destinationDomain: domainRef(destinationDomain),
+			$destinationDomain: domainRef(destinationDomain, domainCctpVersion),
 		}),
 		...(decoded?.sender != null && decoded.sender !== '' && {
 			sender: decoded.sender,
@@ -277,11 +279,13 @@ export default {
 							result,
 							message,
 						} = await loadMessageForSelector(messageId)
+						const { irisCctpVersion } = await import('$/sources/CircleCctp/Catalog/constants.ts')
 						return cctpMessageSnapshot(
 							messageId,
 							result,
 							message,
-							Date.now()
+							Date.now(),
+							irisCctpVersion
 						)
 					},
 				},
@@ -328,11 +332,13 @@ export default {
 							result,
 							message,
 						} = await loadMessageForSelector($message)
+						const { irisCctpVersion } = await import('$/sources/CircleCctp/Catalog/constants.ts')
 						const snapshot = cctpMessageSnapshot(
 							$message,
 							result,
 							message,
-							timestampMs
+							timestampMs,
+							irisCctpVersion
 						)
 						return snapshot.attestationObservation
 					},
@@ -360,8 +366,9 @@ export default {
 						source,
 					}) => {
 						assertIrisSource(source, 'burn fee')
-						assertDomainSelector($sourceDomain, 'source')
-						assertDomainSelector($destinationDomain, 'destination')
+						const { irisCctpVersion } = await import('$/sources/CircleCctp/Catalog/constants.ts')
+						assertDomainSelector($sourceDomain, 'source', irisCctpVersion)
+						assertDomainSelector($destinationDomain, 'destination', irisCctpVersion)
 						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
 							throw new Error('CircleCctpIris_Rest: invalid burn fee timestamp')
 

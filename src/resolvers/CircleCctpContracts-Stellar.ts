@@ -8,8 +8,6 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
-const irisCctpVersion = 2
-
 export default {
 	source: Source.CircleCctpContracts_Stellar,
 
@@ -22,13 +20,16 @@ export default {
 						cctpVersion,
 						domainId,
 					}) => {
+						const {
+							irisCctpVersion,
+							stellarDomainSupportByDomainId,
+						} = await import('$/sources/CircleCctp/Catalog/constants.ts')
 						if (cctpVersion !== irisCctpVersion)
 							throw new Error(`CircleCctpContracts_Stellar: unsupported cctpVersion ${cctpVersion}`)
 						if (!Number.isSafeInteger(domainId) || domainId < 0)
 							throw new Error(`CircleCctpContracts_Stellar: invalid domain id ${domainId}`)
 
-						const { getStellarDomainSupport } = await import('$/sources/CircleCctp/Catalog/queries.ts')
-						const row = getStellarDomainSupport(domainId)
+						const row = stellarDomainSupportByDomainId[domainId]
 						if (row == null)
 							throw new Error(`CircleCctpContracts_Stellar: no Stellar CCTP domain ${domainId}`)
 

@@ -7,13 +7,13 @@ import {
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import {
+	evmDomainSupportByDomainId,
 	evmDomainSupports,
-	getEvmDomainSupport,
-	getSolanaDomainSupport,
-	getStellarDomainSupport,
 	solanaDomainSupport,
+	solanaDomainSupportByDomainId,
 	stellarDomainSupport,
-} from '$/sources/CircleCctp/Catalog/queries.ts'
+	stellarDomainSupportByDomainId,
+} from '$/sources/CircleCctp/Catalog/constants.ts'
 import { Source } from '$/sources/Source.ts'
 
 const { default: circleCctpContractsEvm } = await import('$/resolvers/CircleCctpContracts-Evm.ts')
@@ -23,17 +23,17 @@ const { default: circleCctpContractsStellar } = await import('$/resolvers/Circle
 describe('Circle CCTP contract catalogs', () => {
 	it('keeps unique V2 domain ids across EVM rows and known non-EVM domains', () => {
 		expect(new Set(evmDomainSupports.map((row) => row.domainId)).size).toBe(evmDomainSupports.length)
-		expect(getEvmDomainSupport(0)).toMatchObject({
+		expect(evmDomainSupportByDomainId[0]).toMatchObject({
 			name: 'Ethereum',
 			chainId: 1,
 			tokenMessengerAddress: '0x28b5a0e9c621a5badaa536219b3a228c8168cf5d',
 		})
-		expect(getEvmDomainSupport(28)?.tokenMessengerAddress).toBe('0x98706a006bc632df31cadfcbd43f38887ce2ca5c')
-		expect(getSolanaDomainSupport(5)).toEqual(solanaDomainSupport)
-		expect(getStellarDomainSupport(27)).toEqual(stellarDomainSupport)
-		expect(getEvmDomainSupport(5)).toBeUndefined()
-		expect(getSolanaDomainSupport(0)).toBeUndefined()
-		expect(getStellarDomainSupport(0)).toBeUndefined()
+		expect(evmDomainSupportByDomainId[28]?.tokenMessengerAddress).toBe('0x98706a006bc632df31cadfcbd43f38887ce2ca5c')
+		expect(solanaDomainSupportByDomainId[5]).toEqual(solanaDomainSupport)
+		expect(stellarDomainSupportByDomainId[27]).toEqual(stellarDomainSupport)
+		expect(evmDomainSupportByDomainId[5]).toBeUndefined()
+		expect(solanaDomainSupportByDomainId[0]).toBeUndefined()
+		expect(stellarDomainSupportByDomainId[0]).toBeUndefined()
 	})
 
 	it('resolves schema-shaped CctpDomainSupport rows for each contract source', async () => {

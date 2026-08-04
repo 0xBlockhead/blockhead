@@ -8,8 +8,6 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
-const irisCctpVersion = 2
-
 export default {
 	source: Source.CircleCctpContracts_Evm,
 
@@ -22,13 +20,16 @@ export default {
 						cctpVersion,
 						domainId,
 					}) => {
+						const {
+							evmDomainSupportByDomainId,
+							irisCctpVersion,
+						} = await import('$/sources/CircleCctp/Catalog/constants.ts')
 						if (cctpVersion !== irisCctpVersion)
 							throw new Error(`CircleCctpContracts_Evm: unsupported cctpVersion ${cctpVersion}`)
 						if (!Number.isSafeInteger(domainId) || domainId < 0)
 							throw new Error(`CircleCctpContracts_Evm: invalid domain id ${domainId}`)
 
-						const { getEvmDomainSupport } = await import('$/sources/CircleCctp/Catalog/queries.ts')
-						const row = getEvmDomainSupport(domainId)
+						const row = evmDomainSupportByDomainId[domainId]
 						if (row == null)
 							throw new Error(`CircleCctpContracts_Evm: no EVM CCTP domain ${domainId}`)
 

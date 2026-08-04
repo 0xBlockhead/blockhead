@@ -8,8 +8,6 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
-const irisCctpVersion = 2
-
 export default {
 	source: Source.CircleCctpContracts_Solana,
 
@@ -22,13 +20,16 @@ export default {
 						cctpVersion,
 						domainId,
 					}) => {
+						const {
+							irisCctpVersion,
+							solanaDomainSupportByDomainId,
+						} = await import('$/sources/CircleCctp/Catalog/constants.ts')
 						if (cctpVersion !== irisCctpVersion)
 							throw new Error(`CircleCctpContracts_Solana: unsupported cctpVersion ${cctpVersion}`)
 						if (!Number.isSafeInteger(domainId) || domainId < 0)
 							throw new Error(`CircleCctpContracts_Solana: invalid domain id ${domainId}`)
 
-						const { getSolanaDomainSupport } = await import('$/sources/CircleCctp/Catalog/queries.ts')
-						const row = getSolanaDomainSupport(domainId)
+						const row = solanaDomainSupportByDomainId[domainId]
 						if (row == null)
 							throw new Error(`CircleCctpContracts_Solana: no Solana CCTP domain ${domainId}`)
 
