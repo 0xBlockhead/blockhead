@@ -225,11 +225,25 @@ export default {
 						const receipt = await getTransactionReceipt({ txHash })
 						const value = quantityToBigInt(transaction.value) ?? 0n
 						const fromAddress = hexLowerOfByteSize(transaction.from, 20)
-						const toAddress = hexLowerOfByteSize(transaction.to ?? '', 20)
-						const contractAddress = hexLowerOfByteSize(receipt?.contractAddress ?? '', 20)
+						const toAddress = (
+							transaction.to == null ?
+								undefined
+							:
+								hexLowerOfByteSize(transaction.to, 20)
+						)
+						const contractAddress = (
+							receipt?.contractAddress == null ?
+								undefined
+							:
+								hexLowerOfByteSize(receipt.contractAddress, 20)
+						)
 						const blockNumber = quantityToBigInt(transaction.blockNumber)
 						const envelopeType = transactionEnvelopeTypeFromRpcType(transaction.type)
 						if (fromAddress == null) throw new Error(`ZeroGChain_JsonRpc: transaction has invalid from address ${txHash}`)
+						if (transaction.to != null && toAddress == null)
+							throw new Error(`ZeroGChain_JsonRpc: transaction has invalid to address ${txHash}`)
+						if (receipt?.contractAddress != null && contractAddress == null)
+							throw new Error(`ZeroGChain_JsonRpc: transaction has invalid contract address ${txHash}`)
 						return {
 							...(blockNumber != null && {
 								$block: {
@@ -335,23 +349,26 @@ export default {
 			resolve: {
 				EvmNetworkBlockNumber: {
 					appliesTo: zeroGNetworkReferenceApplicability,
-					resolve: async ({ $network, blockNumber }) => {
-					assertZeroGMainnetChain($network)
-					const { getBlockWithTransactionsByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
-					const block = await getBlockWithTransactionsByNumber(blockNumber)
-					if (block == null) throw new Error(`ZeroGChain_JsonRpc: block not found ${blockNumber.toString()}`)
-					return block.transactions.flatMap((transaction) => {
-						const txHash = hexLowerOfByteSize(transaction.hash, 32)
-						return txHash == null ?
-							[]
-						:
-							[{
-								[EntityMetaKey.Selector]: {
-									$network,
-									txHash,
-								},
-							}]
-					})
+					resolve: async ({ $network, blockNumber }, context) => {
+						assertZeroGMainnetChain($network)
+						const { getBlockWithTransactionsByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+						const block = await getBlockWithTransactionsByNumber(blockNumber)
+						if (block == null) throw new Error(`ZeroGChain_JsonRpc: block not found ${blockNumber.toString()}`)
+						const rowLimit = resolverContextRowLimit(context)
+						return block.transactions
+							.slice(0, rowLimit)
+							.flatMap((transaction) => {
+								const txHash = hexLowerOfByteSize(transaction.hash, 32)
+								return txHash == null ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											$network,
+											txHash,
+										},
+									}]
+							})
 					},
 				},
 			},

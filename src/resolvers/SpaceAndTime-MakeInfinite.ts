@@ -8,7 +8,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { OptimisticProviderResult } from '$/schema/OptimisticProviderResult.ts'
 import { Source } from '$/sources/Source.ts'
-import { getActivityDay } from '$/sources/SpaceAndTime/MakeInfinite/queries.ts'
 
 const millisecondsPerUtcDay = 86_400_000
 
@@ -32,6 +31,7 @@ export const resolveNetworkActivityDay = async ({
 	if (dayEndTimestampMs > Math.floor(nowMs / millisecondsPerUtcDay) * millisecondsPerUtcDay)
 		throw new Error('SpaceAndTime_MakeInfinite: incomplete UTC day')
 
+	const { getActivityDay } = await import('$/sources/SpaceAndTime/MakeInfinite/queries.ts')
 	const aggregate = await getActivityDay({
 		dayStartTimestampMs,
 	})

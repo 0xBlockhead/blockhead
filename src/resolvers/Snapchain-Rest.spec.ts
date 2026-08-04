@@ -16,11 +16,13 @@ import { Source } from '$/sources/Source.ts'
 const getCastsByParent = vi.hoisted(() => vi.fn())
 const getCastById = vi.hoisted(() => vi.fn())
 const getCastsByFid = vi.hoisted(() => vi.fn())
+const countLinksByFid = vi.hoisted(() => vi.fn())
 const getUserDataByFid = vi.hoisted(() => vi.fn())
 const getUsernameProofsByFid = vi.hoisted(() => vi.fn())
 const getVerificationsByFid = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Snapchain/Rest/queries.ts', () => ({
+	countLinksByFid,
 	getCastById,
 	getCastsByFid,
 	getCastsByParent,
@@ -46,12 +48,27 @@ const userCastsResolver = snapchainResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.FarcasterUser
 	&& '$$casts' in resolver.projections
 ))
+const userTimestampsResolver = snapchainResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FarcasterUser
+	&& '$$timestamps' in resolver.projections
+))
+const channelCastsResolver = snapchainResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FarcasterChannel
+	&& '$$casts' in resolver.projections
+))
 
 if (directRepliesResolver == null)
 	throw new Error('Snapchain spec missing FarcasterCast.$$directReplies resolver')
 if (castResolver == null)
 	throw new Error('Snapchain spec missing FarcasterCast detail resolver')
-if (userResolver == null || userCastsResolver == null)
+if (
+	userResolver == null
+	|| userCastsResolver == null
+	|| userTimestampsResolver == null
+	|| !('Fid' in userTimestampsResolver.resolve)
+	|| channelCastsResolver == null
+	|| !('ParentUrl' in channelCastsResolver.resolve)
+)
 	throw new Error('Snapchain spec missing FarcasterUser resolvers')
 
 const directRepliesResolve = directRepliesResolver.resolve['FidHash'].resolve
@@ -188,6 +205,31 @@ describe('Snapchain Farcaster direct replies', () => {
 })
 
 describe('Snapchain Farcaster cast identity', () => {
+	it('retains an arbitrary FIP-2 parent as the channel selector', async () => {
+		const parentUrl = 'https://example.com/topics/design'
+		getCastById.mockResolvedValueOnce({
+			hash: parentHash,
+			data: {
+				fid: 42,
+				timestamp: 1_752_840_001,
+				castAddBody: {
+					text: 'Portable channel parent',
+					parentUrl,
+				},
+			},
+		})
+
+		await expect(castResolver.resolve.FidHash.resolve({
+			fid: 42,
+			hash: parentHash,
+		})).resolves.toMatchObject({
+			parentUrl,
+			$channel: {
+				[EntityMetaKey.Selector]: { parentUrl },
+			},
+		})
+	})
+
 	it('rejects a provider row for a different fid/hash subject', async () => {
 		getCastById.mockResolvedValueOnce({
 			hash: parentHash,
@@ -204,6 +246,47 @@ describe('Snapchain Farcaster cast identity', () => {
 			fid: 42,
 			hash: parentHash,
 		})).rejects.toThrow('cast subject mismatch')
+	})
+})
+
+describe('Snapchain Farcaster observations', () => {
+	it('materializes zero counts with source identity and exposes no direct historical resolver', async () => {
+		countLinksByFid.mockResolvedValueOnce(0).mockResolvedValueOnce(0)
+
+		const timestamps = await userTimestampsResolver.resolve.Fid.resolve({ fid: 42 })
+		expect(timestamps).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$user: { fid: 42 },
+				source: Source.Snapchain_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.FarcasterUser_Timestamp, [], 'followerCount')]: 0,
+				[entityFieldAddressKey(EntityType.FarcasterUser_Timestamp, [], 'followingCount')]: 0,
+			},
+		}])
+		expect(timestamps[0]?.[EntityMetaKey.Selector]).toEqual(expect.objectContaining({
+			timestampMs: expect.any(Number),
+			source: Source.Snapchain_Rest,
+		}))
+		expect(snapchainResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.FarcasterUser_Timestamp
+			|| resolver.entityType === EntityType.FarcasterCast_Timestamp
+		))).toBe(false)
+	})
+
+	it('queries casts by the selected protocol parent URL', async () => {
+		getCastsByParent.mockResolvedValueOnce({ messages: [] })
+		const parentUrl = 'https://farcaster.xyz/~/channel/design'
+
+		await expect(channelCastsResolver.resolve.ParentUrl.resolve(
+			{ parentUrl },
+			context
+		)).resolves.toEqual([])
+		expect(getCastsByParent).toHaveBeenCalledWith({
+			url: parentUrl,
+			pageSize: 2,
+			pageToken: undefined,
+		})
 	})
 })
 

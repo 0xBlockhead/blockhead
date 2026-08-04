@@ -13,11 +13,15 @@ import { EntityType } from '$/schema/EntityType.ts'
 
 const getAllChannels = vi.hoisted(() => vi.fn())
 const getChannel = vi.hoisted(() => vi.fn())
+const getChannelMember = vi.hoisted(() => vi.fn())
+const getUserFollowingChannelsPage = vi.hoisted(() => vi.fn())
 const getUserThreadCasts = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Farcaster/Rest/queries.ts', () => ({
 	getAllChannels,
 	getChannel,
+	getChannelMember,
+	getUserFollowingChannelsPage,
 	getUserThreadCasts,
 }))
 
@@ -42,16 +46,18 @@ const channelResolver = farcasterRest.resolvers.find((resolver) => (
 	&& 'Id' in resolver.resolve
 	&& '$$timestamps' in resolver.projections
 ))
-const channelTimestampResolver = farcasterRest.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.FarcasterChannel_Timestamp
+const channelViewerResolver = farcasterRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FarcasterUser
+	&& '$$channelViewerTimestamps' in resolver.projections
 ))
 
 if (
 	channelsResolver == null
 	|| channelResolver == null
 	|| !('Id' in channelResolver.resolve)
-	|| channelTimestampResolver == null
-	|| !('FarcasterChannelTimestampMs' in channelTimestampResolver.resolve)
+	|| !('ParentUrl' in channelResolver.resolve)
+	|| channelViewerResolver == null
+	|| !('Fid' in channelViewerResolver.resolve)
 )
 	throw new Error('Farcaster_Rest spec missing channel resolvers')
 
@@ -59,12 +65,12 @@ describe('Farcaster channel directory', () => {
 	it('materializes all-channels fields without channel-detail requests', async () => {
 		getAllChannels.mockResolvedValue([{
 			id: 'dev',
-			url: 'https://farcaster.xyz/~/channel/dev',
+			parentUrl: 'https://farcaster.xyz/~/channel/dev',
 			name: 'Dev',
 			createdAt: 1_700_000_000,
 		}, {
 			id: 'design',
-			url: 'https://farcaster.xyz/~/channel/design',
+			parentUrl: 'https://farcaster.xyz/~/channel/design',
 			name: 'Design',
 		}])
 
@@ -87,45 +93,108 @@ describe('Farcaster channel directory', () => {
 			terminal: false,
 			token: '1',
 		})
-		expect(channelsResolver.projections.$$channels.select(snapshot)).toEqual([
+		expect(channelsResolver.projections.$$channels.select(snapshot)).toMatchObject([
 			{
 				[EntityMetaKey.Selector]: {
 					id: 'dev',
 				},
 				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.FarcasterChannel, [], 'parentUrl')]: 'https://farcaster.xyz/~/channel/dev',
 					[entityFieldAddressKey(EntityType.FarcasterChannel, [], 'createdAt')]: 1_700_000_000_000,
-					[entityFieldAddressKey(EntityType.FarcasterChannel, [], 'name')]: 'Dev',
+					[entityFieldAddressKey(EntityType.FarcasterChannel, [], '$$timestamps')]: [{
+						[EntityMetaKey.Selector]: {
+							$channel: { id: 'dev' },
+							source: 'Farcaster_Rest',
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'name')]: 'Dev',
+						},
+					}],
 				},
 			},
 		])
 	})
 
-	it('projects detail and observation counts from one channel response', async () => {
+	it('projects stable detail and a source-keyed observation from one channel response', async () => {
 		getChannel.mockResolvedValue({
 			id: 'dev',
 			name: 'Dev',
-			url: 'https://farcaster.xyz/~/channel/dev',
+			parentUrl: 'https://farcaster.xyz/~/channel/dev',
 			followerCount: 100,
 			memberCount: 10,
 		})
 		const channel = await channelResolver.resolve.Id.resolve({ id: 'dev' }, {})
-		expect(channelResolver.projections.$$timestamps(channel)).toMatchObject([{
+		expect(channelResolver.projections.parentUrl(channel)).toBe('https://farcaster.xyz/~/channel/dev')
+		const timestamps = channelResolver.projections.$$timestamps(channel)
+		expect(timestamps).toMatchObject([{
 			[EntityMetaKey.Selector]: {
 				$channel: { id: 'dev' },
+				source: 'Farcaster_Rest',
 			},
 			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'name')]: 'Dev',
 				[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'followerCount')]: 100,
 				[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'memberCount')]: 10,
 			},
 		}])
+		expect(timestamps[0]?.[EntityMetaKey.Selector]).toEqual(expect.objectContaining({
+			timestampMs: expect.any(Number),
+			source: 'Farcaster_Rest',
+		}))
+		expect(farcasterRest.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.FarcasterChannel_Timestamp
+		))).toBe(false)
+		expect(farcasterRest.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.FarcasterChannel
+			&& '$$viewerTimestamps' in resolver.projections
+		))).toBe(false)
+		expect(getChannel).toHaveBeenCalledOnce()
+	})
 
-		const timestamp = await channelTimestampResolver.resolve.FarcasterChannelTimestampMs.resolve({
-			$channel: { id: 'dev' },
-			timestampMs: 1,
-		}, {})
-		expect(channelTimestampResolver.projections.followerCount(timestamp)).toBe(100)
-		expect(channelTimestampResolver.projections.memberCount(timestamp)).toBe(10)
-		expect(getChannel).toHaveBeenCalledTimes(2)
+	it('keeps viewer identity and false membership on the materialized observation row', async () => {
+		getUserFollowingChannelsPage.mockResolvedValue({
+			result: {
+				channels: [{
+					id: 'dev',
+					parentUrl: 'https://farcaster.xyz/~/channel/dev',
+					name: 'Dev',
+					followedAt: 0,
+				}],
+			},
+		})
+		getChannelMember.mockResolvedValue(undefined)
+
+		const snapshot = await channelViewerResolver.resolve.Fid.resolve({ fid: 42 }, {
+			filters: [],
+			sorts: [],
+			pagination: { limit: 16 },
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		})
+		const rows = channelViewerResolver.projections.$$channelViewerTimestamps.select(snapshot)
+
+		expect(rows).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$channel: { id: 'dev' },
+				$viewer: { fid: 42 },
+				source: 'Farcaster_Rest',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Viewer_Timestamp, [], 'following')]: true,
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Viewer_Timestamp, [], 'member')]: false,
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Viewer_Timestamp, [], 'followedAt')]: 0,
+			},
+		}])
+		expect(rows[0]?.[EntityMetaKey.Selector]).toEqual(expect.objectContaining({
+			timestampMs: expect.any(Number),
+			source: 'Farcaster_Rest',
+		}))
+		expect(getChannelMember).toHaveBeenCalledWith({
+			channelId: 'dev',
+			fid: 42,
+		})
 	})
 })
 

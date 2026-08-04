@@ -10,6 +10,7 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import type { NearBlocksBlock, NearBlocksTransaction } from '$/sources/NearBlocks/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
@@ -18,6 +19,100 @@ const assertNearMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug.near.slug)
 		throw new Error('NearBlocks_Rest: unsupported network')
 }
+
+const nearNanosToMs = (timestampNanos: string) => (
+	Number(BigInt(timestampNanos) / 1_000_000n)
+)
+
+const nearBlockFields = (
+	$network: NetworkId,
+	height: bigint,
+	block: NearBlocksBlock
+) => ({
+	hash: block.block_hash,
+	...(
+		block.prev_block_hash != null
+		&& height > 0n
+		&& {
+			$parent: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					height: height - 1n,
+					hash: block.prev_block_hash,
+				},
+			},
+		}
+	),
+	...(block.epoch_id != null && {
+		epochId: block.epoch_id,
+	}),
+	timestampMs: nearNanosToMs(block.block_timestamp),
+})
+
+const nearTransactionFields = (
+	$network: NetworkId,
+	hash: string,
+	transaction: NearBlocksTransaction
+) => ({
+	$signer: {
+		[EntityMetaKey.Selector]: {
+			$network,
+			accountId: transaction.signer_account_id,
+		},
+	},
+	$receiver: {
+		[EntityMetaKey.Selector]: {
+			$network,
+			accountId: transaction.receiver_account_id,
+		},
+	},
+	...(transaction.nonce != null && {
+		nonce: BigInt(transaction.nonce),
+	}),
+	$$actions: transaction.actions.map((action, actionIndex) => ({
+		[EntityMetaKey.Selector]: {
+			$transaction: {
+				$network,
+				hash,
+				signerAccountId: transaction.signer_account_id,
+			},
+			actionIndex,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.NearAction, [], 'actionKind')]: action.action,
+			...(action.method != null && {
+				[entityFieldAddressKey(EntityType.NearAction, [], 'methodName')]: action.method,
+			}),
+			...(action.deposit != null && {
+				[entityFieldAddressKey(EntityType.NearAction, [], 'depositYoctoNear')]: BigInt(action.deposit),
+			}),
+		},
+	})),
+	...(transaction.outcomes != null && {
+		$$executionOutcomes: [
+			{
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network,
+						hash,
+						signerAccountId: transaction.signer_account_id,
+					},
+					outcomeId: hash,
+				},
+				[EntityMetaKey.Fields]: {
+					...(transaction.outcomes.status != null && {
+						[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'status')]: (
+							transaction.outcomes.status ?
+								'SuccessValue'
+							:
+								'Failure'
+						),
+					}),
+				},
+			},
+		],
+	}),
+})
 
 export default {
 	source: Source.NearBlocks_Rest,
@@ -29,138 +124,84 @@ export default {
 				NetworkAccountId: {
 					resolve: async ({ $network, accountId }) => {
 						assertNearMainnet($network)
-						const { getAccount } = await import('$/sources/NearBlocks/Rest/queries.ts')
-						const account = (await getAccount({
-							accountId: accountId,
-						})).account?.[0]
-						if (account == null) throw new Error(`NearBlocks_Rest: account ${accountId} not found`)
+						const { getAccountBalance } = await import('$/sources/NearBlocks/Rest/queries.ts')
+						const balance = await getAccountBalance(accountId)
 						return {
-							...(account.amount != null && {
-								amountYoctoNear: BigInt(account.amount),
-							}),
-							...(account.storage_usage != null && {
-								storageUsageBytes: BigInt(account.storage_usage),
-							}),
+							amountYoctoNear: BigInt(balance.amount),
+							storageUsageBytes: BigInt(balance.storage_usage),
 						}
 					},
 				}
 			},
 		})({
-				amountYoctoNear: (snapshot) => snapshot.amountYoctoNear,
-				storageUsageBytes: (snapshot) => snapshot.storageUsageBytes,
-			}),
+			amountYoctoNear: (snapshot) => snapshot.amountYoctoNear,
+			storageUsageBytes: (snapshot) => snapshot.storageUsageBytes,
+		}),
 
 		defineResolver({
 			entityType: EntityType.NearBlock,
 			resolve: {
+				NetworkHeight: {
+					resolve: async ({ $network, height }) => {
+						assertNearMainnet($network)
+						const { getBlock } = await import('$/sources/NearBlocks/Rest/queries.ts')
+						return nearBlockFields(
+							$network,
+							height,
+							await getBlock({
+								block: height,
+							})
+						)
+					},
+				},
 				NetworkHeightHash: {
 					resolve: async ({ $network, hash, height }) => {
 						assertNearMainnet($network)
 						const { getBlock } = await import('$/sources/NearBlocks/Rest/queries.ts')
-						const block = (await getBlock({
+						const block = await getBlock({
 							block: hash,
-						})).blocks?.[0]
-						if (block == null) throw new Error(`NearBlocks_Rest: block ${hash} not found`)
-						if (block.block_hash == null) throw new Error(`NearBlocks_Rest: block ${hash} missing block hash`)
-						return {
-							hash: block.block_hash,
-							...(block.prev_block_hash != null && height > 0n && {
-								$parent: {
-									[EntityMetaKey.Selector]: {
-										$network: $network,
-										height: height - 1n,
-										hash: block.prev_block_hash,
-									},
-								},
-							}),
-							epochId: block.epoch_id,
-							...(block.block_timestamp != null && {
-								timestampMs: Number(BigInt(block.block_timestamp) / 1_000_000n),
-							}),
-						}
+						})
+						if (BigInt(block.block_height) !== height)
+							throw new Error(`NearBlocks_Rest: block ${hash} height does not match selector`)
+						return nearBlockFields($network, height, block)
 					},
-				}
+				},
 			},
 		})({
-				hash: (snapshot) => snapshot.hash,
-				$parent: (snapshot) => snapshot.$parent,
-				epochId: (snapshot) => snapshot.epochId,
-				timestampMs: (snapshot) => snapshot.timestampMs,
-			}),
+			hash: (snapshot) => snapshot.hash,
+			$parent: (snapshot) => snapshot.$parent,
+			epochId: (snapshot) => snapshot.epochId,
+			timestampMs: (snapshot) => snapshot.timestampMs,
+		}),
 
 		defineResolver({
 			entityType: EntityType.NearTransaction,
 			resolve: {
-				NetworkHashSignerAccountId: {
+				NetworkHash: {
 					resolve: async ({ $network, hash }) => {
 						assertNearMainnet($network)
 						const { getTransaction } = await import('$/sources/NearBlocks/Rest/queries.ts')
-						const transaction = (await getTransaction({
-							transactionHash: hash,
-						})).txns?.[0]
-						if (transaction == null) throw new Error(`NearBlocks_Rest: transaction ${hash} not found`)
-						return {
-							...(transaction.signer_account_id != null && {
-								$signer: {
-									[EntityMetaKey.Selector]: {
-										$network: $network,
-										accountId: transaction.signer_account_id,
-									},
-								},
-							}),
-							...(transaction.receiver_account_id != null && {
-								$receiver: {
-									[EntityMetaKey.Selector]: {
-										$network: $network,
-										accountId: transaction.receiver_account_id,
-									},
-								},
-							}),
-							...(transaction.nonce != null && {
-								nonce: BigInt(transaction.nonce),
-							}),
-							$$actions: transaction.actions?.map((action, actionIndex) => ({
-								[EntityMetaKey.Selector]: {
-									$transaction: {
-										$network,
-										hash,
-										...(transaction.signer_account_id != null && {
-											signerAccountId: transaction.signer_account_id,
-										}),
-									},
-									actionIndex,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.NearAction, [], 'actionKind')]: action.action ?? 'Unknown',
-									...(action.method != null && {
-										[entityFieldAddressKey(EntityType.NearAction, [], 'methodName')]: action.method,
-									}),
-								},
-							})) ?? [],
-							...(transaction.outcomes != null && {
-								$$executionOutcomes: [
-									{
-										[EntityMetaKey.Selector]: {
-											$transaction: {
-												$network: $network,
-												hash: hash,
-												...(transaction.signer_account_id != null && {
-													signerAccountId: transaction.signer_account_id,
-												}),
-											},
-											outcomeId: hash,
-										},
-										[EntityMetaKey.Fields]: {
-											...(transaction.outcomes.status != null && {
-												[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'status')]: transaction.outcomes.status ? 'SuccessValue' : 'Failure',
-											}),
-										},
-									},
-								],
-							}),
-						}
+						return nearTransactionFields(
+							$network,
+							hash,
+							await getTransaction({
+								transactionHash: hash,
+							})
+						)
 					},
-				}
+				},
+				NetworkHashSignerAccountId: {
+					resolve: async ({ $network, hash, signerAccountId }) => {
+						assertNearMainnet($network)
+						const { getTransaction } = await import('$/sources/NearBlocks/Rest/queries.ts')
+						const transaction = await getTransaction({
+							transactionHash: hash,
+						})
+						if (transaction.signer_account_id !== signerAccountId)
+							throw new Error(`NearBlocks_Rest: transaction ${hash} signer does not match selector`)
+						return nearTransactionFields($network, hash, transaction)
+					},
+				},
 			},
 		})({
 			$signer: (snapshot) => snapshot.$signer,

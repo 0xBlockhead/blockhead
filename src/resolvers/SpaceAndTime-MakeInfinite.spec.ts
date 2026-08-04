@@ -10,7 +10,9 @@ import {
 import authFailure from '$/sources/SpaceAndTime/MakeInfinite/fixtures/auth-failure.json'
 import completedDay from '$/sources/SpaceAndTime/MakeInfinite/fixtures/completed-day.json'
 import empty from '$/sources/SpaceAndTime/MakeInfinite/fixtures/empty.json'
+import errorObject from '$/sources/SpaceAndTime/MakeInfinite/fixtures/error-object.json'
 import incompleteDay from '$/sources/SpaceAndTime/MakeInfinite/fixtures/incomplete-day.json'
+import nullAggregate from '$/sources/SpaceAndTime/MakeInfinite/fixtures/null-aggregate.json'
 import staleCursor from '$/sources/SpaceAndTime/MakeInfinite/fixtures/stale-cursor.json'
 import unsupportedTable from '$/sources/SpaceAndTime/MakeInfinite/fixtures/unsupported-table.json'
 import {
@@ -33,6 +35,7 @@ const {
 	resolveNetworkActivityDay,
 } = await import('$/resolvers/SpaceAndTime-MakeInfinite.ts')
 const networkActivityDaysResolver = spaceAndTimeMakeInfiniteResolvers.resolvers[0]
+const networkActivityDayResolver = spaceAndTimeMakeInfiniteResolvers.resolvers[1]
 
 const network = {
 	caip2: {
@@ -159,17 +162,58 @@ describe('MakeInfinite source and resolver slice', () => {
 
 		await expect(getActivityDay({
 			dayStartTimestampMs: completedDayStartTimestampMs,
-		})).rejects.toThrow('MakeInfinite SQL')
+		})).rejects.toThrow('SpaceAndTime_MakeInfinite SQL')
 	})
 
-	it('preserves parent authentication failures for the resource boundary', async () => {
+	it('preserves parent authentication failures instead of soft-empty rows', async () => {
 		sourceFetch.mockResolvedValueOnce(Response.json(authFailure, { status: 401 }))
 		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(completedDayNowMs)
 
 		await expect(networkActivityDaysResolver.resolve[
 			'Caip2'
-		].resolve(network)).rejects.toThrow('MakeInfinite SQL')
+		].resolve(network)).rejects.toThrow('SpaceAndTime_MakeInfinite SQL')
 		dateNow.mockRestore()
+	})
+
+	it('hard-fails HTTP 200 error objects instead of soft-empty days', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json(errorObject))
+
+		await expect(getActivityDay({
+			dayStartTimestampMs: completedDayStartTimestampMs,
+		})).rejects.toThrow('SQL response is not an array')
+	})
+
+	it('hard-fails null SQL aggregates instead of coercing to zero', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json(nullAggregate))
+
+		await expect(getActivityDay({
+			dayStartTimestampMs: completedDayStartTimestampMs,
+		})).rejects.toThrow('malformed transaction count')
+	})
+
+	it('materializes schema-shaped Network_Activity_Day fields from the entity resolver', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json(completedDay))
+
+		const activityDay = await networkActivityDayResolver.resolve.NetworkDayStartTimestampMsSource.resolve({
+			$network: network,
+			dayStartTimestampMs: completedDayStartTimestampMs,
+			source: Source.SpaceAndTime_MakeInfinite,
+		})
+		expect(activityDay).toMatchObject({
+			$network: network,
+			dayStartTimestampMs: completedDayStartTimestampMs,
+			source: Source.SpaceAndTime_MakeInfinite,
+			blockCount: 12345,
+			transactionCount: 67890,
+			endBlockNumber: 22900000,
+			indexedThroughTimestampMs: Date.parse('2026-07-16T00:03:11.000Z'),
+			trustModel: 'OptimisticProviderResult',
+		})
+		expect(networkActivityDayResolver.projections.blockCount(activityDay)).toBe(12345)
+		expect(networkActivityDayResolver.projections.transactionCount(activityDay)).toBe(67890)
+		expect(networkActivityDayResolver.projections.endBlockNumber(activityDay)).toBe(22900000)
+		expect(networkActivityDayResolver.projections.indexedThroughTimestampMs(activityDay)).toBe(Date.parse('2026-07-16T00:03:11.000Z'))
+		expect(networkActivityDayResolver.projections.trustModel(activityDay)).toBe('OptimisticProviderResult')
 	})
 
 	it('stale indexed cursor', async () => {

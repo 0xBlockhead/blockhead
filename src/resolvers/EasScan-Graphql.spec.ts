@@ -28,6 +28,7 @@ vi.mock('$/sources/EasScan/Graphql/queries.ts', () => ({
 const {
 	easAttestationResolver,
 	easAttestationTimestampResolver,
+	easSchemaAttestationsResolver,
 	easSchemaResolver,
 } = await import('$/resolvers/EasScan-Graphql.ts')
 
@@ -153,7 +154,7 @@ describe('EasScan GraphQL resolvers', () => {
 		})
 	})
 
-	it('materializes a schema registration and bounded attestation references', async () => {
+	it('materializes a schema registration with authoritative attestation count', async () => {
 		getSchema.mockResolvedValue({
 			id: schemaUid,
 			schema: 'address subject, bool verified',
@@ -163,13 +164,17 @@ describe('EasScan GraphQL resolvers', () => {
 			index: '42',
 			txid: transactionHash,
 			time: 1_699_000_000,
+			_count: {
+				attestations: 7,
+			},
 		})
-		getAttestationsBySchema.mockResolvedValue([attestation])
 
-		await expect(easSchemaResolver.resolve.NetworkSchemaUid.resolve({
+		const snapshot = await easSchemaResolver.resolve.NetworkSchemaUid.resolve({
 			$network: network,
 			schemaUid,
-		}, context)).resolves.toEqual({
+		}, context)
+
+		expect(snapshot).toEqual({
 			schema: 'address subject, bool verified',
 			resolver: recipient,
 			$resolverContract: {
@@ -191,6 +196,19 @@ describe('EasScan GraphQL resolvers', () => {
 			registeredAt: 1_699_000_000,
 			registeredTransactionHash: transactionHash,
 			registeredLogIndex: 42,
+			attestationCount: 7,
+		})
+		expect(easSchemaResolver.projections.$$attestations.resolveCount?.(snapshot, context)).toBe(7)
+		expect(getAttestationsBySchema).not.toHaveBeenCalled()
+	})
+
+	it('loads bounded schema attestation references without schema registration I/O', async () => {
+		getAttestationsBySchema.mockResolvedValue([attestation])
+
+		await expect(easSchemaAttestationsResolver.resolve.NetworkSchemaUid.resolve({
+			$network: network,
+			schemaUid,
+		}, context)).resolves.toEqual({
 			$$attestations: [{
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -203,5 +221,6 @@ describe('EasScan GraphQL resolvers', () => {
 			skip: 3,
 			take: 2,
 		}))
+		expect(getSchema).not.toHaveBeenCalled()
 	})
 })

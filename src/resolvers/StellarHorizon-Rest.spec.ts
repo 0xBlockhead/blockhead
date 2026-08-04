@@ -16,12 +16,23 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 
 const { default: stellarHorizonResolvers } = await import('$/resolvers/StellarHorizon-Rest.ts')
 
-const resolverFor = (fieldName: '$$timestamps' | '$$transactions') => {
+const resolverFor = (
+	fieldName: (
+		| '$$timestamps'
+		| '$$transactions'
+		| '$$trustlines'
+		| '$$signers'
+		| '$$offers'
+		| '$$trades'
+		| '$$operations'
+		| 'sourceAccount'
+	)
+) => {
 	const resolver = stellarHorizonResolvers.resolvers.find((candidate) => (
 		fieldName in candidate.projections
 	))
 	if (resolver == null)
-		throw new Error(`Stellar Horizon spec missing StellarAccount.${fieldName} resolver`)
+		throw new Error(`Stellar Horizon spec missing ${fieldName} resolver`)
 
 	return resolver
 }
@@ -290,5 +301,278 @@ describe('Stellar Horizon public-account resolver', () => {
 			account,
 			context
 		)).toThrow('invalid transaction creation time')
+	})
+
+	it('materializes trustlines and signers from exact account state', async () => {
+		getJson.mockResolvedValueOnce({
+			id: accountId,
+			account_id: accountId,
+			sequence: '1',
+			subentry_count: 2,
+			last_modified_ledger: 50,
+			last_modified_time: '2026-07-22T00:00:00Z',
+			balances: [
+				{
+					asset_type: 'native',
+					balance: '1.0000000',
+				},
+				{
+					asset_type: 'credit_alphanum4',
+					asset_code: 'USDC',
+					asset_issuer: otherAccountId,
+					balance: '12.3456789',
+					limit: '1000.0000000',
+					last_modified_ledger: 49,
+					is_authorized: true,
+				},
+			],
+			signers: [
+				{
+					key: accountId,
+					weight: 1,
+					type: 'ed25519_public_key',
+				},
+				{
+					key: otherAccountId,
+					weight: 2,
+					type: 'ed25519_public_key',
+					sponsor: accountId,
+				},
+			],
+		})
+		const trustlineResolver = resolverFor('$$trustlines')
+		const trustlines = await trustlineResolver.resolve['NetworkAccountId'].resolve(
+			account,
+			context
+		)
+
+		expect(trustlineResolver.projections.$$trustlines(trustlines)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$account: account,
+				$asset: {
+					$network: account.$network,
+					assetKey: `USDC-${otherAccountId}`,
+				},
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StellarTrustline, [], '$asset')]: {
+					[EntityMetaKey.Selector]: {
+						$network: account.$network,
+						assetKey: `USDC-${otherAccountId}`,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.StellarAsset, [], 'assetKind')]: 'credit_alphanum4',
+						[entityFieldAddressKey(EntityType.StellarAsset, [], 'assetCode')]: 'USDC',
+						[entityFieldAddressKey(EntityType.StellarAsset, [], 'issuer')]: otherAccountId,
+						[entityFieldAddressKey(EntityType.StellarAsset, [], '$issuerAccount')]: {
+							[EntityMetaKey.Selector]: {
+								$network: account.$network,
+								accountId: otherAccountId,
+							},
+						},
+					},
+				},
+				[entityFieldAddressKey(EntityType.StellarTrustline, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$trustline: {
+							$account: account,
+							$asset: {
+								$network: account.$network,
+								assetKey: `USDC-${otherAccountId}`,
+							},
+						},
+						timestampMs: Date.parse('2026-07-22T00:00:00Z'),
+						source: 'StellarHorizon_Rest',
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'balance')]: '12.3456789',
+						[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'limit')]: '1000.0000000',
+						[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'ledgerSequence')]: 49n,
+						[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'authorized')]: true,
+					},
+				}],
+			},
+		}])
+
+		getJson.mockResolvedValueOnce({
+			id: accountId,
+			account_id: accountId,
+			sequence: '1',
+			subentry_count: 2,
+			last_modified_ledger: 50,
+			last_modified_time: '2026-07-22T00:00:00Z',
+			balances: [{
+				asset_type: 'native',
+				balance: '1.0000000',
+			}],
+			signers: [
+				{
+					key: accountId,
+					weight: 1,
+					type: 'ed25519_public_key',
+				},
+				{
+					key: otherAccountId,
+					weight: 2,
+					type: 'ed25519_public_key',
+					sponsor: accountId,
+				},
+			],
+		})
+		const signerResolver = resolverFor('$$signers')
+		const signers = await signerResolver.resolve['NetworkAccountId'].resolve(
+			account,
+			context
+		)
+
+		expect(signerResolver.projections.$$signers(signers).map((signer) => signer[EntityMetaKey.Selector])).toEqual([
+			{
+				$account: account,
+				signerKey: accountId,
+				signerType: 'ed25519_public_key',
+			},
+			{
+				$account: account,
+				signerKey: otherAccountId,
+				signerType: 'ed25519_public_key',
+			},
+		])
+	})
+
+	it('pages account offers and trades into schema-shaped rows', async () => {
+		getJson.mockResolvedValueOnce(page([{
+			id: '2',
+			paging_token: '2',
+			seller: accountId,
+			selling: {
+				asset_type: 'native',
+			},
+			buying: {
+				asset_type: 'credit_alphanum4',
+				asset_code: 'USDC',
+				asset_issuer: otherAccountId,
+			},
+			amount: '1.0000000',
+			price_r: {
+				n: 1,
+				d: 2,
+			},
+			price: '0.5000000',
+			last_modified_ledger: 100,
+			last_modified_time: '2026-07-22T00:00:00Z',
+		}]))
+		const offerResolver = resolverFor('$$offers')
+		const offerSnapshot = await offerResolver.resolve['NetworkAccountId'].resolve(
+			account,
+			context
+		)
+		const offers = offerResolver.projections.$$offers.select(offerSnapshot, account, context)
+
+		expect(offers[0][EntityMetaKey.Selector]).toEqual({
+			$network: account.$network,
+			offerId: '2',
+		})
+		expect(offers[0][EntityMetaKey.Fields]?.[entityFieldAddressKey(EntityType.StellarOffer, [], '$seller')]).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: account.$network,
+				accountId,
+			},
+		})
+
+		getJson.mockResolvedValueOnce(page([{
+			id: '246907709817896961-0',
+			paging_token: '246907709817896961-0',
+			ledger_close_time: '2026-07-22T00:00:00Z',
+			trade_type: 'orderbook',
+			base_offer_id: '1',
+			base_account: accountId,
+			base_amount: '1.0000000',
+			base_asset_type: 'native',
+			counter_offer_id: '2',
+			counter_account: otherAccountId,
+			counter_amount: '2.0000000',
+			counter_asset_type: 'credit_alphanum4',
+			counter_asset_code: 'USDC',
+			counter_asset_issuer: otherAccountId,
+			price: {
+				n: '2',
+				d: '1',
+			},
+		}]))
+		const tradeResolver = resolverFor('$$trades')
+		const tradeSnapshot = await tradeResolver.resolve['NetworkAccountId'].resolve(
+			account,
+			context
+		)
+		const trades = tradeResolver.projections.$$trades.select(tradeSnapshot, account, context)
+
+		expect(trades[0][EntityMetaKey.Selector]).toEqual({
+			$network: account.$network,
+			tradeId: '246907709817896961-0',
+			source: 'StellarHorizon_Rest',
+		})
+		expect(trades[0][EntityMetaKey.Fields]?.[entityFieldAddressKey(EntityType.StellarTrade, [], 'baseAmount')]).toBe('1.0000000')
+	})
+
+	it('resolves transaction headers and operation lists by network hash', async () => {
+		const hash = 'd'.repeat(64)
+		const transaction = {
+			$network: account.$network,
+			hash,
+		}
+		getJson.mockResolvedValueOnce({
+			id: hash,
+			paging_token: '200',
+			successful: true,
+			hash,
+			ledger: 100,
+			created_at: '2026-07-22T00:00:00Z',
+			source_account: accountId,
+			source_account_sequence: '1',
+			fee_account: accountId,
+			fee_charged: '100',
+			max_fee: '100',
+			operation_count: 1,
+			memo_type: 'none',
+		})
+		const headerResolver = resolverFor('sourceAccount')
+		const header = await headerResolver.resolve['NetworkHash'].resolve(
+			transaction,
+			context
+		)
+
+		expect(headerResolver.projections.sourceAccount(header)).toBe(accountId)
+		expect(headerResolver.projections.$$timestamps(header)).toHaveLength(1)
+
+		getJson.mockResolvedValueOnce(page([{
+			id: '273998503801384961',
+			paging_token: '273998503801384961',
+			transaction_successful: true,
+			source_account: accountId,
+			type: 'payment',
+			type_i: 1,
+			created_at: '2026-07-22T00:00:00Z',
+			transaction_hash: hash,
+		}]))
+		const operationResolver = resolverFor('$$operations')
+		const operationSnapshot = await operationResolver.resolve['NetworkHash'].resolve(
+			transaction,
+			context
+		)
+		const operations = operationResolver.projections.$$operations.select(
+			operationSnapshot,
+			transaction,
+			context
+		)
+
+		expect(operations[0][EntityMetaKey.Selector]).toEqual({
+			$transaction: transaction,
+			operationIndex: 1,
+		})
+		expect(operations[0][EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.StellarOperation, [], 'operationType')]: 'payment',
+			[entityFieldAddressKey(EntityType.StellarOperation, [], 'sourceAccount')]: accountId,
+			[entityFieldAddressKey(EntityType.StellarOperation, [], 'resultCode')]: 'successful',
+		})
 	})
 })

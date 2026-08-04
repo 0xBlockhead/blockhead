@@ -9,14 +9,21 @@ import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type {
 	NeynarCast,
+	NeynarChannel,
 	NeynarUser,
 } from '$/sources/Neynar/Rest/types.ts'
 const getCast = vi.hoisted(() => vi.fn())
+const getChannel = vi.hoisted(() => vi.fn())
+const getChannelMembersPage = vi.hoisted(() => vi.fn())
 const getFeed = vi.hoisted(() => vi.fn())
+const getUserChannelsPage = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Neynar/Rest/queries.ts', () => ({
 	getCast,
+	getChannel,
+	getChannelMembersPage,
 	getFeed,
+	getUserChannelsPage,
 }))
 
 const { default: neynarResolvers } = await import('$/resolvers/Neynar-Rest.ts')
@@ -44,6 +51,25 @@ const channelFeedResolver = neynarResolvers.resolvers.find((resolver) => (
 
 if (channelFeedResolver == null)
 	throw new Error('Neynar spec missing FarcasterChannel.$$casts resolver')
+
+const channelResolver = neynarResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FarcasterChannel
+	&& 'Id' in resolver.resolve
+	&& 'parentUrl' in resolver.projections
+))
+const channelViewerResolver = neynarResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FarcasterUser
+	&& '$$channelViewerTimestamps' in resolver.projections
+))
+
+if (
+	channelResolver == null
+	|| !('Id' in channelResolver.resolve)
+	|| !('ParentUrl' in channelResolver.resolve)
+	|| channelViewerResolver == null
+	|| !('Fid' in channelViewerResolver.resolve)
+)
+	throw new Error('Neynar spec missing channel identity/viewer resolvers')
 
 const castResolver = neynarResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.FarcasterCast
@@ -484,6 +510,112 @@ describe('Neynar Farcaster feed resolver', () => {
 				terminal: true,
 			})
 		}
+	})
+})
+
+describe('Neynar channel observations', () => {
+	const channel = {
+		created_at: '2026-07-15T00:00:00.000Z',
+		id: 'design',
+		name: 'Design',
+		object: 'channel',
+		parent_url: 'https://farcaster.xyz/~/channel/design',
+		url: 'https://warpcast.com/~/channel/design',
+		follower_count: 0,
+		member_count: 0,
+	} satisfies NeynarChannel
+
+	it('keeps provider URL separate from stable FIP-2 parent identity', async () => {
+		getChannel.mockResolvedValue(channel)
+
+		const snapshot = await channelResolver.resolve.Id.resolve(
+			{ id: channel.id },
+			resolverContext
+		)
+		expect(channelResolver.projections.parentUrl(snapshot)).toBe(channel.parent_url)
+		const timestamps = channelResolver.projections.$$timestamps(snapshot)
+		expect(timestamps).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$channel: { id: 'design' },
+				source: 'Neynar_Rest',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'name')]: 'Design',
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'followerCount')]: 0,
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'memberCount')]: 0,
+			},
+		}])
+		expect(timestamps[0]?.[EntityMetaKey.Selector]).toEqual(expect.objectContaining({
+			timestampMs: expect.any(Number),
+			source: 'Neynar_Rest',
+		}))
+		expect(getChannel).toHaveBeenCalledWith(resolverContext.publicEnv, {
+			id: 'design',
+			type: 'id',
+		})
+		expect(neynarResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.FarcasterChannel
+			&& '$$viewerTimestamps' in resolver.projections
+		))).toBe(false)
+	})
+
+	it('isolates false and role-bearing membership observations by viewer', async () => {
+		getUserChannelsPage.mockResolvedValue({
+			channels: [channel],
+			next: { cursor: null },
+		})
+		getChannelMembersPage
+			.mockResolvedValueOnce({
+				members: [],
+				next: { cursor: null },
+			})
+			.mockResolvedValueOnce({
+				members: [{
+					channel,
+					object: 'member',
+					role: 'owner',
+					user: neynarUser(43),
+				}],
+				next: { cursor: null },
+			})
+
+		const rowsByViewer = [
+			channelViewerResolver.projections.$$channelViewerTimestamps.select(
+				await channelViewerResolver.resolve.Fid.resolve({ fid: 42 }, resolverContext)
+			),
+			channelViewerResolver.projections.$$channelViewerTimestamps.select(
+				await channelViewerResolver.resolve.Fid.resolve({ fid: 43 }, resolverContext)
+			),
+		]
+
+		expect(rowsByViewer[0]).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$viewer: { fid: 42 },
+				source: 'Neynar_Rest',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Viewer_Timestamp, [], 'following')]: true,
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Viewer_Timestamp, [], 'member')]: false,
+			},
+		}])
+		expect(rowsByViewer[1]).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$viewer: { fid: 43 },
+				source: 'Neynar_Rest',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Viewer_Timestamp, [], 'member')]: true,
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Viewer_Timestamp, [], 'role')]: 'owner',
+			},
+		}])
+		expect(rowsByViewer[0]?.[0]?.[EntityMetaKey.Selector]).toEqual(expect.objectContaining({
+			timestampMs: expect.any(Number),
+			source: 'Neynar_Rest',
+		}))
+		expect(rowsByViewer[1]?.[0]?.[EntityMetaKey.Selector]).toEqual(expect.objectContaining({
+			timestampMs: expect.any(Number),
+			source: 'Neynar_Rest',
+		}))
 	})
 })
 

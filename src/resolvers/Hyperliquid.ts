@@ -38,6 +38,47 @@ const assertSafeWireInteger = (
 	return BigInt(value)
 }
 
+const hyperliquidLiquidityProviderVaultAddress = '0xdfc24b077bc1425ad1dea75bcb6f8158e10df303'
+
+const scaleDecimalString = (
+	value: string,
+	decimals = 8
+) => {
+	const [
+		whole,
+		fraction = '',
+	] = value.split('.')
+	return BigInt(`${whole}${`${fraction}${'0'.repeat(decimals)}`.slice(0, decimals)}`)
+}
+
+const hyperliquidCandleInterval = (
+	timeInterval: {
+		unit: string
+		value: number
+	}
+) => {
+	const interval = `${String(timeInterval.value)}${timeInterval.unit}`
+	if (
+		interval !== '1m'
+		&& interval !== '3m'
+		&& interval !== '5m'
+		&& interval !== '15m'
+		&& interval !== '30m'
+		&& interval !== '1h'
+		&& interval !== '2h'
+		&& interval !== '4h'
+		&& interval !== '8h'
+		&& interval !== '12h'
+		&& interval !== '1d'
+		&& interval !== '3d'
+		&& interval !== '1w'
+		&& interval !== '1M'
+	)
+		throw new Error(`Hyperliquid Info: unsupported candle interval ${interval}`)
+
+	return interval
+}
+
 const resolveHyperliquidNetworkMetadata = async (
 	network: NetworkId,
 	limit: number
@@ -47,16 +88,36 @@ const resolveHyperliquidNetworkMetadata = async (
 		getMeta,
 		getSpotMeta,
 		getValidatorSummaries,
+		getVaultDetails,
 	} = await import('$/sources/Hyperliquid/Rest/queries.ts')
 	const [
 		perpMeta,
 		spotMeta,
 		validators,
+		liquidityProviderVault,
 	] = await Promise.all([
 		getMeta(),
 		getSpotMeta(),
 		getValidatorSummaries(),
+		getVaultDetails({
+			vaultAddress: hyperliquidLiquidityProviderVaultAddress,
+		}),
 	])
+	if (liquidityProviderVault == null)
+		throw new Error('Hyperliquid Info: liquidity provider vault not found')
+
+	const vaultAddresses = [
+		liquidityProviderVault.vaultAddress,
+		...(
+			liquidityProviderVault.relationship?.type === 'parent' ?
+				liquidityProviderVault.relationship.data.childAddresses
+			:
+				[]
+		),
+	]
+	for (const vaultAddress of vaultAddresses)
+		assertHyperliquidAddress(vaultAddress)
+
 	return {
 		$$timestamps: [{
 			[EntityMetaKey.Selector]: {
@@ -107,6 +168,36 @@ const resolveHyperliquidNetworkMetadata = async (
 					...(token.tokenId != null && {
 						[entityFieldAddressKey(EntityType.HyperliquidSpotAsset, [], 'tokenId')]: token.tokenId,
 					}),
+				},
+			})),
+		$$spotPairs: spotMeta.universe
+			.slice(0, limit)
+			.map((pair) => ({
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					pairIndex: pair.index,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HyperliquidSpotPair, [], '$baseAsset')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							assetId: pair.tokens[0],
+						},
+					},
+					[entityFieldAddressKey(EntityType.HyperliquidSpotPair, [], '$quoteAsset')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							assetId: pair.tokens[1],
+						},
+					},
+				},
+			})),
+		$$vaults: vaultAddresses
+			.slice(0, limit)
+			.map((vaultAddress) => ({
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					vaultAddress,
 				},
 			})),
 	}
@@ -261,7 +352,8 @@ export default {
 					resolve: async ({ $network, assetId }) => {
 						assertHyperliquidMainnet($network)
 						const { getSpotMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
-						const spotToken = (await getSpotMeta()).tokens
+						const spotMeta = await getSpotMeta()
+						const spotToken = spotMeta.tokens
 							.find((token) => token.index === assetId)
 						if (spotToken == null)
 							throw new Error(`Hyperliquid Info: spot asset not found for ${String(assetId)}`)
@@ -272,6 +364,22 @@ export default {
 							...(spotToken.tokenId != null && {
 								tokenId: spotToken.tokenId,
 							}),
+							$$basePairs: spotMeta.universe
+								.filter((pair) => pair.tokens[0] === assetId)
+								.map((pair) => ({
+									[EntityMetaKey.Selector]: {
+										$network,
+										pairIndex: pair.index,
+									},
+								})),
+							$$quotePairs: spotMeta.universe
+								.filter((pair) => pair.tokens[1] === assetId)
+								.map((pair) => ({
+									[EntityMetaKey.Selector]: {
+										$network,
+										pairIndex: pair.index,
+									},
+								})),
 						}
 					},
 				}
@@ -281,6 +389,247 @@ export default {
 			szDecimals: (snapshot) => snapshot.szDecimals,
 			weiDecimals: (snapshot) => snapshot.weiDecimals,
 			tokenId: (snapshot) => snapshot.tokenId,
+			$$basePairs: (snapshot) => snapshot.$$basePairs,
+			$$quotePairs: (snapshot) => snapshot.$$quotePairs,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HyperliquidSpotPair,
+			resolve: {
+				NetworkPairIndex: {
+					resolve: async ({ $network, pairIndex }) => {
+						assertHyperliquidMainnet($network)
+						const { getSpotMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
+						const spotPair = (await getSpotMeta()).universe
+							.find((pair) => pair.index === pairIndex)
+						if (spotPair == null)
+							throw new Error(`Hyperliquid Info: spot pair not found for ${String(pairIndex)}`)
+						return {
+							$baseAsset: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									assetId: spotPair.tokens[0],
+								},
+							},
+							$quoteAsset: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									assetId: spotPair.tokens[1],
+								},
+							},
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$spotPair: {
+										$network,
+										pairIndex,
+									},
+									timestampMs: Date.now(),
+									source: Source.Hyperliquid,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.HyperliquidSpotPair_Timestamp, [], 'name')]: spotPair.name,
+									[entityFieldAddressKey(EntityType.HyperliquidSpotPair_Timestamp, [], 'baseAssetId')]: spotPair.tokens[0],
+									[entityFieldAddressKey(EntityType.HyperliquidSpotPair_Timestamp, [], 'quoteAssetId')]: spotPair.tokens[1],
+									...(spotPair.isCanonical != null && {
+										[entityFieldAddressKey(EntityType.HyperliquidSpotPair_Timestamp, [], 'isCanonical')]: spotPair.isCanonical,
+									}),
+								},
+							}],
+						}
+					},
+				}
+			},
+		})({
+			$baseAsset: (snapshot) => snapshot.$baseAsset,
+			$quoteAsset: (snapshot) => snapshot.$quoteAsset,
+			$$timestamps: (snapshot) => snapshot.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HyperliquidVault,
+			resolve: {
+				NetworkVaultAddress: {
+					resolve: async ({ $network, vaultAddress }, context) => {
+						assertHyperliquidMainnet($network)
+						assertHyperliquidAddress(vaultAddress)
+						const { getVaultDetails } = await import('$/sources/Hyperliquid/Rest/queries.ts')
+						const vault = await getVaultDetails({
+							vaultAddress,
+						})
+						if (vault == null)
+							throw new Error(`Hyperliquid Info: vault not found for ${vaultAddress}`)
+
+						assertHyperliquidAddress(vault.leader)
+						const timestampMs = Date.now()
+						const limit = resolverContextRowLimit(context)
+						return {
+							$leader: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									address: vault.leader,
+								},
+							},
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$vault: {
+										$network,
+										vaultAddress,
+									},
+									timestampMs,
+									source: Source.Hyperliquid,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'name')]: vault.name,
+									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'description')]: vault.description,
+									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'apr')]: String(vault.apr),
+									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'leaderFraction')]: String(vault.leaderFraction),
+									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'leaderCommission')]: String(vault.leaderCommission),
+									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'maxDistributable')]: String(vault.maxDistributable),
+									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'maxWithdrawable')]: String(vault.maxWithdrawable),
+									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'isClosed')]: vault.isClosed,
+									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'allowDeposits')]: vault.allowDeposits,
+									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'alwaysCloseOnWithdraw')]: vault.alwaysCloseOnWithdraw,
+									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'relationship')]: vault.relationship,
+									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'portfolio')]: vault.portfolio,
+									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'followerCount')]: vault.followers.length,
+									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'followers')]: vault.followers,
+								},
+							}],
+							$$equities: vault.followers
+								.slice(0, limit)
+								.map((follower) => {
+									assertHyperliquidAddress(follower.user)
+									return {
+										[EntityMetaKey.Selector]: {
+											$account: {
+												$network,
+												address: follower.user,
+											},
+											$vault: {
+												$network,
+												vaultAddress,
+											},
+											timestampMs,
+											source: Source.Hyperliquid,
+										},
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'equity')]: follower.vaultEquity,
+											[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'pnl')]: follower.pnl,
+											[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'allTimePnl')]: follower.allTimePnl,
+											[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'daysFollowing')]: follower.daysFollowing,
+											[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'vaultEntryTimeMs')]: follower.vaultEntryTime,
+											[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'lockupUntilMs')]: follower.lockupUntil,
+										},
+									}
+								}),
+						}
+					},
+				}
+			},
+		})({
+			$leader: (snapshot) => snapshot.$leader,
+			$$timestamps: (snapshot) => snapshot.$$timestamps,
+			$$equities: (snapshot) => snapshot.$$equities,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HyperliquidOrderbook_Timestamp,
+			resolve: {
+				NetworkBookKeyTimestampMsSource: {
+					resolve: async ({
+						$network,
+						bookKey,
+					}) => {
+						assertHyperliquidMainnet($network)
+						const { getL2Book } = await import('$/sources/Hyperliquid/Rest/queries.ts')
+						const book = await getL2Book({
+							coin: bookKey,
+						})
+						assertSafeWireInteger(book.time, 'orderbook time')
+						const [
+							bids,
+							asks,
+						] = book.levels
+						return {
+							bids,
+							asks,
+							...(
+								bookKey.includes('/') || bookKey.startsWith('@') ?
+									{}
+								:
+									{
+										$perpMarket: {
+											[EntityMetaKey.Selector]: {
+												$network,
+												coin: bookKey,
+											},
+										},
+									}
+							),
+						}
+					},
+				}
+			},
+		})({
+			bids: (snapshot) => snapshot.bids,
+			asks: (snapshot) => snapshot.asks,
+			$perpMarket: (snapshot) => snapshot.$perpMarket,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HyperliquidMarket_TimeInterval_Timestamp,
+			resolve: {
+				NetworkMarketKeyTimeIntervalTimestampMs: {
+					resolve: async ({
+						$network,
+						marketKey,
+						timeInterval,
+						timestampMs,
+					}) => {
+						assertHyperliquidMainnet($network)
+						const interval = hyperliquidCandleInterval(timeInterval)
+						const { getCandleSnapshot } = await import('$/sources/Hyperliquid/Rest/queries.ts')
+						const candle = (await getCandleSnapshot({
+							coin: marketKey,
+							interval,
+							startTime: timestampMs,
+							endTime: timestampMs + 86_400_000,
+						}))
+							.find((candidate) => candidate.t === timestampMs)
+						if (candle == null)
+							throw new Error(`Hyperliquid Info: candle not found for ${marketKey} ${interval} @ ${String(timestampMs)}`)
+						return {
+							open: scaleDecimalString(candle.o),
+							high: scaleDecimalString(candle.h),
+							low: scaleDecimalString(candle.l),
+							close: scaleDecimalString(candle.c),
+							volume: scaleDecimalString(candle.v),
+							tradeCount: candle.n,
+							...(
+								marketKey.includes('/') || marketKey.startsWith('@') ?
+									{}
+								:
+									{
+										$perpMarket: {
+											[EntityMetaKey.Selector]: {
+												$network,
+												coin: marketKey,
+											},
+										},
+									}
+							),
+						}
+					},
+				}
+			},
+		})({
+			open: (snapshot) => snapshot.open,
+			high: (snapshot) => snapshot.high,
+			low: (snapshot) => snapshot.low,
+			close: (snapshot) => snapshot.close,
+			volume: (snapshot) => snapshot.volume,
+			tradeCount: (snapshot) => snapshot.tradeCount,
+			$perpMarket: (snapshot) => snapshot.$perpMarket,
 		}),
 
 		defineResolver({
@@ -291,14 +640,26 @@ export default {
 						assertHyperliquidMainnet($network)
 						assertHyperliquidAddress(address)
 						const {
+							getApprovedBuilders,
+							getBorrowLendUserState,
 							getClearinghouseState,
+							getDelegatorSummary,
 							getSpotClearinghouseState,
+							getUserAbstraction,
+							getUserDexAbstraction,
+							getUserFees,
 							getUserRole,
 						} = await import('$/sources/Hyperliquid/Rest/queries.ts')
 						const [
 							userRoleWire,
 							clearinghouseState,
 							spotClearinghouseState,
+							userFees,
+							delegatorSummary,
+							userAbstraction,
+							userDexAbstraction,
+							approvedBuilders,
+							borrowLendState,
 						] = await Promise.all([
 							getUserRole({
 								user: address,
@@ -307,6 +668,24 @@ export default {
 								user: address,
 							}),
 							getSpotClearinghouseState({
+								user: address,
+							}),
+							getUserFees({
+								user: address,
+							}),
+							getDelegatorSummary({
+								user: address,
+							}),
+							getUserAbstraction({
+								user: address,
+							}),
+							getUserDexAbstraction({
+								user: address,
+							}),
+							getApprovedBuilders({
+								user: address,
+							}),
+							getBorrowLendUserState({
 								user: address,
 							}),
 						])
@@ -318,6 +697,9 @@ export default {
 
 						if (userRoleWire.role === 'subAccount')
 							assertHyperliquidAddress(userRoleWire.data.master)
+
+						for (const builder of approvedBuilders)
+							assertHyperliquidAddress(builder)
 
 						return {
 							accountRole: userRoleWire.role,
@@ -355,6 +737,12 @@ export default {
 									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'crossMaintenanceMarginUsed')]: clearinghouseState.crossMaintenanceMarginUsed,
 									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'assetPositions')]: clearinghouseState.assetPositions,
 									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'spotBalances')]: spotClearinghouseState.balances,
+									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'feeSchedule')]: userFees,
+									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'stakingSummary')]: delegatorSummary,
+									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userAbstraction')]: userAbstraction,
+									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userDexAbstraction')]: userDexAbstraction,
+									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'approvedBuilders')]: approvedBuilders,
+									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'borrowLendState')]: borrowLendState,
 								},
 							}],
 						}
@@ -657,6 +1045,8 @@ export default {
 			$$validators: (snapshot) => snapshot.$$validators,
 			$$perpMarkets: (snapshot) => snapshot.$$perpMarkets,
 			$$spotAssets: (snapshot) => snapshot.$$spotAssets,
+			$$spotPairs: (snapshot) => snapshot.$$spotPairs,
+			$$vaults: (snapshot) => snapshot.$$vaults,
 		}),
 
 		defineResolver({

@@ -489,6 +489,22 @@ export default {
 				}
 			},
 		})({
+			blockSlot: ({ transaction }) => BigInt(transaction.absolute_slot),
+			fee: ({ transaction }) => BigInt(transaction.fee),
+			deposit: ({ transaction }) => BigInt(transaction.deposit),
+			sizeBytes: ({ transaction }) => transaction.tx_size,
+			validityStartSlot: ({ transaction }) => (
+				transaction.invalid_before == null ?
+					undefined
+				:
+					BigInt(transaction.invalid_before)
+			),
+			ttlSlot: ({ transaction }) => (
+				transaction.invalid_after == null ?
+					undefined
+				:
+					BigInt(transaction.invalid_after)
+			),
 			$$certificates: ({ cardanoTransaction, transaction }) => transaction.certificates.map((certificate) => ({
 				[EntityMetaKey.Selector]: {
 					$transaction: cardanoTransaction,

@@ -213,6 +213,13 @@ describe('TzKT block transport and resolver', () => {
 			level: 5_000_000,
 			timestamp: '2026-07-16T12:34:56Z',
 			hash: 'BLzyx',
+			protocol: 'PsPROTOCOL',
+			predecessor: 'BLpred',
+			cycle: 800,
+			blockRound: 2,
+			baker: {
+				address: 'tz1Baker',
+			},
 		})
 
 		await expect(blockResolver.resolve['NetworkLevel'].resolve({
@@ -233,6 +240,11 @@ describe('TzKT block transport and resolver', () => {
 			level: 5_000_000n,
 			hash: 'BLzyx',
 			timestampMs: Date.parse('2026-07-16T12:34:56Z'),
+			protocolHash: 'PsPROTOCOL',
+			predecessorHash: 'BLpred',
+			bakerAddress: 'tz1Baker',
+			round: 2,
+			cycle: 800n,
 		})
 	})
 
@@ -644,5 +656,284 @@ describe('TzKT account state and activity', () => {
 			...context,
 			providerContinuationToken: '01',
 		})).rejects.toThrow('invalid account continuation')
+	})
+})
+
+describe('TzKT network lists, tokens, and operation fields', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	const networkResolverFor = (fieldName: string) => {
+		const resolver = tzktResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.TezosNetwork
+			&& fieldName in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error(`TzKT REST spec missing TezosNetwork.${fieldName} resolver`)
+
+		return resolver
+	}
+
+	it('pages network blocks newest-first with schema-shaped selectors', async () => {
+		getJson.mockResolvedValueOnce([{
+			level: 5_000_001,
+			timestamp: '2026-07-16T12:35:00Z',
+			hash: 'BLhead',
+		}, {
+			level: 5_000_000,
+			timestamp: '2026-07-16T12:34:56Z',
+			hash: 'BLzyx',
+		}])
+		const resolver = networkResolverFor('$$blocks')
+		const page = await resolver.resolve['Network'].resolve({
+			$network: {
+				slug: 'tezos',
+			},
+		}, context)
+		const projection = resolver.projections.$$blocks
+
+		expect(projection.select(page, {
+			$network: {
+				slug: 'tezos',
+			},
+		}, context)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: {
+						$network: {
+							slug: 'tezos',
+						},
+					},
+					level: 5_000_001n,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.TezosBlock, [], 'hash')]: 'BLhead',
+					[entityFieldAddressKey(EntityType.TezosBlock, [], 'timestampMs')]: Date.parse('2026-07-16T12:35:00Z'),
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: {
+						$network: {
+							slug: 'tezos',
+						},
+					},
+					level: 5_000_000n,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.TezosBlock, [], 'hash')]: 'BLzyx',
+					[entityFieldAddressKey(EntityType.TezosBlock, [], 'timestampMs')]: Date.parse('2026-07-16T12:34:56Z'),
+				},
+			},
+		])
+		expect(projection.continuation(page, {
+			$network: {
+				slug: 'tezos',
+			},
+		}, context)).toEqual({
+			operation: 'network-blocks',
+			terminal: false,
+			token: '2',
+		})
+		expect(getJson.mock.calls[0][0]).toContain('/v1/blocks?offset=0&limit=2&sort.desc=level')
+	})
+
+	it('projects a hard-fail head+statistics network observation', async () => {
+		getJson
+			.mockResolvedValueOnce({
+				chain: 'mainnet',
+				chainId: 'NetXdQprcVkpaWU',
+				cycle: 800,
+				level: 5_000_000,
+				hash: 'BLhead',
+				protocol: 'PsPROTOCOL',
+				timestamp: '2026-07-16T12:34:56Z',
+				synced: true,
+				knownLevel: 5_000_000,
+			})
+			.mockResolvedValueOnce({
+				level: 5_000_000,
+				timestamp: '2026-07-16T12:34:56Z',
+				totalSupply: 1_000_000_000,
+			})
+		const resolver = networkResolverFor('$$timestamps')
+
+		await expect(resolver.resolve['Network'].resolve({
+			$network: {
+				slug: 'tezos',
+			},
+		}, context)).resolves.toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: {
+					$network: {
+						$network: {
+							slug: 'tezos',
+						},
+					},
+					timestampMs: Date.parse('2026-07-16T12:34:56Z'),
+					source: 'Tzkt_Rest',
+				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.TezosNetwork_Timestamp, [], 'latestLevel')]: 5_000_000n,
+					[entityFieldAddressKey(EntityType.TezosNetwork_Timestamp, [], 'totalSupplyMutez')]: 1_000_000_000n,
+				}),
+			}),
+		])
+	})
+
+	it('rejects mismatched head and statistics without soft-emptying', async () => {
+		getJson
+			.mockResolvedValueOnce({
+				chain: 'mainnet',
+				chainId: 'NetXdQprcVkpaWU',
+				cycle: 800,
+				level: 5_000_000,
+				hash: 'BLhead',
+				protocol: 'PsPROTOCOL',
+				timestamp: '2026-07-16T12:34:56Z',
+				synced: true,
+			})
+			.mockResolvedValueOnce({
+				level: 4_999_999,
+				timestamp: '2026-07-16T12:34:56Z',
+				totalSupply: 1_000_000_000,
+			})
+		const resolver = networkResolverFor('$$timestamps')
+
+		await expect(resolver.resolve['Network'].resolve({
+			$network: {
+				slug: 'tezos',
+			},
+		}, context)).rejects.toThrow('statistics level does not match head')
+	})
+
+	it('resolves token identity and timestamp observations', async () => {
+		const tokenResolver = tzktResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.TezosToken
+			&& 'standard' in candidate.projections
+		))
+		if (tokenResolver == null)
+			throw new Error('TzKT REST spec missing TezosToken identity resolver')
+
+		getJson.mockResolvedValueOnce([{
+			id: 10,
+			contract: {
+				address: 'KT1Token',
+			},
+			tokenId: '0',
+			standard: 'fa2',
+			lastLevel: 5_000_000,
+			totalSupply: '42',
+			holdersCount: 3,
+			transfersCount: 9,
+			metadata: {
+				name: 'Test',
+				symbol: 'TST',
+				decimals: '6',
+			},
+		}])
+
+		await expect(tokenResolver.resolve['NetworkContractAddressTokenId'].resolve({
+			$network: {
+				$network: {
+					slug: 'tezos',
+				},
+			},
+			contractAddress: 'KT1Token',
+			tokenId: 0n,
+		})).resolves.toEqual({
+			$network: {
+				[EntityMetaKey.Selector]: {
+					$network: {
+						slug: 'tezos',
+					},
+				},
+			},
+			contractAddress: 'KT1Token',
+			tokenId: 0n,
+			standard: 'fa2',
+			$contract: {
+				[EntityMetaKey.Selector]: {
+					$network: {
+						$network: {
+							slug: 'tezos',
+						},
+					},
+					address: 'KT1Token',
+				},
+			},
+		})
+
+		getJson.mockResolvedValueOnce([])
+		await expect(tokenResolver.resolve['NetworkContractAddressTokenId'].resolve({
+			$network: {
+				$network: {
+					slug: 'tezos',
+				},
+			},
+			contractAddress: 'KT1Missing',
+			tokenId: 1n,
+		})).rejects.toThrow('not found')
+	})
+
+	it('projects operation economics and linked block identity', async () => {
+		const operationResolver = tzktResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.TezosOperation
+			&& 'feeMutez' in candidate.projections
+		))
+		if (operationResolver == null)
+			throw new Error('TzKT REST spec missing TezosOperation field resolver')
+
+		getJson.mockResolvedValueOnce([{
+			type: 'transaction',
+			id: 91,
+			level: 5_000_000,
+			timestamp: '2026-07-16T12:34:56Z',
+			hash: 'opHash',
+			counter: 42,
+			sender: {
+				address: account.address,
+			},
+			target: {
+				address: 'tz1Recipient',
+			},
+			status: 'applied',
+			amount: 1_000_000,
+			bakerFee: 500,
+			gasLimit: 10_000,
+			gasUsed: 9_000,
+			storageLimit: 100,
+			storageUsed: 50,
+			parameter: {
+				entrypoint: 'transfer',
+				value: {
+					to: 'tz1Recipient',
+				},
+			},
+		}])
+
+		await expect(operationResolver.resolve['OperationGroupContentIndex'].resolve({
+			$operationGroup: {
+				$network: account.$network,
+				operationHash: 'opHash',
+			},
+			contentIndex: 0,
+		})).resolves.toEqual(expect.objectContaining({
+			operationKind: 'transaction:transfer',
+			sourceAddress: account.address,
+			destinationAddress: 'tz1Recipient',
+			counter: 42n,
+			feeMutez: 500n,
+			amountMutez: 1_000_000n,
+			consumedGas: 9_000n,
+			status: 'applied',
+			$block: {
+				[EntityMetaKey.Selector]: {
+					$network: account.$network,
+					level: 5_000_000n,
+				},
+			},
+		}))
 	})
 })

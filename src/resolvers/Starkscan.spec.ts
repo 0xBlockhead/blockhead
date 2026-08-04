@@ -8,19 +8,37 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
-const { getAddressTransactions } = vi.hoisted(() => ({
+const {
+	getAddressSummary,
+	getAddressTransactions,
+	getContractEvents,
+} = vi.hoisted(() => ({
+	getAddressSummary: vi.fn(),
 	getAddressTransactions: vi.fn(),
+	getContractEvents: vi.fn(),
 }))
 
 vi.mock('$/sources/Starkscan/Rest/queries.ts', () => ({
+	getAddressSummary,
 	getAddressTransactions,
+	getContractEvents,
 }))
 
 const { default: starkscanResolvers } = await import('$/resolvers/Starkscan.ts')
+const accountStatesResolver = starkscanResolvers.resolvers.find((resolver) => (
+	'$$accountStates' in resolver.projections
+))
+const eventsResolver = starkscanResolvers.resolvers.find((resolver) => (
+	'$$events' in resolver.projections
+))
 const transactionsResolver = starkscanResolvers.resolvers.find((resolver) => (
 	'$$transactions' in resolver.projections
 ))
 
+if (accountStatesResolver == null)
+	throw new Error('Starkscan spec missing contract account states resolver')
+if (eventsResolver == null)
+	throw new Error('Starkscan spec missing contract events resolver')
 if (transactionsResolver == null)
 	throw new Error('Starkscan spec missing contract transactions resolver')
 
@@ -87,8 +105,25 @@ const transactions = [
 		topTransferStandard: null,
 	},
 ]
+const events = [
+	{
+		blockNumber: 100,
+		timestampIso: '2026-07-15T12:00:00Z',
+		txHash: '0x00abc',
+		txIndex: 2,
+		logIndex: 1,
+		address: '0x01',
+		keys: ['0x11'],
+		topic0: '0x11',
+		topic1: null,
+		topic2: null,
+		topic3: null,
+		data: ['0x22'],
+		decodingStatus: 'unknown',
+	},
+]
 
-describe('Starkscan contract transaction resolver', () => {
+describe('Starkscan contract resolvers', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 	})
@@ -113,6 +148,108 @@ describe('Starkscan contract transaction resolver', () => {
 			},
 		])
 		expect(starkscanResolvers.source).toBe(Source.Starkscan)
+	})
+
+	it('projects account states from certified class or not-deployed summaries', async () => {
+		getAddressSummary.mockResolvedValueOnce({
+			address: '0x1',
+			totalActivityCount: 3,
+			latestActivityBlock: 100,
+			classHash: '0x0abc',
+			contractExistence: null,
+		})
+		const foundSummary = await accountStatesResolver.resolve[
+			'NetworkAddress'
+		].resolve(contract, resolverContext)
+		const accountStates = accountStatesResolver.projections.$$accountStates
+		if (typeof accountStates !== 'function')
+			throw new Error('Starkscan spec missing account state projection')
+		expect(accountStates(foundSummary, contract, resolverContext)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$contract: contract,
+				blockNumber: 100n,
+				source: Source.Starkscan,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StarknetAccount_Timestamp, [], 'classHash')]: '0xabc',
+				[entityFieldAddressKey(EntityType.StarknetAccount_Timestamp, [], 'found')]: true,
+			},
+		}])
+
+		getAddressSummary.mockResolvedValueOnce({
+			address: '0x1',
+			totalActivityCount: 0,
+			latestActivityBlock: null,
+			classHash: null,
+			contractExistence: {
+				status: 'not_deployed',
+				reasonCode: 'contract_not_found',
+				evidenceSource: 'finalized_class_hash_at',
+				observedBlockNumber: 42,
+				observedBlockHash: '0xdead',
+				expiresAtIso: '2026-07-15T12:00:00Z',
+			},
+		})
+		const missingSummary = await accountStatesResolver.resolve[
+			'NetworkAddress'
+		].resolve(contract, resolverContext)
+		expect(accountStates(missingSummary, contract, resolverContext)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$contract: contract,
+				blockNumber: 42n,
+				source: Source.Starkscan,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StarknetAccount_Timestamp, [], 'found')]: false,
+			},
+		}])
+		expect(getAddressSummary).toHaveBeenCalledWith('0x1')
+	})
+
+	it('projects contract events with opaque continuation', async () => {
+		getContractEvents.mockResolvedValueOnce({
+			items: events,
+			nextCursor: '99:0:0',
+			eventDecodingDegraded: false,
+		})
+		const page = await eventsResolver.resolve[
+			'NetworkAddress'
+		].resolve(contract, {
+			...resolverContext,
+			providerContinuationToken: '100:2:1',
+		})
+		const projection = eventsResolver.projections.$$events
+		if (typeof projection === 'function')
+			throw new Error('Starkscan spec missing event pagination')
+		expect(getContractEvents).toHaveBeenCalledWith(
+			{
+				address: '0x1',
+				limit: 2,
+				cursor: '100:2:1',
+			}
+		)
+		expect(projection.select(page, contract, resolverContext)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: contract.$network,
+					transactionHash: '0xabc',
+				},
+				eventIndex: 1,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StarknetEvent, [], '$fromContract')]: {
+					[EntityMetaKey.Selector]: contract,
+				},
+				[entityFieldAddressKey(EntityType.StarknetEvent, [], 'keys')]: ['0x11'],
+				[entityFieldAddressKey(EntityType.StarknetEvent, [], 'data')]: ['0x22'],
+			},
+		}])
+		expect(projection.continuation(page, contract, resolverContext)).toEqual({
+			operation: 'contract-events',
+			target: contract.address,
+			terminal: false,
+			token: '99:0:0',
+		})
 	})
 
 	it('preserves provider order, canonical identity, provenance, and opaque continuation', async () => {

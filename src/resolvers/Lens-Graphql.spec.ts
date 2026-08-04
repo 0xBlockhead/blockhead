@@ -20,9 +20,12 @@ const {
 	queryFeed,
 	queryFeedPosts,
 	queryLatestPosts,
+	queryNamespace,
 	queryPost,
 	queryPostComments,
 	queryPostsByAuthor,
+	queryUsername,
+	queryUsernames,
 } = vi.hoisted(() => ({
 	queryAccount: vi.fn(),
 	queryAccountStats: vi.fn(),
@@ -30,9 +33,12 @@ const {
 	queryFeed: vi.fn(),
 	queryFeedPosts: vi.fn(),
 	queryLatestPosts: vi.fn(),
+	queryNamespace: vi.fn(),
 	queryPost: vi.fn(),
 	queryPostComments: vi.fn(),
 	queryPostsByAuthor: vi.fn(),
+	queryUsername: vi.fn(),
+	queryUsernames: vi.fn(),
 }))
 
 vi.mock('$/sources/Lens/Graphql/queries.ts', () => ({
@@ -42,9 +48,12 @@ vi.mock('$/sources/Lens/Graphql/queries.ts', () => ({
 	queryFeed,
 	queryFeedPosts,
 	queryLatestPosts,
+	queryNamespace,
 	queryPost,
 	queryPostComments,
 	queryPostsByAuthor,
+	queryUsername,
+	queryUsernames,
 }))
 
 const { default: lensGraphql } = await import('$/resolvers/Lens-Graphql.ts')
@@ -68,9 +77,12 @@ describe('Lens_Graphql reading relationships', () => {
 		queryFeed.mockReset()
 		queryFeedPosts.mockReset()
 		queryLatestPosts.mockReset()
+		queryNamespace.mockReset()
 		queryPost.mockReset()
 		queryPostComments.mockReset()
 		queryPostsByAuthor.mockReset()
+		queryUsername.mockReset()
+		queryUsernames.mockReset()
 	})
 
 	it('materializes bounded latest, author, and direct-comment rows as useful cards', async () => {
@@ -529,5 +541,216 @@ describe('Lens_Graphql reading relationships', () => {
 			'0x1111111111111111111111111111111111111111',
 			7
 		)
+	})
+
+	it('resolves author posts through localName and legacyProfileId without forking identity', async () => {
+		const post = {
+			__typename: 'Post',
+			slug: 'post-one',
+			author: {
+				address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+			},
+			metadata: {
+				__typename: 'TextOnlyMetadata',
+				content: 'Local name author post',
+			},
+		}
+		queryAccount
+			.mockResolvedValueOnce({
+				account: {
+					address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+					owner: '0x1111111111111111111111111111111111111111',
+					score: 1,
+					createdAt: '2025-01-02T03:04:05.000Z',
+					username: { localName: 'alice' },
+					metadata: null,
+				},
+			})
+			.mockResolvedValueOnce({
+				account: {
+					address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+					owner: '0x1111111111111111111111111111111111111111',
+					score: 1,
+					createdAt: '2025-01-02T03:04:05.000Z',
+					username: null,
+					metadata: null,
+				},
+			})
+		queryPostsByAuthor.mockResolvedValue({
+			posts: {
+				items: [post],
+			},
+		})
+
+		await expect(lensGraphql.resolvers[6].resolve.LocalName.resolve({
+			localName: 'alice',
+		}, {
+			...context,
+			pagination: { limit: 3 },
+		})).resolves.toEqual([
+			{
+				[EntityMetaKey.Selector]: { id: 'post-one' },
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.LensPost, [], 'text')]: 'Local name author post',
+					[entityFieldAddressKey(EntityType.LensPost, [], '$author')]: {
+						[EntityMetaKey.Selector]: {
+							address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+						},
+						[EntityMetaKey.Fields]: {},
+					},
+				}),
+			},
+		])
+		await expect(lensGraphql.resolvers[6].resolve.LegacyProfileId.resolve({
+			legacyProfileId: '0x01',
+		}, {
+			...context,
+			pagination: { limit: 3 },
+		})).resolves.toHaveLength(1)
+		expect(queryAccount.mock.calls).toEqual([
+			[{ username: { localName: 'alice' } }],
+			[{ legacyProfileId: '0x01' }],
+		])
+		expect(queryPostsByAuthor).toHaveBeenCalledWith(
+			'0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+			3
+		)
+	})
+
+	it('materializes username and namespace reading fields plus namespace-scoped username cards', async () => {
+		const namespaceAddress = '0x2222222222222222222222222222222222222222'
+		const username = {
+			id: 'username-1',
+			value: 'lens/alice',
+			namespace: namespaceAddress,
+			localName: 'alice',
+			linkedTo: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+			ownedBy: '0x1111111111111111111111111111111111111111',
+			timestamp: '2025-02-03T04:05:06.000Z',
+		}
+		queryUsername
+			.mockResolvedValueOnce({ username })
+			.mockResolvedValueOnce({ username })
+		queryNamespace.mockResolvedValueOnce({
+			namespace: {
+				address: namespaceAddress,
+				namespace: 'lens',
+				owner: '0x1111111111111111111111111111111111111111',
+				tokenName: 'Lens Username',
+				tokenSymbol: 'LNS',
+				createdAt: '2025-01-02T03:04:05.000Z',
+				metadata: {
+					description: 'Canonical Lens namespace',
+				},
+				stats: {
+					totalUsernames: 9,
+				},
+			},
+		})
+		queryUsernames.mockResolvedValueOnce({
+			usernames: {
+				items: [
+					username,
+					{
+						...username,
+						id: 'foreign-username',
+						namespace: '0x3333333333333333333333333333333333333333',
+					},
+				],
+			},
+		})
+
+		await expect(lensGraphql.resolvers[10].resolve.Id.resolve({
+			id: 'username-1',
+		}, context)).resolves.toEqual({
+			id: 'username-1',
+			namespace: namespaceAddress,
+			localName: 'alice',
+			value: 'lens/alice',
+			ownedBy: '0x1111111111111111111111111111111111111111',
+			linkedTo: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+			timestamp: 1_738_555_506_000,
+			$namespace: {
+				[EntityMetaKey.Selector]: {
+					address: namespaceAddress,
+				},
+			},
+			$account: {
+				[EntityMetaKey.Selector]: {
+					address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+				},
+			},
+			$owner: {
+				[EntityMetaKey.Selector]: {
+					address: '0x1111111111111111111111111111111111111111',
+				},
+			},
+		})
+		await expect(lensGraphql.resolvers[10].resolve.NamespaceLocalName.resolve({
+			namespace: namespaceAddress,
+			localName: 'alice',
+		}, context)).resolves.toMatchObject({
+			id: 'username-1',
+			localName: 'alice',
+		})
+		await expect(lensGraphql.resolvers[11].resolve.Address.resolve({
+			address: namespaceAddress,
+		}, context)).resolves.toEqual({
+			address: namespaceAddress,
+			namespace: 'lens',
+			owner: '0x1111111111111111111111111111111111111111',
+			tokenName: 'Lens Username',
+			tokenSymbol: 'LNS',
+			createdAt: 1_735_787_045_000,
+			description: 'Canonical Lens namespace',
+			totalUsernames: 9,
+		})
+		await expect(lensGraphql.resolvers[12].resolve.Address.resolve({
+			address: namespaceAddress,
+		}, {
+			...context,
+			pagination: { limit: 4 },
+		})).resolves.toEqual([
+			{
+				[EntityMetaKey.Selector]: { id: 'username-1' },
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.LensUsername, [], 'localName')]: 'alice',
+					[entityFieldAddressKey(EntityType.LensUsername, [], 'value')]: 'lens/alice',
+					[entityFieldAddressKey(EntityType.LensUsername, [], '$account')]: {
+						[EntityMetaKey.Selector]: {
+							address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+						},
+					},
+				}),
+			},
+		])
+		expect(queryUsernames).toHaveBeenCalledWith(
+			4,
+			{ namespace: namespaceAddress }
+		)
+	})
+
+	it('rejects mismatched username and namespace identities before enrichment', async () => {
+		queryUsername.mockResolvedValueOnce({
+			username: {
+				id: 'foreign-username',
+				namespace: '0x2222222222222222222222222222222222222222',
+				localName: 'alice',
+				ownedBy: '0x1111111111111111111111111111111111111111',
+			},
+		})
+		await expect(lensGraphql.resolvers[10].resolve.Id.resolve({
+			id: 'username-1',
+		}, context)).rejects.toThrow('username response does not match request')
+
+		queryNamespace.mockResolvedValueOnce({
+			namespace: {
+				address: '0x3333333333333333333333333333333333333333',
+				namespace: 'lens',
+			},
+		})
+		await expect(lensGraphql.resolvers[11].resolve.Address.resolve({
+			address: '0x2222222222222222222222222222222222222222',
+		}, context)).rejects.toThrow('namespace response does not match request')
 	})
 })

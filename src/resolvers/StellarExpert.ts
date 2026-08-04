@@ -1,7 +1,101 @@
 import { networkBySlug } from '$/constants/Network.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+
+const assertStellarPublicNetwork = ($network: {
+	$network: {
+		slug: string
+	}
+}) => {
+	if ($network.$network.slug !== networkBySlug.stellar.slug)
+		throw new Error('StellarExpert: unsupported network')
+}
+
+const ledgerCloseTimeMs = (
+	ledger: {
+		sequence?: number
+		timestamp?: number
+		date?: string
+	},
+	expectedSequence?: bigint
+) => {
+	if (
+		ledger.sequence == null
+		|| !Number.isSafeInteger(ledger.sequence)
+		|| (
+			expectedSequence != null
+			&& BigInt(ledger.sequence) !== expectedSequence
+		)
+	)
+		throw new Error('StellarExpert: response ledger sequence does not match request')
+
+	if (
+		ledger.timestamp == null
+		|| !Number.isSafeInteger(ledger.timestamp)
+		|| ledger.timestamp < 0
+		|| !Number.isSafeInteger(ledger.timestamp * 1_000)
+	)
+		throw new Error('StellarExpert: invalid ledger timestamp')
+
+	const closeTimeMs = ledger.timestamp * 1_000
+	if (ledger.date == null || Date.parse(ledger.date) !== closeTimeMs)
+		throw new Error('StellarExpert: ledger date does not match timestamp')
+
+	return {
+		sequence: BigInt(ledger.sequence),
+		closeTimeMs,
+	}
+}
+
+const stellarAssetIdentity = (
+	assetKey: string
+) => {
+	if (assetKey === 'XLM')
+		return {
+			assetKind: 'native',
+			assetCode: 'XLM',
+		} as const
+
+	const match = /^([A-Za-z0-9]{1,12})-(G[A-Z2-7]{55})(?:-\d+)?$/.exec(assetKey)
+	if (match == null)
+		throw new Error('StellarExpert: malformed asset key')
+
+	return {
+		assetKind: match[1].length <= 4 ? 'credit_alphanum4' : 'credit_alphanum12',
+		assetCode: match[1],
+		issuer: match[2],
+	} as const
+}
+
+const stellarAssetFields = (
+	$network: {
+		$network: {
+			slug: string
+		}
+	},
+	assetKey: string
+) => {
+	const identity = stellarAssetIdentity(assetKey)
+	return {
+		[entityFieldAddressKey(EntityType.StellarAsset, [], 'assetKind')]: identity.assetKind,
+		[entityFieldAddressKey(EntityType.StellarAsset, [], 'assetCode')]: identity.assetCode,
+		...('issuer' in identity && {
+			[entityFieldAddressKey(EntityType.StellarAsset, [], 'issuer')]: identity.issuer,
+			[entityFieldAddressKey(EntityType.StellarAsset, [], '$issuerAccount')]: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					accountId: identity.issuer,
+				},
+			},
+		}),
+	}
+}
 
 export default {
 	source: Source.StellarExpert,
@@ -12,43 +106,175 @@ export default {
 			resolve: {
 				NetworkSequence: {
 					resolve: async ({ $network, sequence }) => {
-						if ($network.$network.slug !== networkBySlug.stellar.slug)
-							throw new Error('StellarExpert: unsupported network')
+						assertStellarPublicNetwork($network)
 
 						if (sequence < 1n || sequence > BigInt(Number.MAX_SAFE_INTEGER))
 							throw new Error('StellarExpert: ledger sequence is not a positive safe integer')
 
 						const { getTimestampFromSequence } = await import('$/sources/StellarExpert/Rest/queries.ts')
-						const ledger = await getTimestampFromSequence({
-							network: 'public',
-							sequence: Number(sequence),
-						})
-
-						if (
-							ledger.sequence == null
-							|| !Number.isSafeInteger(ledger.sequence)
-							|| BigInt(ledger.sequence) !== sequence
+						return ledgerCloseTimeMs(
+							await getTimestampFromSequence({
+								network: 'public',
+								sequence: Number(sequence),
+							}),
+							sequence
 						)
-							throw new Error('StellarExpert: response ledger sequence does not match request')
-
-						if (
-							ledger.timestamp == null
-							|| !Number.isSafeInteger(ledger.timestamp)
-							|| ledger.timestamp < 0
-							|| !Number.isSafeInteger(ledger.timestamp * 1_000)
-						)
-							throw new Error('StellarExpert: invalid ledger timestamp')
-
-						const closeTimeMs = ledger.timestamp * 1_000
-						if (ledger.date == null || Date.parse(ledger.date) !== closeTimeMs)
-							throw new Error('StellarExpert: ledger date does not match timestamp')
-
-						return { closeTimeMs }
 					},
 				},
 			},
 		})({
 			closeTimeMs: (ledger) => ledger.closeTimeMs,
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarNetwork_Timestamp,
+			resolve: {
+				NetworkTimestampMsSource: {
+					resolve: async ({ $network, timestampMs, source }) => {
+						assertStellarPublicNetwork($network)
+						if (source !== Source.StellarExpert)
+							throw new Error('StellarExpert: unsupported observation source')
+
+						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
+							throw new Error('StellarExpert: observation timestamp is not a non-negative safe integer')
+
+						const unixSeconds = Math.floor(timestampMs / 1_000)
+						const { getSequenceFromTimestamp } = await import('$/sources/StellarExpert/Rest/queries.ts')
+						const ledger = ledgerCloseTimeMs(
+							await getSequenceFromTimestamp({
+								network: 'public',
+								timestamp: unixSeconds,
+							})
+						)
+						if (ledger.closeTimeMs > timestampMs)
+							throw new Error('StellarExpert: resolved ledger closes after the observation timestamp')
+
+						return {
+							latestLedger: ledger.sequence,
+						}
+					},
+				},
+			},
+		})({
+			latestLedger: (observation) => observation.latestLedger,
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarAsset,
+			resolve: {
+				NetworkAssetKey: {
+					resolve: async ({ $network, assetKey }) => {
+						assertStellarPublicNetwork($network)
+						const identity = stellarAssetIdentity(assetKey)
+						const { getAssetRating } = await import('$/sources/StellarExpert/Rest/queries.ts')
+						const rating = await getAssetRating({
+							network: 'public',
+							asset: assetKey,
+						})
+						if (rating.asset != null && rating.asset !== assetKey)
+							throw new Error('StellarExpert: asset rating response does not match request')
+						if (rating.rating == null)
+							throw new Error('StellarExpert: asset rating response is missing rating')
+
+						return identity
+					},
+				},
+			},
+		})({
+			assetKind: (asset) => asset.assetKind,
+			assetCode: (asset) => asset.assetCode,
+			issuer: (asset) => (
+				'issuer' in asset ?
+					asset.issuer
+				:
+					undefined
+			),
+			$issuerAccount: (asset, { $network }) => (
+				'issuer' in asset ?
+					{
+						[EntityMetaKey.Selector]: {
+							$network,
+							accountId: asset.issuer,
+						},
+					}
+				:
+					undefined
+			),
+		}),
+
+		defineResolver({
+			entityType: EntityType.StellarNetwork,
+			resolve: {
+				Network: {
+					resolve: async ($network, context) => {
+						assertStellarPublicNetwork($network)
+						const limit = Math.min(resolverContextRowLimit(context), 200)
+						const cursorToken = context.providerContinuationToken
+						const cursor = (
+							cursorToken == null ?
+								undefined
+							: /^\d+$/.test(cursorToken) ?
+								Number(cursorToken)
+							:
+								(() => {
+									throw new Error('StellarExpert: invalid asset list continuation cursor')
+								})()
+						)
+						const { getAllAssets } = await import('$/sources/StellarExpert/Rest/queries.ts')
+						return {
+							limit,
+							page: await getAllAssets({
+								network: 'public',
+								sort: 'rating',
+								order: 'desc',
+								limit,
+								...(cursor != null && { cursor }),
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$assets: {
+				select: ({ page }, $network) => {
+					const records = page._embedded?.records
+					if (records == null)
+						throw new Error('StellarExpert: asset list missing records')
+
+					return records.map((record) => {
+						if (record.asset == null || record.asset.length === 0)
+							throw new Error('StellarExpert: asset record missing asset id')
+
+						return {
+							[EntityMetaKey.Selector]: {
+								$network,
+								assetKey: record.asset,
+							},
+							[EntityMetaKey.Fields]: stellarAssetFields($network, record.asset),
+						}
+					})
+				},
+				continuation: ({ limit, page }, $network) => {
+					const records = page._embedded?.records
+					if (records == null)
+						throw new Error('StellarExpert: asset list missing records')
+
+					const nextCursor = records.at(-1)?.paging_token
+					return nextCursor == null || records.length < limit ?
+						{
+							operation: 'network-assets',
+							target: $network.$network.slug,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'network-assets',
+							target: $network.$network.slug,
+							terminal: false,
+							token: String(nextCursor),
+						}
+				},
+			},
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

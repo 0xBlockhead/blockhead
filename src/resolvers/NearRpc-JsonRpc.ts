@@ -8,6 +8,7 @@ import {
 	EntityMetaKey,
 	entityFieldAddressKey,
 	type EntitySelector,
+	type EntitySelectorForSelectorName,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
@@ -28,9 +29,20 @@ import type {
 	NearRpcValidators,
 } from '$/sources/NearRpc/JsonRpc/types.ts'
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+type NearBlockSelector = EntitySelectorForSelectorName<
+	typeof schema,
+	EntityType.NearBlock,
+	'NetworkHeight' | 'NetworkHeightHash'
+>
 const assertNearMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug.near.slug)
 		throw new Error('NearRpc_JsonRpc: unsupported network')
+}
+const assertSafeNearBlockHeight = (height: bigint) => {
+	const numericBlockHeight = Number(height)
+	if (!Number.isSafeInteger(numericBlockHeight))
+		throw new Error(`NearRpc_JsonRpc: unsafe block height ${height}`)
+	return numericBlockHeight
 }
 const nearActionFields = (action: NearRpcAction) => ({
 	actionKind: (
@@ -335,6 +347,62 @@ const getNearNetworkTimestampFields = async () => {
 		}),
 	}
 }
+const nearBlockFields = (
+	network: NetworkId,
+	wireBlock: NearRpcBlock
+) => ({
+	hash: wireBlock.header.hash,
+	...(wireBlock.header.height > 0 && {
+		$parent: {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				height: BigInt(wireBlock.header.height - 1),
+				hash: wireBlock.header.prev_hash,
+			},
+		},
+	}),
+	epochId: wireBlock.header.epoch_id,
+	timestampMs: Number(BigInt(wireBlock.header.timestamp_nanosec) / 1_000_000n),
+	$$chunks: wireBlock.chunks.map((chunk) => ({
+		[EntityMetaKey.Selector]: {
+			$network: network,
+			chunkHash: chunk.chunk_hash,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.NearChunk, [], '$block')]: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					height: BigInt(wireBlock.header.height),
+					hash: wireBlock.header.hash,
+				},
+			},
+			[entityFieldAddressKey(EntityType.NearChunk, [], 'shardId')]: BigInt(chunk.shard_id),
+			[entityFieldAddressKey(EntityType.NearChunk, [], 'gasUsed')]: BigInt(chunk.gas_used),
+		},
+	})),
+})
+const resolveNearBlock = async (entitySelector: NearBlockSelector) => {
+	assertNearMainnet(entitySelector.$network)
+	if (!('hash' in entitySelector))
+		assertSafeNearBlockHeight(entitySelector.height)
+	const { getBlock } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+	const wireBlock = await getBlock({
+		blockId: (
+			'hash' in entitySelector ?
+				entitySelector.hash
+			:
+				entitySelector.height
+		),
+	})
+	if (BigInt(wireBlock.header.height) !== entitySelector.height)
+		throw new Error('NearRpc_JsonRpc: block height does not match the requested selector')
+	if (
+		'hash' in entitySelector
+		&& wireBlock.header.hash !== entitySelector.hash
+	)
+		throw new Error('NearRpc_JsonRpc: block hash does not match the requested selector')
+	return nearBlockFields(entitySelector.$network, wireBlock)
+}
 const getNearBlockReferences = async (
 	network: NetworkId,
 	limit: number
@@ -354,9 +422,6 @@ const getNearBlockReferences = async (
 		[EntityMetaKey.Selector]: {
 			$network: network,
 			height: headBlockHeight - BigInt(blockOffset),
-			...(blockOffset === 0 && {
-				hash: headBlock.header.hash,
-			}),
 		},
 	}))
 }
@@ -446,46 +511,12 @@ export default {
 		defineResolver({
 			entityType: EntityType.NearBlock,
 			resolve: {
+				NetworkHeight: {
+					resolve: resolveNearBlock,
+				},
 				NetworkHeightHash: {
-					resolve: async ({ $network, hash }) => {
-						assertNearMainnet($network)
-						const { getBlock } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-						const wireBlock = await getBlock({
-							blockId: hash,
-						})
-						return {
-							hash: wireBlock.header.hash,
-							...(wireBlock.header.height > 0 && {
-								$parent: {
-									[EntityMetaKey.Selector]: {
-										$network: $network,
-										height: BigInt(wireBlock.header.height - 1),
-										hash: wireBlock.header.prev_hash,
-									},
-								},
-							}),
-							epochId: wireBlock.header.epoch_id,
-							timestampMs: Number(BigInt(wireBlock.header.timestamp_nanosec) / 1_000_000n),
-							$$chunks: wireBlock.chunks.map((chunk) => ({
-								[EntityMetaKey.Selector]: {
-									$network,
-									chunkHash: chunk.chunk_hash,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.NearChunk, [], '$block')]: {
-										[EntityMetaKey.Selector]: {
-											$network,
-											height: BigInt(wireBlock.header.height),
-											hash: wireBlock.header.hash,
-										},
-									},
-									[entityFieldAddressKey(EntityType.NearChunk, [], 'shardId')]: BigInt(chunk.shard_id),
-									[entityFieldAddressKey(EntityType.NearChunk, [], 'gasUsed')]: BigInt(chunk.gas_used),
-								},
-							})),
-						}
-					},
-				}
+					resolve: resolveNearBlock,
+				},
 			},
 		})({
 			hash: (block) => block.hash,

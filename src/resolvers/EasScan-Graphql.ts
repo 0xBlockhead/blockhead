@@ -178,12 +178,9 @@ const easSchemaResolver = defineResolver({
 	entityType: EntityType.EasSchema,
 	resolve: {
 		NetworkSchemaUid: {
-			resolve: async (entitySelector, context) => {
+			resolve: async (entitySelector) => {
 				const network = easScanNetwork(entitySelector.$network)
-				const {
-					getAttestationsBySchema,
-					getSchema,
-				} = await import('$/sources/EasScan/Graphql/queries.ts')
+				const { getSchema } = await import('$/sources/EasScan/Graphql/queries.ts')
 				const schema = await getSchema({
 					network,
 					schemaUid: entitySelector.schemaUid,
@@ -214,6 +211,35 @@ const easSchemaResolver = defineResolver({
 					registeredAt: schema.time,
 					registeredTransactionHash: zeroExHex(schema.txid),
 					registeredLogIndex,
+					attestationCount: schema._count.attestations,
+				}
+			},
+		},
+	},
+})({
+	schema: (schema) => schema.schema,
+	resolver: (schema) => schema.resolver,
+	$resolverContract: (schema) => schema.$resolverContract,
+	revocable: (schema) => schema.revocable,
+	registerer: (schema) => schema.registerer,
+	$registererAccount: (schema) => schema.$registererAccount,
+	registeredAt: (schema) => schema.registeredAt,
+	registeredTransactionHash: (schema) => schema.registeredTransactionHash,
+	registeredLogIndex: (schema) => schema.registeredLogIndex,
+	$$attestations: {
+		resolveCount: (schema) => schema.attestationCount,
+	},
+})
+
+const easSchemaAttestationsResolver = defineResolver({
+	entityType: EntityType.EasSchema,
+	resolve: {
+		NetworkSchemaUid: {
+			resolve: async (entitySelector, context) => {
+				const network = easScanNetwork(entitySelector.$network)
+				const { getAttestationsBySchema } = await import('$/sources/EasScan/Graphql/queries.ts')
+
+				return {
 					$$attestations: (
 						await getAttestationsBySchema({
 							network,
@@ -232,21 +258,13 @@ const easSchemaResolver = defineResolver({
 		},
 	},
 })({
-	schema: (schema) => schema.schema,
-	resolver: (schema) => schema.resolver,
-	$resolverContract: (schema) => schema.$resolverContract,
-	revocable: (schema) => schema.revocable,
-	registerer: (schema) => schema.registerer,
-	$registererAccount: (schema) => schema.$registererAccount,
-	registeredAt: (schema) => schema.registeredAt,
-	registeredTransactionHash: (schema) => schema.registeredTransactionHash,
-	registeredLogIndex: (schema) => schema.registeredLogIndex,
 	$$attestations: (schema) => schema.$$attestations,
 })
 
 export {
 	easAttestationResolver,
 	easAttestationTimestampResolver,
+	easSchemaAttestationsResolver,
 	easSchemaResolver,
 }
 
@@ -257,5 +275,6 @@ export default {
 		easAttestationResolver,
 		easAttestationTimestampResolver,
 		easSchemaResolver,
+		easSchemaAttestationsResolver,
 	],
 } satisfies RegisteredSourceResolverModule

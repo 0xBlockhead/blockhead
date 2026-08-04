@@ -2,6 +2,7 @@ import { networkBySlug } from '$/constants/Network.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 	type EntitySelector,
 	type EntitySelectorForSelectorName,
 } from '$/schema/$schema.ts'
@@ -9,6 +10,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import type { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
+	AptosAccount,
 	AptosBlock,
 	AptosEvent,
 	AptosResponseMetadata,
@@ -193,6 +195,19 @@ const eventFields = (
 		},
 	},
 	value: event.data,
+})
+
+const accountObservationFields = (
+	account: AptosAccount,
+	coordinate: {
+		blockHeight: bigint
+		epoch?: bigint
+		timestampMs: number
+	}
+) => ({
+	sequenceNumber: bigintFromWire(account.sequence_number, 'account sequence number'),
+	authenticationKey: account.authentication_key,
+	...coordinate,
 })
 
 const stateChangeFields = (
@@ -408,13 +423,22 @@ export default {
 					resolve: async (entitySelector) => {
 						assertAptosMainnet(entitySelector.$network.$network)
 						const { getAccount } = await import('$/sources/AptosFullnode/Rest/queries.ts')
-						const ledgerVersion = metadataFields((await getAccount(entitySelector.address)).metadata).ledgerVersion
+						const response = await getAccount(entitySelector.address)
+						const ledgerSnapshot = metadataFields(response.metadata)
+						const observation = accountObservationFields(response.body, ledgerSnapshot)
 
 						return [{
 							[EntityMetaKey.Selector]: {
 								$account: entitySelector,
-								ledgerVersion,
+								ledgerVersion: ledgerSnapshot.ledgerVersion,
 								source: Source.AptosFullnode_Rest,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.AptosAccount_Timestamp, [], 'authenticationKey')]: observation.authenticationKey,
+								[entityFieldAddressKey(EntityType.AptosAccount_Timestamp, [], 'blockHeight')]: observation.blockHeight,
+								[entityFieldAddressKey(EntityType.AptosAccount_Timestamp, [], 'epoch')]: observation.epoch,
+								[entityFieldAddressKey(EntityType.AptosAccount_Timestamp, [], 'sequenceNumber')]: observation.sequenceNumber,
+								[entityFieldAddressKey(EntityType.AptosAccount_Timestamp, [], 'timestampMs')]: observation.timestampMs,
 							},
 						}]
 					},
@@ -463,19 +487,22 @@ export default {
 					resolve: async ({ $account, ledgerVersion, source }) => {
 						assertAptosMainnet($account.$network.$network)
 						assertSource(source)
-						const { getAccount } = await import('$/sources/AptosFullnode/Rest/queries.ts')
-						const response = await getAccount($account.address, ledgerVersion)
-						const ledgerSnapshot = metadataFields(response.metadata)
-						if (ledgerSnapshot.ledgerVersion !== ledgerVersion)
-							throw new Error('AptosFullnode_Rest: account observation ledger version mismatch')
+						const {
+							getAccount,
+							getBlockByVersion,
+						} = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const [response, blockResponse] = await Promise.all([
+							getAccount($account.address, ledgerVersion),
+							getBlockByVersion(ledgerVersion, false),
+						])
+						const block = blockFields(blockResponse.body, $account.$network)
+						if (ledgerVersion < block.firstVersion || ledgerVersion > block.lastVersion)
+							throw new Error('AptosFullnode_Rest: account observation block does not contain ledger version')
 
-						return {
-							sequenceNumber: bigintFromWire(response.body.sequence_number, 'account sequence number'),
-							authenticationKey: response.body.authentication_key,
-							timestampMs: ledgerSnapshot.timestampMs,
-							blockHeight: ledgerSnapshot.blockHeight,
-							epoch: ledgerSnapshot.epoch,
-						}
+						return accountObservationFields(response.body, {
+							blockHeight: block.height,
+							timestampMs: block.timestampMs,
+						})
 					},
 				},
 			},

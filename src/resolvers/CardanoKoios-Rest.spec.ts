@@ -83,6 +83,11 @@ const transactionInfo = {
 	epoch_no: 500,
 	absolute_slot: 130_000_000,
 	tx_timestamp: 1_700_000_000,
+	tx_size: 512,
+	fee: '170000',
+	deposit: '2000000',
+	invalid_before: '100',
+	invalid_after: '200',
 	certificates: [
 		{
 			info: {
@@ -191,6 +196,12 @@ describe('Cardano Koios transaction relationships', () => {
 			resolverContext
 		)
 
+		expect(cardanoTransactionRelationshipResolver.projections.blockSlot(snapshot)).toBe(130_000_000n)
+		expect(cardanoTransactionRelationshipResolver.projections.fee(snapshot)).toBe(170_000n)
+		expect(cardanoTransactionRelationshipResolver.projections.deposit(snapshot)).toBe(2_000_000n)
+		expect(cardanoTransactionRelationshipResolver.projections.sizeBytes(snapshot)).toBe(512)
+		expect(cardanoTransactionRelationshipResolver.projections.validityStartSlot(snapshot)).toBe(100n)
+		expect(cardanoTransactionRelationshipResolver.projections.ttlSlot(snapshot)).toBe(200n)
 		expect(cardanoTransactionRelationshipResolver.projections.$$certificates(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {

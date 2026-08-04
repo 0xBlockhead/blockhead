@@ -1305,3 +1305,229 @@ describe('Hedera Mirror Node network blocks resolver', () => {
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 })
+
+describe('Hedera Mirror Node node and network observations', () => {
+	const nodeFixture = {
+		admin_key: null,
+		associated_registered_nodes: ['1'],
+		decline_reward: false,
+		description: 'consensus node',
+		file_id: '0.0.102',
+		max_stake: '9007199254740995',
+		memo: '0.0.3',
+		min_stake: '1',
+		node_account_id: '0.0.3',
+		node_cert_hash: 'hash',
+		node_id: '3',
+		public_key: 'key',
+		reward_rate_start: '2',
+		service_endpoints: [{
+			domain_name: 'node.example',
+			port: 50211,
+		}],
+		stake: '3',
+		stake_not_rewarded: '4',
+		stake_rewarded: '5',
+		staking_period: {
+			from: '1710000000.0',
+			to: null,
+		},
+		timestamp: {
+			from: '1710000001.123456789',
+			to: null,
+		},
+	}
+
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
+	it('materializes HederaNode $$timestamps from getNode', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			nodes: [nodeFixture],
+			links: {
+				next: null,
+			},
+		})))
+
+		await expect(hederaMirrorNode.resolvers[9].resolve[
+			'NetworkNodeId'
+		].resolve({
+			$network: network,
+			nodeId: 3,
+		}, context)).resolves.toEqual({
+			nodeId: 3,
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$node: {
+						$network: network,
+						nodeId: 3,
+					},
+					timestampMs: 1710000001123,
+					source: Source.HederaMirrorNode_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'nodeAccountId')]: '0.0.3',
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], '$account')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							accountId: '0.0.3',
+						},
+					},
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'description')]: 'consensus node',
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'fileId')]: '0.0.102',
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'memo')]: '0.0.3',
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'publicKey')]: 'key',
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'nodeCertHash')]: 'hash',
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'serviceEndpoints')]: [{
+						domain_name: 'node.example',
+						port: 50211,
+					}],
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'stakeTinybar')]: 3n,
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'stakeRewardedTinybar')]: 5n,
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'stakeNotRewardedTinybar')]: 4n,
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'minStakeTinybar')]: 1n,
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'maxStakeTinybar')]: 9007199254740995n,
+				},
+			}],
+		})
+		expect(Object.keys(hederaMirrorNode.resolvers[9].projections).sort()).toEqual([
+			'$$timestamps',
+			'nodeId',
+		])
+	})
+
+	it('maps supply, stake, exchange rate, and fee observations onto schema fields', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				released_supply: '100',
+				timestamp: '1710000000.123000000',
+				total_supply: '200',
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				max_stake_rewarded: '1',
+				max_staking_reward_rate_per_hbar: 2,
+				max_total_reward: '3',
+				node_reward_fee_fraction: 0.1,
+				reserved_staking_rewards: '4',
+				reward_balance_threshold: '5',
+				stake_total: '6',
+				staking_period: {
+					from: '1710000000.0',
+					to: null,
+				},
+				staking_period_duration: 1,
+				staking_periods_stored: 2,
+				staking_reward_fee_fraction: 0.2,
+				staking_reward_rate: 3,
+				staking_reward_start_threshold: '7',
+				unreserved_staking_reward_balance: '8',
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				current_rate: {
+					cent_equivalent: 12,
+					expiration_time: 1710000001,
+					hbar_equivalent: 1,
+				},
+				next_rate: {
+					cent_equivalent: 24,
+					expiration_time: 1710000002,
+					hbar_equivalent: 2,
+				},
+				timestamp: '1710000000.0',
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				fees: [{
+					transaction_type: 'CryptoTransfer',
+					gas: 10,
+					fees: {
+						base: 1,
+						node: 2,
+						network: 3,
+						service: 4,
+						total: 10,
+					},
+				}],
+				timestamp: '1710000000.0',
+			})))
+
+		await expect(hederaMirrorNode.resolvers[10].resolve[
+			'NetworkTimestampMsSource'
+		].resolve({
+			$network: network,
+			timestampMs: 1710000000123,
+			source: Source.HederaMirrorNode_Rest,
+		}, context)).resolves.toMatchObject({
+			releasedSupplyTinybar: 100n,
+			totalSupplyTinybar: 200n,
+			timestampMs: 1710000000123,
+			source: Source.HederaMirrorNode_Rest,
+		})
+
+		await expect(hederaMirrorNode.resolvers[11].resolve[
+			'NetworkTimestampMsSource'
+		].resolve({
+			$network: network,
+			timestampMs: 1710000000000,
+			source: Source.HederaMirrorNode_Rest,
+		}, context)).resolves.toMatchObject({
+			stakeTotalTinybar: 6n,
+			stakingPeriodsStored: 2,
+			timestampMs: 1710000000000,
+		})
+
+		await expect(hederaMirrorNode.resolvers[12].resolve[
+			'NetworkTimestampMsSource'
+		].resolve({
+			$network: network,
+			timestampMs: 1710000000000,
+			source: Source.HederaMirrorNode_Rest,
+		}, context)).resolves.toMatchObject({
+			currentRateCentEquivalent: 12n,
+			nextRateHbarEquivalent: 2n,
+		})
+
+		await expect(hederaMirrorNode.resolvers[13].resolve[
+			'NetworkTransactionTypeTimestampMsSource'
+		].resolve({
+			$network: network,
+			transactionType: 'CryptoTransfer',
+			timestampMs: 1710000000000,
+			source: Source.HederaMirrorNode_Rest,
+		}, context)).resolves.toMatchObject({
+			transactionType: 'CryptoTransfer',
+			gasTinybar: 10n,
+			totalTinycent: 10n,
+		})
+	})
+
+	it('hard-fails empty nodes and mismatched observation clocks', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				nodes: [],
+				links: {
+					next: null,
+				},
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				released_supply: '1',
+				timestamp: '1710000000.0',
+				total_supply: '2',
+			})))
+
+		await expect(hederaMirrorNode.resolvers[9].resolve[
+			'NetworkNodeId'
+		].resolve({
+			$network: network,
+			nodeId: 3,
+		}, context)).rejects.toThrow('node not found')
+
+		await expect(hederaMirrorNode.resolvers[10].resolve[
+			'NetworkTimestampMsSource'
+		].resolve({
+			$network: network,
+			timestampMs: 1,
+			source: Source.HederaMirrorNode_Rest,
+		}, context)).rejects.toThrow('response supply does not match request')
+	})
+})

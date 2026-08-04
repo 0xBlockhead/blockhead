@@ -131,6 +131,86 @@ const lensPostCardReferenceFromWire = (
 	}
 }
 
+const lensUsernameFromWire = (
+	username: NonNullable<Awaited<ReturnType<
+		typeof import('$/sources/Lens/Graphql/queries.ts')['queryUsername']
+	>>['username']>
+) => {
+	const namespace = lensEvmAddressFromWire(username.namespace)
+	const ownedBy = lensEvmAddressFromWire(username.ownedBy)
+	const linkedTo = (
+		username.linkedTo != null ?
+			lensEvmAddressFromWire(username.linkedTo)
+		:
+			undefined
+	)
+	return {
+		id: username.id,
+		namespace,
+		localName: username.localName,
+		...((value) => value != null && { value })(optionalNonemptyString(username.value)),
+		ownedBy,
+		...(linkedTo != null && { linkedTo }),
+		...((timestamp) => timestamp != null && { timestamp })(optionalTimestampMs(username.timestamp)),
+		$namespace: {
+			[EntityMetaKey.Selector]: {
+				address: namespace,
+			},
+		},
+		...(linkedTo != null && {
+			$account: {
+				[EntityMetaKey.Selector]: {
+					address: linkedTo,
+				},
+			},
+		}),
+		$owner: {
+			[EntityMetaKey.Selector]: {
+				address: ownedBy,
+			},
+		},
+	}
+}
+
+const lensUsernameReferenceFromWire = (
+	username: NonNullable<Awaited<ReturnType<
+		typeof import('$/sources/Lens/Graphql/queries.ts')['queryUsername']
+	>>['username']>
+) => {
+	const resolved = lensUsernameFromWire(username)
+	return {
+		[EntityMetaKey.Selector]: {
+			id: resolved.id,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.LensUsername, [], 'namespace')]: resolved.namespace,
+			[entityFieldAddressKey(EntityType.LensUsername, [], 'localName')]: resolved.localName,
+			[entityFieldAddressKey(EntityType.LensUsername, [], 'value')]: resolved.value,
+			[entityFieldAddressKey(EntityType.LensUsername, [], 'ownedBy')]: resolved.ownedBy,
+			[entityFieldAddressKey(EntityType.LensUsername, [], 'linkedTo')]: resolved.linkedTo,
+			[entityFieldAddressKey(EntityType.LensUsername, [], 'timestamp')]: resolved.timestamp,
+			[entityFieldAddressKey(EntityType.LensUsername, [], '$namespace')]: resolved.$namespace,
+			[entityFieldAddressKey(EntityType.LensUsername, [], '$account')]: resolved.$account,
+			[entityFieldAddressKey(EntityType.LensUsername, [], '$owner')]: resolved.$owner,
+		},
+	}
+}
+
+const lensUsernameNamespaceFromWire = (
+	namespace: NonNullable<Awaited<ReturnType<
+		typeof import('$/sources/Lens/Graphql/queries.ts')['queryNamespace']
+	>>['namespace']>
+) => ({
+	address: lensEvmAddressFromWire(namespace.address),
+	namespace: namespace.namespace,
+	...(namespace.owner != null && { owner: lensEvmAddressFromWire(namespace.owner) }),
+	...((tokenName) => tokenName != null && { tokenName })(optionalNonemptyString(namespace.tokenName)),
+	...((tokenSymbol) => tokenSymbol != null && { tokenSymbol })(optionalNonemptyString(namespace.tokenSymbol)),
+	...((createdAt) => createdAt != null && { createdAt })(optionalTimestampMs(namespace.createdAt)),
+	...((description) => description != null && { description })(optionalNonemptyString(namespace.metadata?.description)),
+	...(namespace.stats?.totalUsernames != null && { totalUsernames: namespace.stats.totalUsernames }),
+})
+
 const lensAccountTimestampFieldsFromWire = (
 	wire: Awaited<ReturnType<
 		typeof import('$/sources/Lens/Graphql/queries.ts')['queryAccountStats']
@@ -485,18 +565,75 @@ const lensGraphqlResolvers = {
 					resolve: async ({ address }, context) => {
 						const { queryPostsByAuthor } = await import('$/sources/Lens/Graphql/queries.ts')
 						const limit = resolverContextRowLimit(context)
-						return (await queryPostsByAuthor(zeroExLowerCase(address), limit)).posts.items.flatMap((lensPost) => {
+						const requestedAddress = zeroExLowerCase(address)
+						return (await queryPostsByAuthor(requestedAddress, limit)).posts.items.flatMap((lensPost) => {
 							const reference = lensPostCardReferenceFromWire(lensPost)
 							return (
 								reference != null
-								&& lensEvmAddressFromWire(lensPost.author.address) === zeroExLowerCase(address) ?
+								&& lensEvmAddressFromWire(lensPost.author.address) === requestedAddress ?
 									[reference]
 								:
 									[]
 							)
 						}).slice(0, limit)
 					},
-				}
+				},
+				LocalName: {
+					resolve: async ({ localName }, context) => {
+						if (localName.trim() === '')
+							throw new Error('Lens_Graphql: account identity must not be empty')
+
+						const {
+							queryAccount,
+							queryPostsByAuthor,
+						} = await import('$/sources/Lens/Graphql/queries.ts')
+						const account = (await queryAccount({
+							username: { localName },
+						})).account
+						if (account == null) throw new Error('Lens_Graphql: account not found')
+						if (account.username?.localName !== localName)
+							throw new Error('Lens_Graphql: account response does not match request')
+
+						const limit = resolverContextRowLimit(context)
+						const authorAddress = lensEvmAddressFromWire(account.address)
+						return (await queryPostsByAuthor(authorAddress, limit)).posts.items.flatMap((lensPost) => {
+							const reference = lensPostCardReferenceFromWire(lensPost)
+							return (
+								reference != null
+								&& lensEvmAddressFromWire(lensPost.author.address) === authorAddress ?
+									[reference]
+								:
+									[]
+							)
+						}).slice(0, limit)
+					},
+				},
+				LegacyProfileId: {
+					resolve: async ({ legacyProfileId }, context) => {
+						if (legacyProfileId.trim() === '')
+							throw new Error('Lens_Graphql: account identity must not be empty')
+
+						const {
+							queryAccount,
+							queryPostsByAuthor,
+						} = await import('$/sources/Lens/Graphql/queries.ts')
+						const account = (await queryAccount({ legacyProfileId })).account
+						if (account == null) throw new Error('Lens_Graphql: account not found')
+
+						const limit = resolverContextRowLimit(context)
+						const authorAddress = lensEvmAddressFromWire(account.address)
+						return (await queryPostsByAuthor(authorAddress, limit)).posts.items.flatMap((lensPost) => {
+							const reference = lensPostCardReferenceFromWire(lensPost)
+							return (
+								reference != null
+								&& lensEvmAddressFromWire(lensPost.author.address) === authorAddress ?
+									[reference]
+								:
+									[]
+							)
+						}).slice(0, limit)
+					},
+				},
 			},
 		})({
 				$$posts: (posts) => posts,
@@ -584,6 +721,105 @@ const lensGraphqlResolvers = {
 		})({
 			$$posts: (posts) => posts,
 		}),
+
+		defineResolver({
+			entityType: EntityType.LensUsername,
+			resolve: {
+				Id: {
+					resolve: async ({ id }) => {
+						if (id.trim() === '')
+							throw new Error('Lens_Graphql: username identity must not be empty')
+
+						const { queryUsername } = await import('$/sources/Lens/Graphql/queries.ts')
+						const username = (await queryUsername({ id })).username
+						if (username == null) throw new Error('Lens_Graphql: username not found')
+						if (username.id !== id)
+							throw new Error('Lens_Graphql: username response does not match request')
+						return lensUsernameFromWire(username)
+					},
+				},
+				NamespaceLocalName: {
+					resolve: async ({ namespace, localName }) => {
+						if (localName.trim() === '')
+							throw new Error('Lens_Graphql: username identity must not be empty')
+
+						const { queryUsername } = await import('$/sources/Lens/Graphql/queries.ts')
+						const requestedNamespace = zeroExLowerCase(namespace)
+						const username = (await queryUsername({
+							username: {
+								namespace: requestedNamespace,
+								localName,
+							},
+						})).username
+						if (username == null) throw new Error('Lens_Graphql: username not found')
+						if (
+							lensEvmAddressFromWire(username.namespace) !== requestedNamespace
+							|| username.localName !== localName
+						)
+							throw new Error('Lens_Graphql: username response does not match request')
+						return lensUsernameFromWire(username)
+					},
+				},
+			},
+		})({
+				id: (username) => username.id,
+				namespace: (username) => username.namespace,
+				localName: (username) => username.localName,
+				value: (username) => username.value,
+				ownedBy: (username) => username.ownedBy,
+				linkedTo: (username) => username.linkedTo,
+				timestamp: (username) => username.timestamp,
+				$namespace: (username) => username.$namespace,
+				$account: (username) => username.$account,
+				$owner: (username) => username.$owner,
+			}),
+
+		defineResolver({
+			entityType: EntityType.LensUsernameNamespace,
+			resolve: {
+				Address: {
+					resolve: async ({ address }) => {
+						const { queryNamespace } = await import('$/sources/Lens/Graphql/queries.ts')
+						const namespace = (await queryNamespace(zeroExLowerCase(address))).namespace
+						if (namespace == null) throw new Error('Lens_Graphql: namespace not found')
+						if (lensEvmAddressFromWire(namespace.address) !== zeroExLowerCase(address))
+							throw new Error('Lens_Graphql: namespace response does not match request')
+						return lensUsernameNamespaceFromWire(namespace)
+					},
+				},
+			},
+		})({
+				address: (namespace) => namespace.address,
+				namespace: (namespace) => namespace.namespace,
+				owner: (namespace) => namespace.owner,
+				tokenName: (namespace) => namespace.tokenName,
+				tokenSymbol: (namespace) => namespace.tokenSymbol,
+				createdAt: (namespace) => namespace.createdAt,
+				description: (namespace) => namespace.description,
+				totalUsernames: (namespace) => namespace.totalUsernames,
+			}),
+
+		defineResolver({
+			entityType: EntityType.LensUsernameNamespace,
+			resolve: {
+				Address: {
+					resolve: async ({ address }, context) => {
+						const { queryUsernames } = await import('$/sources/Lens/Graphql/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						const requestedNamespace = zeroExLowerCase(address)
+						return (await queryUsernames(limit, {
+							namespace: requestedNamespace,
+						})).usernames.items.flatMap((username) => {
+							if (lensEvmAddressFromWire(username.namespace) !== requestedNamespace)
+								return []
+							return [lensUsernameReferenceFromWire(username)]
+						}).slice(0, limit)
+					},
+				},
+			},
+		})({
+				$$usernames: (usernames) => usernames,
+			}),
 	] as const,
 } satisfies RegisteredSourceResolverModule
 

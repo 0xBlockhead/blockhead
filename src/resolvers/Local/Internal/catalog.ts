@@ -36,7 +36,6 @@ export type NormalizedBlockheadWallet = {
 	discoveryKind: WalletDiscoveryKind
 	transportKind: WalletTransportKind
 	rdns?: string
-	websiteUrl?: string
 	capabilities: readonly WalletCapability[]
 }
 
@@ -67,6 +66,52 @@ export type NormalizedBlockheadWalletConnection = {
 	disconnectedAt?: number
 	sessionId?: string
 	sessionTopic?: string
+	error?: string
+}
+
+export type NormalizedBlockheadWalletRequest = {
+	id: string
+	sessionId?: string
+	actionId?: string
+	connectionKey: string
+	accountId?: {
+		namespace: string
+		reference: string
+		accountAddress: string
+	}
+	requestKind: string
+	requestMethod: string
+	atomicRequired?: boolean
+	requestPayloadHash: `0x${string}`
+	requestedAt: number
+	submittedAt?: number
+	hasEvmRequest: boolean
+}
+
+export type NormalizedBlockheadEvmWalletRequest = {
+	walletRequestId: string
+	networkReference: string
+	simulationId?: string
+}
+
+export type NormalizedBlockheadWalletRequestCall = {
+	walletRequestId: string
+	callIndex: number
+	toAddress?: typeof EvmAddress.infer
+	value?: bigint
+	inputDataHash: `0x${string}`
+}
+
+export type NormalizedBlockheadWalletRequest_Timestamp = {
+	walletRequestId: string
+	timestampMs: number
+	source: string
+	status: string
+	walletStatusCode?: number
+	atomic?: boolean
+	transactionId?: string
+	signatureHash?: `0x${string}`
+	statusPayloadHash?: `0x${string}`
 	error?: string
 }
 
@@ -360,6 +405,10 @@ export type NormalizedLocalInternal = {
 	xmtpConversations: readonly NormalizedXmtpConversation[]
 	blockheadWallets: readonly NormalizedBlockheadWallet[]
 	blockheadWalletConnections: readonly NormalizedBlockheadWalletConnection[]
+	blockheadWalletRequests: readonly NormalizedBlockheadWalletRequest[]
+	blockheadEvmWalletRequests: readonly NormalizedBlockheadEvmWalletRequest[]
+	blockheadWalletRequestCalls: readonly NormalizedBlockheadWalletRequestCall[]
+	blockheadWalletRequestTimestamps: readonly NormalizedBlockheadWalletRequest_Timestamp[]
 	blockheadSessions: readonly NormalizedBlockheadSession[]
 	blockheadSessionActions: readonly NormalizedBlockheadSessionAction[]
 	blockheadWorkspaces: readonly NormalizedBlockheadWorkspace[]
@@ -446,10 +495,55 @@ const probeBlockheadWalletConnection = {
 			events: ['change'],
 		},
 	],
-	accountIds: [],
+	accountIds: [{
+		namespace: 'eip155',
+		reference: '1',
+		accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+	}],
+	activeAccountId: {
+		namespace: 'eip155',
+		reference: '1',
+		accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+	},
 	selected: true,
 	connectedAt: 0,
 } as const satisfies NormalizedBlockheadWalletConnection
+
+const probeBlockheadWalletRequestPayloadHash = '0x1111111111111111111111111111111111111111111111111111111111111111' as const
+
+const probeBlockheadWalletRequest = {
+	id: 'e2e-probe-wallet-request',
+	sessionId: 'e2e-probe-session',
+	actionId: 'e2e-probe-session-action-0',
+	connectionKey: probeBlockheadWalletConnection.connectionKey,
+	accountId: probeBlockheadWalletConnection.activeAccountId,
+	requestKind: 'transaction',
+	requestMethod: 'eth_sendTransaction',
+	requestPayloadHash: probeBlockheadWalletRequestPayloadHash,
+	requestedAt: 0,
+	hasEvmRequest: true,
+} as const satisfies NormalizedBlockheadWalletRequest
+
+const probeBlockheadEvmWalletRequest = {
+	walletRequestId: probeBlockheadWalletRequest.id,
+	networkReference: '1',
+	simulationId: 'e2e-probe-session-simulation',
+} as const satisfies NormalizedBlockheadEvmWalletRequest
+
+const probeBlockheadWalletRequestCall = {
+	walletRequestId: probeBlockheadWalletRequest.id,
+	callIndex: 0,
+	toAddress: EvmAddress.assert('0x0000000000000000000000000000000000000001'),
+	value: 0n,
+	inputDataHash: '0x2222222222222222222222222222222222222222222222222222222222222222',
+} as const satisfies NormalizedBlockheadWalletRequestCall
+
+const probeBlockheadWalletRequestTimestamp = {
+	walletRequestId: probeBlockheadWalletRequest.id,
+	timestampMs: 0,
+	source: 'Local_Internal',
+	status: 'prepared',
+} as const satisfies NormalizedBlockheadWalletRequest_Timestamp
 
 const probeBlockheadPanelTree = {
 	id: 'e2e-probe-panel-tree',
@@ -805,6 +899,10 @@ const defaultNormalizedLocalInternal = {
 	],
 	blockheadWallets: [probeBlockheadWallet],
 	blockheadWalletConnections: [probeBlockheadWalletConnection],
+	blockheadWalletRequests: [probeBlockheadWalletRequest],
+	blockheadEvmWalletRequests: [probeBlockheadEvmWalletRequest],
+	blockheadWalletRequestCalls: [probeBlockheadWalletRequestCall],
+	blockheadWalletRequestTimestamps: [probeBlockheadWalletRequestTimestamp],
 	blockheadSessions: [
 		probeBlockheadSession,
 		probeBlockheadDirectSession,

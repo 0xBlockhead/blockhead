@@ -4,8 +4,12 @@ import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
+	entityFieldDefinitions,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import tronAccount from '$/schema/TronAccount.ts'
+import tronTransaction from '$/schema/TronTransaction.ts'
+import tronTransactionReceipt from '$/schema/TronTransactionReceipt.ts'
 import { Source } from '$/sources/Source.ts'
 
 const fullNodeQueries = vi.hoisted(() => ({
@@ -56,6 +60,24 @@ const block = {
 		},
 	}],
 }
+
+it('keeps localhost nodes out of public account observation defaults', () => {
+	expect(entityFieldDefinitions(tronAccount).find(({ name }) => name === '$$timestamps')?.defaultSources).toEqual([
+		Source.TronGrid_Rest,
+		Source.TronScan_Rest,
+	])
+})
+
+it('retains credentialed provider preference in public account transaction fields', () => {
+	expect(entityFieldDefinitions(tronAccount).find(({ name }) => name === '$$transactions')?.defaultSources).toEqual([
+		Source.TronGrid_Rest,
+		Source.TronScan_Rest,
+	])
+	expect([
+		...entityFieldDefinitions(tronTransaction),
+		...entityFieldDefinitions(tronTransactionReceipt),
+	].flatMap(({ defaultSources }) => defaultSources ?? [])).toContain(Source.TronGrid_Rest)
+})
 
 describe.each([
 	{

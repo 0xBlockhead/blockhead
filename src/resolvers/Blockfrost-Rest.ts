@@ -83,6 +83,21 @@ const cardanoTransactionUtxos = async (
 	return transactionUtxos
 }
 
+const cardanoNativeAssetUnit = (
+	policyId: string,
+	assetName: string
+) => {
+	const asset = `${policyId}${assetName}`
+	if (
+		policyId.length !== 56
+		|| asset.length % 2 !== 0
+		|| !/^[0-9a-f]+$/u.test(asset)
+	)
+		throw new Error('Blockfrost_Rest: asset identifier is malformed')
+
+	return asset
+}
+
 const blockFields = (
 	block: BlockfrostBlock
 ) => {
@@ -145,6 +160,106 @@ const networkObservation = async () => {
 		liveStakeLovelace: BigInt(network.stake.live),
 		activeStakeLovelace: BigInt(network.stake.active),
 		backendHealthy: health.is_healthy,
+	}
+}
+
+const stakePoolObservation = async (
+	poolId: string
+) => {
+	const {
+		getLatestEpoch,
+		getStakePool,
+	} = await import('$/sources/Blockfrost/Rest/queries.ts')
+	const [
+		pool,
+		epoch,
+	] = await Promise.all([
+		getStakePool(poolId),
+		getLatestEpoch(),
+	])
+	if (pool.pool_id !== poolId)
+		throw new Error('Blockfrost_Rest: stake pool response does not match the subject')
+
+	return {
+		epoch: epoch.epoch,
+		source: Source.Blockfrost_Rest,
+		pledge: BigInt(pool.declared_pledge),
+		margin: pool.margin_cost,
+		fixedCostLovelace: BigInt(pool.fixed_cost),
+		rewardAccount: pool.reward_account,
+		owners: pool.owners,
+		liveStake: BigInt(pool.live_stake),
+		activeStake: BigInt(pool.active_stake),
+		delegatorCount: pool.live_delegators,
+		blockCount: pool.blocks_minted,
+		saturation: pool.live_saturation,
+		retired: pool.retirement.length > 0,
+	}
+}
+
+const dRepObservation = async (
+	drepCredential: string
+) => {
+	const {
+		getDRep,
+		getLatestEpoch,
+	} = await import('$/sources/Blockfrost/Rest/queries.ts')
+	const [
+		drep,
+		epoch,
+	] = await Promise.all([
+		getDRep(drepCredential),
+		getLatestEpoch(),
+	])
+	if (drep.drep_id !== drepCredential)
+		throw new Error('Blockfrost_Rest: DRep response does not match the subject')
+
+	return {
+		epoch: epoch.epoch,
+		source: Source.Blockfrost_Rest,
+		credentialKind: drep.has_script ? 'script' : 'key',
+		votingPowerLovelace: BigInt(drep.amount),
+		active: !drep.retired && !drep.expired,
+		registered: !drep.retired,
+	}
+}
+
+const nativeAssetObservation = async (
+	policyId: string,
+	assetName: string
+) => {
+	const {
+		getAsset,
+		getLatestBlock,
+	} = await import('$/sources/Blockfrost/Rest/queries.ts')
+	const assetUnit = cardanoNativeAssetUnit(policyId, assetName)
+	const [
+		asset,
+		block,
+	] = await Promise.all([
+		getAsset(assetUnit),
+		getLatestBlock(),
+	])
+	if (
+		asset.asset !== assetUnit
+		|| asset.policy_id !== policyId
+		|| (asset.asset_name ?? '') !== assetName
+	)
+		throw new Error('Blockfrost_Rest: asset response does not match the subject')
+	if (block.slot == null)
+		throw new Error('Blockfrost_Rest: latest block is missing its slot')
+
+	return {
+		slot: BigInt(block.slot),
+		source: Source.Blockfrost_Rest,
+		timestampMs: block.time * 1_000,
+		blockHash: block.hash,
+		supply: BigInt(asset.quantity),
+		transactionCount: asset.mint_or_burn_count,
+		...(asset.onchain_metadata != null && {
+			metadata: asset.onchain_metadata,
+		}),
+		fingerprint: asset.fingerprint,
 	}
 }
 
@@ -1366,18 +1481,32 @@ export default {
 					resolve: async ({ $network, drepCredential }, context) => {
 						assertCardanoMainnet($network)
 						const {
-							getDRep,
 							listDRepVotes,
 						} = await import('$/sources/Blockfrost/Rest/queries.ts')
 						const [
-							drep,
+							observation,
 							votes,
 						] = await Promise.all([
-							getDRep(drepCredential),
+							dRepObservation(drepCredential),
 							listDRepVotes(drepCredential, Math.min(resolverContextRowLimit(context), 100)),
 						])
 						return {
-							credentialKind: drep.has_script ? 'script' : 'key',
+							credentialKind: observation.credentialKind,
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$drep: {
+										$network,
+										drepCredential,
+									},
+									epoch: observation.epoch,
+									source: Source.Blockfrost_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.CardanoDRep_Timestamp, [], 'votingPowerLovelace')]: observation.votingPowerLovelace,
+									[entityFieldAddressKey(EntityType.CardanoDRep_Timestamp, [], 'active')]: observation.active,
+									[entityFieldAddressKey(EntityType.CardanoDRep_Timestamp, [], 'registered')]: observation.registered,
+								},
+							}],
 							$$votes: votes.map((vote) => ({
 								[EntityMetaKey.Selector]: {
 									$proposal: {
@@ -1407,6 +1536,7 @@ export default {
 			},
 		})({
 			credentialKind: (drep) => drep.credentialKind,
+			$$timestamps: (drep) => drep.$$timestamps,
 			$$votes: (drep) => drep.$$votes,
 		}),
 
@@ -1442,6 +1572,8 @@ export default {
 							getStakePool,
 						} = await import('$/sources/Blockfrost/Rest/queries.ts')
 						const pool = await getStakePool(poolId)
+						if (pool.pool_id !== poolId)
+							throw new Error('Blockfrost_Rest: stake pool response does not match the subject')
 
 						return pool
 					},
@@ -1449,6 +1581,46 @@ export default {
 			},
 		})({
 			vrfKeyHash: (pool) => pool.vrf_key,
+		}),
+
+		defineResolver({
+			entityType: EntityType.CardanoStakePool,
+			resolve: {
+				NetworkPoolId: {
+					resolve: async ({ $network, poolId }) => {
+						assertCardanoMainnet($network)
+						const observation = await stakePoolObservation(poolId)
+
+						return {
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$pool: {
+										$network,
+										poolId,
+									},
+									epoch: observation.epoch,
+									source: Source.Blockfrost_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.CardanoStakePool_Timestamp, [], 'pledge')]: observation.pledge,
+									[entityFieldAddressKey(EntityType.CardanoStakePool_Timestamp, [], 'margin')]: observation.margin,
+									[entityFieldAddressKey(EntityType.CardanoStakePool_Timestamp, [], 'fixedCostLovelace')]: observation.fixedCostLovelace,
+									[entityFieldAddressKey(EntityType.CardanoStakePool_Timestamp, [], 'rewardAccount')]: observation.rewardAccount,
+									[entityFieldAddressKey(EntityType.CardanoStakePool_Timestamp, [], 'owners')]: observation.owners,
+									[entityFieldAddressKey(EntityType.CardanoStakePool_Timestamp, [], 'liveStake')]: observation.liveStake,
+									[entityFieldAddressKey(EntityType.CardanoStakePool_Timestamp, [], 'activeStake')]: observation.activeStake,
+									[entityFieldAddressKey(EntityType.CardanoStakePool_Timestamp, [], 'delegatorCount')]: observation.delegatorCount,
+									[entityFieldAddressKey(EntityType.CardanoStakePool_Timestamp, [], 'blockCount')]: observation.blockCount,
+									[entityFieldAddressKey(EntityType.CardanoStakePool_Timestamp, [], 'saturation')]: observation.saturation,
+									[entityFieldAddressKey(EntityType.CardanoStakePool_Timestamp, [], 'retired')]: observation.retired,
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			$$timestamps: (pool) => pool.$$timestamps,
 		}),
 
 		defineResolver({
@@ -1513,6 +1685,273 @@ export default {
 			liveStakeLovelace: (observation) => observation.liveStakeLovelace,
 			activeStakeLovelace: (observation) => observation.activeStakeLovelace,
 			backendHealthy: (observation) => observation.backendHealthy,
+		}),
+
+		defineResolver({
+			entityType: EntityType.CardanoNativeAsset,
+			resolve: {
+				NetworkPolicyIdAssetName: {
+					resolve: async ({
+						$network,
+						policyId,
+						assetName,
+					}) => {
+						assertCardanoMainnet($network)
+						const observation = await nativeAssetObservation(policyId, assetName)
+
+						return {
+							fingerprint: observation.fingerprint,
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$asset: {
+										$network,
+										policyId,
+										assetName,
+									},
+									slot: observation.slot,
+									source: Source.Blockfrost_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.CardanoNativeAsset_Timestamp, [], 'timestampMs')]: observation.timestampMs,
+									[entityFieldAddressKey(EntityType.CardanoNativeAsset_Timestamp, [], 'blockHash')]: observation.blockHash,
+									[entityFieldAddressKey(EntityType.CardanoNativeAsset_Timestamp, [], 'supply')]: observation.supply,
+									[entityFieldAddressKey(EntityType.CardanoNativeAsset_Timestamp, [], 'transactionCount')]: observation.transactionCount,
+									...(observation.metadata != null && {
+										[entityFieldAddressKey(EntityType.CardanoNativeAsset_Timestamp, [], 'metadata')]: observation.metadata,
+									}),
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			fingerprint: (asset) => asset.fingerprint,
+			$$timestamps: (asset) => asset.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.CardanoNativeAsset_Timestamp,
+			resolve: {
+				AssetSlotSource: {
+					appliesTo: [{
+						source: Source.Blockfrost_Rest,
+					}],
+					resolve: async ({
+						$asset,
+						slot,
+						source,
+					}) => {
+						assertCardanoMainnet($asset.$network)
+						if (source !== Source.Blockfrost_Rest)
+							throw new Error('Blockfrost_Rest: observation source mismatch')
+
+						const observation = await nativeAssetObservation($asset.policyId, $asset.assetName)
+						if (observation.slot !== slot)
+							throw new Error('Blockfrost_Rest: historical asset observation is unavailable')
+
+						return observation
+					},
+				},
+			},
+		})({
+			timestampMs: (observation) => observation.timestampMs,
+			blockHash: (observation) => observation.blockHash,
+			supply: (observation) => observation.supply,
+			transactionCount: (observation) => observation.transactionCount,
+			metadata: (observation) => observation.metadata,
+		}),
+
+		defineResolver({
+			entityType: EntityType.CardanoStakePool_Timestamp,
+			resolve: {
+				PoolEpochSource: {
+					appliesTo: [{
+						source: Source.Blockfrost_Rest,
+					}],
+					resolve: async ({
+						$pool,
+						epoch,
+						source,
+					}) => {
+						assertCardanoMainnet($pool.$network)
+						if (source !== Source.Blockfrost_Rest)
+							throw new Error('Blockfrost_Rest: observation source mismatch')
+
+						const observation = await stakePoolObservation($pool.poolId)
+						if (observation.epoch !== epoch)
+							throw new Error('Blockfrost_Rest: historical stake pool observation is unavailable')
+
+						return observation
+					},
+				},
+			},
+		})({
+			pledge: (observation) => observation.pledge,
+			margin: (observation) => observation.margin,
+			fixedCostLovelace: (observation) => observation.fixedCostLovelace,
+			rewardAccount: (observation) => observation.rewardAccount,
+			owners: (observation) => observation.owners,
+			liveStake: (observation) => observation.liveStake,
+			activeStake: (observation) => observation.activeStake,
+			delegatorCount: (observation) => observation.delegatorCount,
+			blockCount: (observation) => observation.blockCount,
+			saturation: (observation) => observation.saturation,
+			retired: (observation) => observation.retired,
+		}),
+
+		defineResolver({
+			entityType: EntityType.CardanoDRep_Timestamp,
+			resolve: {
+				DrepEpochSource: {
+					appliesTo: [{
+						source: Source.Blockfrost_Rest,
+					}],
+					resolve: async ({
+						$drep,
+						epoch,
+						source,
+					}) => {
+						assertCardanoMainnet($drep.$network)
+						if (source !== Source.Blockfrost_Rest)
+							throw new Error('Blockfrost_Rest: observation source mismatch')
+
+						const observation = await dRepObservation($drep.drepCredential)
+						if (observation.epoch !== epoch)
+							throw new Error('Blockfrost_Rest: historical DRep observation is unavailable')
+
+						return observation
+					},
+				},
+			},
+		})({
+			votingPowerLovelace: (observation) => observation.votingPowerLovelace,
+			active: (observation) => observation.active,
+			registered: (observation) => observation.registered,
+		}),
+
+		defineResolver({
+			entityType: EntityType.CardanoStakeCredential,
+			resolve: {
+				NetworkCredential: {
+					resolve: async ({
+						$network,
+						credential,
+					}) => {
+						assertCardanoMainnet($network)
+						const {
+							getAccount,
+							getLatestEpoch,
+						} = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const [
+							account,
+							epoch,
+						] = await Promise.all([
+							getAccount(credential),
+							getLatestEpoch(),
+						])
+						if (account.stake_address !== credential)
+							throw new Error('Blockfrost_Rest: stake account response does not match the subject')
+
+						return {
+							rewardAddress: account.stake_address,
+							$$delegationEpochs: [{
+								[EntityMetaKey.Selector]: {
+									$stakeCredential: {
+										$network,
+										credential,
+									},
+									epoch: epoch.epoch,
+									source: Source.Blockfrost_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									...(account.pool_id != null && {
+										[entityFieldAddressKey(EntityType.CardanoStakeDelegation_Epoch, [], '$stakePool')]: {
+											[EntityMetaKey.Selector]: {
+												$network,
+												poolId: account.pool_id,
+											},
+										},
+									}),
+									...(account.drep_id != null && {
+										[entityFieldAddressKey(EntityType.CardanoStakeDelegation_Epoch, [], '$drep')]: {
+											[EntityMetaKey.Selector]: {
+												$network,
+												drepCredential: account.drep_id,
+											},
+										},
+									}),
+									[entityFieldAddressKey(EntityType.CardanoStakeDelegation_Epoch, [], 'activeStake')]: BigInt(account.controlled_amount),
+									[entityFieldAddressKey(EntityType.CardanoStakeDelegation_Epoch, [], 'rewardAmount')]: BigInt(account.rewards_sum),
+									[entityFieldAddressKey(EntityType.CardanoStakeDelegation_Epoch, [], 'withdrawalAmount')]: BigInt(account.withdrawals_sum),
+									[entityFieldAddressKey(EntityType.CardanoStakeDelegation_Epoch, [], 'registered')]: account.registered,
+									[entityFieldAddressKey(EntityType.CardanoStakeDelegation_Epoch, [], 'deregistered')]: !account.registered,
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			rewardAddress: (account) => account.rewardAddress,
+			$$delegationEpochs: (account) => account.$$delegationEpochs,
+		}),
+
+		defineResolver({
+			entityType: EntityType.CardanoStakeCredential,
+			resolve: {
+				NetworkCredential: {
+					resolve: async ({
+						$network,
+						credential,
+					}, context) => {
+						assertCardanoMainnet($network)
+						const limit = Math.min(resolverContextRowLimit(context), 100)
+						const page = context.providerContinuationToken == null ?
+							1
+						:
+							Number(context.providerContinuationToken)
+						if (!Number.isSafeInteger(page) || page < 1)
+							throw new Error('Blockfrost_Rest: invalid stake credential address continuation')
+
+						const { listAccountAddresses } = await import('$/sources/Blockfrost/Rest/queries.ts')
+
+						return {
+							limit,
+							page,
+							addresses: await listAccountAddresses(
+								credential,
+								limit,
+								page
+							),
+						}
+					},
+				},
+			},
+		})({
+			$$addresses: {
+				select: (page, stakeCredential) => page.addresses.map(({ address }) => ({
+					[EntityMetaKey.Selector]: {
+						$network: stakeCredential.$network,
+						address,
+					},
+				})),
+				continuation: (page, stakeCredential) => (
+					page.addresses.length < page.limit ?
+						{
+							operation: 'stake-credential-addresses',
+							target: stakeCredential.credential,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'stake-credential-addresses',
+							target: stakeCredential.credential,
+							terminal: false,
+							token: (page.page + 1).toString(),
+						}
+				),
+			},
 		}),
 
 		defineResolver({

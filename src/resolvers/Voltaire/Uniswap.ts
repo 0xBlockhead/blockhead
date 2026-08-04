@@ -140,8 +140,6 @@ export const uniswapV3Resolvers = [
 							fee,
 							tickSpacing,
 							$poolContract: evmContractRef($network, address),
-							$$blocks: [],
-							$$positions: [],
 						}
 					})
 				},
@@ -154,8 +152,6 @@ export const uniswapV3Resolvers = [
 		fee: (entity) => entity.fee,
 		tickSpacing: (entity) => entity.tickSpacing,
 		$poolContract: (entity) => entity.$poolContract,
-		$$blocks: (entity) => entity.$$blocks,
-		$$positions: (entity) => entity.$$positions,
 	}),
 
 	defineResolver({
@@ -258,7 +254,6 @@ export const uniswapV3Resolvers = [
 									},
 									tickLower: position.tickLower,
 									tickUpper: position.tickUpper,
-									$$blocks: [],
 								}
 							})
 						} catch (error) {
@@ -274,7 +269,6 @@ export const uniswapV3Resolvers = [
 		$pool: (entity) => entity.$pool,
 		tickLower: (entity) => entity.tickLower,
 		tickUpper: (entity) => entity.tickUpper,
-		$$blocks: (entity) => entity.$$blocks,
 	}),
 
 	defineResolver({

@@ -11,6 +11,11 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	HederaMirrorNodeBlock,
+	HederaMirrorNodeNetworkExchangeRate,
+	HederaMirrorNodeNetworkFees,
+	HederaMirrorNodeNetworkStake,
+	HederaMirrorNodeNetworkSupply,
+	HederaMirrorNodeNode,
 	HederaMirrorNodeTransaction,
 } from '$/sources/HederaMirrorNode/Rest/types.ts'
 
@@ -124,6 +129,224 @@ const blockFields = (
 	recordFileName: block.name,
 	transactionCount: nonnegativeSafeInteger(block.count, 'transaction count'),
 })
+
+const assertHederaMirrorSource = (
+	source: string
+) => {
+	if (source !== Source.HederaMirrorNode_Rest)
+		throw new Error(`HederaMirrorNode_Rest: unsupported network timestamp source ${source}`)
+}
+
+const networkSupplyFields = (
+	supply: HederaMirrorNodeNetworkSupply
+) => {
+	timestampMs(supply.timestamp, 'network supply timestamp')
+
+	return {
+		releasedSupplyTinybar: nonnegativeBigInt(supply.released_supply, 'released supply'),
+		totalSupplyTinybar: nonnegativeBigInt(supply.total_supply, 'total supply'),
+	}
+}
+
+const networkStakeFields = (
+	stake: HederaMirrorNodeNetworkStake
+) => {
+	timestampMs(stake.staking_period.from, 'network stake period')
+	if (stake.staking_period.to != null)
+		timestampMs(stake.staking_period.to, 'network stake period')
+	if (
+		!Number.isFinite(stake.max_staking_reward_rate_per_hbar)
+		|| stake.max_staking_reward_rate_per_hbar < 0
+		|| !Number.isFinite(stake.node_reward_fee_fraction)
+		|| stake.node_reward_fee_fraction < 0
+		|| !Number.isFinite(stake.staking_reward_fee_fraction)
+		|| stake.staking_reward_fee_fraction < 0
+		|| !Number.isSafeInteger(stake.staking_period_duration)
+		|| stake.staking_period_duration < 0
+		|| !Number.isSafeInteger(stake.staking_periods_stored)
+		|| stake.staking_periods_stored < 0
+		|| !Number.isSafeInteger(stake.staking_reward_rate)
+		|| stake.staking_reward_rate < 0
+	)
+		throw new Error('HederaMirrorNode_Rest: malformed network stake')
+
+	return {
+		maxStakeRewardedTinybar: nonnegativeBigInt(stake.max_stake_rewarded, 'max stake rewarded'),
+		maxStakingRewardRatePerHbar: stake.max_staking_reward_rate_per_hbar,
+		maxTotalRewardTinybar: nonnegativeBigInt(stake.max_total_reward, 'max total reward'),
+		nodeRewardFeeFraction: stake.node_reward_fee_fraction,
+		reservedStakingRewardsTinybar: nonnegativeBigInt(stake.reserved_staking_rewards, 'reserved staking rewards'),
+		rewardBalanceTinybar: nonnegativeBigInt(stake.reward_balance_threshold, 'reward balance threshold'),
+		stakeTotalTinybar: nonnegativeBigInt(stake.stake_total, 'stake total'),
+		stakingPeriod: stake.staking_period,
+		stakingPeriodsStored: stake.staking_periods_stored,
+		stakingRewardFeeFraction: stake.staking_reward_fee_fraction,
+		stakingStartThresholdTinybar: nonnegativeBigInt(stake.staking_reward_start_threshold, 'staking reward start threshold'),
+		unreservedStakingRewardBalanceTinybar: nonnegativeBigInt(stake.unreserved_staking_reward_balance, 'unreserved staking reward balance'),
+	}
+}
+
+const networkExchangeRateFields = (
+	exchangeRate: HederaMirrorNodeNetworkExchangeRate
+) => {
+	timestampMs(exchangeRate.timestamp, 'network exchange rate timestamp')
+	if (
+		!Number.isSafeInteger(exchangeRate.current_rate.cent_equivalent)
+		|| exchangeRate.current_rate.cent_equivalent < 0
+		|| !Number.isSafeInteger(exchangeRate.current_rate.hbar_equivalent)
+		|| exchangeRate.current_rate.hbar_equivalent < 0
+		|| !Number.isSafeInteger(exchangeRate.current_rate.expiration_time)
+		|| exchangeRate.current_rate.expiration_time < 0
+		|| !Number.isSafeInteger(exchangeRate.next_rate.cent_equivalent)
+		|| exchangeRate.next_rate.cent_equivalent < 0
+		|| !Number.isSafeInteger(exchangeRate.next_rate.hbar_equivalent)
+		|| exchangeRate.next_rate.hbar_equivalent < 0
+		|| !Number.isSafeInteger(exchangeRate.next_rate.expiration_time)
+		|| exchangeRate.next_rate.expiration_time < 0
+	)
+		throw new Error('HederaMirrorNode_Rest: malformed network exchange rate')
+
+	return {
+		currentRateCentEquivalent: BigInt(exchangeRate.current_rate.cent_equivalent),
+		currentRateHbarEquivalent: BigInt(exchangeRate.current_rate.hbar_equivalent),
+		currentRateExpirationTime: String(exchangeRate.current_rate.expiration_time),
+		nextRateCentEquivalent: BigInt(exchangeRate.next_rate.cent_equivalent),
+		nextRateHbarEquivalent: BigInt(exchangeRate.next_rate.hbar_equivalent),
+		nextRateExpirationTime: String(exchangeRate.next_rate.expiration_time),
+	}
+}
+
+const networkFeeFields = (
+	fees: HederaMirrorNodeNetworkFees,
+	transactionType: string
+) => {
+	timestampMs(fees.timestamp, 'network fees timestamp')
+	if (transactionType.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed fee transaction type')
+	const fee = fees.fees.find((row) => row.transaction_type === transactionType)
+	if (fee == null)
+		throw new Error('HederaMirrorNode_Rest: fee transaction type not found')
+	if (fee.transaction_type !== transactionType)
+		throw new Error('HederaMirrorNode_Rest: response fee does not match request')
+
+	return {
+		transactionType,
+		...(
+			fee.gas != null
+			&& Number.isSafeInteger(fee.gas)
+			&& fee.gas >= 0
+			&& {
+				gasTinybar: BigInt(fee.gas),
+			}
+		),
+		...(
+			fee.fees?.base != null
+			&& Number.isSafeInteger(fee.fees.base)
+			&& fee.fees.base >= 0
+			&& {
+				baseTinycent: BigInt(fee.fees.base),
+			}
+		),
+		...(
+			fee.fees?.node != null
+			&& Number.isSafeInteger(fee.fees.node)
+			&& fee.fees.node >= 0
+			&& {
+				nodeTinycent: BigInt(fee.fees.node),
+			}
+		),
+		...(
+			fee.fees?.network != null
+			&& Number.isSafeInteger(fee.fees.network)
+			&& fee.fees.network >= 0
+			&& {
+				networkTinycent: BigInt(fee.fees.network),
+			}
+		),
+		...(
+			fee.fees?.service != null
+			&& Number.isSafeInteger(fee.fees.service)
+			&& fee.fees.service >= 0
+			&& {
+				serviceTinycent: BigInt(fee.fees.service),
+			}
+		),
+		...(
+			fee.fees?.total != null
+			&& Number.isSafeInteger(fee.fees.total)
+			&& fee.fees.total >= 0
+			&& {
+				totalTinycent: BigInt(fee.fees.total),
+			}
+		),
+	}
+}
+
+const nodeSnapshot = (
+	network: EntitySelector<typeof schema, EntityType.Network>,
+	node: HederaMirrorNodeNode
+) => {
+	const nodeId = nonnegativeSafeInteger(Number(node.node_id), 'node ID')
+	if (String(nodeId) !== node.node_id)
+		throw new Error('HederaMirrorNode_Rest: malformed node ID')
+	const nodeAccountId = hederaEntityId(node.node_account_id, 'node account ID')
+	hederaEntityId(node.file_id, 'node file ID')
+	const nodeTimestampMs = timestampMs(node.timestamp.from, 'node timestamp')
+	if (node.timestamp.to != null)
+		timestampMs(node.timestamp.to, 'node timestamp')
+	timestampMs(node.staking_period.from, 'node staking period')
+	if (node.staking_period.to != null)
+		timestampMs(node.staking_period.to, 'node staking period')
+	if (node.description.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed node description')
+	if (node.service_endpoints.some((endpoint) => (
+		!Number.isSafeInteger(endpoint.port)
+		|| endpoint.port < 0
+		|| (
+			endpoint.domain_name == null
+			&& endpoint.ip_address_v4 == null
+		)
+	)))
+		throw new Error('HederaMirrorNode_Rest: malformed node service endpoints')
+
+	const nodeSelector = {
+		$network: network,
+		nodeId,
+	}
+
+	return {
+		nodeId,
+		$$timestamps: [
+			{
+				[EntityMetaKey.Selector]: {
+					$node: nodeSelector,
+					timestampMs: nodeTimestampMs,
+					source: Source.HederaMirrorNode_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'nodeAccountId')]: nodeAccountId,
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], '$account')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							accountId: nodeAccountId,
+						},
+					},
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'description')]: node.description,
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'fileId')]: node.file_id,
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'memo')]: node.memo,
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'publicKey')]: node.public_key,
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'nodeCertHash')]: node.node_cert_hash,
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'serviceEndpoints')]: node.service_endpoints,
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'stakeTinybar')]: nonnegativeBigInt(node.stake, 'node stake'),
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'stakeRewardedTinybar')]: nonnegativeBigInt(node.stake_rewarded, 'node stake rewarded'),
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'stakeNotRewardedTinybar')]: nonnegativeBigInt(node.stake_not_rewarded, 'node stake not rewarded'),
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'minStakeTinybar')]: nonnegativeBigInt(node.min_stake, 'node min stake'),
+					[entityFieldAddressKey(EntityType.HederaNode_Timestamp, [], 'maxStakeTinybar')]: nonnegativeBigInt(node.max_stake, 'node max stake'),
+				},
+			},
+		],
+	}
+}
 
 const transactionSnapshot = (
 	network: EntitySelector<typeof schema, EntityType.Network>,
@@ -833,6 +1056,191 @@ export default {
 			scheduled: (transaction) => transaction.scheduled,
 			$$hbarTransfers: (transaction) => transaction.$$hbarTransfers,
 			$$tokenTransfers: (transaction) => transaction.$$tokenTransfers,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaNode,
+			resolve: {
+				NetworkNodeId: {
+					resolve: async ({ $network, nodeId }) => {
+						assertHederaMainnet($network)
+						const { getNode } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const node = await getNode(nodeId)
+						const snapshot = nodeSnapshot($network, node)
+						if (snapshot.nodeId !== nodeId)
+							throw new Error('HederaMirrorNode_Rest: response node does not match request')
+
+						return snapshot
+					},
+				},
+			},
+		})({
+			nodeId: (node) => node.nodeId,
+			$$timestamps: (node) => node.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaNetworkSupply_Timestamp,
+			resolve: {
+				NetworkTimestampMsSource: {
+					resolve: async ({
+						$network,
+						timestampMs: requestedTimestampMs,
+						source,
+					}) => {
+						assertHederaMainnet($network)
+						assertHederaMirrorSource(source)
+						const { getNetworkSupply } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const supply = await getNetworkSupply()
+						const observationTimestampMs = timestampMs(supply.timestamp, 'network supply timestamp')
+						if (observationTimestampMs !== requestedTimestampMs)
+							throw new Error('HederaMirrorNode_Rest: response supply does not match request')
+
+						return {
+							$network: {
+								[EntityMetaKey.Selector]: $network,
+							},
+							timestampMs: requestedTimestampMs,
+							source,
+							...networkSupplyFields(supply),
+						}
+					},
+				},
+			},
+		})({
+			$network: (observation) => observation.$network,
+			timestampMs: (observation) => observation.timestampMs,
+			source: (observation) => observation.source,
+			releasedSupplyTinybar: (observation) => observation.releasedSupplyTinybar,
+			totalSupplyTinybar: (observation) => observation.totalSupplyTinybar,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaNetworkStake_Timestamp,
+			resolve: {
+				NetworkTimestampMsSource: {
+					resolve: async ({
+						$network,
+						timestampMs: requestedTimestampMs,
+						source,
+					}) => {
+						assertHederaMainnet($network)
+						assertHederaMirrorSource(source)
+						const { getNetworkStake } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const stake = await getNetworkStake()
+						const observationTimestampMs = timestampMs(stake.staking_period.from, 'network stake period')
+						if (observationTimestampMs !== requestedTimestampMs)
+							throw new Error('HederaMirrorNode_Rest: response stake does not match request')
+
+						return {
+							$network: {
+								[EntityMetaKey.Selector]: $network,
+							},
+							timestampMs: requestedTimestampMs,
+							source,
+							...networkStakeFields(stake),
+						}
+					},
+				},
+			},
+		})({
+			$network: (observation) => observation.$network,
+			timestampMs: (observation) => observation.timestampMs,
+			source: (observation) => observation.source,
+			maxStakeRewardedTinybar: (observation) => observation.maxStakeRewardedTinybar,
+			maxStakingRewardRatePerHbar: (observation) => observation.maxStakingRewardRatePerHbar,
+			maxTotalRewardTinybar: (observation) => observation.maxTotalRewardTinybar,
+			nodeRewardFeeFraction: (observation) => observation.nodeRewardFeeFraction,
+			reservedStakingRewardsTinybar: (observation) => observation.reservedStakingRewardsTinybar,
+			rewardBalanceTinybar: (observation) => observation.rewardBalanceTinybar,
+			stakeTotalTinybar: (observation) => observation.stakeTotalTinybar,
+			stakingPeriod: (observation) => observation.stakingPeriod,
+			stakingPeriodsStored: (observation) => observation.stakingPeriodsStored,
+			stakingRewardFeeFraction: (observation) => observation.stakingRewardFeeFraction,
+			stakingStartThresholdTinybar: (observation) => observation.stakingStartThresholdTinybar,
+			unreservedStakingRewardBalanceTinybar: (observation) => observation.unreservedStakingRewardBalanceTinybar,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaNetworkExchangeRate_Timestamp,
+			resolve: {
+				NetworkTimestampMsSource: {
+					resolve: async ({
+						$network,
+						timestampMs: requestedTimestampMs,
+						source,
+					}) => {
+						assertHederaMainnet($network)
+						assertHederaMirrorSource(source)
+						const { getNetworkExchangeRate } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const exchangeRate = await getNetworkExchangeRate()
+						const observationTimestampMs = timestampMs(exchangeRate.timestamp, 'network exchange rate timestamp')
+						if (observationTimestampMs !== requestedTimestampMs)
+							throw new Error('HederaMirrorNode_Rest: response exchange rate does not match request')
+
+						return {
+							$network: {
+								[EntityMetaKey.Selector]: $network,
+							},
+							timestampMs: requestedTimestampMs,
+							source,
+							...networkExchangeRateFields(exchangeRate),
+						}
+					},
+				},
+			},
+		})({
+			$network: (observation) => observation.$network,
+			timestampMs: (observation) => observation.timestampMs,
+			source: (observation) => observation.source,
+			currentRateCentEquivalent: (observation) => observation.currentRateCentEquivalent,
+			currentRateHbarEquivalent: (observation) => observation.currentRateHbarEquivalent,
+			currentRateExpirationTime: (observation) => observation.currentRateExpirationTime,
+			nextRateCentEquivalent: (observation) => observation.nextRateCentEquivalent,
+			nextRateHbarEquivalent: (observation) => observation.nextRateHbarEquivalent,
+			nextRateExpirationTime: (observation) => observation.nextRateExpirationTime,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HederaNetworkFee_Timestamp,
+			resolve: {
+				NetworkTransactionTypeTimestampMsSource: {
+					resolve: async ({
+						$network,
+						transactionType,
+						timestampMs: requestedTimestampMs,
+						source,
+					}) => {
+						assertHederaMainnet($network)
+						assertHederaMirrorSource(source)
+						const { getNetworkFees } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+						const fees = await getNetworkFees()
+						const observationTimestampMs = timestampMs(fees.timestamp, 'network fees timestamp')
+						if (observationTimestampMs !== requestedTimestampMs)
+							throw new Error('HederaMirrorNode_Rest: response fees do not match request')
+
+						return {
+							$network: {
+								[EntityMetaKey.Selector]: $network,
+							},
+							timestampMs: requestedTimestampMs,
+							source,
+							...networkFeeFields(fees, transactionType),
+						}
+					},
+				},
+			},
+		})({
+			$network: (observation) => observation.$network,
+			transactionType: (observation) => observation.transactionType,
+			timestampMs: (observation) => observation.timestampMs,
+			source: (observation) => observation.source,
+			gasTinybar: (observation) => observation.gasTinybar,
+			baseTinycent: (observation) => observation.baseTinycent,
+			nodeTinycent: (observation) => observation.nodeTinycent,
+			networkTinycent: (observation) => observation.networkTinycent,
+			serviceTinycent: (observation) => observation.serviceTinycent,
+			totalTinycent: (observation) => observation.totalTinycent,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

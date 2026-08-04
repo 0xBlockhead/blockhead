@@ -17,7 +17,10 @@ import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import type { NeynarCast } from '$/sources/Neynar/Rest/types.ts'
+import type {
+	NeynarCast,
+	NeynarChannel,
+} from '$/sources/Neynar/Rest/types.ts'
 
 type CastHash = `0x${string}`
 
@@ -134,6 +137,63 @@ const neynarCastEmbedRows = (
 	}
 })
 
+const neynarChannelFields = (channel: NeynarChannel) => {
+	const parentUrl = optionalNonemptyString(channel.parent_url)
+	if (parentUrl == null)
+		throw new Error('Neynar_Rest: channel missing parent URL')
+
+	const iconUrl = neynarPfpHttpUrl(channel.image_url)
+	const moderatorFids = [
+		...(channel.moderator?.fid == null ? [] : [channel.moderator.fid]),
+		...(channel.moderator_fids ?? []),
+	].filter((fid, index, fids) => fids.indexOf(fid) === index)
+	const moderatorFid = moderatorFids.at(0)
+	const timestampMs = Date.now()
+
+	return {
+		id: channel.id,
+		parentUrl,
+		createdAt: optionalTimestampMs(channel.created_at),
+		$lead: (
+			channel.lead?.fid == null ?
+				undefined
+			:
+				{
+					[EntityMetaKey.Selector]: { fid: channel.lead.fid },
+				}
+		),
+		$$timestamps: [{
+			[EntityMetaKey.Selector]: {
+				$channel: { id: channel.id },
+				timestampMs,
+				source: Source.Neynar_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'name')]: optionalNonemptyString(channel.name),
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'description')]: optionalNonemptyString(channel.description),
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'iconUrl')]: iconUrl,
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], '$icon')]: mediaFromUrl(iconUrl, MediaType.Image),
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], '$moderator')]: (
+					moderatorFid == null ?
+						undefined
+					:
+						{
+							[EntityMetaKey.Selector]: { fid: moderatorFid },
+						}
+				),
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], '$$moderators')]: moderatorFids.map((fid) => ({
+					[EntityMetaKey.Selector]: { fid },
+				})),
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'pinnedCastHash')]: optionalNonemptyString(channel.pinned_cast_hash),
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'externalLinkTitle')]: optionalNonemptyString(channel.external_link?.title),
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'externalLinkUrl')]: optionalNonemptyString(channel.external_link?.url),
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'followerCount')]: channel.follower_count,
+				[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'memberCount')]: channel.member_count,
+			},
+		}],
+	}
+}
+
 
 export default {
 	source: Source.Neynar_Rest,
@@ -155,9 +215,9 @@ export default {
 						const ethAddresses = (
 							[
 								...(user.verified_addresses.primary.eth_address != null ?
-								[user.verified_addresses.primary.eth_address]
-							:
-								[]),
+									[user.verified_addresses.primary.eth_address]
+								:
+									[]),
 								...user.verified_addresses.eth_addresses,
 							]
 								.map(optionalNonemptyString)
@@ -167,9 +227,9 @@ export default {
 						const solAddresses = (
 							[
 								...(user.verified_addresses.primary.sol_address != null ?
-								[user.verified_addresses.primary.sol_address]
-							:
-								[]),
+									[user.verified_addresses.primary.sol_address]
+								:
+									[]),
 								...user.verified_addresses.sol_addresses,
 							]
 								.map(optionalNonemptyString)
@@ -202,23 +262,23 @@ export default {
 							...verifiedPart,
 							$$verifiedAddresses: [
 								...ethAddresses.map((address) => (
-								((evmAddress) => ({
-									[EntityMetaKey.Selector]: {
-										fid: fid,
-										protocol: 'ethereum' as const,
-										address: evmAddress,
-									},
-									$user: {
-										[EntityMetaKey.Selector]: { fid },
-									},
-									$evmAccount: {
+									((evmAddress) => ({
 										[EntityMetaKey.Selector]: {
+											fid,
+											protocol: 'ethereum' as const,
 											address: evmAddress,
 										},
-									},
-									protocol: 'ethereum' as const,
-									address: evmAddress,
-								}))(EvmAddress.assert(address))
+										$user: {
+											[EntityMetaKey.Selector]: { fid },
+										},
+										$evmAccount: {
+											[EntityMetaKey.Selector]: {
+												address: evmAddress,
+											},
+										},
+										protocol: 'ethereum' as const,
+										address: evmAddress,
+									}))(EvmAddress.assert(address))
 								)),
 								...solAddresses.map((address) => ({
 									[EntityMetaKey.Selector]: {
@@ -246,101 +306,209 @@ export default {
 							],
 						}
 					},
-				}
+				},
 			},
-			})({
-					username: (user) => user.username,
-				displayName: (user) => user.displayName,
-				iconUrl: (user) => user.iconUrl,
-				$icon: (user) => user.$icon,
-				bio: (user) => user.bio,
-				$primaryEvmAccount: (user) => user.$primaryEvmAccount,
-				$$verifiedAddresses: (user) => user.$$verifiedAddresses,
-				}),
+		})({
+			username: (user) => user.username,
+			displayName: (user) => user.displayName,
+			iconUrl: (user) => user.iconUrl,
+			$icon: (user) => user.$icon,
+			bio: (user) => user.bio,
+			$primaryEvmAccount: (user) => user.$primaryEvmAccount,
+			$$verifiedAddresses: (user) => user.$$verifiedAddresses,
+		}),
 
-			defineResolver({
-				entityType: EntityType.FarcasterVerifiedAddress,
-				resolve: {
-					FidProtocolAddress: {
-						resolve: async (verifiedAddress, context) => {
-							const { getBulkUsers } = await import('$/sources/Neynar/Rest/queries.ts')
-							const users = await getBulkUsers({
-								publicEnv: context.publicEnv,
-								fids: [verifiedAddress.fid],
-							})
-							const user = users.find((neynarUser) => neynarUser.fid === verifiedAddress.fid)
-							if (user == null) throw new Error('Neynar_Rest: user not found')
-							const ethAddresses = (
-								[
-									...(user.verified_addresses.primary.eth_address != null ?
-										[user.verified_addresses.primary.eth_address]
-									:
-										[]),
-									...user.verified_addresses.eth_addresses,
-								]
-									.map(optionalNonemptyString)
-									.filter((address): address is string => address != null)
-							)
-							const solAddresses = (
-								[
-									...(user.verified_addresses.primary.sol_address != null ?
-										[user.verified_addresses.primary.sol_address]
-									:
-										[]),
-									...user.verified_addresses.sol_addresses,
-								]
-									.map(optionalNonemptyString)
-									.filter((address): address is string => address != null)
-							)
-							const verified = (
-								verifiedAddress.protocol === 'ethereum' ?
-									ethAddresses.some((address) => EvmAddress.assert(address) === EvmAddress.assert(verifiedAddress.address))
-								:
-									solAddresses.includes(verifiedAddress.address)
-							)
-							if (!verified) throw new Error('Neynar_Rest: verified address not found')
+		defineResolver({
+			entityType: EntityType.FarcasterUser,
+			resolve: {
+				Fid: {
+					resolve: async ({ fid }, context) => {
+						const {
+							getChannelMembersPage,
+							getUserChannelsPage,
+						} = await import('$/sources/Neynar/Rest/queries.ts')
+						const page = await getUserChannelsPage(context.publicEnv, {
+							fid,
+							limit: resolverContextRowLimit(context),
+							cursor: context.providerContinuationToken,
+						})
+						const timestampMs = Date.now()
 
-							return {
-								fid: verifiedAddress.fid,
-								protocol: verifiedAddress.protocol,
-								address: verifiedAddress.protocol === 'ethereum' ? EvmAddress.assert(verifiedAddress.address) : verifiedAddress.address,
-								$user: {
+						return {
+							rows: await Promise.all(page.channels.map(async (channel) => {
+								const members = (
+									await getChannelMembersPage(context.publicEnv, {
+										channelId: channel.id,
+										fid,
+										limit: 1,
+									})
+								).members
+								if (members.some((member) => member.user.fid !== fid))
+									throw new Error('Neynar_Rest: channel member subject mismatch')
+								if (members.length > 1)
+									throw new Error('Neynar_Rest: duplicate channel member')
+
+								return {
 									[EntityMetaKey.Selector]: {
-										fid: verifiedAddress.fid,
+										$channel: { id: channel.id },
+										$viewer: { fid },
+										timestampMs,
+										source: Source.Neynar_Rest,
 									},
-								},
-								...(verifiedAddress.protocol === 'ethereum' && {
-									$evmAccount: {
-										[EntityMetaKey.Selector]: {
-											address: EvmAddress.assert(verifiedAddress.address),
-										},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.FarcasterChannel_Viewer_Timestamp, [], 'following')]: true,
+										[entityFieldAddressKey(EntityType.FarcasterChannel_Viewer_Timestamp, [], 'member')]: members.length === 1,
+										[entityFieldAddressKey(EntityType.FarcasterChannel_Viewer_Timestamp, [], 'role')]: members[0]?.role,
 									},
-								}),
-								...(verifiedAddress.protocol === 'solana' && {
-									$solanaAccount: {
-										[EntityMetaKey.Selector]: {
-											$network: {
-												caip2: {
-													namespace: 'solana',
-													reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-												},
-											},
-											pubkey: verifiedAddress.address,
-										},
-									},
-								}),
-							}
-						},
+								}
+							})),
+							nextCursor: page.next?.cursor,
+						}
 					},
 				},
-			})({
-					fid: (verifiedAddress) => verifiedAddress.fid,
-					protocol: (verifiedAddress) => verifiedAddress.protocol,
-					address: (verifiedAddress) => verifiedAddress.address,
-					$user: (verifiedAddress) => verifiedAddress.$user,
-					$evmAccount: (verifiedAddress) => verifiedAddress.$evmAccount,
-					$solanaAccount: (verifiedAddress) => verifiedAddress.$solanaAccount,
-				}),
+			},
+		})({
+			$$channelViewerTimestamps: {
+				select: ({ rows }) => rows,
+				continuation: ({ nextCursor }) => (
+					nextCursor == null || nextCursor === '' ?
+						{
+							operation: 'user-channels',
+							target: 'api',
+							terminal: true,
+						}
+					:
+						{
+							operation: 'user-channels',
+							target: 'api',
+							terminal: false,
+							token: nextCursor,
+						}
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.FarcasterChannel,
+			resolve: {
+				Id: {
+					resolve: async ({ id }, context) => {
+						const { getChannel } = await import('$/sources/Neynar/Rest/queries.ts')
+						const channel = await getChannel(context.publicEnv, {
+							id,
+							type: 'id',
+						})
+						if (channel.id !== id)
+							throw new Error('Neynar_Rest: channel subject mismatch')
+
+						return neynarChannelFields(channel)
+					},
+				},
+				ParentUrl: {
+					resolve: async ({ parentUrl }, context) => {
+						const { getChannel } = await import('$/sources/Neynar/Rest/queries.ts')
+						const channel = await getChannel(context.publicEnv, {
+							id: parentUrl,
+							type: 'parent_url',
+						})
+						if (channel.parent_url !== parentUrl)
+							throw new Error('Neynar_Rest: channel subject mismatch')
+
+						return neynarChannelFields(channel)
+					},
+				},
+			},
+		})({
+			id: (channel) => channel.id,
+			parentUrl: (channel) => channel.parentUrl,
+			createdAt: (channel) => channel.createdAt,
+			$lead: (channel) => channel.$lead,
+			$$timestamps: (channel) => channel.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.FarcasterVerifiedAddress,
+			resolve: {
+				FidProtocolAddress: {
+					resolve: async (verifiedAddress, context) => {
+						const { getBulkUsers } = await import('$/sources/Neynar/Rest/queries.ts')
+						const users = await getBulkUsers({
+							publicEnv: context.publicEnv,
+							fids: [verifiedAddress.fid],
+						})
+						const user = users.find((neynarUser) => neynarUser.fid === verifiedAddress.fid)
+						if (user == null) throw new Error('Neynar_Rest: user not found')
+						const ethAddresses = (
+							[
+								...(user.verified_addresses.primary.eth_address != null ?
+									[user.verified_addresses.primary.eth_address]
+								:
+									[]),
+								...user.verified_addresses.eth_addresses,
+							]
+								.map(optionalNonemptyString)
+								.filter((address): address is string => address != null)
+						)
+						const solAddresses = (
+							[
+								...(user.verified_addresses.primary.sol_address != null ?
+									[user.verified_addresses.primary.sol_address]
+								:
+									[]),
+								...user.verified_addresses.sol_addresses,
+							]
+								.map(optionalNonemptyString)
+								.filter((address): address is string => address != null)
+						)
+						const verified = (
+							verifiedAddress.protocol === 'ethereum' ?
+								ethAddresses.some((address) => EvmAddress.assert(address) === EvmAddress.assert(verifiedAddress.address))
+							:
+								solAddresses.includes(verifiedAddress.address)
+						)
+						if (!verified) throw new Error('Neynar_Rest: verified address not found')
+
+						return {
+							fid: verifiedAddress.fid,
+							protocol: verifiedAddress.protocol,
+							address: verifiedAddress.protocol === 'ethereum' ? EvmAddress.assert(verifiedAddress.address) : verifiedAddress.address,
+							$user: {
+								[EntityMetaKey.Selector]: {
+									fid: verifiedAddress.fid,
+								},
+							},
+							...(verifiedAddress.protocol === 'ethereum' && {
+								$evmAccount: {
+									[EntityMetaKey.Selector]: {
+										address: EvmAddress.assert(verifiedAddress.address),
+									},
+								},
+							}),
+							...(verifiedAddress.protocol === 'solana' && {
+								$solanaAccount: {
+									[EntityMetaKey.Selector]: {
+										$network: {
+											caip2: {
+												namespace: 'solana',
+												reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+											},
+										},
+										pubkey: verifiedAddress.address,
+									},
+								},
+							}),
+						}
+					},
+				},
+			},
+		})({
+			fid: (verifiedAddress) => verifiedAddress.fid,
+			protocol: (verifiedAddress) => verifiedAddress.protocol,
+			address: (verifiedAddress) => verifiedAddress.address,
+			$user: (verifiedAddress) => verifiedAddress.$user,
+			$evmAccount: (verifiedAddress) => verifiedAddress.$evmAccount,
+			$solanaAccount: (verifiedAddress) => verifiedAddress.$solanaAccount,
+		}),
 
 		defineResolver({
 			entityType: EntityType.FarcasterCast,

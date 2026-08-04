@@ -29,16 +29,6 @@ const lowerHex0xCastHash = (hash: `0x${string}`) => (
 		?? hash
 )
 
-
-const channelIdFromParentUrl = (parentUrl: string | undefined) => {
-	const parentUrlString = optionalNonemptyString(parentUrl)
-	if (parentUrlString == null) return undefined
-	return (
-		/warpcast\.com\/~\/channel\/([^/?#]+)/.exec(parentUrlString)?.[1]
-		?? /farcaster\.xyz\/([^/?#]+)/.exec(parentUrlString)?.[1]
-	)
-}
-
 const snapchainCastTimestampMs = (farcasterTimestamp: number | undefined) => (
 	farcasterTimestamp != null && Number.isFinite(farcasterTimestamp) ?
 		(
@@ -387,18 +377,6 @@ export default {
 		}),
 
 		defineResolver({
-			entityType: EntityType.FarcasterUser_Timestamp,
-			resolve: {
-				FarcasterUserTimestampMs: {
-					resolve: async ({ $user }) => getSnapchainUserCounts($user.fid),
-				}
-			},
-		})({
-				followerCount: (timestamp) => timestamp.followerCount,
-				followingCount: (timestamp) => timestamp.followingCount,
-			}),
-
-		defineResolver({
 			entityType: EntityType.FarcasterCast,
 			resolve: {
 				FidHash: {
@@ -415,7 +393,6 @@ export default {
 						const castAddBody = snapchainCast.data.castAddBody
 						const farcasterTimestamp = snapchainCast.data.timestamp
 						const parentUrl = optionalNonemptyString(castAddBody?.parentUrl)
-						const channelId = channelIdFromParentUrl(parentUrl)
 						const timestamp = snapchainCastTimestampMs(farcasterTimestamp)
 						if (timestamp == null)
 							throw new Error('Snapchain_Rest: cast missing timestamp')
@@ -445,12 +422,12 @@ export default {
 							timestamp,
 							mentions: castAddBody?.mentions,
 							$channel: (
-								channelId == null ?
+								parentUrl == null ?
 									undefined
 								:
 									{
 										[EntityMetaKey.Selector]: {
-											id: channelId,
+											parentUrl,
 										},
 									} satisfies Entity<typeof schema, EntityType.FarcasterChannel>
 							),
@@ -564,26 +541,6 @@ export default {
 		}),
 
 		defineResolver({
-			entityType: EntityType.FarcasterCast_Timestamp,
-			resolve: {
-				FarcasterCastTimestampMs: {
-					resolve: async ({ $cast }) => {
-						if (!('fid' in $cast) || !('hash' in $cast))
-							throw new Error('Snapchain_Rest: cast snapshot id requires cast fid and hash')
-						return getSnapchainCastCounts({
-							fid: $cast.fid,
-							hash: $cast.hash,
-						})
-					},
-				}
-			},
-		})({
-				likeCount: (timestamp) => timestamp.likeCount,
-				recastCount: (timestamp) => timestamp.recastCount,
-				replyCount: (timestamp) => timestamp.replyCount,
-			}),
-
-		defineResolver({
 			entityType: EntityType.FarcasterCastEmbed,
 			resolve: {
 				CastIndexInCast: {
@@ -623,16 +580,16 @@ export default {
 				},
 			},
 		})({
-				$cast: (embed) => embed.$cast,
-				indexInCast: (embed) => embed.indexInCast,
-				url: (embed) => embed.url,
-				$embeddedCast: (embed) => embed.$embeddedCast,
-				title: () => undefined,
-				description: () => undefined,
-				iconUrl: () => undefined,
-				$icon: () => undefined,
-				quotedPreviewText: () => undefined,
-			}),
+			$cast: (embed) => embed.$cast,
+			indexInCast: (embed) => embed.indexInCast,
+			url: (embed) => embed.url,
+			$embeddedCast: (embed) => embed.$embeddedCast,
+			title: () => undefined,
+			description: () => undefined,
+			iconUrl: () => undefined,
+			$icon: () => undefined,
+			quotedPreviewText: () => undefined,
+		}),
 
 		defineResolver({
 			entityType: EntityType.FarcasterNetwork,
@@ -650,10 +607,10 @@ export default {
 							}) satisfies UserEntity))
 						)
 					},
-				}
+				},
 			},
 		})({
-				$$users: (users) => users,
+			$$users: (users) => users,
 		}),
 
 		defineResolver({
@@ -670,6 +627,7 @@ export default {
 								[EntityMetaKey.Selector]: {
 									$user: { fid },
 									timestampMs: Date.now(),
+									source: Source.Snapchain_Rest,
 								},
 								[EntityMetaKey.Fields]: {
 									[entityFieldAddressKey(EntityType.FarcasterUser_Timestamp, [], 'followerCount')]: followerCount,
@@ -678,11 +636,11 @@ export default {
 							},
 						]
 					},
-				}
+				},
 			},
 		})({
-				$$timestamps: (timestamps) => timestamps,
-			}),
+			$$timestamps: (timestamps) => timestamps,
+		}),
 
 		defineResolver({
 			entityType: EntityType.FarcasterUser,
@@ -706,11 +664,11 @@ export default {
 								})
 						)
 					},
-				}
+				},
 			},
 		})({
-				$$casts: (casts) => casts,
-			}),
+			$$casts: (casts) => casts,
+		}),
 
 		defineResolver({
 			entityType: EntityType.FarcasterCast,
@@ -726,6 +684,7 @@ export default {
 										hash,
 									},
 									timestampMs: Date.now(),
+									source: Source.Snapchain_Rest,
 								},
 								[EntityMetaKey.Fields]: {
 									[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'likeCount')]:
@@ -741,27 +700,27 @@ export default {
 				},
 			},
 		})({
-				$$timestamps: (timestamps) => timestamps,
-			}),
+			$$timestamps: (timestamps) => timestamps,
+		}),
 
 		defineResolver({
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
-				Id: {
-					resolve: async ({ id }, context) => {
+				ParentUrl: {
+					resolve: async ({ parentUrl }, context) => {
 						return (
 							(await getSnapchainCastsByParent(
-								{ url: `https://warpcast.com/~/channel/${id}` },
+								{ url: parentUrl },
 								resolverContextRowLimit(context)
 							))
 								.flatMap((cast) => snapchainCastEntity(cast) ?? [])
 						)
 					},
-				}
+				},
 			},
 		})({
-				$$casts: (casts) => casts,
-			}),
+			$$casts: (casts) => casts,
+		}),
 
 		defineResolver({
 			entityType: EntityType.FarcasterFeed,
@@ -800,17 +759,6 @@ export default {
 									:
 										[]
 								})
-						)
-					},
-				},
-				ByChannel: {
-					resolve: async ({ channelId }, context) => {
-						return (
-							(await getSnapchainCastsByParent(
-								{ url: `https://warpcast.com/~/channel/${channelId}` },
-								resolverContextRowLimit(context)
-							))
-								.flatMap((cast) => snapchainCastEntity(cast) ?? [])
 						)
 					},
 				},

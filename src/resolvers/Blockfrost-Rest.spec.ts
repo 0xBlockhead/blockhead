@@ -24,14 +24,17 @@ import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/Blockfrost/bindings.ts'
 
 const getHealth = vi.fn()
+const getAccount = vi.fn()
 const getAddress = vi.fn()
 const getAddressTotal = vi.fn()
+const getAsset = vi.fn()
 const getLatestBlock = vi.fn()
 const getLatestEpoch = vi.fn()
 const getLatestProtocolParameters = vi.fn()
 const getNetwork = vi.fn()
 const getCommittee = vi.fn()
 const listCommitteeVotes = vi.fn()
+const listAccountAddresses = vi.fn()
 const listAddressTransactions = vi.fn()
 const listAddressUtxos = vi.fn()
 const listBlocks = vi.fn()
@@ -54,14 +57,17 @@ const getTransactionUtxos = vi.fn()
 
 vi.mock('$/sources/Blockfrost/Rest/queries.ts', () => ({
 	getHealth,
+	getAccount,
 	getAddress,
 	getAddressTotal,
+	getAsset,
 	getLatestBlock,
 	getLatestEpoch,
 	getLatestProtocolParameters,
 	getNetwork,
 	getCommittee,
 	listCommitteeVotes,
+	listAccountAddresses,
 	listAddressTransactions,
 	listAddressUtxos,
 	listBlocks,
@@ -2115,6 +2121,254 @@ describe('Blockfrost Cardano governance details', () => {
 			displayName: 'Example DRep',
 			anchorUrl: 'https://example.com/drep.json',
 			anchorHash: 'metadata-hash',
+		})
+	})
+
+	it('materializes DRep voting-power observations for the current epoch', async () => {
+		getDRep.mockResolvedValueOnce({
+			drep_id: 'drep1example',
+			hex: 'ab',
+			amount: '4200000000',
+			active: true,
+			active_epoch: 500,
+			has_script: false,
+			retired: false,
+			expired: false,
+			last_active_epoch: 500,
+		})
+		getLatestEpoch.mockResolvedValueOnce({
+			epoch: 500,
+		})
+		listDRepVotes.mockResolvedValueOnce([])
+		const drepResolver = blockfrostResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.CardanoDRep
+			&& '$$timestamps' in resolver.projections
+		))
+		if (drepResolver == null)
+			throw new Error('missing Cardano DRep observation resolver')
+
+		await expect(drepResolver.resolve['NetworkDrepCredential'].resolve(
+			{
+				$network: cardanoNetwork,
+				drepCredential: 'drep1example',
+			},
+			resolverContext
+		)).resolves.toMatchObject({
+			credentialKind: 'key',
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					epoch: 500,
+					source: Source.Blockfrost_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoDRep_Timestamp, [], 'votingPowerLovelace')]: 4_200_000_000n,
+					[entityFieldAddressKey(EntityType.CardanoDRep_Timestamp, [], 'active')]: true,
+					[entityFieldAddressKey(EntityType.CardanoDRep_Timestamp, [], 'registered')]: true,
+				},
+			}],
+		})
+	})
+
+	it('materializes native asset fingerprints and current supply observations', async () => {
+		const policyId = 'a'.repeat(56)
+		const assetName = '746f6b656e'
+		getAsset.mockResolvedValueOnce({
+			asset: `${policyId}${assetName}`,
+			policy_id: policyId,
+			asset_name: assetName,
+			fingerprint: 'asset1example',
+			quantity: '12',
+			initial_mint_tx_hash: 'mint-hash',
+			mint_or_burn_count: 3,
+			onchain_metadata: {
+				name: 'Token',
+			},
+			metadata: null,
+		})
+		getLatestBlock.mockResolvedValueOnce(latestBlock)
+		const assetResolver = blockfrostResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.CardanoNativeAsset
+		))
+		if (assetResolver == null)
+			throw new Error('missing Cardano native asset resolver')
+
+		await expect(assetResolver.resolve['NetworkPolicyIdAssetName'].resolve(
+			{
+				$network: cardanoNetwork,
+				policyId,
+				assetName,
+			},
+			resolverContext
+		)).resolves.toEqual({
+			fingerprint: 'asset1example',
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$asset: {
+						$network: cardanoNetwork,
+						policyId,
+						assetName,
+					},
+					slot: 130_000_000n,
+					source: Source.Blockfrost_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoNativeAsset_Timestamp, [], 'timestampMs')]: 1_720_000_000_000,
+					[entityFieldAddressKey(EntityType.CardanoNativeAsset_Timestamp, [], 'blockHash')]: 'block-hash',
+					[entityFieldAddressKey(EntityType.CardanoNativeAsset_Timestamp, [], 'supply')]: 12n,
+					[entityFieldAddressKey(EntityType.CardanoNativeAsset_Timestamp, [], 'transactionCount')]: 3,
+					[entityFieldAddressKey(EntityType.CardanoNativeAsset_Timestamp, [], 'metadata')]: {
+						name: 'Token',
+					},
+				},
+			}],
+		})
+	})
+
+	it('materializes stake credential reward address, delegation epoch, and addresses', async () => {
+		getAccount.mockResolvedValueOnce({
+			stake_address: 'stake1example',
+			active: true,
+			registered: true,
+			active_epoch: 500,
+			controlled_amount: '1000000',
+			rewards_sum: '200',
+			withdrawals_sum: '50',
+			reserves_sum: '0',
+			treasury_sum: '0',
+			withdrawable_amount: '150',
+			pool_id: 'pool1example',
+			drep_id: 'drep1example',
+		})
+		getLatestEpoch.mockResolvedValueOnce({
+			epoch: 500,
+		})
+		listAccountAddresses.mockResolvedValueOnce([
+			{
+				address: 'addr1a',
+			},
+			{
+				address: 'addr1b',
+			},
+		])
+		const stakeCredentialResolver = blockfrostResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.CardanoStakeCredential
+			&& 'rewardAddress' in resolver.projections
+		))
+		const stakeCredentialAddressesResolver = blockfrostResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.CardanoStakeCredential
+			&& '$$addresses' in resolver.projections
+		))
+		if (stakeCredentialResolver == null || stakeCredentialAddressesResolver == null)
+			throw new Error('missing Cardano stake credential resolvers')
+
+		await expect(stakeCredentialResolver.resolve['NetworkCredential'].resolve(
+			{
+				$network: cardanoNetwork,
+				credential: 'stake1example',
+			},
+			resolverContext
+		)).resolves.toMatchObject({
+			rewardAddress: 'stake1example',
+			$$delegationEpochs: [{
+				[EntityMetaKey.Selector]: {
+					epoch: 500,
+					source: Source.Blockfrost_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoStakeDelegation_Epoch, [], 'activeStake')]: 1_000_000n,
+					[entityFieldAddressKey(EntityType.CardanoStakeDelegation_Epoch, [], 'registered')]: true,
+				},
+			}],
+		})
+		const addressSnapshot = await stakeCredentialAddressesResolver.resolve['NetworkCredential'].resolve(
+			{
+				$network: cardanoNetwork,
+				credential: 'stake1example',
+			},
+			{
+				...resolverContext,
+				pagination: {
+					limit: 2,
+				},
+			}
+		)
+		const addressProjection = stakeCredentialAddressesResolver.projections.$$addresses
+		if (
+			typeof addressProjection === 'function'
+			|| addressProjection.select == null
+		)
+			throw new Error('missing stake credential address projection')
+
+		expect(addressProjection.select(
+			addressSnapshot,
+			{
+				$network: cardanoNetwork,
+				credential: 'stake1example',
+			},
+			resolverContext
+		).map((row) => row[EntityMetaKey.Selector])).toEqual([
+			{
+				$network: cardanoNetwork,
+				address: 'addr1a',
+			},
+			{
+				$network: cardanoNetwork,
+				address: 'addr1b',
+			},
+		])
+	})
+
+	it('materializes stake pool live observations for the current epoch', async () => {
+		getStakePool.mockResolvedValueOnce({
+			pool_id: 'pool1example',
+			hex: 'ab',
+			vrf_key: 'vrf-key',
+			blocks_minted: 10,
+			blocks_epoch: 1,
+			live_stake: '5000000',
+			live_size: 0.1,
+			live_saturation: 0.2,
+			live_delegators: 3,
+			active_stake: '4000000',
+			active_size: 0.09,
+			declared_pledge: '1000000',
+			live_pledge: '1000000',
+			margin_cost: 0.05,
+			fixed_cost: '340000000',
+			reward_account: 'stake1reward',
+			owners: [
+				'stake1owner',
+			],
+			registration: [],
+			retirement: [],
+		})
+		getLatestEpoch.mockResolvedValueOnce({
+			epoch: 500,
+		})
+		const poolObservationResolver = blockfrostResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.CardanoStakePool
+			&& '$$timestamps' in resolver.projections
+		))
+		if (poolObservationResolver == null)
+			throw new Error('missing Cardano stake pool observation resolver')
+
+		await expect(poolObservationResolver.resolve['NetworkPoolId'].resolve(
+			{
+				$network: cardanoNetwork,
+				poolId: 'pool1example',
+			},
+			resolverContext
+		)).resolves.toMatchObject({
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					epoch: 500,
+					source: Source.Blockfrost_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoStakePool_Timestamp, [], 'liveStake')]: 5_000_000n,
+					[entityFieldAddressKey(EntityType.CardanoStakePool_Timestamp, [], 'retired')]: false,
+				},
+			}],
 		})
 	})
 })

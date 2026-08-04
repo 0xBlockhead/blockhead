@@ -7,20 +7,36 @@ import {
 } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
 import { Source } from '$/sources/Source.ts'
 
+const getOperator = vi.hoisted(() => vi.fn())
+const getOperatorRewardInfo = vi.hoisted(() => vi.fn())
 const getStaker = vi.hoisted(() => vi.fn())
+const getStakerDeposits = vi.hoisted(() => vi.fn())
+const getStakerWithdrawals = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/EigenExplorer/Rest/queries.ts', () => ({
+	getOperator,
+	getOperatorRewardInfo,
 	getStaker,
+	getStakerDeposits,
+	getStakerWithdrawals,
 }))
 
 const { default: eigenExplorerResolvers } = await import('$/resolvers/EigenExplorer-Rest.ts')
 
-const resolver = eigenExplorerResolvers.resolvers[0]
+const [
+	delegationResolver,
+	operatorResolver,
+	operatorRewardsResolver,
+] = eigenExplorerResolvers.resolvers
 const stakerAddress = '0x1111111111111111111111111111111111111111'
 const operatorAddress = '0x2222222222222222222222222222222222222222'
 const strategyAddress = '0x3333333333333333333333333333333333333333'
+const tokenAddress = '0x4444444444444444444444444444444444444444'
+const transactionHash = `0x${'5'.repeat(64)}`
+const withdrawalRoot = `0x${'6'.repeat(64)}`
 const timestampMs = Date.parse('2026-01-02T00:00:00.000Z')
 const network = {
 	caip2: networkBySlug.ethereum.caip2,
@@ -43,6 +59,10 @@ const selector = {
 	timestampMs,
 	source: Source.EigenExplorer_Rest,
 }
+const operatorSelector = {
+	$network: network,
+	operatorAddress,
+}
 const context = {
 	filters: [],
 	sorts: [],
@@ -57,6 +77,8 @@ describe('EigenExplorer delegation resolver', () => {
 	beforeEach(() => {
 		vi.restoreAllMocks()
 		getStaker.mockReset()
+		getStakerDeposits.mockReset()
+		getStakerWithdrawals.mockReset()
 		getStaker.mockResolvedValue({
 			address: stakerAddress,
 			operatorAddress,
@@ -69,21 +91,65 @@ describe('EigenExplorer delegation resolver', () => {
 				shares: '900719925474099312345',
 			}],
 		})
+		getStakerDeposits.mockResolvedValue({
+			data: [{
+				transactionHash,
+				stakerAddress,
+				tokenAddress,
+				strategyAddress,
+				shares: '900719925474099312345',
+				createdAtBlock: 100,
+				createdAt: '2026-01-01T00:00:00.000Z',
+			}],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
+		getStakerWithdrawals.mockResolvedValue({
+			data: [{
+				withdrawalRoot,
+				nonce: 7,
+				stakerAddress,
+				delegatedTo: operatorAddress,
+				withdrawerAddress: stakerAddress,
+				shares: [{
+					strategyAddress,
+					shares: '42',
+				}],
+				createdAtBlock: 100,
+				createdAt: '2026-01-01T00:00:00.000Z',
+				updatedAtBlock: 101,
+				updatedAt: '2026-01-02T00:00:00.000Z',
+				isCompleted: false,
+			}],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
 	})
 
-	it('projects the current delegated shares from the exact official staker snapshot', async () => {
-		const delegation = await resolver.resolve.StakerOperatorStrategyTimestampMsSource.resolve(
+	it('projects delegated shares plus deposit and withdrawal fields', async () => {
+		const delegation = await delegationResolver.resolve.StakerOperatorStrategyTimestampMsSource.resolve(
 			selector,
 			context
 		)
 
-		expect(resolver.projections.delegatedShares(delegation)).toBe(900719925474099312345n)
+		expect(delegationResolver.projections.delegatedShares(delegation)).toBe(900719925474099312345n)
+		expect(delegationResolver.projections.depositRoot(delegation)).toBe(transactionHash)
+		expect(delegationResolver.projections.withdrawalRoot(delegation)).toBe(withdrawalRoot)
+		expect(delegationResolver.projections.withdrawalQueued(delegation)).toBe(true)
+		expect(delegationResolver.projections.withdrawalCompleted(delegation)).toBe(false)
 		expect(getStaker).toHaveBeenCalledOnce()
-		expect(getStaker).toHaveBeenCalledWith(stakerAddress)
+		expect(getStakerDeposits).toHaveBeenCalledWith(stakerAddress)
+		expect(getStakerWithdrawals).toHaveBeenCalledWith(stakerAddress)
 	})
 
 	it('rejects non-mainnet selectors before transport', async () => {
-		await expect(resolver.resolve.StakerOperatorStrategyTimestampMsSource.resolve({
+		await expect(delegationResolver.resolve.StakerOperatorStrategyTimestampMsSource.resolve({
 			...selector,
 			$staker: {
 				...selector.$staker,
@@ -105,12 +171,12 @@ describe('EigenExplorer delegation resolver', () => {
 			updatedAt: '2026-01-02T00:00:00.000Z',
 			shares: [],
 		})
-		await expect(resolver.resolve.StakerOperatorStrategyTimestampMsSource.resolve(
+		await expect(delegationResolver.resolve.StakerOperatorStrategyTimestampMsSource.resolve(
 			selector,
 			context
 		)).rejects.toThrow('operator mismatch')
 
-		await expect(resolver.resolve.StakerOperatorStrategyTimestampMsSource.resolve({
+		await expect(delegationResolver.resolve.StakerOperatorStrategyTimestampMsSource.resolve({
 			...selector,
 			source: Source.EigenLayerContracts_Evm,
 		}, context)).rejects.toThrow('source mismatch')
@@ -118,12 +184,12 @@ describe('EigenExplorer delegation resolver', () => {
 	})
 
 	it('rejects snapshots whose strategy or timestamp does not match', async () => {
-		await expect(resolver.resolve.StakerOperatorStrategyTimestampMsSource.resolve({
+		await expect(delegationResolver.resolve.StakerOperatorStrategyTimestampMsSource.resolve({
 			...selector,
 			timestampMs: timestampMs + 1,
 		}, context)).rejects.toThrow('timestamp mismatch')
 
-		await expect(resolver.resolve.StakerOperatorStrategyTimestampMsSource.resolve({
+		await expect(delegationResolver.resolve.StakerOperatorStrategyTimestampMsSource.resolve({
 			...selector,
 			$strategy: {
 				...selector.$strategy,
@@ -131,5 +197,91 @@ describe('EigenExplorer delegation resolver', () => {
 			},
 		}, context)).rejects.toThrow('strategy mismatch')
 		expect(getStaker).toHaveBeenCalledTimes(2)
+	})
+})
+
+describe('EigenExplorer operator resolvers', () => {
+	beforeEach(() => {
+		vi.restoreAllMocks()
+		getOperator.mockReset()
+		getOperatorRewardInfo.mockReset()
+		getOperator.mockResolvedValue({
+			address: operatorAddress,
+			metadataName: 'Example Operator',
+			metadataDescription: 'Restaking operator',
+			metadataWebsite: 'https://example.operator',
+			metadataLogo: 'https://example.operator/logo.svg',
+			createdAtBlock: '100',
+			updatedAtBlock: '101',
+			createdAt: '2026-01-01T00:00:00.000Z',
+			updatedAt: '2026-01-02T00:00:00.000Z',
+			shares: [{
+				strategyAddress,
+				shares: '42',
+			}],
+		})
+		getOperatorRewardInfo.mockResolvedValue({
+			address: operatorAddress,
+			rewardTokens: [tokenAddress],
+			rewardStrategies: [strategyAddress],
+		})
+	})
+
+	it('projects operator identity fields from the official operator snapshot', async () => {
+		const operator = await operatorResolver.resolve.NetworkOperatorAddress.resolve(
+			operatorSelector,
+			context
+		)
+
+		expect(operatorResolver.projections.name(operator)).toBe('Example Operator')
+		expect(operatorResolver.projections.description(operator)).toBe('Restaking operator')
+		expect(operatorResolver.projections.website(operator)).toBe('https://example.operator')
+		expect(operatorResolver.projections.metadataUri(operator)).toBe('https://example.operator/logo.svg')
+		expect(operatorResolver.projections.$operatorAccount(operator)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				$actor: {
+					address: operatorAddress,
+				},
+			},
+		})
+	})
+
+	it('projects reward strategy/token observations at the operator update clock', async () => {
+		const rewards = await operatorRewardsResolver.resolve.NetworkOperatorAddress.resolve(
+			operatorSelector,
+			context
+		)
+
+		expect(operatorRewardsResolver.projections.$$rewards(rewards)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$earner: {
+					$network: network,
+					$actor: {
+						address: operatorAddress,
+					},
+				},
+				rewardContextKey: `${strategyAddress}:${tokenAddress}`,
+				timestampMs,
+				source: Source.EigenExplorer_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				$strategy: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						strategyAddress,
+					},
+				},
+				$operator: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						operatorAddress,
+					},
+				},
+				rewardToken: tokenAddress,
+			},
+		}])
+		expect(getOperator).toHaveBeenCalledWith(operatorAddress)
+		expect(getOperatorRewardInfo).toHaveBeenCalledWith(operatorAddress)
 	})
 })

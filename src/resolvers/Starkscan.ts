@@ -65,6 +65,113 @@ export default {
 			resolve: {
 				NetworkAddress: {
 					appliesTo: starknetContractApplicability,
+					resolve: async (contract) => {
+						assertStarknetMainnet(contract.$network.$network)
+						const { getAddressSummary } = await import('$/sources/Starkscan/Rest/queries.ts')
+						return getAddressSummary(canonicalFelt(contract.address, 'contract address'))
+					},
+				},
+			},
+		})({
+			$$accountStates: (summary, contract) => {
+				if (summary.contractExistence != null)
+					return [{
+						[EntityMetaKey.Selector]: {
+							$contract: contract,
+							blockNumber: BigInt(summary.contractExistence.observedBlockNumber),
+							source: Source.Starkscan,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.StarknetAccount_Timestamp, [], 'found')]: false,
+						},
+					}]
+				if (summary.classHash == null || summary.latestActivityBlock == null)
+					throw new Error('Starkscan: address summary lacks contract existence evidence')
+
+				return [{
+					[EntityMetaKey.Selector]: {
+						$contract: contract,
+						blockNumber: BigInt(summary.latestActivityBlock),
+						source: Source.Starkscan,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.StarknetAccount_Timestamp, [], 'classHash')]: (
+							canonicalFelt(summary.classHash, 'class hash')
+						),
+						[entityFieldAddressKey(EntityType.StarknetAccount_Timestamp, [], 'found')]: true,
+					},
+				}]
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StarknetContract,
+			resolve: {
+				NetworkAddress: {
+					appliesTo: starknetContractApplicability,
+					resolve: async (contract, context) => {
+						assertStarknetMainnet(contract.$network.$network)
+						const limit = Math.min(resolverContextRowLimit(context), 100)
+						const { getContractEvents } = await import('$/sources/Starkscan/Rest/queries.ts')
+
+						return {
+							limit,
+							page: await getContractEvents(
+								{
+									address: canonicalFelt(contract.address, 'contract address'),
+									limit,
+									cursor: context.providerContinuationToken,
+								}
+							),
+						}
+					},
+				},
+			},
+		})({
+			$$events: {
+				select: ({ page }, contract) => page.items.map((event) => ({
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network: contract.$network,
+							transactionHash: canonicalFelt(event.txHash, 'event transaction hash'),
+						},
+						eventIndex: event.logIndex,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.StarknetEvent, [], '$fromContract')]: {
+							[EntityMetaKey.Selector]: contract,
+						},
+						[entityFieldAddressKey(EntityType.StarknetEvent, [], 'keys')]: event.keys.map((key) => (
+							canonicalFelt(key, 'event key')
+						)),
+						[entityFieldAddressKey(EntityType.StarknetEvent, [], 'data')]: event.data.map((value) => (
+							canonicalFelt(value, 'event data')
+						)),
+					},
+				})),
+				continuation: ({ limit, page }, contract) => (
+					limit === 0 || page.nextCursor == null ?
+						{
+							operation: 'contract-events',
+							target: contract.address,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'contract-events',
+							target: contract.address,
+							terminal: false,
+							token: page.nextCursor,
+						}
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StarknetContract,
+			resolve: {
+				NetworkAddress: {
+					appliesTo: starknetContractApplicability,
 					resolve: async (contract, context) => {
 						assertStarknetMainnet(contract.$network.$network)
 						const limit = Math.min(resolverContextRowLimit(context), 100)

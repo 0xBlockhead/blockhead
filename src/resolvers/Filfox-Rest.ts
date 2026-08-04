@@ -24,10 +24,19 @@ const assertFilecoinMainnet = (network: NetworkId) => {
 			)
 		:
 			network.slug !== networkBySlug.filecoin.slug
-	) {
+	)
 		throw new Error('Filfox_Rest: unsupported network')
-	}
 }
+
+const tipsetKeyFromBlocks = (
+	blocks: {
+		cid: string
+	}[]
+) => (
+	blocks
+		.map((block) => block.cid)
+		.join(',')
+)
 
 export default {
 	source: Source.Filfox_Rest,
@@ -44,8 +53,14 @@ export default {
 							getTipset,
 						} = await import('$/sources/Filfox/Rest/queries.ts')
 						const tipset = await getTipset({
-							height: height,
+							height,
 						})
+						if (
+							BigInt(tipset.height) !== height
+							|| tipsetKeyFromBlocks(tipset.blocks) !== tipsetKey
+						)
+							throw new Error(`Filfox_Rest: tipset does not match ${height.toString()}/${tipsetKey}`)
+
 						const firstBlock = tipset.blocks.at(0)
 						const block = (
 							firstBlock == null ?
@@ -59,7 +74,7 @@ export default {
 							...(block != null && height > 0n && {
 								$parent: {
 									[EntityMetaKey.Selector]: {
-										$network: $network,
+										$network,
 										height: height - 1n,
 										tipsetKey: block.parents.join(','),
 									},
@@ -69,38 +84,38 @@ export default {
 							timestampMs: tipset.timestamp * 1000,
 							$$blocks: tipset.blocks.map((block) => ({
 								[EntityMetaKey.Selector]: {
-										$network,
-										cid: block.cid,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.FilecoinBlock, [], '$tipset')]: {
-											[EntityMetaKey.Selector]: {
-												$network,
-												height,
-												tipsetKey,
-											},
+									$network,
+									cid: block.cid,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.FilecoinBlock, [], '$tipset')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											height,
+											tipsetKey,
 										},
-										[entityFieldAddressKey(EntityType.FilecoinBlock, [], '$miner')]: {
-											[EntityMetaKey.Selector]: {
-												$network,
-												minerAddress: block.miner,
-											},
-										},
-										...(block.winCount != null && {
-											[entityFieldAddressKey(EntityType.FilecoinBlock, [], 'winCount')]: block.winCount,
-										}),
 									},
-								})),
+									[entityFieldAddressKey(EntityType.FilecoinBlock, [], '$miner')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											minerAddress: block.miner,
+										},
+									},
+									...(block.winCount != null && {
+										[entityFieldAddressKey(EntityType.FilecoinBlock, [], 'winCount')]: block.winCount,
+									}),
+								},
+							})),
 						}
 					},
-				}
+				},
 			},
 		})({
-				$parent: (snapshot) => snapshot.$parent,
-				parentWeight: (snapshot) => snapshot.parentWeight,
-				timestampMs: (snapshot) => snapshot.timestampMs,
-				$$blocks: (snapshot) => snapshot.$$blocks,
-			}),
+			$parent: (snapshot) => snapshot.$parent,
+			parentWeight: (snapshot) => snapshot.parentWeight,
+			timestampMs: (snapshot) => snapshot.timestampMs,
+			$$blocks: (snapshot) => snapshot.$$blocks,
+		}),
 
 		defineResolver({
 			entityType: EntityType.FilecoinBlock,
@@ -121,14 +136,14 @@ export default {
 						return {
 							$tipset: {
 								[EntityMetaKey.Selector]: {
-									$network: $network,
+									$network,
 									height: BigInt(block.height),
-									tipsetKey: tipset.blocks.map((tipsetBlock) => tipsetBlock.cid).join(','),
+									tipsetKey: tipsetKeyFromBlocks(tipset.blocks),
 								},
 							},
 							$miner: {
 								[EntityMetaKey.Selector]: {
-									$network: $network,
+									$network,
 									minerAddress: block.miner,
 								},
 							},
@@ -137,13 +152,13 @@ export default {
 							}),
 						}
 					},
-				}
+				},
 			},
 		})({
-				$tipset: (snapshot) => snapshot.$tipset,
-				$miner: (snapshot) => snapshot.$miner,
-				winCount: (snapshot) => snapshot.winCount,
-			}),
+			$tipset: (snapshot) => snapshot.$tipset,
+			$miner: (snapshot) => snapshot.$miner,
+			winCount: (snapshot) => snapshot.winCount,
+		}),
 
 		defineResolver({
 			entityType: EntityType.FilecoinMessage,
@@ -156,18 +171,16 @@ export default {
 							messageCid: cid,
 						})
 						return {
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.FilecoinMessage, [], '$from')]: {
+							$from: {
 								[EntityMetaKey.Selector]: {
-									$network: $network,
+									$network,
 									address: message.from,
 								},
-								},
-								[entityFieldAddressKey(EntityType.FilecoinMessage, [], '$to')]: {
+							},
+							$to: {
 								[EntityMetaKey.Selector]: {
-									$network: $network,
+									$network,
 									address: message.to,
-								},
 								},
 							},
 							...(message.methodNumber != null && {
@@ -180,16 +193,16 @@ export default {
 							}),
 						}
 					},
-				}
+				},
 			},
 		})({
-				$from: (snapshot) => snapshot.$from,
-				$to: (snapshot) => snapshot.$to,
-				method: (snapshot) => snapshot.method,
-				nonce: (snapshot) => snapshot.nonce,
-				valueAttoFil: (snapshot) => snapshot.valueAttoFil,
-				gasLimit: (snapshot) => snapshot.gasLimit,
-			}),
+			$from: (snapshot) => snapshot.$from,
+			$to: (snapshot) => snapshot.$to,
+			method: (snapshot) => snapshot.method,
+			nonce: (snapshot) => snapshot.nonce,
+			valueAttoFil: (snapshot) => snapshot.valueAttoFil,
+			gasLimit: (snapshot) => snapshot.gasLimit,
+		}),
 
 		defineResolver({
 			entityType: EntityType.FilecoinBlock,
@@ -206,26 +219,28 @@ export default {
 								$network,
 								cid: message.cid,
 							},
-							$from: {
-								[EntityMetaKey.Selector]: {
-									$network,
-									address: message.from,
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.FilecoinMessage, [], '$from')]: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										address: message.from,
+									},
 								},
-							},
-							$to: {
-								[EntityMetaKey.Selector]: {
-									$network,
-									address: message.to,
+								[entityFieldAddressKey(EntityType.FilecoinMessage, [], '$to')]: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										address: message.to,
+									},
 								},
+								[entityFieldAddressKey(EntityType.FilecoinMessage, [], 'nonce')]: BigInt(message.nonce),
+								[entityFieldAddressKey(EntityType.FilecoinMessage, [], 'valueAttoFil')]: BigInt(message.value),
 							},
-							nonce: BigInt(message.nonce),
-							valueAttoFil: BigInt(message.value),
 						}))
 					},
-				}
+				},
 			},
 		})({
-				$$messages: (snapshot) => snapshot,
-			}),
+			$$messages: (snapshot) => snapshot,
+		}),
 	],
 } satisfies RegisteredSourceResolverModule

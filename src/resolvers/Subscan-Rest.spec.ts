@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -42,6 +45,16 @@ const extrinsicResolver = subscan.resolvers.find((
 
 if (extrinsicResolver == null)
 	throw new Error('Subscan extrinsic resolver is missing')
+
+const blockResolver = subscan.resolvers.find((
+	resolver
+): resolver is Extract<
+	typeof subscan.resolvers[number],
+	{ entityType: EntityType.PolkadotBlock }
+> => resolver.entityType === EntityType.PolkadotBlock)
+
+if (blockResolver == null)
+	throw new Error('Subscan block resolver is missing')
 
 const context = {
 	filters: [],
@@ -93,7 +106,7 @@ describe('Subscan OpenGov referendum resolver', () => {
 		corsFetch.mockResolvedValue(new Response(JSON.stringify(referendumResponse)))
 	})
 
-	it('maps detail and timeline fields from the registered Subscan binding', async () => {
+	it('maps detail, timeline observations, and vote totals from the registered Subscan binding', async () => {
 		const selector = {
 			$network: polkadotNetwork,
 			referendumId: '123',
@@ -104,6 +117,32 @@ describe('Subscan OpenGov referendum resolver', () => {
 			track: 'root',
 			submittedAtBlockNumber: 20_000_000n,
 		})
+		expect(referendumResolver.projections.$$timestamps(referendum)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$referendum: selector,
+					timestampMs: 1_753_000_000_000,
+					source: Source.Subscan_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'blockNumber')]: 20_000_000n,
+					[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'status')]: 'Submitted',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$referendum: selector,
+					timestampMs: 1_753_000_100_000,
+					source: Source.Subscan_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'blockNumber')]: 20_000_100n,
+					[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'status')]: 'Deciding',
+					[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'ayeVotes')]: 123_000_000_000n,
+					[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'nayVotes')]: 45_000_000_000n,
+				},
+			},
+		])
 		expect(corsFetch).toHaveBeenCalledWith(
 			'https://polkadot.api.subscan.io/api/scan/referenda/referendum',
 			expect.objectContaining({
@@ -233,5 +272,91 @@ describe('Subscan extrinsic resolver', () => {
 				'BlockIndexInBlock'
 			].resolve(selector, context)).rejects.toThrow()
 		}
+	})
+})
+
+describe('Subscan block resolver', () => {
+	beforeEach(() => {
+		corsFetch.mockReset()
+	})
+
+	it('projects paginated $$extrinsics with authoritative count', async () => {
+		corsFetch.mockImplementation(async (url: string) => {
+			if (url.endsWith('/api/scan/block'))
+				return new Response(JSON.stringify({
+					code: 0,
+					message: 'Success',
+					generated_at: 1_753_000_100,
+					data: {
+						block_num: 20_000_000,
+						block_hash: '0xBLOCK_HASH',
+						parent_hash: '0xPARENT_HASH',
+						state_root: '0xSTATE',
+						extrinsics_root: '0xEXTRINSICS',
+					},
+				}))
+			if (url.endsWith('/api/scan/extrinsics'))
+				return new Response(JSON.stringify({
+					code: 0,
+					message: 'Success',
+					generated_at: 1_753_000_100,
+					data: {
+						count: 40,
+						extrinsics: [{
+							account_id: '12dK7dBTwDJcb4VGMb9zRrwWBPq9VtfmDDbVQCM1jVweTVm',
+							block_num: 20_000_000,
+							call_module: 'balances',
+							call_module_function: 'transfer_keep_alive',
+							extrinsic_hash: '0xEXTRINSIC_HASH',
+							extrinsic_index: '20000000-3',
+							success: true,
+						}],
+					},
+				}))
+			throw new Error(`unexpected Subscan URL ${url}`)
+		})
+
+		const selector = {
+			$network: polkadotNetwork,
+			blockNumber: 20_000_000n,
+			hash: '0xBLOCK_HASH',
+		}
+		const pageContext = {
+			...context,
+			pagination: {
+				limit: 10,
+			},
+		}
+		const block = await blockResolver.resolve.NetworkBlockNumberHash.resolve(selector, pageContext)
+		expect(blockResolver.projections.$$extrinsics.resolveCount?.(block, selector, pageContext)).toBe(40)
+		expect(blockResolver.projections.$$extrinsics.select?.(block, selector, pageContext)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$block: selector,
+				indexInBlock: 3,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'hash')]: '0xEXTRINSIC_HASH',
+				[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], '$signer')]: {
+					[EntityMetaKey.Selector]: {
+						$network: polkadotNetwork,
+						accountId: '12dK7dBTwDJcb4VGMb9zRrwWBPq9VtfmDDbVQCM1jVweTVm',
+					},
+				},
+				[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], '$pallet')]: {
+					[EntityMetaKey.Selector]: {
+						$network: polkadotNetwork,
+						palletName: 'balances',
+					},
+				},
+				[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'callName')]: 'transfer_keep_alive',
+				[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'success')]: true,
+			},
+		}])
+		expect(blockResolver.projections.$$extrinsics.continuation?.(block, selector, pageContext)).toEqual({
+			operation: 'block-extrinsics',
+			target: '20000000:0xBLOCK_HASH',
+			terminal: false,
+			token: '1',
+		})
 	})
 })

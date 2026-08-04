@@ -127,4 +127,30 @@ describe('UniswapContracts_Evm resolver', () => {
 			}, context)
 		).rejects.toThrow('UniswapContracts_Evm: no Uniswap V3 factory for chain 999999')
 	})
+
+	it('rejects pools absent from the Uniswap V3 catalog on a supported chain', async () => {
+		const poolResolver = uniswapContractsEvm.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UniswapV3Pool
+		))
+		if (poolResolver == null)
+			throw new Error('missing UniswapV3Pool resolver')
+
+		await expect(
+			poolResolver.resolve.NetworkPoolAddress.resolve({
+				$network: ethereumNetwork,
+				poolAddress: `0x${'f'.repeat(40)}`,
+			}, context)
+		).rejects.toThrow('UniswapContracts_Evm: pool 0xffffffffffffffffffffffffffffffffffffffff not in Uniswap V3 catalog for chain 1')
+	})
+
+	it('does not claim soft-empty $$blocks or $$positions facets', () => {
+		const poolResolver = uniswapContractsEvm.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UniswapV3Pool
+		))
+		if (poolResolver == null)
+			throw new Error('missing UniswapV3Pool resolver')
+
+		expect(poolResolver.projections).not.toHaveProperty('$$blocks')
+		expect(poolResolver.projections).not.toHaveProperty('$$positions')
+	})
 })

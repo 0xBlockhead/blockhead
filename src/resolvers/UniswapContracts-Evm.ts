@@ -100,23 +100,23 @@ export default {
 
 						const address = normalizeUniswapAddress(poolAddress)
 						const catalogEntry = getUniswapV3PoolCatalogEntry(chainId, address)
-						const fee = catalogEntry?.fee
+						if (catalogEntry == null)
+							throw new Error(`UniswapContracts_Evm: pool ${address} not in Uniswap V3 catalog for chain ${String(chainId)}`)
+
 						const tickSpacing = (
-							catalogEntry?.tickSpacing
-							?? (fee != null ? getUniswapV3TickSpacingForFee(fee) : undefined)
+							catalogEntry.tickSpacing
+							?? getUniswapV3TickSpacingForFee(catalogEntry.fee)
 						)
+						if (tickSpacing == null)
+							throw new Error(`UniswapContracts_Evm: no tick spacing for fee ${String(catalogEntry.fee)}`)
 
 						return {
 							$factory: evmContractRef($network, factoryAddress),
 							$poolContract: evmContractRef($network, address),
-							...(catalogEntry != null && {
-								$token0: evmContractRef($network, catalogEntry.token0),
-								$token1: evmContractRef($network, catalogEntry.token1),
-								fee: catalogEntry.fee,
-							}),
-							...(tickSpacing != null && {
-								tickSpacing,
-							}),
+							$token0: evmContractRef($network, catalogEntry.token0),
+							$token1: evmContractRef($network, catalogEntry.token1),
+							fee: catalogEntry.fee,
+							tickSpacing,
 						}
 					},
 				},

@@ -16,23 +16,45 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getAccount = vi.hoisted(() => vi.fn())
+const getBlock = vi.hoisted(() => vi.fn())
 const getLatestBlock = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Mintscan/Rest/queries.ts', () => ({
 	getAccount,
+	getBlock,
 	getLatestBlock,
+	getNodeInfo: vi.fn(),
+	getTx: vi.fn(),
 }))
 
 const { default: mintscan } = await import('$/resolvers/Mintscan.ts')
-const resolver = mintscan.resolvers[0]
+const accountResolver = mintscan.resolvers.find((resolver) => resolver.entityType === EntityType.CosmosAccount)
+const accountTimestampResolver = mintscan.resolvers.find((resolver) => resolver.entityType === EntityType.CosmosAccount_Timestamp)
+const blockResolver = mintscan.resolvers.find((resolver) => resolver.entityType === EntityType.CosmosBlock)
 const resolveAccount = (
-	'NetworkAddress' in resolver.resolve ?
-		resolver.resolve.NetworkAddress.resolve
+	accountResolver != null && 'NetworkAddress' in accountResolver.resolve ?
+		accountResolver.resolve.NetworkAddress.resolve
+	:
+		undefined
+)
+const resolveAccountTimestamp = (
+	accountTimestampResolver != null && 'AccountTimestampMsSource' in accountTimestampResolver.resolve ?
+		accountTimestampResolver.resolve.AccountTimestampMsSource.resolve
+	:
+		undefined
+)
+const resolveBlock = (
+	blockResolver != null && 'NetworkHeight' in blockResolver.resolve ?
+		blockResolver.resolve.NetworkHeight.resolve
 	:
 		undefined
 )
 if (resolveAccount == null)
 	throw new Error('Mintscan Cosmos account resolver is not registered')
+if (resolveAccountTimestamp == null)
+	throw new Error('Mintscan Cosmos account timestamp resolver is not registered')
+if (resolveBlock == null)
+	throw new Error('Mintscan Cosmos block resolver is not registered')
 
 const account = {
 	$network: {
@@ -52,17 +74,19 @@ const context = {
 	},
 }
 
-describe('Mintscan Cosmos Hub account resolver', () => {
+describe('Mintscan Cosmos Hub resolvers', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 	})
 
-	it('registers exactly one Cosmos account resolver', () => {
+	it('registers account, account-timestamp, and block resolvers', () => {
 		expect(mintscan).toMatchObject({
 			source: Source.Mintscan,
 		})
-		expect(mintscan.resolvers).toHaveLength(1)
-		expect(resolver.entityType).toBe(EntityType.CosmosAccount)
+		expect(mintscan.resolvers).toHaveLength(3)
+		expect(accountResolver?.entityType).toBe(EntityType.CosmosAccount)
+		expect(accountTimestampResolver?.entityType).toBe(EntityType.CosmosAccount_Timestamp)
+		expect(blockResolver?.entityType).toBe(EntityType.CosmosBlock)
 	})
 
 	it('reads account and block concurrently and preserves lossless account counters', async () => {
@@ -139,6 +163,67 @@ describe('Mintscan Cosmos Hub account resolver', () => {
 		})
 	})
 
+	it('resolves account timestamp facets without a second latest-block fetch', async () => {
+		getAccount.mockResolvedValue({
+			account: {
+				address: account.address,
+				account_number: '11',
+				sequence: '22',
+			},
+		})
+
+		await expect(resolveAccountTimestamp({
+			$account: account,
+			timestampMs: 1_784_782_088_000,
+			source: Source.Mintscan,
+		}, context)).resolves.toEqual({
+			$account: {
+				[EntityMetaKey.Selector]: account,
+			},
+			timestampMs: 1_784_782_088_000,
+			source: Source.Mintscan,
+			accountNumber: 11n,
+			sequence: 22n,
+		})
+		expect(getLatestBlock).not.toHaveBeenCalled()
+		expect(getBlock).not.toHaveBeenCalled()
+	})
+
+	it('maps Cosmos blocks by height through the LCD proxy', async () => {
+		getBlock.mockResolvedValue({
+			block_id: {
+				hash: 'B'.repeat(64),
+			},
+			block: {
+				header: {
+					height: '24681012',
+					time: '2026-07-23T04:48:08Z',
+					proposer_address: 'proposer',
+				},
+				data: {
+					txs: [
+						'tx1',
+						'tx2',
+					],
+				},
+			},
+		})
+
+		await expect(resolveBlock({
+			$network: account.$network,
+			height: 24681012n,
+		}, context)).resolves.toEqual({
+			hash: 'B'.repeat(64),
+			proposerConsensusAddress: 'proposer',
+			timestampMs: 1_784_782_088_000,
+			transactionCount: 2,
+		})
+		expect(getBlock).toHaveBeenCalledWith(context.publicEnv, {
+			network: 'cosmos',
+			height: 24681012n,
+		})
+	})
+
 	it('rejects an account response for another subject', async () => {
 		getAccount.mockResolvedValue({
 			account: {
@@ -203,7 +288,26 @@ describe('Mintscan Cosmos Hub account resolver', () => {
 		await expect(resolveAccount(account, context)).rejects.toThrow(error)
 	})
 
-	it('rejects non-Cosmos-Hub selectors before source I/O', async () => {
+	it('rejects mismatched block heights and non-Cosmos-Hub selectors before useful I/O', async () => {
+		getBlock.mockResolvedValue({
+			block_id: {
+				hash: 'C'.repeat(64),
+			},
+			block: {
+				header: {
+					height: '1',
+					time: '2026-07-23T04:48:08Z',
+					proposer_address: 'proposer',
+				},
+				data: {},
+			},
+		})
+
+		await expect(resolveBlock({
+			$network: account.$network,
+			height: 24681012n,
+		}, context)).rejects.toThrow('Mintscan: block response does not match the subject height')
+
 		await expect(resolveAccount({
 			$network: {
 				slug: 'osmosis',

@@ -24,9 +24,18 @@ const blocksResolver = networkResolvers.find((resolver) => (
 	&& '$$blocks' in resolver.projections.Utxo
 	&& typeof resolver.projections.Utxo.$$blocks === 'function'
 ))
+const blockResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoBlock
+	&& 'NetworkHeight' in resolver.resolve
+	&& 'NetworkHeightHash' in resolver.resolve
+))
 const addressTransactionsResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoAddress
 	&& '$$transactions' in resolver.projections
+))
+const addressOutputsResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoAddress
+	&& '$$outputs' in resolver.projections
 ))
 const transactionResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoTransaction
@@ -41,8 +50,14 @@ const outputResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
 if (blocksResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing Network.Utxo.$$blocks resolver')
 
+if (blockResolver == null)
+	throw new Error('MempoolSpace-Rest spec missing UtxoBlock NetworkHeight resolver')
+
 if (addressTransactionsResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing UtxoAddress.$$transactions resolver')
+
+if (addressOutputsResolver == null)
+	throw new Error('MempoolSpace-Rest spec missing UtxoAddress.$$outputs resolver')
 
 if (transactionResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing UtxoTransaction same-response resolver')
@@ -139,6 +154,83 @@ describe('MempoolSpace UTXO', () => {
 		expect(mempoolSpaceResolvers.resolvers.filter((resolver) => (
 			resolver.entityType === EntityType.UtxoTransaction
 		))).toEqual([transactionResolver])
+	})
+
+	it('resolves UtxoBlock by height via block-height then block', async () => {
+		const hash = 'c'.repeat(64)
+		const previous = 'd'.repeat(64)
+		sourceGetJson
+			.mockResolvedValueOnce(hash)
+			.mockResolvedValueOnce({
+				id: hash,
+				height: 840_000,
+				timestamp: 1_700_000_000,
+				merkle_root: 'e'.repeat(64),
+				nonce: 1,
+				difficulty: 2,
+				size: 3,
+				weight: 4,
+				tx_count: 5,
+				previousblockhash: previous,
+			})
+
+		const snapshot = await blockResolver.resolve.NetworkHeight.resolve({
+			$network: network,
+			height: 840_000n,
+		})
+
+		expect(sourceGetJson.mock.calls).toEqual([
+			[
+				binding,
+				'https://mempool.space/api/block-height/840000',
+			],
+			[
+				binding,
+				`https://mempool.space/api/block/${hash}`,
+			],
+		])
+		expect(blockResolver.projections.hash(snapshot)).toBe(hash)
+		expect(blockResolver.projections.$parent(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				height: 839_999n,
+				hash: previous,
+			},
+		})
+		expect(blockResolver.projections.transactionCount(snapshot)).toBe(5)
+	})
+
+	it('projects address UTXO outputs from /address/.../utxo', async () => {
+		const txId = 'f'.repeat(64)
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				txid: txId,
+				vout: 2,
+				status: {
+					confirmed: true,
+				},
+				value: 9_000,
+			},
+		])
+
+		const outputs = await addressOutputsResolver.resolve.NetworkAddress.resolve(
+			address,
+			resolverContext
+		)
+
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			`https://mempool.space/api/address/${address.address}/utxo`
+		)
+		expect(addressOutputsResolver.projections.$$outputs(outputs)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: network,
+					txId,
+				},
+				indexInTransaction: 2,
+			},
+		}])
 	})
 
 	it('limits every selector to canonical Bitcoin subjects', () => {

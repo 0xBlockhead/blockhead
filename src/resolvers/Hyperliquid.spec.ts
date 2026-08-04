@@ -97,6 +97,40 @@ const responseByInfoType = {
 			entryNtl: '25',
 		}],
 	},
+	userFees: {
+		dailyUserVlm: [],
+		feeSchedule: {
+			cross: '0.00045',
+			add: '0.00015',
+		},
+		userCrossRate: '0.000315',
+		userAddRate: '0.000105',
+		userSpotCrossRate: '0.00049',
+		userSpotAddRate: '0.00028',
+		activeReferralDiscount: '0.0',
+		trial: null,
+		feeTrialReward: '0.0',
+		nextTrialAvailableTimestamp: null,
+		stakingLink: null,
+		activeStakingDiscount: {
+			bpsOfMaxSupply: '0',
+			discount: '0',
+		},
+	},
+	delegatorSummary: {
+		delegated: '12',
+		undelegated: '0',
+		totalPendingWithdrawal: '0',
+		nPendingWithdrawals: 0,
+	},
+	userAbstraction: 'default',
+	userDexAbstraction: false,
+	approvedBuilders: ['0x476fa87b4d3818f437f38f1263bee508d7672d82'],
+	borrowLendUserState: {
+		tokenToState: [],
+		health: 'healthy',
+		healthFactor: null,
+	},
 }
 
 describe('Hyperliquid public account resolvers', () => {
@@ -153,6 +187,12 @@ describe('Hyperliquid public account resolvers', () => {
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'accountValue')]: '100.5',
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'withdrawable')]: '88',
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'spotBalances')]: responseByInfoType.spotClearinghouseState.balances,
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'feeSchedule')]: responseByInfoType.userFees,
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'stakingSummary')]: responseByInfoType.delegatorSummary,
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userAbstraction')]: 'default',
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userDexAbstraction')]: false,
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'approvedBuilders')]: responseByInfoType.approvedBuilders,
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'borrowLendState')]: responseByInfoType.borrowLendUserState,
 		})
 	})
 
@@ -325,5 +365,204 @@ describe('Hyperliquid public account resolvers', () => {
 		await expect(ordersResolver.resolve[
 			'NetworkAddress'
 		].resolve(account, context)).rejects.toThrow('invalid order id')
+	})
+})
+
+describe('Hyperliquid market catalog resolvers', () => {
+	beforeEach(() => {
+		vi.restoreAllMocks()
+		corsFetch.mockReset()
+	})
+
+	it('materializes spot pairs and HLP vault catalog from public Info snapshots', async () => {
+		corsFetch.mockImplementation(async (_url, options) => {
+			const body = JSON.parse(options.init.body)
+			return {
+				ok: true,
+				json: async () => (
+					body.type === 'meta' ?
+						{
+							universe: [{
+								name: 'ETH',
+								szDecimals: 4,
+								maxLeverage: 25,
+							}],
+						}
+					: body.type === 'spotMeta' ?
+						{
+							tokens: [{
+								name: 'USDC',
+								szDecimals: 8,
+								weiDecimals: 8,
+								index: 0,
+								tokenId: '0xusdc',
+							}, {
+								name: 'PURR',
+								szDecimals: 0,
+								weiDecimals: 5,
+								index: 1,
+								tokenId: '0xpurr',
+							}],
+							universe: [{
+								name: 'PURR/USDC',
+								tokens: [1, 0],
+								index: 0,
+								isCanonical: true,
+							}],
+						}
+					: body.type === 'validatorSummaries' ?
+						[{
+							validator: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+							signer: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+							name: 'v',
+							description: '',
+							nRecentBlocks: 1,
+							stake: 2,
+							isJailed: false,
+							isActive: true,
+							commission: '0.01',
+						}]
+					: body.type === 'vaultDetails' ?
+						{
+							name: 'Hyperliquidity Provider (HLP)',
+							vaultAddress: '0xdfc24b077bc1425ad1dea75bcb6f8158e10df303',
+							leader: '0x677d831aef5328190852e24f13c46cac05f984e7',
+							description: 'hlp',
+							portfolio: [],
+							apr: 0.01,
+							followerState: null,
+							leaderFraction: 0.001,
+							leaderCommission: 0,
+							followers: [],
+							maxDistributable: 1,
+							maxWithdrawable: 0,
+							isClosed: false,
+							relationship: {
+								type: 'parent',
+								data: {
+									childAddresses: [
+										'0x010461c14e146ac35fe42271bdc1134ee31c703a',
+									],
+								},
+							},
+							allowDeposits: true,
+							alwaysCloseOnWithdraw: false,
+						}
+					:
+						null
+				),
+			}
+		})
+
+		const networkResolver = hyperliquid.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.HyperliquidNetwork
+			&& '$$spotPairs' in resolver.projections
+		))
+		expect(networkResolver).toBeTruthy()
+		const snapshot = await networkResolver.resolve.Network.resolve({
+			$network: account.$network,
+		}, context)
+		expect(networkResolver.projections.$$spotPairs(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: account.$network,
+				pairIndex: 0,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HyperliquidSpotPair, [], '$baseAsset')]: {
+					[EntityMetaKey.Selector]: {
+						$network: account.$network,
+						assetId: 1,
+					},
+				},
+				[entityFieldAddressKey(EntityType.HyperliquidSpotPair, [], '$quoteAsset')]: {
+					[EntityMetaKey.Selector]: {
+						$network: account.$network,
+						assetId: 0,
+					},
+				},
+			},
+		}])
+		expect(networkResolver.projections.$$vaults(snapshot).map((vault) => vault[EntityMetaKey.Selector].vaultAddress)).toEqual([
+			'0xdfc24b077bc1425ad1dea75bcb6f8158e10df303',
+			'0x010461c14e146ac35fe42271bdc1134ee31c703a',
+		])
+	})
+
+	it('maps L2 book and candle snapshots onto market observation fields', async () => {
+		const orderbookResolver = hyperliquid.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.HyperliquidOrderbook_Timestamp
+		))
+		const candleResolver = hyperliquid.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.HyperliquidMarket_TimeInterval_Timestamp
+		))
+		expect(orderbookResolver).toBeTruthy()
+		expect(candleResolver).toBeTruthy()
+
+		corsFetch.mockImplementation(async (_url, options) => {
+			const body = JSON.parse(options.init.body)
+			return {
+				ok: true,
+				json: async () => (
+					body.type === 'l2Book' ?
+						{
+							coin: 'ETH',
+							time: 1_700_000_000_000,
+							levels: [
+								[{
+									px: '2000',
+									sz: '1',
+									n: 1,
+								}],
+								[{
+									px: '2001',
+									sz: '2',
+									n: 1,
+								}],
+							],
+						}
+					:
+						[{
+							t: 1_700_000_000_000,
+							T: 1_700_003_599_999,
+							s: 'ETH',
+							i: '1h',
+							o: '2000.0',
+							c: '2010.5',
+							h: '2011.0',
+							l: '1999.0',
+							v: '12.5',
+							n: 9,
+						}]
+				),
+			}
+		})
+
+		const book = await orderbookResolver.resolve.NetworkBookKeyTimestampMsSource.resolve({
+			$network: account.$network,
+			bookKey: 'ETH',
+			timestampMs: 1_700_000_000_000,
+			source: Source.Hyperliquid,
+		}, context)
+		expect(orderbookResolver.projections.bids(book)).toEqual([{
+			px: '2000',
+			sz: '1',
+			n: 1,
+		}])
+		expect(orderbookResolver.projections.$perpMarket(book)?.[EntityMetaKey.Selector]).toEqual({
+			$network: account.$network,
+			coin: 'ETH',
+		})
+
+		const candle = await candleResolver.resolve.NetworkMarketKeyTimeIntervalTimestampMs.resolve({
+			$network: account.$network,
+			marketKey: 'ETH',
+			timeInterval: {
+				unit: 'h',
+				value: 1,
+			},
+			timestampMs: 1_700_000_000_000,
+		}, context)
+		expect(candleResolver.projections.open(candle)).toBe(200000000000n)
+		expect(candleResolver.projections.tradeCount(candle)).toBe(9)
 	})
 })

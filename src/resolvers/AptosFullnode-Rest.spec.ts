@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/AptosFullnode/bindings.ts'
@@ -298,9 +298,20 @@ describe('Aptos Fullnode resolver materialization', () => {
 
 	it('materializes account observations and resources with exact parents', async () => {
 		vi.spyOn(queries, 'getLedgerInfo').mockResolvedValue(response(ledgerInfo))
-		vi.spyOn(queries, 'getAccount').mockResolvedValue(response({
-			sequence_number: '8',
-			authentication_key: '0xauth',
+		vi.spyOn(queries, 'getAccount').mockImplementation(async (_address, ledgerVersion) => ({
+			body: {
+				sequence_number: '8',
+				authentication_key: '0xauth',
+			},
+			metadata: {
+				...metadata,
+				...(ledgerVersion != null && {
+					ledgerVersion: '43',
+					ledgerTimestampUsec: '1720000001123456',
+					epoch: '8',
+					blockHeight: '10',
+				}),
+			},
 		}))
 		vi.spyOn(queries, 'getAccountResources').mockResolvedValue(response([{
 			type: '0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>',
@@ -310,6 +321,7 @@ describe('Aptos Fullnode resolver materialization', () => {
 				},
 			},
 		}]))
+		const getBlockByVersion = vi.spyOn(queries, 'getBlockByVersion').mockResolvedValue(response(block))
 		const accountResolvers = aptosFullnodeResolvers.resolvers.filter((candidate) => candidate.entityType === EntityType.AptosAccount)
 		expect(accountResolvers).toHaveLength(2)
 		const accountSnapshots = await Promise.all(accountResolvers.map((resolver) => resolver.resolve['NetworkAddress'].resolve(aptosAccount, resolverContext)))
@@ -318,6 +330,13 @@ describe('Aptos Fullnode resolver materialization', () => {
 				$account: aptosAccount,
 				ledgerVersion: 42n,
 				source: Source.AptosFullnode_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.AptosAccount_Timestamp, [], 'authenticationKey')]: '0xauth',
+				[entityFieldAddressKey(EntityType.AptosAccount_Timestamp, [], 'blockHeight')]: 9n,
+				[entityFieldAddressKey(EntityType.AptosAccount_Timestamp, [], 'epoch')]: 7n,
+				[entityFieldAddressKey(EntityType.AptosAccount_Timestamp, [], 'sequenceNumber')]: 8n,
+				[entityFieldAddressKey(EntityType.AptosAccount_Timestamp, [], 'timestampMs')]: 1_720_000_000_123,
 			},
 		}])
 		expect(accountSnapshots).toContainEqual([{
@@ -337,8 +356,8 @@ describe('Aptos Fullnode resolver materialization', () => {
 			authenticationKey: '0xauth',
 			timestampMs: 1_720_000_000_123,
 			blockHeight: 9n,
-			epoch: 7n,
 		})
+		expect(getBlockByVersion).toHaveBeenCalledWith(42n, false)
 	})
 
 	it('accepts canonical Aptos identities and rejects unsupported networks before transport', async () => {

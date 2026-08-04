@@ -112,6 +112,36 @@ const getTransaction = async ({ $network, txId }: {
 	return getTransaction(txId)
 }
 
+const utxoBlockSnapshot = async (
+	$network: NetworkId,
+	hash: string
+) => {
+	assertBitcoinMainnet($network)
+	const {
+		getBlock,
+	} = await import('$/sources/MempoolSpace/Rest/queries.ts')
+	const block = await getBlock(hash)
+	return {
+		hash: block.id,
+		...(block.previousblockhash != null && {
+			$parent: {
+				[EntityMetaKey.Selector]: {
+					$network: $network,
+					height: BigInt(block.height - 1),
+					hash: block.previousblockhash,
+				},
+			},
+		}),
+		timestampMs: block.timestamp * 1000,
+		merkleRoot: block.merkle_root,
+		nonce: block.nonce,
+		difficulty: block.difficulty,
+		sizeBytes: block.size,
+		weightUnits: block.weight,
+		transactionCount: block.tx_count,
+	}
+}
+
 export default {
 	source: Source.MempoolSpace_Rest,
 
@@ -119,34 +149,24 @@ export default {
 		defineResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: {
-				NetworkHeightHash: {
+				NetworkHeight: {
 					appliesTo: bitcoinNetworkReferenceApplicability,
-					resolve: async ({ $network, hash }) => {
+					resolve: async ({ $network, height }) => {
 						assertBitcoinMainnet($network)
 						const {
-							getBlock,
+							getBlockHashByHeight,
 						} = await import('$/sources/MempoolSpace/Rest/queries.ts')
-						const block = await getBlock(hash)
-						return {
-							hash: block.id,
-							...(block.previousblockhash != null && {
-								$parent: {
-									[EntityMetaKey.Selector]: {
-										$network: $network,
-										height: BigInt(block.height - 1),
-										hash: block.previousblockhash,
-									},
-								},
-							}),
-							timestampMs: block.timestamp * 1000,
-							merkleRoot: block.merkle_root,
-							nonce: block.nonce,
-							difficulty: block.difficulty,
-							sizeBytes: block.size,
-							weightUnits: block.weight,
-							transactionCount: block.tx_count,
-						}
+						return utxoBlockSnapshot(
+							$network,
+							await getBlockHashByHeight(height)
+						)
 					},
+				},
+				NetworkHeightHash: {
+					appliesTo: bitcoinNetworkReferenceApplicability,
+					resolve: async ({ $network, hash }) => (
+						utxoBlockSnapshot($network, hash)
+					),
 				}
 			},
 		})({
@@ -348,6 +368,34 @@ export default {
 					)
 				},
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.UtxoAddress,
+			resolve: {
+				NetworkAddress: {
+					appliesTo: bitcoinNetworkReferenceApplicability,
+					resolve: async ({ $network, address }, context) => {
+						assertBitcoinMainnet($network)
+						const { getAddressUtxos } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+						return (
+							await getAddressUtxos(address)
+						)
+							.slice(0, resolverContextRowLimit(context))
+							.map((utxo) => ({
+								[EntityMetaKey.Selector]: {
+									$transaction: {
+										$network,
+										txId: utxo.txid,
+									},
+									indexInTransaction: utxo.vout,
+								},
+							}))
+					},
+				},
+			},
+		})({
+			$$outputs: (outputs) => outputs,
 		}),
 
 			defineResolver({

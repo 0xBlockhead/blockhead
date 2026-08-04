@@ -343,7 +343,17 @@ it('persists source-scoped handle and DID equivalence across restart', async () 
 			atproto,
 			atprotoBskySocial,
 		],
-		env: {},
+		sourceIndex: {
+			enabledBindingIds: new Set<string>(),
+			enabledSources: new Set([
+				Source.Atproto_BskySocial_Xrpc,
+				Source.Atproto_Xrpc,
+			]),
+			resolverPublicEnvBySource: new Map([
+				[Source.Atproto_BskySocial_Xrpc, {}],
+				[Source.Atproto_Xrpc, {}],
+			]),
+		},
 	})({
 		queryClient: new QueryClient(),
 		persistence,
