@@ -19,6 +19,7 @@ import { Source } from '$/sources/Source.ts'
 import { wormholeEvmChainByWormholeChainId } from '$/sources/Wormholescan/Rest/constants.ts'
 import type {
 	WormholescanOperation,
+	WormholescanVaa,
 	WormholescanWormholeChainId,
 } from '$/sources/Wormholescan/Rest/types.ts'
 
@@ -257,6 +258,31 @@ const loadOperationForTransfer = async (
 	return operation
 }
 
+const wormholeVaaSnapshotFromWire = (
+	vaa: WormholescanVaa
+) => {
+	if (vaa.digest == null || vaa.digest === '')
+		throw new Error('Wormholescan_Rest: VAA missing digest')
+	if (vaa.guardianSetIndex == null || !Number.isSafeInteger(vaa.guardianSetIndex))
+		throw new Error('Wormholescan_Rest: VAA missing guardian set index')
+	if (vaa.timestamp == null || vaa.timestamp === '')
+		throw new Error('Wormholescan_Rest: VAA missing timestamp')
+
+	const txHash = evmTxHashFromWormholeWire(vaa.txHash)
+
+	return {
+		digest: vaa.digest,
+		guardianSetIndex: vaa.guardianSetIndex,
+		timestamp: vaa.timestamp,
+		...(vaa.emitterNativeAddr != null
+			&& vaa.emitterNativeAddr !== ''
+			&& {
+				emitterNativeAddr: vaa.emitterNativeAddr,
+			}),
+		...(txHash != null && { txHash }),
+	}
+}
+
 export default {
 	source: Source.Wormholescan,
 
@@ -340,6 +366,37 @@ export default {
 			status: (observation) => observation.status,
 			destinationTxHash: (observation) => observation.destinationTxHash,
 			completedAt: (observation) => observation.completedAt,
+		}),
+
+		defineResolver({
+			entityType: EntityType.WormholeVaa,
+			resolve: {
+				EmitterChainEmitterSequence: {
+					resolve: async ({
+						emitterChain,
+						emitter,
+						sequence,
+					}) => {
+						const { getVaaById } = await import(
+							'$/sources/Wormholescan/Rest/queries.ts'
+						)
+						return wormholeVaaSnapshotFromWire(await getVaaById({
+							chainId: emitterChain,
+							emitter,
+							sequence,
+						}))
+					},
+				},
+			},
+		})({
+			emitterChain: (vaa) => vaa.emitterChain,
+			emitter: (vaa) => vaa.emitter,
+			sequence: (vaa) => vaa.sequence,
+			digest: (vaa) => vaa.digest,
+			guardianSetIndex: (vaa) => vaa.guardianSetIndex,
+			emitterNativeAddr: (vaa) => vaa.emitterNativeAddr,
+			timestamp: (vaa) => vaa.timestamp,
+			txHash: (vaa) => vaa.txHash,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

@@ -19,11 +19,13 @@ import type { WormholescanOperation } from '$/sources/Wormholescan/Rest/types.ts
 
 const getOperationById = vi.hoisted(() => vi.fn())
 const getOperations = vi.hoisted(() => vi.fn())
+const getVaaById = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Wormholescan/Rest/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/Wormholescan/Rest/queries.ts')>(),
 	getOperationById,
 	getOperations,
+	getVaaById,
 }))
 
 const { default: wormholescanRest } = await import('$/resolvers/Wormholescan-Rest.ts')
@@ -71,6 +73,7 @@ describe('Wormholescan BridgeTransfer resolvers', () => {
 		vi.restoreAllMocks()
 		getOperationById.mockReset()
 		getOperations.mockReset()
+		getVaaById.mockReset()
 	})
 
 	it('materializes schema-shaped fields from an official operation id', async () => {
@@ -251,5 +254,121 @@ describe('Wormholescan BridgeTransfer resolvers', () => {
 		})
 		expect(snapshot).not.toHaveProperty('amountIn')
 		expect(snapshot).not.toHaveProperty('$toNetwork')
+	})
+})
+
+const vaaEmitter = '0000000000000000000000001111111111111111111111111111111111111111'
+const vaaSelector = {
+	emitterChain: 2,
+	emitter: vaaEmitter,
+	sequence: '42',
+}
+const vaaTxHash = '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc'
+
+describe('Wormholescan WormholeVaa resolvers', () => {
+	afterEach(() => {
+		vi.restoreAllMocks()
+		getVaaById.mockReset()
+	})
+
+	it('materializes schema-shaped fields from getVaaById', async () => {
+		getVaaById.mockResolvedValue({
+			id: `2/${vaaEmitter}/42`,
+			sequence: '42',
+			emitterChain: 2,
+			emitterAddr: vaaEmitter,
+			timestamp: '2026-01-02T03:04:05.000Z',
+			vaa: 'AQAAAA',
+			digest: 'deadbeef',
+			guardianSetIndex: 3,
+			emitterNativeAddr: '0x1111111111111111111111111111111111111111',
+			txHash: vaaTxHash,
+		})
+		const resolver = wormholescanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.WormholeVaa
+		))
+		if (resolver == null)
+			throw new Error('Wormholescan WormholeVaa resolver is not registered')
+
+		const snapshot = await resolver.resolve.EmitterChainEmitterSequence.resolve(vaaSelector)
+
+		expect(getVaaById).toHaveBeenCalledWith({
+			chainId: 2,
+			emitter: vaaEmitter,
+			sequence: '42',
+		})
+		expect(snapshot).toEqual({
+			digest: 'deadbeef',
+			guardianSetIndex: 3,
+			timestamp: '2026-01-02T03:04:05.000Z',
+			emitterNativeAddr: '0x1111111111111111111111111111111111111111',
+			txHash: vaaTxHash,
+		})
+	})
+
+	it('omits optional emitterNativeAddr and txHash when absent', async () => {
+		getVaaById.mockResolvedValue({
+			id: `2/${vaaEmitter}/42`,
+			sequence: '42',
+			emitterChain: 2,
+			emitterAddr: vaaEmitter,
+			timestamp: '2026-01-02T03:04:05.000Z',
+			vaa: 'AQAAAA',
+			digest: 'deadbeef',
+			guardianSetIndex: 3,
+		})
+		const resolver = wormholescanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.WormholeVaa
+		))
+		if (resolver == null)
+			throw new Error('Wormholescan WormholeVaa resolver is not registered')
+
+		const snapshot = await resolver.resolve.EmitterChainEmitterSequence.resolve(vaaSelector)
+
+		expect(snapshot).toEqual({
+			digest: 'deadbeef',
+			guardianSetIndex: 3,
+			timestamp: '2026-01-02T03:04:05.000Z',
+		})
+	})
+
+	it('hard-fails when digest is missing', async () => {
+		getVaaById.mockResolvedValue({
+			id: `2/${vaaEmitter}/42`,
+			sequence: '42',
+			emitterChain: 2,
+			emitterAddr: vaaEmitter,
+			timestamp: '2026-01-02T03:04:05.000Z',
+			vaa: 'AQAAAA',
+			guardianSetIndex: 3,
+		})
+		const resolver = wormholescanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.WormholeVaa
+		))
+		if (resolver == null)
+			throw new Error('Wormholescan WormholeVaa resolver is not registered')
+
+		await expect(resolver.resolve.EmitterChainEmitterSequence.resolve(vaaSelector))
+			.rejects.toThrow('Wormholescan_Rest: VAA missing digest')
+	})
+
+	it('hard-fails when guardianSetIndex is missing', async () => {
+		getVaaById.mockResolvedValue({
+			id: `2/${vaaEmitter}/42`,
+			sequence: '42',
+			emitterChain: 2,
+			emitterAddr: vaaEmitter,
+			timestamp: '2026-01-02T03:04:05.000Z',
+			vaa: 'AQAAAA',
+			digest: 'deadbeef',
+		})
+		const resolver = wormholescanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.WormholeVaa
+		))
+		if (resolver == null)
+			throw new Error('Wormholescan WormholeVaa resolver is not registered')
+
+		await expect(resolver.resolve.EmitterChainEmitterSequence.resolve(vaaSelector))
+			.rejects.toThrow('Wormholescan_Rest: VAA missing guardian set index')
 	})
 })
