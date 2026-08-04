@@ -3,7 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { EvmAddress, Hash32, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -58,11 +58,11 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	inputDataHash: {
-		primitiveType: ZeroExHex,
+		primitiveType: Hash32,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	outputDataHash: {
-		primitiveType: ZeroExHex,
+		primitiveType: Hash32,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	gasUsed: {

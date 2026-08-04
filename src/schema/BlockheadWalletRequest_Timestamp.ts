@@ -3,7 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { Hash32 } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -33,20 +33,8 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	walletCallBundleStatus: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	atomic: {
 		primitiveType: type('boolean'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	receiptCount: {
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	transactionHash: {
-		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	transactionId: {
@@ -54,16 +42,20 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	signatureHash: {
-		primitiveType: ZeroExHex,
+		primitiveType: Hash32,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	statusPayloadHash: {
-		primitiveType: ZeroExHex,
+		primitiveType: Hash32,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	error: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$evmTransactions: {
+		entityType: EntityType.EvmTransaction,
+		cardinality: EntityFieldCardinality.Many,
 	},
 })({
 	selectors: {

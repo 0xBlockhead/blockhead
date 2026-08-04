@@ -40,29 +40,13 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	websiteUrl: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	capabilities: {
 		primitiveType: type('string').array(),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$connectionMethod: {
 		entityType: EntityType.WalletConnectionMethod,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	adapterId: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	sourceWalletKey: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	detectedAt: {
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 })({
 	selectors: {

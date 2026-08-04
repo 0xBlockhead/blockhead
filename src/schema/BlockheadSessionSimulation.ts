@@ -4,7 +4,7 @@ import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { Hash32 } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -35,7 +35,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	paramsHash: {
-		primitiveType: ZeroExHex,
+		primitiveType: Hash32,
 		cardinality: EntityFieldCardinality.One,
 	},
 	forkBlockNumber: {
@@ -54,12 +54,8 @@ export default entity({
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	resultSummary: {
-		primitiveType: type('unknown'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	resultPayloadHash: {
-		primitiveType: ZeroExHex,
+		primitiveType: Hash32,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	error: {

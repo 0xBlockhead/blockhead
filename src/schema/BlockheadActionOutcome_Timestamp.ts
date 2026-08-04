@@ -3,7 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { Hash32 } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -33,10 +33,6 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	transactionHash: {
-		primitiveType: ZeroExHex,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	transactionId: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -46,7 +42,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	sourcePayloadHash: {
-		primitiveType: ZeroExHex,
+		primitiveType: Hash32,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	error: {

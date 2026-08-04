@@ -3,7 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { EvmAddress, Hash32 } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -13,20 +13,13 @@ export default entity({
 		plural: 'blockhead wallet request calls',
 	},
 })({
-	$walletRequest: {
-		entityType: EntityType.BlockheadWalletRequest,
+	$evmRequest: {
+		entityType: EntityType.BlockheadEvmWalletRequest,
 		cardinality: EntityFieldCardinality.One,
 	},
 	callIndex: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
-	},
-	caip2: {
-		primitiveType: type({
-			namespace: type('string'),
-			reference: type('string'),
-		}),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	toAddress: {
 		primitiveType: EvmAddress,
@@ -37,13 +30,13 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	inputDataHash: {
-		primitiveType: ZeroExHex,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		primitiveType: Hash32,
+		cardinality: EntityFieldCardinality.One,
 	},
 })({
 	selectors: {
-		WalletRequestCallIndex: [
-			'$walletRequest',
+		EvmWalletRequestCallIndex: [
+			'$evmRequest',
 			'callIndex',
 		],
 	},

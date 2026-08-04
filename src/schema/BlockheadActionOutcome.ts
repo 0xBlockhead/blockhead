@@ -3,7 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { Hash32 } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -45,10 +45,6 @@ export default entity({
 		entityType: EntityType.BlockheadSessionSimulation,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	transactionHash: {
-		primitiveType: ZeroExHex,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	transactionId: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -61,13 +57,13 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	outcomeSummary: {
-		primitiveType: type('unknown'),
+	outcomePayloadHash: {
+		primitiveType: Hash32,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	outcomePayloadHash: {
-		primitiveType: ZeroExHex,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+	$$evmTransactions: {
+		entityType: EntityType.EvmTransaction,
+		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
 		entityType: EntityType.BlockheadActionOutcome_Timestamp,

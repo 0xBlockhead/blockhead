@@ -32,30 +32,6 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	apiSurfaceKind: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	sessionKind: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	authorizationKind: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	accountExposureKind: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	requestExecutionKind: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	discoveryTrustKind: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	formFactors: {
 		primitiveType: type('string').array(),
 		cardinality: EntityFieldCardinality.One,
@@ -71,14 +47,6 @@ export default entity({
 	capabilities: {
 		primitiveType: type('string').array(),
 		cardinality: EntityFieldCardinality.One,
-	},
-	sourceCapabilities: {
-		primitiveType: type('string').array(),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	runtimeCapabilities: {
-		primitiveType: type('string').array(),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	implementationStatus: {
 		primitiveType: type('string'),

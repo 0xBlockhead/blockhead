@@ -3,7 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { Hash32 } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -27,18 +27,14 @@ export default entity({
 	},
 	$walletConnection: {
 		entityType: EntityType.BlockheadWalletConnection,
+		cardinality: EntityFieldCardinality.One,
+	},
+	$account: {
+		entityType: EntityType.Account,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	walletProtocol: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	caip10: {
-		primitiveType: type({
-			namespace: type('string'),
-			reference: type('string'),
-			accountAddress: type('string'),
-		}),
+	$evmRequest: {
+		entityType: EntityType.BlockheadEvmWalletRequest,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	requestKind: {
@@ -49,37 +45,13 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	chainId: {
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	fromAddress: {
-		primitiveType: EvmAddress,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	toAddress: {
-		primitiveType: EvmAddress,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	value: {
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	callCount: {
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	atomicRequired: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	requestPayloadHash: {
-		primitiveType: ZeroExHex,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	walletCallBundleId: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		primitiveType: Hash32,
+		cardinality: EntityFieldCardinality.One,
 	},
 	requestedAt: {
 		primitiveType: type('number'),
@@ -88,10 +60,6 @@ export default entity({
 	submittedAt: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	$$calls: {
-		entityType: EntityType.BlockheadWalletRequestCall,
-		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
 		entityType: EntityType.BlockheadWalletRequest_Timestamp,
