@@ -28,34 +28,32 @@
 	resource={
 		selection({
 			fields: {
-				$icon: true,
-				name: true,
 				id: true,
+				parentUrl: true,
 				createdAt: true,
 			},
 		})
 	}
 >
 	{#snippet Item({ item: farcasterChannel })}
-		{@const farcasterChannelSelector = farcasterChannel[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.FarcasterChannel}
-			entitySelector={farcasterChannelSelector}
+			entitySelector={farcasterChannel[EntityMetaKey.Selector]}
 			href={
 				resolve(
 					'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]',
 					{
-						channelId: farcasterChannelSelector.id,
+						channelId: farcasterChannel.id,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{[farcasterChannel.name, farcasterChannelSelector.id].filter(Boolean).join(' ') || 'Farcaster channel'}
+				{farcasterChannel.id || 'Farcaster channel'}
 			{/snippet}
 
 			{#snippet Value()}
-				{['/', farcasterChannelSelector.id].filter(Boolean).join(' ')}
+				{farcasterChannel.parentUrl}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

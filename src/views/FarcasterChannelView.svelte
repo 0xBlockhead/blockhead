@@ -25,20 +25,18 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FarcasterChannel> = $props()
 
-	const viewSelection = $derived(selection({
+	const farcasterChannel = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Farcaster_Rest,
+			Source.Neynar_Rest,
 		],
-	}))
-	const farcasterChannel = $derived(viewSelection({
 		fields: {
-			name: true,
-			description: true,
-			url: true,
+			id: true,
+			parentUrl: true,
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived([(prefetched.name ?? ''), selection.entitySelector.id].filter(Boolean).join(' ') || 'Farcaster channel')
+	const titleFallback = $derived((prefetched.id ?? '') || 'Farcaster channel')
 	const viewDomId = $derived('farcaster-channel-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -49,9 +47,9 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import FarcasterUserView from '$/views/FarcasterUserView.svelte'
+	import FarcasterChannel_TimestampView from '$/views/FarcasterChannel_TimestampView.svelte'
 	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 	import FarcasterChannel_TimestampsView from '$/views/FarcasterChannel_TimestampsView.svelte'
-	import MediaView from '$/views/MediaView.svelte'
 </script>
 
 
@@ -62,11 +60,16 @@
 	title={title ?? titleFallback}
 	href={
 		href === undefined ?
-			resolve(
-				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]',
-				{
-					channelId: selection.entitySelector.id,
-				}
+			(
+				'id' in selection.entitySelector ?
+					resolve(
+						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]',
+						{
+							channelId: selection.entitySelector.id,
+						}
+					)
+				:
+					undefined
 			)
 		:
 			href ?? undefined
@@ -75,31 +78,26 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Icon()}
-		<ResourceBoundary resource={farcasterChannel}>
-			{#snippet children(entity)}
-				{@const reference = entity.$icon}
-				{#if reference != null}
-					<MediaView
-						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
-						prefetched={reference}
-						layout={EntityLayout.Value}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
 	{#snippet Title()}
 		<ResourceBoundary resource={farcasterChannel}>
 			{#snippet children(entity)}
-				{[entity.name, selection.entitySelector.id].filter(Boolean).join(' ') || title || titleFallback}
+				{entity.id || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{['/', selection.entitySelector.id].filter(Boolean).join(' ') || [(prefetched.name ?? ''), selection.entitySelector.id].filter(Boolean).join(' ') || titleFallback}
+		<ResourceBoundary resource={farcasterChannel}>
+			{#snippet children(entity)}
+				<a
+					href={entity.parentUrl}
+					target="_blank"
+					rel="noreferrer noopener"
+				>
+					<TruncatedValue value={entity.parentUrl} />
+				</a>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -118,38 +116,63 @@
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
-				<dt>ID</dt>
+				<dt>Latest observation</dt>
 				<dd>
-					{selection.entitySelector.id}
+					<ResourceBoundary
+						resource={
+							selection
+							.$$timestamps({
+								sources: [
+									Source.Farcaster_Rest,
+									Source.Neynar_Rest,
+								],
+								fields: {
+									name: true,
+									description: true,
+									iconUrl: true,
+									$icon: true,
+									headerImageUrl: true,
+									$headerImage: true,
+									$moderator: true,
+									$$moderators: true,
+									pinnedCastHash: true,
+									publicCasting: true,
+									externalLinkTitle: true,
+									externalLinkUrl: true,
+									followerCount: true,
+									memberCount: true,
+									timestampMs: true,
+									source: true,
+								},
+								orderBy: [
+									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+								],
+							}).first()
+						}
+					>
+						{#snippet children(farcasterChannelTimestamp)}
+							{#if farcasterChannelTimestamp != null}
+								{@const farcasterChannelTimestampSelector = farcasterChannelTimestamp[EntityMetaKey.Selector]}
+								<FarcasterChannel_TimestampView
+									selection={
+										select(EntityType.FarcasterChannel_Timestamp, farcasterChannelTimestampSelector, {
+											sources: [
+												Source.Farcaster_Rest,
+												Source.Neynar_Rest,
+											],
+										})
+									}
+									prefetched={{ ...farcasterChannelTimestampSelector, ...farcasterChannelTimestamp }}
+									layout={EntityLayout.Value}
+								/>
+							{:else}
+								<p data-text="muted" data-section-state="resolved-empty">No latest observation available.</p>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				</dd>
 			</div>
-		</dl>
 
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={farcasterChannel}
-			>
-				{#snippet children(entity)}
-					{@const url = entity.url}
-					{#if url != null}
-						<div>
-							<dt>URL</dt>
-							<dd>
-								<a
-									href={url}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={url} />
-								</a>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={selection.$lead}
 			>
@@ -169,86 +192,6 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
-
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={selection.$moderator}
-			>
-				{#snippet children(farcasterUser)}
-					{#if farcasterUser != null}
-						<div>
-							<dt>Moderator</dt>
-							<dd>
-								<FarcasterUserView
-									selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
-									prefetched={farcasterUser}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={farcasterChannel}
-			>
-				{#snippet children(entity)}
-					{@const createdAt = entity.createdAt}
-					{#if createdAt != null}
-						<div>
-							<dt>Created</dt>
-							<dd>
-								<Timestamp timestamp={createdAt} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							externalLinkUrl: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const externalLinkUrl = entity.externalLinkUrl}
-					{#if externalLinkUrl != null}
-						<div>
-							<dt>External link URL</dt>
-							<dd>
-								<a
-									href={externalLinkUrl}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={externalLinkUrl} />
-								</a>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<ResourceBoundary
-			resource={farcasterChannel}
-		>
-			{#snippet children(entity)}
-				{@const description = entity.description}
-				{#if description != null && description !== ''}
-					<p data-text="long-text">{description}</p>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details()}
@@ -264,7 +207,7 @@
 				]
 			}
 			data-card
-			class='network-view-collapsible-activity'
+			class='network-view-collapsible-directory'
 		>
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
@@ -276,12 +219,15 @@
 				<FarcasterCastsView
 					selection={selection.$$casts}
 					href={
-						resolve(
-							'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]/(farcasterChannel)/casts',
-							{
-								channelId: selection.entitySelector.id,
-							}
-						)
+						'id' in selection.entitySelector ?
+							resolve(
+								'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]/(farcasterChannel)/casts',
+								{
+									channelId: selection.entitySelector.id,
+								}
+							)
+						:
+							undefined
 					}
 					collapsible={false}
 					title={label}
@@ -304,7 +250,6 @@
 				]
 			}
 			data-card
-			class='network-view-collapsible-observations'
 		>
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">

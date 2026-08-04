@@ -9,6 +9,10 @@
 	import { Source } from '$/sources/Source.ts'
 
 
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
@@ -34,6 +38,16 @@
 	}))
 	const titleFallback = $derived((prefetched.protocolName ?? '') || 'Farcaster')
 	const viewDomId = $derived('farcaster-network-' + encodeURIComponent(stringify(selection.entitySelector)))
+	const trendingCasts = $derived(
+		select(EntityType.FarcasterFeed, {
+			variant: 'trending',
+		})
+			.$$entries({
+				sources: [
+					Source.Neynar_Rest,
+				],
+			})
+	)
 
 
 	// Components
@@ -41,6 +55,7 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 	import FarcasterFeedsView from '$/views/FarcasterFeedsView.svelte'
 	import FarcasterUsersView from '$/views/FarcasterUsersView.svelte'
 	import FarcasterChannelsView from '$/views/FarcasterChannelsView.svelte'
@@ -75,29 +90,14 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<dl data-column-item="center">
-			<div>
-				<dt>Protocol</dt>
-				<dd>
-					<ResourceBoundary
-						resource={farcasterNetwork}
-					>
-						{#snippet children(entity)}
-							{entity.protocolName}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-		</dl>
-
-		<dl data-column-item="center">
-			<div>
-				<dt>Home URL</dt>
-				<dd>
-					<ResourceBoundary
-						resource={farcasterNetwork}
-					>
-						{#snippet children(entity)}
+		<ResourceBoundary
+			resource={farcasterNetwork}
+		>
+			{#snippet children(entity)}
+				<dl data-column-item="center">
+					<div>
+						<dt>Home URL</dt>
+						<dd>
 							<a
 								href={entity.homeUrl}
 								target="_blank"
@@ -105,71 +105,44 @@
 							>
 								<TruncatedValue value={entity.homeUrl} />
 							</a>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-		</dl>
+						</dd>
+					</div>
 
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={farcasterNetwork}
-			>
-				{#snippet children(entity)}
-					{@const docsUrl = entity.docsUrl}
-					{#if docsUrl != null}
+					{#if entity.docsUrl != null}
 						<div>
 							<dt>Docs URL</dt>
 							<dd>
 								<a
-									href={docsUrl}
+									href={entity.docsUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={docsUrl} />
+									<TruncatedValue value={entity.docsUrl} />
 								</a>
 							</dd>
 						</div>
 					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
 
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={farcasterNetwork}
-			>
-				{#snippet children(entity)}
-					{@const registryName = entity.registryName}
-					{#if registryName != null}
+					{#if entity.registryName != null}
 						<div>
 							<dt>Registry name</dt>
 							<dd>
-								{registryName}
+								{entity.registryName}
 							</dd>
 						</div>
 					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
 
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={farcasterNetwork}
-			>
-				{#snippet children(entity)}
-					{@const relationshipModel = entity.relationshipModel}
-					{#if relationshipModel != null}
+					{#if entity.relationshipModel != null}
 						<div>
 							<dt>Connection model</dt>
 							<dd>
-								{relationshipModel}
+								{entity.relationshipModel}
 							</dd>
 						</div>
 					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details()}
@@ -183,12 +156,16 @@
 						label: 'Feeds',
 					},
 					{
-						id: 'farcaster-network-users',
-						label: 'Users',
+						id: 'farcaster-network-casts',
+						label: 'Casts',
 					},
 					{
 						id: 'farcaster-network-channels',
 						label: 'Channels',
+					},
+					{
+						id: 'farcaster-network-users',
+						label: 'Users',
 					},
 				]
 			}
@@ -212,13 +189,14 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionFarcasterNetworkUsers({ id, label })}
-				<FarcasterUsersView
-					selection={selection.$$users}
-					href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/users')}
+			{#snippet SectionFarcasterNetworkCasts({ id, label })}
+				<FarcasterCastsView
+					selection={trendingCasts}
+					countResource={trendingCasts.count}
+					href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/trending')}
 					collapsible={false}
 					title={label}
-					emptyText='No Farcaster users in this observed.'
+					emptyText='No trending Farcaster casts in this observed.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
@@ -230,6 +208,17 @@
 					collapsible={false}
 					title={label}
 					emptyText='No Farcaster channels in this observed.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionFarcasterNetworkUsers({ id, label })}
+				<FarcasterUsersView
+					selection={selection.$$users}
+					href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/users')}
+					collapsible={false}
+					title={label}
+					emptyText='No Farcaster users in this observed.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

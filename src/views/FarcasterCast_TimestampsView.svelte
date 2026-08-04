@@ -37,6 +37,7 @@
 					},
 				},
 				timestampMs: true,
+				source: true,
 			},
 		})
 	}
@@ -51,11 +52,12 @@
 				'fid' in cast
 				&& 'hash' in cast ?
 					resolve(
-						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]/(farcasterCast)/observations/[timestampMs=nonNegativeInteger]',
+						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]/(farcasterCast)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
 						{
 							fid: String(cast.fid),
 							hash: cast.hash,
 							timestampMs: String(farcasterCastTimestampSelector.timestampMs),
+							source: farcasterCastTimestampSelector.source,
 						}
 					)
 				:
@@ -63,11 +65,15 @@
 			}
 		>
 			{#snippet Title()}
-				{[(farcasterCastTimestamp.$cast.text ?? ''), farcasterCastTimestampSelector.$cast.hash].filter(Boolean).join(' ') || 'Farcaster cast'}
+				{[(farcasterCastTimestamp.$cast.text ?? ''), farcasterCastTimestamp.$cast.hash].filter(Boolean).join(' ') || 'Farcaster cast'}
 			{/snippet}
 
 			{#snippet Value()}
 				{farcasterCastTimestampSelector.timestampMs}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{farcasterCastTimestampSelector.source}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

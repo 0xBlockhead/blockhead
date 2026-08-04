@@ -28,8 +28,11 @@
 	resource={
 		selection({
 			fields: {
+				$icon: true,
+				name: true,
 				$channel: true,
 				timestampMs: true,
+				source: true,
 			},
 		})
 	}
@@ -40,21 +43,29 @@
 			entityType={EntityType.FarcasterChannel_Timestamp}
 			entitySelector={farcasterChannelTimestampSelector}
 			href={
-				resolve(
-					'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]/(farcasterChannel)/observations/[timestampMs=nonNegativeInteger]',
-					{
-						channelId: farcasterChannelTimestampSelector.$channel.id,
-						timestampMs: String(farcasterChannelTimestampSelector.timestampMs),
-					}
-				)
+				'id' in farcasterChannelTimestampSelector.$channel ?
+					resolve(
+						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]/(farcasterChannel)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
+						{
+							channelId: farcasterChannelTimestampSelector.$channel.id,
+							timestampMs: String(farcasterChannelTimestampSelector.timestampMs),
+							source: farcasterChannelTimestampSelector.source,
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}
-				{[farcasterChannelTimestamp.$channel.name, farcasterChannelTimestampSelector.$channel.id].filter(Boolean).join(' ') || 'Farcaster channel'}
+				{[(farcasterChannelTimestamp.name ?? ''), farcasterChannelTimestamp.$channel.id || 'Farcaster channel'].filter(Boolean).join(' ') || 'Farcaster channel observation'}
 			{/snippet}
 
 			{#snippet Value()}
 				{farcasterChannelTimestampSelector.timestampMs}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{farcasterChannelTimestampSelector.source}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -66,11 +66,11 @@
 			}
 		>
 			{#snippet Title()}
-				{[(farcasterCast.text ?? ''), farcasterCastSelector.hash].filter(Boolean).join(' ') || 'Farcaster cast'}
+				{[(farcasterCast.text ?? ''), farcasterCast.hash].filter(Boolean).join(' ') || 'Farcaster cast'}
 			{/snippet}
 
 			{#snippet Value()}
-				{['FID ', String(farcasterCastSelector.fid), ' / ', farcasterCastSelector.hash].filter(Boolean).join(' ')}
+				{['FID ', String(farcasterCast.fid), ' / ', farcasterCast.hash].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

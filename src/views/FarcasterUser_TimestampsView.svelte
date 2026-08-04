@@ -30,6 +30,7 @@
 			fields: {
 				$user: true,
 				timestampMs: true,
+				source: true,
 			},
 		})
 	}
@@ -41,10 +42,11 @@
 			entitySelector={farcasterUserTimestampSelector}
 			href={
 				resolve(
-					'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]/(farcasterUser)/observations/[timestampMs=nonNegativeInteger]',
+					'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]/(farcasterUser)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
 					{
 						userId: String(farcasterUserTimestampSelector.$user.fid),
 						timestampMs: String(farcasterUserTimestampSelector.timestampMs),
+						source: farcasterUserTimestampSelector.source,
 					}
 				)
 			}
@@ -55,6 +57,10 @@
 
 			{#snippet Value()}
 				{farcasterUserTimestampSelector.timestampMs}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{farcasterUserTimestampSelector.source}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

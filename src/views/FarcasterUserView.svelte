@@ -27,6 +27,7 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
+			Source.Neynar_Rest,
 			Source.Snapchain_Rest,
 		],
 	}))
@@ -43,11 +44,11 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
+	import FarcasterChannel_Viewer_TimestampsView from '$/views/FarcasterChannel_Viewer_TimestampsView.svelte'
 	import FarcasterVerifiedAddressesView from '$/views/FarcasterVerifiedAddressesView.svelte'
 	import FarcasterUser_TimestampsView from '$/views/FarcasterUser_TimestampsView.svelte'
 	import MediaView from '$/views/MediaView.svelte'
@@ -117,36 +118,6 @@
 
 	{#snippet Content()}
 		<dl data-column-item="center">
-			<div>
-				<dt>FID</dt>
-				<dd>
-					<NumberValue
-						value={selection.entitySelector.fid}
-					/>
-				</dd>
-			</div>
-		</dl>
-
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={farcasterUser}
-			>
-				{#snippet children(entity)}
-					{@const username = entity.username}
-					{#if username != null}
-						<div>
-							<dt>Username</dt>
-							<dd>
-								<span>@</span>
-								{username}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
 					viewSelection({
@@ -174,9 +145,7 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
-		</dl>
 
-		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={selection.$primaryEvmAccount}
 			>
@@ -225,13 +194,17 @@
 						label: 'Casts',
 					},
 					{
+						id: 'farcaster-user-channel-state',
+						label: 'Channel state',
+					},
+					{
 						id: 'farcaster-user-verified-addresses',
 						label: 'Verified addresses',
 					},
 				]
 			}
 			data-card
-			class='network-view-collapsible-activity'
+			class='network-view-collapsible-directory'
 		>
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
@@ -253,6 +226,16 @@
 					collapsible={false}
 					title={label}
 					emptyText='No Farcaster casts for this user.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionFarcasterUserChannelState({ id, label })}
+				<FarcasterChannel_Viewer_TimestampsView
+					selection={selection.$$channelViewerTimestamps}
+					collapsible={false}
+					title={label}
+					emptyText='No viewer-attributed channel state.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
@@ -281,7 +264,6 @@
 				]
 			}
 			data-card
-			class='network-view-collapsible-observations'
 		>
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">

@@ -49,11 +49,12 @@
 				'fid' in cast
 				&& 'hash' in cast ?
 					resolve(
-						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]/(farcasterCast)/observations/[timestampMs=nonNegativeInteger]',
+						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]/(farcasterCast)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
 						{
 							fid: String(cast.fid),
 							hash: cast.hash,
 							timestampMs: String(selection.entitySelector.timestampMs),
+							source: selection.entitySelector.source,
 						}
 					)
 				:
@@ -78,6 +79,12 @@
 		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
+	{#snippet HeadingAfter()}
+		<span data-text="muted">
+			{selection.entitySelector.source}
+		</span>
+	{/snippet}
+
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
@@ -89,13 +96,18 @@
 					/>
 				</dd>
 			</div>
-		</dl>
 
-		<dl data-column-item="center">
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
 					<Timestamp timestamp={selection.entitySelector.timestampMs} />
+				</dd>
+			</div>
+
+			<div>
+				<dt>Source</dt>
+				<dd>
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

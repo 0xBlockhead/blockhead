@@ -159,13 +159,7 @@
 						<div>
 							<dt>URL</dt>
 							<dd>
-								<a
-									href={url}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={url} />
-								</a>
+								<TruncatedValue value={url} />
 							</dd>
 						</div>
 					{/if}

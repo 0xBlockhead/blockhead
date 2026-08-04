@@ -140,27 +140,7 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
-		</dl>
 
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={farcasterCast}
-			>
-				{#snippet children(entity)}
-					{@const timestamp = entity.timestamp}
-					{#if timestamp != null}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp timestamp={timestamp} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={selection.$channel}
 			>
@@ -179,9 +159,7 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
-		</dl>
 
-		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={selection.$parentCast}
 			>
@@ -208,106 +186,63 @@
 					viewSelection({
 						fields: {
 							parentUrl: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const parentUrl = entity.parentUrl}
-					{#if parentUrl != null}
-						<div>
-							<dt>Parent URL</dt>
-							<dd>
-								<a
-									href={parentUrl}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={parentUrl} />
-								</a>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
 							rootParentUrl: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const rootParentUrl = entity.rootParentUrl}
-					{#if rootParentUrl != null}
-						<div>
-							<dt>Root parent URL</dt>
-							<dd>
-								<a
-									href={rootParentUrl}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={rootParentUrl} />
-								</a>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
 							threadHash: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const threadHash = entity.threadHash}
-					{#if threadHash != null}
-						<div>
-							<dt>Thread hash</dt>
-							<dd>
-								<TruncatedValue value={threadHash} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
 							clientUrl: true,
 						},
 					})
 				}
 			>
 				{#snippet children(entity)}
-					{@const clientUrl = entity.clientUrl}
-					{#if clientUrl != null}
+					{#if entity.parentUrl != null}
+						<div>
+							<dt>Parent URL</dt>
+							<dd>
+								<a
+									href={entity.parentUrl}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={entity.parentUrl} />
+								</a>
+							</dd>
+						</div>
+					{/if}
+
+					{#if entity.rootParentUrl != null}
+						<div>
+							<dt>Root parent URL</dt>
+							<dd>
+								<a
+									href={entity.rootParentUrl}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={entity.rootParentUrl} />
+								</a>
+							</dd>
+						</div>
+					{/if}
+
+					{#if entity.threadHash != null}
+						<div>
+							<dt>Thread hash</dt>
+							<dd>
+								<TruncatedValue value={entity.threadHash} />
+							</dd>
+						</div>
+					{/if}
+
+					{#if entity.clientUrl != null}
 						<div>
 							<dt>Client URL</dt>
 							<dd>
 								<a
-									href={clientUrl}
+									href={entity.clientUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={clientUrl} />
+									<TruncatedValue value={entity.clientUrl} />
 								</a>
 							</dd>
 						</div>

@@ -45,10 +45,11 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]/(farcasterUser)/observations/[timestampMs=nonNegativeInteger]',
+				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]/(farcasterUser)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
 				{
 					userId: String(selection.entitySelector.$user.fid),
 					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
 				}
 			)
 		:
@@ -70,6 +71,12 @@
 		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
+	{#snippet HeadingAfter()}
+		<span data-text="muted">
+			{selection.entitySelector.source}
+		</span>
+	{/snippet}
+
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
@@ -81,13 +88,18 @@
 					/>
 				</dd>
 			</div>
-		</dl>
 
-		<dl data-column-item="center">
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
 					<Timestamp timestamp={selection.entitySelector.timestampMs} />
+				</dd>
+			</div>
+
+			<div>
+				<dt>Source</dt>
+				<dd>
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
