@@ -223,6 +223,16 @@ describe('Osmosis LCD named operations', () => {
 		)
 	})
 
+	it('rejects a pool envelope with a mismatched id', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			pool: {
+				id: '2',
+			},
+		})
+
+		await expect(getPool('1')).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: pool id mismatch 2 !== 1`)
+	})
+
 	it('rejects a non-integer pool id before transport', () => {
 		expect(() => getPool('1.5')).toThrow(`${Source.Osmosis_LCD_Rest}: invalid pool id`)
 		expect(sourceGetJson).not.toHaveBeenCalled()
@@ -231,15 +241,73 @@ describe('Osmosis LCD named operations', () => {
 	it('lists pools with a bounded pagination limit', async () => {
 		sourceGetJson.mockResolvedValueOnce({
 			pools: [],
+			pagination: {
+				total: '0',
+			},
 		})
 		await expect(getPools({
 			limit: 10,
 		})).resolves.toEqual({
 			pools: [],
+			pagination: {
+				total: '0',
+			},
 		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			httpUrl(binding, '/osmosis/poolmanager/v1beta1/pools?pagination.limit=10')
+			httpUrl(binding, '/osmosis/poolmanager/v1beta1/pools?pagination.limit=10&pagination.count_total=true')
+		)
+	})
+
+	it('rejects a malformed pools envelope instead of treating it as empty', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			pagination: {
+				total: '0',
+			},
+		})
+
+		await expect(getPools({
+			limit: 10,
+		})).rejects.toThrow()
+	})
+
+	it('rejects duplicate pools and a non-advancing page key', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			pools: [
+				{
+					id: '1',
+				},
+				{
+					id: '1',
+				},
+			],
+			pagination: {
+				next_key: 'next',
+				total: '2',
+			},
+		})
+		await expect(getPools({
+			limit: 10,
+		})).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: pools page contains duplicate pool ids`)
+
+		sourceGetJson.mockResolvedValueOnce({
+			pools: [
+				{
+					id: '1',
+				},
+			],
+			pagination: {
+				next_key: 'same-page',
+				total: '2',
+			},
+		})
+		await expect(getPools({
+			limit: 10,
+			paginationKey: 'same-page',
+		})).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: pools pagination did not advance`)
+		expect(sourceGetJson).toHaveBeenLastCalledWith(
+			binding,
+			httpUrl(binding, '/osmosis/poolmanager/v1beta1/pools?pagination.limit=10&pagination.count_total=true&pagination.key=same-page')
 		)
 	})
 
