@@ -17,7 +17,7 @@ const summary = createRawSnippet<[context: {
 }))
 
 
-test('mounts every declared section before selection', async () => {
+test('defers inactive section content while retaining every section target', async () => {
 	const { container } = await render(CollapsibleTabs, {
 		id: 'network-tabs',
 		class: 'network-tabs',
@@ -55,11 +55,18 @@ test('mounts every declared section before selection', async () => {
 	expect(container.querySelectorAll('[data-carousel-markers] a')).toHaveLength(2)
 	expect(container.querySelectorAll('[data-collapsible-tabs-pane-host] > section')).toHaveLength(2)
 	await expect.element(page.getByText('Block rows')).toBeInTheDocument()
-	await expect.element(page.getByText('Transaction rows')).toBeInTheDocument()
+	await expect.element(page.getByText('Transaction rows')).not.toBeInTheDocument()
 
 	await userEvent.click(page.getByText('Summary closed'))
 
 	expect(details?.open).toBe(true)
+
+	await userEvent.click(page.getByRole('link', {
+		name: 'Transactions',
+	}))
+
+	await expect.element(page.getByText('Block rows')).toBeInTheDocument()
+	await expect.element(page.getByText('Transaction rows')).toBeInTheDocument()
 })
 
 test('rejects a declared section without content', async () => {

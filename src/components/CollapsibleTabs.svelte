@@ -112,6 +112,7 @@
 	}: CollapsibleTabsOwnProps<Sections> & CollapsibleTabsForwardedProps = $props()
 
 	let selectedSectionId = $state<CollapsibleTabsSectionIds<Sections>>()
+	let mountedSectionIds = $state<CollapsibleTabsSectionIds<Sections>[]>([])
 	let activeSectionId = $derived<CollapsibleTabsSectionIds<Sections> | string | undefined>(
 		selectedSectionId ?? (sections[0].ownsSection ? undefined : sections[0].id),
 	)
@@ -122,6 +123,16 @@
 
 
 	// Functions
+	import { visibility } from '$/lib/visibility.ts'
+
+
+	const mountSection = (
+		sectionId: CollapsibleTabsSectionIds<Sections>,
+	) => {
+		if (!mountedSectionIds.includes(sectionId))
+			mountedSectionIds = [...mountedSectionIds, sectionId]
+	}
+
 	const sectionAnchorId = (
 		sectionId: CollapsibleTabsSectionIds<Sections>,
 	) => (
@@ -194,6 +205,7 @@
 										data-active={section.id === activeSectionId}
 										href={`#${sectionAnchorId(section.id)}`}
 										onclick={() => {
+											mountSection(section.id)
 											selectedSectionId = section.id
 										}}
 									>{section.label}</a>
@@ -207,6 +219,7 @@
 									data-active={section.id === activeSectionId}
 									href={`#${sectionAnchorId(section.id)}`}
 									onclick={() => {
+										mountSection(section.id)
 										selectedSectionId = section.id
 									}}
 								>{section.label}</a>
@@ -238,13 +251,32 @@
 		>
 			{#each sections as section (section.id)}
 				{@const Section = sectionSnippetForSection(section)}
-				{#if section.ownsSection}
-					{@render Section({
-						id: sectionAnchorId(section.id),
-						label: section.label,
-						open: true,
-						active: section.id === activeSectionId,
-					})}
+				{#if section.id === sections[0].id || mountedSectionIds.includes(section.id)}
+					{#if section.ownsSection}
+						{@render Section({
+							id: sectionAnchorId(section.id),
+							label: section.label,
+							open: true,
+							active: section.id === activeSectionId,
+						})}
+					{:else}
+						<section
+							id={sectionAnchorId(section.id)}
+							aria-labelledby={`${sectionAnchorId(section.id)}:marker`}
+							data-scroll-marker-label={section.label}
+							data-column-item="flexible"
+							data-column
+							data-active={section.id === activeSectionId}
+						>
+							{@render Section(
+								{
+									id: sectionAnchorId(section.id),
+									label: section.label,
+									open: true,
+								},
+							)}
+						</section>
+					{/if}
 				{:else}
 					<section
 						id={sectionAnchorId(section.id)}
@@ -253,14 +285,20 @@
 						data-column-item="flexible"
 						data-column
 						data-active={section.id === activeSectionId}
-					>
-						{@render Section(
-							{
-								id: sectionAnchorId(section.id),
-								label: section.label,
-								open: true,
+						{@attach visibility({
+							onVisible: () => mountSection(section.id),
+							options: {
+								rootMargin: '0px',
 							},
-						)}
+						})}
+					>
+						<article
+							id={`${sectionAnchorId(section.id)}-list`}
+							aria-label={`${section.label} loads when viewed`}
+							data-column-item="flexible"
+							data-card
+							data-scroll-container
+						></article>
 					</section>
 				{/if}
 			{/each}
