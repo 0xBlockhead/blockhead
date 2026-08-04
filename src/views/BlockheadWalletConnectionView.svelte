@@ -55,7 +55,7 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/~/accounts/connections/[connectionKey=stringSegment]',
+				'/~/wallets/connections/[connectionKey=stringSegment]',
 				{
 					connectionKey: selection.entitySelector.connectionKey,
 				}

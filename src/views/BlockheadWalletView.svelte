@@ -40,8 +40,6 @@
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import WalletConnectionMethodView from '$/views/WalletConnectionMethodView.svelte'
 </script>
 
@@ -131,24 +129,22 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={selection.$connectionMethod}
-			>
-				{#snippet children(walletConnectionMethod)}
-					{#if walletConnectionMethod != null}
-						<div>
-							<dt>connection method</dt>
-							<dd>
-								<WalletConnectionMethodView
-									selection={select(EntityType.WalletConnectionMethod, walletConnectionMethod[EntityMetaKey.Selector])}
-									prefetched={walletConnectionMethod}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>connection method</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$connectionMethod}
+					>
+						{#snippet children(walletConnectionMethod)}
+							<WalletConnectionMethodView
+								selection={select(EntityType.WalletConnectionMethod, walletConnectionMethod[EntityMetaKey.Selector])}
+								prefetched={walletConnectionMethod}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">
@@ -193,34 +189,6 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							websiteUrl: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const websiteUrl = entity.websiteUrl}
-					{#if websiteUrl != null}
-						<div>
-							<dt>website URL</dt>
-							<dd>
-								<a
-									href={websiteUrl}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={websiteUrl} />
-								</a>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
 			<div>
 				<dt>capabilities</dt>
 				<dd>
@@ -239,72 +207,6 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							adapterId: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const adapterId = entity.adapterId}
-					{#if adapterId != null}
-						<div>
-							<dt>adapter ID</dt>
-							<dd>
-								{adapterId}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							sourceWalletKey: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const sourceWalletKey = entity.sourceWalletKey}
-					{#if sourceWalletKey != null}
-						<div>
-							<dt>source wallet key</dt>
-							<dd>
-								{sourceWalletKey}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							detectedAt: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const detectedAt = entity.detectedAt}
-					{#if detectedAt != null}
-						<div>
-							<dt>detected AT</dt>
-							<dd>
-								<Timestamp timestamp={detectedAt} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
 		</dl>
 	{/snippet}
 </EntityView>

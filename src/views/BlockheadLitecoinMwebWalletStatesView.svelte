@@ -47,7 +47,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{blockheadLitecoinMwebWalletState.$network.name || (blockheadLitecoinMwebWalletStateSelector.$network.caip2 == null ? '' : `${blockheadLitecoinMwebWalletStateSelector.$network.caip2.namespace}:${blockheadLitecoinMwebWalletStateSelector.$network.caip2.reference}`) || 'Network'}
+				{blockheadLitecoinMwebWalletState.$network.name || (blockheadLitecoinMwebWalletState.$network.caip2 == null ? '' : `${blockheadLitecoinMwebWalletState.$network.caip2.namespace}:${blockheadLitecoinMwebWalletState.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

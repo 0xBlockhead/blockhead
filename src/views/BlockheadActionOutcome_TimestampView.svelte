@@ -7,10 +7,6 @@
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-
-
 	// State
 	let {
 		selection,
@@ -38,7 +34,6 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import BlockheadActionOutcomeView from '$/views/BlockheadActionOutcomeView.svelte'
 </script>
 
 
@@ -70,16 +65,6 @@
 
 	{#snippet Content()}
 		<dl data-column-item="center">
-			<div>
-				<dt>outcome</dt>
-				<dd>
-					<BlockheadActionOutcomeView
-						selection={select(EntityType.BlockheadActionOutcome, selection.entitySelector.$outcome)}
-						layout={EntityLayout.Value}
-					/>
-				</dd>
-			</div>
-
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
@@ -131,28 +116,6 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							transactionHash: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const transactionHash = entity.transactionHash}
-					{#if transactionHash != null}
-						<div>
-							<dt>transaction hash</dt>
-							<dd>
-								<TruncatedValue value={transactionHash} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
 			<ResourceBoundary
 				resource={
 					viewSelection({

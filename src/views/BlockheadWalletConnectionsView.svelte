@@ -48,7 +48,7 @@
 			entitySelector={blockheadWalletConnectionSelector}
 			href={
 				resolve(
-					'/~/accounts/connections/[connectionKey=stringSegment]',
+					'/~/wallets/connections/[connectionKey=stringSegment]',
 					{
 						connectionKey: blockheadWalletConnectionSelector.connectionKey,
 					}

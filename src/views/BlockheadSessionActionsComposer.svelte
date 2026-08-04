@@ -66,13 +66,28 @@
 		actionTypeDefinitions,
 	} from '$/constants/actions.ts'
 	import { entityDragDataType } from '$/components/EntityId.svelte'
-	import {
-		EntityMetaKey,
-		type EntitySelector,
-	} from '$/schema/$schema.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { goto } from '$app/navigation'
 	import { resolve } from '$app/paths'
+	import {
+		beginSessionComposerPreparation,
+		createSessionActionDraft,
+		editSessionActionDraft,
+		emptyDraftFieldsForActionType,
+		failSessionComposerPreparation,
+		finishSessionComposerPreparation,
+		idleSessionActionDraft,
+		idleSessionComposerNotice,
+		isSessionComposerPreparing,
+		nextSessionActionIndexInSequence,
+		retargetSessionActionDraft,
+		sessionComposerNoticeMessage,
+		sessionComposerReadinessCheckIds,
+		sessionComposerWalletRequestId,
+		type SessionActionDraft,
+		type SessionComposerNotice,
+	} from '$/views/sessionActionsComposerState.ts'
 
 
 	// Context
@@ -85,7 +100,10 @@
 		writeLocalBlockheadSessionLockedAt,
 		writeLocalBlockheadSessionName,
 	} from '$/collections/localMutations.ts'
-	import { getAppClient } from '$/routes/+layout.svelte'
+	import {
+		getAppClient,
+		select,
+	} from '$/routes/+layout.svelte'
 
 
 	// State
@@ -103,23 +121,10 @@
 		ActionType.Swap,
 	)
 	let sessionName = $state('')
-	let draftActionType = $state<ActionType>()
-	let editingActionSelector = $state<EntitySelector<typeof schema, EntityType.BlockheadSessionAction>>()
-	let editingActionIndexInSequence = $state<number>()
-	let editingActionCreatedAt = $state<number>()
-	let fromActor = $state('')
-	let toActor = $state('')
-	let chainId = $state('')
-	let tokenAddress = $state('')
-	let tokenIn = $state('')
-	let tokenOut = $state('')
-	let fromChainId = $state('')
-	let toChainId = $state('')
-	let amount = $state('')
-	let slippage = $state('0.005')
+	let draft = $state<SessionActionDraft>(idleSessionActionDraft)
+	let notice = $state<SessionComposerNotice>(idleSessionComposerNotice)
 	let keyboardFromActor = $state('')
 	let keyboardChainId = $state('')
-	let status = $state('')
 
 	const session = $derived(
 		selection({
@@ -140,51 +145,53 @@
 			},
 		})
 	)
+	const noticeMessage = $derived(sessionComposerNoticeMessage(notice))
+	const preparedWalletRequestId = $derived(sessionComposerWalletRequestId(notice))
+	const preparing = $derived(isSessionComposerPreparing(notice))
+	const noticeReadinessCheckIds = $derived(sessionComposerReadinessCheckIds(notice))
+	const nextIndexInSequence = $derived(
+		nextSessionActionIndexInSequence(
+			sessionActions.current?.values.map((action) => action.indexInSequence) ?? []
+		)
+	)
 
 
 	// Functions
+	import { normalizeBoundaryError } from '$/lib/errors.ts'
+	import { applyEvmNativeTransferPreparation } from '$/state/sessions/evmNativeTransferPreparation.ts'
+	import { getWalletConnectionRuntime } from '$/state/wallets/walletConnectionRuntime.svelte.ts'
+
 	const cancelDraft = () => {
-		draftActionType = undefined
-		editingActionSelector = undefined
-		editingActionIndexInSequence = undefined
-		editingActionCreatedAt = undefined
-		fromActor = ''
-		toActor = ''
-		chainId = ''
-		tokenAddress = ''
-		tokenIn = ''
-		tokenOut = ''
-		fromChainId = ''
-		toChainId = ''
-		amount = ''
-		slippage = '0.005'
+		draft = idleSessionActionDraft
 	}
 
-	const writeAction = async (confirmedActionType: ActionType, actionParams: object) => {
-		if (
-			editingActionSelector !== undefined
-			&& editingActionIndexInSequence !== undefined
-			&& editingActionCreatedAt !== undefined
-		) {
+	const writeAction = async (activeDraft: Exclude<SessionActionDraft, { mode: 'idle' }>, actionParams: object) => {
+		if (activeDraft.mode === 'edit') {
 			await updateLocalBlockheadSessionActionType(
 				getAppClient(),
-				editingActionSelector,
+				activeDraft.selector,
 				selection.entitySelector,
-				editingActionIndexInSequence,
-				editingActionCreatedAt,
-				confirmedActionType,
+				activeDraft.indexInSequence,
+				activeDraft.createdAt,
+				activeDraft.actionType,
 				actionParams,
 			)
-			status = `${confirmedActionType} draft updated.`
+			notice = {
+				status: 'info',
+				message: `${activeDraft.actionType} draft updated.`,
+			}
 		} else {
 			await writeLocalBlockheadSessionAction(
 				getAppClient(),
 				selection.entitySelector,
-				Date.now(),
-				confirmedActionType,
+				nextIndexInSequence,
+				activeDraft.actionType,
 				actionParams,
 			)
-			status = `${confirmedActionType} draft added.`
+			notice = {
+				status: 'info',
+				message: `${activeDraft.actionType} draft added.`,
+			}
 		}
 		cancelDraft()
 	}
@@ -194,67 +201,104 @@
 	) => {
 		cancelDraft()
 		if (resolvedAction.actionParams == null) {
-			status = 'Draft parameters are not available.'
+			notice = {
+				status: 'error',
+				message: 'Draft parameters are not available.',
+			}
 			return
 		}
 		const nextActionType = arktype.enumerated(...Object.values(ActionType)).assert(resolvedAction.actionType)
+		const identity = {
+			selector: resolvedAction[EntityMetaKey.Selector],
+			indexInSequence: resolvedAction.indexInSequence,
+			createdAt: resolvedAction.createdAt,
+		}
 		if (nextActionType === ActionType.Transfer) {
 			const actionParams = actionTypeDefinitionByActionType[nextActionType].params.assert(resolvedAction.actionParams ?? {})
-			fromActor = actionParams.fromActor
-			toActor = actionParams.toActor
-			chainId = String(actionParams.chainId)
-			tokenAddress = actionParams.tokenAddress
-			amount = String(actionParams.amount)
+			draft = editSessionActionDraft(
+				{
+					actionType: ActionType.Transfer,
+					fields: {
+						fromActor: actionParams.fromActor,
+						toActor: actionParams.toActor,
+						chainId: String(actionParams.chainId),
+						tokenAddress: actionParams.tokenAddress,
+						amount: String(actionParams.amount),
+					},
+				},
+				identity,
+			)
 		} else if (nextActionType === ActionType.Swap) {
 			const actionParams = actionTypeDefinitionByActionType[nextActionType].params.assert(resolvedAction.actionParams ?? {})
-			chainId = String(actionParams.chainId)
-			tokenIn = actionParams.tokenIn
-			tokenOut = actionParams.tokenOut
-			amount = String(actionParams.amount)
-			slippage = String(actionParams.slippage)
+			draft = editSessionActionDraft(
+				{
+					actionType: ActionType.Swap,
+					fields: {
+						chainId: String(actionParams.chainId),
+						tokenIn: actionParams.tokenIn,
+						tokenOut: actionParams.tokenOut,
+						amount: String(actionParams.amount),
+						slippage: String(actionParams.slippage),
+					},
+				},
+				identity,
+			)
 		} else {
 			const actionParams = actionTypeDefinitionByActionType[nextActionType].params.assert(resolvedAction.actionParams ?? {})
-			fromChainId = String(actionParams.fromChainId)
-			toChainId = String(actionParams.toChainId)
-			tokenAddress = actionParams.tokenAddress
-			amount = String(actionParams.amount)
-			slippage = String(actionParams.slippage)
+			draft = editSessionActionDraft(
+				{
+					actionType: ActionType.Bridge,
+					fields: {
+						fromChainId: String(actionParams.fromChainId),
+						toChainId: String(actionParams.toChainId),
+						tokenAddress: actionParams.tokenAddress,
+						amount: String(actionParams.amount),
+						slippage: String(actionParams.slippage),
+					},
+				},
+				identity,
+			)
 		}
-		draftActionType = nextActionType
-		editingActionSelector = resolvedAction[EntityMetaKey.Selector]
-		editingActionIndexInSequence = resolvedAction.indexInSequence
-		editingActionCreatedAt = resolvedAction.createdAt
-		status = `${nextActionType} draft loaded.`
+		notice = {
+			status: 'info',
+			message: `${nextActionType} draft loaded.`,
+		}
 	}
 
 	const confirmDraft = () => {
+		if (draft.mode === 'idle')
+			return
+
 		try {
-			if (draftActionType === ActionType.Transfer)
-				writeAction(draftActionType, actionTypeDefinitionByActionType[draftActionType].params.assert({
-					fromActor,
-					toActor,
-					chainId: Number(chainId),
-					tokenAddress,
-					amount: BigInt(amount),
+			if (draft.actionType === ActionType.Transfer)
+				writeAction(draft, actionTypeDefinitionByActionType[draft.actionType].params.assert({
+					fromActor: draft.fields.fromActor,
+					toActor: draft.fields.toActor,
+					chainId: Number(draft.fields.chainId),
+					tokenAddress: draft.fields.tokenAddress,
+					amount: BigInt(draft.fields.amount),
 				}))
-			else if (draftActionType === ActionType.Swap)
-				writeAction(draftActionType, actionTypeDefinitionByActionType[draftActionType].params.assert({
-					chainId: Number(chainId),
-					tokenIn,
-					tokenOut,
-					amount: BigInt(amount),
-					slippage: Number(slippage),
+			else if (draft.actionType === ActionType.Swap)
+				writeAction(draft, actionTypeDefinitionByActionType[draft.actionType].params.assert({
+					chainId: Number(draft.fields.chainId),
+					tokenIn: draft.fields.tokenIn,
+					tokenOut: draft.fields.tokenOut,
+					amount: BigInt(draft.fields.amount),
+					slippage: Number(draft.fields.slippage),
 				}))
-			else if (draftActionType === ActionType.Bridge)
-				writeAction(draftActionType, actionTypeDefinitionByActionType[draftActionType].params.assert({
-					fromChainId: Number(fromChainId),
-					toChainId: Number(toChainId),
-					tokenAddress,
-					amount: BigInt(amount),
-					slippage: Number(slippage),
+			else
+				writeAction(draft, actionTypeDefinitionByActionType[draft.actionType].params.assert({
+					fromChainId: Number(draft.fields.fromChainId),
+					toChainId: Number(draft.fields.toChainId),
+					tokenAddress: draft.fields.tokenAddress,
+					amount: BigInt(draft.fields.amount),
+					slippage: Number(draft.fields.slippage),
 				}))
 		} catch {
-			status = 'Draft values are invalid. Correct them before saving.'
+			notice = {
+				status: 'error',
+				message: 'Draft values are invalid. Correct them before saving.',
+			}
 		}
 	}
 
@@ -262,25 +306,37 @@
 		event.preventDefault()
 		const serializedPayload = event.dataTransfer?.getData(entityDragDataType)
 		if (!serializedPayload) {
-			status = 'Drop an account card to start a transfer draft.'
+			notice = {
+				status: 'error',
+				message: 'Drop an account card to start a transfer draft.',
+			}
 			return
 		}
 
 		const source = sessionTransferSourceFromSerialized(serializedPayload)
 		if ('error' in source) {
-			status = source.error
+			notice = {
+				status: 'error',
+				message: source.error,
+			}
 			return
 		}
 
-		draftActionType = ActionType.Transfer
-		fromActor = source.fromActor
-		chainId = source.chainId
-		toActor = ''
-		tokenAddress = ''
-		amount = ''
-		status = 'Transfer draft started.'
+		draft = createSessionActionDraft({
+			actionType: ActionType.Transfer,
+			fields: {
+				fromActor: source.fromActor,
+				toActor: '',
+				chainId: source.chainId,
+				tokenAddress: '',
+				amount: '',
+			},
+		})
+		notice = {
+			status: 'info',
+			message: 'Transfer draft started.',
+		}
 	}
-
 
 	// Components
 	import BlockheadSessionActionsView from '$/views/BlockheadSessionActionsView.svelte'
@@ -290,32 +346,32 @@
 
 <ResourceBoundary resource={session}>
 	{#snippet children(resolvedSession)}
-			<div data-column="gap-3">
-				<div data-row="start wrap align-center gap-2">
-					{#if resolvedSession.lockedAt == null}
-						<form
-							data-row="start wrap align-center gap-2"
-							onsubmit={(event) => {
-								event.preventDefault()
-								writeLocalBlockheadSessionName(
-									getAppClient(),
-									selection.entitySelector,
-									sessionName,
-								)
-								sessionName = ''
-							}}
-						>
-							<label for={`${id}-session-name`}>Rename session</label>
-							<input id={`${id}-session-name`} bind:value={sessionName} required />
-							<button type="submit">Rename</button>
-						</form>
-
-						<form
+		<div data-column="gap-3">
+			<div data-row="start wrap align-center gap-2">
+				{#if resolvedSession.lockedAt == null}
+					<form
 						data-row="start wrap align-center gap-2"
 						onsubmit={(event) => {
 							event.preventDefault()
-							draftActionType = actionType
-							status = ''
+							writeLocalBlockheadSessionName(
+								getAppClient(),
+								selection.entitySelector,
+								sessionName,
+							)
+							sessionName = ''
+						}}
+					>
+						<label for={`${id}-session-name`}>Rename session</label>
+						<input id={`${id}-session-name`} bind:value={sessionName} required />
+						<button type="submit">Rename</button>
+					</form>
+
+					<form
+						data-row="start wrap align-center gap-2"
+						onsubmit={(event) => {
+							event.preventDefault()
+							draft = createSessionActionDraft(emptyDraftFieldsForActionType(actionType))
+							notice = idleSessionComposerNotice
 						}}
 					>
 						<label for={`${id}-action-type`}>Add action</label>
@@ -332,216 +388,541 @@
 						<button type="submit">Add</button>
 					</form>
 
-					<button
-						type="button"
-						onclick={() => {
-							cancelDraft()
-							writeLocalBlockheadSessionLockedAt(
-								getAppClient(),
-								selection.entitySelector,
-								Date.now(),
-							)
-						}}
+				<button
+					type="button"
+					onclick={() => {
+						cancelDraft()
+						writeLocalBlockheadSessionLockedAt(
+							getAppClient(),
+							selection.entitySelector,
+							Date.now(),
+						)
+					}}
+				>
+					Lock session
+				</button>
+			{:else}
+				<button
+					type="button"
+					onclick={() => deleteLocalBlockheadSessionLockedAt(
+						getAppClient(),
+						selection.entitySelector,
+					)}
+				>
+					Unlock session
+				</button>
+			{/if}
+
+			<button
+				type="button"
+				onclick={async () => {
+					await deleteLocalBlockheadSession(
+						getAppClient(),
+						{ scope: '$$blockheadSessions' },
+						selection.entitySelector,
+					)
+					await goto(resolve('/~/sessions'))
+				}}
+			>
+				Delete session
+			</button>
+		</div>
+
+		{#if resolvedSession.lockedAt == null}
+			<div
+				data-card
+				role="group"
+				aria-label="Entity drop target"
+				ondragover={(event) => event.preventDefault()}
+				ondrop={writeDraggedEntityAction}
+			>
+				<p>Drop an EVM network account to start a transfer draft.</p>
+
+				<form
+					data-row="start wrap align-end gap-2"
+					onsubmit={(event) => {
+						event.preventDefault()
+						try {
+							const source = sessionTransferSource(EntityType.EvmNetworkAccount, {
+								$network: {
+									caip2: {
+										namespace: 'eip155',
+										reference: keyboardChainId,
+									},
+								},
+								$actor: {
+									address: keyboardFromActor,
+								},
+							})
+							if ('error' in source) {
+								notice = {
+									status: 'error',
+									message: source.error,
+								}
+								return
+							}
+
+							draft = createSessionActionDraft({
+								actionType: ActionType.Transfer,
+								fields: {
+									fromActor: source.fromActor,
+									toActor: '',
+									chainId: source.chainId,
+									tokenAddress: '',
+									amount: '',
+								},
+							})
+							notice = {
+								status: 'info',
+								message: 'Transfer draft started.',
+							}
+						} catch {
+							notice = {
+								status: 'error',
+								message: 'Choose a valid EVM account and chain ID.',
+							}
+						}
+					}}
+				>
+					<label for={`${id}-keyboard-from-actor`}>Source account</label>
+					<input id={`${id}-keyboard-from-actor`} bind:value={keyboardFromActor} pattern={'0x[0-9a-fA-F]{40}'} required />
+
+					<label for={`${id}-keyboard-chain-id`}>Source chain ID</label>
+					<input id={`${id}-keyboard-chain-id`} bind:value={keyboardChainId} inputmode="numeric" pattern="[0-9]+" required />
+
+					<button type="submit">Start transfer draft with keyboard</button>
+				</form>
+			</div>
+		{/if}
+
+		{#if draft.mode !== 'idle' && resolvedSession.lockedAt == null}
+			<form
+				data-card
+				data-column="gap-3"
+				onsubmit={(event) => {
+					event.preventDefault()
+					confirmDraft()
+				}}
+			>
+				<header data-row="between wrap align-center gap-2">
+					<strong>{draft.actionType} draft</strong>
+					<span data-text="annotation">Complete the required parameters before saving this draft.</span>
+				</header>
+
+				<label for={`${id}-draft-action-type`}>Draft action type</label>
+				<select
+					id={`${id}-draft-action-type`}
+					bind:value={
+						() => draft.mode === 'idle' ? ActionType.Swap : draft.actionType,
+						(_actionType) => {
+							if (draft.mode === 'idle')
+								return
+							draft = retargetSessionActionDraft(draft, _actionType)
+						}
+					}
+				>
+					{#each actionTypeDefinitions as definition (definition.type)}
+						<option value={definition.type}>{definition.label}</option>
+					{/each}
+				</select>
+
+				{#if draft.actionType === ActionType.Transfer}
+					<label for={`${id}-from-actor`}>From account</label>
+					<input
+						id={`${id}-from-actor`}
+						bind:value={
+							() => draft.mode !== 'idle' && draft.actionType === ActionType.Transfer ? draft.fields.fromActor : '',
+							(_fromActor) => {
+								if (draft.mode === 'idle' || draft.actionType !== ActionType.Transfer)
+									return
+								draft = {
+									...draft,
+									fields: {
+										...draft.fields,
+										fromActor: _fromActor,
+									},
+								}
+							}
+						}
+						pattern={'0x[0-9a-fA-F]{40}'}
+						required
+					/>
+
+					<label for={`${id}-to-actor`}>To account</label>
+					<input
+						id={`${id}-to-actor`}
+						bind:value={
+							() => draft.mode !== 'idle' && draft.actionType === ActionType.Transfer ? draft.fields.toActor : '',
+							(_toActor) => {
+								if (draft.mode === 'idle' || draft.actionType !== ActionType.Transfer)
+									return
+								draft = {
+									...draft,
+									fields: {
+										...draft.fields,
+										toActor: _toActor,
+									},
+								}
+							}
+						}
+						pattern={'0x[0-9a-fA-F]{40}'}
+						required
+					/>
+
+					<label for={`${id}-chain-id`}>Chain ID</label>
+					<input
+						id={`${id}-chain-id`}
+						bind:value={
+							() => draft.mode !== 'idle' && draft.actionType === ActionType.Transfer ? draft.fields.chainId : '',
+							(_chainId) => {
+								if (draft.mode === 'idle' || draft.actionType !== ActionType.Transfer)
+									return
+								draft = {
+									...draft,
+									fields: {
+										...draft.fields,
+										chainId: _chainId,
+									},
+								}
+							}
+						}
+						inputmode="numeric"
+						pattern="[0-9]+"
+						required
+					/>
+
+					<label for={`${id}-token-address`}>Token address</label>
+					<input
+						id={`${id}-token-address`}
+						bind:value={
+							() => draft.mode !== 'idle' && draft.actionType === ActionType.Transfer ? draft.fields.tokenAddress : '',
+							(_tokenAddress) => {
+								if (draft.mode === 'idle' || draft.actionType !== ActionType.Transfer)
+									return
+								draft = {
+									...draft,
+									fields: {
+										...draft.fields,
+										tokenAddress: _tokenAddress,
+									},
+								}
+							}
+						}
+						pattern={'0x[0-9a-fA-F]{40}'}
+						required
+					/>
+				{:else if draft.actionType === ActionType.Swap}
+					<label for={`${id}-chain-id`}>Chain ID</label>
+					<input
+						id={`${id}-chain-id`}
+						bind:value={
+							() => draft.mode !== 'idle' && draft.actionType === ActionType.Swap ? draft.fields.chainId : '',
+							(_chainId) => {
+								if (draft.mode === 'idle' || draft.actionType !== ActionType.Swap)
+									return
+								draft = {
+									...draft,
+									fields: {
+										...draft.fields,
+										chainId: _chainId,
+									},
+								}
+							}
+						}
+						inputmode="numeric"
+						pattern="[0-9]+"
+						required
+					/>
+
+					<label for={`${id}-token-in`}>Token in</label>
+					<input
+						id={`${id}-token-in`}
+						bind:value={
+							() => draft.mode !== 'idle' && draft.actionType === ActionType.Swap ? draft.fields.tokenIn : '',
+							(_tokenIn) => {
+								if (draft.mode === 'idle' || draft.actionType !== ActionType.Swap)
+									return
+								draft = {
+									...draft,
+									fields: {
+										...draft.fields,
+										tokenIn: _tokenIn,
+									},
+								}
+							}
+						}
+						pattern={'0x[0-9a-fA-F]{40}'}
+						required
+					/>
+
+					<label for={`${id}-token-out`}>Token out</label>
+					<input
+						id={`${id}-token-out`}
+						bind:value={
+							() => draft.mode !== 'idle' && draft.actionType === ActionType.Swap ? draft.fields.tokenOut : '',
+							(_tokenOut) => {
+								if (draft.mode === 'idle' || draft.actionType !== ActionType.Swap)
+									return
+								draft = {
+									...draft,
+									fields: {
+										...draft.fields,
+										tokenOut: _tokenOut,
+									},
+								}
+							}
+						}
+						pattern={'0x[0-9a-fA-F]{40}'}
+						required
+					/>
+				{:else}
+					<label for={`${id}-from-chain-id`}>From chain ID</label>
+					<input
+						id={`${id}-from-chain-id`}
+						bind:value={
+							() => draft.mode !== 'idle' && draft.actionType === ActionType.Bridge ? draft.fields.fromChainId : '',
+							(_fromChainId) => {
+								if (draft.mode === 'idle' || draft.actionType !== ActionType.Bridge)
+									return
+								draft = {
+									...draft,
+									fields: {
+										...draft.fields,
+										fromChainId: _fromChainId,
+									},
+								}
+							}
+						}
+						inputmode="numeric"
+						pattern="[0-9]+"
+						required
+					/>
+
+					<label for={`${id}-to-chain-id`}>To chain ID</label>
+					<input
+						id={`${id}-to-chain-id`}
+						bind:value={
+							() => draft.mode !== 'idle' && draft.actionType === ActionType.Bridge ? draft.fields.toChainId : '',
+							(_toChainId) => {
+								if (draft.mode === 'idle' || draft.actionType !== ActionType.Bridge)
+									return
+								draft = {
+									...draft,
+									fields: {
+										...draft.fields,
+										toChainId: _toChainId,
+									},
+								}
+							}
+						}
+						inputmode="numeric"
+						pattern="[0-9]+"
+						required
+					/>
+
+					<label for={`${id}-token-address`}>Token address</label>
+					<input
+						id={`${id}-token-address`}
+						bind:value={
+							() => draft.mode !== 'idle' && draft.actionType === ActionType.Bridge ? draft.fields.tokenAddress : '',
+							(_tokenAddress) => {
+								if (draft.mode === 'idle' || draft.actionType !== ActionType.Bridge)
+									return
+								draft = {
+									...draft,
+									fields: {
+										...draft.fields,
+										tokenAddress: _tokenAddress,
+									},
+								}
+							}
+						}
+						pattern={'0x[0-9a-fA-F]{40}'}
+						required
+					/>
+				{/if}
+
+				<label for={`${id}-amount`}>Amount (base units)</label>
+				<input
+					id={`${id}-amount`}
+					bind:value={
+						() => draft.mode === 'idle' ? '' : draft.fields.amount,
+						(_amount) => {
+							if (draft.mode === 'idle')
+								return
+							draft = {
+								...draft,
+								fields: {
+									...draft.fields,
+									amount: _amount,
+								},
+							}
+						}
+					}
+					inputmode="numeric"
+					pattern="[0-9]+"
+					required
+				/>
+
+				{#if draft.actionType !== ActionType.Transfer}
+					<label for={`${id}-slippage`}>Slippage</label>
+					<input
+						id={`${id}-slippage`}
+						bind:value={
+							() => draft.mode !== 'idle' && draft.actionType !== ActionType.Transfer ? draft.fields.slippage : '0.005',
+							(_slippage) => {
+								if (draft.mode === 'idle' || draft.actionType === ActionType.Transfer)
+									return
+								draft = {
+									...draft,
+									fields: {
+										...draft.fields,
+										slippage: _slippage,
+									},
+								}
+							}
+						}
+						type="number"
+						min="0"
+						step="any"
+						required
+					/>
+				{/if}
+
+				<div data-row="start wrap gap-2">
+					<button type="submit">Confirm draft</button>
+					<button type="button" onclick={cancelDraft}>Cancel</button>
+				</div>
+			</form>
+		{/if}
+
+		{#if notice.status !== 'idle'}
+			<p role="status">
+				{noticeMessage}
+				{#if preparedWalletRequestId != null}
+					<a
+						href={resolve(
+							'/~/wallets/requests/[id=stringSegment]',
+							{
+								id: preparedWalletRequestId,
+							}
+						)}
 					>
-						Lock session
-					</button>
+						Open wallet request
+					</a>
+				{/if}
+			</p>
+			{#if noticeReadinessCheckIds.length > 0}
+				<ul>
+					{#each noticeReadinessCheckIds as checkId (checkId)}
+						<li>{checkId}</li>
+					{/each}
+				</ul>
+			{/if}
+		{/if}
+
+		<BlockheadSessionActionsView
+			selection={selection.$$actions}
+			CollapsibleProps={{ canToggle: false }}
+			collapsible={false}
+			emptyText="No actions."
+			{open}
+			title="Actions"
+			id={`${id}-list`}
+		/>
+
+		<ResourceBoundary resource={sessionActions}>
+			{#snippet children(resolvedActions)}
+				{#if resolvedSession.lockedAt == null}
+					{#if resolvedActions.values.length > 0}
+						<div data-column="gap-2">
+							{#each resolvedActions.values as resolvedAction (resolvedAction[EntityMetaKey.SelectorKey])}
+								<article data-card data-row="between wrap align-center gap-2">
+									<button
+										type="button"
+										onclick={() => editAction(resolvedAction)}
+									>
+										Edit {resolvedAction.actionType} action
+									</button>
+
+									<button
+										type="button"
+										onclick={() => void deleteLocalBlockheadSessionAction(
+											getAppClient(),
+											selection.entitySelector,
+											resolvedAction[EntityMetaKey.Selector],
+										)}
+									>
+										Delete {resolvedAction.actionType} action
+									</button>
+								</article>
+							{/each}
+						</div>
+					{/if}
 				{:else}
 					<button
 						type="button"
-						onclick={() => deleteLocalBlockheadSessionLockedAt(
-							getAppClient(),
-							selection.entitySelector,
-						)}
-					>
-						Unlock session
-					</button>
-				{/if}
-
-				<button
-					type="button"
-					onclick={async () => {
-						await deleteLocalBlockheadSession(
-							getAppClient(),
-							{ scope: '$$blockheadSessions' },
-							selection.entitySelector,
-						)
-						await goto(resolve('/~/sessions'))
-					}}
-				>
-					Delete session
-				</button>
-			</div>
-
-			{#if resolvedSession.lockedAt == null}
-				<div
-					data-card
-					role="group"
-					aria-label="Entity drop target"
-					ondragover={(event) => event.preventDefault()}
-					ondrop={writeDraggedEntityAction}
-				>
-					<p>Drop an EVM network account to start a transfer draft.</p>
-
-					<form
-						data-row="start wrap align-end gap-2"
-						onsubmit={(event) => {
-							event.preventDefault()
+						disabled={preparing}
+						onclick={async () => {
+							notice = beginSessionComposerPreparation()
 							try {
-								const source = sessionTransferSource(EntityType.EvmNetworkAccount, {
-									$network: {
-										caip2: {
-											namespace: 'eip155',
-											reference: keyboardChainId,
+								notice = finishSessionComposerPreparation(
+									await applyEvmNativeTransferPreparation({
+										context: getAppClient(),
+										session: {
+											id: selection.entitySelector.id,
+											lockedAt: resolvedSession.lockedAt,
 										},
-									},
-									$actor: {
-										address: keyboardFromActor,
-									},
-								})
-								if ('error' in source) {
-									status = source.error
-									return
-								}
-
-								draftActionType = ActionType.Transfer
-								fromActor = source.fromActor
-								chainId = source.chainId
-								toActor = ''
-								tokenAddress = ''
-								amount = ''
-								status = 'Transfer draft started.'
-							} catch {
-								status = 'Choose a valid EVM account and chain ID.'
+										actions: resolvedActions.values.map((resolvedAction) => ({
+											sessionId: resolvedAction[EntityMetaKey.Selector].sessionId,
+											actionId: resolvedAction[EntityMetaKey.Selector].actionId,
+											indexInSequence: resolvedAction.indexInSequence,
+											actionType: arktype.enumerated(...Object.values(ActionType)).assert(resolvedAction.actionType),
+											actionParams: resolvedAction.actionParams,
+										})),
+										walletConnections: getWalletConnectionRuntime()?.connections ?? [],
+									})
+								)
+							}
+							catch (error) {
+								notice = failSessionComposerPreparation(normalizeBoundaryError(error).message)
 							}
 						}}
 					>
-						<label for={`${id}-keyboard-from-actor`}>Source account</label>
-						<input id={`${id}-keyboard-from-actor`} bind:value={keyboardFromActor} pattern={'0x[0-9a-fA-F]{40}'} required />
+						{preparing ? 'Preparing EVM native transfer…' : 'Prepare EVM native transfer'}
+					</button>
 
-						<label for={`${id}-keyboard-chain-id`}>Source chain ID</label>
-						<input id={`${id}-keyboard-chain-id`} bind:value={keyboardChainId} inputmode="numeric" pattern="[0-9]+" required />
-
-						<button type="submit">Start transfer draft with keyboard</button>
-					</form>
-				</div>
-			{/if}
-
-			{#if draftActionType !== undefined && resolvedSession.lockedAt == null}
-				<form
-					data-card
-					data-column="gap-3"
-					onsubmit={(event) => {
-						event.preventDefault()
-						confirmDraft()
-					}}
-				>
-					<header data-row="between wrap align-center gap-2">
-						<strong>{draftActionType} draft</strong>
-						<span data-text="annotation">Complete the required parameters before saving this draft.</span>
-					</header>
-
-					<label for={`${id}-draft-action-type`}>Draft action type</label>
-					<select
-						id={`${id}-draft-action-type`}
-						bind:value={draftActionType}
-					>
-						{#each actionTypeDefinitions as definition (definition.type)}
-							<option value={definition.type}>{definition.label}</option>
+					{#if noticeReadinessCheckIds.length === 0}
+						{#each resolvedActions.values as resolvedAction (resolvedAction[EntityMetaKey.SelectorKey])}
+							<ResourceBoundary
+								resource={
+									select(
+										EntityType.BlockheadSessionAction,
+										resolvedAction[EntityMetaKey.Selector],
+									).$$readinessChecks({
+										sources: [Source.Local_Internal],
+										fields: {
+											checkKind: true,
+											capabilityKey: true,
+										},
+									})
+								}
+							>
+								{#snippet children(readinessChecks)}
+									{#if readinessChecks.values.length > 0}
+										<ul>
+											{#each readinessChecks.values as readinessCheck (readinessCheck[EntityMetaKey.SelectorKey])}
+												<li>{readinessCheck[EntityMetaKey.Selector].checkId}</li>
+											{/each}
+										</ul>
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
 						{/each}
-					</select>
-
-					{#if draftActionType === ActionType.Transfer}
-						<label for={`${id}-from-actor`}>From account</label>
-						<input id={`${id}-from-actor`} bind:value={fromActor} pattern={'0x[0-9a-fA-F]{40}'} required />
-
-						<label for={`${id}-to-actor`}>To account</label>
-						<input id={`${id}-to-actor`} bind:value={toActor} pattern={'0x[0-9a-fA-F]{40}'} required />
-
-						<label for={`${id}-chain-id`}>Chain ID</label>
-						<input id={`${id}-chain-id`} bind:value={chainId} inputmode="numeric" pattern="[0-9]+" required />
-
-						<label for={`${id}-token-address`}>Token address</label>
-						<input id={`${id}-token-address`} bind:value={tokenAddress} pattern={'0x[0-9a-fA-F]{40}'} required />
-					{:else if draftActionType === ActionType.Swap}
-						<label for={`${id}-chain-id`}>Chain ID</label>
-						<input id={`${id}-chain-id`} bind:value={chainId} inputmode="numeric" pattern="[0-9]+" required />
-
-						<label for={`${id}-token-in`}>Token in</label>
-						<input id={`${id}-token-in`} bind:value={tokenIn} pattern={'0x[0-9a-fA-F]{40}'} required />
-
-						<label for={`${id}-token-out`}>Token out</label>
-						<input id={`${id}-token-out`} bind:value={tokenOut} pattern={'0x[0-9a-fA-F]{40}'} required />
-					{:else}
-						<label for={`${id}-from-chain-id`}>From chain ID</label>
-						<input id={`${id}-from-chain-id`} bind:value={fromChainId} inputmode="numeric" pattern="[0-9]+" required />
-
-						<label for={`${id}-to-chain-id`}>To chain ID</label>
-						<input id={`${id}-to-chain-id`} bind:value={toChainId} inputmode="numeric" pattern="[0-9]+" required />
-
-						<label for={`${id}-token-address`}>Token address</label>
-						<input id={`${id}-token-address`} bind:value={tokenAddress} pattern={'0x[0-9a-fA-F]{40}'} required />
 					{/if}
-
-					<label for={`${id}-amount`}>Amount (base units)</label>
-					<input id={`${id}-amount`} bind:value={amount} inputmode="numeric" pattern="[0-9]+" required />
-
-					{#if draftActionType !== ActionType.Transfer}
-						<label for={`${id}-slippage`}>Slippage</label>
-						<input id={`${id}-slippage`} bind:value={slippage} type="number" min="0" step="any" required />
-					{/if}
-
-					<div data-row="start wrap gap-2">
-						<button type="submit">Confirm draft</button>
-						<button type="button" onclick={cancelDraft}>Cancel</button>
-					</div>
-				</form>
-			{/if}
-
-			{#if status !== ''}
-				<p role="status">{status}</p>
-			{/if}
-
-			<BlockheadSessionActionsView
-				selection={selection.$$actions}
-				CollapsibleProps={{ canToggle: false }}
-				collapsible={false}
-				emptyText="No actions."
-				{open}
-				title="Actions"
-				id={`${id}-list`}
-			/>
-
-			{#if resolvedSession.lockedAt == null}
-				<ResourceBoundary resource={sessionActions}>
-					{#snippet children(resolvedActions)}
-						{#if resolvedActions.values.length > 0}
-							<div data-column="gap-2">
-								{#each resolvedActions.values as resolvedAction (resolvedAction[EntityMetaKey.SelectorKey])}
-									<article data-card data-row="between wrap align-center gap-2">
-										<button
-											type="button"
-											onclick={() => editAction(resolvedAction)}
-										>
-											Edit {resolvedAction.actionType} action
-										</button>
-
-										<button
-											type="button"
-											onclick={() => void deleteLocalBlockheadSessionAction(
-												getAppClient(),
-												selection.entitySelector,
-												resolvedAction[EntityMetaKey.Selector],
-											)}
-										>
-											Delete {resolvedAction.actionType} action
-										</button>
-									</article>
-								{/each}
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
+				{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</div>
 	{/snippet}
 </ResourceBoundary>

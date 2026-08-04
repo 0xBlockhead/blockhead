@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -35,9 +36,18 @@
 	}
 >
 	{#snippet Item({ item: blockheadWalletRequest })}
+		{@const blockheadWalletRequestSelector = blockheadWalletRequest[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadWalletRequest}
-			entitySelector={blockheadWalletRequest[EntityMetaKey.Selector]}
+			entitySelector={blockheadWalletRequestSelector}
+			href={
+				resolve(
+					'/~/wallets/requests/[id=stringSegment]',
+					{
+						id: blockheadWalletRequestSelector.id,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadWalletRequest.requestKind || 'blockhead wallet request'}

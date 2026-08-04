@@ -47,7 +47,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{blockheadQuilibriumNodeState.$network.name || (blockheadQuilibriumNodeStateSelector.$network.caip2 == null ? '' : `${blockheadQuilibriumNodeStateSelector.$network.caip2.namespace}:${blockheadQuilibriumNodeStateSelector.$network.caip2.reference}`) || 'Network'}
+				{blockheadQuilibriumNodeState.$network.name || (blockheadQuilibriumNodeState.$network.caip2 == null ? '' : `${blockheadQuilibriumNodeState.$network.caip2.namespace}:${blockheadQuilibriumNodeState.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

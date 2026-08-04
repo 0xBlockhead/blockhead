@@ -28,7 +28,7 @@
 		selection({
 			fields: {
 				outcomeKind: true,
-				transactionHash: true,
+				transactionId: true,
 				createdAt: true,
 			},
 		})
@@ -44,7 +44,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{blockheadActionOutcome.transactionHash ?? ''}
+				{blockheadActionOutcome.transactionId ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

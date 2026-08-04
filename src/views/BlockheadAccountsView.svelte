@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -41,6 +42,16 @@
 		<EntityView
 			entityType={EntityType.BlockheadAccount}
 			entitySelector={blockheadAccountSelector}
+			href={
+				resolve(
+					'/~/accounts/account/[namespace=stringSegment]:[reference=stringSegment]/[accountAddress=stringSegment]',
+					{
+						namespace: blockheadAccountSelector.$account.caip10.namespace,
+						reference: blockheadAccountSelector.$account.caip10.reference,
+						accountAddress: blockheadAccountSelector.$account.caip10.accountAddress,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{`${blockheadAccountSelector.$account.caip10.namespace}:${blockheadAccountSelector.$account.caip10.reference}:${blockheadAccountSelector.$account.caip10.accountAddress}` || 'account'}

@@ -31,7 +31,7 @@
 		fields: {
 			outcomeKind: true,
 			createdAt: true,
-			transactionHash: true,
+			transactionId: true,
 		},
 	}))
 	const titleFallback = $derived((prefetched.outcomeKind ?? '') || 'blockhead action outcome')
@@ -41,6 +41,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
 	import BlockheadActionOutcome_TimestampsView from '$/views/BlockheadActionOutcome_TimestampsView.svelte'
 	import BlockheadSessionActionView from '$/views/BlockheadSessionActionView.svelte'
 	import BlockheadWalletRequestView from '$/views/BlockheadWalletRequestView.svelte'
@@ -68,7 +69,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadActionOutcome}>
 			{#snippet children(entity)}
-				{(entity.transactionHash ?? '') || entity.outcomeKind || titleFallback}
+				{(entity.transactionId ?? '') || entity.outcomeKind || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -185,28 +186,6 @@
 				resource={blockheadActionOutcome}
 			>
 				{#snippet children(entity)}
-					{@const transactionHash = entity.transactionHash}
-					{#if transactionHash != null}
-						<div>
-							<dt>transaction hash</dt>
-							<dd>
-								<TruncatedValue value={transactionHash} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							transactionId: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
 					{@const transactionId = entity.transactionId}
 					{#if transactionId != null}
 						<div>
@@ -279,6 +258,21 @@
 	{/snippet}
 
 	{#snippet Details()}
+		{@const evmTransactionsResource = selection.$$evmTransactions}
+		<ResourceBoundary
+			resource={evmTransactionsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<EvmTransactionsView
+						selection={evmTransactionsResource}
+						countResource={evmTransactionsResource.count}
+						title='EVM transactions'
+						id='evm-transactions'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
 			resource={timestampsResource}

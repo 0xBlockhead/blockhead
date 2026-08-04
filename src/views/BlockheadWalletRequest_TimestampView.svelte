@@ -7,10 +7,6 @@
 	import { Source } from '$/sources/Source.ts'
 
 
-	// Context
-	import { select } from '$/routes/+layout.svelte'
-
-
 	// State
 	let {
 		selection,
@@ -39,7 +35,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import BlockheadWalletRequestView from '$/views/BlockheadWalletRequestView.svelte'
+	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
 </script>
 
 
@@ -71,16 +67,6 @@
 
 	{#snippet Content()}
 		<dl data-column-item="center">
-			<div>
-				<dt>wallet request</dt>
-				<dd>
-					<BlockheadWalletRequestView
-						selection={select(EntityType.BlockheadWalletRequest, selection.entitySelector.$walletRequest)}
-						layout={EntityLayout.Value}
-					/>
-				</dd>
-			</div>
-
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
@@ -131,28 +117,6 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							walletCallBundleStatus: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const walletCallBundleStatus = entity.walletCallBundleStatus}
-					{#if walletCallBundleStatus != null}
-						<div>
-							<dt>wallet call bundle status</dt>
-							<dd>
-								{walletCallBundleStatus}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">
@@ -172,52 +136,6 @@
 							<dt>atomic</dt>
 							<dd>
 								{atomic ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							receiptCount: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const receiptCount = entity.receiptCount}
-					{#if receiptCount != null}
-						<div>
-							<dt>receipt count</dt>
-							<dd>
-								<NumberValue
-									value={receiptCount}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							transactionHash: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const transactionHash = entity.transactionHash}
-					{#if transactionHash != null}
-						<div>
-							<dt>transaction hash</dt>
-							<dd>
-								<TruncatedValue value={transactionHash} />
 							</dd>
 						</div>
 					{/if}
@@ -312,5 +230,23 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const evmTransactionsResource = selection.$$evmTransactions}
+		<ResourceBoundary
+			resource={evmTransactionsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<EvmTransactionsView
+						selection={evmTransactionsResource}
+						countResource={evmTransactionsResource.count}
+						title='EVM transactions'
+						id='evm-transactions'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>
