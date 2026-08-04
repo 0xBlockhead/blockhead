@@ -4,7 +4,12 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -33,6 +38,7 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import LensUsernamesView from '$/views/LensUsernamesView.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
 </script>
 
 
@@ -159,21 +165,17 @@
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							owner: true,
-						},
-					})
-				}
+				resource={selection.$owner}
 			>
-				{#snippet children(entity)}
-					{@const owner = entity.owner}
-					{#if owner != null}
+				{#snippet children(evmAccount)}
+					{#if evmAccount != null}
 						<div>
-							<dt>Owner</dt>
+							<dt>Owner account</dt>
 							<dd>
-								<TruncatedValue value={owner} />
+								<EvmAccountView
+									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
 							</dd>
 						</div>
 					{/if}

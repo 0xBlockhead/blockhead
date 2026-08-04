@@ -42,7 +42,9 @@
 			entityType={EntityType.UniswapV3Pool_Block}
 			entitySelector={uniswapV3PoolBlockSelector}
 			href={
-				'caip2' in pool.$network ?
+				'$network' in pool
+				&& 'caip2' in pool.$network
+				&& 'poolAddress' in pool ?
 					resolve(
 						'/(assets)/uniswap-v3/pool/[chainId=eip155ChainId]/[poolAddress=evmAddress]/(uniswapV3Pool)/block/[blockNumber=nonNegativeBigInt]',
 						{
@@ -64,7 +66,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{uniswapV3PoolBlockSelector.$pool.poolAddress || 'Uniswap V3 pool'}</span>
+				<span data-text="annotation">{uniswapV3PoolBlock.$pool.poolAddress || 'Uniswap V3 pool'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

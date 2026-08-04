@@ -68,10 +68,6 @@ export default entity({
 	$$positions: {
 		entityType: EntityType.UniswapV3Position,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Voltaire_JsonRpc,
-			Source.UniswapContracts_Evm,
-		],
 	},
 })({
 	selectors: {

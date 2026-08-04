@@ -49,7 +49,9 @@
 	href={
 		href === undefined ?
 			(
-				'caip2' in pool.$network ?
+				'$network' in pool
+				&& 'caip2' in pool.$network
+				&& 'poolAddress' in pool ?
 					resolve(
 						'/(assets)/uniswap-v3/pool/[chainId=eip155ChainId]/[poolAddress=evmAddress]/(uniswapV3Pool)/block/[blockNumber=nonNegativeBigInt]',
 						{

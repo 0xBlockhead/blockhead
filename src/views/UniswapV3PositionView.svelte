@@ -102,6 +102,7 @@
 							<dd>
 								<UniswapV3PoolView
 									selection={select(EntityType.UniswapV3Pool, uniswapV3Pool[EntityMetaKey.Selector])}
+									prefetched={uniswapV3Pool}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

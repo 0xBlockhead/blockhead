@@ -34,25 +34,24 @@
 			],
 			fields: {
 				poolAddress: true,
-				fee: true,
 				$network: true,
+				fee: true,
 			},
 			limit: 64,
 		})
 	}
 >
 	{#snippet Item({ item: uniswapV3Pool })}
-		{@const uniswapV3PoolSelector = uniswapV3Pool[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.UniswapV3Pool}
-			entitySelector={uniswapV3PoolSelector}
+			entitySelector={uniswapV3Pool[EntityMetaKey.Selector]}
 			href={
-				'caip2' in uniswapV3PoolSelector.$network ?
+				uniswapV3Pool.$network.caip2 != null ?
 					resolve(
 						'/(assets)/uniswap-v3/pool/[chainId=eip155ChainId]/[poolAddress=evmAddress]',
 						{
-							chainId: uniswapV3PoolSelector.$network.caip2.reference,
-							poolAddress: uniswapV3PoolSelector.poolAddress,
+							chainId: uniswapV3Pool.$network.caip2.reference,
+							poolAddress: uniswapV3Pool.poolAddress,
 						}
 					)
 				:
@@ -60,7 +59,7 @@
 			}
 		>
 			{#snippet Title()}
-				{uniswapV3PoolSelector.poolAddress || 'Uniswap V3 pool'}
+				{uniswapV3Pool.poolAddress || 'Uniswap V3 pool'}
 			{/snippet}
 
 			{#snippet Value()}

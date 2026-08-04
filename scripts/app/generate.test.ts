@@ -987,10 +987,10 @@ test('accepts and passes prefetched rows only where pending display consumes the
 		prefetchedAcceptors.map(([filePath]) => filePath),
 		prefetchedConsumers.map(([filePath]) => filePath)
 	)
-	assert.equal(prefetchedConsumers.length, 229)
+	assert.equal(prefetchedConsumers.length, 230)
 	assert.equal(generatedViewSources.reduce((count, [_filePath, source]) => (
 		count + (source.match(/prefetched=\{/g)?.length ?? 0)
-	), 0), 350)
+	), 0), 353)
 	assert.match(generatedSource('src/views/A2aMessageView.svelte'), /Omit<EntitySelectionViewProps<EntityType\.A2aMessage>, 'prefetched'>/)
 	assert.doesNotMatch(generatedSource('src/views/A2aMessagePartView.svelte'), /<A2aMessageView[^>]*prefetched=/)
 	assert.match(generatedSource('src/views/MediaView.svelte'), /prefetched = \{\}/)

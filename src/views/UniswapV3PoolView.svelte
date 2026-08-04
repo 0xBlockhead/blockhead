@@ -17,12 +17,13 @@
 	// State
 	let {
 		selection,
+		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: Omit<EntitySelectionViewProps<EntityType.UniswapV3Pool>, 'prefetched'> = $props()
+	}: EntitySelectionViewProps<EntityType.UniswapV3Pool> = $props()
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -32,6 +33,7 @@
 	}))
 	const uniswapV3Pool = $derived(viewSelection({
 		fields: {
+			poolAddress: true,
 			fee: true,
 		},
 	}))
@@ -46,7 +48,6 @@
 	import NetworkView from '$/views/NetworkView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import UniswapV3Pool_BlocksView from '$/views/UniswapV3Pool_BlocksView.svelte'
-	import UniswapV3PositionsView from '$/views/UniswapV3PositionsView.svelte'
 </script>
 
 
@@ -54,11 +55,13 @@
 	entityType={EntityType.UniswapV3Pool}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? (selection.entitySelector.poolAddress || 'Uniswap V3 pool')}
+	title={title ?? ((prefetched.poolAddress ?? '') || 'Uniswap V3 pool')}
 	href={
 		href === undefined ?
 			(
-				'caip2' in selection.entitySelector.$network ?
+				'poolAddress' in selection.entitySelector
+				&& '$network' in selection.entitySelector
+				&& 'caip2' in selection.entitySelector.$network ?
 					resolve(
 						'/(assets)/uniswap-v3/pool/[chainId=eip155ChainId]/[poolAddress=evmAddress]',
 						{
@@ -77,7 +80,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={selection.entitySelector.poolAddress} />
+		<ResourceBoundary resource={uniswapV3Pool}>
+			{#snippet children(entity)}
+				<TruncatedValue value={entity.poolAddress} />
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
@@ -94,12 +101,19 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<span data-text="muted">
-			<NetworkView
-				selection={select(EntityType.Network, selection.entitySelector.$network)}
-				layout={EntityLayout.Title}
-			/>
-		</span>
+		<ResourceBoundary
+			resource={selection.$network}
+		>
+			{#snippet children(network)}
+				<span data-text="muted">
+					<NetworkView
+						selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+						prefetched={network}
+						layout={EntityLayout.Title}
+					/>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content()}
@@ -107,17 +121,30 @@
 			<div>
 				<dt>Network</dt>
 				<dd>
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						layout={EntityLayout.Value}
-					/>
+					<ResourceBoundary
+						resource={selection.$network}
+					>
+						{#snippet children(network)}
+							<NetworkView
+								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+								prefetched={network}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<div>
 				<dt>Pool address</dt>
 				<dd>
-					<TruncatedValue value={selection.entitySelector.poolAddress} />
+					<ResourceBoundary
+						resource={uniswapV3Pool}
+					>
+						{#snippet children(entity)}
+							<TruncatedValue value={entity.poolAddress} />
+						{/snippet}
+					</ResourceBoundary>
 				</dd>
 			</div>
 
@@ -255,10 +282,6 @@
 						id: 'uniswap-v3-pool-blocks',
 						label: 'Blocks',
 					},
-					{
-						id: 'uniswap-v3-pool-positions',
-						label: 'Positions',
-					},
 				]
 			}
 			data-card
@@ -276,16 +299,6 @@
 					collapsible={false}
 					title={label}
 					emptyText='No Uniswap V3 pool blocks yet.'
-					id={`${id}-list`}
-				/>
-			{/snippet}
-
-			{#snippet SectionUniswapV3PoolPositions({ id, label })}
-				<UniswapV3PositionsView
-					selection={selection.$$positions}
-					collapsible={false}
-					title={label}
-					emptyText='No Uniswap V3 positions yet.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
