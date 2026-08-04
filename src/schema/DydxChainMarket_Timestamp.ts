@@ -1,8 +1,10 @@
 // Generated from APP.ts.
 
 import { entity } from '$/schema/$schema.ts'
+import { DecimalString } from '$/schema/DecimalString.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { NonNegativeDecimalString } from '$/schema/NonNegativeDecimalString.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -25,15 +27,15 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	oraclePrice: {
-		primitiveType: type('bigint'),
+		primitiveType: NonNegativeDecimalString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	fundingRate: {
-		primitiveType: type('number'),
+		primitiveType: DecimalString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	openInterest: {
-		primitiveType: type('bigint'),
+		primitiveType: NonNegativeDecimalString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	status: {

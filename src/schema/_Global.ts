@@ -216,6 +216,10 @@ export default entity({
 		entityType: EntityType.LiquidityPool,
 		cardinality: EntityFieldCardinality.Many,
 	},
+	$$uniswapV3Pools: {
+		entityType: EntityType.UniswapV3Pool,
+		cardinality: EntityFieldCardinality.Many,
+	},
 	$$blockheadSharedAddresses: {
 		entityType: EntityType.BlockheadSharedAddress,
 		cardinality: EntityFieldCardinality.Many,

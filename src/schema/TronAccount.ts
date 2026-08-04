@@ -40,8 +40,6 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.TronGrid_Rest,
-			Source.TronFullNode_Rest,
-			Source.TronSolidityNode_Rest,
 			Source.TronScan_Rest,
 		],
 	},

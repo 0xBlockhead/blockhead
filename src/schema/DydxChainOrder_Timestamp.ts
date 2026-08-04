@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { NonNegativeDecimalString } from '$/schema/NonNegativeDecimalString.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -33,23 +34,15 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	price: {
-		primitiveType: type('bigint'),
+		primitiveType: NonNegativeDecimalString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	size: {
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	remainingSize: {
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	filledSize: {
-		primitiveType: type('bigint'),
+		primitiveType: NonNegativeDecimalString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	totalFilled: {
-		primitiveType: type('bigint'),
+		primitiveType: NonNegativeDecimalString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({

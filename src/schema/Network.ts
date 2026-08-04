@@ -98,6 +98,26 @@ export default entity({
 	},
 
 	facets: {
+		Aptos: facet({
+			path: [
+				'namespace',
+			],
+			is: 'Aptos',
+		})({}),
+		Dydx: facet({
+			path: [
+				'namespace',
+			],
+			is: 'Dydx',
+		})({
+			$dydxChainNetwork: {
+				entityType: EntityType.DydxChainNetwork,
+				cardinality: EntityFieldCardinality.One,
+				defaultSources: [
+					Source.DydxIndexer,
+				],
+			},
+		}),
 		Evm: facet({
 			path: [
 				'executionModels',
@@ -886,6 +906,12 @@ export default entity({
 				],
 			},
 		}),
+		Starknet: facet({
+			path: [
+				'namespace',
+			],
+			is: 'Starknet',
+		})({}),
 		Tron: facet({
 			path: [
 				'namespace',

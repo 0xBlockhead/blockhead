@@ -4,7 +4,7 @@ import { EvmTransactionEnvelopeType, EvmTransactionExecutionStatus, EvmTransacti
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { Hash32, lowercaseHexIdentityValue, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -20,8 +20,9 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	txHash: {
-		primitiveType: type('string'),
+		primitiveType: Hash32,
 		cardinality: EntityFieldCardinality.One,
+		normalize: lowercaseHexIdentityValue,
 	},
 	envelopeType: {
 		primitiveType: type.enumerated(...Object.values(EvmTransactionEnvelopeType)),

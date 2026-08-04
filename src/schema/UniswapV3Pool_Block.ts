@@ -1,60 +1,62 @@
 // Generated from APP.ts.
 
 import { entity } from '$/schema/$schema.ts'
-import { DecimalString } from '$/schema/DecimalString.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export default entity({
-	entityType: EntityType.DydxChainSubaccount_Timestamp,
+	entityType: EntityType.UniswapV3Pool_Block,
 	labels: {
-		singular: 'dydx chain subaccount timestamp',
-		plural: 'dydx chain subaccount observations',
+		singular: 'Uniswap V3 pool block',
+		plural: 'Uniswap V3 pool blocks',
 	},
 })({
-	$subaccount: {
-		entityType: EntityType.DydxChainSubaccount,
+	$pool: {
+		entityType: EntityType.UniswapV3Pool,
 		cardinality: EntityFieldCardinality.One,
 	},
-	timestampMs: {
-		primitiveType: type('number'),
+	blockNumber: {
+		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.One,
 	},
-	source: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
-	},
-	blockHeight: {
+	sqrtPriceX96: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	equity: {
-		primitiveType: DecimalString,
+	liquidity: {
+		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	freeCollateral: {
-		primitiveType: DecimalString,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	marginUsage: {
+	tick: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	openPositionCount: {
+	observationIndex: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	openOrderCount: {
+	observationCardinality: {
 		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	observationCardinalityNext: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	feeProtocol: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	unlocked: {
+		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({
 	selectors: {
-		SubaccountTimestampMsSource: [
-			'$subaccount',
-			'timestampMs',
-			'source',
+		PoolBlockNumber: [
+			'$pool',
+			'blockNumber',
 		],
 	},
 })
