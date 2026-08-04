@@ -7,6 +7,7 @@ import { match as matchPolkadotAccountId } from '$/params/polkadotAccountId.ts'
 import { match as matchSolanaPubkey } from '$/params/solanaPubkey.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+import AptosAccountSchema from '$/schema/AptosAccount.ts'
 import CardanoAddressSchema from '$/schema/CardanoAddress.ts'
 import CosmosAccountSchema from '$/schema/CosmosAccount.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -15,7 +16,9 @@ import HederaAccountSchema from '$/schema/HederaAccount.ts'
 import { schema } from '$/schema/index.ts'
 import PolkadotAccountSchema from '$/schema/PolkadotAccount.ts'
 import SolanaAccountSchema from '$/schema/SolanaAccount.ts'
+import StarknetContractSchema from '$/schema/StarknetContract.ts'
 import TonAccountSchema from '$/schema/TonAccount.ts'
+import TronAccountSchema from '$/schema/TronAccount.ts'
 import XrplAccountSchema from '$/schema/XrplAccount.ts'
 import { type as arktype } from 'arktype'
 
@@ -23,6 +26,15 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
 	const routeCandidates: (
+		| {
+			readonly entityType: EntityType.AptosAccount
+			readonly selectorName: 'NetworkAddress'
+			readonly selector: EntitySelectorForSelectorName<
+				typeof schema,
+				EntityType.AptosAccount,
+				'NetworkAddress'
+			>
+		}
 		| {
 			readonly entityType: EntityType.PolkadotAccount
 			readonly selectorName: 'NetworkAccountId'
@@ -78,6 +90,24 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			>
 		}
 		| {
+			readonly entityType: EntityType.StarknetContract
+			readonly selectorName: 'NetworkAddress'
+			readonly selector: EntitySelectorForSelectorName<
+				typeof schema,
+				EntityType.StarknetContract,
+				'NetworkAddress'
+			>
+		}
+		| {
+			readonly entityType: EntityType.TronAccount
+			readonly selectorName: 'NetworkAddress'
+			readonly selector: EntitySelectorForSelectorName<
+				typeof schema,
+				EntityType.TronAccount,
+				'NetworkAddress'
+			>
+		}
+		| {
 			readonly entityType: EntityType.TonAccount
 			readonly selectorName: 'NetworkAddress'
 			readonly selector: EntitySelectorForSelectorName<
@@ -96,6 +126,26 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			>
 		}
 	)[] = []
+
+	if (parentData.projectionNetwork.namespace === 'Aptos' && matchStringSegment(params.accountId)) {
+		const aptosAccountNetworkAddressSelector = parseEntitySelector(
+			schema,
+			AptosAccountSchema,
+			{
+				$network: {
+					$network: parentData.selector,
+				},
+				address: params.accountId,
+			},
+			'NetworkAddress'
+		)
+		if (!(aptosAccountNetworkAddressSelector instanceof arktype.errors))
+			routeCandidates.push({
+				entityType: EntityType.AptosAccount,
+				selectorName: 'NetworkAddress',
+				selector: aptosAccountNetworkAddressSelector,
+			})
+	}
 
 	if (
 		(
@@ -240,6 +290,44 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				entityType: EntityType.SolanaAccount,
 				selectorName: 'NetworkPubkey',
 				selector: solanaAccountNetworkPubkeySelector,
+			})
+	}
+
+	if (parentData.projectionNetwork.namespace === 'Starknet' && matchStringSegment(params.accountId)) {
+		const starknetContractNetworkAddressSelector = parseEntitySelector(
+			schema,
+			StarknetContractSchema,
+			{
+				$network: {
+					$network: parentData.selector,
+				},
+				address: params.accountId,
+			},
+			'NetworkAddress'
+		)
+		if (!(starknetContractNetworkAddressSelector instanceof arktype.errors))
+			routeCandidates.push({
+				entityType: EntityType.StarknetContract,
+				selectorName: 'NetworkAddress',
+				selector: starknetContractNetworkAddressSelector,
+			})
+	}
+
+	if (parentData.projectionNetwork.namespace === 'Tron' && matchStringSegment(params.accountId)) {
+		const tronAccountNetworkAddressSelector = parseEntitySelector(
+			schema,
+			TronAccountSchema,
+			{
+				$network: parentData.selector,
+				address: params.accountId,
+			},
+			'NetworkAddress'
+		)
+		if (!(tronAccountNetworkAddressSelector instanceof arktype.errors))
+			routeCandidates.push({
+				entityType: EntityType.TronAccount,
+				selectorName: 'NetworkAddress',
+				selector: tronAccountNetworkAddressSelector,
 			})
 	}
 
