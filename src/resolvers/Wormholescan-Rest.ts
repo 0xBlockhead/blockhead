@@ -16,10 +16,10 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	eip155ReferenceByWormholeChainId,
-	type WormholescanOperation,
-	type WormholescanWormholeChainId,
+import { wormholeEvmChainByWormholeChainId } from '$/sources/Wormholescan/Rest/constants.ts'
+import type {
+	WormholescanOperation,
+	WormholescanWormholeChainId,
 } from '$/sources/Wormholescan/Rest/types.ts'
 
 const wormholescanTransferIdParts = (
@@ -67,15 +67,15 @@ const eip155NetworkRef = (
 	if (chainId == null)
 		return undefined
 
-	const reference = eip155ReferenceByWormholeChainId[chainId]
-	if (reference == null)
+	const row = wormholeEvmChainByWormholeChainId[chainId]
+	if (row == null)
 		return undefined
 
 	return {
 		[EntityMetaKey.Selector]: {
 			caip2: {
 				namespace: 'eip155' as const,
-				reference,
+				reference: row.eip155Reference,
 			},
 		},
 	}

@@ -8,17 +8,16 @@ export type WormholescanOperationsPage = {
 
 export type WormholescanWormholeChainId = components['schemas']['vaa.ChainID']
 
-/** Wormhole chain id → EVM `eip155` reference for chains that are EVM execution networks. */
-export const eip155ReferenceByWormholeChainId = {
-	2: '1',
-	4: '56',
-	5: '137',
-	6: '43114',
-	10: '250',
-	14: '42220',
-	16: '1284',
-	23: '42161',
-	24: '10',
-	25: '59144',
-	30: '8453',
-} as const satisfies Partial<Record<WormholescanWormholeChainId, string>>
+/**
+ * Live `/api/v1/vaas/...` documents carry `sequence` and base64 `vaa` bytes;
+ * OpenAPI `vaa.VaaDoc` omits `sequence` and types `vaa` as `number[]`.
+ */
+export type WormholescanVaa = components['schemas']['vaa.VaaDoc'] & {
+	sequence?: number | string
+	vaa?: string | number[]
+}
+
+/** Live `find-vaa-by-id` returns a single doc in `data` (OpenAPI incorrectly types an array). */
+export type WormholescanVaaByIdResponse = {
+	data?: WormholescanVaa
+}
