@@ -224,9 +224,9 @@ export const uniswapV3Resolvers = [
 			PositionManagerTokenId: {
 				resolve: async ({ positionManager, tokenId }) => {
 					const {
-						chainIdsForUniswapV3NonfungiblePositionManager,
-						getUniswapV3FactoryAddress,
-					} = await import('$/sources/Uniswap/Catalog/queries.ts')
+						uniswapV3DeploymentByChainId,
+						uniswapV3DeploymentsByNonfungiblePositionManagerAddress,
+					} = await import('$/sources/Uniswap/Catalog/constants.ts')
 					const {
 						getFactoryPool,
 						getPosition,
@@ -234,13 +234,17 @@ export const uniswapV3Resolvers = [
 					} = await import('$/sources/Uniswap/Contracts/queries.ts')
 
 					const manager = normalizeUniswapAddress(positionManager)
-					const chainIds = chainIdsForUniswapV3NonfungiblePositionManager(manager)
+					const chainIds = (
+						uniswapV3DeploymentsByNonfungiblePositionManagerAddress[manager]
+							?.map((deployment) => deployment.chainId)
+						?? []
+					)
 					if (chainIds.length === 0)
 						throw new Error(`Voltaire_JsonRpc: unknown Uniswap V3 position manager ${manager}`)
 
 					const errors: string[] = []
 					for (const chainId of chainIds) {
-						const factoryAddress = getUniswapV3FactoryAddress(chainId)
+						const factoryAddress = uniswapV3DeploymentByChainId[chainId]?.factoryAddress
 						if (factoryAddress == null) {
 							errors.push(`chain ${String(chainId)}: missing factory`)
 							continue
@@ -294,8 +298,8 @@ export const uniswapV3Resolvers = [
 			PositionBlockNumber: {
 				resolve: async ({ $position, blockNumber }) => {
 					const {
-						chainIdsForUniswapV3NonfungiblePositionManager,
-					} = await import('$/sources/Uniswap/Catalog/queries.ts')
+						uniswapV3DeploymentsByNonfungiblePositionManagerAddress,
+					} = await import('$/sources/Uniswap/Catalog/constants.ts')
 					const {
 						getPosition,
 						getPositionOwner,
@@ -304,7 +308,11 @@ export const uniswapV3Resolvers = [
 
 					const manager = normalizeUniswapAddress($position.positionManager)
 					const tokenId = $position.tokenId
-					const chainIds = chainIdsForUniswapV3NonfungiblePositionManager(manager)
+					const chainIds = (
+						uniswapV3DeploymentsByNonfungiblePositionManagerAddress[manager]
+							?.map((deployment) => deployment.chainId)
+						?? []
+					)
 					if (chainIds.length === 0)
 						throw new Error(`Voltaire_JsonRpc: unknown Uniswap V3 position manager ${manager}`)
 

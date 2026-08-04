@@ -58,7 +58,7 @@ export default {
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
-						const { uniswapV3Pools } = await import('$/sources/Uniswap/Catalog/queries.ts')
+						const { uniswapV3Pools } = await import('$/sources/Uniswap/Catalog/constants.ts')
 						return uniswapV3Pools
 							.slice(0, resolverContextRowLimit(context))
 							.map((pool) => ({
@@ -85,27 +85,27 @@ export default {
 				NetworkPoolAddress: {
 					resolve: async ({ $network, poolAddress }) => {
 						const {
-							getUniswapV3FactoryAddress,
-							getUniswapV3PoolCatalogEntry,
-							getUniswapV3TickSpacingForFee,
-						} = await import('$/sources/Uniswap/Catalog/queries.ts')
+							uniswapV3DeploymentByChainId,
+							uniswapV3FeeTierByFee,
+							uniswapV3PoolByChainIdAndAddress,
+						} = await import('$/sources/Uniswap/Catalog/constants.ts')
 						const {
 							normalizeUniswapAddress,
 						} = await import('$/sources/Uniswap/Contracts/queries.ts')
 
 						const chainId = chainIdFromNetwork($network)
-						const factoryAddress = getUniswapV3FactoryAddress(chainId)
+						const factoryAddress = uniswapV3DeploymentByChainId[chainId]?.factoryAddress
 						if (factoryAddress == null)
 							throw new Error(`UniswapContracts_Evm: no Uniswap V3 factory for chain ${String(chainId)}`)
 
 						const address = normalizeUniswapAddress(poolAddress)
-						const catalogEntry = getUniswapV3PoolCatalogEntry(chainId, address)
+						const catalogEntry = uniswapV3PoolByChainIdAndAddress[`${chainId}:${address}`]
 						if (catalogEntry == null)
 							throw new Error(`UniswapContracts_Evm: pool ${address} not in Uniswap V3 catalog for chain ${String(chainId)}`)
 
 						const tickSpacing = (
 							catalogEntry.tickSpacing
-							?? getUniswapV3TickSpacingForFee(catalogEntry.fee)
+							?? uniswapV3FeeTierByFee[catalogEntry.fee]?.tickSpacing
 						)
 						if (tickSpacing == null)
 							throw new Error(`UniswapContracts_Evm: no tick spacing for fee ${String(catalogEntry.fee)}`)

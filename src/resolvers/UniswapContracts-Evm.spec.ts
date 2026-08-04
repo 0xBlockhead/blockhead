@@ -10,7 +10,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	uniswapV3Pools,
-} from '$/sources/Uniswap/Catalog/queries.ts'
+} from '$/sources/Uniswap/Catalog/constants.ts'
 
 
 const context = {
