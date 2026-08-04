@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,6 +18,7 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -34,6 +36,7 @@
 	const bridgeTransfer = $derived(viewSelection({
 		fields: {
 			transferId: true,
+			source: true,
 			railId: true,
 		},
 	}))
@@ -55,6 +58,24 @@
 	entityType={EntityType.BridgeTransfer}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'originChainId' in selection.entitySelector
+				&& 'depositId' in selection.entitySelector ?
+					resolve(
+						'/bridge/transfer/across/[originChainId=nonNegativeInteger]/[depositId=nonNegativeInteger]',
+						{
+							originChainId: String(selection.entitySelector.originChainId),
+							depositId: String(selection.entitySelector.depositId),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -70,7 +91,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bridgeTransfer}>
 			{#snippet children(entity)}
-				{[selection.entitySelector.source, (entity.railId ?? '')].filter(Boolean).join(' ') || entity.transferId || titleFallback}
+				{[entity.source, (entity.railId ?? '')].filter(Boolean).join(' ') || entity.transferId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -93,7 +114,13 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{selection.entitySelector.source}
+					<ResourceBoundary
+						resource={bridgeTransfer}
+					>
+						{#snippet children(entity)}
+							{entity.source}
+						{/snippet}
+					</ResourceBoundary>
 				</dd>
 			</div>
 
@@ -148,6 +175,56 @@
 								<EvmTransactionView
 									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							originChainId: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const originChainId = entity.originChainId}
+					{#if originChainId != null}
+						<div>
+							<dt>origin chain ID</dt>
+							<dd>
+								<NumberValue
+									value={originChainId}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							depositId: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const depositId = entity.depositId}
+					{#if depositId != null}
+						<div>
+							<dt>deposit ID</dt>
+							<dd>
+								<NumberValue
+									value={depositId}
 								/>
 							</dd>
 						</div>

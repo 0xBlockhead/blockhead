@@ -20,6 +20,14 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
+	originChainId: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	depositId: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 	$sourceTx: {
 		entityType: EntityType.EvmTransaction,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -94,6 +102,10 @@ export default entity({
 			'$sourceTx',
 			'source',
 			'logIndex',
+		],
+		OriginChainIdDepositId: [
+			'originChainId',
+			'depositId',
 		],
 	},
 })

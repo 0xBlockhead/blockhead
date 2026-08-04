@@ -4038,6 +4038,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/bridge/transfer/across/[originChainId]/[depositId]': {
+		routeId: '/bridge/transfer/across/[originChainId=nonNegativeInteger]/[depositId=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'BridgeTransfer.OriginChainIdDepositId',
+				probeAtomPrefixes: ['/bridge/transfer/across/[originChainId]/[depositId]:BridgeTransfer.OriginChainIdDepositId'],
+				probeCases: [[[0, '1', ['originChainId', 'depositId']]]],
+			},
+		],
+	},
 	'/channel/[channelId]': {
 		routeId: '/channel/[channelId=stringSegment]',
 		mappings: [

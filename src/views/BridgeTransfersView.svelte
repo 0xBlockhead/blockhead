@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -27,6 +28,8 @@
 	resource={
 		selection({
 			fields: {
+				originChainId: true,
+				depositId: true,
 				transferId: true,
 				source: true,
 				railId: true,
@@ -35,17 +38,29 @@
 	}
 >
 	{#snippet Item({ item: bridgeTransfer })}
-		{@const bridgeTransferSelector = bridgeTransfer[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BridgeTransfer}
-			entitySelector={bridgeTransferSelector}
+			entitySelector={bridgeTransfer[EntityMetaKey.Selector]}
+			href={
+				bridgeTransfer.originChainId != null
+				&& bridgeTransfer.depositId != null ?
+					resolve(
+						'/bridge/transfer/across/[originChainId=nonNegativeInteger]/[depositId=nonNegativeInteger]',
+						{
+							originChainId: String(bridgeTransfer.originChainId),
+							depositId: String(bridgeTransfer.depositId),
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{bridgeTransfer.transferId || 'bridge transfer'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[bridgeTransferSelector.source, (bridgeTransfer.railId ?? '')].filter(Boolean).join(' ')}
+				{[bridgeTransfer.source, (bridgeTransfer.railId ?? '')].filter(Boolean).join(' ')}
 			{/snippet}
 		</EntityView>
 	{/snippet}

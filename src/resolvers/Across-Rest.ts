@@ -144,6 +144,8 @@ const acrossBridgeTransferSnapshot = (
 	return {
 		source: Source.Across_Rest,
 		transferId,
+		originChainId: deposit.originChainId,
+		depositId: Number(deposit.depositId),
 		$sourceTx: {
 			[EntityMetaKey.Selector]: {
 				$network: fromNetwork[EntityMetaKey.Selector],
@@ -217,10 +219,34 @@ export default {
 						)
 					),
 				},
+				OriginChainIdDepositId: {
+					resolve: async ({ originChainId, depositId }) => {
+						const { getDeposit } = await import('$/sources/Across/Rest/queries.ts')
+						const { deposit } = await getDeposit({
+							originChainId,
+							depositId: String(depositId),
+						})
+						if (
+							deposit.originChainId !== originChainId
+							|| deposit.depositId !== String(depositId)
+						)
+							throw new Error('Across_Rest: mismatched deposit identity')
+
+						return acrossBridgeTransferSnapshot(
+							{
+								source: Source.Across_Rest,
+								transferId: `${originChainId}/${depositId}`,
+							},
+							deposit
+						)
+					},
+				},
 			},
 		})({
 			source: (transfer) => transfer.source,
 			transferId: (transfer) => transfer.transferId,
+			originChainId: (transfer) => transfer.originChainId,
+			depositId: (transfer) => transfer.depositId,
 			$sourceTx: (transfer) => transfer.$sourceTx,
 			$destinationTx: (transfer) => transfer.$destinationTx,
 			$sender: (transfer) => transfer.$sender,

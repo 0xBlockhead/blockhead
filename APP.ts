@@ -20475,6 +20475,8 @@ export const schema = {
 			})({
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"transferId": { label: "transfer ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"originChainId": { label: "origin chain ID", description: "The origin chain ID of the Across V3FundsDeposited intent.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger" },
+				"depositId": { label: "deposit ID", description: "The Across V3FundsDeposited deposit ID, unique per origin chain.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger" },
 				"$sourceTx": { label: "source tx", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmTransaction },
 				"logIndex": { label: "log index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"$destinationTx": { label: "destination tx", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmTransaction },
@@ -20495,13 +20497,14 @@ export const schema = {
 				selectors: {
 					"SourceTransferId": ["source", "transferId"],
 					"SourceTxSourceLogIndex": ["$sourceTx", "source", "logIndex"],
+					"OriginChainIdDepositId": ["originChainId", "depositId"],
 				},
 				views: {
 					singular: {
 						query: {
 							sources: [Source.Across_Rest, Source.Lifi_Rest, Source.Allium_Rest, Source.Dune_Rest, Source.Voltaire_JsonRpc],
 							fields: ["transferId"],
-							openFields: ["logIndex", "amountIn", "amountOut", "railId", "settlementModel", "verificationModel", "assetOutcome"],
+							openFields: ["logIndex", "originChainId", "depositId", "amountIn", "amountOut", "railId", "settlementModel", "verificationModel", "assetOutcome"],
 						},
 						summary: {
 							title: ["transferId"],
@@ -20510,6 +20513,7 @@ export const schema = {
 						content: {
 							dl: [
 								["transferId", "source", "$sourceTx", "logIndex", "$destinationTx"],
+								[{ field: "originChainId", format: "number" }, { field: "depositId", format: "number" }],
 								["$sender", "$recipient", "$fromNetwork", "$toNetwork", "$fromToken", "$toToken"],
 								[{ field: "amountIn", format: "number" }, { field: "amountOut", format: "number" }, "railId", "settlementModel", "verificationModel", "assetOutcome"],
 							],
@@ -74145,6 +74149,31 @@ export const routes = defineRoutes(schema)({
 		},
 		"bridge": {
 			children: {
+				"transfer": {
+					children: {
+						"across": {
+							children: {
+								"[originChainId]": {
+									children: {
+										"[depositId]": {
+											selectors: {
+												[EntityType.BridgeTransfer]: {
+													"OriginChainIdDepositId": {
+														params: {
+															"originChainId": ["originChainId"],
+															"depositId": ["depositId"],
+														},
+														page: {},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
 				"route": {
 					children: {
 						"[fromChainId]": {
