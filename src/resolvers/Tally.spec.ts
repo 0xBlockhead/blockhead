@@ -1,0 +1,273 @@
+import {
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from 'vitest'
+
+import { EntityMetaKey } from '$/schema/$schema.ts'
+import { Source } from '$/sources/Source.ts'
+
+const {
+	getGovernor,
+	getGovernorsPage,
+	getProposal,
+	getProposalsPage,
+} = vi.hoisted(() => ({
+	getGovernor: vi.fn(),
+	getGovernorsPage: vi.fn(),
+	getProposal: vi.fn(),
+	getProposalsPage: vi.fn(),
+}))
+
+vi.mock('$/sources/Tally/Graphql/queries.ts', () => ({
+	getGovernor,
+	getGovernorsPage,
+	getProposal,
+	getProposalsPage,
+}))
+
+const {
+	default: tally,
+	resolveTallyGovernor,
+	resolveTallyGovernors,
+	resolveTallyProposal,
+	resolveTallyProposals,
+	tallyGovernorFields,
+	tallyProposalFields,
+} = await import('$/resolvers/Tally.ts')
+
+const governorId = 'eip155:1:0x7e90e03654732abedf89Faf87f05BcD03ACEeFdc'
+const organizationId = '2207450143689540900'
+const proposalId = '2207450143689540901'
+const proposer = '0x1234567800000000000000000000000000000abc'
+
+const context = {
+	filters: [],
+	sorts: [],
+	pagination: {
+		limit: 10,
+		offset: 0,
+	},
+	selectorKeys: [],
+	parentSelectorKeys: [],
+	sources: [],
+	publicEnv: {},
+}
+
+const governor = {
+	id: governorId,
+	chainId: 'eip155:1',
+	name: 'Uniswap',
+	slug: 'uniswap',
+	type: 'governorbravo',
+	kind: 'single',
+	quorum: '10987654321',
+	timelockId: 'eip155:1:0x1a9C8182C09F50C8318d769245beA52c32BE546D',
+	tokenId: null,
+	delegatesCount: 12,
+	delegatesVotesCount: '10987654321',
+	tokenOwnersCount: 100,
+	isPrimary: true,
+	organization: {
+		id: organizationId,
+		slug: 'uniswap',
+		name: 'Uniswap',
+	},
+	proposalStats: {
+		total: 10,
+		active: 1,
+		failed: 2,
+		passed: 7,
+	},
+	parameters: {
+		quorumVotes: '1',
+		proposalThreshold: '2',
+		votingDelay: '3',
+		votingPeriod: '4',
+		gracePeriod: null,
+		clockMode: 'blocknumber',
+		countingMode: 'support=bravo',
+	},
+	contracts: {
+		governor: {
+			address: '0x7e90e03654732abedf89Faf87f05BcD03ACEeFdc',
+		},
+	},
+	metadata: {
+		description: 'Uniswap governance',
+	},
+}
+
+const proposal = {
+	id: proposalId,
+	onchainId: '42',
+	chainId: 'eip155:1',
+	status: 'active' as const,
+	quorum: '10987654321',
+	metadata: {
+		title: 'Fund public goods',
+		description: 'Proposal body',
+		eta: 1_700_200_000,
+		ipfsHash: null,
+		txHash: `0x${'ab'.repeat(32)}`,
+		discourseURL: null,
+		snapshotURL: null,
+	},
+	governor: {
+		id: governorId,
+		chainId: 'eip155:1',
+		name: 'Uniswap',
+		slug: 'uniswap',
+	},
+	organization: {
+		id: organizationId,
+		slug: 'uniswap',
+		name: 'Uniswap',
+	},
+	proposer: {
+		address: proposer,
+		ens: 'alice.eth',
+		name: 'Alice',
+	},
+	start: {
+		timestamp: '1700000100',
+	},
+	end: {
+		timestamp: '1700100000',
+	},
+	voteStats: [
+		{
+			type: 'for',
+			votesCount: '100000',
+			votersCount: 3,
+			percent: 80,
+		},
+	],
+}
+
+describe('Tally resolver field shaping', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('maps governor wire rows onto EVM network/contract selectors', () => {
+		expect(tallyGovernorFields(governor)).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				governorId,
+			},
+			name: 'Uniswap',
+			$network: {
+				[EntityMetaKey.Selector]: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '1',
+					},
+				},
+			},
+			$contract: {
+				[EntityMetaKey.Selector]: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '1',
+						},
+					},
+					address: '0x7e90e03654732abedf89faf87f05bcd03aceefdc',
+				},
+			},
+			organizationId,
+			proposalStats: governor.proposalStats,
+		})
+	})
+
+	it('maps proposal wire rows onto governor contract and lifecycle fields', () => {
+		expect(tallyProposalFields(proposal)).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				proposalId,
+			},
+			title: 'Fund public goods',
+			status: 'active',
+			startAtMs: 1_700_000_100_000,
+			endAtMs: 1_700_100_000_000,
+			etaMs: 1_700_200_000_000,
+			$governor: {
+				[EntityMetaKey.Selector]: {
+					governorId,
+				},
+			},
+			$governorContract: {
+				[EntityMetaKey.Selector]: {
+					address: '0x7e90e03654732abedf89faf87f05bcd03aceefdc',
+				},
+			},
+			$proposer: {
+				[EntityMetaKey.Selector]: {
+					$actor: {
+						address: '0x1234567800000000000000000000000000000abc',
+					},
+				},
+			},
+		})
+	})
+
+	it('resolves governors and proposals through lazy query imports', async () => {
+		getGovernor.mockResolvedValue(governor)
+		getGovernorsPage.mockResolvedValue({
+			nodes: [
+				governor,
+			],
+			pageInfo: {
+				firstCursor: null,
+				lastCursor: null,
+				count: 1,
+			},
+		})
+		getProposal.mockResolvedValue(proposal)
+		getProposalsPage.mockResolvedValue({
+			nodes: [
+				proposal,
+			],
+			pageInfo: {
+				firstCursor: null,
+				lastCursor: null,
+				count: 1,
+			},
+		})
+
+		await expect(resolveTallyGovernor({
+			governorId,
+		})).resolves.toMatchObject({
+			governorId,
+			name: 'Uniswap',
+		})
+		await expect(resolveTallyGovernors({
+			organizationId,
+		}, context)).resolves.toEqual([{
+			[EntityMetaKey.Selector]: {
+				governorId,
+			},
+		}])
+		await expect(resolveTallyProposal({
+			proposalId,
+		})).resolves.toMatchObject({
+			proposalId,
+			title: 'Fund public goods',
+		})
+		await expect(resolveTallyProposals({
+			governorId,
+		}, context)).resolves.toEqual([{
+			[EntityMetaKey.Selector]: {
+				proposalId,
+			},
+		}])
+	})
+
+	it('exports an empty registered resolver module for Source.Tally', () => {
+		expect(tally).toEqual({
+			source: Source.Tally,
+			resolvers: [],
+		})
+	})
+})

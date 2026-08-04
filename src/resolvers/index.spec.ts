@@ -32,17 +32,24 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
-import {
-	enabledSources as browserEnabledSources,
-	sourceProviders,
-} from '$/sources/index.ts'
+import { SourceDelivery, SourceTargetKind } from '$/sources/SourceBinding.ts'
+import sourceProviders, { sourceBindings } from '$/sources/$sourceProviders.ts'
 import { loadResolvers } from '$/resolvers/index.ts'
 import { CoinId } from '$/constants/Coin.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import voltaireJsonRpc from '$/resolvers/Voltaire-JsonRpc.ts'
 
 const resolvers = await loadResolvers()
+const declaredBrowserSources = new Set(
+	sourceBindings
+		.filter((binding) => (
+			binding.delivery === SourceDelivery.BrowserDirect
+				|| binding.delivery === SourceDelivery.HttpProxy
+				|| binding.delivery === SourceDelivery.RemoteLive
+				|| binding.delivery === SourceDelivery.RemoteQuery
+		))
+		.map((binding) => binding.source)
+)
 const {
 	resolverDefinitions,
 	resolverParts,
@@ -54,7 +61,7 @@ const {
 } = indexResolvers(
 	schema,
 	resolvers,
-	browserEnabledSources
+	declaredBrowserSources
 )
 const {
 	resolverDefinitions: allSourceResolverDefinitions,
@@ -926,14 +933,10 @@ describe('resolver registry live resolver architecture', () => {
 	})
 
 	it('keeps generated schema entities accountable without treating view source forwarding as ownership', () => {
-		const intentionallyUnresolvedEntityTypes = {
-			[EntityType.BlockheadWalletRequestCall]: 'query-local Local_Internal source without a schema field default or resolver implementation',
-		} as const
 		const accountabilityReport = resolverAccountabilityReport({
 			entityTypes: schema.map((entityDefinition) => entityDefinition.entityType),
 			entityTypesWithResolver: new Set(allSourceResolverDefinitions.map((resolver) => resolver.entityType)),
 			entityTypesWithMaterializer: new Set([
-				EntityType.BlockheadWalletRequestCall,
 				EntityType.XPost_Timestamp,
 			]),
 			sourceBackedEntityTypes: new Set(schema.flatMap((entityDefinition) => (
@@ -951,16 +954,18 @@ describe('resolver registry live resolver architecture', () => {
 			EntityType.BlockheadPanel,
 			EntityType.BlockheadLocalMediaIngest,
 			EntityType.BlockheadLocalMediaIngest_Timestamp,
+			EntityType.BlockheadWalletRequest,
+			EntityType.BlockheadEvmWalletRequest,
+			EntityType.BlockheadWalletRequestCall,
+			EntityType.BlockheadWalletRequest_Timestamp,
 		]
 		expect(newlyCoveredLocalEntityTypes.every((entityType) => !accountabilityReport.unresolvedEntityTypes.includes(entityType))).toBe(true)
-		for (const entityType of Object.keys(intentionallyUnresolvedEntityTypes))
-			expect(accountabilityReport.unresolvedEntityTypes).not.toContain(entityType)
+		expect(accountabilityReport.unresolvedEntityTypes).not.toContain(EntityType.BlockheadEvmWalletRequest)
+		expect(accountabilityReport.unresolvedSourceBackedEntityTypes).not.toContain(EntityType.BlockheadEvmWalletRequest)
+		expect(accountabilityReport.unresolvedNoDeclaredSourceEntityTypes).not.toContain(EntityType.BlockheadEvmWalletRequest)
 		expect(accountabilityReport.unresolvedSourceBackedEntityTypes).not.toContain(EntityType.BlockheadWalletRequestCall)
 		expect(accountabilityReport.unresolvedNoDeclaredSourceEntityTypes).not.toContain(EntityType.BlockheadWalletRequestCall)
 		expect(accountabilityReport.unresolvedEntityTypes).not.toContain(EntityType.XPost_Timestamp)
-		expect(Object.values(intentionallyUnresolvedEntityTypes)).toEqual([
-			'query-local Local_Internal source without a schema field default or resolver implementation',
-		])
 		expect(accountabilityReport.total).toBe(accountabilityReport.sourceBacked + accountabilityReport.noDeclaredSource)
 		expect(accountabilityReport.unresolvedEntityTypes).toEqual(expect.arrayContaining([
 			...accountabilityReport.unresolvedSourceBackedEntityTypes,
