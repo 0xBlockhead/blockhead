@@ -11,6 +11,10 @@ import type {
 	AaveMarketWire,
 	AaveMarketsData,
 } from '$/sources/Aave/Rest/types.ts'
+import {
+	aaveMarketEnvelope,
+	aaveMarketsEnvelope,
+} from '$/sources/Aave/Rest/types.ts'
 import { graphql } from '$/sources/_shared/wire/Graphql/client.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -41,6 +45,20 @@ const assertPoolAddress = (poolAddress: string) => {
 	if (normalized == null)
 		throw new Error(`${Source.Aave_Rest}: invalid pool address ${poolAddress}`)
 	return normalized
+}
+
+const assertEnvelope = (
+	envelope: {
+		assert: (value: unknown) => unknown
+	},
+	value: unknown,
+	label: string
+) => {
+	try {
+		envelope.assert(value)
+	} catch {
+		throw new Error(`${Source.Aave_Rest}: invalid ${label} response envelope`)
+	}
 }
 
 const assertMarketWire = (
@@ -104,6 +122,7 @@ export const listMarkets = async ({
 		throw new Error(`${Source.Aave_Rest}: markets response missing data`)
 	if (data.markets == null)
 		throw new Error(`${Source.Aave_Rest}: markets response missing markets`)
+	assertEnvelope(aaveMarketsEnvelope, data.markets, 'markets')
 
 	return data.markets.map((market) => {
 		if (!chainIds.includes(market.chain.chainId))
@@ -146,6 +165,7 @@ export const getMarket = async ({
 		throw new Error(`${Source.Aave_Rest}: market response missing market`)
 	if (data.market == null)
 		throw new Error(`${Source.Aave_Rest}: market not found ${normalizedPoolAddress} on chain ${String(chainId)}`)
+	assertEnvelope(aaveMarketEnvelope, data.market, 'market')
 
 	return assertMarketWire(data.market, {
 		chainId,

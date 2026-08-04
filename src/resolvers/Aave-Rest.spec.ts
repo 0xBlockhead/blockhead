@@ -85,6 +85,21 @@ describe('Aave Rest resolver module', () => {
 		expect(graphql).not.toHaveBeenCalled()
 	})
 
+	it('rejects unsupported eip155 networks before transport', async () => {
+		if (networkAaveMarketsResolver == null)
+			throw new Error('missing Network $$aaveMarkets resolver')
+
+		await expect(
+			networkAaveMarketsResolver.resolve.Caip2.resolve({
+				caip2: {
+					namespace: 'eip155',
+					reference: '11155111',
+				},
+			}, context)
+		).rejects.toThrow(`${Source.Aave_Rest}: unsupported chain id 11155111`)
+		expect(graphql).not.toHaveBeenCalled()
+	})
+
 	it('lists Aave markets for an EIP-155 network', async () => {
 		if (networkAaveMarketsResolver == null)
 			throw new Error('missing Network $$aaveMarkets resolver')
