@@ -49,6 +49,7 @@ const resolverLoaderEntries = [
 	[Source.CoinMarketCap_Rest, () => import('./CoinMarketCap-Rest.ts')],
 	[Source.Coinpaprika_Rest, () => import('./Coinpaprika-Rest.ts')],
 	[Source.CometBft_Rest, () => import('./CometBft-Rest.ts')],
+	[Source.Compound_Rest, () => import('./Compound-Rest.ts')],
 	[Source.Constants_Internal, () => import('./Constants.ts')],
 	[Source.CosmosAdrs_Github, () => import('./CosmosAdrs-Github.ts')],
 	[Source.CosmosChainRegistry_Github, () => import('./CosmosChainRegistry-Github.ts')],

@@ -54,6 +54,7 @@ import coingeckoSourceProvider from './Coingecko/index.ts'
 import coinMarketCapSourceProvider from './CoinMarketCap/index.ts'
 import coinpaprikaSourceProvider from './Coinpaprika/index.ts'
 import cometBftSourceProvider from './CometBft/index.ts'
+import compoundSourceProvider from './Compound/index.ts'
 import conseilSourceProvider from './Conseil/index.ts'
 import cosmosAdrsSourceProvider from './CosmosAdrs/index.ts'
 import cosmosChainRegistrySourceProvider from './CosmosChainRegistry/index.ts'
@@ -308,6 +309,7 @@ const sourceProviders = [
 	coinMarketCapSourceProvider,
 	coinpaprikaSourceProvider,
 	cometBftSourceProvider,
+	compoundSourceProvider,
 	conseilSourceProvider,
 	cosmosAdrsSourceProvider,
 	cosmosChainRegistrySourceProvider,

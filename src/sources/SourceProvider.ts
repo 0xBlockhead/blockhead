@@ -55,6 +55,7 @@ export enum SourceProvider {
 	CoinMarketCap = 'CoinMarketCap',
 	Coinpaprika = 'Coinpaprika',
 	CometBft = 'CometBft',
+	Compound = 'Compound',
 	Conseil = 'Conseil',
 	CosmosAdrs = 'CosmosAdrs',
 	CosmosChainRegistry = 'CosmosChainRegistry',

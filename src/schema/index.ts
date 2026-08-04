@@ -380,6 +380,7 @@ import Coin_TimestampSchema from '$/schema/Coin_Timestamp.ts'
 import CoinSchema from '$/schema/Coin.ts'
 import CoinBridgeCapabilitySchema from '$/schema/CoinBridgeCapability.ts'
 import ComplianceModuleSchema from '$/schema/ComplianceModule.ts'
+import CompoundCometSchema from '$/schema/CompoundComet.ts'
 import ContractInterfaceMemberSchema from '$/schema/ContractInterfaceMember.ts'
 import CosmosAccount_TimestampSchema from '$/schema/CosmosAccount_Timestamp.ts'
 import CosmosAccountSchema from '$/schema/CosmosAccount.ts'
@@ -962,6 +963,7 @@ import UtxoBlockSchema from '$/schema/UtxoBlock.ts'
 import UtxoInputSchema from '$/schema/UtxoInput.ts'
 import UtxoOutputSchema from '$/schema/UtxoOutput.ts'
 import UtxoTransactionSchema from '$/schema/UtxoTransaction.ts'
+import WormholeVaaSchema from '$/schema/WormholeVaa.ts'
 import WalletConnectionMethodSchema from '$/schema/WalletConnectionMethod.ts'
 import XmtpConversationSchema from '$/schema/XmtpConversation.ts'
 import XmtpNetworkSchema from '$/schema/XmtpNetwork.ts'
@@ -1412,6 +1414,7 @@ const schemaChunk7 = [
 	Coin_TimestampSchema,
 	CoinBridgeCapabilitySchema,
 	ComplianceModuleSchema,
+	CompoundCometSchema,
 	ContractInterfaceMemberSchema,
 	CosmosAccountSchema,
 	CosmosAccount_TimestampSchema,
@@ -2030,6 +2033,7 @@ const schemaChunk19 = [
 	UtxoInputSchema,
 	UtxoOutputSchema,
 	UtxoTransactionSchema,
+	WormholeVaaSchema,
 	WalletConnectionMethodSchema,
 	XmtpConversationSchema,
 	XmtpNetworkSchema,

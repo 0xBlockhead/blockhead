@@ -61,6 +61,7 @@ export enum Source {
 	CoinMarketCap_Rest = 'CoinMarketCap_Rest',
 	Coinpaprika_Rest = 'Coinpaprika_Rest',
 	CometBft_Rest = 'CometBft_Rest',
+	Compound_Rest = 'Compound_Rest',
 	Conseil_Postgres = 'Conseil_Postgres',
 	Constants_Internal = 'Constants_Internal',
 	CosmosAdrs_Github = 'CosmosAdrs_Github',
