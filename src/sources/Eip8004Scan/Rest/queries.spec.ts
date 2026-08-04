@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/Eip8004Scan/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 
@@ -72,6 +71,14 @@ describe('EIP-8004 Scan endpoints', () => {
 				contract_address: 'invalid',
 				name: 'Agent 42',
 			}],
+			meta: {
+				pagination: {
+					page: 3,
+					limit: 20,
+					total: 699983,
+					hasMore: true,
+				},
+			},
 		}
 		sourceGetJson.mockResolvedValueOnce(response)
 
@@ -85,5 +92,18 @@ describe('EIP-8004 Scan endpoints', () => {
 			binding,
 			'https://8004scan.test/api/v1/public/agents?limit=20&page=3'
 		)
+	})
+
+	it('propagates HTTP failures from sourceGetJson', async () => {
+		sourceGetJson.mockRejectedValueOnce(new Error('Eip8004Scan_Rest: 404 Not Found'))
+		await expect(fetchAgentDetail(
+			{
+				chainId: 1,
+				tokenId: 'missing',
+			}
+		)).rejects.toThrow('Eip8004Scan_Rest: 404 Not Found')
+
+		sourceGetJson.mockRejectedValueOnce(new Error('Eip8004Scan_Rest: 502 Bad Gateway'))
+		await expect(fetchAgentList()).rejects.toThrow('Eip8004Scan_Rest: 502 Bad Gateway')
 	})
 })

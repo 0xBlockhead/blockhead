@@ -1,4 +1,5 @@
 import type { JsonValue } from '$/typescript/JsonValue.ts'
+
 export type SourcifyContractSource = {
 	content?: string
 	keccak256?: string
@@ -40,14 +41,17 @@ export type SourcifyProxyResolution = {
 	}[]
 }
 
-export type SourcifyContractLookup = {
-	matchId?: string | null
+export type SourcifyContractMatchSummary = {
+	match?: string | null
 	creationMatch?: string | null
 	runtimeMatch?: string | null
+	matchId?: string | null
 	verifiedAt?: string
-	match?: string | null
 	chainId?: string
 	address?: string
+}
+
+export type SourcifyContractLookup = SourcifyContractMatchSummary & {
 	abi?: JsonValue[]
 	compilation?: SourcifyContractCompilation
 	deployment?: SourcifyContractDeployment
@@ -55,4 +59,8 @@ export type SourcifyContractLookup = {
 	metadata?: SourcifyContractMetadata
 	storageLayout?: JsonValue
 	proxyResolution?: SourcifyProxyResolution
+}
+
+export type SourcifyContractMatchList = {
+	results: SourcifyContractMatchSummary[]
 }

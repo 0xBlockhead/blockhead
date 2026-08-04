@@ -1,0 +1,252 @@
+import {
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from 'vitest'
+
+import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import type { SourcifyContractLookup } from '$/sources/Sourcify/Rest/types.ts'
+
+const getContractLookup = vi.hoisted(() => vi.fn())
+
+vi.mock('$/sources/Sourcify/Rest/queries.ts', () => ({
+	getContractLookup,
+}))
+
+const { default: sourcifyRest } = await import('$/resolvers/Sourcify-Rest.ts')
+
+const network = {
+	caip2: {
+		namespace: 'eip155',
+		reference: '1',
+	},
+} as const
+const contract = {
+	$network: network,
+	address: '0x00000000219ab540356cbb839cbe05303d7705fa',
+} as const
+
+const verifiedLookup = {
+	match: 'exact_match',
+	creationMatch: 'exact_match',
+	runtimeMatch: 'exact_match',
+	matchId: '2115',
+	verifiedAt: '2024-08-08T10:05:44Z',
+	chainId: '1',
+	address: contract.address,
+	abi: [
+		{
+			type: 'function',
+			name: 'get_deposit_count',
+			inputs: [],
+			outputs: [
+				{
+					type: 'bytes',
+				},
+			],
+			stateMutability: 'view',
+		},
+	],
+	compilation: {
+		language: 'Solidity',
+		compiler: 'solc',
+		compilerVersion: '0.6.11+commit.5ef660b1',
+		name: 'DepositContract',
+		fullyQualifiedName: 'deposit_contract.sol:DepositContract',
+		compilerSettings: {
+			optimizer: {
+				enabled: true,
+				runs: 5000000,
+			},
+		},
+		storageLayout: {
+			storage: [],
+			types: {},
+		},
+	},
+	deployment: {
+		deployer: '0xb20a608c624Ca5003905aA834De7156C68b2E1d0',
+		transactionHash: '0xe75fb554e433e03763a1560646ee22dcb74e5274b34c5ad644e7c0f619a7e1d0',
+	},
+	sources: {
+		'deposit_contract.sol': {
+			content: 'pragma solidity ^0.6.0; contract DepositContract {}',
+		},
+	},
+	proxyResolution: {
+		isProxy: false,
+		implementations: [],
+	},
+} as const satisfies SourcifyContractLookup
+
+const findResolver = (
+	entityType: EntityType,
+	selectorName: string
+) => {
+	const resolver = sourcifyRest.resolvers.find((candidate) => (
+		candidate.entityType === entityType
+		&& candidate.resolve[selectorName] != null
+	))
+	if (resolver == null)
+		throw new Error(`Sourcify REST spec missing ${entityType}.${selectorName}`)
+	return resolver
+}
+
+describe('Sourcify REST resolvers', () => {
+	beforeEach(() => {
+		getContractLookup.mockReset()
+	})
+
+	it('projects verification, compilation, and source bundle from one lookup', async () => {
+		getContractLookup.mockResolvedValue(verifiedLookup)
+
+		const verification = await findResolver(
+			EntityType.EvmContractVerification,
+			'EvmContract'
+		).resolve.EvmContract.resolve({
+			$contract: contract,
+		})
+		expect(verification).toMatchObject({
+			match: 'exact_match',
+			creationMatch: 'exact_match',
+			runtimeMatch: 'exact_match',
+			matchId: '2115',
+			verifiedAtMs: Date.parse('2024-08-08T10:05:44Z'),
+			$compilation: {
+				[EntityMetaKey.Selector]: {
+					$contract: contract,
+				},
+			},
+			$sourceBundle: {
+				[EntityMetaKey.Selector]: {
+					$contract: contract,
+				},
+			},
+		})
+
+		const compilation = await findResolver(
+			EntityType.EvmContractCompilation,
+			'EvmContract'
+		).resolve.EvmContract.resolve({
+			$contract: contract,
+		})
+		expect(compilation).toMatchObject({
+			language: 'Solidity',
+			compiler: '0.6.11+commit.5ef660b1',
+			compilerVersion: '0.6.11+commit.5ef660b1',
+			name: 'DepositContract',
+			fullyQualifiedName: 'deposit_contract.sol:DepositContract',
+		})
+		expect(compilation.storageLayoutJson).toContain('"storage"')
+
+		const sourceBundle = await findResolver(
+			EntityType.EvmContractSourceBundle,
+			'EvmContract'
+		).resolve.EvmContract.resolve({
+			$contract: contract,
+		})
+		expect(sourceBundle.files).toEqual({
+			'deposit_contract.sol': 'pragma solidity ^0.6.0; contract DepositContract {}',
+		})
+	})
+
+	it('projects contract abi, verification ref, deployer, and creation transaction', async () => {
+		getContractLookup.mockResolvedValue(verifiedLookup)
+
+		const abiResolver = sourcifyRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmContract
+			&& 'abi' in candidate.projections
+		))
+		if (abiResolver == null)
+			throw new Error('Sourcify REST spec missing EvmContract.abi')
+
+		const abi = await abiResolver.resolve.EvmNetworkAddress.resolve(contract)
+		expect(abi).toEqual([
+			{
+				type: 'function',
+				name: 'get_deposit_count',
+				inputs: [],
+				outputs: [
+					{
+						type: 'bytes',
+					},
+				],
+				stateMutability: 'view',
+			},
+		])
+
+		const verificationResolver = sourcifyRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmContract
+			&& '$verification' in candidate.projections
+		))
+		if (verificationResolver == null)
+			throw new Error('Sourcify REST spec missing EvmContract.$verification')
+
+		await expect(verificationResolver.resolve.EvmNetworkAddress.resolve(contract)).resolves.toEqual({
+			[EntityMetaKey.Selector]: {
+				$contract: contract,
+			},
+		})
+
+		const deployerResolver = sourcifyRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmContract
+			&& '$deployer' in candidate.projections
+		))
+		if (deployerResolver == null)
+			throw new Error('Sourcify REST spec missing EvmContract.$deployer')
+
+		await expect(deployerResolver.resolve.EvmNetworkAddress.resolve(contract)).resolves.toEqual({
+			[EntityMetaKey.Selector]: {
+				address: '0xb20a608c624ca5003905aa834de7156c68b2e1d0',
+			},
+		})
+
+		const creationResolver = sourcifyRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmContract
+			&& '$creationTransaction' in candidate.projections
+		))
+		if (creationResolver == null)
+			throw new Error('Sourcify REST spec missing EvmContract.$creationTransaction')
+
+		await expect(creationResolver.resolve.EvmNetworkAddress.resolve(contract)).resolves.toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				txHash: '0xe75fb554e433e03763a1560646ee22dcb74e5274b34c5ad644e7c0f619a7e1d0',
+			},
+		})
+	})
+
+	it('throws for missing verification snapshots and omits optional contract facets', async () => {
+		getContractLookup.mockResolvedValue(null)
+
+		await expect(findResolver(
+			EntityType.EvmContractVerification,
+			'EvmContract'
+		).resolve.EvmContract.resolve({
+			$contract: contract,
+		})).rejects.toThrow('Sourcify_Rest: contract not verified')
+
+		const abiResolver = sourcifyRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmContract
+			&& 'abi' in candidate.projections
+		))
+		if (abiResolver == null)
+			throw new Error('Sourcify REST spec missing EvmContract.abi')
+
+		await expect(abiResolver.resolve.EvmNetworkAddress.resolve(contract)).resolves.toBeUndefined()
+	})
+
+	it('propagates provider failures instead of inventing empty verification', async () => {
+		getContractLookup.mockRejectedValue(new Error('Sourcify unavailable'))
+
+		await expect(findResolver(
+			EntityType.EvmContractVerification,
+			'EvmContract'
+		).resolve.EvmContract.resolve({
+			$contract: contract,
+		})).rejects.toThrow('Sourcify unavailable')
+	})
+})

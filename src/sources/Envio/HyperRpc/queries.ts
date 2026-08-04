@@ -3,6 +3,8 @@ import { Source } from '$/sources/Source.ts'
 import { evmExecutionJsonRpc } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts'
 
 export const {
+	getBlockByHash,
+	getBlockByNumber,
 	getTransactionByHash,
 	getTransactionReceipt,
 } = evmExecutionJsonRpc({

@@ -1,3 +1,4 @@
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	blockchairAddressInfinitableChains,
@@ -433,5 +434,5 @@ export type BlockchairEthereumTransactionDashboardParams = {
 }
 
 export type BlockchairRequestOptions = {
-	apiKey?: string
+	publicEnv: SourcePublicEnv
 }

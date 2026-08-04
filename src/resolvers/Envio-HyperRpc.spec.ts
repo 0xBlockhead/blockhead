@@ -6,9 +6,12 @@ import {
 	EvmTransactionKind,
 } from '$/constants/Evm.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
+import block from '$/sources/Envio/HyperRpc/fixtures/block.json'
 import transaction from '$/sources/Envio/HyperRpc/fixtures/transaction.json'
 import transactionReceipt from '$/sources/Envio/HyperRpc/fixtures/transaction-receipt.json'
 import {
+	getBlockByHash,
+	getBlockByNumber,
 	getTransactionByHash,
 	getTransactionReceipt,
 } from '$/sources/Envio/HyperRpc/queries.ts'
@@ -87,13 +90,23 @@ describe('Envio HyperRPC query boundary', () => {
 		vi.clearAllMocks()
 	})
 
-	it('executes the two approved read-only JSON-RPC methods', async () => {
+	it('executes the approved read-only JSON-RPC methods', async () => {
 		jsonRpc2
 			.mockResolvedValueOnce(transaction)
 			.mockResolvedValueOnce(transactionReceipt)
+			.mockResolvedValueOnce(block)
+			.mockResolvedValueOnce(block)
 
 		await expect(getTransactionByHash({ txHash: transaction.hash })).resolves.toEqual(transaction)
 		await expect(getTransactionReceipt({ txHash: transaction.hash })).resolves.toEqual(transactionReceipt)
+		await expect(getBlockByNumber({
+			blockNumber: 19_046_688n,
+			txObjects: false,
+		})).resolves.toEqual(block)
+		await expect(getBlockByHash({
+			blockHash: block.hash,
+			txObjects: false,
+		})).resolves.toEqual(block)
 		expect(jsonRpc2).toHaveBeenNthCalledWith(
 			1,
 			expect.objectContaining({ source: resolverBinding.source }),
@@ -108,6 +121,20 @@ describe('Envio HyperRPC query boundary', () => {
 			[transaction.hash],
 			undefined
 		)
+		expect(jsonRpc2).toHaveBeenNthCalledWith(
+			3,
+			expect.objectContaining({ source: resolverBinding.source }),
+			'eth_getBlockByNumber',
+			['0x122a120', false],
+			undefined
+		)
+		expect(jsonRpc2).toHaveBeenNthCalledWith(
+			4,
+			expect.objectContaining({ source: resolverBinding.source }),
+			'eth_getBlockByHash',
+			[block.hash, false],
+			undefined
+		)
 	})
 
 	it('preserves complete-empty and transport failure outcomes', async () => {
@@ -116,6 +143,12 @@ describe('Envio HyperRPC query boundary', () => {
 
 		jsonRpc2.mockRejectedValueOnce(new Error('JSON-RPC rate limited'))
 		await expect(getTransactionReceipt({ txHash: transaction.hash })).rejects.toThrow('rate limited')
+
+		jsonRpc2.mockResolvedValueOnce(null)
+		await expect(getBlockByNumber({
+			blockNumber: 19_046_688n,
+			txObjects: false,
+		})).resolves.toBeNull()
 	})
 })
 
@@ -233,5 +266,82 @@ describe('Envio HyperRPC resolver', () => {
 				},
 			}],
 		})
+	})
+
+	it('maps schema-shaped EVM blocks by number and hash', async () => {
+		jsonRpc2
+			.mockResolvedValueOnce(block)
+			.mockResolvedValueOnce(block)
+		const resolver = envioHyperRpc.resolvers[1]
+		const byNumber = await resolver.resolve['EvmNetworkBlockNumber'].resolve({
+			$network: network,
+			blockNumber: 19_046_688n,
+		}, context)
+		const byHash = await resolver.resolve['EvmNetworkBlockHash'].resolve({
+			$network: network,
+			hash: block.hash,
+		}, context)
+
+		expect(Object.keys(resolver.projections).sort()).toEqual([
+			'$$transactions',
+			'$miner',
+			'$parent',
+			'baseFeePerGas',
+			'blobGasUsed',
+			'excessBlobGas',
+			'gasLimit',
+			'gasUsed',
+			'hash',
+			'parentHash',
+			'timestamp',
+			'transactionCount',
+		].sort())
+		expect(byNumber).toMatchObject({
+			hash: block.hash,
+			parentHash: block.parentHash,
+			timestamp: 1_700_000_000_000,
+			gasUsed: 21_000n,
+			transactionCount: 1,
+			$miner: {
+				[EntityMetaKey.Selector]: {
+					address: block.miner,
+				},
+			},
+			$parent: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 19_046_687n,
+				},
+			},
+			transactions: [{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					txHash: block.transactions[0],
+				},
+			}],
+		})
+		expect(byHash).toMatchObject({
+			hash: block.hash,
+			transactions: [{
+				[EntityMetaKey.Selector]: {
+					txHash: block.transactions[0],
+				},
+			}],
+		})
+	})
+
+	it('hard-fails unsupported networks and missing blocks', async () => {
+		await expect(envioHyperRpc.resolvers[1].resolve['EvmNetworkBlockNumber'].resolve({
+			$network: {
+				slug: 'polygon',
+			},
+			blockNumber: 1n,
+		}, context)).rejects.toThrow('unsupported network')
+
+		jsonRpc2.mockResolvedValueOnce(null)
+		await expect(envioHyperRpc.resolvers[1].resolve['EvmNetworkBlockNumber'].resolve({
+			$network: network,
+			blockNumber: 19_046_688n,
+		}, context)).rejects.toThrow('not found')
 	})
 })

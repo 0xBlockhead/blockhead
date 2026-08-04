@@ -55,6 +55,7 @@ export const getEvmBlock = async (
 				hash: true,
 				parentHash: true,
 				timestamp: true,
+				miner: true,
 				gasUsed: true,
 				gasLimit: true,
 				baseFeePerGas: true,

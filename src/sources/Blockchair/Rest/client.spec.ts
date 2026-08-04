@@ -7,7 +7,6 @@ import { getBlockchairJson } from '$/sources/Blockchair/Rest/client.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	SourceDelivery,
-	SourceTargetKind,
 	sourceBindingId,
 } from '$/sources/SourceBinding.ts'
 
@@ -18,7 +17,7 @@ describe('Blockchair REST client delivery', () => {
 		vi.unstubAllGlobals()
 	})
 
-	it('uses the registered HttpProxy binding without coupling to its generated identity', async () => {
+	it('uses the registered HttpProxy binding and injects an optional public API key', async () => {
 		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ data: [] }), {
 			headers: {
 				'content-type': 'application/json',
@@ -32,8 +31,8 @@ describe('Blockchair REST client delivery', () => {
 			searchParams: {
 				limit: 16,
 			},
-			options: {
-				apiKey: 'public key',
+			publicEnv: {
+				PUBLIC_BLOCKCHAIR_API_KEY: 'public key',
 			},
 		})).resolves.toEqual({ data: [] })
 
@@ -47,10 +46,32 @@ describe('Blockchair REST client delivery', () => {
 		)
 	})
 
-	it('keeps the source disabled until its public credential is configured', () => {
-		expect(indexSourceProviders([blockchair], {}).enabledSources.has(Source.Blockchair_Rest)).toBe(false)
+	it('stays enabled without a key and still proxies unauthenticated reads', async () => {
+		const eligibleBindingIds = new Set([
+			sourceBindingId(binding),
+		])
+		expect(indexSourceProviders([blockchair], {}, eligibleBindingIds).enabledSources.has(Source.Blockchair_Rest)).toBe(true)
 		expect(indexSourceProviders([blockchair], {
 			PUBLIC_BLOCKCHAIR_API_KEY: 'configured',
-		}).enabledSources.has(Source.Blockchair_Rest)).toBe(true)
+		}, eligibleBindingIds).enabledSources.has(Source.Blockchair_Rest)).toBe(true)
+
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ data: [] }), {
+			headers: {
+				'content-type': 'application/json',
+			},
+		}))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getBlockchairJson({
+			path: '/bitcoin/stats',
+			publicEnv: {},
+		})).resolves.toEqual({ data: [] })
+		expect(fetchMock).toHaveBeenCalledWith(
+			`/api-proxy/${encodeURIComponent(sourceBindingId(binding))}/0/${encodeURIComponent('https://api.blockchair.com/bitcoin/stats')}`,
+			expect.objectContaining({
+				signal: expect.any(AbortSignal),
+			})
+		)
 	})
 })

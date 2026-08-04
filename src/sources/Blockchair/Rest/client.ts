@@ -6,11 +6,14 @@
  */
 
 import {
+	optionalPublicEnvString,
+	type SourcePublicEnv,
+} from '$/sources/$sources.ts'
+import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/Blockchair/bindings.ts'
-import type { BlockchairRequestOptions } from '$/sources/Blockchair/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.Blockchair_Rest][0]
@@ -26,37 +29,37 @@ export type BlockchairSearchParams = Record<
 const blockchairUrl = ({
 	path,
 	searchParams,
-	options,
+	publicEnv,
 }: {
 	path: string
 	searchParams?: BlockchairSearchParams
-	options?: BlockchairRequestOptions
+	publicEnv: SourcePublicEnv
 }) => {
 	const url = new URL(firstHttpUrlForBinding(binding))
 	url.pathname = path
 	for (const [key, value] of Object.entries(searchParams ?? {})) {
 		if (value != null) url.searchParams.set(key, String(value))
 	}
-	const apiKey = options?.apiKey?.trim()
-	if (apiKey != null && apiKey !== '') url.searchParams.set('key', apiKey)
+	const apiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_BLOCKCHAIR_API_KEY')
+	if (apiKey != null) url.searchParams.set('key', apiKey)
 	return url.toString()
 }
 
 export const getBlockchairJson = <_Response>({
 	path,
 	searchParams,
-	options,
+	publicEnv,
 }: {
 	path: string
 	searchParams?: BlockchairSearchParams
-	options?: BlockchairRequestOptions
+	publicEnv: SourcePublicEnv
 }) => (
 	sourceGetJson<_Response>(
 		binding,
 		blockchairUrl({
 			path,
 			searchParams,
-			options,
+			publicEnv,
 		})
 	)
 )

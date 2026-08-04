@@ -11,11 +11,26 @@ const {
 	getFourbyteEventEntries,
 	getFourbyteFunctionEntries,
 	getFunctionEntries,
+	summarizeOpenchainEntries,
 } = vi.hoisted(() => ({
 	getEventEntries: vi.fn(),
 	getFourbyteEventEntries: vi.fn(),
 	getFourbyteFunctionEntries: vi.fn(),
 	getFunctionEntries: vi.fn(),
+	summarizeOpenchainEntries: vi.fn((entries: { name: string, filtered?: boolean, hasVerifiedContract?: boolean }[]) => {
+		const unfiltered = entries.filter((entry) => entry.filtered !== true)
+		return {
+			signatures: (
+				unfiltered.length > 0 ?
+					unfiltered
+				:
+					entries
+			)
+				.map((entry) => entry.name),
+			filteredSignatureCount: entries.filter((entry) => entry.filtered === true).length,
+			verifiedCandidateCount: entries.filter((entry) => entry.hasVerifiedContract === true).length,
+		}
+	}),
 }))
 
 vi.mock('$/sources/Openchain/Rest/queries.ts', () => ({
@@ -23,6 +38,7 @@ vi.mock('$/sources/Openchain/Rest/queries.ts', () => ({
 	getFourbyteEventEntries,
 	getFourbyteFunctionEntries,
 	getFunctionEntries,
+	summarizeOpenchainEntries,
 }))
 
 const { default: openchain } = await import('$/resolvers/Openchain-Rest.ts')
@@ -41,7 +57,13 @@ describe('Openchain resolver', () => {
 	}
 
 	it('projects Openchain names at the resolver boundary', async () => {
-		getFunctionEntries.mockResolvedValue([{ name: 'openchain(uint256)' }])
+		getFunctionEntries.mockResolvedValue([
+			{
+				name: 'openchain(uint256)',
+				filtered: false,
+				hasVerifiedContract: true,
+			},
+		])
 
 		const snapshot = await resolveSelector()
 
@@ -84,5 +106,60 @@ describe('Openchain resolver', () => {
 		await expect(resolver.resolve['Hex'].resolve({
 			hex: '0x12345678',
 		})).rejects.toThrow('4byte unavailable')
+	})
+
+	it('projects filtered/verified counts on selector timestamp observations', async () => {
+		getFunctionEntries.mockResolvedValue([
+			{
+				name: 'transfer(address,uint256)',
+				filtered: false,
+				hasVerifiedContract: true,
+			},
+			{
+				name: 'spam(uint256)',
+				filtered: true,
+				hasVerifiedContract: false,
+			},
+		])
+
+		const resolver = openchain.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmSelector_Timestamp
+		))
+		if (resolver == null)
+			throw new Error('Openchain REST spec missing selector timestamp resolver')
+
+		const snapshot = await resolver.resolve['SelectorTimestampMsSource'].resolve({
+			$selector: { hex: '0xa9059cbb' },
+			timestampMs: 1,
+			source: 'Openchain_Rest',
+		})
+
+		expect(snapshot).toMatchObject({
+			signatures: [
+				'transfer(address,uint256)',
+			],
+			filteredSignatureCount: 1,
+			verifiedCandidateCount: 1,
+			reachable: true,
+		})
+	})
+
+	it('records unreachable topic observations without inventing empty-success HTTP', async () => {
+		getEventEntries.mockRejectedValueOnce(new Error('Openchain down'))
+
+		const resolver = openchain.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTopic_Timestamp
+		))
+		if (resolver == null)
+			throw new Error('Openchain REST spec missing topic timestamp resolver')
+
+		await expect(resolver.resolve['TopicTimestampMsSource'].resolve({
+			$topic: { hex: '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef' },
+			timestampMs: 1,
+			source: 'Openchain_Rest',
+		})).resolves.toEqual({
+			signatures: [],
+			reachable: false,
+		})
 	})
 })

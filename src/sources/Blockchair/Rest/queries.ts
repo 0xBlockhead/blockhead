@@ -54,11 +54,11 @@ export const getBitcoinLikeStats = ({
 	options,
 }: {
 	chain: BlockchairBitcoinLikeChain
-	options?: BlockchairRequestOptions
+	options: BlockchairRequestOptions
 }) => (
 	getBlockchairJson<BlockchairResponse<BlockchairBitcoinLikeStats>>({
 		path: `/${chain}/stats`,
-		options,
+		publicEnv: options.publicEnv,
 	})
 )
 
@@ -72,11 +72,11 @@ export const getBitcoinLikeBlockDashboard = ({
 }: {
 	chain: BlockchairBitcoinLikeChain
 	block: bigint | number | string
-	options?: BlockchairRequestOptions
+	options: BlockchairRequestOptions
 }) => (
 	getBlockchairJson<BlockchairResponse<Record<string, BlockchairBitcoinLikeBlockDashboard>>>({
 		path: `/${chain}/dashboards/block/${pathIdentifier(block)}`,
-		options,
+		publicEnv: options.publicEnv,
 	})
 )
 
@@ -90,11 +90,11 @@ export const getBitcoinLikeTransactionDashboard = ({
 }: {
 	chain: BlockchairBitcoinLikeChain
 	transactionHash: string
-	options?: BlockchairRequestOptions
+	options: BlockchairRequestOptions
 }) => (
 	getBlockchairJson<BlockchairResponse<Record<string, BlockchairBitcoinLikeTransactionDashboard>>>({
 		path: `/${chain}/dashboards/transaction/${pathIdentifier(transactionHash)}`,
-		options,
+		publicEnv: options.publicEnv,
 	})
 )
 
@@ -110,12 +110,12 @@ export const getBitcoinLikeAddressDashboard = ({
 	chain: BlockchairBitcoinLikeChain
 	address: string
 	params?: BlockchairAddressDashboardParams
-	options?: BlockchairRequestOptions
+	options: BlockchairRequestOptions
 }) => (
 	getBlockchairJson<BlockchairResponse<Record<string, BlockchairBitcoinLikeAddressDashboard>>>({
 		path: `/${chain}/dashboards/address/${pathIdentifier(address)}`,
 		searchParams: bitcoinLikeAddressSearchParams(params),
-		options,
+		publicEnv: options.publicEnv,
 	})
 )
 
@@ -130,12 +130,12 @@ export const getBlocks = ({
 }: {
 	chain: BlockchairBitcoinLikeChain
 	params?: BlockchairInfinitableParams
-	options?: BlockchairRequestOptions
+	options: BlockchairRequestOptions
 }) => (
 	getBlockchairJson<BlockchairResponse<BlockchairBitcoinLikeBlock[]>>({
 		path: `/${chain}/blocks`,
 		searchParams: infinitableSearchParams(params),
-		options,
+		publicEnv: options.publicEnv,
 	})
 )
 
@@ -150,11 +150,11 @@ export const getTransactions = ({
 }: {
 	chain: BlockchairBitcoinLikeChain
 	params?: BlockchairInfinitableParams
-	options?: BlockchairRequestOptions
+	options: BlockchairRequestOptions
 }) => (
 	getBlockchairJson<BlockchairResponse<BlockchairBitcoinLikeTransaction[]>>({
 		path: `/${chain}/transactions`,
 		searchParams: infinitableSearchParams(params),
-		options,
+		publicEnv: options.publicEnv,
 	})
 )

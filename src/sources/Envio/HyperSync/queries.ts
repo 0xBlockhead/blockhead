@@ -43,6 +43,7 @@ export const getEvmBlockRangePage = async ({
 				'hash',
 				'parent_hash',
 				'timestamp',
+				'miner',
 				'gas_used',
 				'gas_limit',
 				'base_fee_per_gas',

@@ -1,8 +1,8 @@
+import { fetchFailedMessage } from '$/lib/http.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
-import { throwIfHttpNotOk } from '$/lib/http.ts'
 import bindings from '$/sources/Sourcify/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
@@ -15,8 +15,9 @@ export const sourcifyGetJsonOrNull = async <T = JsonValue>({
 	path: string
 }) => {
 	const url = `${firstHttpUrlForBinding(binding).replace(/\/$/, '')}${path.startsWith('/') ? path : `/${path}`}`
-	const res = await sourceFetch(binding, url)
-	if (res.status === 404) return null
-	await throwIfHttpNotOk(res, url)
-	return res.json<T>()
+	const response = await sourceFetch(binding, url)
+	if (response.status === 404) return null
+	if (!response.ok)
+		throw new Error(await fetchFailedMessage(url, response))
+	return response.json<T>()
 }

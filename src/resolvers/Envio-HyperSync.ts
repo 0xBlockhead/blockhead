@@ -1,7 +1,13 @@
+import { networkBySlug } from '$/constants/Network.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	EntityMetaKey,
+	type Entity,
+	type EntitySelector,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { EnvioHyperSyncResolution } from '$/sources/Envio/HyperSync/types.ts'
 
@@ -23,6 +29,23 @@ const quantity = (
 	}
 }
 
+const assertEthereumMainnet = (network: EntitySelector<typeof schema, EntityType.Network>) => {
+	if (
+		(
+			'caip2' in network
+			&& network.caip2.namespace === networkBySlug.ethereum.caip2.namespace
+			&& network.caip2.reference === networkBySlug.ethereum.caip2.reference
+		)
+		|| (
+			'slug' in network
+			&& network.slug === networkBySlug.ethereum.slug
+		)
+	)
+		return
+
+	throw new Error('EnvioHyperSync_RawHttp: unsupported network')
+}
+
 export default {
 	source: Source.EnvioHyperSync_RawHttp,
 
@@ -32,6 +55,7 @@ export default {
 			resolve: {
 				EvmNetworkBlockNumber: {
 					resolve: async ({ $network, blockNumber }) => {
+						assertEthereumMainnet($network)
 						const { getEvmBlockRangePage } = await import('$/sources/Envio/HyperSync/queries.ts')
 						const result = await getEvmBlockRangePage({
 							fromBlock: blockNumber,
@@ -49,6 +73,10 @@ export default {
 						if (hash == null || parentHash == null)
 							throw new Error('EnvioHyperSync_RawHttp: malformed block hash')
 
+						const miner = hexLowerOfByteSize(block.miner, 20)
+						if (miner == null)
+							throw new Error('EnvioHyperSync_RawHttp: malformed miner address')
+
 						return {
 							hash,
 							parentHash,
@@ -61,6 +89,19 @@ export default {
 							transactionCount: result.data.transactions.filter((transaction) => (
 								transaction.block_number === block.number
 							)).length,
+							$miner: {
+								[EntityMetaKey.Selector]: {
+									address: miner,
+								},
+							} satisfies Entity<typeof schema, EntityType.EvmAccount>,
+							...(blockNumber > 0n && {
+								$parent: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										blockNumber: blockNumber - 1n,
+									},
+								} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+							}),
 							transactions: result.data.transactions
 								.filter((transaction) => transaction.block_number === block.number)
 								.map((transaction) => {
@@ -89,8 +130,9 @@ export default {
 			blobGasUsed: (block) => block.blobGasUsed,
 			excessBlobGas: (block) => block.excessBlobGas,
 			transactionCount: (block) => block.transactionCount,
+			$miner: (block) => block.$miner,
+			$parent: (block) => block.$parent,
 			$$transactions: (block) => block.transactions,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule
-import { networkBySlug } from '$/constants/Network.ts'

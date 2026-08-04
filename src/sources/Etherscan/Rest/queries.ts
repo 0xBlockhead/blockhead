@@ -15,6 +15,7 @@ import type {
 	EtherscanErc721TokenTransfer,
 	EtherscanGasOracle,
 	EtherscanInternalTransaction,
+	EtherscanNormalTransaction,
 	EtherscanStringStatus,
 	EtherscanTokenTransferTagged,
 } from '$/sources/Etherscan/Rest/types.ts'
@@ -160,13 +161,20 @@ export const getBlockNumber = async ({
 export const getBlockByNumber = async ({
 	publicEnv,
 	chainId,
-	tag,
-	boolean,
+	blockNumber,
+	tag = (
+		blockNumber == null ?
+			'latest'
+		:
+			`0x${blockNumber.toString(16)}`
+	),
+	includeTransactions = false,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
-	tag: string
-	boolean: boolean
+	blockNumber?: bigint
+	tag?: string
+	includeTransactions?: boolean
 }) => (
 	etherscanV2GetProxyResult<RpcBlockHeader>({
 		chainId,
@@ -175,7 +183,7 @@ export const getBlockByNumber = async ({
 			module: 'proxy',
 			action: 'eth_getBlockByNumber',
 			tag,
-			boolean: boolean ? 'true' : 'false',
+			boolean: includeTransactions ? 'true' : 'false',
 		},
 	})
 )
@@ -524,6 +532,34 @@ export const getTokenTransfersByTransaction = async ({
 		return true
 	})
 }
+
+/**
+ * **`module=account`**, **`action=txlist`** — normal transactions by address.
+ * @see https://docs.etherscan.io/api-reference/endpoint/txlist
+ */
+export const getTransactionsByAddress = ({
+	publicEnv,
+	chainId,
+	address,
+	offset,
+}: {
+	publicEnv: SourcePublicEnv
+	chainId: number
+	address: `0x${string}`
+	offset: number
+}) => (
+	etherscanAccountListRows<EtherscanNormalTransaction>({
+		publicEnv,
+		chainId,
+		query: {
+			...etherscanAccountListQuery({
+				address,
+				offset,
+			}),
+			action: 'txlist',
+		},
+	})
+)
 
 /**
  * **`module=account`**, **`action=txlistinternal`** — internal transactions by address.

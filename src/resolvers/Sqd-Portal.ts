@@ -1,8 +1,13 @@
-import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { networkBySlug } from '$/constants/Network.ts'
+import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	EntityMetaKey,
+	type Entity,
+	type EntitySelector,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SqdPortalResolution } from '$/sources/Sqd/Portal/types.ts'
 
@@ -24,6 +29,23 @@ const quantity = (
 	}
 }
 
+const assertEthereumMainnet = (network: EntitySelector<typeof schema, EntityType.Network>) => {
+	if (
+		(
+			'caip2' in network
+			&& network.caip2.namespace === networkBySlug.ethereum.caip2.namespace
+			&& network.caip2.reference === networkBySlug.ethereum.caip2.reference
+		)
+		|| (
+			'slug' in network
+			&& network.slug === networkBySlug.ethereum.slug
+		)
+	)
+		return
+
+	throw new Error('SqdPortal_RawHttp: unsupported network')
+}
+
 export default {
 	source: Source.SqdPortal_RawHttp,
 
@@ -33,11 +55,7 @@ export default {
 			resolve: {
 				EvmNetworkBlockNumber: {
 					resolve: async ({ $network, blockNumber }) => {
-						if (
-							$network.caip2.namespace !== 'eip155'
-							|| $network.caip2.reference !== networkBySlug.ethereum.caip2.reference
-						)
-							throw new Error(`SqdPortal_RawHttp: unsupported network ${$network.caip2.namespace}:${$network.caip2.reference}`)
+						assertEthereumMainnet($network)
 
 						const { getEvmBlock } = await import('$/sources/Sqd/Portal/queries.ts')
 						const result = await getEvmBlock(blockNumber)
@@ -49,6 +67,10 @@ export default {
 						if (hash == null || parentHash == null)
 							throw new Error('SqdPortal_RawHttp: malformed block hash')
 
+						const miner = hexLowerOfByteSize(result.block.header.miner, 20)
+						if (miner == null)
+							throw new Error('SqdPortal_RawHttp: malformed miner address')
+
 						return {
 							hash,
 							parentHash,
@@ -59,6 +81,19 @@ export default {
 							blobGasUsed: quantity(result.block.header.blobGasUsed, 'blob gas used'),
 							excessBlobGas: quantity(result.block.header.excessBlobGas, 'excess blob gas'),
 							transactionCount: result.block.transactions.length,
+							$miner: {
+								[EntityMetaKey.Selector]: {
+									address: miner,
+								},
+							} satisfies Entity<typeof schema, EntityType.EvmAccount>,
+							...(blockNumber > 0n && {
+								$parent: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										blockNumber: blockNumber - 1n,
+									},
+								} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+							}),
 							transactions: result.block.transactions.map((transaction) => {
 								const txHash = hexLowerOfByteSize(transaction.hash, 32)
 								if (txHash == null)
@@ -85,6 +120,8 @@ export default {
 			blobGasUsed: (block) => block.blobGasUsed,
 			excessBlobGas: (block) => block.excessBlobGas,
 			transactionCount: (block) => block.transactionCount,
+			$miner: (block) => block.$miner,
+			$parent: (block) => block.$parent,
 			$$transactions: (block) => block.transactions,
 		}),
 	],

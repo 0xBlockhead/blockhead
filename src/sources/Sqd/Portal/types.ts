@@ -7,6 +7,7 @@ export const SqdPortalEvmBlock = type({
 		hash: 'string',
 		parentHash: 'string',
 		timestamp: 'number.integer >= 0',
+		miner: 'string',
 		gasUsed: 'string',
 		gasLimit: 'string',
 		'baseFeePerGas?': 'string',
@@ -32,6 +33,7 @@ export type SqdPortalEvmBlockRequest = {
 			hash: true
 			parentHash: true
 			timestamp: true
+			miner: true
 			gasUsed: true
 			gasLimit: true
 			baseFeePerGas: true

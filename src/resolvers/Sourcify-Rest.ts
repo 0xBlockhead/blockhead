@@ -38,6 +38,7 @@ const sourcifyFirstStorageLayoutRecord = (
 		if (visited.has(node)) return undefined
 		visited.add(node)
 		if (isJsonObject(node.storageLayout)) return node.storageLayout
+		if (isJsonArray(node.storage) || isJsonObject(node.types)) return node
 		for (const child of Object.values(node)) {
 			const found = walk(child)
 			if (found !== undefined) return found
@@ -205,7 +206,7 @@ export default {
 						const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
 						if (contractLookup == null) return undefined
 						return (
-							Array.isArray(contractLookup.abi) ?
+							contractLookup.abi != null ?
 								evmAbiFromJsonValue(contractLookup.abi)
 							:
 								undefined

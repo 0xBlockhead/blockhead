@@ -6,12 +6,10 @@ import {
 	vi,
 } from 'vitest'
 
-import bindings from '$/sources/SafeTransactionService/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
-	SourceDelivery,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
+	safeTransactionServiceChainIds,
+} from '$/sources/SafeTransactionService/Rest/queries.ts'
 
 const { sourceGetJson } = vi.hoisted(() => ({
 	sourceGetJson: vi.fn(),
@@ -23,23 +21,22 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 }))
 
 const {
+	getSafeMultisigTransaction,
 	getSafeMultisigTransactions,
 	getSafeStatus,
 	getSafeTransactionConfirmations,
 	isSafeNonceRejectionTransaction,
+	requireSafeTransactionServiceBinding,
 } = await import('$/sources/SafeTransactionService/Rest/queries.ts')
 
-const binding = bindings[Source.SafeTransactionService_Rest]
-	.find((candidate) => candidate.target.key === '8453')
-
-if (binding == null)
-	throw new Error('SafeTransactionService_Rest spec missing Base binding')
-
+const chainId = 8453
 const safeAddress = `0x${'a'.repeat(40)}`
 const ownerAddress = `0x${'b'.repeat(40)}`
 const recipientAddress = `0x${'c'.repeat(40)}`
 const safeTxHash = `0x${'d'.repeat(64)}`
 const executionHash = `0x${'e'.repeat(64)}`
+const masterCopy = `0x${'1'.repeat(40)}`
+const zeroAddress = `0x${'0'.repeat(40)}`
 
 const transaction = {
 	safe: safeAddress,
@@ -50,8 +47,8 @@ const transaction = {
 	safeTxGas: '0',
 	baseGas: '0',
 	gasPrice: '0',
-	gasToken: `0x${'0'.repeat(40)}`,
-	refundReceiver: `0x${'0'.repeat(40)}`,
+	gasToken: zeroAddress,
+	refundReceiver: zeroAddress,
 	nonce: '9007199254740993',
 	executionDate: null,
 	submissionDate: '2026-07-22T00:00:00Z',
@@ -69,34 +66,51 @@ const transaction = {
 	signatures: null,
 }
 
+const safeStatus = {
+	address: safeAddress,
+	nonce: '9007199254740993',
+	threshold: 1,
+	owners: [
+		ownerAddress,
+	],
+	masterCopy,
+	modules: [],
+	fallbackHandler: recipientAddress,
+	guard: zeroAddress,
+	version: '1.4.1',
+}
+
 describe('Safe Transaction Service public multisig queries', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 	})
 
+	it('indexes bound EIP-155 chains and hard-fails unknown ones', () => {
+		expect(safeTransactionServiceChainIds).toEqual([
+			1,
+			100,
+			8453,
+		])
+		expect(requireSafeTransactionServiceBinding(8453).source).toBe(Source.SafeTransactionService_Rest)
+		expect(() => requireSafeTransactionServiceBinding(999)).toThrow('no binding for chain 999')
+	})
+
 	it('preserves exact Safe identity, owners, threshold, and lossless nonce', async () => {
 		sourceGetJson.mockResolvedValue({
+			...safeStatus,
 			address: safeAddress.toUpperCase().replace('0X', '0x'),
-			nonce: '9007199254740993',
-			threshold: 1,
-			owners: [
-				ownerAddress,
-			],
-			masterCopy: recipientAddress,
-			modules: [],
-			fallbackHandler: recipientAddress,
-			guard: `0x${'0'.repeat(40)}`,
-			version: '1.4.1',
 		})
 
-		await expect(getSafeStatus(binding, {
+		await expect(getSafeStatus({
+			chainId,
 			safeAddress,
 		})).resolves.toMatchObject({
 			nonce: '9007199254740993',
 			threshold: 1,
+			masterCopy,
 		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
-			binding,
+			requireSafeTransactionServiceBinding(chainId),
 			`https://api.safe.global/tx-service/base/api/v1/safes/${safeAddress}/`
 		)
 	})
@@ -111,7 +125,8 @@ describe('Safe Transaction Service public multisig queries', () => {
 			],
 		})
 
-		await expect(getSafeMultisigTransactions(binding, {
+		await expect(getSafeMultisigTransactions({
+			chainId,
 			safeAddress,
 			limit: 20,
 			offset: 0,
@@ -136,7 +151,8 @@ describe('Safe Transaction Service public multisig queries', () => {
 				},
 			],
 		})
-		await expect(getSafeMultisigTransactions(binding, {
+		await expect(getSafeMultisigTransactions({
+			chainId,
 			safeAddress,
 			limit: 20,
 			offset: 0,
@@ -153,28 +169,59 @@ describe('Safe Transaction Service public multisig queries', () => {
 			],
 		})
 
-		await expect(getSafeMultisigTransactions(binding, {
+		await expect(getSafeMultisigTransactions({
+			chainId,
 			safeAddress,
 			limit: 20,
 			offset: 0,
 		})).rejects.toThrow('continuation escaped its subject')
 	})
 
+	it('hard-fails executed pages that omit the on-chain execution hash', async () => {
+		sourceGetJson.mockResolvedValue({
+			count: 1,
+			next: null,
+			previous: null,
+			results: [
+				{
+					...transaction,
+					isExecuted: true,
+					isSuccessful: true,
+					transactionHash: null,
+				},
+			],
+		})
+
+		await expect(getSafeMultisigTransactions({
+			chainId,
+			safeAddress,
+			limit: 20,
+			offset: 0,
+			executed: true,
+		})).rejects.toThrow('missing execution hash')
+	})
+
+	it('binds a single multisig transaction to the requested Safe and hash', async () => {
+		sourceGetJson.mockResolvedValue({
+			...transaction,
+			isExecuted: true,
+			isSuccessful: true,
+			transactionHash: executionHash,
+		})
+
+		await expect(getSafeMultisigTransaction({
+			chainId,
+			safeAddress,
+			safeTxHash,
+		})).resolves.toMatchObject({
+			safeTxHash,
+			transactionHash: executionHash,
+		})
+	})
+
 	it('binds confirmations to the exact transaction and current Safe owners', async () => {
 		sourceGetJson
-			.mockResolvedValueOnce({
-				address: safeAddress,
-				nonce: '2',
-				threshold: 1,
-				owners: [
-					ownerAddress,
-				],
-				masterCopy: recipientAddress,
-				modules: [],
-				fallbackHandler: recipientAddress,
-				guard: `0x${'0'.repeat(40)}`,
-				version: '1.4.1',
-			})
+			.mockResolvedValueOnce(safeStatus)
 			.mockResolvedValueOnce({
 				...transaction,
 				isExecuted: true,
@@ -196,7 +243,8 @@ describe('Safe Transaction Service public multisig queries', () => {
 				],
 			})
 
-		await expect(getSafeTransactionConfirmations(binding, {
+		await expect(getSafeTransactionConfirmations({
+			chainId,
 			safeAddress,
 			safeTxHash,
 			limit: 20,
@@ -212,19 +260,11 @@ describe('Safe Transaction Service public multisig queries', () => {
 
 	it('rejects invalid thresholds', async () => {
 		sourceGetJson.mockResolvedValue({
-			address: safeAddress,
-			nonce: '0',
+			...safeStatus,
 			threshold: 2,
-			owners: [
-				ownerAddress,
-			],
-			masterCopy: recipientAddress,
-			modules: [],
-			fallbackHandler: recipientAddress,
-			guard: `0x${'0'.repeat(40)}`,
-			version: '1.4.1',
 		})
-		await expect(getSafeStatus(binding, {
+		await expect(getSafeStatus({
+			chainId,
 			safeAddress,
 		})).rejects.toThrow('threshold exceeds its owner set')
 	})

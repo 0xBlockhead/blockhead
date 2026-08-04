@@ -1,3 +1,4 @@
+import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EvmTransactionEnvelopeType,
 	EvmTransactionExecutionStatus,
@@ -8,10 +9,12 @@ import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers
 import {
 	EntityMetaKey,
 	type Entity,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import type { RpcBlockWire } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
 
 const quantity = (
 	value: string,
@@ -42,6 +45,97 @@ const safeNumberQuantity = (
 
 	return number
 }
+
+const assertEthereumMainnet = (network: EntitySelector<typeof schema, EntityType.Network>) => {
+	if (
+		(
+			'caip2' in network
+			&& network.caip2.namespace === networkBySlug.ethereum.caip2.namespace
+			&& network.caip2.reference === networkBySlug.ethereum.caip2.reference
+		)
+		|| (
+			'slug' in network
+			&& network.slug === networkBySlug.ethereum.slug
+		)
+	)
+		return
+
+	throw new Error('EnvioHyperRpc_JsonRpc: unsupported network')
+}
+
+const schemaShapedEvmBlock = (
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	wire: RpcBlockWire
+) => {
+	const hash = hexLowerOfByteSize(wire.hash, 32)
+	const parentHash = hexLowerOfByteSize(wire.parentHash, 32)
+	const miner = hexLowerOfByteSize(wire.miner, 20)
+	if (hash == null || parentHash == null)
+		throw new Error('EnvioHyperRpc_JsonRpc: malformed block hash')
+	if (miner == null)
+		throw new Error('EnvioHyperRpc_JsonRpc: malformed miner address')
+
+	const blockNumber = quantity(wire.number, 'block number')
+	const timestampSeconds = Number(wire.timestamp)
+	if (!Number.isFinite(timestampSeconds))
+		throw new Error('EnvioHyperRpc_JsonRpc: malformed block timestamp')
+
+	return {
+		hash,
+		parentHash,
+		timestamp: timestampSeconds * 1_000,
+		gasUsed: quantity(wire.gasUsed, 'gas used'),
+		gasLimit: quantity(wire.gasLimit, 'gas limit'),
+		baseFeePerGas: wire.baseFeePerGas == null ? undefined : quantity(wire.baseFeePerGas, 'base fee per gas'),
+		blobGasUsed: wire.blobGasUsed == null ? undefined : quantity(wire.blobGasUsed, 'blob gas used'),
+		excessBlobGas: wire.excessBlobGas == null ? undefined : quantity(wire.excessBlobGas, 'excess blob gas'),
+		transactionCount: wire.transactions.length,
+		$miner: {
+			[EntityMetaKey.Selector]: {
+				address: miner,
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmAccount>,
+		...(blockNumber > 0n && {
+			$parent: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					blockNumber: blockNumber - 1n,
+				},
+			} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+		}),
+		transactions: wire.transactions.map((transaction) => {
+			const txHash = hexLowerOfByteSize(
+				typeof transaction === 'string' ? transaction : transaction.hash,
+				32
+			)
+			if (txHash == null)
+				throw new Error('EnvioHyperRpc_JsonRpc: malformed transaction hash')
+
+			return {
+				[EntityMetaKey.Selector]: {
+					$network,
+					txHash,
+				},
+			} satisfies Entity<typeof schema, EntityType.EvmTransaction>
+		}),
+	}
+}
+
+const evmBlockProjections = {
+	hash: (block: ReturnType<typeof schemaShapedEvmBlock>) => block.hash,
+	parentHash: (block: ReturnType<typeof schemaShapedEvmBlock>) => block.parentHash,
+	timestamp: (block: ReturnType<typeof schemaShapedEvmBlock>) => block.timestamp,
+	gasUsed: (block: ReturnType<typeof schemaShapedEvmBlock>) => block.gasUsed,
+	gasLimit: (block: ReturnType<typeof schemaShapedEvmBlock>) => block.gasLimit,
+	baseFeePerGas: (block: ReturnType<typeof schemaShapedEvmBlock>) => block.baseFeePerGas,
+	blobGasUsed: (block: ReturnType<typeof schemaShapedEvmBlock>) => block.blobGasUsed,
+	excessBlobGas: (block: ReturnType<typeof schemaShapedEvmBlock>) => block.excessBlobGas,
+	transactionCount: (block: ReturnType<typeof schemaShapedEvmBlock>) => block.transactionCount,
+	$miner: (block: ReturnType<typeof schemaShapedEvmBlock>) => block.$miner,
+	$parent: (block: ReturnType<typeof schemaShapedEvmBlock>) => block.$parent,
+	$$transactions: (block: ReturnType<typeof schemaShapedEvmBlock>) => block.transactions,
+}
+
 export default {
 	source: Source.EnvioHyperRpc_JsonRpc,
 
@@ -51,6 +145,7 @@ export default {
 			resolve: {
 				EvmNetworkTxHash: {
 					resolve: async ({ $network, txHash }) => {
+						assertEthereumMainnet($network)
 						const {
 							getTransactionByHash,
 							getTransactionReceipt,
@@ -193,6 +288,39 @@ export default {
 			},
 			$$logs: (transaction) => transaction.logs,
 		}),
+
+		defineResolver({
+			entityType: EntityType.EvmBlock,
+			resolve: {
+				EvmNetworkBlockNumber: {
+					resolve: async ({ $network, blockNumber }) => {
+						assertEthereumMainnet($network)
+						const { getBlockByNumber } = await import('$/sources/Envio/HyperRpc/queries.ts')
+						const wire = await getBlockByNumber({
+							blockNumber,
+							txObjects: false,
+						})
+						if (wire == null)
+							throw new Error(`EnvioHyperRpc_JsonRpc: block ${blockNumber.toString()} not found`)
+
+						return schemaShapedEvmBlock($network, wire)
+					},
+				},
+				EvmNetworkBlockHash: {
+					resolve: async ({ $network, hash }) => {
+						assertEthereumMainnet($network)
+						const { getBlockByHash } = await import('$/sources/Envio/HyperRpc/queries.ts')
+						const wire = await getBlockByHash({
+							blockHash: hash,
+							txObjects: false,
+						})
+						if (wire == null)
+							throw new Error(`EnvioHyperRpc_JsonRpc: block ${hash} not found`)
+
+						return schemaShapedEvmBlock($network, wire)
+					},
+				},
+			},
+		})(evmBlockProjections),
 	],
 } satisfies RegisteredSourceResolverModule
-import { networkBySlug } from '$/constants/Network.ts'

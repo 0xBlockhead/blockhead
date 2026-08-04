@@ -6,12 +6,14 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getBlocks = vi.fn()
+const getBitcoinLikeAddressDashboard = vi.fn()
 const getBitcoinLikeBlockDashboard = vi.fn()
 const getBitcoinLikeStats = vi.fn()
 const getBitcoinLikeTransactionDashboard = vi.fn()
 
 vi.mock('$/sources/Blockchair/Rest/queries.ts', () => ({
 	getBlocks,
+	getBitcoinLikeAddressDashboard,
 	getBitcoinLikeBlockDashboard,
 	getBitcoinLikeStats,
 	getBitcoinLikeTransactionDashboard,
@@ -39,6 +41,12 @@ const blockResolver = blockchairResolvers.resolvers.find((resolver) => (
 const transactionResolver = blockchairResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoTransaction
 ))
+const addressResolvers = blockchairResolvers.resolvers.filter((resolver) => (
+	resolver.entityType === EntityType.UtxoAddress
+))
+const addressRelationsResolver = addressResolvers.find((resolver) => (
+	'$$transactions' in resolver.projections
+))
 
 if (blocksResolver == null)
 	throw new Error('Blockchair-Rest spec missing Network.Utxo.$$blocks resolver')
@@ -50,6 +58,8 @@ if (blockResolver == null)
 	throw new Error('Blockchair-Rest spec missing UtxoBlock resolver')
 if (transactionResolver == null)
 	throw new Error('Blockchair-Rest spec missing UtxoTransaction resolver')
+if (addressRelationsResolver == null)
+	throw new Error('Blockchair-Rest spec missing UtxoAddress $$transactions resolver')
 
 const resolverContext = {
 	filters: [],
@@ -60,7 +70,9 @@ const resolverContext = {
 	selectorKeys: [],
 	parentSelectorKeys: [],
 	sources: [],
-	publicEnv: {},
+	publicEnv: {
+		PUBLIC_BLOCKCHAIR_API_KEY: 'test-key',
+	},
 }
 
 describe('Blockchair Network selector applicability', () => {
@@ -116,6 +128,9 @@ describe('Blockchair Network selector applicability', () => {
 				sort: 'id(desc)',
 				limit: 1,
 			},
+			options: {
+				publicEnv: resolverContext.publicEnv,
+			},
 		})
 
 		await expect(blocksResolver.resolve['Caip2'].resolve({
@@ -141,6 +156,12 @@ describe('Blockchair Network selector applicability', () => {
 			resolverContext
 		)
 		expect(getBitcoinLikeStats).toHaveBeenCalledOnce()
+		expect(getBitcoinLikeStats).toHaveBeenCalledWith({
+			chain: 'bitcoin',
+			options: {
+				publicEnv: resolverContext.publicEnv,
+			},
+		})
 		expect(timestampsResolver.projections.$$timestamps(network)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: { slug: 'bitcoin' },
@@ -178,6 +199,7 @@ describe('Blockchair Network selector applicability', () => {
 		}
 		const dashboard = {
 			block: {
+				id: 900_000,
 				hash: 'block-hash',
 				time: '2026-01-15T00:00:00.000Z',
 				merkle_root: 'merkle-root',
@@ -209,8 +231,17 @@ describe('Blockchair Network selector applicability', () => {
 		expect(getBitcoinLikeBlockDashboard).toHaveBeenCalledWith({
 			chain: 'bitcoin',
 			block: heightSelector.height,
+			options: {
+				publicEnv: resolverContext.publicEnv,
+			},
 		})
 		expect(blockResolver.projections.hash(heightSnapshot)).toBe(dashboard.block.hash)
+		expect(blockResolver.projections.$parent(heightSnapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				height: 899_999n,
+			},
+		})
 		expect(blockResolver.projections.transactionCount(heightSnapshot)).toBe(1)
 		expect(blockResolver.projections.$$transactions(heightSnapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
@@ -231,6 +262,9 @@ describe('Blockchair Network selector applicability', () => {
 		expect(getBitcoinLikeBlockDashboard).toHaveBeenLastCalledWith({
 			chain: 'bitcoin',
 			block: hashSelector.hash,
+			options: {
+				publicEnv: resolverContext.publicEnv,
+			},
 		})
 		expect(blockResolver.projections.hash(hashSnapshot)).toBe(hashSelector.hash)
 		expect(blockResolver.projections.$$transactions(hashSnapshot)).toEqual(
@@ -271,8 +305,12 @@ describe('Blockchair Network selector applicability', () => {
 		expect(getBitcoinLikeTransactionDashboard).toHaveBeenCalledWith({
 			chain: 'bitcoin',
 			transactionHash: entitySelector.txId,
+			options: {
+				publicEnv: resolverContext.publicEnv,
+			},
 		})
 		expect(transactionResolver.projections.version(snapshot)).toBe(2)
+		expect(transactionResolver.projections.virtualSizeBytes(snapshot)).toBe(2)
 		expect(transactionResolver.projections.$$inputs(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transaction: entitySelector,
@@ -293,5 +331,82 @@ describe('Blockchair Network selector applicability', () => {
 				},
 			},
 		])
+	})
+
+	it('projects address transactions and unspent outputs from one dashboard response', async () => {
+		const entitySelector = {
+			$network: {
+				caip2: networkBySlug.bitcoin.caip2,
+			},
+			address: 'bc1qaddress',
+		}
+		getBitcoinLikeAddressDashboard.mockResolvedValue({
+			data: {
+				[entitySelector.address]: {
+					address: {
+						balance: 10,
+						transaction_count: 2,
+						unspent_output_count: 1,
+						received: 20,
+						spent: 10,
+					},
+					transactions: [
+						'tx-a',
+						{
+							hash: 'tx-b',
+						},
+					],
+					utxo: [
+						{
+							transaction_hash: 'tx-a',
+							index: 0,
+						},
+						{
+							transaction_hash: null,
+							index: 1,
+						},
+					],
+				},
+			},
+		})
+
+		const snapshot = await addressRelationsResolver.resolve.NetworkAddress.resolve(
+			entitySelector,
+			resolverContext
+		)
+		expect(getBitcoinLikeAddressDashboard).toHaveBeenCalledOnce()
+		expect(getBitcoinLikeAddressDashboard).toHaveBeenCalledWith({
+			chain: 'bitcoin',
+			address: entitySelector.address,
+			params: {
+				limit: 1,
+			},
+			options: {
+				publicEnv: resolverContext.publicEnv,
+			},
+		})
+		expect(addressRelationsResolver.projections.$$transactions(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: entitySelector.$network,
+					txId: 'tx-a',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: entitySelector.$network,
+					txId: 'tx-b',
+				},
+			},
+		])
+		expect(addressRelationsResolver.projections.$$outputs(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: entitySelector.$network,
+					txId: 'tx-a',
+				},
+				indexInTransaction: 0,
+			},
+		}])
 	})
 })

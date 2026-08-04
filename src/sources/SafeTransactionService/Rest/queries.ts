@@ -1,14 +1,37 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
-import {
-	firstHttpUrlForBinding,
-	sourceGetJson,
-} from '$/sources/_runtime/http.ts'
+import bindings from '$/sources/SafeTransactionService/bindings.ts'
 import type {
 	SafeMultisigConfirmation,
 	SafeMultisigTransaction,
 	SafePage,
 	SafeStatus,
 } from '$/sources/SafeTransactionService/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceGetJson,
+} from '$/sources/_runtime/http.ts'
+
+const bindingByChainId = new Map(
+	bindings[Source.SafeTransactionService_Rest].map((binding) => [
+		Number(binding.target.key),
+		binding,
+	] as const)
+)
+
+export const safeTransactionServiceChainIds = [
+	...bindingByChainId.keys(),
+]
+
+export const requireSafeTransactionServiceBinding = (
+	chainId: number
+) => {
+	const binding = bindingByChainId.get(chainId)
+	if (binding == null)
+		throw new Error(`SafeTransactionService_Rest: no binding for chain ${chainId}`)
+
+	return binding
+}
 
 const assertAddress = (
 	address: string,
@@ -49,12 +72,12 @@ const request = <_Result>({
 }: {
 	binding: SourceBinding
 	path: string
-}) => {
-	return sourceGetJson<_Result>(
+}) => (
+	sourceGetJson<_Result>(
 		binding,
 		`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}${path}`
 	)
-}
+)
 
 const assertConfirmation = (
 	confirmation: SafeMultisigConfirmation,
@@ -126,11 +149,14 @@ const assertContinuation = (
 		throw new Error('SafeTransactionService_Rest: pagination continuation escaped its subject')
 }
 
-export const getSafeStatus = async (binding: SourceBinding, {
+export const getSafeStatus = async ({
+	chainId,
 	safeAddress,
 }: {
+	chainId: number
 	safeAddress: string
 }) => {
+	const binding = requireSafeTransactionServiceBinding(chainId)
 	assertAddress(safeAddress, 'Safe address')
 	const status = await request<SafeStatus>({
 		binding,
@@ -140,6 +166,11 @@ export const getSafeStatus = async (binding: SourceBinding, {
 		throw new Error('SafeTransactionService_Rest: status belongs to a different Safe')
 	assertUnsignedDecimal(status.nonce, 'Safe nonce')
 	assertPageNumber(status.threshold, 'Safe threshold', 1_000)
+	assertAddress(status.masterCopy, 'Safe masterCopy')
+	assertAddress(status.fallbackHandler, 'Safe fallback handler')
+	assertAddress(status.guard, 'Safe guard')
+	if (status.moduleGuard != null)
+		assertAddress(status.moduleGuard, 'Safe module guard')
 	const owners = new Set<string>()
 	for (const owner of status.owners) {
 		assertAddress(owner, 'Safe owner')
@@ -148,22 +179,33 @@ export const getSafeStatus = async (binding: SourceBinding, {
 			throw new Error('SafeTransactionService_Rest: duplicate Safe owner')
 		owners.add(normalizedOwner)
 	}
+	const modules = new Set<string>()
+	for (const moduleAddress of status.modules) {
+		assertAddress(moduleAddress, 'Safe module')
+		const normalizedModule = moduleAddress.toLowerCase()
+		if (modules.has(normalizedModule))
+			throw new Error('SafeTransactionService_Rest: duplicate Safe module')
+		modules.add(normalizedModule)
+	}
 	if (status.threshold < 1 || status.threshold > status.owners.length)
 		throw new Error('SafeTransactionService_Rest: Safe threshold exceeds its owner set')
 	return status
 }
 
-export const getSafeMultisigTransactions = async (binding: SourceBinding, {
+export const getSafeMultisigTransactions = async ({
+	chainId,
 	safeAddress,
 	limit,
 	offset,
 	executed,
 }: {
+	chainId: number
 	safeAddress: string
 	limit: number
 	offset: number
 	executed?: boolean
 }) => {
+	const binding = requireSafeTransactionServiceBinding(chainId)
 	assertAddress(safeAddress, 'Safe address')
 	assertPageNumber(limit, 'page limit', 100)
 	if (limit < 1)
@@ -195,21 +237,48 @@ export const getSafeMultisigTransactions = async (binding: SourceBinding, {
 		hashes.add(hash)
 		if (executed != null && transaction.isExecuted !== executed)
 			throw new Error('SafeTransactionService_Rest: transaction execution filter was violated')
+		if (executed === true && transaction.transactionHash == null)
+			throw new Error('SafeTransactionService_Rest: executed transaction missing execution hash')
 	}
 	return page
 }
 
-export const getSafeTransactionConfirmations = async (binding: SourceBinding, {
+export const getSafeMultisigTransaction = async ({
+	chainId,
+	safeAddress,
+	safeTxHash,
+}: {
+	chainId: number
+	safeAddress: string
+	safeTxHash: string
+}) => {
+	const binding = requireSafeTransactionServiceBinding(chainId)
+	assertAddress(safeAddress, 'Safe address')
+	assertHash(safeTxHash, 'Safe transaction hash')
+	const transaction = await request<SafeMultisigTransaction>({
+		binding,
+		path: `/api/v2/multisig-transactions/${encodeURIComponent(safeTxHash)}/`,
+	})
+	assertTransaction(transaction, safeAddress)
+	if (transaction.safeTxHash.toLowerCase() !== safeTxHash.toLowerCase())
+		throw new Error('SafeTransactionService_Rest: Safe transaction hash was substituted')
+	return transaction
+}
+
+export const getSafeTransactionConfirmations = async ({
+	chainId,
 	safeAddress,
 	safeTxHash,
 	limit,
 	offset,
 }: {
+	chainId: number
 	safeAddress: string
 	safeTxHash: string
 	limit: number
 	offset: number
 }) => {
+	const binding = requireSafeTransactionServiceBinding(chainId)
 	assertAddress(safeAddress, 'Safe address')
 	assertHash(safeTxHash, 'Safe transaction hash')
 	assertPageNumber(limit, 'page limit', 100)
@@ -217,21 +286,20 @@ export const getSafeTransactionConfirmations = async (binding: SourceBinding, {
 		throw new Error('SafeTransactionService_Rest: page limit must be positive')
 	assertPageNumber(offset, 'page offset', Number.MAX_SAFE_INTEGER)
 	const [status, transaction, page] = await Promise.all([
-		getSafeStatus(binding, {
+		getSafeStatus({
+			chainId,
 			safeAddress,
 		}),
-		request<SafeMultisigTransaction>({
-			binding,
-			path: `/api/v2/multisig-transactions/${encodeURIComponent(safeTxHash)}/`,
+		getSafeMultisigTransaction({
+			chainId,
+			safeAddress,
+			safeTxHash,
 		}),
 		request<SafePage<SafeMultisigConfirmation>>({
 			binding,
 			path: `/api/v1/multisig-transactions/${encodeURIComponent(safeTxHash)}/confirmations/?limit=${limit}&offset=${offset}`,
 		}),
 	])
-	assertTransaction(transaction, safeAddress)
-	if (transaction.safeTxHash.toLowerCase() !== safeTxHash.toLowerCase())
-		throw new Error('SafeTransactionService_Rest: confirmation transaction hash was substituted')
 	assertPageNumber(page.count, 'confirmation count', Number.MAX_SAFE_INTEGER)
 	if (page.results.length > limit)
 		throw new Error('SafeTransactionService_Rest: confirmation page exceeds requested limit')

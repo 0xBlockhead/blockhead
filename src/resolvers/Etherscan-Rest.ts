@@ -2,14 +2,23 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { keccak256, toHex } from '@tevm/voltaire/Hash'
 import { toBytes } from '@tevm/voltaire/Hex'
 
-import { EvmInternalCallType, EvmTokenStandard } from '$/constants/Evm.ts'
+import {
+	EvmInternalCallType,
+	EvmTokenStandard,
+	EvmTransactionEnvelopeType,
+	EvmTransactionExecutionStatus,
+	EvmTransactionKind,
+} from '$/constants/Evm.ts'
 import { evmAbiFromJsonString } from '$/lib/evmAbi.ts'
-import { hexLowerOfByteSize, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
+import { hexLowerOfByteSize, with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
-import { evmChainIdFromNetworkSelector } from '$/resolvers/evm.ts'
+import {
+	evmChainIdFromNetworkSelector,
+	evmNetworkSelectorFromChainId,
+} from '$/resolvers/evm.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -22,6 +31,7 @@ import type {
 	EtherscanInternalTransaction,
 	EtherscanTokenTransferTagged,
 } from '$/sources/Etherscan/Rest/types.ts'
+import type { RpcLog } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
 
 type EvmNetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -457,6 +467,116 @@ const findEtherscanInternalTransferWireForEntitySelector = (
 	wires[entitySelector.indexInTransaction]
 )
 
+const rpcQuantityToNumber = (
+	raw: string | null | undefined
+) => {
+	const value = etherscanQuantityToBigInt(raw ?? undefined)
+	return value == null || value > BigInt(Number.MAX_SAFE_INTEGER) ? undefined : Number(value)
+}
+
+const evmLogIndexFromRpcWire = (
+	raw: string | undefined
+) => rpcQuantityToNumber(raw)
+
+const evmTransactionEnvelopeTypeFromRpcTypeByte = (
+	raw: number | undefined
+): EvmTransactionEnvelopeType => (
+	raw == null || !Number.isFinite(raw) || !Number.isInteger(raw) ?
+		EvmTransactionEnvelopeType.Legacy
+	:
+		raw === 0 ?
+			EvmTransactionEnvelopeType.Legacy
+		:
+			raw === 1 ?
+				EvmTransactionEnvelopeType.AccessList
+			:
+				raw === 2 ?
+					EvmTransactionEnvelopeType.FeeMarket
+				:
+					raw === 3 ?
+						EvmTransactionEnvelopeType.Blob
+					:
+						raw === 4 ?
+							EvmTransactionEnvelopeType.SetCode
+						:
+							EvmTransactionEnvelopeType.Unknown
+)
+
+const evmTransactionKindFromSignedFields = ({
+	value,
+	toAddress,
+	input,
+	createdContractAddress,
+}: {
+	value: bigint
+	toAddress?: string
+	input?: string
+	createdContractAddress?: string
+}): EvmTransactionKind => (
+	createdContractAddress != null || toAddress == null ?
+		EvmTransactionKind.ContractCreation
+	:
+		input != null && input !== '0x' && input.length > 2 ?
+			value > 0n ?
+				EvmTransactionKind.NativeTransferAndCall
+			:
+				EvmTransactionKind.ContractCall
+		:
+			value > 0n ?
+				EvmTransactionKind.NativeTransfer
+			:
+				EvmTransactionKind.ContractCall
+)
+
+const evmLogEntityFromRpcWire = (
+	entitySelector: EntitySelector<typeof schema, EntityType.EvmLog>,
+	log: RpcLog
+) => {
+	const address = hexLowerOfByteSize(log.address ?? '', 20)
+	const blockHash = hexLowerOfByteSize(log.blockHash ?? '', 32)
+	const blockNumber = etherscanQuantityToBigInt(log.blockNumber)
+	const data = log.data == null ? undefined : with0xHex(log.data)
+	const topics = (
+		(log.topics ?? [])
+			.flatMap((topic) => {
+				const normalized = hexLowerOfByteSize(topic, 32)
+				return normalized == null ? [] : [normalized]
+			})
+	)
+	return {
+		[EntityMetaKey.Selector]: entitySelector,
+		$transaction: {
+			[EntityMetaKey.Selector]: {
+				$network: entitySelector.$transaction.$network,
+				txHash: entitySelector.$transaction.txHash,
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
+		...(blockHash != null && blockNumber != null && {
+			$block: {
+				[EntityMetaKey.Selector]: {
+					$network: entitySelector.$transaction.$network,
+					hash: blockHash,
+				},
+			} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+		}),
+		$$topics: topics.map((hex) => ({
+			[EntityMetaKey.Selector]: {
+				hex,
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmTopic>)),
+		...(topics.at(0) != null && { topic0: topics.at(0) }),
+		...(data != null && { data }),
+		...(log.removed != null && { removed: log.removed }),
+		...(address != null && {
+			$emitter: {
+				[EntityMetaKey.Selector]: {
+					$network: entitySelector.$transaction.$network,
+					address,
+				},
+			} satisfies Entity<typeof schema, EntityType.EvmContract>,
+		}),
+	}
+}
 
 const gweiFromDecimalString = (
 	raw: string | undefined
@@ -917,7 +1037,7 @@ export default {
 							offset: limit,
 						})
 						if (wires == null)
-							return []
+							throw new Error('Etherscan_Rest: token transfers by transaction returned no result')
 						return evmTokenTransferEntitySelectorsFromEtherscanWires({
 							$network: $transaction.$network,
 							txHash: $transaction.txHash,
@@ -998,5 +1118,459 @@ export default {
 		})({
 				$$internalTransfers: (transaction) => transaction,
 			}),
+
+		defineResolver({
+			entityType: EntityType.EvmTransaction,
+			resolve: {
+				EvmNetworkTxHash: {
+					resolve: async ({ $network, txHash: txHashSelector }, context) => {
+						const {
+							getTransactionByHash,
+							getTransactionReceipt,
+						} = await import('$/sources/Etherscan/Rest/queries.ts')
+						const chainId = evmChainIdFromNetworkSelector($network)
+						const requestedTxHash = hexLowerOfByteSize(txHashSelector, 32)
+						if (requestedTxHash == null)
+							throw new Error('Etherscan_Rest: invalid transaction hash')
+						const jsonRpcTransaction = await getTransactionByHash({
+							publicEnv: context.publicEnv,
+							chainId,
+							txHash: requestedTxHash,
+						})
+						if (jsonRpcTransaction == null)
+							throw new Error('Etherscan_Rest: transaction not found')
+						const receipt = await getTransactionReceipt({
+							publicEnv: context.publicEnv,
+							chainId,
+							txHash: requestedTxHash,
+						})
+						const txHash = hexLowerOfByteSize(jsonRpcTransaction.hash ?? requestedTxHash, 32) ?? requestedTxHash
+						const from = hexLowerOfByteSize(jsonRpcTransaction.from ?? '', 20)
+						if (from == null)
+							throw new Error('Etherscan_Rest: transaction is missing from address')
+						const to = (
+							jsonRpcTransaction.to != null ?
+								hexLowerOfByteSize(jsonRpcTransaction.to, 20)
+							:
+								undefined
+						)
+						const containingBlockNumber = etherscanQuantityToBigInt(jsonRpcTransaction.blockNumber ?? undefined)
+						const value = etherscanQuantityToBigInt(jsonRpcTransaction.value) ?? 0n
+						const envelopeType = evmTransactionEnvelopeTypeFromRpcTypeByte(
+							rpcQuantityToNumber(jsonRpcTransaction.type)
+						)
+						const createdContractAddress = (
+							receipt?.contractAddress != null ?
+								hexLowerOfByteSize(receipt.contractAddress, 20)
+							:
+								undefined
+						)
+						return {
+							[EntityMetaKey.Selector]: {
+								$network: evmNetworkSelectorFromChainId(chainId),
+								txHash,
+							},
+							...(containingBlockNumber != null && {
+								$block: {
+									[EntityMetaKey.Selector]: {
+										$network: evmNetworkSelectorFromChainId(chainId),
+										blockNumber: containingBlockNumber,
+									},
+								} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+							}),
+							$from: {
+								[EntityMetaKey.Selector]: {
+									address: from,
+								},
+							} satisfies Entity<typeof schema, EntityType.EvmAccount>,
+							...(to != null && {
+								$to: {
+									[EntityMetaKey.Selector]: {
+										address: to,
+									},
+								} satisfies Entity<typeof schema, EntityType.EvmAccount>,
+							}),
+							indexInBlock: rpcQuantityToNumber(jsonRpcTransaction.transactionIndex),
+							value,
+							nonce: rpcQuantityToNumber(jsonRpcTransaction.nonce),
+							input: with0xHex(jsonRpcTransaction.input ?? '0x'),
+							...(jsonRpcTransaction.r != null && { r: with0xHex(jsonRpcTransaction.r) }),
+							...(jsonRpcTransaction.s != null && { s: with0xHex(jsonRpcTransaction.s) }),
+							...(jsonRpcTransaction.v != null && { v: jsonRpcTransaction.v }),
+							gas: etherscanQuantityToBigInt(jsonRpcTransaction.gas),
+							gasPrice: etherscanQuantityToBigInt(jsonRpcTransaction.gasPrice),
+							...(
+								(
+									envelopeType === EvmTransactionEnvelopeType.FeeMarket
+									|| envelopeType === EvmTransactionEnvelopeType.Blob
+									|| envelopeType === EvmTransactionEnvelopeType.SetCode
+								) && {
+									maxFeePerGas: etherscanQuantityToBigInt(jsonRpcTransaction.maxFeePerGas),
+									maxPriorityFeePerGas: etherscanQuantityToBigInt(jsonRpcTransaction.maxPriorityFeePerGas),
+									maxFeePerBlobGas: etherscanQuantityToBigInt(jsonRpcTransaction.maxFeePerBlobGas),
+								}
+							),
+							envelopeType,
+							kind: evmTransactionKindFromSignedFields({
+								value,
+								toAddress: to,
+								input: jsonRpcTransaction.input,
+								createdContractAddress,
+							}),
+							...(receipt == null && { executionStatus: EvmTransactionExecutionStatus.Pending }),
+							...(Number(receipt?.status) === 1 && { executionStatus: EvmTransactionExecutionStatus.Success }),
+							...(Number(receipt?.status) === 0 && { executionStatus: EvmTransactionExecutionStatus.Failed }),
+							gasUsed: etherscanQuantityToBigInt(receipt?.gasUsed),
+							cumulativeGasUsed: etherscanQuantityToBigInt(receipt?.cumulativeGasUsed),
+							effectiveGasPrice: etherscanQuantityToBigInt(receipt?.effectiveGasPrice),
+							blobGasUsed: etherscanQuantityToBigInt(receipt?.blobGasUsed),
+							...(createdContractAddress != null && {
+								$contract: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										address: createdContractAddress,
+									},
+								} satisfies Entity<typeof schema, EntityType.EvmContract>,
+							}),
+							$$logs: (
+								(receipt?.logs ?? [])
+									.flatMap((log) => {
+										const logIndex = evmLogIndexFromRpcWire(log.logIndex)
+										const normalizedTxHash = hexLowerOfByteSize(log.transactionHash ?? txHash, 32)
+										return logIndex == null || normalizedTxHash == null ?
+											[]
+										:
+											[evmLogEntityFromRpcWire({
+												$transaction: {
+													$network,
+													txHash: normalizedTxHash,
+												},
+												indexInTransaction: logIndex,
+											}, log)]
+									})
+							),
+						}
+					},
+				}
+			},
+		})({
+			$block: (transaction) => transaction.$block,
+			$from: (transaction) => {
+				if (transaction.$from == null)
+					throw new Error('Etherscan_Rest: transaction is missing from address')
+
+				return transaction.$from
+			},
+			$to: (transaction) => transaction.$to,
+			ContractCreation: {
+				$contract: (transaction) => transaction.$contract,
+			},
+			indexInBlock: (transaction) => transaction.indexInBlock,
+			value: (transaction) => transaction.value,
+			nonce: (transaction) => transaction.nonce,
+			input: (transaction) => transaction.input,
+			r: (transaction) => transaction.r,
+			s: (transaction) => transaction.s,
+			v: (transaction) => transaction.v,
+			gas: (transaction) => transaction.gas,
+			kind: (transaction) => transaction.kind,
+			envelopeType: (transaction) => {
+				if (transaction.envelopeType == null)
+					throw new Error('Etherscan_Rest: transaction has unsupported envelope type')
+
+				return transaction.envelopeType
+			},
+			executionStatus: (transaction) => transaction.executionStatus,
+			gasPrice: (transaction) => transaction.gasPrice,
+			gasUsed: (transaction) => transaction.gasUsed,
+			cumulativeGasUsed: (transaction) => transaction.cumulativeGasUsed,
+			effectiveGasPrice: (transaction) => transaction.effectiveGasPrice,
+			FeeMarket: {
+				maxFeePerGas: (transaction) => transaction.maxFeePerGas,
+				maxPriorityFeePerGas: (transaction) => transaction.maxPriorityFeePerGas,
+			},
+			Blob: {
+				blobGasUsed: (transaction) => transaction.blobGasUsed,
+				maxFeePerBlobGas: (transaction) => transaction.maxFeePerBlobGas,
+			},
+			$$logs: {
+				select: (transaction) => transaction.$$logs.map((log) => ({
+					[EntityMetaKey.Selector]: log[EntityMetaKey.Selector],
+				})),
+				resolveCount: (transaction) => transaction.$$logs.length,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmLog,
+			resolve: {
+				TransactionIndexInTransaction: {
+					resolve: async (entitySelector, context) => {
+						const { getTransactionReceipt } = await import('$/sources/Etherscan/Rest/queries.ts')
+						const chainId = evmChainIdFromNetworkSelector(entitySelector.$transaction.$network)
+						const txHash = hexLowerOfByteSize(entitySelector.$transaction.txHash, 32)
+						if (txHash == null)
+							throw new Error('Etherscan_Rest: invalid log transaction hash')
+						const receipt = await getTransactionReceipt({
+							publicEnv: context.publicEnv,
+							chainId,
+							txHash,
+						})
+						if (receipt == null)
+							throw new Error('Etherscan_Rest: transaction receipt not found for EvmLog')
+						const log = (receipt.logs ?? []).find((row) => (
+							evmLogIndexFromRpcWire(row.logIndex) === entitySelector.indexInTransaction
+						))
+						if (log == null)
+							throw new Error('Etherscan_Rest: receipt log not found for EvmLog')
+						return evmLogEntityFromRpcWire(entitySelector, log)
+					},
+				}
+			},
+		})({
+			$$topics: (entity) => entity.$$topics.map((topic) => ({
+				[EntityMetaKey.Selector]: topic[EntityMetaKey.Selector],
+			})),
+			topic0: (entity) => entity.topic0,
+			indexInTransaction: (entity) => entity[EntityMetaKey.Selector].indexInTransaction,
+			$transaction: (entity) => ({
+				[EntityMetaKey.Selector]: entity.$transaction[EntityMetaKey.Selector],
+			}),
+			$block: (entity) => (
+				entity.$block == null ?
+					undefined
+				:
+					{
+						[EntityMetaKey.Selector]: entity.$block[EntityMetaKey.Selector],
+					}
+			),
+			data: (entity) => entity.data,
+			removed: (entity) => entity.removed,
+			$emitter: (entity) => (
+				entity.$emitter == null ?
+					undefined
+				:
+					{
+						[EntityMetaKey.Selector]: entity.$emitter[EntityMetaKey.Selector],
+					}
+			),
+			Event: {
+				signatureHash: (entity) => {
+					if (entity.topic0 == null)
+						throw new Error('Etherscan_Rest: event log missing signature topic')
+
+					return entity.topic0
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmBlock,
+			resolve: {
+				EvmNetworkBlockNumber: {
+					resolve: async ({ $network, blockNumber }, context) => {
+						const { getBlockByNumber } = await import('$/sources/Etherscan/Rest/queries.ts')
+						const chainId = evmChainIdFromNetworkSelector($network)
+						const wire = await getBlockByNumber({
+							publicEnv: context.publicEnv,
+							chainId,
+							blockNumber,
+							includeTransactions: true,
+						})
+						if (wire == null)
+							throw new Error('Etherscan_Rest: block not found')
+						const blockHash = hexLowerOfByteSize(wire.hash ?? '', 32)
+						if (blockHash == null)
+							throw new Error('Etherscan_Rest: block missing hash')
+						const parentHash = hexLowerOfByteSize(wire.parentHash ?? '', 32)
+						const miner = hexLowerOfByteSize(wire.miner ?? '', 20)
+						const parentBlockNumber = blockNumber > 0n ? blockNumber - 1n : undefined
+						const timestampSeconds = etherscanQuantityToBigInt(wire.timestamp)
+						return {
+							[EntityMetaKey.Selector]: {
+								$network: evmNetworkSelectorFromChainId(chainId),
+								blockNumber,
+							},
+							hash: blockHash,
+							...(parentHash != null && { parentHash }),
+							blockNumber,
+							...(timestampSeconds != null && {
+								timestamp: Number(timestampSeconds) * 1_000,
+							}),
+							gasUsed: etherscanQuantityToBigInt(wire.gasUsed),
+							gasLimit: etherscanQuantityToBigInt(wire.gasLimit),
+							baseFeePerGas: etherscanQuantityToBigInt(wire.baseFeePerGas),
+							transactionCount: wire.transactions?.length,
+							...(parentBlockNumber != null && parentHash != null && {
+								$parent: {
+									[EntityMetaKey.Selector]: {
+										$network: evmNetworkSelectorFromChainId(chainId),
+										blockNumber: parentBlockNumber,
+									},
+									hash: parentHash,
+								} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+							}),
+							...(miner != null && {
+								$miner: {
+									[EntityMetaKey.Selector]: {
+										address: miner,
+									},
+								},
+							}),
+							$$transactions: (
+								(wire.transactions ?? [])
+									.flatMap((transaction) => {
+										const txHash = (
+											typeof transaction === 'string' ?
+												hexLowerOfByteSize(transaction, 32)
+											:
+												hexLowerOfByteSize(transaction.hash ?? '', 32)
+										)
+										return txHash == null ?
+											[]
+										:
+											[{
+												[EntityMetaKey.Selector]: {
+													$network: evmNetworkSelectorFromChainId(chainId),
+													txHash,
+												},
+											}]
+									})
+							),
+						}
+					},
+				}
+			},
+		})({
+			hash: (block) => block.hash,
+			parentHash: (block) => block.parentHash,
+			blockNumber: (block) => block.blockNumber,
+			$parent: (block) => block.$parent,
+			timestamp: (block) => block.timestamp,
+			$miner: (block) => block.$miner,
+			gasUsed: (block) => block.gasUsed,
+			gasLimit: (block) => block.gasLimit,
+			baseFeePerGas: (block) => block.baseFeePerGas,
+			transactionCount: (block) => block.transactionCount,
+			$$transactions: {
+				select: (block) => block.$$transactions,
+				resolveCount: (block) => block.transactionCount ?? block.$$transactions.length,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
+					resolve: async (entitySelector, context) => {
+						const {
+							getBlockNumber,
+							supportsChainId,
+						} = await import('$/sources/Etherscan/Rest/queries.ts')
+						const chainId = evmChainIdFromNetworkSelector(entitySelector)
+						if (!supportsChainId(chainId))
+							throw new Error('Etherscan_Rest: unsupported network')
+						const headHex = await getBlockNumber({
+							publicEnv: context.publicEnv,
+							chainId,
+						})
+						const head = etherscanQuantityToBigInt(headHex ?? undefined)
+						if (head == null)
+							throw new Error('Etherscan_Rest: eth_blockNumber returned no result')
+						const limit = Math.min(Math.max(1, resolverContextRowLimit(context)), 32)
+						return Array.from(
+							{ length: limit },
+							(_, index) => head - BigInt(index)
+						)
+							.filter((blockNumber) => blockNumber >= 0n)
+							.map((blockNumber) => ({
+								[EntityMetaKey.Selector]: {
+									$network: evmNetworkSelectorFromChainId(chainId),
+									blockNumber,
+								},
+							}))
+					},
+				}
+			},
+		})({
+			Evm: {
+				$$blocks: (network) => network,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
+					resolve: async (entitySelector, context) => {
+						const {
+							getBlockNumber,
+							supportsChainId,
+						} = await import('$/sources/Etherscan/Rest/queries.ts')
+						const chainId = evmChainIdFromNetworkSelector(entitySelector)
+						if (!supportsChainId(chainId))
+							throw new Error('Etherscan_Rest: unsupported network')
+						const headHex = await getBlockNumber({
+							publicEnv: context.publicEnv,
+							chainId,
+						})
+						const head = etherscanQuantityToBigInt(headHex ?? undefined)
+						if (head == null)
+							throw new Error('Etherscan_Rest: eth_blockNumber returned no result')
+						return Number(head) + 1
+					},
+				}
+			},
+		})({
+			Evm: {
+				$$blocks: {
+					resolveCount: (count) => count,
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkAccount,
+			resolve: {
+				EvmNetworkEvmAccount: {
+					resolve: async ({ $actor, $network }, context) => {
+						const {
+							getTransactionsByAddress,
+							getAccountListMaxOffset,
+						} = await import('$/sources/Etherscan/Rest/queries.ts')
+						const chainId = evmChainIdFromNetworkSelector($network)
+						const address = hexLowerOfByteSize($actor.address, 20)
+						if (address == null)
+							throw new Error('Etherscan_Rest: EvmNetworkAccount wallet address not normalized')
+						const limit = Math.min(
+							resolverContextRowLimit(context),
+							getAccountListMaxOffset
+						)
+						const wires = await getTransactionsByAddress({
+							publicEnv: context.publicEnv,
+							chainId,
+							address,
+							offset: limit,
+						})
+						if (wires == null)
+							throw new Error('Etherscan_Rest: address transactions returned no result')
+						return wires.flatMap((wire) => {
+							const txHash = hexLowerOfByteSize(wire.hash ?? '', 32)
+							return txHash == null ?
+								[]
+							:
+								[{
+									[EntityMetaKey.Selector]: {
+										$network,
+										txHash,
+									},
+								}]
+						})
+					},
+				}
+			},
+		})({
+			$$transactions: (account) => account,
+		}),
 	],
 } satisfies RegisteredSourceResolverModule

@@ -104,6 +104,7 @@ describe('Envio HyperSync query boundary', () => {
 					'hash',
 					'parent_hash',
 					'timestamp',
+					'miner',
 					'gas_used',
 					'gas_limit',
 					'base_fee_per_gas',
@@ -186,6 +187,17 @@ describe('Envio HyperSync query boundary', () => {
 			rollback_guard: evmBlockRollback.rollback_guard,
 		})
 	})
+
+	it('hard-fails non-OK HyperSync HTTP', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response('upstream unavailable', {
+			status: 503,
+			statusText: 'Service Unavailable',
+		}))
+		await expect(getEvmBlockRangePage({
+			fromBlock: 19_000_000n,
+			toBlock: 19_000_001n,
+		})).rejects.toThrow(/Fetch failed \(503/)
+	})
 })
 
 describe('Envio HyperSync resolver', () => {
@@ -203,6 +215,8 @@ describe('Envio HyperSync resolver', () => {
 
 		expect(Object.keys(resolver.projections).sort()).toEqual([
 			'$$transactions',
+			'$miner',
+			'$parent',
 			'baseFeePerGas',
 			'blobGasUsed',
 			'excessBlobGas',
@@ -220,6 +234,17 @@ describe('Envio HyperSync resolver', () => {
 			gasUsed: 21_000n,
 			gasLimit: 30_000_000n,
 			transactionCount: 1,
+			$miner: {
+				[EntityMetaKey.Selector]: {
+					address: evmBlockPage.data.blocks[0].miner,
+				},
+			},
+			$parent: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 18_999_999n,
+				},
+			},
 			transactions: [{
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -245,5 +270,29 @@ describe('Envio HyperSync resolver', () => {
 				$network: slugNetwork,
 			},
 		}])
+	})
+
+	it('hard-fails unsupported networks and non-Complete HyperSync pages', async () => {
+		await expect(envioHyperSync.resolvers[0].resolve['EvmNetworkBlockNumber'].resolve({
+			$network: {
+				slug: 'polygon',
+			},
+			blockNumber: 19_000_000n,
+		}, context)).rejects.toThrow('unsupported network')
+
+		sourceFetch.mockResolvedValueOnce(Response.json({
+			archive_height: 19_000_020,
+			next_block: 19_000_001,
+			total_execution_time: 1,
+			data: {
+				blocks: [],
+				transactions: [],
+			},
+			rollback_guard: null,
+		}))
+		await expect(envioHyperSync.resolvers[0].resolve['EvmNetworkBlockNumber'].resolve({
+			$network: network,
+			blockNumber: 19_000_000n,
+		}, context)).rejects.toThrow('Empty block')
 	})
 })

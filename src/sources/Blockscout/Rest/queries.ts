@@ -530,82 +530,30 @@ const erc4337RegistryPath = {
 	paymaster: '/proxy/account-abstraction/paymasters',
 	accountFactory: '/proxy/account-abstraction/factories',
 } as const
-const getErc4337RegistryList = async ({
+
+/**
+ * Live Blockscout hosts currently time out top bundler/paymaster/factory list routes
+ * (`HTTP 500 {"error":"timeout"}`). Those Network facets are omitted from Blockscout-Rest
+ * until a working host or alternate source exists — do not soft-return `[]` for that failure.
+ */
+export const getErc4337SmartAccountList = async ({
 	chainId,
 	limit,
-	path,
 }: {
 	chainId: number
 	limit: number
-	path: (typeof erc4337RegistryPath)[keyof typeof erc4337RegistryPath]
 }) => {
 	if (limit <= 0)
 		return []
 
-	const response = await getBlockscoutResponse({
+	return (await getBlockscoutJson<BlockscoutErc4337RegistryPage>({
 		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
-		path,
+		path: erc4337RegistryPath.smartAccount,
 		searchParams: {
 			page_size: blockscoutItemsCount(limit),
 		},
-	})
-	if (
-		path !== erc4337RegistryPath.smartAccount
-		&& (response.status === 500 || response.status === 501)
-	)
-		return []
-
-	await throwIfHttpNotOk(response, response.url)
-	return (await response.json<BlockscoutErc4337RegistryPage>()).items
+	})).items
 }
-
-export const getErc4337SmartAccountList = ({
-	chainId,
-	limit,
-}: {
-	chainId: number
-	limit: number
-}) => getErc4337RegistryList({
-	chainId,
-	limit,
-	path: erc4337RegistryPath.smartAccount,
-})
-
-export const getErc4337BundlerList = ({
-	chainId,
-	limit,
-}: {
-	chainId: number
-	limit: number
-}) => getErc4337RegistryList({
-	chainId,
-	limit,
-	path: erc4337RegistryPath.bundler,
-})
-
-export const getErc4337PaymasterList = ({
-	chainId,
-	limit,
-}: {
-	chainId: number
-	limit: number
-}) => getErc4337RegistryList({
-	chainId,
-	limit,
-	path: erc4337RegistryPath.paymaster,
-})
-
-export const getErc4337AccountFactoryList = ({
-	chainId,
-	limit,
-}: {
-	chainId: number
-	limit: number
-}) => getErc4337RegistryList({
-	chainId,
-	limit,
-	path: erc4337RegistryPath.accountFactory,
-})
 
 export const getErc4337SmartAccountDetail = ({
 	chainId,

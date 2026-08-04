@@ -26,32 +26,30 @@ const blockchairNetworkSlugs = [
 	'bitcoin-cash',
 ] as const
 
-const blockchairNetworkTimestampApplicability = [
+const blockchairNetworkReferenceApplicability = blockchairNetworkSlugs.flatMap((slug) => ([
 	{
 		$network: {
-			caip2: networkBySlug[blockchairNetworkSlugs[0]].caip2,
+			caip2: networkBySlug[slug].caip2,
 		},
-		source: Source.Blockchair_Rest,
 	},
 	{
-		$network: {
-			slug: blockchairNetworkSlugs[0],
-		},
-		source: Source.Blockchair_Rest,
+		$network: { slug },
 	},
-	...blockchairNetworkSlugs.slice(1).flatMap((slug) => ([
-		{
-			$network: {
-				caip2: networkBySlug[slug].caip2,
-			},
-			source: Source.Blockchair_Rest,
-		},
-		{
-			$network: { slug },
-			source: Source.Blockchair_Rest,
-		},
-	])),
-] as const
+]))
+
+const blockchairNetworkTimestampApplicability = blockchairNetworkReferenceApplicability.map(($network) => ({
+	...$network,
+	source: Source.Blockchair_Rest,
+}))
+
+const blockchairAddressTimestampApplicability = blockchairNetworkReferenceApplicability.map(($network) => ({
+	$address: $network,
+	source: Source.Blockchair_Rest,
+}))
+
+const blockchairTransactionReferenceApplicability = blockchairNetworkReferenceApplicability.map(($network) => ({
+	$transaction: $network,
+}))
 
 const blockchairNetworkSelectors = <_Snapshot extends object>(
 	resolve: (
@@ -114,6 +112,10 @@ const bigintFromNumber = (value: number | undefined) => (
 	value == null ? undefined : BigInt(value)
 )
 
+const virtualSizeBytesFromWeight = (weight: number | undefined) => (
+	weight == null ? undefined : Math.ceil(weight / 4)
+)
+
 const blockchairCount = (
 	value: number | undefined,
 	label: string
@@ -124,9 +126,18 @@ const blockchairCount = (
 	return value
 }
 
-const getTransactionDashboard = async ({ $network, txId }: {
+const requestOptions = (context: ResolverContext) => ({
+	publicEnv: context.publicEnv,
+})
+
+const getTransactionDashboard = async ({
+	$network,
+	txId,
+	context,
+}: {
 	$network: NetworkId
 	txId: string
+	context: ResolverContext
 }) => {
 	const { getBitcoinLikeTransactionDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
 	return firstDashboardRow(
@@ -134,15 +145,25 @@ const getTransactionDashboard = async ({ $network, txId }: {
 			await getBitcoinLikeTransactionDashboard({
 				chain: blockchairChain($network),
 				transactionHash: txId,
+				options: requestOptions(context),
 			})
 		).data,
 		txId
 	)
 }
 
-const getAddressDashboard = async ({ $network, address }: {
+const getAddressDashboard = async ({
+	$network,
+	address,
+	context,
+	params,
+}: {
 	$network: NetworkId
 	address: string
+	context: ResolverContext
+	params?: {
+		limit?: number
+	}
 }) => {
 	const { getBitcoinLikeAddressDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
 	return firstDashboardRow(
@@ -150,10 +171,12 @@ const getAddressDashboard = async ({ $network, address }: {
 			await getBitcoinLikeAddressDashboard({
 				chain: blockchairChain($network),
 				address,
+				params,
+				options: requestOptions(context),
 			})
 		).data,
 		address
-	).address
+	)
 }
 
 const blockDashboardSnapshot = (
@@ -162,6 +185,18 @@ const blockDashboardSnapshot = (
 	dashboard: BlockchairBitcoinLikeBlockDashboard
 ) => ({
 	hash,
+	...(
+		dashboard.block.id != null
+		&& dashboard.block.id > 0
+		&& {
+			$parent: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					height: BigInt(dashboard.block.id - 1),
+				},
+			},
+		}
+	),
 	...(dashboard.block.time != null && {
 		timestampMs: Date.parse(dashboard.block.time),
 	}),
@@ -199,13 +234,15 @@ export default {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				NetworkHeight: {
-					resolve: async ({ $network, height }) => {
+					appliesTo: blockchairNetworkReferenceApplicability,
+					resolve: async ({ $network, height }, context) => {
 						const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
 						const [hash, dashboard] = firstDashboardEntry(
 							(
 								await getBitcoinLikeBlockDashboard({
 									chain: blockchairChain($network),
 									block: height,
+									options: requestOptions(context),
 								})
 							).data,
 							height.toString()
@@ -218,13 +255,15 @@ export default {
 					},
 				},
 				NetworkHeightHash: {
-					resolve: async ({ $network, hash }) => {
+					appliesTo: blockchairNetworkReferenceApplicability,
+					resolve: async ({ $network, hash }, context) => {
 						const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
 						const dashboard = firstDashboardRow(
 							(
 								await getBitcoinLikeBlockDashboard({
 									chain: blockchairChain($network),
 									block: hash,
+									options: requestOptions(context),
 								})
 							).data,
 							hash
@@ -239,6 +278,7 @@ export default {
 			},
 		})({
 			hash: (block) => block.hash,
+			$parent: (block) => block.$parent,
 			timestampMs: (block) => block.timestampMs,
 			merkleRoot: (block) => block.merkleRoot,
 			nonce: (block) => block.nonce,
@@ -253,8 +293,12 @@ export default {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				NetworkTxId: {
-					resolve: async (entitySelector) => {
-						const transactionDashboard = await getTransactionDashboard(entitySelector)
+					appliesTo: blockchairNetworkReferenceApplicability,
+					resolve: async (entitySelector, context) => {
+						const transactionDashboard = await getTransactionDashboard({
+							...entitySelector,
+							context,
+						})
 						return {
 							...(transactionDashboard.transaction.block_id != null && {
 								$block: {
@@ -267,7 +311,10 @@ export default {
 							version: transactionDashboard.transaction.version,
 							lockTime: transactionDashboard.transaction.lock_time,
 							sizeBytes: transactionDashboard.transaction.size,
-							virtualSizeBytes: transactionDashboard.transaction.size,
+							virtualSizeBytes: (
+								virtualSizeBytesFromWeight(transactionDashboard.transaction.weight)
+								?? transactionDashboard.transaction.size
+							),
 							weightUnits: transactionDashboard.transaction.weight,
 							...(transactionDashboard.transaction.fee != null && {
 								feeSats: BigInt(transactionDashboard.transaction.fee),
@@ -306,6 +353,7 @@ export default {
 			entityType: EntityType.UtxoAddress,
 			resolve: {
 				NetworkAddress: {
+					appliesTo: blockchairNetworkReferenceApplicability,
 					resolve: async ({ $network, address }) => ({
 						address,
 						$$timestamps: [
@@ -329,10 +377,65 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.UtxoAddress,
+			resolve: {
+				NetworkAddress: {
+					appliesTo: blockchairNetworkReferenceApplicability,
+					resolve: async ({ $network, address }, context) => {
+						const dashboard = await getAddressDashboard({
+							$network,
+							address,
+							context,
+							params: {
+								limit: resolverContextRowLimit(context),
+							},
+						})
+						return {
+							$$transactions: dashboard.transactions.map((transaction) => ({
+								[EntityMetaKey.Selector]: {
+									$network,
+									txId: (
+										typeof transaction === 'string' ?
+											transaction
+										:
+											transaction.hash
+									),
+								},
+							})),
+							$$outputs: (dashboard.utxo ?? []).flatMap((output) => (
+								output.transaction_hash == null || output.index == null ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											$transaction: {
+												$network,
+												txId: output.transaction_hash,
+											},
+											indexInTransaction: output.index,
+										},
+									}]
+							)),
+						}
+					},
+				},
+			},
+		})({
+			$$transactions: (address) => address.$$transactions,
+			$$outputs: (address) => address.$$outputs,
+		}),
+
+		defineResolver({
 			entityType: EntityType.UtxoAddress_Timestamp,
 			resolve: {
 				AddressTimestampMsSource: {
-					resolve: async ({ $address }) => getAddressDashboard($address),
+					appliesTo: blockchairAddressTimestampApplicability,
+					resolve: async ({ $address }, context) => (
+						await getAddressDashboard({
+							...$address,
+							context,
+						})
+					).address,
 				},
 			},
 		})({
@@ -347,8 +450,12 @@ export default {
 			entityType: EntityType.UtxoInput,
 			resolve: {
 				TransactionIndexInTransaction: {
-					resolve: async ({ $transaction, indexInTransaction }) => {
-						const input = (await getTransactionDashboard($transaction)).inputs.at(indexInTransaction)
+					appliesTo: blockchairTransactionReferenceApplicability,
+					resolve: async ({ $transaction, indexInTransaction }, context) => {
+						const input = (await getTransactionDashboard({
+							...$transaction,
+							context,
+						})).inputs.at(indexInTransaction)
 						if (input == null)
 							throw new Error(`Blockchair_Rest: transaction input ${indexInTransaction} not found`)
 
@@ -394,8 +501,12 @@ export default {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
 				TransactionIndexInTransaction: {
-					resolve: async ({ $transaction, indexInTransaction }) => {
-						const output = (await getTransactionDashboard($transaction)).outputs.at(indexInTransaction)
+					appliesTo: blockchairTransactionReferenceApplicability,
+					resolve: async ({ $transaction, indexInTransaction }, context) => {
+						const output = (await getTransactionDashboard({
+							...$transaction,
+							context,
+						})).outputs.at(indexInTransaction)
 						if (output == null)
 							throw new Error(`Blockchair_Rest: transaction output ${indexInTransaction} not found`)
 
@@ -443,13 +554,14 @@ export default {
 						$network,
 						timestampMs,
 						source,
-					}) => {
+					}, context) => {
 						if (source !== Source.Blockchair_Rest)
 							throw new Error(`Blockchair_Rest: unsupported network timestamp source ${source}`)
 
 						const { getBitcoinLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
 						const stats = (await getBitcoinLikeStats({
 							chain: blockchairChain($network),
+							options: requestOptions(context),
 						})).data
 						const bestBlockHeight = bigintFromNumber(stats.best_block_height)
 						const blockCount = bigintFromNumber(stats.blocks)
@@ -529,10 +641,11 @@ export default {
 
 		defineResolver({
 			entityType: EntityType.Network,
-			resolve: blockchairNetworkSelectors(async (network) => {
+			resolve: blockchairNetworkSelectors(async (network, context) => {
 				const { getBitcoinLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
 				const stats = (await getBitcoinLikeStats({
 					chain: blockchairChain(network),
+					options: requestOptions(context),
 				})).data
 				const bestBlockTimeMs = timestampMsFromBlockchairTime(stats.best_block_time)
 				return {
@@ -571,6 +684,7 @@ export default {
 						sort: 'id(desc)',
 						limit: resolverContextRowLimit(context),
 					},
+					options: requestOptions(context),
 				})).data.map((block) => ({
 					[EntityMetaKey.Selector]: {
 						$network: network,
@@ -595,6 +709,7 @@ export default {
 						sort: 'id(desc)',
 						limit: resolverContextRowLimit(context),
 					},
+					options: requestOptions(context),
 				})).data.map((transaction) => ({
 					[EntityMetaKey.Selector]: {
 						$network: network,

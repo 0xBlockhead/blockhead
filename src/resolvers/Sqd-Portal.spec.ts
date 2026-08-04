@@ -17,27 +17,6 @@ import { SqdPortalResolution } from '$/sources/Sqd/Portal/types.ts'
 import sqdPortal from '$/resolvers/Sqd-Portal.ts'
 
 const sourceFetch = vi.hoisted(() => vi.fn())
-const resolverBinding = vi.hoisted(() => ({
-	source: 'SqdPortal_RawHttp',
-	target: {
-		kind: 'Eip155Chain',
-		key: '1',
-	},
-	endpoints: [{
-		endpointKind: 'HttpUrl',
-		locator: 'https://portal.sqd.dev/datasets/ethereum-mainnet',
-		corsEnabled: false,
-	}],
-	wireProtocol: 'RawHttp',
-	apiFamily: 'SqdPortalStream',
-	operationGroups: ['GenericRead'],
-	delivery: 'HttpProxy',
-	credentials: [{ scope: 'None' }],
-	artifacts: [{
-		kind: 'HandwrittenTypes',
-		path: 'src/sources/Sqd/Portal/types.ts',
-	}],
-}))
 
 vi.mock('$/sources/_runtime/http.ts', () => ({
 	firstHttpUrlForBinding: () => 'https://portal.sqd.dev/datasets/ethereum-mainnet',
@@ -103,6 +82,7 @@ describe('SQD Portal query boundary', () => {
 			block: {
 				header: {
 					number: 18_000_000,
+					miner: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
 				},
 			},
 			finalizedHead: {
@@ -118,6 +98,7 @@ describe('SQD Portal query boundary', () => {
 				block: {
 					hash: true,
 					parentHash: true,
+					miner: true,
 					gasUsed: true,
 					gasLimit: true,
 					baseFeePerGas: true,
@@ -129,6 +110,7 @@ describe('SQD Portal query boundary', () => {
 				},
 			},
 		})
+		expect(sourceFetch.mock.calls[0][0]).toMatchObject(binding)
 
 		sourceFetch.mockResolvedValueOnce(new Response(
 			evmBlockNdjson
@@ -169,6 +151,14 @@ describe('SQD Portal query boundary', () => {
 			}],
 		})
 	})
+
+	it('hard-fails non-OK Portal HTTP', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response('upstream unavailable', {
+			status: 503,
+			statusText: 'Service Unavailable',
+		}))
+		await expect(getEvmBlock(18_000_000n)).rejects.toThrow(/Fetch failed \(503/)
+	})
 })
 
 describe('SQD Portal resolver', () => {
@@ -189,6 +179,17 @@ describe('SQD Portal resolver', () => {
 			blobGasUsed: 0x20000n,
 			excessBlobGas: 0x40000n,
 			transactionCount: 1,
+			$miner: {
+				[EntityMetaKey.Selector]: {
+					address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+				},
+			},
+			$parent: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 17_999_999n,
+				},
+			},
 			transactions: [{
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -198,6 +199,8 @@ describe('SQD Portal resolver', () => {
 		})
 		expect(Object.keys(sqdPortal.resolvers[0].projections).sort()).toEqual([
 			'$$transactions',
+			'$miner',
+			'$parent',
 			'baseFeePerGas',
 			'blobGasUsed',
 			'excessBlobGas',
@@ -210,7 +213,30 @@ describe('SQD Portal resolver', () => {
 		])
 	})
 
-	it('fails closed for an unsupported network', async () => {
+	it('preserves a Slug network selector through transaction references', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(evmBlockNdjson, { status: 200 }))
+		const slugNetwork = {
+			slug: 'ethereum',
+		}
+		const resolved = await sqdPortal.resolvers[0].resolve['EvmNetworkBlockNumber'].resolve({
+			$network: slugNetwork,
+			blockNumber: 18_000_000n,
+		}, context)
+
+		expect(resolved.transactions).toMatchObject([{
+			[EntityMetaKey.Selector]: {
+				$network: slugNetwork,
+			},
+		}])
+		expect(resolved.$parent).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$network: slugNetwork,
+				blockNumber: 17_999_999n,
+			},
+		})
+	})
+
+	it('hard-fails unsupported networks and non-Complete Portal pages', async () => {
 		await expect(sqdPortal.resolvers[0].resolve['EvmNetworkBlockNumber'].resolve({
 			$network: {
 				caip2: {
@@ -220,5 +246,11 @@ describe('SQD Portal resolver', () => {
 			},
 			blockNumber: 18_000_000n,
 		}, context)).rejects.toThrow('unsupported network')
+
+		sourceFetch.mockResolvedValueOnce(new Response(null, { status: 204 }))
+		await expect(sqdPortal.resolvers[0].resolve['EvmNetworkBlockNumber'].resolve({
+			$network: network,
+			blockNumber: 18_000_000n,
+		}, context)).rejects.toThrow('Empty block')
 	})
 })

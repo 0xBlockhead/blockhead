@@ -19,6 +19,7 @@ import type {
 	Eip8004ScanAgentListItem,
 } from '$/sources/Eip8004Scan/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
+
 const agentFromWire = (row: Eip8004ScanAgentListItem) => {
 	const tokenId = row.token_id.trim()
 	const contractAddress = hexLowerOfByteSize(row.contract_address, 20)
@@ -54,6 +55,16 @@ const agentDetailFromWire = (row: Eip8004ScanAgentDetail | undefined) => {
 	if (agent == null || agentUri == null)
 		return
 
+	const supportedTrust = (
+		row.supported_trust_models != null && row.supported_trust_models.length > 0 ?
+			row.supported_trust_models
+		: row.raw_metadata?.offchain_content?.supportedTrust != null
+			&& row.raw_metadata.offchain_content.supportedTrust.length > 0 ?
+			row.raw_metadata.offchain_content.supportedTrust
+		:
+			undefined
+	)
+
 	return {
 		...agent,
 		agentUri,
@@ -86,13 +97,35 @@ const agentDetailFromWire = (row: Eip8004ScanAgentDetail | undefined) => {
 			registrationTypeIri: row.raw_metadata.offchain_content.type,
 		}),
 		...(row.x402_supported != null && { x402Support: row.x402_supported }),
-		...(row.is_active != null && { active: row.is_active }),
-		...(row.supported_trust_models != null && row.supported_trust_models.length > 0 && {
-			supportedTrust: row.supported_trust_models,
-		}),
+		...(
+			row.is_active != null ?
+				{ active: row.is_active }
+			: row.raw_metadata?.offchain_content?.active != null ?
+				{ active: row.raw_metadata.offchain_content.active }
+			:
+				{}
+		),
+		...(supportedTrust != null && { supportedTrust }),
 		...(contactEndpoint != null && { contactEndpoint }),
 	}
 }
+
+const registrationSelector = ({
+	namespace,
+	chainId,
+	identityRegistry,
+	agentId,
+}: {
+	namespace: string
+	chainId: number
+	identityRegistry: `0x${string}`
+	agentId: string
+}) => ({
+	namespace,
+	chainId,
+	identityRegistry,
+	agentId,
+})
 
 export default {
 	source: Source.Eip8004Scan_Rest,
@@ -131,11 +164,15 @@ export default {
 						)
 							throw new Error('Eip8004Scan_Rest: response registration does not match request')
 
-						return {
+						const $registration = registrationSelector({
 							namespace,
 							chainId,
 							identityRegistry,
 							agentId,
+						})
+
+						return {
+							...$registration,
 							$evmNft: {
 								[EntityMetaKey.Selector]: {
 									$contract: {
@@ -150,6 +187,12 @@ export default {
 									tokenId: agentId,
 								},
 							},
+							$$files: [{
+								[EntityMetaKey.Selector]: {
+									$registration,
+									fileUrl: detail.agentUri,
+								},
+							}],
 						}
 					},
 				},
@@ -160,6 +203,59 @@ export default {
 			identityRegistry: (registration) => registration.identityRegistry,
 			agentId: (registration) => registration.agentId,
 			$evmNft: (registration) => registration.$evmNft,
+			$$files: (registration) => registration.$$files,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Eip8004AgentRegistrationFile,
+			resolve: {
+				RegistrationFileUrl: {
+					resolve: async ({
+						$registration,
+						fileUrl,
+					}) => {
+						const {
+							namespace,
+							chainId,
+							identityRegistry,
+							agentId,
+						} = $registration
+						if (namespace !== 'eip155')
+							throw new Error('Eip8004Scan_Rest: unsupported registration file namespace')
+						if (!Number.isSafeInteger(chainId) || chainId <= 0)
+							throw new Error('Eip8004Scan_Rest: invalid registration file chain ID')
+
+						const { fetchAgentDetail } = await import('$/sources/Eip8004Scan/Rest/queries.ts')
+						const detail = agentDetailFromWire(
+							(await fetchAgentDetail(
+								{
+									chainId,
+									tokenId: agentId,
+								}
+							)).data
+						)
+						if (detail == null)
+							throw new Error('Eip8004Scan_Rest: registration file agent not found')
+						if (
+							detail.chainId !== chainId
+							|| detail.contractAddress !== identityRegistry.toLowerCase()
+							|| detail.tokenId !== agentId
+							|| detail.agentUri !== fileUrl
+						)
+							throw new Error('Eip8004Scan_Rest: registration file does not match request')
+
+						return {
+							$registration,
+							fileUrl,
+						}
+					},
+				},
+			},
+		})({
+			$registration: (file) => ({
+				[EntityMetaKey.Selector]: file.$registration,
+			}),
+			fileUrl: (file) => file.fileUrl,
 		}),
 
 		defineResolver({
@@ -309,10 +405,19 @@ export default {
 					resolve: async (_entitySelector, context) => {
 						const { fetchAgentList } = await import('$/sources/Eip8004Scan/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
-						return (
-							(await fetchAgentList(
-								{ limit }
-							)).data?.flatMap((row) => {
+						const response = await fetchAgentList(
+							{ limit }
+						)
+						if (response.data == null)
+							throw new Error('Eip8004Scan_Rest: agent list missing data')
+
+						const totalCount = response.meta?.pagination?.total
+						if (totalCount == null || !Number.isSafeInteger(totalCount) || totalCount < 0)
+							throw new Error('Eip8004Scan_Rest: agent list missing pagination total')
+
+						return {
+							totalCount,
+							$$eip8004Services: response.data.flatMap((row) => {
 								const agent = agentFromWire(row)
 								return (
 									agent == null ?
@@ -333,13 +438,16 @@ export default {
 											},
 										}]
 								)
-							}) ?? []
-						)
+							}),
+						}
 					},
 				},
 			},
 		})({
-				$$eip8004Services: (snapshot) => snapshot,
+				$$eip8004Services: {
+					select: (snapshot) => snapshot.$$eip8004Services,
+					resolveCount: (snapshot) => snapshot.totalCount,
+				},
 			}),
 	],
 } satisfies RegisteredSourceResolverModule

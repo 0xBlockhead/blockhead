@@ -6,40 +6,92 @@ import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
-const getFunctionSignatures = async (hex: `0x${string}`) => {
+type SignatureObservation = {
+	signatures: string[]
+	filteredSignatureCount?: number
+	verifiedCandidateCount?: number
+	reachable: boolean
+}
+
+const getFunctionObservation = async (hex: `0x${string}`): Promise<SignatureObservation> => {
 	const {
 		getFourbyteFunctionEntries,
 		getFunctionEntries,
+		summarizeOpenchainEntries,
 	} = await import('$/sources/Openchain/Rest/queries.ts')
 	const openchainEntries = await getFunctionEntries({ hex })
-	return openchainEntries.length > 0 ?
-		openchainEntries.map((signatureEntry) => signatureEntry.name)
-	:
-		(await getFourbyteFunctionEntries({ hex })).map((signatureEntry) => signatureEntry.text_signature)
+	if (openchainEntries.length > 0)
+		return {
+			...summarizeOpenchainEntries(openchainEntries),
+			reachable: true,
+		}
+
+	return {
+		signatures: (
+			await getFourbyteFunctionEntries({ hex })
+		)
+			.map((signatureEntry) => signatureEntry.text_signature),
+		reachable: true,
+	}
 }
 
-const getEventSignatures = async (hex: `0x${string}`) => {
+const getEventObservation = async (hex: `0x${string}`): Promise<SignatureObservation> => {
 	const {
 		getEventEntries,
 		getFourbyteEventEntries,
+		summarizeOpenchainEntries,
 	} = await import('$/sources/Openchain/Rest/queries.ts')
 	const openchainEntries = await getEventEntries({ hex })
-	return openchainEntries.length > 0 ?
-		openchainEntries.map((signatureEntry) => signatureEntry.name)
-	:
-		getFourbyteEventEntries({ hex })
-			.then((signatureEntries) => (
-				signatureEntries.map((signatureEntry) => signatureEntry.text_signature)
-			))
+	if (openchainEntries.length > 0)
+		return {
+			...summarizeOpenchainEntries(openchainEntries),
+			reachable: true,
+		}
+
+	return {
+		signatures: (
+			await getFourbyteEventEntries({ hex })
+		)
+			.map((signatureEntry) => signatureEntry.text_signature),
+		reachable: true,
+	}
 }
 
-const getErrorSignatures = async (hex: `0x${string}`) => (
-	(await getFunctionSignatures(hex)).filter((signature) => (
-		signature.startsWith('Error(')
-		|| signature.startsWith('Panic(')
-		|| /^[A-Z][a-zA-Z0-9_]*\(/.test(signature)
-	))
+const isErrorSignature = (signature: string) => (
+	signature.startsWith('Error(')
+	|| signature.startsWith('Panic(')
+	|| /^[A-Z][a-zA-Z0-9_]*\(/.test(signature)
 )
+
+const getErrorObservation = async (hex: `0x${string}`): Promise<SignatureObservation> => {
+	const {
+		getFourbyteFunctionEntries,
+		getFunctionEntries,
+		summarizeOpenchainEntries,
+	} = await import('$/sources/Openchain/Rest/queries.ts')
+	const openchainEntries = await getFunctionEntries({ hex })
+	if (openchainEntries.length > 0)
+		return {
+			...summarizeOpenchainEntries(
+				openchainEntries.filter((entry) => isErrorSignature(entry.name))
+			),
+			reachable: true,
+		}
+
+	return {
+		signatures: (
+			await getFourbyteFunctionEntries({ hex })
+		)
+			.map((signatureEntry) => signatureEntry.text_signature)
+			.filter(isErrorSignature),
+		reachable: true,
+	}
+}
+
+const unreachableObservation = (): SignatureObservation => ({
+	signatures: [],
+	reachable: false,
+})
 
 export default {
 	source: Source.Openchain_Rest,
@@ -49,18 +101,21 @@ export default {
 			entityType: EntityType.EvmSelector,
 			resolve: {
 				Hex: {
-					resolve: async ({ hex }) => ({
-						signatures: await getFunctionSignatures(hex),
-						$$timestamps: [
-							{
-								[EntityMetaKey.Selector]: {
-									$selector: { hex },
-									timestampMs: Date.now(),
-									source: Source.Openchain_Rest,
+					resolve: async ({ hex }) => {
+						const observation = await getFunctionObservation(hex)
+						return {
+							signatures: observation.signatures,
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$selector: { hex },
+										timestampMs: Date.now(),
+										source: Source.Openchain_Rest,
+									},
 								},
-							},
-						],
-					}),
+							],
+						}
+					},
 				},
 			},
 		})({
@@ -72,31 +127,41 @@ export default {
 			entityType: EntityType.EvmSelector_Timestamp,
 			resolve: {
 				SelectorTimestampMsSource: {
-					resolve: async ({ $selector }) => ({
-						signatures: await getFunctionSignatures($selector.hex),
-					}),
+					resolve: async ({ $selector }) => {
+						try {
+							return await getFunctionObservation($selector.hex)
+						} catch {
+							return unreachableObservation()
+						}
+					},
 				},
 			},
 		})({
 			signatures: (snapshot) => snapshot.signatures,
+			filteredSignatureCount: (snapshot) => snapshot.filteredSignatureCount,
+			verifiedCandidateCount: (snapshot) => snapshot.verifiedCandidateCount,
+			reachable: (snapshot) => snapshot.reachable,
 		}),
 
 		defineResolver({
 			entityType: EntityType.EvmTopic,
 			resolve: {
 				Hex: {
-					resolve: async ({ hex }) => ({
-						signatures: await getEventSignatures(hex),
-						$$timestamps: [
-							{
-								[EntityMetaKey.Selector]: {
-									$topic: { hex },
-									timestampMs: Date.now(),
-									source: Source.Openchain_Rest,
+					resolve: async ({ hex }) => {
+						const observation = await getEventObservation(hex)
+						return {
+							signatures: observation.signatures,
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$topic: { hex },
+										timestampMs: Date.now(),
+										source: Source.Openchain_Rest,
+									},
 								},
-							},
-						],
-					}),
+							],
+						}
+					},
 				},
 			},
 		})({
@@ -109,22 +174,18 @@ export default {
 			resolve: {
 				TopicTimestampMsSource: {
 					resolve: async ({ $topic }) => {
-						return getEventSignatures($topic.hex)
-							.then((signatures) => ({
-								signatures,
-								reachable: true,
-							}))
-							.catch(() => ({
-								signatures: [],
-								reachable: false,
-							}))
+						try {
+							return await getEventObservation($topic.hex)
+						} catch {
+							return unreachableObservation()
+						}
 					},
 				},
 			},
 		})({
 			signatures: (snapshot) => snapshot.signatures,
-			filteredSignatureCount: () => undefined,
-			verifiedCandidateCount: () => undefined,
+			filteredSignatureCount: (snapshot) => snapshot.filteredSignatureCount,
+			verifiedCandidateCount: (snapshot) => snapshot.verifiedCandidateCount,
 			reachable: (snapshot) => snapshot.reachable,
 		}),
 
@@ -132,18 +193,21 @@ export default {
 			entityType: EntityType.EvmError,
 			resolve: {
 				Hex: {
-					resolve: async ({ hex }) => ({
-						signatures: await getErrorSignatures(hex),
-						$$timestamps: [
-							{
-								[EntityMetaKey.Selector]: {
-									$error: { hex },
-									timestampMs: Date.now(),
-									source: Source.Openchain_Rest,
+					resolve: async ({ hex }) => {
+						const observation = await getErrorObservation(hex)
+						return {
+							signatures: observation.signatures,
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$error: { hex },
+										timestampMs: Date.now(),
+										source: Source.Openchain_Rest,
+									},
 								},
-							},
-						],
-					}),
+							],
+						}
+					},
 				},
 			},
 		})({
@@ -156,20 +220,18 @@ export default {
 			resolve: {
 				ErrorTimestampMsSource: {
 					resolve: async ({ $error }) => {
-						return getErrorSignatures($error.hex)
-							.then((signatures) => ({
-								signatures,
-								reachable: true,
-							}))
-							.catch(() => ({
-								signatures: [],
-								reachable: false,
-							}))
+						try {
+							return await getErrorObservation($error.hex)
+						} catch {
+							return unreachableObservation()
+						}
 					},
 				},
 			},
 		})({
 			signatures: (snapshot) => snapshot.signatures,
+			filteredSignatureCount: (snapshot) => snapshot.filteredSignatureCount,
+			verifiedCandidateCount: (snapshot) => snapshot.verifiedCandidateCount,
 			reachable: (snapshot) => snapshot.reachable,
 		}),
 	],

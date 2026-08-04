@@ -31,6 +31,8 @@ export type Eip8004ScanAgentDetail = Eip8004ScanAgentListItem & {
 		offchain_uri?: string
 		offchain_content?: {
 			type?: string
+			supportedTrust?: string[]
+			active?: boolean
 		}
 	}
 	services?: Record<string, {
@@ -39,7 +41,7 @@ export type Eip8004ScanAgentDetail = Eip8004ScanAgentListItem & {
 		version?: string
 		protocol?: string
 		active?: boolean
-	}>
+	}> | null
 }
 
 export type Eip8004ScanAgentDetailResponse = {
