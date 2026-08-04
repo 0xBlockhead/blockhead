@@ -127,9 +127,9 @@ test('entity hrefs compile directly from routes without a parallel artifact fami
 	const pluralHrefFieldBindingCount = generatedSvelteSources.reduce((count, source) => (
 		count + (source.match(/\{@const [A-Za-z_$][A-Za-z0-9_$]* = [A-Za-z0-9_$]+Selector\.\$[A-Za-z0-9_$]+\}/g) ?? []).length
 	), 0)
-	assert.equal(singularHrefFieldBindingCount, 115)
-	assert.equal(pluralHrefFieldBindingCount, 113)
-	assert.equal(singularHrefFieldBindingCount + pluralHrefFieldBindingCount, 228)
+	assert.equal(singularHrefFieldBindingCount, 118)
+	assert.equal(pluralHrefFieldBindingCount, 116)
+	assert.equal(singularHrefFieldBindingCount + pluralHrefFieldBindingCount, 234)
 	const hrefPlanSource = generatorSource.slice(
 		generatorSource.indexOf('const entityRouteFieldBindings'),
 		generatorSource.indexOf('const renderCollectionRouteValueExpression')
@@ -987,10 +987,10 @@ test('accepts and passes prefetched rows only where pending display consumes the
 		prefetchedAcceptors.map(([filePath]) => filePath),
 		prefetchedConsumers.map(([filePath]) => filePath)
 	)
-	assert.equal(prefetchedConsumers.length, 229)
+	assert.equal(prefetchedConsumers.length, 230)
 	assert.equal(generatedViewSources.reduce((count, [_filePath, source]) => (
 		count + (source.match(/prefetched=\{/g)?.length ?? 0)
-	), 0), 341)
+	), 0), 348)
 	assert.match(generatedSource('src/views/A2aMessageView.svelte'), /Omit<EntitySelectionViewProps<EntityType\.A2aMessage>, 'prefetched'>/)
 	assert.doesNotMatch(generatedSource('src/views/A2aMessagePartView.svelte'), /<A2aMessageView[^>]*prefetched=/)
 	assert.match(generatedSource('src/views/MediaView.svelte'), /prefetched = \{\}/)
@@ -999,7 +999,7 @@ test('accepts and passes prefetched rows only where pending display consumes the
 
 test('compiles exact default plural wrappers into their generated consumers', () => {
 	assert.equal(omittedPluralEntities.length, 149)
-	assert.equal(retainedPluralEntities.length, 847)
+	assert.equal(retainedPluralEntities.length, 852)
 	assert.ok(omittedPluralEntities.some(({ entityType }) => entityType === EntityType.AlgorandNetwork))
 	assert.ok(omittedPluralEntities.some(({ entityType }) => entityType === EntityType.HyperliquidBlock))
 	assert.ok(retainedPluralEntities.some(({ entityType }) => entityType === EntityType.EvmError))
@@ -1687,8 +1687,8 @@ test('renders plural rows as direct declarative EntityView summaries without reg
 	assert.doesNotMatch(renderedPluralView, /layout=\{EntityLayout\.Summary\}|open=\{false\}|showTypeAnnotation=\{false\}/)
 	assert.doesNotMatch(renderedPluralView, /getContext|entityViewComponentContext|installEntityViewComponents/)
 	const renderedAptosTransactionsView = renderGeneratedFile(aptosTransactionsView)
-	assert.match(renderedAptosTransactionsView, /aptosTransactionSelector\.hash \|\| String\(aptosTransactionSelector\.version\)/)
-	assert.doesNotMatch(renderedAptosTransactionsView, /aptosTransaction\.(?:hash|version)/)
+	assert.match(renderedAptosTransactionsView, /aptosTransaction\.hash \|\| String\(aptosTransaction\.version\)/)
+	assert.doesNotMatch(renderedAptosTransactionsView, /aptosTransactionSelector\.(?:hash|version)/)
 	const renderedNetworkActivityDaysView = renderGeneratedFile(networkActivityDaysView)
 	assert.match(renderedNetworkActivityDaysView, /\{networkActivityDay\.transactionCount\}/)
 	assert.doesNotMatch(renderedNetworkActivityDaysView, /\{String\(networkActivityDay\.transactionCount\)\}/)
@@ -1929,7 +1929,7 @@ test('leaves generated display defaults to their component contracts', () => {
 		['src/components/Tooltip.svelte', /position-area: top;/],
 		['src/components/TruncatedValue.svelte', /format = TruncatedValueFormat\.Visual,/],
 		['src/routes/(social)/(nostr)/nostr/open-relay/+page.svelte', /<ParentPageCollapsible open=\{true\}>/],
-		['src/routes/~/accounts/WalletConnectionsControl.svelte', /open=\{false\}/],
+		['src/routes/~/wallets/WalletConnectionsControl.svelte', /open=\{false\}/],
 	] as const)
 		assert.match(readFileSync(path.join(root, filePath), 'utf8'), pattern)
 })
@@ -2280,19 +2280,21 @@ test('requires declared display expressions for every non-scalar value type', ()
 	assert.doesNotMatch(generatorSource, /valueTypeTypeIsStructured/)
 })
 
-test('omits Lens relationships without executable source ownership', () => {
-	for (const viewPath of [
-		'src/views/LensNetworkView.svelte',
-		'src/views/LensAccountView.svelte',
-	]) {
-		const generatedView = baselineCompiledApp.generatedFiles.find(({ path }) => path === viewPath)
+test('renders Lens network Directory feeds and username namespaces', () => {
+	const lensNetworkView = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/views/LensNetworkView.svelte')
+	assert.ok(lensNetworkView)
+	const renderedLensNetworkView = renderGeneratedFile(lensNetworkView)
+	assert.match(renderedLensNetworkView, /LensFeedsView/)
+	assert.match(renderedLensNetworkView, /LensUsernameNamespacesView/)
+	assert.match(renderedLensNetworkView, /lens-network-feeds/)
+	assert.match(renderedLensNetworkView, /lens-network-namespaces/)
 
-		assert.ok(generatedView)
-		assert.doesNotMatch(
-			renderGeneratedFile(generatedView),
-			/LensFeedsView|LensUsernameNamespacesView|LensAccountManagersView|lens-(?:network-)?feeds|lens-(?:network-)?username-namespaces|lens-account-managers/
-		)
-	}
+	const lensAccountView = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/views/LensAccountView.svelte')
+	assert.ok(lensAccountView)
+	assert.doesNotMatch(
+		renderGeneratedFile(lensAccountView),
+		/LensAccountManagersView|lens-account-managers/
+	)
 })
 
 test('renders source-backed social hub lists as carousel cards', () => {
@@ -4791,7 +4793,7 @@ test('imports ArkType only when generated schema construction references it', ()
 	assert.deepEqual(schemaImportContracts.flatMap(({ filePath, imported, referenced }) => (
 		imported === referenced ? [] : [`${filePath}: imported=${imported} referenced=${referenced}`]
 	)), [])
-	assert.equal(schemaImportContracts.filter(({ imported }) => !imported).length, 36)
+	assert.equal(schemaImportContracts.filter(({ imported }) => !imported).length, 37)
 	assert.match(generatedSource('src/schema/A2aAgentCard.ts'), /import \{ UrlString \} from '\$\/schema\/UrlString\.ts'/)
 	assert.doesNotMatch(generatedSource('src/schema/A2aAgentCard.ts'), /from 'arktype'/)
 	assert.match(generatedSource('src/schema/FarcasterVerifiedAddress.ts'), /import \{ type \} from 'arktype'[\s\S]*?primitiveType: type\(/)
@@ -5473,7 +5475,7 @@ test('retains only physical route file facts consumed by route emitters', () => 
 		&& /\/(?:\+page\.svelte|\+page\.ts|\+layout\.svelte|\+layout\.ts)$/.test(filePath)
 	))
 
-	assert.equal(physicalRouteFiles.length, 564)
+	assert.equal(physicalRouteFiles.length, 581)
 	assert.match(physicalRouteTypeSource, /kind: 'page'[\s\S]*?generatedPageModule: boolean/)
 	assert.match(physicalRouteTypeSource, /kind: 'layoutModule' \| 'pageModule'[\s\S]*?mappings: readonly \[SelectorRouteMapping, \.\.\.SelectorRouteMapping\[\]\]/)
 	assert.match(physicalRouteTypeSource, /kind: 'layout'[\s\S]*?kind: 'detailLayout'/)
@@ -5491,7 +5493,7 @@ test('compiles each collection reference path once into its canonical route mapp
 		collectionCount += routeNode.collections?.length ?? 0
 		routeNodes.push(...Object.values(routeNode.children ?? {}))
 	}
-	assert.equal(collectionCount, 158)
+	assert.equal(collectionCount, 164)
 
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
 	const collectionMappingTypeSource = generatorSource.slice(
@@ -5737,26 +5739,29 @@ test('inherits nested page selectors from the direct projection ancestor without
 
 	assert.ok(network)
 	assert.ok(accountRoute?.selectors)
+	const networkFacetNames = new Set(network.facets.map((facet) => facet.name))
 	Object.defineProperty(network, 'facets', {
 		enumerable: true,
 		value: [
 			...network.facets,
-			{
-				name: 'Aptos',
-				condition: {
-					path: ['namespace'],
-					is: 'Aptos',
+			...([
+				{
+					name: 'Aptos',
+					condition: {
+						path: ['namespace'],
+						is: 'Aptos',
+					},
+					fields: [],
 				},
-				fields: [],
-			},
-			{
-				name: 'Starknet',
-				condition: {
-					path: ['namespace'],
-					is: 'Starknet',
+				{
+					name: 'Starknet',
+					condition: {
+						path: ['namespace'],
+						is: 'Starknet',
+					},
+					fields: [],
 				},
-				fields: [],
-			},
+			] as const).filter((facet) => !networkFacetNames.has(facet.name)),
 		],
 	})
 	for (const [entityType, networkEntityType, projection] of [
@@ -5795,7 +5800,7 @@ test('inherits nested page selectors from the direct projection ancestor without
 	delete nestedAccountApp.routes.outcomes[EntityType.StarknetContract]
 
 	const generatedFiles = compileApp(nestedAccountApp).generatedFiles
-	const accountRoutePath = '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]'
+	const accountRoutePathPattern = /\/\(explore\)\/\(networks\)\/network\/\[network=networkCaip2OrNetworkSlug\]\/\(network\)\/\(accounts\)\/account\/\[accountId=[^\]]+\]/
 	for (const entityType of [
 		EntityType.AptosAccount,
 		EntityType.StarknetContract,
@@ -5804,13 +5809,15 @@ test('inherits nested page selectors from the direct projection ancestor without
 
 		assert.ok(view)
 		const source = renderGeneratedFile(view)
+		const accountRoutePath = source.match(accountRoutePathPattern)?.[0]
+		assert.ok(accountRoutePath, `${entityType}View missing nested account route href`)
 		assert.equal(source.split(`'${accountRoutePath}'`).length - 1, 1)
 		assert.match(source, /'caip2' in selection\.entitySelector\.\$network\.\$network[\s\S]*?caip2StringFromValue\(selection\.entitySelector\.\$network\.\$network\.caip2\)[\s\S]*?:[\s\S]*?selection\.entitySelector\.\$network\.\$network\.slug/)
 		assert.doesNotMatch(source, /const network =/)
 		assert.doesNotMatch(source, /hrefParams|entityHrefs/)
 	}
-	const polkadotObservationPage = generatedFiles.find(({ path }) => path.endsWith(
-		'/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]/(selection)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]/+page.svelte'
+	const polkadotObservationPage = generatedFiles.find(({ path }) => (
+		/\/account\/\[accountId=[^\]]+\]\/\(selection\)\/observation\/\[timestampMs=nonNegativeInteger\]\/\[source=stringSegment\]\/\+page\.svelte$/.test(path)
 	))
 	const utxoAddressView = generatedFiles.find(({ path }) => path === 'src/views/UtxoAddressView.svelte')
 
@@ -7133,7 +7140,7 @@ test('keeps runtime secret configuration in one server projection', () => {
 	assert.match(serverCredentials, /import \{ sourceBindings \} from '\$\/sources\/\$sourceProviders\.ts'/)
 	assert.match(serverCredentials, /const runtimeSecretBindingCandidates = sourceBindings\.filter[\s\S]*?scope === SourceCredentialScope\.RuntimeSecret[\s\S]*?&& keys == null/)
 	assert.match(serverCredentials, /const runtimeSecretCredentials = \[/)
-	assert.equal((serverCredentials.match(/^\t\tSource\./gm) ?? []).length, 19)
+	assert.equal((serverCredentials.match(/^\t\tSource\./gm) ?? []).length, 21)
 	assert.match(serverCredentials, /sourceBindingId\(runtimeSecretBinding\(source, targetKey\)\)/)
 	assert.equal((serverCredentials.match(/sourceBindingId\(/g) ?? []).length, 1)
 	assert.doesNotMatch(serverCredentials, /'\["/)

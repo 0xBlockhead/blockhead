@@ -3161,6 +3161,26 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(social)/(lens)/lens/feed/[address]': {
+		routeId: '/(social)/(lens)/lens/(lensNetwork)/feed/[address=evmAddress]',
+		mappings: [
+			{
+				id: 'LensFeed.Address',
+				probeAtomPrefixes: ['/lens/feed/[address]:LensFeed.Address'],
+				probeCases: [[[0, '1', ['address']]]],
+			},
+		],
+	},
+	'/(social)/(lens)/lens/namespace/[address]': {
+		routeId: '/(social)/(lens)/lens/(lensNetwork)/namespace/[address=evmAddress]',
+		mappings: [
+			{
+				id: 'LensUsernameNamespace.Address',
+				probeAtomPrefixes: ['/lens/namespace/[address]:LensUsernameNamespace.Address'],
+				probeCases: [[[0, '1', ['address']]]],
+			},
+		],
+	},
 	'/(social)/(lens)/lens/post/[postId]': {
 		routeId: '/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]',
 		mappings: [

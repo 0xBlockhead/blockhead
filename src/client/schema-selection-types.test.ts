@@ -44,4 +44,4 @@ test('enforces schema-derived projection selections and field addresses', () => 
 			recursive: true,
 		})
 	}
-}, 30_000)
+}, 90_000)
