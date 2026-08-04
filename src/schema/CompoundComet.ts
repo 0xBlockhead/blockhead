@@ -71,6 +71,13 @@ export default entity({
 			Source.Compound_Rest,
 		],
 	},
+	$$assets: {
+		entityType: EntityType.CompoundCometAsset,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Compound_Rest,
+		],
+	},
 	borrowMin: {
 		primitiveType: NonNegativeDecimalString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,

@@ -380,6 +380,7 @@ import Coin_TimestampSchema from '$/schema/Coin_Timestamp.ts'
 import CoinSchema from '$/schema/Coin.ts'
 import CoinBridgeCapabilitySchema from '$/schema/CoinBridgeCapability.ts'
 import ComplianceModuleSchema from '$/schema/ComplianceModule.ts'
+import CompoundCometAssetSchema from '$/schema/CompoundCometAsset.ts'
 import CompoundCometSchema from '$/schema/CompoundComet.ts'
 import ContractInterfaceMemberSchema from '$/schema/ContractInterfaceMember.ts'
 import CosmosAccount_TimestampSchema from '$/schema/CosmosAccount_Timestamp.ts'
@@ -455,6 +456,7 @@ import Erc4337SmartAccountSchema from '$/schema/Erc4337SmartAccount.ts'
 import Erc4626Vault_BlockSchema from '$/schema/Erc4626Vault_Block.ts'
 import Erc4626Vault_TimestampSchema from '$/schema/Erc4626Vault_Timestamp.ts'
 import Erc4626VaultSchema from '$/schema/Erc4626Vault.ts'
+import EulerEvkVaultSchema from '$/schema/EulerEvkVault.ts'
 import EthereumBeaconFinality_TimestampSchema from '$/schema/EthereumBeaconFinality_Timestamp.ts'
 import EthereumConsensusUpgradeSchema from '$/schema/EthereumConsensusUpgrade.ts'
 import EthereumExecutionUpgradeSchema from '$/schema/EthereumExecutionUpgrade.ts'
@@ -757,6 +759,7 @@ import PayjoinEndpoint_TimestampSchema from '$/schema/PayjoinEndpoint_Timestamp.
 import PayjoinEndpointSchema from '$/schema/PayjoinEndpoint.ts'
 import PayoutSchema from '$/schema/Payout.ts'
 import PayoutClaim_TimestampSchema from '$/schema/PayoutClaim_Timestamp.ts'
+import PendleMarketSchema from '$/schema/PendleMarket.ts'
 import PolkadotAccount_TimestampSchema from '$/schema/PolkadotAccount_Timestamp.ts'
 import PolkadotAccountSchema from '$/schema/PolkadotAccount.ts'
 import PolkadotAsset_TimestampSchema from '$/schema/PolkadotAsset_Timestamp.ts'
@@ -1414,6 +1417,7 @@ const schemaChunk7 = [
 	Coin_TimestampSchema,
 	CoinBridgeCapabilitySchema,
 	ComplianceModuleSchema,
+	CompoundCometAssetSchema,
 	CompoundCometSchema,
 	ContractInterfaceMemberSchema,
 	CosmosAccountSchema,
@@ -1495,6 +1499,7 @@ const schemaChunk8 = [
 
 const schemaChunk9 = [
 	Erc4626Vault_TimestampSchema,
+	EulerEvkVaultSchema,
 	EthereumBeaconFinality_TimestampSchema,
 	EthereumConsensusUpgradeSchema,
 	EthereumExecutionUpgradeSchema,
@@ -1815,6 +1820,7 @@ const schemaChunk14 = [
 const schemaChunk15 = [
 	PayoutSchema,
 	PayoutClaim_TimestampSchema,
+	PendleMarketSchema,
 	PolkadotAccountSchema,
 	PolkadotAccount_TimestampSchema,
 	PolkadotAssetSchema,

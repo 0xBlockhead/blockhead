@@ -7,6 +7,8 @@ import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import bindings from '$/sources/Compound/bindings.ts'
 import type {
 	CompoundCometConfiguration,
+	CompoundCometConfigurationAsset,
+	CompoundCometConfigurationAssetWire,
 	CompoundCometConfigurationWire,
 	CompoundCometRoots,
 	CompoundCometRootsWire,
@@ -51,26 +53,46 @@ const deploymentPath = (
 	`deployments/${networkSlug}/${marketSlug}/${fileName}`
 )
 
+const assertConfigurationAssetWire = (
+	symbol: string,
+	asset: CompoundCometConfigurationAssetWire
+): CompoundCometConfigurationAsset => {
+	if (symbol.length < 1)
+		throw new Error(`${Source.Compound_Rest}: configuration asset missing symbol`)
+
+	const decimals = Number(asset.decimals)
+	if (!Number.isSafeInteger(decimals) || decimals < 0)
+		throw new Error(`${Source.Compound_Rest}: configuration asset ${symbol} missing decimals`)
+
+	return {
+		symbol,
+		tokenAddress: assertAddress(asset.address, `${symbol} address`),
+		priceFeedAddress: assertAddress(asset.priceFeed, `${symbol} price feed`),
+		decimals,
+		borrowCF: asset.borrowCF,
+		liquidateCF: asset.liquidateCF,
+		liquidationFactor: asset.liquidationFactor,
+		supplyCap: assertNonEmptyString(asset.supplyCap, `${symbol} supplyCap`),
+	}
+}
+
 const assertConfigurationWire = (
 	wire: CompoundCometConfigurationWire
 ): CompoundCometConfiguration => {
-	const assetEntries = Object.entries(wire.assets)
-	if (assetEntries.length < 1)
+	const assets = (
+		Object.entries(wire.assets)
+			.map(([
+				symbol,
+				asset,
+			]) => (
+				assertConfigurationAssetWire(symbol, asset)
+			))
+			.sort((left, right) => (
+				left.symbol.localeCompare(right.symbol)
+			))
+	)
+	if (assets.length < 1)
 		throw new Error(`${Source.Compound_Rest}: configuration missing collateral assets`)
-
-	for (const [
-		symbol,
-		asset,
-	] of assetEntries) {
-		if (symbol.length < 1)
-			throw new Error(`${Source.Compound_Rest}: configuration asset missing symbol`)
-		assertAddress(asset.address, `${symbol} address`)
-		assertAddress(asset.priceFeed, `${symbol} price feed`)
-		if (asset.decimals.length < 1)
-			throw new Error(`${Source.Compound_Rest}: configuration asset ${symbol} missing decimals`)
-		if (asset.supplyCap.length < 1)
-			throw new Error(`${Source.Compound_Rest}: configuration asset ${symbol} missing supplyCap`)
-	}
 
 	return {
 		name: assertNonEmptyString(wire.name, 'name'),
@@ -96,7 +118,8 @@ const assertConfigurationWire = (
 		...(wire.rewardTokenAddress != null && {
 			rewardTokenAddress: assertAddress(wire.rewardTokenAddress, 'rewardTokenAddress'),
 		}),
-		collateralAssetCount: assetEntries.length,
+		collateralAssetCount: assets.length,
+		assets,
 	}
 }
 

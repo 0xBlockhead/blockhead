@@ -83,6 +83,7 @@ import ethereumEipsSourceProvider from './EthereumEips/index.ts'
 import ethereumListsSourceProvider from './EthereumLists/index.ts'
 import ethereumSpecsSourceProvider from './EthereumSpecs/index.ts'
 import etherscanSourceProvider from './Etherscan/index.ts'
+import eulerSourceProvider from './Euler/index.ts'
 import farcasterSourceProvider from './Farcaster/index.ts'
 import fedimintClientSourceProvider from './FedimintClient/index.ts'
 import fedimintGatewaydSourceProvider from './FedimintGatewayd/index.ts'
@@ -166,6 +167,7 @@ import openSeaSourceProvider from './OpenSea/index.ts'
 import osmosisSourceProvider from './Osmosis/index.ts'
 import pathfinderSourceProvider from './Pathfinder/index.ts'
 import payjoinSourceProvider from './Payjoin/index.ts'
+import pendleSourceProvider from './Pendle/index.ts'
 import petraSourceProvider from './Petra/index.ts'
 import pipedSourceProvider from './Piped/index.ts'
 import plugWalletSourceProvider from './PlugWallet/index.ts'
@@ -338,6 +340,7 @@ const sourceProviders = [
 	ethereumListsSourceProvider,
 	ethereumSpecsSourceProvider,
 	etherscanSourceProvider,
+	eulerSourceProvider,
 	farcasterSourceProvider,
 	fedimintClientSourceProvider,
 	fedimintGatewaydSourceProvider,
@@ -421,6 +424,7 @@ const sourceProviders = [
 	osmosisSourceProvider,
 	pathfinderSourceProvider,
 	payjoinSourceProvider,
+	pendleSourceProvider,
 	petraSourceProvider,
 	pipedSourceProvider,
 	plugWalletSourceProvider,

@@ -40,6 +40,17 @@ export type CompoundCometRootsWire = {
 	bulker?: string
 }
 
+export type CompoundCometConfigurationAsset = {
+	symbol: string
+	tokenAddress: `0x${string}`
+	priceFeedAddress: `0x${string}`
+	decimals: number
+	borrowCF: number
+	liquidateCF: number
+	liquidationFactor: number
+	supplyCap: string
+}
+
 export type CompoundCometConfiguration = {
 	name: string
 	symbol: string
@@ -53,6 +64,7 @@ export type CompoundCometConfiguration = {
 	targetReserves?: string
 	rewardTokenAddress?: `0x${string}`
 	collateralAssetCount: number
+	assets: CompoundCometConfigurationAsset[]
 }
 
 export type CompoundCometRoots = {

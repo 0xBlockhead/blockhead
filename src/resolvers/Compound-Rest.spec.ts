@@ -42,6 +42,10 @@ const compoundCometResolver = compoundRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CompoundComet
 ))
 
+const compoundCometAssetResolver = compoundRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CompoundCometAsset
+))
+
 const baseCometAddress = '0xb125e6687d4313864e53df431d5425969c15eb2f'
 
 const baseConfiguration = {
@@ -88,6 +92,7 @@ describe('Compound Rest resolver module', () => {
 	it('registers under Compound_Rest for CompoundComet', () => {
 		expect(compoundRest.source).toBe(Source.Compound_Rest)
 		expect(compoundCometResolver).toBeDefined()
+		expect(compoundCometAssetResolver).toBeDefined()
 	})
 
 	it('rejects non-eip155 networks before transport', async () => {
@@ -139,6 +144,26 @@ describe('Compound Rest resolver module', () => {
 		expect(compoundCometResolver.projections.name(snapshot)).toBe('Compound USDC')
 		expect(compoundCometResolver.projections.baseTokenSymbol(snapshot)).toBe('USDC')
 		expect(compoundCometResolver.projections.collateralAssetCount(snapshot)).toBe(2)
+		expect(compoundCometResolver.projections.$$assets(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$comet: {
+						$network: baseNetwork,
+						cometAddress: baseCometAddress,
+					},
+					symbol: 'cbETH',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$comet: {
+						$network: baseNetwork,
+						cometAddress: baseCometAddress,
+					},
+					symbol: 'WETH',
+				},
+			},
+		])
 		expect(compoundCometResolver.projections.configuratorAddress(snapshot)).toBe(
 			'0x316f9708bb98af7da9c68c1c3b5e79039cd336e3'
 		)
@@ -146,5 +171,59 @@ describe('Compound Rest resolver module', () => {
 			[EntityMetaKey.Selector]: baseNetwork,
 		})
 		expect(sourceGetJson).toHaveBeenCalledTimes(2)
+	})
+
+	it('resolves a Compound Comet collateral asset by comet and symbol', async () => {
+		if (compoundCometAssetResolver == null)
+			throw new Error('missing CompoundCometAsset resolver')
+
+		sourceGetJson
+			.mockResolvedValueOnce(baseConfiguration)
+			.mockResolvedValueOnce(baseRoots)
+
+		const cometSelector = {
+			$network: baseNetwork,
+			cometAddress: baseCometAddress,
+		}
+		const asset = await compoundCometAssetResolver.resolve.CometAssetSymbol.resolve({
+			$comet: cometSelector,
+			symbol: 'WETH',
+		}, context)
+
+		expect(compoundCometAssetResolver.projections.symbol(asset)).toBe('WETH')
+		expect(compoundCometAssetResolver.projections.tokenAddress(asset)).toBe(
+			'0x4200000000000000000000000000000000000006'
+		)
+		expect(compoundCometAssetResolver.projections.priceFeedAddress(asset)).toBe(
+			'0x71041dddad3595f9ced3dccfbe3d1f4b0a16bb70'
+		)
+		expect(compoundCometAssetResolver.projections.decimals(asset)).toBe(18)
+		expect(compoundCometAssetResolver.projections.borrowCF(asset)).toBe(0.80)
+		expect(compoundCometAssetResolver.projections.liquidateCF(asset)).toBe(0.90)
+		expect(compoundCometAssetResolver.projections.liquidationFactor(asset)).toBe(0.95)
+		expect(compoundCometAssetResolver.projections.supplyCap(asset)).toBe('11000e18')
+		expect(compoundCometAssetResolver.projections.$comet(asset)).toEqual({
+			[EntityMetaKey.Selector]: cometSelector,
+		})
+		expect(sourceGetJson).toHaveBeenCalledTimes(2)
+	})
+
+	it('rejects unknown collateral symbols on a supported comet', async () => {
+		if (compoundCometAssetResolver == null)
+			throw new Error('missing CompoundCometAsset resolver')
+
+		sourceGetJson
+			.mockResolvedValueOnce(baseConfiguration)
+			.mockResolvedValueOnce(baseRoots)
+
+		await expect(
+			compoundCometAssetResolver.resolve.CometAssetSymbol.resolve({
+				$comet: {
+					$network: baseNetwork,
+					cometAddress: baseCometAddress,
+				},
+				symbol: 'DOGE',
+			}, context)
+		).rejects.toThrow(`${Source.Compound_Rest}: comet ${baseCometAddress} has no collateral asset DOGE`)
 	})
 })

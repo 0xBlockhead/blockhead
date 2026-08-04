@@ -1,0 +1,87 @@
+export type PendleMarketDetailsWire = {
+	liquidity: number
+	totalTvl: number
+	tradingVolume: number
+	underlyingApy: number
+	swapFeeApy: number
+	pendleApy: number
+	ytFloatingApy: number
+	impliedApy: number
+	feeRate: number
+	totalPt: number
+	totalSy: number
+	totalSupply: number
+	totalActiveSupply: number
+	aggregatedApy: number
+	maxBoostedApy: number
+}
+
+export type PendleMarketWire = {
+	name: string
+	protocol: string
+	icon: string
+	address: string
+	expiry: string
+	pt: string
+	yt: string
+	sy: string
+	underlyingAsset: string
+	accountingAsset: string
+	details: PendleMarketDetailsWire
+	isNew: boolean
+	isPrime: boolean
+	timestamp: string
+	categoryIds: string[]
+	chainId: number
+}
+
+export type PendleMarketsAllResponseWire = {
+	total: number
+	limit: number
+	skip: number
+	results: PendleMarketWire[]
+}
+
+export type PendleMarketDetails = {
+	liquidityUsd: number
+	totalTvlUsd: number
+	tradingVolumeUsd: number
+	underlyingApy: number
+	swapFeeApy: number
+	pendleApy: number
+	ytFloatingApy: number
+	impliedApy: number
+	feeRate: number
+	totalPt: number
+	totalSy: number
+	totalSupply: number
+	totalActiveSupply: number
+	aggregatedApy: number
+	maxBoostedApy: number
+}
+
+export type PendleMarket = {
+	chainId: number
+	marketAddress: `0x${string}`
+	name: string
+	protocol: string
+	icon: string
+	expiryTimestampMs: number
+	ptAddress: `0x${string}`
+	ytAddress: `0x${string}`
+	syAddress: `0x${string}`
+	underlyingAssetAddress: `0x${string}`
+	accountingAssetAddress: `0x${string}`
+	categoryIds: string[]
+	isNew: boolean
+	isPrime: boolean
+	observedAtTimestampMs: number
+	details: PendleMarketDetails
+}
+
+export type PendleMarketsPage = {
+	total: number
+	limit: number
+	skip: number
+	markets: PendleMarket[]
+}

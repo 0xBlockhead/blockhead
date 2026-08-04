@@ -116,6 +116,18 @@ describe('Compound III deployment operations', () => {
 			pauseGuardianAddress: '0x3cb4653f3b45f448d9100b118b75a1503281d2ee',
 			targetReserves: '5000000e6',
 			collateralAssetCount: 1,
+			assets: [
+				{
+					symbol: 'WETH',
+					tokenAddress: '0x4200000000000000000000000000000000000006',
+					priceFeedAddress: '0x71041dddad3595f9ced3dccfbe3d1f4b0a16bb70',
+					decimals: 18,
+					borrowCF: 0.80,
+					liquidateCF: 0.90,
+					liquidationFactor: 0.95,
+					supplyCap: '11000e18',
+				},
+			],
 		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
