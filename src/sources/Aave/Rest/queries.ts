@@ -102,8 +102,15 @@ export const listMarkets = async ({
 	})
 	if (data == null)
 		throw new Error(`${Source.Aave_Rest}: markets response missing data`)
+	if (data.markets == null)
+		throw new Error(`${Source.Aave_Rest}: markets response missing markets`)
 
-	return data.markets.map((market) => assertMarketWire(market))
+	return data.markets.map((market) => {
+		if (!chainIds.includes(market.chain.chainId))
+			throw new Error(`${Source.Aave_Rest}: market chain filter violated`)
+
+		return assertMarketWire(market)
+	})
 }
 
 /** Fetch one Aave market by pool address and chain id. */
@@ -135,6 +142,8 @@ export const getMarket = async ({
 	})
 	if (data == null)
 		throw new Error(`${Source.Aave_Rest}: market response missing data`)
+	if (data.market === undefined)
+		throw new Error(`${Source.Aave_Rest}: market response missing market`)
 	if (data.market == null)
 		throw new Error(`${Source.Aave_Rest}: market not found ${normalizedPoolAddress} on chain ${String(chainId)}`)
 

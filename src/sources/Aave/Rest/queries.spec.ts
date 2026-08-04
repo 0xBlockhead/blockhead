@@ -107,6 +107,48 @@ describe('Aave market list/detail operations', () => {
 		)
 	})
 
+	it('accepts a successful empty market list', async () => {
+		graphql.mockResolvedValueOnce({
+			markets: [],
+		})
+
+		await expect(listMarkets({
+			chainIds: [
+				1,
+			],
+		})).resolves.toEqual([])
+	})
+
+	it('rejects a response without a markets envelope', async () => {
+		graphql.mockResolvedValueOnce({})
+
+		await expect(listMarkets({
+			chainIds: [
+				1,
+			],
+		})).rejects.toThrow(`${Source.Aave_Rest}: markets response missing markets`)
+	})
+
+	it('rejects a market outside the requested chain filter', async () => {
+		graphql.mockResolvedValueOnce({
+			markets: [
+				{
+					...ethereumMarket,
+					chain: {
+						...ethereumMarket.chain,
+						chainId: 10,
+					},
+				},
+			],
+		})
+
+		await expect(listMarkets({
+			chainIds: [
+				1,
+			],
+		})).rejects.toThrow(`${Source.Aave_Rest}: market chain filter violated`)
+	})
+
 	it('rejects an empty chainIds list before transport', async () => {
 		await expect(listMarkets({
 			chainIds: [],
@@ -148,6 +190,24 @@ describe('Aave market list/detail operations', () => {
 				},
 			})
 		)
+	})
+
+	it('rejects a response without detail data', async () => {
+		graphql.mockResolvedValueOnce(undefined)
+
+		await expect(getMarket({
+			chainId: 1,
+			poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+		})).rejects.toThrow(`${Source.Aave_Rest}: market response missing data`)
+	})
+
+	it('rejects a response without a market envelope', async () => {
+		graphql.mockResolvedValueOnce({})
+
+		await expect(getMarket({
+			chainId: 1,
+			poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+		})).rejects.toThrow(`${Source.Aave_Rest}: market response missing market`)
 	})
 
 	it('throws when the market is missing', async () => {
