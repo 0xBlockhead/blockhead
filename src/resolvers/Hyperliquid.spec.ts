@@ -462,6 +462,29 @@ describe('Hyperliquid market catalog resolvers', () => {
 		const snapshot = await networkResolver.resolve.Network.resolve({
 			$network: account.$network,
 		}, context)
+		expect(networkResolver.projections.$$timestamps(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: account.$network,
+				timestampMs: expect.any(Number),
+				source: Source.Hyperliquid,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'perpMarketCount')]: 1,
+				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'spotAssetCount')]: 2,
+				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'spotPairCount')]: 1,
+				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'validatorCount')]: 1,
+				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'activeValidatorCount')]: 1,
+				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'jailedValidatorCount')]: 0,
+				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'totalStake')]: 2n,
+				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'vaultCount')]: 2,
+			},
+		}])
+		expect(networkResolver.projections.$$perpMarkets(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: account.$network,
+				coin: 'ETH',
+			},
+		}])
 		expect(networkResolver.projections.$$spotPairs(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: account.$network,

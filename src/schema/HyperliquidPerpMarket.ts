@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -11,6 +12,7 @@ export default entity({
 		singular: 'hyperliquid perp market',
 		plural: 'hyperliquid perp markets',
 	},
+	description: 'Hyperliquid native perpetual market identified by network + coin (not EVM LiquidityPool).',
 })({
 	$network: {
 		entityType: EntityType.Network,
@@ -23,6 +25,9 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType.HyperliquidPerpMarket_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Hyperliquid,
+		],
 	},
 })({
 	selectors: {

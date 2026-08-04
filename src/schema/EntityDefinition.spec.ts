@@ -1644,4 +1644,93 @@ describe('entity selectors', () => {
 			])
 		)
 	})
+
+	it('registers native Hyperliquid Network + timestamp + perp market off EVM LiquidityPool', () => {
+		const hyperliquidNetwork = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.HyperliquidNetwork)
+		const hyperliquidNetworkTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.HyperliquidNetwork_Timestamp)
+		const hyperliquidPerpMarket = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.HyperliquidPerpMarket)
+		const hyperliquidPerpMarketTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.HyperliquidPerpMarket_Timestamp)
+		const liquidityPool = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.LiquidityPool)
+
+		if (
+			hyperliquidNetwork == null
+			|| hyperliquidNetworkTimestamp == null
+			|| hyperliquidPerpMarket == null
+			|| hyperliquidPerpMarketTimestamp == null
+			|| liquidityPool == null
+		)
+			throw new Error('Hyperliquid native schema rows missing')
+
+		expect(hyperliquidNetwork.selectors.map((selector) => selector.fields)).toEqual([
+			[
+				'$network',
+			],
+		])
+		expect(entityFieldDefinitions(hyperliquidNetwork).map(({ name }) => name)).toEqual(
+			expect.arrayContaining([
+				'$network',
+				'$$timestamps',
+				'$$perpMarkets',
+			])
+		)
+		expect(entityFieldDefinitions(hyperliquidNetwork).find(({ name }) => name === '$$timestamps')).toMatchObject({
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.HyperliquidNetwork_Timestamp,
+			defaultSources: [
+				Source.Hyperliquid,
+			],
+		})
+		expect(entityFieldDefinitions(hyperliquidNetwork).find(({ name }) => name === '$$perpMarkets')).toMatchObject({
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.HyperliquidPerpMarket,
+			defaultSources: [
+				Source.Hyperliquid,
+			],
+		})
+		expect(entityFieldDefinitions(hyperliquidNetwork).map(({ name }) => name)).not.toEqual(
+			expect.arrayContaining([
+				'$baseToken',
+				'$quoteToken',
+				'v4PoolId',
+			])
+		)
+		expect(entityFieldDefinitions(liquidityPool).map(({ name }) => name)).not.toContain('$$perpMarkets')
+
+		expect(hyperliquidNetworkTimestamp.selectors.map((selector) => selector.fields)).toEqual([
+			[
+				'$network',
+				'timestampMs',
+				'source',
+			],
+		])
+		expect(entityFieldDefinitions(hyperliquidNetworkTimestamp).find(({ name }) => name === 'perpMarketCount')).toMatchObject({
+			type: EntityFieldType.Primitive,
+			defaultSources: [
+				Source.Hyperliquid,
+			],
+		})
+
+		expect(hyperliquidPerpMarket.selectors.map((selector) => selector.fields)).toEqual([
+			[
+				'$network',
+				'coin',
+			],
+		])
+		expect(entityFieldDefinitions(hyperliquidPerpMarket).find(({ name }) => name === '$$timestamps')).toMatchObject({
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.HyperliquidPerpMarket_Timestamp,
+			defaultSources: [
+				Source.Hyperliquid,
+			],
+		})
+		expect(entityFieldDefinitions(hyperliquidPerpMarketTimestamp).map(({ name }) => name)).toEqual(
+			expect.arrayContaining([
+				'$perpMarket',
+				'timestampMs',
+				'source',
+				'maxLeverage',
+				'onlyIsolated',
+			])
+		)
+	})
 })
