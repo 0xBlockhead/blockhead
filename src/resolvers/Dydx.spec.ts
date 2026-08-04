@@ -218,12 +218,20 @@ const startDydxNetworkLive = (
 	fields,
 })
 
+const heightResponse = {
+	height: '12345678901234567890',
+	time: '2026-08-03T12:34:56.789Z',
+}
+
 describe('dYdX Indexer resolvers', () => {
 	beforeEach(() => {
 		vi.spyOn(Date, 'now').mockReturnValue(observedAtMs)
 		sourceGetJson.mockReset()
 		subscribeDydxIndexer.mockReset()
 		sourceGetJson.mockImplementation((_binding, url) => Promise.resolve(
+			url.includes('/v4/height') ?
+				heightResponse
+			:
 			url.includes('/v4/addresses/') ?
 				subaccountResponse
 			:
@@ -276,7 +284,8 @@ describe('dYdX Indexer resolvers', () => {
 
 		expect(snapshot.markets).toHaveLength(1)
 		expect(snapshot.marketCount).toBe(2)
-		expect(snapshot.observedAtMs).toBe(observedAtMs)
+		expect(snapshot.blockHeight).toBe(12345678901234567890n)
+		expect(snapshot.observedAtMs).toBe(Date.parse(heightResponse.time))
 		expect(dydxChainNetworkResolver.projections.$$markets(snapshot, network)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: network,
@@ -291,13 +300,18 @@ describe('dYdX Indexer resolvers', () => {
 		expect(dydxChainNetworkResolver.projections.$$timestamps(snapshot, network)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: network,
-				timestampMs: observedAtMs,
+				timestampMs: Date.parse(heightResponse.time),
 				source: Source.DydxIndexer,
 			},
 			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.DydxChainNetwork_Timestamp, [], 'blockHeight')]: 12345678901234567890n,
 				[entityFieldAddressKey(EntityType.DydxChainNetwork_Timestamp, [], 'marketCount')]: 2,
 			},
 		}])
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			expect.anything(),
+			'https://indexer.dydx.trade/v4/height'
+		)
 	})
 
 	it('publishes the bounded market snapshot, actual count, and exact upstream block height observation', async () => {

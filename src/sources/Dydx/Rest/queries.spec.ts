@@ -19,6 +19,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 
 const {
 	getFills,
+	getHeight,
 	getOrders,
 	getPerpetualMarkets,
 	getPerpetualPositions,
@@ -117,6 +118,39 @@ describe('dYdX v4 read-only public transport', () => {
 		await expect(getPerpetualMarkets({
 			ticker: 'BTC-USD',
 		})).rejects.toThrow('invalid non-negative decimal oraclePrice')
+	})
+
+	it('preserves indexer height with fail-closed decimal-free height identity', async () => {
+		sourceGetJson.mockResolvedValue({
+			height: '12345678901234567890',
+			time: '2026-08-03T12:34:56.789Z',
+		})
+
+		await expect(getHeight()).resolves.toMatchObject({
+			value: {
+				height: '12345678901234567890',
+				time: '2026-08-03T12:34:56.789Z',
+			},
+			observedAtMs,
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			'https://indexer.dydx.trade/v4/height'
+		)
+	})
+
+	it('rejects malformed height payloads', async () => {
+		sourceGetJson.mockResolvedValue({
+			height: '12.5',
+			time: '2026-08-03T12:34:56.789Z',
+		})
+		await expect(getHeight()).rejects.toThrow('invalid block height')
+
+		sourceGetJson.mockResolvedValue({
+			height: '1',
+			time: 'not-a-time',
+		})
+		await expect(getHeight()).rejects.toThrow('invalid height time')
 	})
 
 	it('keeps public subaccount identity independent of signing state', async () => {

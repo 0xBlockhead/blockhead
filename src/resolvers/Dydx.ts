@@ -109,14 +109,24 @@ export const dydxChainNetworkResolver = defineResolver({
 			appliesTo: dydxNetworkApplicability,
 			resolve: async (entitySelector, context) => {
 				assertDydxMainnet(entitySelector.$network)
-				const { getPerpetualMarkets } = await import('$/sources/Dydx/Rest/queries.ts')
-				const observation = await getPerpetualMarkets({})
+				const {
+					getHeight,
+					getPerpetualMarkets,
+				} = await import('$/sources/Dydx/Rest/queries.ts')
+				const [
+					marketsObservation,
+					heightObservation,
+				] = await Promise.all([
+					getPerpetualMarkets({}),
+					getHeight(),
+				])
 
 				return {
-					markets: Object.values(observation.value.markets)
+					markets: Object.values(marketsObservation.value.markets)
 						.slice(0, resolverContextRowLimit(context)),
-					marketCount: Object.keys(observation.value.markets).length,
-					observedAtMs: observation.observedAtMs,
+					marketCount: Object.keys(marketsObservation.value.markets).length,
+					blockHeight: BigInt(heightObservation.value.height),
+					observedAtMs: parseTimestampMs(heightObservation.value.time, 'height time'),
 				}
 			},
 		},
@@ -398,6 +408,7 @@ export const dydxChainNetworkResolver = defineResolver({
 			source: Source.DydxIndexer,
 		},
 		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.DydxChainNetwork_Timestamp, [], 'blockHeight')]: snapshot.blockHeight,
 			[entityFieldAddressKey(EntityType.DydxChainNetwork_Timestamp, [], 'marketCount')]: snapshot.marketCount,
 		},
 	}],

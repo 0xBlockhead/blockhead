@@ -4,6 +4,15 @@ import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/Dydx/bindings.ts'
 import type { components } from '$/sources/Dydx/OpenApi/openapi.d.ts'
+import {
+	dydxAddressPattern,
+	dydxIndexerRestPathPrefix,
+	dydxMarketTickerPattern,
+	dydxPageLimitMax,
+	dydxPageLimitMin,
+	dydxPerpetualMarketsResponseMax,
+	dydxSubaccountNumberMax,
+} from '$/sources/Dydx/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily } from '$/sources/SourceBinding.ts'
 
@@ -16,9 +25,6 @@ const binding = bindings[Source.DydxIndexer].find(
 if (binding == null)
 	throw new Error('DydxIndexer_Rest: OpenAPI binding is missing')
 
-const addressPattern = /^dydx1[023456789acdefghjklmnpqrstuvwxyz]{38}$/
-const tickerPattern = /^[A-Z0-9][A-Z0-9._-]{1,63}$/
-
 const assertSubaccount = ({
 	address,
 	subaccountNumber,
@@ -26,15 +32,15 @@ const assertSubaccount = ({
 	address: string
 	subaccountNumber: number
 }) => {
-	if (!addressPattern.test(address))
+	if (!dydxAddressPattern.test(address))
 		throw new Error(`DydxIndexer_Rest: invalid dYdX address ${address}`)
 
-	if (!Number.isSafeInteger(subaccountNumber) || subaccountNumber < 0 || subaccountNumber > 128_000)
+	if (!Number.isSafeInteger(subaccountNumber) || subaccountNumber < 0 || subaccountNumber > dydxSubaccountNumberMax)
 		throw new Error(`DydxIndexer_Rest: invalid subaccount number ${subaccountNumber}`)
 }
 
 const assertLimit = (limit: number) => {
-	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+	if (!Number.isSafeInteger(limit) || limit < dydxPageLimitMin || limit > dydxPageLimitMax)
 		throw new Error(`DydxIndexer_Rest: invalid page limit ${limit}`)
 }
 
@@ -111,12 +117,26 @@ const assertPosition = (
 		assertNonNegativeDecimal(value, field)
 }
 
+export const getHeight = async () => {
+	const observation = await observeResponse(
+		sourceGetJson<components['schemas']['HeightResponse']>(
+			binding,
+			httpUrl(binding, `${dydxIndexerRestPathPrefix}/height`)
+		)
+	)
+	assertHeight(observation.value.height)
+	if (!Number.isFinite(Date.parse(observation.value.time)))
+		throw new Error('DydxIndexer_Rest: invalid height time')
+
+	return observation
+}
+
 export const getPerpetualMarkets = async ({
 	ticker,
 }: {
 	ticker?: string
 }) => {
-	if (ticker != null && !tickerPattern.test(ticker))
+	if (ticker != null && !dydxMarketTickerPattern.test(ticker))
 		throw new Error(`DydxIndexer_Rest: invalid market ticker ${ticker}`)
 
 	const observation = await observeResponse(
@@ -124,11 +144,11 @@ export const getPerpetualMarkets = async ({
 			binding,
 			httpUrl(
 				binding,
-				`/v4/perpetualMarkets${ticker == null ? '' : `?ticker=${encodeURIComponent(ticker)}`}`
+				`${dydxIndexerRestPathPrefix}/perpetualMarkets${ticker == null ? '' : `?ticker=${encodeURIComponent(ticker)}`}`
 			)
 		)
 	)
-	if (Object.keys(observation.value.markets).length > 500)
+	if (Object.keys(observation.value.markets).length > dydxPerpetualMarketsResponseMax)
 		throw new Error('DydxIndexer_Rest: perpetual market response exceeds bound')
 
 	for (const [marketKey, market] of Object.entries(observation.value.markets)) {
@@ -174,7 +194,7 @@ export const getSubaccount = async ({
 			binding,
 			httpUrl(
 				binding,
-				`/v4/addresses/${encodeURIComponent(address)}/subaccountNumber/${subaccountNumber}`
+				`${dydxIndexerRestPathPrefix}/addresses/${encodeURIComponent(address)}/subaccountNumber/${subaccountNumber}`
 			)
 		)
 	)
@@ -211,7 +231,7 @@ export const getOrders = async ({
 	const observation = await observeResponse(
 		sourceGetJson<components['schemas']['OrderResponseObject'][]>(
 			binding,
-			httpUrl(binding, `/v4/orders?${query}`)
+			httpUrl(binding, `${dydxIndexerRestPathPrefix}/orders?${query}`)
 		)
 	)
 	if (observation.value.length > limit)
@@ -251,7 +271,7 @@ export const getFills = async ({
 	const observation = await observeResponse(
 		sourceGetJson<components['schemas']['FillResponse']>(
 			binding,
-			httpUrl(binding, `/v4/fills?${query}`)
+			httpUrl(binding, `${dydxIndexerRestPathPrefix}/fills?${query}`)
 		)
 			.then(({ fills }) => fills)
 	)
@@ -298,7 +318,7 @@ export const getPerpetualPositions = async ({
 	const observation = await observeResponse(
 		sourceGetJson<components['schemas']['PerpetualPositionResponse']>(
 			binding,
-			httpUrl(binding, `/v4/perpetualPositions?${query}`)
+			httpUrl(binding, `${dydxIndexerRestPathPrefix}/perpetualPositions?${query}`)
 		)
 			.then(({ positions }) => positions)
 	)
