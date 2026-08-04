@@ -115,6 +115,7 @@ describe('Pendle market operations', () => {
 			results: [baseMarketWire],
 		})
 		await expect(listMarkets({
+			chainId: 1,
 			limit: 1,
 		})).resolves.toEqual({
 			total: 768,
@@ -163,15 +164,52 @@ describe('Pendle market operations', () => {
 		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			httpUrl(binding, '/v2/markets/all?skip=0&limit=1')
+			httpUrl(binding, '/v2/markets/all?chainId=1&skip=0&limit=1')
 		)
 	})
 
 	it('rejects an invalid limit before transport', async () => {
 		await expect(listMarkets({
+			chainId: 1,
 			limit: pendleMarketsAllMaxLimit + 1,
 		})).rejects.toThrow(`${Source.Pendle_Rest}: invalid limit`)
 		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('rejects an unsupported chain before transport', async () => {
+		await expect(listMarkets({
+			chainId: 9999,
+		})).rejects.toThrow(`${Source.Pendle_Rest}: unsupported chain id 9999`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('filters a chain-scoped market lookup by its address', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			total: 1,
+			limit: 1,
+			skip: 0,
+			results: [
+				baseMarketWire,
+			],
+		})
+		await expect(listMarkets({
+			chainId: 1,
+			marketAddresses: [
+				baseMarketAddress,
+			],
+			limit: 1,
+		})).resolves.toMatchObject({
+			total: 1,
+			markets: [
+				{
+					marketAddress: baseMarketAddress,
+				},
+			],
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			httpUrl(binding, `/v2/markets/all?chainId=1&ids=1-${baseMarketAddress}&skip=0&limit=1`)
+		)
 	})
 
 	it('throws when markets/all results are missing', async () => {
@@ -181,6 +219,7 @@ describe('Pendle market operations', () => {
 			skip: 0,
 		})
 		await expect(listMarkets({
+			chainId: 1,
 			limit: 1,
 		})).rejects.toThrow(`${Source.Pendle_Rest}: markets/all response missing results`)
 	})

@@ -128,14 +128,22 @@ const assertMarketWire = (wire: PendleMarketWire): PendleMarket => {
 	}
 }
 
-/** All Pendle markets across chains (`GET /v2/markets/all`). */
+/**
+ * All Pendle markets for one supported EIP-155 chain (`GET /v2/markets/all`).
+ * @see https://api-v2.pendle.finance/core/docs#/Markets/MarketsCrossChainController_getAllMarkets
+ */
 export const listMarkets = async ({
+	chainId,
+	marketAddresses,
 	skip = 0,
 	limit = pendleMarketsAllDefaultLimit,
 }: {
+	chainId: number
+	marketAddresses?: string[]
 	skip?: number
 	limit?: number
-} = {}) => {
+}) => {
+	assertChainId(chainId)
 	if (!Number.isSafeInteger(skip) || skip < 0)
 		throw new Error(`${Source.Pendle_Rest}: invalid skip ${String(skip)}`)
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > pendleMarketsAllMaxLimit)
@@ -143,7 +151,10 @@ export const listMarkets = async ({
 
 	const response = await sourceGetJson<PendleMarketsAllResponseWire>(
 		binding,
-		httpUrl(binding, `/v2/markets/all?skip=${String(skip)}&limit=${String(limit)}`)
+		httpUrl(
+			binding,
+			`/v2/markets/all?chainId=${String(chainId)}${marketAddresses == null ? '' : `&ids=${marketAddresses.map((marketAddress) => `${String(chainId)}-${assertAddress(marketAddress, 'market address')}`).join(',')}`}&skip=${String(skip)}&limit=${String(limit)}`
+		)
 	)
 	if (!Array.isArray(response.results))
 		throw new Error(`${Source.Pendle_Rest}: markets/all response missing results`)

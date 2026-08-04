@@ -8,7 +8,9 @@ import {
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import bindings from '$/sources/Pendle/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 
@@ -135,7 +137,10 @@ describe('Pendle Rest resolver module', () => {
 		expect(pendleMarketResolver.projections.$network(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: baseNetwork,
 		})
-		expect(sourceGetJson).toHaveBeenCalledTimes(1)
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bindings[Source.Pendle_Rest][0],
+			httpUrl(bindings[Source.Pendle_Rest][0], `/v2/markets/all?chainId=1&ids=1-${baseMarketAddress}&skip=0&limit=1`)
+		)
 	})
 
 	it('throws when the market is absent from markets/all', async () => {

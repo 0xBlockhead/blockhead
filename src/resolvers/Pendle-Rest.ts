@@ -9,9 +9,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import {
-	pendleMarketsAllMaxLimit,
-} from '$/sources/Pendle/Rest/constants.ts'
 import type { PendleMarket } from '$/sources/Pendle/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -77,24 +74,18 @@ export default {
 							throw new Error(`${Source.Pendle_Rest}: invalid market address ${marketAddress}`)
 
 						const { listMarkets } = await import('$/sources/Pendle/Rest/queries.ts')
-
-						for (let skip = 0; ; skip += pendleMarketsAllMaxLimit) {
-							const page = await listMarkets({
-								skip,
-								limit: pendleMarketsAllMaxLimit,
-							})
-							const market = page.markets.find((candidate) => (
-								candidate.chainId === chainId
-								&& candidate.marketAddress === normalizedMarketAddress
-							))
-							if (market != null)
-								return mapPendleMarketSnapshot(
-									$network,
-									market
-								)
-							if (page.markets.length < pendleMarketsAllMaxLimit)
-								break
-						}
+						const market = (await listMarkets({
+							chainId,
+							marketAddresses: [
+								normalizedMarketAddress,
+							],
+							limit: 1,
+						})).markets[0]
+						if (market != null)
+							return mapPendleMarketSnapshot(
+								$network,
+								market
+							)
 
 						throw new Error(`${Source.Pendle_Rest}: market not found ${normalizedMarketAddress}`)
 					},
