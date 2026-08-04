@@ -1,9 +1,14 @@
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/Across/bindings.ts'
+import {
+	acrossChainByChainId,
+	acrossDepositStatusByStatus,
+} from '$/sources/Across/Rest/constants.ts'
 import type {
 	AcrossDeposit,
 	AcrossDepositResponse,
+	AcrossDepositStatus,
 	AcrossDepositStatusResponse,
 	AcrossSuggestedFees,
 } from '$/sources/Across/Rest/types.ts'
@@ -20,6 +25,31 @@ const fetchAcrossJson = <_Json>(path: string) => (
 const assertChainId = (chainId: number) => {
 	if (!Number.isSafeInteger(chainId) || chainId < 1)
 		throw new Error(`Across_Rest: invalid chain id ${chainId}`)
+	if (acrossChainByChainId[chainId] == null)
+		throw new Error(`Across_Rest: unsupported chain id ${chainId}`)
+}
+
+const assertDepositLifecycle = ({
+	status,
+	fillTxnRef,
+	depositRefundTxnRef,
+}: {
+	status: AcrossDepositStatus
+	fillTxnRef: string | null
+	depositRefundTxnRef: string | null
+}) => {
+	if (acrossDepositStatusByStatus[status] == null)
+		throw new Error(`Across_Rest: unknown deposit status ${status}`)
+	if (status === 'filled') {
+		if (fillTxnRef == null)
+			throw new Error('Across_Rest: filled deposit missing fill transaction')
+	} else if (fillTxnRef != null)
+		throw new Error(`Across_Rest: fill transaction present for ${status} deposit`)
+	if (status === 'refunded') {
+		if (depositRefundTxnRef == null)
+			throw new Error('Across_Rest: refunded deposit missing refund transaction')
+	} else if (depositRefundTxnRef != null)
+		throw new Error(`Across_Rest: refund transaction present for ${status} deposit`)
 }
 
 const assertIntegerString = (value: string, name: string) => {
@@ -73,6 +103,13 @@ const assertDeposit = (deposit: AcrossDeposit) => {
 		if (Date.parse(deposit.fillBlockTimestamp) < Date.parse(deposit.depositBlockTimestamp))
 			throw new Error('Across_Rest: fill predates deposit')
 	}
+	assertDepositLifecycle({
+		status: deposit.status,
+		fillTxnRef: deposit.fillTxnRef,
+		depositRefundTxnRef: deposit.depositRefundTxnRef,
+	})
+	if (deposit.status === 'filled' && deposit.fillBlockTimestamp == null)
+		throw new Error('Across_Rest: filled deposit missing fill block timestamp')
 }
 
 export const getDeposit = async (query: (
@@ -142,10 +179,18 @@ export const getDepositStatus = async ({
 	)
 	if (status.originChainId !== originChainId || status.depositId !== depositId)
 		throw new Error('Across_Rest: mismatched deposit status identity')
+	assertChainId(status.originChainId)
 	assertChainId(status.destinationChainId)
 	assertOpaqueIdentity(status.depositTxnRef, 'deposit transaction reference')
 	if (status.fillTxnRef != null)
 		assertOpaqueIdentity(status.fillTxnRef, 'fill transaction reference')
+	if (status.depositRefundTxnRef != null)
+		assertOpaqueIdentity(status.depositRefundTxnRef, 'deposit refund transaction reference')
+	assertDepositLifecycle({
+		status: status.status,
+		fillTxnRef: status.fillTxnRef,
+		depositRefundTxnRef: status.depositRefundTxnRef,
+	})
 	return status
 }
 

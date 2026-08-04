@@ -247,6 +247,13 @@ describe('Across public bridge queries', () => {
 			depositor,
 			limit: 101,
 		})).rejects.toThrow('invalid page limit')
+		await expect(getSuggestedFees({
+			inputToken,
+			outputToken,
+			originChainId: 999999,
+			destinationChainId: 42161,
+			amount: '1000000000000000000',
+		})).rejects.toThrow('unsupported chain id')
 
 		sourceGetJson.mockResolvedValue({
 			deposit: {
@@ -277,6 +284,61 @@ describe('Across public bridge queries', () => {
 			originChainId: 8453,
 			depositId,
 		})).rejects.toThrow('fill predates deposit')
+
+		sourceGetJson.mockResolvedValue({
+			deposit: {
+				...deposit,
+				status: 'filled',
+				fillTxnRef: null,
+			},
+			pagination: {
+				currentIndex: 0,
+				maxIndex: 0,
+			},
+		})
+		await expect(getDeposit({
+			originChainId: 8453,
+			depositId,
+		})).rejects.toThrow('filled deposit missing fill transaction')
+
+		sourceGetJson.mockResolvedValue({
+			deposit: {
+				...deposit,
+				status: 'pending',
+				fillTxnRef,
+				fillBlockTimestamp: null,
+				fillBlockNumber: null,
+			},
+			pagination: {
+				currentIndex: 0,
+				maxIndex: 0,
+			},
+		})
+		await expect(getDeposit({
+			originChainId: 8453,
+			depositId,
+		})).rejects.toThrow('fill transaction present for pending deposit')
+
+		sourceGetJson.mockResolvedValue({
+			status: 'refunded',
+			originChainId: 8453,
+			depositId,
+			depositTxnRef,
+			fillTxnRef: null,
+			destinationChainId: 42161,
+			depositRefundTxnRef: null,
+			actionsSucceeded: null,
+			originToken: null,
+			destinationToken: null,
+			pagination: {
+				currentIndex: 0,
+				maxIndex: 0,
+			},
+		})
+		await expect(getDepositStatus({
+			originChainId: 8453,
+			depositId,
+		})).rejects.toThrow('refunded deposit missing refund transaction')
 
 		const queries = await import('$/sources/Across/Rest/queries.ts')
 		expect('getDepositByTransaction' in queries).toBe(false)
