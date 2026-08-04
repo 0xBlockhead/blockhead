@@ -212,7 +212,25 @@ describe('Pendle market operations', () => {
 		)
 	})
 
-	it('throws when markets/all results are missing', async () => {
+	it('returns an empty list only from a schema-valid envelope', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			total: 0,
+			limit: 1,
+			skip: 0,
+			results: [],
+		})
+		await expect(listMarkets({
+			chainId: 1,
+			limit: 1,
+		})).resolves.toEqual({
+			total: 0,
+			limit: 1,
+			skip: 0,
+			markets: [],
+		})
+	})
+
+	it('rejects malformed markets/all envelopes', async () => {
 		sourceGetJson.mockResolvedValueOnce({
 			total: 0,
 			limit: 1,
@@ -221,6 +239,43 @@ describe('Pendle market operations', () => {
 		await expect(listMarkets({
 			chainId: 1,
 			limit: 1,
-		})).rejects.toThrow(`${Source.Pendle_Rest}: markets/all response missing results`)
+		})).rejects.toThrow(`${Source.Pendle_Rest}: invalid markets/all response envelope`)
+	})
+
+	it('rejects market records outside requested filters', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			total: 1,
+			limit: 1,
+			skip: 0,
+			results: [
+				{
+					...baseMarketWire,
+					chainId: 10,
+				},
+			],
+		})
+		await expect(listMarkets({
+			chainId: 1,
+			limit: 1,
+		})).rejects.toThrow(`${Source.Pendle_Rest}: market chain filter violated`)
+
+		sourceGetJson.mockResolvedValueOnce({
+			total: 1,
+			limit: 1,
+			skip: 0,
+			results: [
+				{
+					...baseMarketWire,
+					address: '0x1111111111111111111111111111111111111111',
+				},
+			],
+		})
+		await expect(listMarkets({
+			chainId: 1,
+			marketAddresses: [
+				baseMarketAddress,
+			],
+			limit: 1,
+		})).rejects.toThrow(`${Source.Pendle_Rest}: market address filter violated`)
 	})
 })

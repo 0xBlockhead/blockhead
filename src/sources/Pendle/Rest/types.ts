@@ -1,3 +1,6 @@
+import { type as arktype } from 'arktype'
+
+
 export type PendleMarketDetailsWire = {
 	liquidity: number
 	totalTvl: number
@@ -85,3 +88,47 @@ export type PendleMarketsPage = {
 	skip: number
 	markets: PendleMarket[]
 }
+
+export const pendleMarketDetailsEnvelope = arktype({
+	liquidity: 'number',
+	totalTvl: 'number',
+	tradingVolume: 'number',
+	underlyingApy: 'number',
+	swapFeeApy: 'number',
+	pendleApy: 'number',
+	ytFloatingApy: 'number',
+	impliedApy: 'number',
+	feeRate: 'number',
+	totalPt: 'number',
+	totalSy: 'number',
+	totalSupply: 'number',
+	totalActiveSupply: 'number',
+	aggregatedApy: 'number',
+	maxBoostedApy: 'number',
+})
+
+export const pendleMarketEnvelope = arktype({
+	name: 'string',
+	protocol: 'string',
+	icon: 'string',
+	address: 'string',
+	expiry: 'string',
+	pt: 'string',
+	yt: 'string',
+	sy: 'string',
+	underlyingAsset: 'string',
+	accountingAsset: 'string',
+	details: pendleMarketDetailsEnvelope,
+	isNew: 'boolean',
+	isPrime: 'boolean',
+	timestamp: 'string',
+	categoryIds: 'string[]',
+	chainId: 'number',
+})
+
+export const pendleMarketsAllEnvelope = arktype({
+	total: 'number',
+	limit: 'number',
+	skip: 'number',
+	results: pendleMarketEnvelope.array(),
+})

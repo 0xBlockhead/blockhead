@@ -18,6 +18,7 @@ import type {
 	PendleMarketsAllResponseWire,
 	PendleMarketsPage,
 } from '$/sources/Pendle/Rest/types.ts'
+import { pendleMarketsAllEnvelope } from '$/sources/Pendle/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
@@ -79,6 +80,20 @@ const assertFiniteNumber = (
 	return value
 }
 
+const assertEnvelope = (
+	envelope: {
+		assert: (value: unknown) => unknown
+	},
+	value: unknown,
+	label: string
+) => {
+	try {
+		envelope.assert(value)
+	} catch {
+		throw new Error(`${Source.Pendle_Rest}: invalid ${label} response envelope`)
+	}
+}
+
 const assertMarketDetailsWire = (
 	wire: PendleMarketDetailsWire
 ): PendleMarketDetails => ({
@@ -128,6 +143,15 @@ const assertMarketWire = (wire: PendleMarketWire): PendleMarket => {
 	}
 }
 
+const assertPageMetadata = (
+	value: number,
+	label: string
+) => {
+	if (!Number.isSafeInteger(value) || value < 0)
+		throw new Error(`${Source.Pendle_Rest}: markets/all response invalid ${label}`)
+	return value
+}
+
 /**
  * All Pendle markets for one supported EIP-155 chain (`GET /v2/markets/all`).
  * @see https://api-v2.pendle.finance/core/docs#/Markets/MarketsCrossChainController_getAllMarkets
@@ -149,22 +173,29 @@ export const listMarkets = async ({
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > pendleMarketsAllMaxLimit)
 		throw new Error(`${Source.Pendle_Rest}: invalid limit ${String(limit)}`)
 
+	const normalizedMarketAddresses = marketAddresses?.map((marketAddress) => (
+		assertAddress(marketAddress, 'market address')
+	))
 	const response = await sourceGetJson<PendleMarketsAllResponseWire>(
 		binding,
 		httpUrl(
 			binding,
-			`/v2/markets/all?chainId=${String(chainId)}${marketAddresses == null ? '' : `&ids=${marketAddresses.map((marketAddress) => `${String(chainId)}-${assertAddress(marketAddress, 'market address')}`).join(',')}`}&skip=${String(skip)}&limit=${String(limit)}`
+			`/v2/markets/all?chainId=${String(chainId)}${normalizedMarketAddresses == null ? '' : `&ids=${normalizedMarketAddresses.map((marketAddress) => `${String(chainId)}-${marketAddress}`).join(',')}`}&skip=${String(skip)}&limit=${String(limit)}`
 		)
 	)
-	if (!Array.isArray(response.results))
-		throw new Error(`${Source.Pendle_Rest}: markets/all response missing results`)
-	if (!Number.isSafeInteger(response.total) || response.total < 0)
-		throw new Error(`${Source.Pendle_Rest}: markets/all response missing total`)
+	assertEnvelope(pendleMarketsAllEnvelope, response, 'markets/all')
 
 	return {
-		total: response.total,
-		limit: response.limit,
-		skip: response.skip,
-		markets: response.results.map(assertMarketWire),
+		total: assertPageMetadata(response.total, 'total'),
+		limit: assertPageMetadata(response.limit, 'limit'),
+		skip: assertPageMetadata(response.skip, 'skip'),
+		markets: response.results.map((market) => {
+			if (market.chainId !== chainId)
+				throw new Error(`${Source.Pendle_Rest}: market chain filter violated`)
+			const snapshot = assertMarketWire(market)
+			if (normalizedMarketAddresses != null && !normalizedMarketAddresses.includes(snapshot.marketAddress))
+				throw new Error(`${Source.Pendle_Rest}: market address filter violated`)
+			return snapshot
+		}),
 	} satisfies PendleMarketsPage
 }
