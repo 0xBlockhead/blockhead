@@ -3,11 +3,11 @@
 import { type as arktype, type Type } from 'arktype'
 
 import {
+	sourceBindingId,
 	SourceCredentialScope,
 	type SourceBinding,
 	type SourceBindingIndex,
 } from '$/sources/SourceBinding.ts'
-import { Source } from '$/sources/Source.ts'
 
 export type SourcePublicEnv = {
 	readonly [key: string]: string
@@ -85,7 +85,8 @@ export const indexSourceProviders = <
 	const _Source extends PropertyKey,
 >(
 	sourceProviders: readonly SourceProviderDefinition<_SourceProvider, _Source>[],
-	env: Record<string, string | undefined>
+	env: Record<string, string | undefined>,
+	browserEligibleBindingIds: ReadonlySet<string>
 ) => {
 	const resolverPublicEnv = (
 		Object.fromEntries(
@@ -131,10 +132,14 @@ export const indexSourceProviders = <
 			if (sourceProvider.sources[source] == null)
 				return []
 
-			const sourceBindings = providerBindings.filter((binding) => (
+			const declaredSourceBindings = providerBindings.filter((binding) => (
 				binding.source === source
 			))
-			const bindingSubsets = sourceBindings.flatMap((binding) => {
+			const enabledBindingEntries = declaredSourceBindings
+				.filter((binding) => (
+					browserEligibleBindingIds.has(sourceBindingId(binding))
+				))
+				.flatMap((binding) => {
 				const credentialSubsets = binding.credentials.flatMap((credential) => {
 					if (
 						credential.scope !== SourceCredentialScope.PublicConfig
@@ -147,20 +152,34 @@ export const indexSourceProviders = <
 				if (credentialSubsets.length !== binding.credentials.length)
 					return []
 
-				return [Object.assign({}, ...credentialSubsets) satisfies SourcePublicEnv]
+				return [{
+					bindingId: sourceBindingId(binding),
+					publicEnv: Object.assign({}, ...credentialSubsets) satisfies SourcePublicEnv,
+				}]
 			})
-			if (sourceBindings.length > 0 && bindingSubsets.length === 0)
+			if (declaredSourceBindings.length > 0 && enabledBindingEntries.length === 0)
 				return []
 
-			const bindingEnv = Object.assign({}, ...bindingSubsets) satisfies SourcePublicEnv
 			return [{
 				source,
-				publicEnv: sourceBindings.length === 0 ? resolverPublicEnv : bindingEnv,
+				bindingIds: enabledBindingEntries.map((entry) => entry.bindingId),
+				publicEnv: (
+					declaredSourceBindings.length === 0 ?
+						resolverPublicEnv
+					:
+						Object.assign(
+							{},
+							...enabledBindingEntries.map((entry) => entry.publicEnv)
+						) satisfies SourcePublicEnv
+				),
 			}]
 		})
 	})
 
 	return {
+		enabledBindingIds: new Set(
+			enabledSourceEntries.flatMap((entry) => entry.bindingIds)
+		),
 		resolverPublicEnvBySource: new Map(
 			enabledSourceEntries.map((entry) => ([
 				entry.source,
@@ -172,11 +191,3 @@ export const indexSourceProviders = <
 		),
 	}
 }
-
-export const enabledSourcesFromBindings = <
-	const _Source extends Source,
->(
-	sourceBindings: readonly SourceBinding<_Source>[]
-) => new Set(
-	sourceBindings.map((binding) => binding.source)
-)

@@ -2,6 +2,7 @@ import {
 	beforeEach,
 	describe,
 	expect,
+	expectTypeOf,
 	it,
 	vi,
 } from 'vitest'
@@ -135,7 +136,7 @@ describe('shared EVM execution JSON-RPC queries', () => {
 		])
 	})
 
-	it('uses one injected request capability for every bound scalar and structured query', async () => {
+	it('uses one injected request capability and emits input-only execution calls', async () => {
 		const request = vi.fn()
 			.mockResolvedValueOnce('0x20000000000001')
 			.mockResolvedValueOnce('0x2a')
@@ -150,7 +151,8 @@ describe('shared EVM execution JSON-RPC queries', () => {
 			})
 			.mockResolvedValueOnce('0xstorage')
 			.mockResolvedValueOnce('0xcode')
-			.mockResolvedValueOnce('0xcall')
+			.mockResolvedValueOnce('0xcafe')
+			.mockResolvedValueOnce('0x5208')
 			.mockResolvedValueOnce({
 				pending: '0x5',
 				queued: '0x6',
@@ -160,6 +162,7 @@ describe('shared EVM execution JSON-RPC queries', () => {
 			request,
 		})
 
+		expectTypeOf(client.getCall).returns.toEqualTypeOf<Promise<`0x${string}`>>()
 		await expect(client.getBlockNumber()).resolves.toBe(0x20000000000001n)
 		await expect(client.getGasPrice()).resolves.toBe('0x2a')
 		await expect(client.getMaxPriorityFeePerGas()).resolves.toBe('0x3')
@@ -181,9 +184,15 @@ describe('shared EVM execution JSON-RPC queries', () => {
 		})).resolves.toBe('0xstorage')
 		await expect(client.getCode({ address: '0xaddress' })).resolves.toBe('0xcode')
 		await expect(client.getCall({
-			to: '0xaddress',
-			data: '0xdata',
-		})).resolves.toBe('0xcall')
+			to: '0x0000000000000000000000000000000000000001',
+			input: '0xdead',
+		})).resolves.toBe('0xcafe')
+		await expect(client.estimateGas({
+			from: '0x0000000000000000000000000000000000000002',
+			to: '0x0000000000000000000000000000000000000001',
+			input: '0xdead',
+			value: 1_000_000_000_000_000_000n,
+		})).resolves.toBe(21_000n)
 		await expect(client.getTxpoolStatus()).resolves.toEqual({
 			pending: '0x5',
 			queued: '0x6',
@@ -220,15 +229,103 @@ describe('shared EVM execution JSON-RPC queries', () => {
 				'eth_call',
 				[
 					{
-						to: '0xaddress',
-						data: '0xdata',
+						to: '0x0000000000000000000000000000000000000001',
+						input: '0xdead',
 					},
 					'latest',
 				],
 			],
 			[
+				'eth_estimateGas',
+				[
+					{
+						to: '0x0000000000000000000000000000000000000001',
+						input: '0xdead',
+						from: '0x0000000000000000000000000000000000000002',
+						value: '0xde0b6b3a7640000',
+					},
+				],
+			],
+			[
 				'txpool_status',
 				[],
+			],
+		])
+	})
+
+	it('rejects a malformed eth_call DATA result at the shared wire boundary', async () => {
+		const client = evmExecutionJsonRpc({
+			binding,
+			request: vi.fn().mockResolvedValue('0xnot-hex'),
+		})
+
+		await expect(client.getCall({
+			to: '0x0000000000000000000000000000000000000001',
+			input: '0xdead',
+		})).rejects.toThrow(
+			'EVM execution JSON-RPC eth_call: malformed result'
+		)
+	})
+
+	it('includes an explicit simulation block without changing the existing call default', async () => {
+		const upstreamError = new Error('execution reverted')
+		const request = vi.fn()
+			.mockResolvedValueOnce('0x')
+			.mockResolvedValueOnce('0x6000')
+			.mockRejectedValueOnce(upstreamError)
+		const client = evmExecutionJsonRpc({
+			binding,
+			request,
+		})
+
+		await expect(client.getCall({
+			from: '0x0000000000000000000000000000000000000002',
+			to: '0x0000000000000000000000000000000000000001',
+			input: '0x',
+			value: 0n,
+			blockTag: 'pending',
+		})).resolves.toBe('0x')
+		await expect(client.estimateGas({
+			to: '0x0000000000000000000000000000000000000001',
+			input: '0x',
+			blockTag: '0x2a',
+		})).resolves.toBe(24_576n)
+		await expect(client.estimateGas({
+			to: '0x0000000000000000000000000000000000000001',
+			input: '0x',
+		})).rejects.toBe(upstreamError)
+
+		expect(request.mock.calls).toEqual([
+			[
+				'eth_call',
+				[
+					{
+						to: '0x0000000000000000000000000000000000000001',
+						input: '0x',
+						from: '0x0000000000000000000000000000000000000002',
+						value: '0x0',
+					},
+					'pending',
+				],
+			],
+			[
+				'eth_estimateGas',
+				[
+					{
+						to: '0x0000000000000000000000000000000000000001',
+						input: '0x',
+					},
+					'0x2a',
+				],
+			],
+			[
+				'eth_estimateGas',
+				[
+					{
+						to: '0x0000000000000000000000000000000000000001',
+						input: '0x',
+					},
+				],
 			],
 		])
 	})

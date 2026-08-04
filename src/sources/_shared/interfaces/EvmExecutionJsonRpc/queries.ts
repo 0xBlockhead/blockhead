@@ -1,3 +1,7 @@
+import {
+	ZeroExHex,
+	type EvmAddress,
+} from '$/schema/ZeroExHex.ts'
 import type {
 	SourceBinding,
 	SourceEndpoint,
@@ -25,6 +29,16 @@ type EvmExecutionJsonRpcRequest = (
 	params?: JsonValue[]
 ) => Promise<JsonValue>
 
+type EvmExecutionBlockTag = `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
+
+type EvmExecutionCall = {
+	to: typeof EvmAddress.infer
+	input: typeof ZeroExHex.infer
+	from?: typeof EvmAddress.infer
+	value?: bigint
+	blockTag?: EvmExecutionBlockTag
+}
+
 type RpcBlockWithTransactionObjects = Omit<RpcBlockWire, 'transactions'> & {
 	transactions: RpcTransactionWire[]
 }
@@ -43,6 +57,18 @@ const blockParam = (blockNumber: bigint | 'latest') => (
 const quantityHex = (value: bigint) => (
 	`0x${value.toString(16)}`
 )
+
+const callTransaction = ({
+	to,
+	input,
+	from,
+	value,
+}: Omit<EvmExecutionCall, 'blockTag'>) => ({
+	to,
+	input,
+	...(from != null && { from }),
+	...(value != null && { value: quantityHex(value) }),
+})
 
 const narrowNullableResult = <_Result>(
 	result: JsonValue,
@@ -278,7 +304,7 @@ export const evmExecutionJsonRpc = ({
 		}: {
 			address: `0x${string}`
 			slotQuantityHex: `0x${string}`
-			blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
+			blockTag?: EvmExecutionBlockTag
 		}) => request(
 			'eth_getStorageAt',
 			[
@@ -292,7 +318,7 @@ export const evmExecutionJsonRpc = ({
 			blockTag = 'latest',
 		}: {
 			address: `0x${string}`
-			blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
+			blockTag?: EvmExecutionBlockTag
 		}) => request(
 			'eth_getCode',
 			[
@@ -301,23 +327,30 @@ export const evmExecutionJsonRpc = ({
 			]
 		).then((result) => stringResult(result, 'eth_getCode')),
 		getCall: ({
-			to,
-			data,
 			blockTag = 'latest',
-		}: {
-			to: `0x${string}`
-			data: `0x${string}`
-			blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
-		}) => request(
+			...transaction
+		}: EvmExecutionCall) => request(
 			'eth_call',
 			[
-				{
-					to,
-					data,
-				},
+				callTransaction(transaction),
 				blockTag,
 			]
-		).then((result) => stringResult(result, 'eth_call')),
+		).then((result) => {
+			if (!ZeroExHex.allows(result))
+				throw new Error('EVM execution JSON-RPC eth_call: malformed result')
+
+			return result
+		}),
+		estimateGas: ({
+			blockTag,
+			...transaction
+		}: EvmExecutionCall) => request(
+			'eth_estimateGas',
+			[
+				callTransaction(transaction),
+				...(blockTag == null ? [] : [blockTag]),
+			]
+		).then((result) => BigInt(stringResult(result, 'eth_estimateGas'))),
 		getTxpoolStatus: () => request('txpool_status', [])
 			.then(txpoolStatusResult),
 	}

@@ -27,7 +27,7 @@ export const jsonRpc2 = async <_Result>(
 		endpoint != null
 		&& (
 			endpoint.endpointKind !== SourceEndpointKind.HttpUrl
-			|| !binding.endpoints.includes(endpoint)
+			|| !binding.endpoints.some((candidate) => candidate === endpoint)
 		)
 	)
 		throw new Error(`${binding.source}: JSON-RPC endpoint is not declared by the binding`)

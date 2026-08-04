@@ -1,22 +1,21 @@
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
-import { iterateWebSocketLive } from '$/sources/_shared/wire/WebSocketMessages/live.server.ts'
-
-export type EvmExecutionJsonRpcLiveEvent = {
-	type: string
-	source: string
-	targetKey: string
-	payload?: unknown
-}
+import {
+	iterateWebSocketLive,
+	type WebSocketLiveEvent,
+} from '$/sources/_shared/wire/WebSocketMessages/live.server.ts'
 
 export const iterateEvmExecutionJsonRpcLive = async function* ({
 	binding,
 	operationGroup,
+	signal,
 }: {
 	binding: SourceBinding
 	operationGroup: string
-}): AsyncGenerator<EvmExecutionJsonRpcLiveEvent> {
+	signal?: AbortSignal
+}): AsyncGenerator<WebSocketLiveEvent> {
 	yield* iterateWebSocketLive({
 		binding,
 		operationGroup,
+		signal,
 	})
 }

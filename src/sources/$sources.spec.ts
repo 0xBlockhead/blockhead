@@ -21,6 +21,7 @@ import {
 	narrowRpcLog,
 	narrowRpcTransaction,
 } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
+import type { EvmNativeTransferExecutionTransport } from '$/state/sessions/evmNativeTransferPreparation.ts'
 
 import { voltaireJsonRpcTransports } from '$/sources/Voltaire/JsonRpc/queries.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
@@ -34,9 +35,9 @@ import {
 	sourceBindingId,
 	sourceEndpointOrigin,
 } from '$/sources/SourceBinding.ts'
-import { sourceProviders as appSourceProviders } from '$/sources/index.ts'
 
 const sourceBindingArtifacts = sourceBindings.flatMap((binding) => binding.artifacts ?? [])
+const sourceBindingIds = new Set(sourceBindings.map(sourceBindingId))
 const {
 	transportsByChainId: voltaireJsonRpcTransportsByChainId,
 } = voltaireJsonRpcTransports
@@ -60,7 +61,7 @@ describe('source provider registry', () => {
 	it('gates sources only through binding-owned public credential schemas', () => {
 		const missingRequiredEnv = indexSourceProviders(sourceProviderDefinitions, {
 			PUBLIC_EXTRA_KEY: 'extra-public',
-		})
+		}, sourceBindingIds)
 
 		expect(missingRequiredEnv.enabledSources.has(Source.Blockchair_Rest)).toBe(false)
 		expect(missingRequiredEnv.enabledSources.has(Source.Coingecko_Rest)).toBe(true)
@@ -72,7 +73,7 @@ describe('source provider registry', () => {
 		const configured = indexSourceProviders(sourceProviderDefinitions, {
 			PUBLIC_BLOCKCHAIR_API_KEY: 'blockchair-secret',
 			PUBLIC_EXTRA_KEY: 'extra-public',
-		})
+		}, sourceBindingIds)
 		expect(configured.resolverPublicEnvBySource.get(Source.Blockchair_Rest)).toEqual({
 			PUBLIC_BLOCKCHAIR_API_KEY: 'blockchair-secret',
 		})
@@ -148,7 +149,7 @@ describe('source provider registry', () => {
 	})
 
 	it('keeps binding origins canonical', () => {
-		for (const sourceProvider of appSourceProviders) {
+		for (const sourceProvider of sourceProviderDefinitions) {
 			expect(sourceProvider.provider, sourceProvider.label).toBeDefined()
 			expect(Object.keys(sourceProvider.sources).length, String(sourceProvider.provider)).toBeGreaterThan(0)
 
@@ -165,7 +166,7 @@ describe('source provider registry', () => {
 	it('keeps source rows registered under their owning provider', () => {
 		const sourceProvidersBySource = new Map<PropertyKey, PropertyKey>()
 
-		for (const sourceProvider of appSourceProviders) {
+		for (const sourceProvider of sourceProviderDefinitions) {
 			for (const source of Object.keys(sourceProvider.sources)) {
 				expect(sourceProvidersBySource.has(source), String(source)).toBe(false)
 				sourceProvidersBySource.set(source, sourceProvider.provider)
@@ -234,8 +235,8 @@ describe('source provider registry', () => {
 		const serverSource = readFileSync(join(process.cwd(), 'src', 'sources', 'index.server.ts'), 'utf8')
 
 		expect(serverSource).toMatch(/import \{ sourceBindings \} from '\$\/sources\/\$sourceProviders\.ts'/)
+		expect(serverSource).toMatch(/\bsourceEndpointOrigin\(endpoint\)/)
 		expect(serverSource).toMatch(/\bbinding\.delivery === SourceDelivery\.HttpProxy\b/)
-		expect(serverSource).toMatch(/\bendpoint\.endpointKind === SourceEndpointKind\.HttpUrl\b/)
 		expect(serverSource).not.toMatch(/\bnew Set\(\s*\[/)
 	})
 
@@ -345,6 +346,24 @@ describe('source provider registry', () => {
 						))
 					))
 			))
+		}
+	})
+
+	it('exposes each Voltaire endpoint as a simulation-ready execution transport', () => {
+		for (const binding of sourceBindings.filter(({ source }) => source === Source.Voltaire_JsonRpc)) {
+			for (const endpoint of binding.endpoints) {
+				const transport = voltaireJsonRpcTransportsByChainId[Number(binding.target.key)]?.find(
+					({ origin }) => origin === endpoint.locator
+				)
+				if (transport == null)
+					throw new Error(`Voltaire transport is missing for ${endpoint.locator}`)
+
+				const simulationTransport: EvmNativeTransferExecutionTransport = transport
+				expect(simulationTransport.origin).toBe(endpoint.locator)
+				expect(simulationTransport.getBlockByNumber).toEqual(expect.any(Function))
+				expect(simulationTransport.getCall).toEqual(expect.any(Function))
+				expect(simulationTransport.estimateGas).toEqual(expect.any(Function))
+			}
 		}
 	})
 
