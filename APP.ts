@@ -32866,10 +32866,39 @@ export const schema = {
 							{
 								id: "farcaster-network-directory",
 								label: "Directory",
+								className: "network-view-collapsible-directory",
 								sections: [
-									{ id: "farcaster-network-feeds", field: "$$feeds", List: "FarcasterFeedsView", label: "Feeds", emptyText: "No Farcaster feeds in this observed." },
-									{ id: "farcaster-network-users", field: "$$users", List: "FarcasterUsersView", label: "Users", emptyText: "No Farcaster users in this observed." },
-									{ id: "farcaster-network-channels", field: "$$channels", List: "FarcasterChannelsView", label: "Channels", emptyText: "No Farcaster channels in this observed." },
+									{ id: "farcaster-network-feeds", field: "$$feeds", List: "FarcasterFeedsView", label: "Feeds", emptyText: "No Farcaster feeds in this observed.", href: "/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed" },
+									{
+										id: "farcaster-network-casts",
+										label: "Casts",
+										Content: {
+											...dedent `
+											{@const trendingCasts = select(EntityType.FarcasterFeed, {
+												variant: 'trending',
+											})
+												.$$entries({
+													sources: [
+														Source.Neynar_Rest,
+													],
+												})}
+											<FarcasterCastsView
+												selection={trendingCasts}
+												countResource={trendingCasts.count}
+												href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/trending')}
+												collapsible={false}
+												title={label}
+												emptyText='No trending Farcaster casts in this observed.'
+											/>
+											`,
+											imports: [
+												{ from: "$/views/FarcasterCastsView.svelte", default: "FarcasterCastsView" },
+												{ from: "$/routes/+layout.svelte", names: ["select"] },
+											],
+										},
+									},
+									{ id: "farcaster-network-channels", field: "$$channels", List: "FarcasterChannelsView", label: "Channels", emptyText: "No Farcaster channels in this observed.", href: "/(social)/(farcaster)/farcaster/(farcasterNetwork)/channels" },
+									{ id: "farcaster-network-users", field: "$$users", List: "FarcasterUsersView", label: "Users", emptyText: "No Farcaster users in this observed.", href: "/(social)/(farcaster)/farcaster/(farcasterNetwork)/users" },
 								],
 							},
 						],
@@ -41843,6 +41872,20 @@ export const schema = {
 					entityType: EntityType.LensAccount,
 					defaultSources: [Source.Constants_Internal, Source.Lens_Graphql],
 				},
+				"$$feeds": {
+					label: "Feeds",
+					type: EntityFieldType.EntitiesReference,
+					cardinality: EntityFieldCardinality.Many,
+					entityType: EntityType.LensFeed,
+					defaultSources: [Source.Constants_Internal, Source.Lens_Graphql],
+				},
+				"$$usernameNamespaces": {
+					label: "Username namespaces",
+					type: EntityFieldType.EntitiesReference,
+					cardinality: EntityFieldCardinality.Many,
+					entityType: EntityType.LensUsernameNamespace,
+					defaultSources: [Source.Constants_Internal, Source.Lens_Graphql],
+				},
 				"$$lensPosts": {
 					label: "Posts",
 					type: EntityFieldType.EntitiesReference,
@@ -41879,7 +41922,9 @@ export const schema = {
 								label: "Directory",
 								className: "network-view-collapsible-directory",
 								sections: [
-									{ id: "lens-network-accounts", field: "$$lensAccounts", List: "LensAccountsView", label: "Accounts", emptyText: "No Lens accounts in this observed." },
+									{ id: "lens-network-accounts", field: "$$lensAccounts", List: "LensAccountsView", label: "Accounts", emptyText: "No Lens accounts in this observed.", href: "/(social)/(lens)/lens/(lensNetwork)/observations/accounts" },
+									{ id: "lens-network-feeds", field: "$$feeds", List: "LensFeedsView", label: "Feeds", emptyText: "No Lens feeds in this observed.", href: "/(social)/(lens)/lens/(lensNetwork)/feed" },
+									{ id: "lens-network-namespaces", field: "$$usernameNamespaces", List: "LensUsernameNamespacesView", label: "Namespaces", emptyText: "No Lens username namespaces in this observed.", href: "/(social)/(lens)/lens/(lensNetwork)/namespace" },
 								],
 							},
 							{
@@ -41887,7 +41932,7 @@ export const schema = {
 								label: "Posts",
 								className: "network-view-collapsible-posts",
 								sections: [
-									{ id: "lens-network-post-list", field: "$$lensPosts", List: "LensPostsView", label: "Posts", emptyText: "No Lens posts in this observed." },
+									{ id: "lens-network-post-list", field: "$$lensPosts", List: "LensPostsView", label: "Posts", emptyText: "No Lens posts in this observed.", href: "/(social)/(lens)/lens/(lensNetwork)/observations/posts" },
 								],
 							},
 						],
@@ -43108,6 +43153,7 @@ export const schema = {
 						Source.Coingecko_Rest,
 						Source.Coinpaprika_Rest,
 						Source.CoinMarketCap_Rest,
+						Source.Defillama_Rest,
 					],
 				},
 				"$$derivativeTimestamps": {
@@ -63469,11 +63515,19 @@ export const schema = {
 						},
 						summary: {
 							title: ["label"],
-							value: ["protocol", "implementationStatus"],
+							value: [
+								{ field: "protocol", enumConstantMap: "walletProtocolByProtocol", enumConstantFrom: "$/constants/Wallet.ts" },
+								{ field: "implementationStatus", enumConstantMap: "walletImplementationStatusByImplementationStatus", enumConstantFrom: "$/constants/Wallet.ts" },
+							],
 						},
 						content: {
 							dl: [
-								["id", "protocol", "discoveryKind", "transportKind", "implementationStatus", "dependencyPolicy"],
+								[
+									"id",
+									{ field: "discoveryKind", enumConstantMap: "walletDiscoveryKindByDiscoveryKind", enumConstantFrom: "$/constants/Wallet.ts" },
+									{ field: "transportKind", enumConstantMap: "walletTransportKindByTransportKind", enumConstantFrom: "$/constants/Wallet.ts" },
+									{ field: "dependencyPolicy", enumConstantMap: "walletDependencyPolicyByDependencyPolicy", enumConstantFrom: "$/constants/Wallet.ts" },
+								],
 								["formFactors", "networkNamespaces", "caipNamespaces", "capabilities"],
 							],
 						},
@@ -70460,13 +70514,6 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#lensaccountmanager",
 			},
 		},
-		[EntityType.LensFeed]: {
-			"Address": {
-				kind: "Research",
-				decision: "Retain LensFeed.Address as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#lensfeed",
-			},
-		},
 		[EntityType.LensUsername]: {
 			"NamespaceLocalName": {
 				kind: "Research",
@@ -70477,13 +70524,6 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain LensUsername.Id as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#lensusername",
-			},
-		},
-		[EntityType.LensUsernameNamespace]: {
-			"Address": {
-				kind: "Research",
-				decision: "Retain LensUsernameNamespace.Address as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#lensusernamenamespace",
 			},
 		},
 		[EntityType.Leverage]: {
@@ -80646,6 +80686,78 @@ export const routes = defineRoutes(schema)({
 										},
 									}
 								},
+								"feed": {
+									collections: [
+										{
+											field: [
+												EntityType.LensNetwork,
+												"$$feeds"
+											],
+											query: {
+												sources: [Source.Constants_Internal, Source.Lens_Graphql],
+											},
+											derivations: {
+												"scope": { kind: "literal", value: "LensNetwork" }
+											},
+											page: {
+												view: { component: "LensFeedsView" },
+												text: { title: "Lens feeds" }
+											}
+										},
+									],
+									children: {
+										"[address]": {
+											selectors: {
+												[EntityType.LensFeed]: {
+													"Address": {
+														params: {
+															"address": [
+																"address"
+															]
+														},
+														page: {}
+													}
+												}
+											},
+										}
+									}
+								},
+								"namespace": {
+									collections: [
+										{
+											field: [
+												EntityType.LensNetwork,
+												"$$usernameNamespaces"
+											],
+											query: {
+												sources: [Source.Constants_Internal, Source.Lens_Graphql],
+											},
+											derivations: {
+												"scope": { kind: "literal", value: "LensNetwork" }
+											},
+											page: {
+												view: { component: "LensUsernameNamespacesView" },
+												text: { title: "Lens username namespaces" }
+											}
+										},
+									],
+									children: {
+										"[address]": {
+											selectors: {
+												[EntityType.LensUsernameNamespace]: {
+													"Address": {
+														params: {
+															"address": [
+																"address"
+															]
+														},
+														page: {}
+													}
+												}
+											},
+										}
+									}
+								},
 								"account": {
 									children: {
 										"[address]": {
@@ -83170,6 +83282,18 @@ export const app = {
 								title: "Profiles",
 								href: "/lens/observations/accounts",
 								icon: "👤",
+							},
+							{
+								id: "social-lens-feeds",
+								title: "Feeds",
+								href: "/lens/feed",
+								icon: "📰",
+							},
+							{
+								id: "social-lens-namespaces",
+								title: "Namespaces",
+								href: "/lens/namespace",
+								icon: "🏷️",
 							},
 							{
 								id: "social-lens-posts",
