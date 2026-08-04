@@ -15,16 +15,6 @@ type CurvePlatform = {
 }
 
 
-type CurvePoolCatalogEntry = {
-	blockchainId: string
-	chainId: number
-	registryId: string
-	poolAddress: `0x${string}`
-	name: string
-	symbol: string
-}
-
-
 // Constants
 
 
@@ -257,46 +247,6 @@ export const curvePlatforms = [
 ] as const satisfies readonly CurvePlatform[]
 
 
-/**
- * Seed Curve pools for protocol-native catalog / tests (not a full indexer).
- * Addresses match Curve main registry / interface pool ids.
- */
-export const curvePools = [
-	{
-		blockchainId: 'ethereum',
-		chainId: 1,
-		registryId: 'main',
-		poolAddress: '0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7',
-		name: '3pool',
-		symbol: '3Crv',
-	},
-	{
-		blockchainId: 'ethereum',
-		chainId: 1,
-		registryId: 'main',
-		poolAddress: '0xdc24316b9ae028f1497c275eb9192a3ea0f67022',
-		name: 'steth',
-		symbol: 'steCRV',
-	},
-	{
-		blockchainId: 'ethereum',
-		chainId: 1,
-		registryId: 'main',
-		poolAddress: '0xa5407eae9ba41422680e2e00537571bcc53efbfd',
-		name: 'susd',
-		symbol: 'crvPlain3andSUSD',
-	},
-	{
-		blockchainId: 'arbitrum',
-		chainId: 42161,
-		registryId: 'main',
-		poolAddress: '0x7f90122bf0700f9e7e1f688fe926940e8839f353',
-		name: '2pool',
-		symbol: '2CRV',
-	},
-] as const satisfies readonly CurvePoolCatalogEntry[]
-
-
 // Lookups
 
 
@@ -312,13 +262,5 @@ export const curvePlatformByChainId = Object.fromEntries(
 	curvePlatforms.map((platform) => [
 		platform.chainId,
 		platform,
-	])
-)
-
-
-export const curvePoolByChainIdAndAddress = Object.fromEntries(
-	curvePools.map((pool) => [
-		`${pool.chainId}:${pool.poolAddress}`,
-		pool,
 	])
 )

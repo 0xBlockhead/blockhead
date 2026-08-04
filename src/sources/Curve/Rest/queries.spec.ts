@@ -10,8 +10,6 @@ import bindings from '$/sources/Curve/bindings.ts'
 import {
 	curvePlatformByChainId,
 	curvePlatforms,
-	curvePoolByChainIdAndAddress,
-	curvePools,
 } from '$/sources/Curve/Rest/constants.ts'
 import {
 	ApiFamily,
@@ -87,7 +85,7 @@ describe('Curve REST binding', () => {
 		])
 	})
 
-	it('catalogs Curve platforms from getPlatforms snapshot', () => {
+	it('catalogs Curve platforms and their registries from getPlatforms snapshot', () => {
 		expect(curvePlatformByChainId[1]).toEqual({
 			blockchainId: 'ethereum',
 			chainId: 1,
@@ -98,9 +96,6 @@ describe('Curve REST binding', () => {
 			]),
 		})
 		expect(curvePlatforms.some((platform) => platform.chainId === 42161)).toBe(true)
-		expect(curvePoolByChainIdAndAddress['1:0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7']).toEqual(
-			curvePools[0]
-		)
 	})
 })
 
@@ -188,7 +183,18 @@ describe('Curve pool operations', () => {
 		])
 	})
 
-	it('resolves pool detail from catalog registry without a prior list call', async () => {
+	it('discovers a pool registry before resolving its detail', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			success: true,
+			data: {
+				poolList: [
+					{
+						type: 'stable-factory',
+						address: threePoolAddress,
+					},
+				],
+			},
+		})
 		sourceGetJson.mockResolvedValueOnce({
 			success: true,
 			data: {
@@ -204,12 +210,18 @@ describe('Curve pool operations', () => {
 		})).resolves.toMatchObject({
 			poolAddress: '0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7',
 			symbol: '3Crv',
-			registryId: 'main',
+			registryId: 'factory',
 		})
-		expect(sourceGetJson).toHaveBeenCalledTimes(1)
-		expect(sourceGetJson).toHaveBeenCalledWith(
+		expect(sourceGetJson).toHaveBeenCalledTimes(2)
+		expect(sourceGetJson).toHaveBeenNthCalledWith(
+			1,
 			binding,
-			'https://api.curve.finance/v1/getPools/ethereum/main'
+			'https://api.curve.finance/v1/getPoolList/ethereum'
+		)
+		expect(sourceGetJson).toHaveBeenNthCalledWith(
+			2,
+			binding,
+			'https://api.curve.finance/v1/getPools/ethereum/factory'
 		)
 	})
 

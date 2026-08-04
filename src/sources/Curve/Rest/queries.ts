@@ -6,10 +6,7 @@
  */
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { curveGetJson } from '$/sources/Curve/Rest/client.ts'
-import {
-	curvePlatformByChainId,
-	curvePoolByChainIdAndAddress,
-} from '$/sources/Curve/Rest/constants.ts'
+import { curvePlatformByChainId } from '$/sources/Curve/Rest/constants.ts'
 import type {
 	CurvePoolListItem,
 	CurvePoolListResponse,
@@ -193,7 +190,7 @@ export const listPoolsByRegistry = async ({
 
 /**
  * Pool detail by chain + address.
- * Uses catalog registry when known; otherwise scans `getPoolList` then the matching registry.
+ * Resolves the pool's registry from `getPoolList`, then reads that registry's full rows.
  */
 export const getPool = async ({
 	chainId,
@@ -204,15 +201,11 @@ export const getPool = async ({
 }): Promise<CurvePoolSnapshot> => {
 	const platform = assertChainId(chainId)
 	const address = assertPoolAddress(poolAddress)
-	const catalogEntry = curvePoolByChainIdAndAddress[`${chainId}:${address}`]
-	const registryId = (
-		catalogEntry?.registryId
-		?? (await listPools({
-			chainId,
-		}))
-			.find((item) => item.poolAddress === address)
-			?.registryId
-	)
+	const registryId = (await listPools({
+		chainId,
+	}))
+		.find((item) => item.poolAddress === address)
+		?.registryId
 	if (registryId == null)
 		throw new Error(`${Source.Curve_Rest}: pool ${address} not found on chain ${String(chainId)}`)
 

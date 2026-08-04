@@ -106,6 +106,17 @@ describe('Curve Rest resolver module', () => {
 		sourceGetJson.mockResolvedValueOnce({
 			success: true,
 			data: {
+				poolList: [
+					{
+						type: 'main',
+						address: threePoolAddress,
+					},
+				],
+			},
+		})
+		sourceGetJson.mockResolvedValueOnce({
+			success: true,
+			data: {
 				poolData: [
 					threePoolWire,
 				],
