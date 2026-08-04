@@ -17,72 +17,16 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	name: {
+	parentUrl: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
-	},
-	url: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	description: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	iconUrl: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	$icon: {
-		entityType: EntityType.Media,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	headerImageUrl: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	$headerImage: {
-		entityType: EntityType.Media,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	$lead: {
-		entityType: EntityType.FarcasterUser,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	$moderator: {
-		entityType: EntityType.FarcasterUser,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	$$moderators: {
-		entityType: EntityType.FarcasterUser,
-		cardinality: EntityFieldCardinality.Many,
 	},
 	createdAt: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	$$timestamps: {
-		entityType: EntityType.FarcasterChannel_Timestamp,
-		cardinality: EntityFieldCardinality.Many,
-	},
-	pinnedCastHash: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	publicCasting: {
-		primitiveType: type('boolean'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	externalLinkTitle: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	externalLinkUrl: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	followedAt: {
-		primitiveType: type('number'),
+	$lead: {
+		entityType: EntityType.FarcasterUser,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$casts: {
@@ -93,10 +37,21 @@ export default entity({
 			Source.Snapchain_Rest,
 		],
 	},
+	$$timestamps: {
+		entityType: EntityType.FarcasterChannel_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Farcaster_Rest,
+			Source.Neynar_Rest,
+		],
+	},
 })({
 	selectors: {
 		Id: [
 			'id',
+		],
+		ParentUrl: [
+			'parentUrl',
 		],
 	},
 })

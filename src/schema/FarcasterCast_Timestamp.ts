@@ -20,6 +20,10 @@ export default entity({
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
+	source: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
 	likeCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -34,9 +38,10 @@ export default entity({
 	},
 })({
 	selectors: {
-		FarcasterCastTimestampMs: [
+		CastTimestampMsSource: [
 			'$cast',
 			'timestampMs',
+			'source',
 		],
 	},
 })

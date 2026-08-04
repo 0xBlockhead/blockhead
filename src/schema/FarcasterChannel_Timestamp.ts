@@ -20,6 +20,58 @@ export default entity({
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
+	source: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	name: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	description: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	iconUrl: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$icon: {
+		entityType: EntityType.Media,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	headerImageUrl: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$headerImage: {
+		entityType: EntityType.Media,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$moderator: {
+		entityType: EntityType.FarcasterUser,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$moderators: {
+		entityType: EntityType.FarcasterUser,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	pinnedCastHash: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	publicCasting: {
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	externalLinkTitle: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	externalLinkUrl: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 	followerCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -30,9 +82,10 @@ export default entity({
 	},
 })({
 	selectors: {
-		FarcasterChannelTimestampMs: [
+		ChannelTimestampMsSource: [
 			'$channel',
 			'timestampMs',
+			'source',
 		],
 	},
 })

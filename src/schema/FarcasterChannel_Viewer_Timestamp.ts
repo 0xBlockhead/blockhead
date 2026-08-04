@@ -3,16 +3,21 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { FarcasterChannelMemberRole } from '$/schema/FarcasterChannelMemberRole.ts'
 import { type } from 'arktype'
 
 export default entity({
-	entityType: EntityType.FarcasterUser_Timestamp,
+	entityType: EntityType.FarcasterChannel_Viewer_Timestamp,
 	labels: {
-		singular: 'Farcaster user observation',
-		plural: 'Farcaster user observations',
+		singular: 'Farcaster channel viewer observation',
+		plural: 'Farcaster channel viewer observations',
 	},
 })({
-	$user: {
+	$channel: {
+		entityType: EntityType.FarcasterChannel,
+		cardinality: EntityFieldCardinality.One,
+	},
+	$viewer: {
 		entityType: EntityType.FarcasterUser,
 		cardinality: EntityFieldCardinality.One,
 	},
@@ -24,18 +29,31 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	followerCount: {
+	following: {
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	member: {
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	role: {
+		primitiveType: type.enumerated(...Object.values(FarcasterChannelMemberRole)),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	followedAt: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	followingCount: {
+	memberAt: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({
 	selectors: {
-		UserTimestampMsSource: [
-			'$user',
+		ChannelViewerTimestampMsSource: [
+			'$channel',
+			'$viewer',
 			'timestampMs',
 			'source',
 		],

@@ -49,6 +49,14 @@ export default entity({
 		entityType: EntityType.FarcasterVerifiedAddress,
 		cardinality: EntityFieldCardinality.Many,
 	},
+	$$channelViewerTimestamps: {
+		entityType: EntityType.FarcasterChannel_Viewer_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Farcaster_Rest,
+			Source.Neynar_Rest,
+		],
+	},
 	$$timestamps: {
 		entityType: EntityType.FarcasterUser_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
