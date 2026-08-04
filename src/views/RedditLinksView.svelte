@@ -19,7 +19,6 @@
 
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -55,19 +54,11 @@
 			}
 		>
 			{#snippet Title()}
-				{(redditLink.title ?? '') || redditLinkSelector.fullname || 'Reddit submission'}
-			{/snippet}
-
-			{#snippet Value()}
-				{redditLinkSelector.fullname}
+				{[(redditLink.title ?? ''), redditLinkSelector.fullname].filter(Boolean).join(' ') || redditLinkSelector.fullname || 'Reddit submission'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				{#if redditLink.createdAt != null}
-					<span data-text="muted">
-						<Timestamp timestamp={redditLink.createdAt} />
-					</span>
-				{/if}
+				<span data-text="annotation">{redditLink.createdAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

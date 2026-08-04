@@ -6,7 +6,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -33,18 +32,12 @@
 	const redditComment = $derived(viewSelection({
 		fields: {
 			body: true,
-			author: true,
 			createdAt: true,
-			depth: true,
 		},
 	}))
-	const titleFallback = $derived((prefetched.body ?? '') || selection.entitySelector.fullname || 'Reddit comment')
-	const viewDomId = $derived('reddit-comment-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -58,8 +51,7 @@
 <EntityView
 	entityType={EntityType.RedditComment}
 	entitySelector={selection.entitySelector}
-	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? ((prefetched.body ?? '') || selection.entitySelector.fullname || 'Reddit comment')}
 	href={
 		href === undefined ?
 			resolve(
@@ -81,15 +73,9 @@
 				{@const body = entity.body}
 				{#if body != null}
 					<span data-text="long-text">{body}</span>
-				{:else}
-					{title || titleFallback}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<TruncatedValue value={selection.entitySelector.fullname} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -107,8 +93,21 @@
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
+			<div>
+				<dt>Comment ID</dt>
+				<dd>
+					<TruncatedValue value={selection.entitySelector.fullname} />
+				</dd>
+			</div>
+
 			<ResourceBoundary
-				resource={redditComment}
+				resource={
+					viewSelection({
+						fields: {
+							author: true,
+						},
+					})
+				}
 			>
 				{#snippet children(entity)}
 					{@const author = entity.author}
@@ -126,6 +125,30 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={redditComment}
+				>
+					{#snippet children(entity)}
+						{@const createdAt = entity.createdAt}
+						{#if createdAt != null}
+							<div>
+								<dt>Created</dt>
+								<dd>
+									<Timestamp timestamp={createdAt} />
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+
+			{#if contentOpen}
+				<ResourceBoundary
+					resource={
+						viewSelection({
+							fields: {
+								depth: true,
+							},
+						})
+					}
 				>
 					{#snippet children(entity)}
 						{@const depth = entity.depth}
@@ -154,8 +177,6 @@
 										selection={select(EntityType.RedditLink, redditLink[EntityMetaKey.Selector])}
 										prefetched={redditLink}
 										layout={EntityLayout.Value}
-										open={false}
-										showTypeAnnotation={false}
 									/>
 								</dd>
 							</div>
@@ -168,17 +189,15 @@
 				<ResourceBoundary
 					resource={selection.$parentComment}
 				>
-					{#snippet children(parentComment)}
-						{#if parentComment != null}
+					{#snippet children(redditComment)}
+						{#if redditComment != null}
 							<div>
 								<dt>Reply to</dt>
 								<dd>
 									<RedditCommentView
-										selection={select(EntityType.RedditComment, parentComment[EntityMetaKey.Selector])}
-										prefetched={parentComment}
+										selection={select(EntityType.RedditComment, redditComment[EntityMetaKey.Selector])}
+										prefetched={redditComment}
 										layout={EntityLayout.Value}
-										open={false}
-										showTypeAnnotation={false}
 									/>
 								</dd>
 							</div>
@@ -188,97 +207,64 @@
 			{/if}
 		</dl>
 
-		{#if contentOpen}
-			<ResourceBoundary
-				resource={redditComment}
-			>
-				{#snippet children(entity)}
-					{@const body = entity.body}
-					{#if body != null && body !== ''}
-						<p data-text="long-text">{body}</p>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary
+			resource={redditComment}
+		>
+			{#snippet children(entity)}
+				{@const body = entity.body}
+				{#if body != null && body !== ''}
+					<p data-text="long-text">{body}</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details()}
-		<CollapsibleTabs
-			id={viewDomId + '-carousel-reddit-comment-thread'}
-			sectionIdPrefix={viewDomId}
-			sections={
-				[
-					{
-						id: 'reddit-comment-replies',
-						label: 'Replies',
-					},
-				]
-			}
-			data-card
+		{@const repliesResource = selection.$$replies}
+		<ResourceBoundary
+			resource={repliesResource}
 		>
-			{#snippet Summary()}
-				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Thread</HeadingComponent>
-				</header>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<RedditCommentsView
+						selection={repliesResource}
+						countResource={repliesResource.count}
+						title='Replies'
+						href={
+							resolve(
+								'/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/replies',
+								{
+									fullname: encodeURIComponent(selection.entitySelector.fullname),
+								}
+							)
+						}
+						id='replies'
+					/>
+				{/if}
 			{/snippet}
-
-			{#snippet SectionRedditCommentReplies({ id, label })}
-				<RedditCommentsView
-					selection={selection.$$replies}
-					countResource={selection.$$replies.count}
-					href={
-						resolve(
-							'/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/replies',
-							{
-								fullname: encodeURIComponent(selection.entitySelector.fullname),
-							}
-						)
-					}
-					collapsible={false}
-					title={label}
-					emptyText='No replies to this comment yet.'
-					id={`${id}-list`}
-				/>
-			{/snippet}
-		</CollapsibleTabs>
-
-		<CollapsibleTabs
-			id={viewDomId + '-carousel-reddit-comment-observations'}
-			sectionIdPrefix={viewDomId}
-			sections={
-				[
-					{
-						id: 'reddit-comment-timestamps',
-						label: 'Observations',
-					},
-				]
-			}
-			data-card
+		</ResourceBoundary>
+		{@const timestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={timestampsResource}
 		>
-			{#snippet Summary()}
-				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Observations</HeadingComponent>
-				</header>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<RedditComment_TimestampsView
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
+						title='Observations'
+						href={
+							resolve(
+								'/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/observations',
+								{
+									fullname: encodeURIComponent(selection.entitySelector.fullname),
+								}
+							)
+						}
+						id='timestamps'
+					/>
+				{/if}
 			{/snippet}
-
-			{#snippet SectionRedditCommentTimestamps({ id, label })}
-				<RedditComment_TimestampsView
-					selection={selection.$$timestamps}
-					countResource={selection.$$timestamps.count}
-					href={
-						resolve(
-							'/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/observations',
-							{
-								fullname: encodeURIComponent(selection.entitySelector.fullname),
-							}
-						)
-					}
-					collapsible={false}
-					title={label}
-					emptyText='No comment observations yet.'
-					id={`${id}-list`}
-				/>
-			{/snippet}
-		</CollapsibleTabs>
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>
