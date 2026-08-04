@@ -14,6 +14,8 @@ import type {
 	DuneExecutionResult,
 	DuneGetExecutionResultsParams,
 	DuneQueryMetadata,
+	DuneUsageBillingPeriod,
+	DuneUsageResponse,
 } from '$/sources/Dune/Rest/types.ts'
 
 const duneExecutionResultsSearch = (params: DuneGetExecutionResultsParams | undefined) => {
@@ -41,15 +43,18 @@ export const getQuery = (
 /**
  * `POST /api/v1/query/{query_id}/execute` — start run; returns `execution_id`.
  */
-export const executeQuery = (
+export const executeQuery = async (
 	publicEnv: SourcePublicEnv,
 	queryId: number,
 	body?: DuneExecuteQueryBody
 ) => {
-	return duneFetch<DuneExecuteQueryResponse>(publicEnv, `/api/v1/query/${queryId}/execute`, {
+	const response = await duneFetch<DuneExecuteQueryResponse>(publicEnv, `/api/v1/query/${queryId}/execute`, {
 		method: 'POST',
-		body: body != null ? JSON.stringify(body) : undefined,
+		body: JSON.stringify(body ?? {}),
 	})
+	if (response.execution_id.trim() === '')
+		throw new Error('Dune_Rest: execute response missing execution_id')
+	return response
 }
 
 /**
@@ -88,12 +93,21 @@ export const getLatestQueryResults = (
 export const getUsage = (
 	publicEnv: SourcePublicEnv,
 	body?: { start_date?: string; end_date?: string }
-) => {
-	return duneFetch<{
-		billingPeriods?: { credits_used?: number; credits_included?: number }[]
-		billing_periods?: { credits_used?: number; credits_included?: number }[]
-	}>(publicEnv, '/api/v1/usage', {
+) => (
+	duneFetch<DuneUsageResponse>(publicEnv, '/api/v1/usage', {
 		method: 'POST',
 		body: JSON.stringify(body ?? {}),
 	})
+)
+
+/** First billing period that carries at least one credit field; hard-fails empty envelopes. */
+export const readUsageCredits = (
+	usage: DuneUsageResponse
+): DuneUsageBillingPeriod => {
+	const billingPeriod = usage.billingPeriods?.[0] ?? usage.billing_periods?.[0]
+	if (
+		billingPeriod == null
+		|| (billingPeriod.credits_used == null && billingPeriod.credits_included == null)
+	) throw new Error('Dune_Rest: usage response missing billing credits')
+	return billingPeriod
 }

@@ -21,6 +21,7 @@ import {
 	l2BeatHostChains,
 	l2BeatProjectChainIds,
 	l2BeatProjectIdByChainId,
+	scalingSummarySyncedUntilMs,
 } from '$/sources/L2Beat/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
 import { type as arktype } from 'arktype'
@@ -97,9 +98,10 @@ export default {
 			entityType: EntityType.EvmRollup,
 			resolve: {
 				EvmNetworkProjectId: {
-					resolve: async ({ projectId }) => {
+					resolve: async ({ $network, projectId }) => {
 						const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
-						const project = (await fetchScalingSummary()).projects[projectId]
+						const summary = await fetchScalingSummary()
+						const project = summary.projects[projectId]
 						if (project == null)
 							throw new Error('L2Beat_Rest: rollup project not found')
 						const hostChain = l2BeatHostChainByLabel.get(project.hostChain)
@@ -122,6 +124,16 @@ export default {
 									},
 								},
 							},
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$rollup: {
+										$network,
+										projectId,
+									},
+									timestampMs: scalingSummarySyncedUntilMs(summary.chart.syncedUntil),
+									source: Source.L2Beat_Rest,
+								},
+							}],
 						}
 					},
 				},
@@ -133,6 +145,49 @@ export default {
 			category: (snapshot) => snapshot.category,
 			hostChain: (snapshot) => snapshot.hostChain,
 			$settlementNetwork: (snapshot) => snapshot.$settlementNetwork,
+			$$timestamps: (snapshot) => snapshot.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmRollup_Timestamp,
+			resolve: {
+				RollupTimestampMsSource: {
+					resolve: async ({ $rollup, timestampMs, source }) => {
+						if (source !== Source.L2Beat_Rest)
+							throw new Error(`L2Beat_Rest: unsupported rollup observation source ${source}`)
+
+						const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
+						const summary = await fetchScalingSummary()
+						const project = summary.projects[$rollup.projectId]
+						if (project == null)
+							throw new Error('L2Beat_Rest: rollup project not found')
+
+						const observationMs = scalingSummarySyncedUntilMs(summary.chart.syncedUntil)
+						if (timestampMs !== observationMs)
+							throw new Error('L2Beat_Rest: rollup observation clock mismatch')
+
+						return {
+							...(project.isArchived != null && {
+								isArchived: project.isArchived,
+							}),
+							...(project.isUpcoming != null && {
+								isUpcoming: project.isUpcoming,
+							}),
+							...(project.isUnderReview != null && {
+								isUnderReview: project.isUnderReview,
+							}),
+							...(project.stage != null && {
+								listingStage: project.stage,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			isArchived: (snapshot) => snapshot.isArchived,
+			isUpcoming: (snapshot) => snapshot.isUpcoming,
+			isUnderReview: (snapshot) => snapshot.isUnderReview,
+			listingStage: (snapshot) => snapshot.listingStage,
 		}),
 
 		defineResolver({

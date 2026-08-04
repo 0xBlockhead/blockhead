@@ -17,6 +17,7 @@ import {
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { evmNetworkSelectorFromChainId } from '$/resolvers/evm.ts'
+import { uniswapV3Resolvers } from '$/resolvers/Voltaire/Uniswap.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
@@ -1938,5 +1939,7 @@ export default {
 			code: (snapshot) => snapshot.code,
 			codeHash: (snapshot) => snapshot.codeHash,
 		}),
+
+		...uniswapV3Resolvers,
 	],
 } satisfies RegisteredSourceResolverModule

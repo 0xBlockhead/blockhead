@@ -106,6 +106,7 @@ const executionTransport = (
 
 	return {
 		diagnosticLabel: `${sourceBindingId(binding)} ${endpoint.endpointKind} ${endpoint.locator}`,
+		origin: endpoint.locator,
 		...jsonRpc,
 		...ens({ request }),
 		getRecentBlockWires: async ({

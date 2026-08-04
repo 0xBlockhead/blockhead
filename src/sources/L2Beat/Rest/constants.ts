@@ -13,12 +13,17 @@ export const l2BeatHostChains = [
 	{ label: 'Base Chain', parentChainId: 8453 },
 	{ label: 'Linea', parentChainId: 59144 },
 	{ label: 'Scroll', parentChainId: 534352 },
+	{ label: 'Robinhood Chain', parentChainId: 4663 },
 ] as const
 
 export const l2BeatHostChainByLabel = new Map(
 	l2BeatHostChains.map((hostChain) => [hostChain.label, hostChain])
 )
 
+/**
+ * Checked-in L2Beat project id → EVM chain id for networks L2Beat can address.
+ * Membership is still proven by a live summary hit; stale ids fail closed at resolve.
+ */
 export const l2BeatProjectChainIds = [
 	{ projectId: 'arbitrum', chainId: 42161 },
 	{ projectId: 'base', chainId: 8453 },
@@ -46,7 +51,6 @@ export const l2BeatProjectChainIds = [
 	{ projectId: 'zircuit', chainId: 48900 },
 	{ projectId: 'sophon', chainId: 50104 },
 	{ projectId: 'metis', chainId: 1088 },
-	{ projectId: 'corn', chainId: 21000000 },
 	{ projectId: 'morph', chainId: 2818 },
 	{ projectId: 'immutablezkevm', chainId: 13371 },
 	{ projectId: 'galxegravity', chainId: 1625 },
@@ -68,12 +72,9 @@ export const l2BeatProjectChainIds = [
 	{ projectId: 'hemi', chainId: 43111 },
 	{ projectId: 'shape', chainId: 360 },
 	{ projectId: 'xai', chainId: 660279 },
-	{ projectId: 'rari', chainId: 1380012617 },
 	{ projectId: 'shibarium', chainId: 109 },
-	{ projectId: 'redstone', chainId: 690 },
 	{ projectId: 'metal', chainId: 1750 },
 	{ projectId: 'superseed', chainId: 5330 },
-	{ projectId: 'prom', chainId: 227 },
 	{ projectId: 'superposition', chainId: 55244 },
 	{ projectId: 'degen', chainId: 666666666 },
 	{ projectId: 'b3', chainId: 8333 },
@@ -82,15 +83,12 @@ export const l2BeatProjectChainIds = [
 	{ projectId: 'river', chainId: 550 },
 	{ projectId: 'zkfair', chainId: 42766 },
 	{ projectId: 'appchain', chainId: 466 },
-	{ projectId: 'codex', chainId: 81224 },
-	{ projectId: 'everclear', chainId: 25327 },
-	{ projectId: 'powerloom', chainId: 7869 },
-	{ projectId: 'huddle01', chainId: 12323 },
-	{ projectId: 'rarimo', chainId: 7368 },
-	{ projectId: 'grvt', chainId: 325 },
 	{ projectId: 'zkcandy', chainId: 320 },
-	{ projectId: 'unite', chainId: 88899 },
 	{ projectId: 'playblock', chainId: 1829 },
+	{ projectId: 'robinhood', chainId: 4663 },
+	{ projectId: 'gnosis', chainId: 100 },
+	{ projectId: 'roninnetwork', chainId: 2020 },
+	{ projectId: 'xlayer', chainId: 196 },
 ] as const satisfies readonly {
 	projectId: string
 	chainId: number
@@ -101,4 +99,16 @@ export const l2BeatProjectIdByChainId = new Map(
 		String(project.chainId),
 		project.projectId,
 	])
+)
+
+export const l2BeatChainIdByProjectId = new Map(
+	l2BeatProjectChainIds.map((project) => [
+		project.projectId,
+		project.chainId,
+	])
+)
+
+/** Convert L2Beat summary `chart.syncedUntil` (unix seconds) to observation `timestampMs`. */
+export const scalingSummarySyncedUntilMs = (syncedUntilSeconds: number) => (
+	syncedUntilSeconds * 1000
 )

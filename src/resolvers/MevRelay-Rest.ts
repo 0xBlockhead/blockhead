@@ -8,32 +8,53 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import type { ProposerPayloadDelivered } from '$/sources/MevRelay/Rest/types.ts'
+import type { BidTrace } from '$/sources/MevRelay/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
-const parsePayloadSlot = (payload: ProposerPayloadDelivered) => {
-	const raw = payload.slot
-	if (raw == null) return undefined
-	const slot = Number(raw)
+
+const parsePayloadSlot = (payload: BidTrace) => {
+	const slot = Number(payload.slot)
 	return Number.isFinite(slot) ? slot : undefined
 }
 
-const parsePayloadValueWei = (payload: ProposerPayloadDelivered) => {
-	const raw = payload.value
-	if (raw == null) return undefined
+const parsePayloadValueWei = (payload: BidTrace) => {
 	try {
-		return BigInt(String(raw))
+		return BigInt(payload.value)
 	} catch {
 		return undefined
 	}
 }
 
-const parsePayloadBlockNumber = (payload: ProposerPayloadDelivered) => {
-	const raw = payload.block_number ?? payload.blockNumber
-	if (raw == null) return undefined
+const parsePayloadBlockNumber = (payload: BidTrace) => {
 	try {
-		return BigInt(String(raw))
+		return BigInt(payload.block_number)
 	} catch {
 		return undefined
+	}
+}
+
+const relayHostsForChainId = async (chainId: number) => {
+	const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
+	return mevRelayHosts
+		.filter((mevRelayHost) => mevRelayHost.chainId === chainId)
+		.map((mevRelayHost) => mevRelayHost.host)
+}
+
+const deliveredPayloadReference = <_Network>(
+	$network: _Network,
+	relayHost: string,
+	payload: BidTrace
+) => {
+	const slot = parsePayloadSlot(payload)
+	const blockHash = hexLowerOfByteSize(payload.block_hash, 32)
+	if (slot == null || blockHash == null) return undefined
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$network,
+			relayHost,
+			slot,
+			blockHash,
+		},
 	}
 }
 
@@ -50,27 +71,23 @@ export default {
 						if (wantHash == null) throw new Error('MevRelay_Rest: invalid block hash in entity selector')
 
 						const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
-						const deliveredPayloads = await getProposerPayloadDeliveredForRelayHost(entitySelector.relayHost, {
-							limit: 200,
-						})
-						const payload = deliveredPayloads.find((deliveredPayload) => {
-							const slot = parsePayloadSlot(deliveredPayload)
-							const blockHash = deliveredPayload.block_hash ?? deliveredPayload.blockHash
-							if (slot !== entitySelector.slot || blockHash == null) return false
-							return hexLowerOfByteSize(blockHash, 32) === wantHash
+						const [payload] = await getProposerPayloadDeliveredForRelayHost(entitySelector.relayHost, {
+							limit: 1,
+							slot: entitySelector.slot,
+							block_hash: wantHash,
 						})
 						if (payload == null) throw new Error('MevRelay_Rest: relay payload not found for id')
-						const builderPubkey = payload.builder_pubkey ?? payload.builderPubkey
+
 						const blockNumber = parsePayloadBlockNumber(payload)
 						const valueWei = parsePayloadValueWei(payload)
 						return {
 							[EntityMetaKey.Selector]: entitySelector,
-							...(builderPubkey != null && builderPubkey !== '' && {
-								builderPubkey,
+							...(payload.builder_pubkey !== '' && {
+								builderPubkey: payload.builder_pubkey,
 								$builder: {
 									[EntityMetaKey.Selector]: {
 										$network: entitySelector.$network,
-										builderPubkey,
+										builderPubkey: payload.builder_pubkey,
 									},
 								},
 							}),
@@ -125,30 +142,15 @@ export default {
 
 						const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 						const sampleLimit = Math.min(200, Math.max(1, resolverContextRowLimit(context)))
-						const [deliveredPayloadResult] = await Promise.allSettled([
-							getProposerPayloadDeliveredForRelayHost($relay.host, {
-								limit: sampleLimit,
-							}),
-						])
-						if (deliveredPayloadResult.status === 'rejected') {
-							return {
-								reachable: false,
-								sampleLimit,
-								error: (
-									deliveredPayloadResult.reason instanceof Error ?
-										deliveredPayloadResult.reason.message
-									:
-										String(deliveredPayloadResult.reason)
-								),
-							}
-						}
+						const deliveredPayloads = await getProposerPayloadDeliveredForRelayHost($relay.host, {
+							limit: sampleLimit,
+						})
 
 						const builderPubkeys = new Set<string>()
 						let windowStartSlot: number | undefined
 						let windowEndSlot: number | undefined
-						for (const payload of deliveredPayloadResult.value) {
-							const builderPubkey = payload.builder_pubkey ?? payload.builderPubkey
-							if (builderPubkey != null && builderPubkey !== '') builderPubkeys.add(builderPubkey)
+						for (const payload of deliveredPayloads) {
+							if (payload.builder_pubkey !== '') builderPubkeys.add(payload.builder_pubkey)
 							const slot = parsePayloadSlot(payload)
 							if (slot != null) {
 								windowStartSlot = windowStartSlot == null ? slot : Math.min(windowStartSlot, slot)
@@ -158,7 +160,7 @@ export default {
 
 						return {
 							reachable: true,
-							deliveredPayloadSampleCount: deliveredPayloadResult.value.length,
+							deliveredPayloadSampleCount: deliveredPayloads.length,
 							builderSampleCount: builderPubkeys.size,
 							...(windowStartSlot != null && { windowStartSlot }),
 							...(windowEndSlot != null && { windowEndSlot }),
@@ -174,7 +176,6 @@ export default {
 				windowStartSlot: (snapshot) => snapshot.windowStartSlot,
 				windowEndSlot: (snapshot) => snapshot.windowEndSlot,
 				sampleLimit: (snapshot) => snapshot.sampleLimit,
-				error: (snapshot) => snapshot.error,
 			}),
 
 		defineResolver({
@@ -204,20 +205,26 @@ export default {
 						if (source !== Source.MevRelay_Rest)
 							throw new Error('MevRelay_Rest: MevBuilder_Timestamp selector source mismatch')
 
-						const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 						const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 						const chainId = Number($builder.$network.caip2.reference)
+						const relayHosts = await relayHostsForChainId(chainId)
+						const sampleLimit = 200
+
+						const deliveredPayloadPages = await Promise.all(
+							relayHosts.map((host) => (
+								getProposerPayloadDeliveredForRelayHost(host, {
+									limit: sampleLimit,
+									builder_pubkey: $builder.builderPubkey,
+								})
+							))
+						)
+
 						let deliveredPayloadCount = 0
 						let deliveredValueWei = 0n
 						let windowStartSlot: number | undefined
 						let windowEndSlot: number | undefined
-						let relayCount = 0
-						const sampleLimit = 200
-
-						for (const { host } of mevRelayHosts.filter((mevRelayHost) => mevRelayHost.chainId === chainId)) {
-							relayCount += 1
-							for (const payload of await getProposerPayloadDeliveredForRelayHost(host, { limit: sampleLimit })) {
-								if ((payload.builder_pubkey ?? payload.builderPubkey) !== $builder.builderPubkey) continue
+						for (const deliveredPayloads of deliveredPayloadPages) {
+							for (const payload of deliveredPayloads) {
 								const slot = parsePayloadSlot(payload)
 								const valueWei = parsePayloadValueWei(payload)
 								deliveredPayloadCount += 1
@@ -232,7 +239,7 @@ export default {
 						return {
 							deliveredPayloadCount,
 							deliveredValueWei,
-							relayCount,
+							relayCount: relayHosts.length,
 							...(windowStartSlot != null && { windowStartSlot }),
 							...(windowEndSlot != null && { windowEndSlot }),
 							sampleLimit,
@@ -254,49 +261,28 @@ export default {
 			resolve: {
 				EvmNetworkBuilderPubkey: {
 					resolve: async (entitySelector, context) => {
-						const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 						const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 						const chainId = Number(entitySelector.$network.caip2.reference)
+						const relayHosts = await relayHostsForChainId(chainId)
 						const sampleLimit = Math.min(200, Math.max(1, resolverContextRowLimit(context)))
-						const deliveredPayloadReferences: {
-							[EntityMetaKey.Selector]: {
-								$network: typeof entitySelector.$network
-								relayHost: string
-								slot: number
-								blockHash: `0x${string}`
-							}
-						}[] = []
+						const deliveredPayloadReferences: NonNullable<ReturnType<typeof deliveredPayloadReference>>[] = []
 
-						const deliveredPayloadResults = await Promise.allSettled(
-							mevRelayHosts
-								.filter((mevRelayHost) => mevRelayHost.chainId === chainId)
-								.map(({ host }) => {
-									return getProposerPayloadDeliveredForRelayHost(host, {
-										limit: sampleLimit,
-									}).then((deliveredPayloads) => ({
-										host,
-										deliveredPayloads,
-									}))
-								})
+						const deliveredPayloadPages = await Promise.all(
+							relayHosts.map((host) => (
+								getProposerPayloadDeliveredForRelayHost(host, {
+									limit: sampleLimit,
+									builder_pubkey: entitySelector.builderPubkey,
+								}).then((deliveredPayloads) => ({
+									host,
+									deliveredPayloads,
+								}))
+							))
 						)
-						for (const deliveredPayloadResult of deliveredPayloadResults) {
-							if (deliveredPayloadResult.status === 'rejected') continue
-
-							for (const payload of deliveredPayloadResult.value.deliveredPayloads) {
-								if ((payload.builder_pubkey ?? payload.builderPubkey) !== entitySelector.builderPubkey) continue
-								const slot = parsePayloadSlot(payload)
-								const blockHashRaw = payload.block_hash ?? payload.blockHash
-								if (slot == null || blockHashRaw == null) continue
-								const blockHash = hexLowerOfByteSize(blockHashRaw, 32)
-								if (blockHash == null) continue
-								deliveredPayloadReferences.push({
-									[EntityMetaKey.Selector]: {
-										$network: entitySelector.$network,
-										relayHost: deliveredPayloadResult.value.host,
-										slot,
-										blockHash,
-									},
-								})
+						for (const { host, deliveredPayloads } of deliveredPayloadPages) {
+							for (const payload of deliveredPayloads) {
+								const reference = deliveredPayloadReference(entitySelector.$network, host, payload)
+								if (reference == null) continue
+								deliveredPayloadReferences.push(reference)
 								if (deliveredPayloadReferences.length >= sampleLimit) return deliveredPayloadReferences
 							}
 						}
@@ -314,52 +300,29 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async (entitySelector, context) => {
-						const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 						const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 						const chainId = Number(entitySelector.caip2.reference)
-						const relayHosts = mevRelayHosts
-							.filter((mevRelayHost) => mevRelayHost.chainId === chainId)
-							.map((mevRelayHost) => mevRelayHost.host)
-						if (relayHosts.length === 0)
-							throw new Error(`MevRelay_Rest: no MEV-Boost relay mapping for chain ${String(chainId)}`)
+						const relayHosts = await relayHostsForChainId(chainId)
+						if (relayHosts.length === 0) return []
 
 						const entityLimit = resolverContextRowLimit(context)
-						const deliveredPayloadReferences: {
-							[EntityMetaKey.Selector]: {
-								$network: typeof entitySelector
-								relayHost: string
-								slot: number
-								blockHash: `0x${string}`
-							}
-						}[] = []
+						const deliveredPayloadReferences: NonNullable<ReturnType<typeof deliveredPayloadReference>>[] = []
 
-						const deliveredPayloadResults = await Promise.allSettled(
-							relayHosts.map((relayHost) => {
-								return getProposerPayloadDeliveredForRelayHost(relayHost, {
+						const deliveredPayloadPages = await Promise.all(
+							relayHosts.map((relayHost) => (
+								getProposerPayloadDeliveredForRelayHost(relayHost, {
 									limit: Math.min(entityLimit, 200),
 								}).then((deliveredPayloads) => ({
 									relayHost,
 									deliveredPayloads,
 								}))
-							})
+							))
 						)
-						for (const deliveredPayloadResult of deliveredPayloadResults) {
-							if (deliveredPayloadResult.status === 'rejected') continue
-
-							for (const payload of deliveredPayloadResult.value.deliveredPayloads) {
-								const slot = parsePayloadSlot(payload)
-								const blockHashRaw = payload.block_hash ?? payload.blockHash
-								if (slot == null || blockHashRaw == null) continue
-								const blockHash = hexLowerOfByteSize(blockHashRaw, 32)
-								if (blockHash == null) continue
-								deliveredPayloadReferences.push({
-									[EntityMetaKey.Selector]: {
-										$network: entitySelector,
-										relayHost: deliveredPayloadResult.value.relayHost,
-										slot,
-										blockHash,
-									},
-								})
+						for (const { relayHost, deliveredPayloads } of deliveredPayloadPages) {
+							for (const payload of deliveredPayloads) {
+								const reference = deliveredPayloadReference(entitySelector, relayHost, payload)
+								if (reference == null) continue
+								deliveredPayloadReferences.push(reference)
 								if (deliveredPayloadReferences.length >= entityLimit) return deliveredPayloadReferences
 							}
 						}
@@ -379,31 +342,24 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: async ({ caip2 }, context) => {
-						const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 						const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 						const chainId = Number(caip2.reference)
-						const relayHosts = mevRelayHosts
-							.filter((mevRelayHost) => mevRelayHost.chainId === chainId)
-							.map((mevRelayHost) => mevRelayHost.host)
-						if (relayHosts.length === 0)
-							throw new Error(`MevRelay_Rest: no MEV-Boost relay mapping for chain ${String(chainId)}`)
+						const relayHosts = await relayHostsForChainId(chainId)
+						if (relayHosts.length === 0) return []
 
 						const entityLimit = resolverContextRowLimit(context)
 						const builderPubkeys = new Set<string>()
-						const deliveredPayloadResults = await Promise.allSettled(
-							relayHosts.map((relayHost) => {
-								return getProposerPayloadDeliveredForRelayHost(relayHost, {
+						const deliveredPayloadPages = await Promise.all(
+							relayHosts.map((relayHost) => (
+								getProposerPayloadDeliveredForRelayHost(relayHost, {
 									limit: Math.min(entityLimit * 8, 200),
 								})
-							})
+							))
 						)
-						for (const deliveredPayloadResult of deliveredPayloadResults) {
-							if (deliveredPayloadResult.status === 'rejected') continue
-
-							for (const payload of deliveredPayloadResult.value) {
-								const builderPubkey = payload.builder_pubkey ?? payload.builderPubkey
-								if (builderPubkey == null || builderPubkey === '') continue
-								builderPubkeys.add(builderPubkey)
+						for (const deliveredPayloads of deliveredPayloadPages) {
+							for (const payload of deliveredPayloads) {
+								if (payload.builder_pubkey === '') continue
+								builderPubkeys.add(payload.builder_pubkey)
 								if (builderPubkeys.size >= entityLimit) break
 							}
 							if (builderPubkeys.size >= entityLimit) break

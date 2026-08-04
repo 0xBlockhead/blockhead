@@ -109,3 +109,14 @@ export type DuneGetExecutionResultsParams = {
 	sample_count?: number
 	sort_by?: string
 }
+
+export type DuneUsageBillingPeriod = {
+	credits_used?: number
+	credits_included?: number
+}
+
+/** `POST /api/v1/usage` — camelCase or snake_case billing periods per plan/docs. */
+export type DuneUsageResponse = {
+	billingPeriods?: DuneUsageBillingPeriod[]
+	billing_periods?: DuneUsageBillingPeriod[]
+}
