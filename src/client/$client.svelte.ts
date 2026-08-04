@@ -82,10 +82,13 @@ import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import {
 	type SourceProviderDefinition,
 	type SourcePublicEnv,
-	indexSourceProviders,
 } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceDelivery, type SourceBinding } from '$/sources/SourceBinding.ts'
+import {
+	sourceBindingId,
+	SourceDelivery,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
 
 
 export enum ClientEventType {
@@ -433,15 +436,17 @@ type PersistedCollectionRowCollectionUtils<
 		rows: readonly _Row[],
 		selectorKey: string,
 		authorityKey: string,
-		resolution: 'present' | 'resolved' | 'deleted'
-	): void
+		resolution: 'present' | 'resolved' | 'deleted',
+		onApplied?: () => void | Promise<void>
+	): Promise<void>
 	writeUpsert(row: _Row | readonly _Row[]): void
 	writeUpsertWithAuthority(
 		row: _Row | readonly _Row[],
 		selectorKey: string,
 		authorityKey: string,
-		resolution: 'present' | 'resolved' | 'deleted'
-	): void
+		resolution: 'present' | 'resolved' | 'deleted',
+		onApplied?: () => void | Promise<void>
+	): Promise<void>
 	deleteSelectorRowsAndAuthority(
 		predicate: (row: _Row) => boolean,
 		selectorKey: string
@@ -1370,15 +1375,71 @@ const persistedCollectionUtils = <
 	const continuationSubscribers = new Set<() => void>()
 	const localMutationAuthoritySubscribers = new Set<() => void>()
 	const resolverSubsetLoadingSubscribers = new Set<() => void>()
-	let pendingWrites: {
-		rows: readonly _Row[]
+	type PendingMutation = (
+		| {
+			kind: 'replace'
+			predicate: (row: _Row) => boolean
+			rows: readonly _Row[]
+		}
+		| {
+			kind: 'write'
+			rows: readonly _Row[]
+		}
+	) & {
 		authority?: LocalMutationAuthorityChange
-	}[] = []
-	let pendingReplacements: {
-		predicate: (row: _Row) => boolean
-		rows: readonly _Row[]
-		authority?: LocalMutationAuthorityChange
-	}[] = []
+		onApplied?: () => void | Promise<void>
+		resolveApplied?: () => void
+		rejectApplied?: (error: unknown) => void
+	}
+	let pendingMutations: PendingMutation[] = []
+	const applyMutation = (mutation: PendingMutation) => {
+		if (writeRows === undefined || replaceRows === undefined)
+			throw new Error('Persisted collection mutation handlers are not installed')
+
+		if (mutation.kind === 'write')
+			writeRows(mutation.rows, mutation.authority)
+		else
+			replaceRows(
+				mutation.predicate,
+				mutation.rows,
+				mutation.authority
+			)
+
+		return mutation.onApplied?.()
+	}
+	const applyOrQueueMutation = (mutation: PendingMutation) => {
+		if (writeRows !== undefined && replaceRows !== undefined)
+			return Promise.resolve(applyMutation(mutation))
+
+		return new Promise<void>((resolve, reject) => {
+			pendingMutations.push({
+				...mutation,
+				resolveApplied: resolve,
+				rejectApplied: reject,
+			})
+		})
+	}
+	const flushPendingMutations = () => {
+		if (writeRows === undefined || replaceRows === undefined)
+			return
+
+		const mutations = pendingMutations
+		pendingMutations = []
+		for (const [index, mutation] of mutations.entries()) {
+			try {
+				void Promise.resolve(applyMutation(mutation)).then(
+					mutation.resolveApplied,
+					mutation.rejectApplied
+				)
+			}
+			catch (error) {
+				mutation.rejectApplied?.(error)
+				for (const unprocessedMutation of mutations.slice(index + 1))
+					unprocessedMutation.rejectApplied?.(error)
+				return
+			}
+		}
+	}
 	let refreshPending = false
 	const utils: PersistedCollectionRowCollectionUtils<_Row> = {
 		dataUpdatedAt: 0,
@@ -1411,67 +1472,51 @@ const persistedCollectionUtils = <
 		},
 		replaceRows(predicate, rows) {
 			utils.dataUpdatedAt = Date.now()
-			if (replaceRows === undefined)
-				pendingReplacements.push({
+			if (writeRows === undefined || replaceRows === undefined)
+				pendingMutations.push({
+					kind: 'replace',
 					predicate,
 					rows,
 				})
 			else
 				replaceRows(predicate, rows)
 		},
-		replaceRowsWithAuthority(predicate, rows, selectorKey, authorityKey, resolution) {
+		replaceRowsWithAuthority(predicate, rows, selectorKey, authorityKey, resolution, onApplied) {
 			utils.dataUpdatedAt = Date.now()
-			const authority = {
-				selectorKey,
-				authorityKey,
-				resolution,
-			} as const
-			if (replaceRows === undefined)
-				pendingReplacements.push({
-					predicate,
-					rows,
-					authority,
-				})
-			else
-				replaceRows(
-					predicate,
-					rows,
-					authority
-				)
-			if (replaceRows !== undefined)
-				for (const subscriber of localMutationAuthoritySubscribers)
-					subscriber()
+			return applyOrQueueMutation({
+				kind: 'replace',
+				predicate,
+				rows,
+				authority: {
+					selectorKey,
+					authorityKey,
+					resolution,
+				},
+				onApplied,
+			})
 		},
 		writeUpsert(row) {
 			utils.dataUpdatedAt = Date.now()
-			if (writeRows === undefined)
-				pendingWrites.push({
+			if (writeRows === undefined || replaceRows === undefined)
+				pendingMutations.push({
+					kind: 'write',
 					rows: Array.isArray(row) ? row : [row],
 				})
 			else
 				writeRows(Array.isArray(row) ? row : [row])
 		},
-		writeUpsertWithAuthority(row, selectorKey, authorityKey, resolution) {
+		writeUpsertWithAuthority(row, selectorKey, authorityKey, resolution, onApplied) {
 			utils.dataUpdatedAt = Date.now()
-			const rows = Array.isArray(row) ? row : [row]
-			const authority = {
-				selectorKey,
-				authorityKey,
-				resolution,
-			} as const
-			if (writeRows === undefined)
-				pendingWrites.push({
-					rows,
-					authority,
-				})
-			else
-				writeRows(
-					rows,
-					authority
-				)
-			if (writeRows !== undefined)
-				for (const subscriber of localMutationAuthoritySubscribers)
-					subscriber()
+			return applyOrQueueMutation({
+				kind: 'write',
+				rows: Array.isArray(row) ? row : [row],
+				authority: {
+					selectorKey,
+					authorityKey,
+					resolution,
+				},
+				onApplied,
+			})
 		},
 		deleteSelectorRowsAndAuthority(predicate, selectorKey) {
 			utils.dataUpdatedAt = Date.now()
@@ -1479,8 +1524,9 @@ const persistedCollectionUtils = <
 				selectorKey,
 				clearSelector: true,
 			} as const
-			if (replaceRows === undefined)
-				pendingReplacements.push({
+			if (writeRows === undefined || replaceRows === undefined)
+				pendingMutations.push({
+					kind: 'replace',
 					predicate,
 					rows: [],
 					authority,
@@ -1491,7 +1537,7 @@ const persistedCollectionUtils = <
 					[],
 					authority
 				)
-			if (replaceRows !== undefined)
+			if (writeRows !== undefined && replaceRows !== undefined)
 				for (const subscriber of localMutationAuthoritySubscribers)
 					subscriber()
 		},
@@ -1522,13 +1568,7 @@ const persistedCollectionUtils = <
 			authority?: LocalMutationAuthorityChange
 		) => void) {
 			writeRows = nextWriteRows
-			for (const pendingWrite of pendingWrites) {
-				writeRows(pendingWrite.rows, pendingWrite.authority)
-				if (pendingWrite.authority !== undefined)
-					for (const subscriber of localMutationAuthoritySubscribers)
-						subscriber()
-			}
-			pendingWrites = []
+			flushPendingMutations()
 		},
 		setReplaceRows(nextReplaceRows: (
 			predicate: (row: _Row) => boolean,
@@ -1536,17 +1576,7 @@ const persistedCollectionUtils = <
 			authority?: LocalMutationAuthorityChange
 		) => void) {
 			replaceRows = nextReplaceRows
-			for (const pendingReplacement of pendingReplacements) {
-				replaceRows(
-					pendingReplacement.predicate,
-					pendingReplacement.rows,
-					pendingReplacement.authority
-				)
-				if (pendingReplacement.authority !== undefined)
-					for (const subscriber of localMutationAuthoritySubscribers)
-						subscriber()
-			}
-			pendingReplacements = []
+			flushPendingMutations()
 		},
 		setRefreshRows(nextRefreshRows: () => void) {
 			refreshRows = nextRefreshRows
@@ -3573,10 +3603,14 @@ export const client = <
 	sourceProviders: readonly SourceProviderDefinition<_SourceProvider, _Source>[]
 }) => ({
 	resolvers,
-	env,
+	sourceIndex,
 }: {
 	resolvers: readonly SourceResolverModule<_Schema, _Source, ResolverContext>[]
-	env: Record<string, string | undefined>
+	sourceIndex: {
+		enabledBindingIds: ReadonlySet<string>
+		resolverPublicEnvBySource: ReadonlyMap<_Source, SourcePublicEnv>
+		enabledSources: ReadonlySet<_Source>
+	}
 }) => ({
 	queryClient,
 	persistence,
@@ -3596,12 +3630,10 @@ export const client = <
 		return context
 	}
 	const {
+		enabledBindingIds,
 		enabledSources,
 		resolverPublicEnvBySource,
-	} = indexSourceProviders(
-		sourceProviders,
-		env
-	)
+	} = sourceIndex
 	const {
 		resolverIndexes,
 	} = indexResolvers(
@@ -3613,7 +3645,8 @@ export const client = <
 		sourceProviders.flatMap((sourceProvider) => Object.values<
 			| readonly SourceBinding[]
 			| undefined
-		>(sourceProvider.bindings ?? {}).flatMap((bindings) => bindings ?? [])),
+		>(sourceProvider.bindings).flatMap((bindings) => bindings ?? []))
+			.filter((sourceBinding) => enabledBindingIds.has(sourceBindingId(sourceBinding))),
 		(sourceBinding) => String(sourceBinding.source)
 	)
 	for (const liveSource of new Set([

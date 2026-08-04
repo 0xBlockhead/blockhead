@@ -62,7 +62,14 @@ import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviders } from '$/sources/index.ts'
+import {
+	sourceBindings,
+	sourceProviders,
+} from '$/sources/index.ts'
+import {
+	sourceBindingId,
+	SourceDelivery,
+} from '$/sources/SourceBinding.ts'
 
 
 const clientDirectory = resolve(
@@ -79,6 +86,12 @@ const source = (
 	),
 	'utf8'
 )
+
+const testSourceIndex = <const _Source extends string>(sources: readonly _Source[]) => ({
+	enabledBindingIds: new Set<string>(),
+	enabledSources: new Set(sources),
+	resolverPublicEnvBySource: new Map(sources.map((source) => [source, {}])),
+})
 
 const materializationFixtureSchema = [
 	entity({
@@ -208,6 +221,8 @@ describe('client resolver stack architecture', () => {
 		)
 
 		expect(source('$client.svelte.ts')).not.toMatch(/__blockhead|PersistenceTrace|trace:/)
+		expect(source('$client.svelte.ts')).not.toMatch(/\bindexSourceProviders\b/)
+		expect(source('$client.svelte.ts')).toMatch(/enabledBindingIds\.has\(sourceBindingId\(sourceBinding\)\)/)
 		expect(source('$subscribe.svelte.ts')).not.toMatch(/__blockhead|PersistenceTrace|trace:/)
 		expect(productionLayoutSource).not.toMatch(/\$e2eProbe|E2E|__blockhead/)
 		expect(productionLayoutSource).toMatch(/openBrowserWASQLiteOPFSDatabase/)
@@ -221,7 +236,10 @@ describe('client resolver stack architecture', () => {
 		expect(productionLayoutSource).toMatch(/export const getAppClient = \(\) => \{[\s\S]*?if \(appClient == null\)[\s\S]*?throw new Error\('App client was read before bootstrap completed'\)[\s\S]*?return appClient/)
 		expect(productionLayoutSource).not.toMatch(/export (?:const|let) appClient/)
 		expect(productionLayoutSource).not.toMatch(/bootstrap\.then\([\s\S]*?\.catch\(\(\) => \{\}\)/)
-		expect(productionLayoutSource).toMatch(/loadResolvers\(indexSourceProviders\(sourceProviders, env\)\.enabledSources\)/)
+		expect(productionLayoutSource).toMatch(/sourceRuntimeCapabilities\(\)[\s\S]*?const sourceIndex = indexSourceProviders\(/)
+		expect(productionLayoutSource.match(/\bindexSourceProviders\(/g)).toHaveLength(1)
+		expect(productionLayoutSource).toMatch(/resolvers: await loadResolvers\(sourceIndex\.enabledSources\)/)
+		expect(productionLayoutSource).toMatch(/\bsourceIndex,\n\s*\}/)
 		expect(productionLayoutSource).toMatch(/const bootstrap = Promise\.all\(\[/)
 		expect(productionLayoutSource).toMatch(/export const select: AppClient\['select'\] = \(\.\.\.parameters\) => getAppClient\(\)\.select\(\.\.\.parameters\)/)
 		expect(productionLayoutSource).toMatch(/<ApplicationBootstrap[\s\S]*?ready=\{applicationRuntime\.ready\}[\s\S]*?\{children\}[\s\S]*?\/>/)
@@ -229,6 +247,59 @@ describe('client resolver stack architecture', () => {
 		expect(applicationBootstrapSource).toMatch(/\{#await ready\}[\s\S]*?Loading\.\.\.[\s\S]*?\{:then\}[\s\S]*?\{@render children\(\)\}[\s\S]*?\{:catch error\}/)
 		expect(applicationBootstrapSource).toMatch(/boundaryKey="ApplicationBootstrap"[\s\S]*?failure=\{\{[\s\S]*?error,/)
 		expect(productionLayoutSource).not.toMatch(/temporary|inMemory|memoryPersistence|installAppClientProbe/)
+	})
+
+	it('validates live resolvers against enabled bindings only', () => {
+		const dydxHttpBinding = sourceBindings.find((binding) => (
+			binding.source === Source.DydxIndexer
+			&& binding.delivery === SourceDelivery.HttpProxy
+		))
+		if (dydxHttpBinding == null)
+			throw new Error('dYdX HTTP binding missing')
+
+		expect(() => client({
+			schema: materializationFixtureSchema,
+			sourceProviders,
+		})({
+			resolvers: [{
+				source: Source.DydxIndexer,
+				resolvers: [{
+					entityType: 'MaterializationParent',
+					resolve: {
+						Slug: {
+							resolve: async () => ({}),
+						},
+					},
+					resolveLive: {
+						converted: {
+							facetPath: [],
+							publishes: {
+								converted: true,
+							},
+							start: () => () => {},
+						},
+					},
+					projections: {
+						converted: () => 1n,
+					},
+				}],
+			}],
+			sourceIndex: {
+				enabledBindingIds: new Set([sourceBindingId(dydxHttpBinding)]),
+				enabledSources: new Set([Source.DydxIndexer]),
+				resolverPublicEnvBySource: new Map([[Source.DydxIndexer, {}]]),
+			},
+		})({
+			queryClient: new QueryClient(),
+			persistence: {
+				adapter: {
+					applyCommittedTx: async () => {},
+					ensureIndex: async () => {},
+					loadSubset: async () => [],
+				},
+			},
+			schemaVersion: 1,
+		})).toThrow('DydxIndexer declares resolveLive without a RemoteLive source binding')
 	})
 
 	it('serializes persisted collection commits before reporting durability', async () => {
@@ -690,6 +761,7 @@ describe('client resolver stack architecture', () => {
 					label: 'Source B',
 				},
 			},
+			bindings: {},
 		}] as const
 		let sourceAValues = ['a']
 		let sourceACount = 1
@@ -801,7 +873,7 @@ describe('client resolver stack architecture', () => {
 			sourceProviders,
 		})({
 			resolvers,
-			env: {},
+			sourceIndex: testSourceIndex(['source-a', 'source-b']),
 		})({
 			queryClient: new QueryClient(),
 			persistence,
@@ -1801,6 +1873,7 @@ describe('client resolver stack architecture', () => {
 						label: 'Continuation source',
 					},
 				},
+				bindings: {},
 			}],
 		})({
 			resolvers: [{
@@ -1864,7 +1937,7 @@ describe('client resolver stack architecture', () => {
 					},
 				}],
 			}] satisfies SourceResolverModule<typeof fixtureSchema, 'continuation-source', ResolverContext>[],
-			env: {},
+			sourceIndex: testSourceIndex(['continuation-source']),
 		})({
 			queryClient: new QueryClient(),
 			persistence: {
@@ -2196,6 +2269,7 @@ describe('client resolver stack architecture', () => {
 						label: 'Selection fixture',
 					},
 				},
+				bindings: {},
 			}],
 		})({
 			resolvers: [{
@@ -2260,7 +2334,7 @@ describe('client resolver stack architecture', () => {
 					},
 				],
 			}],
-			env: {},
+			sourceIndex: testSourceIndex(['selection-fixture']),
 		})({
 			queryClient: new QueryClient(),
 			persistence: {
@@ -2512,7 +2586,7 @@ describe('client resolver stack architecture', () => {
 			sourceProviders,
 		})({
 			resolvers,
-			env: {},
+			sourceIndex: testSourceIndex(resolvers.map(({ source }) => source)),
 		})({
 			queryClient: new QueryClient(),
 			persistence,
@@ -2711,6 +2785,7 @@ describe('client resolver stack architecture', () => {
 						label: 'Facet source',
 					},
 				},
+				bindings: {},
 			}],
 		})({
 			resolvers: [
@@ -2727,7 +2802,11 @@ describe('client resolver stack architecture', () => {
 					resolvers: [resolvers[2]],
 				},
 			],
-			env: {},
+			sourceIndex: testSourceIndex([
+				'facet-source',
+				'identity-source',
+				'unrelated-source',
+			]),
 		})({
 			queryClient: new QueryClient(),
 			persistence: {
@@ -2862,6 +2941,7 @@ describe('client resolver stack architecture', () => {
 						label: 'Identity source',
 					},
 				},
+				bindings: {},
 			}],
 		})({
 			resolvers: [{
@@ -2894,7 +2974,7 @@ describe('client resolver stack architecture', () => {
 					},
 				}],
 			}],
-			env: {},
+			sourceIndex: testSourceIndex(['identity-source']),
 		})({
 			queryClient: new QueryClient(),
 			persistence,
@@ -3092,6 +3172,7 @@ describe('client resolver stack architecture', () => {
 						label: 'Source A',
 					},
 				},
+				bindings: {},
 			}],
 		})({
 			resolvers: [{
@@ -3139,7 +3220,7 @@ describe('client resolver stack architecture', () => {
 					},
 				}],
 			}],
-			env: {},
+			sourceIndex: testSourceIndex(['source-a']),
 		})({
 			queryClient: new QueryClient(),
 			persistence: {
@@ -3309,6 +3390,7 @@ describe('client resolver stack architecture', () => {
 						label: 'Source B',
 					},
 				},
+				bindings: {},
 			}],
 		})({
 			resolvers: [
@@ -3321,7 +3403,7 @@ describe('client resolver stack architecture', () => {
 					'b-only',
 				]),
 			],
-			env: {},
+			sourceIndex: testSourceIndex(['source-a', 'source-b']),
 		})({
 			queryClient: new QueryClient(),
 			persistence: {
@@ -3569,13 +3651,14 @@ describe('client resolver stack architecture', () => {
 						label: 'Source B',
 					},
 				},
+				bindings: {},
 			}],
 		})({
 			resolvers: [
 				resolverModule('source-a', 5),
 				resolverModule('source-b', 7),
 			],
-			env: {},
+			sourceIndex: testSourceIndex(['source-a', 'source-b']),
 		})({
 			queryClient: new QueryClient(),
 			persistence: {
@@ -3771,6 +3854,7 @@ describe('client resolver stack architecture', () => {
 						label: 'Live source',
 					},
 				},
+				bindings: {},
 			}],
 		})({
 			resolvers: [{
@@ -3834,7 +3918,7 @@ describe('client resolver stack architecture', () => {
 					},
 				}],
 			}],
-			env: {},
+			sourceIndex: testSourceIndex(['live-source']),
 		})({
 			queryClient: new QueryClient(),
 			persistence: {
@@ -4003,6 +4087,7 @@ describe('client resolver stack architecture', () => {
 						label: 'Constants',
 					},
 				},
+				bindings: {},
 			}],
 		})({
 			resolvers: [{
@@ -4058,12 +4143,270 @@ describe('client resolver stack architecture', () => {
 					},
 				}],
 			}],
-			env: {},
+			sourceIndex: testSourceIndex([
+				Source.Constants_Internal,
+				Source.Local_Internal,
+			]),
 		})({
 			queryClient: new QueryClient(),
 			persistence,
 			schemaVersion: 1,
 		})
+		const queuedContext = createContext()
+		const queuedFirstSelector = {
+			slug: 'queued-first',
+		}
+		const queuedReplacementSelector = {
+			slug: 'queued-replacement',
+		}
+		const queuedSecondSelector = {
+			slug: 'queued-second',
+		}
+		const queuedFirstSelectorKey = stringify(queuedFirstSelector)
+		const queuedReplacementSelectorKey = stringify(queuedReplacementSelector)
+		const queuedSecondSelectorKey = stringify(queuedSecondSelector)
+		const appliedMutations: string[] = []
+		const queuedMutationApplications = [
+			queuedContext.entityCollections.LocalAuthorityFixture.utils.writeUpsertWithAuthority(
+				{
+					[EntityMetaKey.Selector]: queuedFirstSelector,
+					[EntityMetaKey.SelectorKey]: queuedFirstSelectorKey,
+					[EntityMetaKey.Source]: Source.Local_Internal,
+				},
+				queuedFirstSelectorKey,
+				localMutationAuthorityKey({
+					source: Source.Local_Internal,
+					entityType: 'LocalAuthorityFixture',
+					selectorKey: queuedFirstSelectorKey,
+				}),
+				'present',
+				() => {
+					appliedMutations.push('add')
+				}
+			),
+			queuedContext.entityCollections.LocalAuthorityFixture.utils.replaceRowsWithAuthority(
+				(row) => row[EntityMetaKey.SelectorKey] === queuedFirstSelectorKey,
+				[],
+				queuedFirstSelectorKey,
+				localMutationAuthorityKey({
+					source: Source.Local_Internal,
+					entityType: 'LocalAuthorityFixture',
+					selectorKey: queuedFirstSelectorKey,
+				}),
+				'deleted',
+				() => {
+					appliedMutations.push('delete')
+				}
+			),
+			queuedContext.entityCollections.LocalAuthorityFixture.utils.replaceRowsWithAuthority(
+				(row) => row[EntityMetaKey.Source] === Source.Local_Internal,
+				[{
+					[EntityMetaKey.Selector]: queuedReplacementSelector,
+					[EntityMetaKey.SelectorKey]: queuedReplacementSelectorKey,
+					[EntityMetaKey.Source]: Source.Local_Internal,
+				}],
+				queuedReplacementSelectorKey,
+				localMutationAuthorityKey({
+					source: Source.Local_Internal,
+					entityType: 'LocalAuthorityFixture',
+					selectorKey: queuedReplacementSelectorKey,
+				}),
+				'present',
+				() => {
+					appliedMutations.push('replace')
+				}
+			),
+			queuedContext.entityCollections.LocalAuthorityFixture.utils.writeUpsertWithAuthority(
+				{
+					[EntityMetaKey.Selector]: queuedSecondSelector,
+					[EntityMetaKey.SelectorKey]: queuedSecondSelectorKey,
+					[EntityMetaKey.Source]: Source.Local_Internal,
+				},
+				queuedSecondSelectorKey,
+				localMutationAuthorityKey({
+					source: Source.Local_Internal,
+					entityType: 'LocalAuthorityFixture',
+					selectorKey: queuedSecondSelectorKey,
+				}),
+				'present',
+				() => {
+					appliedMutations.push('second add')
+				}
+			),
+		]
+		expect(queuedContext.entityCollections.LocalAuthorityFixture.toArray).toEqual([])
+		expect(appliedMutations).toEqual([])
+		queuedContext.entityCollections.LocalAuthorityFixture.startSyncImmediate()
+		await Promise.all(queuedMutationApplications)
+		expect(appliedMutations).toEqual([
+			'add',
+			'delete',
+			'replace',
+			'second add',
+		])
+		expect(queuedContext.entityCollections.LocalAuthorityFixture.toArray.map((row) => (
+			row[EntityMetaKey.SelectorKey]
+		))).toEqual([
+			queuedReplacementSelectorKey,
+			queuedSecondSelectorKey,
+		])
+
+		const queuedRelationshipContext = createContext()
+		const queuedRelationshipSelector = {
+			slug: 'queued-relationship',
+		}
+		const queuedRelationshipSelectorKey = stringify(queuedRelationshipSelector)
+		const queuedItemsFieldAddressKey = entityFieldAddressKey('LocalAuthorityFixture', [], 'items')
+		const queuedItemsCollection = queuedRelationshipContext.entityFieldCollections.LocalAuthorityFixture[
+			queuedItemsFieldAddressKey
+		]
+		const queuedItemsCountCollection = queuedRelationshipContext.entityFieldCountCollections.LocalAuthorityFixture[
+			queuedItemsFieldAddressKey
+		]
+		if (queuedItemsCountCollection === undefined)
+			throw new Error('LocalAuthorityFixture.items count collection missing')
+
+		const queuedCountApplications: number[] = []
+		const applyQueuedCount = () => {
+			const count = new Set(queuedItemsCollection.toArray.map((row) => row.valueKey)).size
+			return queuedItemsCountCollection.utils.writeUpsertWithAuthority({
+				facetPath: [],
+				facetPathKey: stringify([]),
+				fieldName: 'items',
+				filterKey: stringify({}),
+				[EntityMetaKey.ParentSelector]: queuedRelationshipSelector,
+				[EntityMetaKey.ParentSelectorKey]: queuedRelationshipSelectorKey,
+				[EntityMetaKey.Source]: Source.Local_Internal,
+				[EntityMetaKey.Value]: count,
+			},
+				queuedRelationshipSelectorKey,
+				localMutationAuthorityKey({
+					source: Source.Local_Internal,
+					entityType: 'LocalAuthorityFixture',
+					selectorKey: queuedRelationshipSelectorKey,
+					fieldName: 'items',
+					fieldAddressKey: queuedItemsFieldAddressKey,
+					facetPathKey: stringify([]),
+					filterKey: stringify({}),
+				}),
+				'resolved',
+				() => {
+					queuedCountApplications.push(count)
+				}
+			)
+		}
+		const queuedRelationshipApplications = [
+			queuedItemsCollection.utils.writeUpsertWithAuthority({
+				facetPath: [],
+				facetPathKey: stringify([]),
+				fieldName: 'items',
+				[EntityMetaKey.ParentSelector]: queuedRelationshipSelector,
+				[EntityMetaKey.ParentSelectorKey]: queuedRelationshipSelectorKey,
+				[EntityMetaKey.Source]: Source.Local_Internal,
+				[EntityMetaKey.Value]: 'queued item',
+				valueIndex: 0,
+				valueKey: `Value:${stringify('queued item')}`,
+			},
+				queuedRelationshipSelectorKey,
+				localMutationAuthorityKey({
+					source: Source.Local_Internal,
+					entityType: 'LocalAuthorityFixture',
+					selectorKey: queuedRelationshipSelectorKey,
+					fieldName: 'items',
+					fieldAddressKey: queuedItemsFieldAddressKey,
+					facetPathKey: stringify([]),
+					valueKey: `Value:${stringify('queued item')}`,
+				}),
+				'present',
+				applyQueuedCount
+			),
+			queuedItemsCollection.utils.replaceRowsWithAuthority(
+				(row) => row[EntityMetaKey.ParentSelectorKey] === queuedRelationshipSelectorKey,
+				[],
+				queuedRelationshipSelectorKey,
+				localMutationAuthorityKey({
+					source: Source.Local_Internal,
+					entityType: 'LocalAuthorityFixture',
+					selectorKey: queuedRelationshipSelectorKey,
+					fieldName: 'items',
+					fieldAddressKey: queuedItemsFieldAddressKey,
+					facetPathKey: stringify([]),
+				}),
+				'resolved',
+				applyQueuedCount
+			),
+		]
+		queuedItemsCollection.startSyncImmediate()
+		expect(queuedItemsCollection.toArray).toEqual([])
+		expect(queuedItemsCountCollection.toArray).toEqual([])
+		queuedItemsCountCollection.startSyncImmediate()
+		await Promise.all(queuedRelationshipApplications)
+		expect(queuedCountApplications).toEqual([
+			1,
+			0,
+		])
+		expect(queuedItemsCountCollection.toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 0,
+			}),
+		])
+
+		const rejectedContext = createContext()
+		const rejectedSelector = {
+			slug: 'rejected',
+		}
+		const rejectedFollowerSelector = {
+			slug: 'rejected-follower',
+		}
+		const rejectedSelectorKey = stringify(rejectedSelector)
+		const rejectedFollowerSelectorKey = stringify(rejectedFollowerSelector)
+		const rejectedMutation = rejectedContext.entityCollections.LocalAuthorityFixture.utils.writeUpsertWithAuthority(
+			{
+				[EntityMetaKey.Selector]: rejectedSelector,
+				[EntityMetaKey.SelectorKey]: rejectedSelectorKey,
+				[EntityMetaKey.Source]: Source.Local_Internal,
+			},
+			rejectedSelectorKey,
+			localMutationAuthorityKey({
+				source: Source.Local_Internal,
+				entityType: 'LocalAuthorityFixture',
+				selectorKey: rejectedSelectorKey,
+			}),
+			'present',
+			() => {
+				throw new Error('queued application failed')
+			}
+		)
+		const rejectedFollowerMutation = rejectedContext.entityCollections.LocalAuthorityFixture.utils.writeUpsertWithAuthority(
+			{
+				[EntityMetaKey.Selector]: rejectedFollowerSelector,
+				[EntityMetaKey.SelectorKey]: rejectedFollowerSelectorKey,
+				[EntityMetaKey.Source]: Source.Local_Internal,
+			},
+			rejectedFollowerSelectorKey,
+			localMutationAuthorityKey({
+				source: Source.Local_Internal,
+				entityType: 'LocalAuthorityFixture',
+				selectorKey: rejectedFollowerSelectorKey,
+			}),
+			'present'
+		)
+		const rejectedMutationError = rejectedMutation.catch((error) => error)
+		const rejectedFollowerMutationError = rejectedFollowerMutation.catch((error) => error)
+		rejectedContext.entityCollections.LocalAuthorityFixture.startSyncImmediate()
+		expect(await rejectedMutationError).toEqual(new Error('queued application failed'))
+		expect(await rejectedFollowerMutationError).toEqual(new Error('queued application failed'))
+		expect(rejectedContext.entityCollections.LocalAuthorityFixture.toArray.map((row) => (
+			row[EntityMetaKey.SelectorKey]
+		))).toEqual([
+			rejectedSelectorKey,
+		])
+		rejectedContext.entityCollections.LocalAuthorityFixture.utils.deleteSelectorRowsAndAuthority(
+			(row) => row[EntityMetaKey.SelectorKey] === rejectedSelectorKey,
+			rejectedSelectorKey
+		)
+		await rejectedContext.entityCollections.LocalAuthorityFixture.utils.waitForPersistence()
+
 		const preSyncContext = createContext()
 		const preSyncEntitySelector = {
 			slug: 'pre-sync',
@@ -4087,7 +4430,7 @@ describe('client resolver stack architecture', () => {
 		await preSyncContext.entityCollections.LocalAuthorityFixture.utils.waitForPersistence()
 		expect(collectionRowsByCollectionId.get(
 			preSyncContext.entityCollections.LocalAuthorityFixture.id
-		)?.size).toBe(1)
+		)?.size).toBe(3)
 
 		const context = createContext()
 		const entitySelector = {

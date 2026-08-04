@@ -117,6 +117,12 @@ const fixtureSchema = [
 	}),
 ] as const
 
+const testSourceIndex = <const _Source extends string>(sources: readonly _Source[]) => ({
+	enabledBindingIds: new Set<string>(),
+	enabledSources: new Set(sources),
+	resolverPublicEnvBySource: new Map(sources.map((source) => [source, {}])),
+})
+
 
 describe('source applicability planning contract', () => {
 	it('non-Superchain EIP-155 networks exclude Superchain', () => {
@@ -272,6 +278,7 @@ describe('source applicability planning contract', () => {
 							label: 'Included',
 						},
 					},
+					bindings: {},
 				},
 				{
 					provider: 'Excluded',
@@ -281,6 +288,7 @@ describe('source applicability planning contract', () => {
 							label: 'Excluded',
 						},
 					},
+					bindings: {},
 				},
 			],
 		})({
@@ -342,7 +350,7 @@ describe('source applicability planning contract', () => {
 					}],
 				},
 			],
-			env: {},
+			sourceIndex: testSourceIndex(['Included', 'Excluded']),
 		})({
 			queryClient: new QueryClient(),
 			persistence: {
@@ -427,6 +435,7 @@ describe('source applicability planning contract', () => {
 						label: 'Restricted',
 					},
 				},
+				bindings: {},
 			}],
 		})({
 			resolvers: [{
@@ -450,7 +459,7 @@ describe('source applicability planning contract', () => {
 					},
 				}],
 			}],
-			env: {},
+			sourceIndex: testSourceIndex(['Restricted']),
 		})({
 			queryClient: new QueryClient(),
 			persistence,
