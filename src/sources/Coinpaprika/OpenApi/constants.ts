@@ -59,15 +59,16 @@ export const coinpaprikaMarketVenueIdByHostnameFragment = [
 /** Coinpaprika `GET /exchanges/{exchange_id}/markets` wire id per catalog venue. */
 export const coinpaprikaExchangeIdByMarketVenueId = {
 	[MarketVenueId.Binance]: 'binance',
-	[MarketVenueId.Coinbase]: 'gdax',
+	[MarketVenueId.Coinbase]: 'coinbase',
 	[MarketVenueId.Kraken]: 'kraken',
 	[MarketVenueId.Kucoin]: 'kucoin',
-	[MarketVenueId.Okx]: 'okex',
+	[MarketVenueId.Okx]: 'okx',
 	[MarketVenueId.Deribit]: 'deribit',
 } as const satisfies Partial<Record<MarketVenueId, string>>
 
 /** Quote wire ids treated as USD legs for catalog markets. */
 export const coinpaprikaUsdQuoteWireIds = [
+	'usd-us-dollars',
 	'usdt-tether',
 	'usdc-usd-coin',
 	'busd-binance-usd',

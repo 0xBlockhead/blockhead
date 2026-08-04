@@ -37,7 +37,7 @@ const binding = bindings[Source.Hyperliquid].find(
 )
 
 if (binding == null)
-	throw new Error('Hyperliquid Info binding is missing')
+	throw new Error('Hyperliquid_Rest: Info binding is missing')
 
 const account = {
 	$network: {

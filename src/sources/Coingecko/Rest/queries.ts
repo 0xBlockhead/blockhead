@@ -25,14 +25,21 @@ import type {
 	GetCoingeckoSimplePriceArgs,
 } from '$/sources/Coingecko/Rest/types.ts'
 
+const assertNonemptyPathId = (
+	id: string,
+	label: string
+) => {
+	if (id === '')
+		throw new Error(`Coingecko_Rest: invalid ${label}`)
+}
+
 /** `GET /coins/{id}` — coin metadata and current market data. */
 export const getCoin = async ({
 	publicEnv,
 	id,
 	...query
 }: GetCoingeckoCoinArgs) => {
-	if (id === '')
-		return undefined
+	assertNonemptyPathId(id, 'coin id')
 
 	const searchParams = new URLSearchParams()
 	for (const [name, value] of Object.entries({
@@ -55,7 +62,7 @@ export const getCoin = async ({
 	if (response.status === 404)
 		return undefined
 	if (!response.ok)
-		await throwHttpError(`CoinGecko /coins/${id}`, response)
+		await throwHttpError(`Coingecko_Rest`, response)
 
 	return response.json<CoingeckoCoin>()
 }
@@ -66,8 +73,8 @@ export const getCoinByContract = async ({
 	id,
 	contract_address,
 }: GetCoingeckoCoinByContractArgs) => {
-	if (id === '' || contract_address === '')
-		return undefined
+	assertNonemptyPathId(id, 'asset platform id')
+	assertNonemptyPathId(contract_address, 'contract address')
 
 	const response = await coingeckoFetch(
 		publicEnv,
@@ -77,10 +84,7 @@ export const getCoinByContract = async ({
 	if (response.status === 404)
 		return undefined
 	if (!response.ok)
-		await throwHttpError(
-			`CoinGecko /coins/${id}/contract/${contract_address}`,
-			response
-		)
+		await throwHttpError(`Coingecko_Rest`, response)
 
 	return response.json<CoingeckoCoinByContract>()
 }
@@ -100,7 +104,7 @@ export const getAssetPlatforms = async ({
 	)
 
 	if (!response.ok)
-		await throwHttpError('CoinGecko /asset_platforms', response)
+		await throwHttpError('Coingecko_Rest', response)
 
 	return response.json<CoingeckoAssetPlatform[]>()
 }
@@ -121,7 +125,7 @@ export const getCoinsMarkets = async ({
 	)
 
 	if (!response.ok)
-		await throwHttpError('CoinGecko /coins/markets', response)
+		await throwHttpError('Coingecko_Rest', response)
 
 	return response.json<CoingeckoCoinsMarket[]>()
 }
@@ -133,8 +137,7 @@ export const getCoinOhlc = async ({
 	days,
 	...query
 }: GetCoingeckoCoinOhlcArgs) => {
-	if (id === '')
-		return []
+	assertNonemptyPathId(id, 'coin id')
 
 	const searchParams = new URLSearchParams()
 	for (const [name, value] of Object.entries({
@@ -149,10 +152,8 @@ export const getCoinOhlc = async ({
 		`/coins/${encodeURIComponent(id)}/ohlc?${searchParams}`
 	)
 
-	if (response.status === 404)
-		return []
 	if (!response.ok)
-		await throwHttpError(`CoinGecko /coins/${id}/ohlc`, response)
+		await throwHttpError(`Coingecko_Rest`, response)
 
 	return response.json<CoingeckoOhlc>()
 }
@@ -163,8 +164,7 @@ export const getCoinTickers = async ({
 	id,
 	...query
 }: GetCoingeckoCoinTickersArgs) => {
-	if (id === '')
-		return undefined
+	assertNonemptyPathId(id, 'coin id')
 
 	const searchParams = new URLSearchParams()
 	for (const [name, value] of Object.entries(query))
@@ -179,7 +179,7 @@ export const getCoinTickers = async ({
 	if (response.status === 404)
 		return undefined
 	if (!response.ok)
-		await throwHttpError(`CoinGecko /coins/${id}/tickers`, response)
+		await throwHttpError(`Coingecko_Rest`, response)
 
 	return response.json<CoingeckoCoinTickers>()
 }
@@ -190,8 +190,7 @@ export const getDerivativesExchange = async ({
 	id,
 	include_tickers = 'unexpired',
 }: GetCoingeckoDerivativesExchangeArgs) => {
-	if (id === '')
-		return undefined
+	assertNonemptyPathId(id, 'derivatives exchange id')
 
 	const response = await coingeckoFetch(
 		publicEnv,
@@ -201,7 +200,7 @@ export const getDerivativesExchange = async ({
 	if (response.status === 404)
 		return undefined
 	if (!response.ok)
-		await throwHttpError(`CoinGecko /derivatives/exchanges/${id}`, response)
+		await throwHttpError(`Coingecko_Rest`, response)
 
 	return response.json<CoingeckoDerivativesExchange>()
 }
@@ -222,7 +221,7 @@ export const getSimplePrice = async ({
 	)
 
 	if (!response.ok)
-		await throwHttpError('CoinGecko /simple/price', response)
+		await throwHttpError('Coingecko_Rest', response)
 
 	return response.json<CoingeckoSimplePrice>()
 }

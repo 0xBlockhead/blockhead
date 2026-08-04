@@ -20,12 +20,12 @@ type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertHyperliquidMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug.hyperliquid.slug)
-		throw new Error('Hyperliquid Info: unsupported network')
+		throw new Error('Hyperliquid_Rest: unsupported network')
 }
 
 const assertHyperliquidAddress = (address: string) => {
 	if (!/^0x[0-9a-fA-F]{40}$/.test(address))
-		throw new Error(`Hyperliquid Info: invalid account address ${address}`)
+		throw new Error(`Hyperliquid_Rest: invalid account address ${address}`)
 }
 
 const assertSafeWireInteger = (
@@ -33,7 +33,7 @@ const assertSafeWireInteger = (
 	label: string
 ) => {
 	if (!Number.isSafeInteger(value) || value < 0)
-		throw new Error(`Hyperliquid Info: invalid ${label} ${String(value)}`)
+		throw new Error(`Hyperliquid_Rest: invalid ${label} ${String(value)}`)
 
 	return BigInt(value)
 }
@@ -74,7 +74,7 @@ const hyperliquidCandleInterval = (
 		&& interval !== '1w'
 		&& interval !== '1M'
 	)
-		throw new Error(`Hyperliquid Info: unsupported candle interval ${interval}`)
+		throw new Error(`Hyperliquid_Rest: unsupported candle interval ${interval}`)
 
 	return interval
 }
@@ -104,7 +104,7 @@ const resolveHyperliquidNetworkMetadata = async (
 		}),
 	])
 	if (liquidityProviderVault == null)
-		throw new Error('Hyperliquid Info: liquidity provider vault not found')
+		throw new Error('Hyperliquid_Rest: liquidity provider vault not found')
 
 	const vaultAddresses = [
 		liquidityProviderVault.vaultAddress,
@@ -136,6 +136,7 @@ const resolveHyperliquidNetworkMetadata = async (
 					(totalStake, validator) => totalStake + BigInt(validator.stake),
 					0n
 				),
+				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'vaultCount')]: vaultAddresses.length,
 			},
 		}],
 		$$validators: validators
@@ -246,7 +247,7 @@ export default {
 						for (const equity of equities) {
 							assertHyperliquidAddress(equity.vaultAddress)
 							if (vaultAddresses.has(equity.vaultAddress.toLowerCase()))
-								throw new Error(`Hyperliquid Info: duplicate vault equity ${equity.vaultAddress}`)
+								throw new Error(`Hyperliquid_Rest: duplicate vault equity ${equity.vaultAddress}`)
 
 							vaultAddresses.add(equity.vaultAddress.toLowerCase())
 						}
@@ -330,7 +331,7 @@ export default {
 						const perpMarket = (await getMeta()).universe
 							.find((market) => market.name === $perpMarket.coin)
 						if (perpMarket == null)
-							throw new Error(`Hyperliquid Info: perp market not found for ${$perpMarket.coin}`)
+							throw new Error(`Hyperliquid_Rest: perp market not found for ${$perpMarket.coin}`)
 						return {
 							maxLeverage: perpMarket.maxLeverage,
 							...(perpMarket.onlyIsolated != null && {
@@ -356,7 +357,7 @@ export default {
 						const spotToken = spotMeta.tokens
 							.find((token) => token.index === assetId)
 						if (spotToken == null)
-							throw new Error(`Hyperliquid Info: spot asset not found for ${String(assetId)}`)
+							throw new Error(`Hyperliquid_Rest: spot asset not found for ${String(assetId)}`)
 						return {
 							name: spotToken.name,
 							szDecimals: spotToken.szDecimals,
@@ -403,7 +404,7 @@ export default {
 						const spotPair = (await getSpotMeta()).universe
 							.find((pair) => pair.index === pairIndex)
 						if (spotPair == null)
-							throw new Error(`Hyperliquid Info: spot pair not found for ${String(pairIndex)}`)
+							throw new Error(`Hyperliquid_Rest: spot pair not found for ${String(pairIndex)}`)
 						return {
 							$baseAsset: {
 								[EntityMetaKey.Selector]: {
@@ -457,7 +458,7 @@ export default {
 							vaultAddress,
 						})
 						if (vault == null)
-							throw new Error(`Hyperliquid Info: vault not found for ${vaultAddress}`)
+							throw new Error(`Hyperliquid_Rest: vault not found for ${vaultAddress}`)
 
 						assertHyperliquidAddress(vault.leader)
 						const timestampMs = Date.now()
@@ -597,7 +598,7 @@ export default {
 						}))
 							.find((candidate) => candidate.t === timestampMs)
 						if (candle == null)
-							throw new Error(`Hyperliquid Info: candle not found for ${marketKey} ${interval} @ ${String(timestampMs)}`)
+							throw new Error(`Hyperliquid_Rest: candle not found for ${marketKey} ${interval} @ ${String(timestampMs)}`)
 						return {
 							open: scaleDecimalString(candle.o),
 							high: scaleDecimalString(candle.h),
@@ -690,7 +691,7 @@ export default {
 							}),
 						])
 						if (!Number.isSafeInteger(clearinghouseState.time) || clearinghouseState.time < 0)
-							throw new Error(`Hyperliquid Info: invalid account state time ${String(clearinghouseState.time)}`)
+							throw new Error(`Hyperliquid_Rest: invalid account state time ${String(clearinghouseState.time)}`)
 
 						if (userRoleWire.role === 'agent')
 							assertHyperliquidAddress(userRoleWire.data.user)
@@ -768,7 +769,7 @@ export default {
 						:
 							Number(context.providerContinuationToken)
 						if (!Number.isSafeInteger(offset) || offset < 0)
-							throw new Error('Hyperliquid Info: invalid order continuation')
+							throw new Error('Hyperliquid_Rest: invalid order continuation')
 
 						const { getHistoricalOrders } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 						const orders = (await getHistoricalOrders({
@@ -784,7 +785,7 @@ export default {
 							assertSafeWireInteger(historicalOrder.order.timestamp, 'order timestamp')
 							assertSafeWireInteger(historicalOrder.statusTimestamp, 'order status timestamp')
 							if (orderIds.has(historicalOrder.order.oid))
-								throw new Error(`Hyperliquid Info: duplicate historical order ${String(historicalOrder.order.oid)}`)
+								throw new Error(`Hyperliquid_Rest: duplicate historical order ${String(historicalOrder.order.oid)}`)
 
 							orderIds.add(historicalOrder.order.oid)
 						}
@@ -879,7 +880,7 @@ export default {
 							|| !Number.isSafeInteger(cursorTid)
 							|| cursorTid < -1
 						)
-							throw new Error('Hyperliquid Info: invalid fill continuation')
+							throw new Error('Hyperliquid_Rest: invalid fill continuation')
 
 						const { getUserFillsByTime } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 						const response = await getUserFillsByTime({
@@ -892,7 +893,7 @@ export default {
 							assertSafeWireInteger(fill.oid, 'fill order id')
 							assertSafeWireInteger(fill.time, 'fill timestamp')
 							if (fillIds.has(fill.tid))
-								throw new Error(`Hyperliquid Info: duplicate fill trade id ${String(fill.tid)}`)
+								throw new Error(`Hyperliquid_Rest: duplicate fill trade id ${String(fill.tid)}`)
 
 							fillIds.add(fill.tid)
 						}
@@ -1000,7 +1001,7 @@ export default {
 						const { getValidatorSummaries } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 						const validator = (await getValidatorSummaries())
 							.find((summary) => summary.validator.toLowerCase() === $validator.validator.toLowerCase())
-						if (validator == null) throw new Error(`Hyperliquid Info: validator not found for ${$validator.validator}`)
+						if (validator == null) throw new Error(`Hyperliquid_Rest: validator not found for ${$validator.validator}`)
 						return {
 							name: validator.name,
 							signerAddress: validator.signer,

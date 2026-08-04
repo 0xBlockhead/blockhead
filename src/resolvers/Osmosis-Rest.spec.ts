@@ -6,6 +6,7 @@ import {
 	vi,
 } from 'vitest'
 
+import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import bindings from '$/sources/Osmosis/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -38,6 +39,30 @@ const context = {
 	publicEnv: {},
 }
 
+const networkRestEndpointsResolver = osmosisRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Cosmos' in resolver.projections
+	&& 'restEndpoints' in resolver.projections.Cosmos
+))
+const networkTimestampsResolver = osmosisRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& '$$timestamps' in resolver.projections
+))
+const networkBlocksResolver = osmosisRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Cosmos' in resolver.projections
+	&& '$$blocks' in resolver.projections.Cosmos
+))
+const timestampResolver = osmosisRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network_Timestamp
+))
+const blockResolver = osmosisRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CosmosBlock
+))
+const denomTraceResolver = osmosisRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.IbcDenomTrace
+))
+
 describe('Osmosis LCD resolver module', () => {
 	beforeEach(() => {
 		sourceGetJson.mockReset()
@@ -49,19 +74,25 @@ describe('Osmosis LCD resolver module', () => {
 		expect(osmosisRest.resolvers.map((resolver) => resolver.entityType)).toEqual([
 			EntityType.Network,
 			EntityType.Network_Timestamp,
+			EntityType.CosmosBlock,
 			EntityType.IbcDenomTrace,
+			EntityType.Network,
+			EntityType.Network,
 		])
+		expect(networkRestEndpointsResolver).toBeDefined()
+		expect(timestampResolver).toBeDefined()
+		expect(blockResolver).toBeDefined()
+		expect(denomTraceResolver).toBeDefined()
+		expect(networkTimestampsResolver).toBeDefined()
+		expect(networkBlocksResolver).toBeDefined()
 	})
 
 	it('rejects non-Osmosis networks', async () => {
-		const networkResolver = osmosisRest.resolvers.find((resolver) => (
-			resolver.entityType === EntityType.Network
-		))
-		if (networkResolver == null)
-			throw new Error('missing Network resolver')
+		if (networkRestEndpointsResolver == null)
+			throw new Error('missing Network restEndpoints resolver')
 
 		await expect(
-			networkResolver.resolve.Caip2.resolve({
+			networkRestEndpointsResolver.resolve.Caip2.resolve({
 				caip2: {
 					namespace: 'cosmos',
 					reference: 'cosmoshub-4',
@@ -72,14 +103,11 @@ describe('Osmosis LCD resolver module', () => {
 	})
 
 	it('resolves Osmosis LCD rest endpoints for the network', async () => {
-		const networkResolver = osmosisRest.resolvers.find((resolver) => (
-			resolver.entityType === EntityType.Network
-		))
-		if (networkResolver == null)
-			throw new Error('missing Network resolver')
+		if (networkRestEndpointsResolver == null)
+			throw new Error('missing Network restEndpoints resolver')
 
-		const snapshot = await networkResolver.resolve.Caip2.resolve(osmosisNetwork, context)
-		expect(networkResolver.projections.Cosmos.restEndpoints(snapshot)).toEqual([
+		const snapshot = await networkRestEndpointsResolver.resolve.Caip2.resolve(osmosisNetwork, context)
+		expect(networkRestEndpointsResolver.projections.Cosmos.restEndpoints(snapshot)).toEqual([
 			{
 				url: 'https://lcd.osmosis.zone',
 				transportType: 'Http',
@@ -111,12 +139,30 @@ describe('Osmosis LCD resolver module', () => {
 						proposer_address: 'proposer',
 						chain_id: 'osmosis-1',
 					},
+					data: {
+						txs: [
+							'tx0',
+							'tx1',
+						],
+					},
+				},
+			})
+			.mockResolvedValueOnce({
+				syncing: false,
+			})
+			.mockResolvedValueOnce({
+				validators: [],
+				pagination: {
+					total: '150',
+				},
+			})
+			.mockResolvedValueOnce({
+				pool: {
+					bonded_tokens: '1000',
+					not_bonded_tokens: '200',
 				},
 			})
 
-		const timestampResolver = osmosisRest.resolvers.find((resolver) => (
-			resolver.entityType === EntityType.Network_Timestamp
-		))
 		if (timestampResolver == null)
 			throw new Error('missing Network_Timestamp resolver')
 
@@ -127,8 +173,48 @@ describe('Osmosis LCD resolver module', () => {
 		}, context)
 
 		expect(timestampResolver.projections.Cosmos.latestBlockHeight(snapshot)).toBe(42n)
+		expect(timestampResolver.projections.Cosmos.latestBlockTransactionCount(snapshot)).toBe(2)
 		expect(timestampResolver.projections.Cosmos.chainId(snapshot)).toBe('osmosis-1')
 		expect(timestampResolver.projections.Cosmos.nodeNetwork(snapshot)).toBe('osmosis-1')
+		expect(timestampResolver.projections.Cosmos.isSyncing(snapshot)).toBe(false)
+		expect(timestampResolver.projections.Cosmos.bondedValidatorCount(snapshot)).toBe(150)
+		expect(timestampResolver.projections.Cosmos.bondedTokens(snapshot)).toBe(1000n)
+		expect(timestampResolver.projections.Cosmos.notBondedTokens(snapshot)).toBe(200n)
+		expect(sourceGetJson).toHaveBeenCalledTimes(5)
+	})
+
+	it('resolves a Cosmos block by height', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			block_id: {
+				hash: 'blockhash',
+			},
+			block: {
+				header: {
+					height: '41',
+					time: '2026-08-04T00:59:00.000Z',
+					proposer_address: 'proposer41',
+					chain_id: 'osmosis-1',
+				},
+				data: {
+					txs: [
+						'tx',
+					],
+				},
+			},
+		})
+
+		if (blockResolver == null)
+			throw new Error('missing CosmosBlock resolver')
+
+		const snapshot = await blockResolver.resolve.NetworkHeight.resolve({
+			$network: osmosisNetwork,
+			height: 41n,
+		}, context)
+
+		expect(blockResolver.projections.hash(snapshot)).toBe('blockhash')
+		expect(blockResolver.projections.proposerConsensusAddress(snapshot)).toBe('proposer41')
+		expect(blockResolver.projections.timestampMs(snapshot)).toBe(Date.parse('2026-08-04T00:59:00.000Z'))
+		expect(blockResolver.projections.transactionCount(snapshot)).toBe(1)
 	})
 
 	it('resolves an IBC denom trace on Osmosis', async () => {
@@ -140,9 +226,6 @@ describe('Osmosis LCD resolver module', () => {
 			},
 		})
 
-		const denomTraceResolver = osmosisRest.resolvers.find((resolver) => (
-			resolver.entityType === EntityType.IbcDenomTrace
-		))
 		if (denomTraceResolver == null)
 			throw new Error('missing IbcDenomTrace resolver')
 
@@ -157,5 +240,71 @@ describe('Osmosis LCD resolver module', () => {
 		expect(denomTraceResolver.projections.denomHash(snapshot)).toBe(hash)
 		expect(denomTraceResolver.projections.sourcePort(snapshot)).toBe('transfer')
 		expect(denomTraceResolver.projections.sourceChannel(snapshot)).toBe('channel-0')
+	})
+
+	it('exposes a Network $$timestamps handle for Osmosis LCD', async () => {
+		if (networkTimestampsResolver == null)
+			throw new Error('missing Network $$timestamps resolver')
+
+		const snapshot = await networkTimestampsResolver.resolve.Caip2.resolve(osmosisNetwork, context)
+		expect(networkTimestampsResolver.projections.$$timestamps(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: osmosisNetwork,
+					timestampMs: expect.any(Number),
+					source: Source.Osmosis_LCD_Rest,
+				},
+			},
+		])
+	})
+
+	it('lists recent Cosmos block refs from latest height', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			block_id: {
+				hash: 'tip',
+			},
+			block: {
+				header: {
+					height: '3',
+					time: '2026-08-04T01:00:00.000Z',
+					proposer_address: 'proposer',
+					chain_id: 'osmosis-1',
+				},
+				data: {
+					txs: [],
+				},
+			},
+		})
+
+		if (networkBlocksResolver == null)
+			throw new Error('missing Network $$blocks resolver')
+
+		const snapshot = await networkBlocksResolver.resolve.Caip2.resolve(osmosisNetwork, context)
+		expect(networkBlocksResolver.projections.Cosmos.$$blocks(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: osmosisNetwork,
+					height: 3n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: osmosisNetwork,
+					height: 2n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: osmosisNetwork,
+					height: 1n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: osmosisNetwork,
+					height: 0n,
+				},
+			},
+		])
 	})
 })

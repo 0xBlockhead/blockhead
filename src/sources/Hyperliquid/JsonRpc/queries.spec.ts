@@ -22,7 +22,7 @@ const binding = bindings[Source.Hyperliquid].find(
 )
 
 if (binding == null)
-	throw new Error('Hyperliquid EVM binding is missing')
+	throw new Error('Hyperliquid_JsonRpc: EVM binding is missing')
 
 describe('Hyperliquid JSON-RPC transport', () => {
 	it('uses the exact canonical HyperEVM binding axes', () => {

@@ -1,8 +1,9 @@
-import { NetworkExecutionModel, NetworkLedgerModel } from '$/constants/Network.ts'
+import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
+import { NetworkExecutionModel, NetworkLedgerModel } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
 	type EntitySelector,
@@ -27,11 +28,32 @@ const osmosisNetworkApplicability = [
 	{
 		caip2: osmosisCaip2,
 	},
+	{
+		slug: 'osmosis',
+	},
 ] as const
 
+const osmosisNetworkResolverSelectors = <_Snapshot extends object>(
+	resolve: (
+		network: NetworkId,
+		context: ResolverContext
+	) => Promise<_Snapshot> | _Snapshot
+) => ({
+	Caip2: {
+		appliesTo: [osmosisNetworkApplicability[0]],
+		resolve,
+	},
+	Slug: {
+		appliesTo: [osmosisNetworkApplicability[1]],
+		resolve,
+	},
+})
 const osmosisNetworkReferenceApplicability = [
 	{
 		$network: osmosisNetworkApplicability[0],
+	},
+	{
+		$network: osmosisNetworkApplicability[1],
 	},
 ] as const
 
@@ -40,9 +62,19 @@ const osmosisNetworkTimestampApplicability = [
 		...osmosisNetworkReferenceApplicability[0],
 		source: Source.Osmosis_LCD_Rest,
 	},
+	{
+		...osmosisNetworkReferenceApplicability[1],
+		source: Source.Osmosis_LCD_Rest,
+	},
 ] as const
 
 const assertOsmosisNetwork = (network: NetworkId) => {
+	if (
+		'slug' in network
+		&& network.slug === 'osmosis'
+	)
+		return
+
 	if (
 		'caip2' in network
 		&& network.caip2.namespace === osmosisCaip2.namespace
@@ -59,6 +91,20 @@ const assertOsmosisNetwork = (network: NetworkId) => {
 	throw new Error(`${Source.Osmosis_LCD_Rest}: unsupported network`)
 }
 
+const osmosisPaginationCount = (
+	total: string | undefined,
+	label: string
+) => {
+	if (total == null)
+		throw new Error(`${Source.Osmosis_LCD_Rest}: ${label} pagination total missing`)
+
+	const count = Number(total)
+	if (!Number.isSafeInteger(count) || count < 0)
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid ${label} pagination total ${total}`)
+
+	return count
+}
+
 const channelPartsFromPath = (path: string) => {
 	const segments = path.split('/')
 	if (segments.length < 2 || segments.length % 2 !== 0)
@@ -70,21 +116,39 @@ const channelPartsFromPath = (path: string) => {
 	}
 }
 
+const getOsmosisBlockReferences = async (
+	network: NetworkId,
+	limit: number
+) => {
+	assertOsmosisNetwork(network)
+	const { getLatestBlock } = await import('$/sources/Osmosis/Rest/queries.ts')
+	const latestBlock = await getLatestBlock()
+	const latestBlockHeight = BigInt(latestBlock.block.header.height)
+	return Array.from({
+		length: Math.min(
+			Number(latestBlockHeight + 1n),
+			limit
+		),
+	}, (_value, blockOffset) => ({
+		[EntityMetaKey.Selector]: {
+			$network: network,
+			height: latestBlockHeight - BigInt(blockOffset),
+		},
+	}))
+}
+
 export default {
 	source: Source.Osmosis_LCD_Rest,
 
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.Network,
-			resolve: {
-				Caip2: {
-					appliesTo: osmosisNetworkApplicability,
-					resolve: async (network) => {
-						assertOsmosisNetwork(network)
-						return osmosisLcdRestEndpoints
-					},
-				},
-			},
+			resolve: osmosisNetworkResolverSelectors(
+				async (network) => {
+					assertOsmosisNetwork(network)
+					return osmosisLcdRestEndpoints
+				}
+			),
 		})({
 			Cosmos: {
 				restEndpoints: (restEndpoints) => restEndpoints,
@@ -105,13 +169,25 @@ export default {
 						const {
 							getLatestBlock,
 							getNodeInfo,
+							getStakingPool,
+							getSyncing,
+							getValidators,
 						} = await import('$/sources/Osmosis/Rest/queries.ts')
 						const [
 							nodeInfo,
 							latestBlock,
+							syncing,
+							bondedValidators,
+							stakingPool,
 						] = await Promise.all([
 							getNodeInfo(),
 							getLatestBlock(),
+							getSyncing(),
+							getValidators({
+								limit: 1,
+								status: 'BOND_STATUS_BONDED',
+							}),
+							getStakingPool(),
 						])
 						if (nodeInfo.default_node_info.network !== osmosisCaip2.reference)
 							throw new Error(`${Source.Osmosis_LCD_Rest}: LCD network mismatch`)
@@ -131,11 +207,16 @@ export default {
 							latestBlockHeight: BigInt(latestBlock.block.header.height),
 							latestBlockHash: latestBlock.block_id.hash,
 							latestBlockTimeMs: Date.parse(latestBlock.block.header.time),
+							latestBlockTransactionCount: latestBlock.block.data.txs?.length ?? 0,
 							chainId: nodeInfo.default_node_info.network,
 							nodeNetwork: nodeInfo.default_node_info.network,
 							applicationName: nodeInfo.application_version?.app_name ?? nodeInfo.application_version?.name,
 							applicationVersion: nodeInfo.application_version?.version,
 							cosmosSdkVersion: nodeInfo.application_version?.cosmos_sdk_version,
+							isSyncing: syncing.syncing,
+							bondedValidatorCount: osmosisPaginationCount(bondedValidators.pagination?.total, 'bonded validator'),
+							bondedTokens: BigInt(stakingPool.pool.bonded_tokens),
+							notBondedTokens: BigInt(stakingPool.pool.not_bonded_tokens),
 						}
 					},
 				},
@@ -150,12 +231,44 @@ export default {
 				latestBlockHeight: (timestamp) => timestamp.latestBlockHeight,
 				latestBlockHash: (timestamp) => timestamp.latestBlockHash,
 				latestBlockTimeMs: (timestamp) => timestamp.latestBlockTimeMs,
+				latestBlockTransactionCount: (timestamp) => timestamp.latestBlockTransactionCount,
 				chainId: (timestamp) => timestamp.chainId,
 				nodeNetwork: (timestamp) => timestamp.nodeNetwork,
 				applicationName: (timestamp) => timestamp.applicationName,
 				applicationVersion: (timestamp) => timestamp.applicationVersion,
 				cosmosSdkVersion: (timestamp) => timestamp.cosmosSdkVersion,
+				isSyncing: (timestamp) => timestamp.isSyncing,
+				bondedValidatorCount: (timestamp) => timestamp.bondedValidatorCount,
+				bondedTokens: (timestamp) => timestamp.bondedTokens,
+				notBondedTokens: (timestamp) => timestamp.notBondedTokens,
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.CosmosBlock,
+			resolve: {
+				NetworkHeight: {
+					appliesTo: osmosisNetworkReferenceApplicability,
+					resolve: async ({ $network, height }) => {
+						assertOsmosisNetwork($network)
+						const { getBlock } = await import('$/sources/Osmosis/Rest/queries.ts')
+						const wireBlock = await getBlock({
+							height,
+						})
+						return {
+							hash: wireBlock.block_id.hash,
+							proposerConsensusAddress: wireBlock.block.header.proposer_address,
+							timestampMs: Date.parse(wireBlock.block.header.time),
+							transactionCount: wireBlock.block.data.txs?.length ?? 0,
+						}
+					},
+				},
+			},
+		})({
+			hash: (block) => block.hash,
+			proposerConsensusAddress: (block) => block.proposerConsensusAddress,
+			timestampMs: (block) => block.timestampMs,
+			transactionCount: (block) => block.transactionCount,
 		}),
 
 		defineResolver({
@@ -204,6 +317,40 @@ export default {
 			denomHash: (trace) => trace.denomHash,
 			sourcePort: (trace) => trace.sourcePort,
 			sourceChannel: (trace) => trace.sourceChannel,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: osmosisNetworkResolverSelectors(
+				async (network) => {
+					assertOsmosisNetwork(network)
+					return [{
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							timestampMs: Date.now(),
+							source: Source.Osmosis_LCD_Rest,
+						},
+					}]
+				}
+			),
+		})({
+			$$timestamps: (timestamps) => timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: osmosisNetworkResolverSelectors(
+				async (network, context) => (
+					getOsmosisBlockReferences(
+						network,
+						resolverContextRowLimit(context)
+					)
+				)
+			),
+		})({
+			Cosmos: {
+				$$blocks: (blocks) => blocks,
+			},
 		}),
 	],
 } satisfies RegisteredSourceResolverModule<Source.Osmosis_LCD_Rest>

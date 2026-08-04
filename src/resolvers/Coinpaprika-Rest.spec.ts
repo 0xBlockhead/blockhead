@@ -137,12 +137,19 @@ describe('Coinpaprika coin timestamp resolvers', () => {
 
 describe('Coinpaprika market venue markets', () => {
 	it('maps exchange markets onto catalog selectors for a known venue', async () => {
+		getExchangeMarkets.mockClear()
 		getExchangeMarkets.mockResolvedValue([
 			{
 				base_currency_id: 'btc-bitcoin',
 				quote_currency_id: 'usdt-tether',
 				category: 'Spot',
 				pair: 'BTC/USDT',
+			},
+			{
+				base_currency_id: 'btc-bitcoin',
+				quote_currency_id: 'usd-us-dollars',
+				category: 'Spot',
+				pair: 'BTC/USD',
 			},
 			{
 				base_currency_id: 'unknown-coin',
@@ -160,7 +167,7 @@ describe('Coinpaprika market venue markets', () => {
 			throw new Error('Coinpaprika MarketVenue $$markets resolver is not registered')
 
 		const rows = await resolver.resolve['MarketVenueId'].resolve({
-			marketVenueId: MarketVenueId.Binance,
+			marketVenueId: MarketVenueId.Coinbase,
 		}, resolverContext)
 
 		expect(rows).toEqual([
@@ -175,7 +182,7 @@ describe('Coinpaprika market venue markets', () => {
 						assetKey: 'USD',
 					},
 					$marketVenue: {
-						marketVenueId: MarketVenueId.Binance,
+						marketVenueId: MarketVenueId.Coinbase,
 					},
 					marketKind: 'Spot',
 				},
@@ -183,7 +190,22 @@ describe('Coinpaprika market venue markets', () => {
 		])
 		expect(getExchangeMarkets).toHaveBeenCalledWith({
 			publicEnv: {},
-			exchangeId: 'binance',
+			exchangeId: 'coinbase',
 		})
+	})
+
+	it('throws when the venue has no Coinpaprika exchange mapping', async () => {
+		getExchangeMarkets.mockClear()
+		const resolver = coinpaprikaResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.MarketVenue
+			&& '$$markets' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Coinpaprika MarketVenue $$markets resolver is not registered')
+
+		await expect(resolver.resolve['MarketVenueId'].resolve({
+			marketVenueId: MarketVenueId.Uniswap,
+		}, resolverContext)).rejects.toThrow('Coinpaprika_Rest: exchange not mapped for venue')
+		expect(getExchangeMarkets).not.toHaveBeenCalled()
 	})
 })

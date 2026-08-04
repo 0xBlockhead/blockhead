@@ -13,6 +13,9 @@ import type {
 	OsmosisPoolResponse,
 	OsmosisPoolsResponse,
 	OsmosisSpotPriceResponse,
+	OsmosisStakingPoolResponse,
+	OsmosisSyncingResponse,
+	OsmosisValidatorsResponse,
 } from '$/sources/Osmosis/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -44,6 +47,11 @@ const assertDenom = (denom: string, label: string) => {
 const assertTraceKey = (traceKey: string) => {
 	if (traceKey.length === 0)
 		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid denom trace key`)
+}
+
+const assertBlockHeight = (height: bigint) => {
+	if (height < 0n)
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid block height ${height}`)
 }
 
 /** ICS-20 denom hash (with or without `ibc/` prefix) or `trace:<path>/<baseDenom>`. */
@@ -86,6 +94,45 @@ export const getNodeInfo = () => (
 export const getLatestBlock = () => (
 	lcdGetJson<OsmosisBlockResponse>('/cosmos/base/tendermint/v1beta1/blocks/latest')
 )
+
+export const getBlock = ({
+	height,
+}: {
+	height: bigint
+}) => {
+	assertBlockHeight(height)
+	return lcdGetJson<OsmosisBlockResponse>(
+		`/cosmos/base/tendermint/v1beta1/blocks/${height.toString()}`
+	)
+}
+
+export const getSyncing = () => (
+	lcdGetJson<OsmosisSyncingResponse>('/cosmos/base/tendermint/v1beta1/syncing')
+)
+
+export const getStakingPool = () => (
+	lcdGetJson<OsmosisStakingPoolResponse>('/cosmos/staking/v1beta1/pool')
+)
+
+export const getValidators = ({
+	limit = 24,
+	status,
+}: {
+	limit?: number
+	status?: string
+}) => {
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid validators limit ${String(limit)}`)
+
+	const parameters = new URLSearchParams({
+		'pagination.limit': String(limit),
+		'pagination.count_total': 'true',
+		...(status != null && { status }),
+	})
+	return lcdGetJson<OsmosisValidatorsResponse>(
+		`/cosmos/staking/v1beta1/validators?${parameters}`
+	)
+}
 
 export const getPool = (poolId: string) => {
 	assertPoolId(poolId)

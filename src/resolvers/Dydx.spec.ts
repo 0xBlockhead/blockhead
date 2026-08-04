@@ -283,6 +283,8 @@ describe('dYdX Indexer resolvers', () => {
 				ticker: 'BTC-USD',
 			},
 			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'baseAsset')]: 'BTC',
+				[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'quoteAsset')]: 'USD',
 				[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'marketKind')]: 'CROSS',
 			},
 		}])
@@ -349,6 +351,8 @@ describe('dYdX Indexer resolvers', () => {
 					ticker: 'BTC-USD',
 				},
 				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'baseAsset')]: 'BTC',
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'quoteAsset')]: 'USD',
 					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'marketKind')]: 'CROSS',
 					[entityFieldAddressKey(EntityType.DydxChainMarket, [], '$$timestamps')]: [{
 						[EntityMetaKey.Selector]: {
@@ -484,6 +488,8 @@ describe('dYdX Indexer resolvers', () => {
 					ticker: 'BTC-USD',
 				},
 				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'baseAsset')]: 'BTC',
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'quoteAsset')]: 'USD',
 					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'marketKind')]: 'ISOLATED',
 					[entityFieldAddressKey(EntityType.DydxChainMarket, [], '$$timestamps')]: [
 						{
@@ -524,6 +530,8 @@ describe('dYdX Indexer resolvers', () => {
 					ticker: 'BTC-USD',
 				},
 				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'baseAsset')]: 'BTC',
+					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'quoteAsset')]: 'USD',
 					[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'marketKind')]: 'CROSS',
 					[entityFieldAddressKey(EntityType.DydxChainMarket, [], '$$timestamps')]: [
 						{
@@ -652,6 +660,8 @@ describe('dYdX Indexer resolvers', () => {
 			nextFundingRate: '-0.0000000000001',
 			openInterest: '308.7674',
 		})
+		expect(dydxChainMarketResolver.projections.baseAsset(snapshot)).toBe('BTC')
+		expect(dydxChainMarketResolver.projections.quoteAsset(snapshot)).toBe('USD')
 		expect(dydxChainMarketResolver.projections.marketKind(snapshot)).toBe('CROSS')
 		expect(dydxChainMarketResolver.projections.$$timestamps(snapshot, market)).toEqual([{
 			[EntityMetaKey.Selector]: {

@@ -10,7 +10,12 @@ import bindings from '$/sources/OpenSea/bindings.ts'
 import {
 	getAccountEvents,
 	getAccountNfts,
+	getCollection,
+	getContract,
 	getNft,
+	getNftEvents,
+	getNftOwners,
+	getNftsByCollection,
 	getNftsByContract,
 	openSeaChainForChainId,
 	requireOpenSeaCredential,
@@ -18,7 +23,12 @@ import {
 import type {
 	OpenSeaAccountEventsResponse,
 	OpenSeaAccountNftsResponse,
+	OpenSeaCollectionNftsResponse,
+	OpenSeaCollectionResponse,
 	OpenSeaContractNftsResponse,
+	OpenSeaContractResponse,
+	OpenSeaNftEventsResponse,
+	OpenSeaNftOwnersResponse,
 	OpenSeaNftResponse,
 } from '$/sources/OpenSea/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
@@ -64,7 +74,12 @@ const respond = (
 	body: (
 		| OpenSeaAccountEventsResponse
 		| OpenSeaAccountNftsResponse
+		| OpenSeaCollectionNftsResponse
+		| OpenSeaCollectionResponse
 		| OpenSeaContractNftsResponse
+		| OpenSeaContractResponse
+		| OpenSeaNftEventsResponse
+		| OpenSeaNftOwnersResponse
 		| OpenSeaNftResponse
 	),
 	status = 200
@@ -237,9 +252,212 @@ describe('OpenSea NFT endpoints', () => {
 	it('maps supported EIP-155 chains and requires OPENSEA_API_KEY', () => {
 		expect(openSeaChainForChainId(1)).toBe('ethereum')
 		expect(openSeaChainForChainId(8453)).toBe('base')
-		expect(() => openSeaChainForChainId(999)).toThrow('unsupported EIP-155 chain 999')
+		expect(openSeaChainForChainId(999)).toBe('hyperevm')
+		expect(openSeaChainForChainId(1329)).toBe('sei')
+		expect(openSeaChainForChainId(2741)).toBe('abstract')
+		expect(() => openSeaChainForChainId(998877)).toThrow('unsupported EIP-155 chain 998877')
 		expect(() => requireOpenSeaCredential()).toThrow('API key is required')
 		process.env.OPENSEA_API_KEY = ' from-env '
 		expect(requireOpenSeaCredential()).toBe('from-env')
+	})
+
+	it('hard-fails when NFT list payloads omit nfts', async () => {
+		respond({
+			next: 'cursor',
+		} as OpenSeaContractNftsResponse)
+
+		await expect(getNftsByContract({
+			credential: 'secret',
+			chain: 'ethereum',
+			address: contract,
+		})).rejects.toThrow('missing nfts array')
+	})
+})
+
+describe('OpenSea contract / owners / collection endpoints', () => {
+	it('fetches contract metadata with required address and collection', async () => {
+		const response = {
+			address: contract,
+			chain: 'ethereum',
+			collection: 'collection',
+			contract_standard: 'erc721',
+			name: 'Collection',
+		} satisfies OpenSeaContractResponse
+
+		respond(response)
+
+		await expect(getContract({
+			credential: 'secret',
+			chain: 'ethereum',
+			address: contract,
+		})).resolves.toEqual(response)
+		expect(sourceFetch).toHaveBeenCalledWith(
+			binding,
+			`https://api.opensea.io/api/v2/chain/ethereum/contract/${contract}`,
+			{
+				headers: {
+					accept: 'application/json',
+					'x-api-key': 'secret',
+				},
+			}
+		)
+	})
+
+	it('lists NFT owners with the documented 100 cap', async () => {
+		const response = {
+			owners: [{
+				address,
+				quantity: 1,
+				quantity_string: '1',
+			}],
+			next: 'cursor',
+		} satisfies OpenSeaNftOwnersResponse
+
+		respond(response)
+
+		await expect(getNftOwners({
+			credential: 'secret',
+			chain: 'ethereum',
+			address: contract,
+			identifier: '1',
+			limit: 50,
+			next: 'prior',
+		})).resolves.toEqual(response)
+		expect(vi.mocked(sourceFetch).mock.calls[0]?.[1]).toBe(
+			`https://api.opensea.io/api/v2/chain/ethereum/contract/${contract}/nfts/1/owners?limit=50&next=prior`
+		)
+		await expect(getNftOwners({
+			credential: 'secret',
+			chain: 'ethereum',
+			address: contract,
+			identifier: '1',
+			limit: 101,
+		})).rejects.toThrow('between 1 and 100')
+	})
+
+	it('lists NFT events with repeated event_type filters', async () => {
+		const response = {
+			asset_events: [{
+				event_type: 'sale',
+				event_timestamp: 1_700_000_000,
+				chain: 'ethereum',
+				closing_date: 1_700_000_001,
+				seller: address,
+				buyer: address,
+				quantity: 1,
+			}],
+			next: 'next',
+		} satisfies OpenSeaNftEventsResponse
+
+		respond(response)
+
+		await expect(getNftEvents({
+			credential: 'secret',
+			chain: 'base',
+			address: contract,
+			identifier: '9',
+			after: 1,
+			before: 2,
+			eventTypes: [
+				'sale',
+				'transfer',
+			],
+			limit: 10,
+			next: 'cursor',
+		})).resolves.toEqual(response)
+		expect(vi.mocked(sourceFetch).mock.calls[0]?.[1]).toBe(
+			`https://api.opensea.io/api/v2/events/chain/base/contract/${contract}/nfts/9?limit=10&next=cursor&after=1&before=2&event_type=sale&event_type=transfer`
+		)
+	})
+
+	it('fetches collection detail and collection NFT pages', async () => {
+		const paymentToken = {
+			symbol: 'ETH',
+			address: '0x0000000000000000000000000000000000000000',
+			chain: 'ethereum',
+			image: 'https://images.example/eth.png',
+			name: 'Ether',
+			decimals: 18,
+			eth_price: '1',
+			usd_price: '3000',
+		}
+		const collection = {
+			collection: 'boredapeyachtclub',
+			name: 'Bored Ape Yacht Club',
+			description: 'BAYC',
+			image_url: 'https://images.example/bayc.png',
+			banner_image_url: 'https://images.example/bayc-banner.png',
+			owner: address,
+			safelist_status: 'verified',
+			category: 'pfps',
+			is_disabled: false,
+			is_nsfw: false,
+			trait_offers_enabled: false,
+			collection_offers_enabled: true,
+			opensea_url: 'https://opensea.io/collection/boredapeyachtclub',
+			project_url: 'https://boredapeyachtclub.com',
+			wiki_url: '',
+			discord_url: '',
+			telegram_url: '',
+			twitter_username: 'BoredApeYC',
+			instagram_username: '',
+			contracts: [{
+				address: contract,
+				chain: 'ethereum',
+			}],
+			editors: [address],
+			fees: [{
+				fee: 2.5,
+				recipient: address,
+				required: true,
+			}],
+			total_supply: 10000,
+			unique_item_count: 9999,
+			created_date: '2021-04-22',
+			pricing_currencies: {
+				listing_currency: paymentToken,
+				offer_currency: paymentToken,
+			},
+		} satisfies OpenSeaCollectionResponse
+
+		respond(collection)
+		await expect(getCollection({
+			credential: 'secret',
+			slug: 'boredapeyachtclub',
+		})).resolves.toEqual(collection)
+		expect(vi.mocked(sourceFetch).mock.calls[0]?.[1]).toBe(
+			'https://api.opensea.io/api/v2/collections/boredapeyachtclub'
+		)
+
+		respond({
+			nfts: [nft],
+			next: 'cursor',
+		})
+		await expect(getNftsByCollection({
+			credential: 'secret',
+			slug: 'boredapeyachtclub',
+			traits: '{"Background":["Blue"]}',
+			has_agent_binding: true,
+			limit: 25,
+			next: 'prior',
+		})).resolves.toEqual({
+			nfts: [nft],
+			next: 'cursor',
+		})
+		expect(vi.mocked(sourceFetch).mock.calls[1]?.[1]).toBe(
+			'https://api.opensea.io/api/v2/collection/boredapeyachtclub/nfts?limit=25&next=prior&traits=%7B%22Background%22%3A%5B%22Blue%22%5D%7D&has_agent_binding=true'
+		)
+	})
+
+	it('hard-fails collection payloads that omit contracts', async () => {
+		respond({
+			collection: 'slug',
+			name: 'Name',
+		} as OpenSeaCollectionResponse)
+
+		await expect(getCollection({
+			credential: 'secret',
+			slug: 'slug',
+		})).rejects.toThrow('missing contracts array')
 	})
 })

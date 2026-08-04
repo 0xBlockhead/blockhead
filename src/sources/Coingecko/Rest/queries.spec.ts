@@ -52,14 +52,38 @@ describe('CoinGecko documented endpoints', () => {
 		await expect(getCoin({
 			publicEnv: {},
 			id: 'bitcoin',
-		})).rejects.toThrow(/CoinGecko \/coins\/bitcoin/)
+		})).rejects.toThrow(/Coingecko_Rest/)
 
 		coingeckoFetch.mockResolvedValueOnce(new Response('upstream', { status: 500 }))
 		await expect(getSimplePrice({
 			publicEnv: {},
 			ids: 'bitcoin',
 			vs_currencies: 'usd',
-		})).rejects.toThrow(/CoinGecko \/simple\/price/)
+		})).rejects.toThrow(/Coingecko_Rest/)
+	})
+
+	it('throws on empty path ids instead of soft-emptying', async () => {
+		await expect(getCoin({
+			publicEnv: {},
+			id: '',
+		})).rejects.toThrow('Coingecko_Rest: invalid coin id')
+		await expect(getCoinOhlc({
+			publicEnv: {},
+			id: '',
+			vs_currency: 'usd',
+			days: 7,
+		})).rejects.toThrow('Coingecko_Rest: invalid coin id')
+		expect(coingeckoFetch).not.toHaveBeenCalled()
+	})
+
+	it('does not soft-empty OHLC HTTP failures into []', async () => {
+		coingeckoFetch.mockResolvedValueOnce(new Response('missing', { status: 404 }))
+		await expect(getCoinOhlc({
+			publicEnv: {},
+			id: 'bitcoin',
+			vs_currency: 'usd',
+			days: 30,
+		})).rejects.toThrow(/Coingecko_Rest/)
 	})
 
 	it('does not add unsupported detail parameters to the contract endpoint', async () => {

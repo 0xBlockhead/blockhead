@@ -162,4 +162,41 @@ describe('Dexscreener liquidity pool observation clock', () => {
 			emptyContext,
 		)).rejects.toThrow('returned no liquidity pools')
 	})
+
+	it('hard-fails invalid pair token addresses instead of soft-omitting legs', async () => {
+		const resolver = dexscreener.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.LiquidityPool
+			&& '$$timestamps' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Dexscreener_Rest: missing LiquidityPool $$timestamps resolver')
+		getLatestPairs.mockResolvedValue({
+			pairs: [{
+				baseToken: {
+					address: 'not-an-address',
+				},
+				quoteToken: {
+					address: '0x3333333333333333333333333333333333333333',
+				},
+				resolvedAtMs: 1_725_000_000_000,
+			}],
+		})
+		await expect(resolver.resolve['EvmNetworkId'].resolve(
+			poolSelector,
+			emptyContext,
+		)).rejects.toThrow('not valid EVM addresses')
+	})
+
+	it('does not claim soft-empty $$blocks or $$leverages facets', () => {
+		const resolver = dexscreener.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.LiquidityPool
+			&& '$$timestamps' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Dexscreener_Rest: missing LiquidityPool $$timestamps resolver')
+		expect(resolver.projections).not.toHaveProperty('$$blocks')
+		expect(resolver.projections).not.toHaveProperty('$$leverages')
+		expect(resolver.projections).not.toHaveProperty('fee')
+		expect(resolver.projections).not.toHaveProperty('tickSpacing')
+	})
 })

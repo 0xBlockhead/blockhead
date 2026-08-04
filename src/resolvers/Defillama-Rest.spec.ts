@@ -223,7 +223,7 @@ describe('Defillama REST daily chart projection', () => {
 		vi.clearAllMocks()
 	})
 
-	it('projects close-only daily candles from the Pro chart series', async () => {
+	it('projects close-only daily samples from the Pro chart series', async () => {
 		getProChart.mockResolvedValue({
 			coins: {
 				[feedKey]: {
@@ -251,9 +251,6 @@ describe('Defillama REST daily chart projection', () => {
 					timestampMs: historicalTimestampSeconds * 1_000,
 				},
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'open')]: 280_050_000_000n,
-					[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'high')]: 280_050_000_000n,
-					[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'low')]: 280_050_000_000n,
 					[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'close')]: 280_050_000_000n,
 				},
 			},
@@ -264,9 +261,6 @@ describe('Defillama REST daily chart projection', () => {
 					timestampMs: timestampSeconds * 1_000,
 				},
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'open')]: 350_012_500_000n,
-					[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'high')]: 350_012_500_000n,
-					[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'low')]: 350_012_500_000n,
 					[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'close')]: 350_012_500_000n,
 				},
 			},
@@ -281,9 +275,6 @@ describe('Defillama REST daily chart projection', () => {
 				timeInterval: marketOhlcDailyTimeInterval,
 				timestampMs: timestampSeconds * 1_000,
 			},
-			open: 350_012_500_000n,
-			high: 350_012_500_000n,
-			low: 350_012_500_000n,
 			close: 350_012_500_000n,
 		})
 		expect(getProChart).toHaveBeenCalledWith({
@@ -293,5 +284,8 @@ describe('Defillama REST daily chart projection', () => {
 			publicEnv: context.publicEnv,
 		})
 		expect(getChart).not.toHaveBeenCalled()
+		expect(marketChartPointResolver.projections).not.toHaveProperty('open')
+		expect(marketChartPointResolver.projections).not.toHaveProperty('high')
+		expect(marketChartPointResolver.projections).not.toHaveProperty('low')
 	})
 })

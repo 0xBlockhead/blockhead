@@ -15,7 +15,7 @@ import type { RpcTransactionWire } from '$/sources/_shared/interfaces/EvmExecuti
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 const assertHyperliquidMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug.hyperliquid.slug)
-		throw new Error('Hyperliquid EVM: unsupported network')
+		throw new Error('Hyperliquid_JsonRpc: unsupported network')
 }
 const hexToBigInt = (hex: string) => BigInt(hex)
 const hyperliquidTransactionEntity = (
@@ -85,11 +85,14 @@ const resolveHyperliquidTransactions = async (
 			))
 		)
 	)
-		.flatMap((block) => (
-			block?.transactions.map((transaction) => (
+		.flatMap((block, blockOffset) => {
+			if (block == null)
+				throw new Error(`Hyperliquid_JsonRpc: block not found for ${(headBlockHeight - BigInt(blockOffset)).toString()}`)
+
+			return block.transactions.map((transaction) => (
 				hyperliquidTransactionEntity(transaction, network)
-			)) ?? []
-		))
+			))
+		})
 		.slice(0, limit)
 }
 export const hyperliquidEvmResolvers = [
@@ -101,7 +104,7 @@ export const hyperliquidEvmResolvers = [
 					assertHyperliquidMainnet($network)
 					const { getBlockByNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
 					const block = await getBlockByNumber(height)
-					if (block == null) throw new Error(`Hyperliquid EVM: block not found for ${height.toString()}`)
+					if (block == null) throw new Error(`Hyperliquid_JsonRpc: block not found for ${height.toString()}`)
 					return {
 						hash: block.hash,
 						timestampMs: Number(hexToBigInt(block.timestamp)) * 1000,
@@ -125,7 +128,7 @@ export const hyperliquidEvmResolvers = [
 					assertHyperliquidMainnet($network)
 					const { getTransactionByHash } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
 					const transaction = await getTransactionByHash({ txHash })
-					if (transaction == null) throw new Error(`Hyperliquid EVM: transaction not found for ${txHash}`)
+					if (transaction == null) throw new Error(`Hyperliquid_JsonRpc: transaction not found for ${txHash}`)
 					return {
 						...(transaction.blockNumber != null && {
 							$block: {
@@ -177,11 +180,14 @@ export const hyperliquidEvmResolvers = [
 					assertHyperliquidMainnet($transaction.$network)
 					const { getTransactionReceipt } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
 					const receipt = await getTransactionReceipt({ txHash: $transaction.txHash })
+					if (receipt == null)
+						throw new Error(`Hyperliquid_JsonRpc: receipt not found for ${$transaction.txHash}`)
+
 					return {
-						...(receipt?.status != null && {
+						...(receipt.status != null && {
 							status: receipt.status === '0x1' ? 'success' : 'failed',
 						}),
-						...(receipt?.blockNumber != null && {
+						...(receipt.blockNumber != null && {
 							blockNumber: hexToBigInt(receipt.blockNumber),
 						}),
 					}

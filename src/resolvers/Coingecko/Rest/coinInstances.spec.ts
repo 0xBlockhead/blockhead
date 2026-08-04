@@ -142,12 +142,19 @@ describe('CoinGecko coin-instance projection', () => {
 		expect(getAssetPlatforms).toHaveBeenCalledOnce()
 	})
 
-	it('derives a canonical selector from the same indexed catalog without refetching', async () => {
-		await expect(resolveCanonicalCoinInstanceEntitySelector(
-			ethereumContract,
+	it('throws when the catalog coin has no Coingecko wire mapping', async () => {
+		await expect(fetchCoinInstanceStubsForCoin(
+			CoinId.Unknown,
 			{}
-		)).resolves.toEqual(baseNative)
-		expect(getCoin).toHaveBeenCalledOnce()
-		expect(getAssetPlatforms).toHaveBeenCalledOnce()
+		)).rejects.toThrow(/Coingecko_Rest: no wire id mapped/)
+		expect(getCoin).not.toHaveBeenCalled()
+	})
+
+	it('throws when the mapped coin is absent upstream', async () => {
+		getCoin.mockResolvedValueOnce(undefined)
+		await expect(fetchCoinInstanceStubsForCoin(
+			CoinId.ETH,
+			{}
+		)).rejects.toThrow(/Coingecko_Rest: coin not returned by API/)
 	})
 })

@@ -30,7 +30,7 @@ const binding = bindings[Source.DydxIndexer].find(
 )
 
 if (binding == null)
-	throw new Error('DydxIndexer: OpenAPI binding is missing')
+	throw new Error('DydxIndexer_Rest: OpenAPI binding is missing')
 
 const address = `dydx1${'q'.repeat(38)}`
 const observedAtMs = 1_784_678_400_000

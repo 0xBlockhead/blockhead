@@ -33,7 +33,34 @@ export type OsmosisBlockResponse = {
 			proposer_address: string
 			chain_id: string
 		}
+		data: {
+			txs?: string[]
+		}
 	}
+}
+
+export type OsmosisSyncingResponse = {
+	syncing: boolean
+}
+
+export type OsmosisStakingPoolResponse = {
+	pool: {
+		bonded_tokens: string
+		not_bonded_tokens: string
+	}
+}
+
+export type OsmosisValidatorsResponse = {
+	validators: {
+		operator_address: string
+		jailed: boolean
+		status: string
+		tokens: string
+		description?: {
+			moniker?: string
+		}
+	}[]
+	pagination?: OsmosisPagination
 }
 
 export type OsmosisDenomTrace = {

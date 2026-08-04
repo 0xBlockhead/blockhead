@@ -280,25 +280,18 @@ export default {
 						if (chartPoint?.price == null || chartPoint.timestamp == null)
 							throw new Error('Defillama_Rest: chart point not found for timestamp')
 
-						const close = BigInt(Math.round(chartPoint.price * 1e8))
 						return {
 							[EntityMetaKey.Selector]: {
 								$market,
 								timeInterval: marketOhlcDailyTimeInterval,
 								timestampMs: chartPoint.timestamp * 1_000,
 							} satisfies EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>,
-							open: close,
-							high: close,
-							low: close,
-							close,
+							close: BigInt(Math.round(chartPoint.price * 1e8)),
 						}
 					},
 				},
 			},
 		})({
-			open: (timestamp) => timestamp.open,
-			high: (timestamp) => timestamp.high,
-			low: (timestamp) => timestamp.low,
 			close: (timestamp) => timestamp.close,
 		}),
 
@@ -344,9 +337,6 @@ export default {
 											timestampMs: point.timestamp * 1_000,
 										} satisfies EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>,
 										[EntityMetaKey.Fields]: {
-											[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'open')]: BigInt(Math.round(point.price * 1e8)),
-											[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'high')]: BigInt(Math.round(point.price * 1e8)),
-											[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'low')]: BigInt(Math.round(point.price * 1e8)),
 											[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'close')]: BigInt(Math.round(point.price * 1e8)),
 										},
 									}]

@@ -32,7 +32,7 @@ const binding = bindings[Source.Hyperliquid].find(
 )
 
 if (binding == null)
-	throw new Error('Hyperliquid Info binding is missing')
+	throw new Error('Hyperliquid_Rest: Info binding is missing')
 
 export const hyperliquidRestEndpoints = binding.endpoints.map((endpoint) => ({
 	url: endpoint.locator,
@@ -56,7 +56,7 @@ const info = async <_Result>({
 			body: JSON.stringify(body),
 		}
 	)
-	if (!response.ok) await throwHttpError('Hyperliquid info', response)
+	if (!response.ok) await throwHttpError('Hyperliquid_Rest', response)
 	return response.json<_Result>()
 }
 
@@ -125,10 +125,10 @@ export const getUserFillsByTime = ({
 	endTime?: number
 }) => {
 	if (!Number.isSafeInteger(startTime) || startTime < 0)
-		throw new Error(`Hyperliquid Info: invalid fill start time ${startTime}`)
+		throw new Error(`Hyperliquid_Rest: invalid fill start time ${startTime}`)
 
 	if (endTime != null && (!Number.isSafeInteger(endTime) || endTime < startTime))
-		throw new Error(`Hyperliquid Info: invalid fill end time ${endTime}`)
+		throw new Error(`Hyperliquid_Rest: invalid fill end time ${endTime}`)
 
 	return info<HyperliquidFill[]>({
 		body: {
@@ -185,16 +185,16 @@ export const getL2Book = ({
 	mantissa?: 1 | 2 | 5
 }) => {
 	if (coin === '')
-		throw new Error('Hyperliquid Info: invalid book coin')
+		throw new Error('Hyperliquid_Rest: invalid book coin')
 
 	if (nSigFigs != null && nSigFigs !== 2 && nSigFigs !== 3 && nSigFigs !== 4 && nSigFigs !== 5)
-		throw new Error(`Hyperliquid Info: invalid book nSigFigs ${String(nSigFigs)}`)
+		throw new Error(`Hyperliquid_Rest: invalid book nSigFigs ${String(nSigFigs)}`)
 
 	if (mantissa != null && nSigFigs !== 5)
-		throw new Error('Hyperliquid Info: book mantissa requires nSigFigs 5')
+		throw new Error('Hyperliquid_Rest: book mantissa requires nSigFigs 5')
 
 	if (mantissa != null && mantissa !== 1 && mantissa !== 2 && mantissa !== 5)
-		throw new Error(`Hyperliquid Info: invalid book mantissa ${String(mantissa)}`)
+		throw new Error(`Hyperliquid_Rest: invalid book mantissa ${String(mantissa)}`)
 
 	return info<HyperliquidL2Book>({
 		body: {
@@ -235,16 +235,16 @@ export const getCandleSnapshot = ({
 	endTime?: number
 }) => {
 	if (coin === '')
-		throw new Error('Hyperliquid Info: invalid candle coin')
+		throw new Error('Hyperliquid_Rest: invalid candle coin')
 
 	if (!candleIntervals.has(interval))
-		throw new Error(`Hyperliquid Info: invalid candle interval ${interval}`)
+		throw new Error(`Hyperliquid_Rest: invalid candle interval ${interval}`)
 
 	if (!Number.isSafeInteger(startTime) || startTime < 0)
-		throw new Error(`Hyperliquid Info: invalid candle start time ${startTime}`)
+		throw new Error(`Hyperliquid_Rest: invalid candle start time ${startTime}`)
 
 	if (endTime != null && (!Number.isSafeInteger(endTime) || endTime < startTime))
-		throw new Error(`Hyperliquid Info: invalid candle end time ${endTime}`)
+		throw new Error(`Hyperliquid_Rest: invalid candle end time ${endTime}`)
 
 	return info<HyperliquidCandle[]>({
 		body: {
@@ -267,10 +267,10 @@ export const getVaultDetails = ({
 	user?: string
 }) => {
 	if (!/^0x[0-9a-fA-F]{40}$/.test(vaultAddress))
-		throw new Error(`Hyperliquid Info: invalid vault address ${vaultAddress}`)
+		throw new Error(`Hyperliquid_Rest: invalid vault address ${vaultAddress}`)
 
 	if (user != null && !/^0x[0-9a-fA-F]{40}$/.test(user))
-		throw new Error(`Hyperliquid Info: invalid vault user ${user}`)
+		throw new Error(`Hyperliquid_Rest: invalid vault user ${user}`)
 
 	return info<HyperliquidVaultDetails | null>({
 		body: {

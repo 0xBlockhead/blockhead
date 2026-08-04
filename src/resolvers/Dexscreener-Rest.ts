@@ -40,27 +40,26 @@ export default {
 
 						const baseTokenAddress = hexLowerOfByteSize(latestDexPair.baseToken.address, 20)
 						const quoteTokenAddress = hexLowerOfByteSize(latestDexPair.quoteToken.address, 20)
+						if (baseTokenAddress == null || quoteTokenAddress == null)
+							throw new Error('Dexscreener_Rest: pair token addresses are not valid EVM addresses')
+
 						return {
-							...(baseTokenAddress != null && {
-								$baseToken: {
-									[EntityMetaKey.Selector]: {
-										$network: {
-											caip2: { namespace: 'eip155' as const, reference: String(chainId) },
-										},
-										address: EvmAddress.assert(baseTokenAddress),
+							$baseToken: {
+								[EntityMetaKey.Selector]: {
+									$network: {
+										caip2: { namespace: 'eip155' as const, reference: String(chainId) },
 									},
+									address: EvmAddress.assert(baseTokenAddress),
 								},
-							}),
-							...(quoteTokenAddress != null && {
-								$quoteToken: {
-									[EntityMetaKey.Selector]: {
-										$network: {
-											caip2: { namespace: 'eip155' as const, reference: String(chainId) },
-										},
-										address: EvmAddress.assert(quoteTokenAddress),
+							},
+							$quoteToken: {
+								[EntityMetaKey.Selector]: {
+									$network: {
+										caip2: { namespace: 'eip155' as const, reference: String(chainId) },
 									},
+									address: EvmAddress.assert(quoteTokenAddress),
 								},
-							}),
+							},
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$liquidityPool: {

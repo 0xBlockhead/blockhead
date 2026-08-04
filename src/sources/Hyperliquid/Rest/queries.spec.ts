@@ -38,7 +38,7 @@ const binding = bindings[Source.Hyperliquid].find(
 )
 
 if (binding == null)
-	throw new Error('Hyperliquid Info binding is missing')
+	throw new Error('Hyperliquid_Rest: Info binding is missing')
 
 describe('Hyperliquid public account Info transport', () => {
 	beforeEach(() => {
@@ -213,7 +213,7 @@ describe('Hyperliquid public account Info transport', () => {
 			user: '0x1111111111111111111111111111111111111111',
 			startTime,
 			...(endTime != null && { endTime }),
-		})).toThrow('Hyperliquid Info: invalid fill')
+		})).toThrow('Hyperliquid_Rest: invalid fill')
 		expect(corsFetch).not.toHaveBeenCalled()
 	})
 

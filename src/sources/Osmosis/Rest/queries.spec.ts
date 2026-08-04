@@ -25,12 +25,16 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 }))
 
 const {
+	getBlock,
 	getDenomTrace,
 	getLatestBlock,
 	getNodeInfo,
 	getPool,
 	getPools,
 	getSpotPrice,
+	getStakingPool,
+	getSyncing,
+	getValidators,
 } = await import('$/sources/Osmosis/Rest/queries.ts')
 
 const binding = bindings[Source.Osmosis_LCD_Rest][0]
@@ -88,6 +92,9 @@ describe('Osmosis LCD named operations', () => {
 					chain_id: 'osmosis-1',
 					proposer_address: 'proposer',
 				},
+				data: {
+					txs: [],
+				},
 			},
 			block_id: {
 				hash: 'abcd',
@@ -103,6 +110,98 @@ describe('Osmosis LCD named operations', () => {
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
 			httpUrl(binding, '/cosmos/base/tendermint/v1beta1/blocks/latest')
+		)
+	})
+
+	it('reads a block by height', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			block_id: {
+				hash: 'height-hash',
+			},
+			block: {
+				header: {
+					height: '9',
+					time: '2026-08-04T00:00:00Z',
+					chain_id: 'osmosis-1',
+					proposer_address: 'proposer',
+				},
+				data: {
+					txs: [
+						'tx',
+					],
+				},
+			},
+		})
+		await expect(getBlock({
+			height: 9n,
+		})).resolves.toMatchObject({
+			block_id: {
+				hash: 'height-hash',
+			},
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			httpUrl(binding, '/cosmos/base/tendermint/v1beta1/blocks/9')
+		)
+	})
+
+	it('rejects a negative block height before transport', () => {
+		expect(() => getBlock({
+			height: -1n,
+		})).toThrow(`${Source.Osmosis_LCD_Rest}: invalid block height`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('reads syncing status', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			syncing: false,
+		})
+		await expect(getSyncing()).resolves.toEqual({
+			syncing: false,
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			httpUrl(binding, '/cosmos/base/tendermint/v1beta1/syncing')
+		)
+	})
+
+	it('reads the staking pool', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			pool: {
+				bonded_tokens: '1',
+				not_bonded_tokens: '2',
+			},
+		})
+		await expect(getStakingPool()).resolves.toEqual({
+			pool: {
+				bonded_tokens: '1',
+				not_bonded_tokens: '2',
+			},
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			httpUrl(binding, '/cosmos/staking/v1beta1/pool')
+		)
+	})
+
+	it('lists bonded validators with count_total', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			validators: [],
+			pagination: {
+				total: '0',
+			},
+		})
+		await expect(getValidators({
+			limit: 1,
+			status: 'BOND_STATUS_BONDED',
+		})).resolves.toMatchObject({
+			pagination: {
+				total: '0',
+			},
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			httpUrl(binding, '/cosmos/staking/v1beta1/validators?pagination.limit=1&pagination.count_total=true&status=BOND_STATUS_BONDED')
 		)
 	})
 

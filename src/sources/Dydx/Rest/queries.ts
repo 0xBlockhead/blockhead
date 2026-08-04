@@ -14,7 +14,7 @@ const binding = bindings[Source.DydxIndexer].find(
 )
 
 if (binding == null)
-	throw new Error('DydxIndexer: OpenAPI binding is missing')
+	throw new Error('DydxIndexer_Rest: OpenAPI binding is missing')
 
 const addressPattern = /^dydx1[023456789acdefghjklmnpqrstuvwxyz]{38}$/
 const tickerPattern = /^[A-Z0-9][A-Z0-9._-]{1,63}$/
@@ -27,30 +27,30 @@ const assertSubaccount = ({
 	subaccountNumber: number
 }) => {
 	if (!addressPattern.test(address))
-		throw new Error(`DydxIndexer: invalid dYdX address ${address}`)
+		throw new Error(`DydxIndexer_Rest: invalid dYdX address ${address}`)
 
 	if (!Number.isSafeInteger(subaccountNumber) || subaccountNumber < 0 || subaccountNumber > 128_000)
-		throw new Error(`DydxIndexer: invalid subaccount number ${subaccountNumber}`)
+		throw new Error(`DydxIndexer_Rest: invalid subaccount number ${subaccountNumber}`)
 }
 
 const assertLimit = (limit: number) => {
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
-		throw new Error(`DydxIndexer: invalid page limit ${limit}`)
+		throw new Error(`DydxIndexer_Rest: invalid page limit ${limit}`)
 }
 
 const assertHeight = (height: string) => {
 	if (!/^(?:0|[1-9]\d*)$/.test(height))
-		throw new Error(`dYdX chain: invalid block height ${height}`)
+		throw new Error(`DydxIndexer_Rest: invalid block height ${height}`)
 }
 
 const assertDecimal = (value: string, field: string) => {
 	if (!DecimalString.allows(value))
-		throw new Error(`DydxIndexer: invalid decimal ${field}`)
+		throw new Error(`DydxIndexer_Rest: invalid decimal ${field}`)
 }
 
 const assertNonNegativeDecimal = (value: string, field: string) => {
 	if (!NonNegativeDecimalString.allows(value))
-		throw new Error(`DydxIndexer: invalid non-negative decimal ${field}`)
+		throw new Error(`DydxIndexer_Rest: invalid non-negative decimal ${field}`)
 }
 
 const observeResponse = async <_Value>(
@@ -92,7 +92,7 @@ const assertPosition = (
 	subaccountNumber: number
 ) => {
 	if (position.subaccountNumber !== subaccountNumber)
-		throw new Error('DydxIndexer: foreign subaccount position')
+		throw new Error('DydxIndexer_Rest: foreign subaccount position')
 
 	for (const [field, value] of Object.entries({
 		size: position.size,
@@ -117,7 +117,7 @@ export const getPerpetualMarkets = async ({
 	ticker?: string
 }) => {
 	if (ticker != null && !tickerPattern.test(ticker))
-		throw new Error(`DydxIndexer: invalid market ticker ${ticker}`)
+		throw new Error(`DydxIndexer_Rest: invalid market ticker ${ticker}`)
 
 	const observation = await observeResponse(
 		sourceGetJson<components['schemas']['PerpetualMarketResponse']>(
@@ -129,11 +129,11 @@ export const getPerpetualMarkets = async ({
 		)
 	)
 	if (Object.keys(observation.value.markets).length > 500)
-		throw new Error('DydxIndexer: perpetual market response exceeds bound')
+		throw new Error('DydxIndexer_Rest: perpetual market response exceeds bound')
 
 	for (const [marketKey, market] of Object.entries(observation.value.markets)) {
 		if (marketKey !== market.ticker || (ticker != null && market.ticker !== ticker))
-			throw new Error('DydxIndexer: mismatched market identity')
+			throw new Error('DydxIndexer_Rest: mismatched market identity')
 
 		assertNonNegativeDecimal(market.oraclePrice, 'oraclePrice')
 		assertNonNegativeDecimal(market.openInterest, 'openInterest')
@@ -182,7 +182,7 @@ export const getSubaccount = async ({
 		observation.value.address !== address
 		|| observation.value.subaccountNumber !== subaccountNumber
 	)
-		throw new Error('DydxIndexer: mismatched subaccount identity')
+		throw new Error('DydxIndexer_Rest: mismatched subaccount identity')
 
 	assertDecimal(observation.value.equity, 'equity')
 	assertDecimal(observation.value.freeCollateral, 'freeCollateral')
@@ -215,11 +215,11 @@ export const getOrders = async ({
 		)
 	)
 	if (observation.value.length > limit)
-		throw new Error('DydxIndexer: order response exceeds requested limit')
+		throw new Error('DydxIndexer_Rest: order response exceeds requested limit')
 
 	for (const order of observation.value) {
 		if (order.subaccountNumber !== subaccountNumber)
-			throw new Error('DydxIndexer: foreign subaccount order')
+			throw new Error('DydxIndexer_Rest: foreign subaccount order')
 		for (const [field, value] of Object.entries({
 			price: order.price,
 			size: order.size,
@@ -256,11 +256,11 @@ export const getFills = async ({
 			.then(({ fills }) => fills)
 	)
 	if (observation.value.length > limit)
-		throw new Error('DydxIndexer: fill response exceeds requested limit')
+		throw new Error('DydxIndexer_Rest: fill response exceeds requested limit')
 
 	for (const fill of observation.value) {
 		if (fill.subaccountNumber !== subaccountNumber)
-			throw new Error('DydxIndexer: foreign subaccount fill')
+			throw new Error('DydxIndexer_Rest: foreign subaccount fill')
 		assertHeight(fill.createdAtHeight)
 		for (const [field, value] of Object.entries({
 			fee: fill.fee,
@@ -303,7 +303,7 @@ export const getPerpetualPositions = async ({
 			.then(({ positions }) => positions)
 	)
 	if (observation.value.length > limit)
-		throw new Error('DydxIndexer: position response exceeds requested limit')
+		throw new Error('DydxIndexer_Rest: position response exceeds requested limit')
 	for (const position of observation.value)
 		assertPosition(position, subaccountNumber)
 

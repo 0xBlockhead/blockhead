@@ -19,7 +19,7 @@ export const iterateDydxIndexerLive = async function* (
 		if (event.type === 'connected')
 			continue
 		if (event.type === 'grpc-message')
-			throw new Error('DydxIndexer: WebSocket subscription received a gRPC message')
+			throw new Error('DydxIndexer_WebSocket: subscription received a gRPC message')
 
 		yield parseDydxWebSocketMessage(event.payload)
 	}

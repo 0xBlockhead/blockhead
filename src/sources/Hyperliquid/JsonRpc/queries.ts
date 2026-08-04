@@ -9,7 +9,7 @@ const binding = bindings[Source.Hyperliquid].find(
 )
 
 if (binding == null)
-	throw new Error('Hyperliquid EVM binding is missing')
+	throw new Error('Hyperliquid_JsonRpc: EVM binding is missing')
 
 const jsonRpc = evmExecutionJsonRpc({ binding })
 

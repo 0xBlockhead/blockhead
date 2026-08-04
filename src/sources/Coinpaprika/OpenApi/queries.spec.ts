@@ -27,8 +27,8 @@ describe('Coinpaprika coin queries', () => {
 
 	it('maps catalog venues onto Coinpaprika exchange wire ids', () => {
 		expect(coinpaprikaExchangeIdByMarketVenueId[MarketVenueId.Binance]).toBe('binance')
-		expect(coinpaprikaExchangeIdByMarketVenueId[MarketVenueId.Coinbase]).toBe('gdax')
-		expect(coinpaprikaExchangeIdByMarketVenueId[MarketVenueId.Okx]).toBe('okex')
+		expect(coinpaprikaExchangeIdByMarketVenueId[MarketVenueId.Coinbase]).toBe('coinbase')
+		expect(coinpaprikaExchangeIdByMarketVenueId[MarketVenueId.Okx]).toBe('okx')
 	})
 
 	it('loads all catalog tickers with one bulk request', async () => {

@@ -179,7 +179,7 @@ export const fetchCoinInstanceStubsForCoin = async (
 ) => {
 	const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 	if (!Object.hasOwn(idByCoinId, coinId))
-		return []
+		throw new Error(`Coingecko_Rest: no wire id mapped for coin ${coinId}`)
 	const coingeckoId = idByCoinId[coinId]
 
 	const [coin, assetPlatforms] = await Promise.all([
@@ -189,7 +189,8 @@ export const fetchCoinInstanceStubsForCoin = async (
 		}),
 		getAssetPlatforms({ publicEnv }),
 	])
-	if (coin == null) return []
+	if (coin == null)
+		throw new Error(`Coingecko_Rest: coin not returned by API for ${coingeckoId}`)
 
 	const chainIdByPlatformId = new Map(
 		assetPlatforms.flatMap((platform) => (

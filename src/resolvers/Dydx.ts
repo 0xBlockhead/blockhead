@@ -91,6 +91,17 @@ const parseTimestampMs = (
 	return timestampMs
 }
 
+const assetsFromTicker = (ticker: string) => {
+	const separatorIndex = ticker.indexOf('-')
+	if (separatorIndex <= 0 || separatorIndex === ticker.length - 1)
+		throw new Error(`DydxIndexer: invalid market ticker ${ticker}`)
+
+	return {
+		baseAsset: ticker.slice(0, separatorIndex),
+		quoteAsset: ticker.slice(separatorIndex + 1),
+	}
+}
+
 export const dydxChainNetworkResolver = defineResolver({
 	entityType: EntityType.DydxChainNetwork,
 	resolve: {
@@ -166,6 +177,10 @@ export const dydxChainNetworkResolver = defineResolver({
 						source: Source.DydxIndexer,
 						value: [...trackedMarketByTicker].map(([ticker, liveMarket]) => {
 							const observations = observationsByTicker.get(ticker)
+							const {
+								baseAsset,
+								quoteAsset,
+							} = assetsFromTicker(ticker)
 
 							return {
 								[EntityMetaKey.Selector]: {
@@ -173,6 +188,8 @@ export const dydxChainNetworkResolver = defineResolver({
 									ticker,
 								},
 								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'baseAsset')]: baseAsset,
+									[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'quoteAsset')]: quoteAsset,
 									[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'marketKind')]: liveMarket.marketKind,
 									...(observations !== undefined && {
 										[entityFieldAddressKey(EntityType.DydxChainMarket, [], '$$timestamps')]: [...observations].map(([timestampMs, observation]) => ({
@@ -218,11 +235,11 @@ export const dydxChainNetworkResolver = defineResolver({
 								if (message.type === 'connected' || message.type === 'pong')
 									continue
 								if (message.type === 'error')
-									throw new Error(`DydxIndexer WebSocket: ${message.message}`)
+									throw new Error(`DydxIndexer_WebSocket: ${message.message}`)
 								if (message.type === 'unsubscribed')
-									throw new Error(`DydxIndexer WebSocket: unexpected ${message.channel} unsubscribe`)
+									throw new Error(`DydxIndexer_WebSocket: unexpected ${message.channel} unsubscribe`)
 								if (message.channel !== 'v4_markets')
-									throw new Error(`DydxIndexer WebSocket: unexpected ${message.channel} message`)
+									throw new Error(`DydxIndexer_WebSocket: unexpected ${message.channel} message`)
 
 								if (message.type === 'subscribed') {
 									trackedMarketByTicker.clear()
@@ -323,11 +340,11 @@ export const dydxChainNetworkResolver = defineResolver({
 								if (message.type === 'connected' || message.type === 'pong')
 									continue
 								if (message.type === 'error')
-									throw new Error(`DydxIndexer WebSocket: ${message.message}`)
+									throw new Error(`DydxIndexer_WebSocket: ${message.message}`)
 								if (message.type === 'unsubscribed')
-									throw new Error(`DydxIndexer WebSocket: unexpected ${message.channel} unsubscribe`)
+									throw new Error(`DydxIndexer_WebSocket: unexpected ${message.channel} unsubscribe`)
 								if (message.channel !== 'v4_block_height')
-									throw new Error(`DydxIndexer WebSocket: unexpected ${message.channel} message`)
+									throw new Error(`DydxIndexer_WebSocket: unexpected ${message.channel} message`)
 
 								for (const contents of (
 									message.type === 'channel_batch_data' ?
@@ -356,15 +373,24 @@ export const dydxChainNetworkResolver = defineResolver({
 		},
 	},
 })({
-	$$markets: (snapshot, network) => snapshot.markets.map((market) => ({
-		[EntityMetaKey.Selector]: {
-			$network: network,
-			ticker: market.ticker,
-		},
-		[EntityMetaKey.Fields]: {
-			[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'marketKind')]: market.marketType,
-		},
-	})),
+	$$markets: (snapshot, network) => snapshot.markets.map((market) => {
+		const {
+			baseAsset,
+			quoteAsset,
+		} = assetsFromTicker(market.ticker)
+
+		return {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				ticker: market.ticker,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'baseAsset')]: baseAsset,
+				[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'quoteAsset')]: quoteAsset,
+				[entityFieldAddressKey(EntityType.DydxChainMarket, [], 'marketKind')]: market.marketType,
+			},
+		}
+	}),
 	$$timestamps: (snapshot, network) => [{
 		[EntityMetaKey.Selector]: {
 			$network: network,
@@ -389,7 +415,7 @@ export const dydxChainMarketResolver = defineResolver({
 					ticker: entitySelector.ticker,
 				})
 				if (!Object.hasOwn(observation.value.markets, entitySelector.ticker))
-					throw new Error(`DydxIndexer: market not found for ${entitySelector.ticker}`)
+					throw new Error(`DydxIndexer_Rest: market not found for ${entitySelector.ticker}`)
 
 				return {
 					market: observation.value.markets[entitySelector.ticker],
@@ -399,6 +425,8 @@ export const dydxChainMarketResolver = defineResolver({
 		},
 	},
 })({
+	baseAsset: (snapshot) => assetsFromTicker(snapshot.market.ticker).baseAsset,
+	quoteAsset: (snapshot) => assetsFromTicker(snapshot.market.ticker).quoteAsset,
 	marketKind: (snapshot) => snapshot.market.marketType,
 	$$timestamps: (snapshot, market) => [{
 		[EntityMetaKey.Selector]: {

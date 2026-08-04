@@ -132,7 +132,7 @@ describe('dYdX Indexer managed live transport', () => {
 		})
 
 		await expect(iterator.next()).rejects.toThrow(
-			'DydxIndexer: WebSocket subscription received a gRPC message'
+			'DydxIndexer_WebSocket: subscription received a gRPC message'
 		)
 	})
 })

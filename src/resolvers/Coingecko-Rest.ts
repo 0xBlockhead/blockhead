@@ -178,12 +178,16 @@ const coingeckoSpotMarketSelectorsForCoin = async (
 ) => {
 	const { coinIdByWireId } = await import('$/sources/Coingecko/Rest/constants.ts')
 	const { getCoinTickers } = await import('$/sources/Coingecko/Rest/queries.ts')
-	const seen = new Set<string>()
-	return (await getCoinTickers({
+	const tickers = await getCoinTickers({
 		publicEnv,
 		id: coingeckoId,
 		order: 'volume_desc',
-	}))?.tickers.flatMap((ticker) => {
+	})
+	if (tickers == null)
+		throw new Error(`Coingecko_Rest: coin tickers not found for ${coingeckoId}`)
+
+	const seen = new Set<string>()
+	return tickers.tickers.flatMap((ticker) => {
 		const market = coingeckoSpotMarketSelector(
 			ticker,
 			catalogCoinId,
@@ -198,7 +202,7 @@ const coingeckoSpotMarketSelectorsForCoin = async (
 
 		seen.add(key)
 		return [market]
-	}) ?? []
+	})
 }
 
 const coingeckoDerivativeMarketSelectors = async (
@@ -220,11 +224,15 @@ const coingeckoDerivativeMarketSelectors = async (
 					exchangeId,
 				}]
 			})
-			.map(async ({ marketVenueId, exchangeId }) => (
-				(await getDerivativesExchange({
+			.map(async ({ marketVenueId, exchangeId }) => {
+				const exchange = await getDerivativesExchange({
 					publicEnv,
 					id: exchangeId,
-				}))?.tickers?.flatMap((ticker) => {
+				})
+				if (exchange == null)
+					throw new Error(`Coingecko_Rest: derivatives exchange not found for ${exchangeId}`)
+
+				return (exchange.tickers ?? []).flatMap((ticker) => {
 					const market = coingeckoDerivativeMarketSelector(
 						ticker,
 						marketVenueId,
@@ -245,8 +253,8 @@ const coingeckoDerivativeMarketSelectors = async (
 
 					seen.add(key)
 					return [market]
-				}) ?? []
-			))
+				})
+			})
 	)).flat()
 }
 
@@ -269,10 +277,14 @@ const coingeckoDerivativeTickerForMarket = async (
 		)
 
 	const { getDerivativesExchange } = await import('$/sources/Coingecko/Rest/queries.ts')
-	const ticker = (await getDerivativesExchange({
+	const exchange = await getDerivativesExchange({
 		publicEnv,
 		id: exchangeId,
-	}))?.tickers?.find((exchangeTicker) => {
+	})
+	if (exchange == null)
+		throw new Error(`Coingecko_Rest: derivatives exchange not found for ${exchangeId}`)
+
+	const ticker = (exchange.tickers ?? []).find((exchangeTicker) => {
 		const exchangeMarket = coingeckoDerivativeMarketSelector(
 			exchangeTicker,
 			market.$marketVenue.marketVenueId,
@@ -600,7 +612,7 @@ export default {
 						if ($market.marketKind !== MarketKind.Spot)
 							throw new Error('Coingecko_Rest: Market_Timestamp is spot-only')
 						if ($market.$base.kind !== MarketAssetKind.Coin)
-							throw new Error('Market source: market base must be catalog coin')
+							throw new Error('Coingecko_Rest: market base must be catalog coin')
 						if (!isSeededCoinCurrencyMarket($market))
 							throw new Error('Coingecko_Rest: Market_Timestamp is catalog coin USD market only')
 						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
@@ -644,7 +656,7 @@ export default {
 						if ($market.marketKind !== MarketKind.Spot)
 							throw new Error('Coingecko_Rest: OHLC is spot-only')
 						if ($market.$base.kind !== MarketAssetKind.Coin)
-							throw new Error('Market source: market base must be catalog coin')
+							throw new Error('Coingecko_Rest: market base must be catalog coin')
 						if (!isSeededCoinCurrencyMarket($market))
 							throw new Error('Coingecko_Rest: OHLC is catalog coin USD market only')
 						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
@@ -1013,11 +1025,11 @@ export default {
 				BaseQuoteMarketVenueKind: {
 					resolve: async (entitySelector, context) => {
 						if (entitySelector.marketKind !== MarketKind.Spot)
-							return []
+							throw new Error('Coingecko_Rest: OHLC is spot-only')
 						if (entitySelector.$base.kind !== MarketAssetKind.Coin)
-							return []
+							throw new Error('Coingecko_Rest: market base must be catalog coin')
 						if (!isSeededCoinCurrencyMarket(entitySelector))
-							return []
+							throw new Error('Coingecko_Rest: OHLC is catalog coin USD market only')
 						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 						const { getCoinOhlc } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const coinId = entitySelector.$base.assetKey
@@ -1052,11 +1064,11 @@ export default {
 				Market: {
 					resolve: async ({ $market }, context) => {
 						if ($market.marketKind !== MarketKind.Spot)
-							return []
+							throw new Error('Coingecko_Rest: MarketPrice quotes are spot-only')
 						if ($market.$base.kind !== MarketAssetKind.Coin)
-							return []
+							throw new Error('Coingecko_Rest: market base must be catalog coin')
 						if (!isSeededCoinCurrencyMarket($market))
-							return []
+							throw new Error('Coingecko_Rest: MarketPrice quotes are catalog coin USD market only')
 						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 						const { getSimplePrice } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const coinId = $market.$base.assetKey
