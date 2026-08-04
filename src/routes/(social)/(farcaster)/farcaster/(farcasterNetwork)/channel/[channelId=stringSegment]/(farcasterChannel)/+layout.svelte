@@ -46,6 +46,7 @@
 					select(EntityType.FarcasterChannel, data.selector, {
 						sources: [
 							Source.Farcaster_Rest,
+							Source.Neynar_Rest,
 						],
 					})
 				}

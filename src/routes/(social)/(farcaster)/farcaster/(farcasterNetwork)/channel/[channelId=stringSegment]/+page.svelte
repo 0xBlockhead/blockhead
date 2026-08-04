@@ -19,10 +19,8 @@
 	const pageSelection = $derived(select(EntityType.FarcasterChannel, data.selector, {
 		sources: [
 			Source.Farcaster_Rest,
+			Source.Neynar_Rest,
 		],
-		fields: {
-			name: true,
-		},
 	}))
 
 
@@ -33,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'Farcaster channel' : [pageSelection.entity.name, pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'Farcaster channel')} • Farcaster channel • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.id || 'Farcaster channel')} • Farcaster channel • Blockhead</title>
 </svelte:head>
 
 

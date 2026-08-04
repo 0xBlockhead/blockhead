@@ -18,6 +18,7 @@
 
 	const pageSelection = $derived(select(EntityType.FarcasterUser, data.selector, {
 		sources: [
+			Source.Neynar_Rest,
 			Source.Snapchain_Rest,
 		],
 		fields: {
