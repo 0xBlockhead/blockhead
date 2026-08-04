@@ -22,7 +22,11 @@
 		schema,
 		schemaMeta,
 	} from '$/schema/index.ts'
-	import { sourceProviders } from '$/sources/index.ts'
+	import { sourceRuntimeCapabilities } from '$/sources/_runtime/capabilities.remote.ts'
+	import {
+		browserDirectSourceBindingIds,
+		sourceProviders,
+	} from '$/sources/index.ts'
 	import type { Source } from '$/sources/Source.ts'
 	import type { SourceProvider } from '$/sources/SourceProvider.ts'
 	import { indexSourceProviders } from '$/sources/$sources.ts'
@@ -48,9 +52,17 @@
 	>>>>
 	let appClient: AppClient | undefined
 	const bootstrap = Promise.all([
-		loadResolvers(indexSourceProviders(sourceProviders, env).enabledSources),
+		sourceRuntimeCapabilities(),
 		databasePromise,
-	]).then(([resolvers, database]) => {
+	]).then(async ([sourceCapabilities, database]) => {
+		const sourceIndex = indexSourceProviders(
+			sourceProviders,
+			env,
+			new Set([
+				...browserDirectSourceBindingIds,
+				...sourceCapabilities.enabledServerBindingIds,
+			])
+		)
 		const {
 			persistence,
 			waitForPersistence,
@@ -69,8 +81,8 @@
 			}
 		)(
 			{
-				resolvers,
-				env,
+				resolvers: await loadResolvers(sourceIndex.enabledSources),
+				sourceIndex,
 			}
 		)(
 			{
