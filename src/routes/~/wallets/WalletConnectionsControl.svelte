@@ -1,7 +1,10 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
-	import { WalletCapability } from '$/constants/Wallet.ts'
+	import {
+		WalletCapability,
+		WalletProtocol,
+	} from '$/constants/Wallet.ts'
 	import { normalizeBoundaryError } from '$/lib/errors.ts'
 	import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -12,6 +15,7 @@
 	// Context
 	import { select } from '$/routes/+layout.svelte'
 	import { getWalletConnectionRuntime } from '$/state/wallets/walletConnectionRuntime.svelte.ts'
+	import { walletConnectionError } from '$/state/wallets/walletConnectionState.ts'
 
 
 	// IDs
@@ -21,7 +25,8 @@
 	// State
 	const walletRuntime = $derived(getWalletConnectionRuntime())
 	const availableCandidates = $derived(walletRuntime?.candidates.filter((candidate) => (
-		!walletRuntime.connections.some((connection) => connection.walletId === candidate.id)
+		candidate.protocol === WalletProtocol.WalletConnectV2
+		|| !walletRuntime.connections.some((connection) => connection.walletId === candidate.id)
 	)) ?? [])
 	const walletRequests = $derived(
 		select(EntityType._Global, {
@@ -82,6 +87,7 @@
 		)) as connection (connection.connectionKey ?? connection.walletId)}
 			{@const connectionKey = connection.connectionKey ?? connection.walletId}
 			{@const candidate = walletRuntime.candidates.find((candidate) => candidate.id === connection.walletId)}
+			{@const connectionFailure = walletConnectionError(connection)}
 			<article
 				data-column-item="flexible"
 				data-card
@@ -93,7 +99,7 @@
 						connectionKey,
 					}}
 					href={resolve(
-						'/~/accounts/connections/[connectionKey=stringSegment]',
+						'/~/wallets/connections/[connectionKey=stringSegment]',
 						{
 							connectionKey,
 						}
@@ -115,8 +121,8 @@
 				{/if}
 
 				<Boundary
-					failure={connection.error == null ? undefined : {
-						error: new Error(connection.error),
+					failure={connectionFailure == null ? undefined : {
+						error: new Error(connectionFailure),
 					}}
 					boundaryKey={`Wallet connection ${connectionKey}`}
 				/>

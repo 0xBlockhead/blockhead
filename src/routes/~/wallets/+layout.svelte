@@ -10,12 +10,12 @@
 
 
 	// Components
-	import AccountEnrollmentControl from './AccountEnrollmentControl.svelte'
+	import WalletConnectionsControl from './WalletConnectionsControl.svelte'
 </script>
 
 
 <div data-column="gap-4">
-	<AccountEnrollmentControl />
+	<WalletConnectionsControl />
 
 	{@render children()}
 </div>

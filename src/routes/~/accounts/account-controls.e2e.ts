@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import type { BrowserContext, TestInfo } from '@playwright/test'
+import type { BrowserContext, Page, TestInfo } from '@playwright/test'
 
 import {
 	expectMainAttached,
@@ -51,6 +51,60 @@ const installIsolatedLocalDatabase = async (
 		name: `blockhead-${label}-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
 		schemaVersion: Date.now(),
 	})
+}
+
+const enrollAccount = async (
+	page: Page,
+	network: string,
+	accountAddress: string
+) => {
+	const enrollmentForm = page.locator('form').filter({
+		has: page.getByRole('button', {
+			name: 'Add account',
+		}),
+	})
+	await enrollmentForm.getByLabel('Network (CAIP-2)').fill(network)
+	await enrollmentForm.getByLabel('Account address').fill(accountAddress)
+	await enrollmentForm.getByRole('button', {
+		name: 'Add account',
+	}).click()
+	await expect(enrollmentForm.getByRole('status')).toContainText(
+		`Added ${network}:${accountAddress}.`
+	)
+}
+
+const gotoLocalHub = async (
+	page: Page,
+	hub: 'accounts' | 'wallets'
+) => {
+	await page.locator(`#nav-menu a[href="/~/${hub}"]`).click()
+	await expect(page).toHaveURL(new RegExp(`/~/${hub}$`))
+	await expectMainAttached(page, 120_000)
+}
+
+const enrollExposedWalletAccount = async (
+	page: Page,
+	network: string,
+	accountAddress: string
+) => {
+	await gotoLocalHub(page, 'accounts')
+	await enrollAccount(page, network, accountAddress)
+	await expect(page.locator('#blockhead-accounts').getByText(`${network}:${accountAddress}`, {
+		exact: true,
+	})).toBeAttached()
+	await gotoLocalHub(page, 'wallets')
+}
+
+const expectEnrolledWalletAccounts = async (
+	page: Page,
+	accounts: readonly (readonly [network: string, accountAddress: string])[]
+) => {
+	await gotoLocalHub(page, 'accounts')
+	for (const [network, accountAddress] of accounts)
+		await expect(page.locator('#blockhead-accounts').getByText(`${network}:${accountAddress}`, {
+			exact: true,
+		})).toBeAttached()
+	await gotoLocalHub(page, 'wallets')
 }
 
 test('reject retry provider events disappearance restore removal and account composition lifecycle', async ({ context, page }, testInfo) => {
@@ -141,13 +195,29 @@ test('reject retry provider events disappearance restore removal and account com
 	})
 
 	const diagnostics = setupPageRuntimeDiagnostics(page)
-	await diagnostics.step(page.goto('/~/accounts', {
+	await diagnostics.step(page.goto('/~/wallets', {
 		waitUntil: 'load',
 		timeout: 120_000,
 	}))
 	await expectMainAttached(page, 120_000, diagnostics)
 	const walletStatus = page.locator('article#wallet-connections[data-card][data-scroll-container]')
+	const walletInventoryHeading = page.locator('#blockhead-wallets').getByRole('heading', {
+		name: 'Wallets',
+	})
+	const savedWalletCount = 2
+	const walletConnectionCard = page.locator('article[data-card][data-scroll-container]').filter({
+		has: page.getByRole('link', {
+			name: 'Wallet control test provider',
+			exact: true,
+		}),
+	})
 	await expect(walletStatus).toContainText('Active connections: 0. Saved connections: 0.')
+	await expect(page.locator('#blockhead-wallets').getByText('Wallet control test provider', {
+		exact: true,
+	})).toBeAttached({
+		timeout: 120_000,
+	})
+	await expect(walletInventoryHeading).toContainText(`Wallets (${savedWalletCount})`)
 	await expect(page.getByText('No wallet connected.')).toHaveCount(0)
 
 	await page.getByRole('button', {
@@ -166,7 +236,7 @@ test('reject retry provider events disappearance restore removal and account com
 	await expect(page.getByText('connecting', {
 		exact: true,
 	}).first()).toBeAttached()
-	await expect(page.locator('#main').getByText('Wallet control test provider')).toHaveCount(1)
+	await expect(walletConnectionCard).toHaveCount(1)
 	expect(await page.evaluate(() => window.walletControlAccountRequestCount)).toBe(2)
 	await page.evaluate(() => window.completeWalletControlAccountRequest())
 	await expect(page.getByText('connected', {
@@ -189,9 +259,23 @@ test('reject retry provider events disappearance restore removal and account com
 	await expect(page.getByText('0x2222222222222222222222222222222222222222', {
 		exact: true,
 	}).first()).toBeAttached()
-	await expect(page.getByRole('heading', {
+	await gotoLocalHub(page, 'accounts')
+	await expect(page.locator('#wallet-connections')).toHaveCount(0)
+	await expect(page.locator('#blockhead-accounts').getByRole('heading')).toContainText('Accounts (0)')
+	await enrollAccount(
+		page,
+		'eip155:1',
+		'0x1111111111111111111111111111111111111111'
+	)
+	await expect(page.locator('#blockhead-accounts').getByRole('heading', {
 		name: 'Accounts',
-	})).toContainText('Accounts (2)')
+	})).toContainText('Accounts (1)')
+	await gotoLocalHub(page, 'wallets')
+	await expect(page.getByRole('radio', {
+		name: /0x2222222222222222222222222222222222222222/,
+	})).toBeChecked({
+		timeout: 120_000,
+	})
 	await page.getByLabel('Message to sign').fill('Persist this wallet request')
 	await page.getByRole('button', {
 		name: 'Sign message',
@@ -224,9 +308,11 @@ test('reject retry provider events disappearance restore removal and account com
 	}).locator('..').getByText('eip155:137')).toBeAttached({
 		timeout: 120_000,
 	})
+	await gotoLocalHub(page, 'accounts')
 	await expect(page.locator('#blockhead-accounts').getByText(`eip155:137:${changedAccount}`, {
 		exact: true,
-	})).toBeAttached()
+	})).toHaveCount(0)
+	await gotoLocalHub(page, 'wallets')
 
 	await page.evaluate(() => window.setWalletControlProviderAvailable(false))
 	await page.reload({ waitUntil: 'load' })
@@ -236,9 +322,15 @@ test('reject retry provider events disappearance restore removal and account com
 	await expect(page.getByRole('button', {
 		name: 'Disconnect from Blockhead',
 	})).toHaveCount(0)
-	await expect(page.locator('#blockhead-accounts').getByText(`eip155:137:${changedAccount}`, {
+	await expect(walletInventoryHeading).toContainText(`Wallets (${savedWalletCount})`)
+	await expect(page.locator('#blockhead-wallets').getByText('Wallet control test provider', {
 		exact: true,
 	})).toBeAttached()
+	await gotoLocalHub(page, 'accounts')
+	await expect(page.locator('#blockhead-accounts').getByText('eip155:1:0x1111111111111111111111111111111111111111', {
+		exact: true,
+	})).toBeAttached()
+	await gotoLocalHub(page, 'wallets')
 
 	await page.evaluate(() => window.setWalletControlProviderAvailable(true))
 	await page.reload({ waitUntil: 'load' })
@@ -261,9 +353,15 @@ test('reject retry provider events disappearance restore removal and account com
 		name: 'Retry connect',
 	})).toBeVisible()
 
-	await expect(page.locator('#main').getByText('Wallet control test provider')).toHaveCount(1)
+	await expect(walletConnectionCard).toHaveCount(1)
 
 	await page.reload({ waitUntil: 'load' })
+	await expect(page.getByRole('button', {
+		name: 'Retry connect',
+	})).toBeVisible()
+	await expect(page.getByText('User rejected the wallet request')).toHaveCount(0)
+	expect(diagnostics.issues, 'restored disconnected facts must remain authoritative').toEqual([])
+	await gotoLocalHub(page, 'accounts')
 	await expect(page.locator('#blockhead-accounts').getByText('eip155:1:0x1111111111111111111111111111111111111111', {
 		exact: true,
 	})).toBeAttached({
@@ -271,15 +369,11 @@ test('reject retry provider events disappearance restore removal and account com
 	})
 	await expect(page.locator('#blockhead-accounts').getByText('eip155:1:0x2222222222222222222222222222222222222222', {
 		exact: true,
-	})).toBeAttached()
+	})).toHaveCount(0)
 	await expect(page.locator('#blockhead-accounts').getByText(`eip155:137:${changedAccount}`, {
 		exact: true,
-	})).toBeAttached()
-	await expect(page.getByRole('button', {
-		name: 'Retry connect',
-	})).toBeVisible()
-	await expect(page.getByText('User rejected the wallet request')).toHaveCount(0)
-	expect(diagnostics.issues, 'restored disconnected facts must remain authoritative').toEqual([])
+	})).toHaveCount(0)
+	await gotoLocalHub(page, 'wallets')
 	await page.locator('article[data-card][data-scroll-container]').filter({
 		has: page.getByRole('link', {
 			name: 'Wallet control test provider',
@@ -292,9 +386,29 @@ test('reject retry provider events disappearance restore removal and account com
 		name: 'Connect Wallet control test provider',
 	})).toBeVisible()
 	await expect(walletStatus).toContainText('Active connections: 0. Saved connections: 0.')
+	await expect(walletInventoryHeading).toContainText(`Wallets (${savedWalletCount})`)
+	await expect(page.locator('#wallet-connections-requests[data-card][data-scroll-container]')).toContainText(
+		'Wallet request history (1)'
+	)
+	await gotoLocalHub(page, 'accounts')
 	await expect(page.locator('#blockhead-accounts').getByText('eip155:1:0x1111111111111111111111111111111111111111', {
 		exact: true,
 	})).toBeAttached()
+	const enrollmentForm = page.locator('form').filter({
+		has: page.getByRole('button', {
+			name: 'Add account',
+		}),
+	})
+	await enrollmentForm.getByLabel('Network (CAIP-2)').fill('eip155:1')
+	await enrollmentForm.getByLabel('Account address').fill('0x1111111111111111111111111111111111111111')
+	await enrollmentForm.getByRole('button', {
+		name: 'Remove account',
+	}).click()
+	await expect(enrollmentForm.getByRole('status')).toContainText(
+		'Removed eip155:1:0x1111111111111111111111111111111111111111.'
+	)
+	await expect(page.locator('#blockhead-accounts').getByText('No accounts enrolled.')).toBeAttached()
+	await gotoLocalHub(page, 'wallets')
 	await page.reload({ waitUntil: 'load' })
 	await expect(page.getByRole('button', {
 		name: 'Connect Wallet control test provider',
@@ -309,10 +423,16 @@ test('reject retry provider events disappearance restore removal and account com
 	}).getByRole('button', {
 		name: 'Remove connection',
 	})).toHaveCount(0)
+	await expect(walletInventoryHeading).toContainText(`Wallets (${savedWalletCount})`)
+	await expect(page.locator('#wallet-connections-requests[data-card][data-scroll-container]')).toContainText(
+		'Wallet request history (1)'
+	)
+	await gotoLocalHub(page, 'accounts')
+	await expect(page.locator('#blockhead-accounts').getByText('No accounts enrolled.')).toBeAttached()
 	await page.close()
 	const reopenedPage = await context.newPage()
 	const reopenedDiagnostics = setupPageRuntimeDiagnostics(reopenedPage)
-	await reopenedDiagnostics.step(reopenedPage.goto('/~/accounts', {
+	await reopenedDiagnostics.step(reopenedPage.goto('/~/wallets', {
 		waitUntil: 'load',
 		timeout: 120_000,
 	}))
@@ -323,6 +443,9 @@ test('reject retry provider events disappearance restore removal and account com
 	await expect(reopenedPage.getByText('message-signature', {
 		exact: true,
 	})).toBeAttached()
+	await expect(reopenedPage.locator('#blockhead-wallets').getByRole('heading', {
+		name: 'Wallets',
+	})).toContainText(`Wallets (${savedWalletCount})`)
 	expect(reopenedDiagnostics.issues).toEqual([])
 	expect(diagnostics.issues).toEqual([])
 })
@@ -411,7 +534,7 @@ test('connects and restores Cosmos signer accounts into the public transaction a
 	})
 
 	const diagnostics = setupPageRuntimeDiagnostics(page)
-	await diagnostics.step(page.goto('/~/accounts', {
+	await diagnostics.step(page.goto('/~/wallets', {
 		waitUntil: 'load',
 		timeout: 120_000,
 	}))
@@ -433,9 +556,7 @@ test('connects and restores Cosmos signer accounts into the public transaction a
 	await expect(connection.getByRole('radio', {
 		name: new RegExp(firstAccount),
 	})).toBeChecked()
-	await expect(page.locator('#blockhead-accounts').getByText(`cosmos:cosmoshub-4:${firstAccount}`, {
-		exact: true,
-	})).toBeAttached()
+	await enrollExposedWalletAccount(page, 'cosmos:cosmoshub-4', firstAccount)
 
 	await page.evaluate((accountAddress) => window.setKeplrAccountAddress(accountAddress), secondAccount)
 	await expect(connection.getByRole('radio', {
@@ -446,9 +567,7 @@ test('connects and restores Cosmos signer accounts into the public transaction a
 	await expect(connection.getByRole('radio', {
 		name: new RegExp(firstAccount),
 	})).toHaveCount(0)
-	await expect(page.locator('#blockhead-accounts').getByText(`cosmos:cosmoshub-4:${secondAccount}`, {
-		exact: true,
-	})).toBeAttached()
+	await enrollExposedWalletAccount(page, 'cosmos:cosmoshub-4', secondAccount)
 
 	await page.reload({ waitUntil: 'load' })
 	const restoredConnection = page.locator('article[data-card][data-scroll-container]').filter({
@@ -525,7 +644,7 @@ test('connects Cardano CIP-30 accounts, selects one, and disconnects only from B
 	await installChainlistRpcsJsonStub(page)
 
 	const diagnostics = setupPageRuntimeDiagnostics(page)
-	await diagnostics.step(page.goto('/~/accounts', {
+	await diagnostics.step(page.goto('/~/wallets', {
 		waitUntil: 'load',
 		timeout: 120_000,
 	}))
@@ -556,12 +675,8 @@ test('connects Cardano CIP-30 accounts, selects one, and disconnects only from B
 	})
 	await secondAccount.check()
 	await expect(secondAccount).toBeChecked()
-	await expect(page.locator('#blockhead-accounts').getByText(`cip34:1-764824073:${firstAddress}`, {
-		exact: true,
-	})).toBeAttached()
-	await expect(page.locator('#blockhead-accounts').getByText(`cip34:1-764824073:${secondAddress}`, {
-		exact: true,
-	})).toBeAttached()
+	await enrollExposedWalletAccount(page, 'cip34:1-764824073', firstAddress)
+	await enrollExposedWalletAccount(page, 'cip34:1-764824073', secondAddress)
 	await expect(connection.getByRole('button', {
 		name: 'Disconnect wallet',
 	})).toHaveCount(0)
@@ -574,12 +689,10 @@ test('connects Cardano CIP-30 accounts, selects one, and disconnects only from B
 	await expect(connection.getByRole('button', {
 		name: 'Retry connect',
 	})).toBeVisible()
-	await expect(page.locator('#blockhead-accounts').getByText(`cip34:1-764824073:${firstAddress}`, {
-		exact: true,
-	})).toBeAttached()
-	await expect(page.locator('#blockhead-accounts').getByText(`cip34:1-764824073:${secondAddress}`, {
-		exact: true,
-	})).toBeAttached()
+	await expectEnrolledWalletAccounts(page, [
+		['cip34:1-764824073', firstAddress],
+		['cip34:1-764824073', secondAddress],
+	])
 	expect(diagnostics.issues).toEqual([])
 })
 
@@ -686,7 +799,7 @@ test('verifies TON Connect replacement restore disconnect and removal lifecycle'
 	})
 
 	const diagnostics = setupPageRuntimeDiagnostics(page)
-	await diagnostics.step(page.goto('/~/accounts', {
+	await diagnostics.step(page.goto('/~/wallets', {
 		waitUntil: 'load',
 		timeout: 120_000,
 	}))
@@ -714,9 +827,7 @@ test('verifies TON Connect replacement restore disconnect and removal lifecycle'
 	await expect(page.getByRole('radio', {
 		name: new RegExp(initialAddress),
 	}).locator('..').getByText('ton:-239')).toBeAttached()
-	await expect(page.locator('#blockhead-accounts').getByText(`ton:-239:${initialAddress}`, {
-		exact: true,
-	})).toBeAttached()
+	await enrollExposedWalletAccount(page, 'ton:-239', initialAddress)
 
 	await page.evaluate(({
 		address,
@@ -733,9 +844,7 @@ test('verifies TON Connect replacement restore disconnect and removal lifecycle'
 	await expect(page.getByRole('radio', {
 		name: new RegExp(changedAddress),
 	}).locator('..').getByText('ton:-3')).toBeAttached()
-	await expect(page.locator('#blockhead-accounts').getByText(`ton:-3:${changedAddress}`, {
-		exact: true,
-	})).toBeAttached()
+	await enrollExposedWalletAccount(page, 'ton:-3', changedAddress)
 
 	await page.reload({
 		waitUntil: 'load',
@@ -756,9 +865,9 @@ test('verifies TON Connect replacement restore disconnect and removal lifecycle'
 		timeout: 120_000,
 	})
 	await expect(walletStatus).toContainText('Active connections: 0. Saved connections: 1.')
-	await expect(page.locator('#blockhead-accounts').getByText(`ton:-3:${changedAddress}`, {
-		exact: true,
-	})).toBeAttached()
+	await expectEnrolledWalletAccounts(page, [
+		['ton:-3', changedAddress],
+	])
 
 	await page.reload({
 		waitUntil: 'load',
@@ -788,9 +897,9 @@ test('verifies TON Connect replacement restore disconnect and removal lifecycle'
 	})).toBeVisible({
 		timeout: 120_000,
 	})
-	await expect(page.locator('#blockhead-accounts').getByText(`ton:-3:${changedAddress}`, {
-		exact: true,
-	})).toBeAttached()
+	await expectEnrolledWalletAccounts(page, [
+		['ton:-3', changedAddress],
+	])
 	expect(diagnostics.issues).toEqual([])
 })
 
@@ -922,7 +1031,7 @@ test('verifies Wallet Standard and TRON provider lifecycles', async ({ page }, t
 	}, providers)
 
 	const diagnostics = setupPageRuntimeDiagnostics(page)
-	await diagnostics.step(page.goto('/~/accounts', {
+	await diagnostics.step(page.goto('/~/wallets', {
 		waitUntil: 'load',
 		timeout: 120_000,
 	}))
@@ -964,9 +1073,7 @@ test('verifies Wallet Standard and TRON provider lifecycles', async ({ page }, t
 		await expect(connection.getByText(provider.expectedChain, {
 			exact: true,
 		})).toBeAttached()
-		await expect(page.locator('#blockhead-accounts').getByText(`${provider.expectedChain}:${provider.account}`, {
-			exact: true,
-		})).toBeAttached()
+		await enrollExposedWalletAccount(page, provider.expectedChain, provider.account)
 
 		await page.evaluate(({ protocol, changedAccount }) => window.emitWalletProtocolAccountsChanged(protocol, [changedAccount]), provider)
 		await page.evaluate(({ protocol, changedChain }) => window.emitWalletProtocolChainChanged(protocol, changedChain), provider)
@@ -978,9 +1085,7 @@ test('verifies Wallet Standard and TRON provider lifecycles', async ({ page }, t
 		await expect(connection.getByText(provider.changedExpectedChain, {
 			exact: true,
 		})).toBeAttached()
-		await expect(page.locator('#blockhead-accounts').getByText(`${provider.changedExpectedChain}:${provider.changedAccount}`, {
-			exact: true,
-		})).toBeAttached()
+		await enrollExposedWalletAccount(page, provider.changedExpectedChain, provider.changedAccount)
 	}
 
 	await page.reload({ waitUntil: 'load' })
@@ -1007,10 +1112,13 @@ test('verifies Wallet Standard and TRON provider lifecycles', async ({ page }, t
 		})).toBeAttached()
 	}
 	await expect(walletStatus).toContainText('Active connections: 0. Saved connections: 2.')
-	for (const provider of providers)
-		await expect(page.locator('#blockhead-accounts').getByText(`${provider.changedExpectedChain}:${provider.changedAccount}`, {
-			exact: true,
-		})).toBeAttached()
+	await expectEnrolledWalletAccounts(
+		page,
+		providers.map((provider) => [
+			provider.changedExpectedChain,
+			provider.changedAccount,
+		] as const)
+	)
 	expect(diagnostics.issues).toEqual([])
 })
 
@@ -1210,7 +1318,7 @@ test('verifies Aptos, Sats Connect, Starknet, and Polkadot wallet lifecycles', a
 	}, wallets)
 
 	const diagnostics = setupPageRuntimeDiagnostics(page)
-	await diagnostics.step(page.goto('/~/accounts', {
+	await diagnostics.step(page.goto('/~/wallets', {
 		waitUntil: 'load',
 		timeout: 120_000,
 	}))
@@ -1245,7 +1353,7 @@ test('verifies Aptos, Sats Connect, Starknet, and Polkadot wallet lifecycles', a
 		})
 		await expect(connection.getByRole('radio', { name: new RegExp(wallet.account) })).toBeChecked()
 		await expect(connection.getByText(wallet.chain, { exact: true })).toBeAttached()
-		await expect(page.locator('#blockhead-accounts').getByText(`${wallet.chain}:${wallet.account}`, { exact: true })).toBeAttached()
+		await enrollExposedWalletAccount(page, wallet.chain, wallet.account)
 	}
 
 	await page.evaluate((account) => window.emitAptosAccountChange(account), wallets.aptos.changedAccount)
@@ -1262,9 +1370,7 @@ test('verifies Aptos, Sats Connect, Starknet, and Polkadot wallet lifecycles', a
 	await page.evaluate((account) => window.emitPolkadotAccountsChange([account]), wallets.polkadot.changedAccount)
 	for (const wallet of Object.values(wallets)) {
 		await expect(page.getByRole('radio', { name: new RegExp(wallet.changedAccount) })).toBeChecked({ timeout: 120_000 })
-		await expect(page.locator('#blockhead-accounts').getByText(`${wallet.changedChain}:${wallet.changedAccount}`, {
-			exact: true,
-		})).toBeAttached()
+		await enrollExposedWalletAccount(page, wallet.changedChain, wallet.changedAccount)
 	}
 
 	await page.evaluate(() => window.emitStarknetAccountsChange([]))
@@ -1276,10 +1382,13 @@ test('verifies Aptos, Sats Connect, Starknet, and Polkadot wallet lifecycles', a
 	await expect(walletStatus).toContainText('Active connections: 1. Saved connections: 4.', {
 		timeout: 120_000,
 	})
-	for (const wallet of Object.values(wallets))
-		await expect(page.locator('#blockhead-accounts').getByText(`${wallet.changedChain}:${wallet.changedAccount}`, {
-			exact: true,
-		})).toBeAttached()
+	await expectEnrolledWalletAccounts(
+		page,
+		Object.values(wallets).map((wallet) => [
+			wallet.changedChain,
+			wallet.changedAccount,
+		] as const)
+	)
 
 	const aptosConnection = page.locator('article[data-card][data-scroll-container]').filter({
 		has: page.getByRole('link', { name: wallets.aptos.name, exact: true }),
@@ -1288,10 +1397,13 @@ test('verifies Aptos, Sats Connect, Starknet, and Polkadot wallet lifecycles', a
 	await expect(walletStatus).toContainText('Active connections: 0. Saved connections: 4.')
 	await page.reload({ waitUntil: 'load' })
 	await expect(walletStatus).toContainText('Saved connections: 4.', { timeout: 120_000 })
-	for (const wallet of Object.values(wallets))
-		await expect(page.locator('#blockhead-accounts').getByText(`${wallet.changedChain}:${wallet.changedAccount}`, {
-			exact: true,
-		})).toBeAttached()
+	await expectEnrolledWalletAccounts(
+		page,
+		Object.values(wallets).map((wallet) => [
+			wallet.changedChain,
+			wallet.changedAccount,
+		] as const)
+	)
 	await expect(page.getByText('Sats Connect request rejected')).toHaveCount(0)
 	expect(diagnostics.issues).toEqual([])
 })
@@ -1787,7 +1899,7 @@ test('aggregates eligible public account data and omits ineligible facets', asyn
 	})
 
 	const diagnostics = setupPageRuntimeDiagnostics(page)
-	await diagnostics.step(page.goto('/~/accounts', {
+	await diagnostics.step(page.goto('/~/wallets', {
 		waitUntil: 'load',
 		timeout: 120_000,
 	}))
@@ -1816,19 +1928,14 @@ test('aggregates eligible public account data and omits ineligible facets', asyn
 	const manuallyEnrolledAccounts = [
 		['eip155:1', firstAccount],
 		['eip155:1', secondAccount],
+		['eip155:1', walletAccount],
 		['ton:-239', tonAccount],
 		['aptos:1', aptosAccount],
 		['tron:0x2b6653dc', tronAccount],
 		['bip122:000000000019d6689c085ae165831e93', utxoAccount],
 	] as const
-	for (const [accountNetwork, account] of manuallyEnrolledAccounts) {
-		await networkInput.fill(accountNetwork)
-		await page.getByLabel('Account address').fill(account)
-		await page.getByRole('button', {
-			name: 'Add account',
-		}).click()
-		await expect(page.getByText(`Added ${accountNetwork}:${account}.`)).toBeVisible()
-	}
+	for (const [accountNetwork, account] of manuallyEnrolledAccounts)
+		await enrollAccount(page, accountNetwork, account)
 
 	await page.goto('/~/accounts')
 	await page.reload({ waitUntil: 'load' })
@@ -1843,16 +1950,15 @@ test('aggregates eligible public account data and omits ineligible facets', asyn
 	})
 	for (const [accountNetwork, account] of [
 		...manuallyEnrolledAccounts,
-		['eip155:1', walletAccount],
 	] as const)
 		await expect(accounts.getByText(`${accountNetwork}:${account}`, {
 			exact: true,
 		})).toBeAttached({
 			timeout: 120_000,
 		})
-	await expect(page.getByRole('heading', {
+	await expect(page.locator('#blockhead-accounts').getByRole('heading', {
 		name: 'Accounts',
-	})).toContainText(`Accounts (${(manuallyEnrolledAccounts.length + 1).toString()})`)
+	})).toContainText(`Accounts (${manuallyEnrolledAccounts.length.toString()})`)
 
 	await page.goto('/~/accounts/balances')
 	await expect(page.getByLabel('Network (CAIP-2)')).toBeVisible()
@@ -2043,7 +2149,7 @@ test('disconnect during connect cannot resurrect connection', async ({ page }) =
 	})
 
 	const diagnostics = setupPageRuntimeDiagnostics(page)
-	await diagnostics.step(page.goto('/~/accounts', {
+	await diagnostics.step(page.goto('/~/wallets', {
 		waitUntil: 'load',
 		timeout: 120_000,
 	}))

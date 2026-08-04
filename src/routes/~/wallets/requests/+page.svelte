@@ -13,29 +13,30 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import BlockheadWalletConnectionsView from '$/views/BlockheadWalletConnectionsView.svelte'
+	import BlockheadWalletRequestsView from '$/views/BlockheadWalletRequestsView.svelte'
 </script>
 
 
 <svelte:head>
-	<title>Wallet connections • Blockhead</title>
+	<title>Wallet requests • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	{@const collectionSelection = select(EntityType._Global, {
-		scope: '$$blockheadWalletConnections',
+		scope: '$$blockheadWalletRequests',
 	})
-		.$$blockheadWalletConnections({
+		.$$blockheadWalletRequests({
 			sources: [
 				Source.Local_Internal,
 			],
 		})}
 
-	<BlockheadWalletConnectionsView
-		href={resolve('/~/accounts/connections')}
+	<BlockheadWalletRequestsView
+		href={resolve('/~/wallets/requests')}
+		title='Wallet requests'
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
-		id='account-blockhead-wallet-connection'
+		id='blockhead-wallet-requests'
 	/>
 </Page>
