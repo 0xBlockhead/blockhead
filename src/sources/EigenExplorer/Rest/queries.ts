@@ -4,6 +4,7 @@ import { Source } from '$/sources/Source.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import type {
+	EigenExplorerAvs,
 	EigenExplorerDeposit,
 	EigenExplorerOperator,
 	EigenExplorerOperatorRewardInfo,
@@ -44,6 +45,28 @@ const assertTimestamp = (
 	label: string
 ) => {
 	if (!Number.isFinite(Date.parse(timestamp)))
+		throw new Error(`EigenExplorer returned invalid ${label}`)
+}
+
+const assertOptionalHttpUrl = (
+	value: string | null,
+	label: string
+) => {
+	if (value == null)
+		return
+
+	try {
+		new URL(value)
+	} catch {
+		throw new Error(`EigenExplorer returned invalid ${label}`)
+	}
+}
+
+const assertNonNegativeSafeInteger = (
+	value: number,
+	label: string
+) => {
+	if (!Number.isSafeInteger(value) || value < 0)
 		throw new Error(`EigenExplorer returned invalid ${label}`)
 }
 
@@ -249,6 +272,92 @@ export const getStakerWithdrawals = async (
 	return page
 }
 
+export const getAvs = async (address: string) => {
+	assertAddress(address, 'AVS address')
+
+	const avs = await fetchEigenExplorerJson<EigenExplorerAvs>(
+		`/avs/${encodeURIComponent(address)}`
+	)
+
+	if (avs.address.toLowerCase() !== address.toLowerCase())
+		throw new Error('EigenExplorer returned a foreign AVS')
+
+	if (
+		!unsignedIntegerPattern.test(avs.createdAtBlock)
+		|| !unsignedIntegerPattern.test(avs.updatedAtBlock)
+	)
+		throw new Error('EigenExplorer returned invalid AVS block identity')
+
+	assertTimestamp(avs.createdAt, 'AVS creation timestamp')
+	assertTimestamp(avs.updatedAt, 'AVS update timestamp')
+	assertNonNegativeSafeInteger(avs.totalStakers, 'AVS staker count')
+	assertNonNegativeSafeInteger(avs.totalOperators, 'AVS operator count')
+	assertStrategyShares(avs.shares)
+
+	if (avs.metadataName.trim() === '')
+		throw new Error('EigenExplorer returned an empty AVS name')
+
+	assertOptionalHttpUrl(avs.metadataWebsite, 'AVS website')
+	assertOptionalHttpUrl(avs.metadataLogo, 'AVS logo')
+
+	return avs
+}
+
+export const listAvsOperators = async (
+	address: string,
+	{
+		skip = 0,
+		take = 100,
+	}: {
+		skip?: number
+		take?: number
+	} = {}
+) => {
+	assertAddress(address, 'AVS address')
+
+	const page = assertPage(
+		await fetchEigenExplorerJson<EigenExplorerPage<EigenExplorerOperator>>(
+			paginationPath({
+				path: `/avs/${encodeURIComponent(address)}/operators`,
+				skip,
+				take,
+			})
+		),
+		skip,
+		take
+	)
+	const operatorAddresses = new Set<string>()
+
+	for (const operator of page.data) {
+		assertAddress(operator.address, 'operator address')
+
+		if (
+			!unsignedIntegerPattern.test(operator.createdAtBlock)
+			|| !unsignedIntegerPattern.test(operator.updatedAtBlock)
+		)
+			throw new Error('EigenExplorer returned invalid operator block identity')
+
+		assertTimestamp(operator.createdAt, 'operator creation timestamp')
+		assertTimestamp(operator.updatedAt, 'operator update timestamp')
+		assertStrategyShares(operator.shares)
+
+		if (operator.metadataName.trim() === '')
+			throw new Error('EigenExplorer returned an empty operator name')
+
+		assertOptionalHttpUrl(operator.metadataWebsite, 'operator website')
+		assertOptionalHttpUrl(operator.metadataLogo, 'operator logo')
+
+		const normalizedAddress = operator.address.toLowerCase()
+
+		if (operatorAddresses.has(normalizedAddress))
+			throw new Error('EigenExplorer returned duplicate operators')
+
+		operatorAddresses.add(normalizedAddress)
+	}
+
+	return page
+}
+
 export const getOperatorRewardInfo = async (address: string) => {
 	assertAddress(address, 'operator address')
 
@@ -297,21 +406,8 @@ export const getOperator = async (address: string) => {
 	if (operator.metadataName.trim() === '')
 		throw new Error('EigenExplorer returned an empty operator name')
 
-	if (operator.metadataWebsite != null) {
-		try {
-			new URL(operator.metadataWebsite)
-		} catch {
-			throw new Error('EigenExplorer returned invalid operator website')
-		}
-	}
-
-	if (operator.metadataLogo != null) {
-		try {
-			new URL(operator.metadataLogo)
-		} catch {
-			throw new Error('EigenExplorer returned invalid operator logo')
-		}
-	}
+	assertOptionalHttpUrl(operator.metadataWebsite, 'operator website')
+	assertOptionalHttpUrl(operator.metadataLogo, 'operator logo')
 
 	return operator
 }

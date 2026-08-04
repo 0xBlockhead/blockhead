@@ -64,3 +64,18 @@ export type EigenExplorerOperator = {
 	updatedAt: string
 	shares: EigenExplorerStrategyShares[]
 }
+
+export type EigenExplorerAvs = {
+	address: string
+	metadataName: string
+	metadataDescription: string | null
+	metadataWebsite: string | null
+	metadataLogo: string | null
+	totalStakers: number
+	totalOperators: number
+	createdAtBlock: string
+	updatedAtBlock: string
+	createdAt: string
+	updatedAt: string
+	shares: EigenExplorerStrategyShares[]
+}

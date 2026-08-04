@@ -10,15 +10,19 @@ import { networkBySlug } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { Source } from '$/sources/Source.ts'
 
+const getAvs = vi.hoisted(() => vi.fn())
 const getOperator = vi.hoisted(() => vi.fn())
 const getOperatorRewardInfo = vi.hoisted(() => vi.fn())
+const listAvsOperators = vi.hoisted(() => vi.fn())
 const getStaker = vi.hoisted(() => vi.fn())
 const getStakerDeposits = vi.hoisted(() => vi.fn())
 const getStakerWithdrawals = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/EigenExplorer/Rest/queries.ts', () => ({
+	getAvs,
 	getOperator,
 	getOperatorRewardInfo,
+	listAvsOperators,
 	getStaker,
 	getStakerDeposits,
 	getStakerWithdrawals,
@@ -30,9 +34,14 @@ const [
 	delegationResolver,
 	operatorResolver,
 	operatorRewardsResolver,
+	avsResolver,
+	avsTimestampsResolver,
+	avsOperatorsResolver,
+	avsTimestampResolver,
 ] = eigenExplorerResolvers.resolvers
 const stakerAddress = '0x1111111111111111111111111111111111111111'
 const operatorAddress = '0x2222222222222222222222222222222222222222'
+const avsAddress = '0x7777777777777777777777777777777777777777'
 const strategyAddress = '0x3333333333333333333333333333333333333333'
 const tokenAddress = '0x4444444444444444444444444444444444444444'
 const transactionHash = `0x${'5'.repeat(64)}`
@@ -62,6 +71,18 @@ const selector = {
 const operatorSelector = {
 	$network: network,
 	operatorAddress,
+}
+const avsSelector = {
+	$network: network,
+	avsAddress,
+}
+const avsTimestampSelector = {
+	$avs: {
+		$network: network,
+		avsAddress,
+	},
+	timestampMs,
+	source: Source.EigenExplorer_Rest,
 }
 const context = {
 	filters: [],
@@ -283,5 +304,127 @@ describe('EigenExplorer operator resolvers', () => {
 		}])
 		expect(getOperator).toHaveBeenCalledWith(operatorAddress)
 		expect(getOperatorRewardInfo).toHaveBeenCalledWith(operatorAddress)
+	})
+})
+
+describe('EigenExplorer AVS resolvers', () => {
+	beforeEach(() => {
+		vi.restoreAllMocks()
+		getAvs.mockReset()
+		listAvsOperators.mockReset()
+		getAvs.mockResolvedValue({
+			address: avsAddress,
+			metadataName: 'Example AVS',
+			metadataDescription: 'Restaking AVS',
+			metadataWebsite: 'https://example.avs',
+			metadataLogo: 'https://example.avs/logo.svg',
+			totalStakers: 12,
+			totalOperators: 3,
+			createdAtBlock: '100',
+			updatedAtBlock: '101',
+			createdAt: '2026-01-01T00:00:00.000Z',
+			updatedAt: '2026-01-02T00:00:00.000Z',
+			shares: [{
+				strategyAddress,
+				shares: '42',
+			}, {
+				strategyAddress: '0x5555555555555555555555555555555555555555',
+				shares: '7',
+			}],
+		})
+		listAvsOperators.mockResolvedValue({
+			data: [{
+				address: operatorAddress,
+				metadataName: 'Example Operator',
+				metadataDescription: null,
+				metadataWebsite: null,
+				metadataLogo: null,
+				createdAtBlock: '100',
+				updatedAtBlock: '101',
+				createdAt: '2026-01-01T00:00:00.000Z',
+				updatedAt: '2026-01-02T00:00:00.000Z',
+				shares: [{
+					strategyAddress,
+					shares: '42',
+				}],
+			}],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
+	})
+
+	it('projects AVS identity fields from the official AVS snapshot', async () => {
+		const avs = await avsResolver.resolve.NetworkAvsAddress.resolve(
+			avsSelector,
+			context
+		)
+
+		expect(avsResolver.projections.name(avs)).toBe('Example AVS')
+		expect(avsResolver.projections.description(avs)).toBe('Restaking AVS')
+		expect(avsResolver.projections.website(avs)).toBe('https://example.avs')
+		expect(avsResolver.projections.metadataUri(avs)).toBe('https://example.avs/logo.svg')
+		expect(avsResolver.projections.$avsAccount(avs)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				$actor: {
+					address: avsAddress,
+				},
+			},
+		})
+	})
+
+	it('projects AVS observation and operator rows at the update clock', async () => {
+		const timestamps = await avsTimestampsResolver.resolve.NetworkAvsAddress.resolve(
+			avsSelector,
+			context
+		)
+
+		expect(avsTimestampsResolver.projections.$$timestamps(timestamps)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$avs: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						avsAddress,
+					},
+				},
+				timestampMs,
+				source: Source.EigenExplorer_Rest,
+			},
+		}])
+
+		const operators = await avsOperatorsResolver.resolve.NetworkAvsAddress.resolve(
+			avsSelector,
+			context
+		)
+
+		expect(avsOperatorsResolver.projections.$$operators.select(operators)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				operatorAddress,
+			},
+		}])
+		expect(listAvsOperators).toHaveBeenCalledWith(avsAddress, {
+			skip: 0,
+			take: 64,
+		})
+	})
+
+	it('projects AVS timestamp metrics and rejects clock mismatch', async () => {
+		const timestamp = await avsTimestampResolver.resolve.AvsTimestampMsSource.resolve(
+			avsTimestampSelector,
+			context
+		)
+
+		expect(avsTimestampResolver.projections.blockNumber(timestamp)).toBe(101n)
+		expect(avsTimestampResolver.projections.operatorCount(timestamp)).toBe(3)
+		expect(avsTimestampResolver.projections.strategyCount(timestamp)).toBe(2)
+
+		await expect(avsTimestampResolver.resolve.AvsTimestampMsSource.resolve({
+			...avsTimestampSelector,
+			timestampMs: timestampMs + 1,
+		}, context)).rejects.toThrow('timestamp mismatch')
 	})
 })

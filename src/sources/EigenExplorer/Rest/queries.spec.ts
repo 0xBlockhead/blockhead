@@ -10,8 +10,10 @@ import bindings from '$/sources/EigenExplorer/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import {
+	getAvs,
 	getOperator,
 	getOperatorRewardInfo,
+	listAvsOperators,
 	getStaker,
 	getStakerDeposits,
 	getStakerWithdrawals,
@@ -26,6 +28,7 @@ const binding = bindings[Source.EigenExplorer_Rest][0]
 
 const stakerAddress = '0x1111111111111111111111111111111111111111'
 const operatorAddress = '0x2222222222222222222222222222222222222222'
+const avsAddress = '0x7777777777777777777777777777777777777777'
 const strategyAddress = '0x3333333333333333333333333333333333333333'
 const tokenAddress = '0x4444444444444444444444444444444444444444'
 const transactionHash = `0x${'5'.repeat(64)}`
@@ -221,6 +224,87 @@ describe('EigenExplorer REST queries', () => {
 		await expect(getOperator(
 			operatorAddress
 		)).rejects.toThrow(/EigenExplorer_Rest \/operators\//)
+	})
+
+	it('validates AVS metadata and operator list pagination', async () => {
+		respond({
+			address: avsAddress,
+			metadataName: 'Example AVS',
+			metadataDescription: 'Restaking AVS',
+			metadataWebsite: 'https://example.avs',
+			metadataLogo: 'https://example.avs/logo.svg',
+			totalStakers: 12,
+			totalOperators: 3,
+			createdAtBlock: '100',
+			updatedAtBlock: '101',
+			createdAt: '2026-01-01T00:00:00.000Z',
+			updatedAt: '2026-01-02T00:00:00.000Z',
+			shares: [{
+				strategyAddress,
+				shares: '42',
+			}],
+		})
+
+		await expect(getAvs(
+			avsAddress
+		)).resolves.toMatchObject({
+			address: avsAddress,
+			totalOperators: 3,
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			binding,
+			`https://api.eigenexplorer.test/avs/${avsAddress}`,
+			{
+				headers: {
+					accept: 'application/json',
+				},
+			}
+		)
+
+		respond({
+			data: [{
+				address: operatorAddress,
+				metadataName: 'Example Operator',
+				metadataDescription: null,
+				metadataWebsite: null,
+				metadataLogo: null,
+				createdAtBlock: '100',
+				updatedAtBlock: '101',
+				createdAt: '2026-01-01T00:00:00.000Z',
+				updatedAt: '2026-01-02T00:00:00.000Z',
+				shares: [{
+					strategyAddress,
+					shares: '42',
+				}],
+			}],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 25,
+			},
+		})
+
+		await expect(listAvsOperators(
+			avsAddress,
+			{
+				take: 25,
+			}
+		)).resolves.toMatchObject({
+			data: [{
+				address: operatorAddress,
+			}],
+		})
+		expect(vi.mocked(sourceFetch).mock.calls.at(-1)?.[1]).toBe(
+			`https://api.eigenexplorer.test/avs/${avsAddress}/operators?skip=0&take=25`
+		)
+
+		respond(null, {
+			status: 404,
+			statusText: 'Not Found',
+		})
+		await expect(getAvs(
+			avsAddress
+		)).rejects.toThrow(/EigenExplorer_Rest \/avs\//)
 	})
 
 	it('rejects duplicate operator reward metadata and invalid pagination', async () => {

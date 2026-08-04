@@ -1,5 +1,6 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -30,6 +31,32 @@ const assertEthereumMainnet = (network: NetworkId) => {
 
 const ethereumNetwork = {
 	caip2: networkBySlug.ethereum.caip2,
+}
+
+const ethereumMainnetApplicability = [
+	{
+		$network: {
+			caip2: networkBySlug.ethereum.caip2,
+		},
+	},
+	{
+		$network: {
+			slug: networkBySlug.ethereum.slug,
+		},
+	},
+] as const
+
+const eigenExplorerPaginationSkip = (
+	context: ResolverContext
+) => {
+	const skip = context.providerContinuationToken == null ?
+		context.pagination.offset ?? 0
+	:
+		Number(context.providerContinuationToken)
+	if (!Number.isSafeInteger(skip) || skip < 0)
+		throw new Error('EigenExplorer_Rest: invalid pagination offset')
+
+	return skip
 }
 
 export default {
@@ -290,6 +317,200 @@ export default {
 			},
 		})({
 			$$rewards: (rewards) => rewards,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EigenLayerAvs,
+			resolve: {
+				NetworkAvsAddress: {
+					appliesTo: ethereumMainnetApplicability,
+					resolve: async ({
+						$network,
+						avsAddress,
+					}) => {
+						assertEthereumMainnet($network)
+
+						const { getAvs } = await import('$/sources/EigenExplorer/Rest/queries.ts')
+						const avs = await getAvs(avsAddress)
+						const address = hexLowerOfByteSize(avs.address, 20)
+						if (address == null)
+							throw new Error('EigenExplorer_Rest: AVS address not normalized')
+
+						return {
+							name: avs.metadataName,
+							...(avs.metadataDescription != null && {
+								description: avs.metadataDescription,
+							}),
+							...(avs.metadataWebsite != null && {
+								website: avs.metadataWebsite,
+							}),
+							...(avs.metadataLogo != null && {
+								metadataUri: avs.metadataLogo,
+							}),
+							$avsAccount: {
+								[EntityMetaKey.Selector]: {
+									$network: ethereumNetwork,
+									$actor: {
+										address,
+									},
+								},
+							},
+						}
+					},
+				},
+			},
+		})({
+			name: (avs) => avs.name,
+			description: (avs) => avs.description,
+			website: (avs) => avs.website,
+			metadataUri: (avs) => avs.metadataUri,
+			$avsAccount: (avs) => avs.$avsAccount,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EigenLayerAvs,
+			resolve: {
+				NetworkAvsAddress: {
+					appliesTo: ethereumMainnetApplicability,
+					resolve: async ({
+						$network,
+						avsAddress,
+					}) => {
+						assertEthereumMainnet($network)
+
+						const { getAvs } = await import('$/sources/EigenExplorer/Rest/queries.ts')
+						const avs = await getAvs(avsAddress)
+						const address = hexLowerOfByteSize(avs.address, 20)
+						if (address == null)
+							throw new Error('EigenExplorer_Rest: AVS address not normalized')
+						const timestampMs = Date.parse(avs.updatedAt)
+
+						return [{
+							[EntityMetaKey.Selector]: {
+								$avs: {
+									[EntityMetaKey.Selector]: {
+										$network: ethereumNetwork,
+										avsAddress: address,
+									},
+								},
+								timestampMs,
+								source: Source.EigenExplorer_Rest,
+							},
+						}]
+					},
+				},
+			},
+		})({
+			$$timestamps: (timestamps) => timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EigenLayerAvs,
+			resolve: {
+				NetworkAvsAddress: {
+					appliesTo: ethereumMainnetApplicability,
+					resolve: async ({
+						$network,
+						avsAddress,
+					}, context) => {
+						assertEthereumMainnet($network)
+
+						const skip = eigenExplorerPaginationSkip(context)
+						const take = Math.min(resolverContextRowLimit(context), 100)
+						const { listAvsOperators } = await import('$/sources/EigenExplorer/Rest/queries.ts')
+						const page = await listAvsOperators(avsAddress, {
+							skip,
+							take,
+						})
+
+						return {
+							skip,
+							totalCount: page.meta.total,
+							rows: page.data.map((operator) => {
+								const operatorAddress = hexLowerOfByteSize(operator.address, 20)
+								if (operatorAddress == null)
+									throw new Error('EigenExplorer_Rest: operator address not normalized')
+
+								return {
+									[EntityMetaKey.Selector]: {
+										$network: ethereumNetwork,
+										operatorAddress,
+									},
+								}
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$operators: {
+				select: (snapshot) => snapshot.rows,
+				resolveCount: (snapshot) => snapshot.totalCount,
+				continuation: (snapshot) => {
+					const nextSkip = snapshot.skip + snapshot.rows.length
+
+					return {
+						operation: 'avs-operators',
+						target: 'eigen-explorer',
+						terminal: nextSkip >= snapshot.totalCount,
+						...(nextSkip < snapshot.totalCount && {
+							token: String(nextSkip),
+						}),
+					}
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EigenLayerAvs_Timestamp,
+			resolve: {
+				AvsTimestampMsSource: {
+					appliesTo: [
+						{
+							$avs: {
+								$network: {
+									caip2: networkBySlug.ethereum.caip2,
+								},
+							},
+							source: Source.EigenExplorer_Rest,
+						},
+						{
+							$avs: {
+								$network: {
+									slug: networkBySlug.ethereum.slug,
+								},
+							},
+							source: Source.EigenExplorer_Rest,
+						},
+					],
+					resolve: async ({
+						$avs,
+						timestampMs,
+						source,
+					}) => {
+						assertEthereumMainnet($avs.$network)
+						if (source !== Source.EigenExplorer_Rest)
+							throw new Error('EigenExplorer_Rest: observation source mismatch')
+
+						const { getAvs } = await import('$/sources/EigenExplorer/Rest/queries.ts')
+						const avs = await getAvs($avs.avsAddress)
+						if (Date.parse(avs.updatedAt) !== timestampMs)
+							throw new Error('EigenExplorer_Rest: AVS timestamp mismatch')
+
+						const blockNumber = BigInt(avs.updatedAtBlock)
+
+						return {
+							blockNumber,
+							operatorCount: avs.totalOperators,
+							strategyCount: avs.shares.length,
+						}
+					},
+				},
+			},
+		})({
+			blockNumber: (timestamp) => timestamp.blockNumber,
+			operatorCount: (timestamp) => timestamp.operatorCount,
+			strategyCount: (timestamp) => timestamp.strategyCount,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule
