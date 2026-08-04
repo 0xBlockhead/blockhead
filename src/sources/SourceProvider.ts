@@ -2,8 +2,8 @@
 
 export enum SourceProvider {
 	_Constants = '_Constants',
-	Acp = 'Acp',
 	Aave = 'Aave',
+	Acp = 'Acp',
 	Across = 'Across',
 	AlgorandWallet = 'AlgorandWallet',
 	Allium = 'Allium',

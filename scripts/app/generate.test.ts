@@ -2344,6 +2344,111 @@ test('folds OsmosisPool Directory into Network.Cosmos without EVM LiquidityPool'
 	)
 })
 
+test('folds AaveMarket Directory into Network.Evm with $$aaveMarkets carousel', () => {
+	const network = app.schema.entities.find((entity) => entity.entityType === EntityType.Network)
+	const evm = network?.facets.find((facet) => facet.name === 'Evm')
+	const aaveMarkets = evm?.fields.find((field) => field.name === '$$aaveMarkets')
+	assert.deepEqual(aaveMarkets?.defaultSources, [Source.Aave_Rest])
+	assert.equal(aaveMarkets?.entityType, EntityType.AaveMarket)
+
+	const aaveMarket = app.schema.entities.find((entity) => entity.entityType === EntityType.AaveMarket)
+	assert.ok(aaveMarket)
+	assert.match(
+		JSON.stringify(aaveMarket.views?.singular?.content?.dl ?? []),
+		/"name"|"icon"|totalMarketSize|totalAvailableLiquidity/,
+	)
+
+	const networkView = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/views/NetworkView.svelte')
+	assert.ok(networkView)
+	const renderedNetworkView = renderGeneratedFile(networkView)
+	assert.match(renderedNetworkView, /evm-defi-aave-markets/)
+	assert.match(renderedNetworkView, /AaveMarketsView/)
+	assert.match(renderedNetworkView, /Source\.Aave_Rest/)
+
+	const aaveMarketView = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/views/AaveMarketView.svelte')
+	assert.ok(aaveMarketView)
+	const renderedAaveMarketView = renderGeneratedFile(aaveMarketView)
+	assert.match(renderedAaveMarketView, /totalMarketSize|Total market size/)
+	assert.match(renderedAaveMarketView, /totalAvailableLiquidity|Total available liquidity/)
+
+	assert.ok(
+		baselineCompiledApp.generatedFiles.some(({ path }) => (
+			path.includes('aave-market')
+			&& path.endsWith('+page.svelte')
+		))
+	)
+	assert.match(
+		generatedSource('src/schema/EntityType.ts'),
+		/AaveMarket = 'AaveMarket'/,
+	)
+	assert.match(
+		generatedSource('src/sources/Source.ts'),
+		/Aave_Rest = 'Aave_Rest'/,
+	)
+	assert.match(
+		generatedSource('src/sources/SourceProvider.ts'),
+		/Aave = 'Aave'/,
+	)
+	assert.match(
+		generatedSource('src/resolvers/index.ts'),
+		/Aave-Rest/,
+	)
+	assert.match(
+		generatedSource('src/sources/$sourceProviders.ts'),
+		/Aave\/index/,
+	)
+})
+
+test('folds MorphoMarket Directory without Network.$$morphoMarkets list facet', () => {
+	const morphoMarket = app.schema.entities.find((entity) => entity.entityType === EntityType.MorphoMarket)
+	assert.ok(morphoMarket)
+	assert.match(
+		JSON.stringify(morphoMarket.views?.singular?.content?.dl ?? []),
+		/loanAssetAddress|collateralAssetAddress|lltvWad|totalSupplyAssets|totalBorrowAssets/,
+	)
+
+	const network = app.schema.entities.find((entity) => entity.entityType === EntityType.Network)
+	const evm = network?.facets.find((facet) => facet.name === 'Evm')
+	assert.equal(
+		evm?.fields.find((field) => field.name === '$$morphoMarkets'),
+		undefined,
+	)
+
+	const morphoMarketView = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/views/MorphoMarketView.svelte')
+	assert.ok(morphoMarketView)
+	const renderedMorphoMarketView = renderGeneratedFile(morphoMarketView)
+	assert.match(renderedMorphoMarketView, /lltvWad|LLTV/)
+	assert.match(renderedMorphoMarketView, /totalSupplyAssets|Total supply assets/)
+	assert.match(renderedMorphoMarketView, /totalBorrowAssets|Total borrow assets/)
+
+	assert.ok(
+		baselineCompiledApp.generatedFiles.some(({ path }) => (
+			path.includes('morpho-market')
+			&& path.endsWith('+page.svelte')
+		))
+	)
+	assert.match(
+		generatedSource('src/schema/EntityType.ts'),
+		/MorphoMarket = 'MorphoMarket'/,
+	)
+	assert.match(
+		generatedSource('src/sources/Source.ts'),
+		/Morpho_Rest = 'Morpho_Rest'/,
+	)
+	assert.match(
+		generatedSource('src/sources/SourceProvider.ts'),
+		/Morpho = 'Morpho'/,
+	)
+	assert.match(
+		generatedSource('src/resolvers/index.ts'),
+		/Morpho-Rest/,
+	)
+	assert.match(
+		generatedSource('src/sources/$sourceProviders.ts'),
+		/Morpho\/index/,
+	)
+})
+
 test('folds Hyperliquid Directory into Network.Hyperliquid without EVM LiquidityPool', () => {
 	const network = app.schema.entities.find((entity) => entity.entityType === EntityType.Network)
 	const hyperliquid = network?.facets.find((facet) => facet.name === 'Hyperliquid')

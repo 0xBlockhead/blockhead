@@ -183,6 +183,7 @@ export enum SourceArtifactKind {
 }
 
 export enum Source {
+	Aave_Rest = "Aave_Rest",
 	AcpLocal_JsonRpc = "AcpLocal_JsonRpc",
 	AcpRegistry_Rest = "AcpRegistry_Rest",
 	Across_Rest = "Across_Rest",
@@ -340,6 +341,7 @@ export enum Source {
 	Mlflow_Rest = "Mlflow_Rest",
 	MoneroDaemonRpc_JsonRpc = "MoneroDaemonRpc_JsonRpc",
 	MoneroWalletRpc_JsonRpc = "MoneroWalletRpc_JsonRpc",
+	Morpho_Rest = "Morpho_Rest",
 	NearBlocks_Rest = "NearBlocks_Rest",
 	NearConnect_WalletApi = "NearConnect_WalletApi",
 	NearNeps_Github = "NearNeps_Github",
@@ -463,6 +465,7 @@ export enum Source {
 
 export enum SourceProvider {
 	_Constants = "_Constants",
+	Aave = "Aave",
 	Acp = "Acp",
 	Across = "Across",
 	AlgorandWallet = "AlgorandWallet",
@@ -603,6 +606,7 @@ export enum SourceProvider {
 	Mlflow = "Mlflow",
 	MoneroDaemonRpc = "MoneroDaemonRpc",
 	MoneroWalletRpc = "MoneroWalletRpc",
+	Morpho = "Morpho",
 	NearBlocks = "NearBlocks",
 	NearConnect = "NearConnect",
 	NearNeps = "NearNeps",
@@ -1191,6 +1195,7 @@ export enum EntityType {
 	A2aTask = "A2aTask",
 	A2aTask_Timestamp = "A2aTask_Timestamp",
 	A2aTaskEvent = "A2aTaskEvent",
+	AaveMarket = "AaveMarket",
 	Account = "Account",
 	AcpAgentProgram = "AcpAgentProgram",
 	AcpAgentProgramVersion = "AcpAgentProgramVersion",
@@ -1850,6 +1855,7 @@ export enum EntityType {
 	MoneroRingMember = "MoneroRingMember",
 	MoneroStealthOutput = "MoneroStealthOutput",
 	MoneroTransaction = "MoneroTransaction",
+	MorphoMarket = "MorphoMarket",
 	MoveFunction = "MoveFunction",
 	MoveModule = "MoveModule",
 	MoveModule_Timestamp = "MoveModule_Timestamp",
@@ -6855,6 +6861,46 @@ export const schema = {
 						content: { dl: [["$task", "sequence", "eventKind", { field: "timestampMs", format: "timestamp" }, "state", "final", "$artifact"]] },
 					},
 					plural: { component: "A2aTaskEventsView", title: "A2A task events", },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.AaveMarket,
+				labels: {
+					singular: "Aave market",
+					plural: "Aave markets",
+				},
+				description: "An Aave V3 lending market (Pool) on an EIP-155 network, identified by pool address.",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"poolAddress": { label: "Pool address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Aave_Rest] },
+				"icon": { label: "Icon", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Aave_Rest] },
+				"totalMarketSize": { label: "Total market size", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"totalAvailableLiquidity": { label: "Total available liquidity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+			})({
+				selectors: {
+					"NetworkPoolAddress": ["$network", "poolAddress"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Aave_Rest],
+						},
+						summary: {
+							title: ["name"],
+							value: ["totalMarketSize", "totalAvailableLiquidity"],
+							HeadingAfter: ["$network"],
+						},
+						closed: ["name", { field: "poolAddress", format: "address" }],
+						content: {
+							dl: [
+								["$network", { field: "poolAddress", format: "address" }, "name", "icon"],
+								["totalMarketSize", "totalAvailableLiquidity"],
+							],
+						},
+					},
+					plural: { component: "AaveMarketsView", title: "Aave markets" },
 				},
 			}),
 
@@ -12368,18 +12414,21 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.BeaconAttestation,
+					defaultSources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest],
 				},
 				"$$beaconWithdrawals": {
 					label: "Beacon withdrawals",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.BeaconWithdrawal,
+					defaultSources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest],
 				},
 				"$$beaconSlashings": {
 					label: "Beacon slashings",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.BeaconSlashing,
+					defaultSources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest],
 				},
 			})({
 				selectors: {
@@ -45612,6 +45661,76 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.MorphoMarket,
+				labels: {
+					singular: "Morpho market",
+					plural: "Morpho markets",
+				},
+				description: "A Morpho Blue immutable market on an EIP-155 network, identified by its bytes32 market id (hash of loan/collateral/oracle/IRM/LLTV).",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"marketId": { label: "Market ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "EvmTxHash" },
+				"loanAssetAddress": { label: "Loan asset", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Morpho_Rest] },
+				"collateralAssetAddress": { label: "Collateral asset", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Morpho_Rest] },
+				"oracleAddress": { label: "Oracle", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Morpho_Rest] },
+				"irmAddress": { label: "IRM", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Morpho_Rest] },
+				"lltvWad": { label: "LLTV (WAD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Rest] },
+				"creationBlockNumber": { label: "Creation block", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Morpho_Rest] },
+				"totalSupplyAssets": { label: "Total supply assets", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Rest] },
+				"totalSupplyShares": { label: "Total supply shares", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Rest] },
+				"totalBorrowAssets": { label: "Total borrow assets", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Rest] },
+				"totalBorrowShares": { label: "Total borrow shares", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Rest] },
+				"feeWad": { label: "Fee (WAD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Rest] },
+				"lastIndexedBlock": { label: "Last indexed block", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Morpho_Rest] },
+				"lastAccrualTimestamp": { label: "Last accrual", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Morpho_Rest] },
+			})({
+				selectors: {
+					"NetworkMarketId": ["$network", "marketId"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Morpho_Rest],
+						},
+						summary: {
+							title: [{ field: "marketId", format: "truncated" }],
+							value: ["lltvWad", "totalSupplyAssets", "totalBorrowAssets"],
+							HeadingAfter: ["$network"],
+						},
+						closed: [
+							{ field: "marketId", format: "truncated" },
+							{ field: "loanAssetAddress", format: "address" },
+							{ field: "collateralAssetAddress", format: "address" },
+						],
+						content: {
+							dl: [
+								[
+									"$network",
+									{ field: "marketId", format: "truncated" },
+									{ field: "loanAssetAddress", format: "address" },
+									{ field: "collateralAssetAddress", format: "address" },
+									{ field: "oracleAddress", format: "address" },
+									{ field: "irmAddress", format: "address" },
+									"lltvWad",
+									"creationBlockNumber",
+								],
+								[
+									"totalSupplyAssets",
+									"totalSupplyShares",
+									"totalBorrowAssets",
+									"totalBorrowShares",
+									"feeWad",
+									"lastIndexedBlock",
+									{ field: "lastAccrualTimestamp", format: "timestamp" },
+								],
+							],
+						},
+					},
+					plural: { component: "MorphoMarketsView", title: "Morpho markets" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.MoveFunction,
 				labels: {
 					singular: "move function",
@@ -46848,6 +46967,7 @@ export const schema = {
 						"$$erc4337Paymasters": { label: "ERC-4337 paymasters", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Erc4337Paymaster },
 						"$$erc4337AccountFactories": { label: "ERC-4337 account factories", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Erc4337AccountFactory },
 						"$$userOperations": { label: "User operations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmUserOperation, defaultSources: [Source.Blockscout_Rest] },
+						"$$aaveMarkets": { label: "Aave markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AaveMarket, defaultSources: [Source.Aave_Rest] },
 						"$$bridges": { label: "Bridges", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkBridge, defaultSources: [Source.Chainlist_Rest, Source.EthereumLists_Rest] },
 						"$$erc20TokenTransfers": { label: "ERC-20 token transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTokenTransfer, defaultSources: [Source.Blockscout_Rest] },
 						"$$nftTokenTransfers": { label: "NFT token transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTokenTransfer, defaultSources: [Source.Blockscout_Rest] },
@@ -47064,6 +47184,15 @@ export const schema = {
 										{ id: "evm-assets-bridges", field: ["Evm", "$$bridges"], List: "EvmNetworkBridgesView", label: "Bridges", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest] } },
 										{ id: "evm-assets-erc20-transfers", field: ["Evm", "$$erc20TokenTransfers"], List: "EvmTokenTransfersView", label: "ERC-20 transfers", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
 										{ id: "evm-assets-nft-transfers", field: ["Evm", "$$nftTokenTransfers"], List: "EvmTokenTransfersView", label: "NFT transfers", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
+									],
+								},
+								{
+									id: "evm-defi",
+									label: "DeFi",
+									description: "Protocol-native lending markets on this EVM network.",
+									className: "network-view-collapsible-defi",
+									sections: [
+										{ id: "evm-defi-aave-markets", field: ["Evm", "$$aaveMarkets"], List: "AaveMarketsView", label: "Aave markets", emptyText: "No Aave markets.", selection: { sources: [Source.Aave_Rest], limit: 16 } },
 									],
 								},
 							],
@@ -78762,6 +78891,54 @@ export const routes = defineRoutes(schema)({
 												},
 											},
 										},
+										"aave-market": {
+											children: {
+												"[poolAddress]": {
+													selectors: {
+														[EntityType.AaveMarket]: {
+															"NetworkPoolAddress": {
+																when: {
+																	path: ["namespace"],
+																	is: "Evm",
+																},
+																projection: {
+																	entityType: EntityType.Network,
+																	facetPath: ["Evm"],
+																},
+																params: {
+																	"poolAddress": ["poolAddress"],
+																},
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"morpho-market": {
+											children: {
+												"[marketId]": {
+													selectors: {
+														[EntityType.MorphoMarket]: {
+															"NetworkMarketId": {
+																when: {
+																	path: ["namespace"],
+																	is: "Evm",
+																},
+																projection: {
+																	entityType: EntityType.Network,
+																	facetPath: ["Evm"],
+																},
+																params: {
+																	"marketId": ["marketId"],
+																},
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
 										"perp-market": {
 											children: {
 												"[coin]": {
@@ -83800,6 +83977,10 @@ export const app = {
 				label: "Constants",
 			},
 			{
+				provider: "Aave",
+				label: "Aave",
+			},
+			{
 				provider: "Acp",
 				label: "Agent Client Protocol",
 			},
@@ -84360,6 +84541,10 @@ export const app = {
 				label: "Monero wallet RPC",
 			},
 			{
+				provider: "Morpho",
+				label: "Morpho",
+			},
+			{
 				provider: "NearBlocks",
 				label: "NearBlocks",
 			},
@@ -84776,6 +84961,37 @@ export const app = {
 				label: "0G",
 			},
 		])([
+			{
+				source: Source.Aave_Rest,
+				provider: "Aave",
+				label: "Aave V3 GraphQL API",
+				binding: {
+					target: {
+						kind: SourceTargetKind.Global,
+						key: "aave-v3-api",
+					},
+					endpoints: [
+						{
+							endpointKind: SourceEndpointKind.HttpUrl,
+							locator: "https://api.v3.aave.com/graphql",
+							corsEnabled: false,
+						},
+					],
+					wireProtocol: WireProtocol.Graphql,
+					apiFamily: ApiFamily.GraphqlHttp,
+					operationGroups: [
+						SourceOperationGroup.GenericRead,
+					],
+					delivery: SourceDelivery.HttpProxy,
+					credentials: [],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/Aave/Rest/types.ts",
+						},
+					],
+				},
+			},
 			{
 				source: Source.AcpLocal_JsonRpc,
 				provider: "Acp",
@@ -91557,6 +91773,38 @@ export const app = {
 					credentials: [
 						{
 							scope: SourceCredentialScope.LocalSecret,
+						},
+					],
+				},
+			},
+			{
+				source: Source.Morpho_Rest,
+				provider: "Morpho",
+				label: "Morpho Blue REST API",
+				binding: {
+					target: {
+						kind: SourceTargetKind.Global,
+						key: "morpho-api",
+					},
+					endpoints: [
+						{
+							endpointKind: SourceEndpointKind.HttpUrl,
+							locator: "https://api.morpho.org",
+							corsEnabled: true,
+						},
+					],
+					wireProtocol: WireProtocol.HttpRest,
+					apiFamily: ApiFamily.RestJson,
+					operationGroups: [
+						SourceOperationGroup.GenericRead,
+					],
+					delivery: SourceDelivery.BrowserDirect,
+					credentials: [],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/Morpho/Rest/types.ts",
+							referenceUrl: "https://docs.morpho.org/developers/api/morpho/",
 						},
 					],
 				},
@@ -100187,6 +100435,10 @@ export const app = {
 	resolvers: {
 		modules: [
 			{
+				source: Source.Aave_Rest,
+				path: "src/resolvers/Aave-Rest.ts",
+			},
+			{
 				source: Source.AcpRegistry_Rest,
 				path: "src/resolvers/AcpRegistry-Rest.ts",
 			},
@@ -100525,6 +100777,10 @@ export const app = {
 			{
 				source: Source.MoneroDaemonRpc_JsonRpc,
 				path: "src/resolvers/MoneroDaemonRpc-JsonRpc.ts",
+			},
+			{
+				source: Source.Morpho_Rest,
+				path: "src/resolvers/Morpho-Rest.ts",
 			},
 			{
 				source: Source.NearBlocks_Rest,

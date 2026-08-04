@@ -1,11 +1,10 @@
+// Generated from APP.ts.
+
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { NonNegativeDecimalString } from '$/schema/NonNegativeDecimalString.ts'
-import {
-	EvmAddress,
-	Hash32,
-} from '$/schema/ZeroExHex.ts'
+import { EvmAddress, Hash32, lowercaseHexIdentityValue } from '$/schema/ZeroExHex.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 

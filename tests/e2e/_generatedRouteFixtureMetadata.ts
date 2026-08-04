@@ -1069,6 +1069,20 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/aave-market/[poolAddress]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/aave-market/[poolAddress=evmAddress]',
+		mappings: [
+			{
+				id: 'AaveMarket.NetworkPoolAddress',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/aave-market/[poolAddress]:AaveMarket.NetworkPoolAddress'],
+				probeCases: [[[0, '1', ['poolAddress', 'network']]]],
+				projectionPath: [
+					'Evm',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/accounts': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/accounts',
 		mappings: [
@@ -2018,6 +2032,20 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				probeCases: [[[0, '1', ['height', 'tipsetKey', 'source', 'minerAddress', 'network']]]],
 				projectionPath: [
 					'Filecoin',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/morpho-market/[marketId]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/morpho-market/[marketId=evmTxHash]',
+		mappings: [
+			{
+				id: 'MorphoMarket.NetworkMarketId',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/morpho-market/[marketId]:MorphoMarket.NetworkMarketId'],
+				probeCases: [[[0, '1', ['marketId', 'network']]]],
+				projectionPath: [
+					'Evm',
 				],
 			},
 		],

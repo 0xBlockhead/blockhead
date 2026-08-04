@@ -1,8 +1,8 @@
 // Generated from APP.ts.
 
 import constantsSourceProvider from './_Constants/index.ts'
-import acpSourceProvider from './Acp/index.ts'
 import aaveSourceProvider from './Aave/index.ts'
+import acpSourceProvider from './Acp/index.ts'
 import acrossSourceProvider from './Across/index.ts'
 import algorandWalletSourceProvider from './AlgorandWallet/index.ts'
 import alliumSourceProvider from './Allium/index.ts'
@@ -255,8 +255,8 @@ import zeroGSourceProvider from './ZeroG/index.ts'
 
 const sourceProviders = [
 	constantsSourceProvider,
-	acpSourceProvider,
 	aaveSourceProvider,
+	acpSourceProvider,
 	acrossSourceProvider,
 	algorandWalletSourceProvider,
 	alliumSourceProvider,
@@ -275,6 +275,7 @@ const sourceProviders = [
 	awsBedrockSourceProvider,
 	axelarscanSourceProvider,
 	azureAiFoundrySourceProvider,
+	balancerSourceProvider,
 	beaconSourceProvider,
 	beaconchaInSourceProvider,
 	bitcoinBipsSourceProvider,

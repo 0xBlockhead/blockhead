@@ -4,13 +4,14 @@ This file is generated from APP compiler-plane source metadata: the canonical pr
 
 Provider/source identity, target, endpoint reality, protocol, API family, operation groups, delivery, credentials, and artifacts remain independent axes. Artifacts and generated clients are binding metadata. CORS is recorded per HTTP endpoint; proxy and live behavior are recorded as delivery.
 
-245 providers register 276 sources and 477 bindings.
+247 providers register 278 sources and 479 bindings.
 
 ## Providers
 
 | Provider | Label |
 | --- | --- |
 | _Constants | Constants |
+| Aave | Aave |
 | Acp | Agent Client Protocol |
 | Across | Across |
 | AlgorandWallet | Algorand wallet |
@@ -151,6 +152,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | Mlflow | MLflow |
 | MoneroDaemonRpc | Monero daemon RPC |
 | MoneroWalletRpc | Monero wallet RPC |
+| Morpho | Morpho |
 | NearBlocks | NearBlocks |
 | NearConnect | NEAR Connect |
 | NearNeps | NEAR NEPs |
@@ -260,6 +262,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 
 | Source | Provider | Label |
 | --- | --- | --- |
+| Aave_Rest | Aave | Aave V3 GraphQL API |
 | AcpLocal_JsonRpc | Acp | ACP local JSON-RPC |
 | AcpRegistry_Rest | Acp | ACP registry REST |
 | Across_Rest | Across | Across REST |
@@ -417,6 +420,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | Mlflow_Rest | Mlflow | MLflow REST |
 | MoneroDaemonRpc_JsonRpc | MoneroDaemonRpc | Monero daemon JSON-RPC |
 | MoneroWalletRpc_JsonRpc | MoneroWalletRpc | Monero wallet JSON-RPC |
+| Morpho_Rest | Morpho | Morpho Blue REST API |
 | NearBlocks_Rest | NearBlocks | NearBlocks REST |
 | NearConnect_WalletApi | NearConnect | NEAR Connect wallet API |
 | NearNeps_Github | NearNeps | NEAR NEPs GitHub |
@@ -541,6 +545,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 
 | Binding | Provider | Source | Target kind | Target key | Wire protocol | API family | Operation groups | Delivery |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ["Aave_Rest","Global","aave-v3-api","HttpProxy","GraphqlHttp"] | Aave | Aave_Rest | Global | aave-v3-api | Graphql | GraphqlHttp | GenericRead | HttpProxy |
 | ["AcpLocal_JsonRpc","LocalDevice","acp-local","LocalOnly","AcpProtocol"] | Acp | AcpLocal_JsonRpc | LocalDevice | acp-local | JsonRpc2 | AcpProtocol | AgentCapabilityCatalog, AgentRuntimeInvocation | LocalOnly |
 | ["AcpRegistry_Rest","Global","acp-registry","RemoteQuery","RestJson"] | Acp | AcpRegistry_Rest | Global | acp-registry | HttpRest | RestJson | AgentCapabilityCatalog, AiArtifactCatalog, RepositoryMetadata | RemoteQuery |
 | ["Across_Rest","Global","across-api","HttpProxy","RestJson"] | Across | Across_Rest | Global | across-api | HttpRest | RestJson | GenericRead | HttpProxy |
@@ -753,6 +758,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["MoneroDaemonRpc_JsonRpc","Caip2Network","monero:418015bb9ae982a1975da7d79277c270","HttpProxy","MoneroDaemonJsonRpc"] | MoneroDaemonRpc | MoneroDaemonRpc_JsonRpc | Caip2Network | monero:418015bb9ae982a1975da7d79277c270 | JsonRpc2 | MoneroDaemonJsonRpc | GenericRead | HttpProxy |
 | ["MoneroDaemonRpc_JsonRpc","LocalDevice","local-monerod","LocalOnly","MoneroDaemonJsonRpc"] | MoneroDaemonRpc | MoneroDaemonRpc_JsonRpc | LocalDevice | local-monerod | JsonRpc2 | MoneroDaemonJsonRpc | GenericRead | LocalOnly |
 | ["MoneroWalletRpc_JsonRpc","LocalDevice","wallet-rpc","LocalOnly","JsonRpcApi"] | MoneroWalletRpc | MoneroWalletRpc_JsonRpc | LocalDevice | wallet-rpc | JsonRpc2 | JsonRpcApi | WalletAccountRead, WalletSign | LocalOnly |
+| ["Morpho_Rest","Global","morpho-api","BrowserDirect","RestJson"] | Morpho | Morpho_Rest | Global | morpho-api | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["NearBlocks_Rest","NetworkSlug","near","BrowserDirect","RestJson"] | NearBlocks | NearBlocks_Rest | NetworkSlug | near | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["NearConnect_WalletApi","LocalDevice","near-connect","BrowserDirect","WalletApi"] | NearConnect | NearConnect_WalletApi | LocalDevice | near-connect | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
 | ["NearNeps_Github","GitRepository","near/NEPs@master:neps","BrowserDirect","GithubContentsApi"] | NearNeps | NearNeps_Github | GitRepository | near/NEPs@master:neps | HttpRest | GithubContentsApi | GithubRepositoryContents | BrowserDirect |
@@ -1023,6 +1029,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 
 | Binding | Kind | Locator | Origin | CORS |
 | --- | --- | --- | --- | --- |
+| ["Aave_Rest","Global","aave-v3-api","HttpProxy","GraphqlHttp"] | HttpUrl | https://api.v3.aave.com/graphql | https://api.v3.aave.com | false |
 | ["AcpLocal_JsonRpc","LocalDevice","acp-local","LocalOnly","AcpProtocol"] | LocalProcess | acp |  |  |
 | ["AcpRegistry_Rest","Global","acp-registry","RemoteQuery","RestJson"] | HttpUrl | https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json | https://cdn.agentclientprotocol.com | false |
 | ["Across_Rest","Global","across-api","HttpProxy","RestJson"] | HttpUrl | https://app.across.to | https://app.across.to | false |
@@ -1258,6 +1265,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["MoneroDaemonRpc_JsonRpc","Caip2Network","monero:418015bb9ae982a1975da7d79277c270","HttpProxy","MoneroDaemonJsonRpc"] | HttpUrl | http://nodes.hashvault.pro:18081/json_rpc | http://nodes.hashvault.pro:18081 | false |
 | ["MoneroDaemonRpc_JsonRpc","LocalDevice","local-monerod","LocalOnly","MoneroDaemonJsonRpc"] | HttpUrl | http://127.0.0.1:18081/json_rpc | http://127.0.0.1:18081 | false |
 | ["MoneroWalletRpc_JsonRpc","LocalDevice","wallet-rpc","LocalOnly","JsonRpcApi"] | HttpUrl | http://127.0.0.1:18083/json_rpc | http://127.0.0.1:18083 | false |
+| ["Morpho_Rest","Global","morpho-api","BrowserDirect","RestJson"] | HttpUrl | https://api.morpho.org | https://api.morpho.org | true |
 | ["NearBlocks_Rest","NetworkSlug","near","BrowserDirect","RestJson"] | HttpUrl | https://api.nearblocks.io | https://api.nearblocks.io | true |
 | ["NearConnect_WalletApi","LocalDevice","near-connect","BrowserDirect","WalletApi"] | BrowserWalletProvider | near-connect |  |  |
 | ["NearNeps_Github","GitRepository","near/NEPs@master:neps","BrowserDirect","GithubContentsApi"] | HttpUrl | https://api.github.com | https://api.github.com | true |
@@ -1728,6 +1736,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 
 | Binding | Kind | Path | Generated | Official URL | Reference URL |
 | --- | --- | --- | --- | --- | --- |
+| ["Aave_Rest","Global","aave-v3-api","HttpProxy","GraphqlHttp"] | HandwrittenTypes | src/sources/Aave/Rest/types.ts | no |  |  |
 | ["AcpRegistry_Rest","Global","acp-registry","RemoteQuery","RestJson"] | HandwrittenTypes | src/sources/Acp/Rest/types.ts | no |  |  |
 | ["Allium_Rest","Global","api","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/Allium/Rest/types.ts | no |  |  |
 | ["Amboss_Graphql","Global","amboss-space","HttpProxy","GraphqlHttp"] | GenerationManifest | src/sources/Amboss/Graphql/schema-source.ts | no |  |  |
@@ -1930,6 +1939,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["MevRelay_Rest","Feed","builder-relay-sepolia.flashbots.net","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/MevRelay/Rest/types.ts | no |  |  |
 | ["MoneroDaemonRpc_JsonRpc","Caip2Network","monero:418015bb9ae982a1975da7d79277c270","HttpProxy","MoneroDaemonJsonRpc"] | HandwrittenTypes | src/sources/MoneroDaemonRpc/JsonRpc/types.ts | no |  |  |
 | ["MoneroDaemonRpc_JsonRpc","LocalDevice","local-monerod","LocalOnly","MoneroDaemonJsonRpc"] | HandwrittenTypes | src/sources/MoneroDaemonRpc/JsonRpc/types.ts | no |  |  |
+| ["Morpho_Rest","Global","morpho-api","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Morpho/Rest/types.ts | no |  | https://docs.morpho.org/developers/api/morpho/ |
 | ["NearBlocks_Rest","NetworkSlug","near","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/NearBlocks/Rest/types.ts | no |  |  |
 | ["NearRpc_JsonRpc","NetworkSlug","near","HttpProxy","JsonRpcApi"] | HandwrittenTypes | src/sources/NearRpc/JsonRpc/types.ts | no |  |  |
 | ["Neynar_Rest","Global","api","HttpProxy","OpenApiHttp"] | GenerationManifest | src/sources/Neynar/OpenApi/schema-source.ts | no |  |  |

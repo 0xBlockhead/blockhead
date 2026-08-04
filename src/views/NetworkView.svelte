@@ -221,6 +221,7 @@
 	import EvmUserOperationsView from '$/views/EvmUserOperationsView.svelte'
 	import EvmNetworkBridgesView from '$/views/EvmNetworkBridgesView.svelte'
 	import EvmTokenTransfersView from '$/views/EvmTokenTransfersView.svelte'
+	import AaveMarketsView from '$/views/AaveMarketsView.svelte'
 	import CosmosBlocksView from '$/views/CosmosBlocksView.svelte'
 	import CosmosValidatorsView from '$/views/CosmosValidatorsView.svelte'
 	import CosmosAccountsView from '$/views/CosmosAccountsView.svelte'
@@ -2562,6 +2563,58 @@
 
 					</CollapsibleTabs>
 				{/if}
+
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-evm-defi'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'evm-defi-aave-markets',
+								label: 'Aave markets',
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-defi'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>DeFi</HeadingComponent>
+							<Tooltip>
+								{#snippet Content()}
+									<p>
+										Protocol-native lending markets on this EVM network.
+									</p>
+								{/snippet}
+
+								<abbr
+									class="entity-heading-tip"
+									aria-label='DeFi help'
+								>ⓘ</abbr>
+							</Tooltip>
+						</header>
+					{/snippet}
+
+					{#snippet SectionEvmDefiAaveMarkets({ id, label })}
+						<AaveMarketsView
+							selection={
+								projection
+								.$$aaveMarkets({
+									sources: [
+										Source.Aave_Rest,
+									],
+									limit: 16,
+								})
+							}
+							collapsible={false}
+							title={label}
+							emptyText='No Aave markets.'
+							id={`${id}-list`}
+						/>
+					{/snippet}
+
+				</CollapsibleTabs>
 			{/snippet}
 		</ProjectionBoundary>
 
