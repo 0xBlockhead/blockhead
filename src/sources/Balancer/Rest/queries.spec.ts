@@ -27,7 +27,10 @@ vi.mock('$/sources/_shared/wire/Graphql/client.ts', async (importOriginal) => ({
 	graphql,
 }))
 
-const { getPool } = await import('$/sources/Balancer/Rest/queries.ts')
+const {
+	getPool,
+	listPools,
+} = await import('$/sources/Balancer/Rest/queries.ts')
 
 const binding = bindings[Source.Balancer_Rest][0]
 
@@ -218,5 +221,70 @@ describe('Balancer poolGetPool operation', () => {
 			chainId: 1,
 			poolId: weightedV2PoolId,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: pool not found ${weightedV2PoolId} on chain 1`)
+	})
+})
+
+describe('Balancer poolGetPools operation', () => {
+	beforeEach(() => {
+		graphql.mockReset()
+	})
+
+	it('lists pool snapshots for one chain with an explicit bounded page size', async () => {
+		graphql.mockResolvedValueOnce({
+			poolGetPools: [
+				weightedV2Pool,
+				stableV3Pool,
+			],
+		})
+
+		await expect(listPools({
+			chainId: 1,
+			limit: 2,
+		})).resolves.toMatchObject([
+			{
+				id: weightedV2PoolId,
+				chainId: 1,
+				vaultAddress: '0xba12222222228d8ba445958a75a0704d566bf2c8',
+			},
+			{
+				id: stableV3PoolId,
+				chainId: 1,
+				vaultAddress: '0xba1333333333a1ba1108e8412f11850a5c319ba9',
+			},
+		])
+		expect(graphql).toHaveBeenCalledWith(expect.objectContaining({
+			binding,
+			query: expect.stringContaining('chainIn: [$chain]'),
+			variables: {
+				chain: 'MAINNET',
+				first: 2,
+			},
+		}))
+	})
+
+	it('preserves an upstream successful empty pool list', async () => {
+		graphql.mockResolvedValueOnce({
+			poolGetPools: [],
+		})
+
+		await expect(listPools({
+			chainId: 1,
+		})).resolves.toEqual([])
+	})
+
+	it('rejects invalid limits before transport', async () => {
+		await expect(listPools({
+			chainId: 1,
+			limit: 0,
+		})).rejects.toThrow(`${Source.Balancer_Rest}: limit must be 1..100`)
+		expect(graphql).not.toHaveBeenCalled()
+	})
+
+	it('fails closed when the pool list response has no data', async () => {
+		graphql.mockResolvedValueOnce(undefined)
+
+		await expect(listPools({
+			chainId: 1,
+		})).rejects.toThrow(`${Source.Balancer_Rest}: pool list response missing data`)
 	})
 })

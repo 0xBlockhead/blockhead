@@ -28,6 +28,10 @@ export type BalancerPoolData = {
 	poolGetPool: BalancerPoolWire | null
 }
 
+export type BalancerPoolsData = {
+	poolGetPools: BalancerPoolWire[]
+}
+
 export type BalancerPool = {
 	id: `0x${string}`
 	address: `0x${string}`

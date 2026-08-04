@@ -7,11 +7,14 @@ import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import bindings from '$/sources/Balancer/bindings.ts'
 import {
 	balancerChainByChainId,
+	balancerPoolListDefaultLimit,
+	balancerPoolListMaxLimit,
 	balancerPoolIdPattern,
 } from '$/sources/Balancer/Rest/constants.ts'
 import type {
 	BalancerPool,
 	BalancerPoolData,
+	BalancerPoolsData,
 	BalancerPoolWire,
 } from '$/sources/Balancer/Rest/types.ts'
 import { graphql } from '$/sources/_shared/wire/Graphql/client.ts'
@@ -79,12 +82,12 @@ const assertPoolWire = (
 	wire: BalancerPoolWire,
 	expected: {
 		chainId: number
-		poolId: `0x${string}`
 		gqlChain: string
+		poolId?: `0x${string}`
 	}
 ): BalancerPool => {
 	const id = assertPoolId(wire.id)
-	if (id !== expected.poolId)
+	if (expected.poolId != null && id !== expected.poolId)
 		throw new Error(`${Source.Balancer_Rest}: pool id mismatch`)
 	if (wire.chain !== expected.gqlChain)
 		throw new Error(`${Source.Balancer_Rest}: pool chain mismatch`)
@@ -132,6 +135,52 @@ const assertPoolWire = (
 			}
 		}),
 	}
+}
+
+const assertListLimit = (limit: number) => {
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > balancerPoolListMaxLimit)
+		throw new Error(`${Source.Balancer_Rest}: limit must be 1..${String(balancerPoolListMaxLimit)}`)
+	return limit
+}
+
+/** List Balancer v2/v3 pool snapshots for one EIP-155 chain, ordered by liquidity. */
+export const listPools = async ({
+	chainId,
+	limit = balancerPoolListDefaultLimit,
+}: {
+	chainId: number
+	limit?: number
+}) => {
+	const chain = assertChainId(chainId)
+	assertListLimit(limit)
+
+	const data = await graphql<BalancerPoolsData>({
+		binding,
+		query: `
+			query PoolGetPools($chain: GqlChain!, $first: Int!) {
+				poolGetPools(
+					first: $first
+					orderBy: totalLiquidity
+					where: {
+						chainIn: [$chain]
+					}
+				) {
+					${poolFields}
+				}
+			}
+		`,
+		variables: {
+			chain: chain.gqlChain,
+			first: limit,
+		},
+	})
+	if (data == null)
+		throw new Error(`${Source.Balancer_Rest}: pool list response missing data`)
+
+	return data.poolGetPools.map((pool) => assertPoolWire(pool, {
+		chainId,
+		gqlChain: chain.gqlChain,
+	}))
 }
 
 /** Fetch one Balancer v2/v3 pool by EIP-155 chain id and native pool id. */
