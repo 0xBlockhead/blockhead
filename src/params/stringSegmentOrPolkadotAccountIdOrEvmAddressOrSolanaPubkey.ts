@@ -6,8 +6,8 @@ import { match as matchSolanaPubkey } from '$/params/solanaPubkey.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 
 export const match = (param: string) => (
-	matchPolkadotAccountId(param)
-	|| matchStringSegment(param)
+	matchStringSegment(param)
+	|| matchPolkadotAccountId(param)
 	|| matchEvmAddress(param)
 	|| matchSolanaPubkey(param)
 )

@@ -1,6 +1,11 @@
-import type { ParamMatcher } from '@sveltejs/kit'
+import { matchSchemaPrimitiveParam } from '$/schema/$params.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 
 
-export const match = ((param: string) => (
-	/^0x[0-9a-fA-F]{64}$/.test(param)
-)) satisfies ParamMatcher
+export const match = (param: string): param is `0x${string}` => (
+	matchSchemaPrimitiveParam(
+		EntityType.EvmTransaction,
+		'txHash',
+		param
+	)
+)
