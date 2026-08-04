@@ -2297,6 +2297,53 @@ test('renders Lens network Directory feeds and username namespaces', () => {
 	)
 })
 
+test('folds OsmosisPool Directory into Network.Cosmos without EVM LiquidityPool', () => {
+	const network = app.schema.entities.find((entity) => entity.entityType === EntityType.Network)
+	const cosmos = network?.facets.find((facet) => facet.name === 'Cosmos')
+	const osmosisPools = cosmos?.fields.find((field) => field.name === '$$osmosisPools')
+	assert.deepEqual(osmosisPools?.defaultSources, [Source.Osmosis_LCD_Rest])
+	assert.equal(osmosisPools?.entityType, EntityType.OsmosisPool)
+
+	const osmosisPool = app.schema.entities.find((entity) => entity.entityType === EntityType.OsmosisPool)
+	const osmosisPoolAsset = app.schema.entities.find((entity) => entity.entityType === EntityType.OsmosisPoolAsset)
+	const osmosisPoolTimestamp = app.schema.entities.find((entity) => entity.entityType === EntityType.OsmosisPool_Timestamp)
+	assert.ok(osmosisPool && osmosisPoolAsset && osmosisPoolTimestamp)
+	assert.equal(osmosisPool.entityType, EntityType.OsmosisPool)
+	assert.notEqual(osmosisPool.entityType, EntityType.LiquidityPool)
+	assert.match(
+		JSON.stringify(osmosisPool.views?.singular?.content?.dl ?? []),
+		/"typeUrl"|"swapFee"|"exitFee"/
+	)
+
+	const networkView = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/views/NetworkView.svelte')
+	assert.ok(networkView)
+	const renderedNetworkView = renderGeneratedFile(networkView)
+	assert.match(renderedNetworkView, /cosmos-defi-osmosis-pools/)
+	assert.match(renderedNetworkView, /OsmosisPoolsView/)
+	assert.match(renderedNetworkView, /Source\.Osmosis_LCD_Rest/)
+
+	const osmosisPoolView = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/views/OsmosisPoolView.svelte')
+	assert.ok(osmosisPoolView)
+	const renderedOsmosisPoolView = renderGeneratedFile(osmosisPoolView)
+	assert.match(renderedOsmosisPoolView, /typeUrl|Type URL/)
+	assert.match(renderedOsmosisPoolView, /OsmosisPoolAssetsView/)
+	assert.match(renderedOsmosisPoolView, /OsmosisPool_TimestampsView/)
+	assert.ok(
+		baselineCompiledApp.generatedFiles.some(({ path }) => (
+			path.includes('osmosis-pool')
+			&& path.endsWith('+page.svelte')
+		))
+	)
+	assert.match(
+		generatedSource('src/schema/EntityType.ts'),
+		/OsmosisPool = 'OsmosisPool'/
+	)
+	assert.match(
+		generatedSource('src/schema/index.ts'),
+		/OsmosisPool/
+	)
+})
+
 test('renders source-backed social hub lists as carousel cards', () => {
 	for (const [viewPath, listName] of [
 		['src/views/RssNetworkView.svelte', 'RssFeedsView'],

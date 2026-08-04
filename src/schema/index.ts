@@ -744,8 +744,8 @@ import OracleFeed_RoundSchema from '$/schema/OracleFeed_Round.ts'
 import OracleFeed_TimestampSchema from '$/schema/OracleFeed_Timestamp.ts'
 import OracleFeedSchema from '$/schema/OracleFeed.ts'
 import OsmosisPool_TimestampSchema from '$/schema/OsmosisPool_Timestamp.ts'
-import OsmosisPoolAssetSchema from '$/schema/OsmosisPoolAsset.ts'
 import OsmosisPoolSchema from '$/schema/OsmosisPool.ts'
+import OsmosisPoolAssetSchema from '$/schema/OsmosisPoolAsset.ts'
 import PayjoinDirectorySchema from '$/schema/PayjoinDirectory.ts'
 import PayjoinEndpoint_TimestampSchema from '$/schema/PayjoinEndpoint_Timestamp.ts'
 import PayjoinEndpointSchema from '$/schema/PayjoinEndpoint.ts'
@@ -1799,12 +1799,12 @@ const schemaChunk14 = [
 	PayjoinEndpoint_TimestampSchema,
 	PayoutSchema,
 	PayoutClaim_TimestampSchema,
-	PolkadotAccountSchema,
-	PolkadotAccount_TimestampSchema,
-	PolkadotAssetSchema,
 ] as const
 
 const schemaChunk15 = [
+	PolkadotAccountSchema,
+	PolkadotAccount_TimestampSchema,
+	PolkadotAssetSchema,
 	PolkadotAsset_TimestampSchema,
 	PolkadotAssetBalance_TimestampSchema,
 	PolkadotBlockSchema,
@@ -1852,12 +1852,12 @@ const schemaChunk15 = [
 	SolanaAccount_TimestampSchema,
 	SolanaBlockSchema,
 	SolanaInstructionSchema,
-	SolanaProgramSchema,
-	SolanaTokenAccountSchema,
-	SolanaTokenAccount_TimestampSchema,
 ] as const
 
 const schemaChunk16 = [
+	SolanaProgramSchema,
+	SolanaTokenAccountSchema,
+	SolanaTokenAccount_TimestampSchema,
 	SolanaTokenMintSchema,
 	SolanaTokenMint_TimestampSchema,
 	SolanaTransactionSchema,
@@ -1905,12 +1905,12 @@ const schemaChunk16 = [
 	StellarTrustlineSchema,
 	StellarTrustline_TimestampSchema,
 	SuiAccountSchema,
-	SuiBalanceChangeSchema,
-	SuiCheckpointSchema,
-	SuiCoinBalance_TimestampSchema,
 ] as const
 
 const schemaChunk17 = [
+	SuiBalanceChangeSchema,
+	SuiCheckpointSchema,
+	SuiCoinBalance_TimestampSchema,
 	SuiCoinTypeSchema,
 	SuiDynamicFieldEdgeSchema,
 	SuiDynamicFieldEdge_TimestampSchema,
@@ -1958,12 +1958,12 @@ const schemaChunk17 = [
 	TezosToken_TimestampSchema,
 	TezosTokenBalance_TimestampSchema,
 	TezosTokenTransferSchema,
-	TokenMetadataDocumentSchema,
-	TokenProgramExtension_TimestampSchema,
-	TonAccountSchema,
 ] as const
 
 const schemaChunk18 = [
+	TokenMetadataDocumentSchema,
+	TokenProgramExtension_TimestampSchema,
+	TonAccountSchema,
 	TonAccount_TimestampSchema,
 	TonBlockSchema,
 	TonContractSchema,
@@ -2011,12 +2011,12 @@ const schemaChunk18 = [
 	UrlSchema,
 	UrlPreview_TimestampSchema,
 	UsageRight_TimestampSchema,
-	UtxoAddressSchema,
-	UtxoAddress_TimestampSchema,
-	UtxoBlockSchema,
 ] as const
 
 const schemaChunk19 = [
+	UtxoAddressSchema,
+	UtxoAddress_TimestampSchema,
+	UtxoBlockSchema,
 	UtxoInputSchema,
 	UtxoOutputSchema,
 	UtxoTransactionSchema,
@@ -2064,12 +2064,12 @@ const schemaChunk19 = [
 	ZeroGServiceProviderSchema,
 	ZeroGServiceRequestSchema,
 	ZeroGSettlementTraceSchema,
-	ZeroGStorageLogEntrySchema,
-	ZeroGStorageNodeSchema,
-	ZeroGStorageNode_TimestampSchema,
 ] as const
 
 const schemaChunk20 = [
+	ZeroGStorageLogEntrySchema,
+	ZeroGStorageNodeSchema,
+	ZeroGStorageNode_TimestampSchema,
 	ZeroGStorageProofSchema,
 ] as const
 

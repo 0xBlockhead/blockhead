@@ -224,6 +224,7 @@
 	import CosmosBlocksView from '$/views/CosmosBlocksView.svelte'
 	import CosmosValidatorsView from '$/views/CosmosValidatorsView.svelte'
 	import CosmosAccountsView from '$/views/CosmosAccountsView.svelte'
+	import OsmosisPoolsView from '$/views/OsmosisPoolsView.svelte'
 	import CosmosGovernanceProposalsView from '$/views/CosmosGovernanceProposalsView.svelte'
 	import PolkadotBlocksView from '$/views/PolkadotBlocksView.svelte'
 	import PolkadotValidatorsView from '$/views/PolkadotValidatorsView.svelte'
@@ -2688,6 +2689,68 @@
 								}
 								collapsible={false}
 								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/if}
+				{@const cosmosDefiOsmosisPoolsSources = networkApplicableSources([
+						Source.Osmosis_LCD_Rest,
+					], pendingEntity)}
+
+				{@const cosmosDefiSections = [
+						...(
+							cosmosDefiOsmosisPoolsSources.length > 0 ?
+								[
+									{
+										id: 'cosmos-defi-osmosis-pools',
+										label: 'Osmosis pools',
+									},
+								]
+							:
+								[]
+						),
+					]}
+
+				{#if cosmosDefiSections.length > 0}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-cosmos-defi'}
+						sectionIdPrefix={viewDomId}
+						sections={cosmosDefiSections}
+						data-card
+						class='network-view-collapsible-defi'
+					>
+						{#snippet Summary()}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>DeFi</HeadingComponent>
+								<Tooltip>
+									{#snippet Content()}
+										<p>
+											Osmosis poolmanager pools exposed by this Cosmos SDK network.
+										</p>
+									{/snippet}
+
+									<abbr
+										class="entity-heading-tip"
+										aria-label='DeFi help'
+									>ⓘ</abbr>
+								</Tooltip>
+							</header>
+						{/snippet}
+
+						{#snippet SectionCosmosDefiOsmosisPools({ id, label })}
+							<OsmosisPoolsView
+								selection={
+									projection
+									.$$osmosisPools({
+										sources: cosmosDefiOsmosisPoolsSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No Osmosis pools.'
 								id={`${id}-list`}
 							/>
 						{/snippet}

@@ -1894,6 +1894,9 @@ export enum EntityType {
 	OracleFeed = "OracleFeed",
 	OracleFeed_Round = "OracleFeed_Round",
 	OracleFeed_Timestamp = "OracleFeed_Timestamp",
+	OsmosisPool = "OsmosisPool",
+	OsmosisPool_Timestamp = "OsmosisPool_Timestamp",
+	OsmosisPoolAsset = "OsmosisPoolAsset",
 	PayjoinDirectory = "PayjoinDirectory",
 	PayjoinEndpoint = "PayjoinEndpoint",
 	PayjoinEndpoint_Timestamp = "PayjoinEndpoint_Timestamp",
@@ -46989,7 +46992,8 @@ export const schema = {
 						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosBlock, defaultSources: [Source.CosmosSdk_Rest] },
 						"$$accounts": { label: "Accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosAccount, defaultSources: [Source.CosmosSdk_Rest] },
 						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosValidator, defaultSources: [Source.CosmosSdk_Rest] },
-						"$$governanceProposals": { label: "Governance proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosGovernanceProposal, defaultSources: [Source.CosmosSdk_Rest] }
+						"$$governanceProposals": { label: "Governance proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosGovernanceProposal, defaultSources: [Source.CosmosSdk_Rest] },
+						"$$osmosisPools": { label: "Osmosis pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OsmosisPool, defaultSources: [Source.Osmosis_LCD_Rest] }
 					})({
 						singularView: {
 							carousels: [
@@ -47009,6 +47013,15 @@ export const schema = {
 									className: "network-view-collapsible-contracts-accounts",
 									sections: [
 										{ id: "cosmos-contracts-accounts-accounts", field: ["Cosmos", "$$accounts"], List: "CosmosAccountsView", label: "Accounts", selection: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
+									],
+								},
+								{
+									id: "cosmos-defi",
+									label: "DeFi",
+									description: "Osmosis poolmanager pools exposed by this Cosmos SDK network.",
+									className: "network-view-collapsible-defi",
+									sections: [
+										{ id: "cosmos-defi-osmosis-pools", field: ["Cosmos", "$$osmosisPools"], List: "OsmosisPoolsView", label: "Osmosis pools", emptyText: "No Osmosis pools.", selection: { sources: [Source.Osmosis_LCD_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -49414,6 +49427,145 @@ export const schema = {
 					},
 					plural: { component: "OracleFeed_TimestampsView",
 					},
+				},
+			}),
+
+			entity({
+				entityType: EntityType.OsmosisPool,
+				labels: {
+					singular: "Osmosis pool",
+					plural: "Osmosis pools",
+				},
+				description: "An Osmosis poolmanager pool (balancer, stableswap, concentrated liquidity, or cosmwasm), identified by numeric pool id on cosmos:osmosis-1.",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"poolId": { label: "Pool ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"typeUrl": { label: "Type URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"swapFee": { label: "Swap fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
+				"exitFee": { label: "Exit fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
+				"totalWeight": { label: "Total weight", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
+				"totalSharesAmount": { label: "Total shares amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
+				"totalSharesDenom": { label: "Total shares denom", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"token0Denom": { label: "Token 0 denom", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"token1Denom": { label: "Token 1 denom", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"currentSqrtPrice": { label: "Current sqrt price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
+				"currentTick": { label: "Current tick", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"currentTickLiquidity": { label: "Current tick liquidity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
+				"tickSpacing": { label: "Tick spacing", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"exponentAtPriceOne": { label: "Exponent at price one", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"spreadFactor": { label: "Spread factor", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
+				"$$assets": { label: "Assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OsmosisPoolAsset, defaultSources: [Source.Osmosis_LCD_Rest] },
+				"$$timestamps": { label: "Spot prices", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OsmosisPool_Timestamp },
+			})({
+				selectors: {
+					"NetworkPoolId": ["$network", "poolId"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Osmosis_LCD_Rest],
+						},
+						summary: {
+							title: ["poolId", "typeUrl"],
+							value: ["swapFee", "exitFee"],
+							HeadingAfter: ["$network"],
+						},
+						closed: ["poolId", "typeUrl", "swapFee"],
+						content: {
+							dl: [
+								["$network", "poolId", "typeUrl", { field: "address", format: "truncated" }],
+								["swapFee", "exitFee", "spreadFactor", "totalWeight", "totalSharesAmount", "totalSharesDenom"],
+								["token0Denom", "token1Denom", "currentSqrtPrice", "currentTick", "currentTickLiquidity", "tickSpacing", "exponentAtPriceOne"],
+							],
+						},
+						carousels: [
+							{
+								id: "osmosis-pool-balances",
+								label: "Balances and spot",
+								className: "network-view-collapsible-balances",
+								sections: [
+									{ id: "osmosis-pool-assets", field: "$$assets", List: "OsmosisPoolAssetsView", label: "Assets", emptyText: "No pool assets.", selection: { sources: [Source.Osmosis_LCD_Rest] } },
+									{ id: "osmosis-pool-spot", field: "$$timestamps", List: "OsmosisPool_TimestampsView", label: "Spot prices", emptyText: "No spot price observations." },
+								],
+							},
+						],
+					},
+					plural: { component: "OsmosisPoolsView", title: "Osmosis pools" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.OsmosisPool_Timestamp,
+				labels: {
+					singular: "Osmosis pool timestamp",
+					plural: "Osmosis pool observations",
+				},
+				description: "A point-in-time Osmosis poolmanager spot price for a base/quote denom pair.",
+			})({
+				"$pool": { label: "Pool", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.OsmosisPool },
+				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"baseAssetDenom": { label: "Base asset denom", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"quoteAssetDenom": { label: "Quote asset denom", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"spotPrice": { label: "Spot price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString" },
+			})({
+				selectors: {
+					"PoolTimestampMsBaseQuote": ["$pool", "timestampMs", "baseAssetDenom", "quoteAssetDenom"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Osmosis_LCD_Rest],
+						},
+						summary: {
+							title: ["baseAssetDenom", "quoteAssetDenom"],
+							value: ["spotPrice"],
+						},
+						content: {
+							dl: [
+								["$pool", { field: "timestampMs", format: "timestamp" }, "source"],
+								["baseAssetDenom", "quoteAssetDenom", "spotPrice"],
+							],
+						},
+					},
+					plural: { component: "OsmosisPool_TimestampsView", title: "Spot prices" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.OsmosisPoolAsset,
+				labels: {
+					singular: "Osmosis pool asset",
+					plural: "Osmosis pool assets",
+				},
+				description: "A denom balance (and optional balancer weight) inside an Osmosis poolmanager pool.",
+			})({
+				"$pool": { label: "Pool", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.OsmosisPool },
+				"denom": { label: "Denom", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"amount": { label: "Amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString" },
+				"weight": { label: "Weight", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
+				"$cosmosDenom": { label: "Cosmos denom", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.CosmosDenom },
+			})({
+				selectors: {
+					"PoolDenom": ["$pool", "denom"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Osmosis_LCD_Rest],
+						},
+						summary: {
+							title: ["denom"],
+							value: ["amount", "weight"],
+						},
+						content: {
+							dl: [
+								["$pool", "denom", "amount", "weight", "$cosmosDenom"],
+							],
+						},
+					},
+					plural: { component: "OsmosisPoolAssetsView", title: "Pool assets" },
 				},
 			}),
 
@@ -71010,6 +71162,20 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#oraclefeed_timestamp",
 			},
 		},
+		[EntityType.OsmosisPool_Timestamp]: {
+			"PoolTimestampMsBaseQuote": {
+				kind: "Research",
+				decision: "Retain OsmosisPool_Timestamp.PoolTimestampMsBaseQuote as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#osmosispool_timestamp",
+			},
+		},
+		[EntityType.OsmosisPoolAsset]: {
+			"PoolDenom": {
+				kind: "Research",
+				decision: "Retain OsmosisPoolAsset.PoolDenom as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#osmosispoolasset",
+			},
+		},
 		[EntityType.PayjoinDirectory]: {
 			"DirectoryUrl": {
 				kind: "Research",
@@ -78494,6 +78660,30 @@ export const routes = defineRoutes(schema)({
 													}
 												}
 											}
+										},
+										"osmosis-pool": {
+											children: {
+												"[poolId]": {
+													selectors: {
+														[EntityType.OsmosisPool]: {
+															"NetworkPoolId": {
+																when: {
+																	path: ["namespace"],
+																	is: "Cosmos",
+																},
+																projection: {
+																	entityType: EntityType.Network,
+																	facetPath: ["Cosmos"],
+																},
+																params: {
+																	"poolId": ["poolId"],
+																},
+																page: {},
+															},
+														},
+													},
+												},
+											},
 										},
 										"pallet": {
 											children: {

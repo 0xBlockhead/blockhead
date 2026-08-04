@@ -2120,6 +2120,20 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/osmosis-pool/[poolId]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/osmosis-pool/[poolId=stringSegment]',
+		mappings: [
+			{
+				id: 'OsmosisPool.NetworkPoolId',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/osmosis-pool/[poolId]:OsmosisPool.NetworkPoolId'],
+				probeCases: [[[0, '1', ['poolId', 'network']]]],
+				projectionPath: [
+					'Cosmos',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/pallet/[palletName]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/pallet/[palletName=stringSegment]',
 		mappings: [

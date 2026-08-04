@@ -484,6 +484,13 @@ export default entity({
 					Source.CosmosSdk_Rest,
 				],
 			},
+			$$osmosisPools: {
+				entityType: EntityType.OsmosisPool,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Osmosis_LCD_Rest,
+				],
+			},
 		}),
 		Polkadot: facet({
 			path: [
