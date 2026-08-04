@@ -298,16 +298,11 @@ export const getTransactionTokenTransfers = async ({ chainId, txHash, limit }: {
 	if (normalized == null)
 		return []
 
-	const response = await getBlockscoutResponse({
-		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
-		path: `/transactions/${normalized}/token-transfers`,
-	})
-	if (response.status === 422)
-		return []
-	await throwIfHttpNotOk(response, response.url)
-
 	return (
-		(await response.json<BlockscoutTransactionTokenTransfersPage>())
+		(await getBlockscoutJson<BlockscoutTransactionTokenTransfersPage>({
+			binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+			path: `/transactions/${normalized}/token-transfers`,
+		}))
 			.items.slice(0, limit)
 	)
 }

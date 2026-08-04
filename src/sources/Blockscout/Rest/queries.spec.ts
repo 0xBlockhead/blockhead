@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/Blockscout/bindings.ts'
+import * as blockscoutQueries from '$/sources/Blockscout/Rest/queries.ts'
 import {
 	getAddressTransactions,
 	getBlockTransactions,
@@ -110,6 +111,29 @@ describe('Blockscout account-abstraction queries', () => {
 			chainId: 1,
 			limit: 16,
 		})).rejects.toThrow('400')
+	})
+
+	it('omits timed-out Network registry list queries instead of soft-emptying HTTP 500', () => {
+		// Live eth.blockscout.com (2026-08-04): GET …/proxy/account-abstraction/{bundlers,paymasters,factories}?page_size=1 → 500 {"error":"timeout"}
+		expect(blockscoutQueries).not.toHaveProperty('getErc4337BundlerList')
+		expect(blockscoutQueries).not.toHaveProperty('getErc4337PaymasterList')
+		expect(blockscoutQueries).not.toHaveProperty('getErc4337AccountFactoryList')
+	})
+
+	it('hard-fails transaction token-transfer HTTP errors instead of soft-emptying 422', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(JSON.stringify({
+			errors: [{
+				title: 'Invalid value',
+				source: { pointer: '/items_count' },
+				detail: 'Unexpected field: items_count',
+			}],
+		}), { status: 422 }))
+
+		await expect(getTransactionTokenTransfers({
+			chainId: 1,
+			txHash: hex('2', 64),
+			limit: 1,
+		})).rejects.toThrow('422')
 	})
 
 	it('routes execution methods through the shared JSON-RPC binding', async () => {
