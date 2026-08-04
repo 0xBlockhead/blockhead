@@ -150,6 +150,7 @@ import AvalancheSubnet_TimestampSchema from '$/schema/AvalancheSubnet_Timestamp.
 import AvalancheSubnetSchema from '$/schema/AvalancheSubnet.ts'
 import AvalancheValidator_TimestampSchema from '$/schema/AvalancheValidator_Timestamp.ts'
 import AvalancheValidatorSchema from '$/schema/AvalancheValidator.ts'
+import BalancerPoolSchema from '$/schema/BalancerPool.ts'
 import BeaconAttestationSchema from '$/schema/BeaconAttestation.ts'
 import BeaconCommitteeSchema from '$/schema/BeaconCommittee.ts'
 import BeaconEpochSchema from '$/schema/BeaconEpoch.ts'
@@ -393,6 +394,7 @@ import CosmosTransactionSchema from '$/schema/CosmosTransaction.ts'
 import CosmosValidator_TimestampSchema from '$/schema/CosmosValidator_Timestamp.ts'
 import CosmosValidatorSchema from '$/schema/CosmosValidator.ts'
 import CronosNetworkProfileSchema from '$/schema/CronosNetworkProfile.ts'
+import CurvePoolSchema from '$/schema/CurvePool.ts'
 import Currency_TimestampSchema from '$/schema/Currency_Timestamp.ts'
 import CurrencySchema from '$/schema/Currency.ts'
 import DogecoinAuxPowMerkleBranchSchema from '$/schema/DogecoinAuxPowMerkleBranch.ts'
@@ -545,6 +547,7 @@ import GitTagSchema from '$/schema/GitTag.ts'
 import GitTreeSchema from '$/schema/GitTree.ts'
 import GitTreeEntrySchema from '$/schema/GitTreeEntry.ts'
 import GitTreePathResolutionSchema from '$/schema/GitTreePathResolution.ts'
+import GmxMarketSchema from '$/schema/GmxMarket.ts'
 import HederaAccount_TimestampSchema from '$/schema/HederaAccount_Timestamp.ts'
 import HederaAccountSchema from '$/schema/HederaAccount.ts'
 import HederaAllowance_TimestampSchema from '$/schema/HederaAllowance_Timestamp.ts'
@@ -1422,6 +1425,7 @@ const schemaChunk7 = [
 	CosmosValidatorSchema,
 	CosmosValidator_TimestampSchema,
 	CronosNetworkProfileSchema,
+	CurvePoolSchema,
 	CurrencySchema,
 	Currency_TimestampSchema,
 	DogecoinAuxPowMerkleBranchSchema,
@@ -1583,6 +1587,7 @@ const schemaChunk10 = [
 	GitTreeSchema,
 	GitTreeEntrySchema,
 	GitTreePathResolutionSchema,
+	GmxMarketSchema,
 	HederaAccountSchema,
 	HederaAccount_TimestampSchema,
 	HederaAllowanceSchema,

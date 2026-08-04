@@ -21,6 +21,7 @@ import avalanchePlatformVmSourceProvider from './AvalanchePlatformVm/index.ts'
 import awsBedrockSourceProvider from './AwsBedrock/index.ts'
 import axelarscanSourceProvider from './Axelarscan/index.ts'
 import azureAiFoundrySourceProvider from './AzureAiFoundry/index.ts'
+import balancerSourceProvider from './Balancer/index.ts'
 import beaconSourceProvider from './Beacon/index.ts'
 import beaconchaInSourceProvider from './BeaconchaIn/index.ts'
 import bitcoinBipsSourceProvider from './BitcoinBips/index.ts'
@@ -59,6 +60,7 @@ import cosmosChainRegistrySourceProvider from './CosmosChainRegistry/index.ts'
 import cosmosSdkSourceProvider from './CosmosSdk/index.ts'
 import covalentSourceProvider from './Covalent/index.ts'
 import cronosExplorerSourceProvider from './CronosExplorer/index.ts'
+import curveSourceProvider from './Curve/index.ts'
 import cycloneDxSourceProvider from './CycloneDx/index.ts'
 import defillamaSourceProvider from './Defillama/index.ts'
 import dexscreenerSourceProvider from './Dexscreener/index.ts'
@@ -91,6 +93,7 @@ import fxEmbedSourceProvider from './FxEmbed/index.ts'
 import getBlockSourceProvider from './GetBlock/index.ts'
 import gitSourceProvider from './Git/index.ts'
 import gitlabSourceProvider from './Gitlab/index.ts'
+import gmxSourceProvider from './Gmx/index.ts'
 import googleAiSourceProvider from './GoogleAi/index.ts'
 import hashConnectSourceProvider from './HashConnect/index.ts'
 import hederaMirrorNodeSourceProvider from './HederaMirrorNode/index.ts'
@@ -310,6 +313,7 @@ const sourceProviders = [
 	cosmosSdkSourceProvider,
 	covalentSourceProvider,
 	cronosExplorerSourceProvider,
+	curveSourceProvider,
 	cycloneDxSourceProvider,
 	defillamaSourceProvider,
 	dexscreenerSourceProvider,
@@ -342,6 +346,7 @@ const sourceProviders = [
 	getBlockSourceProvider,
 	gitSourceProvider,
 	gitlabSourceProvider,
+	gmxSourceProvider,
 	googleAiSourceProvider,
 	hashConnectSourceProvider,
 	hederaMirrorNodeSourceProvider,
