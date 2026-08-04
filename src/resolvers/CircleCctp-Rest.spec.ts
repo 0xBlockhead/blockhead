@@ -67,7 +67,7 @@ const messagesResponse = {
 	sourceTxHash: transactionHash,
 } satisfies components['schemas']['MessagesV2Response']
 
-describe('Circle CCTP Iris resolvers', () => {
+describe('CircleCctpIris_Rest resolvers', () => {
 	afterEach(() => {
 		vi.restoreAllMocks()
 		getMessages.mockReset()

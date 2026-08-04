@@ -25,7 +25,7 @@ const assertIrisSource = (
 	label: string
 ) => {
 	if (source !== Source.CircleCctpIris)
-		throw new Error(`CircleCctpIris: unsupported ${label} source ${source}`)
+		throw new Error(`CircleCctpIris_Rest: unsupported ${label} source ${source}`)
 }
 
 const assertDomainSelector = (
@@ -33,9 +33,9 @@ const assertDomainSelector = (
 	label: string
 ) => {
 	if (!Number.isSafeInteger(domain.domainId) || domain.domainId < 0)
-		throw new Error(`CircleCctpIris: invalid ${label} domain id`)
+		throw new Error(`CircleCctpIris_Rest: invalid ${label} domain id`)
 	if (domain.cctpVersion !== irisCctpVersion)
-		throw new Error(`CircleCctpIris: unsupported ${label} cctpVersion ${domain.cctpVersion}`)
+		throw new Error(`CircleCctpIris_Rest: unsupported ${label} cctpVersion ${domain.cctpVersion}`)
 }
 
 const optionalNumberFromWire = (
@@ -46,7 +46,7 @@ const optionalNumberFromWire = (
 
 	const parsed = Number(value)
 	if (!Number.isSafeInteger(parsed))
-		throw new Error(`CircleCctpIris: invalid integer wire value ${value}`)
+		throw new Error(`CircleCctpIris_Rest: invalid integer wire value ${value}`)
 
 	return parsed
 }
@@ -59,7 +59,7 @@ const optionalBigIntFromWire = (
 
 	const text = String(value)
 	if (!/^(0|[1-9]\d*)$/.test(text))
-		throw new Error(`CircleCctpIris: invalid bigint wire value ${text}`)
+		throw new Error(`CircleCctpIris_Rest: invalid bigint wire value ${text}`)
 
 	return BigInt(text)
 }
@@ -97,7 +97,7 @@ const messageMatchingNonce = (
 		|| candidate.eventNonce === nonce
 	))
 	if (message == null)
-		throw new Error(`CircleCctpIris: no message for nonce ${nonce}`)
+		throw new Error(`CircleCctpIris_Rest: no message for nonce ${nonce}`)
 
 	return message
 }
@@ -228,7 +228,7 @@ const loadMessageForSelector = async (
 		},
 	})
 	if (result == null)
-		throw new Error(`CircleCctpIris: message not found for ${messageId.sourceDomain}:${messageId.nonce}`)
+		throw new Error(`CircleCctpIris_Rest: message not found for ${messageId.sourceDomain}:${messageId.nonce}`)
 
 	return {
 		result,
@@ -269,9 +269,9 @@ export default {
 				SourceDomainNonce: {
 					resolve: async (messageId) => {
 						if (!Number.isSafeInteger(messageId.sourceDomain) || messageId.sourceDomain < 0)
-							throw new Error('CircleCctpIris: invalid source domain')
+							throw new Error('CircleCctpIris_Rest: invalid source domain')
 						if (messageId.nonce === '')
-							throw new Error('CircleCctpIris: invalid nonce')
+							throw new Error('CircleCctpIris_Rest: invalid nonce')
 
 						const {
 							result,
@@ -322,7 +322,7 @@ export default {
 					}) => {
 						assertIrisSource(source, 'attestation')
 						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
-							throw new Error('CircleCctpIris: invalid attestation timestamp')
+							throw new Error('CircleCctpIris_Rest: invalid attestation timestamp')
 
 						const {
 							result,
@@ -363,7 +363,7 @@ export default {
 						assertDomainSelector($sourceDomain, 'source')
 						assertDomainSelector($destinationDomain, 'destination')
 						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
-							throw new Error('CircleCctpIris: invalid burn fee timestamp')
+							throw new Error('CircleCctpIris_Rest: invalid burn fee timestamp')
 
 						const { getBurnUsdcFees } = await import('$/sources/CircleCctp/Rest/queries.ts')
 						const feeRows = await getBurnUsdcFees({
@@ -406,7 +406,7 @@ export default {
 					}) => {
 						assertIrisSource(source, 'fast burn allowance')
 						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
-							throw new Error('CircleCctpIris: invalid fast burn allowance timestamp')
+							throw new Error('CircleCctpIris_Rest: invalid fast burn allowance timestamp')
 
 						const { getFastBurnUsdcAllowance } = await import('$/sources/CircleCctp/Rest/queries.ts')
 						const allowance = await getFastBurnUsdcAllowance()
@@ -417,7 +417,7 @@ export default {
 								Date.parse(allowance.lastUpdated)
 						)
 						if (allowance.lastUpdated != null && allowance.lastUpdated !== '' && !Number.isFinite(lastUpdatedMs))
-							throw new Error(`CircleCctpIris: invalid lastUpdated ${allowance.lastUpdated}`)
+							throw new Error(`CircleCctpIris_Rest: invalid lastUpdated ${allowance.lastUpdated}`)
 
 						return {
 							timestampMs,

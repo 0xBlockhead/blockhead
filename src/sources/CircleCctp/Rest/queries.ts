@@ -30,7 +30,7 @@ const assertDomain = (
 	label: string
 ) => {
 	if (!Number.isSafeInteger(value) || value < 0)
-		throw new Error(`Circle CCTP Iris: invalid ${label}`)
+		throw new Error(`CircleCctpIris_Rest: invalid ${label}`)
 }
 
 export const getMessages = async ({
@@ -52,7 +52,7 @@ export const getMessages = async ({
 		|| maximumMessages < 1
 		|| maximumMessages > 1_000
 	)
-		throw new Error('Circle CCTP Iris: message bound must be an integer from 1 through 1000')
+		throw new Error('CircleCctpIris_Rest: message bound must be an integer from 1 through 1000')
 
 	const url = new URL(
 		`/v2/messages/${String(sourceDomain)}`,
@@ -68,16 +68,16 @@ export const getMessages = async ({
 		return undefined
 
 	if (!response.ok)
-		await throwHttpError('Circle CCTP Iris get messages', response)
+		await throwHttpError('CircleCctpIris_Rest get messages', response)
 
 	const result = await response.json<GetMessagesV2Response>()
 	if (
 		'transactionHash' in subject
 		&& result.sourceTxHash !== subject.transactionHash
 	)
-		throw new Error('Circle CCTP Iris: response transaction does not match request')
+		throw new Error('CircleCctpIris_Rest: response transaction does not match request')
 	if (result.messages.length > maximumMessages)
-		throw new Error('Circle CCTP Iris: response exceeds the requested message bound')
+		throw new Error('CircleCctpIris_Rest: response exceeds the requested message bound')
 
 	const messageIdentities = new Set<string>()
 	for (const message of result.messages) {
@@ -88,20 +88,20 @@ export const getMessages = async ({
 			message.decodedMessage.sourceDomain != null
 			&& Number(message.decodedMessage.sourceDomain) !== sourceDomain
 		)
-			throw new Error('Circle CCTP Iris: decoded source domain does not match request')
+			throw new Error('CircleCctpIris_Rest: decoded source domain does not match request')
 		if (
 			expectedDestinationDomain != null
 			&& message.decodedMessage.destinationDomain != null
 			&& Number(message.decodedMessage.destinationDomain) !== expectedDestinationDomain
 		)
-			throw new Error('Circle CCTP Iris: decoded destination domain does not match request')
+			throw new Error('CircleCctpIris_Rest: decoded destination domain does not match request')
 		if (
 			'nonce' in subject
 			&& message.decodedMessage.nonce != null
 			&& message.decodedMessage.nonce !== subject.nonce
 			&& message.eventNonce !== subject.nonce
 		)
-			throw new Error('Circle CCTP Iris: nonce does not match request')
+			throw new Error('CircleCctpIris_Rest: nonce does not match request')
 		if (
 			message.decodedMessage.sourceDomain == null
 			|| message.decodedMessage.nonce == null
@@ -110,7 +110,7 @@ export const getMessages = async ({
 
 		const identity = `${message.decodedMessage.sourceDomain}:${message.decodedMessage.nonce}`
 		if (messageIdentities.has(identity))
-			throw new Error('Circle CCTP Iris: duplicate source-domain nonce identity')
+			throw new Error('CircleCctpIris_Rest: duplicate source-domain nonce identity')
 
 		messageIdentities.add(identity)
 	}
@@ -132,7 +132,7 @@ export const getBurnUsdcFees = async ({
 	assertDomain(sourceDomain, 'source domain')
 	assertDomain(destinationDomain, 'destination domain')
 	if (hyperCoreDeposit === true && forward !== true)
-		throw new Error('Circle CCTP Iris: hyperCoreDeposit requires forward')
+		throw new Error('CircleCctpIris_Rest: hyperCoreDeposit requires forward')
 
 	const url = new URL(
 		`/v2/burn/USDC/fees/${String(sourceDomain)}/${String(destinationDomain)}`,
@@ -145,7 +145,7 @@ export const getBurnUsdcFees = async ({
 
 	const response = await sourceFetch(binding, url.toString())
 	if (!response.ok)
-		await throwHttpError('Circle CCTP Iris get burn USDC fees', response)
+		await throwHttpError('CircleCctpIris_Rest get burn USDC fees', response)
 
 	return await response.json<GetBurnUsdcFeesResponse>()
 }
@@ -157,7 +157,7 @@ export const getFastBurnUsdcAllowance = async () => {
 	)
 	const response = await sourceFetch(binding, url.toString())
 	if (!response.ok)
-		await throwHttpError('Circle CCTP Iris get fast burn USDC allowance', response)
+		await throwHttpError('CircleCctpIris_Rest get fast burn USDC allowance', response)
 
 	return await response.json<GetFastBurnUsdcAllowanceResponse>()
 }

@@ -71,7 +71,7 @@ beforeEach(() => {
 	vi.clearAllMocks()
 })
 
-describe('Circle CCTP Iris V2 messages', () => {
+describe('CircleCctpIris_Rest V2 messages', () => {
 	it('uses the canonical binding and preserves the official message response', async () => {
 		respond()
 
@@ -175,12 +175,12 @@ describe('Circle CCTP Iris V2 messages', () => {
 			sourceDomain: 0,
 			destinationDomain: 5,
 			forward: true,
-		})).rejects.toThrow('Circle CCTP Iris get burn USDC fees')
+		})).rejects.toThrow('CircleCctpIris_Rest get burn USDC fees')
 
 		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(null, {
 			status: 502,
 		}))
-		await expect(getFastBurnUsdcAllowance()).rejects.toThrow('Circle CCTP Iris get fast burn USDC allowance')
+		await expect(getFastBurnUsdcAllowance()).rejects.toThrow('CircleCctpIris_Rest get fast burn USDC allowance')
 	})
 
 	it('preserves official burn fee and fast-burn allowance payloads', async () => {
