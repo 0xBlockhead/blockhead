@@ -18,6 +18,9 @@ const getPoolToken1 = vi.hoisted(() => vi.fn())
 const getPoolFee = vi.hoisted(() => vi.fn())
 const getPoolTickSpacing = vi.hoisted(() => vi.fn())
 const getPoolLiquidity = vi.hoisted(() => vi.fn())
+const getPoolFeeGrowthGlobal0X128 = vi.hoisted(() => vi.fn())
+const getPoolFeeGrowthGlobal1X128 = vi.hoisted(() => vi.fn())
+const getPoolProtocolFees = vi.hoisted(() => vi.fn())
 const getPoolSlot0 = vi.hoisted(() => vi.fn())
 const getFactoryPool = vi.hoisted(() => vi.fn())
 const getPosition = vi.hoisted(() => vi.fn())
@@ -46,6 +49,9 @@ vi.mock('$/sources/Uniswap/Contracts/queries.ts', () => ({
 	getPoolFee,
 	getPoolTickSpacing,
 	getPoolLiquidity,
+	getPoolFeeGrowthGlobal0X128,
+	getPoolFeeGrowthGlobal1X128,
+	getPoolProtocolFees,
 	getPoolSlot0,
 	getFactoryPool,
 	getPosition,
@@ -90,6 +96,9 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 		getPoolFee.mockReset()
 		getPoolTickSpacing.mockReset()
 		getPoolLiquidity.mockReset()
+		getPoolFeeGrowthGlobal0X128.mockReset()
+		getPoolFeeGrowthGlobal1X128.mockReset()
+		getPoolProtocolFees.mockReset()
 		getPoolSlot0.mockReset()
 		getFactoryPool.mockReset()
 		getPosition.mockReset()
@@ -149,7 +158,7 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 		expect(snapshot).not.toHaveProperty('$$positions')
 	})
 
-	it('resolves pool block slot0 + liquidity', async () => {
+	it('resolves pool block slot0 + liquidity + fee growth + protocol fees', async () => {
 		getPoolSlot0.mockResolvedValue({
 			sqrtPriceX96: 100n,
 			tick: 12,
@@ -160,6 +169,12 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 			unlocked: true,
 		})
 		getPoolLiquidity.mockResolvedValue(64n)
+		getPoolFeeGrowthGlobal0X128.mockResolvedValue(0xabcn)
+		getPoolFeeGrowthGlobal1X128.mockResolvedValue(0xdefn)
+		getPoolProtocolFees.mockResolvedValue({
+			token0: 1n,
+			token1: 2n,
+		})
 
 		const blockResolver = uniswapV3Resolvers.find((resolver) => (
 			resolver.entityType === EntityType.UniswapV3Pool_Block
@@ -179,6 +194,10 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 		expect(blockResolver.projections.liquidity(snapshot)).toBe(64n)
 		expect(blockResolver.projections.tick(snapshot)).toBe(12)
 		expect(blockResolver.projections.unlocked(snapshot)).toBe(true)
+		expect(blockResolver.projections.feeGrowthGlobal0X128(snapshot)).toBe(0xabcn)
+		expect(blockResolver.projections.feeGrowthGlobal1X128(snapshot)).toBe(0xdefn)
+		expect(blockResolver.projections.protocolFeesToken0(snapshot)).toBe(1n)
+		expect(blockResolver.projections.protocolFeesToken1(snapshot)).toBe(2n)
 	})
 
 	it('resolves position ticks and pool via factory getPool', async () => {
@@ -189,6 +208,8 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 			tickLower: -60,
 			tickUpper: 60,
 			liquidity: 1n,
+			feeGrowthInside0LastX128: 0n,
+			feeGrowthInside1LastX128: 0n,
 			tokensOwed0: 0n,
 			tokensOwed1: 0n,
 		})
@@ -214,6 +235,47 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 		expect(positionResolver.projections.tickLower(snapshot)).toBe(-60)
 		expect(positionResolver.projections.tickUpper(snapshot)).toBe(60)
 		expect(snapshot).not.toHaveProperty('$$blocks')
+	})
+
+	it('resolves position block owner, liquidity, owed tokens, and fee-growth checkpoints', async () => {
+		getPositionOwner.mockResolvedValue('0x1111111111111111111111111111111111111111')
+		getPosition.mockResolvedValue({
+			token0,
+			token1,
+			fee: 500,
+			tickLower: -60,
+			tickUpper: 60,
+			liquidity: 9n,
+			feeGrowthInside0LastX128: 0xabcn,
+			feeGrowthInside1LastX128: 0xdefn,
+			tokensOwed0: 3n,
+			tokensOwed1: 4n,
+		})
+
+		const blockResolver = uniswapV3Resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UniswapV3Position_Block
+		))
+		if (blockResolver == null)
+			throw new Error('missing UniswapV3Position_Block resolver')
+
+		const snapshot = await blockResolver.resolve.PositionBlockNumber.resolve({
+			$position: {
+				positionManager,
+				tokenId: 7n,
+			},
+			blockNumber: 1n,
+		}, context)
+
+		expect(blockResolver.projections.$owner(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				address: '0x1111111111111111111111111111111111111111',
+			},
+		})
+		expect(blockResolver.projections.liquidity(snapshot)).toBe(9n)
+		expect(blockResolver.projections.tokensOwed0(snapshot)).toBe(3n)
+		expect(blockResolver.projections.tokensOwed1(snapshot)).toBe(4n)
+		expect(blockResolver.projections.feeGrowthInside0LastX128(snapshot)).toBe(0xabcn)
+		expect(blockResolver.projections.feeGrowthInside1LastX128(snapshot)).toBe(0xdefn)
 	})
 
 	it('throws when JSON-RPC transports are missing for the pool chain', async () => {

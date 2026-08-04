@@ -13,6 +13,8 @@ import {
 import {
 	getFactoryPool,
 	getPoolFee,
+	getPoolFeeGrowthGlobal0X128,
+	getPoolProtocolFees,
 	getPoolSlot0,
 	getPosition,
 	normalizeUniswapAddress,
@@ -64,10 +66,13 @@ describe('Uniswap Contracts queries', () => {
 
 	it('decodes a packed slot0 eth_call result', async () => {
 		const word = (hex: string) => hex.padStart(64, '0')
+		const signedWord = (value: number) => (
+			BigInt.asUintN(256, BigInt(value)).toString(16).padStart(64, '0')
+		)
 		const response = (
 			'0x'
 			+ word('100')
-			+ word('ff')
+			+ signedWord(-60)
 			+ word('1')
 			+ word('2')
 			+ word('3')
@@ -81,12 +86,35 @@ describe('Uniswap Contracts queries', () => {
 		})
 
 		expect(slot0.sqrtPriceX96).toBe(0x100n)
-		expect(slot0.tick).toBe(0xff)
+		expect(slot0.tick).toBe(-60)
 		expect(slot0.observationIndex).toBe(1)
 		expect(slot0.observationCardinality).toBe(2)
 		expect(slot0.observationCardinalityNext).toBe(3)
 		expect(slot0.feeProtocol).toBe(4)
 		expect(slot0.unlocked).toBe(true)
+	})
+
+	it('decodes pool fee growth globals and protocol fees', async () => {
+		const word = (hex: string) => hex.padStart(64, '0')
+		const feeGrowthResponse = (`0x${word('abc')}`) as `0x${string}`
+		const protocolFeesResponse = (
+			'0x'
+			+ word('11')
+			+ word('22')
+		) as `0x${string}`
+
+		expect(await getPoolFeeGrowthGlobal0X128({
+			getCall: async () => feeGrowthResponse,
+			poolAddress: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
+		})).toBe(0xabcn)
+
+		expect(await getPoolProtocolFees({
+			getCall: async () => protocolFeesResponse,
+			poolAddress: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
+		})).toEqual({
+			token0: 0x11n,
+			token1: 0x22n,
+		})
 	})
 
 	it('decodes pool fee and factory getPool', async () => {
@@ -125,8 +153,8 @@ describe('Uniswap Contracts queries', () => {
 			+ signedWord(-60)
 			+ signedWord(60)
 			+ word('64')
-			+ word('0')
-			+ word('0')
+			+ word('abc')
+			+ word('def')
 			+ word('1')
 			+ word('2')
 		) as `0x${string}`
@@ -143,6 +171,8 @@ describe('Uniswap Contracts queries', () => {
 		expect(position.tickLower).toBe(-60)
 		expect(position.tickUpper).toBe(60)
 		expect(position.liquidity).toBe(0x64n)
+		expect(position.feeGrowthInside0LastX128).toBe(0xabcn)
+		expect(position.feeGrowthInside1LastX128).toBe(0xdefn)
 		expect(position.tokensOwed0).toBe(1n)
 		expect(position.tokensOwed1).toBe(2n)
 	})
