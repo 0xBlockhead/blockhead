@@ -1,8 +1,9 @@
+import { networkBySlug } from '$/constants/Network.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
-import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
@@ -137,6 +138,56 @@ export default {
 		})({
 			amountYoctoNear: (snapshot) => snapshot.amountYoctoNear,
 			storageUsageBytes: (snapshot) => snapshot.storageUsageBytes,
+		}),
+
+		defineResolver({
+			entityType: EntityType.NearAccount,
+			resolve: {
+				NetworkAccountId: {
+					resolve: async ({ $network, accountId }, context) => {
+						assertNearMainnet($network)
+						const limit = Math.min(resolverContextRowLimit(context), 100)
+						const { getAccountTransactions } = await import('$/sources/NearBlocks/Rest/queries.ts')
+						return {
+							limit,
+							page: await getAccountTransactions({
+								accountId,
+								limit,
+								...(context.providerContinuationToken != null && {
+									next: context.providerContinuationToken,
+								}),
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$transactions: {
+				select: ({ page }, { $network }) => (
+					page.transactions.map((transaction) => ({
+						[EntityMetaKey.Selector]: {
+							$network,
+							hash: transaction.transaction_hash,
+							signerAccountId: transaction.signer_account_id,
+						},
+					}))
+				),
+				continuation: ({ limit, page }, { accountId }) => (
+					limit === 0 || page.continuationToken == null ?
+						{
+							operation: 'account-transactions',
+							target: accountId,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'account-transactions',
+							target: accountId,
+							terminal: false,
+							token: page.continuationToken,
+						}
+				),
+			},
 		}),
 
 		defineResolver({
