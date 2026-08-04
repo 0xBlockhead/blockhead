@@ -1,3 +1,5 @@
+import { type as arktype } from 'arktype'
+
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type { paths } from '$/sources/Coingecko/OpenApi/openapi.d.ts'
 
@@ -32,6 +34,36 @@ type DerivativesExchangeResponse = (
 type SimplePriceResponse = (
 	SimplePriceOperation['responses'][200]['content']['application/json']
 )
+
+export const coingeckoCoinEnvelope = arktype({
+	id: 'string',
+})
+export const coingeckoCoinsMarketEnvelope = arktype({
+	id: 'string',
+}).array()
+export const coingeckoCoinTickersEnvelope = arktype({
+	tickers: arktype({
+		coin_id: 'string',
+		base: 'string',
+		target: 'string',
+		market: {
+			identifier: 'string',
+		},
+	}).array(),
+})
+export const coingeckoDerivativesExchangeEnvelope = arktype({
+	tickers: arktype({
+		coin_id: 'string',
+		target_coin_id: 'string',
+		symbol: 'string',
+		last_traded: 'number',
+		open_interest_usd: 'number',
+		index_basis_percentage: 'number',
+		funding_rate: 'number',
+		'contract_type?': 'string',
+		'expired_at?': 'number | null',
+	}).array(),
+})
 
 /** Live `/coins/{id}` payloads sometimes omit `image` despite the checked-in OpenAPI required shape. */
 export type CoingeckoCoin = Omit<CoinResponse, 'image'> & {

@@ -26,7 +26,10 @@ const {
 describe('CoinGecko documented endpoints', () => {
 	beforeEach(() => {
 		coingeckoFetch.mockReset()
-		coingeckoFetch.mockResolvedValue(new Response('{}'))
+		coingeckoFetch.mockResolvedValue(new Response(JSON.stringify({
+			id: 'bitcoin',
+			tickers: [],
+		})))
 	})
 
 	it('requests coin market data with the documented detail flags', async () => {
@@ -84,6 +87,69 @@ describe('CoinGecko documented endpoints', () => {
 			vs_currency: 'usd',
 			days: 30,
 		})).rejects.toThrow(/Coingecko_Rest/)
+	})
+
+	it('distinguishes successful empty lists from malformed list envelopes', async () => {
+		coingeckoFetch
+			.mockResolvedValueOnce(new Response('[]'))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				tickers: [],
+			})))
+			.mockResolvedValueOnce(new Response('{}'))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				tickers: {},
+			})))
+
+		await expect(getCoinsMarkets({
+			publicEnv: {},
+			vs_currency: 'usd',
+		})).resolves.toEqual([])
+		await expect(getCoinTickers({
+			publicEnv: {},
+			id: 'bitcoin',
+		})).resolves.toEqual({
+			tickers: [],
+		})
+		await expect(getCoinsMarkets({
+			publicEnv: {},
+			vs_currency: 'usd',
+		})).rejects.toThrow('Coingecko_Rest: invalid coins markets response envelope')
+		await expect(getCoinTickers({
+			publicEnv: {},
+			id: 'bitcoin',
+		})).rejects.toThrow('Coingecko_Rest: invalid coin tickers response envelope')
+	})
+
+	it('rejects malformed detail and incomplete market price envelopes', async () => {
+		coingeckoFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				id: 'ethereum',
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				bitcoin: {
+					usd: 100,
+				},
+			})))
+
+		await expect(getCoin({
+			publicEnv: {},
+			id: 'bitcoin',
+		})).rejects.toThrow('Coingecko_Rest: coin response id does not match bitcoin')
+		await expect(getSimplePrice({
+			publicEnv: {},
+			ids: 'bitcoin,ethereum',
+			vs_currencies: 'usd',
+			include_last_updated_at: true,
+		})).rejects.toThrow('Coingecko_Rest: incomplete simple price response envelope')
+	})
+
+	it('returns undefined only for confirmed missing detail resources', async () => {
+		coingeckoFetch.mockResolvedValueOnce(new Response('', { status: 404 }))
+
+		await expect(getCoin({
+			publicEnv: {},
+			id: 'bitcoin',
+		})).resolves.toBeUndefined()
 	})
 
 	it('does not add unsupported detail parameters to the contract endpoint', async () => {
@@ -151,6 +217,9 @@ describe('CoinGecko documented endpoints', () => {
 				base: 'BTC',
 				target: 'USD',
 				coin_id: 'bitcoin',
+				market: {
+					identifier: 'coinbase',
+				},
 			}],
 		}
 		coingeckoFetch.mockResolvedValueOnce(new Response(JSON.stringify(response)))
@@ -168,7 +237,9 @@ describe('CoinGecko documented endpoints', () => {
 	})
 
 	it('uses the documented derivatives exchange endpoint', async () => {
-		coingeckoFetch.mockResolvedValue(new Response('{}'))
+		coingeckoFetch.mockResolvedValue(new Response(JSON.stringify({
+			tickers: [],
+		})))
 		await getDerivativesExchange({
 			publicEnv: {},
 			id: 'binance_futures',
