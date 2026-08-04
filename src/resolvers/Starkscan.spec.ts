@@ -11,17 +11,26 @@ import { Source } from '$/sources/Source.ts'
 const {
 	getAddressSummary,
 	getAddressTransactions,
+	getBlock,
+	getClass,
 	getContractEvents,
+	getTransaction,
 } = vi.hoisted(() => ({
 	getAddressSummary: vi.fn(),
 	getAddressTransactions: vi.fn(),
+	getBlock: vi.fn(),
+	getClass: vi.fn(),
 	getContractEvents: vi.fn(),
+	getTransaction: vi.fn(),
 }))
 
 vi.mock('$/sources/Starkscan/Rest/queries.ts', () => ({
 	getAddressSummary,
 	getAddressTransactions,
+	getBlock,
+	getClass,
 	getContractEvents,
+	getTransaction,
 }))
 
 const { default: starkscanResolvers } = await import('$/resolvers/Starkscan.ts')
@@ -33,6 +42,16 @@ const eventsResolver = starkscanResolvers.resolvers.find((resolver) => (
 ))
 const transactionsResolver = starkscanResolvers.resolvers.find((resolver) => (
 	'$$transactions' in resolver.projections
+	&& 'NetworkAddress' in resolver.resolve
+))
+const blockResolver = starkscanResolvers.resolvers.find((resolver) => (
+	'NetworkBlockNumber' in resolver.resolve
+))
+const transactionResolver = starkscanResolvers.resolvers.find((resolver) => (
+	'NetworkTransactionHash' in resolver.resolve
+))
+const classResolver = starkscanResolvers.resolvers.find((resolver) => (
+	'NetworkClassHash' in resolver.resolve
 ))
 
 if (accountStatesResolver == null)
@@ -41,6 +60,12 @@ if (eventsResolver == null)
 	throw new Error('Starkscan spec missing contract events resolver')
 if (transactionsResolver == null)
 	throw new Error('Starkscan spec missing contract transactions resolver')
+if (blockResolver == null)
+	throw new Error('Starkscan spec missing block resolver')
+if (transactionResolver == null)
+	throw new Error('Starkscan spec missing transaction resolver')
+if (classResolver == null)
+	throw new Error('Starkscan spec missing class resolver')
 
 
 const contract = {
@@ -353,5 +378,233 @@ describe('Starkscan contract resolvers', () => {
 			},
 		}, resolverContext)).rejects.toThrow('unsupported network')
 		expect(getAddressTransactions).toHaveBeenCalledTimes(1)
+	})
+})
+
+describe('Starkscan block transaction and class resolvers', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('projects block snapshots with canonical transaction provenance', async () => {
+		getBlock.mockResolvedValueOnce({
+			chainId: 'SN_MAIN',
+			blockNumber: 100,
+			blockHash: '0x0abc',
+			parentHash: '0xdef',
+			timestampIso: '2026-07-15T12:00:00Z',
+			txCount: 1,
+			rawObjectKey: 'block:100',
+			stateRoot: '0x11',
+			sequencerAddress: '0x22',
+			l1DataAvailabilityMode: null,
+			starknetVersion: '0.13.2',
+			l1GasPrice: {
+				priceInWei: '1',
+				priceInFri: null,
+			},
+			l2GasPrice: null,
+			l1DataGasPrice: null,
+			transactions: [{
+				txHash: '0x00abc',
+				txIndex: 0,
+				txCursor: '100:0',
+				fromAddress: '0x01',
+				toAddress: '0x2',
+				executionStatus: 'SUCCEEDED',
+				finalityStatus: 'ACCEPTED_ON_L2',
+			}],
+		})
+		const network = {
+			$network: {
+				caip2: networkBySlug.starknet.caip2,
+			},
+		}
+		const snapshot = await blockResolver.resolve[
+			'NetworkBlockNumber'
+		].resolve({
+			$network: network,
+			blockNumber: 100n,
+		}, resolverContext)
+		expect(getBlock).toHaveBeenCalledWith('100')
+		expect(blockResolver.projections.blockHash(snapshot, {
+			$network: network,
+			blockNumber: 100n,
+		}, resolverContext)).toBe('0xabc')
+		expect(blockResolver.projections.$$transactions(snapshot, {
+			$network: network,
+			blockNumber: 100n,
+		}, resolverContext)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				transactionHash: '0xabc',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StarknetTransaction, [], '$block')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						blockNumber: 100n,
+					},
+				},
+				[entityFieldAddressKey(EntityType.StarknetTransaction, [], 'senderAddress')]: '0x1',
+				[entityFieldAddressKey(EntityType.StarknetTransaction, [], '$senderContract')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						address: '0x1',
+					},
+				},
+				[entityFieldAddressKey(EntityType.StarknetTransaction, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network: network,
+							transactionHash: '0xabc',
+						},
+						timestampMs: 1_784_116_800_000,
+						source: Source.Starkscan,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.StarknetTransaction_Timestamp, [], 'blockNumber')]: 100n,
+						[entityFieldAddressKey(EntityType.StarknetTransaction_Timestamp, [], 'finalityStatus')]: 'ACCEPTED_ON_L2',
+						[entityFieldAddressKey(EntityType.StarknetTransaction_Timestamp, [], 'executionStatus')]: 'SUCCEEDED',
+					},
+				}],
+			},
+		}])
+	})
+
+	it('projects transaction detail with events and observation provenance', async () => {
+		getTransaction.mockResolvedValueOnce({
+			chainId: 'SN_MAIN',
+			blockNumber: 100,
+			timestampIso: '2026-07-15T12:00:00Z',
+			txIndex: 2,
+			txHash: '0x00abc',
+			txCursor: '100:2',
+			fromAddress: '0x01',
+			toAddress: '0x2',
+			executionStatus: 'SUCCEEDED',
+			finalityStatus: 'ACCEPTED_ON_L2',
+			txType: 'INVOKE',
+			rawObjectKey: 'tx:0xabc',
+			receipt: {
+				executionStatus: 'SUCCEEDED',
+				finalityStatus: 'ACCEPTED_ON_L2',
+				gasUsed: '12',
+				effectiveGasPrice: '3',
+				revertReason: null,
+			},
+			logsTruncated: false,
+			eventDecodingDegraded: false,
+			logs: [{
+				logIndex: 1,
+				address: '0x01',
+				keys: ['0x11'],
+				topic0: '0x11',
+				topic1: null,
+				topic2: null,
+				topic3: null,
+				data: ['0x22'],
+				decodingStatus: 'unknown',
+			}],
+			calldata: ['0x33'],
+			tokenTransfers: [],
+			messages: [],
+			messagesCoverage: {
+				status: 'exact',
+				source: 'starknet_protocol_messages',
+				reasonCode: 'no_matching_message_rows',
+				message: 'No messages',
+			},
+			bridgeIntent: null,
+		})
+		const network = {
+			$network: {
+				caip2: networkBySlug.starknet.caip2,
+			},
+		}
+		const snapshot = await transactionResolver.resolve[
+			'NetworkTransactionHash'
+		].resolve({
+			$network: network,
+			transactionHash: '0x00abc',
+		}, resolverContext)
+		expect(getTransaction).toHaveBeenCalledWith('0xabc')
+		expect(transactionResolver.projections.transactionKind(snapshot, {
+			$network: network,
+			transactionHash: '0x00abc',
+		}, resolverContext)).toBe('INVOKE')
+		expect(transactionResolver.projections.$$events(snapshot, {
+			$network: network,
+			transactionHash: '0x00abc',
+		}, resolverContext)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: network,
+					transactionHash: '0xabc',
+				},
+				eventIndex: 1,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StarknetEvent, [], '$fromContract')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						address: '0x1',
+					},
+				},
+				[entityFieldAddressKey(EntityType.StarknetEvent, [], 'keys')]: ['0x11'],
+				[entityFieldAddressKey(EntityType.StarknetEvent, [], 'data')]: ['0x22'],
+			},
+		}])
+	})
+
+	it('projects class identity and paginated instances', async () => {
+		getClass.mockResolvedValueOnce({
+			class: {
+				chainId: 'SN_MAIN',
+				classHash: '0x0abc',
+				classVersion: '0.1.0',
+				compiledClassHash: '0x11',
+				declarationTxHash: '0xdef',
+				declaredAtBlock: 100,
+			},
+			instances: [{
+				address: '0x01',
+			}],
+			nextInstanceCursor: '0x02',
+		})
+		const network = {
+			$network: {
+				caip2: networkBySlug.starknet.caip2,
+			},
+		}
+		const klass = {
+			$network: network,
+			classHash: '0x0abc',
+		}
+		const snapshot = await classResolver.resolve[
+			'NetworkClassHash'
+		].resolve(klass, resolverContext)
+		const projection = classResolver.projections.$$contracts
+		if (typeof projection === 'function')
+			throw new Error('Starkscan spec missing class instance pagination')
+		expect(getClass).toHaveBeenCalledWith({
+			classHash: '0xabc',
+			limit: 2,
+			cursor: 'opaque:current+cursor',
+		})
+		expect(classResolver.projections.classHash(snapshot, klass, resolverContext)).toBe('0xabc')
+		expect(classResolver.projections.declaredAtBlockNumber(snapshot, klass, resolverContext)).toBe(100n)
+		expect(projection.select(snapshot, klass, resolverContext)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				address: '0x1',
+			},
+		}])
+		expect(projection.continuation(snapshot, klass, resolverContext)).toEqual({
+			operation: 'class-instances',
+			target: klass.classHash,
+			terminal: false,
+			token: '0x02',
+		})
 	})
 })
