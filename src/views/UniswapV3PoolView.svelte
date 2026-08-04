@@ -1,0 +1,246 @@
+<!-- Generated from APP.ts. -->
+
+<script lang="ts">
+	// Types/constants
+	import { resolve } from '$app/paths'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		selection,
+		title,
+		href,
+		layout = EntityLayout.SummaryDetails,
+		open = $bindable(layout === EntityLayout.SummaryDetails),
+		...EntityViewProps
+	}: Omit<EntitySelectionViewProps<EntityType.UniswapV3Pool>, 'prefetched'> = $props()
+
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Voltaire_JsonRpc,
+			Source.UniswapContracts_Evm,
+		],
+	}))
+	const uniswapV3Pool = $derived(viewSelection({
+		fields: {
+			fee: true,
+		},
+	}))
+	const viewDomId = $derived('uniswap-v3pool-' + encodeURIComponent(stringify(selection.entitySelector)))
+
+
+	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import NumberValue from '$/components/NumberValue.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
+	import EvmContractView from '$/views/EvmContractView.svelte'
+	import UniswapV3Pool_BlocksView from '$/views/UniswapV3Pool_BlocksView.svelte'
+	import UniswapV3PositionsView from '$/views/UniswapV3PositionsView.svelte'
+</script>
+
+
+<EntityView
+	entityType={EntityType.UniswapV3Pool}
+	entitySelector={selection.entitySelector}
+	id={viewDomId}
+	title={title ?? (selection.entitySelector.poolAddress || 'Uniswap V3 pool')}
+	href={
+		href === undefined ?
+			(
+				'caip2' in selection.entitySelector.$network ?
+					resolve(
+						'/(assets)/uniswap-v3/pool/[chainId=eip155ChainId]/[poolAddress=evmAddress]',
+						{
+							chainId: selection.entitySelector.$network.caip2.reference,
+							poolAddress: selection.entitySelector.poolAddress,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
+	{layout}
+	bind:open
+	{...EntityViewProps}
+>
+	{#snippet Title()}
+		<TruncatedValue value={selection.entitySelector.poolAddress} />
+	{/snippet}
+
+	{#snippet Value()}
+		<ResourceBoundary resource={uniswapV3Pool}>
+			{#snippet children(entity)}
+				{@const fee = entity.fee}
+				{#if fee != null}
+					<NumberValue
+						value={fee}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<span data-text="muted">
+			<NetworkView
+				selection={select(EntityType.Network, selection.entitySelector.$network)}
+				layout={EntityLayout.Title}
+				showTypeAnnotation={false}
+			/>
+		</span>
+	{/snippet}
+
+	{#snippet Content()}
+		<section data-column="gap-2">
+			<ResourceBoundary resource={selection.$token0}>
+				{#snippet children(evmContract)}
+					{#if evmContract != null}
+						<EvmContractView
+							selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
+							prefetched={evmContract}
+							layout={EntityLayout.SummaryDetails}
+							open={false}
+							showTypeAnnotation={false}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary resource={selection.$token1}>
+				{#snippet children(evmContract)}
+					{#if evmContract != null}
+						<EvmContractView
+							selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
+							prefetched={evmContract}
+							layout={EntityLayout.SummaryDetails}
+							open={false}
+							showTypeAnnotation={false}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary resource={selection.$poolContract}>
+				{#snippet children(evmContract)}
+					{#if evmContract != null}
+						<EvmContractView
+							selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
+							prefetched={evmContract}
+							layout={EntityLayout.SummaryDetails}
+							open={true}
+							showTypeAnnotation={false}
+						/>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</section>
+
+		<dl data-column-item="center">
+			<ResourceBoundary resource={selection.$factory}>
+				{#snippet children(evmContract)}
+					{#if evmContract != null}
+						<div>
+							<dt>Factory</dt>
+							<dd>
+								<EvmContractView
+									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
+									prefetched={evmContract}
+									layout={EntityLayout.Value}
+									showTypeAnnotation={false}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							tickSpacing: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const tickSpacing = entity.tickSpacing}
+					{#if tickSpacing != null}
+						<div>
+							<dt>Tick spacing</dt>
+							<dd>
+								<NumberValue
+									value={tickSpacing}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		<section class="entity-view-detail-carousels">
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-uniswap-v3-pool-state'}
+				sectionIdPrefix={viewDomId}
+				sections={
+					[
+						{
+							id: 'uniswap-v3-pool-blocks',
+							label: 'Blocks',
+						},
+						{
+							id: 'uniswap-v3-pool-positions',
+							label: 'Positions',
+						},
+					]
+				}
+				data-card
+				class="network-view-collapsible-state"
+			>
+				{#snippet Summary()}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>State</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionUniswapV3PoolBlocks({ id, label })}
+					<UniswapV3Pool_BlocksView
+						selection={selection.$$blocks}
+						collapsible={false}
+						title={label}
+						emptyText="No Uniswap V3 pool blocks yet."
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionUniswapV3PoolPositions({ id, label })}
+					<UniswapV3PositionsView
+						selection={selection.$$positions}
+						collapsible={false}
+						title={label}
+						emptyText="No Uniswap V3 positions yet."
+						id={`${id}-list`}
+					/>
+				{/snippet}
+			</CollapsibleTabs>
+		</section>
+	{/snippet}
+</EntityView>
