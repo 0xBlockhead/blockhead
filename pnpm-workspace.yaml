@@ -22,4 +22,4 @@ allowBuilds:
   esbuild: true
 
 patchedDependencies:
-  '@tanstack/db-sqlite-persistence-core@0.1.11': patches/@tanstack__db-sqlite-persistence-core@0.1.11.patch
+  '@tanstack/db-sqlite-persistence-core@0.2.9': patches/@tanstack__db-sqlite-persistence-core@0.2.9.patch

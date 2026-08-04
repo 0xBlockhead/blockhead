@@ -20,6 +20,7 @@
 	},
 	"ignorePatterns": [
 		"**/node_modules/**",
+		".worktrees/**",
 		".svelte-kit/**",
 		"build/**",
 		"dist/**",

@@ -1,0 +1,72 @@
+diff --git a/dist/cjs/persisted.cjs b/dist/cjs/persisted.cjs
+--- a/dist/cjs/persisted.cjs
++++ b/dist/cjs/persisted.cjs
+@@ -360,18 +360,9 @@
+     );
+     if (upstreamLoadSubset) {
+       try {
+-        const maybePromise = upstreamLoadSubset(options);
+-        if (maybePromise instanceof Promise) {
+-          maybePromise.catch((error) => {
+-            console.warn(
+-              `Failed to load remote subset in persisted wrapper:`,
+-              error
+-            );
+-            this.queueRemoteSubsetEnsure(options);
+-          });
+-        }
++        await upstreamLoadSubset(options);
+       } catch (error) {
+-        console.warn(`Failed to trigger remote subset load:`, error);
++        console.warn(`Failed to load remote subset in persisted wrapper:`, error);
+         this.queueRemoteSubsetEnsure(options);
+       }
+     }
+diff --git a/dist/esm/persisted.js b/dist/esm/persisted.js
+--- a/dist/esm/persisted.js
++++ b/dist/esm/persisted.js
+@@ -358,18 +358,9 @@
+     );
+     if (upstreamLoadSubset) {
+       try {
+-        const maybePromise = upstreamLoadSubset(options);
+-        if (maybePromise instanceof Promise) {
+-          maybePromise.catch((error) => {
+-            console.warn(
+-              `Failed to load remote subset in persisted wrapper:`,
+-              error
+-            );
+-            this.queueRemoteSubsetEnsure(options);
+-          });
+-        }
++        await upstreamLoadSubset(options);
+       } catch (error) {
+-        console.warn(`Failed to trigger remote subset load:`, error);
++        console.warn(`Failed to load remote subset in persisted wrapper:`, error);
+         this.queueRemoteSubsetEnsure(options);
+       }
+     }
+diff --git a/src/persisted.ts b/src/persisted.ts
+--- a/src/persisted.ts
++++ b/src/persisted.ts
+@@ -992,18 +992,9 @@
+ 
+     if (upstreamLoadSubset) {
+       try {
+-        const maybePromise = upstreamLoadSubset(options)
+-        if (maybePromise instanceof Promise) {
+-          maybePromise.catch((error) => {
+-            console.warn(
+-              `Failed to load remote subset in persisted wrapper:`,
+-              error,
+-            )
+-            this.queueRemoteSubsetEnsure(options)
+-          })
+-        }
++        await upstreamLoadSubset(options)
+       } catch (error) {
+-        console.warn(`Failed to trigger remote subset load:`, error)
++        console.warn(`Failed to load remote subset in persisted wrapper:`, error)
+         this.queueRemoteSubsetEnsure(options)
+       }
+     }
