@@ -4,7 +4,6 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
 
@@ -24,9 +23,13 @@
 	}: Omit<EntitySelectionViewProps<EntityType.Market_TimeInterval_Timestamp>, 'prefetched'> = $props()
 
 	const market = $derived(selection.entitySelector.$market)
-	const marketTimeIntervalTimestamp = $derived(selection({
+	const candle = $derived(selection({
 		fields: {
+			open: true,
+			high: true,
+			low: true,
 			close: true,
+			quoteVolume: true,
 		},
 	}))
 
@@ -67,7 +70,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<ResourceBoundary resource={marketTimeIntervalTimestamp}>
+		<ResourceBoundary resource={candle}>
 			{#snippet children(entity)}
 				{@const close = entity.close}
 				{#if close != null}
@@ -87,167 +90,83 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<dl data-column-item="center">
-			<div>
-				<dt>Market</dt>
-				<dd>
-					<MarketView
-						selection={select(EntityType.Market, selection.entitySelector.$market)}
-						layout={EntityLayout.Value}
-					/>
-				</dd>
-			</div>
-
-			<div>
-				<dt>Time Interval</dt>
-				<dd>
-					{`${selection.entitySelector.timeInterval.value}${selection.entitySelector.timeInterval.unit}`}
-				</dd>
-			</div>
-
-			<div>
-				<dt>Timestamp</dt>
-				<dd>
-					<Timestamp timestamp={selection.entitySelector.timestampMs} />
-				</dd>
-			</div>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							open: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const open = entity.open}
-					{#if open != null}
+		<ResourceBoundary resource={candle}>
+			{#snippet children(entity)}
+				<dl data-column-item="center">
+					{#if entity.open != null}
 						<div>
 							<dt>Open</dt>
 							<dd>
 								<NumberValue
-									value={Number(open) / 1e8}
+									value={Number(entity.open) / 1e8}
 									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 								/>
 							</dd>
 						</div>
 					{/if}
-				{/snippet}
-			</ResourceBoundary>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							high: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const high = entity.high}
-					{#if high != null}
+					{#if entity.high != null}
 						<div>
 							<dt>High</dt>
 							<dd>
 								<NumberValue
-									value={Number(high) / 1e8}
+									value={Number(entity.high) / 1e8}
 									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 								/>
 							</dd>
 						</div>
 					{/if}
-				{/snippet}
-			</ResourceBoundary>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							low: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const low = entity.low}
-					{#if low != null}
+					{#if entity.low != null}
 						<div>
 							<dt>Low</dt>
 							<dd>
 								<NumberValue
-									value={Number(low) / 1e8}
+									value={Number(entity.low) / 1e8}
 									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 								/>
 							</dd>
 						</div>
 					{/if}
-				{/snippet}
-			</ResourceBoundary>
 
-			<ResourceBoundary
-				resource={marketTimeIntervalTimestamp}
-			>
-				{#snippet children(entity)}
-					{@const close = entity.close}
-					{#if close != null}
+					{#if entity.close != null}
 						<div>
 							<dt>Close</dt>
 							<dd>
 								<NumberValue
-									value={Number(close) / 1e8}
+									value={Number(entity.close) / 1e8}
 									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 								/>
 							</dd>
 						</div>
 					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
+				</dl>
 
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							quoteVolume: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const quoteVolume = entity.quoteVolume}
-					{#if quoteVolume != null}
+				<dl data-column-item="center">
+					{#if entity.quoteVolume != null}
 						<div>
 							<dt>Quote volume</dt>
 							<dd>
 								<NumberValue
-									value={Number(quoteVolume) / 1e8}
+									value={Number(entity.quoteVolume) / 1e8}
 									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 								/>
 							</dd>
 						</div>
 					{/if}
-				{/snippet}
-			</ResourceBoundary>
 
-			<div>
-				<dt>Parent Market</dt>
-				<dd>
-					<ResourceBoundary
-						resource={selection.$parentMarket}
-					>
-						{#snippet children(market)}
+					<div>
+						<dt>Market</dt>
+						<dd>
 							<MarketView
-								selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
+								selection={select(EntityType.Market, selection.entitySelector.$market)}
 								layout={EntityLayout.Value}
+								showTypeAnnotation={false}
 							/>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-		</dl>
+						</dd>
+					</div>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

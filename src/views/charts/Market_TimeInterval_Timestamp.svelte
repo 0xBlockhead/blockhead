@@ -14,10 +14,10 @@
 				timestampMs: number
 				timeInterval: MarketTimeInterval
 			}
-			open?: bigint | number
-			high?: bigint | number
-			low?: bigint | number
-			close?: bigint | number
+			open: bigint | number
+			high: bigint | number
+			low: bigint | number
+			close: bigint | number
 		}
 	)
 
@@ -49,9 +49,16 @@
 
 
 	// Functions
-	const marketTimeIntervalTimestampPoint = (
+	const isCompleteOhlcPoint = (
 		point: SubscribeEntityReferenceResult<typeof schema, EntityType.Market_TimeInterval_Timestamp>
-	): point is MarketTimeIntervalTimestampPoint => true
+	): point is MarketTimeIntervalTimestampPoint => (
+		point.open != null
+		&& point.high != null
+		&& point.low != null
+		&& point.close != null
+		&& 'timestampMs' in point.entitySelector
+		&& 'timeInterval' in point.entitySelector
+	)
 
 
 	// Components
@@ -63,18 +70,27 @@
 <ResourceBoundary
 	resource={resource({
 		sources: [...sources],
+		fields: {
+			open: true,
+			high: true,
+			low: true,
+			close: true,
+			timeInterval: true,
+			timestampMs: true,
+		},
 		limit,
 	})}
 	placeholderText="Loading OHLC candles…"
 >
 	{#snippet children(marketTimeIntervalTimestamps)}
-		{@const pointRows = marketTimeIntervalTimestamps.values.filter(marketTimeIntervalTimestampPoint)}
 		{@const points = Object.values(
 			Object.groupBy(
-				pointRows.filter((point) => (
-					point.entitySelector.timeInterval.unit === timeInterval.unit
-					&& point.entitySelector.timeInterval.value === timeInterval.value
-				)),
+				marketTimeIntervalTimestamps.values
+					.filter(isCompleteOhlcPoint)
+					.filter((point) => (
+						point.entitySelector.timeInterval.unit === timeInterval.unit
+						&& point.entitySelector.timeInterval.value === timeInterval.value
+					)),
 				(point) => `${point.entitySelector.timestampMs}:${point.entitySelector.timeInterval.unit}:${point.entitySelector.timeInterval.value}`,
 			),
 		)
@@ -89,8 +105,8 @@
 				{title}
 			/>
 		{:else}
-			<p data-text="muted">
-				No OHLC candles for this interval yet.
+			<p data-text="muted" data-section-state="resolved-empty">
+				No OHLC candles for this interval.
 			</p>
 		{/if}
 	{/snippet}

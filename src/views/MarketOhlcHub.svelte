@@ -5,6 +5,7 @@
 		MarketAssetKind,
 		marketOhlcDailyTimeInterval,
 		marketOhlcDayLookbackValues,
+		marketOhlcDefaultLookbackDayCount,
 	} from '$/constants/Market.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -20,7 +21,7 @@
 	let {
 		id,
 		market,
-		lookbackDayCount = $bindable(7),
+		lookbackDayCount = $bindable(marketOhlcDefaultLookbackDayCount),
 		listOpen = false,
 		chartTitlePrefix,
 		candlesListTitle = 'OHLC candles',

@@ -98,20 +98,6 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
-
-			<div>
-				<dt>Timestamp</dt>
-				<dd>
-					<Timestamp timestamp={selection.entitySelector.timestampMs} />
-				</dd>
-			</div>
-
-			<div>
-				<dt>Feed key</dt>
-				<dd>
-					{selection.entitySelector.feedKey}
-				</dd>
-			</div>
 		</dl>
 
 		<dl data-column-item="center">
@@ -187,6 +173,7 @@
 					<MarketView
 						selection={select(EntityType.Market, selection.entitySelector.$market)}
 						layout={EntityLayout.Value}
+						showTypeAnnotation={false}
 					/>
 				</dd>
 			</div>

@@ -121,26 +121,33 @@
 			data-marketTimeIntervalTimestamps="unstyled"
 		>
 			{#each points as point (stringify(point.entitySelector))}
-				{@const open = Number(point.open ?? 0n) / (10 ** priceDecimals)}
-				{@const high = Number(point.high ?? 0n) / (10 ** priceDecimals)}
-				{@const low = Number(point.low ?? 0n) / (10 ** priceDecimals)}
-				{@const close = Number(point.close ?? 0n) / (10 ** priceDecimals)}
-				{@const candleTimestampMs = point.entitySelector.timestampMs}
+				{#if (
+					point.open != null
+					&& point.high != null
+					&& point.low != null
+					&& point.close != null
+				)}
+					{@const open = Number(point.open) / (10 ** priceDecimals)}
+					{@const high = Number(point.high) / (10 ** priceDecimals)}
+					{@const low = Number(point.low) / (10 ** priceDecimals)}
+					{@const close = Number(point.close) / (10 ** priceDecimals)}
+					{@const candleTimestampMs = point.entitySelector.timestampMs}
 
-				<li
-					aria-label={`${new Date(candleTimestampMs).toLocaleString()}: open ${formatChartPrice(open)}, high ${formatChartPrice(high)}, low ${formatChartPrice(low)}, close ${formatChartPrice(close)}`}
-					class="candle"
-					class:candle-trend-down={close < open}
-					data-scroll-item="snap-inline-end"
-					style:--candle-open={open}
-					style:--candle-high={high}
-					style:--candle-low={low}
-					style:--candle-close={close}
-					style:--candle-timestamp={candleTimestampMs}
-				>
-					<span class="candle-wick"></span>
-					<span class="candle-body"></span>
-				</li>
+					<li
+						aria-label={`${new Date(candleTimestampMs).toLocaleString()}: open ${formatChartPrice(open)}, high ${formatChartPrice(high)}, low ${formatChartPrice(low)}, close ${formatChartPrice(close)}`}
+						class="candle"
+						class:candle-trend-down={close < open}
+						data-scroll-item="snap-inline-end"
+						style:--candle-open={open}
+						style:--candle-high={high}
+						style:--candle-low={low}
+						style:--candle-close={close}
+						style:--candle-timestamp={candleTimestampMs}
+					>
+						<span class="candle-wick"></span>
+						<span class="candle-body"></span>
+					</li>
+				{/if}
 			{/each}
 		</ul>
 	</div>

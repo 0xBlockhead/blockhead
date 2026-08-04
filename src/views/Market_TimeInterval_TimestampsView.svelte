@@ -31,6 +31,8 @@
 
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
+	import NumberValue from '$/components/NumberValue.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -59,6 +61,9 @@
 			],
 			fields: {
 				timeInterval: true,
+				open: true,
+				high: true,
+				low: true,
 				close: true,
 				timestampMs: true,
 			},
@@ -68,11 +73,14 @@
 	getResourceItems={
 		(marketTimeIntervalTimestamps) => marketTimeIntervalTimestamps.values.filter(
 			(marketTimeIntervalTimestamp) => (
-				timeInterval == null
-				|| (
-					marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.unit === timeInterval.unit
-					&& marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.value === timeInterval.value
+				(
+					timeInterval == null
+					|| (
+						marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.unit === timeInterval.unit
+						&& marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.value === timeInterval.value
+					)
 				)
+				&& marketTimeIntervalTimestamp.close != null
 			)
 		)
 	}
@@ -106,11 +114,18 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{marketTimeIntervalTimestamp.close ?? ''}
+				{#if marketTimeIntervalTimestamp.close != null}
+					<NumberValue
+						value={Number(marketTimeIntervalTimestamp.close) / 1e8}
+						formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
+					/>
+				{/if}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{marketTimeIntervalTimestampSelector.timestampMs}</span>
+				<span data-text="annotation">
+					<Timestamp timestamp={marketTimeIntervalTimestampSelector.timestampMs} />
+				</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

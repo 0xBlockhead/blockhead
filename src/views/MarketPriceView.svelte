@@ -94,9 +94,8 @@
 								<Market_TimestampView
 									selection={select(EntityType.Market_Timestamp, marketTimestamp[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
+									showTypeAnnotation={false}
 								/>
-							{:else}
-								<p data-text="muted" data-section-state="resolved-empty">No latest quote available.</p>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -111,23 +110,8 @@
 					<MarketView
 						selection={select(EntityType.Market, selection.entitySelector.$market)}
 						layout={EntityLayout.Value}
+						showTypeAnnotation={false}
 					/>
-				</dd>
-			</div>
-
-			<div>
-				<dt>Parent Market</dt>
-				<dd>
-					<ResourceBoundary
-						resource={selection.$parentMarket}
-					>
-						{#snippet children(market)}
-							<MarketView
-								selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
-								layout={EntityLayout.Value}
-							/>
-						{/snippet}
-					</ResourceBoundary>
 				</dd>
 			</div>
 		</dl>

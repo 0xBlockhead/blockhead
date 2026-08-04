@@ -4,7 +4,6 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
 
@@ -305,23 +304,8 @@
 					<MarketView
 						selection={select(EntityType.Market, selection.entitySelector.$market)}
 						layout={EntityLayout.Value}
+						showTypeAnnotation={false}
 					/>
-				</dd>
-			</div>
-
-			<div>
-				<dt>Parent market</dt>
-				<dd>
-					<ResourceBoundary
-						resource={selection.$parentMarket}
-					>
-						{#snippet children(market)}
-							<MarketView
-								selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
-								layout={EntityLayout.Value}
-							/>
-						{/snippet}
-					</ResourceBoundary>
 				</dd>
 			</div>
 		</dl>

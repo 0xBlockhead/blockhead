@@ -131,29 +131,21 @@
 						</dd>
 					</div>
 				{/if}
-
-				<div>
-					<dt>Base</dt>
-					<dd>
-						<MarketAssetView
-							selection={select(EntityType.MarketAsset, selection.entitySelector.$base)}
-							layout={EntityLayout.Value}
-							showTypeAnnotation={false}
-						/>
-					</dd>
-				</div>
-
-				<div>
-					<dt>Quote</dt>
-					<dd>
-						<MarketAssetView
-							selection={select(EntityType.MarketAsset, selection.entitySelector.$quote)}
-							layout={EntityLayout.Value}
-							showTypeAnnotation={false}
-						/>
-					</dd>
-				</div>
 			</dl>
+
+			<MarketAssetView
+				selection={select(EntityType.MarketAsset, selection.entitySelector.$base)}
+				layout={EntityLayout.SummaryDetails}
+				open={true}
+				showTypeAnnotation={false}
+			/>
+
+			<MarketAssetView
+				selection={select(EntityType.MarketAsset, selection.entitySelector.$quote)}
+				layout={EntityLayout.SummaryDetails}
+				open={true}
+				showTypeAnnotation={false}
+			/>
 		</section>
 	{/snippet}
 
