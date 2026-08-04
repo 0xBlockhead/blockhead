@@ -6,6 +6,7 @@ import {
 	vi,
 } from 'vitest'
 
+import { loadResolvers } from '$/resolvers/index.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -201,5 +202,13 @@ describe('Across BridgeTransfer resolvers', () => {
 			timestampMs: Date.parse(deposit.depositBlockTimestamp),
 			source: Source.Across_Rest,
 		})).rejects.toThrow('observation clock mismatch')
+	})
+
+	it('registers the Across source lazily', async () => {
+		await expect(loadResolvers(new Set([
+			Source.Across_Rest,
+		]))).resolves.toMatchObject([{
+			source: Source.Across_Rest,
+		}])
 	})
 })
