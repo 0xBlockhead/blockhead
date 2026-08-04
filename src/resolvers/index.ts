@@ -104,6 +104,7 @@ const resolverLoaderEntries = [
 	[Source.Mintscan, () => import('./Mintscan.ts')],
 	[Source.Mlflow_Rest, () => import('./Mlflow-Rest.ts')],
 	[Source.MoneroDaemonRpc_JsonRpc, () => import('./MoneroDaemonRpc-JsonRpc.ts')],
+	[Source.Morpho_Graphql, () => import('./Morpho-Graphql.ts')],
 	[Source.Morpho_Rest, () => import('./Morpho-Rest.ts')],
 	[Source.NearBlocks_Rest, () => import('./NearBlocks-Rest.ts')],
 	[Source.NearNeps_Github, () => import('./NearNeps-Github.ts')],

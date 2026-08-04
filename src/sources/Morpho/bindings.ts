@@ -14,6 +14,32 @@ import {
 
 export default indexSourceBindings([
 	{
+		source: Source.Morpho_Graphql,
+		target: {
+			kind: SourceTargetKind.Global,
+			key: 'morpho-api',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://api.morpho.org/graphql',
+				corsEnabled: true,
+			},
+		],
+		wireProtocol: WireProtocol.Graphql,
+		apiFamily: ApiFamily.GraphqlHttp,
+		operationGroups: genericReadOperationGroups,
+		delivery: SourceDelivery.BrowserDirect,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/Morpho/Graphql/types.ts',
+				referenceUrl: 'https://docs.morpho.org/developers/api/morpho/',
+			},
+		],
+	},
+	{
 		source: Source.Morpho_Rest,
 		target: {
 			kind: SourceTargetKind.Global,

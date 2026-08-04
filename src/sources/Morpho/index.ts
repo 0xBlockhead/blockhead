@@ -9,6 +9,9 @@ export default {
 	provider: SourceProvider.Morpho,
 	label: 'Morpho',
 	sources: {
+		[Source.Morpho_Graphql]: {
+			label: 'Morpho GraphQL API',
+		},
 		[Source.Morpho_Rest]: {
 			label: 'Morpho Blue REST API',
 		},

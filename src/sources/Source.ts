@@ -164,6 +164,7 @@ export enum Source {
 	Mlflow_Rest = 'Mlflow_Rest',
 	MoneroDaemonRpc_JsonRpc = 'MoneroDaemonRpc_JsonRpc',
 	MoneroWalletRpc_JsonRpc = 'MoneroWalletRpc_JsonRpc',
+	Morpho_Graphql = 'Morpho_Graphql',
 	Morpho_Rest = 'Morpho_Rest',
 	NearBlocks_Rest = 'NearBlocks_Rest',
 	NearConnect_WalletApi = 'NearConnect_WalletApi',
