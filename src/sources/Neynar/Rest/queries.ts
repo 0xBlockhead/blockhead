@@ -14,10 +14,91 @@ import type {
 	NeynarBulkUsersResponse,
 	NeynarCastQuery,
 	NeynarCastResponse,
+	NeynarChannelLookupQuery,
+	NeynarChannelMembersQuery,
+	NeynarChannelMembersResponse,
+	NeynarChannelResponse,
 	NeynarConversationResponse,
 	NeynarFeedQuery,
 	NeynarFeedResponse,
+	NeynarUserChannelMembershipsQuery,
+	NeynarUserChannelMembershipsResponse,
+	NeynarUserChannelsQuery,
+	NeynarUserChannelsResponse,
 } from '$/sources/Neynar/Rest/types.ts'
+
+/** Channel lookup by canonical channel id or FIP-2 parent URL. */
+export const getChannel = async (
+	publicEnv: SourcePublicEnv,
+	query: NeynarChannelLookupQuery
+) => {
+	const searchParams = new URLSearchParams({
+		id: query.id,
+		type: query.type,
+	})
+	if (query.viewerFid != null)
+		searchParams.set('viewer_fid', String(query.viewerFid))
+
+	return (
+		await neynarFetch<NeynarChannelResponse>(
+			publicEnv,
+			`/v2/farcaster/channel/?${searchParams}`
+		)
+	)?.channel
+}
+
+/** Paginated channel members, or an exact membership check when `fid` is set. */
+export const getChannelMembersPage = (
+	publicEnv: SourcePublicEnv,
+	query: NeynarChannelMembersQuery
+) => {
+	const searchParams = new URLSearchParams({ channel_id: query.channelId })
+	if (query.fid != null)
+		searchParams.set('fid', String(query.fid))
+	if (query.limit != null)
+		searchParams.set('limit', String(query.limit))
+	if (query.cursor != null && query.cursor !== '')
+		searchParams.set('cursor', query.cursor)
+
+	return neynarFetch<NeynarChannelMembersResponse>(
+		publicEnv,
+		`/v2/farcaster/channel/member/list/?${searchParams}`
+	)
+}
+
+/** Channels followed by one FID. */
+export const getUserChannelsPage = (
+	publicEnv: SourcePublicEnv,
+	query: NeynarUserChannelsQuery
+) => {
+	const searchParams = new URLSearchParams({ fid: String(query.fid) })
+	if (query.limit != null)
+		searchParams.set('limit', String(query.limit))
+	if (query.cursor != null && query.cursor !== '')
+		searchParams.set('cursor', query.cursor)
+
+	return neynarFetch<NeynarUserChannelsResponse>(
+		publicEnv,
+		`/v2/farcaster/user/channels/?${searchParams}`
+	)
+}
+
+/** Channel memberships and roles held by one FID. */
+export const getUserChannelMembershipsPage = (
+	publicEnv: SourcePublicEnv,
+	query: NeynarUserChannelMembershipsQuery
+) => {
+	const searchParams = new URLSearchParams({ fid: String(query.fid) })
+	if (query.limit != null)
+		searchParams.set('limit', String(query.limit))
+	if (query.cursor != null && query.cursor !== '')
+		searchParams.set('cursor', query.cursor)
+
+	return neynarFetch<NeynarUserChannelMembershipsResponse>(
+		publicEnv,
+		`/v2/farcaster/user/memberships/list/?${searchParams}`
+	)
+}
 
 export const getBulkUsers = async ({
 	publicEnv,

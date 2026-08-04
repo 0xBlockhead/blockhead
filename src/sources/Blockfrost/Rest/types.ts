@@ -5,10 +5,13 @@ import type {
 } from '$/sources/_shared/interfaces/CardanoGovernance/types.ts'
 import { type } from 'arktype'
 
+export type BlockfrostAccount = paths['/accounts/{stake_address}']['get']['responses'][200]['content']['application/json']
+export type BlockfrostAccountAddresses = paths['/accounts/{stake_address}/addresses']['get']['responses'][200]['content']['application/json']
 export type BlockfrostAddress = paths['/addresses/{address}']['get']['responses'][200]['content']['application/json']
 export type BlockfrostAddressTotal = paths['/addresses/{address}/total']['get']['responses'][200]['content']['application/json']
 export type BlockfrostAddressTransactions = paths['/addresses/{address}/transactions']['get']['responses'][200]['content']['application/json']
 export type BlockfrostAddressUtxos = paths['/addresses/{address}/utxos']['get']['responses'][200]['content']['application/json']
+export type BlockfrostAsset = paths['/assets/{asset}']['get']['responses'][200]['content']['application/json']
 export type BlockfrostBlock = paths['/blocks/{hash_or_number}']['get']['responses'][200]['content']['application/json']
 export type BlockfrostBlocks = paths['/blocks/{hash_or_number}/previous']['get']['responses'][200]['content']['application/json']
 export type BlockfrostAssets = paths['/assets']['get']['responses'][200]['content']['application/json']

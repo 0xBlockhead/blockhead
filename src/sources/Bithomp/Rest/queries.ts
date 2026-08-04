@@ -13,6 +13,10 @@ import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.Bithomp][0]
 
+const bithompTokenHeaders = (publicEnv: SourcePublicEnv) => ({
+	'x-bithomp-token': requiredPublicEnvString(publicEnv, 'PUBLIC_BITHOMP_API_KEY'),
+})
+
 export const getAccount = async (
 	publicEnv: SourcePublicEnv,
 	{ address }: operations['getAccount']['parameters']['path']
@@ -24,13 +28,31 @@ export const getAccount = async (
 			firstHttpUrlForBinding(binding)
 		).toString(),
 		{
-			headers: {
-				'x-bithomp-token': requiredPublicEnvString(publicEnv, 'PUBLIC_BITHOMP_API_KEY'),
-			},
+			headers: bithompTokenHeaders(publicEnv),
 		}
 	)
 	if (!response.ok)
 		await throwHttpError('Bithomp get account', response)
 
 	return response.json<operations['getAccount']['responses'][200]['content']['application/json']>()
+}
+
+export const getAmm = async (
+	publicEnv: SourcePublicEnv,
+	{ id }: operations['getPools']['parameters']['path']
+) => {
+	const response = await sourceFetch(
+		binding,
+		new URL(
+			`amm/${encodeURIComponent(id)}`,
+			firstHttpUrlForBinding(binding)
+		).toString(),
+		{
+			headers: bithompTokenHeaders(publicEnv),
+		}
+	)
+	if (!response.ok)
+		await throwHttpError('Bithomp get amm', response)
+
+	return response.json<operations['getPools']['responses'][200]['content']['application/json']>()
 }

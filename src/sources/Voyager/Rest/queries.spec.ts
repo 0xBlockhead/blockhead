@@ -65,4 +65,12 @@ describe('Voyager OpenAPI operations', () => {
 			'getTransactionByHash',
 		])
 	})
+
+	it('hard-fails HTTP through getJson (no soft-empty accepted statuses)', async () => {
+		getJson.mockRejectedValueOnce(new Error('Voyager https://api.voyager.online/beta/txns/0x1 → 404 Not Found'))
+
+		await expect(getTransactionByHash({ txnHash: '0x1' })).rejects.toThrow('404 Not Found')
+		expect(getJson).toHaveBeenCalledWith(binding, '/txns/0x1')
+		expect(getJson.mock.calls[0]).toHaveLength(2)
+	})
 })

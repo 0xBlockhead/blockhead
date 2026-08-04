@@ -4,8 +4,10 @@ import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/Starkscan/bindings.ts'
 import type { components } from '$/sources/Starkscan/OpenApi/openapi.d.ts'
 
+type AddressSummary = components['schemas']['AddressSummaryView']
 type AddressTransaction = components['schemas']['AddressTransactionListItem']
 type AddressTokenHoldings = components['schemas']['AddressTokenHoldingsView']
+type ContractEvent = components['schemas']['ContractEventItem']
 
 const { getJson } = vi.hoisted(() => ({
 	getJson: vi.fn(),
@@ -16,7 +18,9 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 }))
 
 const {
+	getAddressSummary,
 	getAddressTransactions,
+	getContractEvents,
 	getExactTokenHoldings,
 } = await import('$/sources/Starkscan/Rest/queries.ts')
 
@@ -69,6 +73,31 @@ const holdings = {
 	},
 } satisfies AddressTokenHoldings
 
+const summary = {
+	address: '0x0001',
+	totalActivityCount: 12,
+	latestActivityBlock: 10_630_025,
+	classHash: '0x0abc',
+	isAccount: true,
+	contractExistence: null,
+} satisfies AddressSummary
+
+const event = {
+	blockNumber: 10_630_025,
+	timestampIso: '2026-07-15T12:00:00Z',
+	txHash: '0xabc',
+	txIndex: 4,
+	logIndex: 2,
+	address: '0x0001',
+	keys: ['0x11', '0x22'],
+	topic0: '0x11',
+	topic1: '0x22',
+	topic2: null,
+	topic3: null,
+	data: ['0x33'],
+	decodingStatus: 'unknown',
+} satisfies ContractEvent
+
 describe('Starkscan account portfolio transport', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -102,6 +131,92 @@ describe('Starkscan account portfolio transport', () => {
 			binding,
 			'/v1/SN_MAIN/address/0x01/token-holdings'
 		)
+	})
+
+	it('certifies address summaries with class or not-deployed evidence', async () => {
+		getJson.mockResolvedValueOnce(summary)
+		await expect(getAddressSummary(account)).resolves.toEqual(summary)
+		expect(getJson).toHaveBeenCalledWith(
+			binding,
+			'/v1/SN_MAIN/address/0x01'
+		)
+
+		getJson.mockResolvedValueOnce({
+			address: '0x0001',
+			totalActivityCount: 0,
+			latestActivityBlock: null,
+			classHash: null,
+			contractExistence: {
+				status: 'not_deployed',
+				reasonCode: 'contract_not_found',
+				evidenceSource: 'finalized_class_hash_at',
+				observedBlockNumber: 42,
+				observedBlockHash: '0xdead',
+				expiresAtIso: '2026-07-15T12:00:00Z',
+			},
+		})
+		await expect(getAddressSummary(account)).resolves.toMatchObject({
+			contractExistence: {
+				status: 'not_deployed',
+				observedBlockNumber: 42,
+			},
+		})
+
+		getJson.mockResolvedValueOnce({
+			...summary,
+			classHash: null,
+			contractExistence: null,
+		})
+		await expect(getAddressSummary(account)).rejects.toThrow('lacks contract existence evidence')
+
+		getJson.mockResolvedValueOnce({
+			...summary,
+			latestActivityBlock: null,
+		})
+		await expect(getAddressSummary(account)).rejects.toThrow('lacks observation block')
+	})
+
+	it('loads newest-first contract events and rejects degraded or foreign pages', async () => {
+		getJson.mockResolvedValueOnce({
+			items: [event],
+			nextCursor: '10630024:1:0',
+			eventDecodingDegraded: false,
+		})
+		await expect(getContractEvents({
+			address: account,
+			limit: 25,
+			cursor: '10630025:4:2',
+		})).resolves.toMatchObject({
+			items: [event],
+			nextCursor: '10630024:1:0',
+		})
+		expect(getJson).toHaveBeenCalledWith(
+			binding,
+			'/v1/SN_MAIN/contract/0x01/events?limit=25&cursor=10630025%3A4%3A2'
+		)
+
+		getJson.mockResolvedValueOnce({
+			items: [{
+				...event,
+				address: '0x2',
+			}],
+			nextCursor: null,
+			eventDecodingDegraded: false,
+		})
+		await expect(getContractEvents({
+			address: account,
+			limit: 25,
+		})).rejects.toThrow('foreign contract row')
+
+		getJson.mockResolvedValueOnce({
+			items: [event],
+			nextCursor: null,
+			eventDecodingDegraded: true,
+		})
+		await expect(getContractEvents({
+			address: account,
+			limit: 25,
+		})).rejects.toThrow('operationally degraded')
 	})
 
 	it('fails closed on foreign transaction rows and stalled cursors', async () => {
@@ -209,6 +324,14 @@ describe('Starkscan account portfolio transport', () => {
 		})).resolves.toEqual({
 			items: [],
 			nextCursor: null,
+		})
+		await expect(getContractEvents({
+			address: account,
+			limit: 0,
+		})).resolves.toEqual({
+			items: [],
+			nextCursor: null,
+			eventDecodingDegraded: false,
 		})
 		await expect(getAddressTransactions({
 			address: account,

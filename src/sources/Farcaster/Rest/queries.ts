@@ -1,28 +1,37 @@
 /**
  * Farcaster Client API channel and primary-address queries.
- * @see https://docs.farcaster.xyz/reference/farcaster/api#get-all-channels
- * @see https://docs.farcaster.xyz/reference/farcaster/api#get-a-channel
- * @see https://docs.farcaster.xyz/reference/farcaster/api#get-user-primary-address
+ * @see https://docs.neynar.com/farcaster/reference/farcaster/api
  */
 
 import { farcasterGet } from '$/sources/Farcaster/Rest/client.ts'
 import { farcasterRestUserThreadCastsLimit } from '$/sources/Farcaster/Rest/constants.ts'
 import type {
-	FarcasterChannel,
+	FarcasterChannelFollowStatusResponse,
+	FarcasterChannelMembersResponse,
 	FarcasterChannelResponse,
 	FarcasterChannelsResponse,
+	FarcasterChannelWire,
+	FarcasterFollowedChannelWire,
 	FarcasterPage,
 	FarcasterPrimaryAddressResponse,
 	FarcasterUserThreadCastsResponse,
 } from '$/sources/Farcaster/Rest/types.ts'
 
+const normalizeFarcasterChannel = ({
+	url,
+	...channel
+}: FarcasterChannelWire) => ({
+	...channel,
+	parentUrl: url,
+})
+
 /**
  * `GET /v2/all-channels`
  */
 export const getAllChannels = async () => {
-	const channels = (
+	const channels = ((
 		await farcasterGet<FarcasterChannelsResponse>('client-api', '/v2/all-channels')
-	).result?.channels ?? []
+	).result?.channels ?? []).map(normalizeFarcasterChannel)
 	if (new Set(channels.map(({ id }) => id)).size !== channels.length)
 		throw new Error('Farcaster_Rest: duplicate channel id')
 
@@ -32,11 +41,12 @@ export const getAllChannels = async () => {
 /**
  * `GET /v1/channel`
  */
-export const getChannel = async (channelId: string) => (
-	(
+export const getChannel = async (channelId: string) => {
+	const channel = (
 		await farcasterGet<FarcasterChannelResponse>('client-api', '/v1/channel', { channelId })
 	).result?.channel
-)
+	return channel == null ? undefined : normalizeFarcasterChannel(channel)
+}
 
 /**
  * `GET /fc/primary-address`
@@ -126,11 +136,21 @@ export const getUserFollowingChannelsPage = ({
 	cursor?: string
 	limit?: number
 }) => (
-	farcasterGet<FarcasterPage<{ channels: FarcasterChannel[] }>>(
+	farcasterGet<FarcasterPage<{ channels: FarcasterFollowedChannelWire[] }>>(
 		'client-api',
 		'/v1/user-following-channels',
 		{ fid, cursor, limit }
-	)
+	).then((page) => ({
+		...(page.result != null && {
+			result: {
+				channels: page.result.channels.map(({ followedAt, ...channel }) => ({
+					...normalizeFarcasterChannel(channel),
+					followedAt,
+				})),
+			},
+		}),
+		...(page.next != null && { next: page.next }),
+	}))
 )
 
 const countRowsAcrossFarcasterPages = async <_Result, _Row>({
@@ -171,7 +191,7 @@ export const getUserFollowingChannelsCount = ({
 
 /**
  * `GET /v1/user-channel`
- * @see https://docs.farcaster.xyz/reference/farcaster/api#get-user-following-channel-status
+ * @see https://docs.neynar.com/farcaster/reference/farcaster/api
  */
 export const getUserChannelFollowStatus = ({
 	fid,
@@ -180,14 +200,16 @@ export const getUserChannelFollowStatus = ({
 	fid: number
 	channelId: string
 }) => (
-	farcasterGet<{
-		result: { following: boolean; followedAt?: number }
-	}>('client-api', '/v1/user-channel', { fid, channelId })
+	farcasterGet<FarcasterChannelFollowStatusResponse>(
+		'client-api',
+		'/v1/user-channel',
+		{ fid, channelId }
+	).then((response) => response.result)
 )
 
 /**
  * `GET /fc/channel-members`
- * @see https://docs.farcaster.xyz/reference/farcaster/api#get-channel-members
+ * @see https://docs.neynar.com/farcaster/reference/farcaster/api
  */
 export const getChannelMembersPage = ({
 	channelId,
@@ -200,12 +222,34 @@ export const getChannelMembersPage = ({
 	cursor?: string
 	limit?: number
 }) => (
-	farcasterGet<
-		FarcasterPage<{
-			members: { fid: number; memberAt: number }[]
-		}>
-	>('client-api', '/fc/channel-members', { channelId, fid, cursor, limit })
+	farcasterGet<FarcasterChannelMembersResponse>(
+		'client-api',
+		'/fc/channel-members',
+		{ channelId, fid, cursor, limit }
+	)
 )
+
+/** Point membership lookup using the endpoint's optional `fid` filter. */
+export const getChannelMember = async ({
+	channelId,
+	fid,
+}: {
+	channelId: string
+	fid: number
+}) => {
+	const members = (
+		await getChannelMembersPage({
+			channelId,
+			fid,
+		})
+	).result?.members ?? []
+	if (members.some((member) => member.fid !== fid))
+		throw new Error('Farcaster_Rest: channel member subject mismatch')
+	if (members.length > 1)
+		throw new Error('Farcaster_Rest: duplicate channel member')
+
+	return members.at(0)
+}
 
 /**
  * `GET /fc/channel-invites`

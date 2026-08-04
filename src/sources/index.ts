@@ -2,10 +2,14 @@ import sourceProviders, {
 	sourceBindings as allSourceBindings,
 	sourceBindingsBySource as allSourceBindingsBySource,
 } from '$/sources/$sourceProviders.ts'
-import { enabledSourcesFromBindings, indexSourceProviders } from '$/sources/$sources.ts'
+import { indexSourceProviders } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceCredentialScope, SourceDelivery, SourceTargetKind } from '$/sources/SourceBinding.ts'
-import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
+import {
+	sourceBindingId,
+	SourceCredentialScope,
+	SourceDelivery,
+	SourceTargetKind,
+} from '$/sources/SourceBinding.ts'
 import { env as publicEnv } from '$env/dynamic/public'
 
 export {
@@ -39,7 +43,11 @@ export const sourceBindings = allSourceBindings
 		)
 	))
 
-export const enabledSources = enabledSourcesFromBindings<Source>(sourceBindings)
+export const browserDirectSourceBindingIds = new Set(
+	allSourceBindings
+		.filter((binding) => binding.delivery === SourceDelivery.BrowserDirect)
+		.map(sourceBindingId)
+)
 
 export const networkApplicableSources = (
 	sourceSelection: readonly Source[],
@@ -65,5 +73,10 @@ export const networkApplicableSources = (
 })
 
 export const {
+	enabledSources,
 	resolverPublicEnvBySource,
-} = indexSourceProviders(sourceProviders, publicEnv)
+} = indexSourceProviders(
+	sourceProviders,
+	publicEnv,
+	new Set(sourceBindings.map(sourceBindingId))
+)

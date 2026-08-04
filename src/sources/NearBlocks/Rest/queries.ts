@@ -1,7 +1,10 @@
 import { getJson as getNearBlocksRestJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import type {
+	NearBlocksAccount,
 	NearBlocksAccountResponse,
+	NearBlocksBlock,
 	NearBlocksBlockResponse,
+	NearBlocksTransaction,
 	NearBlocksTransactionResponse,
 	NearBlocksV3AccountBalance,
 	NearBlocksV3Response,
@@ -28,6 +31,28 @@ const assertNonnegativeIntegerString = (
 	}
 }
 
+const assertNonnegativeIntegerWire = (
+	value: string | number,
+	label: string
+) => {
+	if (typeof value === 'number') {
+		if (!Number.isSafeInteger(value) || value < 0)
+			throw new Error(`NearBlocks_Rest: invalid ${label}`)
+		return BigInt(value)
+	}
+
+	return assertNonnegativeIntegerString(value, label)
+}
+
+const assertNonemptyString = (
+	value: string,
+	label: string
+) => {
+	if (value.length === 0)
+		throw new Error(`NearBlocks_Rest: ${label} must not be empty`)
+	return value
+}
+
 const assertV3Success = <_Data>(
 	response: NearBlocksV3Response<_Data>,
 	label: string
@@ -39,41 +64,143 @@ const assertV3Success = <_Data>(
 	return response.data
 }
 
-export const getAccount = ({
+const assertAccount = (
+	account: NearBlocksAccount,
+	accountId: string
+) => {
+	if (account.account_id !== accountId)
+		throw new Error('NearBlocks_Rest: account identity does not match request')
+	assertNonnegativeIntegerString(account.amount, 'account amount')
+	assertNonemptyString(account.block_hash, 'account block hash')
+	assertNonnegativeIntegerWire(account.block_height, 'account block height')
+	if (account.locked != null)
+		assertNonnegativeIntegerString(account.locked, 'account locked amount')
+	if (account.storage_usage != null)
+		assertNonnegativeIntegerWire(account.storage_usage, 'account storage usage')
+	return account
+}
+
+const assertBlock = (
+	block: NearBlocksBlock,
+	{
+		hash,
+		height,
+	}: {
+		hash?: string
+		height?: bigint
+	} = {}
+) => {
+	assertNonemptyString(block.block_hash, 'block hash')
+	const blockHeight = assertNonnegativeIntegerWire(block.block_height, 'block height')
+	assertNonnegativeIntegerString(block.block_timestamp, 'block timestamp')
+	if (hash != null && block.block_hash !== hash)
+		throw new Error('NearBlocks_Rest: block hash does not match request')
+	if (height != null && blockHeight !== height)
+		throw new Error('NearBlocks_Rest: block height does not match request')
+	if (block.prev_block_hash === '')
+		throw new Error('NearBlocks_Rest: previous block hash must not be empty')
+	if (block.epoch_id === '')
+		throw new Error('NearBlocks_Rest: epoch id must not be empty')
+	return block
+}
+
+const assertTransaction = (
+	transaction: NearBlocksTransaction,
+	transactionHash: string
+) => {
+	if (transaction.transaction_hash !== transactionHash)
+		throw new Error('NearBlocks_Rest: transaction hash does not match request')
+	assertNonemptyString(transaction.signer_account_id, 'transaction signer')
+	assertNonemptyString(transaction.receiver_account_id, 'transaction receiver')
+	assertNonnegativeIntegerString(transaction.block_timestamp, 'transaction block timestamp')
+	if (transaction.included_in_block_hash === '')
+		throw new Error('NearBlocks_Rest: included block hash must not be empty')
+	if (transaction.nonce != null)
+		assertNonnegativeIntegerWire(transaction.nonce, 'transaction nonce')
+	if (transaction.block?.block_height != null)
+		assertNonnegativeIntegerWire(transaction.block.block_height, 'transaction block height')
+	if (transaction.actions == null)
+		throw new Error('NearBlocks_Rest: transaction actions missing')
+	for (const action of transaction.actions) {
+		if (action.action.length === 0)
+			throw new Error('NearBlocks_Rest: transaction action kind must not be empty')
+		if (action.method === '')
+			throw new Error('NearBlocks_Rest: transaction method must not be empty')
+	}
+	for (const [label, value] of Object.entries({
+		'transaction deposit': transaction.actions_agg?.deposit,
+		'transaction attached gas': transaction.actions_agg?.gas_attached,
+		'transaction gas used': transaction.outcomes_agg?.gas_used,
+		'transaction fee': transaction.outcomes_agg?.transaction_fee,
+		'receipt conversion gas burnt': transaction.receipt_conversion_gas_burnt,
+		'receipt conversion tokens burnt': transaction.receipt_conversion_tokens_burnt,
+	}))
+		if (value != null)
+			assertNonnegativeIntegerWire(value, label)
+	return transaction
+}
+
+export const getAccount = async ({
 	accountId,
 }: {
 	accountId: string
-}) => (
-	getNearBlocksJson<NearBlocksAccountResponse>(
+}) => {
+	assertNonemptyString(accountId, 'account ID')
+	const response = await getNearBlocksJson<NearBlocksAccountResponse>(
 		`/v1/account/${encodeURIComponent(accountId)}`
 	)
-)
+	const account = response.account?.[0]
+	if (account == null)
+		throw new Error(`NearBlocks_Rest: account ${accountId} not found`)
+	return assertAccount(account, accountId)
+}
 
-export const getBlock = ({
+export const getBlock = async ({
 	block,
 }: {
 	block: bigint | string
-}) => (
-	getNearBlocksJson<NearBlocksBlockResponse>(
+}) => {
+	const response = await getNearBlocksJson<NearBlocksBlockResponse>(
 		`/v1/blocks/${encodeURIComponent(String(block))}`
 	)
-)
+	const wireBlock = response.blocks?.[0]
+	if (wireBlock == null)
+		throw new Error(`NearBlocks_Rest: block ${String(block)} not found`)
+	return (
+		typeof block === 'bigint' ?
+			assertBlock(wireBlock, {
+				height: block,
+			})
+		: /^\d+$/.test(block) ?
+			assertBlock(wireBlock, {
+				height: BigInt(block),
+			})
+		:
+			assertBlock(wireBlock, {
+				hash: block,
+			})
+	)
+}
 
-export const getTransaction = ({
+export const getTransaction = async ({
 	transactionHash,
 }: {
 	transactionHash: string
-}) => (
-	getNearBlocksJson<NearBlocksTransactionResponse>(
+}) => {
+	assertNonemptyString(transactionHash, 'transaction hash')
+	const response = await getNearBlocksJson<NearBlocksTransactionResponse>(
 		`/v1/txns/${encodeURIComponent(transactionHash)}`
 	)
-)
+	const transaction = response.txns?.[0]
+	if (transaction == null)
+		throw new Error(`NearBlocks_Rest: transaction ${transactionHash} not found`)
+	return assertTransaction(transaction, transactionHash)
+}
 
 export const getAccountBalance = async (
 	accountId: string
 ) => {
-	if (accountId.length === 0)
-		throw new Error('NearBlocks_Rest: account ID must not be empty')
+	assertNonemptyString(accountId, 'account ID')
 
 	const response = await getNearBlocksJson<NearBlocksV3Response<NearBlocksV3AccountBalance>>(
 		`/v3/accounts/${encodeURIComponent(accountId)}/balance`
@@ -98,8 +225,7 @@ export const getAccountTransactions = async (
 		next?: string
 	}
 ) => {
-	if (accountId.length === 0)
-		throw new Error('NearBlocks_Rest: account ID must not be empty')
+	assertNonemptyString(accountId, 'account ID')
 	if (!Number.isSafeInteger(limit) || limit < 0 || limit > 100)
 		throw new Error('NearBlocks_Rest: transaction limit must be an integer from 0 through 100')
 	if (next === '')

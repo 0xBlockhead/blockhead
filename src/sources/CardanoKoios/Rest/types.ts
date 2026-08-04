@@ -35,6 +35,14 @@ export const cardanoKoiosBlock = cardanoKoiosTip.and({
 	tx_count: 'number.integer >= 0',
 }) satisfies Type<CardanoKoiosBlock>
 
+export interface CardanoKoiosBlockInfo extends CardanoKoiosBlock {
+	vrf_key: string | null
+}
+
+export const cardanoKoiosBlockInfo = cardanoKoiosBlock.and({
+	vrf_key: 'string | null',
+}) satisfies Type<CardanoKoiosBlockInfo>
+
 export interface CardanoKoiosBlockTransaction {
 	tx_hash: string
 }
@@ -112,12 +120,85 @@ export interface CardanoKoiosTransactionInfo {
 	epoch_no: number
 	absolute_slot: number
 	tx_timestamp: number
+	tx_size: number
+	fee: string
+	deposit: string
+	invalid_before: string | null
+	invalid_after: string | null
 	certificates: CardanoKoiosTransactionCertificate[]
 	native_scripts: CardanoKoiosTransactionNativeScript[]
 	plutus_contracts: CardanoKoiosTransactionPlutusContract[]
 	voting_procedures: CardanoKoiosTransactionVotingProcedure[]
 	proposal_procedures: CardanoKoiosTransactionProposalProcedure[]
 }
+
+export const cardanoKoiosTransactionInfoScalars = arktype({
+	tx_hash: 'string',
+	epoch_no: 'number.integer >= 0',
+	absolute_slot: 'number.integer >= 0',
+	tx_timestamp: 'number.integer >= 0',
+	tx_size: 'number.integer >= 0',
+	fee: '/^(0|[1-9][0-9]*)$/',
+	deposit: '/^(0|[1-9][0-9]*)$/',
+	invalid_before: '/^(0|[1-9][0-9]*)$/ | null',
+	invalid_after: '/^(0|[1-9][0-9]*)$/ | null',
+}) satisfies Type<Pick<
+	CardanoKoiosTransactionInfo,
+	| 'tx_hash'
+	| 'epoch_no'
+	| 'absolute_slot'
+	| 'tx_timestamp'
+	| 'tx_size'
+	| 'fee'
+	| 'deposit'
+	| 'invalid_before'
+	| 'invalid_after'
+>>
+
+export const cardanoKoiosTransactionCertificate = arktype({
+	info: 'unknown',
+	type: 'string',
+	index: 'number.integer >= 0',
+}) satisfies Type<CardanoKoiosTransactionCertificate>
+
+export const cardanoKoiosTransactionNativeScript = arktype({
+	script_hash: 'string',
+	'type?': 'string',
+	'script?': 'unknown',
+}) satisfies Type<CardanoKoiosTransactionNativeScript>
+
+export const cardanoKoiosTransactionPlutusContract = arktype({
+	script_hash: 'string',
+	input: {
+		datum: 'unknown | null',
+		redeemer: {
+			fee: 'string',
+			unit: {
+				mem: 'string',
+				steps: 'string',
+			},
+			datum: 'unknown',
+			purpose: 'string',
+		},
+	},
+}) satisfies Type<CardanoKoiosTransactionPlutusContract>
+
+export const cardanoKoiosTransactionVotingProcedure = arktype({
+	vote: 'string',
+	voter: 'string',
+	voter_hex: 'string',
+	voter_role: 'string',
+	proposal_index: 'number.integer >= 0',
+	proposal_tx_hash: 'string',
+}) satisfies Type<CardanoKoiosTransactionVotingProcedure>
+
+export const cardanoKoiosTransactionInfo = cardanoKoiosTransactionInfoScalars.and({
+	certificates: cardanoKoiosTransactionCertificate.array(),
+	native_scripts: cardanoKoiosTransactionNativeScript.array(),
+	plutus_contracts: cardanoKoiosTransactionPlutusContract.array(),
+	voting_procedures: cardanoKoiosTransactionVotingProcedure.array(),
+	proposal_procedures: 'unknown[]',
+})
 
 export interface CardanoKoiosStakePool {
 	pool_id_bech32: string
@@ -144,6 +225,12 @@ export interface CardanoKoiosGovernanceProposal {
 	proposal_index: number
 	proposal_type: string
 }
+
+export const cardanoKoiosGovernanceProposal = arktype({
+	proposal_tx_hash: 'string',
+	proposal_index: 'number.integer >= 0',
+	proposal_type: 'string',
+}) satisfies Type<CardanoKoiosGovernanceProposal>
 
 export interface CardanoKoiosAsset {
 	policy_id: string

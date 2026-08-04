@@ -10,7 +10,10 @@ import type {
 	TzktBlock,
 	TzktContract,
 	TzktAccount,
+	TzktHead,
 	TzktOperation,
+	TzktStatistics,
+	TzktToken,
 	TzktTokenBalance,
 	TzktTokenTransfer,
 } from '$/sources/Tzkt/Rest/types.ts'
@@ -23,7 +26,35 @@ const tzktBlock = arktype({
 	level: 'number.integer >= 0',
 	timestamp: 'string',
 	hash: 'string',
+	'cycle?': 'number.integer',
+	'protocol?': 'string',
+	'predecessor?': 'string',
+	'payloadHash?': 'string',
+	'operationsHash?': 'string',
+	'blockRound?': 'number.integer >= 0',
+	'baker?': {
+		address: 'string',
+		'alias?': 'string',
+	},
+	'fitness?': 'unknown',
 }) satisfies Type<TzktBlock>
+const tzktHead = arktype({
+	chain: 'string',
+	chainId: 'string',
+	cycle: 'number.integer >= 0',
+	level: 'number.integer >= 0',
+	hash: 'string',
+	protocol: 'string',
+	timestamp: 'string',
+	synced: 'boolean',
+	'knownLevel?': 'number.integer >= 0',
+}) satisfies Type<TzktHead>
+const tzktStatistics = arktype({
+	level: 'number.integer >= 0',
+	timestamp: 'string',
+	totalSupply: 'number.integer >= 0',
+	'circulatingSupply?': 'number.integer >= 0',
+}) satisfies Type<TzktStatistics>
 
 const queryString = (parameters: Record<string, string | number | undefined>) => (
 	Object.entries(parameters)
@@ -39,6 +70,27 @@ const queryString = (parameters: Record<string, string | number | undefined>) =>
 		.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
 		.join('&')
 )
+
+const assertPage = (
+	offset: number,
+	limit: number,
+	label: string
+) => {
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error(`TzKT ${label} offset must be a nonnegative safe integer`)
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 1_000)
+		throw new Error(`TzKT ${label} limit must be a safe integer from 1 through 1000`)
+	if (!Number.isSafeInteger(offset + limit))
+		throw new Error(`TzKT ${label} page must remain within safe integer bounds`)
+}
+
+const assertNonemptyAddress = (
+	address: string,
+	label: string
+) => {
+	if (address.length === 0)
+		throw new Error(`TzKT ${label} address must not be empty`)
+}
 
 export const getBigMap = ({
 	bigMapId,
@@ -139,24 +191,47 @@ export const getContract = ({
 	address,
 }: {
 	address: string
-}) => (
-	sourceGetJson<TzktContract>(
+}) => {
+	assertNonemptyAddress(address, 'contract')
+	return sourceGetJson<TzktContract>(
 		binding,
-		`${baseUrl}/v1/contracts/${address}`
+		`${baseUrl}/v1/contracts/${encodeURIComponent(address)}`
 	)
-)
+}
+
+export const listContracts = ({
+	offset,
+	limit,
+}: {
+	offset: number
+	limit: number
+}) => {
+	assertPage(offset, limit, 'contract')
+	return sourceGetJson<TzktContract[]>(
+		binding,
+		`${baseUrl}/v1/contracts?${queryString({
+			offset,
+			limit,
+		})}`
+	)
+}
 
 export const getAccount = ({
 	address,
+	level,
 }: {
 	address: string
+	level?: bigint | number
 }) => {
-	if (address.length === 0)
-		throw new Error('TzKT account address must not be empty')
-
+	assertNonemptyAddress(address, 'account')
 	return sourceGetJson<TzktAccount>(
 		binding,
-		`${baseUrl}/v1/accounts/${encodeURIComponent(address)}`
+		`${baseUrl}/v1/accounts/${encodeURIComponent(address)}${(
+			level == null ?
+				''
+			:
+				`?${queryString({ level: String(level) })}`
+		)}`
 	)
 }
 
@@ -164,12 +239,7 @@ const assertAccountPage = (
 	offset: number,
 	limit: number
 ) => {
-	if (!Number.isSafeInteger(offset) || offset < 0)
-		throw new Error('TzKT account offset must be a nonnegative safe integer')
-	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 1_000)
-		throw new Error('TzKT account limit must be a safe integer from 1 through 1000')
-	if (!Number.isSafeInteger(offset + limit))
-		throw new Error('TzKT account page must remain within safe integer bounds')
+	assertPage(offset, limit, 'account')
 }
 
 export const listAccountOperations = async ({
@@ -182,8 +252,7 @@ export const listAccountOperations = async ({
 	limit: number
 }) => {
 	assertAccountPage(offset, limit)
-	if (address.length === 0)
-		throw new Error('TzKT account address must not be empty')
+	assertNonemptyAddress(address, 'account')
 
 	const operations = await sourceGetJson<TzktOperation[]>(
 		binding,
@@ -222,7 +291,7 @@ export const listAccountOperations = async ({
 	return operations
 }
 
-export const listAccountTokenBalances = ({
+export const listAccountTokenBalances = async ({
 	address,
 	offset,
 	limit,
@@ -232,10 +301,9 @@ export const listAccountTokenBalances = ({
 	limit: number
 }) => {
 	assertAccountPage(offset, limit)
-	if (address.length === 0)
-		throw new Error('TzKT account address must not be empty')
+	assertNonemptyAddress(address, 'account')
 
-	return sourceGetJson<TzktTokenBalance[]>(
+	const balances = await sourceGetJson<TzktTokenBalance[]>(
 		binding,
 		`${baseUrl}/v1/tokens/balances?${queryString({
 			account: address,
@@ -243,9 +311,13 @@ export const listAccountTokenBalances = ({
 			limit,
 		})}`
 	)
+	if (balances.length > limit)
+		throw new Error('TzKT account token balances exceeded the requested limit')
+
+	return balances
 }
 
-export const listAccountTokenTransfers = ({
+export const listAccountTokenTransfers = async ({
 	address,
 	offset,
 	limit,
@@ -255,10 +327,9 @@ export const listAccountTokenTransfers = ({
 	limit: number
 }) => {
 	assertAccountPage(offset, limit)
-	if (address.length === 0)
-		throw new Error('TzKT account address must not be empty')
+	assertNonemptyAddress(address, 'account')
 
-	return sourceGetJson<TzktTokenTransfer[]>(
+	const transfers = await sourceGetJson<TzktTokenTransfer[]>(
 		binding,
 		`${baseUrl}/v1/tokens/transfers?${queryString({
 			'anyof.from.to': address,
@@ -266,6 +337,10 @@ export const listAccountTokenTransfers = ({
 			limit,
 		})}`
 	)
+	if (transfers.length > limit)
+		throw new Error('TzKT account token transfers exceeded the requested limit')
+
+	return transfers
 }
 
 export const getBlock = ({
@@ -279,13 +354,122 @@ export const getBlock = ({
 	).then((wire) => tzktBlock.assert(wire))
 )
 
+export const listBlocks = async ({
+	offset,
+	limit,
+}: {
+	offset: number
+	limit: number
+}) => {
+	assertPage(offset, limit, 'block')
+	const blocks = await sourceGetJson<unknown[]>(
+		binding,
+		`${baseUrl}/v1/blocks?${queryString({
+			offset,
+			limit,
+			'sort.desc': 'level',
+		})}`
+	)
+	if (blocks.length > limit)
+		throw new Error('TzKT blocks exceeded the requested limit')
+
+	return blocks.map((wire) => tzktBlock.assert(wire))
+}
+
+export const getHead = () => (
+	sourceGetJson<unknown>(
+		binding,
+		`${baseUrl}/v1/head`
+	).then((wire) => tzktHead.assert(wire))
+)
+
+export const getCurrentStatistics = () => (
+	sourceGetJson<unknown>(
+		binding,
+		`${baseUrl}/v1/statistics/current`
+	).then((wire) => tzktStatistics.assert(wire))
+)
+
 export const listOperationsByHash = ({
 	operationHash,
 }: {
 	operationHash: string
-}) => (
-	sourceGetJson<TzktOperation[]>(
+}) => {
+	if (operationHash.length === 0)
+		throw new Error('TzKT operation hash must not be empty')
+
+	return sourceGetJson<TzktOperation[]>(
 		binding,
-		`${baseUrl}/v1/operations/${operationHash}`
+		`${baseUrl}/v1/operations/${encodeURIComponent(operationHash)}`
 	)
-)
+}
+
+export const listTokenTransfers = async ({
+	offset,
+	limit,
+}: {
+	offset: number
+	limit: number
+}) => {
+	assertPage(offset, limit, 'token transfer')
+	const transfers = await sourceGetJson<TzktTokenTransfer[]>(
+		binding,
+		`${baseUrl}/v1/tokens/transfers?${queryString({
+			offset,
+			limit,
+		})}`
+	)
+	if (transfers.length > limit)
+		throw new Error('TzKT token transfers exceeded the requested limit')
+
+	return transfers
+}
+
+export const listTokens = async ({
+	offset,
+	limit,
+}: {
+	offset: number
+	limit: number
+}) => {
+	assertPage(offset, limit, 'token')
+	const tokens = await sourceGetJson<TzktToken[]>(
+		binding,
+		`${baseUrl}/v1/tokens?${queryString({
+			offset,
+			limit,
+		})}`
+	)
+	if (tokens.length > limit)
+		throw new Error('TzKT tokens exceeded the requested limit')
+
+	return tokens
+}
+
+export const getToken = async ({
+	contractAddress,
+	tokenId,
+}: {
+	contractAddress: string
+	tokenId: bigint | number | string
+}) => {
+	assertNonemptyAddress(contractAddress, 'token contract')
+	const tokens = await sourceGetJson<TzktToken[]>(
+		binding,
+		`${baseUrl}/v1/tokens?${queryString({
+			contract: contractAddress,
+			tokenId: String(tokenId),
+			limit: 1,
+		})}`
+	)
+	const token = tokens[0]
+	if (token == null)
+		throw new Error(`TzKT token ${contractAddress}/${String(tokenId)} not found`)
+	if (
+		token.contract.address !== contractAddress
+		|| token.tokenId !== String(tokenId)
+	)
+		throw new Error(`TzKT token response does not match ${contractAddress}/${String(tokenId)}`)
+
+	return token
+}

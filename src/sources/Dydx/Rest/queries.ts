@@ -1,14 +1,21 @@
+import { DecimalString } from '$/schema/DecimalString.ts'
+import { NonNegativeDecimalString } from '$/schema/NonNegativeDecimalString.ts'
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/Dydx/bindings.ts'
 import type { components } from '$/sources/Dydx/OpenApi/openapi.d.ts'
 import { Source } from '$/sources/Source.ts'
+import { ApiFamily } from '$/sources/SourceBinding.ts'
 
 type DydxPerpetualPosition = components['schemas']['PerpetualPositionResponseObject']
 
-const binding = bindings[Source.DydxIndexer][0]
+const binding = bindings[Source.DydxIndexer].find(
+	({ apiFamily }) => apiFamily === ApiFamily.OpenApiHttp
+)
 
-const decimalPattern = /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/
+if (binding == null)
+	throw new Error('DydxIndexer: OpenAPI binding is missing')
+
 const addressPattern = /^dydx1[023456789acdefghjklmnpqrstuvwxyz]{38}$/
 const tickerPattern = /^[A-Z0-9][A-Z0-9._-]{1,63}$/
 
@@ -37,27 +44,21 @@ const assertHeight = (height: string) => {
 }
 
 const assertDecimal = (value: string, field: string) => {
-	if (!decimalPattern.test(value))
+	if (!DecimalString.allows(value))
 		throw new Error(`DydxIndexer: invalid decimal ${field}`)
 }
 
-const observeIndexer = async <_Value>(
-	request: Promise<_Value>
-) => {
-	const [value, indexerHeight] = await Promise.all([
-		request,
-		sourceGetJson<components['schemas']['HeightResponse']>(
-			binding,
-			httpUrl(binding, '/v4/height')
-		),
-	])
-	assertHeight(indexerHeight.height)
-	return {
-		value,
-		indexedAtHeight: indexerHeight.height,
-		indexedAtTime: indexerHeight.time,
-	}
+const assertNonNegativeDecimal = (value: string, field: string) => {
+	if (!NonNegativeDecimalString.allows(value))
+		throw new Error(`DydxIndexer: invalid non-negative decimal ${field}`)
 }
+
+const observeResponse = async <_Value>(
+	request: Promise<_Value>
+) => ({
+	value: await request,
+	observedAtMs: Date.now(),
+})
 
 const subaccountQuery = ({
 	address,
@@ -95,15 +96,19 @@ const assertPosition = (
 
 	for (const [field, value] of Object.entries({
 		size: position.size,
-		maxSize: position.maxSize,
-		entryPrice: position.entryPrice,
 		realizedPnl: position.realizedPnl,
 		unrealizedPnl: position.unrealizedPnl,
-		sumOpen: position.sumOpen,
-		sumClose: position.sumClose,
 		netFunding: position.netFunding,
 	}))
 		assertDecimal(value, field)
+
+	for (const [field, value] of Object.entries({
+		maxSize: position.maxSize,
+		entryPrice: position.entryPrice,
+		sumOpen: position.sumOpen,
+		sumClose: position.sumClose,
+	}))
+		assertNonNegativeDecimal(value, field)
 }
 
 export const getPerpetualMarkets = async ({
@@ -114,7 +119,7 @@ export const getPerpetualMarkets = async ({
 	if (ticker != null && !tickerPattern.test(ticker))
 		throw new Error(`DydxIndexer: invalid market ticker ${ticker}`)
 
-	const observation = await observeIndexer(
+	const observation = await observeResponse(
 		sourceGetJson<components['schemas']['PerpetualMarketResponse']>(
 			binding,
 			httpUrl(
@@ -130,20 +135,24 @@ export const getPerpetualMarkets = async ({
 		if (marketKey !== market.ticker || (ticker != null && market.ticker !== ticker))
 			throw new Error('DydxIndexer: mismatched market identity')
 
-		assertDecimal(market.oraclePrice, 'oraclePrice')
+		assertNonNegativeDecimal(market.oraclePrice, 'oraclePrice')
+		assertNonNegativeDecimal(market.openInterest, 'openInterest')
 
 		for (const [field, value] of Object.entries({
 			priceChange24H: market.priceChange24H,
-			volume24H: market.volume24H,
 			nextFundingRate: market.nextFundingRate,
+		}))
+			assertDecimal(value, field)
+
+		for (const [field, value] of Object.entries({
+			volume24H: market.volume24H,
 			initialMarginFraction: market.initialMarginFraction,
 			maintenanceMarginFraction: market.maintenanceMarginFraction,
-			openInterest: market.openInterest,
 			tickSize: market.tickSize,
 			stepSize: market.stepSize,
 			baseOpenInterest: market.baseOpenInterest,
 		}))
-			assertDecimal(value, field)
+			assertNonNegativeDecimal(value, field)
 	}
 
 	return observation
@@ -160,7 +169,7 @@ export const getSubaccount = async ({
 		address,
 		subaccountNumber,
 	})
-	const observation = await observeIndexer(
+	const observation = await observeResponse(
 		sourceGetJson<components['schemas']['SubaccountResponseObject']>(
 			binding,
 			httpUrl(
@@ -199,7 +208,7 @@ export const getOrders = async ({
 		subaccountNumber,
 		limit,
 	})
-	const observation = await observeIndexer(
+	const observation = await observeResponse(
 		sourceGetJson<components['schemas']['OrderResponseObject'][]>(
 			binding,
 			httpUrl(binding, `/v4/orders?${query}`)
@@ -216,7 +225,7 @@ export const getOrders = async ({
 			size: order.size,
 			totalFilled: order.totalFilled,
 		}))
-			assertDecimal(value, field)
+			assertNonNegativeDecimal(value, field)
 	}
 
 	return observation
@@ -239,7 +248,7 @@ export const getFills = async ({
 		limit,
 		createdBeforeOrAtHeight,
 	})
-	const observation = await observeIndexer(
+	const observation = await observeResponse(
 		sourceGetJson<components['schemas']['FillResponse']>(
 			binding,
 			httpUrl(binding, `/v4/fills?${query}`)
@@ -254,12 +263,16 @@ export const getFills = async ({
 			throw new Error('DydxIndexer: foreign subaccount fill')
 		assertHeight(fill.createdAtHeight)
 		for (const [field, value] of Object.entries({
-			price: fill.price,
-			size: fill.size,
 			fee: fill.fee,
-			affiliateRevShare: fill.affiliateRevShare,
 		}))
 			assertDecimal(value, field)
+
+		for (const [field, value] of Object.entries({
+			price: fill.price,
+			size: fill.size,
+			affiliateRevShare: fill.affiliateRevShare,
+		}))
+			assertNonNegativeDecimal(value, field)
 	}
 
 	return observation
@@ -282,7 +295,7 @@ export const getPerpetualPositions = async ({
 		limit,
 		createdBeforeOrAtHeight,
 	})
-	const observation = await observeIndexer(
+	const observation = await observeResponse(
 		sourceGetJson<components['schemas']['PerpetualPositionResponse']>(
 			binding,
 			httpUrl(binding, `/v4/perpetualPositions?${query}`)

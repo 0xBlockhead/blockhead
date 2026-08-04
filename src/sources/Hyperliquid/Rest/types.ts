@@ -149,3 +149,112 @@ export type HyperliquidValidatorSummary = {
 	isActive: boolean
 	commission: string
 }
+
+export type HyperliquidL2Book = {
+	coin: string
+	time: number
+	levels: [
+		{
+			px: string
+			sz: string
+			n: number
+		}[],
+		{
+			px: string
+			sz: string
+			n: number
+		}[],
+	]
+}
+
+export type HyperliquidCandle = {
+	t: number
+	T: number
+	s: string
+	i: string
+	o: string
+	c: string
+	h: string
+	l: string
+	v: string
+	n: number
+}
+
+export type HyperliquidVaultFollower = {
+	user: string
+	vaultEquity: string
+	pnl: string
+	allTimePnl: string
+	daysFollowing: number
+	vaultEntryTime: number
+	lockupUntil: number
+}
+
+export type HyperliquidVaultDetails = {
+	name: string
+	vaultAddress: string
+	leader: string
+	description: string
+	portfolio: JsonValue
+	apr: number
+	followerState: JsonValue
+	leaderFraction: number
+	leaderCommission: number
+	followers: HyperliquidVaultFollower[]
+	maxDistributable: number
+	maxWithdrawable: number
+	isClosed: boolean
+	relationship: (
+		| {
+			type: 'parent'
+			data: {
+				childAddresses: string[]
+			}
+		}
+		| {
+			type: 'child'
+			data: {
+				parentAddress: string
+			}
+		}
+		| null
+	)
+	allowDeposits: boolean
+	alwaysCloseOnWithdraw: boolean
+}
+
+export type HyperliquidUserFees = {
+	dailyUserVlm: JsonValue[]
+	feeSchedule: JsonValue
+	userCrossRate: string
+	userAddRate: string
+	userSpotCrossRate: string
+	userSpotAddRate: string
+	activeReferralDiscount: string
+	trial: JsonValue
+	feeTrialReward: string
+	nextTrialAvailableTimestamp: number | null
+	stakingLink: JsonValue
+	activeStakingDiscount: JsonValue
+}
+
+export type HyperliquidDelegatorSummary = {
+	delegated: string
+	undelegated: string
+	totalPendingWithdrawal: string
+	nPendingWithdrawals: number
+}
+
+export type HyperliquidUserAbstraction = (
+	| 'unifiedAccount'
+	| 'portfolioMargin'
+	| 'disabled'
+	| 'default'
+	| 'dexAbstraction'
+)
+
+export type HyperliquidBorrowLendUserState = {
+	tokenToState: JsonValue[]
+	health: string
+	healthFactor: string | null
+}

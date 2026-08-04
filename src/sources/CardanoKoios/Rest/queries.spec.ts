@@ -48,6 +48,11 @@ const transactionInfo = {
 	epoch_no: 500,
 	absolute_slot: 130_000_000,
 	tx_timestamp: 1_700_000_000,
+	tx_size: 512,
+	fee: '170000',
+	deposit: '0',
+	invalid_before: null,
+	invalid_after: null,
 	certificates: [],
 	native_scripts: [],
 	plutus_contracts: [],
@@ -266,12 +271,65 @@ describe('Cardano Koios REST transaction transport', () => {
 		await expect(getTransactionInfo(transactionInfo.tx_hash)).rejects.toThrow()
 	})
 
-	it('rejects an absent transaction instead of resolving authoritative emptiness', async () => {
-		sourceFetch.mockResolvedValueOnce(Response.json([]))
+	it('rejects an absent or non-singleton transaction instead of resolving authoritative emptiness', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(Response.json([]))
+			.mockResolvedValueOnce(Response.json([
+				transactionInfo,
+				transactionInfo,
+			]))
 
 		await expect(getTransactionInfo(transactionInfo.tx_hash)).rejects.toThrow(
 			'CardanoKoios_Rest: transaction response is missing'
 		)
+		await expect(getTransactionInfo(transactionInfo.tx_hash)).rejects.toThrow(
+			'tx_info must return exactly one transaction'
+		)
+	})
+
+	it.each([
+		{
+			field: 'malformed fee',
+			patch: {
+				fee: '1.5',
+			},
+			message: 'fee',
+		},
+		{
+			field: 'unsafe absolute slot',
+			patch: {
+				absolute_slot: Number.MAX_SAFE_INTEGER + 1,
+			},
+			message: 'unsafe integer',
+		},
+		{
+			field: 'duplicate certificate identity',
+			patch: {
+				certificates: [
+					{
+						info: {},
+						type: 'pool_update',
+						index: 0,
+					},
+					{
+						info: {},
+						type: 'pool_retire',
+						index: 0,
+					},
+				],
+			},
+			message: 'duplicate identities',
+		},
+	])('rejects a transaction with $field before resolver mapping', async ({
+		patch,
+		message,
+	}) => {
+		sourceFetch.mockResolvedValueOnce(Response.json([{
+			...transactionInfo,
+			...patch,
+		}]))
+
+		await expect(getTransactionInfo(transactionInfo.tx_hash)).rejects.toThrow(message)
 	})
 
 	it.each([
@@ -575,10 +633,44 @@ describe('Cardano Koios governance proposal pagination', () => {
 			binding,
 			'https://api.koios.rest/api/v1/proposal_list?limit=16&offset=32'
 		)
-		expect(() => listGovernanceProposals(16, -1)).toThrow(
+		await expect(listGovernanceProposals(16, -1)).rejects.toThrow(
 			'list offset must be a nonnegative integer'
 		)
 		expect(sourceGetJson).toHaveBeenCalledOnce()
+	})
+
+	it.each([
+		{
+			label: 'missing proposal field',
+			response: [{
+				proposal_tx_hash: 'proposal-hash',
+				proposal_index: 0,
+			}],
+			message: 'proposal_type',
+		},
+		{
+			label: 'duplicate proposal identity',
+			response: [
+				{
+					proposal_tx_hash: 'proposal-hash',
+					proposal_index: 0,
+					proposal_type: 'InfoAction',
+				},
+				{
+					proposal_tx_hash: 'proposal-hash',
+					proposal_index: 0,
+					proposal_type: 'InfoAction',
+				},
+			],
+			message: 'duplicate identities',
+		},
+	])('rejects $label on proposal_list', async ({
+		response,
+		message,
+	}) => {
+		sourceGetJson.mockResolvedValueOnce(response)
+
+		await expect(listGovernanceProposals(response.length)).rejects.toThrow(message)
 	})
 })
 

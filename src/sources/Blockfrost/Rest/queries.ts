@@ -3,10 +3,13 @@ import { TransportType } from '$/constants/TransportType.ts'
 import { firstHttpUrlForBinding, sourceFetch } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/Blockfrost/bindings.ts'
 import type {
+	BlockfrostAccount,
+	BlockfrostAccountAddresses,
 	BlockfrostAddress,
 	BlockfrostAddressTotal,
 	BlockfrostAddressTransactions,
 	BlockfrostAddressUtxos,
+	BlockfrostAsset,
 	BlockfrostAssets,
 	BlockfrostBlock,
 	BlockfrostBlocks,
@@ -108,12 +111,33 @@ export const getLatestBlock = () => (
 	get<BlockfrostBlock>('blocks/latest')
 )
 
+export const getAccount = (stakeAddress: string) => (
+	get<BlockfrostAccount>(`accounts/${encodeURIComponent(stakeAddress)}`)
+)
+
+export const listAccountAddresses = (
+	stakeAddress: string,
+	count: number,
+	page = 1
+) => (
+	listPage<BlockfrostAccountAddresses[number]>(
+		`accounts/${encodeURIComponent(stakeAddress)}/addresses`,
+		count,
+		'asc',
+		page
+	)
+)
+
 export const getAddress = (address: string) => (
 	get<BlockfrostAddress>(`addresses/${encodeURIComponent(address)}`)
 )
 
 export const getAddressTotal = (address: string) => (
 	get<BlockfrostAddressTotal>(`addresses/${encodeURIComponent(address)}/total`)
+)
+
+export const getAsset = (asset: string) => (
+	get<BlockfrostAsset>(`assets/${encodeURIComponent(asset)}`)
 )
 
 export const listAddressTransactions = (

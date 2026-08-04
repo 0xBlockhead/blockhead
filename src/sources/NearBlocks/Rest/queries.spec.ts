@@ -3,6 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/NearBlocks/bindings.ts'
 import type {
+	NearBlocksAccount,
+	NearBlocksAccountResponse,
+	NearBlocksBlock,
+	NearBlocksBlockResponse,
+	NearBlocksTransaction,
+	NearBlocksTransactionResponse,
 	NearBlocksV3AccountBalance,
 	NearBlocksV3Response,
 	NearBlocksV3Transaction,
@@ -17,13 +23,59 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 }))
 
 const {
+	getAccount,
 	getAccountBalance,
 	getAccountTransactions,
+	getBlock,
+	getTransaction,
 } = await import('$/sources/NearBlocks/Rest/queries.ts')
 
 const binding = bindings[Source.NearBlocks_Rest][0]
 
+const account = {
+	account_id: 'alice.near',
+	amount: '100',
+	block_hash: 'account-block-hash',
+	block_height: '208137439',
+	locked: '0',
+	storage_usage: 182,
+} satisfies NearBlocksAccount
+
+const block = {
+	block_hash: 'block-hash',
+	block_height: '208137439',
+	block_timestamp: '1784777079149554306',
+	prev_block_hash: 'prev-block-hash',
+	epoch_id: 'epoch-id',
+} satisfies NearBlocksBlock
+
 const transaction = {
+	actions: [{
+		action: 'FUNCTION_CALL',
+		method: 'ft_transfer',
+	}],
+	actions_agg: {
+		deposit: '0',
+		gas_attached: '30000000000000',
+	},
+	block: {
+		block_height: '208137439',
+	},
+	block_timestamp: '1784777079149554306',
+	included_in_block_hash: 'included-block-hash',
+	outcomes: {
+		status: true,
+	},
+	outcomes_agg: {
+		gas_used: '1900000000000',
+		transaction_fee: '7442984711078700000000',
+	},
+	receiver_account_id: 'alice.near',
+	signer_account_id: 'bob.near',
+	transaction_hash: 'transaction-hash',
+} satisfies NearBlocksTransaction
+
+const v3Transaction = {
 	actions: [{
 		action: 'TRANSFER',
 	}],
@@ -54,6 +106,143 @@ const transaction = {
 	transaction_hash: 'transaction-hash',
 } satisfies NearBlocksV3Transaction
 
+describe('NearBlocks v1 entity transport', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('loads a canonical account and rejects identity or amount drift', async () => {
+		getNearBlocksRestJson.mockResolvedValueOnce({
+			account: [account],
+		} satisfies NearBlocksAccountResponse)
+
+		await expect(getAccount({
+			accountId: 'alice.near',
+		})).resolves.toEqual(account)
+		expect(getNearBlocksRestJson).toHaveBeenCalledWith(
+			binding,
+			'/v1/account/alice.near'
+		)
+
+		getNearBlocksRestJson.mockResolvedValueOnce({
+			account: [{
+				...account,
+				account_id: 'foreign.near',
+			}],
+		})
+		await expect(getAccount({
+			accountId: 'alice.near',
+		})).rejects.toThrow('identity does not match')
+
+		getNearBlocksRestJson.mockResolvedValueOnce({
+			account: [{
+				...account,
+				amount: '-1',
+			}],
+		})
+		await expect(getAccount({
+			accountId: 'alice.near',
+		})).rejects.toThrow('invalid account amount')
+
+		getNearBlocksRestJson.mockResolvedValueOnce({
+			account: [],
+		})
+		await expect(getAccount({
+			accountId: 'alice.near',
+		})).rejects.toThrow('not found')
+	})
+
+	it('loads blocks by height or hash and rejects selector mismatches', async () => {
+		getNearBlocksRestJson.mockResolvedValueOnce({
+			blocks: [block],
+		} satisfies NearBlocksBlockResponse)
+
+		await expect(getBlock({
+			block: 208137439n,
+		})).resolves.toEqual(block)
+		expect(getNearBlocksRestJson).toHaveBeenCalledWith(
+			binding,
+			'/v1/blocks/208137439'
+		)
+
+		getNearBlocksRestJson.mockResolvedValueOnce({
+			blocks: [block],
+		})
+		await expect(getBlock({
+			block: 'block-hash',
+		})).resolves.toEqual(block)
+
+		getNearBlocksRestJson.mockResolvedValueOnce({
+			blocks: [{
+				...block,
+				block_height: '1',
+			}],
+		})
+		await expect(getBlock({
+			block: 208137439n,
+		})).rejects.toThrow('height does not match')
+
+		getNearBlocksRestJson.mockResolvedValueOnce({
+			blocks: [{
+				...block,
+				block_hash: 'other-hash',
+			}],
+		})
+		await expect(getBlock({
+			block: 'block-hash',
+		})).rejects.toThrow('hash does not match')
+	})
+
+	it('loads transactions and rejects missing actions or hash drift', async () => {
+		getNearBlocksRestJson.mockResolvedValueOnce({
+			txns: [transaction],
+		} satisfies NearBlocksTransactionResponse)
+
+		await expect(getTransaction({
+			transactionHash: 'transaction-hash',
+		})).resolves.toEqual(transaction)
+		expect(getNearBlocksRestJson).toHaveBeenCalledWith(
+			binding,
+			'/v1/txns/transaction-hash'
+		)
+
+		getNearBlocksRestJson.mockResolvedValueOnce({
+			txns: [{
+				...transaction,
+				transaction_hash: 'other-hash',
+			}],
+		})
+		await expect(getTransaction({
+			transactionHash: 'transaction-hash',
+		})).rejects.toThrow('hash does not match')
+
+		getNearBlocksRestJson.mockResolvedValueOnce({
+			txns: [{
+				...transaction,
+				actions: [{
+					action: '',
+				}],
+			}],
+		})
+		await expect(getTransaction({
+			transactionHash: 'transaction-hash',
+		})).rejects.toThrow('action kind must not be empty')
+
+		getNearBlocksRestJson.mockResolvedValueOnce({
+			txns: [{
+				...transaction,
+				outcomes_agg: {
+					...transaction.outcomes_agg,
+					transaction_fee: 7442984711078700000000,
+				},
+			}],
+		})
+		await expect(getTransaction({
+			transactionHash: 'transaction-hash',
+		})).rejects.toThrow('invalid transaction fee')
+	})
+})
+
 describe('NearBlocks v3 account portfolio transport', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -79,7 +268,7 @@ describe('NearBlocks v3 account portfolio transport', () => {
 
 	it('walks opaque bounded account transaction cursors', async () => {
 		getNearBlocksRestJson.mockResolvedValueOnce({
-			data: [transaction],
+			data: [v3Transaction],
 			meta: {
 				next_page: 'opaque-next',
 			},
@@ -90,7 +279,7 @@ describe('NearBlocks v3 account portfolio transport', () => {
 			limit: 25,
 			next: 'opaque+/=current',
 		})).resolves.toEqual({
-			transactions: [transaction],
+			transactions: [v3Transaction],
 			continuationToken: 'opaque-next',
 		})
 		expect(getNearBlocksRestJson).toHaveBeenCalledWith(
@@ -102,7 +291,7 @@ describe('NearBlocks v3 account portfolio transport', () => {
 	it('fails closed on foreign, duplicate, oversized, and non-progress pages', async () => {
 		getNearBlocksRestJson.mockResolvedValueOnce({
 			data: [{
-				...transaction,
+				...v3Transaction,
 				receiver_account_id: 'carol.near',
 			}],
 		})
@@ -113,8 +302,8 @@ describe('NearBlocks v3 account portfolio transport', () => {
 
 		getNearBlocksRestJson.mockResolvedValueOnce({
 			data: [
-				transaction,
-				transaction,
+				v3Transaction,
+				v3Transaction,
 			],
 		})
 		await expect(getAccountTransactions({
@@ -124,9 +313,9 @@ describe('NearBlocks v3 account portfolio transport', () => {
 
 		getNearBlocksRestJson.mockResolvedValueOnce({
 			data: [
-				transaction,
+				v3Transaction,
 				{
-					...transaction,
+					...v3Transaction,
 					transaction_hash: 'second-transaction-hash',
 				},
 			],
@@ -137,7 +326,7 @@ describe('NearBlocks v3 account portfolio transport', () => {
 		})).rejects.toThrow('exceeds requested limit')
 
 		getNearBlocksRestJson.mockResolvedValueOnce({
-			data: [transaction],
+			data: [v3Transaction],
 			meta: {
 				next_page: 'same',
 			},
@@ -152,11 +341,11 @@ describe('NearBlocks v3 account portfolio transport', () => {
 	it('preserves newest-first order and rejects malformed lossless transaction context', async () => {
 		getNearBlocksRestJson.mockResolvedValueOnce({
 			data: [
-				transaction,
+				v3Transaction,
 				{
-					...transaction,
+					...v3Transaction,
 					block: {
-						...transaction.block,
+						...v3Transaction.block,
 						block_timestamp: '1784777079149554307',
 					},
 					block_timestamp: '1784777079149554307',
@@ -171,15 +360,15 @@ describe('NearBlocks v3 account portfolio transport', () => {
 
 		for (const malformedTransaction of [
 			{
-				...transaction,
+				...v3Transaction,
 				index_in_chunk: -1,
 			},
 			{
-				...transaction,
+				...v3Transaction,
 				block_timestamp: '1',
 			},
 			{
-				...transaction,
+				...v3Transaction,
 				receipt_conversion_tokens_burnt: '-1',
 			},
 		]) {

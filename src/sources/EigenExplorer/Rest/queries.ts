@@ -5,6 +5,7 @@ import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import type {
 	EigenExplorerDeposit,
+	EigenExplorerOperator,
 	EigenExplorerOperatorRewardInfo,
 	EigenExplorerPage,
 	EigenExplorerStaker,
@@ -271,4 +272,46 @@ export const getOperatorRewardInfo = async (address: string) => {
 		throw new Error('EigenExplorer returned duplicate reward information')
 
 	return rewardInfo
+}
+
+export const getOperator = async (address: string) => {
+	assertAddress(address, 'operator address')
+
+	const operator = await fetchEigenExplorerJson<EigenExplorerOperator>(
+		`/operators/${encodeURIComponent(address)}`
+	)
+
+	if (operator.address.toLowerCase() !== address.toLowerCase())
+		throw new Error('EigenExplorer returned a foreign operator')
+
+	if (
+		!unsignedIntegerPattern.test(operator.createdAtBlock)
+		|| !unsignedIntegerPattern.test(operator.updatedAtBlock)
+	)
+		throw new Error('EigenExplorer returned invalid operator block identity')
+
+	assertTimestamp(operator.createdAt, 'operator creation timestamp')
+	assertTimestamp(operator.updatedAt, 'operator update timestamp')
+	assertStrategyShares(operator.shares)
+
+	if (operator.metadataName.trim() === '')
+		throw new Error('EigenExplorer returned an empty operator name')
+
+	if (operator.metadataWebsite != null) {
+		try {
+			new URL(operator.metadataWebsite)
+		} catch {
+			throw new Error('EigenExplorer returned invalid operator website')
+		}
+	}
+
+	if (operator.metadataLogo != null) {
+		try {
+			new URL(operator.metadataLogo)
+		} catch {
+			throw new Error('EigenExplorer returned invalid operator logo')
+		}
+	}
+
+	return operator
 }

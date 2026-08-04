@@ -1,18 +1,19 @@
 /**
  * Farcaster Client API response shapes used by resolvers.
- * @see https://docs.farcaster.xyz/reference/farcaster/api#get-all-channels
- * @see https://docs.farcaster.xyz/reference/farcaster/api#get-a-channel
- * @see https://docs.farcaster.xyz/reference/farcaster/api#get-user-primary-address
+ * @see https://docs.neynar.com/farcaster/reference/farcaster/api
  */
 
-export type FarcasterChannel = {
+export type FarcasterChannelWire = {
 	id: string
 	url: string
 	name: string
 	description?: string
+	descriptionMentions?: number[]
+	descriptionMentionsPositions?: number[]
 	imageUrl?: string
 	headerImageUrl?: string
 	leadFid?: number
+	moderatorFid?: number
 	moderatorFids?: number[]
 	createdAt?: number
 	followerCount?: number
@@ -23,8 +24,18 @@ export type FarcasterChannel = {
 		title?: string
 		url?: string
 	}
-	followedAt?: number
 }
+
+/** Provider-normalized channel identity: wire `url` is the FIP-2 parent URL. */
+export type FarcasterChannel = (
+	& Omit<FarcasterChannelWire, 'url'>
+	& { parentUrl: FarcasterChannelWire['url'] }
+)
+
+export type FarcasterFollowedChannelWire = (
+	& FarcasterChannelWire
+	& { followedAt: number }
+)
 
 export type FarcasterPage<Result> = {
 	result?: Result
@@ -35,12 +46,26 @@ export type FarcasterPage<Result> = {
 
 export type FarcasterChannelsResponse = {
 	result?: {
-		channels?: FarcasterChannel[]
+		channels?: FarcasterChannelWire[]
 	}
 }
 
 export type FarcasterChannelResponse = FarcasterPage<{
-	channel?: FarcasterChannel
+	channel?: FarcasterChannelWire
+}>
+
+export type FarcasterChannelFollowStatusResponse = FarcasterPage<{
+	following: boolean
+	followedAt?: number
+}>
+
+export type FarcasterChannelMember = {
+	fid: number
+	memberAt: number
+}
+
+export type FarcasterChannelMembersResponse = FarcasterPage<{
+	members: FarcasterChannelMember[]
 }>
 
 export type FarcasterPrimaryAddress = {

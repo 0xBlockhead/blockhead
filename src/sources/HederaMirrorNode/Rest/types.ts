@@ -254,3 +254,64 @@ export type HederaMirrorNodeNodes = {
 		next: string | null
 	}
 }
+
+// https://docs.hedera.com/hedera/sdks-and-apis/rest-api/network/get-network-supply
+export type HederaMirrorNodeNetworkSupply = {
+	released_supply: string
+	timestamp: string
+	total_supply: string
+}
+
+// https://docs.hedera.com/hedera/sdks-and-apis/rest-api/network/get-network-stake
+export type HederaMirrorNodeNetworkStake = {
+	max_stake_rewarded: string
+	max_staking_reward_rate_per_hbar: number
+	max_total_reward: string
+	node_reward_fee_fraction: number
+	reserved_staking_rewards: string
+	reward_balance_threshold: string
+	stake_total: string
+	staking_period: {
+		from: string
+		to: string | null
+	}
+	staking_period_duration: number
+	staking_periods_stored: number
+	staking_reward_fee_fraction: number
+	staking_reward_rate: number
+	staking_reward_start_threshold: string
+	unreserved_staking_reward_balance: string
+}
+
+// https://docs.hedera.com/hedera/sdks-and-apis/rest-api/network/get-exchange-rate
+export type HederaMirrorNodeNetworkExchangeRate = {
+	current_rate: {
+		cent_equivalent: number
+		expiration_time: number
+		hbar_equivalent: number
+	}
+	next_rate: {
+		cent_equivalent: number
+		expiration_time: number
+		hbar_equivalent: number
+	}
+	timestamp: string
+}
+
+// https://docs.hedera.com/hedera/sdks-and-apis/rest-api/network/get-network-fees
+export type HederaMirrorNodeNetworkFee = {
+	gas?: number
+	transaction_type: string
+	fees?: {
+		base?: number
+		node?: number
+		network?: number
+		service?: number
+		total?: number
+	}
+}
+
+export type HederaMirrorNodeNetworkFees = {
+	fees: HederaMirrorNodeNetworkFee[]
+	timestamp: string
+}

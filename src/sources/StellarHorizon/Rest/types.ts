@@ -68,6 +68,7 @@ export type StellarHorizonOperation = {
 	type: string
 	type_i: number
 	created_at: string
+	transaction_successful?: boolean
 	source_account?: string
 	from?: string
 	to?: string
@@ -83,4 +84,53 @@ export type StellarHorizonPayment = StellarHorizonOperation & {
 	asset_type?: 'native' | 'credit_alphanum4' | 'credit_alphanum12'
 	asset_code?: string
 	asset_issuer?: string
+}
+
+export type StellarHorizonAssetIdentity = {
+	asset_type: 'native' | 'credit_alphanum4' | 'credit_alphanum12'
+	asset_code?: string
+	asset_issuer?: string
+}
+
+export type StellarHorizonOffer = {
+	id: string
+	paging_token: string
+	seller: string
+	selling: StellarHorizonAssetIdentity
+	buying: StellarHorizonAssetIdentity
+	amount: string
+	price_r: {
+		n: number
+		d: number
+	}
+	price: string
+	last_modified_ledger: number
+	last_modified_time: string | null
+	sponsor?: string
+}
+
+export type StellarHorizonTrade = {
+	id: string
+	paging_token: string
+	ledger_close_time: string
+	trade_type: 'orderbook' | 'liquidity_pool'
+	base_offer_id?: string
+	base_account?: string
+	base_liquidity_pool_id?: string
+	base_amount: string
+	base_asset_type: 'native' | 'credit_alphanum4' | 'credit_alphanum12'
+	base_asset_code?: string
+	base_asset_issuer?: string
+	counter_offer_id?: string
+	counter_account?: string
+	counter_liquidity_pool_id?: string
+	counter_amount: string
+	counter_asset_type: 'native' | 'credit_alphanum4' | 'credit_alphanum12'
+	counter_asset_code?: string
+	counter_asset_issuer?: string
+	base_is_seller?: boolean
+	price: {
+		n: string | number
+		d: string | number
+	}
 }

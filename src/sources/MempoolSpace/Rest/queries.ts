@@ -4,6 +4,7 @@ import {
 } from '$/sources/_runtime/http.ts'
 import type {
 	MempoolSpaceAddress,
+	MempoolSpaceAddressUtxo,
 	MempoolSpaceMempoolStats,
 	MempoolSpaceRecommendedFees,
 } from '$/sources/MempoolSpace/Rest/types.ts'
@@ -28,6 +29,13 @@ export const getBlock = (
 ) => sourceGetJson<EsploraBlock>(
 	binding,
 	mempoolSpaceRestUrl(`block/${encodeURIComponent(blockHash)}`)
+)
+
+export const getBlockHashByHeight = (
+	height: bigint
+) => sourceGetJson<string>(
+	binding,
+	mempoolSpaceRestUrl(`block-height/${height.toString()}`)
 )
 
 export const getBlockTransactionIds = (
@@ -71,6 +79,13 @@ export const getAddress = (
 ) => sourceGetJson<MempoolSpaceAddress>(
 	binding,
 	mempoolSpaceRestUrl(`address/${encodeURIComponent(address)}`)
+)
+
+export const getAddressUtxos = (
+	address: string
+) => sourceGetJson<MempoolSpaceAddressUtxo[]>(
+	binding,
+	mempoolSpaceRestUrl(`address/${encodeURIComponent(address)}/utxo`)
 )
 
 export const getAddressTransactions = (

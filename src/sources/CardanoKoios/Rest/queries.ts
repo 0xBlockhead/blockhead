@@ -8,19 +8,17 @@ import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
-import type {
-	CardanoKoiosGovernanceProposal,
-	CardanoKoiosTransactionInfo,
-} from '$/sources/CardanoKoios/Rest/types.ts'
 import {
 	cardanoKoiosAsset,
 	cardanoKoiosBlock,
 	cardanoKoiosBlockTransaction,
 	cardanoKoiosCommittee,
 	cardanoKoiosDRep,
+	cardanoKoiosGovernanceProposal,
 	cardanoKoiosProtocolParameters,
 	cardanoKoiosStakePool,
 	cardanoKoiosTip,
+	cardanoKoiosTransactionInfo,
 	cardanoKoiosTransactionProposalProcedure,
 } from '$/sources/CardanoKoios/Rest/types.ts'
 import { parseCardanoGovernanceAction } from '$/sources/_shared/interfaces/CardanoGovernance/types.ts'
@@ -69,10 +67,6 @@ export const getTip = async () => {
 
 	return tips
 }
-
-export const getEpochInfo = () => (
-	query<Record<string, unknown>[]>('/api/v1/epoch_info')
-)
 
 const list = <_Response>(
 	path: string,
@@ -149,8 +143,8 @@ export const listLatestBlockTransactions = async (
 export const getTransactionInfo = async (
 	transactionHash: string
 ) => {
-	const transaction = (
-		await cardanoKoiosPostJson<CardanoKoiosTransactionInfo[]>({
+	const transactions = cardanoKoiosTransactionInfo.array().assert(
+		await cardanoKoiosPostJson<JsonValue>({
 			path: '/api/v1/tx_info',
 			body: {
 				_tx_hashes: [transactionHash],
@@ -164,10 +158,34 @@ export const getTransactionInfo = async (
 				_governance: true,
 			},
 		})
-	).at(0)
-
-	if (transaction == null)
-		throw new Error('CardanoKoios_Rest: transaction response is missing')
+	)
+	if (transactions.length !== 1)
+		throw new Error(
+			transactions.length === 0 ?
+				'CardanoKoios_Rest: transaction response is missing'
+			:
+				'CardanoKoios_Rest: tx_info must return exactly one transaction'
+		)
+	const transaction = transactions[0]
+	if (
+		[
+			transaction.epoch_no,
+			transaction.absolute_slot,
+			transaction.tx_timestamp,
+			transaction.tx_size,
+		].some((value) => !Number.isSafeInteger(value))
+		|| transaction.certificates.some((certificate) => !Number.isSafeInteger(certificate.index))
+		|| transaction.voting_procedures.some((votingProcedure) => !Number.isSafeInteger(votingProcedure.proposal_index))
+	)
+		throw new Error('CardanoKoios_Rest: transaction contains an unsafe integer')
+	if (new Set(transaction.certificates.map((certificate) => certificate.index)).size !== transaction.certificates.length)
+		throw new Error('CardanoKoios_Rest: certificates contains duplicate identities')
+	if (
+		new Set(transaction.voting_procedures.map((votingProcedure) => (
+			`${votingProcedure.voter_role}:${votingProcedure.voter}:${votingProcedure.proposal_tx_hash}:${votingProcedure.proposal_index.toString()}`
+		))).size !== transaction.voting_procedures.length
+	)
+		throw new Error('CardanoKoios_Rest: voting_procedures contains duplicate identities')
 
 	return {
 		...transaction,
@@ -178,7 +196,6 @@ export const getTransactionInfo = async (
 				throw new Error('CardanoKoios_Rest: proposal type does not match description tag')
 
 			return {
-				...proposal,
 				type: validated.type,
 				index: validated.index,
 				deposit: validated.deposit,
@@ -218,12 +235,24 @@ export const listDReps = async (
 	return dReps
 }
 
-export const listGovernanceProposals = (
+export const listGovernanceProposals = async (
 	count: number,
 	offset?: number
-) => (
-	list<CardanoKoiosGovernanceProposal>('proposal_list', count, offset)
-)
+) => {
+	const proposals = cardanoKoiosGovernanceProposal.array().assert(
+		await list<JsonValue>('proposal_list', count, offset)
+	)
+	if (
+		proposals.some((proposal) => !Number.isSafeInteger(proposal.proposal_index))
+	)
+		throw new Error('CardanoKoios_Rest: proposal_list contains an unsafe integer')
+	if (new Set(proposals.map((proposal) => (
+		`${proposal.proposal_tx_hash}:${proposal.proposal_index.toString()}`
+	))).size !== proposals.length)
+		throw new Error('CardanoKoios_Rest: proposal_list contains duplicate identities')
+
+	return proposals
+}
 
 export const listAssets = async (
 	count: number

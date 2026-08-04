@@ -2,10 +2,13 @@ import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/StellarHorizon/bindings.ts'
 import type {
 	StellarHorizonAccount,
+	StellarHorizonAssetIdentity,
 	StellarHorizonBalance,
+	StellarHorizonOffer,
 	StellarHorizonOperation,
 	StellarHorizonPage,
 	StellarHorizonPayment,
+	StellarHorizonTrade,
 	StellarHorizonTransaction,
 } from '$/sources/StellarHorizon/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
@@ -74,6 +77,20 @@ const assertBalance = (balance: StellarHorizonBalance) => {
 	if (balance.asset_code == null || balance.asset_code.length === 0 || balance.asset_issuer == null)
 		throw new Error('StellarHorizon_Rest: issued balance is missing asset identity')
 	assertAccountId(balance.asset_issuer, 'asset issuer')
+}
+
+const assertAssetIdentity = (
+	asset: StellarHorizonAssetIdentity,
+	label: string
+) => {
+	if (asset.asset_type === 'native') {
+		if (asset.asset_code != null || asset.asset_issuer != null)
+			throw new Error(`StellarHorizon_Rest: ${label} native asset has foreign identity`)
+		return
+	}
+	if (asset.asset_code == null || asset.asset_code.length === 0 || asset.asset_issuer == null)
+		throw new Error(`StellarHorizon_Rest: ${label} issued asset is missing identity`)
+	assertAccountId(asset.asset_issuer, `${label} asset issuer`)
 }
 
 const accountPath = (accountId: string) => (
@@ -158,10 +175,10 @@ export const getAccount = async (
 		const assetIdentity = (
 			balance.asset_type === 'native' ?
 				'native'
-				: balance.asset_type === 'liquidity_pool_shares' ?
-					`pool:${balance.liquidity_pool_id}`
-					:
-					`${balance.asset_code}:${balance.asset_issuer}`
+			: balance.asset_type === 'liquidity_pool_shares' ?
+				`pool:${balance.liquidity_pool_id}`
+			:
+				`${balance.asset_code}:${balance.asset_issuer}`
 		)
 		if (assetIdentities.has(assetIdentity))
 			throw new Error('StellarHorizon_Rest: duplicate account balance identity')
@@ -175,7 +192,7 @@ const getAccountPage = async <_Record extends {
 	paging_token: string
 }>(
 	accountId: string,
-	resource: 'operations' | 'payments' | 'transactions',
+	resource: 'operations' | 'payments' | 'transactions' | 'offers' | 'trades',
 	limit: number,
 	cursor?: string
 ) => {
@@ -265,4 +282,141 @@ export const getAccountTransactions = async (
 		assertUnsignedInteger(transaction.operation_count, 'transaction operation count')
 	}
 	return page
+}
+
+export const getAccountOffers = async (
+	accountId: string,
+	limit: number,
+	cursor?: string
+) => {
+	const page = await getAccountPage<StellarHorizonOffer>(
+		accountId,
+		'offers',
+		limit,
+		cursor
+	)
+	for (const offer of page._embedded.records) {
+		if (offer.seller !== accountId)
+			throw new Error('StellarHorizon_Rest: offer page contains a foreign seller')
+		if (!/^\d+$/.test(offer.id))
+			throw new Error('StellarHorizon_Rest: invalid offer ID')
+		assertAmount(offer.amount, 'offer amount')
+		assertAmount(offer.price, 'offer price')
+		assertUnsignedInteger(offer.last_modified_ledger, 'offer ledger')
+		assertUnsignedInteger(offer.price_r.n, 'offer price numerator')
+		assertUnsignedInteger(offer.price_r.d, 'offer price denominator')
+		if (offer.price_r.d === 0)
+			throw new Error('StellarHorizon_Rest: offer price denominator must be nonzero')
+		assertAssetIdentity(offer.selling, 'selling')
+		assertAssetIdentity(offer.buying, 'buying')
+		if (offer.sponsor != null)
+			assertAccountId(offer.sponsor, 'offer sponsor')
+	}
+	return page
+}
+
+export const getAccountTrades = async (
+	accountId: string,
+	limit: number,
+	cursor?: string
+) => {
+	const page = await getAccountPage<StellarHorizonTrade>(
+		accountId,
+		'trades',
+		limit,
+		cursor
+	)
+	for (const trade of page._embedded.records) {
+		if (
+			trade.base_account !== accountId
+			&& trade.counter_account !== accountId
+		)
+			throw new Error('StellarHorizon_Rest: trade page contains a foreign account row')
+		if (trade.id.length === 0)
+			throw new Error('StellarHorizon_Rest: invalid trade ID')
+		assertAmount(trade.base_amount, 'trade base amount')
+		assertAmount(trade.counter_amount, 'trade counter amount')
+		if (trade.base_account != null)
+			assertAccountId(trade.base_account, 'trade base account')
+		if (trade.counter_account != null)
+			assertAccountId(trade.counter_account, 'trade counter account')
+		if (trade.base_asset_issuer != null)
+			assertAccountId(trade.base_asset_issuer, 'trade base asset issuer')
+		if (trade.counter_asset_issuer != null)
+			assertAccountId(trade.counter_asset_issuer, 'trade counter asset issuer')
+		if (trade.base_liquidity_pool_id != null && !/^[0-9a-f]{64}$/.test(trade.base_liquidity_pool_id))
+			throw new Error('StellarHorizon_Rest: invalid trade base liquidity pool')
+		if (trade.counter_liquidity_pool_id != null && !/^[0-9a-f]{64}$/.test(trade.counter_liquidity_pool_id))
+			throw new Error('StellarHorizon_Rest: invalid trade counter liquidity pool')
+		assertUnsignedIntegerString(String(trade.price.n), 'trade price numerator')
+		assertUnsignedIntegerString(String(trade.price.d), 'trade price denominator')
+		if (BigInt(trade.price.d) === 0n)
+			throw new Error('StellarHorizon_Rest: trade price denominator must be nonzero')
+	}
+	return page
+}
+
+export const getTransaction = async (
+	hash: string
+) => {
+	if (!/^[0-9a-f]{64}$/.test(hash))
+		throw new Error('StellarHorizon_Rest: invalid transaction hash')
+	const transaction = await query<StellarHorizonTransaction>(
+		`/transactions/${encodeURIComponent(hash)}`
+	)
+	if (transaction.hash !== hash)
+		throw new Error('StellarHorizon_Rest: transaction response identity mismatch')
+	assertAccountId(transaction.source_account, 'transaction source account')
+	assertAccountId(transaction.fee_account, 'transaction fee account')
+	assertUnsignedIntegerString(transaction.source_account_sequence, 'transaction source sequence')
+	assertUnsignedIntegerString(transaction.fee_charged, 'charged fee')
+	assertUnsignedIntegerString(transaction.max_fee, 'maximum fee')
+	assertUnsignedInteger(transaction.ledger, 'transaction ledger')
+	assertUnsignedInteger(transaction.operation_count, 'transaction operation count')
+	return transaction
+}
+
+export const getTransactionOperations = async (
+	hash: string,
+	limit: number,
+	cursor?: string
+) => {
+	if (!/^[0-9a-f]{64}$/.test(hash))
+		throw new Error('StellarHorizon_Rest: invalid transaction hash')
+	const parameters = pageParameters(limit, cursor)
+	parameters.set('order', 'asc')
+	if (limit === 0)
+		return {
+			_links: {
+				next: {
+					href: '',
+				},
+			},
+			_embedded: {
+				records: [],
+			},
+		}
+	const page = await query<StellarHorizonPage<StellarHorizonOperation>>(
+		`/transactions/${encodeURIComponent(hash)}/operations?${parameters.toString()}`
+	)
+	assertPage(page, limit, cursor)
+	for (const operation of page._embedded.records) {
+		if (operation.transaction_hash !== hash)
+			throw new Error('StellarHorizon_Rest: operation page contains a foreign transaction')
+		assertUnsignedInteger(operation.type_i, 'operation type index')
+	}
+	return page
+}
+
+export const operationIndexFromHorizonId = (
+	operationId: string
+) => {
+	try {
+		const index = Number(BigInt(operationId) & 0xfffn)
+		if (!Number.isSafeInteger(index) || index < 0)
+			throw new Error()
+		return index
+	} catch {
+		throw new Error('StellarHorizon_Rest: invalid operation ID')
+	}
 }

@@ -51,3 +51,16 @@ export type EigenExplorerOperatorRewardInfo = {
 	rewardTokens: string[]
 	rewardStrategies: string[]
 }
+
+export type EigenExplorerOperator = {
+	address: string
+	metadataName: string
+	metadataDescription: string | null
+	metadataWebsite: string | null
+	metadataLogo: string | null
+	createdAtBlock: string
+	updatedAtBlock: string
+	createdAt: string
+	updatedAt: string
+	shares: EigenExplorerStrategyShares[]
+}

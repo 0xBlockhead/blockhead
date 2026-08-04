@@ -1,66 +1,86 @@
 export type NearBlocksAccount = {
-	account_id?: string
-	amount?: string
-	block_hash?: string
-	block_height?: number
+	account_id: string
+	amount: string
+	block_hash: string
+	block_height: string
 	created?: {
-		block_timestamp?: string
-		transaction_hash?: string
+		block_timestamp?: number | string | null
+		transaction_hash?: string | null
+	} | null
+	deleted?: {
+		block_timestamp?: number | string | null
+		transaction_hash?: string | null
 	} | null
 	locked?: string
-	storage_usage?: number
+	storage_usage?: string | number
 }
 
 export type NearBlocksAccountResponse = {
-	account?: NearBlocksAccount[]
+	account: NearBlocksAccount[]
 }
 
 export type NearBlocksBlock = {
-	block_hash?: string
-	block_height?: number
-	block_timestamp?: string
+	author_account_id?: string
+	block_hash: string
+	block_height: string
+	block_timestamp: string
 	chunks_agg?: {
-		chunks?: number
-		gas_used?: string
+		gas_limit?: number
+		gas_used?: number
+		shards?: number
 	}
 	epoch_id?: string
+	gas_price?: string
 	prev_block_hash?: string
+	receipts_agg?: {
+		count?: number
+	}
+	transactions_agg?: {
+		count?: number
+	}
 }
 
 export type NearBlocksBlockResponse = {
-	blocks?: NearBlocksBlock[]
+	blocks: NearBlocksBlock[]
 }
 
 export type NearBlocksAction = {
-	action?: string
-	args?: string
+	action: string
+	args?: string | null
 	deposit?: string | number
 	fee?: string | number
-	method?: string
+	method?: string | null
 }
 
 export type NearBlocksTransaction = {
-	actions?: NearBlocksAction[]
-	block?: {
-		block_height?: number
+	actions: NearBlocksAction[]
+	actions_agg?: {
+		deposit?: string | number
+		gas_attached?: string | number
 	}
-	block_hash?: string
-	block_timestamp?: string
+	block?: {
+		block_height?: number | string
+	}
+	block_timestamp: string
 	included_in_block_hash?: string
 	nonce?: number | string
 	outcomes?: {
 		status?: boolean
 	}
 	outcomes_agg?: {
+		gas_used?: string | number
 		transaction_fee?: string | number
 	}
-	receiver_account_id?: string
-	signer_account_id?: string
-	transaction_hash?: string
+	receipt_conversion_gas_burnt?: string
+	receipt_conversion_tokens_burnt?: string
+	receiver_account_id: string
+	shard_id?: number | string
+	signer_account_id: string
+	transaction_hash: string
 }
 
 export type NearBlocksTransactionResponse = {
-	txns?: NearBlocksTransaction[]
+	txns: NearBlocksTransaction[]
 }
 
 export type NearBlocksV3Error = {

@@ -21,6 +21,11 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 }))
 
 const {
+	getNetworkExchangeRate,
+	getNetworkFees,
+	getNetworkStake,
+	getNetworkSupply,
+	getNode,
 	getNodes,
 	getTransactions,
 } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
@@ -198,5 +203,69 @@ describe('Hedera Mirror network collections', () => {
 				corsEnabled: false,
 			}],
 		})
+	})
+
+	it('addresses a single node and hard-fails empty or mismatched pages', async () => {
+		sourceGetText
+			.mockResolvedValueOnce('{"nodes":[{"node_id":"3","node_account_id":"0.0.3","max_stake":9007199254740993}],"links":{"next":null}}')
+			.mockResolvedValueOnce('{"nodes":[],"links":{"next":null}}')
+			.mockResolvedValueOnce('{"nodes":[{"node_id":"4","node_account_id":"0.0.4"}],"links":{"next":null}}')
+
+		await expect(getNode(3)).resolves.toMatchObject({
+			node_id: '3',
+			max_stake: '9007199254740993',
+		})
+		expect(sourceGetText).toHaveBeenCalledWith(
+			binding,
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/network/nodes?limit=1&order=asc&node.id=eq%3A3'
+		)
+		await expect(getNode(3)).rejects.toThrow('node not found')
+		await expect(getNode(3)).rejects.toThrow('response node does not match request')
+		expect(() => getNode(-1)).toThrow('invalid node selector')
+	})
+
+	it('loads network supply, stake, exchange rate, and fees through hard-fail text JSON', async () => {
+		sourceGetText
+			.mockResolvedValueOnce('{"released_supply":9007199254740993,"timestamp":"1710000000.123456789","total_supply":9007199254740995}')
+			.mockResolvedValueOnce('{"max_stake_rewarded":1,"max_staking_reward_rate_per_hbar":2,"max_total_reward":3,"node_reward_fee_fraction":0.1,"reserved_staking_rewards":4,"reward_balance_threshold":5,"stake_total":9007199254740993,"staking_period":{"from":"1.0","to":null},"staking_period_duration":1,"staking_periods_stored":2,"staking_reward_fee_fraction":0.2,"staking_reward_rate":3,"staking_reward_start_threshold":6,"unreserved_staking_reward_balance":7}')
+			.mockResolvedValueOnce('{"current_rate":{"cent_equivalent":12,"expiration_time":1710000001,"hbar_equivalent":1},"next_rate":{"cent_equivalent":24,"expiration_time":1710000002,"hbar_equivalent":2},"timestamp":"1710000000.0"}')
+			.mockResolvedValueOnce('{"fees":[{"transaction_type":"CryptoTransfer","fees":{"total":1000}}],"timestamp":"1710000000.0"}')
+			.mockRejectedValueOnce(new Error('HederaMirrorNode_Rest: HTTP 503 https://mainnet-public.mirrornode.hedera.com/api/v1/network/supply'))
+
+		await expect(getNetworkSupply()).resolves.toEqual({
+			released_supply: '9007199254740993',
+			timestamp: '1710000000.123456789',
+			total_supply: '9007199254740995',
+		})
+		await expect(getNetworkStake()).resolves.toMatchObject({
+			stake_total: '9007199254740993',
+			staking_period: {
+				from: '1.0',
+				to: null,
+			},
+		})
+		await expect(getNetworkExchangeRate()).resolves.toMatchObject({
+			current_rate: {
+				cent_equivalent: 12,
+				hbar_equivalent: 1,
+			},
+			timestamp: '1710000000.0',
+		})
+		await expect(getNetworkFees()).resolves.toEqual({
+			fees: [{
+				transaction_type: 'CryptoTransfer',
+				fees: {
+					total: 1000,
+				},
+			}],
+			timestamp: '1710000000.0',
+		})
+		expect(sourceGetText.mock.calls.map(([, url]) => url)).toEqual([
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/network/supply',
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/network/stake',
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/network/exchangerate',
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/network/fees',
+		])
+		await expect(getNetworkSupply()).rejects.toThrow('HTTP 503')
 	})
 })

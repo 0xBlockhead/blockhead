@@ -5,7 +5,7 @@ import {
 	vi,
 } from 'vitest'
 
-const neynarFetch = vi.hoisted(() => vi.fn(async () => ({ casts: [] })))
+const neynarFetch = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Neynar/Rest/client.ts', () => ({
 	neynarFetch,
@@ -15,8 +15,125 @@ const {
 	getBulkUsers,
 	getCast,
 	getCastConversation,
+	getChannel,
+	getChannelMembersPage,
 	getFeed,
+	getUserChannelMembershipsPage,
+	getUserChannelsPage,
 } = await import('$/sources/Neynar/Rest/queries.ts')
+
+describe('Neynar channel request identity', () => {
+	it('looks up a channel anonymously without manufacturing viewer context', async () => {
+		neynarFetch.mockResolvedValueOnce({
+			channel: {
+				id: 'design',
+				name: 'Design',
+				object: 'channel',
+				url: 'https://farcaster.xyz/~/channel/design',
+				created_at: '2024-01-01T00:00:00Z',
+			},
+		})
+
+		await expect(getChannel({}, {
+			id: 'design',
+			type: 'id',
+		})).resolves.toMatchObject({
+			id: 'design',
+			name: 'Design',
+		})
+		expect(neynarFetch).toHaveBeenLastCalledWith(
+			{},
+			'/v2/farcaster/channel/?id=design&type=id'
+		)
+	})
+
+	it('looks up a parent URL with explicit viewer attribution', async () => {
+		neynarFetch.mockResolvedValueOnce({
+			channel: {
+				id: 'design',
+				name: 'Design',
+				object: 'channel',
+				url: 'https://farcaster.xyz/~/channel/design',
+				created_at: '2024-01-01T00:00:00Z',
+				viewer_context: {
+					following: false,
+					role: 'member',
+				},
+			},
+		})
+
+		await expect(getChannel({}, {
+			id: 'chain://eip155:1/erc721:0xabc',
+			type: 'parent_url',
+			viewerFid: 3,
+		})).resolves.toMatchObject({
+			viewer_context: {
+				following: false,
+				role: 'member',
+			},
+		})
+		expect(neynarFetch).toHaveBeenLastCalledWith(
+			{},
+			'/v2/farcaster/channel/?id=chain%3A%2F%2Feip155%3A1%2Ferc721%3A0xabc&type=parent_url&viewer_fid=3'
+		)
+	})
+
+	it('serializes anonymous membership pagination exactly', async () => {
+		neynarFetch.mockResolvedValueOnce({
+			members: [],
+			next: { cursor: 'next+/=' },
+		})
+
+		await getChannelMembersPage({}, {
+			channelId: 'design',
+			limit: 100,
+			cursor: 'opaque+/=',
+		})
+
+		expect(neynarFetch).toHaveBeenLastCalledWith(
+			{},
+			'/v2/farcaster/channel/member/list/?channel_id=design&limit=100&cursor=opaque%2B%2F%3D'
+		)
+	})
+
+	it('uses the member-list FID filter for point membership', async () => {
+		await getChannelMembersPage({}, {
+			channelId: 'design',
+			fid: 3,
+		})
+
+		expect(neynarFetch).toHaveBeenLastCalledWith(
+			{},
+			'/v2/farcaster/channel/member/list/?channel_id=design&fid=3'
+		)
+	})
+
+	it('serializes a user following-channel page exactly', async () => {
+		await getUserChannelsPage({}, {
+			fid: 3,
+			limit: 100,
+			cursor: 'opaque+/=',
+		})
+
+		expect(neynarFetch).toHaveBeenLastCalledWith(
+			{},
+			'/v2/farcaster/user/channels/?fid=3&limit=100&cursor=opaque%2B%2F%3D'
+		)
+	})
+
+	it('serializes a user channel-membership page exactly', async () => {
+		await getUserChannelMembershipsPage({}, {
+			fid: 3,
+			limit: 20,
+			cursor: 'opaque+/=',
+		})
+
+		expect(neynarFetch).toHaveBeenLastCalledWith(
+			{},
+			'/v2/farcaster/user/memberships/list/?fid=3&limit=20&cursor=opaque%2B%2F%3D'
+		)
+	})
+})
 
 describe('Neynar FID request limits', () => {
 	it('accepts and serializes 100 bulk-user FIDs', async () => {

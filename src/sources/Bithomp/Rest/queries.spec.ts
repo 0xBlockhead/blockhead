@@ -17,7 +17,10 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 }))
 
 const queries = await import('$/sources/Bithomp/Rest/queries.ts')
-const { getAccount } = queries
+const {
+	getAccount,
+	getAmm,
+} = queries
 
 describe('Bithomp account operation', () => {
 	beforeEach(() => {
@@ -59,7 +62,80 @@ describe('Bithomp account operation', () => {
 		)
 	})
 
-	it('exports only the endpoint-specific operation', () => {
-		expect(Object.keys(queries)).toEqual(['getAccount'])
+	it('hard-fails non-OK HTTP instead of soft-emptying', async () => {
+		sourceFetch.mockResolvedValue(new Response('upstream', { status: 503 }))
+
+		await expect(getAccount(
+			{
+				PUBLIC_BITHOMP_API_KEY: 'configured token',
+			},
+			{
+				address: 'rAccount',
+			}
+		)).rejects.toThrow(/503/)
+	})
+})
+
+describe('Bithomp AMM operation', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
+	it('requests schema-defined AMM pool observations by account id', async () => {
+		sourceFetch.mockResolvedValue(new Response(JSON.stringify({
+			account: 'rAmmAccount',
+			amount: '13820630640',
+			amount2: {
+				currency: '7853504543544152000000000000000000000000',
+				issuer: 'rh5jzTCdMRCVjQ7LT6zucjezC47KATkuvv',
+				value: '173068.8207730273',
+			},
+			updatedAt: 1_713_700_900,
+			updatedLedgerIndex: 87_461_194,
+			tradingFee: 290,
+		})))
+
+		await expect(getAmm(
+			{
+				PUBLIC_BITHOMP_API_KEY: 'configured token',
+			},
+			{
+				id: 'rAmm/with path',
+			}
+		)).resolves.toMatchObject({
+			account: 'rAmmAccount',
+			amount: '13820630640',
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			bindings[Source.Bithomp][0],
+			'https://bithomp.com/api/v2/amm/rAmm%2Fwith%20path',
+			{
+				headers: {
+					'x-bithomp-token': 'configured token',
+				},
+			}
+		)
+	})
+
+	it('hard-fails non-OK HTTP instead of soft-emptying', async () => {
+		sourceFetch.mockResolvedValue(new Response('missing', { status: 404 }))
+
+		await expect(getAmm(
+			{
+				PUBLIC_BITHOMP_API_KEY: 'configured token',
+			},
+			{
+				id: 'rAmmAccount',
+			}
+		)).rejects.toThrow(/404/)
+	})
+})
+
+describe('Bithomp Rest query surface', () => {
+	it('exports only the modeled endpoint operations', () => {
+		expect(Object.keys(queries).sort()).toEqual([
+			'getAccount',
+			'getAmm',
+		])
 	})
 })

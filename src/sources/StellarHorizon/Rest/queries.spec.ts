@@ -13,9 +13,14 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 
 const {
 	getAccount,
+	getAccountOffers,
 	getAccountOperations,
 	getAccountPayments,
+	getAccountTrades,
 	getAccountTransactions,
+	getTransaction,
+	getTransactionOperations,
+	operationIndexFromHorizonId,
 } = await import('$/sources/StellarHorizon/Rest/queries.ts')
 
 const binding = bindings[Source.StellarHorizon_Rest][0]
@@ -191,5 +196,118 @@ describe('Stellar Horizon account transport', () => {
 			},
 		})
 		expect(getJson).not.toHaveBeenCalled()
+	})
+
+	it('loads account offers and trades with seller/party ownership proof', async () => {
+		getJson.mockResolvedValueOnce(page([{
+			id: '2',
+			paging_token: '2',
+			seller: accountId,
+			selling: {
+				asset_type: 'native',
+			},
+			buying: {
+				asset_type: 'credit_alphanum4',
+				asset_code: 'USDC',
+				asset_issuer: otherAccountId,
+			},
+			amount: '1.0000000',
+			price_r: {
+				n: 1,
+				d: 2,
+			},
+			price: '0.5000000',
+			last_modified_ledger: 100,
+			last_modified_time: '2026-07-22T00:00:00Z',
+		}]))
+		await expect(getAccountOffers(accountId, 10)).resolves.toMatchObject({
+			_embedded: {
+				records: [{
+					id: '2',
+				}],
+			},
+		})
+		expect(getJson).toHaveBeenLastCalledWith(
+			binding,
+			`/accounts/${accountId}/offers?limit=10&order=desc`
+		)
+
+		getJson.mockResolvedValueOnce(page([{
+			id: '246907709817896961-0',
+			paging_token: '246907709817896961-0',
+			ledger_close_time: '2026-07-22T00:00:00Z',
+			trade_type: 'orderbook',
+			base_offer_id: '1',
+			base_account: accountId,
+			base_amount: '1.0000000',
+			base_asset_type: 'native',
+			counter_offer_id: '2',
+			counter_account: otherAccountId,
+			counter_amount: '2.0000000',
+			counter_asset_type: 'credit_alphanum4',
+			counter_asset_code: 'USDC',
+			counter_asset_issuer: otherAccountId,
+			price: {
+				n: '2',
+				d: '1',
+			},
+		}]))
+		await expect(getAccountTrades(accountId, 10)).resolves.toMatchObject({
+			_embedded: {
+				records: [{
+					id: '246907709817896961-0',
+				}],
+			},
+		})
+	})
+
+	it('loads transaction snapshots and ordered operations', async () => {
+		const hash = 'c'.repeat(64)
+		getJson.mockResolvedValueOnce({
+			id: hash,
+			paging_token: '200',
+			successful: true,
+			hash,
+			ledger: 100,
+			created_at: '2026-07-22T00:00:00Z',
+			source_account: accountId,
+			source_account_sequence: '1',
+			fee_account: accountId,
+			fee_charged: '100',
+			max_fee: '100',
+			operation_count: 1,
+			memo_type: 'none',
+		})
+		await expect(getTransaction(hash)).resolves.toMatchObject({
+			hash,
+			source_account: accountId,
+		})
+		expect(getJson).toHaveBeenLastCalledWith(
+			binding,
+			`/transactions/${hash}`
+		)
+
+		getJson.mockResolvedValueOnce(page([{
+			id: '273998503801384961',
+			paging_token: '273998503801384961',
+			transaction_successful: true,
+			source_account: accountId,
+			type: 'payment',
+			type_i: 1,
+			created_at: '2026-07-22T00:00:00Z',
+			transaction_hash: hash,
+		}]))
+		await expect(getTransactionOperations(hash, 2)).resolves.toMatchObject({
+			_embedded: {
+				records: [{
+					type: 'payment',
+				}],
+			},
+		})
+		expect(getJson).toHaveBeenLastCalledWith(
+			binding,
+			`/transactions/${hash}/operations?limit=2&order=asc`
+		)
+		expect(operationIndexFromHorizonId('273998503801384961')).toBe(1)
 	})
 })

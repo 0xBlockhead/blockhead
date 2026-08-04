@@ -8,6 +8,7 @@ import {
 
 import bindings from '$/sources/Dydx/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import { ApiFamily } from '$/sources/SourceBinding.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 
@@ -24,59 +25,52 @@ const {
 	getSubaccount,
 } = await import('$/sources/Dydx/Rest/queries.ts')
 
-const binding = bindings[Source.DydxIndexer][0]
+const binding = bindings[Source.DydxIndexer].find(
+	({ apiFamily }) => apiFamily === ApiFamily.OpenApiHttp
+)
+
+if (binding == null)
+	throw new Error('DydxIndexer: OpenAPI binding is missing')
 
 const address = `dydx1${'q'.repeat(38)}`
-const height = {
-	height: '9007199254740993',
-	time: '2026-07-22T00:00:00.000Z',
-}
+const observedAtMs = 1_784_678_400_000
 
 describe('dYdX v4 read-only public transport', () => {
 	beforeEach(() => {
+		vi.spyOn(Date, 'now').mockReturnValue(observedAtMs)
 		sourceGetJson.mockReset()
-		sourceGetJson.mockImplementation((_binding, url) => (
-			url.endsWith('/v4/height') ?
-				Promise.resolve(height)
-				:
-				Promise.reject(new Error(`Unexpected URL ${url}`))
-		))
+		sourceGetJson.mockImplementation((_binding, url) => Promise.reject(new Error(`Unexpected URL ${url}`)))
 	})
 
-	it('preserves market decimals and attaches indexer observation provenance', async () => {
-		sourceGetJson.mockImplementation((_binding, url) => Promise.resolve(
-			url.endsWith('/v4/height') ?
-				height
-				:
-				{
-					markets: {
-						'BTC-USD': {
-							clobPairId: '0',
-							ticker: 'BTC-USD',
-							status: 'ACTIVE',
-							oraclePrice: '65554.247690000000000001',
-							priceChange24H: '-746.07211',
-							volume24H: '42428295.3917',
-							trades24H: 6131,
-							nextFundingRate: '-0.0000000000001',
-							initialMarginFraction: '0.02',
-							maintenanceMarginFraction: '0.012',
-							openInterest: '308.7674',
-							atomicResolution: -10,
-							quantumConversionExponent: -9,
-							tickSize: '1',
-							stepSize: '0.0001',
-							stepBaseQuantums: 1_000_000,
-							subticksPerTick: 100_000,
-							marketType: 'CROSS',
-							openInterestLowerCap: '0',
-							openInterestUpperCap: '0',
-							baseOpenInterest: '782.0931',
-							defaultFundingRate1H: '0',
-						},
-					},
-				}
-		))
+	it('preserves market decimals with truthful source receipt provenance', async () => {
+		sourceGetJson.mockResolvedValue({
+			markets: {
+				'BTC-USD': {
+					clobPairId: '0',
+					ticker: 'BTC-USD',
+					status: 'ACTIVE',
+					oraclePrice: '65554.247690000000000001',
+					priceChange24H: '-746.07211',
+					volume24H: '42428295.3917',
+					trades24H: 6131,
+					nextFundingRate: '-0.0000000000001',
+					initialMarginFraction: '0.02',
+					maintenanceMarginFraction: '0.012',
+					openInterest: '308.7674',
+					atomicResolution: -10,
+					quantumConversionExponent: -9,
+					tickSize: '1',
+					stepSize: '0.0001',
+					stepBaseQuantums: 1_000_000,
+					subticksPerTick: 100_000,
+					marketType: 'CROSS',
+					openInterestLowerCap: '0',
+					openInterestUpperCap: '0',
+					baseOpenInterest: '782.0931',
+					defaultFundingRate1H: '0',
+				},
+			},
+		})
 
 		const marketObservation = await getPerpetualMarkets({
 			ticker: 'BTC-USD',
@@ -90,62 +84,53 @@ describe('dYdX v4 read-only public transport', () => {
 					},
 				},
 			},
-			indexedAtHeight: '9007199254740993',
-			indexedAtTime: '2026-07-22T00:00:00.000Z',
+			observedAtMs,
 		})
 		expect(marketObservation).not.toHaveProperty('resolvedAtMs')
+		expect(marketObservation).not.toHaveProperty('indexedAtHeight')
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
 			'https://indexer.dydx.trade/v4/perpetualMarkets?ticker=BTC-USD'
 		)
+		expect(sourceGetJson).toHaveBeenCalledTimes(1)
 	})
 
 	it('rejects a malformed oracle price', async () => {
-		sourceGetJson.mockImplementation((_binding, url) => Promise.resolve(
-			url.endsWith('/v4/height') ?
-				height
-			:
-				{
-					markets: {
-						'BTC-USD': {
-							ticker: 'BTC-USD',
-							oraclePrice: 'invalid',
-							priceChange24H: '0',
-							volume24H: '0',
-							nextFundingRate: '0',
-							initialMarginFraction: '0',
-							maintenanceMarginFraction: '0',
-							openInterest: '0',
-							tickSize: '0',
-							stepSize: '0',
-							baseOpenInterest: '0',
-						},
-					},
-				}
-		))
+		sourceGetJson.mockResolvedValue({
+			markets: {
+				'BTC-USD': {
+					ticker: 'BTC-USD',
+					oraclePrice: 'invalid',
+					priceChange24H: '0',
+					volume24H: '0',
+					nextFundingRate: '0',
+					initialMarginFraction: '0',
+					maintenanceMarginFraction: '0',
+					openInterest: '0',
+					tickSize: '0',
+					stepSize: '0',
+					baseOpenInterest: '0',
+				},
+			},
+		})
 
 		await expect(getPerpetualMarkets({
 			ticker: 'BTC-USD',
-		})).rejects.toThrow('invalid decimal oraclePrice')
+		})).rejects.toThrow('invalid non-negative decimal oraclePrice')
 	})
 
 	it('keeps public subaccount identity independent of signing state', async () => {
-		sourceGetJson.mockImplementation((_binding, url) => Promise.resolve(
-			url.endsWith('/v4/height') ?
-				height
-				:
-				{
-					address,
-					subaccountNumber: 128_000,
-					equity: '-0.000000000000000001',
-					freeCollateral: '9007199254740993.000000000000000001',
-					openPerpetualPositions: {},
-					assetPositions: {},
-					marginEnabled: true,
-					updatedAtHeight: '9007199254740992',
-					latestProcessedBlockHeight: '9007199254740993',
-				}
-		))
+		sourceGetJson.mockResolvedValue({
+			address,
+			subaccountNumber: 128_000,
+			equity: '-0.000000000000000001',
+			freeCollateral: '9007199254740993.000000000000000001',
+			openPerpetualPositions: {},
+			assetPositions: {},
+			marginEnabled: true,
+			updatedAtHeight: '9007199254740992',
+			latestProcessedBlockHeight: '9007199254740993',
+		})
 
 		await expect(getSubaccount({
 			address,
@@ -205,9 +190,7 @@ describe('dYdX v4 read-only public transport', () => {
 			},
 		},
 	])('bounds and preserves $path rows', async ({ query, path, response }) => {
-		sourceGetJson.mockImplementation((_binding, requestUrl) => Promise.resolve(
-			requestUrl.endsWith('/v4/height') ? height : response
-		))
+		sourceGetJson.mockResolvedValue(response)
 
 		await expect(query({
 			address,
@@ -241,17 +224,12 @@ describe('dYdX v4 read-only public transport', () => {
 			limit: 101,
 		})).rejects.toThrow('invalid page limit')
 
-		sourceGetJson.mockImplementation((_binding, url) => Promise.resolve(
-			url.endsWith('/v4/height') ?
-				height
-				:
-				[{
-					subaccountNumber: 1,
-					price: '1',
-					size: '1',
-					totalFilled: '0',
-				}]
-		))
+		sourceGetJson.mockResolvedValue([{
+			subaccountNumber: 1,
+			price: '1',
+			size: '1',
+			totalFilled: '0',
+		}])
 		await expect(getOrders({
 			address,
 			subaccountNumber: 0,

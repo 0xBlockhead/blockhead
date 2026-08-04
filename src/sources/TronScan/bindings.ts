@@ -6,6 +6,7 @@ import {
 	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
+	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceTargetKind,
@@ -23,14 +24,18 @@ export default indexSourceBindings([
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://apilist.tronscanapi.com',
-				corsEnabled: true,
+				corsEnabled: false,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RestJson,
 		operationGroups: genericReadOperationGroups,
-		delivery: SourceDelivery.BrowserDirect,
-		credentials: [],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [
+			{
+				scope: SourceCredentialScope.RuntimeSecret,
+			},
+		],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,

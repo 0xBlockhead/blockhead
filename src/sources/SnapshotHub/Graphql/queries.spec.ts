@@ -410,4 +410,42 @@ describe('Snapshot Hub public governance reads', () => {
 			spaceId,
 		})).rejects.toThrow('response exceeds byte limit')
 	})
+
+	it('hard-fails GraphQL HTTP errors and GraphQL error payloads', async () => {
+		const sourceFetch = vi.spyOn(runtimeHttp, 'sourceFetch')
+		sourceFetch
+			.mockResolvedValueOnce(new Response('upstream unavailable', {
+				status: 502,
+				statusText: 'Bad Gateway',
+				headers: {
+					'content-type': 'text/plain',
+				},
+			}))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				errors: [
+					{
+						message: 'rate limited',
+					},
+				],
+			}), {
+				headers: {
+					'content-type': 'application/json',
+				},
+			}))
+			.mockResolvedValueOnce(new Response(JSON.stringify({}), {
+				headers: {
+					'content-type': 'application/json',
+				},
+			}))
+
+		await expect(getSpace({
+			spaceId,
+		})).rejects.toThrow('502')
+		await expect(getProposal({
+			proposalId,
+		})).rejects.toThrow('rate limited')
+		await expect(getVote({
+			voteId,
+		})).rejects.toThrow('response is missing data')
+	})
 })

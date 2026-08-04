@@ -10,6 +10,8 @@ import {
 import type {
 	CosmosSdkAccountResponse,
 	CosmosSdkBlockResponse,
+	CosmosSdkNodeInfoResponse,
+	CosmosSdkTxResponse,
 } from '$/sources/CosmosSdk/Rest/types.ts'
 import bindings from '$/sources/Mintscan/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -32,6 +34,26 @@ const mintscanGet = async <_Response>(
 	return response.json<_Response>()
 }
 
+const assertNetwork = (network: string) => {
+	if (network.length === 0)
+		throw new Error('Mintscan: network is empty')
+}
+
+const assertAddress = (address: string) => {
+	if (address.length === 0)
+		throw new Error('Mintscan: address is empty')
+}
+
+const assertHeight = (height: bigint) => {
+	if (height < 0n)
+		throw new Error(`Mintscan: invalid block height ${height}`)
+}
+
+const assertTxHash = (txHash: string) => {
+	if (txHash.length === 0)
+		throw new Error('Mintscan: transaction hash is empty')
+}
+
 export const getAccount = (
 	publicEnv: SourcePublicEnv,
 	{
@@ -41,12 +63,14 @@ export const getAccount = (
 		network: string
 		address: string
 	}
-) => (
-	mintscanGet<CosmosSdkAccountResponse>(
+) => {
+	assertNetwork(network)
+	assertAddress(address)
+	return mintscanGet<CosmosSdkAccountResponse>(
 		publicEnv,
 		`/${encodeURIComponent(network)}/lcd/cosmos/auth/v1beta1/accounts/${encodeURIComponent(address)}`
 	)
-)
+}
 
 export const getLatestBlock = (
 	publicEnv: SourcePublicEnv,
@@ -55,9 +79,61 @@ export const getLatestBlock = (
 	}: {
 		network: string
 	}
-) => (
-	mintscanGet<CosmosSdkBlockResponse>(
+) => {
+	assertNetwork(network)
+	return mintscanGet<CosmosSdkBlockResponse>(
 		publicEnv,
 		`/${encodeURIComponent(network)}/lcd/cosmos/base/tendermint/v1beta1/blocks/latest`
 	)
-)
+}
+
+export const getBlock = (
+	publicEnv: SourcePublicEnv,
+	{
+		network,
+		height,
+	}: {
+		network: string
+		height: bigint
+	}
+) => {
+	assertNetwork(network)
+	assertHeight(height)
+	return mintscanGet<CosmosSdkBlockResponse>(
+		publicEnv,
+		`/${encodeURIComponent(network)}/lcd/cosmos/base/tendermint/v1beta1/blocks/${height.toString()}`
+	)
+}
+
+export const getNodeInfo = (
+	publicEnv: SourcePublicEnv,
+	{
+		network,
+	}: {
+		network: string
+	}
+) => {
+	assertNetwork(network)
+	return mintscanGet<CosmosSdkNodeInfoResponse>(
+		publicEnv,
+		`/${encodeURIComponent(network)}/lcd/cosmos/base/tendermint/v1beta1/node_info`
+	)
+}
+
+export const getTx = (
+	publicEnv: SourcePublicEnv,
+	{
+		network,
+		txHash,
+	}: {
+		network: string
+		txHash: string
+	}
+) => {
+	assertNetwork(network)
+	assertTxHash(txHash)
+	return mintscanGet<CosmosSdkTxResponse>(
+		publicEnv,
+		`/${encodeURIComponent(network)}/lcd/cosmos/tx/v1beta1/txs/${encodeURIComponent(txHash)}`
+	)
+}

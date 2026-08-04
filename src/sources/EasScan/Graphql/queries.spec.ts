@@ -10,6 +10,9 @@ import { Source } from '$/sources/Source.ts'
 import { graphql } from '$/sources/_shared/wire/Graphql/client.ts'
 import bindings from '$/sources/EasScan/bindings.ts'
 import {
+	countAttestationsByAttester,
+	countAttestationsByRecipient,
+	countAttestationsBySchema,
 	getAttestation,
 	getAttestationsByAttester,
 	getAttestationsByRecipient,
@@ -54,6 +57,9 @@ const easSchema = {
 	index: '42',
 	txid: transactionHash,
 	time: 1_699_000_000,
+	_count: {
+		attestations: 7,
+	},
 }
 
 beforeEach(() => {
@@ -117,7 +123,7 @@ describe('EasScan GraphQL public reads', () => {
 		})
 	})
 
-	it('gets an exact network-scoped schema registration', async () => {
+	it('gets an exact network-scoped schema registration with attestation count', async () => {
 		vi.mocked(graphql).mockResolvedValueOnce({
 			schema: easSchema,
 		})
@@ -134,6 +140,51 @@ describe('EasScan GraphQL public reads', () => {
 				},
 			},
 		}))
+	})
+
+	it('counts attestations by attester, recipient, and schema without soft-empty failures', async () => {
+		vi.mocked(graphql)
+			.mockResolvedValueOnce({
+				aggregateAttestation: {
+					_count: {
+						_all: 3,
+					},
+				},
+			})
+			.mockResolvedValueOnce({
+				aggregateAttestation: {
+					_count: {
+						_all: 0,
+					},
+				},
+			})
+			.mockResolvedValueOnce({
+				aggregateAttestation: {
+					_count: {
+						_all: 11,
+					},
+				},
+			})
+
+		await expect(countAttestationsByAttester({
+			network: 'eip155:1',
+			attester,
+		})).resolves.toBe(3)
+		await expect(countAttestationsByRecipient({
+			network: 'eip155:1',
+			recipient,
+		})).resolves.toBe(0)
+		await expect(countAttestationsBySchema({
+			network: 'eip155:1',
+			schemaUid,
+		})).resolves.toBe(11)
+		expect(vi.mocked(graphql).mock.calls[2]?.[0].variables).toEqual({
+			where: {
+				schemaId: {
+					equals: schemaUid,
+				},
+			},
+		})
 	})
 
 	it('rejects unsupported networks, foreign subjects, and over-broad pages', async () => {
@@ -160,7 +211,7 @@ describe('EasScan GraphQL public reads', () => {
 		expect(graphql).toHaveBeenCalledTimes(1)
 	})
 
-	it('fails closed on malformed revocation and duplicate identities', async () => {
+	it('fails closed on malformed revocation, counts, and duplicate identities', async () => {
 		vi.mocked(graphql)
 			.mockResolvedValueOnce({
 				attestation: {
@@ -174,6 +225,21 @@ describe('EasScan GraphQL public reads', () => {
 					attestation,
 				],
 			})
+			.mockResolvedValueOnce({
+				aggregateAttestation: {
+					_count: {
+						_all: -1,
+					},
+				},
+			})
+			.mockResolvedValueOnce({
+				schema: {
+					...easSchema,
+					_count: {
+						attestations: -2,
+					},
+				},
+			})
 
 		await expect(getAttestation({
 			network: 'eip155:1',
@@ -183,5 +249,13 @@ describe('EasScan GraphQL public reads', () => {
 			network: 'eip155:1',
 			attester,
 		})).rejects.toThrow('duplicate attestations')
+		await expect(countAttestationsBySchema({
+			network: 'eip155:1',
+			schemaUid,
+		})).rejects.toThrow('invalid attestation count')
+		await expect(getSchema({
+			network: 'eip155:1',
+			schemaUid,
+		})).rejects.toThrow('invalid schema registration')
 	})
 })

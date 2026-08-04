@@ -31,6 +31,9 @@ export const EasScanSchemaFragment = graphql(`
 		index
 		txid
 		time
+		_count {
+			attestations
+		}
 	}
 `)
 

@@ -341,3 +341,79 @@ describe('Subscan account extrinsic list', () => {
 		expect(corsFetch).not.toHaveBeenCalled()
 	})
 })
+
+describe('Subscan block extrinsic list', () => {
+	beforeEach(() => {
+		corsFetch.mockReset()
+		corsFetch.mockResolvedValue(new Response(JSON.stringify({
+			code: 0,
+			message: 'Success',
+			generated_at: 1_753_000_100,
+			data: {
+				count: 4,
+				extrinsics: [accountExtrinsic],
+			},
+		})))
+	})
+
+	it('scopes rows to the requested block and hard-fails empty application payloads', async () => {
+		const {
+			listBlockExtrinsics,
+		} = await import('$/sources/Subscan/Rest/queries.ts')
+
+		await expect(listBlockExtrinsics({
+			blockNumber: 20_000_000n,
+			page: 0,
+			row: 10,
+			publicEnv,
+		})).resolves.toMatchObject({
+			data: {
+				count: 4,
+				extrinsics: [accountExtrinsic],
+			},
+		})
+		expect(JSON.parse(corsFetch.mock.calls[0][1].init.body)).toEqual({
+			block_num: 20_000_000,
+			page: 0,
+			row: 10,
+		})
+
+		corsFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			code: 0,
+			message: 'Success',
+			generated_at: 1_753_000_100,
+			data: null,
+		})))
+		await expect(listBlockExtrinsics({
+			blockNumber: 20_000_000n,
+			page: 0,
+			row: 10,
+			publicEnv,
+		})).rejects.toThrow('returned empty data')
+	})
+
+	it('fails closed on foreign block rows', async () => {
+		const {
+			listBlockExtrinsics,
+		} = await import('$/sources/Subscan/Rest/queries.ts')
+		corsFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			code: 0,
+			message: 'Success',
+			generated_at: 1_753_000_100,
+			data: {
+				count: 1,
+				extrinsics: [{
+					...accountExtrinsic,
+					block_num: 20_000_001,
+					extrinsic_index: '20000001-3',
+				}],
+			},
+		})))
+		await expect(listBlockExtrinsics({
+			blockNumber: 20_000_000n,
+			page: 0,
+			row: 10,
+			publicEnv,
+		})).rejects.toThrow('foreign block')
+	})
+})

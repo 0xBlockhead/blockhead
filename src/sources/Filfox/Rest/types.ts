@@ -1,10 +1,14 @@
 export type FilfoxTipset = {
 	height: number
 	timestamp: number
+	messageCount?: number
 	blocks: {
 		cid: string
 		miner: string
+		messageCount?: number
 		winCount?: number
+		reward?: string
+		penalty?: string
 	}[]
 }
 
@@ -41,13 +45,26 @@ export type FilfoxMessagesPage = {
 export type FilfoxAddress = {
 	id: string
 	address: string
+	robust?: string
 	actor?: string
 	balance: string
+	messageCount?: number
+	timestamp?: number
 	miner?: {
 		owner?: FilfoxAddressBalance
 		worker?: FilfoxAddressBalance
+		beneficiary?: FilfoxAddressBalance
 		peerId?: string
+		rawBytePower?: string
 		qualityAdjPower: string
+		networkRawBytePower?: string
+		networkQualityAdjPower?: string
+		sectors?: {
+			live: number
+			active: number
+			faulty: number
+			recovering?: number
+		}
 	}
 }
 
@@ -59,4 +76,11 @@ export type FilfoxAddressBalance = {
 export type FilfoxOverview = {
 	height: number
 	timestamp: number
+	totalRawBytePower?: string
+	totalQualityAdjPower?: string
+	activeMiners?: number
+	baseFee?: string
+	averageTipsetInterval?: number
+	averageTipsetBlocks?: number
+	dailyMessages?: number
 }

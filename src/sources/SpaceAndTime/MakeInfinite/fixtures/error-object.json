@@ -1,0 +1,6 @@
+{
+	"type": "about:blank",
+	"title": "Unauthorized",
+	"detail": "invalid api key",
+	"instance": "/v1/sql"
+}

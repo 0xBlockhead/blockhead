@@ -4,7 +4,7 @@ import { indexSourceProviders } from '$/sources/$sources.ts'
 import bindings from '$/sources/Lens/bindings.ts'
 import lensProvider from '$/sources/Lens/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceDelivery } from '$/sources/SourceBinding.ts'
+import { sourceBindingId, SourceDelivery } from '$/sources/SourceBinding.ts'
 
 const { queryLatestPosts } = await import('$/sources/Lens/Graphql/queries.ts')
 
@@ -61,7 +61,9 @@ it('sends a bounded latest-post query through the canonical binding delivery', a
 })
 
 it('keeps the anonymous browser source enabled without configuration', () => {
-	expect(indexSourceProviders([lensProvider], {}).enabledSources.has(Source.Lens_Graphql)).toBe(true)
+	expect(indexSourceProviders([lensProvider], {}, new Set([
+		sourceBindingId(binding),
+	])).enabledSources.has(Source.Lens_Graphql)).toBe(true)
 })
 
 it('fails closed on GraphQL errors instead of returning partial data', async () => {
@@ -71,7 +73,7 @@ it('fails closed on GraphQL errors instead of returning partial data', async () 
 				items: [],
 			},
 		},
-			errors: [{
+		errors: [{
 			message: 'query rejected',
 		}],
 	}), {

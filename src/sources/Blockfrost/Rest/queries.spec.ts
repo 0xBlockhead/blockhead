@@ -15,8 +15,10 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 }))
 
 const {
+	getAccount,
 	getAddress,
 	getAddressTotal,
+	getAsset,
 	getDRepMetadata,
 	getGovernanceProposal,
 	getGovernanceProposalMetadata,
@@ -26,6 +28,7 @@ const {
 	getTransaction,
 	getTransactionUtxos,
 	getLatestProtocolParameters,
+	listAccountAddresses,
 	listAssets,
 	listAddressTransactions,
 	listAddressUtxos,
@@ -533,6 +536,57 @@ describe('Blockfrost REST transport', () => {
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 
+	it('loads encoded stake accounts, account addresses, and native assets', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(Response.json({
+				stake_address: 'stake/example',
+				active: true,
+				registered: true,
+				active_epoch: 500,
+				controlled_amount: '1',
+				rewards_sum: '0',
+				withdrawals_sum: '0',
+				reserves_sum: '0',
+				treasury_sum: '0',
+				withdrawable_amount: '0',
+				pool_id: null,
+				drep_id: null,
+			}))
+			.mockResolvedValueOnce(Response.json([
+				{
+					address: 'addr1example',
+				},
+			]))
+			.mockResolvedValueOnce(Response.json({
+				asset: `${'a'.repeat(56)}746f6b656e`,
+				policy_id: 'a'.repeat(56),
+				asset_name: '746f6b656e',
+				fingerprint: 'asset1example',
+				quantity: '12',
+				initial_mint_tx_hash: 'mint-hash',
+				mint_or_burn_count: 1,
+				onchain_metadata: null,
+				metadata: null,
+			}))
+
+		await expect(getAccount('stake/example')).resolves.toMatchObject({
+			stake_address: 'stake/example',
+		})
+		await expect(listAccountAddresses('stake/example', 16)).resolves.toEqual([
+			{
+				address: 'addr1example',
+			},
+		])
+		await expect(getAsset(`${'a'.repeat(56)}746f6b656e`)).resolves.toMatchObject({
+			fingerprint: 'asset1example',
+		})
+		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
+			'https://cardano-mainnet.blockfrost.io/api/v0/accounts/stake%2Fexample',
+			'https://cardano-mainnet.blockfrost.io/api/v0/accounts/stake%2Fexample/addresses?count=16&order=asc&page=1',
+			`https://cardano-mainnet.blockfrost.io/api/v0/assets/${'a'.repeat(56)}746f6b656e`,
+		])
+	})
+
 	it('preserves HTTP failure semantics', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(
 			JSON.stringify({ message: 'not found' }),
@@ -543,5 +597,21 @@ describe('Blockfrost REST transport', () => {
 		))
 
 		await expect(getBlock('missing')).rejects.toThrow(/Blockfrost_Rest/)
+		sourceFetch.mockResolvedValueOnce(new Response(
+			JSON.stringify({ message: 'not found' }),
+			{
+				status: 404,
+				statusText: 'Not Found',
+			}
+		))
+		await expect(getAsset('missing')).rejects.toThrow(/Blockfrost_Rest/)
+		sourceFetch.mockResolvedValueOnce(new Response(
+			JSON.stringify({ message: 'not found' }),
+			{
+				status: 404,
+				statusText: 'Not Found',
+			}
+		))
+		await expect(getAccount('missing')).rejects.toThrow(/Blockfrost_Rest/)
 	})
 })

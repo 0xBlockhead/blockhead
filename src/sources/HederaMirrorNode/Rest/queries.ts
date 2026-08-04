@@ -1,7 +1,6 @@
 import bindings from '$/sources/HederaMirrorNode/bindings.ts'
 import {
 	firstHttpUrlForBinding,
-	sourceGetJson,
 	sourceGetText,
 } from '$/sources/_runtime/http.ts'
 import type {
@@ -11,6 +10,10 @@ import type {
 	HederaMirrorNodeBlock,
 	HederaMirrorNodeBlocks,
 	HederaMirrorNodeCryptoAllowances,
+	HederaMirrorNodeNetworkExchangeRate,
+	HederaMirrorNodeNetworkFees,
+	HederaMirrorNodeNetworkStake,
+	HederaMirrorNodeNetworkSupply,
 	HederaMirrorNodeNftAllowances,
 	HederaMirrorNodeNfts,
 	HederaMirrorNodeNodes,
@@ -30,14 +33,23 @@ const bigintWireKeys = new Set([
 	'charged_tx_fee',
 	'max_fee',
 	'max_stake',
+	'max_stake_rewarded',
+	'max_total_reward',
 	'min_stake',
 	'node_id',
 	'pending_reward',
+	'released_supply',
+	'reserved_staking_rewards',
+	'reward_balance_threshold',
 	'reward_rate_start',
 	'serial_number',
 	'stake',
 	'stake_not_rewarded',
 	'stake_rewarded',
+	'stake_total',
+	'staking_reward_start_threshold',
+	'total_supply',
+	'unreserved_staking_reward_balance',
 	'valid_duration_seconds',
 ])
 
@@ -322,6 +334,65 @@ export const getNodes = (
 	return sourceGetHederaJson<HederaMirrorNodeNodes>(url.toString())
 }
 
+export const getNode = (
+	nodeId: number
+) => {
+	if (!Number.isSafeInteger(nodeId) || nodeId < 0)
+		throw new Error('HederaMirrorNode_Rest: invalid node selector')
+
+	const url = new URL('/api/v1/network/nodes', firstHttpUrlForBinding(binding))
+	url.searchParams.set('limit', '1')
+	url.searchParams.set('order', 'asc')
+	url.searchParams.set('node.id', `eq:${String(nodeId)}`)
+
+	return sourceGetHederaJson<HederaMirrorNodeNodes>(url.toString()).then((page) => {
+		if (page.nodes.length !== 1)
+			throw new Error('HederaMirrorNode_Rest: node not found')
+
+		const node = page.nodes[0]
+		if (node.node_id !== String(nodeId))
+			throw new Error('HederaMirrorNode_Rest: response node does not match request')
+
+		return node
+	})
+}
+
+export const getNetworkSupply = () => (
+	sourceGetHederaJson<HederaMirrorNodeNetworkSupply>(
+		new URL(
+			'/api/v1/network/supply',
+			firstHttpUrlForBinding(binding)
+		).toString()
+	)
+)
+
+export const getNetworkStake = () => (
+	sourceGetHederaJson<HederaMirrorNodeNetworkStake>(
+		new URL(
+			'/api/v1/network/stake',
+			firstHttpUrlForBinding(binding)
+		).toString()
+	)
+)
+
+export const getNetworkExchangeRate = () => (
+	sourceGetHederaJson<HederaMirrorNodeNetworkExchangeRate>(
+		new URL(
+			'/api/v1/network/exchangerate',
+			firstHttpUrlForBinding(binding)
+		).toString()
+	)
+)
+
+export const getNetworkFees = () => (
+	sourceGetHederaJson<HederaMirrorNodeNetworkFees>(
+		new URL(
+			'/api/v1/network/fees',
+			firstHttpUrlForBinding(binding)
+		).toString()
+	)
+)
+
 export const getAccountAllowances = async (
 	accountId: string,
 	limit: number,
@@ -440,11 +511,14 @@ export const getAccountNfts = (
 export const getBlocks = (
 	limit: number
 ) => {
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error('HederaMirrorNode_Rest: invalid block list limit')
+
 	const url = new URL('/api/v1/blocks', firstHttpUrlForBinding(binding))
 	url.searchParams.set('limit', String(limit))
 	url.searchParams.set('order', 'desc')
 
-	return sourceGetJson<HederaMirrorNodeBlocks>(binding, url.toString())
+	return sourceGetHederaJson<HederaMirrorNodeBlocks>(url.toString())
 }
 
 export const getBlock = (
@@ -453,8 +527,7 @@ export const getBlock = (
 	if (!/^(?:\d{1,10}|(?:0x)?(?:[A-Fa-f0-9]{64}|[A-Fa-f0-9]{96}))$/.test(hashOrNumber))
 		throw new Error('HederaMirrorNode_Rest: invalid block selector')
 
-	return sourceGetJson<HederaMirrorNodeBlock>(
-		binding,
+	return sourceGetHederaJson<HederaMirrorNodeBlock>(
 		new URL(
 			`/api/v1/blocks/${encodeURIComponent(hashOrNumber)}`,
 			firstHttpUrlForBinding(binding)

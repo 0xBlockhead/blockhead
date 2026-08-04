@@ -73,6 +73,16 @@ const EasScanSchema = graphql(`
 	EasScanSchemaFragment,
 ])
 
+const EasScanAttestationCount = graphql(`
+	query EasScanAttestationCount($where: AttestationWhereInput!) {
+		aggregateAttestation(where: $where) {
+			_count {
+				_all
+			}
+		}
+	}
+`)
+
 const assertUid = (
 	uid: string,
 	label: string
@@ -125,8 +135,28 @@ const assertSchema = (
 		!Number.isSafeInteger(schema.time)
 		|| schema.time < 0
 		|| !/^(0|[1-9][0-9]*)$/.test(schema.index)
+		|| !Number.isSafeInteger(schema._count.attestations)
+		|| schema._count.attestations < 0
 	)
 		throw new Error('EasScan returned invalid schema registration')
+}
+
+const countAttestations = async ({
+	network,
+	where,
+}: {
+	network: string
+	where: VariablesOf<typeof EasScanAttestationCount>['where']
+}) => {
+	const response = await queryEasScan(easScanBindingForNetwork(network), EasScanAttestationCount, {
+		where,
+	})
+
+	const count = response?.aggregateAttestation._count?._all
+	if (response === undefined || !Number.isSafeInteger(count) || count < 0)
+		throw new Error('EasScan returned invalid attestation count')
+
+	return count
 }
 
 const listAttestations = async ({
@@ -316,5 +346,62 @@ export const getAttestationsBySchema = ({
 			throw new Error('EasScan returned an attestation for a foreign schema')
 
 		return attestations
+	})
+}
+
+export const countAttestationsByAttester = ({
+	network,
+	attester,
+}: {
+	network: string
+	attester: string
+}) => {
+	assertAddress(attester, 'requested attester')
+
+	return countAttestations({
+		network,
+		where: {
+			attester: {
+				equals: attester,
+			},
+		},
+	})
+}
+
+export const countAttestationsByRecipient = ({
+	network,
+	recipient,
+}: {
+	network: string
+	recipient: string
+}) => {
+	assertAddress(recipient, 'requested recipient')
+
+	return countAttestations({
+		network,
+		where: {
+			recipient: {
+				equals: recipient,
+			},
+		},
+	})
+}
+
+export const countAttestationsBySchema = ({
+	network,
+	schemaUid,
+}: {
+	network: string
+	schemaUid: string
+}) => {
+	assertUid(schemaUid, 'requested schema UID')
+
+	return countAttestations({
+		network,
+		where: {
+			schemaId: {
+				equals: schemaUid,
+			},
+		},
 	})
 }

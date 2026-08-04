@@ -43,40 +43,123 @@ const post = async <_Result>({
 	const result = await response.json<SubscanResponse<_Result>>()
 	if (result.code !== 0)
 		throw new Error(`Subscan ${path} failed: ${result.message}`)
+	if (result.data == null)
+		throw new Error(`Subscan ${path} returned empty data`)
 	return result
 }
 
-export const getBlock = ({
+const assertSafePagination = ({
+	page,
+	row,
+	label,
+}: {
+	page: number
+	row: number
+	label: string
+}) => {
+	if (!Number.isSafeInteger(page) || page < 0)
+		throw new Error(`Subscan ${label} page must be a nonnegative safe integer`)
+	if (!Number.isSafeInteger(row) || row < 1 || row > 100)
+		throw new Error(`Subscan ${label} row limit must be a safe integer from 1 through 100`)
+	if (!Number.isSafeInteger(page * row))
+		throw new Error(`Subscan ${label} page offset must be a safe integer`)
+}
+
+const assertExtrinsicIdentity = ({
+	extrinsic,
+	expectedBlockNumber,
+	expectedAccountId,
+}: {
+	extrinsic: SubscanExtrinsic
+	expectedBlockNumber?: bigint
+	expectedAccountId?: string
+}) => {
+	const [blockNumber, indexInBlock, ...unexpected] = extrinsic.extrinsic_index.split('-')
+	if (
+		unexpected.length > 0
+		|| !/^(?:0|[1-9]\d*)$/.test(blockNumber)
+		|| !/^(?:0|[1-9]\d*)$/.test(indexInBlock)
+		|| !Number.isSafeInteger(extrinsic.block_num)
+		|| extrinsic.block_num < 0
+		|| BigInt(blockNumber) !== BigInt(extrinsic.block_num)
+		|| BigInt(indexInBlock) > BigInt(Number.MAX_SAFE_INTEGER)
+	)
+		throw new Error('Subscan extrinsics returned a malformed identity')
+	if (expectedBlockNumber != null && BigInt(extrinsic.block_num) !== expectedBlockNumber)
+		throw new Error('Subscan extrinsics returned a foreign block row')
+	if (expectedAccountId != null && extrinsic.account_id !== expectedAccountId)
+		throw new Error('Subscan account extrinsics returned a foreign account row')
+	if (extrinsic.fee != null && !/^\d+$/.test(extrinsic.fee))
+		throw new Error('Subscan extrinsics returned a malformed fee')
+	if (
+		extrinsic.nonce != null
+		&& (!Number.isSafeInteger(extrinsic.nonce) || extrinsic.nonce < 0)
+	)
+		throw new Error('Subscan extrinsics returned a malformed nonce')
+}
+
+export const getBlock = async ({
 	height,
 	publicEnv,
 }: {
 	height: bigint
 	publicEnv: SourcePublicEnv
-}) => (
-	post<SubscanBlock>({
+}) => {
+	if (height < 0n || height > BigInt(Number.MAX_SAFE_INTEGER))
+		throw new Error('Subscan block height must be a nonnegative safe integer')
+
+	const response = await post<SubscanBlock>({
 		path: '/api/scan/block',
 		body: {
 			block_num: Number(height),
 		},
 		publicEnv,
 	})
-)
+	if (
+		!Number.isSafeInteger(response.data.block_num)
+		|| response.data.block_num < 0
+		|| BigInt(response.data.block_num) !== height
+	)
+		throw new Error('Subscan block response does not match the subject')
+	if (
+		response.data.block_hash.length === 0
+		|| response.data.parent_hash.length === 0
+	)
+		throw new Error('Subscan block response is malformed')
 
-export const getExtrinsic = ({
+	return response
+}
+
+export const getExtrinsic = async ({
 	extrinsicIndex,
 	publicEnv,
 }: {
 	extrinsicIndex: string
 	publicEnv: SourcePublicEnv
-}) => (
-	post<SubscanExtrinsic>({
+}) => {
+	if (extrinsicIndex.length === 0)
+		throw new Error('Subscan extrinsic index must not be empty')
+
+	const response = await post<SubscanExtrinsic>({
 		path: '/api/scan/extrinsic',
 		body: {
 			extrinsic_index: extrinsicIndex,
 		},
 		publicEnv,
 	})
-)
+	assertExtrinsicIdentity({
+		extrinsic: response.data,
+	})
+	if (response.data.extrinsic_index !== extrinsicIndex)
+		throw new Error('Subscan extrinsic response does not match the subject')
+	if (
+		response.data.call_module.length === 0
+		|| response.data.call_module_function.length === 0
+	)
+		throw new Error('Subscan extrinsic response is malformed')
+
+	return response
+}
 
 export const listAccountExtrinsics = async ({
 	accountId,
@@ -91,12 +174,11 @@ export const listAccountExtrinsics = async ({
 }) => {
 	if (accountId.length === 0)
 		throw new Error('Subscan account ID must not be empty')
-	if (!Number.isSafeInteger(page) || page < 0)
-		throw new Error('Subscan extrinsic page must be a nonnegative safe integer')
-	if (!Number.isSafeInteger(row) || row < 1 || row > 100)
-		throw new Error('Subscan extrinsic row limit must be a safe integer from 1 through 100')
-	if (!Number.isSafeInteger(page * row))
-		throw new Error('Subscan extrinsic page offset must be a safe integer')
+	assertSafePagination({
+		page,
+		row,
+		label: 'extrinsic',
+	})
 
 	const response = await post<SubscanExtrinsicList>({
 		path: '/api/scan/extrinsics',
@@ -115,29 +197,12 @@ export const listAccountExtrinsics = async ({
 
 	const extrinsicIdentities = new Set<string>()
 	for (const extrinsic of response.data.extrinsics) {
-		const [blockNumber, indexInBlock, ...unexpected] = extrinsic.extrinsic_index.split('-')
-		if (
-			unexpected.length > 0
-			|| !/^(?:0|[1-9]\d*)$/.test(blockNumber)
-			|| !/^(?:0|[1-9]\d*)$/.test(indexInBlock)
-			|| !Number.isSafeInteger(extrinsic.block_num)
-			|| extrinsic.block_num < 0
-			|| BigInt(blockNumber) !== BigInt(extrinsic.block_num)
-			|| BigInt(indexInBlock) > BigInt(Number.MAX_SAFE_INTEGER)
-		)
-			throw new Error('Subscan account extrinsics returned a malformed identity')
-		if (extrinsic.account_id !== accountId)
-			throw new Error('Subscan account extrinsics returned a foreign account row')
+		assertExtrinsicIdentity({
+			extrinsic,
+			expectedAccountId: accountId,
+		})
 		if (extrinsicIdentities.has(extrinsic.extrinsic_index))
 			throw new Error('Subscan account extrinsics returned a duplicate identity')
-		if (extrinsic.fee != null && !/^\d+$/.test(extrinsic.fee))
-			throw new Error('Subscan account extrinsics returned a malformed fee')
-		if (
-			extrinsic.nonce != null
-			&& (!Number.isSafeInteger(extrinsic.nonce) || extrinsic.nonce < 0)
-		)
-			throw new Error('Subscan account extrinsics returned a malformed nonce')
-
 		extrinsicIdentities.add(extrinsic.extrinsic_index)
 	}
 
@@ -146,6 +211,59 @@ export const listAccountExtrinsics = async ({
 		&& page * row + response.data.extrinsics.length > response.data.count
 	)
 		throw new Error('Subscan account extrinsics exceeded its reported count')
+
+	return response
+}
+
+export const listBlockExtrinsics = async ({
+	blockNumber,
+	page,
+	row,
+	publicEnv,
+}: {
+	blockNumber: bigint
+	page: number
+	row: number
+	publicEnv: SourcePublicEnv
+}) => {
+	if (blockNumber < 0n || blockNumber > BigInt(Number.MAX_SAFE_INTEGER))
+		throw new Error('Subscan block number must be a nonnegative safe integer')
+	assertSafePagination({
+		page,
+		row,
+		label: 'block extrinsic',
+	})
+
+	const response = await post<SubscanExtrinsicList>({
+		path: '/api/scan/extrinsics',
+		body: {
+			block_num: Number(blockNumber),
+			page,
+			row,
+		},
+		publicEnv,
+	})
+	if (!Number.isSafeInteger(response.data.count) || response.data.count < 0)
+		throw new Error('Subscan block extrinsics returned an invalid count')
+	if (response.data.extrinsics.length > row)
+		throw new Error('Subscan block extrinsics exceeded the requested row limit')
+
+	const extrinsicIdentities = new Set<string>()
+	for (const extrinsic of response.data.extrinsics) {
+		assertExtrinsicIdentity({
+			extrinsic,
+			expectedBlockNumber: blockNumber,
+		})
+		if (extrinsicIdentities.has(extrinsic.extrinsic_index))
+			throw new Error('Subscan block extrinsics returned a duplicate identity')
+		extrinsicIdentities.add(extrinsic.extrinsic_index)
+	}
+
+	if (
+		response.data.extrinsics.length > 0
+		&& page * row + response.data.extrinsics.length > response.data.count
+	)
+		throw new Error('Subscan block extrinsics exceeded its reported count')
 
 	return response
 }
@@ -184,12 +302,11 @@ export const listReferenda = async ({
 	origin?: string
 	publicEnv: SourcePublicEnv
 }) => {
-	if (!Number.isSafeInteger(page) || page < 0)
-		throw new Error('Subscan referendum page must be a nonnegative safe integer')
-	if (!Number.isSafeInteger(row) || row < 1 || row > 100)
-		throw new Error('Subscan referendum row limit must be a safe integer from 1 through 100')
-	if (!Number.isSafeInteger(page * row))
-		throw new Error('Subscan referendum page offset must be a safe integer')
+	assertSafePagination({
+		page,
+		row,
+		label: 'referendum',
+	})
 	if (status === '')
 		throw new Error('Subscan referendum status must not be empty')
 	if (origin === '')

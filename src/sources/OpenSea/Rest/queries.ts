@@ -7,6 +7,12 @@ import type {
 	OpenSeaAccountNftsPath,
 	OpenSeaAccountNftsQuery,
 	OpenSeaAccountNftsResponse,
+	OpenSeaChainIdentifier,
+	OpenSeaContractNftsPath,
+	OpenSeaContractNftsQuery,
+	OpenSeaContractNftsResponse,
+	OpenSeaNftPath,
+	OpenSeaNftResponse,
 } from '$/sources/OpenSea/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 import {
@@ -16,6 +22,41 @@ import {
 
 const binding = bindings[Source.OpenSea_Rest][0]
 
+export const openSeaChainByChainId = {
+	1: 'ethereum',
+	10: 'optimism',
+	130: 'unichain',
+	137: 'polygon',
+	2020: 'ronin',
+	8453: 'base',
+	33139: 'ape_chain',
+	42161: 'arbitrum',
+	43114: 'avalanche',
+	57073: 'ink',
+	80094: 'bera_chain',
+	81457: 'blast',
+	7777777: 'zora',
+} as const satisfies Record<number, OpenSeaChainIdentifier>
+
+export const openSeaChainForChainId = (
+	chainId: number
+) => {
+	const chain = openSeaChainByChainId[chainId as keyof typeof openSeaChainByChainId]
+	if (chain == null)
+		throw new Error(`OpenSea_Rest: unsupported EIP-155 chain ${chainId}`)
+
+	return chain
+}
+
+export const requireOpenSeaCredential = (
+	credential = process.env.OPENSEA_API_KEY?.trim()
+) => {
+	if (credential == null || credential === '')
+		throw new Error('OpenSea API key is required')
+
+	return credential
+}
+
 const requestOpenSeaJson = async <_Response>({
 	path,
 	credential,
@@ -23,13 +64,10 @@ const requestOpenSeaJson = async <_Response>({
 	path: string
 	credential: string
 }) => {
-	if (!credential)
-		throw new Error('OpenSea API key is required')
-
 	const response = await sourceFetch(binding, new URL(path, firstHttpUrlForBinding(binding)).toString(), {
 		headers: {
 			accept: 'application/json',
-			'x-api-key': credential,
+			'x-api-key': requireOpenSeaCredential(credential),
 		},
 	})
 
@@ -121,5 +159,42 @@ export const getAccountEvents = async ({
 	return requestOpenSeaJson<OpenSeaAccountEventsResponse>({
 		credential,
 		path: `/api/v2/events/accounts/${encodeURIComponent(address)}?${searchParameters}`,
+	})
+}
+
+export const getNft = async ({
+	credential,
+	chain,
+	address,
+	identifier,
+}: (
+	& OpenSeaNftPath
+	& { credential: string }
+)) => (
+	requestOpenSeaJson<OpenSeaNftResponse>({
+		credential,
+		path: `/api/v2/chain/${encodeURIComponent(chain)}/contract/${encodeURIComponent(address)}/nfts/${encodeURIComponent(identifier)}`,
+	})
+)
+
+export const getNftsByContract = async ({
+	credential,
+	chain,
+	address,
+	limit = 200,
+	next,
+}: (
+	& OpenSeaContractNftsPath
+	& OpenSeaContractNftsQuery
+	& { credential: string }
+)) => {
+	const searchParameters = pagination({
+		limit,
+		next,
+	})
+
+	return requestOpenSeaJson<OpenSeaContractNftsResponse>({
+		credential,
+		path: `/api/v2/chain/${encodeURIComponent(chain)}/contract/${encodeURIComponent(address)}/nfts?${searchParameters}`,
 	})
 }

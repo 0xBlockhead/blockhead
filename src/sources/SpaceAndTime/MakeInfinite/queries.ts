@@ -5,10 +5,14 @@ import {
 } from '$/sources/_runtime/http.ts'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/SpaceAndTime/bindings.ts'
+import { makeInfiniteTable } from '$/sources/SpaceAndTime/MakeInfinite/types.ts'
 import {
-	makeInfiniteTable,
-	type MakeInfiniteActivityDayAggregateRow,
-} from '$/sources/SpaceAndTime/MakeInfinite/types.ts'
+	isJsonArray,
+	isJsonNumber,
+	isJsonObject,
+	isJsonString,
+	type JsonValue,
+} from '$/typescript/JsonValue.ts'
 
 const millisecondsPerUtcDay = 86_400_000
 const binding = bindings[Source.SpaceAndTime_MakeInfinite][0]
@@ -18,10 +22,17 @@ const utcSqlTimestamp = (timestampMs: number) => (
 )
 
 const nonNegativeSafeInteger = (
-	value: number | string,
+	value: JsonValue | undefined,
 	fieldName: string
 ) => {
-	const parsed = Number(value)
+	const parsed = (
+		isJsonNumber(value) ?
+			value
+		: isJsonString(value) ?
+			Number(value)
+		:
+			Number.NaN
+	)
 	if (!Number.isSafeInteger(parsed) || parsed < 0)
 		throw new Error(`SpaceAndTime_MakeInfinite: malformed ${fieldName}`)
 
@@ -68,12 +79,18 @@ export const getActivityDay = async ({
 		}
 	)
 	if (!response.ok)
-		throw new Error(await fetchFailedMessage('MakeInfinite SQL', response))
+		throw new Error(await fetchFailedMessage('SpaceAndTime_MakeInfinite SQL', response))
 
-	const rows = await response.json<MakeInfiniteActivityDayAggregateRow[]>()
-	const row = rows.at(0)
+	const payload = await response.json() as JsonValue
+	if (!isJsonArray(payload))
+		throw new Error('SpaceAndTime_MakeInfinite: SQL response is not an array')
+	const row = payload[0]
 	if (row == null)
 		return undefined
+	if (!isJsonObject(row))
+		throw new Error('SpaceAndTime_MakeInfinite: malformed SQL row')
+	if (!isJsonString(row.INDEXED_THROUGH_TIMESTAMP))
+		throw new Error('SpaceAndTime_MakeInfinite: malformed indexed cursor')
 
 	const indexedThroughTimestampMs = Date.parse(
 		row.INDEXED_THROUGH_TIMESTAMP.includes('T') ?

@@ -13,12 +13,17 @@ vi.mock('$/sources/Farcaster/Rest/client.ts', () => ({
 
 const {
 	getAllChannels,
+	getChannel,
+	getChannelMember,
+	getChannelMembersPage,
 	getPrimaryAddress,
+	getUserChannelFollowStatus,
 	getUserThreadCasts,
 } = await import(
 	'$/sources/Farcaster/Rest/queries.ts'
 )
-describe('Farcaster public thread endpoint', () => {
+
+describe('Farcaster channel request identity', () => {
 	it('loads all channels once and rejects duplicate ids', async () => {
 		farcasterGet.mockResolvedValueOnce({ result: { channels: [] } })
 
@@ -40,6 +45,115 @@ describe('Farcaster public thread endpoint', () => {
 
 		await expect(getAllChannels()).rejects.toThrow('duplicate channel id')
 	})
+
+	it('normalizes the documented wire URL to the FIP-2 parent URL', async () => {
+		farcasterGet.mockResolvedValueOnce({
+			result: {
+				channel: {
+					id: 'design',
+					name: 'Design',
+					url: 'https://farcaster.xyz/~/channel/design',
+				},
+			},
+		})
+
+		await expect(getChannel('design')).resolves.toEqual({
+			id: 'design',
+			name: 'Design',
+			parentUrl: 'https://farcaster.xyz/~/channel/design',
+		})
+		expect(farcasterGet).toHaveBeenLastCalledWith(
+			'client-api',
+			'/v1/channel',
+			{ channelId: 'design' }
+		)
+	})
+
+	it('preserves an explicit not-following viewer result', async () => {
+		farcasterGet.mockResolvedValueOnce({ result: { following: false } })
+
+		await expect(getUserChannelFollowStatus({
+			fid: 3,
+			channelId: 'design',
+		})).resolves.toEqual({ following: false })
+		expect(farcasterGet).toHaveBeenLastCalledWith(
+			'client-api',
+			'/v1/user-channel',
+			{
+				fid: 3,
+				channelId: 'design',
+			}
+		)
+	})
+
+	it('keeps anonymous membership pagination free of viewer identity', async () => {
+		farcasterGet.mockResolvedValueOnce({
+			result: { members: [] },
+			next: { cursor: 'next+/=' },
+		})
+
+		await getChannelMembersPage({
+			channelId: 'design',
+			cursor: 'opaque+/=',
+			limit: 100,
+		})
+
+		expect(farcasterGet).toHaveBeenLastCalledWith(
+			'client-api',
+			'/fc/channel-members',
+			{
+				channelId: 'design',
+				fid: undefined,
+				cursor: 'opaque+/=',
+				limit: 100,
+			}
+		)
+	})
+
+	it('uses the endpoint FID filter for exact membership and rejects another subject', async () => {
+		farcasterGet.mockResolvedValueOnce({
+			result: {
+				members: [{
+					fid: 3,
+					memberAt: 1_712_685_183,
+				}],
+			},
+		})
+
+		await expect(getChannelMember({
+			channelId: 'design',
+			fid: 3,
+		})).resolves.toEqual({
+			fid: 3,
+			memberAt: 1_712_685_183,
+		})
+		expect(farcasterGet).toHaveBeenLastCalledWith(
+			'client-api',
+			'/fc/channel-members',
+			{
+				channelId: 'design',
+				fid: 3,
+				cursor: undefined,
+				limit: undefined,
+			}
+		)
+
+		farcasterGet.mockResolvedValueOnce({
+			result: {
+				members: [{
+					fid: 4,
+					memberAt: 1_712_685_183,
+				}],
+			},
+		})
+		await expect(getChannelMember({
+			channelId: 'design',
+			fid: 3,
+		})).rejects.toThrow('channel member subject mismatch')
+	})
+})
+
+describe('Farcaster public thread endpoint', () => {
 
 	it('returns the endpoint-native ordered thread response', async () => {
 		const response = {

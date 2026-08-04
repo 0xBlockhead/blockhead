@@ -8,11 +8,9 @@ import {
 
 import bindings from '$/sources/EigenExplorer/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	SourceTargetKind,
-} from '$/sources/SourceBinding.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import {
+	getOperator,
 	getOperatorRewardInfo,
 	getStaker,
 	getStakerDeposits,
@@ -34,14 +32,22 @@ const transactionHash = `0x${'5'.repeat(64)}`
 const withdrawalRoot = `0x${'6'.repeat(64)}`
 
 const respond = (
-	body: unknown
+	body: unknown,
+	init?: ResponseInit
 ) => {
 	vi.mocked(sourceFetch).mockResolvedValueOnce(
-		new Response(JSON.stringify(body), {
-			headers: {
-				'content-type': 'application/json',
-			},
-		})
+		new Response(
+			body == null ?
+				null
+			:
+				JSON.stringify(body),
+			{
+				headers: {
+					'content-type': 'application/json',
+				},
+				...init,
+			}
+		)
 	)
 }
 
@@ -173,6 +179,48 @@ describe('EigenExplorer REST queries', () => {
 				nonce: 7,
 			}],
 		})
+	})
+
+	it('validates operator metadata and hard-fails non-OK HTTP', async () => {
+		respond({
+			address: operatorAddress,
+			metadataName: 'Example Operator',
+			metadataDescription: 'Restaking operator',
+			metadataWebsite: 'https://example.operator',
+			metadataLogo: 'https://example.operator/logo.svg',
+			createdAtBlock: '100',
+			updatedAtBlock: '101',
+			createdAt: '2026-01-01T00:00:00.000Z',
+			updatedAt: '2026-01-02T00:00:00.000Z',
+			shares: [{
+				strategyAddress,
+				shares: '42',
+			}],
+		})
+
+		await expect(getOperator(
+			operatorAddress
+		)).resolves.toMatchObject({
+			address: operatorAddress,
+			metadataName: 'Example Operator',
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			binding,
+			`https://api.eigenexplorer.test/operators/${operatorAddress}`,
+			{
+				headers: {
+					accept: 'application/json',
+				},
+			}
+		)
+
+		respond(null, {
+			status: 404,
+			statusText: 'Not Found',
+		})
+		await expect(getOperator(
+			operatorAddress
+		)).rejects.toThrow(/EigenExplorer_Rest \/operators\//)
 	})
 
 	it('rejects duplicate operator reward metadata and invalid pagination', async () => {

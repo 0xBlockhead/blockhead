@@ -8,6 +8,7 @@ import {
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
@@ -46,6 +47,33 @@ export default indexSourceBindings([
 				kind: SourceArtifactKind.OpenApiTypes,
 				path: 'src/sources/Dydx/OpenApi/openapi.d.ts',
 				generated: true,
+			},
+		],
+	},
+	{
+		source: Source.DydxIndexer,
+		target: {
+			kind: SourceTargetKind.Caip2Network,
+			key: 'cosmos:dydx-mainnet-1',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://indexer.dydx.trade/v4/ws',
+			},
+		],
+		wireProtocol: WireProtocol.WebSocketMessages,
+		apiFamily: ApiFamily.DydxIndexer,
+		operationGroups: [
+			SourceOperationGroup.GenericSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/Dydx/WebSocket/types.ts',
+				referenceUrl: 'https://raw.githubusercontent.com/dydxprotocol/v4-chain/main/indexer/packages/postgres/src/types/websocket-message-types.ts',
 			},
 		],
 	},
