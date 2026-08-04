@@ -614,14 +614,28 @@ export const getPosition = async ({
 
 	const token0Address = hexLowerOfByteSize(token0, 20)
 	const token1Address = hexLowerOfByteSize(token1, 20)
-	if (token0Address == null || token1Address == null)
+	if (
+		token0Address == null
+		|| token1Address == null
+		|| token0Address === ZERO_ADDRESS
+		|| token1Address === ZERO_ADDRESS
+	)
 		throw new Error('UniswapContracts_Evm: invalid positions token addresses')
+
+	if (typeof _operator !== 'string')
+		throw new Error('UniswapContracts_Evm: malformed positions operator')
+
+	const operator = hexLowerOfByteSize(_operator, 20)
+	if (operator == null)
+		throw new Error('UniswapContracts_Evm: invalid positions operator address')
 
 	const feeNumber = Number(fee)
 	if (!Number.isSafeInteger(feeNumber) || feeNumber < 0 || feeNumber > 0xffffff)
 		throw new Error('UniswapContracts_Evm: positions fee out of range')
 
 	return {
+		nonce: typeof _nonce === 'bigint' ? _nonce : BigInt(String(_nonce)),
+		operator,
 		token0: token0Address,
 		token1: token1Address,
 		fee: feeNumber,

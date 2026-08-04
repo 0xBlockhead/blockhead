@@ -175,7 +175,7 @@ describe('Uniswap Contracts queries', () => {
 		)
 		const response = (
 			'0x'
-			+ word('0')
+			+ word('9')
 			+ word('0')
 			+ word('a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48')
 			+ word('c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2')
@@ -195,6 +195,8 @@ describe('Uniswap Contracts queries', () => {
 			tokenId: 1n,
 		})
 
+		expect(position.nonce).toBe(9n)
+		expect(position.operator).toBe('0x0000000000000000000000000000000000000000')
 		expect(position.token0).toBe('0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48')
 		expect(position.token1).toBe('0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2')
 		expect(position.fee).toBe(500)
@@ -205,5 +207,13 @@ describe('Uniswap Contracts queries', () => {
 		expect(position.feeGrowthInside1LastX128).toBe(0xdefn)
 		expect(position.tokensOwed0).toBe(1n)
 		expect(position.tokensOwed1).toBe(2n)
+	})
+
+	it('rejects a position lookup whose uninitialized tokens prove it is absent', async () => {
+		await expect(getPosition({
+			getCall: async () => (`0x${'0'.repeat(12 * 64)}`) as `0x${string}`,
+			positionManager: '0xc36442b4a4522e871399cd717abdd847ab11fe88',
+			tokenId: 1n,
+		})).rejects.toThrow('UniswapContracts_Evm: invalid positions token addresses')
 	})
 })
