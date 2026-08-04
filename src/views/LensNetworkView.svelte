@@ -42,6 +42,8 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import LensAccountsView from '$/views/LensAccountsView.svelte'
+	import LensFeedsView from '$/views/LensFeedsView.svelte'
+	import LensUsernameNamespacesView from '$/views/LensUsernameNamespacesView.svelte'
 	import LensPostsView from '$/views/LensPostsView.svelte'
 </script>
 
@@ -74,14 +76,65 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<ResourceBoundary
-			resource={lensNetwork}
-		>
-			{#snippet children(entity)}
-				<dl data-column-item="center">
-					<div>
-						<dt>Home URL</dt>
-						<dd>
+		<dl data-column-item="center">
+			<div>
+				<dt>Protocol</dt>
+				<dd>
+					<ResourceBoundary
+						resource={lensNetwork}
+					>
+						{#snippet children(entity)}
+							{entity.protocolName}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={lensNetwork}
+			>
+				{#snippet children(entity)}
+					{@const relationshipModel = entity.relationshipModel}
+					{#if relationshipModel != null}
+						<div>
+							<dt>Connection model</dt>
+							<dd>
+								{relationshipModel}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={lensNetwork}
+			>
+				{#snippet children(entity)}
+					{@const registryName = entity.registryName}
+					{#if registryName != null}
+						<div>
+							<dt>Registry name</dt>
+							<dd>
+								{registryName}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<div>
+				<dt>Home URL</dt>
+				<dd>
+					<ResourceBoundary
+						resource={lensNetwork}
+					>
+						{#snippet children(entity)}
 							<a
 								href={entity.homeUrl}
 								target="_blank"
@@ -89,44 +142,35 @@
 							>
 								<TruncatedValue value={entity.homeUrl} />
 							</a>
-						</dd>
-					</div>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
 
-					{#if entity.docsUrl != null}
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={lensNetwork}
+			>
+				{#snippet children(entity)}
+					{@const docsUrl = entity.docsUrl}
+					{#if docsUrl != null}
 						<div>
 							<dt>Docs URL</dt>
 							<dd>
 								<a
-									href={entity.docsUrl}
+									href={docsUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={entity.docsUrl} />
+									<TruncatedValue value={docsUrl} />
 								</a>
 							</dd>
 						</div>
 					{/if}
-
-					{#if entity.registryName != null}
-						<div>
-							<dt>Registry name</dt>
-							<dd>
-								{entity.registryName}
-							</dd>
-						</div>
-					{/if}
-
-					{#if entity.relationshipModel != null}
-						<div>
-							<dt>Connection model</dt>
-							<dd>
-								{entity.relationshipModel}
-							</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}
@@ -140,8 +184,12 @@
 						label: 'Accounts',
 					},
 					{
-						id: 'lens-network-post-list',
-						label: 'Posts',
+						id: 'lens-network-feeds',
+						label: 'Feeds',
+					},
+					{
+						id: 'lens-network-namespaces',
+						label: 'Namespaces',
 					},
 				]
 			}
@@ -163,6 +211,50 @@
 					emptyText='No Lens accounts in this observed.'
 					id={`${id}-list`}
 				/>
+			{/snippet}
+
+			{#snippet SectionLensNetworkFeeds({ id, label })}
+				<LensFeedsView
+					selection={selection.$$feeds}
+					href={resolve('/(social)/(lens)/lens/(lensNetwork)/feed')}
+					collapsible={false}
+					title={label}
+					emptyText='No Lens feeds in this observed.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionLensNetworkNamespaces({ id, label })}
+				<LensUsernameNamespacesView
+					selection={selection.$$usernameNamespaces}
+					href={resolve('/(social)/(lens)/lens/(lensNetwork)/namespace')}
+					collapsible={false}
+					title={label}
+					emptyText='No Lens username namespaces in this observed.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-lens-network-posts'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'lens-network-post-list',
+						label: 'Posts',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-posts'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Posts</HeadingComponent>
+				</header>
 			{/snippet}
 
 			{#snippet SectionLensNetworkPostList({ id, label })}

@@ -40,7 +40,7 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import MarketPricesView from '$/views/MarketPricesView.svelte'
-	import MarketOhlcHub from '$/views/MarketOhlcHub.svelte'
+	import Market_TimeInterval_TimestampsView from '$/views/Market_TimeInterval_TimestampsView.svelte'
 	import Market_Derivative_TimestampsView from '$/views/Market_Derivative_TimestampsView.svelte'
 </script>
 
@@ -131,21 +131,29 @@
 						</dd>
 					</div>
 				{/if}
+
+				<div>
+					<dt>Base</dt>
+					<dd>
+						<MarketAssetView
+							selection={select(EntityType.MarketAsset, selection.entitySelector.$base)}
+							layout={EntityLayout.Value}
+							showTypeAnnotation={false}
+						/>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Quote</dt>
+					<dd>
+						<MarketAssetView
+							selection={select(EntityType.MarketAsset, selection.entitySelector.$quote)}
+							layout={EntityLayout.Value}
+							showTypeAnnotation={false}
+						/>
+					</dd>
+				</div>
 			</dl>
-
-			<MarketAssetView
-				selection={select(EntityType.MarketAsset, selection.entitySelector.$base)}
-				layout={EntityLayout.SummaryDetails}
-				open={true}
-				showTypeAnnotation={false}
-			/>
-
-			<MarketAssetView
-				selection={select(EntityType.MarketAsset, selection.entitySelector.$quote)}
-				layout={EntityLayout.SummaryDetails}
-				open={true}
-				showTypeAnnotation={false}
-			/>
 		</section>
 	{/snippet}
 
@@ -154,23 +162,51 @@
 			resource={selection.Spot}
 		>
 			{#snippet Applicable(projection)}
-				<section data-scroll-marker-label="Spot">
-					<MarketPricesView
-						selection={selection.$$marketPrices}
-						collapsible={false}
-						title="Spot"
-						emptyText='No spot market prices.'
-						id={`${viewDomId}-market-prices`}
-					/>
-				</section>
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-market-spot'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'market-prices',
+								label: 'Spot',
+							},
+							{
+								id: 'market-ohlc',
+								label: 'Candles',
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-spot'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Spot</HeadingComponent>
+						</header>
+					{/snippet}
 
-				<section data-scroll-marker-label="OHLC">
-					<MarketOhlcHub
-						candlesListTitle="Candles"
-						id={`${viewDomId}-market-ohlc`}
-						market={selection.entitySelector}
-					/>
-				</section>
+					{#snippet SectionMarketPrices({ id, label })}
+						<MarketPricesView
+							selection={selection.$$marketPrices}
+							collapsible={false}
+							title={label}
+							emptyText='No spot market prices.'
+							id={`${id}-list`}
+						/>
+					{/snippet}
+
+					{#snippet SectionMarketOhlc({ id, label })}
+						<Market_TimeInterval_TimestampsView
+							selection={selection.$$marketTimeIntervalTimestamps}
+							collapsible={false}
+							title={label}
+							emptyText='No OHLC candles.'
+							id={`${id}-list`}
+						/>
+					{/snippet}
+
+				</CollapsibleTabs>
 			{/snippet}
 		</ProjectionBoundary>
 

@@ -89,13 +89,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={farcasterChannel}>
 			{#snippet children(entity)}
-				<a
-					href={entity.parentUrl}
-					target="_blank"
-					rel="noreferrer noopener"
-				>
-					<TruncatedValue value={entity.parentUrl} />
-				</a>
+				<TruncatedValue value={entity.parentUrl} />
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -172,7 +166,39 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+		</dl>
 
+		<dl data-column-item="center">
+			<div>
+				<dt>ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={farcasterChannel}
+					>
+						{#snippet children(entity)}
+							{entity.id}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<div>
+				<dt>Parent URL</dt>
+				<dd>
+					<ResourceBoundary
+						resource={farcasterChannel}
+					>
+						{#snippet children(entity)}
+							<TruncatedValue value={entity.parentUrl} />
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={selection.$lead}
 			>
@@ -186,6 +212,24 @@
 									prefetched={farcasterUser}
 									layout={EntityLayout.Value}
 								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={farcasterChannel}
+			>
+				{#snippet children(entity)}
+					{@const createdAt = entity.createdAt}
+					{#if createdAt != null}
+						<div>
+							<dt>Created</dt>
+							<dd>
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -207,7 +251,6 @@
 				]
 			}
 			data-card
-			class='network-view-collapsible-directory'
 		>
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">

@@ -38,27 +38,17 @@
 	}))
 	const titleFallback = $derived((prefetched.protocolName ?? '') || 'Farcaster')
 	const viewDomId = $derived('farcaster-network-' + encodeURIComponent(stringify(selection.entitySelector)))
-	const trendingCasts = $derived(
-		select(EntityType.FarcasterFeed, {
-			variant: 'trending',
-		})
-			.$$entries({
-				sources: [
-					Source.Neynar_Rest,
-				],
-			})
-	)
 
 
 	// Components
+	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 	import FarcasterFeedsView from '$/views/FarcasterFeedsView.svelte'
-	import FarcasterUsersView from '$/views/FarcasterUsersView.svelte'
 	import FarcasterChannelsView from '$/views/FarcasterChannelsView.svelte'
+	import FarcasterUsersView from '$/views/FarcasterUsersView.svelte'
 </script>
 
 
@@ -90,59 +80,89 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<ResourceBoundary
-			resource={farcasterNetwork}
-		>
-			{#snippet children(entity)}
-				<dl data-column-item="center">
-					<div>
-						<dt>Home URL</dt>
-						<dd>
-							<a
-								href={entity.homeUrl}
-								target="_blank"
-								rel="noreferrer noopener"
-							>
-								<TruncatedValue value={entity.homeUrl} />
-							</a>
-						</dd>
-					</div>
+		<dl data-column-item="center">
+			<div>
+				<dt>Protocol</dt>
+				<dd>
+					<ResourceBoundary
+						resource={farcasterNetwork}
+					>
+						{#snippet children(entity)}
+							{entity.protocolName}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
 
-					{#if entity.docsUrl != null}
+		<dl data-column-item="center">
+			<div>
+				<dt>Home URL</dt>
+				<dd>
+					<ResourceBoundary
+						resource={farcasterNetwork}
+					>
+						{#snippet children(entity)}
+							<TruncatedValue value={entity.homeUrl} />
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={farcasterNetwork}
+			>
+				{#snippet children(entity)}
+					{@const docsUrl = entity.docsUrl}
+					{#if docsUrl != null}
 						<div>
 							<dt>Docs URL</dt>
 							<dd>
-								<a
-									href={entity.docsUrl}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={entity.docsUrl} />
-								</a>
+								<TruncatedValue value={docsUrl} />
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 
-					{#if entity.registryName != null}
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={farcasterNetwork}
+			>
+				{#snippet children(entity)}
+					{@const registryName = entity.registryName}
+					{#if registryName != null}
 						<div>
 							<dt>Registry name</dt>
 							<dd>
-								{entity.registryName}
+								{registryName}
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 
-					{#if entity.relationshipModel != null}
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={farcasterNetwork}
+			>
+				{#snippet children(entity)}
+					{@const relationshipModel = entity.relationshipModel}
+					{#if relationshipModel != null}
 						<div>
 							<dt>Connection model</dt>
 							<dd>
-								{entity.relationshipModel}
+								{relationshipModel}
 							</dd>
 						</div>
 					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}
@@ -190,15 +210,30 @@
 			{/snippet}
 
 			{#snippet SectionFarcasterNetworkCasts({ id, label })}
-				<FarcasterCastsView
-					selection={trendingCasts}
-					countResource={trendingCasts.count}
-					href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/trending')}
-					collapsible={false}
-					title={label}
-					emptyText='No trending Farcaster casts in this observed.'
+				{@const trendingCasts = select(EntityType.FarcasterFeed, {
+					variant: 'trending',
+				})
+					.$$entries({
+						sources: [
+							Source.Neynar_Rest,
+						],
+					})}
+
+				<article
 					id={`${id}-list`}
-				/>
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+				>
+					<FarcasterCastsView
+						selection={trendingCasts}
+						countResource={trendingCasts.count}
+						href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/trending')}
+						collapsible={false}
+						title={label}
+						emptyText='No trending Farcaster casts in this observed.'
+					/>
+				</article>
 			{/snippet}
 
 			{#snippet SectionFarcasterNetworkChannels({ id, label })}

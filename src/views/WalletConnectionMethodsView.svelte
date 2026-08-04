@@ -44,7 +44,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{[walletConnectionMethod.protocol, walletConnectionMethod.implementationStatus].filter(Boolean).join(' ')}
+				{[(walletProtocolByProtocol[walletConnectionMethod.protocol]?.label ?? walletConnectionMethod.protocol), (walletImplementationStatusByImplementationStatus[walletConnectionMethod.implementationStatus]?.label ?? walletConnectionMethod.implementationStatus)].filter(Boolean).join(' ')}
 			{/snippet}
 		</EntityView>
 	{/snippet}

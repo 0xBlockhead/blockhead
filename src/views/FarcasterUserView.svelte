@@ -44,6 +44,7 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
@@ -118,6 +119,36 @@
 
 	{#snippet Content()}
 		<dl data-column-item="center">
+			<div>
+				<dt>FID</dt>
+				<dd>
+					<NumberValue
+						value={selection.entitySelector.fid}
+					/>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={farcasterUser}
+			>
+				{#snippet children(entity)}
+					{@const username = entity.username}
+					{#if username != null}
+						<div>
+							<dt>Username</dt>
+							<dd>
+								<span>@</span>
+								{username}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
 					viewSelection({
@@ -133,19 +164,15 @@
 						<div>
 							<dt>URL</dt>
 							<dd>
-								<a
-									href={url}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={url} />
-								</a>
+								<TruncatedValue value={url} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+		</dl>
 
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={selection.$primaryEvmAccount}
 			>
@@ -204,7 +231,6 @@
 				]
 			}
 			data-card
-			class='network-view-collapsible-directory'
 		>
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">

@@ -101,51 +101,72 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<ResourceBoundary
-			resource={farcasterFeed}
-		>
-			{#snippet children(entity)}
-				<dl data-column-item="center">
-					<div>
-						<dt>Variant</dt>
-						<dd>
-							{selection.entitySelector.variant}
-						</dd>
-					</div>
+		<dl data-column-item="center">
+			<div>
+				<dt>Variant</dt>
+				<dd>
+					{selection.entitySelector.variant}
+				</dd>
+			</div>
+		</dl>
 
-					{#if entity.fid != null}
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={farcasterFeed}
+			>
+				{#snippet children(entity)}
+					{@const fid = entity.fid}
+					{#if fid != null}
 						<div>
 							<dt>FID</dt>
 							<dd>
 								<NumberValue
-									value={entity.fid}
+									value={fid}
 								/>
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 
-					{#if entity.channelId != null}
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={farcasterFeed}
+			>
+				{#snippet children(entity)}
+					{@const channelId = entity.channelId}
+					{#if channelId != null}
 						<div>
 							<dt>Channel ID</dt>
 							<dd>
-								{entity.channelId}
+								{channelId}
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 
-					{#if entity.viewerFid != null}
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={farcasterFeed}
+			>
+				{#snippet children(entity)}
+					{@const viewerFid = entity.viewerFid}
+					{#if viewerFid != null}
 						<div>
 							<dt>Viewer FID</dt>
 							<dd>
 								<NumberValue
-									value={entity.viewerFid}
+									value={viewerFid}
 								/>
 							</dd>
 						</div>
 					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}

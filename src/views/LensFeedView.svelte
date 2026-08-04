@@ -22,8 +22,6 @@
 		fields: {
 			name: true,
 			createdAt: true,
-			owner: true,
-			description: true,
 		},
 	}))
 	const titleFallback = $derived([(prefetched.name ?? ''), selection.entitySelector.address].filter(Boolean).join(' ') || 'Lens feed')
@@ -82,48 +80,82 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<ResourceBoundary
-			resource={lensFeed}
-		>
-			{#snippet children(entity)}
-				<dl data-column-item="center">
-					{#if entity.name != null}
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={lensFeed}
+			>
+				{#snippet children(entity)}
+					{@const name = entity.name}
+					{#if name != null}
 						<div>
 							<dt>Name</dt>
 							<dd>
-								{entity.name}
+								{name}
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					<div>
-						<dt>Address</dt>
-						<dd>
-							<TruncatedValue value={selection.entitySelector.address} />
-						</dd>
-					</div>
+			<div>
+				<dt>Address</dt>
+				<dd>
+					<TruncatedValue value={selection.entitySelector.address} />
+				</dd>
+			</div>
 
-					{#if entity.owner != null}
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							owner: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const owner = entity.owner}
+					{#if owner != null}
 						<div>
 							<dt>Owner</dt>
 							<dd>
-								<TruncatedValue value={entity.owner} />
+								<TruncatedValue value={owner} />
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if entity.createdAt != null}
+			<ResourceBoundary
+				resource={lensFeed}
+			>
+				{#snippet children(entity)}
+					{@const createdAt = entity.createdAt}
+					{#if createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={entity.createdAt} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
-				</dl>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 
-				{#if entity.description != null && entity.description !== ''}
-					<p data-text="long-text">{entity.description}</p>
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						description: true,
+					},
+				})
+			}
+		>
+			{#snippet children(entity)}
+				{@const description = entity.description}
+				{#if description != null && description !== ''}
+					<p data-text="long-text">{description}</p>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -131,12 +163,19 @@
 
 	{#snippet Details()}
 		{@const postsResource = selection.$$posts}
-		<LensPostsView
-			selection={postsResource}
-			countResource={postsResource.count}
-			title='Posts'
-			emptyText='No Lens posts for this feed.'
-			id='posts'
-		/>
+		<ResourceBoundary
+			resource={postsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<LensPostsView
+						selection={postsResource}
+						countResource={postsResource.count}
+						title='Posts'
+						id='posts'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

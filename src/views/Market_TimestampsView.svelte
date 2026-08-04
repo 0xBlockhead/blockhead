@@ -20,8 +20,6 @@
 
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
-	import NumberValue from '$/components/NumberValue.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -67,18 +65,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{#if marketTimestamp.price != null}
-					<NumberValue
-						value={Number(marketTimestamp.price) / 1e8}
-						formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
-					/>
-				{/if}
+				{marketTimestamp.price}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">
-					<Timestamp timestamp={marketTimestampSelector.timestampMs} />
-				</span>
+				<span data-text="annotation">{marketTimestampSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

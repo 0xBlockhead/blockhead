@@ -18,21 +18,17 @@
 		placeholderText = 'Loading OHLC candles...',
 		open = $bindable(true),
 		timeInterval,
-		limit = 4096,
 		...EntitiesListProps
 	}: EntityListViewProps<
 		EntityType.Market_TimeInterval_Timestamp,
 		{
 			timeInterval?: RegisteredEntitySelector<EntityType.Market_TimeInterval_Timestamp>['timeInterval']
-			limit?: number
 		}
 	> = $props()
 
 
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
-	import NumberValue from '$/components/NumberValue.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -42,7 +38,7 @@
 	</p>
 
 	<p>
-		Candles load from schema defaultSources on the parent market row (Coingecko, Coinpaprika, CoinMarketCap).
+		Candles load from every declared OHLC provider on the parent market row (Coingecko, Coinpaprika, CoinMarketCap, …).
 	</p>
 {/snippet}
 
@@ -61,26 +57,20 @@
 			],
 			fields: {
 				timeInterval: true,
-				open: true,
-				high: true,
-				low: true,
 				close: true,
 				timestampMs: true,
 			},
-			limit,
+			limit: 4096,
 		})
 	}
 	getResourceItems={
 		(marketTimeIntervalTimestamps) => marketTimeIntervalTimestamps.values.filter(
 			(marketTimeIntervalTimestamp) => (
-				(
-					timeInterval == null
-					|| (
-						marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.unit === timeInterval.unit
-						&& marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.value === timeInterval.value
-					)
+				timeInterval == null
+				|| (
+					marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.unit === timeInterval.unit
+					&& marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.value === timeInterval.value
 				)
-				&& marketTimeIntervalTimestamp.close != null
 			)
 		)
 	}
@@ -114,18 +104,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{#if marketTimeIntervalTimestamp.close != null}
-					<NumberValue
-						value={Number(marketTimeIntervalTimestamp.close) / 1e8}
-						formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
-					/>
-				{/if}
+				{marketTimeIntervalTimestamp.close ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">
-					<Timestamp timestamp={marketTimeIntervalTimestampSelector.timestampMs} />
-				</span>
+				<span data-text="annotation">{marketTimeIntervalTimestampSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

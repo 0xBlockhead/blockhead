@@ -22,11 +22,7 @@
 		fields: {
 			namespace: true,
 			tokenName: true,
-			tokenSymbol: true,
 			totalUsernames: true,
-			owner: true,
-			createdAt: true,
-			description: true,
 		},
 	}))
 	const titleFallback = $derived([(prefetched.namespace ?? ''), (prefetched.tokenName ?? '')].filter(Boolean).join(' ') || 'Lens username namespace')
@@ -85,68 +81,141 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<ResourceBoundary
-			resource={lensUsernameNamespace}
-		>
-			{#snippet children(entity)}
-				<dl data-column-item="center">
-					{#if entity.tokenName != null}
+		<dl data-column-item="center">
+			<div>
+				<dt>Namespace</dt>
+				<dd>
+					<ResourceBoundary
+						resource={lensUsernameNamespace}
+					>
+						{#snippet children(entity)}
+							{entity.namespace}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={lensUsernameNamespace}
+			>
+				{#snippet children(entity)}
+					{@const tokenName = entity.tokenName}
+					{#if tokenName != null}
 						<div>
 							<dt>Token name</dt>
 							<dd>
-								{entity.tokenName}
+								{tokenName}
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if entity.tokenSymbol != null}
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							tokenSymbol: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const tokenSymbol = entity.tokenSymbol}
+					{#if tokenSymbol != null}
 						<div>
 							<dt>Token symbol</dt>
 							<dd>
-								{entity.tokenSymbol}
+								{tokenSymbol}
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if entity.totalUsernames != null}
+			<ResourceBoundary
+				resource={lensUsernameNamespace}
+			>
+				{#snippet children(entity)}
+					{@const totalUsernames = entity.totalUsernames}
+					{#if totalUsernames != null}
 						<div>
 							<dt>Total usernames</dt>
 							<dd>
-								{entity.totalUsernames}
+								{totalUsernames}
 							</dd>
 						</div>
 					{/if}
-				</dl>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 
-				<dl data-column-item="center">
-					<div>
-						<dt>Address</dt>
-						<dd>
-							<TruncatedValue value={selection.entitySelector.address} />
-						</dd>
-					</div>
+		<dl data-column-item="center">
+			<div>
+				<dt>Address</dt>
+				<dd>
+					<TruncatedValue value={selection.entitySelector.address} />
+				</dd>
+			</div>
 
-					{#if entity.owner != null}
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							owner: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const owner = entity.owner}
+					{#if owner != null}
 						<div>
 							<dt>Owner</dt>
 							<dd>
-								<TruncatedValue value={entity.owner} />
+								<TruncatedValue value={owner} />
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if entity.createdAt != null}
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							createdAt: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const createdAt = entity.createdAt}
+					{#if createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={entity.createdAt} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
-				</dl>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 
-				{#if entity.description != null && entity.description !== ''}
-					<p data-text="long-text">{entity.description}</p>
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						description: true,
+					},
+				})
+			}
+		>
+			{#snippet children(entity)}
+				{@const description = entity.description}
+				{#if description != null && description !== ''}
+					<p data-text="long-text">{description}</p>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -154,12 +223,19 @@
 
 	{#snippet Details()}
 		{@const usernamesResource = selection.$$usernames}
-		<LensUsernamesView
-			selection={usernamesResource}
-			countResource={usernamesResource.count}
-			title='Usernames'
-			emptyText='No Lens usernames in this namespace.'
-			id='usernames'
-		/>
+		<ResourceBoundary
+			resource={usernamesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<LensUsernamesView
+						selection={usernamesResource}
+						countResource={usernamesResource.count}
+						title='Usernames'
+						id='usernames'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>
