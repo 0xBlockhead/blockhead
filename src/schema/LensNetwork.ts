@@ -46,6 +46,22 @@ export default entity({
 			Source.Lens_Graphql,
 		],
 	},
+	$$feeds: {
+		entityType: EntityType.LensFeed,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.Lens_Graphql,
+		],
+	},
+	$$usernameNamespaces: {
+		entityType: EntityType.LensUsernameNamespace,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.Lens_Graphql,
+		],
+	},
 	$$lensPosts: {
 		entityType: EntityType.LensPost,
 		cardinality: EntityFieldCardinality.Many,
