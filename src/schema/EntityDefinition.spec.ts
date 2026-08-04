@@ -21,6 +21,7 @@ import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { NetworkNamespace, networks } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import { Source } from '$/sources/Source.ts'
 
 enum ParentSelector {
 	Slug = 'slug',
@@ -595,6 +596,20 @@ describe('entity selectors', () => {
 			'timestampMs',
 		]])
 		expect(entityFieldDefinitions(marketTimeIntervalTimestamp).some((fieldDefinition) => fieldDefinition.name === 'feedKey')).toBe(false)
+		expect(entityFieldDefinitions(marketTimeIntervalTimestamp).find((fieldDefinition) => fieldDefinition.name === 'close')?.defaultSources).toEqual([
+			Source.Coingecko_Rest,
+			Source.Coinpaprika_Rest,
+			Source.CoinMarketCap_Rest,
+			Source.Defillama_Rest,
+		])
+		expect(entityFieldDefinitions(marketTimeIntervalTimestamp).find((fieldDefinition) => fieldDefinition.name === '$parentMarket')?.defaultSources).toEqual([
+			Source.Constants_Internal,
+			Source.Coingecko_Rest,
+			Source.Coinpaprika_Rest,
+			Source.CoinMarketCap_Rest,
+			Source.Defillama_Rest,
+		])
+		expect(entityFieldDefinitions(marketTimeIntervalTimestamp).find((fieldDefinition) => fieldDefinition.name === 'open')?.defaultSources).not.toContain(Source.Defillama_Rest)
 	})
 
 	it('models market legs and venues as canonical entity references', () => {

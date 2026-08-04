@@ -4,6 +4,7 @@ import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -40,6 +41,9 @@ export default entity({
 	$$posts: {
 		entityType: EntityType.LensPost,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Lens_Graphql,
+		],
 	},
 })({
 	selectors: {
