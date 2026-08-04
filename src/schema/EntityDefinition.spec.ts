@@ -1553,6 +1553,20 @@ describe('entity selectors', () => {
 		expect(entityFieldDefinitions(evmNetworkAccount).find(({ name }) => name === '$$queuedTransactions')?.defaultSources).toEqual([
 			Source.SafeTransactionService_Rest,
 		])
+		expect(entityFieldDefinitions(evmNetworkAccount).find(({ name }) => name === '$$nfts')).toMatchObject({
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmNft,
+			defaultSources: [
+				Source.OpenSea_Rest,
+			],
+		})
+		expect(entityFieldDefinitions(evmContract).find(({ name }) => name === '$$nfts')).toMatchObject({
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmNft,
+			defaultSources: [
+				Source.OpenSea_Rest,
+			],
+		})
 
 		const bridges = entityFieldDefinitions(network).find(({ name }) => name === '$$bridges')
 		expect(bridges?.defaultSources).toEqual([

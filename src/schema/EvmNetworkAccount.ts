@@ -54,6 +54,13 @@ export default entity({
 			Source.Allium_Rest,
 		],
 	},
+	$$nfts: {
+		entityType: EntityType.EvmNft,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.OpenSea_Rest,
+		],
+	},
 	$$erc20TokenAllowances: {
 		entityType: EntityType.EvmActorCoinAllowance,
 		cardinality: EntityFieldCardinality.Many,

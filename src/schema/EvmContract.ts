@@ -114,6 +114,13 @@ export default entity({
 		entityType: EntityType.EvmStorageRead_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
+	$$nfts: {
+		entityType: EntityType.EvmNft,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.OpenSea_Rest,
+		],
+	},
 	$verification: {
 		entityType: EntityType.EvmContractVerification,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
