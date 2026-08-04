@@ -393,3 +393,94 @@ export const retainCurrentSessionCapabilityGrants = (
 		return current == null ? [] : [current]
 	})
 )
+
+
+// Session simulation observation (RPC evidence rows; orthogonal to wallet prep/send)
+
+export type SessionSimulationStatus = 'succeeded' | 'failed'
+
+export type SessionSimulationObservation = {
+	id: string
+	sessionId: string
+	status: SessionSimulationStatus
+	createdAt: number
+	completedAt?: number
+	paramsHash: string
+	error?: string
+}
+
+export type SessionPreparedRequestObservation = {
+	id?: string
+	status?: string
+	submittedAt?: number
+	evmTransactionIds?: readonly string[]
+}
+
+export type SessionSimulationPrepCompose = {
+	sessionEditable: boolean
+	simulationComplete: boolean
+	simulationWithoutPreparedRequest: boolean
+	simulationWithoutSend: boolean
+}
+
+export const isTerminalSessionSimulationStatus = (
+	status: string
+): status is SessionSimulationStatus => (
+	status === 'succeeded' || status === 'failed'
+)
+
+export const isCompletedSessionSimulation = (
+	simulation: Pick<SessionSimulationObservation, 'status' | 'completedAt'>
+) => (
+	simulation.completedAt != null
+	&& isTerminalSessionSimulationStatus(simulation.status)
+)
+
+/** Normalize terminal simulation rows so completedAt is always present for status evidence. */
+export const sessionSimulationObservation = (
+	row: SessionSimulationObservation
+): SessionSimulationObservation => (
+	row.completedAt != null || !isTerminalSessionSimulationStatus(row.status) ?
+		row
+	:
+		{
+			...row,
+			completedAt: row.createdAt,
+		}
+)
+
+export const isSessionSimulationWithoutPreparedRequest = (
+	simulation: SessionSimulationObservation,
+	preparedRequest?: SessionPreparedRequestObservation | null
+) => (
+	simulation.id !== ''
+	&& (preparedRequest?.id == null || preparedRequest.id === '')
+	&& preparedRequest?.status !== 'prepared'
+)
+
+export const isSessionSimulationWithoutSend = (
+	send?: SessionPreparedRequestObservation | null
+) => (
+	send?.submittedAt == null
+	&& (send?.evmTransactionIds?.length ?? 0) === 0
+)
+
+export const composeSessionSimulationVsPreparedRequest = ({
+	session,
+	simulation,
+	preparedRequest,
+	send = preparedRequest,
+}: {
+	session: SessionLifecycle
+	simulation: SessionSimulationObservation
+	preparedRequest?: SessionPreparedRequestObservation | null
+	send?: SessionPreparedRequestObservation | null
+}): SessionSimulationPrepCompose => ({
+	sessionEditable: isEditableSessionLifecycle(session),
+	simulationComplete: isCompletedSessionSimulation(simulation),
+	simulationWithoutPreparedRequest: isSessionSimulationWithoutPreparedRequest(
+		simulation,
+		preparedRequest
+	),
+	simulationWithoutSend: isSessionSimulationWithoutSend(send),
+})

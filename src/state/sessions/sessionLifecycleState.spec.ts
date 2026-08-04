@@ -28,6 +28,11 @@ import {
 	sessionLifecyclePersistRoundTrip,
 	submitSessionLifecycle,
 	unlockSessionLifecycle,
+	composeSessionSimulationVsPreparedRequest,
+	isCompletedSessionSimulation,
+	isSessionSimulationWithoutPreparedRequest,
+	isSessionSimulationWithoutSend,
+	sessionSimulationObservation,
 } from './sessionLifecycleState.ts'
 
 
@@ -271,5 +276,33 @@ describe('sessionCapabilityGrant lifecycle', () => {
 			'grant-2',
 			'grant-3',
 		])
+	})
+})
+
+
+describe('sessionSimulation observation', () => {
+	it('normalizes terminal statuses with completedAt and classifies prep/send orthogonality', () => {
+		const simulation = sessionSimulationObservation({
+			id: 'sim-1',
+			sessionId: 'session-1',
+			status: 'succeeded',
+			createdAt: 40,
+			paramsHash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+		})
+		expect(simulation.completedAt).toBe(40)
+		expect(isCompletedSessionSimulation(simulation)).toBe(true)
+		expect(isSessionSimulationWithoutPreparedRequest(simulation, null)).toBe(true)
+		expect(isSessionSimulationWithoutSend(null)).toBe(true)
+
+		const compose = composeSessionSimulationVsPreparedRequest({
+			session: draftSessionLifecycle(sessionBase),
+			simulation,
+		})
+		expect(compose).toMatchObject({
+			sessionEditable: true,
+			simulationComplete: true,
+			simulationWithoutPreparedRequest: true,
+			simulationWithoutSend: true,
+		})
 	})
 })
