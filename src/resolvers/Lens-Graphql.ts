@@ -200,16 +200,26 @@ const lensUsernameNamespaceFromWire = (
 	namespace: NonNullable<Awaited<ReturnType<
 		typeof import('$/sources/Lens/Graphql/queries.ts')['queryNamespace']
 	>>['namespace']>
-) => ({
-	address: lensEvmAddressFromWire(namespace.address),
-	namespace: namespace.namespace,
-	...(namespace.owner != null && { owner: lensEvmAddressFromWire(namespace.owner) }),
-	...((tokenName) => tokenName != null && { tokenName })(optionalNonemptyString(namespace.tokenName)),
-	...((tokenSymbol) => tokenSymbol != null && { tokenSymbol })(optionalNonemptyString(namespace.tokenSymbol)),
-	...((createdAt) => createdAt != null && { createdAt })(optionalTimestampMs(namespace.createdAt)),
-	...((description) => description != null && { description })(optionalNonemptyString(namespace.metadata?.description)),
-	...(namespace.stats?.totalUsernames != null && { totalUsernames: namespace.stats.totalUsernames }),
-})
+) => {
+	const owner = namespace.owner != null ? lensEvmAddressFromWire(namespace.owner) : undefined
+	return {
+		address: lensEvmAddressFromWire(namespace.address),
+		namespace: namespace.namespace,
+		...(owner != null && {
+			owner,
+			$owner: {
+				[EntityMetaKey.Selector]: {
+					address: owner,
+				},
+			},
+		}),
+		...((tokenName) => tokenName != null && { tokenName })(optionalNonemptyString(namespace.tokenName)),
+		...((tokenSymbol) => tokenSymbol != null && { tokenSymbol })(optionalNonemptyString(namespace.tokenSymbol)),
+		...((createdAt) => createdAt != null && { createdAt })(optionalTimestampMs(namespace.createdAt)),
+		...((description) => description != null && { description })(optionalNonemptyString(namespace.metadata?.description)),
+		...(namespace.stats?.totalUsernames != null && { totalUsernames: namespace.stats.totalUsernames }),
+	}
+}
 
 const lensAccountTimestampFieldsFromWire = (
 	wire: Awaited<ReturnType<
@@ -679,9 +689,15 @@ const lensGraphqlResolvers = {
 						if (feed == null) throw new Error('Lens_Graphql: feed not found')
 						if (lensEvmAddressFromWire(feed.address) !== zeroExLowerCase(address))
 							throw new Error('Lens_Graphql: feed response does not match request')
+						const owner = lensEvmAddressFromWire(feed.owner)
 						return {
 							address: lensEvmAddressFromWire(feed.address),
-							owner: lensEvmAddressFromWire(feed.owner),
+							owner,
+							$owner: {
+								[EntityMetaKey.Selector]: {
+									address: owner,
+								},
+							},
 							...((name) => name != null && { name })(optionalNonemptyString(feed.metadata?.name)),
 							...((description) => description != null && { description })(optionalNonemptyString(feed.metadata?.description)),
 							...((createdAt) => createdAt != null && { createdAt })(optionalTimestampMs(feed.createdAt)),
@@ -692,6 +708,7 @@ const lensGraphqlResolvers = {
 		})({
 				address: (feed) => feed.address,
 				owner: (feed) => feed.owner,
+				$owner: (feed) => feed.$owner,
 				name: (feed) => feed.name,
 				description: (feed) => feed.description,
 				createdAt: (feed) => feed.createdAt,
@@ -792,6 +809,7 @@ const lensGraphqlResolvers = {
 				address: (namespace) => namespace.address,
 				namespace: (namespace) => namespace.namespace,
 				owner: (namespace) => namespace.owner,
+				$owner: (namespace) => namespace.$owner,
 				tokenName: (namespace) => namespace.tokenName,
 				tokenSymbol: (namespace) => namespace.tokenSymbol,
 				createdAt: (namespace) => namespace.createdAt,

@@ -439,6 +439,11 @@ describe('Lens_Graphql reading relationships', () => {
 		}, context)).resolves.toEqual({
 			address: '0x2222222222222222222222222222222222222222',
 			owner: '0x1111111111111111111111111111111111111111',
+			$owner: {
+				[EntityMetaKey.Selector]: {
+					address: '0x1111111111111111111111111111111111111111',
+				},
+			},
 			name: 'Research',
 			createdAt: 1_741_064_767_000,
 		})
@@ -699,6 +704,11 @@ describe('Lens_Graphql reading relationships', () => {
 			address: namespaceAddress,
 			namespace: 'lens',
 			owner: '0x1111111111111111111111111111111111111111',
+			$owner: {
+				[EntityMetaKey.Selector]: {
+					address: '0x1111111111111111111111111111111111111111',
+				},
+			},
 			tokenName: 'Lens Username',
 			tokenSymbol: 'LNS',
 			createdAt: 1_735_787_045_000,
