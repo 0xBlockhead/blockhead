@@ -3,14 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import {
-		bridgeAssetOutcomeByAssetOutcome,
-		bridgeRailById,
-		bridgeRouteStepTypeByWire,
-		bridgeSettlementModelBySettlementModel,
-		bridgeToolByKey,
-		bridgeVerificationModelByVerificationModel,
-	} from '$/constants/Bridge.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -75,23 +67,13 @@
 				{@const tool = entity.tool}
 				{#if tool != null}
 					<span data-text="muted">
-						{
-							tool in bridgeToolByKey ?
-								bridgeToolByKey[tool].label
-							:
-								tool
-						}
+						{tool}
 					</span>
 				{/if}
 				{@const stepType = entity.stepType}
 				{#if stepType != null}
 					<span data-text="muted">
-						{
-							stepType in bridgeRouteStepTypeByWire ?
-								bridgeRouteStepTypeByWire[stepType].label
-							:
-								stepType
-						}
+						{stepType}
 					</span>
 				{/if}
 			{/snippet}
@@ -100,6 +82,13 @@
 
 	{#snippet Content()}
 		<dl data-column-item="center">
+			<div>
+				<dt>index in quote</dt>
+				<dd>
+					{selection.entitySelector.indexInQuote}
+				</dd>
+			</div>
+
 			<ResourceBoundary
 				resource={
 					selection({
@@ -131,12 +120,7 @@
 						<div>
 							<dt>step type</dt>
 							<dd>
-								{
-									stepType in bridgeRouteStepTypeByWire ?
-										bridgeRouteStepTypeByWire[stepType].label
-									:
-										stepType
-								}
+								{stepType}
 							</dd>
 						</div>
 					{/if}
@@ -152,12 +136,7 @@
 						<div>
 							<dt>tool</dt>
 							<dd>
-								{
-									tool in bridgeToolByKey ?
-										bridgeToolByKey[tool].label
-									:
-										tool
-								}
+								{tool}
 							</dd>
 						</div>
 					{/if}
@@ -185,7 +164,85 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+		</dl>
 
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={selection.$fromNetwork}
+			>
+				{#snippet children(network)}
+					{#if network != null}
+						<div>
+							<dt>from network</dt>
+							<dd>
+								<NetworkView
+									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+									prefetched={network}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$toNetwork}
+			>
+				{#snippet children(network)}
+					{#if network != null}
+						<div>
+							<dt>to network</dt>
+							<dd>
+								<NetworkView
+									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+									prefetched={network}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$fromToken}
+			>
+				{#snippet children(evmCoinInstance)}
+					{#if evmCoinInstance != null}
+						<div>
+							<dt>from token</dt>
+							<dd>
+								<EvmCoinInstanceView
+									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$toToken}
+			>
+				{#snippet children(evmCoinInstance)}
+					{#if evmCoinInstance != null}
+						<div>
+							<dt>to token</dt>
+							<dd>
+								<EvmCoinInstanceView
+									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
 					selection({
@@ -285,88 +342,6 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection.$fromNetwork}
-			>
-				{#snippet children(network)}
-					{#if network != null}
-						<div>
-							<dt>from network</dt>
-							<dd>
-								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
-									layout={EntityLayout.Value}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={selection.$toNetwork}
-			>
-				{#snippet children(network)}
-					{#if network != null}
-						<div>
-							<dt>to network</dt>
-							<dd>
-								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
-									layout={EntityLayout.Value}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={selection.$fromToken}
-			>
-				{#snippet children(evmCoinInstance)}
-					{#if evmCoinInstance != null}
-						<div>
-							<dt>from token</dt>
-							<dd>
-								<EvmCoinInstanceView
-									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-									layout={EntityLayout.SummaryDetails}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={selection.$toToken}
-			>
-				{#snippet children(evmCoinInstance)}
-					{#if evmCoinInstance != null}
-						<div>
-							<dt>to token</dt>
-							<dd>
-								<EvmCoinInstanceView
-									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-									layout={EntityLayout.SummaryDetails}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
 				resource={
 					selection({
 						fields: {
@@ -379,14 +354,9 @@
 					{@const railId = entity.railId}
 					{#if railId != null}
 						<div>
-							<dt>rail</dt>
+							<dt>rail ID</dt>
 							<dd>
-								{
-									railId in bridgeRailById ?
-										bridgeRailById[railId].label
-									:
-										railId
-								}
+								{railId}
 							</dd>
 						</div>
 					{/if}
@@ -408,12 +378,7 @@
 						<div>
 							<dt>settlement model</dt>
 							<dd>
-								{
-									settlementModel in bridgeSettlementModelBySettlementModel ?
-										bridgeSettlementModelBySettlementModel[settlementModel].label
-									:
-										settlementModel
-								}
+								{settlementModel}
 							</dd>
 						</div>
 					{/if}
@@ -435,12 +400,7 @@
 						<div>
 							<dt>verification model</dt>
 							<dd>
-								{
-									verificationModel in bridgeVerificationModelByVerificationModel ?
-										bridgeVerificationModelByVerificationModel[verificationModel].label
-									:
-										verificationModel
-								}
+								{verificationModel}
 							</dd>
 						</div>
 					{/if}
@@ -462,12 +422,7 @@
 						<div>
 							<dt>asset outcome</dt>
 							<dd>
-								{
-									assetOutcome in bridgeAssetOutcomeByAssetOutcome ?
-										bridgeAssetOutcomeByAssetOutcome[assetOutcome].label
-									:
-										assetOutcome
-								}
+								{assetOutcome}
 							</dd>
 						</div>
 					{/if}
@@ -480,8 +435,6 @@
 					<BridgeRouteQuote_TimestampView
 						selection={select(EntityType.BridgeRouteQuote_Timestamp, selection.entitySelector.$quote)}
 						layout={EntityLayout.Value}
-						open={false}
-						showTypeAnnotation={false}
 					/>
 				</dd>
 			</div>

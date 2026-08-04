@@ -124,9 +124,7 @@
 								<BridgeTransferView
 									selection={select(EntityType.BridgeTransfer, bridgeTransfer[EntityMetaKey.Selector])}
 									prefetched={bridgeTransfer}
-									layout={EntityLayout.SummaryDetails}
-									open={false}
-									showTypeAnnotation={false}
+									layout={EntityLayout.Value}
 								/>
 							</dd>
 						</div>

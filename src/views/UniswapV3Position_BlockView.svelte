@@ -199,6 +199,54 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							feeGrowthInside0LastX128: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const feeGrowthInside0LastX128 = entity.feeGrowthInside0LastX128}
+					{#if feeGrowthInside0LastX128 != null}
+						<div>
+							<dt>Fee growth inside 0 last</dt>
+							<dd>
+								<NumberValue
+									value={feeGrowthInside0LastX128}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							feeGrowthInside1LastX128: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const feeGrowthInside1LastX128 = entity.feeGrowthInside1LastX128}
+					{#if feeGrowthInside1LastX128 != null}
+						<div>
+							<dt>Fee growth inside 1 last</dt>
+							<dd>
+								<NumberValue
+									value={feeGrowthInside1LastX128}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 </EntityView>

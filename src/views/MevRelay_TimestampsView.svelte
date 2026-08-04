@@ -29,9 +29,9 @@
 	resource={
 		selection({
 			fields: {
-				reachable: true,
-				statusCode: true,
 				timestampMs: true,
+				deliveredPayloadSampleCount: true,
+				builderSampleCount: true,
 				$relay: true,
 			},
 		})
@@ -61,11 +61,11 @@
 			}
 		>
 			{#snippet Title()}
-				{[String(mevRelayTimestamp.reachable ?? ''), String(mevRelayTimestamp.statusCode ?? ''), String(mevRelayTimestampSelector.timestampMs)].filter(Boolean).join(' ') || 'MEV relay timestamp'}
+				{mevRelayTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String(mevRelayTimestamp.reachable ?? ''), String(mevRelayTimestamp.statusCode ?? '')].filter(Boolean).join(' ')}
+				{[String(mevRelayTimestamp.deliveredPayloadSampleCount ?? ''), String(mevRelayTimestamp.builderSampleCount ?? '')].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

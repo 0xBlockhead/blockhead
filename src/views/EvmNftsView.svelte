@@ -32,6 +32,7 @@
 		selection({
 			sources: selection.sources ?? [
 				Source.Eip8004Scan_Rest,
+				Source.OpenSea_Rest,
 			],
 			fields: {
 				name: true,

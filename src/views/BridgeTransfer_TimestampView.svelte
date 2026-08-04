@@ -22,9 +22,7 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.Wormholescan,
 			Source.Lifi_Rest,
-			Source.LayerZeroScan_Rest,
 			Source.Allium_Rest,
 			Source.Dune_Rest,
 			Source.Voltaire_JsonRpc,
@@ -81,9 +79,21 @@
 					<BridgeTransferView
 						selection={select(EntityType.BridgeTransfer, selection.entitySelector.$transfer)}
 						layout={EntityLayout.Value}
-						open={false}
-						showTypeAnnotation={false}
 					/>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Timestamp</dt>
+				<dd>
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
+				</dd>
+			</div>
+
+			<div>
+				<dt>Source</dt>
+				<dd>
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -118,7 +128,9 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+		</dl>
 
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
 					viewSelection({
@@ -188,9 +200,7 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
-		</dl>
 
-		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
 					viewSelection({
@@ -234,7 +244,9 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+		</dl>
 
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
 					viewSelection({
@@ -248,7 +260,7 @@
 					{@const estimatedCompletionMs = entity.estimatedCompletionMs}
 					{#if estimatedCompletionMs != null}
 						<div>
-							<dt>estimated completion</dt>
+							<dt>estimated completion ms</dt>
 							<dd>
 								<Timestamp timestamp={estimatedCompletionMs} />
 							</dd>
@@ -270,7 +282,7 @@
 					{@const completedAt = entity.completedAt}
 					{#if completedAt != null}
 						<div>
-							<dt>completed</dt>
+							<dt>completed AT</dt>
 							<dd>
 								<Timestamp timestamp={completedAt} />
 							</dd>

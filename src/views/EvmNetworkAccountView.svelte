@@ -118,6 +118,10 @@
 						label: 'Transactions',
 					},
 					{
+						id: 'evm-network-account-queued-transactions',
+						label: 'Queued transactions',
+					},
+					{
 						id: 'evm-network-account-token-transfers',
 						label: 'Token transfers',
 					},
@@ -142,6 +146,16 @@
 					collapsible={false}
 					title={label}
 					emptyText='No transactions yet.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionEvmNetworkAccountQueuedTransactions({ id, label })}
+				<EvmTransactionsView
+					selection={selection.$$queuedTransactions}
+					collapsible={false}
+					title={label}
+					emptyText='No queued Safe transactions.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

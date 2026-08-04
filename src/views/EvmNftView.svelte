@@ -29,6 +29,7 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Eip8004Scan_Rest,
+			Source.OpenSea_Rest,
 		],
 	}))
 	const evmNft = $derived(viewSelection({

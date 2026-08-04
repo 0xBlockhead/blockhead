@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -24,24 +23,16 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.LiquidityPool>, 'prefetched'> = $props()
 
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.Dexscreener_Rest,
-		],
-	}))
 	const viewDomId = $derived('liquidity-pool-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
-	import LiquidityPool_BlocksView from '$/views/LiquidityPool_BlocksView.svelte'
-	import LeveragesView from '$/views/LeveragesView.svelte'
 	import LiquidityPool_TimestampsView from '$/views/LiquidityPool_TimestampsView.svelte'
 </script>
 
@@ -167,127 +158,9 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
-
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							fee: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const fee = entity.fee}
-					{#if fee != null}
-						<div>
-							<dt>Fee</dt>
-							<dd>
-								<NumberValue
-									value={fee}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							tickSpacing: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const tickSpacing = entity.tickSpacing}
-					{#if tickSpacing != null}
-						<div>
-							<dt>Tick spacing</dt>
-							<dd>
-								<NumberValue
-									value={tickSpacing}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							v4PoolId: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const v4PoolId = entity.v4PoolId}
-					{#if v4PoolId != null}
-						<div>
-							<dt>v4 pool ID</dt>
-							<dd>
-								<TruncatedValue value={v4PoolId} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
 	{/snippet}
 
 	{#snippet Details()}
-		<CollapsibleTabs
-			id={viewDomId + '-carousel-liquidity-pool-state'}
-			sectionIdPrefix={viewDomId}
-			sections={
-				[
-					{
-						id: 'liquidity-pool-blocks',
-						label: 'Blocks',
-					},
-					{
-						id: 'liquidity-pool-leverages',
-						label: 'Leverage positions',
-					},
-				]
-			}
-			data-card
-			class='network-view-collapsible-state'
-		>
-			{#snippet Summary()}
-				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>State</HeadingComponent>
-				</header>
-			{/snippet}
-
-			{#snippet SectionLiquidityPoolBlocks({ id, label })}
-				<LiquidityPool_BlocksView
-					selection={selection.$$blocks}
-					collapsible={false}
-					title={label}
-					emptyText='No liquidity pool blocks yet.'
-					id={`${id}-list`}
-				/>
-			{/snippet}
-
-			{#snippet SectionLiquidityPoolLeverages({ id, label })}
-				<LeveragesView
-					selection={selection.$$leverages}
-					collapsible={false}
-					title={label}
-					emptyText='No leverage positions yet.'
-					id={`${id}-list`}
-				/>
-			{/snippet}
-
-		</CollapsibleTabs>
-
 		<CollapsibleTabs
 			id={viewDomId + '-carousel-liquidity-pool-observations'}
 			sectionIdPrefix={viewDomId}

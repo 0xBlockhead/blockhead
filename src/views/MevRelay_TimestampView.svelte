@@ -15,22 +15,20 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
 		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.MevRelay_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.MevRelay_Timestamp>, 'prefetched'> = $props()
 
 	const relay = $derived(selection.entitySelector.$relay)
 	const mevRelayTimestamp = $derived(selection({
 		fields: {
-			reachable: true,
-			statusCode: true,
+			deliveredPayloadSampleCount: true,
+			builderSampleCount: true,
 		},
 	}))
-	const titleFallback = $derived([String(prefetched.reachable ?? ''), String(prefetched.statusCode ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'MEV relay timestamp')
 
 
 	// Components
@@ -44,7 +42,7 @@
 <EntityView
 	entityType={EntityType.MevRelay_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	href={
 		href === undefined ?
 			resolve(
@@ -69,17 +67,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={mevRelayTimestamp}>
-			{#snippet children(entity)}
-				{[String(entity.reachable ?? ''), String(entity.statusCode ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={mevRelayTimestamp}>
 			{#snippet children(entity)}
-				{[String(entity.reachable ?? ''), String(entity.statusCode ?? '')].filter(Boolean).join(' ') || [String(entity.reachable ?? ''), String(entity.statusCode ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || titleFallback}
+				{[String(entity.deliveredPayloadSampleCount ?? ''), String(entity.builderSampleCount ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -99,68 +93,6 @@
 				resource={mevRelayTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const reachable = entity.reachable}
-					{#if reachable != null}
-						<div>
-							<dt>Reachable</dt>
-							<dd>
-								{reachable ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={mevRelayTimestamp}
-			>
-				{#snippet children(entity)}
-					{@const statusCode = entity.statusCode}
-					{#if statusCode != null}
-						<div>
-							<dt>Status code</dt>
-							<dd>
-								{statusCode}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							error: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const error = entity.error}
-					{#if error != null}
-						<div>
-							<dt>Error</dt>
-							<dd>
-								{error}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							deliveredPayloadSampleCount: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
 					{@const deliveredPayloadSampleCount = entity.deliveredPayloadSampleCount}
 					{#if deliveredPayloadSampleCount != null}
 						<div>
@@ -176,13 +108,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							builderSampleCount: true,
-						},
-					})
-				}
+				resource={mevRelayTimestamp}
 			>
 				{#snippet children(entity)}
 					{@const builderSampleCount = entity.builderSampleCount}

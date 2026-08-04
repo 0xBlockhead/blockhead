@@ -237,6 +237,104 @@
 				resource={
 					viewSelection({
 						fields: {
+							feeGrowthGlobal0X128: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const feeGrowthGlobal0X128 = entity.feeGrowthGlobal0X128}
+					{#if feeGrowthGlobal0X128 != null}
+						<div>
+							<dt>Fee growth global 0</dt>
+							<dd>
+								<NumberValue
+									value={feeGrowthGlobal0X128}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							feeGrowthGlobal1X128: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const feeGrowthGlobal1X128 = entity.feeGrowthGlobal1X128}
+					{#if feeGrowthGlobal1X128 != null}
+						<div>
+							<dt>Fee growth global 1</dt>
+							<dd>
+								<NumberValue
+									value={feeGrowthGlobal1X128}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							protocolFeesToken0: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const protocolFeesToken0 = entity.protocolFeesToken0}
+					{#if protocolFeesToken0 != null}
+						<div>
+							<dt>Protocol fees token 0</dt>
+							<dd>
+								<NumberValue
+									value={protocolFeesToken0}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							protocolFeesToken1: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const protocolFeesToken1 = entity.protocolFeesToken1}
+					{#if protocolFeesToken1 != null}
+						<div>
+							<dt>Protocol fees token 1</dt>
+							<dd>
+								<NumberValue
+									value={protocolFeesToken1}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
 							observationIndex: true,
 						},
 					})

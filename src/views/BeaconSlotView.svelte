@@ -8,6 +8,7 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -25,6 +26,12 @@
 	}: Omit<EntitySelectionViewProps<EntityType.BeaconSlot>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
+		],
+	}))
 	const viewDomId = $derived('beacon-slot-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -103,7 +110,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							proposerIndex: true,
 						},
@@ -144,7 +151,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
+						viewSelection({
 							fields: {
 								root: true,
 							},
@@ -168,7 +175,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
+						viewSelection({
 							fields: {
 								canonical: true,
 							},
@@ -192,7 +199,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
+						viewSelection({
 							fields: {
 								parentRoot: true,
 							},
@@ -216,7 +223,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
+						viewSelection({
 							fields: {
 								stateRoot: true,
 							},
@@ -240,7 +247,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
+						viewSelection({
 							fields: {
 								bodyRoot: true,
 							},
@@ -264,7 +271,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
+						viewSelection({
 							fields: {
 								signature: true,
 							},
@@ -314,7 +321,14 @@
 
 			{#snippet SectionBeaconSlotCommittees({ id, label })}
 				<BeaconCommitteesView
-					selection={selection.$$beaconCommittees}
+					selection={
+						selection
+						.$$beaconCommittees({
+							sources: [
+								Source.Beacon_Rest,
+							],
+						})
+					}
 					collapsible={false}
 					title={label}
 					id={`${id}-list`}
@@ -323,7 +337,15 @@
 
 			{#snippet SectionBeaconSlotAttestations({ id, label })}
 				<BeaconAttestationsView
-					selection={selection.$$beaconAttestations}
+					selection={
+						selection
+						.$$beaconAttestations({
+							sources: [
+								Source.Beacon_Rest,
+								Source.BeaconchaIn_Rest,
+							],
+						})
+					}
 					collapsible={false}
 					title={label}
 					id={`${id}-list`}
@@ -358,7 +380,15 @@
 
 			{#snippet SectionBeaconSlotWithdrawals({ id, label })}
 				<BeaconWithdrawalsView
-					selection={selection.$$beaconWithdrawals}
+					selection={
+						selection
+						.$$beaconWithdrawals({
+							sources: [
+								Source.Beacon_Rest,
+								Source.BeaconchaIn_Rest,
+							],
+						})
+					}
 					collapsible={false}
 					title={label}
 					id={`${id}-list`}
@@ -367,7 +397,15 @@
 
 			{#snippet SectionBeaconSlotSlashings({ id, label })}
 				<BeaconSlashingsView
-					selection={selection.$$beaconSlashings}
+					selection={
+						selection
+						.$$beaconSlashings({
+							sources: [
+								Source.Beacon_Rest,
+								Source.BeaconchaIn_Rest,
+							],
+						})
+					}
 					collapsible={false}
 					title={label}
 					id={`${id}-list`}

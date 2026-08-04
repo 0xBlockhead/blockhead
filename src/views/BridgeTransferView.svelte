@@ -3,12 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import {
-		bridgeAssetOutcomeByAssetOutcome,
-		bridgeRailById,
-		bridgeSettlementModelBySettlementModel,
-		bridgeVerificationModelByVerificationModel,
-	} from '$/constants/Bridge.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -30,9 +24,7 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.Wormholescan,
 			Source.Lifi_Rest,
-			Source.LayerZeroScan_Rest,
 			Source.Allium_Rest,
 			Source.Dune_Rest,
 			Source.Voltaire_JsonRpc,
@@ -50,7 +42,6 @@
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BridgeTransfer_TimestampsView from '$/views/BridgeTransfer_TimestampsView.svelte'
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
@@ -70,7 +61,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bridgeTransfer}>
 			{#snippet children(entity)}
-				<TruncatedValue value={entity.transferId || title || titleFallback} />
+				{entity.transferId || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -78,22 +69,33 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bridgeTransfer}>
 			{#snippet children(entity)}
-				{@const railId = entity.railId}
-				{[
-					selection.entitySelector.source,
-					(
-						railId != null && railId in bridgeRailById ?
-							bridgeRailById[railId].label
-						:
-							railId ?? ''
-					),
-				].filter(Boolean).join(' ') || entity.transferId || titleFallback}
+				{[selection.entitySelector.source, (entity.railId ?? '')].filter(Boolean).join(' ') || entity.transferId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content()}
 		<dl data-column-item="center">
+			<div>
+				<dt>transfer ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={bridgeTransfer}
+					>
+						{#snippet children(entity)}
+							{entity.transferId}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Source</dt>
+				<dd>
+					{selection.entitySelector.source}
+				</dd>
+			</div>
+
 			<ResourceBoundary
 				resource={selection.$sourceTx}
 			>
@@ -105,8 +107,6 @@
 								<EvmTransactionView
 									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
-									open={false}
-									showTypeAnnotation={false}
 								/>
 							</dd>
 						</div>
@@ -147,8 +147,26 @@
 								<EvmTransactionView
 									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
-									open={false}
-									showTypeAnnotation={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={selection.$sender}
+			>
+				{#snippet children(evmAccount)}
+					{#if evmAccount != null}
+						<div>
+							<dt>sender</dt>
+							<dd>
+								<EvmAccountView
+									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
 								/>
 							</dd>
 						</div>
@@ -156,6 +174,100 @@
 				{/snippet}
 			</ResourceBoundary>
 
+			<ResourceBoundary
+				resource={selection.$recipient}
+			>
+				{#snippet children(evmAccount)}
+					{#if evmAccount != null}
+						<div>
+							<dt>recipient</dt>
+							<dd>
+								<EvmAccountView
+									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$fromNetwork}
+			>
+				{#snippet children(network)}
+					{#if network != null}
+						<div>
+							<dt>from network</dt>
+							<dd>
+								<NetworkView
+									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+									prefetched={network}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$toNetwork}
+			>
+				{#snippet children(network)}
+					{#if network != null}
+						<div>
+							<dt>to network</dt>
+							<dd>
+								<NetworkView
+									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+									prefetched={network}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$fromToken}
+			>
+				{#snippet children(evmCoinInstance)}
+					{#if evmCoinInstance != null}
+						<div>
+							<dt>from token</dt>
+							<dd>
+								<EvmCoinInstanceView
+									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$toToken}
+			>
+				{#snippet children(evmCoinInstance)}
+					{#if evmCoinInstance != null}
+						<div>
+							<dt>to token</dt>
+							<dd>
+								<EvmCoinInstanceView
+									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
 					viewSelection({
@@ -203,130 +315,6 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={selection.$sender}
-			>
-				{#snippet children(evmAccount)}
-					{#if evmAccount != null}
-						<div>
-							<dt>sender</dt>
-							<dd>
-								<EvmAccountView
-									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-									layout={EntityLayout.Value}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={selection.$recipient}
-			>
-				{#snippet children(evmAccount)}
-					{#if evmAccount != null}
-						<div>
-							<dt>recipient</dt>
-							<dd>
-								<EvmAccountView
-									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-									layout={EntityLayout.Value}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={selection.$fromNetwork}
-			>
-				{#snippet children(network)}
-					{#if network != null}
-						<div>
-							<dt>from network</dt>
-							<dd>
-								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
-									layout={EntityLayout.Value}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={selection.$toNetwork}
-			>
-				{#snippet children(network)}
-					{#if network != null}
-						<div>
-							<dt>to network</dt>
-							<dd>
-								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
-									layout={EntityLayout.Value}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={selection.$fromToken}
-			>
-				{#snippet children(evmCoinInstance)}
-					{#if evmCoinInstance != null}
-						<div>
-							<dt>from token</dt>
-							<dd>
-								<EvmCoinInstanceView
-									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-									layout={EntityLayout.SummaryDetails}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={selection.$toToken}
-			>
-				{#snippet children(evmCoinInstance)}
-					{#if evmCoinInstance != null}
-						<div>
-							<dt>to token</dt>
-							<dd>
-								<EvmCoinInstanceView
-									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
-									layout={EntityLayout.SummaryDetails}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
 
 			<ResourceBoundary
 				resource={bridgeTransfer}
@@ -335,14 +323,9 @@
 					{@const railId = entity.railId}
 					{#if railId != null}
 						<div>
-							<dt>rail</dt>
+							<dt>rail ID</dt>
 							<dd>
-								{
-									railId in bridgeRailById ?
-										bridgeRailById[railId].label
-									:
-										railId
-								}
+								{railId}
 							</dd>
 						</div>
 					{/if}
@@ -364,12 +347,7 @@
 						<div>
 							<dt>settlement model</dt>
 							<dd>
-								{
-									settlementModel in bridgeSettlementModelBySettlementModel ?
-										bridgeSettlementModelBySettlementModel[settlementModel].label
-									:
-										settlementModel
-								}
+								{settlementModel}
 							</dd>
 						</div>
 					{/if}
@@ -391,12 +369,7 @@
 						<div>
 							<dt>verification model</dt>
 							<dd>
-								{
-									verificationModel in bridgeVerificationModelByVerificationModel ?
-										bridgeVerificationModelByVerificationModel[verificationModel].label
-									:
-										verificationModel
-								}
+								{verificationModel}
 							</dd>
 						</div>
 					{/if}
@@ -418,12 +391,7 @@
 						<div>
 							<dt>asset outcome</dt>
 							<dd>
-								{
-									assetOutcome in bridgeAssetOutcomeByAssetOutcome ?
-										bridgeAssetOutcomeByAssetOutcome[assetOutcome].label
-									:
-										assetOutcome
-								}
+								{assetOutcome}
 							</dd>
 						</div>
 					{/if}

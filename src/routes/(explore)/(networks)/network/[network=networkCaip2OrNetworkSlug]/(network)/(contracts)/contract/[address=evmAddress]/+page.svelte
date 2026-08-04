@@ -20,6 +20,7 @@
 		sources: [
 			Source.Constants_Internal,
 			Source.Blockscout_Rest,
+			Source.SafeTransactionService_Rest,
 		],
 		fields: {
 			precompileName: true,

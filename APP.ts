@@ -12130,6 +12130,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.BeaconSlot,
+					defaultSources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest],
 				},
 				"finalized": {
 					label: "Finalized",
@@ -12220,7 +12221,7 @@ export const schema = {
 								component: "BeaconSlotsView",
 								label: "Slots",
 								query: {
-									sources: [Source.Beacon_Rest],
+									sources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest],
 									limit: 32,
 								},
 							},
@@ -12383,6 +12384,9 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						query: {
+							sources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest],
+						},
 						summary: {
 							serial: {
 								field: "slot",
@@ -12417,8 +12421,8 @@ export const schema = {
 								label: "Consensus",
 								className: "network-view-collapsible-consensus",
 								sections: [
-									{ id: "beacon-slot-committees", field: "$$beaconCommittees", List: "BeaconCommitteesView", label: "Committees" },
-									{ id: "beacon-slot-attestations", field: "$$beaconAttestations", List: "BeaconAttestationsView", label: "Attestations" },
+									{ id: "beacon-slot-committees", field: "$$beaconCommittees", List: "BeaconCommitteesView", label: "Committees", selection: { sources: [Source.Beacon_Rest] } },
+									{ id: "beacon-slot-attestations", field: "$$beaconAttestations", List: "BeaconAttestationsView", label: "Attestations", selection: { sources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest] } },
 								],
 							},
 							{
@@ -12426,8 +12430,8 @@ export const schema = {
 								label: "Withdrawals and slashings",
 								className: "network-view-collapsible-exits",
 								sections: [
-									{ id: "beacon-slot-withdrawals", field: "$$beaconWithdrawals", List: "BeaconWithdrawalsView", label: "Withdrawals" },
-									{ id: "beacon-slot-slashings", field: "$$beaconSlashings", List: "BeaconSlashingsView", label: "Slashings" },
+									{ id: "beacon-slot-withdrawals", field: "$$beaconWithdrawals", List: "BeaconWithdrawalsView", label: "Withdrawals", selection: { sources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest] } },
+									{ id: "beacon-slot-slashings", field: "$$beaconSlashings", List: "BeaconSlashingsView", label: "Slashings", selection: { sources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest] } },
 								],
 							},
 						],
@@ -12519,7 +12523,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Beacon_Rest],
+							sources: [Source.Beacon_Rest, Source.BeaconchaIn_Rest],
 							openFields: [
 								"balanceGwei",
 								"effectiveBalanceGwei",
@@ -28773,7 +28777,15 @@ export const schema = {
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.EvmContract,
+					defaultSources: [Source.SafeTransactionService_Rest],
 				},
+				"threshold": { label: "Threshold", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SafeTransactionService_Rest] },
+				"nonce": { label: "Nonce", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SafeTransactionService_Rest] },
+				"version": { label: "Version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SafeTransactionService_Rest] },
+				"$$owners": { label: "Owners", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmAccount, defaultSources: [Source.SafeTransactionService_Rest] },
+				"$$modules": { label: "Modules", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmContract, defaultSources: [Source.SafeTransactionService_Rest] },
+				"$fallbackHandler": { label: "Fallback handler", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmContract, defaultSources: [Source.SafeTransactionService_Rest] },
+				"$guard": { label: "Guard", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmContract, defaultSources: [Source.SafeTransactionService_Rest] },
 				"codeHash": {
 					label: "Code hash",
 					type: EntityFieldType.Primitive,
@@ -28817,7 +28829,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Constants_Internal, Source.Blockscout_Rest],
+							sources: [Source.Constants_Internal, Source.Blockscout_Rest, Source.SafeTransactionService_Rest],
 						},
 						summary: {
 							title: [
@@ -28848,12 +28860,21 @@ export const schema = {
 									"$verification",
 								],
 								[
+									{ field: "threshold", format: "number" },
+									"nonce",
+									"version",
+									"$fallbackHandler",
+									"$guard",
+								],
+								[
 									{ field: "codeHash", format: "truncated" },
 									{ field: "code", format: "truncated" },
 								],
 							],
 						},
 						lists: [
+							{ field: "$$owners", component: "EvmAccountsView", label: "Owners", emptyText: "No Safe owners." },
+							{ field: "$$modules", component: "EvmContractsView", label: "Modules", emptyText: "No Safe modules." },
 							{ field: "$$storageReads", component: "EvmStorageRead_TimestampsView", label: "Storage reads", emptyText: "No EVM storage reads." },
 						],
 					},
@@ -30026,7 +30047,8 @@ export const schema = {
 				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"$actor": { label: "actor", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkAccount_Timestamp },
-				"$$transactions": { label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction, defaultSources: [Source.Blockscout_Rest] },
+				"$$transactions": { label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction, defaultSources: [Source.Blockscout_Rest, Source.SafeTransactionService_Rest] },
+				"$$queuedTransactions": { label: "queued transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction, defaultSources: [Source.SafeTransactionService_Rest] },
 				"$$tokenTransfers": { label: "token transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTokenTransfer },
 				"$$internalTransfers": { label: "internal transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmInternalTransfer },
 				"$$ownedCoins": { label: "owned coins", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkActorCoinBalance, defaultSources: [Source.Allium_Rest] },
@@ -30053,6 +30075,7 @@ export const schema = {
 								className: "network-view-collapsible-activity",
 								sections: [
 									{ id: "evm-network-account-transactions", field: "$$transactions", List: "EvmTransactionsView", label: "Transactions", emptyText: "No transactions yet." },
+									{ id: "evm-network-account-queued-transactions", field: "$$queuedTransactions", List: "EvmTransactionsView", label: "Queued transactions", emptyText: "No queued Safe transactions." },
 									{ id: "evm-network-account-token-transfers", field: "$$tokenTransfers", List: "EvmTokenTransfersView", label: "Token transfers", emptyText: "No token transfers yet." },
 									{ id: "evm-network-account-internal-transfers", field: "$$internalTransfers", List: "EvmInternalTransfersView", label: "Internal transfers", emptyText: "No internal transfers yet." },
 								],
@@ -30350,7 +30373,7 @@ export const schema = {
 							{ from: "$/components/Icon.svelte", default: "IconComponent" },
 						],
 						query: {
-							sources: [Source.Eip8004Scan_Rest],
+							sources: [Source.Eip8004Scan_Rest, Source.OpenSea_Rest],
 							fields: ["format", "name", "image"],
 							openFields: [
 								"description",
@@ -30421,7 +30444,7 @@ export const schema = {
 						title: "ERC-8004 Registrations",
 						query: {
 							sources: {
-								default: [Source.Eip8004Scan_Rest],
+								default: [Source.Eip8004Scan_Rest, Source.OpenSea_Rest],
 							},
 							limit: { default: 100 },
 						},
@@ -41818,11 +41841,12 @@ export const schema = {
 			})({
 				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
 				"owner": { label: "Owner", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress" },
+				"$owner": { label: "Owner account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmAccount },
 				"name": { label: "Name", description: "The human-readable name of the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"description": { label: "Description", description: "A human-readable description from the source domain.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"createdAt": { label: "Created", description: "The time when the subject was created according to the source.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"rules": { label: "Rules", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
-				"$$posts": { label: "Posts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensPost },
+				"$$posts": { label: "Posts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensPost, defaultSources: [Source.Lens_Graphql] },
 			})({
 				selectors: {
 					"Address": ["address"],
@@ -41834,7 +41858,7 @@ export const schema = {
 						content: {
 							body: { field: "description", format: "longText" },
 							dl: [
-								["name", { field: "address", format: "truncated" }, { field: "owner", format: "truncated" }, { field: "createdAt", format: "timestamp" }],
+								["name", { field: "address", format: "truncated" }, "$owner", { field: "createdAt", format: "timestamp" }],
 							],
 						},
 						lists: [
@@ -42103,13 +42127,14 @@ export const schema = {
 				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
 				"namespace": { label: "Namespace", description: "The namespace that qualifies the identifier.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"owner": { label: "Owner", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress" },
+				"$owner": { label: "Owner account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmAccount },
 				"tokenName": { label: "Token name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"tokenSymbol": { label: "Token symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"createdAt": { label: "Created", description: "The time when the subject was created according to the source.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"description": { label: "Description", description: "A human-readable description from the source domain.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"totalUsernames": { label: "Total usernames", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"rules": { label: "Rules", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
-				"$$usernames": { label: "Usernames", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensUsername },
+				"$$usernames": { label: "Usernames", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensUsername, defaultSources: [Source.Lens_Graphql] },
 			})({
 				selectors: {
 					"Address": ["address"],
@@ -42122,7 +42147,7 @@ export const schema = {
 							body: { field: "description", format: "longText" },
 							dl: [
 								["namespace", "tokenName", "tokenSymbol", "totalUsernames"],
-								[{ field: "address", format: "truncated" }, { field: "owner", format: "truncated" }, { field: "createdAt", format: "timestamp" }],
+								[{ field: "address", format: "truncated" }, "$owner", { field: "createdAt", format: "timestamp" }],
 							],
 						},
 						lists: [
@@ -42523,11 +42548,6 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Dexscreener_Rest],
-							openFields: [
-								"fee",
-								"tickSpacing",
-								"v4PoolId",
-							],
 						},
 						summary: {
 							title: [{ field: "id", format: "truncated" }],
@@ -42550,23 +42570,9 @@ export const schema = {
 									"$quoteToken",
 									"$hooks",
 								],
-								[
-									{ field: "fee", format: "number" },
-									{ field: "tickSpacing", format: "number" },
-									{ field: "v4PoolId", format: "truncated" },
-								],
 							],
 						},
 						carousels: [
-							{
-								id: "liquidity-pool-state",
-								label: "State",
-								className: "network-view-collapsible-state",
-								sections: [
-									{ id: "liquidity-pool-blocks", field: "$$blocks", List: "LiquidityPool_BlocksView", label: "Blocks", emptyText: "No liquidity pool blocks yet." },
-									{ id: "liquidity-pool-leverages", field: "$$leverages", List: "LeveragesView", label: "Leverage positions", emptyText: "No leverage positions yet." },
-								],
-							},
 							{
 								id: "liquidity-pool-observations",
 								label: "Observations",
@@ -42610,7 +42616,7 @@ export const schema = {
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.One,
 					entityType: EntityType.LiquidityPool,
-					defaultSources: [Source.Dexscreener_Rest],
+					defaultSources: [Source.Voltaire_JsonRpc],
 				},
 				"sqrtPriceX96": { label: "Sqrt price X96", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"liquidity": { label: "Liquidity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
@@ -42626,7 +42632,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Dexscreener_Rest] },
+						query: { sources: [Source.Voltaire_JsonRpc] },
 						summary: {
 							title: [{ field: "blockNumber", format: "numberValue" }],
 							value: [{ field: "tick", format: "number" }],
@@ -43477,6 +43483,7 @@ export const schema = {
 						Source.Coingecko_Rest,
 					Source.Coinpaprika_Rest,
 						Source.CoinMarketCap_Rest,
+						Source.Defillama_Rest,
 					],
 				},
 				"open": {
@@ -43517,6 +43524,7 @@ export const schema = {
 						Source.Coingecko_Rest,
 					Source.Coinpaprika_Rest,
 						Source.CoinMarketCap_Rest,
+						Source.Defillama_Rest,
 					],
 				},
 				"quoteVolume": {
@@ -43577,6 +43585,7 @@ export const schema = {
 									Source.Coingecko_Rest,
 									Source.Coinpaprika_Rest,
 									Source.CoinMarketCap_Rest,
+									Source.Defillama_Rest,
 								],
 							},
 						},
@@ -45025,18 +45034,6 @@ export const schema = {
 					cardinality: EntityFieldCardinality.One,
 					valueType: "string",
 				},
-				"reachable": {
-					label: "Reachable",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "boolean",
-				},
-				"statusCode": {
-					label: "Status code",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "number",
-				},
 				"deliveredPayloadSampleCount": {
 					label: "Delivered payload sample count",
 					type: EntityFieldType.Primitive,
@@ -45067,12 +45064,6 @@ export const schema = {
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					valueType: "number",
 				},
-				"error": {
-					label: "Error",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "string",
-				},
 			})({
 				selectors: {
 					"RelayTimestampMsSource": ["$relay", "timestampMs", "source"],
@@ -45080,18 +45071,16 @@ export const schema = {
 				views: {
 					singular: {
 						summary: {
-							title: ["reachable", "statusCode", { field: "timestampMs", format: "timestamp" }],
-							value: ["reachable", "statusCode"],
+							title: [{ field: "timestampMs", format: "timestamp" }],
+							value: [
+								{ field: "deliveredPayloadSampleCount", format: "number" },
+								{ field: "builderSampleCount", format: "number" },
+							],
 							HeadingAfter: ["$relay"],
 						},
 						closed: [{ field: "timestampMs", format: "timestamp" }, "source"],
 						content: {
 							dl: [
-								[
-									"reachable",
-									"statusCode",
-									"error",
-								],
 								[
 									{ field: "deliveredPayloadSampleCount", format: "number" },
 									{ field: "builderSampleCount", format: "number" },
@@ -45811,6 +45800,7 @@ export const schema = {
 				"storageUsageBytes": { label: "Storage usage bytes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.NearRpc_JsonRpc] },
 				"$contract": { label: "Contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.NearContract, defaultSources: [Source.NearRpc_JsonRpc] },
 				"$$accessKeys": { label: "Access keys", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearAccessKey, defaultSources: [Source.NearRpc_JsonRpc] },
+				"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearTransaction, defaultSources: [Source.NearBlocks_Rest] },
 			})({
 				selectors: {
 					"NetworkAccountId": ["$network", "accountId"],
@@ -45838,6 +45828,7 @@ export const schema = {
 						},
 						lists: [
 							{ field: "$$accessKeys", component: "NearAccessKeysView", label: "Access keys" },
+							{ field: "$$transactions", component: "NearTransactionsView", label: "Transactions", emptyText: "No Near transactions for this account." },
 						],
 					},
 					plural: { component: "NearAccountsView",
@@ -46756,11 +46747,11 @@ export const schema = {
 						"$nativeCoin": { label: "Native coin", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Coin, defaultSources: [Source.Constants_Internal] },
 						"$nativeCoinInstance": { label: "Native coin instance", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmCoinInstance, defaultSources: [Source.Constants_Internal] },
 						"$$erc4337SmartAccounts": { label: "ERC-4337 smart accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Erc4337SmartAccount, defaultSources: [Source.Blockscout_Rest] },
-						"$$erc4337Bundlers": { label: "ERC-4337 bundlers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Erc4337Bundler, defaultSources: [Source.Blockscout_Rest] },
-						"$$erc4337Paymasters": { label: "ERC-4337 paymasters", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Erc4337Paymaster, defaultSources: [Source.Blockscout_Rest] },
-						"$$erc4337AccountFactories": { label: "ERC-4337 account factories", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Erc4337AccountFactory, defaultSources: [Source.Blockscout_Rest] },
+						"$$erc4337Bundlers": { label: "ERC-4337 bundlers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Erc4337Bundler },
+						"$$erc4337Paymasters": { label: "ERC-4337 paymasters", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Erc4337Paymaster },
+						"$$erc4337AccountFactories": { label: "ERC-4337 account factories", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Erc4337AccountFactory },
 						"$$userOperations": { label: "User operations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmUserOperation, defaultSources: [Source.Blockscout_Rest] },
-						"$$bridges": { label: "Bridges", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkBridge },
+						"$$bridges": { label: "Bridges", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkBridge, defaultSources: [Source.Chainlist_Rest, Source.EthereumLists_Rest] },
 						"$$erc20TokenTransfers": { label: "ERC-20 token transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTokenTransfer, defaultSources: [Source.Blockscout_Rest] },
 						"$$nftTokenTransfers": { label: "NFT token transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTokenTransfer, defaultSources: [Source.Blockscout_Rest] },
 						"$$testnets": { label: "Testnets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Network },
@@ -46963,10 +46954,7 @@ export const schema = {
 										{ id: "evm-contracts-precompiles", field: ["Evm", "$$precompiles"], label: "Precompiles", description: "Catalog precompiles active at the chain head according to the execution upgrade schedule.", List: "EvmContractsView", selection: { sources: [Source.Constants_Internal], fields: ["precompileName"], limit: 64 } },
 										{ id: "evm-contracts-verified", field: ["Evm", "$$contracts"], List: "EvmContractsView", label: "Verified contracts", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
 										{ id: "evm-contracts-smart-accounts", field: ["Evm", "$$erc4337SmartAccounts"], List: "Erc4337SmartAccountsView", label: "Smart accounts", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
-										{ id: "evm-contracts-bundlers", field: ["Evm", "$$erc4337Bundlers"], List: "Erc4337BundlersView", label: "Bundlers", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
-										{ id: "evm-contracts-paymasters", field: ["Evm", "$$erc4337Paymasters"], List: "Erc4337PaymastersView", label: "Paymasters", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
 										{ id: "evm-contracts-user-operations", field: ["Evm", "$$userOperations"], List: "EvmUserOperationsView", label: "User operations", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
-										{ id: "evm-contracts-factories", field: ["Evm", "$$erc4337AccountFactories"], List: "Erc4337AccountFactoriesView", label: "Factories", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -46976,7 +46964,7 @@ export const schema = {
 									sections: [
 										{ id: "evm-assets-native-coin", field: ["Evm", "$nativeCoin"], label: "Native coin", List: "CoinView", layout: EntityLayout.Summary, selection: { sources: [Source.Constants_Internal], fields: ["name", "symbol"] } },
 										{ id: "evm-assets-native-instance", field: ["Evm", "$nativeCoinInstance"], label: "Native coin instance", List: "EvmCoinInstanceView", layout: EntityLayout.Summary, selection: { sources: [Source.Constants_Internal], fields: ["symbol", "name", "$network"] } },
-										{ id: "evm-assets-bridges", field: ["Evm", "$$bridges"], List: "EvmNetworkBridgesView", label: "Bridges", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.Lifi_Rest] } },
+										{ id: "evm-assets-bridges", field: ["Evm", "$$bridges"], List: "EvmNetworkBridgesView", label: "Bridges", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest] } },
 										{ id: "evm-assets-erc20-transfers", field: ["Evm", "$$erc20TokenTransfers"], List: "EvmTokenTransfersView", label: "ERC-20 transfers", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
 										{ id: "evm-assets-nft-transfers", field: ["Evm", "$$nftTokenTransfers"], List: "EvmTokenTransfersView", label: "NFT transfers", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
 									],
@@ -62780,11 +62768,11 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.UniswapV3Position,
-					defaultSources: [Source.Voltaire_JsonRpc, Source.UniswapContracts_Evm],
 				},
 			})({
 				selectors: {
 					"NetworkPoolAddress": ["$network", "poolAddress"],
+					"Token0Token1Fee": ["$token0", "$token1", "fee"],
 				},
 				views: {
 					singular: {
@@ -62827,7 +62815,6 @@ export const schema = {
 								className: "network-view-collapsible-state",
 								sections: [
 									{ id: "uniswap-v3-pool-blocks", field: "$$blocks", List: "UniswapV3Pool_BlocksView", label: "Blocks", emptyText: "No Uniswap V3 pool blocks yet." },
-									{ id: "uniswap-v3-pool-positions", field: "$$positions", List: "UniswapV3PositionsView", label: "Positions", emptyText: "No Uniswap V3 positions yet." },
 								],
 							},
 						],
@@ -62864,6 +62851,10 @@ export const schema = {
 				"observationCardinalityNext": { label: "Observation cardinality next", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"feeProtocol": { label: "Fee protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"unlocked": { label: "Unlocked", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+				"feeGrowthGlobal0X128": { label: "Fee growth global 0", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"feeGrowthGlobal1X128": { label: "Fee growth global 1", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"protocolFeesToken0": { label: "Protocol fees token 0", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"protocolFeesToken1": { label: "Protocol fees token 1", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 			})({
 				selectors: {
 					"PoolBlockNumber": ["$pool", "blockNumber"],
@@ -62888,6 +62879,12 @@ export const schema = {
 									{ field: "tick", format: "number" },
 									{ field: "feeProtocol", format: "number" },
 									{ field: "unlocked", format: "boolean" },
+								],
+								[
+									{ field: "feeGrowthGlobal0X128", format: "numberValue" },
+									{ field: "feeGrowthGlobal1X128", format: "numberValue" },
+									{ field: "protocolFeesToken0", format: "numberValue" },
+									{ field: "protocolFeesToken1", format: "numberValue" },
 								],
 								[
 									{ field: "observationIndex", format: "number" },
@@ -63003,6 +63000,8 @@ export const schema = {
 				"liquidity": { label: "Liquidity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"tokensOwed0": { label: "Tokens owed 0", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"tokensOwed1": { label: "Tokens owed 1", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"feeGrowthInside0LastX128": { label: "Fee growth inside 0 last", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"feeGrowthInside1LastX128": { label: "Fee growth inside 1 last", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 			})({
 				selectors: {
 					"PositionBlockNumber": ["$position", "blockNumber"],
@@ -63026,6 +63025,8 @@ export const schema = {
 									{ field: "liquidity", format: "numberValue" },
 									{ field: "tokensOwed0", format: "numberValue" },
 									{ field: "tokensOwed1", format: "numberValue" },
+									{ field: "feeGrowthInside0LastX128", format: "numberValue" },
+									{ field: "feeGrowthInside1LastX128", format: "numberValue" },
 								],
 							],
 						},
@@ -72204,6 +72205,13 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain UsageRight_Timestamp.SubjectKeyRightKeyTimestampMsSource as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#usageright_timestamp",
+			},
+		},
+		[EntityType.UniswapV3Pool]: {
+			"Token0Token1Fee": {
+				kind: "Research",
+				decision: "Retain UniswapV3Pool.Token0Token1Fee as non-public until a product-valid CREATE2/pool-address route placement is declared; NetworkPoolAddress remains the visible pool detail selector.",
+				evidence: "maps/schema-entity-existence-ledger.md#uniswapv3pool",
 			},
 		},
 		[EntityType.WalletConnectionMethod]: {
@@ -98164,6 +98172,22 @@ export const app = {
 				path: "src/resolvers/Chainlist-Rest.ts",
 			},
 			{
+				source: Source.CircleCctpContracts_Evm,
+				path: "src/resolvers/CircleCctpContracts-Evm.ts",
+			},
+			{
+				source: Source.CircleCctpContracts_Solana,
+				path: "src/resolvers/CircleCctpContracts-Solana.ts",
+			},
+			{
+				source: Source.CircleCctpContracts_Stellar,
+				path: "src/resolvers/CircleCctpContracts-Stellar.ts",
+			},
+			{
+				source: Source.CircleCctpIris,
+				path: "src/resolvers/CircleCctp-Rest.ts",
+			},
+			{
 				source: Source.Coingecko_Rest,
 				path: "src/resolvers/Coingecko-Rest.ts",
 			},
@@ -98320,6 +98344,10 @@ export const app = {
 				path: "src/resolvers/L2Beat-Rest.ts",
 			},
 			{
+				source: Source.LayerZeroScan_Rest,
+				path: "src/resolvers/LayerZeroScan-Rest.ts",
+			},
+			{
 				source: Source.Lens_Graphql,
 				path: "src/resolvers/Lens-Graphql.ts",
 			},
@@ -98420,6 +98448,10 @@ export const app = {
 				path: "src/resolvers/Openchain-Rest.ts",
 			},
 			{
+				source: Source.OpenSea_Rest,
+				path: "src/resolvers/OpenSea-Rest.ts",
+			},
+			{
 				source: Source.Osmosis_LCD_Rest,
 				path: "src/resolvers/Osmosis-Rest.ts",
 			},
@@ -98470,6 +98502,10 @@ export const app = {
 			{
 				source: Source.Rss2Json_Rest,
 				path: "src/resolvers/Rss2Json-Rest.ts",
+			},
+			{
+				source: Source.SafeTransactionService_Rest,
+				path: "src/resolvers/Safe-Rest.ts",
 			},
 			{
 				source: Source.Snapchain_Rest,
@@ -98578,6 +98614,14 @@ export const app = {
 			{
 				source: Source.Voltaire_JsonRpc,
 				path: "src/resolvers/Voltaire-JsonRpc.ts",
+			},
+			{
+				source: Source.Voyager,
+				path: "src/resolvers/Voyager-Rest.ts",
+			},
+			{
+				source: Source.Wormholescan,
+				path: "src/resolvers/Wormholescan-Rest.ts",
 			},
 			{
 				source: Source.X_FxEmbed_Rest,

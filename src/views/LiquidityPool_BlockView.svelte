@@ -26,7 +26,7 @@
 	const liquidityPool = $derived(selection.entitySelector.$liquidityPool)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.Dexscreener_Rest,
+			Source.Voltaire_JsonRpc,
 		],
 	}))
 	const liquidityPoolBlock = $derived(viewSelection({

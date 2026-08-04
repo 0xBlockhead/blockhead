@@ -29,7 +29,7 @@
 		blockNumber: BigInt(params.blockNumber),
 	}, {
 		sources: [
-			Source.Dexscreener_Rest,
+			Source.Voltaire_JsonRpc,
 		],
 	}))
 

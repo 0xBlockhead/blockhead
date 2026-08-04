@@ -29,6 +29,7 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
 		],
 	}))
 	const beaconValidator = $derived(viewSelection({

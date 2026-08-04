@@ -218,10 +218,7 @@
 	import MevRelay_ProposerPayloadDeliveredsView from '$/views/MevRelay_ProposerPayloadDeliveredsView.svelte'
 	import EvmContractsView from '$/views/EvmContractsView.svelte'
 	import Erc4337SmartAccountsView from '$/views/Erc4337SmartAccountsView.svelte'
-	import Erc4337BundlersView from '$/views/Erc4337BundlersView.svelte'
-	import Erc4337PaymastersView from '$/views/Erc4337PaymastersView.svelte'
 	import EvmUserOperationsView from '$/views/EvmUserOperationsView.svelte'
-	import Erc4337AccountFactoriesView from '$/views/Erc4337AccountFactoriesView.svelte'
 	import EvmNetworkBridgesView from '$/views/EvmNetworkBridgesView.svelte'
 	import EvmTokenTransfersView from '$/views/EvmTokenTransfersView.svelte'
 	import CosmosBlocksView from '$/views/CosmosBlocksView.svelte'
@@ -2226,41 +2223,8 @@
 							blockscoutRestSources.length > 0 ?
 								[
 									{
-										id: 'evm-contracts-bundlers',
-										label: 'Bundlers',
-									},
-								]
-							:
-								[]
-						),
-						...(
-							blockscoutRestSources.length > 0 ?
-								[
-									{
-										id: 'evm-contracts-paymasters',
-										label: 'Paymasters',
-									},
-								]
-							:
-								[]
-						),
-						...(
-							blockscoutRestSources.length > 0 ?
-								[
-									{
 										id: 'evm-contracts-user-operations',
 										label: 'User operations',
-									},
-								]
-							:
-								[]
-						),
-						...(
-							blockscoutRestSources.length > 0 ?
-								[
-									{
-										id: 'evm-contracts-factories',
-										label: 'Factories',
 									},
 								]
 							:
@@ -2329,56 +2293,11 @@
 							/>
 						{/snippet}
 
-						{#snippet SectionEvmContractsBundlers({ id, label })}
-							<Erc4337BundlersView
-								selection={
-									projection
-									.$$erc4337Bundlers({
-										sources: blockscoutRestSources,
-										limit: 16,
-									})
-								}
-								collapsible={false}
-								title={label}
-								id={`${id}-list`}
-							/>
-						{/snippet}
-
-						{#snippet SectionEvmContractsPaymasters({ id, label })}
-							<Erc4337PaymastersView
-								selection={
-									projection
-									.$$erc4337Paymasters({
-										sources: blockscoutRestSources,
-										limit: 16,
-									})
-								}
-								collapsible={false}
-								title={label}
-								id={`${id}-list`}
-							/>
-						{/snippet}
-
 						{#snippet SectionEvmContractsUserOperations({ id, label })}
 							<EvmUserOperationsView
 								selection={
 									projection
 									.$$userOperations({
-										sources: blockscoutRestSources,
-										limit: 16,
-									})
-								}
-								collapsible={false}
-								title={label}
-								id={`${id}-list`}
-							/>
-						{/snippet}
-
-						{#snippet SectionEvmContractsFactories({ id, label })}
-							<Erc4337AccountFactoriesView
-								selection={
-									projection
-									.$$erc4337AccountFactories({
 										sources: blockscoutRestSources,
 										limit: 16,
 									})
@@ -2599,7 +2518,6 @@
 										sources: [
 											Source.Chainlist_Rest,
 											Source.EthereumLists_Rest,
-											Source.Lifi_Rest,
 										],
 									})
 								}

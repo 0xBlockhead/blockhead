@@ -39,6 +39,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NearAccessKeysView from '$/views/NearAccessKeysView.svelte'
+	import NearTransactionsView from '$/views/NearTransactionsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import NearContractView from '$/views/NearContractView.svelte'
 </script>
@@ -167,6 +168,21 @@
 						countResource={accessKeysResource.count}
 						title='Access keys'
 						id='access-keys'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const transactionsResource = selection.$$transactions}
+		<ResourceBoundary
+			resource={transactionsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<NearTransactionsView
+						selection={transactionsResource}
+						countResource={transactionsResource.count}
+						title='Transactions'
+						id='transactions'
 					/>
 				{/if}
 			{/snippet}
