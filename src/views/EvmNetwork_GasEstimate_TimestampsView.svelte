@@ -19,6 +19,8 @@
 
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
+	import NumberValue from '$/components/NumberValue.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -29,6 +31,8 @@
 	resource={
 		selection({
 			fields: {
+				slowGwei: true,
+				averageGwei: true,
 				fastGwei: true,
 				timestampMs: true,
 				$network: true,
@@ -59,15 +63,39 @@
 			}
 		>
 			{#snippet Title()}
-				{[(evmNetworkGasEstimateTimestamp.fastGwei != null ? String(evmNetworkGasEstimateTimestamp.fastGwei) + ' gwei' : ''), String(evmNetworkGasEstimateTimestampSelector.timestampMs)].filter(Boolean).join(' ') || 'EVM network gas estimate timestamp'}
+				{[
+					evmNetworkGasEstimateTimestamp.slowGwei != null ? `slow ${evmNetworkGasEstimateTimestamp.slowGwei}` : '',
+					evmNetworkGasEstimateTimestamp.averageGwei != null ? `avg ${evmNetworkGasEstimateTimestamp.averageGwei}` : '',
+					evmNetworkGasEstimateTimestamp.fastGwei != null ? `fast ${evmNetworkGasEstimateTimestamp.fastGwei}` : '',
+				].filter(Boolean).join(' · ') || 'EVM network gas estimate timestamp'}
 			{/snippet}
 
 			{#snippet Value()}
-				{evmNetworkGasEstimateTimestamp.fastGwei != null ? evmNetworkGasEstimateTimestamp.fastGwei + ' gwei' : ''}
+				{#if evmNetworkGasEstimateTimestamp.fastGwei != null}
+					<NumberValue value={evmNetworkGasEstimateTimestamp.fastGwei} />
+					<span> gwei</span>
+					{#if evmNetworkGasEstimateTimestamp.averageGwei != null || evmNetworkGasEstimateTimestamp.slowGwei != null}
+						<span data-text="muted">
+							({[
+								evmNetworkGasEstimateTimestamp.averageGwei != null ? `avg ${evmNetworkGasEstimateTimestamp.averageGwei}` : '',
+								evmNetworkGasEstimateTimestamp.slowGwei != null ? `slow ${evmNetworkGasEstimateTimestamp.slowGwei}` : '',
+							].filter(Boolean).join(' · ')})
+						</span>
+					{/if}
+				{:else if evmNetworkGasEstimateTimestamp.averageGwei != null}
+					<NumberValue value={evmNetworkGasEstimateTimestamp.averageGwei} />
+					<span> gwei</span>
+				{:else if evmNetworkGasEstimateTimestamp.slowGwei != null}
+					<NumberValue value={evmNetworkGasEstimateTimestamp.slowGwei} />
+					<span> gwei</span>
+				{/if}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{evmNetworkGasEstimateTimestamp.$network.name || (evmNetworkGasEstimateTimestampSelector.$network.caip2 == null ? '' : `${evmNetworkGasEstimateTimestampSelector.$network.caip2.namespace}:${evmNetworkGasEstimateTimestampSelector.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">
+					<Timestamp timestamp={evmNetworkGasEstimateTimestampSelector.timestampMs} />
+					<span> · {evmNetworkGasEstimateTimestampSelector.source}</span>
+				</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

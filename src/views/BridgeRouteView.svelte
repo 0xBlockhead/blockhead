@@ -42,6 +42,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BridgeRouteStepsView from '$/views/BridgeRouteStepsView.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
@@ -93,71 +94,7 @@
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
-				<dt>From network</dt>
-				<dd>
-					<ResourceBoundary
-						resource={selection.$fromNetwork}
-					>
-						{#snippet children(network)}
-							<NetworkView
-								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-								prefetched={network}
-								layout={EntityLayout.Value}
-							/>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<div>
-				<dt>To network</dt>
-				<dd>
-					<ResourceBoundary
-						resource={selection.$toNetwork}
-					>
-						{#snippet children(network)}
-							<NetworkView
-								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-								prefetched={network}
-								layout={EntityLayout.Value}
-							/>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-		</dl>
-
-		<dl data-column-item="center">
-			<div>
-				<dt>From token</dt>
-				<dd>
-					<TruncatedValue value={selection.entitySelector.fromToken} />
-				</dd>
-			</div>
-
-			<div>
-				<dt>To token</dt>
-				<dd>
-					<TruncatedValue value={selection.entitySelector.toToken} />
-				</dd>
-			</div>
-
-			<div>
-				<dt>From address</dt>
-				<dd>
-					<TruncatedValue value={selection.entitySelector.fromAddress} />
-				</dd>
-			</div>
-
-			<div>
-				<dt>To address</dt>
-				<dd>
-					<TruncatedValue value={selection.entitySelector.toAddress} />
-				</dd>
-			</div>
-
-			<div>
-				<dt>From amount</dt>
+				<dt>from amount</dt>
 				<dd>
 					<NumberValue
 						value={selection.entitySelector.fromAmount}
@@ -166,7 +103,7 @@
 			</div>
 
 			<div>
-				<dt>To amount</dt>
+				<dt>to amount</dt>
 				<dd>
 					<ResourceBoundary
 						resource={
@@ -187,7 +124,7 @@
 			</div>
 
 			<div>
-				<dt>To amount min</dt>
+				<dt>to amount min</dt>
 				<dd>
 					<ResourceBoundary
 						resource={
@@ -208,14 +145,14 @@
 			</div>
 
 			<div>
-				<dt>Slippage</dt>
+				<dt>slippage</dt>
 				<dd>
 					{selection.entitySelector.slippage}
 				</dd>
 			</div>
 
 			<div>
-				<dt>Estimated cost USD</dt>
+				<dt>estimated cost USD</dt>
 				<dd>
 					<ResourceBoundary
 						resource={bridgeRoute}
@@ -228,20 +165,20 @@
 			</div>
 
 			<div>
-				<dt>Estimated duration seconds</dt>
+				<dt>estimated duration</dt>
 				<dd>
 					<ResourceBoundary
 						resource={bridgeRoute}
 					>
 						{#snippet children(entity)}
-							{entity.estimatedDurationSeconds}
+							{entity.estimatedDurationSeconds}s
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<div>
-				<dt>Tags</dt>
+				<dt>tags</dt>
 				<dd>
 					<ResourceBoundary
 						resource={
@@ -256,6 +193,88 @@
 							{entity.tags.map((tag) => bridgeRouteTagByTag[tag].label).join(', ')}
 						{/snippet}
 					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<div>
+				<dt>from network</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$fromNetwork}
+					>
+						{#snippet children(network)}
+							<NetworkView
+								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+								prefetched={network}
+								layout={EntityLayout.Value}
+								open={false}
+								showTypeAnnotation={false}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>to network</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$toNetwork}
+					>
+						{#snippet children(network)}
+							<NetworkView
+								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+								prefetched={network}
+								layout={EntityLayout.Value}
+								open={false}
+								showTypeAnnotation={false}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>from token</dt>
+				<dd>
+					<TruncatedValue value={selection.entitySelector.fromToken} />
+				</dd>
+			</div>
+
+			<div>
+				<dt>to token</dt>
+				<dd>
+					<TruncatedValue value={selection.entitySelector.toToken} />
+				</dd>
+			</div>
+
+			<div>
+				<dt>from address</dt>
+				<dd>
+					<EvmAccountView
+						selection={select(EntityType.EvmAccount, {
+							address: selection.entitySelector.fromAddress,
+						})}
+						layout={EntityLayout.Value}
+						open={false}
+						showTypeAnnotation={false}
+					/>
+				</dd>
+			</div>
+
+			<div>
+				<dt>to address</dt>
+				<dd>
+					<EvmAccountView
+						selection={select(EntityType.EvmAccount, {
+							address: selection.entitySelector.toAddress,
+						})}
+						layout={EntityLayout.Value}
+						open={false}
+						showTypeAnnotation={false}
+					/>
 				</dd>
 			</div>
 		</dl>

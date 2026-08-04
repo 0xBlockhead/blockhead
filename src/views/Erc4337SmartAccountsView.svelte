@@ -65,7 +65,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{erc4337SmartAccount.$network.name || (erc4337SmartAccountSelector.$network.caip2 == null ? '' : `${erc4337SmartAccountSelector.$network.caip2.namespace}:${erc4337SmartAccountSelector.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{erc4337SmartAccount.$network.name || (erc4337SmartAccount.$network.caip2 == null ? '' : `${erc4337SmartAccount.$network.caip2.namespace}:${erc4337SmartAccount.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

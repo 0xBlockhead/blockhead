@@ -41,7 +41,7 @@
 			entitySelector={bridgeTransferSelector}
 		>
 			{#snippet Title()}
-				{bridgeTransferSelector.transferId || 'bridge transfer'}
+				{bridgeTransfer.transferId || 'bridge transfer'}
 			{/snippet}
 
 			{#snippet Value()}

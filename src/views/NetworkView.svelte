@@ -187,11 +187,13 @@
 	import EthereumNetworkUpgradeView from '$/views/EthereumNetworkUpgradeView.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
 	import EvmNetwork_GasFee_BlockView from '$/views/EvmNetwork_GasFee_BlockView.svelte'
+	import EvmNetwork_GasEstimate_TimestampView from '$/views/EvmNetwork_GasEstimate_TimestampView.svelte'
 	import EvmNetwork_Txpool_TimestampView from '$/views/EvmNetwork_Txpool_TimestampView.svelte'
 	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
 	import BeaconSlotView from '$/views/BeaconSlotView.svelte'
 	import AssetInstancesView from '$/views/AssetInstancesView.svelte'
 	import UrlsView from '$/views/UrlsView.svelte'
+	import DydxChainNetworkView from '$/views/DydxChainNetworkView.svelte'
 	import EthereumNetworkUpgradesView from '$/views/EthereumNetworkUpgradesView.svelte'
 	import EvmRollupView from '$/views/EvmRollupView.svelte'
 	import NetworksView from '$/views/NetworksView.svelte'
@@ -345,15 +347,13 @@
 											name: true,
 											activationBlock: true,
 										},
-										limit: 1,
 										orderBy: [
 											[({ fieldRow }) => fieldRow[EntityMetaKey.Value].activationBlock ?? Number.NEGATIVE_INFINITY, 'desc'],
 										],
-									})
+									}).first()
 								}
 							>
-								{#snippet children(ethereumNetworkUpgrades)}
-									{@const ethereumNetworkUpgrade = ethereumNetworkUpgrades.values[0]}
+								{#snippet children(ethereumNetworkUpgrade)}
 									{#if ethereumNetworkUpgrade != null}
 										{@const ethereumNetworkUpgradeSelector = ethereumNetworkUpgrade[EntityMetaKey.Selector]}
 										<EthereumNetworkUpgradeView
@@ -388,15 +388,13 @@
 										fields: {
 											blockNumber: true,
 										},
-										limit: 1,
 										orderBy: [
 											[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].blockNumber ?? Number.NEGATIVE_INFINITY, 'desc'],
 										],
-									})
+									}).first()
 								}
 							>
-								{#snippet children(evmBlocks)}
-									{@const evmBlock = evmBlocks.values[0]}
+								{#snippet children(evmBlock)}
 									{#if evmBlock != null}
 										{@const evmBlockSelector = evmBlock[EntityMetaKey.Selector]}
 										<EvmBlockView
@@ -432,16 +430,15 @@
 											blockNumber: true,
 											baseFeePerGas: true,
 											gasUsedRatio: true,
+											maxPriorityFeePerGas: true,
 										},
-										limit: 1,
 										orderBy: [
 											[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].blockNumber ?? Number.NEGATIVE_INFINITY, 'desc'],
 										],
-									})
+									}).first()
 								}
 							>
-								{#snippet children(evmNetworkGasFeeBlocks)}
-									{@const evmNetworkGasFeeBlock = evmNetworkGasFeeBlocks.values[0]}
+								{#snippet children(evmNetworkGasFeeBlock)}
 									{#if evmNetworkGasFeeBlock != null}
 										{@const evmNetworkGasFeeBlockSelector = evmNetworkGasFeeBlock[EntityMetaKey.Selector]}
 										<EvmNetwork_GasFee_BlockView
@@ -464,6 +461,52 @@
 					</div>
 
 					<div>
+						<dt>Gas</dt>
+						<dd>
+							<ResourceBoundary
+								resource={
+									projection
+									.$$gasEstimateTimestamps({
+										sources: [
+											Source.Blockscout_Rest,
+											Source.Etherscan_Rest,
+										],
+										fields: {
+											timestampMs: true,
+											slowGwei: true,
+											averageGwei: true,
+											fastGwei: true,
+										},
+										orderBy: [
+											[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+										],
+									}).first()
+								}
+							>
+								{#snippet children(evmNetworkGasEstimateTimestamp)}
+									{#if evmNetworkGasEstimateTimestamp != null}
+										{@const evmNetworkGasEstimateTimestampSelector = evmNetworkGasEstimateTimestamp[EntityMetaKey.Selector]}
+										<EvmNetwork_GasEstimate_TimestampView
+											selection={
+												select(EntityType.EvmNetwork_GasEstimate_Timestamp, evmNetworkGasEstimateTimestampSelector, {
+													sources: [
+														Source.Blockscout_Rest,
+														Source.Etherscan_Rest,
+													],
+												})
+											}
+											prefetched={{ ...evmNetworkGasEstimateTimestampSelector, ...evmNetworkGasEstimateTimestamp }}
+											layout={EntityLayout.Value}
+										/>
+									{:else}
+										<p data-text="muted" data-section-state="resolved-empty">No gas estimate available.</p>
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+
+					<div>
 						<dt>Mempool</dt>
 						<dd>
 							<ResourceBoundary
@@ -478,15 +521,13 @@
 											pendingCount: true,
 											queuedCount: true,
 										},
-										limit: 1,
 										orderBy: [
 											[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
 										],
-									})
+									}).first()
 								}
 							>
-								{#snippet children(evmNetworkTxpoolTimestamps)}
-									{@const evmNetworkTxpoolTimestamp = evmNetworkTxpoolTimestamps.values[0]}
+								{#snippet children(evmNetworkTxpoolTimestamp)}
 									{#if evmNetworkTxpoolTimestamp != null}
 										{@const evmNetworkTxpoolTimestampSelector = evmNetworkTxpoolTimestamp[EntityMetaKey.Selector]}
 										<EvmNetwork_Txpool_TimestampView
@@ -527,15 +568,13 @@
 													startSlot: true,
 													endSlot: true,
 												},
-												limit: 1,
 												orderBy: [
 													[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].epoch ?? Number.NEGATIVE_INFINITY, 'desc'],
 												],
-											})
+											}).first()
 										}
 									>
-										{#snippet children(beaconEpochs)}
-											{@const beaconEpoch = beaconEpochs.values[0]}
+										{#snippet children(beaconEpoch)}
 											{#if beaconEpoch != null}
 												<BeaconEpochView
 													selection={
@@ -569,15 +608,13 @@
 													slot: true,
 													epoch: true,
 												},
-												limit: 1,
 												orderBy: [
 													[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].slot ?? Number.NEGATIVE_INFINITY, 'desc'],
 												],
-											})
+											}).first()
 										}
 									>
-										{#snippet children(beaconSlots)}
-											{@const beaconSlot = beaconSlots.values[0]}
+										{#snippet children(beaconSlot)}
 											{#if beaconSlot != null}
 												<BeaconSlotView
 													selection={
@@ -1058,6 +1095,7 @@
 					}
 					collapsible={false}
 					title={label}
+					emptyText='No faucets listed for this network yet.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
@@ -1077,11 +1115,101 @@
 					}
 					collapsible={false}
 					title={label}
+					emptyText='No block explorers listed for this network yet.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
 
 		</CollapsibleTabs>
+
+		<ProjectionBoundary
+			resource={selection.Dydx}
+		>
+			{#snippet Applicable(projection)}
+				{@const dydxNetworkSources = networkApplicableSources([
+						Source.DydxIndexer,
+					], pendingEntity)}
+
+				{@const dydxSections = [
+						...(
+							dydxNetworkSources.length > 0 ?
+								[
+									{
+										id: 'dydx-network',
+										label: 'Network',
+										ownsSection: true,
+									},
+								]
+							:
+								[]
+						),
+					]}
+
+				{#if dydxSections.length > 0}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-dydx'}
+						sectionIdPrefix={viewDomId}
+						sections={dydxSections}
+						data-card
+						class='network-view-collapsible-dydx'
+					>
+						{#snippet Summary()}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>dYdX</HeadingComponent>
+							</header>
+						{/snippet}
+
+						{#snippet SectionDydxNetwork({ id, label, active })}
+							<ResourceBoundary
+								resource={
+									projection
+									.$dydxChainNetwork({
+										sources: dydxNetworkSources,
+									})
+								}
+							>
+								{#snippet children(dydxChainNetwork)}
+									<section
+										id={id}
+										aria-labelledby={`${id}:marker`}
+										data-scroll-marker-label={label}
+										data-column-item="flexible"
+										data-column
+										data-active={active}
+									>
+										<DydxChainNetworkView
+											selection={
+												select(EntityType.DydxChainNetwork, dydxChainNetwork[EntityMetaKey.Selector], {
+													sources: dydxNetworkSources,
+												})
+											}
+											layout={EntityLayout.SummaryDetails}
+										/>
+									</section>
+								{/snippet}
+
+								{#snippet Pending()}
+									<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+										<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+											<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+										</article>
+									</section>
+								{/snippet}
+
+								{#snippet Failed(_error, _retry)}
+									<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+										<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+											<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+										</article>
+									</section>
+								{/snippet}
+							</ResourceBoundary>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/if}
+			{/snippet}
+		</ProjectionBoundary>
 
 		<ProjectionBoundary
 			resource={selection.Evm}
@@ -1177,7 +1305,7 @@
 						>
 							{#snippet children(_resolved)}
 								{#if _resolved != null}
-								{@render Content()}
+									{@render Content()}
 								{/if}
 							{/snippet}
 
@@ -1253,7 +1381,7 @@
 						>
 							{#snippet children(_resolved)}
 								{#if _resolved != null}
-								{@render Content()}
+									{@render Content()}
 								{/if}
 							{/snippet}
 
@@ -1365,7 +1493,7 @@
 						>
 							{#snippet children(_resolved)}
 								{#if _resolved != null}
-								{@render Content()}
+									{@render Content()}
 								{/if}
 							{/snippet}
 
@@ -1593,11 +1721,12 @@
 									projection
 									.$$blocks({
 										sources: voltaireJsonRpcSources,
-										limit: 4,
+										limit: 16,
 									})
 								}
 								collapsible={false}
 								title={label}
+								emptyText='No recent blocks available for this network yet.'
 								id={`${id}-list`}
 							/>
 						{/snippet}
@@ -1643,6 +1772,7 @@
 								}
 								collapsible={false}
 								title={label}
+								emptyText='No fee-market blocks available for this network yet.'
 								id={`${id}-list`}
 							/>
 						{/snippet}
@@ -1658,6 +1788,7 @@
 								}
 								collapsible={false}
 								title={label}
+								emptyText='No gas estimates available for this network yet.'
 								id={`${id}-list`}
 							/>
 						{/snippet}
@@ -1677,6 +1808,7 @@
 								}
 								collapsible={false}
 								title={label}
+								emptyText='No execution RPC endpoints listed for this network yet.'
 								id={`${id}-list`}
 							/>
 						{/snippet}
@@ -2386,7 +2518,7 @@
 							>
 								{#snippet children(_resolved)}
 									{#if _resolved != null}
-									{@render Content()}
+										{@render Content()}
 									{/if}
 								{/snippet}
 
@@ -2414,24 +2546,17 @@
 											data-column
 											data-active={active}
 										>
-											<article
-												id={`${id}-list`}
-												data-column-item="flexible"
-												data-card
-												data-scroll-container
-											>
-												<CoinView
-													selection={
-														select(EntityType.Coin, coin[EntityMetaKey.Selector], {
-															sources: [
-																Source.Constants_Internal,
-															],
-														})
-													}
-													prefetched={coin}
-													layout={EntityLayout.SummaryInline}
-												/>
-											</article>
+											<CoinView
+												selection={
+													select(EntityType.Coin, coin[EntityMetaKey.Selector], {
+														sources: [
+															Source.Constants_Internal,
+														],
+													})
+												}
+												prefetched={coin}
+												layout={EntityLayout.Summary}
+											/>
 										</section>
 									{/if}
 								{/snippet}
@@ -2460,7 +2585,7 @@
 							>
 								{#snippet children(_resolved)}
 									{#if _resolved != null}
-									{@render Content()}
+										{@render Content()}
 									{/if}
 								{/snippet}
 
@@ -2488,23 +2613,16 @@
 											data-column
 											data-active={active}
 										>
-											<article
-												id={`${id}-list`}
-												data-column-item="flexible"
-												data-card
-												data-scroll-container
-											>
-												<EvmCoinInstanceView
-													selection={
-														select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector], {
-															sources: [
-																Source.Constants_Internal,
-															],
-														})
-													}
-													layout={EntityLayout.SummaryInline}
-												/>
-											</article>
+											<EvmCoinInstanceView
+												selection={
+													select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector], {
+														sources: [
+															Source.Constants_Internal,
+														],
+													})
+												}
+												layout={EntityLayout.Summary}
+											/>
 										</section>
 									{/if}
 								{/snippet}

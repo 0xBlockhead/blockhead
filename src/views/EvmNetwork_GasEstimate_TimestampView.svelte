@@ -87,6 +87,30 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						averageGwei: true,
+						slowGwei: true,
+					},
+				})
+			}
+		>
+			{#snippet children(entity)}
+				{@const averageGwei = entity.averageGwei}
+				{@const slowGwei = entity.slowGwei}
+				{#if averageGwei != null || slowGwei != null}
+					<span data-text="muted">
+						({[
+							averageGwei != null ? `avg ${averageGwei}` : '',
+							slowGwei != null ? `slow ${slowGwei}` : '',
+						].filter(Boolean).join(' · ')})
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}

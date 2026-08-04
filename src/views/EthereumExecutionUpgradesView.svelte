@@ -60,11 +60,11 @@
 			}
 		>
 			{#snippet Title()}
-				{ethereumExecutionUpgradeSelector.upgradeId || ethereumExecutionUpgrade.name || 'Ethereum execution upgrade'}
+				{ethereumExecutionUpgrade.upgradeId || ethereumExecutionUpgrade.name || 'Ethereum execution upgrade'}
 			{/snippet}
 
 			{#snippet Value()}
-				{ethereumExecutionUpgradeSelector.upgradeId}
+				{ethereumExecutionUpgrade.upgradeId}
 			{/snippet}
 		</EntityView>
 	{/snippet}

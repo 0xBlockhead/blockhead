@@ -43,7 +43,7 @@
 			entitySelector={evmNetworkAccountSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]',
 					{
 						network: (
 							'caip2' in network ?
@@ -61,7 +61,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{evmNetworkAccount.$network.name || (evmNetworkAccountSelector.$network.caip2 == null ? '' : `${evmNetworkAccountSelector.$network.caip2.namespace}:${evmNetworkAccountSelector.$network.caip2.reference}`) || 'Network'}
+				{evmNetworkAccount.$network.name || (evmNetworkAccount.$network.caip2 == null ? '' : `${evmNetworkAccount.$network.caip2.namespace}:${evmNetworkAccount.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

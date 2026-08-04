@@ -66,7 +66,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{evmContract.$network.name || (evmContractSelector.$network.caip2 == null ? '' : `${evmContractSelector.$network.caip2.namespace}:${evmContractSelector.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{evmContract.$network.name || (evmContract.$network.caip2 == null ? '' : `${evmContract.$network.caip2.namespace}:${evmContract.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

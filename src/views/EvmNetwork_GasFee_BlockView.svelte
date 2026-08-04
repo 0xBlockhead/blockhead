@@ -85,6 +85,27 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						gasUsedRatio: true,
+					},
+				})
+			}
+		>
+			{#snippet children(entity)}
+				{@const gasUsedRatio = entity.gasUsedRatio}
+				{#if gasUsedRatio != null}
+					<span data-text="muted"> · </span>
+					<NumberValue
+						value={Number(gasUsedRatio)}
+						options={{ style: 'percent' }}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}

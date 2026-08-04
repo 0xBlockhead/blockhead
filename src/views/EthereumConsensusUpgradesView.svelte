@@ -60,11 +60,11 @@
 			}
 		>
 			{#snippet Title()}
-				{ethereumConsensusUpgradeSelector.upgradeId || ethereumConsensusUpgrade.name || 'Ethereum consensus upgrade'}
+				{ethereumConsensusUpgrade.upgradeId || ethereumConsensusUpgrade.name || 'Ethereum consensus upgrade'}
 			{/snippet}
 
 			{#snippet Value()}
-				{ethereumConsensusUpgradeSelector.upgradeId}
+				{ethereumConsensusUpgrade.upgradeId}
 			{/snippet}
 		</EntityView>
 	{/snippet}

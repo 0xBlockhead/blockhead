@@ -65,11 +65,11 @@
 			}
 		>
 			{#snippet Title()}
-				{ethereumNetworkUpgradeSelector.upgradeId || ethereumNetworkUpgrade.name || 'Ethereum network upgrade'}
+				{ethereumNetworkUpgrade.upgradeId || ethereumNetworkUpgrade.name || 'Ethereum network upgrade'}
 			{/snippet}
 
 			{#snippet Value()}
-				{ethereumNetworkUpgradeSelector.upgradeId}
+				{ethereumNetworkUpgrade.upgradeId}
 			{/snippet}
 		</EntityView>
 	{/snippet}

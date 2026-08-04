@@ -66,7 +66,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{evmRollup.$network.name || (evmRollupSelector.$network.caip2 == null ? '' : `${evmRollupSelector.$network.caip2.namespace}:${evmRollupSelector.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{evmRollup.$network.name || (evmRollup.$network.caip2 == null ? '' : `${evmRollup.$network.caip2.namespace}:${evmRollup.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

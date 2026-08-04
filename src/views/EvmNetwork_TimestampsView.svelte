@@ -67,7 +67,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{evmNetworkTimestamp.$network.name || (evmNetworkTimestampSelector.$network.caip2 == null ? '' : `${evmNetworkTimestampSelector.$network.caip2.namespace}:${evmNetworkTimestampSelector.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{evmNetworkTimestamp.$network.name || (evmNetworkTimestamp.$network.caip2 == null ? '' : `${evmNetworkTimestamp.$network.caip2.namespace}:${evmNetworkTimestamp.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

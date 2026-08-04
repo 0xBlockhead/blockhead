@@ -19,6 +19,7 @@
 
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
+	import NumberValue from '$/components/NumberValue.svelte'
 </script>
 
 
@@ -31,6 +32,8 @@
 			fields: {
 				blockNumber: true,
 				baseFeePerGas: true,
+				gasUsedRatio: true,
+				maxPriorityFeePerGas: true,
 				$network: true,
 			},
 		})
@@ -62,11 +65,32 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{evmNetworkGasFeeBlock.baseFeePerGas != null ? evmNetworkGasFeeBlock.baseFeePerGas + ' wei' : ''}
+				{#if evmNetworkGasFeeBlock.baseFeePerGas != null}
+					<NumberValue value={evmNetworkGasFeeBlock.baseFeePerGas} />
+					<span> wei</span>
+					{#if evmNetworkGasFeeBlock.gasUsedRatio != null}
+						<span data-text="muted"> · </span>
+						<NumberValue
+							value={Number(evmNetworkGasFeeBlock.gasUsedRatio)}
+							options={{ style: 'percent' }}
+						/>
+					{/if}
+				{:else if evmNetworkGasFeeBlock.gasUsedRatio != null}
+					<NumberValue
+						value={Number(evmNetworkGasFeeBlock.gasUsedRatio)}
+						options={{ style: 'percent' }}
+					/>
+				{/if}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{evmNetworkGasFeeBlock.$network.name || (evmNetworkGasFeeBlockSelector.$network.caip2 == null ? '' : `${evmNetworkGasFeeBlockSelector.$network.caip2.namespace}:${evmNetworkGasFeeBlockSelector.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">
+					{#if evmNetworkGasFeeBlock.maxPriorityFeePerGas != null}
+						priority <NumberValue value={evmNetworkGasFeeBlock.maxPriorityFeePerGas} /> wei
+					{:else}
+						{evmNetworkGasFeeBlock.$network.name || (evmNetworkGasFeeBlock.$network.caip2 == null ? '' : `${evmNetworkGasFeeBlock.$network.caip2.namespace}:${evmNetworkGasFeeBlock.$network.caip2.reference}`) || 'Network'}
+					{/if}
+				</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

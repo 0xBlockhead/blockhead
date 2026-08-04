@@ -7,6 +7,7 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -49,7 +50,7 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]',
 				{
 					network: (
 						'caip2' in network ?
@@ -138,7 +139,14 @@
 
 			{#snippet SectionEvmNetworkAccountTransactions({ id, label })}
 				<EvmTransactionsView
-					selection={selection.$$transactions}
+					selection={
+						selection.$$transactions({
+							sources: [
+								Source.Blockscout_Rest,
+								Source.SafeTransactionService_Rest,
+							],
+						})
+					}
 					collapsible={false}
 					title={label}
 					emptyText='No transactions yet.'

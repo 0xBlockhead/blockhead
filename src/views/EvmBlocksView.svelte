@@ -60,7 +60,7 @@
 			}
 		>
 			{#snippet Title()}
-				{`Block #${evmBlockSelector.blockNumber}`}
+				{`Block #${evmBlock.blockNumber}`}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -44,7 +44,7 @@
 			entitySelector={evmNetworkActorCoinBalanceEvmBlockSelector}
 		>
 			{#snippet Title()}
-				{`Block #${evmNetworkActorCoinBalanceEvmBlockSelector.$block.blockNumber}`}
+				{`Block #${evmNetworkActorCoinBalanceEvmBlock.$block.blockNumber}`}
 			{/snippet}
 
 			{#snippet Value()}

@@ -32,6 +32,7 @@
 				$icon: true,
 				name: true,
 				caip2: true,
+				environment: true,
 			},
 		})
 	}
@@ -56,11 +57,17 @@
 			}
 		>
 			{#snippet Title()}
-				{network.name || (networkSelector.caip2 == null ? '' : `${networkSelector.caip2.namespace}:${networkSelector.caip2.reference}`) || 'Network'}
+				{network.name || (network.caip2 == null ? '' : `${network.caip2.namespace}:${network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}
-				{networkSelector.caip2 == null ? '' : `${networkSelector.caip2.namespace}:${networkSelector.caip2.reference}`}
+				{network.caip2 == null ? '' : `${network.caip2.namespace}:${network.caip2.reference}`}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				{#if network.environment != null}
+					<span data-text="annotation">{network.environment}</span>
+				{/if}
 			{/snippet}
 		</EntityView>
 	{/snippet}

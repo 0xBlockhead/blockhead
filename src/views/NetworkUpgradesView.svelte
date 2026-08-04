@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{networkUpgrade.$network.name || (networkUpgradeSelector.$network.caip2 == null ? '' : `${networkUpgradeSelector.$network.caip2.namespace}:${networkUpgradeSelector.$network.caip2.reference}`) || 'Network'}
+				{networkUpgrade.$network.name || (networkUpgrade.$network.caip2 == null ? '' : `${networkUpgrade.$network.caip2.namespace}:${networkUpgrade.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}
