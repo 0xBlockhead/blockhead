@@ -8,7 +8,10 @@ import {
 	SourceCredentialScope,
 	SourceEndpointKind,
 } from '../../APP.ts'
-import { compileApp } from './generate.ts'
+import {
+	compileApp,
+	sourceBindingId,
+} from './generate.ts'
 
 const sourceBindingRows = app.sources.sources.flatMap((source) => [
 	...(source.binding == null ? [] : [source.binding]),
@@ -158,7 +161,7 @@ test('retains only canonical source binding facts in compiler rows', async () =>
 	const generatorSource = await readFile('scripts/app/generate.ts', 'utf8')
 	const sourceBindingEntry = generatorSource.slice(
 		generatorSource.indexOf('type SourceBindingEntry ='),
-		generatorSource.indexOf('type RouteFixtureMetadata =')
+		generatorSource.indexOf('type RouteFixturePlan =')
 	)
 
 	assert.match(sourceBindingEntry, /type SourceBindingEntry = \{\n\treadonly source: SourceDefinition\['source'\]\n\treadonly binding: SourceBinding\n\}/)
@@ -172,7 +175,7 @@ test('retains only canonical source binding facts in compiler rows', async () =>
 	assert.doesNotMatch(generatorSource, /sourceDefinitionById: compiledApp\.sourceDefinitionById/)
 	assert.doesNotMatch(generatorSource, /nullPrototypeRecord\(compiledApp\.sources\.map/)
 	assert.doesNotMatch(generatorSource, /nullPrototypeRecord\(sourcesMarkdown\.sources\.map/)
-	assert.match(generatorSource, /sourceBindingRows\.flatMap\(\(\{ binding, bindingNumber \}\) => \(binding\.artifacts \?\? \[\]\)\.map/)
+	assert.match(generatorSource, /sourceBindingRows\.flatMap\(\(\{ binding, bindingId \}\) => \(binding\.artifacts \?\? \[\]\)\.map/)
 })
 
 test('retains one record index for each entity and value type', async () => {
@@ -211,10 +214,11 @@ test('uses authored binding identity instead of synthetic row indexes', async ()
 
 	assert.doesNotMatch(bindingsEmitter, /bindingGroupIndexByBinding|row\?\.index|sourceBindingRows\[index\]\?\.index/)
 	assert.doesNotMatch(bindingsEmitter, /bindings\.map\(\(\{ binding, source \}, index\) =>/)
-	assert.match(bindingsEmitter, /const repeatedBindingBaseByBinding = new Map\(bindingGroups\.flatMap\(\(group, groupIndex\) => \{[\s\S]*?bindingBaseName == null \|\| publicBinding == null[\s\S]*?return \[\][\s\S]*?group\.map\(\(\{ binding: groupedBinding \}\) => \[groupedBinding, base\] as const\)/)
+	assert.match(bindingsEmitter, /const repeatedBindingBaseByBinding = new Map\(bindingGroups\.flatMap\(\(\{ baseIdentifier, rows \}\) => \{[\s\S]*?baseIdentifier == null \|\| publicBinding == null[\s\S]*?return \[\][\s\S]*?rows\.map\(\(\{ binding: groupedBinding \}\) => \[groupedBinding, base\] as const\)/)
 	assert.match(bindingsEmitter, /const bindingBaseByBinding = new Map\(sourceBindingRows\.flatMap\(\(\{ binding, publicBinding \}\) => \{/)
-	assert.match(bindingsEmitter, /}, bindingBaseByBinding\.get\(binding\)\)\)/)
-	assert.match(bindingsEmitter, /const parts = \[\][\s\S]*?let bindingIndex = 0[\s\S]*?bindingIndex < partialMatrix\.firstRowIndex[\s\S]*?bindingIndex \+= partialMatrix\.rowCount/)
+	assert.match(bindingsEmitter, /}, sourcePlan\.bindingBaseByBinding\.get\(bindingRow\.binding\)\)/)
+	assert.doesNotMatch(bindingsEmitter, /\blet bindingIndex\b|bindingIndex \+= partialMatrix\.rowCount/)
+	assert.match(bindingsEmitter, /const parts = matrices\.flatMap\(\(partialMatrix, matrixIndex\) => \{[\s\S]*?sourcePlan\.sourceBindingRows[\s\S]*?\.slice\([\s\S]*?partialMatrix\.firstRowIndex\)[\s\S]*?\.slice\(partialMatrix\.firstRowIndex \+ partialMatrix\.rowCount\)/)
 })
 
 test('retains repeated binding plans only when they emit declarations', async () => {
@@ -261,9 +265,12 @@ test('owns domain target identities instead of configuration prose', () => {
 
 test('renders SOURCES.md exactly from APP', async () => {
 	const sourceDoc = await readFile('SOURCES.md', 'utf8')
-	const bindings = sourceBindingRows.map((sourceBinding, index) => ({
+	const bindings = sourceBindingRows.map((sourceBinding) => ({
 		...sourceBinding,
-		bindingNumber: String(index + 1),
+		bindingId: sourceBindingId({
+			...sourceBinding.binding,
+			source: sourceBinding.source,
+		}),
 	}))
 
 	assert.equal(
@@ -304,8 +311,8 @@ test('renders SOURCES.md exactly from APP', async () => {
 			'Operation groups',
 			'Delivery',
 		],
-		rows: bindings.map(({ binding, bindingNumber, provider, source }) => [
-			bindingNumber,
+		rows: bindings.map(({ binding, bindingId, provider, source }) => [
+			bindingId,
 			provider,
 			String(source),
 			binding.target.kind,
@@ -319,15 +326,13 @@ test('renders SOURCES.md exactly from APP', async () => {
 	assert.deepEqual(tableAfterHeading(sourceDoc, '## Endpoints'), {
 		headings: [
 			'Binding',
-			'Endpoint',
 			'Kind',
 			'Locator',
 			'Origin',
 			'CORS',
 		],
-		rows: bindings.flatMap(({ binding, bindingNumber }) => binding.endpoints.map((endpoint, index) => [
-			bindingNumber,
-			String(index + 1),
+		rows: bindings.flatMap(({ binding, bindingId }) => binding.endpoints.map((endpoint) => [
+			bindingId,
 			endpoint.endpointKind,
 			endpoint.locator,
 			endpoint.endpointKind === SourceEndpointKind.HttpUrl
@@ -342,14 +347,12 @@ test('renders SOURCES.md exactly from APP', async () => {
 	assert.deepEqual(tableAfterHeading(sourceDoc, '## Credentials'), {
 		headings: [
 			'Binding',
-			'Credential',
 			'Scope',
 			'Environment schema',
 			'Keys',
 		],
-		rows: bindings.flatMap(({ binding, bindingNumber }) => binding.credentials.map((credential, index) => [
-			bindingNumber,
-			String(index + 1),
+		rows: bindings.flatMap(({ binding, bindingId }) => binding.credentials.map((credential) => [
+			bindingId,
 			credential.scope,
 			credential.env == null ? 'no' : 'yes',
 			(
@@ -366,16 +369,14 @@ test('renders SOURCES.md exactly from APP', async () => {
 	assert.deepEqual(tableAfterHeading(sourceDoc, '## Artifacts'), {
 		headings: [
 			'Binding',
-			'Artifact',
 			'Kind',
 			'Path',
 			'Generated',
 			'Official URL',
 			'Reference URL',
 		],
-		rows: bindings.flatMap(({ binding, bindingNumber }) => (binding.artifacts ?? []).map((artifact, index) => [
-			bindingNumber,
-			String(index + 1),
+		rows: bindings.flatMap(({ binding, bindingId }) => (binding.artifacts ?? []).map((artifact) => [
+			bindingId,
 			artifact.kind,
 			artifact.path,
 			artifact.generated ? 'yes' : 'no',
@@ -383,6 +384,40 @@ test('renders SOURCES.md exactly from APP', async () => {
 			artifact.referenceUrl ?? '',
 		])),
 	})
+})
+
+test('keeps source documentation joins stable when a binding is inserted', () => {
+	const appWithoutDydxLive = structuredClone(app)
+	const dydxSourceWithoutLive = appWithoutDydxLive.sources.sources.find(({ source }) => (
+		source === Source.DydxIndexer
+	))
+	const dydxLiveBinding = sourceBindingRows.find(({ binding, source }) => (
+		source === Source.DydxIndexer
+		&& binding.apiFamily === 'DydxIndexer'
+	))
+	assert.ok(dydxSourceWithoutLive?.bindings && dydxLiveBinding)
+	dydxSourceWithoutLive.bindings.splice(1, 1)
+	const markdownWithoutDydxLive = compileApp(appWithoutDydxLive).generatedFiles.find(({ path }) => (
+		path === 'SOURCES.md'
+	))
+	assert.ok(markdownWithoutDydxLive && markdownWithoutDydxLive.kind === 'text')
+	const dydxLiveBindingId = sourceBindingId({
+		...dydxLiveBinding.binding,
+		source: dydxLiveBinding.source,
+	})
+
+	for (const heading of [
+		'## Bindings',
+		'## Endpoints',
+		'## Credentials',
+		'## Artifacts',
+	])
+		assert.deepEqual(
+			tableAfterHeading(sourcesMarkdownText, heading).rows.filter(([bindingId]) => (
+				bindingId !== dydxLiveBindingId
+			)),
+			tableAfterHeading(markdownWithoutDydxLive.body.join('\n'), heading).rows
+		)
 })
 
 test('keys every binding provider from canonical source definitions', () => {
