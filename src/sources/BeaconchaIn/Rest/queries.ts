@@ -7,7 +7,7 @@ import {
 	requiredPublicEnvString,
 	type SourcePublicEnv,
 } from '$/sources/$sources.ts'
-import bindings from '$/sources/BeaconchaIn/bindings.ts'
+import { bindingByChainId } from '$/sources/BeaconchaIn/Rest/constants.ts'
 import type {
 	BeaconchaInAttestation,
 	BeaconchaInAttesterSlashing,
@@ -18,11 +18,6 @@ import type {
 	BeaconchaInValidator,
 	BeaconchaInWithdrawal,
 } from '$/sources/BeaconchaIn/Rest/types.ts'
-import { Source } from '$/sources/Source.ts'
-
-export const bindingByChainId = Object.fromEntries(
-	bindings[Source.BeaconchaIn_Rest].map((binding) => [binding.target.key, binding])
-)
 
 const beaconchaInGetJson = async <_Data>(
 	publicEnv: SourcePublicEnv,

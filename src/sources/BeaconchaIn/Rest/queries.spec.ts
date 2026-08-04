@@ -7,6 +7,7 @@ import {
 } from 'vitest'
 
 import bindings from '$/sources/BeaconchaIn/bindings.ts'
+import { bindingByChainId } from '$/sources/BeaconchaIn/Rest/constants.ts'
 import {
 	getEpoch,
 	getEpochSlots,
@@ -25,6 +26,9 @@ const ethereumBinding = bindings[Source.BeaconchaIn_Rest].find((binding) => (
 
 if (ethereumBinding == null)
 	throw new Error('BeaconchaIn REST binding missing for chain 1')
+
+if (bindingByChainId['1'] !== ethereumBinding)
+	throw new Error('BeaconchaIn constants bindingByChainId drifted from bindings')
 
 const publicEnv = {
 	PUBLIC_BEACONCHAIN_API_KEY: 'test-api-key',

@@ -15,7 +15,7 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { bindingByChainId } from '$/sources/BeaconchaIn/Rest/queries.ts'
+import { bindingByChainId } from '$/sources/BeaconchaIn/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
 
 const eip155NetworkApplicability = [{
@@ -211,11 +211,11 @@ export default {
 								}
 							))
 								.slice(0, resolverContextRowLimit(context))
-								.map((_withdrawal, indexInSlot) => ({
+								.map((withdrawal) => ({
 									[EntityMetaKey.Selector]: {
 										$network,
 										slot,
-										indexInSlot,
+										indexInSlot: withdrawal.withdrawalindex,
 									},
 								}))
 						)
@@ -315,7 +315,7 @@ export default {
 									slot,
 								}
 							)
-						)[indexInSlot]
+						).find((candidate) => candidate.withdrawalindex === indexInSlot)
 						if (withdrawal == null)
 							throw new Error(`BeaconchaIn_Rest: withdrawal not found at index ${String(indexInSlot)}`)
 						return {

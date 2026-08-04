@@ -301,7 +301,7 @@ describe('BeaconchaIn-Rest resolvers', () => {
 				[EntityMetaKey.Selector]: {
 					$network: network,
 					slot: 320,
-					indexInSlot: 0,
+					indexInSlot: 100,
 				},
 			},
 		])
@@ -329,12 +329,12 @@ describe('BeaconchaIn-Rest resolvers', () => {
 		await expect(withdrawalResolver.resolve.EvmNetworkSlotIndexInSlot.resolve({
 			$network: network,
 			slot: 320,
-			indexInSlot: 0,
+			indexInSlot: 100,
 		}, context)).rejects.toThrow('withdrawal not found')
 	})
 
 	it('maps withdrawal and attestation detail fields', async () => {
-		getSlotWithdrawals.mockResolvedValueOnce([
+		getSlotWithdrawals.mockResolvedValue([
 			{
 				address: '0x' + 'dd'.repeat(20),
 				amount: 99,
@@ -359,11 +359,28 @@ describe('BeaconchaIn-Rest resolvers', () => {
 		await expect(withdrawalResolver.resolve.EvmNetworkSlotIndexInSlot.resolve({
 			$network: network,
 			slot: 320,
-			indexInSlot: 0,
+			indexInSlot: 101,
 		}, context)).resolves.toMatchObject({
 			validatorIndex: 8,
 			amountGwei: 99n,
+			$validator: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					indexInNetwork: 8,
+				},
+			},
+			$account: {
+				[EntityMetaKey.Selector]: {
+					address: `0x${'dd'.repeat(20)}`,
+				},
+			},
 		})
+
+		await expect(withdrawalResolver.resolve.EvmNetworkSlotIndexInSlot.resolve({
+			$network: network,
+			slot: 320,
+			indexInSlot: 0,
+		}, context)).rejects.toThrow('withdrawal not found')
 
 		await expect(attestationResolver.resolve.EvmNetworkSlotIndexInSlot.resolve({
 			$network: network,
