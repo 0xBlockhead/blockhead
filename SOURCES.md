@@ -4,7 +4,7 @@ This file is generated from APP compiler-plane source metadata: the canonical pr
 
 Provider/source identity, target, endpoint reality, protocol, API family, operation groups, delivery, credentials, and artifacts remain independent axes. Artifacts and generated clients are binding metadata. CORS is recorded per HTTP endpoint; proxy and live behavior are recorded as delivery.
 
-245 providers register 276 sources and 428 bindings.
+245 providers register 276 sources and 477 bindings.
 
 ## Providers
 
@@ -812,8 +812,57 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Rss_Rest","Feed","https://feeds.bbci.co.uk","HttpProxy","RestJson"] | Rss | Rss_Rest | Feed | https://feeds.bbci.co.uk | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["Rss2Json_Rest","Global","rss2json","HttpProxy","RestJson"] | Rss2Json | Rss2Json_Rest | Global | rss2json | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["SafeTransactionService_Rest","Eip155Chain","1","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 1 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","10","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 10 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","50","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 50 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","56","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 56 | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["SafeTransactionService_Rest","Eip155Chain","100","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 100 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","130","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 130 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","137","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 137 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","143","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 143 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","146","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 146 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","196","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 196 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","204","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 204 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","232","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 232 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","324","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 324 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","480","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 480 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","677","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 677 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","988","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 988 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","999","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 999 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","1001","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 1001 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","1672","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 1672 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","3338","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 3338 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","4217","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 4217 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","4326","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 4326 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","4663","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 4663 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","5000","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 5000 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","5003","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 5003 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","5042","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 5042 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","8217","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 8217 | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["SafeTransactionService_Rest","Eip155Chain","8453","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 8453 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","9745","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 9745 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","10143","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 10143 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","10200","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 10200 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","16661","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 16661 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","25363","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 25363 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","42161","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 42161 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","42220","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 42220 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","42431","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 42431 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","43111","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 43111 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","43114","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 43114 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","46630","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 46630 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","57073","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 57073 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","59144","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 59144 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","80069","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 80069 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","80094","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 80094 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","81224","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 81224 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","84532","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 84532 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","102030","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 102030 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","534352","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 534352 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","747474","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 747474 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","5042002","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 5042002 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","11142220","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 11142220 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","11155111","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 11155111 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SafeTransactionService_Rest","Eip155Chain","1313161554","HttpProxy","RestJson"] | SafeTransactionService | SafeTransactionService_Rest | Eip155Chain | 1313161554 | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["SigstoreRekor","Global","transparency-log","BrowserDirect","OpenApiHttp"] | SigstoreRekor | SigstoreRekor | Global | transparency-log | HttpRest | OpenApiHttp | GenericRead, SoftwareArtifactRegistry | BrowserDirect |
 | ["Snapchain_Rest","Global","farcaster-snapchain","HttpProxy","RestJson"] | Snapchain | Snapchain_Rest | Global | farcaster-snapchain | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["SnapshotHub_Graphql","Global","snapshot-hub","BrowserDirect","GraphqlHttp"] | SnapshotHub | SnapshotHub_Graphql | Global | snapshot-hub | Graphql | GraphqlHttp | GenericRead | BrowserDirect |
@@ -1273,8 +1322,57 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Rss_Rest","Feed","https://feeds.bbci.co.uk","HttpProxy","RestJson"] | HttpUrl | https://feeds.bbci.co.uk | https://feeds.bbci.co.uk | false |
 | ["Rss2Json_Rest","Global","rss2json","HttpProxy","RestJson"] | HttpUrl | https://api.rss2json.com | https://api.rss2json.com | false |
 | ["SafeTransactionService_Rest","Eip155Chain","1","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/eth | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","10","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/oeth | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","50","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/xdc | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","56","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/bnb | https://api.safe.global | false |
 | ["SafeTransactionService_Rest","Eip155Chain","100","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/gno | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","130","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/unichain | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","137","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/pol | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","143","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/monad | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","146","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/sonic | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","196","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/okb | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","204","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/opbnb | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","232","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/lens | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","324","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/zksync | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","480","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/wc | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","677","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/bot | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","988","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/stable | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","999","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/hyper | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","1001","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/kairos | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","1672","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/pharos | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","3338","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/peaq | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","4217","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/tempo | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","4326","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/mega | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","4663","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/robinhood | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","5000","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/mantle | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","5003","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/mnt-sep | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","5042","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/arc | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","8217","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/kaia | https://api.safe.global | false |
 | ["SafeTransactionService_Rest","Eip155Chain","8453","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/base | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","9745","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/plasma | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","10143","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/monad-testnet | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","10200","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/chi | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","16661","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/0g | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","25363","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/fluent | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","42161","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/arb1 | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","42220","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/celo | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","42431","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/tempo-moderato | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","43111","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/hemi | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","43114","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/avax | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","46630","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/robinhood-testnet | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","57073","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/ink | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","59144","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/linea | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","80069","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/bep | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","80094","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/berachain | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","81224","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/codex | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","84532","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/basesep | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","102030","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/ctc | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","534352","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/scr | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","747474","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/katana | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","5042002","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/arc-testnet | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","11142220","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/celo-sep | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","11155111","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/sep | https://api.safe.global | false |
+| ["SafeTransactionService_Rest","Eip155Chain","1313161554","HttpProxy","RestJson"] | HttpUrl | https://api.safe.global/tx-service/aurora | https://api.safe.global | false |
 | ["SigstoreRekor","Global","transparency-log","BrowserDirect","OpenApiHttp"] | HttpUrl | https://rekor.sigstore.dev/ | https://rekor.sigstore.dev | true |
 | ["Snapchain_Rest","Global","farcaster-snapchain","HttpProxy","RestJson"] | HttpUrl | https://hub.pinata.cloud | https://hub.pinata.cloud | false |
 | ["Snapchain_Rest","Global","farcaster-snapchain","HttpProxy","RestJson"] | HttpUrl | https://snap.farcaster.xyz:3381 | https://snap.farcaster.xyz:3381 | false |
@@ -1543,8 +1641,57 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Reddit_Rest","Global","oauth-token","HttpProxy","RestJson"] | PublicConfig | yes | PUBLIC_REDDIT_CLIENT_ID, PUBLIC_REDDIT_CLIENT_SECRET |
 | ["Reth_JsonRpc","LocalDevice","reth-node","LocalOnly","EvmExecutionJsonRpc"] | LocalSecret | no |  |
 | ["SafeTransactionService_Rest","Eip155Chain","1","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","10","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","50","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","56","HttpProxy","RestJson"] | RuntimeSecret | no |  |
 | ["SafeTransactionService_Rest","Eip155Chain","100","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","130","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","137","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","143","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","146","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","196","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","204","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","232","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","324","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","480","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","677","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","988","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","999","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","1001","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","1672","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","3338","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","4217","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","4326","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","4663","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","5000","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","5003","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","5042","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","8217","HttpProxy","RestJson"] | RuntimeSecret | no |  |
 | ["SafeTransactionService_Rest","Eip155Chain","8453","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","9745","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","10143","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","10200","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","16661","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","25363","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","42161","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","42220","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","42431","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","43111","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","43114","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","46630","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","57073","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","59144","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","80069","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","80094","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","81224","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","84532","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","102030","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","534352","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","747474","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","5042002","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","11142220","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","11155111","HttpProxy","RestJson"] | RuntimeSecret | no |  |
+| ["SafeTransactionService_Rest","Eip155Chain","1313161554","HttpProxy","RestJson"] | RuntimeSecret | no |  |
 | ["SolanaMobileWalletAdapter_WalletApi","LocalDevice","solana-mobile-wallet-adapter","BrowserDirect","WalletApi"] | UserDelegated | no |  |
 | ["SpaceAndTime_MakeInfinite","Caip2Network","eip155:1","HttpProxy","RestJson"] | RuntimeSecret | no |  |
 | ["Starkscan","NetworkSlug","starknet","HttpProxy","OpenApiHttp"] | RuntimeSecret | no |  |
@@ -1823,8 +1970,57 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Rss_Rest","Feed","https://feeds.bbci.co.uk","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/Rss/Rest/types.ts | no |  |  |
 | ["Rss2Json_Rest","Global","rss2json","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/Rss2Json/Rest/types.ts | no |  |  |
 | ["SafeTransactionService_Rest","Eip155Chain","1","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","10","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","50","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","56","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
 | ["SafeTransactionService_Rest","Eip155Chain","100","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","130","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","137","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","143","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","146","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","196","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","204","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","232","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","324","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","480","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","677","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","988","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","999","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","1001","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","1672","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","3338","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","4217","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","4326","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","4663","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","5000","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","5003","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","5042","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","8217","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
 | ["SafeTransactionService_Rest","Eip155Chain","8453","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","9745","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","10143","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","10200","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","16661","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","25363","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","42161","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","42220","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","42431","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","43111","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","43114","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","46630","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","57073","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","59144","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","80069","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","80094","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","81224","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","84532","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","102030","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","534352","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","747474","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","5042002","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","11142220","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","11155111","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
+| ["SafeTransactionService_Rest","Eip155Chain","1313161554","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SafeTransactionService/Rest/types.ts | no |  |  |
 | ["SigstoreRekor","Global","transparency-log","BrowserDirect","OpenApiHttp"] | GenerationManifest | src/sources/SigstoreRekor/OpenApi/schema-source.ts | no |  |  |
 | ["SigstoreRekor","Global","transparency-log","BrowserDirect","OpenApiHttp"] | OpenApiSpec | src/sources/SigstoreRekor/OpenApi/openapi.yaml | yes | https://raw.githubusercontent.com/sigstore/rekor/main/openapi.yaml |  |
 | ["SigstoreRekor","Global","transparency-log","BrowserDirect","OpenApiHttp"] | OpenApiTypes | src/sources/SigstoreRekor/OpenApi/openapi.d.ts | yes |  |  |

@@ -36,6 +36,7 @@
 	import EvmTokenTransfersView from '$/views/EvmTokenTransfersView.svelte'
 	import EvmInternalTransfersView from '$/views/EvmInternalTransfersView.svelte'
 	import EvmNetworkActorCoinBalancesView from '$/views/EvmNetworkActorCoinBalancesView.svelte'
+	import EvmNftsView from '$/views/EvmNftsView.svelte'
 	import EvmActorCoinAllowancesView from '$/views/EvmActorCoinAllowancesView.svelte'
 	import EvmNetworkAccount_TimestampsView from '$/views/EvmNetworkAccount_TimestampsView.svelte'
 </script>
@@ -192,6 +193,10 @@
 						label: 'Owned coins',
 					},
 					{
+						id: 'evm-network-account-nfts',
+						label: 'NFTs',
+					},
+					{
 						id: 'evm-network-account-allowances',
 						label: 'Allowances',
 					},
@@ -212,6 +217,16 @@
 					collapsible={false}
 					title={label}
 					emptyText='No owned coins yet.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionEvmNetworkAccountNfts({ id, label })}
+				<EvmNftsView
+					selection={selection.$$nfts}
+					collapsible={false}
+					title={label}
+					emptyText='No NFTs.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

@@ -7140,7 +7140,7 @@ test('keeps runtime secret configuration in one server projection', () => {
 	assert.match(serverCredentials, /import \{ sourceBindings \} from '\$\/sources\/\$sourceProviders\.ts'/)
 	assert.match(serverCredentials, /const runtimeSecretBindingCandidates = sourceBindings\.filter[\s\S]*?scope === SourceCredentialScope\.RuntimeSecret[\s\S]*?&& keys == null/)
 	assert.match(serverCredentials, /const runtimeSecretCredentials = \[/)
-	assert.equal((serverCredentials.match(/^\t\tSource\./gm) ?? []).length, 21)
+	assert.equal((serverCredentials.match(/^\t\tSource\./gm) ?? []).length, 70)
 	assert.match(serverCredentials, /sourceBindingId\(runtimeSecretBinding\(source, targetKey\)\)/)
 	assert.equal((serverCredentials.match(/sourceBindingId\(/g) ?? []).length, 1)
 	assert.doesNotMatch(serverCredentials, /'\["/)

@@ -47,6 +47,7 @@
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EvmAccountsView from '$/views/EvmAccountsView.svelte'
 	import EvmContractsView from '$/views/EvmContractsView.svelte'
+	import EvmNftsView from '$/views/EvmNftsView.svelte'
 	import EvmStorageRead_TimestampsView from '$/views/EvmStorageRead_TimestampsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
@@ -400,6 +401,21 @@
 						countResource={modulesResource.count}
 						title='Modules'
 						id='modules'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const nftsResource = selection.$$nfts}
+		<ResourceBoundary
+			resource={nftsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<EvmNftsView
+						selection={nftsResource}
+						countResource={nftsResource.count}
+						title='NFTs'
+						id='nfts'
 					/>
 				{/if}
 			{/snippet}
