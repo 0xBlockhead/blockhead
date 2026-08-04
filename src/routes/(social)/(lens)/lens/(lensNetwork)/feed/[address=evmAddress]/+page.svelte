@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,16 +12,14 @@
 
 	// State
 	let {
-		data,
+		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.LensFeed, data.selector, {
-		sources: [
-			Source.Lens_Graphql,
-		],
+	const pageSelection = $derived(select(EntityType.LensFeed, {
+		address: params.address,
+	}, {
 		fields: {
 			name: true,
-			createdAt: true,
 		},
 	}))
 
@@ -34,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.address ?? '') || 'Lens feed' : [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.address].filter(Boolean).join(' ') || 'Lens feed')} • Lens feed • Blockhead</title>
+	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.address ?? '') || 'Lens feed' : [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.address].filter(Boolean).join(' ') || 'Lens feed'} • Lens feed • Blockhead</title>
 </svelte:head>
 
 

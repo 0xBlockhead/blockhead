@@ -18,12 +18,6 @@ export default [
 		defaultIsOpen: true,
 		children: [
 			{
-				id: 'local-connections',
-				title: 'Connections',
-				href: '/~/accounts/connections',
-				icon: '🔌',
-			},
-			{
 				id: 'local-balances',
 				title: 'Balances',
 				href: '/~/accounts/balances',
@@ -49,6 +43,27 @@ export default [
 		href: '/~/sessions',
 		icon: '🧪',
 		defaultIsOpen: true,
+	},
+	{
+		id: 'local-wallets',
+		title: 'Wallets',
+		href: '/~/wallets',
+		icon: '👛',
+		defaultIsOpen: true,
+		children: [
+			{
+				id: 'local-wallet-connections',
+				title: 'Connections',
+				href: '/~/wallets/connections',
+				icon: '🔌',
+			},
+			{
+				id: 'local-wallet-requests',
+				title: 'Requests',
+				href: '/~/wallets/requests',
+				icon: '📝',
+			},
+		],
 	},
 	{
 		id: 'explore',
@@ -234,21 +249,6 @@ export default [
 						icon: '🌊',
 					},
 					{
-						id: 'assets-uniswap-v3',
-						title: 'Uniswap V3',
-						href: '/uniswap-v3',
-						icon: '🦄',
-						defaultIsOpen: true,
-						children: [
-							{
-								id: 'assets-uniswap-v3-pools',
-								title: 'Pools',
-								href: '/uniswap-v3/pools',
-								icon: '🌊',
-							},
-						],
-					},
-					{
 						id: 'assets-channels',
 						title: 'Channels',
 						href: '/channels',
@@ -369,6 +369,18 @@ export default [
 								title: 'Profiles',
 								href: '/lens/observations/accounts',
 								icon: '👤',
+							},
+							{
+								id: 'social-lens-feeds',
+								title: 'Feeds',
+								href: '/lens/feed',
+								icon: '📰',
+							},
+							{
+								id: 'social-lens-namespaces',
+								title: 'Namespaces',
+								href: '/lens/namespace',
+								icon: '🏷️',
 							},
 							{
 								id: 'social-lens-posts',
