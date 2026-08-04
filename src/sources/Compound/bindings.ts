@@ -15,12 +15,12 @@ export default indexSourceBindings([
 		source: Source.Compound_Rest,
 		target: {
 			kind: SourceTargetKind.GitRepository,
-			key: 'compound-finance/comet@main:deployments',
+			key: 'compound-finance/comet@f766f51583c23acc33b2a7824654ef2029a96804:deployments',
 		},
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://raw.githubusercontent.com/compound-finance/comet/main/',
+				locator: 'https://raw.githubusercontent.com/compound-finance/comet/f766f51583c23acc33b2a7824654ef2029a96804/',
 				corsEnabled: true,
 			},
 		],

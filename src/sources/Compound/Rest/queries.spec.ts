@@ -71,7 +71,7 @@ describe('Compound III deployment binding', () => {
 	it('targets the official comet deployment artifacts', () => {
 		expect(binding.target).toEqual({
 			kind: SourceTargetKind.GitRepository,
-			key: 'compound-finance/comet@main:deployments',
+			key: 'compound-finance/comet@f766f51583c23acc33b2a7824654ef2029a96804:deployments',
 		})
 		expect(binding.source).toBe(Source.Compound_Rest)
 		expect(binding.wireProtocol).toBe(WireProtocol.HttpRest)
@@ -80,7 +80,7 @@ describe('Compound III deployment binding', () => {
 		expect(binding.endpoints).toEqual([
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://raw.githubusercontent.com/compound-finance/comet/main/',
+				locator: 'https://raw.githubusercontent.com/compound-finance/comet/f766f51583c23acc33b2a7824654ef2029a96804/',
 				corsEnabled: true,
 			},
 		])

@@ -1,7 +1,7 @@
 /**
  * Compound III Comet deployment catalog (official comet repo deployments/).
  * @see https://docs.compound.finance/
- * @see https://github.com/compound-finance/comet/tree/main/deployments
+ * @see https://github.com/compound-finance/comet/tree/f766f51583c23acc33b2a7824654ef2029a96804/deployments
  */
 
 
