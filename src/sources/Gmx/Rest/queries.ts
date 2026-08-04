@@ -50,6 +50,15 @@ const assertNonEmptyDecimalString = (
 	return value
 }
 
+const assertBoolean = (
+	value: boolean,
+	label: string
+) => {
+	if (value !== true && value !== false)
+		throw new Error(`${Source.Gmx_Rest}: market missing ${label}`)
+	return value
+}
+
 const assertMarketInfoWire = (
 	wire: GmxMarketInfoWire,
 	chainId: number
@@ -64,8 +73,8 @@ const assertMarketInfoWire = (
 		indexTokenAddress: assertAddress(wire.indexTokenAddress, 'index token'),
 		longTokenAddress: assertAddress(wire.longTokenAddress, 'long token'),
 		shortTokenAddress: assertAddress(wire.shortTokenAddress, 'short token'),
-		isSpotOnly: wire.isSpotOnly === true,
-		isDisabled: wire.isDisabled === true,
+		isSpotOnly: assertBoolean(wire.isSpotOnly, 'isSpotOnly'),
+		isDisabled: assertBoolean(wire.isDisabled, 'isDisabled'),
 		longInterestUsd: assertNonEmptyDecimalString(wire.longInterestUsd, 'longInterestUsd'),
 		shortInterestUsd: assertNonEmptyDecimalString(wire.shortInterestUsd, 'shortInterestUsd'),
 		longPoolAmount: assertNonEmptyDecimalString(wire.longPoolAmount, 'longPoolAmount'),
@@ -94,5 +103,11 @@ export const getMarketsInfo = async ({
 	if (response.length > gmxMarketsInfoResponseMax)
 		throw new Error(`${Source.Gmx_Rest}: markets/info response exceeds ${String(gmxMarketsInfoResponseMax)} markets`)
 
-	return response.map((wire) => assertMarketInfoWire(wire, chainId))
+	const markets = response.map((wire) => (
+		assertMarketInfoWire(wire, chainId)
+	))
+	if (new Set(markets.map((market) => market.marketTokenAddress)).size !== markets.length)
+		throw new Error(`${Source.Gmx_Rest}: markets/info response contains duplicate market tokens`)
+
+	return markets
 }

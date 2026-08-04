@@ -113,6 +113,50 @@ describe('GMX Rest resolver module', () => {
 		expect(sourceGetJson).toHaveBeenCalledTimes(1)
 	})
 
+	it.each([
+		43114,
+		4326,
+	])('maps all GmxMarket schema fields for chain %i', async (chainId) => {
+		if (gmxMarketResolver == null)
+			throw new Error('missing GmxMarket resolver')
+
+		sourceGetJson.mockResolvedValueOnce([
+			ethMarketInfoWire,
+		])
+
+		const snapshot = await gmxMarketResolver.resolve.NetworkMarketTokenAddress.resolve({
+			$network: {
+				caip2: {
+					namespace: 'eip155',
+					reference: String(chainId),
+				},
+			},
+			marketTokenAddress: ethMarketTokenAddress,
+		}, context)
+
+		expect(gmxMarketResolver.projections.indexTokenAddress(snapshot)).toBe(
+			'0x82af49447d8a07e3bd95bd0d56f35241523fbab1'
+		)
+		expect(gmxMarketResolver.projections.longTokenAddress(snapshot)).toBe(
+			'0x82af49447d8a07e3bd95bd0d56f35241523fbab1'
+		)
+		expect(gmxMarketResolver.projections.shortTokenAddress(snapshot)).toBe(
+			'0xaf88d065e77c8cc2239327c5edb3a432268e5831'
+		)
+		expect(gmxMarketResolver.projections.shortInterestUsd(snapshot)).toBe(
+			'15383126719457743771450388674116662232'
+		)
+		expect(gmxMarketResolver.projections.longPoolAmount(snapshot)).toBe(
+			'11412900167379942479683'
+		)
+		expect(gmxMarketResolver.projections.shortPoolAmount(snapshot)).toBe(
+			'20907313850254'
+		)
+		expect(gmxMarketResolver.projections.fundingFactorPerSecond(snapshot)).toBe(
+			'5447368087265348055555'
+		)
+	})
+
 	it('throws when the market token is absent from markets/info', async () => {
 		if (gmxMarketResolver == null)
 			throw new Error('missing GmxMarket resolver')

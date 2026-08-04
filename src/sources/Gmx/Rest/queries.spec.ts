@@ -33,6 +33,12 @@ const { getMarketsInfo } = await import('$/sources/Gmx/Rest/queries.ts')
 const arbitrumBinding = bindings[Source.Gmx_Rest].find((binding) => (
 	binding.target.key === '42161'
 ))
+const avalancheBinding = bindings[Source.Gmx_Rest].find((binding) => (
+	binding.target.key === '43114'
+))
+const megaethBinding = bindings[Source.Gmx_Rest].find((binding) => (
+	binding.target.key === '4326'
+))
 
 const ethMarketTokenAddress = '0x70d95587d40A2caf56bd97485aB3Eec10Bee6336'
 
@@ -126,6 +132,46 @@ describe('GMX markets/info operation', () => {
 		)
 	})
 
+	it.each([
+		[
+			43114,
+			avalancheBinding,
+		],
+		[
+			4326,
+			megaethBinding,
+		],
+	])('reads token legs, OI, pools, and funding for chain %i', async (
+		chainId,
+		binding
+	) => {
+		sourceGetJson.mockResolvedValueOnce([
+			ethMarketInfoWire,
+		])
+
+		await expect(
+			getMarketsInfo({
+				chainId,
+			})
+		)
+			.resolves
+			.toEqual([
+				{
+					...ethMarketInfoWire,
+					chainId,
+					marketTokenAddress: '0x70d95587d40a2caf56bd97485ab3eec10bee6336',
+					indexTokenAddress: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+					longTokenAddress: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+					shortTokenAddress: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+				},
+			])
+
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			httpUrl(binding!, '/markets/info')
+		)
+	})
+
 	it('rejects unsupported chains before transport', async () => {
 		await expect(
 			getMarketsInfo({
@@ -150,5 +196,40 @@ describe('GMX markets/info operation', () => {
 		)
 			.rejects
 			.toThrow(`${Source.Gmx_Rest}: markets/info response is not an array`)
+	})
+
+	it('fails closed when a market boolean is malformed', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				...ethMarketInfoWire,
+				isDisabled: null,
+			},
+		])
+
+		await expect(
+			getMarketsInfo({
+				chainId: 42161,
+			})
+		)
+			.rejects
+			.toThrow(`${Source.Gmx_Rest}: market missing isDisabled`)
+	})
+
+	it('fails closed for duplicate market tokens', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			ethMarketInfoWire,
+			{
+				...ethMarketInfoWire,
+				name: 'duplicate',
+			},
+		])
+
+		await expect(
+			getMarketsInfo({
+				chainId: 42161,
+			})
+		)
+			.rejects
+			.toThrow(`${Source.Gmx_Rest}: markets/info response contains duplicate market tokens`)
 	})
 })
