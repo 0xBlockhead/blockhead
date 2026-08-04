@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -63,14 +64,26 @@ export default entity({
 	$$beaconAttestations: {
 		entityType: EntityType.BeaconAttestation,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
+		],
 	},
 	$$beaconWithdrawals: {
 		entityType: EntityType.BeaconWithdrawal,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
+		],
 	},
 	$$beaconSlashings: {
 		entityType: EntityType.BeaconSlashing,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
+		],
 	},
 })({
 	selectors: {

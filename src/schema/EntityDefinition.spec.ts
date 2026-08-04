@@ -1733,4 +1733,39 @@ describe('entity selectors', () => {
 			])
 		)
 	})
+
+	it('deepens BeaconSlot duty list defaultSources with BeaconchaIn_Rest', () => {
+		const beaconEpoch = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.BeaconEpoch)
+		const beaconSlot = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.BeaconSlot)
+		const network = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.Network)
+		if (beaconEpoch == null || beaconSlot == null || network == null)
+			throw new Error('Beacon schema rows missing')
+
+		const dutyDefaultSources = [
+			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
+		]
+		for (const fieldName of [
+			'$$beaconAttestations',
+			'$$beaconWithdrawals',
+			'$$beaconSlashings',
+		] as const)
+			expect(entityFieldDefinitions(beaconSlot).find(({ name }) => name === fieldName)?.defaultSources).toEqual(dutyDefaultSources)
+
+		expect(entityFieldDefinitions(beaconSlot).find(({ name }) => name === '$$beaconCommittees')?.defaultSources).toBeUndefined()
+
+		expect(entityFieldDefinitions(beaconEpoch).find(({ name }) => name === '$$beaconSlots')?.defaultSources).toEqual(dutyDefaultSources)
+
+		for (const fieldName of [
+			'$$beaconAttestations',
+			'$$beaconWithdrawals',
+			'$$beaconSlashings',
+			'$$beaconCommittees',
+			'$$beaconSlots',
+			'$$beaconValidators',
+		] as const)
+			expect(entityFieldDefinitions(network).find(({ name }) => name === fieldName)?.defaultSources).toEqual([
+				Source.Beacon_Rest,
+			])
+	})
 })
