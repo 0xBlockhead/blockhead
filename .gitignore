@@ -25,9 +25,11 @@ Thumbs.db
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# pnpm store database sidecars
-.pnpm-store/v11/index.db-shm
-.pnpm-store/v11/index.db-wal
+# Tool caches
+/.codeplane/
+/.fallow/
+/.pnpm-store/
 
 # Playwright
 test-results
+/.playwright-cli/page-*.yml
