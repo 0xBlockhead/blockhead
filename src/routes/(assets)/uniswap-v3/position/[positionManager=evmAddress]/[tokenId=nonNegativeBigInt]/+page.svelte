@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? `Position ${pageSelection.entitySelector.tokenId}`} • Uniswap V3 • Blockhead</title>
+	<title>{data.title ?? (String(pageSelection.entitySelector.tokenId) || 'Uniswap V3 position')} • Uniswap V3 position • Blockhead</title>
 </svelte:head>
 
 

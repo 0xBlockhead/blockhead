@@ -18,7 +18,7 @@
 
 
 <svelte:head>
-	<title>Uniswap V3 pools • Uniswap V3 • Blockhead</title>
+	<title>Uniswap V3 pools • Blockhead</title>
 </svelte:head>
 
 
@@ -38,8 +38,6 @@
 		href={resolve('/(assets)/uniswap-v3/pools')}
 		selection={collectionSelection}
 		countResource={collectionSelection.count}
-		title="Uniswap V3 pools"
-		emptyText="No Uniswap V3 pools yet."
-		id="uniswap-v3-pools"
+		id='uniswap-v3-pools'
 	/>
 </Page>

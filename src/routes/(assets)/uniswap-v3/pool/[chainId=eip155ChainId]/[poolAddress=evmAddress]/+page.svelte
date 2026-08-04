@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.poolAddress || 'Pool')} • Uniswap V3 • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.poolAddress || 'Uniswap V3 pool')} • Uniswap V3 pool • Blockhead</title>
 </svelte:head>
 
 

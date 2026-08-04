@@ -10,6 +10,7 @@
 
 
 	// Components
+	import HeadingComponent from '$/components/Heading.svelte'
 	import Page from '$/components/Page.svelte'
 	import UniswapV3PoolsView from '$/views/UniswapV3PoolsView.svelte'
 </script>
@@ -35,16 +36,25 @@
 	<header data-column="gap-2">
 		<h1>Uniswap V3</h1>
 		<p data-text="muted">
-			Concentrated-liquidity pools and NFT positions on Uniswap V3.
+			Concentrated-liquidity pools and NFT positions. Pool cards resolve factory, token legs, fee tier, and head-block slot0 state via Voltaire JSON-RPC.
 		</p>
 	</header>
 
-	<UniswapV3PoolsView
-		href={resolve('/(assets)/uniswap-v3/pools')}
-		selection={collectionSelection}
-		countResource={collectionSelection.count}
-		title="Pools"
-		emptyText="No Uniswap V3 pools yet."
-		id="uniswap-v3-hub-pools"
-	/>
+	<section data-column="gap-4">
+		<header data-row="wrap gap-4" data-row-item="flexible">
+			<HeadingComponent>
+				<a href={resolve('/(assets)/uniswap-v3/pools')}>Pools</a>
+			</HeadingComponent>
+		</header>
+
+		<UniswapV3PoolsView
+			href={resolve('/(assets)/uniswap-v3/pools')}
+			selection={collectionSelection}
+			countResource={collectionSelection.count}
+			title="Pools"
+			emptyText="No Uniswap V3 pools in catalog."
+			id="uniswap-v3-hub-pools"
+			collapsible={false}
+		/>
+	</section>
 </Page>

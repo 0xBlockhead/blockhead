@@ -32,8 +32,6 @@
 	const uniswapV3PositionBlock = $derived(viewSelection({
 		fields: {
 			liquidity: true,
-			tokensOwed0: true,
-			tokensOwed1: true,
 		},
 	}))
 
@@ -68,7 +66,6 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		Block
 		<NumberValue
 			value={selection.entitySelector.blockNumber}
 		/>
@@ -92,14 +89,34 @@
 			<UniswapV3PositionView
 				selection={select(EntityType.UniswapV3Position, selection.entitySelector.$position)}
 				layout={EntityLayout.Title}
-				showTypeAnnotation={false}
 			/>
 		</span>
 	{/snippet}
 
 	{#snippet Content()}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={selection.$owner}>
+			<div>
+				<dt>Position</dt>
+				<dd>
+					<UniswapV3PositionView
+						selection={select(EntityType.UniswapV3Position, selection.entitySelector.$position)}
+						layout={EntityLayout.Value}
+					/>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Block number</dt>
+				<dd>
+					<NumberValue
+						value={selection.entitySelector.blockNumber}
+					/>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={selection.$owner}
+			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null}
 						<div>
@@ -108,8 +125,6 @@
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
-									showTypeAnnotation={false}
-									open={false}
 								/>
 							</dd>
 						</div>
@@ -119,31 +134,66 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={uniswapV3PositionBlock}>
+			<ResourceBoundary
+				resource={uniswapV3PositionBlock}
+			>
 				{#snippet children(entity)}
-					{#if entity.liquidity != null}
+					{@const liquidity = entity.liquidity}
+					{#if liquidity != null}
 						<div>
 							<dt>Liquidity</dt>
 							<dd>
-								<NumberValue value={entity.liquidity} />
+								<NumberValue
+									value={liquidity}
+								/>
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if entity.tokensOwed0 != null}
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							tokensOwed0: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const tokensOwed0 = entity.tokensOwed0}
+					{#if tokensOwed0 != null}
 						<div>
 							<dt>Tokens owed 0</dt>
 							<dd>
-								<NumberValue value={entity.tokensOwed0} />
+								<NumberValue
+									value={tokensOwed0}
+								/>
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if entity.tokensOwed1 != null}
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							tokensOwed1: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const tokensOwed1 = entity.tokensOwed1}
+					{#if tokensOwed1 != null}
 						<div>
 							<dt>Tokens owed 1</dt>
 							<dd>
-								<NumberValue value={entity.tokensOwed1} />
+								<NumberValue
+									value={tokensOwed1}
+								/>
 							</dd>
 						</div>
 					{/if}

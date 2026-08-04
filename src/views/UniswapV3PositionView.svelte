@@ -38,7 +38,6 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import UniswapV3PoolView from '$/views/UniswapV3PoolView.svelte'
 	import UniswapV3Position_BlocksView from '$/views/UniswapV3Position_BlocksView.svelte'
 </script>
@@ -76,18 +75,41 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<ResourceBoundary resource={selection.$pool}>
-			{#snippet children(uniswapV3Pool)}
-				{#if uniswapV3Pool != null}
-					<UniswapV3PoolView
-						selection={select(EntityType.UniswapV3Pool, uniswapV3Pool[EntityMetaKey.Selector])}
-						layout={EntityLayout.SummaryDetails}
-						open={true}
-						showTypeAnnotation={false}
+		<dl data-column-item="center">
+			<div>
+				<dt>Position manager</dt>
+				<dd>
+					<TruncatedValue value={selection.entitySelector.positionManager} />
+				</dd>
+			</div>
+
+			<div>
+				<dt>Token ID</dt>
+				<dd>
+					<NumberValue
+						value={selection.entitySelector.tokenId}
 					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={selection.$pool}
+			>
+				{#snippet children(uniswapV3Pool)}
+					{#if uniswapV3Pool != null}
+						<div>
+							<dt>Pool</dt>
+							<dd>
+								<UniswapV3PoolView
+									selection={select(EntityType.UniswapV3Pool, uniswapV3Pool[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 
 		<dl data-column-item="center">
 			<ResourceBoundary
@@ -141,37 +163,36 @@
 	{/snippet}
 
 	{#snippet Details()}
-		<section class="entity-view-detail-carousels">
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-uniswap-v3-position-state'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'uniswap-v3-position-blocks',
-							label: 'Blocks',
-						},
-					]
-				}
-				data-card
-				class="network-view-collapsible-state"
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>State</HeadingComponent>
-					</header>
-				{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-uniswap-v3-position-state'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'uniswap-v3-position-blocks',
+						label: 'Blocks',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-state'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>State</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionUniswapV3PositionBlocks({ id, label })}
-					<UniswapV3Position_BlocksView
-						selection={selection.$$blocks}
-						collapsible={false}
-						title={label}
-						emptyText="No Uniswap V3 position blocks yet."
-						id={`${id}-list`}
-					/>
-				{/snippet}
-			</CollapsibleTabs>
-		</section>
+			{#snippet SectionUniswapV3PositionBlocks({ id, label })}
+				<UniswapV3Position_BlocksView
+					selection={selection.$$blocks}
+					collapsible={false}
+					title={label}
+					emptyText='No Uniswap V3 position blocks yet.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

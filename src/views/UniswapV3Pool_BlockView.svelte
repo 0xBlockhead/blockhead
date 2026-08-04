@@ -31,13 +31,6 @@
 	const uniswapV3PoolBlock = $derived(viewSelection({
 		fields: {
 			tick: true,
-			liquidity: true,
-			sqrtPriceX96: true,
-			feeProtocol: true,
-			unlocked: true,
-			observationIndex: true,
-			observationCardinality: true,
-			observationCardinalityNext: true,
 		},
 	}))
 
@@ -76,7 +69,6 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		Block
 		<NumberValue
 			value={selection.entitySelector.blockNumber}
 		/>
@@ -100,56 +92,139 @@
 			<UniswapV3PoolView
 				selection={select(EntityType.UniswapV3Pool, selection.entitySelector.$pool)}
 				layout={EntityLayout.Title}
-				showTypeAnnotation={false}
 			/>
 		</span>
 	{/snippet}
 
 	{#snippet Content()}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={uniswapV3PoolBlock}>
+			<div>
+				<dt>Pool</dt>
+				<dd>
+					<UniswapV3PoolView
+						selection={select(EntityType.UniswapV3Pool, selection.entitySelector.$pool)}
+						layout={EntityLayout.Value}
+					/>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Block number</dt>
+				<dd>
+					<NumberValue
+						value={selection.entitySelector.blockNumber}
+					/>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							sqrtPriceX96: true,
+						},
+					})
+				}
+			>
 				{#snippet children(entity)}
-					{#if entity.sqrtPriceX96 != null}
+					{@const sqrtPriceX96 = entity.sqrtPriceX96}
+					{#if sqrtPriceX96 != null}
 						<div>
 							<dt>Sqrt price X96</dt>
 							<dd>
-								<NumberValue value={entity.sqrtPriceX96} />
+								<NumberValue
+									value={sqrtPriceX96}
+								/>
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if entity.liquidity != null}
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							liquidity: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const liquidity = entity.liquidity}
+					{#if liquidity != null}
 						<div>
 							<dt>Liquidity</dt>
 							<dd>
-								<NumberValue value={entity.liquidity} />
+								<NumberValue
+									value={liquidity}
+								/>
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if entity.tick != null}
+			<ResourceBoundary
+				resource={uniswapV3PoolBlock}
+			>
+				{#snippet children(entity)}
+					{@const tick = entity.tick}
+					{#if tick != null}
 						<div>
 							<dt>Tick</dt>
 							<dd>
-								<NumberValue value={entity.tick} />
+								<NumberValue
+									value={tick}
+								/>
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if entity.feeProtocol != null}
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							feeProtocol: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const feeProtocol = entity.feeProtocol}
+					{#if feeProtocol != null}
 						<div>
 							<dt>Fee protocol</dt>
 							<dd>
-								<NumberValue value={entity.feeProtocol} />
+								<NumberValue
+									value={feeProtocol}
+								/>
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if entity.unlocked != null}
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							unlocked: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const unlocked = entity.unlocked}
+					{#if unlocked != null}
 						<div>
 							<dt>Unlocked</dt>
 							<dd>
-								{entity.unlocked ? 'Yes' : 'No'}
+								{unlocked ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
@@ -158,31 +233,72 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={uniswapV3PoolBlock}>
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							observationIndex: true,
+						},
+					})
+				}
+			>
 				{#snippet children(entity)}
-					{#if entity.observationIndex != null}
+					{@const observationIndex = entity.observationIndex}
+					{#if observationIndex != null}
 						<div>
 							<dt>Observation index</dt>
 							<dd>
-								<NumberValue value={entity.observationIndex} />
+								<NumberValue
+									value={observationIndex}
+								/>
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if entity.observationCardinality != null}
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							observationCardinality: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const observationCardinality = entity.observationCardinality}
+					{#if observationCardinality != null}
 						<div>
 							<dt>Observation cardinality</dt>
 							<dd>
-								<NumberValue value={entity.observationCardinality} />
+								<NumberValue
+									value={observationCardinality}
+								/>
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-					{#if entity.observationCardinalityNext != null}
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							observationCardinalityNext: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const observationCardinalityNext = entity.observationCardinalityNext}
+					{#if observationCardinalityNext != null}
 						<div>
 							<dt>Observation cardinality next</dt>
 							<dd>
-								<NumberValue value={entity.observationCardinalityNext} />
+								<NumberValue
+									value={observationCardinalityNext}
+								/>
 							</dd>
 						</div>
 					{/if}

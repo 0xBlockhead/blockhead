@@ -18,7 +18,6 @@
 
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
-	import NumberValue from '$/components/NumberValue.svelte'
 </script>
 
 
@@ -54,19 +53,15 @@
 			}
 		>
 			{#snippet Title()}
-				<NumberValue value={uniswapV3PositionBlockSelector.blockNumber} />
+				{uniswapV3PositionBlockSelector.blockNumber}
 			{/snippet}
 
 			{#snippet Value()}
-				{#if uniswapV3PositionBlock.liquidity != null}
-					<NumberValue value={uniswapV3PositionBlock.liquidity} />
-				{/if}
+				{uniswapV3PositionBlock.liquidity ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">
-					#<NumberValue value={position.tokenId} />
-				</span>
+				<span data-text="annotation">{String(uniswapV3PositionBlockSelector.$position.tokenId) || 'Uniswap V3 position'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

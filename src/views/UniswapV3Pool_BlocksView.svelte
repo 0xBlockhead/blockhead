@@ -18,8 +18,6 @@
 
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
-	import NumberValue from '$/components/NumberValue.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -58,19 +56,15 @@
 			}
 		>
 			{#snippet Title()}
-				<NumberValue value={uniswapV3PoolBlockSelector.blockNumber} />
+				{uniswapV3PoolBlockSelector.blockNumber}
 			{/snippet}
 
 			{#snippet Value()}
-				{#if uniswapV3PoolBlock.tick != null}
-					<NumberValue value={uniswapV3PoolBlock.tick} />
-				{/if}
+				{uniswapV3PoolBlock.tick ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">
-					<TruncatedValue value={pool.poolAddress} />
-				</span>
+				<span data-text="annotation">{uniswapV3PoolBlockSelector.$pool.poolAddress || 'Uniswap V3 pool'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

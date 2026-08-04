@@ -19,22 +19,13 @@
 
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
-	import NumberValue from '$/components/NumberValue.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 </script>
 
-
-{#snippet ModelTypeAnnotationTooltip()}
-	<p>
-		Uniswap V3 NFT liquidity positions identified by NonfungiblePositionManager address and token ID.
-	</p>
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.UniswapV3Position}
 	bind:open
-	TypeAnnotationTooltip={ModelTypeAnnotationTooltip}
 	resource={
 		selection({
 			sources: selection.sources ?? [
@@ -65,11 +56,11 @@
 			}
 		>
 			{#snippet Title()}
-				<NumberValue value={uniswapV3PositionSelector.tokenId} />
+				{uniswapV3PositionSelector.tokenId}
 			{/snippet}
 
 			{#snippet Value()}
-				<TruncatedValue value={uniswapV3PositionSelector.positionManager} />
+				{uniswapV3PositionSelector.positionManager}
 			{/snippet}
 		</EntityView>
 	{/snippet}

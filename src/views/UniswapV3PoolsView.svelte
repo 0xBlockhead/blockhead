@@ -19,22 +19,13 @@
 
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
-	import NumberValue from '$/components/NumberValue.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 </script>
 
-
-{#snippet ModelTypeAnnotationTooltip()}
-	<p>
-		Uniswap V3 concentrated-liquidity pools keyed by network and pool address — not the Dexscreener liquidity-pool catalog.
-	</p>
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.UniswapV3Pool}
 	bind:open
-	TypeAnnotationTooltip={ModelTypeAnnotationTooltip}
 	resource={
 		selection({
 			sources: selection.sources ?? [
@@ -69,13 +60,11 @@
 			}
 		>
 			{#snippet Title()}
-				<TruncatedValue value={uniswapV3PoolSelector.poolAddress} />
+				{uniswapV3PoolSelector.poolAddress || 'Uniswap V3 pool'}
 			{/snippet}
 
 			{#snippet Value()}
-				{#if uniswapV3Pool.fee != null}
-					<NumberValue value={uniswapV3Pool.fee} />
-				{/if}
+				{uniswapV3Pool.fee ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
