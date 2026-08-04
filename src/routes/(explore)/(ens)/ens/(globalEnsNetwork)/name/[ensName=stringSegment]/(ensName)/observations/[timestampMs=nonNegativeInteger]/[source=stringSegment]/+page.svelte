@@ -37,13 +37,7 @@
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
-				sources: [({
-					$name: {
-						name: decodeURIComponent(params.ensName),
-					},
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}).source],
+				sources: [params.source],
 			})
 		}
 	/>

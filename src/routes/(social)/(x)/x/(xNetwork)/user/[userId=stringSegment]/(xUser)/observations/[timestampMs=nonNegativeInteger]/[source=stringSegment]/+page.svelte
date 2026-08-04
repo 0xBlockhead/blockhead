@@ -37,13 +37,7 @@
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
-				sources: [({
-					$user: {
-						id: params.userId,
-					},
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}).source],
+				sources: [params.source],
 			})
 		}
 	/>

@@ -23,14 +23,7 @@
 		timestampMs: Number(params.timestampMs),
 		source: params.source,
 	}, {
-		sources: [({
-			$comment: {
-				videoId: decodeURIComponent(params.videoId),
-				commentId: decodeURIComponent(params.commentId),
-			},
-			timestampMs: Number(params.timestampMs),
-			source: params.source,
-		}).source],
+		sources: [params.source],
 	}))
 
 

@@ -22,13 +22,7 @@
 		timestampMs: Number(params.timestampMs),
 		source: params.source,
 	}, {
-		sources: [({
-			$actor: {
-				did: decodeURIComponent(params.did),
-			},
-			timestampMs: Number(params.timestampMs),
-			source: params.source,
-		}).source],
+		sources: [params.source],
 		fields: {
 			displayName: true,
 			handle: true,

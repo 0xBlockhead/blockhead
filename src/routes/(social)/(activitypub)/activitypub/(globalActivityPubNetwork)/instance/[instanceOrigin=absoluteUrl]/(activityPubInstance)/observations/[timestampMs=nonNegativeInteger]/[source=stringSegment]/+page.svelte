@@ -22,13 +22,7 @@
 		timestampMs: Number(params.timestampMs),
 		source: params.source,
 	}, {
-		sources: [({
-			$instance: {
-				instanceOrigin: decodeURIComponent(params.instanceOrigin),
-			},
-			timestampMs: Number(params.timestampMs),
-			source: params.source,
-		}).source],
+		sources: [params.source],
 		fields: {
 			title: true,
 		},

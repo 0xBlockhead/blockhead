@@ -85,117 +85,68 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<dl data-column-item="center">
-			<div>
-				<dt>Namespace</dt>
-				<dd>
-					<ResourceBoundary
-						resource={lensUsernameNamespace}
-					>
-						{#snippet children(entity)}
-							{entity.namespace}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<ResourceBoundary
-				resource={lensUsernameNamespace}
-			>
-				{#snippet children(entity)}
-					{@const tokenName = entity.tokenName}
-					{#if tokenName != null}
-						<div>
-							<dt>Token name</dt>
-							<dd>
-								{tokenName}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={lensUsernameNamespace}
-			>
-				{#snippet children(entity)}
-					{@const tokenSymbol = entity.tokenSymbol}
-					{#if tokenSymbol != null}
-						<div>
-							<dt>Token symbol</dt>
-							<dd>
-								{tokenSymbol}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={lensUsernameNamespace}
-			>
-				{#snippet children(entity)}
-					{@const totalUsernames = entity.totalUsernames}
-					{#if totalUsernames != null}
-						<div>
-							<dt>Total usernames</dt>
-							<dd>
-								{totalUsernames}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
-			<div>
-				<dt>Address</dt>
-				<dd>
-					<TruncatedValue value={selection.entitySelector.address} />
-				</dd>
-			</div>
-
-			<ResourceBoundary
-				resource={lensUsernameNamespace}
-			>
-				{#snippet children(entity)}
-					{@const owner = entity.owner}
-					{#if owner != null}
-						<div>
-							<dt>Owner</dt>
-							<dd>
-								<TruncatedValue value={owner} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={lensUsernameNamespace}
-			>
-				{#snippet children(entity)}
-					{@const createdAt = entity.createdAt}
-					{#if createdAt != null}
-						<div>
-							<dt>Created</dt>
-							<dd>
-								<Timestamp timestamp={createdAt} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
 		<ResourceBoundary
 			resource={lensUsernameNamespace}
 		>
 			{#snippet children(entity)}
-				{@const description = entity.description}
-				{#if description != null && description !== ''}
-					<p data-text="long-text">{description}</p>
+				<dl data-column-item="center">
+					{#if entity.tokenName != null}
+						<div>
+							<dt>Token name</dt>
+							<dd>
+								{entity.tokenName}
+							</dd>
+						</div>
+					{/if}
+
+					{#if entity.tokenSymbol != null}
+						<div>
+							<dt>Token symbol</dt>
+							<dd>
+								{entity.tokenSymbol}
+							</dd>
+						</div>
+					{/if}
+
+					{#if entity.totalUsernames != null}
+						<div>
+							<dt>Total usernames</dt>
+							<dd>
+								{entity.totalUsernames}
+							</dd>
+						</div>
+					{/if}
+				</dl>
+
+				<dl data-column-item="center">
+					<div>
+						<dt>Address</dt>
+						<dd>
+							<TruncatedValue value={selection.entitySelector.address} />
+						</dd>
+					</div>
+
+					{#if entity.owner != null}
+						<div>
+							<dt>Owner</dt>
+							<dd>
+								<TruncatedValue value={entity.owner} />
+							</dd>
+						</div>
+					{/if}
+
+					{#if entity.createdAt != null}
+						<div>
+							<dt>Created</dt>
+							<dd>
+								<Timestamp timestamp={entity.createdAt} />
+							</dd>
+						</div>
+					{/if}
+				</dl>
+
+				{#if entity.description != null && entity.description !== ''}
+					<p data-text="long-text">{entity.description}</p>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

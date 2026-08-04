@@ -22,13 +22,7 @@
 		timestampMs: Number(params.timestampMs),
 		source: params.source,
 	}, {
-		sources: [({
-			$comment: {
-				fullname: decodeURIComponent(params.fullname),
-			},
-			timestampMs: Number(params.timestampMs),
-			source: params.source,
-		}).source],
+		sources: [params.source],
 	}))
 
 

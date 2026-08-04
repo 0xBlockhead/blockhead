@@ -22,13 +22,7 @@
 		timestampMs: Number(params.timestampMs),
 		source: params.source,
 	}, {
-		sources: [({
-			$error: {
-				hex: params.hex,
-			},
-			timestampMs: Number(params.timestampMs),
-			source: params.source,
-		}).source],
+		sources: [params.source],
 		fields: {
 			signatures: true,
 		},

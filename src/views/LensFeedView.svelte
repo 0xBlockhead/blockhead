@@ -82,70 +82,48 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={lensFeed}
-			>
-				{#snippet children(entity)}
-					{@const name = entity.name}
-					{#if name != null}
-						<div>
-							<dt>Name</dt>
-							<dd>
-								{name}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<div>
-				<dt>Address</dt>
-				<dd>
-					<TruncatedValue value={selection.entitySelector.address} />
-				</dd>
-			</div>
-
-			<ResourceBoundary
-				resource={lensFeed}
-			>
-				{#snippet children(entity)}
-					{@const owner = entity.owner}
-					{#if owner != null}
-						<div>
-							<dt>Owner</dt>
-							<dd>
-								<TruncatedValue value={owner} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={lensFeed}
-			>
-				{#snippet children(entity)}
-					{@const createdAt = entity.createdAt}
-					{#if createdAt != null}
-						<div>
-							<dt>Created</dt>
-							<dd>
-								<Timestamp timestamp={createdAt} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
 		<ResourceBoundary
 			resource={lensFeed}
 		>
 			{#snippet children(entity)}
-				{@const description = entity.description}
-				{#if description != null && description !== ''}
-					<p data-text="long-text">{description}</p>
+				<dl data-column-item="center">
+					{#if entity.name != null}
+						<div>
+							<dt>Name</dt>
+							<dd>
+								{entity.name}
+							</dd>
+						</div>
+					{/if}
+
+					<div>
+						<dt>Address</dt>
+						<dd>
+							<TruncatedValue value={selection.entitySelector.address} />
+						</dd>
+					</div>
+
+					{#if entity.owner != null}
+						<div>
+							<dt>Owner</dt>
+							<dd>
+								<TruncatedValue value={entity.owner} />
+							</dd>
+						</div>
+					{/if}
+
+					{#if entity.createdAt != null}
+						<div>
+							<dt>Created</dt>
+							<dd>
+								<Timestamp timestamp={entity.createdAt} />
+							</dd>
+						</div>
+					{/if}
+				</dl>
+
+				{#if entity.description != null && entity.description !== ''}
+					<p data-text="long-text">{entity.description}</p>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

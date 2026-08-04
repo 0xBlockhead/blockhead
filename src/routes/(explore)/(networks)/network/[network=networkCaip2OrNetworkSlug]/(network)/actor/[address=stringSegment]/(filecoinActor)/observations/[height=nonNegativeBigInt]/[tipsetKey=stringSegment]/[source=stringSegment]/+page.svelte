@@ -22,12 +22,7 @@
 		tipsetKey: params.tipsetKey,
 		source: params.source,
 	}, {
-		sources: [({
-			$actor: data.selector,
-			height: BigInt(params.height),
-			tipsetKey: params.tipsetKey,
-			source: params.source,
-		}).source],
+		sources: [params.source],
 		fields: {
 			timestampMs: true,
 		},

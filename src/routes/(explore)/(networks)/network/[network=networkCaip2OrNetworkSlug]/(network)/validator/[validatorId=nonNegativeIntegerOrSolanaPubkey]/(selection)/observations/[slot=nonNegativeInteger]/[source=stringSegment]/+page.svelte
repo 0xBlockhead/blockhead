@@ -21,11 +21,7 @@
 		slot: Number(params.slot),
 		source: params.source,
 	}, {
-		sources: [({
-			$validator: data.selector,
-			slot: Number(params.slot),
-			source: params.source,
-		}).source],
+		sources: [params.source],
 	}))
 
 

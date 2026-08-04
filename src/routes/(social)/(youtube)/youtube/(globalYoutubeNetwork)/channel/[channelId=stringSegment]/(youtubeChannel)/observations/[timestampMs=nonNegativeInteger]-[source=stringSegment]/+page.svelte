@@ -22,13 +22,7 @@
 		timestampMs: Number(params.timestampMs),
 		source: params.source,
 	}, {
-		sources: [({
-			$channel: {
-				channelId: decodeURIComponent(params.channelId),
-			},
-			timestampMs: Number(params.timestampMs),
-			source: params.source,
-		}).source],
+		sources: [params.source],
 	}))
 
 

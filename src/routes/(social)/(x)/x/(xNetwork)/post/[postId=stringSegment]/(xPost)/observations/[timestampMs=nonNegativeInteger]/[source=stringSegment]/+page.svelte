@@ -37,13 +37,7 @@
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
-				sources: [({
-					$post: {
-						id: params.postId,
-					},
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}).source],
+				sources: [params.source],
 			})
 		}
 	/>

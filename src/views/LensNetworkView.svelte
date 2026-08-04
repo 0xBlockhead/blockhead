@@ -74,61 +74,14 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<dl data-column-item="center">
-			<div>
-				<dt>Protocol</dt>
-				<dd>
-					<ResourceBoundary
-						resource={lensNetwork}
-					>
-						{#snippet children(entity)}
-							{entity.protocolName}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<ResourceBoundary
-				resource={lensNetwork}
-			>
-				{#snippet children(entity)}
-					{@const relationshipModel = entity.relationshipModel}
-					{#if relationshipModel != null}
-						<div>
-							<dt>Connection model</dt>
-							<dd>
-								{relationshipModel}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={lensNetwork}
-			>
-				{#snippet children(entity)}
-					{@const registryName = entity.registryName}
-					{#if registryName != null}
-						<div>
-							<dt>Registry name</dt>
-							<dd>
-								{registryName}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
-			<div>
-				<dt>Home URL</dt>
-				<dd>
-					<ResourceBoundary
-						resource={lensNetwork}
-					>
-						{#snippet children(entity)}
+		<ResourceBoundary
+			resource={lensNetwork}
+		>
+			{#snippet children(entity)}
+				<dl data-column-item="center">
+					<div>
+						<dt>Home URL</dt>
+						<dd>
 							<a
 								href={entity.homeUrl}
 								target="_blank"
@@ -136,33 +89,44 @@
 							>
 								<TruncatedValue value={entity.homeUrl} />
 							</a>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+						</dd>
+					</div>
 
-			<ResourceBoundary
-				resource={lensNetwork}
-			>
-				{#snippet children(entity)}
-					{@const docsUrl = entity.docsUrl}
-					{#if docsUrl != null}
+					{#if entity.docsUrl != null}
 						<div>
 							<dt>Docs URL</dt>
 							<dd>
 								<a
-									href={docsUrl}
+									href={entity.docsUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={docsUrl} />
+									<TruncatedValue value={entity.docsUrl} />
 								</a>
 							</dd>
 						</div>
 					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
+
+					{#if entity.registryName != null}
+						<div>
+							<dt>Registry name</dt>
+							<dd>
+								{entity.registryName}
+							</dd>
+						</div>
+					{/if}
+
+					{#if entity.relationshipModel != null}
+						<div>
+							<dt>Connection model</dt>
+							<dd>
+								{entity.relationshipModel}
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details()}

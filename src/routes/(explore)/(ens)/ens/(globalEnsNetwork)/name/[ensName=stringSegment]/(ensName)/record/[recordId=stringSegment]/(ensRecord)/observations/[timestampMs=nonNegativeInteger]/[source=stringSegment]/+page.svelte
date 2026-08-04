@@ -40,16 +40,7 @@
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
-				sources: [({
-					$record: {
-						$name: {
-							name: decodeURIComponent(params.ensName),
-						},
-						recordKey: decodeURIComponent(params.recordId),
-					},
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}).source],
+				sources: [params.source],
 			})
 		}
 	/>

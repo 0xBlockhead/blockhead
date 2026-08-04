@@ -37,13 +37,7 @@
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
-				sources: [({
-					$coin: {
-						coinId: params.coinId,
-					},
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}).source],
+				sources: [params.source],
 			})
 		}
 	/>

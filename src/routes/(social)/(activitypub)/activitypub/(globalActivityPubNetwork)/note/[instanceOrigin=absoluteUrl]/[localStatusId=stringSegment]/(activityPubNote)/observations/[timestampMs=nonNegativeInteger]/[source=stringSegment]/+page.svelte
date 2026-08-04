@@ -38,14 +38,7 @@
 				timestampMs: Number(params.timestampMs),
 				source: params.source,
 			}, {
-				sources: [({
-					$note: {
-						instanceOrigin: decodeURIComponent(params.instanceOrigin),
-						localStatusId: params.localStatusId,
-					},
-					timestampMs: Number(params.timestampMs),
-					source: params.source,
-				}).source],
+				sources: [params.source],
 			})
 		}
 	/>

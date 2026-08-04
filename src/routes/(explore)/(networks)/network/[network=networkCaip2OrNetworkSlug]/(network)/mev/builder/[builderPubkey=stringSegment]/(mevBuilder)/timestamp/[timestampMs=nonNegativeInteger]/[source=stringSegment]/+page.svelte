@@ -21,11 +21,7 @@
 		timestampMs: Number(params.timestampMs),
 		source: params.source,
 	}, {
-		sources: [({
-			$builder: data.selector,
-			timestampMs: Number(params.timestampMs),
-			source: params.source,
-		}).source],
+		sources: [params.source],
 		fields: {
 			deliveredPayloadCount: true,
 			deliveredValueWei: true,
