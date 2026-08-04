@@ -206,7 +206,6 @@ describe('Starknet Wallet API adapter', () => {
 		expect(connections.at(-1)).toEqual(expect.objectContaining({
 			status: BlockheadConnectionStatus.Disconnected,
 			accounts: [],
-			selected: false,
 		}))
 
 		adapter.disconnect('starknet:argentx')

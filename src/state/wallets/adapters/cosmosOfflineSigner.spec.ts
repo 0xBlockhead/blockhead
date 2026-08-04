@@ -187,7 +187,6 @@ describe('Cosmos offline signer adapter', () => {
 			expect(updates.at(-1)).toMatchObject({
 				status: BlockheadConnectionStatus.Error,
 				accounts: [],
-				selected: false,
 				error: expect.stringContaining('Cosmos wallet returned an invalid cosmoshub-4 account address'),
 			})
 		})
@@ -213,7 +212,6 @@ describe('Cosmos offline signer adapter', () => {
 			expect(updates.at(-1)).toMatchObject({
 				status: BlockheadConnectionStatus.Error,
 				accounts: [],
-				selected: false,
 				error: expect.stringContaining('Cosmos wallet returned an invalid cosmoshub-4 account address'),
 			})
 		})
@@ -248,7 +246,6 @@ describe('Cosmos offline signer adapter', () => {
 		await vi.waitFor(() => expect(updates.at(-1)).toEqual(expect.objectContaining({
 			status: BlockheadConnectionStatus.Disconnected,
 			accounts: [],
-			selected: false,
 			disconnectedAt: expect.any(Number),
 		})))
 

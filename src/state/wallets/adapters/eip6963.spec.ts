@@ -400,7 +400,6 @@ describe('EIP-6963 connection events', () => {
 		expect(updates).toHaveBeenLastCalledWith(expect.objectContaining({
 			walletId: 'eip6963:example',
 			status: BlockheadConnectionStatus.Disconnected,
-			selected: false,
 			connectedAt: connected?.connectedAt,
 			disconnectedAt: expect.any(Number),
 			scopes: [expect.objectContaining({
@@ -409,6 +408,7 @@ describe('EIP-6963 connection events', () => {
 			})],
 			accounts: [],
 		}))
+		expect(updates.mock.calls.at(-1)?.[0]).not.toHaveProperty('selected')
 
 		stopConnection()
 		expect(providerListeners.has('disconnect')).toBe(false)

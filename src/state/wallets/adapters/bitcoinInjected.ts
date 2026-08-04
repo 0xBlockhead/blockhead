@@ -5,6 +5,7 @@ import { base58, bech32, bech32m } from '@scure/base'
 import * as Hash from 'ox/Hash'
 import { SvelteMap } from 'svelte/reactivity'
 import type { WalletAdapter, WalletCandidate, WalletConnection } from './types.ts'
+import { buildWalletConnection } from '../walletConnectionState.ts'
 
 type BitcoinAddress = {
 	address: string
@@ -249,7 +250,7 @@ const bitcoinConnection = (
 		capabilities: bitcoinConnectionCapabilities,
 	}))
 
-	return {
+	return buildWalletConnection({
 		walletId,
 		status,
 		protocol: state.protocol,
@@ -265,7 +266,7 @@ const bitcoinConnection = (
 		selected: status === BlockheadConnectionStatus.Connected && accounts.length > 0,
 		connectedAt: state.connectedAt,
 		...(status === BlockheadConnectionStatus.Disconnected && { disconnectedAt: Date.now() }),
-	}
+	})
 }
 
 export const createBitcoinInjectedAdapter = (): WalletAdapter => {

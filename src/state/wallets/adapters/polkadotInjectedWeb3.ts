@@ -9,6 +9,7 @@ import { base58 } from '@scure/base'
 import { Blake2 } from '@tevm/voltaire/Blake2'
 import { SvelteMap } from 'svelte/reactivity'
 import type { WalletAccount, WalletAdapter, WalletConnection } from './types.ts'
+import { buildWalletConnection } from '../walletConnectionState.ts'
 
 const ss58PrefixBytes = new TextEncoder().encode('SS58PRE')
 const polkadotReference = '91b171bb158e2d3848fa23a9f1c25182'
@@ -116,7 +117,7 @@ const polkadotConnectionFromAccounts = (
 		]
 	})).values()]
 
-	return {
+	return buildWalletConnection({
 		walletId,
 		status: (
 			accountsWithChainIdentity.length ?
@@ -139,7 +140,7 @@ const polkadotConnectionFromAccounts = (
 		selected: accountsWithChainIdentity.length > 0,
 		connectedAt,
 		...(accountsWithChainIdentity.length === 0 && { disconnectedAt: Date.now() }),
-	}
+	})
 }
 
 export const createPolkadotInjectedWeb3Adapter = (): WalletAdapter => {

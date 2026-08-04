@@ -2,6 +2,7 @@ import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportK
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { SvelteMap } from 'svelte/reactivity'
 import type { WalletAdapter, WalletCandidate, WalletConnection } from './types.ts'
+import { buildWalletConnection } from '../walletConnectionState.ts'
 
 type AptosInjectedAccount = {
 	address: string
@@ -83,7 +84,7 @@ const aptosConnectionFromState = (
 	const reference = aptosReferenceFromNetwork(state.network)
 	const connected = state.account != null
 
-	return {
+	return buildWalletConnection({
 		walletId,
 		status: (
 			connected ?
@@ -121,24 +122,24 @@ const aptosConnectionFromState = (
 			],
 		selected: connected,
 		connectedAt: state.connectedAt,
-	}
+	})
 }
 
 const aptosErrorConnection = (
 	walletId: string,
 	connectedAt: number,
 	error: string
-): WalletConnection => ({
-	walletId,
-	status: BlockheadConnectionStatus.Error,
-	protocol: WalletProtocol.AptosInjected,
-	transportKind: WalletTransportKind.InjectedSigner,
-	scopes: [],
-	accounts: [],
-	selected: false,
-	connectedAt,
-	error,
-})
+): WalletConnection => (
+	buildWalletConnection({
+		walletId,
+		status: BlockheadConnectionStatus.Error,
+		protocol: WalletProtocol.AptosInjected,
+		transportKind: WalletTransportKind.InjectedSigner,
+		scopes: [],
+		accounts: [],
+		error,
+	})
+)
 
 export const createAptosInjectedAdapter = (): WalletAdapter => {
 	const walletByWalletId = new SvelteMap<string, AptosInjectedWallet>()

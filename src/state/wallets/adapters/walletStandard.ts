@@ -3,6 +3,7 @@ import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportK
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { base58 } from '@scure/base'
 import type { WalletAccount, WalletAdapter, WalletCandidate, WalletConnection } from './types.ts'
+import { buildWalletConnection } from '../walletConnectionState.ts'
 
 type StandardWalletAccount = {
 	readonly address: string
@@ -158,7 +159,7 @@ const walletConnection = (
 ): WalletConnection => {
 	const normalizedAccounts = walletAccounts(wallet, accounts)
 
-	return {
+	return buildWalletConnection({
 		walletId,
 		status: normalizedAccounts.length ?
 			BlockheadConnectionStatus.Connected
@@ -188,7 +189,7 @@ const walletConnection = (
 		selected: normalizedAccounts.length > 0,
 		...(connectedAt != null && { connectedAt }),
 		...(!normalizedAccounts.length && { disconnectedAt: Date.now() }),
-	}
+	})
 }
 
 export const createWalletStandardAdapter = (): WalletAdapter => {

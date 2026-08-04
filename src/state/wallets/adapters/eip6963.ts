@@ -8,6 +8,7 @@ import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { SvelteMap } from 'svelte/reactivity'
 import type { WalletAdapter, WalletCandidate, WalletConnection } from './types.ts'
+import { buildWalletConnection } from '../walletConnectionState.ts'
 
 type EipConnectionState = {
 	accounts: `0x${string}`[]
@@ -108,45 +109,47 @@ export const eipConnectionFromAccounts = (
 	status: BlockheadConnectionStatus,
 	connectedAt?: number,
 	error?: string
-): WalletConnection => ({
-	walletId,
-	status,
-	protocol: WalletProtocol.Eip6963,
-	transportKind: WalletTransportKind.InjectedProvider,
-	scopes: chainReference == null ?
-		[]
-	:
-		[
-			{
+): WalletConnection => (
+	buildWalletConnection({
+		walletId,
+		status,
+		protocol: WalletProtocol.Eip6963,
+		transportKind: WalletTransportKind.InjectedProvider,
+		scopes: chainReference == null ?
+			[]
+		:
+			[
+				{
+					namespace: 'eip155',
+					reference: String(chainReference),
+					methods: [
+						'eth_accounts',
+						'eth_requestAccounts',
+						'personal_sign',
+						'eth_sendTransaction',
+					],
+					events: [
+						'accountsChanged',
+						'chainChanged',
+						'disconnect',
+					],
+				},
+			],
+		accounts: chainReference == null ?
+			[]
+		:
+			accounts.map((accountAddress) => ({
 				namespace: 'eip155',
 				reference: String(chainReference),
-				methods: [
-					'eth_accounts',
-					'eth_requestAccounts',
-					'personal_sign',
-					'eth_sendTransaction',
-				],
-				events: [
-					'accountsChanged',
-					'chainChanged',
-					'disconnect',
-				],
-			},
-		],
-	accounts: chainReference == null ?
-		[]
-	:
-		accounts.map((accountAddress) => ({
-			namespace: 'eip155',
-			reference: String(chainReference),
-			accountAddress,
-			capabilities: eipCapabilities,
-		})),
-	selected: status === BlockheadConnectionStatus.Connected && chainReference != null,
-	...(connectedAt != null && { connectedAt }),
-	...(status === BlockheadConnectionStatus.Disconnected && { disconnectedAt: Date.now() }),
-	...(error != null && { error }),
-})
+				accountAddress,
+				capabilities: eipCapabilities,
+			})),
+		selected: status === BlockheadConnectionStatus.Connected && chainReference != null,
+		...(connectedAt != null && { connectedAt }),
+		...(status === BlockheadConnectionStatus.Disconnected && { disconnectedAt: Date.now() }),
+		...(error != null && { error }),
+	})
+)
 
 export const createEip6963Adapter = (): WalletAdapter => {
 	const providerByWalletId = new SvelteMap<string, Eip1193Provider>()

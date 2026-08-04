@@ -7,6 +7,7 @@ import type { LeapWallet } from '$/sources/Leap/WalletApi/types.ts'
 import { bech32 } from '@scure/base'
 import { SvelteMap } from 'svelte/reactivity'
 import type { WalletAdapter, WalletConnection } from './types.ts'
+import { buildWalletConnection } from '../walletConnectionState.ts'
 
 const COSMOS_HUB_CHAIN_ID = 'cosmoshub-4'
 type CosmosWallet = Pick<KeplrWallet | LeapWallet, 'enable' | 'getOfflineSignerAuto'> & {
@@ -47,49 +48,51 @@ const cosmosConnectionFromAccounts = (
 	walletId: string,
 	accountAddresses: string[],
 	connectedAt: number
-): WalletConnection => ({
-	connectionKey: `${walletId}:${COSMOS_HUB_CHAIN_ID}`,
-	walletId,
-	status: (
-		accountAddresses.length ?
-			BlockheadConnectionStatus.Connected
-		:
-			BlockheadConnectionStatus.Disconnected
-	),
-	protocol: WalletProtocol.CosmosOfflineSigner,
-	transportKind: WalletTransportKind.InjectedSigner,
-	scopes: [
-		{
+): WalletConnection => (
+	buildWalletConnection({
+		connectionKey: `${walletId}:${COSMOS_HUB_CHAIN_ID}`,
+		walletId,
+		status: (
+			accountAddresses.length ?
+				BlockheadConnectionStatus.Connected
+			:
+				BlockheadConnectionStatus.Disconnected
+		),
+		protocol: WalletProtocol.CosmosOfflineSigner,
+		transportKind: WalletTransportKind.InjectedSigner,
+		scopes: [
+			{
+				namespace: 'cosmos',
+				reference: COSMOS_HUB_CHAIN_ID,
+				methods: [
+					'enable',
+					'getOfflineSignerAuto',
+					'getAccounts',
+					'signAmino',
+					'signDirect',
+					...(walletId === 'cosmos:leap' ? ['isConnected', 'disconnect'] : []),
+				],
+				events: [
+					walletId === 'cosmos:leap' ?
+						'leap_keystorechange'
+					:
+						'keplr_keystorechange',
+				],
+			},
+		],
+		accounts: accountAddresses.map((accountAddress) => ({
 			namespace: 'cosmos',
 			reference: COSMOS_HUB_CHAIN_ID,
-			methods: [
-				'enable',
-				'getOfflineSignerAuto',
-				'getAccounts',
-				'signAmino',
-				'signDirect',
-				...(walletId === 'cosmos:leap' ? ['isConnected', 'disconnect'] : []),
+			accountAddress,
+			capabilities: [
+				...cosmosConnectionCapabilities(walletId),
 			],
-			events: [
-				walletId === 'cosmos:leap' ?
-					'leap_keystorechange'
-				:
-					'keplr_keystorechange',
-			],
-		},
-	],
-	accounts: accountAddresses.map((accountAddress) => ({
-		namespace: 'cosmos',
-		reference: COSMOS_HUB_CHAIN_ID,
-		accountAddress,
-		capabilities: [
-			...cosmosConnectionCapabilities(walletId),
-		],
-	})),
-	selected: accountAddresses.length > 0,
-	connectedAt,
-	...(accountAddresses.length === 0 && { disconnectedAt: Date.now() }),
-})
+		})),
+		selected: accountAddresses.length > 0,
+		connectedAt,
+		...(accountAddresses.length === 0 && { disconnectedAt: Date.now() }),
+	})
+)
 
 const readCosmosConnection = async (
 	walletId: string,

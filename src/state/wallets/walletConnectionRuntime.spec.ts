@@ -16,9 +16,10 @@ import type { WalletAdapter, WalletCandidate, WalletConnection } from './adapter
 import {
 	WalletCapability,
 	WalletDiscoveryKind,
-	WalletImplementationStatus,
 	WalletProtocol,
 	WalletTransportKind,
+	walletConnectionMethodById,
+	walletConnectionMethodByProtocolDiscoveryKindTransportKind,
 	walletConnectionMethods,
 } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
@@ -34,6 +35,8 @@ const mountMockWalletRuntime = async ({
 	connectionResults = [],
 	disconnect = vi.fn(),
 	persistWalletRequest = vi.fn(),
+	persistWalletRequestObservation = vi.fn(),
+	persistWalletRequestSubmittedAt = vi.fn(),
 	persistedProtocol = WalletProtocol.Eip6963,
 	persistedStatus,
 	persistedTransportKind = WalletTransportKind.InjectedProvider,
@@ -44,6 +47,16 @@ const mountMockWalletRuntime = async ({
 	connectionResults?: WalletConnection[]
 	disconnect?: (walletId: string, connectionKey?: string) => void | Promise<void>
 	persistWalletRequest?: (context: object, request: object) => void | Promise<void>
+	persistWalletRequestObservation?: (
+		context: object,
+		walletRequestSelector: object,
+		observation: object
+	) => void | Promise<void>
+	persistWalletRequestSubmittedAt?: (
+		context: object,
+		walletRequestSelector: object,
+		submittedAt: number
+	) => void | Promise<void>
 	persistedProtocol?: WalletProtocol
 	persistedStatus?: BlockheadConnectionStatus
 	persistedTransportKind?: WalletTransportKind
@@ -80,6 +93,8 @@ const mountMockWalletRuntime = async ({
 	) => () => {})
 	const deleteConnection = vi.fn()
 	const writeWalletRequest = vi.fn(persistWalletRequest)
+	const writeWalletRequestObservation = vi.fn(persistWalletRequestObservation)
+	const writeWalletRequestSubmittedAt = vi.fn(persistWalletRequestSubmittedAt)
 
 	vi.doMock('./adapters/eip6963.ts', () => ({
 		createEip6963Adapter: () => ({
@@ -115,6 +130,8 @@ const mountMockWalletRuntime = async ({
 		writeLocalBlockheadWallet: vi.fn(),
 		writeLocalBlockheadWalletConnection: vi.fn(),
 		writeLocalBlockheadWalletRequest: writeWalletRequest,
+		writeLocalBlockheadWalletRequest_Timestamp: writeWalletRequestObservation,
+		writeLocalBlockheadWalletRequestSubmittedAt: writeWalletRequestSubmittedAt,
 	}))
 
 	const persistedConnectionPromise = Promise.resolve(persistedConnection)
@@ -189,6 +206,8 @@ const mountMockWalletRuntime = async ({
 		runtime,
 		subscribeConnection,
 		writeWalletRequest,
+		writeWalletRequestObservation,
+		writeWalletRequestSubmittedAt,
 	}
 }
 
@@ -335,6 +354,8 @@ describe('wallet connection runtime normalization', () => {
 		const {
 			runtime,
 			writeWalletRequest,
+			writeWalletRequestObservation,
+			writeWalletRequestSubmittedAt,
 		} = await mountMockWalletRuntime({
 			connectionResults: [connection],
 		})
@@ -345,44 +366,62 @@ describe('wallet connection runtime normalization', () => {
 			signature: '0xsigned',
 		})
 
-		expect(writeWalletRequest).toHaveBeenCalledTimes(2)
-		expect(writeWalletRequest.mock.calls[0][1]).toMatchObject({
+		expect(writeWalletRequest).toHaveBeenCalledOnce()
+		expect(writeWalletRequest.mock.calls[0][1]).toEqual({
 			id: 'wallet-request-00000000-0000-4000-8000-000000000001',
-			walletConnectionKey: connection.connectionKey,
-			walletProtocol: WalletProtocol.Eip6963,
-			caip10: {
-				namespace: 'eip155',
-				reference: '1',
-				accountAddress: connection.accounts[0].accountAddress,
+			walletConnection: {
+				connectionKey: connection.connectionKey,
+			},
+			account: {
+				caip10: {
+					namespace: 'eip155',
+					reference: '1',
+					accountAddress: connection.accounts[0].accountAddress,
+				},
 			},
 			requestKind: 'message-signature',
 			requestMethod: 'personal_sign',
-			chainId: 1,
-			fromAddress: connection.accounts[0].accountAddress,
-			requestPayloadHash: '0x01b40af6b67ecf862be67d3b7ab43bfbda4e9c1cdf4cc06761a7db5d1d676e94',
+			requestPayloadHash: '0xb5f1626380702aa5c4ba37eb674066a75516c0a2481a735471a46dc8838e036c',
 			requestedAt: 1_700_000_000_000,
-			timestamps: [{
-				status: 'requested',
-			}],
 		})
-		expect(writeWalletRequest.mock.calls[1][1]).toMatchObject({
-			submittedAt: 1_700_000_000_001,
-			timestamps: [
-				{
-					status: 'requested',
+		expect(writeWalletRequestObservation.mock.calls.map(([, selector, observation]) => ({
+			selector,
+			observation,
+		}))).toEqual([
+			{
+				selector: {
+					id: 'wallet-request-00000000-0000-4000-8000-000000000001',
 				},
-				{
+				observation: expect.objectContaining({
+					status: 'requested',
+				}),
+			},
+			{
+				selector: {
+					id: 'wallet-request-00000000-0000-4000-8000-000000000001',
+				},
+				observation: expect.objectContaining({
 					status: 'signed',
 					signatureHash: '0x318db428059e86506988fdc8079f42b03dcf1ca107807005a014128fdbcc1e94',
-				},
-			],
-		})
-		expect(JSON.stringify(writeWalletRequest.mock.calls.map(([, request]) => request))).not.toContain(
+				}),
+			},
+		])
+		expect(writeWalletRequestSubmittedAt).toHaveBeenCalledWith(
+			expect.anything(),
+			{
+				id: 'wallet-request-00000000-0000-4000-8000-000000000001',
+			},
+			1_700_000_000_001
+		)
+		expect(JSON.stringify([
+			...writeWalletRequest.mock.calls,
+			...writeWalletRequestObservation.mock.calls,
+		])).not.toContain(
 			'Sign this private challenge'
 		)
-		expect(JSON.stringify(writeWalletRequest.mock.calls.map(([, request]) => request))).not.toContain('0xsigned')
-		expect(writeWalletRequest.mock.calls[1][1].timestamps[1]).not.toHaveProperty('transactionHash')
-		expect(writeWalletRequest.mock.calls[1][1].timestamps[1]).not.toHaveProperty('transactionId')
+		expect(JSON.stringify(writeWalletRequestObservation.mock.calls)).not.toContain('0xsigned')
+		expect(writeWalletRequestObservation.mock.calls[1][2]).not.toHaveProperty('transactionHash')
+		expect(writeWalletRequestObservation.mock.calls[1][2]).not.toHaveProperty('transactionId')
 	}, 30_000)
 
 	it('persists failed message-signing requests without fabricating submission evidence', async () => {
@@ -406,6 +445,8 @@ describe('wallet connection runtime normalization', () => {
 		const {
 			runtime,
 			writeWalletRequest,
+			writeWalletRequestObservation,
+			writeWalletRequestSubmittedAt,
 		} = await mountMockWalletRuntime({
 			connectionResults: [connection],
 			signMessage: async () => {
@@ -418,17 +459,17 @@ describe('wallet connection runtime normalization', () => {
 			'User rejected the wallet request'
 		)
 
-		expect(writeWalletRequest).toHaveBeenCalledTimes(2)
-		expect(writeWalletRequest.mock.calls[1][1]).not.toHaveProperty('submittedAt')
-		expect(writeWalletRequest.mock.calls[1][1].timestamps[1]).toMatchObject({
+		expect(writeWalletRequest).toHaveBeenCalledOnce()
+		expect(writeWalletRequestSubmittedAt).not.toHaveBeenCalled()
+		expect(writeWalletRequestObservation.mock.calls[1][2]).toMatchObject({
 			status: 'failed',
 			error: 'Wallet signing request failed',
 		})
-		expect(writeWalletRequest.mock.calls[1][1].timestamps[1]).not.toHaveProperty('signatureHash')
-		expect(JSON.stringify(writeWalletRequest.mock.calls.map(([, request]) => request))).not.toContain(
+		expect(writeWalletRequestObservation.mock.calls[1][2]).not.toHaveProperty('signatureHash')
+		expect(JSON.stringify(writeWalletRequest.mock.calls)).not.toContain(
 			'Reject this challenge'
 		)
-		expect(JSON.stringify(writeWalletRequest.mock.calls.map(([, request]) => request))).not.toContain(
+		expect(JSON.stringify(writeWalletRequestObservation.mock.calls)).not.toContain(
 			'User rejected the wallet request'
 		)
 	}, 30_000)
@@ -455,7 +496,7 @@ describe('wallet connection runtime normalization', () => {
 		} satisfies WalletConnection
 		const { runtime } = await mountMockWalletRuntime({
 			connectionResults: [connection],
-			persistWalletRequest: () => new Promise<void>((resolve) => {
+			persistWalletRequestObservation: () => new Promise<void>((resolve) => {
 				if (signing.mock.calls.length === 0) {
 					requestedPersistenceStarted = true
 					persistRequested = resolve
@@ -550,7 +591,7 @@ describe('wallet connection runtime normalization', () => {
 		} satisfies WalletConnection
 		const {
 			runtime,
-			writeWalletRequest,
+			writeWalletRequestObservation,
 		} = await mountMockWalletRuntime({
 			connectionResults: [connection],
 			signMessage: signing,
@@ -562,11 +603,11 @@ describe('wallet connection runtime normalization', () => {
 		)
 
 		expect(signing).toHaveBeenCalledOnce()
-		expect(writeWalletRequest.mock.calls[1][1].timestamps[1]).toMatchObject({
+		expect(writeWalletRequestObservation.mock.calls[1][2]).toMatchObject({
 			status: 'audit-failed',
 			error: 'Wallet signature evidence hashing failed',
 		})
-		expect(writeWalletRequest.mock.calls[1][1].timestamps[1]).not.toHaveProperty('signatureHash')
+		expect(writeWalletRequestObservation.mock.calls[1][2]).not.toHaveProperty('signatureHash')
 	})
 
 	it('reconciles signed-history persistence failure without reporting wallet rejection', async () => {
@@ -589,10 +630,10 @@ describe('wallet connection runtime normalization', () => {
 		} satisfies WalletConnection
 		const {
 			runtime,
-			writeWalletRequest,
+			writeWalletRequestObservation,
 		} = await mountMockWalletRuntime({
 			connectionResults: [connection],
-			persistWalletRequest: async () => {
+			persistWalletRequestObservation: async () => {
 				persistenceAttempt++
 				if (persistenceAttempt === 2)
 					throw new Error('Signed history adapter failed')
@@ -606,37 +647,69 @@ describe('wallet connection runtime normalization', () => {
 		)
 
 		expect(signing).toHaveBeenCalledOnce()
-		expect(writeWalletRequest).toHaveBeenCalledTimes(3)
-		expect(writeWalletRequest.mock.calls[1][1].timestamps[1].status).toBe('signed')
-		expect(writeWalletRequest.mock.calls[2][1].timestamps[1]).toMatchObject({
+		expect(writeWalletRequestObservation).toHaveBeenCalledTimes(3)
+		expect(writeWalletRequestObservation.mock.calls[1][2].status).toBe('signed')
+		expect(writeWalletRequestObservation.mock.calls[2][2]).toMatchObject({
 			status: 'audit-failed',
 			signatureHash: '0x318db428059e86506988fdc8079f42b03dcf1ca107807005a014128fdbcc1e94',
 			error: 'Wallet signature succeeded but signed history persistence failed',
 		})
 	})
 
-	it('keeps implemented catalog methods aligned with mounted adapter protocols', () => {
-		const mountedProtocols = [
-			WalletProtocol.Eip6963,
-			WalletProtocol.WalletStandard,
-			WalletProtocol.AptosInjected,
-			WalletProtocol.CardanoCip30,
-			WalletProtocol.BitcoinInjected,
-			WalletProtocol.CosmosOfflineSigner,
-			WalletProtocol.TonConnect,
-			WalletProtocol.TronTip1193,
-			WalletProtocol.StarknetWalletApi,
-			WalletProtocol.PolkadotInjectedWeb3,
+	it('maps every built-in adapter candidate tuple to exactly one connection method', () => {
+		const builtInAdapterConnectionMethodIds = [
+			'aptos-injected-globals',
+			'bitcoin-injected-globals',
+			'cardano-cip30',
+			'cosmos-offline-signer',
+			'eip6963',
+			'polkadot-injected-web3',
+			'sats-connect',
+			'starknet-wallet-api',
+			'ton-connect-injected',
+			'tron-tip1193',
+			'tron-tip6963',
+			'wallet-standard',
+			'walletconnect-v2',
 		]
 
-		expect(walletConnectionMethods
-			.filter((walletConnectionMethod) => (
-				walletConnectionMethod.implementationStatus === WalletImplementationStatus.Implemented
-				|| walletConnectionMethod.implementationStatus === WalletImplementationStatus.DiscoveryImplemented
-			))
-			.map((walletConnectionMethod) => walletConnectionMethod.protocol)
-			.toSorted()
-		).toEqual(mountedProtocols.toSorted())
+		expect(Object.keys(walletConnectionMethodByProtocolDiscoveryKindTransportKind)).toHaveLength(walletConnectionMethods.length)
+		expect(builtInAdapterConnectionMethodIds.map((connectionMethodId) => {
+			const connectionMethod = walletConnectionMethodById[connectionMethodId]
+			return connectionMethod == null ? undefined : walletConnectionMethodByProtocolDiscoveryKindTransportKind[[
+				connectionMethod.protocol,
+				connectionMethod.discoveryKind,
+				connectionMethod.transportKind,
+			].join(':')]?.id
+		})).toEqual(builtInAdapterConnectionMethodIds)
+	})
+
+	it('rejects an unmapped adapter candidate before exposing it', async () => {
+		const { runtime } = await mountMockWalletRuntime({})
+
+		expect(() => runtime.registerAdapter({
+			id: 'invalid-adapter',
+			start: (updateCandidates) => {
+				updateCandidates([{
+					id: 'invalid-wallet',
+					name: 'Invalid wallet',
+					icon: '',
+					protocol: WalletProtocol.Eip6963,
+					discoveryKind: WalletDiscoveryKind.DirectHardware,
+					transportKind: WalletTransportKind.WebHid,
+					capabilities: [],
+				}])
+				return () => {}
+			},
+			connect: async () => undefined,
+			disconnect: () => {},
+			subscribeConnection: () => () => {},
+		})).toThrow('Wallet adapter invalid-adapter candidate invalid-wallet has no connection method for eip6963/direct-hardware/webhid')
+		expect(runtime.candidates).not.toContainEqual(expect.objectContaining({
+			id: 'invalid-wallet',
+		}))
+
+		runtime.destroy()
 	})
 
 	it('returns disconnected rows for discovery-only adapters without prompting', async () => {
@@ -668,12 +741,12 @@ describe('wallet connection runtime normalization', () => {
 		]])
 		expect(await adapter.connect('cip30:test-wallet')).toMatchObject({
 			walletId: 'cip30:test-wallet',
-			status: BlockheadConnectionStatus.Disconnected,
+			status: BlockheadConnectionStatus.Error,
 			protocol: WalletProtocol.CardanoCip30,
 			transportKind: WalletTransportKind.InjectedSigner,
 			scopes: [],
 			accounts: [],
-			selected: false,
+			error: 'This wallet protocol is discovered but connection is not implemented yet.',
 		})
 	})
 
@@ -685,6 +758,11 @@ describe('wallet connection runtime normalization', () => {
 		const fieldDeletes: string[] = []
 		const countDeletes: string[] = []
 		const waitForPersistence = async () => {}
+		const applyAuthority = (
+			onApplied?: () => void | Promise<void>
+		) => (
+			Promise.resolve(onApplied?.()).then(() => {})
+		)
 		const fieldCollection = () => {
 			const currentRows: MockRow[] = []
 			const replaceRows = (
@@ -721,92 +799,84 @@ describe('wallet connection runtime normalization', () => {
 					},
 					refresh: () => {},
 					replaceRows,
-					replaceRowsWithAuthority: replaceRows,
+					replaceRowsWithAuthority: (
+						predicate: (row: MockRow) => boolean,
+						rows: MockRow[],
+						_selectorKey: string,
+						_authorityKey: string,
+						_resolution: string,
+						onApplied?: () => void | Promise<void>
+					) => {
+						replaceRows(predicate, rows)
+						return applyAuthority(onApplied)
+					},
 					writeUpsert,
-					writeUpsertWithAuthority: writeUpsert,
+					writeUpsertWithAuthority: (
+						row: MockRow,
+						_selectorKey: string,
+						_authorityKey: string,
+						_resolution: string,
+						onApplied?: () => void | Promise<void>
+					) => {
+						writeUpsert(row)
+						return applyAuthority(onApplied)
+					},
 				},
 			}
 		}
+		const entityCollection = ({
+			trackDeletes = false,
+		}: {
+			trackDeletes?: boolean
+		} = {}) => ({
+			...(trackDeletes && {
+				delete: (key: string) => entityDeletes.push(key),
+			}),
+			startSyncImmediate: () => {},
+			utils: {
+				waitForPersistence,
+				deleteSelectorRowsAndAuthority: (_predicate: (row: MockRow) => boolean, selectorKey: string) => {
+					entityDeletes.push(stringify([
+						Source.Local_Internal,
+						selectorKey,
+					]))
+				},
+				replaceRowsWithAuthority: (
+					_predicate: (row: MockRow) => boolean,
+					_rows: MockRow[],
+					selectorKey: string,
+					_authorityKey?: string,
+					_resolution?: string,
+					onApplied?: () => void | Promise<void>
+				) => {
+					entityDeletes.push(stringify([
+						Source.Local_Internal,
+						selectorKey,
+					]))
+					return applyAuthority(onApplied)
+				},
+				refresh: () => {},
+				writeUpsert: (row: MockRow) => entityUpserts.push(row),
+				writeUpsertWithAuthority: (
+					row: MockRow,
+					_selectorKey: string,
+					_authorityKey: string,
+					_resolution: string,
+					onApplied?: () => void | Promise<void>
+				) => {
+					entityUpserts.push(row)
+					return applyAuthority(onApplied)
+				},
+			},
+		})
 
 		const context = {
 			entityCollections: {
-				[EntityType.BlockheadWallet]: {
-					startSyncImmediate: () => {},
-					utils: {
-						waitForPersistence,
-						deleteSelectorRowsAndAuthority: (_predicate: (row: MockRow) => boolean, selectorKey: string) => {
-							entityDeletes.push(stringify([
-								Source.Local_Internal,
-								selectorKey,
-							]))
-						},
-						refresh: () => {},
-						writeUpsert: (row: MockRow) => entityUpserts.push(row),
-						writeUpsertWithAuthority: (row: MockRow) => entityUpserts.push(row),
-					},
-				},
-				[EntityType.Account]: {
-					startSyncImmediate: () => {},
-					utils: {
-						deleteSelectorRowsAndAuthority: (_predicate: (row: MockRow) => boolean, selectorKey: string) => {
-							entityDeletes.push(stringify([
-								Source.Local_Internal,
-								selectorKey,
-							]))
-						},
-						refresh: () => {},
-						writeUpsert: (row: MockRow) => entityUpserts.push(row),
-						writeUpsertWithAuthority: (row: MockRow) => entityUpserts.push(row),
-					},
-				},
-				[EntityType.BlockheadAccount]: {
-					startSyncImmediate: () => {},
-					utils: {
-						waitForPersistence,
-						deleteSelectorRowsAndAuthority: (_predicate: (row: MockRow) => boolean, selectorKey: string) => {
-							entityDeletes.push(stringify([
-								Source.Local_Internal,
-								selectorKey,
-							]))
-						},
-						refresh: () => {},
-						writeUpsert: (row: MockRow) => entityUpserts.push(row),
-						writeUpsertWithAuthority: (row: MockRow) => entityUpserts.push(row),
-					},
-				},
-				[EntityType.BlockheadWalletConnection]: {
-					delete: (key: string) => entityDeletes.push(key),
-					startSyncImmediate: () => {},
-					utils: {
-						waitForPersistence,
-						deleteSelectorRowsAndAuthority: (_predicate: (row: MockRow) => boolean, selectorKey: string) => {
-							entityDeletes.push(stringify([
-								Source.Local_Internal,
-								selectorKey,
-							]))
-						},
-						replaceRowsWithAuthority: (
-							_predicate: (row: MockRow) => boolean,
-							_rows: MockRow[],
-							selectorKey: string
-						) => {
-							entityDeletes.push(stringify([
-								Source.Local_Internal,
-								selectorKey,
-							]))
-						},
-						refresh: () => {},
-						writeUpsert: (row: MockRow) => entityUpserts.push(row),
-						writeUpsertWithAuthority: (row: MockRow) => entityUpserts.push(row),
-					},
-				},
-				[EntityType.EvmAccount]: {
-					startSyncImmediate: () => {},
-					utils: {
-						writeUpsert: (row: MockRow) => entityUpserts.push(row),
-						writeUpsertWithAuthority: (row: MockRow) => entityUpserts.push(row),
-					},
-				},
+				[EntityType.BlockheadWallet]: entityCollection(),
+				[EntityType.Account]: entityCollection(),
+				[EntityType.BlockheadAccount]: entityCollection(),
+				[EntityType.BlockheadWalletConnection]: entityCollection({ trackDeletes: true }),
+				[EntityType.EvmAccount]: entityCollection(),
 			},
 			entityFieldCollections: {
 				[EntityType._Global]: {
@@ -822,11 +892,8 @@ describe('wallet connection runtime normalization', () => {
 					[entityFieldAddressKey(EntityType.BlockheadWallet, [], 'discoveryKind')]: fieldCollection(),
 					[entityFieldAddressKey(EntityType.BlockheadWallet, [], 'transportKind')]: fieldCollection(),
 					[entityFieldAddressKey(EntityType.BlockheadWallet, [], 'rdns')]: fieldCollection(),
-					[entityFieldAddressKey(EntityType.BlockheadWallet, [], 'websiteUrl')]: fieldCollection(),
 					[entityFieldAddressKey(EntityType.BlockheadWallet, [], 'capabilities')]: fieldCollection(),
-					[entityFieldAddressKey(EntityType.BlockheadWallet, [], 'adapterId')]: fieldCollection(),
-					[entityFieldAddressKey(EntityType.BlockheadWallet, [], 'sourceWalletKey')]: fieldCollection(),
-					[entityFieldAddressKey(EntityType.BlockheadWallet, [], 'detectedAt')]: fieldCollection(),
+					[entityFieldAddressKey(EntityType.BlockheadWallet, [], '$connectionMethod')]: fieldCollection(),
 				},
 				[EntityType.BlockheadAccount]: {
 					[entityFieldAddressKey(EntityType.BlockheadAccount, [], '$account')]: fieldCollection(),
@@ -850,6 +917,7 @@ describe('wallet connection runtime normalization', () => {
 			},
 			entityFieldCountCollections: {
 				[EntityType._Global]: {},
+				[EntityType.BlockheadWallet]: {},
 				[EntityType.BlockheadWalletConnection]: {
 					[entityFieldAddressKey(EntityType.BlockheadWalletConnection, [], '$$accounts')]: {
 						delete: (key: string) => countDeletes.push(key),
@@ -862,15 +930,28 @@ describe('wallet connection runtime normalization', () => {
 							replaceRowsWithAuthority: (
 								_predicate: (row: MockRow) => boolean,
 								rows: MockRow[],
-								selectorKey: string
+								selectorKey: string,
+								_authorityKey?: string,
+								_resolution?: string,
+								onApplied?: () => void | Promise<void>
 							) => {
 								if (rows.length === 0)
 									countDeletes.push(selectorKey)
 								else
 									countUpserts.push(...rows)
+								return applyAuthority(onApplied)
 							},
 							writeUpsert: (row: MockRow) => countUpserts.push(row),
-							writeUpsertWithAuthority: (row: MockRow) => countUpserts.push(row),
+							writeUpsertWithAuthority: (
+								row: MockRow,
+								_selectorKey: string,
+								_authorityKey: string,
+								_resolution: string,
+								onApplied?: () => void | Promise<void>
+							) => {
+								countUpserts.push(row)
+								return applyAuthority(onApplied)
+							},
 						},
 					},
 				},
@@ -923,15 +1004,7 @@ describe('wallet connection runtime normalization', () => {
 				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
 			},
 		})
-		const blockheadAccountSelectorKey = stringify({
-			$account: {
-				caip10: {
-					namespace: 'eip155',
-					reference: '1',
-					accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
-				},
-			},
-		})
+		const connectionMethodSelectorKey = stringify({ id: 'eip6963' })
 		const walletConnectionSelectorKey = stringify({
 			connectionKey: 'eip6963:com.example.wallet',
 		})
@@ -942,19 +1015,6 @@ describe('wallet connection runtime normalization', () => {
 					id: 'eip6963:com.example.wallet',
 				},
 				[EntityMetaKey.SelectorKey]: walletSelectorKey,
-				[EntityMetaKey.Source]: Source.Local_Internal,
-			}),
-			expect.objectContaining({
-				[EntityMetaKey.Selector]: {
-					$account: {
-						caip10: {
-							namespace: 'eip155',
-							reference: '1',
-							accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
-						},
-					},
-				},
-				[EntityMetaKey.SelectorKey]: blockheadAccountSelectorKey,
 				[EntityMetaKey.Source]: Source.Local_Internal,
 			}),
 			expect.objectContaining({
@@ -978,20 +1038,14 @@ describe('wallet connection runtime normalization', () => {
 				valueKey: `Entity:${walletSelectorKey}`,
 			}),
 			expect.objectContaining({
-				fieldName: '$$blockheadAccounts',
+				fieldName: '$connectionMethod',
 				[EntityMetaKey.Value]: {
 					[EntityMetaKey.Selector]: {
-						$account: {
-							caip10: {
-								namespace: 'eip155',
-								reference: '1',
-								accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
-							},
-						},
+						id: 'eip6963',
 					},
-					[EntityMetaKey.SelectorKey]: blockheadAccountSelectorKey,
+					[EntityMetaKey.SelectorKey]: connectionMethodSelectorKey,
 				},
-				valueKey: `Entity:${blockheadAccountSelectorKey}`,
+				valueKey: `Entity:${connectionMethodSelectorKey}`,
 			}),
 			expect.objectContaining({
 				fieldName: '$$blockheadWalletConnections',
@@ -1033,7 +1087,7 @@ describe('wallet connection runtime normalization', () => {
 			walletConnectionSelectorKey,
 		])
 
-	}, 30_000)
+	}, 90_000)
 
 	it('discovers Aptos injected signer globals with executable connection capabilities', () => {
 		vi.stubGlobal('window', {

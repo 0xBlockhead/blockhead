@@ -577,7 +577,7 @@ describe('WalletConnect v2 adapter', () => {
 		expect(updates).toEqual([])
 		vi.advanceTimersByTime(10_000)
 		expect(updates.at(-1)).toMatchObject({
-			status: BlockheadConnectionStatus.Disconnected,
+			status: BlockheadConnectionStatus.Error,
 			error: 'WalletConnect session expired',
 		})
 

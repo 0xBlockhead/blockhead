@@ -3,6 +3,7 @@ import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts
 import { bech32, hex } from '@scure/base'
 import { SvelteMap } from 'svelte/reactivity'
 import type { WalletAdapter, WalletConnection } from './types.ts'
+import { buildWalletConnection } from '../walletConnectionState.ts'
 
 type CardanoCip30WalletApi = {
 	getUsedAddresses(): Promise<string[]>
@@ -153,7 +154,7 @@ export const createCardanoCip30Adapter = (): WalletAdapter => {
 		if (networkReference === undefined)
 			throw new Error('Cardano CIP-30 wallet did not expose a canonical CIP-34 network')
 
-		return {
+		return buildWalletConnection({
 			walletId,
 			status: BlockheadConnectionStatus.Connected,
 			protocol: WalletProtocol.CardanoCip30,
@@ -186,7 +187,7 @@ export const createCardanoCip30Adapter = (): WalletAdapter => {
 			})),
 			selected: true,
 			connectedAt,
-		}
+		})
 	}
 	const authorize = async (
 		walletId: string,
@@ -310,16 +311,15 @@ export const createCardanoCip30Adapter = (): WalletAdapter => {
 					const connection = enabled ?
 						await refresh(walletId, wallet)
 					:
-						{
+						buildWalletConnection({
 							walletId,
 							status: BlockheadConnectionStatus.Disconnected,
 							protocol: WalletProtocol.CardanoCip30,
 							transportKind: WalletTransportKind.InjectedSigner,
 							scopes: [],
 							accounts: [],
-							selected: false,
 							disconnectedAt: Date.now(),
-						}
+						})
 					if (!enabled)
 						stateByWalletId.delete(walletId)
 					// oxlint-disable-next-line typescript/no-unnecessary-condition -- cleanup can abort while wallet account and network reads are pending

@@ -222,7 +222,6 @@ describe('TRON TIP-6963/TIP-1193 adapter', () => {
 		expect(connections.at(-1)).toEqual(expect.objectContaining({
 			status: BlockheadConnectionStatus.Error,
 			accounts: [],
-			selected: false,
 			error: expect.stringContaining('TRON wallet returned a non-canonical account address'),
 		}))
 
@@ -275,7 +274,6 @@ describe('TRON TIP-6963/TIP-1193 adapter', () => {
 		expect(connections.at(-1)).toEqual(expect.objectContaining({
 			status: BlockheadConnectionStatus.Error,
 			accounts: [],
-			selected: false,
 			error: expect.stringContaining('TRON wallet did not expose a canonical chain ID'),
 		}))
 		providerListeners.get('chainChanged')?.('0xcd8690dc')
@@ -293,7 +291,6 @@ describe('TRON TIP-6963/TIP-1193 adapter', () => {
 		expect(connections.at(-1)).toEqual(expect.objectContaining({
 			status: BlockheadConnectionStatus.Disconnected,
 			accounts: [],
-			selected: false,
 		}))
 		setAccounts([firstAddress])
 		providerListeners.get('connect')?.({

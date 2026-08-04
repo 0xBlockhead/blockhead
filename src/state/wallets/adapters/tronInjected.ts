@@ -5,6 +5,7 @@ import { base58 } from '@scure/base'
 import * as Hash from 'ox/Hash'
 import { SvelteMap } from 'svelte/reactivity'
 import type { WalletAdapter, WalletCandidate, WalletConnection } from './types.ts'
+import { buildWalletConnection } from '../walletConnectionState.ts'
 
 type TronRequestArguments = {
 	method: string
@@ -139,7 +140,7 @@ const tronConnection = (
 ): WalletConnection => {
 	const activeAccountAddress = state.accounts.at(0)
 
-	return {
+	return buildWalletConnection({
 		walletId,
 		status,
 		protocol: WalletProtocol.TronTip1193,
@@ -180,7 +181,7 @@ const tronConnection = (
 		connectedAt: state.connectedAt,
 		...(status === BlockheadConnectionStatus.Disconnected && { disconnectedAt: Date.now() }),
 		...(error != null && { error }),
-	}
+	})
 }
 
 const tronEventErrorConnection = (
@@ -190,16 +191,15 @@ const tronEventErrorConnection = (
 	error: unknown
 ): WalletConnection => (
 	state == null ?
-		{
+		buildWalletConnection({
 			walletId,
 			status: BlockheadConnectionStatus.Error,
 			protocol: WalletProtocol.TronTip1193,
 			transportKind: WalletTransportKind.InjectedProvider,
 			scopes: [],
 			accounts: [],
-			selected: false,
 			error: String(error),
-		}
+		})
 	:
 		tronConnection(
 			walletId,

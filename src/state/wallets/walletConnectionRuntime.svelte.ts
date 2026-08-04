@@ -2,6 +2,7 @@ import {
 	WalletCapability,
 	WalletProtocol,
 	WalletTransportKind,
+	walletConnectionMethodByProtocolDiscoveryKindTransportKind,
 	walletConnectionMethods,
 	walletProtocols,
 } from '$/constants/Wallet.ts'
@@ -10,6 +11,7 @@ import {
 	Caip2Reference,
 } from '$/constants/Network.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
+import { Hash32 } from '$/schema/ZeroExHex.ts'
 import type { ClientContext } from '$/client/$client.svelte.ts'
 import {
 	deleteLocalBlockheadWalletConnection,
@@ -17,6 +19,8 @@ import {
 	writeLocalBlockheadWallet,
 	writeLocalBlockheadWalletConnection,
 	writeLocalBlockheadWalletRequest,
+	writeLocalBlockheadWalletRequest_Timestamp,
+	writeLocalBlockheadWalletRequestSubmittedAt,
 } from '$/collections/localMutations.ts'
 import {
 	EntityMetaKey,
@@ -36,6 +40,14 @@ import { createStarknetWalletApiAdapter } from './adapters/starknetWalletApi.ts'
 import { createTonConnectAdapter } from './adapters/tonConnect.ts'
 import { createTronInjectedAdapter } from './adapters/tronInjected.ts'
 import type { WalletAccount, WalletAdapter, WalletCandidate, WalletConnection } from './adapters/types.ts'
+import {
+	applyWalletConnectionSelection,
+	buildWalletConnection,
+	disconnectWalletConnection,
+	isSelectedWalletConnection,
+	walletConnectionFromPersisted,
+	walletConnectionKey,
+} from './walletConnectionState.ts'
 import { createWalletStandardAdapter } from './adapters/walletStandard.ts'
 import {
 	createWalletConnectV2Adapter,
@@ -64,10 +76,10 @@ const blockheadWalletConnectionsSelector = {
 } as const satisfies EntitySelector<typeof schema, EntityType._Global>
 
 const hashWalletEvidence = async (value: string) => (
-	`0x${[...new Uint8Array(await globalThis.crypto.subtle.digest(
+	Hash32.assert(`0x${[...new Uint8Array(await globalThis.crypto.subtle.digest(
 		'SHA-256',
 		new TextEncoder().encode(value)
-	))].map((byte) => byte.toString(16).padStart(2, '0')).join('')}`
+	))].map((byte) => byte.toString(16).padStart(2, '0')).join('')}`)
 )
 
 const createWalletRuntimeState = (
@@ -88,22 +100,41 @@ const createWalletRuntimeState = (
 		connection: WalletConnection,
 		replacedConnectionKey?: string
 	) => {
-		const connectionKey = connection.connectionKey ?? connection.sessionTopic ?? connection.sessionId ?? connection.walletId
+		const connectionKey = walletConnectionKey(connection)
 		runtimeMutatedConnectionKeys.add(connectionKey)
 		if (replacedConnectionKey !== undefined)
 			runtimeMutatedConnectionKeys.add(replacedConnectionKey)
-		const normalizedConnection = {
+		const normalizedConnection = buildWalletConnection({
 			...connection,
 			connectionKey,
 			activeAccount: connection.activeAccount ?? connection.accounts.at(0),
-		}
+			...(
+				connection.status === BlockheadConnectionStatus.Connected ?
+					{
+						selected: connection.selected,
+						connectedAt: connection.connectedAt,
+					}
+				: connection.status === BlockheadConnectionStatus.Error ?
+					{
+						error: connection.error,
+						disconnectedAt: connection.disconnectedAt,
+					}
+				: connection.status === BlockheadConnectionStatus.Disconnected ?
+					{
+						connectedAt: connection.connectedAt,
+						disconnectedAt: connection.disconnectedAt,
+					}
+				:
+					{}
+			),
+		})
 		await writeLocalBlockheadWalletConnection(context, normalizedConnection)
 		connections = [
 			...connections.filter((candidate) => (
 				![
 					connectionKey,
 					replacedConnectionKey,
-				].includes(candidate.connectionKey ?? candidate.sessionTopic ?? candidate.sessionId ?? candidate.walletId)
+				].includes(walletConnectionKey(candidate))
 			)),
 			normalizedConnection,
 		]
@@ -126,10 +157,10 @@ const createWalletRuntimeState = (
 			connection.connectionKey,
 			adapter.subscribeConnection(
 				connection.walletId,
-				(nextConnection) => upsertConnection({
+				(nextConnection) => upsertConnection(buildWalletConnection({
 					...nextConnection,
 					connectionKey: connection.connectionKey,
-				}),
+				})),
 				connection.connectionKey
 			)
 		)
@@ -142,6 +173,16 @@ const createWalletRuntimeState = (
 		let cleanup: () => void
 		try {
 			cleanup = adapter.start((nextCandidates) => {
+				for (const candidate of nextCandidates)
+					if (walletConnectionMethodByProtocolDiscoveryKindTransportKind[[
+						candidate.protocol,
+						candidate.discoveryKind,
+						candidate.transportKind,
+					].join(':')] == null)
+						throw new Error(
+							`Wallet adapter ${adapter.id} candidate ${candidate.id} has no connection method for ${candidate.protocol}/${candidate.discoveryKind}/${candidate.transportKind}`
+						)
+
 				candidatesByAdapterId.set(adapter.id, nextCandidates)
 
 				for (const candidate of nextCandidates) {
@@ -240,7 +281,7 @@ const createWalletRuntimeState = (
 				if (protocol == null || transportKind == null)
 					throw new Error(`Persisted wallet connection ${persistedConnectionReference.connectionKey} has an unknown protocol or transport`)
 
-				return {
+				return walletConnectionFromPersisted({
 					connectionKey: persistedConnectionReference.connectionKey,
 					walletId: persistedWallet[EntityMetaKey.Selector].id,
 					status: persistedConnection.status,
@@ -259,20 +300,18 @@ const createWalletRuntimeState = (
 					sessionId: persistedConnection.sessionId,
 					sessionTopic: persistedConnection.sessionTopic,
 					error: persistedConnection.error,
-				}
+				})
 			}))
 		)
 
-		const persistedConnectionKeys = new Set(persistedConnections.map((connection) => (
-			connection.connectionKey ?? connection.sessionTopic ?? connection.sessionId ?? connection.walletId
-		)))
+		const persistedConnectionKeys = new Set(persistedConnections.map(walletConnectionKey))
 		connections = [
 			...connections.filter((connection) => {
-				const connectionKey = connection.connectionKey ?? connection.sessionTopic ?? connection.sessionId ?? connection.walletId
+				const connectionKey = walletConnectionKey(connection)
 				return runtimeMutatedConnectionKeys.has(connectionKey) || !persistedConnectionKeys.has(connectionKey)
 			}),
 			...persistedConnections.filter((connection) => !runtimeMutatedConnectionKeys.has(
-				connection.connectionKey ?? connection.sessionTopic ?? connection.sessionId ?? connection.walletId
+				walletConnectionKey(connection)
 			)),
 		]
 		for (const connection of persistedConnections) {
@@ -295,72 +334,72 @@ const createWalletRuntimeState = (
 		const connectionAttempt = (connectionAttemptByConnectionKey.get(walletId) ?? 0) + 1
 		connectionAttemptByConnectionKey.set(walletId, connectionAttempt)
 
-		const connectingPersistence = upsertConnection({
+		const connectingPersistence = upsertConnection(buildWalletConnection({
 			walletId,
 			status: BlockheadConnectionStatus.Connecting,
 			protocol: candidates.find((candidate) => candidate.id === walletId)?.protocol ?? WalletProtocol.Eip6963,
 			transportKind: candidates.find((candidate) => candidate.id === walletId)?.transportKind ?? WalletTransportKind.InjectedProvider,
 			scopes: [],
 			accounts: [],
-			selected: false,
-		})
+		}))
 
 		try {
 			const connection = await adapter.connect(walletId)
 			await connectingPersistence
 			if (connectionAttemptByConnectionKey.get(walletId) !== connectionAttempt) return
 			if (connection == null) {
-				await upsertConnection({
+				await upsertConnection(buildWalletConnection({
 					walletId,
 					status: BlockheadConnectionStatus.Error,
 					protocol: candidates.find((candidate) => candidate.id === walletId)?.protocol ?? WalletProtocol.Eip6963,
 					transportKind: candidates.find((candidate) => candidate.id === walletId)?.transportKind ?? WalletTransportKind.InjectedProvider,
 					scopes: [],
 					accounts: [],
-					selected: false,
 					error: 'The wallet became unavailable before the connection completed.',
-				})
+				}))
 				return
 			}
 
-			const connectionKey = connection.connectionKey ?? connection.sessionTopic ?? connection.sessionId ?? connection.walletId
+			const connectionKey = walletConnectionKey(connection)
 			connectionAttemptByConnectionKey.delete(walletId)
 			cleanupByConnectionKey.get(connectionKey)?.()
 			cleanupByConnectionKey.set(
 				connectionKey,
 				adapter.subscribeConnection(
 					walletId,
-					(nextConnection) => upsertConnection({
+					(nextConnection) => upsertConnection(buildWalletConnection({
 						...nextConnection,
 						connectionKey,
-					}),
+					})),
 					connectionKey
 				)
 			)
-			await upsertConnection(connection, walletId)
+			await upsertConnection(buildWalletConnection({
+				...connection,
+				connectionKey,
+			}), walletId)
 		}
 		catch (error) {
 			await connectingPersistence
 			if (connectionAttemptByConnectionKey.get(walletId) !== connectionAttempt) return
-			await upsertConnection({
+			await upsertConnection(buildWalletConnection({
 				walletId,
 				status: BlockheadConnectionStatus.Error,
 				protocol: candidates.find((candidate) => candidate.id === walletId)?.protocol ?? WalletProtocol.Eip6963,
 				transportKind: candidates.find((candidate) => candidate.id === walletId)?.transportKind ?? WalletTransportKind.InjectedProvider,
 				scopes: [],
 				accounts: [],
-				selected: false,
 				error: error instanceof Error ?
 					error.message
 				:
 					String(error),
-			})
+			}))
 		}
 	}
 
 	const disconnect = async (connectionKey: string) => {
 		const connection = connections.find((candidate) => (
-			(candidate.connectionKey ?? candidate.sessionTopic ?? candidate.sessionId ?? candidate.walletId) === connectionKey
+			walletConnectionKey(candidate) === connectionKey
 		))
 		if (connection == null) return
 
@@ -373,21 +412,16 @@ const createWalletRuntimeState = (
 		await adapterByWalletId.get(walletId)?.disconnect(walletId, connectionKey)
 		cleanupByConnectionKey.get(connectionKey)?.()
 		cleanupByConnectionKey.delete(connectionKey)
-		const disconnectedAt = Date.now()
+		const disconnected = disconnectWalletConnection(connection)
 		await writeLocalBlockheadWalletConnection(context, {
-			...connection,
+			...disconnected,
 			connectionKey,
-			status: BlockheadConnectionStatus.Disconnected,
-			selected: false,
-			disconnectedAt,
 		})
 		connections = connections.map((candidate) => (
-			(candidate.connectionKey ?? candidate.sessionTopic ?? candidate.sessionId ?? candidate.walletId) === connectionKey ?
+			walletConnectionKey(candidate) === connectionKey ?
 				{
-					...candidate,
-					status: BlockheadConnectionStatus.Disconnected,
-					selected: false,
-					disconnectedAt,
+					...disconnected,
+					connectionKey,
 				}
 			:
 				candidate
@@ -396,7 +430,7 @@ const createWalletRuntimeState = (
 
 	const remove = async (connectionKey: string) => {
 		const connection = connections.find((candidate) => (
-			(candidate.connectionKey ?? candidate.sessionTopic ?? candidate.sessionId ?? candidate.walletId) === connectionKey
+			walletConnectionKey(candidate) === connectionKey
 		))
 		if (connection == null) return
 
@@ -413,7 +447,7 @@ const createWalletRuntimeState = (
 		catch {}
 		await deleteLocalBlockheadWalletConnection(context, connectionKey)
 		connections = connections.filter((candidate) => (
-			(candidate.connectionKey ?? candidate.sessionTopic ?? candidate.sessionId ?? candidate.walletId) !== connectionKey
+			walletConnectionKey(candidate) !== connectionKey
 		))
 	}
 
@@ -422,12 +456,12 @@ const createWalletRuntimeState = (
 		message: string
 	) => {
 		const connection = connections.find((candidate) => (
-			(candidate.connectionKey ?? candidate.sessionTopic ?? candidate.sessionId ?? candidate.walletId) === connectionKey
+			walletConnectionKey(candidate) === connectionKey
 		))
 		const account = connection?.activeAccount ?? connection?.accounts.at(0)
 		if (connection == null || account == null)
 			throw new Error('Connected wallet account is unavailable')
-		if (connection.status !== BlockheadConnectionStatus.Connected || !connection.selected)
+		if (!isSelectedWalletConnection(connection))
 			throw new Error('Selected wallet connection is not connected')
 		if (!account.capabilities.includes(WalletCapability.SignMessage))
 			throw new Error('Selected wallet account does not authorize message signing')
@@ -438,32 +472,37 @@ const createWalletRuntimeState = (
 		if (sign == null)
 			throw new Error('Connected wallet does not expose executable message signing')
 
-		const walletRequestId = `wallet-request-${globalThis.crypto.randomUUID()}`
-		const requestedAt = Date.now()
-		const requestPayloadHash = await hashWalletEvidence(message)
-		const request = {
-			id: walletRequestId,
-			walletConnectionKey: connectionKey,
-			walletProtocol: connection.protocol,
+		const walletRequestSelector = {
+			id: `wallet-request-${globalThis.crypto.randomUUID()}`,
+		} as const satisfies EntitySelector<typeof schema, EntityType.BlockheadWalletRequest>
+		const accountSelector = {
 			caip10: {
 				namespace: account.namespace,
 				reference: account.reference,
 				accountAddress: account.accountAddress,
 			},
+		} as const satisfies EntitySelector<typeof schema, EntityType.Account>
+		const requestedAt = Date.now()
+		await writeLocalBlockheadWalletRequest(context, {
+			id: walletRequestSelector.id,
+			walletConnection: {
+				connectionKey,
+			},
+			account: accountSelector,
 			requestKind: 'message-signature',
 			requestMethod: 'personal_sign',
-			chainId: Number(account.reference),
-			fromAddress: account.accountAddress,
-			requestPayloadHash,
+			requestPayloadHash: await hashWalletEvidence(JSON.stringify({
+				version: 1,
+				method: 'personal_sign',
+				account: accountSelector.caip10,
+				message,
+			})),
 			requestedAt,
-		}
-		await writeLocalBlockheadWalletRequest(context, {
-			...request,
-			timestamps: [{
-				timestampMs: requestedAt,
-				source: Source.Local_Internal,
-				status: 'requested',
-			}],
+		})
+		await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+			timestampMs: requestedAt,
+			source: Source.Local_Internal,
+			status: 'requested',
 		})
 
 		let signature: string
@@ -471,21 +510,11 @@ const createWalletRuntimeState = (
 			signature = await sign(connection.walletId, account.accountAddress, message)
 		}
 		catch (error) {
-			await writeLocalBlockheadWalletRequest(context, {
-				...request,
-				timestamps: [
-					{
-						timestampMs: requestedAt,
-						source: Source.Local_Internal,
-						status: 'requested',
-					},
-					{
-						timestampMs: Math.max(Date.now(), requestedAt + 1),
-						source: Source.Local_Internal,
-						status: 'failed',
-						error: 'Wallet signing request failed',
-					},
-				],
+			await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+				timestampMs: Math.max(Date.now(), requestedAt + 1),
+				source: Source.Local_Internal,
+				status: 'failed',
+				error: 'Wallet signing request failed',
 			})
 			throw error
 		}
@@ -495,64 +524,37 @@ const createWalletRuntimeState = (
 			signatureHash = await hashWalletEvidence(signature)
 		}
 		catch (error) {
-			await writeLocalBlockheadWalletRequest(context, {
-				...request,
-				timestamps: [
-					{
-						timestampMs: requestedAt,
-						source: Source.Local_Internal,
-						status: 'requested',
-					},
-					{
-						timestampMs: Math.max(Date.now(), requestedAt + 1),
-						source: Source.Local_Internal,
-						status: 'audit-failed',
-						error: 'Wallet signature evidence hashing failed',
-					},
-				],
+			await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+				timestampMs: Math.max(Date.now(), requestedAt + 1),
+				source: Source.Local_Internal,
+				status: 'audit-failed',
+				error: 'Wallet signature evidence hashing failed',
 			})
 			throw error
 		}
 
 		const submittedAt = Math.max(Date.now(), requestedAt + 1)
 		try {
-			await writeLocalBlockheadWalletRequest(context, {
-				...request,
-				submittedAt,
-				timestamps: [
-					{
-						timestampMs: requestedAt,
-						source: Source.Local_Internal,
-						status: 'requested',
-					},
-					{
-						timestampMs: submittedAt,
-						source: Source.Local_Internal,
-						status: 'signed',
-						signatureHash,
-					},
-				],
+			await writeLocalBlockheadWalletRequestSubmittedAt(
+				context,
+				walletRequestSelector,
+				submittedAt
+			)
+			await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+				timestampMs: submittedAt,
+				source: Source.Local_Internal,
+				status: 'signed',
+				signatureHash,
 			})
 		}
 		catch {
 			try {
-				await writeLocalBlockheadWalletRequest(context, {
-					...request,
-					submittedAt,
-					timestamps: [
-						{
-							timestampMs: requestedAt,
-							source: Source.Local_Internal,
-							status: 'requested',
-						},
-						{
-							timestampMs: submittedAt,
-							source: Source.Local_Internal,
-							status: 'audit-failed',
-							signatureHash,
-							error: 'Wallet signature succeeded but signed history persistence failed',
-						},
-					],
+				await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+					timestampMs: Math.max(Date.now(), submittedAt + 1),
+					source: Source.Local_Internal,
+					status: 'audit-failed',
+					signatureHash,
+					error: 'Wallet signature succeeded but signed history persistence failed',
 				})
 			}
 			catch {}
@@ -570,33 +572,16 @@ const createWalletRuntimeState = (
 		account: WalletAccount
 	) => {
 		const selectedConnection = connections.find((connection) => (
-			(connection.connectionKey ?? connection.sessionTopic ?? connection.sessionId ?? connection.walletId) === connectionKey
+			walletConnectionKey(connection) === connectionKey
 		))
-		if (selectedConnection == null) return
+		if (selectedConnection == null || selectedConnection.status !== BlockheadConnectionStatus.Connected)
+			return
 
-		connections = connections.map((connection) => ({
-			...connection,
-			selected: (
-				(connection.connectionKey ?? connection.sessionTopic ?? connection.sessionId ?? connection.walletId)
-				=== connectionKey
-			),
-			...(
-				(connection.connectionKey ?? connection.sessionTopic ?? connection.sessionId ?? connection.walletId)
-				=== connectionKey
-				&& {
-				activeAccount: account,
-				}
-			),
-		}))
+		connections = applyWalletConnectionSelection(connections, connectionKey, account)
 		for (const connection of connections) {
-			runtimeMutatedConnectionKeys.add(
-				connection.connectionKey ?? connection.sessionTopic ?? connection.sessionId ?? connection.walletId
-			)
-			if (connection.connectedAt !== undefined)
-				void writeLocalBlockheadWalletConnection(context, {
-					...connection,
-					connectedAt: connection.connectedAt,
-				})
+			runtimeMutatedConnectionKeys.add(walletConnectionKey(connection))
+			if (connection.status === BlockheadConnectionStatus.Connected)
+				void writeLocalBlockheadWalletConnection(context, connection)
 		}
 	}
 

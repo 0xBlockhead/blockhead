@@ -27,22 +27,52 @@ export type WalletScope = {
 	events: string[]
 }
 
-export type WalletConnection = {
+export type WalletConnectionBase = {
 	connectionKey?: string
 	walletId: string
-	status: BlockheadConnectionStatus
 	protocol: WalletProtocol
 	transportKind: WalletTransportKind
 	scopes: WalletScope[]
 	accounts: WalletAccount[]
 	activeAccount?: WalletAccount
-	selected: boolean
-	connectedAt?: number
-	disconnectedAt?: number
 	sessionId?: string
 	sessionTopic?: string
-	error?: string
 }
+
+export type WalletConnection =
+	| (
+		WalletConnectionBase & {
+			status: BlockheadConnectionStatus.Connecting
+		}
+	)
+	| (
+		WalletConnectionBase & {
+			status: BlockheadConnectionStatus.Connected
+			selected: true
+			connectedAt?: number
+		}
+	)
+	| (
+		WalletConnectionBase & {
+			status: BlockheadConnectionStatus.Connected
+			selected: false
+			connectedAt?: number
+		}
+	)
+	| (
+		WalletConnectionBase & {
+			status: BlockheadConnectionStatus.Disconnected
+			connectedAt?: number
+			disconnectedAt?: number
+		}
+	)
+	| (
+		WalletConnectionBase & {
+			status: BlockheadConnectionStatus.Error
+			error: string
+			disconnectedAt?: number
+		}
+	)
 
 export type WalletAdapter = {
 	id: string

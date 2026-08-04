@@ -168,6 +168,29 @@ export const walletConnectionMethods = [
 		dependencyPolicy: 'none',
 	},
 	{
+		id: 'tron-tip6963',
+		label: 'TRON TIP-6963 announced wallet',
+		protocol: WalletProtocol.TronTip1193,
+		discoveryKind: WalletDiscoveryKind.InjectedEvent,
+		transportKind: WalletTransportKind.InjectedProvider,
+		formFactors: [WalletFormFactor.BrowserExtension, WalletFormFactor.MobileWallet],
+		networkNamespaces: [NetworkNamespace.Tron],
+		caipNamespaces: ['tron'],
+		capabilities: [
+			WalletCapability.Discover,
+			WalletCapability.Connect,
+			WalletCapability.Reconnect,
+			WalletCapability.ListAccounts,
+			WalletCapability.WatchAccounts,
+			WalletCapability.WatchScopes,
+			WalletCapability.SignMessage,
+			WalletCapability.SignTransaction,
+			WalletCapability.SendTransaction,
+		],
+		implementationStatus: WalletImplementationStatus.DiscoveryImplemented,
+		dependencyPolicy: 'none',
+	},
+	{
 		id: 'tron-tip1193',
 		label: 'TRON injected wallet',
 		protocol: WalletProtocol.TronTip1193,
@@ -179,6 +202,7 @@ export const walletConnectionMethods = [
 		capabilities: [
 			WalletCapability.Discover,
 			WalletCapability.Connect,
+			WalletCapability.Reconnect,
 			WalletCapability.ListAccounts,
 			WalletCapability.WatchAccounts,
 			WalletCapability.WatchScopes,
@@ -514,6 +538,85 @@ export const walletConnectionMethods = [
 	},
 ] as const satisfies readonly WalletConnectionMethod[]
 
+const walletDiscoveryKinds = [
+	{ discoveryKind: WalletDiscoveryKind.InjectedEvent, label: 'Injected event' },
+	{ discoveryKind: WalletDiscoveryKind.InjectedGlobal, label: 'Injected global' },
+	{ discoveryKind: WalletDiscoveryKind.Registry, label: 'Registry' },
+	{ discoveryKind: WalletDiscoveryKind.PostMessage, label: 'PostMessage' },
+	{ discoveryKind: WalletDiscoveryKind.SandboxedIframe, label: 'Sandboxed iframe' },
+	{ discoveryKind: WalletDiscoveryKind.QrDeeplink, label: 'QR / deeplink' },
+	{ discoveryKind: WalletDiscoveryKind.P2pJsonRpc, label: 'P2P JSON-RPC' },
+	{ discoveryKind: WalletDiscoveryKind.HardwareBridge, label: 'Hardware bridge' },
+	{ discoveryKind: WalletDiscoveryKind.DirectHardware, label: 'Direct hardware' },
+] as const satisfies readonly {
+	discoveryKind: WalletDiscoveryKind
+	label: string
+}[]
+
+const walletTransportKinds = [
+	{ transportKind: WalletTransportKind.InjectedProvider, label: 'Injected provider' },
+	{ transportKind: WalletTransportKind.InjectedSigner, label: 'Injected signer' },
+	{ transportKind: WalletTransportKind.HttpBridge, label: 'HTTP bridge' },
+	{ transportKind: WalletTransportKind.PostMessage, label: 'PostMessage' },
+	{ transportKind: WalletTransportKind.IframePostMessage, label: 'Iframe PostMessage' },
+	{ transportKind: WalletTransportKind.WalletConnectRelay, label: 'WalletConnect relay' },
+	{ transportKind: WalletTransportKind.WebRtcJsonRpc, label: 'WebRTC JSON-RPC' },
+	{ transportKind: WalletTransportKind.WebHid, label: 'WebHID' },
+	{ transportKind: WalletTransportKind.WebUsb, label: 'WebUSB' },
+	{ transportKind: WalletTransportKind.NativeBridge, label: 'Native bridge' },
+] as const satisfies readonly {
+	transportKind: WalletTransportKind
+	label: string
+}[]
+
+const walletFormFactors = [
+	{ formFactor: WalletFormFactor.BrowserExtension, label: 'Browser extension' },
+	{ formFactor: WalletFormFactor.MobileWallet, label: 'Mobile wallet' },
+	{ formFactor: WalletFormFactor.DesktopWallet, label: 'Desktop wallet' },
+	{ formFactor: WalletFormFactor.HardwareWallet, label: 'Hardware wallet' },
+	{ formFactor: WalletFormFactor.EmbeddedIframe, label: 'Embedded iframe' },
+	{ formFactor: WalletFormFactor.RemoteSigner, label: 'Remote signer' },
+] as const satisfies readonly {
+	formFactor: WalletFormFactor
+	label: string
+}[]
+
+const walletCapabilities = [
+	{ capability: WalletCapability.Discover, label: 'Discover' },
+	{ capability: WalletCapability.Connect, label: 'Connect' },
+	{ capability: WalletCapability.Reconnect, label: 'Reconnect' },
+	{ capability: WalletCapability.Disconnect, label: 'Disconnect' },
+	{ capability: WalletCapability.ListAccounts, label: 'List accounts' },
+	{ capability: WalletCapability.WatchAccounts, label: 'Watch accounts' },
+	{ capability: WalletCapability.WatchScopes, label: 'Watch scopes' },
+	{ capability: WalletCapability.SignMessage, label: 'Sign message' },
+	{ capability: WalletCapability.SignTransaction, label: 'Sign transaction' },
+	{ capability: WalletCapability.SendTransaction, label: 'Send transaction' },
+	{ capability: WalletCapability.SignTypedData, label: 'Sign typed data' },
+	{ capability: WalletCapability.SwitchScope, label: 'Switch scope' },
+] as const satisfies readonly {
+	capability: WalletCapability
+	label: string
+}[]
+
+const walletImplementationStatuses = [
+	{ implementationStatus: WalletImplementationStatus.Implemented, label: 'Implemented' },
+	{ implementationStatus: WalletImplementationStatus.DiscoveryImplemented, label: 'Discovery implemented' },
+	{ implementationStatus: WalletImplementationStatus.Modeled, label: 'Modeled' },
+] as const satisfies readonly {
+	implementationStatus: WalletImplementationStatus
+	label: string
+}[]
+
+const walletDependencyPolicies = [
+	{ dependencyPolicy: 'none', label: 'None' },
+	{ dependencyPolicy: 'minimal-required', label: 'Minimal required' },
+	{ dependencyPolicy: 'vendor-required', label: 'Vendor required' },
+] as const satisfies readonly {
+	dependencyPolicy: WalletConnectionMethod['dependencyPolicy']
+	label: string
+}[]
+
 
 // Lookups
 
@@ -524,9 +627,62 @@ export const walletProtocolByProtocol = Object.fromEntries(
 	])
 )
 
+export const walletDiscoveryKindByDiscoveryKind = Object.fromEntries(
+	walletDiscoveryKinds.map((row) => [
+		row.discoveryKind,
+		row,
+	])
+)
+
+export const walletTransportKindByTransportKind = Object.fromEntries(
+	walletTransportKinds.map((row) => [
+		row.transportKind,
+		row,
+	])
+)
+
+export const walletFormFactorByFormFactor = Object.fromEntries(
+	walletFormFactors.map((row) => [
+		row.formFactor,
+		row,
+	])
+)
+
+export const walletCapabilityByCapability = Object.fromEntries(
+	walletCapabilities.map((row) => [
+		row.capability,
+		row,
+	])
+)
+
+export const walletImplementationStatusByImplementationStatus = Object.fromEntries(
+	walletImplementationStatuses.map((row) => [
+		row.implementationStatus,
+		row,
+	])
+)
+
+export const walletDependencyPolicyByDependencyPolicy = Object.fromEntries(
+	walletDependencyPolicies.map((row) => [
+		row.dependencyPolicy,
+		row,
+	])
+)
+
 export const walletConnectionMethodById = Object.fromEntries(
 	walletConnectionMethods.map((walletConnectionMethod) => [
 		walletConnectionMethod.id,
+		walletConnectionMethod,
+	])
+)
+
+export const walletConnectionMethodByProtocolDiscoveryKindTransportKind = Object.fromEntries(
+	walletConnectionMethods.map((walletConnectionMethod) => [
+		[
+			walletConnectionMethod.protocol,
+			walletConnectionMethod.discoveryKind,
+			walletConnectionMethod.transportKind,
+		].join(':'),
 		walletConnectionMethod,
 	])
 )

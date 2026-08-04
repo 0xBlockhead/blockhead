@@ -3,6 +3,15 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import {
+		walletCapabilityByCapability,
+		walletDependencyPolicyByDependencyPolicy,
+		walletDiscoveryKindByDiscoveryKind,
+		walletFormFactorByFormFactor,
+		walletImplementationStatusByImplementationStatus,
+		walletProtocolByProtocol,
+		walletTransportKindByTransportKind,
+	} from '$/constants/Wallet.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -29,6 +38,11 @@
 			discoveryKind: true,
 			transportKind: true,
 			implementationStatus: true,
+			dependencyPolicy: true,
+			formFactors: true,
+			networkNamespaces: true,
+			caipNamespaces: true,
+			capabilities: true,
 		},
 	}))
 	const titleFallback = $derived((prefetched.label ?? '') || 'wallet connection method')
@@ -58,346 +72,85 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={walletConnectionMethod}>
 			{#snippet children(entity)}
-				{[entity.protocol, entity.implementationStatus].filter(Boolean).join(' ') || entity.label || titleFallback}
+				{[
+					walletProtocolByProtocol[entity.protocol].label,
+					walletImplementationStatusByImplementationStatus[entity.implementationStatus].label,
+				].join(' ') || entity.label || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content()}
-		<dl data-column-item="center">
-			<div>
-				<dt>ID</dt>
-				<dd>
-					{selection.entitySelector.id}
-				</dd>
-			</div>
+		<ResourceBoundary resource={walletConnectionMethod}>
+			{#snippet children(entity)}
+				<dl data-column-item="center">
+					<div>
+						<dt>ID</dt>
+						<dd>
+							{selection.entitySelector.id}
+						</dd>
+					</div>
 
-			<div>
-				<dt>protocol</dt>
-				<dd>
-					<ResourceBoundary
-						resource={walletConnectionMethod}
-					>
-						{#snippet children(entity)}
-							{entity.protocol}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+					<div>
+						<dt>discovery kind</dt>
+						<dd>
+							{walletDiscoveryKindByDiscoveryKind[entity.discoveryKind].label}
+						</dd>
+					</div>
 
-			<div>
-				<dt>discovery kind</dt>
-				<dd>
-					<ResourceBoundary
-						resource={walletConnectionMethod}
-					>
-						{#snippet children(entity)}
-							{entity.discoveryKind}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+					<div>
+						<dt>transport kind</dt>
+						<dd>
+							{walletTransportKindByTransportKind[entity.transportKind].label}
+						</dd>
+					</div>
 
-			<div>
-				<dt>transport kind</dt>
-				<dd>
-					<ResourceBoundary
-						resource={walletConnectionMethod}
-					>
-						{#snippet children(entity)}
-							{entity.transportKind}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+					<div>
+						<dt>dependency policy</dt>
+						<dd>
+							{walletDependencyPolicyByDependencyPolicy[entity.dependencyPolicy].label}
+						</dd>
+					</div>
+				</dl>
 
-			<div>
-				<dt>implementation status</dt>
-				<dd>
-					<ResourceBoundary
-						resource={walletConnectionMethod}
-					>
-						{#snippet children(entity)}
-							{entity.implementationStatus}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<div>
-				<dt>dependency policy</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									dependencyPolicy: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{entity.dependencyPolicy}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-		</dl>
-
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							apiSurfaceKind: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const apiSurfaceKind = entity.apiSurfaceKind}
-					{#if apiSurfaceKind != null}
+				<dl data-column-item="center">
+					{#if entity.formFactors.length > 0}
 						<div>
-							<dt>API surface kind</dt>
+							<dt>form factors</dt>
 							<dd>
-								{apiSurfaceKind}
+								{entity.formFactors.map((formFactor) => walletFormFactorByFormFactor[formFactor].label).join(', ')}
 							</dd>
 						</div>
 					{/if}
-				{/snippet}
-			</ResourceBoundary>
 
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							sessionKind: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const sessionKind = entity.sessionKind}
-					{#if sessionKind != null}
+					{#if entity.networkNamespaces.length > 0}
 						<div>
-							<dt>session kind</dt>
+							<dt>network namespaces</dt>
 							<dd>
-								{sessionKind}
+								{entity.networkNamespaces.join(', ')}
 							</dd>
 						</div>
 					{/if}
-				{/snippet}
-			</ResourceBoundary>
 
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							authorizationKind: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const authorizationKind = entity.authorizationKind}
-					{#if authorizationKind != null}
+					{#if entity.caipNamespaces.length > 0}
 						<div>
-							<dt>authorization kind</dt>
+							<dt>CAIP namespaces</dt>
 							<dd>
-								{authorizationKind}
+								{entity.caipNamespaces.join(', ')}
 							</dd>
 						</div>
 					{/if}
-				{/snippet}
-			</ResourceBoundary>
 
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							accountExposureKind: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const accountExposureKind = entity.accountExposureKind}
-					{#if accountExposureKind != null}
+					{#if entity.capabilities.length > 0}
 						<div>
-							<dt>account exposure kind</dt>
+							<dt>capabilities</dt>
 							<dd>
-								{accountExposureKind}
+								{entity.capabilities.map((capability) => walletCapabilityByCapability[capability].label).join(', ')}
 							</dd>
 						</div>
 					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							requestExecutionKind: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const requestExecutionKind = entity.requestExecutionKind}
-					{#if requestExecutionKind != null}
-						<div>
-							<dt>request execution kind</dt>
-							<dd>
-								{requestExecutionKind}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							discoveryTrustKind: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const discoveryTrustKind = entity.discoveryTrustKind}
-					{#if discoveryTrustKind != null}
-						<div>
-							<dt>discovery trust kind</dt>
-							<dd>
-								{discoveryTrustKind}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
-			<div>
-				<dt>form factors</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									formFactors: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{entity.formFactors.join(', ')}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<div>
-				<dt>network namespaces</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									networkNamespaces: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{entity.networkNamespaces.join(', ')}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<div>
-				<dt>CAIP namespaces</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									caipNamespaces: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{entity.caipNamespaces.join(', ')}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<div>
-				<dt>capabilities</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									capabilities: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{entity.capabilities.join(', ')}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							sourceCapabilities: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const sourceCapabilities = entity.sourceCapabilities}
-					{#if sourceCapabilities != null}
-						<div>
-							<dt>source capabilities</dt>
-							<dd>
-								{sourceCapabilities.join(', ')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							runtimeCapabilities: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const runtimeCapabilities = entity.runtimeCapabilities}
-					{#if runtimeCapabilities != null}
-						<div>
-							<dt>runtime capabilities</dt>
-							<dd>
-								{runtimeCapabilities.join(', ')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

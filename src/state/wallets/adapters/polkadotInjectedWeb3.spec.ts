@@ -130,7 +130,6 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 		expect(restoreUpdates.at(-1)).toEqual(expect.objectContaining({
 			status: BlockheadConnectionStatus.Disconnected,
 			accounts: [],
-			selected: false,
 			disconnectedAt: expect.any(Number),
 		}))
 		expect(restoreUpdates.at(-1)).not.toHaveProperty('activeAccount')
@@ -194,7 +193,6 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 				status: BlockheadConnectionStatus.Disconnected,
 				scopes: [],
 				accounts: [],
-				selected: false,
 			})
 		)
 	})

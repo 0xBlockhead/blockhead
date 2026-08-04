@@ -1,6 +1,7 @@
 import { WalletCapability, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import type { WalletAdapter, WalletCandidate } from './types.ts'
+import { buildWalletConnection } from '../walletConnectionState.ts'
 
 export const createDiscoveryOnlyAdapter = ({
 	id,
@@ -21,16 +22,17 @@ export const createDiscoveryOnlyAdapter = ({
 
 		return () => {}
 	},
-	connect: async (walletId) => ({
-		walletId,
-		status: BlockheadConnectionStatus.Disconnected,
-		protocol: candidate.protocol,
-		transportKind: candidate.transportKind,
-		scopes: [],
-		accounts: [],
-		selected: false,
-		error: 'This wallet protocol is discovered but connection is not implemented yet.',
-	}),
+	connect: async (walletId) => (
+		buildWalletConnection({
+			walletId,
+			status: BlockheadConnectionStatus.Error,
+			protocol: candidate.protocol,
+			transportKind: candidate.transportKind,
+			scopes: [],
+			accounts: [],
+			error: 'This wallet protocol is discovered but connection is not implemented yet.',
+		})
+	),
 	disconnect: () => {},
 	subscribeConnection: () => () => {},
 })

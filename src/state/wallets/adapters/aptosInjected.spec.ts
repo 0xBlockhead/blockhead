@@ -245,7 +245,6 @@ describe('Aptos injected wallet adapter', () => {
 			expect(connectionUpdates.at(-1)).toMatchObject({
 				status: BlockheadConnectionStatus.Disconnected,
 				accounts: [],
-				selected: false,
 			})
 		})
 
@@ -328,7 +327,6 @@ describe('Aptos injected wallet adapter', () => {
 				expect.objectContaining({
 					status: BlockheadConnectionStatus.Disconnected,
 					accounts: [],
-					selected: false,
 				}),
 			])
 		})
@@ -394,7 +392,6 @@ describe('Aptos injected wallet adapter', () => {
 			expect(connectionUpdates.at(-1)).toMatchObject({
 				status: BlockheadConnectionStatus.Error,
 				accounts: [],
-				selected: false,
 				error: expect.stringContaining('Aptos wallet did not expose a valid account address'),
 			})
 		})
@@ -422,7 +419,6 @@ describe('Aptos injected wallet adapter', () => {
 			expect(connectionUpdates.at(-1)).toMatchObject({
 				status: BlockheadConnectionStatus.Error,
 				accounts: [],
-				selected: false,
 				error: expect.stringContaining('Aptos wallet did not expose a valid account address'),
 			})
 		})

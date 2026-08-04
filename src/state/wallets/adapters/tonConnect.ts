@@ -2,6 +2,7 @@ import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportK
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { SvelteMap } from 'svelte/reactivity'
 import type { WalletAdapter, WalletCandidate, WalletConnection } from './types.ts'
+import { buildWalletConnection } from '../walletConnectionState.ts'
 
 type TonConnectAccount = {
 	address: string
@@ -126,56 +127,13 @@ const connectionFromAccount = (
 	walletId: string,
 	account: TonConnectAccount,
 	connectedAt: number
-): WalletConnection => ({
-	walletId,
-	status: BlockheadConnectionStatus.Connected,
-	protocol: WalletProtocol.TonConnect,
-	transportKind: WalletTransportKind.InjectedProvider,
-	scopes: [
-		{
-			namespace: 'ton',
-			reference: account.chain,
-			methods: [
-				'connect',
-				'restoreConnection',
-				'disconnect',
-			],
-			events: [
-				'connect',
-				'disconnect',
-			],
-		},
-	],
-	accounts: [
-		{
-			namespace: 'ton',
-			reference: account.chain,
-			accountAddress: account.address,
-			capabilities: tonConnectCapabilities,
-		},
-	],
-	activeAccount: {
-		namespace: 'ton',
-		reference: account.chain,
-		accountAddress: account.address,
-		capabilities: tonConnectCapabilities,
-	},
-	selected: true,
-	connectedAt,
-})
-
-const disconnectedConnection = (
-	walletId: string,
-	account?: TonConnectAccount
-): WalletConnection => ({
-	walletId,
-	status: BlockheadConnectionStatus.Disconnected,
-	protocol: WalletProtocol.TonConnect,
-	transportKind: WalletTransportKind.InjectedProvider,
-	scopes: account == null ?
-		[]
-	:
-		[
+): WalletConnection => (
+	buildWalletConnection({
+		walletId,
+		status: BlockheadConnectionStatus.Connected,
+		protocol: WalletProtocol.TonConnect,
+		transportKind: WalletTransportKind.InjectedProvider,
+		scopes: [
 			{
 				namespace: 'ton',
 				reference: account.chain,
@@ -189,27 +147,73 @@ const disconnectedConnection = (
 					'disconnect',
 				],
 			},
-	],
-	accounts: [],
-	selected: false,
-	disconnectedAt: Date.now(),
-})
+		],
+		accounts: [
+			{
+				namespace: 'ton',
+				reference: account.chain,
+				accountAddress: account.address,
+				capabilities: tonConnectCapabilities,
+			},
+		],
+		activeAccount: {
+			namespace: 'ton',
+			reference: account.chain,
+			accountAddress: account.address,
+			capabilities: tonConnectCapabilities,
+		},
+		selected: true,
+		connectedAt,
+	})
+)
+
+const disconnectedConnection = (
+	walletId: string,
+	account?: TonConnectAccount
+): WalletConnection => (
+	buildWalletConnection({
+		walletId,
+		status: BlockheadConnectionStatus.Disconnected,
+		protocol: WalletProtocol.TonConnect,
+		transportKind: WalletTransportKind.InjectedProvider,
+		scopes: account == null ?
+			[]
+		:
+			[
+				{
+					namespace: 'ton',
+					reference: account.chain,
+					methods: [
+						'connect',
+						'restoreConnection',
+						'disconnect',
+					],
+					events: [
+						'connect',
+						'disconnect',
+					],
+				},
+			],
+		accounts: [],
+		disconnectedAt: Date.now(),
+	})
+)
 
 const errorConnection = (
 	walletId: string,
 	message: string,
 	connectedAt?: number
-): WalletConnection => ({
-	walletId,
-	status: BlockheadConnectionStatus.Error,
-	protocol: WalletProtocol.TonConnect,
-	transportKind: WalletTransportKind.InjectedProvider,
-	scopes: [],
-	accounts: [],
-	selected: false,
-	...(connectedAt != null && { connectedAt }),
-	error: message,
-})
+): WalletConnection => (
+	buildWalletConnection({
+		walletId,
+		status: BlockheadConnectionStatus.Error,
+		protocol: WalletProtocol.TonConnect,
+		transportKind: WalletTransportKind.InjectedProvider,
+		scopes: [],
+		accounts: [],
+		error: message,
+	})
+)
 
 export const createTonConnectAdapter = (): WalletAdapter => {
 	const bridgeByWalletId = new SvelteMap<string, TonConnectBridge>()

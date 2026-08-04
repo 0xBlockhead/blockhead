@@ -14,6 +14,7 @@ import type {
 	WalletConnection,
 	WalletScope,
 } from './types.ts'
+import { buildWalletConnection } from '../walletConnectionState.ts'
 
 export type WalletConnectV2RequestedScope = {
 	namespace: string
@@ -563,21 +564,23 @@ export const walletConnectV2ClientFromSignClient = (
 
 const connectedConnection = (
 	state: WalletConnectV2SessionState
-): WalletConnection => ({
-	connectionKey: state.topic,
-	walletId: WALLET_ID,
-	status: BlockheadConnectionStatus.Connected,
-	protocol: WalletProtocol.WalletConnectV2,
-	transportKind: WalletTransportKind.WalletConnectRelay,
-	scopes: state.scopes,
-	accounts: state.accounts,
-	activeAccount: state.accounts.find((account) => (
-		`${account.namespace}:${account.reference}` === state.activeChainId
-	)),
-	selected: true,
-	connectedAt: state.connectedAt,
-	sessionTopic: state.topic,
-})
+): WalletConnection => (
+	buildWalletConnection({
+		connectionKey: state.topic,
+		walletId: WALLET_ID,
+		status: BlockheadConnectionStatus.Connected,
+		protocol: WalletProtocol.WalletConnectV2,
+		transportKind: WalletTransportKind.WalletConnectRelay,
+		scopes: state.scopes,
+		accounts: state.accounts,
+		activeAccount: state.accounts.find((account) => (
+			`${account.namespace}:${account.reference}` === state.activeChainId
+		)),
+		selected: true,
+		connectedAt: state.connectedAt,
+		sessionTopic: state.topic,
+	})
+)
 
 const disconnectedConnection = (
 	state: {
@@ -586,20 +589,24 @@ const disconnectedConnection = (
 		connectedAt?: number
 	},
 	error?: string
-): WalletConnection => ({
-	connectionKey: state.topic,
-	walletId: WALLET_ID,
-	status: BlockheadConnectionStatus.Disconnected,
-	protocol: WalletProtocol.WalletConnectV2,
-	transportKind: WalletTransportKind.WalletConnectRelay,
-	scopes: state.scopes,
-	accounts: [],
-	selected: false,
-	...(state.connectedAt != null && { connectedAt: state.connectedAt }),
-	disconnectedAt: Date.now(),
-	sessionTopic: state.topic,
-	...(error != null && { error }),
-})
+): WalletConnection => (
+	buildWalletConnection({
+		connectionKey: state.topic,
+		walletId: WALLET_ID,
+		status: error == null ?
+			BlockheadConnectionStatus.Disconnected
+		:
+			BlockheadConnectionStatus.Error,
+		protocol: WalletProtocol.WalletConnectV2,
+		transportKind: WalletTransportKind.WalletConnectRelay,
+		scopes: state.scopes,
+		accounts: [],
+		...(state.connectedAt != null && { connectedAt: state.connectedAt }),
+		disconnectedAt: Date.now(),
+		sessionTopic: state.topic,
+		...(error != null && { error }),
+	})
+)
 
 const validSessionExpiry = (expiry: number) => (
 	Number.isSafeInteger(expiry)

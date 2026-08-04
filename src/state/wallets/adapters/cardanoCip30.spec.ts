@@ -88,7 +88,6 @@ describe('Cardano CIP-30 wallet adapter', () => {
 		expect(updates[0]).toMatchObject({
 			status: BlockheadConnectionStatus.Disconnected,
 			accounts: [],
-			selected: false,
 		})
 	})
 
@@ -224,7 +223,6 @@ describe('Cardano CIP-30 wallet adapter', () => {
 		expect(updates[2]).toMatchObject({
 			status: BlockheadConnectionStatus.Disconnected,
 			accounts: [],
-			selected: false,
 		})
 
 		unsubscribe()

@@ -2,6 +2,7 @@ import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportK
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { SvelteMap } from 'svelte/reactivity'
 import type { WalletAdapter, WalletCandidate, WalletConnection } from './types.ts'
+import { buildWalletConnection } from '../walletConnectionState.ts'
 
 type StarknetRequest =
 	| {
@@ -88,44 +89,46 @@ const starknetConnection = (
 		BlockheadConnectionStatus.Connected
 	:
 		BlockheadConnectionStatus.Disconnected
-): WalletConnection => ({
-	walletId,
-	status,
-	protocol: WalletProtocol.StarknetWalletApi,
-	transportKind: WalletTransportKind.InjectedProvider,
-	scopes: [
-		{
+): WalletConnection => (
+	buildWalletConnection({
+		walletId,
+		status,
+		protocol: WalletProtocol.StarknetWalletApi,
+		transportKind: WalletTransportKind.InjectedProvider,
+		scopes: [
+			{
+				namespace: 'starknet',
+				reference: state.reference,
+				methods: [
+					'wallet_requestAccounts',
+					'wallet_requestChainId',
+				],
+				events: [
+					'accountsChanged',
+					'networkChanged',
+				],
+			},
+		],
+		accounts: state.accounts.map((accountAddress) => ({
 			namespace: 'starknet',
 			reference: state.reference,
-			methods: [
-				'wallet_requestAccounts',
-				'wallet_requestChainId',
-			],
-			events: [
-				'accountsChanged',
-				'networkChanged',
-			],
-		},
-	],
-	accounts: state.accounts.map((accountAddress) => ({
-		namespace: 'starknet',
-		reference: state.reference,
-		accountAddress,
-		capabilities: starknetConnectionCapabilities,
-	})),
-	activeAccount: state.accounts.at(0) == null ?
-		undefined
-	:
-		{
-			namespace: 'starknet',
-			reference: state.reference,
-			accountAddress: state.accounts[0],
+			accountAddress,
 			capabilities: starknetConnectionCapabilities,
-		},
-	selected: status === BlockheadConnectionStatus.Connected && state.accounts.length > 0,
-	connectedAt: state.connectedAt,
-	...(status === BlockheadConnectionStatus.Disconnected && { disconnectedAt: Date.now() }),
-})
+		})),
+		activeAccount: state.accounts.at(0) == null ?
+			undefined
+		:
+			{
+				namespace: 'starknet',
+				reference: state.reference,
+				accountAddress: state.accounts[0],
+				capabilities: starknetConnectionCapabilities,
+			},
+		selected: status === BlockheadConnectionStatus.Connected && state.accounts.length > 0,
+		connectedAt: state.connectedAt,
+		...(status === BlockheadConnectionStatus.Disconnected && { disconnectedAt: Date.now() }),
+	})
+)
 
 const readStarknetState = async (
 	wallet: StarknetWindowObject,

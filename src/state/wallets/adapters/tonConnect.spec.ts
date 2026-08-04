@@ -222,7 +222,6 @@ describe('TON Connect injected adapter', () => {
 		})
 		expect(updates.at(-1)).toMatchObject({
 			status: BlockheadConnectionStatus.Disconnected,
-			selected: false,
 			accounts: [],
 		})
 		expect(updates.at(-1)).not.toHaveProperty('activeAccount')
@@ -263,7 +262,6 @@ describe('TON Connect injected adapter', () => {
 			expect.objectContaining({
 				status: BlockheadConnectionStatus.Error,
 				accounts: [],
-				selected: false,
 				error: 'Stored TON session expired',
 			}),
 		]))
@@ -496,7 +494,6 @@ describe('TON Connect injected adapter', () => {
 			expect(updates.at(-1)).toMatchObject({
 				status: BlockheadConnectionStatus.Error,
 				accounts: [],
-				selected: false,
 				error: expect.stringContaining('TON wallet returned a non-canonical raw address'),
 			})
 		})
@@ -510,7 +507,6 @@ describe('TON Connect injected adapter', () => {
 		expect(updates.at(-1)).toMatchObject({
 			status: BlockheadConnectionStatus.Error,
 			accounts: [],
-			selected: false,
 			error: expect.stringContaining('TON wallet returned a non-canonical raw address'),
 		})
 
