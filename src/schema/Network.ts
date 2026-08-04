@@ -404,6 +404,48 @@ export default entity({
 					Source.Balancer_Rest,
 				],
 			},
+			$$compoundComets: {
+				entityType: EntityType.CompoundComet,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Compound_Rest,
+				],
+			},
+			$$curvePools: {
+				entityType: EntityType.CurvePool,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Curve_Rest,
+				],
+			},
+			$$eulerEvkVaults: {
+				entityType: EntityType.EulerEvkVault,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Euler_Rest,
+				],
+			},
+			$$gmxMarkets: {
+				entityType: EntityType.GmxMarket,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Gmx_Rest,
+				],
+			},
+			$$morphoMarkets: {
+				entityType: EntityType.MorphoMarket,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Morpho_Graphql,
+				],
+			},
+			$$pendleMarkets: {
+				entityType: EntityType.PendleMarket,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Pendle_Rest,
+				],
+			},
 			$$bridges: {
 				entityType: EntityType.EvmNetworkBridge,
 				cardinality: EntityFieldCardinality.Many,

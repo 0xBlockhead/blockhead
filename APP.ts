@@ -346,6 +346,7 @@ export enum Source {
 	Mlflow_Rest = "Mlflow_Rest",
 	MoneroDaemonRpc_JsonRpc = "MoneroDaemonRpc_JsonRpc",
 	MoneroWalletRpc_JsonRpc = "MoneroWalletRpc_JsonRpc",
+	Morpho_Graphql = "Morpho_Graphql",
 	Morpho_Rest = "Morpho_Rest",
 	NearBlocks_Rest = "NearBlocks_Rest",
 	NearConnect_WalletApi = "NearConnect_WalletApi",
@@ -47285,6 +47286,12 @@ export const schema = {
 						"$$userOperations": { label: "User operations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmUserOperation, defaultSources: [Source.Blockscout_Rest] },
 						"$$aaveMarkets": { label: "Aave markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AaveMarket, defaultSources: [Source.Aave_Rest] },
 						"$$balancerPools": { label: "Balancer pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BalancerPool, defaultSources: [Source.Balancer_Rest] },
+						"$$compoundComets": { label: "Compound comets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CompoundComet, defaultSources: [Source.Compound_Rest] },
+						"$$curvePools": { label: "Curve pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CurvePool, defaultSources: [Source.Curve_Rest] },
+						"$$eulerEvkVaults": { label: "Euler vaults", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EulerEvkVault, defaultSources: [Source.Euler_Rest] },
+						"$$gmxMarkets": { label: "GMX markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GmxMarket, defaultSources: [Source.Gmx_Rest] },
+						"$$morphoMarkets": { label: "Morpho markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MorphoMarket, defaultSources: [Source.Morpho_Graphql] },
+						"$$pendleMarkets": { label: "Pendle markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PendleMarket, defaultSources: [Source.Pendle_Rest] },
 						"$$bridges": { label: "Bridges", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkBridge, defaultSources: [Source.Chainlist_Rest, Source.EthereumLists_Rest] },
 						"$$erc20TokenTransfers": { label: "ERC-20 token transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTokenTransfer, defaultSources: [Source.Blockscout_Rest] },
 						"$$nftTokenTransfers": { label: "NFT token transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTokenTransfer, defaultSources: [Source.Blockscout_Rest] },
@@ -47506,11 +47513,17 @@ export const schema = {
 								{
 									id: "evm-defi",
 									label: "DeFi",
-									description: "Protocol-native lending markets on this EVM network.",
+									description: "Protocol-native DeFi surfaces on this EVM network.",
 									className: "network-view-collapsible-defi",
 									sections: [
 										{ id: "evm-defi-aave-markets", field: ["Evm", "$$aaveMarkets"], List: "AaveMarketsView", label: "Aave markets", emptyText: "No Aave markets.", selection: { sources: [Source.Aave_Rest], limit: 16 } },
 										{ id: "evm-defi-balancer-pools", field: ["Evm", "$$balancerPools"], List: "BalancerPoolsView", label: "Balancer pools", emptyText: "No Balancer pools.", selection: { sources: [Source.Balancer_Rest], limit: 16 } },
+										{ id: "evm-defi-compound-comets", field: ["Evm", "$$compoundComets"], List: "CompoundCometsView", label: "Compound comets", emptyText: "No Compound comets.", selection: { sources: [Source.Compound_Rest], limit: 16 } },
+										{ id: "evm-defi-curve-pools", field: ["Evm", "$$curvePools"], List: "CurvePoolsView", label: "Curve pools", emptyText: "No Curve pools.", selection: { sources: [Source.Curve_Rest], limit: 16 } },
+										{ id: "evm-defi-euler-vaults", field: ["Evm", "$$eulerEvkVaults"], List: "EulerEvkVaultsView", label: "Euler vaults", emptyText: "No Euler vaults.", selection: { sources: [Source.Euler_Rest], limit: 16 } },
+										{ id: "evm-defi-gmx-markets", field: ["Evm", "$$gmxMarkets"], List: "GmxMarketsView", label: "GMX markets", emptyText: "No GMX markets.", selection: { sources: [Source.Gmx_Rest], limit: 16 } },
+										{ id: "evm-defi-morpho-markets", field: ["Evm", "$$morphoMarkets"], List: "MorphoMarketsView", label: "Morpho markets", emptyText: "No Morpho markets.", selection: { sources: [Source.Morpho_Graphql], limit: 16 } },
+										{ id: "evm-defi-pendle-markets", field: ["Evm", "$$pendleMarkets"], List: "PendleMarketsView", label: "Pendle markets", emptyText: "No Pendle markets.", selection: { sources: [Source.Pendle_Rest], limit: 16 } },
 									],
 								},
 							],
@@ -92505,6 +92518,38 @@ export const app = {
 				},
 			},
 			{
+				source: Source.Morpho_Graphql,
+				provider: "Morpho",
+				label: "Morpho GraphQL API",
+				binding: {
+					target: {
+						kind: SourceTargetKind.Global,
+						key: "morpho-api",
+					},
+					endpoints: [
+						{
+							endpointKind: SourceEndpointKind.HttpUrl,
+							locator: "https://api.morpho.org/graphql",
+							corsEnabled: true,
+						},
+					],
+					wireProtocol: WireProtocol.Graphql,
+					apiFamily: ApiFamily.GraphqlHttp,
+					operationGroups: [
+						SourceOperationGroup.GenericRead,
+					],
+					delivery: SourceDelivery.BrowserDirect,
+					credentials: [],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/Morpho/Graphql/types.ts",
+							referenceUrl: "https://docs.morpho.org/developers/api/morpho/",
+						},
+					],
+				},
+			},
+			{
 				source: Source.Morpho_Rest,
 				provider: "Morpho",
 				label: "Morpho Blue REST API",
@@ -101556,6 +101601,10 @@ export const app = {
 			{
 				source: Source.MoneroDaemonRpc_JsonRpc,
 				path: "src/resolvers/MoneroDaemonRpc-JsonRpc.ts",
+			},
+			{
+				source: Source.Morpho_Graphql,
+				path: "src/resolvers/Morpho-Graphql.ts",
 			},
 			{
 				source: Source.Morpho_Rest,

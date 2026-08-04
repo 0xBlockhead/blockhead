@@ -223,6 +223,12 @@
 	import EvmTokenTransfersView from '$/views/EvmTokenTransfersView.svelte'
 	import AaveMarketsView from '$/views/AaveMarketsView.svelte'
 	import BalancerPoolsView from '$/views/BalancerPoolsView.svelte'
+	import CompoundCometsView from '$/views/CompoundCometsView.svelte'
+	import CurvePoolsView from '$/views/CurvePoolsView.svelte'
+	import EulerEvkVaultsView from '$/views/EulerEvkVaultsView.svelte'
+	import GmxMarketsView from '$/views/GmxMarketsView.svelte'
+	import MorphoMarketsView from '$/views/MorphoMarketsView.svelte'
+	import PendleMarketsView from '$/views/PendleMarketsView.svelte'
 	import CosmosBlocksView from '$/views/CosmosBlocksView.svelte'
 	import CosmosValidatorsView from '$/views/CosmosValidatorsView.svelte'
 	import CosmosAccountsView from '$/views/CosmosAccountsView.svelte'
@@ -2564,80 +2570,222 @@
 
 					</CollapsibleTabs>
 				{/if}
+				{@const evmDefiGmxMarketsSources = networkApplicableSources([
+						Source.Gmx_Rest,
+					], pendingEntity)}
 
-				<CollapsibleTabs
-					id={viewDomId + '-carousel-evm-defi'}
-					sectionIdPrefix={viewDomId}
-					sections={
-						[
-							{
-								id: 'evm-defi-aave-markets',
-								label: 'Aave markets',
-							},
-							{
-								id: 'evm-defi-balancer-pools',
-								label: 'Balancer pools',
-							},
-						]
-					}
-					data-card
-					class='network-view-collapsible-defi'
-				>
-					{#snippet Summary()}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>DeFi</HeadingComponent>
-							<Tooltip>
-								{#snippet Content()}
-									<p>
-										Protocol-native lending markets on this EVM network.
-									</p>
-								{/snippet}
+				{@const evmDefiSections = [
+						{
+							id: 'evm-defi-aave-markets',
+							label: 'Aave markets',
+						},
+						{
+							id: 'evm-defi-balancer-pools',
+							label: 'Balancer pools',
+						},
+						{
+							id: 'evm-defi-compound-comets',
+							label: 'Compound comets',
+						},
+						{
+							id: 'evm-defi-curve-pools',
+							label: 'Curve pools',
+						},
+						{
+							id: 'evm-defi-euler-vaults',
+							label: 'Euler vaults',
+						},
+						...(
+							evmDefiGmxMarketsSources.length > 0 ?
+								[
+									{
+										id: 'evm-defi-gmx-markets',
+										label: 'GMX markets',
+									},
+								]
+							:
+								[]
+						),
+						{
+							id: 'evm-defi-morpho-markets',
+							label: 'Morpho markets',
+						},
+						{
+							id: 'evm-defi-pendle-markets',
+							label: 'Pendle markets',
+						},
+					]}
 
-								<abbr
-									class="entity-heading-tip"
-									aria-label='DeFi help'
-								>ⓘ</abbr>
-							</Tooltip>
-						</header>
-					{/snippet}
+				{#if evmDefiSections.length > 0}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-evm-defi'}
+						sectionIdPrefix={viewDomId}
+						sections={evmDefiSections}
+						data-card
+						class='network-view-collapsible-defi'
+					>
+						{#snippet Summary()}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>DeFi</HeadingComponent>
+								<Tooltip>
+									{#snippet Content()}
+										<p>
+											Protocol-native DeFi surfaces on this EVM network.
+										</p>
+									{/snippet}
 
-					{#snippet SectionEvmDefiAaveMarkets({ id, label })}
-						<AaveMarketsView
-							selection={
-								projection
-								.$$aaveMarkets({
-									sources: [
-										Source.Aave_Rest,
-									],
-									limit: 16,
-								})
-							}
-							collapsible={false}
-							title={label}
-							emptyText='No Aave markets.'
-							id={`${id}-list`}
-						/>
-					{/snippet}
+									<abbr
+										class="entity-heading-tip"
+										aria-label='DeFi help'
+									>ⓘ</abbr>
+								</Tooltip>
+							</header>
+						{/snippet}
 
-					{#snippet SectionEvmDefiBalancerPools({ id, label })}
-						<BalancerPoolsView
-							selection={
-								projection
-								.$$balancerPools({
-									sources: [
-										Source.Balancer_Rest,
-									],
-									limit: 16,
-								})
-							}
-							collapsible={false}
-							title={label}
-							emptyText='No Balancer pools.'
-							id={`${id}-list`}
-						/>
-					{/snippet}
+						{#snippet SectionEvmDefiAaveMarkets({ id, label })}
+							<AaveMarketsView
+								selection={
+									projection
+									.$$aaveMarkets({
+										sources: [
+											Source.Aave_Rest,
+										],
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No Aave markets.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
 
-				</CollapsibleTabs>
+						{#snippet SectionEvmDefiBalancerPools({ id, label })}
+							<BalancerPoolsView
+								selection={
+									projection
+									.$$balancerPools({
+										sources: [
+											Source.Balancer_Rest,
+										],
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No Balancer pools.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionEvmDefiCompoundComets({ id, label })}
+							<CompoundCometsView
+								selection={
+									projection
+									.$$compoundComets({
+										sources: [
+											Source.Compound_Rest,
+										],
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No Compound comets.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionEvmDefiCurvePools({ id, label })}
+							<CurvePoolsView
+								selection={
+									projection
+									.$$curvePools({
+										sources: [
+											Source.Curve_Rest,
+										],
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No Curve pools.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionEvmDefiEulerVaults({ id, label })}
+							<EulerEvkVaultsView
+								selection={
+									projection
+									.$$eulerEvkVaults({
+										sources: [
+											Source.Euler_Rest,
+										],
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No Euler vaults.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionEvmDefiGmxMarkets({ id, label })}
+							<GmxMarketsView
+								selection={
+									projection
+									.$$gmxMarkets({
+										sources: evmDefiGmxMarketsSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No GMX markets.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionEvmDefiMorphoMarkets({ id, label })}
+							<MorphoMarketsView
+								selection={
+									projection
+									.$$morphoMarkets({
+										sources: [
+											Source.Morpho_Graphql,
+										],
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No Morpho markets.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionEvmDefiPendleMarkets({ id, label })}
+							<PendleMarketsView
+								selection={
+									projection
+									.$$pendleMarkets({
+										sources: [
+											Source.Pendle_Rest,
+										],
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No Pendle markets.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/if}
 			{/snippet}
 		</ProjectionBoundary>
 

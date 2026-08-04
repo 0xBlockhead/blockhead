@@ -1,3 +1,4 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
@@ -106,6 +107,32 @@ export default {
 			assetTypeName: (pool) => pool.assetTypeName,
 			creationBlockNumber: (pool) => pool.creationBlockNumber,
 			creationTs: (pool) => pool.creationTs,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
+					resolve: async (network, context) => {
+						const chainId = eip155ChainId(network)
+						const { listPools } = await import('$/sources/Curve/Rest/queries.ts')
+						return (await listPools({
+							chainId,
+						}))
+							.slice(0, resolverContextRowLimit(context))
+							.map((pool) => ({
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									poolAddress: pool.poolAddress,
+								},
+							}))
+					},
+				},
+			},
+		})({
+			Evm: {
+				$$curvePools: (pools) => pools,
+			},
 		}),
 	],
 } satisfies RegisteredSourceResolverModule<Source.Curve_Rest>

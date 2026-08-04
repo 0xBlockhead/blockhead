@@ -1,3 +1,4 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
@@ -111,6 +112,32 @@ export default {
 			supplyCap: (vault) => vault.supplyCap,
 			borrowCap: (vault) => vault.borrowCap,
 			interestFee: (vault) => vault.interestFee,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
+					resolve: async (network, context) => {
+						const chainId = eip155ChainId(network)
+						const { listVaults } = await import('$/sources/Euler/Rest/queries.ts')
+						return (await listVaults({
+							chainId,
+							limit: resolverContextRowLimit(context),
+						}))
+							.map((vault) => ({
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									vaultAddress: vault.vaultAddress,
+								},
+							}))
+					},
+				},
+			},
+		})({
+			Evm: {
+				$$eulerEvkVaults: (vaults) => vaults,
+			},
 		}),
 	],
 } satisfies RegisteredSourceResolverModule<Source.Euler_Rest>

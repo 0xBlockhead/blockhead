@@ -1,4 +1,5 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
@@ -97,6 +98,32 @@ export default {
 			longPoolAmount: (market) => market.longPoolAmount,
 			shortPoolAmount: (market) => market.shortPoolAmount,
 			fundingFactorPerSecond: (market) => market.fundingFactorPerSecond,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
+					resolve: async (network, context) => {
+						const chainId = eip155ChainId(network)
+						const { getMarketsInfo } = await import('$/sources/Gmx/Rest/queries.ts')
+						return (await getMarketsInfo({
+							chainId,
+						}))
+							.slice(0, resolverContextRowLimit(context))
+							.map((market) => ({
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									marketTokenAddress: market.marketTokenAddress,
+								},
+							}))
+					},
+				},
+			},
+		})({
+			Evm: {
+				$$gmxMarkets: (markets) => markets,
+			},
 		}),
 	],
 } satisfies RegisteredSourceResolverModule<Source.Gmx_Rest>

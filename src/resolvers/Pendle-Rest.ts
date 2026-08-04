@@ -1,4 +1,5 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
@@ -114,6 +115,32 @@ export default {
 			isPrime: (market) => market.isPrime,
 			isNew: (market) => market.isNew,
 			observedAtTimestampMs: (market) => market.observedAtTimestampMs,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
+					resolve: async (network, context) => {
+						const chainId = eip155ChainId(network)
+						const { listMarkets } = await import('$/sources/Pendle/Rest/queries.ts')
+						const { markets } = await listMarkets({
+							chainId,
+							limit: resolverContextRowLimit(context),
+						})
+						return markets.map((market) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								marketAddress: market.marketAddress,
+							},
+						}))
+					},
+				},
+			},
+		})({
+			Evm: {
+				$$pendleMarkets: (markets) => markets,
+			},
 		}),
 	],
 } satisfies RegisteredSourceResolverModule<Source.Pendle_Rest>

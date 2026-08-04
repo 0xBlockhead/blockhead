@@ -219,5 +219,27 @@ export default {
 			liquidationFactor: (asset) => asset.liquidationFactor,
 			supplyCap: (asset) => asset.supplyCap,
 		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
+					resolve: async (network) => {
+						const chainId = eip155ChainId(network)
+						const { compoundCometsByChainId } = await import('$/sources/Compound/Rest/constants.ts')
+						return (compoundCometsByChainId[chainId] ?? []).map((deployment) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								cometAddress: deployment.cometAddress,
+							},
+						}))
+					},
+				},
+			},
+		})({
+			Evm: {
+				$$compoundComets: (comets) => comets,
+			},
+		}),
 	],
 } satisfies RegisteredSourceResolverModule<Source.Compound_Rest>
