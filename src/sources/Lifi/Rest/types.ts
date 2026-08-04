@@ -48,8 +48,9 @@ type GeneratedExchange = components['schemas']['Exchange']
 
 /**
  * LI.FI's OpenAPI declares bridge chain ids as strings and exchange chains as
- * one string. Live responses mix numeric and string ids; queries normalize to
- * numbers before returning.
+ * one string. Live responses mix numeric and string ids (including SVM-scale
+ * integers above `Number.MAX_SAFE_INTEGER`); queries normalize to positive
+ * decimal digit strings that round-trip the wire value.
  */
 export type LifiToolsResponse = {
 	bridges?: (
@@ -67,6 +68,24 @@ export type LifiToolsResponse = {
 			supportedChains?: (number | string)[]
 		}
 	)[]
+}
+
+export type LifiNormalizedTools = {
+	bridges: {
+		key: string
+		name: string
+		logoURI?: string
+		supportedChains: {
+			fromChainId: string
+			toChainId: string
+		}[]
+	}[]
+	exchanges?: {
+		key: string
+		name: string
+		logoURI?: string
+		supportedChains: string[]
+	}[]
 }
 
 type LifiQuoteQuery = paths['/v1/quote']['get']['parameters']['query']

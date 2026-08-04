@@ -265,10 +265,7 @@ const coinBridgeCapabilityRowsForCoin = async (
 			}),
 		(await fetchTools()).bridges.map((tool) => ({
 			key: tool.key,
-			supportedChains: tool.supportedChains.map((pair) => ({
-				fromChainId: String(pair.fromChainId),
-				toChainId: String(pair.toChainId),
-			})),
+			supportedChains: tool.supportedChains,
 		}))
 	)
 }

@@ -10,6 +10,7 @@ import type {
 	FetchLifiChainsOptions,
 	FetchLifiTokensOptions,
 	LifiChainsResponse,
+	LifiNormalizedTools,
 	LifiQuoteRequest,
 	LifiQuoteStep,
 	LifiQuoteStepLike,
@@ -27,6 +28,33 @@ const maximumTools = 1_000
 const maximumSupportedChainsPerTool = 10_000
 const unsignedIntegerPattern = /^(0|[1-9]\d*)$/
 const decimalPattern = /^(0|[1-9]\d*)(\.\d+)?$/
+
+/**
+ * LI.FI tool catalogs mix numeric and string chain ids, including SVM-scale
+ * values above `Number.MAX_SAFE_INTEGER` that still round-trip exactly.
+ * Preserve wire identity as a positive decimal digit string.
+ */
+const normalizeLifiCatalogChainId = (
+	value: number | string | undefined
+) => {
+	if (typeof value === 'string') {
+		if (!unsignedIntegerPattern.test(value) || value === '0')
+			throw new Error('Lifi_Rest: malformed tools catalog')
+		return value
+	}
+	if (
+		value == null
+		|| !Number.isFinite(value)
+		|| !Number.isInteger(value)
+		|| value <= 0
+	)
+		throw new Error('Lifi_Rest: malformed tools catalog')
+
+	const asString = String(value)
+	if (!unsignedIntegerPattern.test(asString) || Number(asString) !== value)
+		throw new Error('Lifi_Rest: malformed tools catalog')
+	return asString
+}
 
 const throwIfLifiHttpNotOk = async (
 	response: Response,
@@ -182,7 +210,7 @@ export const fetchTransferStatus = async (
  * `GET /v1/tools` — supported bridges (and exchanges; callers use `bridges`).
  * @see https://docs.li.fi/li.fi-api/li.fi-api/requesting-all-supported-tools
  */
-export async function fetchTools() {
+export async function fetchTools(): Promise<LifiNormalizedTools> {
 	const path = '/v1/tools'
 	const res = await lifiRestFetch(path)
 	await throwIfLifiHttpNotOk(res, path)
@@ -198,22 +226,10 @@ export async function fetchTools() {
 		)
 			throw new Error('Lifi_Rest: malformed tools catalog')
 
-		const supportedChains = tool.supportedChains.map((pair) => {
-			const fromChainId = Number(pair.fromChainId)
-			const toChainId = Number(pair.toChainId)
-			if (
-				!Number.isSafeInteger(fromChainId)
-				|| fromChainId <= 0
-				|| !Number.isSafeInteger(toChainId)
-				|| toChainId <= 0
-			)
-				throw new Error('Lifi_Rest: malformed tools catalog')
-
-			return {
-				fromChainId,
-				toChainId,
-			}
-		})
+		const supportedChains = tool.supportedChains.map((pair) => ({
+			fromChainId: normalizeLifiCatalogChainId(pair.fromChainId),
+			toChainId: normalizeLifiCatalogChainId(pair.toChainId),
+		}))
 		if (
 			new Set(supportedChains.map((pair) => (
 				`${pair.fromChainId}:${pair.toChainId}`
@@ -238,12 +254,9 @@ export async function fetchTools() {
 		)
 			throw new Error('Lifi_Rest: malformed tools catalog')
 
-		const supportedChains = exchange.supportedChains.map((chainId) => {
-			const normalizedChainId = Number(chainId)
-			if (!Number.isSafeInteger(normalizedChainId) || normalizedChainId <= 0)
-				throw new Error('Lifi_Rest: malformed tools catalog')
-			return normalizedChainId
-		})
+		const supportedChains = exchange.supportedChains.map((chainId) => (
+			normalizeLifiCatalogChainId(chainId)
+		))
 		if (new Set(supportedChains).size !== supportedChains.length)
 			throw new Error('Lifi_Rest: malformed tools catalog')
 

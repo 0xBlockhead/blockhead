@@ -209,8 +209,8 @@ describe('LI.FI public catalogs', () => {
 			bridges: [{
 				key: 'across',
 				supportedChains: [{
-					fromChainId: 1,
-					toChainId: 10,
+					fromChainId: '1',
+					toChainId: '10',
 				}],
 			}],
 			exchanges: [{ key: 'uniswap' }],
@@ -266,14 +266,49 @@ describe('LI.FI public catalogs', () => {
 				key: 'across',
 				name: 'Across',
 				supportedChains: [{
-					fromChainId: 1,
-					toChainId: 10,
+					fromChainId: '1',
+					toChainId: '10',
 				}],
 			}],
 			exchanges: [{
 				key: 'uniswap',
 				name: 'Uniswap',
-				supportedChains: [1, 10],
+				supportedChains: ['1', '10'],
+			}],
+		})
+	})
+
+	it('preserves exact SVM-scale chain ids above Number.MAX_SAFE_INTEGER', async () => {
+		const solanaScaleChainId = 9_270_000_000_000_000
+		vi.mocked(lifiRestFetch).mockResolvedValue(new Response(JSON.stringify({
+			bridges: [{
+				key: 'allbridge',
+				name: 'Allbridge',
+				supportedChains: [{
+					fromChainId: 1,
+					toChainId: solanaScaleChainId,
+				}],
+			}],
+			exchanges: [{
+				key: 'jupiter',
+				name: 'Jupiter',
+				supportedChains: [solanaScaleChainId],
+			}],
+		})))
+
+		await expect(fetchTools()).resolves.toEqual({
+			bridges: [{
+				key: 'allbridge',
+				name: 'Allbridge',
+				supportedChains: [{
+					fromChainId: '1',
+					toChainId: '9270000000000000',
+				}],
+			}],
+			exchanges: [{
+				key: 'jupiter',
+				name: 'Jupiter',
+				supportedChains: ['9270000000000000'],
 			}],
 		})
 	})
