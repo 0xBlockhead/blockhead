@@ -29,6 +29,12 @@ const evmWalletRequestResolver = localInternal.resolvers.find((resolver) => (
 	&& '$network' in resolver.projections
 ))
 
+const walletConnectionResolver = localInternal.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BlockheadWalletConnection
+	&& 'ConnectionKey' in resolver.resolve
+	&& '$$accounts' in resolver.projections
+))
+
 const callResolver = localInternal.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadWalletRequestCall
 	&& 'EvmWalletRequestCallIndex' in resolver.resolve
@@ -62,6 +68,7 @@ const callsListResolver = localInternal.resolvers.find((resolver) => (
 if (
 	walletRequestResolver == null
 	|| evmWalletRequestResolver == null
+	|| walletConnectionResolver == null
 	|| callResolver == null
 	|| timestampResolver == null
 	|| globalWalletRequestsResolver == null
@@ -110,6 +117,38 @@ describe('Local_Internal wallet request resolvers', () => {
 				},
 			},
 		})
+	})
+
+	it('keeps connected accounts public without locally enrolling them', { timeout: 60_000 }, async () => {
+		await expect(walletConnectionResolver.resolve.ConnectionKey.resolve(
+			{ connectionKey: 'e2e-probe-wallet-connection' },
+			context
+		)).resolves.toMatchObject({
+			$$accounts: [
+				{
+					[EntityMetaKey.Selector]: {
+						caip10: {
+							namespace: 'eip155',
+							reference: '1',
+							accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+						},
+					},
+				},
+			],
+			$activeAccount: {
+				[EntityMetaKey.Selector]: {
+					caip10: {
+						namespace: 'eip155',
+						reference: '1',
+						accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+					},
+				},
+			},
+		})
+
+		expect(localInternal.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.BlockheadAccount
+		))).toBe(false)
 	})
 
 	it('resolves EVM detail, call, and prepared timestamp rows', { timeout: 60_000 }, async () => {
