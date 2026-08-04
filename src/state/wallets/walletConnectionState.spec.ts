@@ -12,10 +12,12 @@ import {
 	erroredWalletConnection,
 	isSelectedWalletConnection,
 	persistWalletConnection,
+	preserveWalletConnectionSelection,
 	walletConnectionError,
 	walletConnectionFromPersisted,
 	walletConnectionKey,
 	walletConnectionPersistRoundTrip,
+	withExclusiveWalletConnectionSelection,
 } from './walletConnectionState.ts'
 
 
@@ -143,6 +145,87 @@ describe('walletConnectionState', () => {
 		expect(isSelectedWalletConnection(next[1])).toBe(true)
 		expect(next[2].status).toBe(BlockheadConnectionStatus.Error)
 		expect(next[2]).not.toHaveProperty('selected')
+	})
+
+	it('keeps only the last selected Connected row when several claim selection', () => {
+		const exclusive = withExclusiveWalletConnectionSelection([
+			connectedWalletConnection({
+				...base,
+				connectionKey: 'older',
+				selected: true,
+			}),
+			connectedWalletConnection({
+				...base,
+				walletId: 'eip6963:other',
+				connectionKey: 'newer',
+				selected: true,
+			}),
+			connectingWalletConnection({
+				...base,
+				walletId: 'eip6963:connecting',
+				connectionKey: 'pending',
+			}),
+		])
+		expect(exclusive.map((connection) => ({
+			key: walletConnectionKey(connection),
+			selected: isSelectedWalletConnection(connection),
+		}))).toEqual([
+			{ key: 'older', selected: false },
+			{ key: 'newer', selected: true },
+			{ key: 'pending', selected: false },
+		])
+		expect(withExclusiveWalletConnectionSelection([
+			connectedWalletConnection({
+				...base,
+				connectionKey: 'solo',
+				selected: true,
+			}),
+		])).toEqual([
+			expect.objectContaining({
+				connectionKey: 'solo',
+				selected: true,
+			}),
+		])
+	})
+
+	it('preserves Connected selection across adapter subscription rebuilds', () => {
+		const previous = connectedWalletConnection({
+			...base,
+			connectionKey: 'a',
+			selected: true,
+			connectedAt: 10,
+		})
+		const nextFromAdapter = connectedWalletConnection({
+			...base,
+			connectionKey: 'a',
+			selected: false,
+			accounts: [
+				base.accounts[0],
+				{
+					namespace: 'eip155',
+					reference: '1',
+					accountAddress: '0x2222222222222222222222222222222222222222',
+					capabilities: [],
+				},
+			],
+			activeAccount: {
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0x2222222222222222222222222222222222222222',
+				capabilities: [],
+			},
+		})
+		expect(preserveWalletConnectionSelection(previous, nextFromAdapter)).toMatchObject({
+			connectionKey: 'a',
+			selected: true,
+			activeAccount: nextFromAdapter.activeAccount,
+		})
+		expect(preserveWalletConnectionSelection(
+			connectingWalletConnection(base),
+			nextFromAdapter
+		)).toMatchObject({
+			selected: false,
+		})
 	})
 
 	it('disconnect clears selection and stamps disconnectedAt', () => {

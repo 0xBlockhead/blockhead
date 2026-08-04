@@ -45,8 +45,10 @@ import {
 	buildWalletConnection,
 	disconnectWalletConnection,
 	isSelectedWalletConnection,
+	preserveWalletConnectionSelection,
 	walletConnectionFromPersisted,
 	walletConnectionKey,
+	withExclusiveWalletConnectionSelection,
 } from './walletConnectionState.ts'
 import { createWalletStandardAdapter } from './adapters/walletStandard.ts'
 import {
@@ -128,8 +130,13 @@ const createWalletRuntimeState = (
 					{}
 			),
 		})
-		await writeLocalBlockheadWalletConnection(context, normalizedConnection)
-		connections = [
+		const previousByKey = new Map(
+			connections.map((candidate) => [
+				walletConnectionKey(candidate),
+				candidate,
+			])
+		)
+		const nextConnections = withExclusiveWalletConnectionSelection([
 			...connections.filter((candidate) => (
 				![
 					connectionKey,
@@ -137,7 +144,23 @@ const createWalletRuntimeState = (
 				].includes(walletConnectionKey(candidate))
 			)),
 			normalizedConnection,
-		]
+		])
+		const persistedConnections = nextConnections.filter((candidate) => {
+			const key = walletConnectionKey(candidate)
+			return (
+				key === connectionKey
+				|| (
+					replacedConnectionKey !== undefined
+					&& key === replacedConnectionKey
+				)
+				|| previousByKey.get(key) !== candidate
+			)
+		})
+		await Promise.all(persistedConnections.map((candidate) => {
+			runtimeMutatedConnectionKeys.add(walletConnectionKey(candidate))
+			return writeLocalBlockheadWalletConnection(context, candidate)
+		}))
+		connections = nextConnections
 		if (replacedConnectionKey !== undefined && replacedConnectionKey !== connectionKey)
 			await deleteLocalBlockheadWalletConnection(context, replacedConnectionKey)
 	}
@@ -157,10 +180,21 @@ const createWalletRuntimeState = (
 			connection.connectionKey,
 			adapter.subscribeConnection(
 				connection.walletId,
-				(nextConnection) => upsertConnection(buildWalletConnection({
-					...nextConnection,
-					connectionKey: connection.connectionKey,
-				})),
+				(nextConnection) => {
+					const connectionKey = connection.connectionKey
+					const previous = connections.find((candidate) => (
+						walletConnectionKey(candidate) === connectionKey
+					))
+					void upsertConnection(
+						preserveWalletConnectionSelection(
+							previous,
+							buildWalletConnection({
+								...nextConnection,
+								connectionKey,
+							})
+						)
+					)
+				},
 				connection.connectionKey
 			)
 		)
@@ -367,10 +401,20 @@ const createWalletRuntimeState = (
 				connectionKey,
 				adapter.subscribeConnection(
 					walletId,
-					(nextConnection) => upsertConnection(buildWalletConnection({
-						...nextConnection,
-						connectionKey,
-					})),
+					(nextConnection) => {
+						const previous = connections.find((candidate) => (
+							walletConnectionKey(candidate) === connectionKey
+						))
+						void upsertConnection(
+							preserveWalletConnectionSelection(
+								previous,
+								buildWalletConnection({
+									...nextConnection,
+									connectionKey,
+								})
+							)
+						)
+					},
 					connectionKey
 				)
 			)

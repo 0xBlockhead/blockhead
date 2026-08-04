@@ -311,7 +311,7 @@ export const finishSessionComposerPreparation = (
 				preparation.error ?? 'Unknown preparation failure.',
 				readinessCheckIds
 			)
-		: preparation.walletRequest?.id == null ?
+		: preparation.walletRequest?.id == null || preparation.walletRequest.id === '' ?
 			failSessionComposerPreparation(
 				'Preparation finished without creating a wallet request.',
 				readinessCheckIds

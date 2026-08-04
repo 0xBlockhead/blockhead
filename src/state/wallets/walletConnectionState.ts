@@ -253,6 +253,48 @@ export const applyWalletConnectionSelection = (
 	})
 )
 
+/** Keep at most one Connected+selected row; when several exist, keep the last in list order. */
+export const withExclusiveWalletConnectionSelection = (
+	connections: readonly WalletConnection[]
+): WalletConnection[] => {
+	const selectedKeys = connections
+		.filter(isSelectedWalletConnection)
+		.map(walletConnectionKey)
+	if (selectedKeys.length <= 1)
+		return [...connections]
+
+	const keepKey = selectedKeys.at(-1)
+	return connections.map((connection) => (
+		isSelectedWalletConnection(connection)
+		&& walletConnectionKey(connection) !== keepKey ?
+			connectedWalletConnection({
+				...connection,
+				selected: false,
+			})
+		:
+			connection
+	))
+}
+
+/** Adapter subscription updates must not clobber an existing Connected selection bit. */
+export const preserveWalletConnectionSelection = (
+	previous: WalletConnection | undefined,
+	next: WalletConnection
+): WalletConnection => {
+	if (
+		previous?.status !== BlockheadConnectionStatus.Connected
+		|| next.status !== BlockheadConnectionStatus.Connected
+	)
+		return next
+
+	return connectedWalletConnection({
+		...next,
+		selected: previous.selected,
+		...(next.activeAccount != null && { activeAccount: next.activeAccount }),
+		...(next.connectedAt != null && { connectedAt: next.connectedAt }),
+	})
+}
+
 export const disconnectWalletConnection = (
 	connection: WalletConnection,
 	disconnectedAt = Date.now()
