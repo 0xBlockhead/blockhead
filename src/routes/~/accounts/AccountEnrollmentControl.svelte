@@ -5,7 +5,10 @@
 
 	// Context
 	import { caip2ParamValueFromString } from '$/lib/caip2.ts'
-	import { writeLocalBlockheadAccount } from '$/collections/localMutations.ts'
+	import {
+		deleteLocalBlockheadAccount,
+		writeLocalBlockheadAccount,
+	} from '$/collections/localMutations.ts'
 	import { getAppClient } from '$/routes/+layout.svelte'
 
 
@@ -25,16 +28,20 @@
 		if (caip2 === undefined || networkByCaip2[network.trim()] == null)
 			return
 
-		await writeLocalBlockheadAccount(getAppClient(), {
+		const account = {
 			...caip2,
 			accountAddress: address.trim(),
-		})
-		status = `Added ${network.trim()}:${address.trim()}.`
+		}
+		if (event.submitter?.getAttribute('value') === 'remove')
+			await deleteLocalBlockheadAccount(getAppClient(), account)
+		else
+			await writeLocalBlockheadAccount(getAppClient(), account)
+		status = `${event.submitter?.getAttribute('value') === 'remove' ? 'Removed' : 'Added'} ${network.trim()}:${address.trim()}.`
 		address = ''
 	}}
 >
 	<header data-row="between wrap align-center gap-2">
-		<h2>Add account</h2>
+		<h2>Manage accounts</h2>
 	</header>
 
 	<label for="account-network">Network (CAIP-2)</label>
@@ -79,7 +86,21 @@
 		}}
 	/>
 
-	<button type="submit">Add account</button>
+	<div data-row="wrap gap-2">
+		<button
+			type="submit"
+			value="add"
+		>
+			Add account
+		</button>
+
+		<button
+			type="submit"
+			value="remove"
+		>
+			Remove account
+		</button>
+	</div>
 
 	{#if status !== ''}
 		<p role="status">{status}</p>

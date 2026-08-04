@@ -5,8 +5,16 @@
 		deleteLocalBlockheadFarcasterAccountConnection,
 		writeLocalBlockheadFarcasterAccountConnection,
 	} from '$/collections/localMutations.ts'
-	import { BlockheadFarcasterConnectionAuthMethod } from '$/schema/BlockheadFarcasterConnectionAuthMethod.ts'
 	import { getAppClient } from '$/routes/+layout.svelte'
+	import {
+		applyFarcasterAccountConnectionSelection,
+		farcasterAccountConnectionFromPersisted,
+		isCurrentFarcasterAccountConnection,
+		persistFarcasterAccountConnection,
+		type PersistedFarcasterAccountConnection,
+	} from '$/state/farcaster/farcasterAccountConnectionState.ts'
+	import { isSelectedWalletConnection } from '$/state/wallets/walletConnectionState.ts'
+	import { getWalletConnectionRuntime } from '$/state/wallets/walletConnectionRuntime.svelte.ts'
 
 	let {
 		connectionId,
@@ -20,58 +28,94 @@
 	let error = $state('')
 
 	const storageKey = 'blockhead:farcaster-account-connections'
-	const persisted = (): {
-		connectionId: string
-		fid: number
-		signerAddress: string
-		authMethod: BlockheadFarcasterConnectionAuthMethod
-		verifiedAt: number
-		expiresAt: number
-		associationFingerprint: string
-		selected: boolean
-	}[] => JSON.parse(localStorage.getItem(storageKey) ?? '[]')
+	const walletRuntime = $derived(getWalletConnectionRuntime())
+	const selectedEvmWallet = $derived(
+		walletRuntime?.connections.find((connection) => (
+			isSelectedWalletConnection(connection)
+			&& (connection.activeAccount ?? connection.accounts.at(0))?.namespace === 'eip155'
+		))
+	)
 
-	const persist = (connections: ReturnType<typeof persisted>) => {
-		localStorage.setItem(storageKey, JSON.stringify(connections))
-		connections.forEach((connection) => writeLocalBlockheadFarcasterAccountConnection(getAppClient(), connection))
+	const readPersisted = (): PersistedFarcasterAccountConnection[] => (
+		JSON.parse(localStorage.getItem(storageKey) ?? '[]')
+	)
+
+	const hydrate = (
+		rows: PersistedFarcasterAccountConnection[],
+		now = Date.now()
+	) => (
+		rows.flatMap((row) => {
+			const connection = farcasterAccountConnectionFromPersisted(row, now)
+			return connection == null ? [] : [connection]
+		})
+	)
+
+	const persist = (
+		connections: ReturnType<typeof hydrate>
+	) => {
+		const previous = readPersisted()
+		const rows = connections.map(persistFarcasterAccountConnection)
+		localStorage.setItem(storageKey, JSON.stringify(rows))
+		const liveIds = new Set(rows.map((row) => row.connectionId))
+		for (const row of previous) {
+			if (!liveIds.has(row.connectionId))
+				deleteLocalBlockheadFarcasterAccountConnection(getAppClient(), row.connectionId)
+		}
+		rows.forEach((row) => writeLocalBlockheadFarcasterAccountConnection(getAppClient(), row))
 	}
 
 	const connect = () => {
 		error = ''
+		status = ''
 		if (!/^0x[0-9a-fA-F]{40}$/.test(signerAddress)) {
 			error = 'Enter the address proven by the connected wallet.'
 			return
 		}
-		error = 'A connected wallet with Farcaster custody or approved app auth-address proof is required.'
+		if (selectedEvmWallet == null) {
+			error = 'Select an EVM wallet account first, then return here to verify the Farcaster association.'
+			return
+		}
+		const account = selectedEvmWallet.activeAccount ?? selectedEvmWallet.accounts.at(0)
+		if (account == null || account.accountAddress.toLowerCase() !== signerAddress.toLowerCase()) {
+			error = 'The selected wallet account must match the Farcaster signer address.'
+			return
+		}
+		error = 'A custody or approved app auth-address proof from Neynar/Snapchain is still required before this connection can be verified.'
 	}
 
 	const update = (action: 'select' | 'reverify' | 'disconnect') => {
 		if (connectionId == null) return
-		const connections = persisted()
+		error = ''
+		status = ''
+		const now = Date.now()
+		const connections = hydrate(readPersisted(), now)
+
 		if (action === 'disconnect') {
 			deleteLocalBlockheadFarcasterAccountConnection(getAppClient(), connectionId)
 			persist(connections.filter((connection) => connection.connectionId !== connectionId))
 			status = 'Farcaster connection disconnected.'
-			void goto(resolve('/farcaster/accounts'))
+			void goto(resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/accounts'))
 			return
 		}
 		if (action === 'reverify') {
 			error = 'Reconnect the proving wallet to reverify this Farcaster association.'
 			return
 		}
-		persist(connections.map((connection) => (
-			connection.connectionId === connectionId ?
-				{
-					...connection,
-					selected: true,
-				}
-			:
-				{
-					...connection,
-					selected: false,
-				}
-		)))
-		status = 'Farcaster viewer selected.'
+
+		const target = connections.find((connection) => connection.connectionId === connectionId)
+		if (target == null || !isCurrentFarcasterAccountConnection(target, now)) {
+			error = 'This Farcaster connection is missing or expired. Verify again with a connected wallet.'
+			persist(connections)
+			return
+		}
+
+		const selected = applyFarcasterAccountConnectionSelection(connections, connectionId, now)
+		if (!selected.selected || selected.viewer == null) {
+			error = 'Could not select this Farcaster connection as viewer.'
+			return
+		}
+		persist(selected.connections)
+		status = `Farcaster viewer selected for FID ${selected.viewer.fid}.`
 	}
 </script>
 
@@ -97,12 +141,43 @@
 
 			<button type="submit">Verify and connect</button>
 		</form>
+
+		<p data-text="muted">
+			{#if selectedEvmWallet == null}
+				<a href={resolve('/~/wallets')}>Open wallets</a> and select an EVM account before verifying.
+			{:else}
+				Selected wallet ready for proof. Custody or approved auth-address evidence is still required to finish connect.
+			{/if}
+		</p>
 	{:else if /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(connectionId)}
+		{@const connection = hydrate(readPersisted()).find((row) => row.connectionId === connectionId)}
 		<div data-row="start wrap gap-2">
 			<button type="button" onclick={() => update('select')}>Select viewer</button>
 			<button type="button" onclick={() => update('reverify')}>Reverify</button>
 			<button type="button" onclick={() => update('disconnect')}>Disconnect</button>
 		</div>
+		{#if connection != null}
+			<p data-text="muted">
+				Role: {connection.role === 'viewer' ? 'Viewer' : 'Standby'}
+				· FID {connection.fid}
+			</p>
+			{#if connection.role === 'viewer'}
+				<p>
+					<a
+						href={resolve(
+							'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/following/[userId=farcasterFid]',
+							{
+								userId: String(connection.fid),
+							}
+						)}
+					>
+						Open following feed as viewer
+					</a>
+				</p>
+			{/if}
+		{:else}
+			<p role="alert">This saved connection is missing or expired.</p>
+		{/if}
 	{:else}
 		<p role="alert">Farcaster account connections require an opaque local connection ID.</p>
 	{/if}
