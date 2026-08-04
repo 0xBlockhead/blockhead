@@ -510,6 +510,29 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 	[EntityType.BlockheadWalletConnection]: {
 		connectionKey: 'e2e-probe-wallet-connection',
 	},
+	[EntityType.BlockheadWalletRequest]: {
+		id: 'e2e-probe-wallet-request',
+	},
+	[EntityType.BlockheadEvmWalletRequest]: {
+		$walletRequest: {
+			id: 'e2e-probe-wallet-request',
+		},
+	},
+	[EntityType.BlockheadWalletRequestCall]: {
+		$evmRequest: {
+			$walletRequest: {
+				id: 'e2e-probe-wallet-request',
+			},
+		},
+		callIndex: 0,
+	},
+	[EntityType.BlockheadWalletRequest_Timestamp]: {
+		$walletRequest: {
+			id: 'e2e-probe-wallet-request',
+		},
+		timestampMs: 0,
+		source: 'Local_Internal',
+	},
 
 	[EntityType.ActivityPubActor]: {
 		instanceOrigin: 'https://mastodon.social',
@@ -3218,9 +3241,6 @@ export const resolverPartProbeKey = (
 	* Matched before env/catalog/network defaults.
 	*/
 export const knownUpstreamGapProbeKeys = new Set<string>([
-	resolverPartProbeKey('field', 0, EntityType.Network, ['Evm'], '$$erc4337Bundlers', Source.Blockscout_Rest),
-	resolverPartProbeKey('field', 0, EntityType.Network, ['Evm'], '$$erc4337Paymasters', Source.Blockscout_Rest),
-	resolverPartProbeKey('field', 0, EntityType.Network, ['Evm'], '$$erc4337AccountFactories', Source.Blockscout_Rest),
 ])
 
 

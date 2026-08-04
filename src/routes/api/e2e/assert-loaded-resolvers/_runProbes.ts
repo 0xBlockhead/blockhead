@@ -1,4 +1,5 @@
 import { stringify } from 'devalue'
+import { env as publicEnv } from '$env/dynamic/public'
 
 import {
 	materializeResolverOutput,
@@ -24,10 +25,12 @@ import {
 import { loadResolvers } from '$/resolvers/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { EntityType as SchemaEntityType } from '$/schema/$schema.ts'
+import sourceProviders from '$/sources/$sourceProviders.ts'
+import { indexSourceProviders } from '$/sources/$sources.ts'
 import {
-	enabledSources,
-	resolverPublicEnvBySource,
+	browserDirectSourceBindingIds,
 } from '$/sources/index.ts'
+import { enabledBrowserServerSourceBindingIds } from '$/sources/index.server.ts'
 
 import {
 	assertLoadedResolverProbeCategories,
@@ -39,7 +42,19 @@ import {
 	type AssertLoadedResolverProbeCategorySummary,
 } from './_fixtures.ts'
 
-const resolvers = await loadResolvers()
+export const resolverProbeSourceIndex = indexSourceProviders(
+	sourceProviders,
+	publicEnv,
+	new Set([
+		...browserDirectSourceBindingIds,
+		...enabledBrowserServerSourceBindingIds,
+	])
+)
+const {
+	enabledSources,
+	resolverPublicEnvBySource,
+} = resolverProbeSourceIndex
+const resolvers = await loadResolvers(enabledSources)
 
 const {
 	resolverDefinitions,

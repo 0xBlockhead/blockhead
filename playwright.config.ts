@@ -38,5 +38,6 @@ export default defineConfig({
 		'**/src/routes_/**',
 		'**/src/sources_/**',
 		'**/src/resolvers_/**',
+		'**/.worktrees/**',
 	],
 })

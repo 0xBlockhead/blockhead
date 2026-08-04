@@ -18,14 +18,14 @@ import { match as matchNonNegativeBigInt } from '$/params/nonNegativeBigInt.ts'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchNonNegativeIntegerOrSolanaPubkey } from '$/params/nonNegativeIntegerOrSolanaPubkey.ts'
 import { match as matchNonNegativeNumber } from '$/params/nonNegativeNumber.ts'
-import {
-	match as matchPolkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey,
-} from '$/params/polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey.ts'
 import { match as matchProposalKindSlug } from '$/params/proposalKindSlug.ts'
 import { match as matchProposalRef } from '$/params/proposalRef.ts'
 import { match as matchRssItemIdentityKind } from '$/params/rssItemIdentityKind.ts'
 import { match as matchSpecificationRealmSlug } from '$/params/specificationRealmSlug.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
+import {
+	match as matchStringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey,
+} from '$/params/stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey.ts'
 import { match as matchUserOperationHash } from '$/params/userOperationHash.ts'
 import { match as matchZeroExHex } from '$/params/zeroExHex.ts'
 
@@ -38,11 +38,11 @@ export const matchE2eRouteParam = (matcher: string, value: string) => {
 		case 'eip155ChainId': return matchEip155ChainId(value)
 		case 'nativeCurrencySlugOrEvmAddress': return matchNativeCurrencySlugOrEvmAddress(value)
 		case 'nonNegativeBigInt': return matchNonNegativeBigInt(value)
+		case 'evmAddress': return matchEvmAddress(value)
 		case 'ipfsNamespace': return matchIpfsNamespace(value)
 		case 'networkCaip2OrNetworkSlug': return matchNetworkCaip2OrNetworkSlug(value)
-		case 'polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey': return matchPolkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey(value)
+		case 'stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey': return matchStringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey(value)
 		case 'evmTxHash': return matchEvmTxHash(value)
-		case 'evmAddress': return matchEvmAddress(value)
 		case 'evmTxHashOrSolanaSignatureOrUtxoTxId': return matchEvmTxHashOrSolanaSignatureOrUtxoTxId(value)
 		case 'networkCaip2': return matchNetworkCaip2(value)
 		case 'absoluteUrl': return matchAbsoluteUrl(value)
@@ -202,6 +202,46 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'LiquidityPool_Timestamp.LiquidityPoolTimestampMsFeedKey',
 				probeAtomPrefixes: ['/pool/[chainId]/[poolId]/observations/[timestampMs]/[feedKey]:LiquidityPool_Timestamp.LiquidityPoolTimestampMsFeedKey'],
 				probeCases: [[[0, '1', ['timestampMs', 'feedKey', 'chainId', 'poolId']]]],
+			},
+		],
+	},
+	'/(assets)/uniswap-v3/pool/[chainId]/[poolAddress]': {
+		routeId: '/(assets)/uniswap-v3/pool/[chainId=eip155ChainId]/[poolAddress=evmAddress]',
+		mappings: [
+			{
+				id: 'UniswapV3Pool.NetworkPoolAddress',
+				probeAtomPrefixes: ['/uniswap-v3/pool/[chainId]/[poolAddress]:UniswapV3Pool.NetworkPoolAddress'],
+				probeCases: [[[0, '1', ['poolAddress', 'chainId']]]],
+			},
+		],
+	},
+	'/(assets)/uniswap-v3/pool/[chainId]/[poolAddress]/block/[blockNumber]': {
+		routeId: '/(assets)/uniswap-v3/pool/[chainId=eip155ChainId]/[poolAddress=evmAddress]/(uniswapV3Pool)/block/[blockNumber=nonNegativeBigInt]',
+		mappings: [
+			{
+				id: 'UniswapV3Pool_Block.PoolBlockNumber',
+				probeAtomPrefixes: ['/uniswap-v3/pool/[chainId]/[poolAddress]/block/[blockNumber]:UniswapV3Pool_Block.PoolBlockNumber'],
+				probeCases: [[[0, '1', ['blockNumber', 'chainId', 'poolAddress']]]],
+			},
+		],
+	},
+	'/(assets)/uniswap-v3/position/[positionManager]/[tokenId]': {
+		routeId: '/(assets)/uniswap-v3/position/[positionManager=evmAddress]/[tokenId=nonNegativeBigInt]',
+		mappings: [
+			{
+				id: 'UniswapV3Position.PositionManagerTokenId',
+				probeAtomPrefixes: ['/uniswap-v3/position/[positionManager]/[tokenId]:UniswapV3Position.PositionManagerTokenId'],
+				probeCases: [[[0, '1', ['positionManager', 'tokenId']]]],
+			},
+		],
+	},
+	'/(assets)/uniswap-v3/position/[positionManager]/[tokenId]/block/[blockNumber]': {
+		routeId: '/(assets)/uniswap-v3/position/[positionManager=evmAddress]/[tokenId=nonNegativeBigInt]/(uniswapV3Position)/block/[blockNumber=nonNegativeBigInt]',
+		mappings: [
+			{
+				id: 'UniswapV3Position_Block.PositionBlockNumber',
+				probeAtomPrefixes: ['/uniswap-v3/position/[positionManager]/[tokenId]/block/[blockNumber]:UniswapV3Position_Block.PositionBlockNumber'],
+				probeCases: [[[0, '1', ['blockNumber', 'positionManager', 'tokenId']]]],
 			},
 		],
 	},
@@ -401,8 +441,17 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]',
 		mappings: [
+			{
+				id: 'AptosAccount.NetworkAddress',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/account/[accountId]:AptosAccount.NetworkAddress'],
+				probeCases: [[[0, '1', ['accountId', 'network']]]],
+				projectionPath: [
+					'Aptos',
+				],
+			},
 			{
 				id: 'PolkadotAccount.NetworkAccountId',
 				projectionEntity: 'Network',
@@ -458,6 +507,24 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 			{
+				id: 'StarknetContract.NetworkAddress',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/account/[accountId]:StarknetContract.NetworkAddress'],
+				probeCases: [[[0, '1', ['accountId', 'network']]]],
+				projectionPath: [
+					'Starknet',
+				],
+			},
+			{
+				id: 'TronAccount.NetworkAddress',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/account/[accountId]:TronAccount.NetworkAddress'],
+				probeCases: [[[0, '1', ['accountId', 'network']]]],
+				projectionPath: [
+					'Tron',
+				],
+			},
+			{
 				id: 'TonAccount.NetworkAddress',
 				projectionEntity: 'Network',
 				probeAtomPrefixes: ['/network/[network]/account/[accountId]:TonAccount.NetworkAddress'],
@@ -478,7 +545,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/observation/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]/(selection)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 		mappings: [
 			{
 				id: 'PolkadotAccount_Timestamp.AccountTimestampMsSource',
@@ -2954,13 +3021,13 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(social)/(farcaster)/farcaster/cast/[fid]/[hash]/observations/[timestampMs]': {
-		routeId: '/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]/(farcasterCast)/observations/[timestampMs=nonNegativeInteger]',
+	'/(social)/(farcaster)/farcaster/cast/[fid]/[hash]/observations/[timestampMs]-[source]': {
+		routeId: '/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]/(farcasterCast)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
 		mappings: [
 			{
-				id: 'FarcasterCast_Timestamp.FarcasterCastTimestampMs',
-				probeAtomPrefixes: ['/farcaster/cast/[fid]/[hash]/observations/[timestampMs]:FarcasterCast_Timestamp.FarcasterCastTimestampMs'],
-				probeCases: [[[0, '1', ['timestampMs', 'fid', 'hash']]]],
+				id: 'FarcasterCast_Timestamp.CastTimestampMsSource',
+				probeAtomPrefixes: ['/farcaster/cast/[fid]/[hash]/observations/[timestampMs]-[source]:FarcasterCast_Timestamp.CastTimestampMsSource'],
+				probeCases: [[[0, '1', ['timestampMs', 'source', 'fid', 'hash']]]],
 			},
 		],
 	},
@@ -2984,13 +3051,13 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(social)/(farcaster)/farcaster/channel/[channelId]/observations/[timestampMs]': {
-		routeId: '/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]/(farcasterChannel)/observations/[timestampMs=nonNegativeInteger]',
+	'/(social)/(farcaster)/farcaster/channel/[channelId]/observations/[timestampMs]-[source]': {
+		routeId: '/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]/(farcasterChannel)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
 		mappings: [
 			{
-				id: 'FarcasterChannel_Timestamp.FarcasterChannelTimestampMs',
-				probeAtomPrefixes: ['/farcaster/channel/[channelId]/observations/[timestampMs]:FarcasterChannel_Timestamp.FarcasterChannelTimestampMs'],
-				probeCases: [[[0, '1', ['timestampMs', 'channelId']]]],
+				id: 'FarcasterChannel_Timestamp.ChannelTimestampMsSource',
+				probeAtomPrefixes: ['/farcaster/channel/[channelId]/observations/[timestampMs]-[source]:FarcasterChannel_Timestamp.ChannelTimestampMsSource'],
+				probeCases: [[[0, '1', ['timestampMs', 'source', 'channelId']]]],
 			},
 		],
 	},
@@ -3044,13 +3111,13 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(social)/(farcaster)/farcaster/user/[userId]/observations/[timestampMs]': {
-		routeId: '/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]/(farcasterUser)/observations/[timestampMs=nonNegativeInteger]',
+	'/(social)/(farcaster)/farcaster/user/[userId]/observations/[timestampMs]-[source]': {
+		routeId: '/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]/(farcasterUser)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
 		mappings: [
 			{
-				id: 'FarcasterUser_Timestamp.FarcasterUserTimestampMs',
-				probeAtomPrefixes: ['/farcaster/user/[userId]/observations/[timestampMs]:FarcasterUser_Timestamp.FarcasterUserTimestampMs'],
-				probeCases: [[[0, '1', ['timestampMs', 'userId']]]],
+				id: 'FarcasterUser_Timestamp.UserTimestampMsSource',
+				probeAtomPrefixes: ['/farcaster/user/[userId]/observations/[timestampMs]-[source]:FarcasterUser_Timestamp.UserTimestampMsSource'],
+				probeCases: [[[0, '1', ['timestampMs', 'source', 'userId']]]],
 			},
 		],
 	},
@@ -3742,6 +3809,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/~/accounts/account/[namespace]:[reference]/[accountAddress]': {
+		routeId: '/~/accounts/account/[namespace=stringSegment]:[reference=stringSegment]/[accountAddress=stringSegment]',
+		mappings: [
+			{
+				id: 'BlockheadAccount.Account',
+				probeAtomPrefixes: ['/~/accounts/account/[namespace]:[reference]/[accountAddress]:BlockheadAccount.Account'],
+				probeCases: [[[0, '1', ['namespace', 'reference', 'accountAddress']]]],
+			},
+		],
+	},
 	'/~/accounts/allowance/[chainId]/[owner]/[coin]/[spender]': {
 		routeId: '/~/accounts/allowance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]/[spender=evmAddress]',
 		mappings: [
@@ -3759,16 +3836,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'EvmNetworkActorCoinBalance.EvmAccountErc20CoinInstance',
 				probeAtomPrefixes: ['/~/accounts/balance/[chainId]/[owner]/[coin]:EvmNetworkActorCoinBalance.EvmAccountErc20CoinInstance'],
 				probeCases: [[[0, '1', ['owner', 'chainId', 'coin']]]],
-			},
-		],
-	},
-	'/~/accounts/connections/[connectionKey]': {
-		routeId: '/~/accounts/connections/[connectionKey=stringSegment]',
-		mappings: [
-			{
-				id: 'BlockheadWalletConnection.ConnectionKey',
-				probeAtomPrefixes: ['/~/accounts/connections/[connectionKey]:BlockheadWalletConnection.ConnectionKey'],
-				probeCases: [[[0, '1', ['connectionKey']]]],
 			},
 		],
 	},
@@ -3852,6 +3919,26 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'BlockheadSession.Id',
 				probeAtomPrefixes: ['/~/session/[sessionId]:BlockheadSession.Id'],
 				probeCases: [[[0, '1', ['sessionId']]]],
+			},
+		],
+	},
+	'/~/wallets/connections/[connectionKey]': {
+		routeId: '/~/wallets/connections/[connectionKey=stringSegment]',
+		mappings: [
+			{
+				id: 'BlockheadWalletConnection.ConnectionKey',
+				probeAtomPrefixes: ['/~/wallets/connections/[connectionKey]:BlockheadWalletConnection.ConnectionKey'],
+				probeCases: [[[0, '1', ['connectionKey']]]],
+			},
+		],
+	},
+	'/~/wallets/requests/[id]': {
+		routeId: '/~/wallets/requests/[id=stringSegment]',
+		mappings: [
+			{
+				id: 'BlockheadWalletRequest.Id',
+				probeAtomPrefixes: ['/~/wallets/requests/[id]:BlockheadWalletRequest.Id'],
+				probeCases: [[[0, '1', ['id']]]],
 			},
 		],
 	},

@@ -8,7 +8,6 @@ import {
 import { schema } from '$/schema/index.ts'
 import { indexResolvers } from '$/resolvers/$resolvers.ts'
 import { loadResolvers } from '$/resolvers/index.ts'
-import { enabledSources } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
 
 import {
@@ -21,6 +20,7 @@ import {
 	resolverSnapshotCoordinates,
 	resolveSnapshotOnceThenProject,
 	assertNoFulfilledButAssertFailed,
+	resolverProbeSourceIndex,
 } from './_runProbes.ts'
 
 const resolvers = await loadResolvers()
@@ -263,7 +263,7 @@ describe('resolver snapshot probes', () => {
 				'TokenTransfer',
 			], '')
 		]
-		const resolverIndex = indexResolvers(schema, resolvers, enabledSources)
+		const resolverIndex = indexResolvers(schema, resolvers, resolverProbeSourceIndex.enabledSources)
 
 		expect(projection?.transitiveDependencies).toEqual([
 			{
