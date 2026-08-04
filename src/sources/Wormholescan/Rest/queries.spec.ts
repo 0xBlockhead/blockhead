@@ -11,15 +11,12 @@ import { Source } from '$/sources/Source.ts'
 
 const {
 	getJson,
-	postJson,
 } = vi.hoisted(() => ({
 	getJson: vi.fn(),
-	postJson: vi.fn(),
 }))
 
 vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 	getJson,
-	postJson,
 }))
 
 const queries = await import('$/sources/Wormholescan/Rest/queries.ts')
@@ -44,7 +41,7 @@ describe('Wormholescan OpenAPI operations', () => {
 		expect(getJson).toHaveBeenCalledWith(binding, 'ready')
 	})
 
-	it('unwraps the official operations page envelope and encodes filters', async () => {
+	it('unwraps the live operations page envelope and encodes filters', async () => {
 		getJson.mockResolvedValue({
 			operations: [{ id: '2/emitter/1' }],
 		})
@@ -65,31 +62,20 @@ describe('Wormholescan OpenAPI operations', () => {
 		)
 	})
 
+	it('returns an empty list when the live page has zero operations', async () => {
+		getJson.mockResolvedValue({
+			operations: [],
+		})
+
+		await expect(queries.getOperations({ txHash: '0xabc' })).resolves.toEqual([])
+	})
+
 	it('hard-fails when the operations page omits operations', async () => {
 		getJson.mockResolvedValue({})
 
 		await expect(queries.getOperations()).rejects.toThrow(
-			'Wormholescan operations: operations page missing operations'
+			'Wormholescan_Rest: operations missing operations'
 		)
-	})
-
-	it('searches operations by source transaction hashes through the page envelope', async () => {
-		postJson.mockResolvedValue({
-			operations: [{ id: '2/emitter/9' }],
-		})
-		const transactionHashes = [
-			'0x1111111111111111111111111111111111111111111111111111111111111111',
-			'0x2222222222222222222222222222222222222222222222222222222222222222',
-		]
-
-		await expect(queries.searchOperations(transactionHashes)).resolves.toEqual([
-			{ id: '2/emitter/9' },
-		])
-		expect(postJson).toHaveBeenCalledWith({
-			binding,
-			path: 'operations',
-			body: transactionHashes,
-		})
 	})
 
 	it('loads a single operation by wormhole id path', async () => {
@@ -120,14 +106,13 @@ describe('Wormholescan OpenAPI operations', () => {
 		)
 	})
 
-	it('exports only named OpenAPI operations', () => {
+	it('exports only live-supported OpenAPI GET operations', () => {
 		expect(Object.keys(queries).sort()).toEqual([
 			'findGlobalTransactionById',
 			'getHealth',
 			'getOperationById',
 			'getOperations',
 			'getReady',
-			'searchOperations',
 		])
 	})
 })

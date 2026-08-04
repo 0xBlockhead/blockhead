@@ -6,6 +6,8 @@ import {
 	vi,
 } from 'vitest'
 
+import * as Address from 'ox/Address'
+
 import { Source } from '$/sources/Source.ts'
 import {
 	safeTransactionServiceChainIds,
@@ -31,6 +33,7 @@ const {
 
 const chainId = 8453
 const safeAddress = `0x${'a'.repeat(40)}`
+const checksummedSafeAddress = Address.checksum(safeAddress)
 const ownerAddress = `0x${'b'.repeat(40)}`
 const recipientAddress = `0x${'c'.repeat(40)}`
 const safeTxHash = `0x${'d'.repeat(64)}`
@@ -111,8 +114,20 @@ describe('Safe Transaction Service public multisig queries', () => {
 		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			requireSafeTransactionServiceBinding(chainId),
-			`https://api.safe.global/tx-service/base/api/v1/safes/${safeAddress}/`
+			`https://api.safe.global/tx-service/base/api/v1/safes/${checksummedSafeAddress}/`
 		)
+	})
+
+	it('checksums lowercase Safe addresses before HTTP (EIP-55 required by tx-service)', async () => {
+		sourceGetJson.mockResolvedValue(safeStatus)
+		await getSafeStatus({
+			chainId,
+			safeAddress: safeAddress.toLowerCase(),
+		})
+		expect(sourceGetJson.mock.calls[0]?.[1]).toBe(
+			`https://api.safe.global/tx-service/base/api/v1/safes/${checksummedSafeAddress}/`
+		)
+		expect(checksummedSafeAddress).not.toBe(safeAddress.toLowerCase())
 	})
 
 	it('returns bounded queued transactions and rejects foreign-subject rows', async () => {

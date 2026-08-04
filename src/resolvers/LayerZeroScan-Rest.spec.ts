@@ -86,6 +86,9 @@ const message = {
 		dvnConfigError: false,
 		ulnSendVersion: 'V302',
 		ulnReceiveVersion: 'V302',
+		outboundConfig: {
+			confirmations: 15,
+		},
 	},
 	status: {
 		name: 'DELIVERED',
@@ -118,6 +121,7 @@ describe('LayerZeroScan BridgeTransfer resolvers', () => {
 		expect(snapshot).toMatchObject({
 			source: Source.LayerZeroScan_Rest,
 			transferId: guid,
+			assetOutcome: 'MessageOnly',
 			$sourceTx: {
 				[EntityMetaKey.Selector]: {
 					$network: {
@@ -180,10 +184,10 @@ describe('LayerZeroScan BridgeTransfer resolvers', () => {
 			status: 'DELIVERED',
 			substatus: 'Destination transaction succeeded',
 			sourceConfirmations: 64,
+			requiredConfirmations: 15,
 			destinationTxHash,
 			completedAt: 1_784_783_400_000,
 		})
-		expect(resolver.projections).not.toHaveProperty('requiredConfirmations')
 		expect(resolver.projections).not.toHaveProperty('relayer')
 		expect(resolver.projections).not.toHaveProperty('refundTxHash')
 		expect(resolver.projections).not.toHaveProperty('estimatedCompletionMs')

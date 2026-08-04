@@ -1,3 +1,5 @@
+import * as Address from 'ox/Address'
+
 import bindings from '$/sources/SafeTransactionService/bindings.ts'
 import type {
 	SafeMultisigConfirmation,
@@ -39,6 +41,14 @@ const assertAddress = (
 ) => {
 	if (!/^0x[0-9a-fA-F]{40}$/.test(address))
 		throw new Error(`SafeTransactionService_Rest: invalid ${label}`)
+}
+
+const checksumAddress = (
+	address: string,
+	label: string
+) => {
+	assertAddress(address, label)
+	return Address.checksum(address)
 }
 
 const assertHash = (
@@ -157,12 +167,12 @@ export const getSafeStatus = async ({
 	safeAddress: string
 }) => {
 	const binding = requireSafeTransactionServiceBinding(chainId)
-	assertAddress(safeAddress, 'Safe address')
+	const checksummedSafeAddress = checksumAddress(safeAddress, 'Safe address')
 	const status = await request<SafeStatus>({
 		binding,
-		path: `/api/v1/safes/${encodeURIComponent(safeAddress)}/`,
+		path: `/api/v1/safes/${encodeURIComponent(checksummedSafeAddress)}/`,
 	})
-	if (status.address.toLowerCase() !== safeAddress.toLowerCase())
+	if (status.address.toLowerCase() !== checksummedSafeAddress.toLowerCase())
 		throw new Error('SafeTransactionService_Rest: status belongs to a different Safe')
 	assertUnsignedDecimal(status.nonce, 'Safe nonce')
 	assertPageNumber(status.threshold, 'Safe threshold', 1_000)
@@ -206,7 +216,7 @@ export const getSafeMultisigTransactions = async ({
 	executed?: boolean
 }) => {
 	const binding = requireSafeTransactionServiceBinding(chainId)
-	assertAddress(safeAddress, 'Safe address')
+	const checksummedSafeAddress = checksumAddress(safeAddress, 'Safe address')
 	assertPageNumber(limit, 'page limit', 100)
 	if (limit < 1)
 		throw new Error('SafeTransactionService_Rest: page limit must be positive')
@@ -218,7 +228,7 @@ export const getSafeMultisigTransactions = async ({
 			executed: executed.toString(),
 		}),
 	})
-	const pathPrefix = `/api/v2/safes/${encodeURIComponent(safeAddress)}/multisig-transactions/`
+	const pathPrefix = `/api/v2/safes/${encodeURIComponent(checksummedSafeAddress)}/multisig-transactions/`
 	const page = await request<SafePage<SafeMultisigTransaction>>({
 		binding,
 		path: `${pathPrefix}?${parameters.toString()}`,
@@ -230,7 +240,7 @@ export const getSafeMultisigTransactions = async ({
 	assertContinuation(page.previous, binding, pathPrefix)
 	const hashes = new Set<string>()
 	for (const transaction of page.results) {
-		assertTransaction(transaction, safeAddress)
+		assertTransaction(transaction, checksummedSafeAddress)
 		const hash = transaction.safeTxHash.toLowerCase()
 		if (hashes.has(hash))
 			throw new Error('SafeTransactionService_Rest: duplicate transaction in page')
@@ -253,13 +263,13 @@ export const getSafeMultisigTransaction = async ({
 	safeTxHash: string
 }) => {
 	const binding = requireSafeTransactionServiceBinding(chainId)
-	assertAddress(safeAddress, 'Safe address')
+	const checksummedSafeAddress = checksumAddress(safeAddress, 'Safe address')
 	assertHash(safeTxHash, 'Safe transaction hash')
 	const transaction = await request<SafeMultisigTransaction>({
 		binding,
 		path: `/api/v2/multisig-transactions/${encodeURIComponent(safeTxHash)}/`,
 	})
-	assertTransaction(transaction, safeAddress)
+	assertTransaction(transaction, checksummedSafeAddress)
 	if (transaction.safeTxHash.toLowerCase() !== safeTxHash.toLowerCase())
 		throw new Error('SafeTransactionService_Rest: Safe transaction hash was substituted')
 	return transaction
@@ -279,13 +289,17 @@ export const getSafeTransactionConfirmations = async ({
 	offset: number
 }) => {
 	const binding = requireSafeTransactionServiceBinding(chainId)
-	assertAddress(safeAddress, 'Safe address')
+	checksumAddress(safeAddress, 'Safe address')
 	assertHash(safeTxHash, 'Safe transaction hash')
 	assertPageNumber(limit, 'page limit', 100)
 	if (limit < 1)
 		throw new Error('SafeTransactionService_Rest: page limit must be positive')
 	assertPageNumber(offset, 'page offset', Number.MAX_SAFE_INTEGER)
-	const [status, transaction, page] = await Promise.all([
+	const [
+		status,
+		,
+		page,
+	] = await Promise.all([
 		getSafeStatus({
 			chainId,
 			safeAddress,

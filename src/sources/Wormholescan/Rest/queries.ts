@@ -1,7 +1,4 @@
-import {
-	getJson,
-	postJson,
-} from '$/sources/_shared/wire/HttpRest/client.ts'
+import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/Wormholescan/bindings.ts'
 import type { operations } from '$/sources/Wormholescan/OpenApi/openapi.d.ts'
 import type {
@@ -29,7 +26,7 @@ const operationsFromPage = (
 	path: string
 ) => {
 	if (page.operations == null)
-		throw new Error(`Wormholescan ${path}: operations page missing operations`)
+		throw new Error(`Wormholescan_Rest: ${path} missing operations`)
 
 	return page.operations
 }
@@ -56,19 +53,6 @@ export const getOperations = async (
 			binding,
 			`operations${queryString(parameters)}`
 		),
-		'operations'
-	)
-)
-
-export const searchOperations = async (
-	transactionHashes: operations['search-operations']['requestBody']['content']['application/json']
-) => (
-	operationsFromPage(
-		await postJson<WormholescanOperationsPage>({
-			binding,
-			path: 'operations',
-			body: transactionHashes,
-		}),
 		'operations'
 	)
 )

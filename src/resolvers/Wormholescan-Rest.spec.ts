@@ -196,7 +196,60 @@ describe('Wormholescan BridgeTransfer resolvers', () => {
 		await expect(resolver.resolve.SourceTransferId.resolve({
 			source: Source.Lifi_Rest,
 			transferId: 'foreign',
-		})).rejects.toThrow('Wormholescan: unsupported bridge transfer source')
+		})).rejects.toThrow('Wormholescan_Rest: unsupported bridge transfer source')
 		expect(getOperationById).not.toHaveBeenCalled()
+	})
+
+	it('ignores standarizedProperties chain 0 sentinels and uses sourceChain', async () => {
+		getOperationById.mockResolvedValue({
+			...operation,
+			content: {
+				standarizedProperties: {
+					amount: '',
+					fromChain: 0,
+					toChain: 0,
+					fromAddress: '',
+					toAddress: '',
+				},
+			},
+			targetChain: undefined,
+		})
+		const resolver = wormholescanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer
+		))
+		if (resolver == null)
+			throw new Error('Wormholescan BridgeTransfer resolver is not registered')
+
+		const snapshot = await resolver.resolve.SourceTransferId.resolve(transfer)
+
+		expect(snapshot).toMatchObject({
+			assetOutcome: BridgeAssetOutcome.MessageOnly,
+			$fromNetwork: {
+				[EntityMetaKey.Selector]: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '1',
+					},
+				},
+			},
+			$sourceTx: {
+				[EntityMetaKey.Selector]: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '1',
+						},
+					},
+					txHash: sourceTxHash,
+				},
+			},
+			$sender: {
+				[EntityMetaKey.Selector]: {
+					address: '0x1111111111111111111111111111111111111111',
+				},
+			},
+		})
+		expect(snapshot).not.toHaveProperty('amountIn')
+		expect(snapshot).not.toHaveProperty('$toNetwork')
 	})
 })

@@ -20,7 +20,9 @@ const {
 	getMessageByGuid,
 	getMessagesByOApp,
 	getMessagesByPathway,
+	getMessagesByStatus,
 	getMessagesByTransaction,
+	getMessagesByWallet,
 } = await import('$/sources/LayerZeroScan/Rest/queries.ts')
 
 const binding = bindings[Source.LayerZeroScan_Rest][0]
@@ -207,6 +209,20 @@ describe('LayerZero Scan public message queries', () => {
 			}),
 			path: `/v1/messages/oapp/30101/${sender}?limit=1`,
 		},
+		{
+			query: () => getMessagesByStatus({
+				status: 'INFLIGHT',
+				limit: 1,
+			}),
+			path: '/v1/messages/status/INFLIGHT?limit=1',
+		},
+		{
+			query: () => getMessagesByWallet({
+				srcAddress: sender,
+				limit: 1,
+			}),
+			path: `/v1/messages/wallet/${sender}?limit=1`,
+		},
 	])('uses the exact read-only identity endpoint', async ({ query, path }) => {
 		await query()
 		expect(getJson).toHaveBeenCalledWith(binding, path)
@@ -295,7 +311,21 @@ describe('LayerZero Scan public message queries', () => {
 			endpointId: 30101,
 			address: receiver,
 		})).rejects.toThrow('foreign OApp message')
+		await expect(getMessagesByWallet({
+			srcAddress: receiver,
+		})).rejects.toThrow('foreign wallet message')
+		await expect(getMessagesByStatus({
+			status: 'DELIVERED',
+		})).rejects.toThrow('foreign status message')
 
 		expect('query' in await import('$/sources/LayerZeroScan/Rest/queries.ts')).toBe(false)
+	})
+
+	it('rejects unknown status path atoms before transport', async () => {
+		await expect(getMessagesByStatus({
+			// @ts-expect-error intentional invalid status probe
+			status: 'NOT_A_STATUS',
+		})).rejects.toThrow('invalid message status')
+		expect(getJson).not.toHaveBeenCalled()
 	})
 })

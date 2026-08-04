@@ -42,7 +42,7 @@ const wormholescanTransferIdParts = (
 		|| !/^(0|[1-9]\d*)$/.test(chainIdText)
 		|| !/^(0|[1-9]\d*)$/.test(sequence)
 	)
-		throw new Error(`Wormholescan: invalid operation transfer id ${transferId}`)
+		throw new Error(`Wormholescan_Rest: invalid operation transfer id ${transferId}`)
 
 	return {
 		chainId: Number(chainIdText),
@@ -51,13 +51,23 @@ const wormholescanTransferIdParts = (
 	}
 }
 
+const presentWormholeChainId = (
+	wormholeChainId: WormholescanWormholeChainId | undefined
+) => (
+	wormholeChainId == null || wormholeChainId === 0 ?
+		undefined
+	:
+		wormholeChainId
+)
+
 const eip155NetworkRef = (
 	wormholeChainId: WormholescanWormholeChainId | undefined
 ) => {
-	if (wormholeChainId == null)
+	const chainId = presentWormholeChainId(wormholeChainId)
+	if (chainId == null)
 		return undefined
 
-	const reference = eip155ReferenceByWormholeChainId[wormholeChainId]
+	const reference = eip155ReferenceByWormholeChainId[chainId]
 	if (reference == null)
 		return undefined
 
@@ -108,7 +118,7 @@ const timestampMsFromIso = (
 
 	const timestampMs = Date.parse(value)
 	if (!Number.isFinite(timestampMs))
-		throw new Error(`Wormholescan: invalid operation timestamp ${value}`)
+		throw new Error(`Wormholescan_Rest: invalid operation timestamp ${value}`)
 
 	return timestampMs
 }
@@ -120,7 +130,7 @@ const bigintAmountFromWire = (
 		return undefined
 
 	if (!/^(0|[1-9]\d*)$/.test(value))
-		throw new Error(`Wormholescan: invalid operation amount ${value}`)
+		throw new Error(`Wormholescan_Rest: invalid operation amount ${value}`)
 
 	return BigInt(value)
 }
@@ -131,37 +141,37 @@ const bridgeTransferSnapshotFromOperation = (
 ) => {
 	const transferId = operation.id
 	if (transferId == null || transferId === '')
-		throw new Error('Wormholescan: operation missing id')
+		throw new Error('Wormholescan_Rest: operation missing id')
 
 	const properties = operation.content?.standarizedProperties
 	const fromWormholeChainId = (
-		properties?.fromChain
-		?? operation.sourceChain?.chainId
-		?? operation.emitterChain
+		presentWormholeChainId(properties?.fromChain)
+		?? presentWormholeChainId(operation.sourceChain?.chainId)
+		?? presentWormholeChainId(operation.emitterChain)
 	)
 	const toWormholeChainId = (
-		properties?.toChain
-		?? operation.targetChain?.chainId
+		presentWormholeChainId(properties?.toChain)
+		?? presentWormholeChainId(operation.targetChain?.chainId)
 	)
 	const fromNetwork = eip155NetworkRef(fromWormholeChainId)
 	const toNetwork = eip155NetworkRef(toWormholeChainId)
 	const sourceTxHash = evmTxHashFromWormholeWire(operation.sourceChain?.transaction?.txHash)
 	const destinationTxHash = evmTxHashFromWormholeWire(operation.targetChain?.transaction?.txHash)
-	const sender = evmAddressFromWormholeWire(
-		properties?.fromAddress
-		?? operation.sourceChain?.from
+	const sender = (
+		evmAddressFromWormholeWire(properties?.fromAddress)
+		?? evmAddressFromWormholeWire(operation.sourceChain?.from)
 	)
-	const recipient = evmAddressFromWormholeWire(
-		properties?.toAddress
-		?? operation.targetChain?.to
+	const recipient = (
+		evmAddressFromWormholeWire(properties?.toAddress)
+		?? evmAddressFromWormholeWire(operation.targetChain?.to)
 	)
 	const amountIn = bigintAmountFromWire(properties?.amount)
 	const observedAtMs = (
 		timestampMsFromIso(operation.targetChain?.timestamp)
 		?? timestampMsFromIso(operation.sourceChain?.timestamp)
-		?? Date.now()
 	)
-	const hasTokenTransferAmount = amountIn != null
+	if (observedAtMs == null)
+		throw new Error('Wormholescan_Rest: operation missing timestamp')
 
 	return {
 		source: Source.Wormholescan,
@@ -205,7 +215,7 @@ const bridgeTransferSnapshotFromOperation = (
 		settlementModel: BridgeSettlementModel.LockMint,
 		verificationModel: BridgeVerificationModel.External,
 		assetOutcome: (
-			hasTokenTransferAmount ?
+			amountIn != null ?
 				BridgeAssetOutcome.WrappedMint
 			:
 				BridgeAssetOutcome.MessageOnly
@@ -224,7 +234,7 @@ const loadOperationForTransfer = async (
 	transfer: EntitySelector<typeof schema, EntityType.BridgeTransfer>
 ) => {
 	if (transfer.source !== Source.Wormholescan)
-		throw new Error(`Wormholescan: unsupported bridge transfer source ${transfer.source}`)
+		throw new Error(`Wormholescan_Rest: unsupported bridge transfer source ${transfer.source}`)
 
 	const { getOperationById, getOperations } = await import(
 		'$/sources/Wormholescan/Rest/queries.ts'
@@ -242,7 +252,7 @@ const loadOperationForTransfer = async (
 		|| candidate.sourceChain?.transaction?.txHash?.toLowerCase() === txHash.slice(2).toLowerCase()
 	))
 	if (operation == null)
-		throw new Error(`Wormholescan: no operation for source tx ${txHash}`)
+		throw new Error(`Wormholescan_Rest: no operation for source tx ${txHash}`)
 
 	return operation
 }
@@ -298,7 +308,7 @@ export default {
 						source,
 					}) => {
 						if (source !== Source.Wormholescan)
-							throw new Error(`Wormholescan: unsupported bridge transfer timestamp source ${source}`)
+							throw new Error(`Wormholescan_Rest: unsupported bridge transfer timestamp source ${source}`)
 
 						const operation = await loadOperationForTransfer($transfer)
 						const destinationTxHash = evmTxHashFromWormholeWire(

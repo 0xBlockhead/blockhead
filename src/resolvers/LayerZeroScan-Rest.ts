@@ -1,3 +1,4 @@
+import { BridgeAssetOutcome } from '$/constants/Bridge.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	defineResolver,
@@ -103,6 +104,8 @@ const layerZeroBridgeTransferSnapshot = async (
 		$recipient: layerZeroEvmAddressRef(message.pathway.receiver.address, 'recipient'),
 		$fromNetwork: fromNetwork,
 		$toNetwork: toNetwork,
+		// Scan message rows are pathway packets; OFT amounts are not a Scan wire field.
+		assetOutcome: BridgeAssetOutcome.MessageOnly,
 		$$timestamps: [{
 			[EntityMetaKey.Selector]: {
 				$transfer: transfer,
@@ -144,6 +147,8 @@ const layerZeroBridgeTransferObservation = async ({
 	if (message.destination?.tx?.txHash != null && destinationTxHash == null)
 		throw new Error('LayerZeroScan_Rest: invalid destination transaction hash')
 
+	const requiredConfirmations = message.config?.outboundConfig?.confirmations
+
 	return {
 		$transfer: {
 			[EntityMetaKey.Selector]: $transfer,
@@ -157,6 +162,9 @@ const layerZeroBridgeTransferObservation = async ({
 		...(message.source.tx.blockConfirmations != null && {
 			sourceConfirmations: message.source.tx.blockConfirmations,
 		}),
+		...(requiredConfirmations != null && {
+			requiredConfirmations,
+		}),
 		...(destinationTxHash != null && {
 			destinationTxHash,
 		}),
@@ -167,8 +175,8 @@ const layerZeroBridgeTransferObservation = async ({
 				completedAt: message.destination.tx.blockTimestamp * 1_000,
 			}
 		),
-		...(message.config.error && {
-			error: message.status.message ?? message.status.name,
+		...(message.config?.error && {
+			error: message.config.errorMessage ?? message.status.message ?? message.status.name,
 		}),
 	}
 }
@@ -194,6 +202,7 @@ export default {
 			$recipient: (transfer) => transfer.$recipient,
 			$fromNetwork: (transfer) => transfer.$fromNetwork,
 			$toNetwork: (transfer) => transfer.$toNetwork,
+			assetOutcome: (transfer) => transfer.assetOutcome,
 			$$timestamps: (transfer) => transfer.$$timestamps,
 		}),
 
@@ -211,6 +220,7 @@ export default {
 			status: (observation) => observation.status,
 			substatus: (observation) => observation.substatus,
 			sourceConfirmations: (observation) => observation.sourceConfirmations,
+			requiredConfirmations: (observation) => observation.requiredConfirmations,
 			destinationTxHash: (observation) => observation.destinationTxHash,
 			completedAt: (observation) => observation.completedAt,
 			error: (observation) => observation.error,
