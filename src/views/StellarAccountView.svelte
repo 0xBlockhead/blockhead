@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 	import { stringify } from 'devalue'
 
 
@@ -21,11 +20,6 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.StellarAccount>, 'prefetched'> = $props()
 
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.StellarHorizon_Rest,
-		],
-	}))
 	const viewDomId = $derived('stellar-account-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -104,7 +98,7 @@
 					emptyText='No trustlines.'
 					open={true}
 					id={`${id}-list`}
-					resource={viewSelection.$$trustlines()}
+					resource={selection.$$trustlines()}
 				>
 					{#snippet Item({ item: stellarTrustline })}
 						<EntityView
@@ -123,7 +117,7 @@
 					emptyText='No offers.'
 					open={true}
 					id={`${id}-list`}
-					resource={viewSelection.$$offers()}
+					resource={selection.$$offers()}
 				>
 					{#snippet Item({ item: stellarOffer })}
 						<EntityView
@@ -142,7 +136,7 @@
 					emptyText='No trades.'
 					open={true}
 					id={`${id}-list`}
-					resource={viewSelection.$$trades()}
+					resource={selection.$$trades()}
 				>
 					{#snippet Item({ item: stellarTrade })}
 						<EntityView
@@ -187,7 +181,7 @@
 					emptyText='No transactions.'
 					open={true}
 					id={`${id}-list`}
-					resource={viewSelection.$$transactions()}
+					resource={selection.$$transactions()}
 				>
 					{#snippet Item({ item: stellarTransaction })}
 						<EntityView
@@ -206,7 +200,7 @@
 					emptyText='No signers.'
 					open={true}
 					id={`${id}-list`}
-					resource={viewSelection.$$signers()}
+					resource={selection.$$signers()}
 				>
 					{#snippet Item({ item: stellarAccountSigner })}
 						<EntityView
@@ -247,7 +241,7 @@
 					emptyText='No timestamps.'
 					open={true}
 					id={`${id}-list`}
-					resource={viewSelection.$$timestamps()}
+					resource={selection.$$timestamps()}
 				>
 					{#snippet Item({ item: stellarAccountTimestamp })}
 						<EntityView

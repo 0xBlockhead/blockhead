@@ -97,6 +97,19 @@
 
 	{#snippet Content()}
 		<dl data-column-item="center">
+			<div>
+				<dt>URL</dt>
+				<dd>
+					<a
+						href={selection.entitySelector.url}
+						target="_blank"
+						rel="noreferrer noopener"
+					>
+						<TruncatedValue value={selection.entitySelector.url} />
+					</a>
+				</dd>
+			</div>
+
 			<ResourceBoundary
 				resource={evmNetworkBridge}
 			>
@@ -104,7 +117,7 @@
 					{@const relationshipType = entity.relationshipType}
 					{#if relationshipType != null}
 						<div>
-							<dt>relationship type</dt>
+							<dt>Relationship type</dt>
 							<dd>
 								{relationshipType}
 							</dd>
@@ -116,25 +129,21 @@
 
 		<dl data-column-item="center">
 			<div>
-				<dt>from network</dt>
+				<dt>From network</dt>
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$fromNetwork)}
 						layout={EntityLayout.Value}
-						open={false}
-						showTypeAnnotation={false}
 					/>
 				</dd>
 			</div>
 
 			<div>
-				<dt>to network</dt>
+				<dt>To network</dt>
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$toNetwork)}
 						layout={EntityLayout.Value}
-						open={false}
-						showTypeAnnotation={false}
 					/>
 				</dd>
 			</div>

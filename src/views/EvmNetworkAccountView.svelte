@@ -7,7 +7,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -139,14 +138,7 @@
 
 			{#snippet SectionEvmNetworkAccountTransactions({ id, label })}
 				<EvmTransactionsView
-					selection={
-						selection.$$transactions({
-							sources: [
-								Source.Blockscout_Rest,
-								Source.SafeTransactionService_Rest,
-							],
-						})
-					}
+					selection={selection.$$transactions}
 					collapsible={false}
 					title={label}
 					emptyText='No transactions yet.'

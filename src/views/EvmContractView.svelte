@@ -176,14 +176,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection.$implementation({
-						sources: [
-							Source.Blockscout_Rest,
-							Source.SafeTransactionService_Rest,
-						],
-					})
-				}
+				resource={selection.$implementation}
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null}

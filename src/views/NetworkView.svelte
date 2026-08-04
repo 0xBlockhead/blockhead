@@ -187,7 +187,6 @@
 	import EthereumNetworkUpgradeView from '$/views/EthereumNetworkUpgradeView.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
 	import EvmNetwork_GasFee_BlockView from '$/views/EvmNetwork_GasFee_BlockView.svelte'
-	import EvmNetwork_GasEstimate_TimestampView from '$/views/EvmNetwork_GasEstimate_TimestampView.svelte'
 	import EvmNetwork_Txpool_TimestampView from '$/views/EvmNetwork_Txpool_TimestampView.svelte'
 	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
 	import BeaconSlotView from '$/views/BeaconSlotView.svelte'
@@ -430,7 +429,6 @@
 											blockNumber: true,
 											baseFeePerGas: true,
 											gasUsedRatio: true,
-											maxPriorityFeePerGas: true,
 										},
 										orderBy: [
 											[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].blockNumber ?? Number.NEGATIVE_INFINITY, 'desc'],
@@ -454,52 +452,6 @@
 										/>
 									{:else}
 										<p data-text="muted" data-section-state="resolved-empty">No fee market available.</p>
-									{/if}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-
-					<div>
-						<dt>Gas</dt>
-						<dd>
-							<ResourceBoundary
-								resource={
-									projection
-									.$$gasEstimateTimestamps({
-										sources: [
-											Source.Blockscout_Rest,
-											Source.Etherscan_Rest,
-										],
-										fields: {
-											timestampMs: true,
-											slowGwei: true,
-											averageGwei: true,
-											fastGwei: true,
-										},
-										orderBy: [
-											[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
-										],
-									}).first()
-								}
-							>
-								{#snippet children(evmNetworkGasEstimateTimestamp)}
-									{#if evmNetworkGasEstimateTimestamp != null}
-										{@const evmNetworkGasEstimateTimestampSelector = evmNetworkGasEstimateTimestamp[EntityMetaKey.Selector]}
-										<EvmNetwork_GasEstimate_TimestampView
-											selection={
-												select(EntityType.EvmNetwork_GasEstimate_Timestamp, evmNetworkGasEstimateTimestampSelector, {
-													sources: [
-														Source.Blockscout_Rest,
-														Source.Etherscan_Rest,
-													],
-												})
-											}
-											prefetched={{ ...evmNetworkGasEstimateTimestampSelector, ...evmNetworkGasEstimateTimestamp }}
-											layout={EntityLayout.Value}
-										/>
-									{:else}
-										<p data-text="muted" data-section-state="resolved-empty">No gas estimate available.</p>
 									{/if}
 								{/snippet}
 							</ResourceBoundary>
@@ -1095,7 +1047,6 @@
 					}
 					collapsible={false}
 					title={label}
-					emptyText='No faucets listed for this network yet.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
@@ -1115,7 +1066,6 @@
 					}
 					collapsible={false}
 					title={label}
-					emptyText='No block explorers listed for this network yet.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
@@ -1721,12 +1671,11 @@
 									projection
 									.$$blocks({
 										sources: voltaireJsonRpcSources,
-										limit: 16,
+										limit: 4,
 									})
 								}
 								collapsible={false}
 								title={label}
-								emptyText='No recent blocks available for this network yet.'
 								id={`${id}-list`}
 							/>
 						{/snippet}
@@ -1772,7 +1721,6 @@
 								}
 								collapsible={false}
 								title={label}
-								emptyText='No fee-market blocks available for this network yet.'
 								id={`${id}-list`}
 							/>
 						{/snippet}
@@ -1788,7 +1736,6 @@
 								}
 								collapsible={false}
 								title={label}
-								emptyText='No gas estimates available for this network yet.'
 								id={`${id}-list`}
 							/>
 						{/snippet}
@@ -1808,7 +1755,6 @@
 								}
 								collapsible={false}
 								title={label}
-								emptyText='No execution RPC endpoints listed for this network yet.'
 								id={`${id}-list`}
 							/>
 						{/snippet}

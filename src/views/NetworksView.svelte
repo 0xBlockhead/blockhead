@@ -32,7 +32,6 @@
 				$icon: true,
 				name: true,
 				caip2: true,
-				environment: true,
 			},
 		})
 	}
@@ -62,12 +61,6 @@
 
 			{#snippet Value()}
 				{network.caip2 == null ? '' : `${network.caip2.namespace}:${network.caip2.reference}`}
-			{/snippet}
-
-			{#snippet HeadingAfter()}
-				{#if network.environment != null}
-					<span data-text="annotation">{network.environment}</span>
-				{/if}
 			{/snippet}
 		</EntityView>
 	{/snippet}
