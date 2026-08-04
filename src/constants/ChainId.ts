@@ -46,6 +46,8 @@ export enum ChainId {
 	MitosisTestnet = 124832,
 	RiseTestnet = 11155931,
 	Tac = 239,
+	Holesky = 17000,
+	Hoodi = 560048,
 	EthereumSepolia = 11155111,
 	OPSepolia = 11155420,
 	CeloSepolia = 11142220,

@@ -23,7 +23,12 @@ export const beaconConsensusNetworks = [
 	},
 	{
 		/** Holesky execution L1 (EIP-6969). */
-		chainId: 17_000,
+		chainId: ChainId.Holesky,
+		...ethereumBeaconConsensus,
+	},
+	{
+		/** Hoodi execution L1 — staking / protocol testnet successor to Holesky. */
+		chainId: ChainId.Hoodi,
 		...ethereumBeaconConsensus,
 	},
 ] as const satisfies readonly {
