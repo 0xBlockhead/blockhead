@@ -29,6 +29,14 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Blockscout_Rest,
+			Source.SafeTransactionService_Rest,
+		],
+	},
+	$$queuedTransactions: {
+		entityType: EntityType.EvmTransaction,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.SafeTransactionService_Rest,
 		],
 	},
 	$$tokenTransfers: {

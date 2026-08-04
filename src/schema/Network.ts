@@ -374,23 +374,14 @@ export default entity({
 			$$erc4337Bundlers: {
 				entityType: EntityType.Erc4337Bundler,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: [
-					Source.Blockscout_Rest,
-				],
 			},
 			$$erc4337Paymasters: {
 				entityType: EntityType.Erc4337Paymaster,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: [
-					Source.Blockscout_Rest,
-				],
 			},
 			$$erc4337AccountFactories: {
 				entityType: EntityType.Erc4337AccountFactory,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: [
-					Source.Blockscout_Rest,
-				],
 			},
 			$$userOperations: {
 				entityType: EntityType.EvmUserOperation,
@@ -402,6 +393,10 @@ export default entity({
 			$$bridges: {
 				entityType: EntityType.EvmNetworkBridge,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Chainlist_Rest,
+					Source.EthereumLists_Rest,
+				],
 			},
 			$$erc20TokenTransfers: {
 				entityType: EntityType.EvmTokenTransfer,

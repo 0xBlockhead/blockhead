@@ -4,6 +4,7 @@ import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -37,6 +38,58 @@ export default entity({
 	$implementation: {
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SafeTransactionService_Rest,
+		],
+	},
+	threshold: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SafeTransactionService_Rest,
+		],
+	},
+	nonce: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SafeTransactionService_Rest,
+		],
+	},
+	version: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SafeTransactionService_Rest,
+		],
+	},
+	$$owners: {
+		entityType: EntityType.EvmAccount,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.SafeTransactionService_Rest,
+		],
+	},
+	$$modules: {
+		entityType: EntityType.EvmContract,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.SafeTransactionService_Rest,
+		],
+	},
+	$fallbackHandler: {
+		entityType: EntityType.EvmContract,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SafeTransactionService_Rest,
+		],
+	},
+	$guard: {
+		entityType: EntityType.EvmContract,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SafeTransactionService_Rest,
+		],
 	},
 	codeHash: {
 		primitiveType: ZeroExHex,

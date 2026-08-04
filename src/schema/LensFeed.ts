@@ -22,6 +22,10 @@ export default entity({
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
+	$owner: {
+		entityType: EntityType.EvmAccount,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 	name: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,

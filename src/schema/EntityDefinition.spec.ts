@@ -1480,4 +1480,85 @@ describe('entity selectors', () => {
 		)
 		expect(entityFieldDefinitions(definition).map(({ name }) => name)).not.toContain('fid')
 	})
+
+	it('deepens Directory schemas for Lens feeds/namespaces, Uniswap, Safe, and bridges', () => {
+		const lensNetwork = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.LensNetwork)
+		const lensFeed = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.LensFeed)
+		const lensUsernameNamespace = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.LensUsernameNamespace)
+		const uniswapV3Pool = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.UniswapV3Pool)
+		const evmContract = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.EvmContract)
+		const evmNetworkAccount = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.EvmNetworkAccount)
+		const network = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.Network)
+		if (
+			lensNetwork == null
+			|| lensFeed == null
+			|| lensUsernameNamespace == null
+			|| uniswapV3Pool == null
+			|| evmContract == null
+			|| evmNetworkAccount == null
+			|| network == null
+		)
+			throw new Error('Directory schema rows missing')
+
+		expect(entityFieldDefinitions(lensNetwork).map(({ name }) => name)).toEqual(
+			expect.arrayContaining([
+				'$$feeds',
+				'$$usernameNamespaces',
+			])
+		)
+		expect(entityFieldDefinitions(lensFeed).find(({ name }) => name === '$$posts')?.defaultSources).toEqual([
+			Source.Lens_Graphql,
+		])
+		expect(entityFieldDefinitions(lensFeed).find(({ name }) => name === '$owner')).toMatchObject({
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmAccount,
+		})
+		expect(entityFieldDefinitions(lensUsernameNamespace).find(({ name }) => name === '$$usernames')?.defaultSources).toEqual([
+			Source.Lens_Graphql,
+		])
+		expect(entityFieldDefinitions(lensUsernameNamespace).find(({ name }) => name === '$owner')).toMatchObject({
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmAccount,
+		})
+
+		expect(uniswapV3Pool.selectors.map((selector) => selector.fields)).toEqual([
+			[
+				'$network',
+				'poolAddress',
+			],
+			[
+				'$token0',
+				'$token1',
+				'fee',
+			],
+		])
+
+		for (const fieldName of [
+			'threshold',
+			'nonce',
+			'version',
+			'$$owners',
+			'$$modules',
+			'$fallbackHandler',
+			'$guard',
+		] as const)
+			expect(entityFieldDefinitions(evmContract).find(({ name }) => name === fieldName)?.defaultSources).toEqual([
+				Source.SafeTransactionService_Rest,
+			])
+
+		expect(entityFieldDefinitions(evmNetworkAccount).find(({ name }) => name === '$$transactions')?.defaultSources).toEqual([
+			Source.Blockscout_Rest,
+			Source.SafeTransactionService_Rest,
+		])
+		expect(entityFieldDefinitions(evmNetworkAccount).find(({ name }) => name === '$$queuedTransactions')?.defaultSources).toEqual([
+			Source.SafeTransactionService_Rest,
+		])
+
+		const bridges = entityFieldDefinitions(network).find(({ name }) => name === '$$bridges')
+		expect(bridges?.defaultSources).toEqual([
+			Source.Chainlist_Rest,
+			Source.EthereumLists_Rest,
+		])
+		expect(bridges?.defaultSources).not.toContain(Source.Lifi_Rest)
+	})
 })

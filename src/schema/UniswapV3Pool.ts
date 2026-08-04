@@ -79,5 +79,10 @@ export default entity({
 			'$network',
 			'poolAddress',
 		],
+		Token0Token1Fee: [
+			'$token0',
+			'$token1',
+			'fee',
+		],
 	},
 })
