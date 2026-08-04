@@ -570,5 +570,30 @@ export default {
 				$$blocks: (blocks) => blocks,
 			},
 		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: osmosisNetworkResolverSelectors(
+				async (network, context) => {
+					assertOsmosisNetwork(network)
+					const { getPools } = await import('$/sources/Osmosis/Rest/queries.ts')
+					const {
+						pools,
+					} = await getPools({
+						limit: resolverContextRowLimit(context),
+					})
+					return pools.map((pool) => ({
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							poolId: pool.id,
+						},
+					}))
+				}
+			),
+		})({
+			Cosmos: {
+				$$osmosisPools: (pools) => pools,
+			},
+		}),
 	],
 } satisfies RegisteredSourceResolverModule<Source.Osmosis_LCD_Rest>

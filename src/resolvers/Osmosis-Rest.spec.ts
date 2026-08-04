@@ -53,6 +53,11 @@ const networkBlocksResolver = osmosisRest.resolvers.find((resolver) => (
 	&& 'Cosmos' in resolver.projections
 	&& '$$blocks' in resolver.projections.Cosmos
 ))
+const networkOsmosisPoolsResolver = osmosisRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Cosmos' in resolver.projections
+	&& '$$osmosisPools' in resolver.projections.Cosmos
+))
 const timestampResolver = osmosisRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network_Timestamp
 ))
@@ -90,6 +95,7 @@ describe('Osmosis LCD resolver module', () => {
 			EntityType.OsmosisPool_Timestamp,
 			EntityType.Network,
 			EntityType.Network,
+			EntityType.Network,
 		])
 		expect(networkRestEndpointsResolver).toBeDefined()
 		expect(timestampResolver).toBeDefined()
@@ -100,6 +106,7 @@ describe('Osmosis LCD resolver module', () => {
 		expect(osmosisPoolTimestampResolver).toBeDefined()
 		expect(networkTimestampsResolver).toBeDefined()
 		expect(networkBlocksResolver).toBeDefined()
+		expect(networkOsmosisPoolsResolver).toBeDefined()
 	})
 
 	it('rejects non-Osmosis networks', async () => {
@@ -321,6 +328,57 @@ describe('Osmosis LCD resolver module', () => {
 				},
 			},
 		])
+	})
+
+	it('lists OsmosisPool refs from poolmanager getPools', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			pools: [
+				{
+					id: '1',
+				},
+				{
+					id: '678',
+				},
+			],
+		})
+
+		if (networkOsmosisPoolsResolver == null)
+			throw new Error('missing Network $$osmosisPools resolver')
+
+		const snapshot = await networkOsmosisPoolsResolver.resolve.Caip2.resolve(osmosisNetwork, context)
+		expect(networkOsmosisPoolsResolver.projections.Cosmos.$$osmosisPools(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: osmosisNetwork,
+					poolId: '1',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: osmosisNetwork,
+					poolId: '678',
+				},
+			},
+		])
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.stringContaining('/osmosis/poolmanager/v1beta1/pools?pagination.limit=16')
+		)
+	})
+
+	it('rejects $$osmosisPools for non-Osmosis networks without transport', async () => {
+		if (networkOsmosisPoolsResolver == null)
+			throw new Error('missing Network $$osmosisPools resolver')
+
+		await expect(
+			networkOsmosisPoolsResolver.resolve.Caip2.resolve({
+				caip2: {
+					namespace: 'cosmos',
+					reference: 'cosmoshub-4',
+				},
+			}, context)
+		).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: unsupported network`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
 	it('resolves a native OsmosisPool from poolmanager getPool', async () => {
