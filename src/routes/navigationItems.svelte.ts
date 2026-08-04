@@ -234,6 +234,21 @@ export default [
 						icon: '🌊',
 					},
 					{
+						id: 'assets-uniswap-v3',
+						title: 'Uniswap V3',
+						href: '/uniswap-v3',
+						icon: '🦄',
+						defaultIsOpen: true,
+						children: [
+							{
+								id: 'assets-uniswap-v3-pools',
+								title: 'Pools',
+								href: '/uniswap-v3/pools',
+								icon: '🌊',
+							},
+						],
+					},
+					{
 						id: 'assets-channels',
 						title: 'Channels',
 						href: '/channels',
