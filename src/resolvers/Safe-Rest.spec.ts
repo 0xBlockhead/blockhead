@@ -24,6 +24,7 @@ const safeAddress = `0x${'a'.repeat(40)}`
 const ownerAddress = `0x${'b'.repeat(40)}`
 const recipientAddress = `0x${'c'.repeat(40)}`
 const masterCopy = `0x${'1'.repeat(40)}`
+const moduleAddress = `0x${'2'.repeat(40)}`
 const zeroAddress = `0x${'0'.repeat(40)}`
 const safeTxHash = `0x${'d'.repeat(64)}`
 const executionHash = `0x${'e'.repeat(64)}`
@@ -58,6 +59,8 @@ describe('Safe Transaction Service resolver module', () => {
 			EntityType.EvmContract,
 			EntityType.EvmNetworkAccount,
 			EntityType.EvmNetworkAccount,
+			EntityType.EvmNetworkAccount,
+			EntityType.EvmNetworkAccount,
 		])
 	})
 
@@ -82,7 +85,7 @@ describe('Safe Transaction Service resolver module', () => {
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
-	it('maps Safe masterCopy onto EvmContract $implementation', async () => {
+	it('maps Safe status onto EvmContract Safe Directory fields', async () => {
 		sourceGetJson.mockResolvedValue({
 			address: safeAddress,
 			nonce: '2',
@@ -91,7 +94,9 @@ describe('Safe Transaction Service resolver module', () => {
 				ownerAddress,
 			],
 			masterCopy,
-			modules: [],
+			modules: [
+				moduleAddress,
+			],
 			fallbackHandler: recipientAddress,
 			guard: zeroAddress,
 			version: '1.4.1',
@@ -113,6 +118,31 @@ describe('Safe Transaction Service resolver module', () => {
 				address: masterCopy,
 			},
 		})
+		expect(contractResolver.projections.threshold(snapshot)).toBe(1)
+		expect(contractResolver.projections.nonce(snapshot)).toBe('2')
+		expect(contractResolver.projections.version(snapshot)).toBe('1.4.1')
+		expect(contractResolver.projections.$$owners(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					address: ownerAddress,
+				},
+			},
+		])
+		expect(contractResolver.projections.$$modules(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					address: moduleAddress,
+				},
+			},
+		])
+		expect(contractResolver.projections.$fallbackHandler(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				address: recipientAddress,
+			},
+		})
+		expect(contractResolver.projections.$guard(snapshot)).toBeUndefined()
 	})
 
 	it('maps executed Safe multisig transactions onto EvmNetworkAccount $$transactions', async () => {
@@ -153,6 +183,7 @@ describe('Safe Transaction Service resolver module', () => {
 
 		const accountResolvers = safeRest.resolvers.filter((resolver) => (
 			resolver.entityType === EntityType.EvmNetworkAccount
+			&& '$$transactions' in resolver.projections
 		))
 		const listResolver = accountResolvers.find((resolver) => (
 			typeof resolver.projections.$$transactions === 'function'
@@ -187,5 +218,81 @@ describe('Safe Transaction Service resolver module', () => {
 			},
 		}, context)
 		expect(countResolver.projections.$$transactions.resolveCount(countSnapshot)).toBe(1)
+	})
+
+	it('maps queued Safe multisig transactions onto EvmNetworkAccount $$queuedTransactions', async () => {
+		sourceGetJson.mockResolvedValue({
+			count: 1,
+			next: null,
+			previous: null,
+			results: [
+				{
+					safe: safeAddress,
+					to: recipientAddress,
+					value: '0',
+					data: '0x',
+					operation: 0,
+					safeTxGas: '0',
+					baseGas: '0',
+					gasPrice: '0',
+					gasToken: zeroAddress,
+					refundReceiver: zeroAddress,
+					nonce: '2',
+					executionDate: null,
+					submissionDate: '2026-07-22T00:00:00Z',
+					modified: '2026-07-22T00:00:00Z',
+					blockNumber: null,
+					transactionHash: null,
+					safeTxHash,
+					proposer: ownerAddress,
+					executor: null,
+					isExecuted: false,
+					isSuccessful: null,
+					confirmationsRequired: 1,
+					confirmations: [],
+					trusted: true,
+					signatures: null,
+				},
+			],
+		})
+
+		const accountResolvers = safeRest.resolvers.filter((resolver) => (
+			resolver.entityType === EntityType.EvmNetworkAccount
+			&& '$$queuedTransactions' in resolver.projections
+		))
+		const listResolver = accountResolvers.find((resolver) => (
+			typeof resolver.projections.$$queuedTransactions === 'function'
+		))
+		const countResolver = accountResolvers.find((resolver) => (
+			typeof resolver.projections.$$queuedTransactions === 'object'
+			&& resolver.projections.$$queuedTransactions != null
+			&& 'resolveCount' in resolver.projections.$$queuedTransactions
+		))
+		if (listResolver == null || countResolver == null)
+			throw new Error('missing EvmNetworkAccount $$queuedTransactions resolvers')
+
+		const listSnapshot = await listResolver.resolve.EvmNetworkEvmAccount.resolve({
+			$network: network,
+			$actor: {
+				address: safeAddress,
+			},
+		}, context)
+		expect(listResolver.projections.$$queuedTransactions(listSnapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					txHash: safeTxHash,
+				},
+			},
+		])
+		expect(sourceGetJson.mock.calls[0]?.[1]).toContain('executed=false')
+
+		const countSnapshot = await countResolver.resolve.EvmNetworkEvmAccount.resolve({
+			$network: network,
+			$actor: {
+				address: safeAddress,
+			},
+		}, context)
+		expect(countResolver.projections.$$queuedTransactions.resolveCount(countSnapshot)).toBe(1)
 	})
 })

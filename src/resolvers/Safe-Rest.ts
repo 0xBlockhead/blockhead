@@ -12,17 +12,38 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import {
-	requireSafeTransactionServiceBinding,
-	safeTransactionServiceChainIds,
-} from '$/sources/SafeTransactionService/Rest/queries.ts'
 import { Source } from '$/sources/Source.ts'
 
-const assertSupportedSafeChain = (
-	chainId: number
+const zeroAddress = `0x${'0'.repeat(40)}`
+
+const contractRef = (
+	chainId: number,
+	address: string
 ) => {
-	requireSafeTransactionServiceBinding(chainId)
-	return chainId
+	const normalized = hexLowerOfByteSize(address, 20)
+	if (normalized == null)
+		throw new Error('SafeTransactionService_Rest: contract address not normalized')
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$network: evmNetworkSelectorFromChainId(chainId),
+			address: normalized,
+		},
+	}
+}
+
+const accountRef = (
+	address: string
+) => {
+	const normalized = hexLowerOfByteSize(address, 20)
+	if (normalized == null)
+		throw new Error('SafeTransactionService_Rest: account address not normalized')
+
+	return {
+		[EntityMetaKey.Selector]: {
+			address: normalized,
+		},
+	}
 }
 
 export default {
@@ -37,35 +58,57 @@ export default {
 						$network,
 						address: addressSelector,
 					}) => {
-						const chainId = assertSupportedSafeChain(evmChainIdFromNetworkSelector($network))
+						const chainId = evmChainIdFromNetworkSelector($network)
 						const address = hexLowerOfByteSize(addressSelector, 20)
 						if (address == null)
 							throw new Error('SafeTransactionService_Rest: Safe address not normalized')
 
 						const {
 							getSafeStatus,
+							requireSafeTransactionServiceBinding,
 						} = await import('$/sources/SafeTransactionService/Rest/queries.ts')
+						requireSafeTransactionServiceBinding(chainId)
 						const status = await getSafeStatus({
 							chainId,
 							safeAddress: address,
 						})
-						const masterCopy = hexLowerOfByteSize(status.masterCopy, 20)
-						if (masterCopy == null)
-							throw new Error('SafeTransactionService_Rest: masterCopy not normalized')
+						const fallbackHandler = hexLowerOfByteSize(status.fallbackHandler, 20)
+						if (fallbackHandler == null)
+							throw new Error('SafeTransactionService_Rest: fallbackHandler not normalized')
+						const guard = hexLowerOfByteSize(status.guard, 20)
+						if (guard == null)
+							throw new Error('SafeTransactionService_Rest: guard not normalized')
 
 						return {
-							$implementation: {
-								[EntityMetaKey.Selector]: {
-									$network: evmNetworkSelectorFromChainId(chainId),
-									address: masterCopy,
-								},
-							},
+							$implementation: contractRef(chainId, status.masterCopy),
+							threshold: status.threshold,
+							nonce: status.nonce,
+							...(status.version != null && {
+								version: status.version,
+							}),
+							$$owners: status.owners.map(accountRef),
+							$$modules: status.modules.map((moduleAddress) => (
+								contractRef(chainId, moduleAddress)
+							)),
+							...(fallbackHandler !== zeroAddress && {
+								$fallbackHandler: contractRef(chainId, fallbackHandler),
+							}),
+							...(guard !== zeroAddress && {
+								$guard: contractRef(chainId, guard),
+							}),
 						}
 					},
 				},
 			},
 		})({
 			$implementation: (contract) => contract.$implementation,
+			threshold: (contract) => contract.threshold,
+			nonce: (contract) => contract.nonce,
+			version: (contract) => contract.version,
+			$$owners: (contract) => contract.$$owners,
+			$$modules: (contract) => contract.$$modules,
+			$fallbackHandler: (contract) => contract.$fallbackHandler,
+			$guard: (contract) => contract.$guard,
 		}),
 
 		defineResolver({
@@ -76,14 +119,16 @@ export default {
 						$actor,
 						$network,
 					}, context) => {
-						const chainId = assertSupportedSafeChain(evmChainIdFromNetworkSelector($network))
+						const chainId = evmChainIdFromNetworkSelector($network)
 						const address = hexLowerOfByteSize($actor.address, 20)
 						if (address == null)
 							throw new Error('SafeTransactionService_Rest: Safe address not normalized')
 
 						const {
 							getSafeMultisigTransactions,
+							requireSafeTransactionServiceBinding,
 						} = await import('$/sources/SafeTransactionService/Rest/queries.ts')
+						requireSafeTransactionServiceBinding(chainId)
 						const page = await getSafeMultisigTransactions({
 							chainId,
 							safeAddress: address,
@@ -109,14 +154,16 @@ export default {
 						$actor,
 						$network,
 					}, context) => {
-						const chainId = assertSupportedSafeChain(evmChainIdFromNetworkSelector($network))
+						const chainId = evmChainIdFromNetworkSelector($network)
 						const address = hexLowerOfByteSize($actor.address, 20)
 						if (address == null)
 							throw new Error('SafeTransactionService_Rest: Safe address not normalized')
 
 						const {
 							getSafeMultisigTransactions,
+							requireSafeTransactionServiceBinding,
 						} = await import('$/sources/SafeTransactionService/Rest/queries.ts')
+						requireSafeTransactionServiceBinding(chainId)
 						const page = await getSafeMultisigTransactions({
 							chainId,
 							safeAddress: address,
@@ -144,7 +191,86 @@ export default {
 		})({
 			$$transactions: (transactions) => transactions,
 		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkAccount,
+			resolve: {
+				EvmNetworkEvmAccount: {
+					resolve: async ({
+						$actor,
+						$network,
+					}, context) => {
+						const chainId = evmChainIdFromNetworkSelector($network)
+						const address = hexLowerOfByteSize($actor.address, 20)
+						if (address == null)
+							throw new Error('SafeTransactionService_Rest: Safe address not normalized')
+
+						const {
+							getSafeMultisigTransactions,
+							requireSafeTransactionServiceBinding,
+						} = await import('$/sources/SafeTransactionService/Rest/queries.ts')
+						requireSafeTransactionServiceBinding(chainId)
+						const page = await getSafeMultisigTransactions({
+							chainId,
+							safeAddress: address,
+							limit: Math.min(100, Math.max(1, resolverContextRowLimit(context))),
+							offset: context.pagination.offset ?? 0,
+							executed: false,
+						})
+						return page.count
+					},
+				},
+			},
+		})({
+			$$queuedTransactions: {
+				resolveCount: (count) => count,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkAccount,
+			resolve: {
+				EvmNetworkEvmAccount: {
+					resolve: async ({
+						$actor,
+						$network,
+					}, context) => {
+						const chainId = evmChainIdFromNetworkSelector($network)
+						const address = hexLowerOfByteSize($actor.address, 20)
+						if (address == null)
+							throw new Error('SafeTransactionService_Rest: Safe address not normalized')
+
+						const {
+							getSafeMultisigTransactions,
+							requireSafeTransactionServiceBinding,
+						} = await import('$/sources/SafeTransactionService/Rest/queries.ts')
+						requireSafeTransactionServiceBinding(chainId)
+						const page = await getSafeMultisigTransactions({
+							chainId,
+							safeAddress: address,
+							limit: Math.min(100, Math.max(1, resolverContextRowLimit(context))),
+							offset: context.pagination.offset ?? 0,
+							executed: false,
+						})
+						return (
+							page.results.map((transaction) => {
+								const txHash = hexLowerOfByteSize(transaction.safeTxHash, 32)
+								if (txHash == null)
+									throw new Error('SafeTransactionService_Rest: queued transaction missing Safe tx hash')
+
+								return {
+									[EntityMetaKey.Selector]: {
+										$network: evmNetworkSelectorFromChainId(chainId),
+										txHash,
+									},
+								}
+							})
+						)
+					},
+				},
+			},
+		})({
+			$$queuedTransactions: (transactions) => transactions,
+		}),
 	],
 } satisfies RegisteredSourceResolverModule<Source.SafeTransactionService_Rest>
-
-export const safeTransactionServiceSupportedChainIds = safeTransactionServiceChainIds
