@@ -312,6 +312,27 @@ describe('Wormholescan WormholeVaa resolvers', () => {
 		expect(resolver.projections.sequence(snapshot)).toBe(vaaSelector.sequence)
 	})
 
+	it('rejects a transport detail that does not echo the VAA selector', async () => {
+		getVaaById.mockResolvedValue({
+			id: `2/${vaaEmitter}/43`,
+			sequence: '43',
+			emitterChain: 2,
+			emitterAddr: vaaEmitter,
+			timestamp: '2026-01-02T03:04:05.000Z',
+			vaa: 'AQAAAA',
+			digest: 'deadbeef',
+			guardianSetIndex: 3,
+		})
+		const resolver = wormholescanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.WormholeVaa
+		))
+		if (resolver == null)
+			throw new Error('Wormholescan WormholeVaa resolver is not registered')
+
+		await expect(resolver.resolve.EmitterChainEmitterSequence.resolve(vaaSelector))
+			.rejects.toThrow('Wormholescan_Rest: mismatched VAA identity')
+	})
+
 	it('omits optional emitterNativeAddr and txHash when absent', async () => {
 		getVaaById.mockResolvedValue({
 			id: `2/${vaaEmitter}/42`,

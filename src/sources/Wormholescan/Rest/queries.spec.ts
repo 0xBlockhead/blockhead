@@ -92,6 +92,45 @@ describe('Wormholescan OpenAPI operations', () => {
 		)
 	})
 
+	it('hard-fails when a detail operation does not echo its requested identity', async () => {
+		getJson.mockResolvedValue({ id: '2/abcdef/8' })
+
+		await expect(queries.getOperationById({
+			chainId: 2,
+			emitter: 'abcdef',
+			sequence: 7,
+		})).rejects.toThrow('Wormholescan_Rest: mismatched operation id 2/abcdef/8')
+	})
+
+	it('hard-fails when a detail operation has no envelope', async () => {
+		getJson.mockResolvedValue(null)
+
+		await expect(queries.getOperationById({
+			chainId: 2,
+			emitter: 'abcdef',
+			sequence: 7,
+		})).rejects.toThrow('Wormholescan_Rest: operation missing id')
+	})
+
+	it('rejects invalid operation path atoms before transport', async () => {
+		await expect(queries.getOperationById({
+			chainId: 2.5,
+			emitter: 'abcdef',
+			sequence: 7,
+		})).rejects.toThrow('Wormholescan_Rest: invalid wormhole chain id')
+		await expect(queries.getOperationById({
+			chainId: 2,
+			emitter: 'not/hex',
+			sequence: 7,
+		})).rejects.toThrow('Wormholescan_Rest: invalid emitter address')
+		await expect(queries.getOperationById({
+			chainId: 2,
+			emitter: 'abcdef',
+			sequence: '07',
+		})).rejects.toThrow('Wormholescan_Rest: invalid VAA sequence')
+		expect(getJson).not.toHaveBeenCalled()
+	})
+
 	it('loads a global transaction by wormhole id path', async () => {
 		getJson.mockResolvedValue({ id: 'global' })
 
@@ -132,6 +171,16 @@ describe('Wormholescan OpenAPI operations', () => {
 
 	it('hard-fails when the VAA page omits data', async () => {
 		getJson.mockResolvedValue({})
+
+		await expect(queries.getVaaById({
+			chainId: 2,
+			emitter: 'aa',
+			sequence: 1,
+		})).rejects.toThrow('Wormholescan_Rest: VAA missing data')
+	})
+
+	it('hard-fails when the VAA endpoint returns no envelope', async () => {
+		getJson.mockResolvedValue(null)
 
 		await expect(queries.getVaaById({
 			chainId: 2,

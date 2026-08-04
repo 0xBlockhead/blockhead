@@ -29,7 +29,7 @@ const operationsFromPage = (
 	page: WormholescanOperationsPage,
 	path: string
 ) => {
-	if (page.operations == null)
+	if (page == null || page.operations == null)
 		throw new Error(`Wormholescan_Rest: ${path} missing operations`)
 
 	return page.operations
@@ -51,6 +51,24 @@ const assertSequence = (sequence: number | string) => {
 		|| !Number.isSafeInteger(Number(sequence))
 	)
 		throw new Error(`Wormholescan_Rest: invalid VAA sequence ${sequence}`)
+}
+
+const assertOperation = (
+	operation: WormholescanOperation,
+	{
+		chainId,
+		emitter,
+		sequence,
+	}: {
+		chainId: number
+		emitter: string
+		sequence: number | string
+	}
+) => {
+	if (operation == null || operation.id == null || operation.id === '')
+		throw new Error('Wormholescan_Rest: operation missing id')
+	if (operation.id !== `${chainId}/${emitter}/${sequence}`)
+		throw new Error(`Wormholescan_Rest: mismatched operation id ${operation.id}`)
 }
 
 const assertVaa = (
@@ -116,7 +134,7 @@ export const getOperations = async (
 	)
 )
 
-export const getOperationById = (
+export const getOperationById = async (
 	{
 		chainId,
 		emitter,
@@ -126,12 +144,23 @@ export const getOperationById = (
 		emitter: string
 		sequence: number | string
 	}
-) => (
-	getJson<WormholescanOperation>(
+) => {
+	assertWormholeChainId(chainId)
+	assertEmitterAddress(emitter)
+	assertSequence(sequence)
+
+	const operation = await getJson<WormholescanOperation>(
 		binding,
 		`operations/${chainId}/${encodeURIComponent(emitter)}/${sequence}`
 	)
-)
+	assertOperation(operation, {
+		chainId,
+		emitter,
+		sequence,
+	})
+
+	return operation
+}
 
 export const findGlobalTransactionById = (
 	{
@@ -171,7 +200,7 @@ export const getVaaById = async (
 		binding,
 		`vaas/${chainId}/${encodeURIComponent(emitter)}/${sequence}${queryString({ parsedPayload })}`
 	)
-	if (page.data == null)
+	if (page == null || page.data == null)
 		throw new Error('Wormholescan_Rest: VAA missing data')
 
 	assertVaa(page.data, {

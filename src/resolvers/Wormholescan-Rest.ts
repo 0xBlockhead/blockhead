@@ -272,6 +272,13 @@ const wormholeVaaSnapshotFromWire = (
 		throw new Error('Wormholescan_Rest: VAA missing guardian set index')
 	if (vaa.timestamp == null || vaa.timestamp === '')
 		throw new Error('Wormholescan_Rest: VAA missing timestamp')
+	if (
+		vaa.emitterChain !== emitterChain
+		|| vaa.emitterAddr?.toLowerCase() !== emitter.toLowerCase()
+		|| String(vaa.sequence) !== sequence
+		|| vaa.id !== `${emitterChain}/${vaa.emitterAddr}/${vaa.sequence}`
+	)
+		throw new Error('Wormholescan_Rest: mismatched VAA identity')
 
 	const txHash = evmTxHashFromWormholeWire(vaa.txHash)
 
