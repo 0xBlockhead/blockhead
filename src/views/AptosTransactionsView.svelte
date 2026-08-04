@@ -36,13 +36,12 @@
 	}
 >
 	{#snippet Item({ item: aptosTransaction })}
-		{@const aptosTransactionSelector = aptosTransaction[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AptosTransaction}
-			entitySelector={aptosTransactionSelector}
+			entitySelector={aptosTransaction[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{aptosTransactionSelector.hash || String(aptosTransactionSelector.version) || 'aptos transaction'}
+				{aptosTransaction.hash || String(aptosTransaction.version) || 'aptos transaction'}
 			{/snippet}
 
 			{#snippet Value()}

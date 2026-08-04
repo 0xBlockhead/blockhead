@@ -33,13 +33,12 @@
 	}
 >
 	{#snippet Item({ item: arweaveNetwork })}
-		{@const arweaveNetworkSelector = arweaveNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.ArweaveNetwork}
-			entitySelector={arweaveNetworkSelector}
+			entitySelector={arweaveNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{arweaveNetwork.$network.name || (arweaveNetworkSelector.$network.caip2 == null ? '' : `${arweaveNetworkSelector.$network.caip2.namespace}:${arweaveNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{arweaveNetwork.$network.name || (arweaveNetwork.$network.caip2 == null ? '' : `${arweaveNetwork.$network.caip2.namespace}:${arweaveNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

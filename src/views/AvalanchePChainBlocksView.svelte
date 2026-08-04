@@ -35,13 +35,12 @@
 	}
 >
 	{#snippet Item({ item: avalanchePChainBlock })}
-		{@const avalanchePChainBlockSelector = avalanchePChainBlock[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AvalanchePChainBlock}
-			entitySelector={avalanchePChainBlockSelector}
+			entitySelector={avalanchePChainBlock[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{avalanchePChainBlockSelector.height}
+				{avalanchePChainBlock.height}
 			{/snippet}
 
 			{#snippet Value()}

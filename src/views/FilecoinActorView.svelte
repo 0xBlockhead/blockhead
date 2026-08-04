@@ -79,15 +79,13 @@
 									balanceAttoFil: true,
 									source: true,
 								},
-								limit: 1,
 								orderBy: [
 									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].height ?? Number.NEGATIVE_INFINITY, 'desc'],
 								],
-							})
+							}).first()
 						}
 					>
-						{#snippet children(filecoinActorTimestamps)}
-							{@const filecoinActorTimestamp = filecoinActorTimestamps.values[0]}
+						{#snippet children(filecoinActorTimestamp)}
 							{#if filecoinActorTimestamp != null}
 								{@const filecoinActorTimestampSelector = filecoinActorTimestamp[EntityMetaKey.Selector]}
 								<FilecoinActor_TimestampView

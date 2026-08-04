@@ -41,7 +41,7 @@
 			entitySelector={starknetNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{starknetNetworkTimestamp.$network.$network.name || (starknetNetworkTimestampSelector.$network.$network.caip2 == null ? '' : `${starknetNetworkTimestampSelector.$network.$network.caip2.namespace}:${starknetNetworkTimestampSelector.$network.$network.caip2.reference}`) || 'Network'}
+				{starknetNetworkTimestamp.$network.$network.name || (starknetNetworkTimestamp.$network.$network.caip2 == null ? '' : `${starknetNetworkTimestamp.$network.$network.caip2.namespace}:${starknetNetworkTimestamp.$network.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

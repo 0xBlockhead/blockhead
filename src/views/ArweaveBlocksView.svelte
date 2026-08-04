@@ -35,13 +35,12 @@
 	}
 >
 	{#snippet Item({ item: arweaveBlock })}
-		{@const arweaveBlockSelector = arweaveBlock[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.ArweaveBlock}
-			entitySelector={arweaveBlockSelector}
+			entitySelector={arweaveBlock[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{arweaveBlockSelector.height}
+				{arweaveBlock.height}
 			{/snippet}
 
 			{#snippet Value()}

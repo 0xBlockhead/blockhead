@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{[nearTransaction.$signer == null ? '' : nearTransaction.$signer.accountId || 'near account', nearTransactionSelector.signerAccountId].filter(Boolean).join(' ')}
+				{[nearTransaction.$signer == null ? '' : nearTransaction.$signer.accountId || 'near account', nearTransaction.signerAccountId].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

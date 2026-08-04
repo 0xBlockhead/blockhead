@@ -43,7 +43,7 @@
 			entitySelector={hederaAccountSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]',
 					{
 						network: (
 							'caip2' in network ?
@@ -61,7 +61,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{hederaAccount.$network.name || (hederaAccountSelector.$network.caip2 == null ? '' : `${hederaAccountSelector.$network.caip2.namespace}:${hederaAccountSelector.$network.caip2.reference}`) || 'Network'}
+				{hederaAccount.$network.name || (hederaAccount.$network.caip2 == null ? '' : `${hederaAccount.$network.caip2.namespace}:${hederaAccount.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -36,13 +36,12 @@
 	}
 >
 	{#snippet Item({ item: hederaTransaction })}
-		{@const hederaTransactionSelector = hederaTransaction[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.HederaTransaction}
-			entitySelector={hederaTransactionSelector}
+			entitySelector={hederaTransaction[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{hederaTransaction.transactionType || hederaTransactionSelector.transactionId || 'hedera transaction'}
+				{hederaTransaction.transactionType || hederaTransaction.transactionId || 'hedera transaction'}
 			{/snippet}
 
 			{#snippet Value()}
@@ -50,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{hederaTransactionSelector.consensusTimestamp}</span>
+				<span data-text="annotation">{hederaTransaction.consensusTimestamp}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

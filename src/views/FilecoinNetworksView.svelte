@@ -37,13 +37,12 @@
 	}
 >
 	{#snippet Item({ item: filecoinNetwork })}
-		{@const filecoinNetworkSelector = filecoinNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.FilecoinNetwork}
-			entitySelector={filecoinNetworkSelector}
+			entitySelector={filecoinNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{filecoinNetwork.$network.name || (filecoinNetworkSelector.$network.caip2 == null ? '' : `${filecoinNetworkSelector.$network.caip2.namespace}:${filecoinNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{filecoinNetwork.$network.name || (filecoinNetwork.$network.caip2 == null ? '' : `${filecoinNetwork.$network.caip2.namespace}:${filecoinNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

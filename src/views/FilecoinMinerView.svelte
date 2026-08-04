@@ -81,15 +81,13 @@
 									liveSectorCount: true,
 									source: true,
 								},
-								limit: 1,
 								orderBy: [
 									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].height ?? Number.NEGATIVE_INFINITY, 'desc'],
 								],
-							})
+							}).first()
 						}
 					>
-						{#snippet children(filecoinMinerTimestamps)}
-							{@const filecoinMinerTimestamp = filecoinMinerTimestamps.values[0]}
+						{#snippet children(filecoinMinerTimestamp)}
 							{#if filecoinMinerTimestamp != null}
 								{@const filecoinMinerTimestampSelector = filecoinMinerTimestamp[EntityMetaKey.Selector]}
 								<FilecoinMiner_TimestampView

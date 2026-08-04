@@ -33,13 +33,12 @@
 	}
 >
 	{#snippet Item({ item: tezosNetwork })}
-		{@const tezosNetworkSelector = tezosNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.TezosNetwork}
-			entitySelector={tezosNetworkSelector}
+			entitySelector={tezosNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{tezosNetwork.$network.name || (tezosNetworkSelector.$network.caip2 == null ? '' : `${tezosNetworkSelector.$network.caip2.namespace}:${tezosNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{tezosNetwork.$network.name || (tezosNetwork.$network.caip2 == null ? '' : `${tezosNetwork.$network.caip2.namespace}:${tezosNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

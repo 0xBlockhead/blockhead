@@ -50,7 +50,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{moneroBlockSelector.hash}
+				{moneroBlock.hash}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

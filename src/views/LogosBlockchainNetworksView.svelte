@@ -33,17 +33,16 @@
 	}
 >
 	{#snippet Item({ item: logosBlockchainNetwork })}
-		{@const logosBlockchainNetworkSelector = logosBlockchainNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.LogosBlockchainNetwork}
-			entitySelector={logosBlockchainNetworkSelector}
+			entitySelector={logosBlockchainNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{logosBlockchainNetwork.$network.name || (logosBlockchainNetworkSelector.$network.caip2 == null ? '' : `${logosBlockchainNetworkSelector.$network.caip2.namespace}:${logosBlockchainNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{logosBlockchainNetwork.$network.name || (logosBlockchainNetwork.$network.caip2 == null ? '' : `${logosBlockchainNetwork.$network.caip2.namespace}:${logosBlockchainNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}
-				{logosBlockchainNetwork.$network.name || (logosBlockchainNetworkSelector.$network.caip2 == null ? '' : `${logosBlockchainNetworkSelector.$network.caip2.namespace}:${logosBlockchainNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{logosBlockchainNetwork.$network.name || (logosBlockchainNetwork.$network.caip2 == null ? '' : `${logosBlockchainNetwork.$network.caip2.namespace}:${logosBlockchainNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -43,7 +43,7 @@
 			entitySelector={xrplAccountSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]',
 					{
 						network: (
 							'caip2' in network ?
@@ -61,7 +61,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{xrplAccount.$network.name || (xrplAccountSelector.$network.caip2 == null ? '' : `${xrplAccountSelector.$network.caip2.namespace}:${xrplAccountSelector.$network.caip2.reference}`) || 'Network'}
+				{xrplAccount.$network.name || (xrplAccount.$network.caip2 == null ? '' : `${xrplAccount.$network.caip2.namespace}:${xrplAccount.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

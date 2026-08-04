@@ -50,7 +50,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{cosmosModule.$network.name || (cosmosModuleSelector.$network.caip2 == null ? '' : `${cosmosModuleSelector.$network.caip2.namespace}:${cosmosModuleSelector.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{cosmosModule.$network.name || (cosmosModule.$network.caip2 == null ? '' : `${cosmosModule.$network.caip2.namespace}:${cosmosModule.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

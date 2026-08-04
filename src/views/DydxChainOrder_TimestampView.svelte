@@ -174,50 +174,6 @@
 				resource={
 					viewSelection({
 						fields: {
-							remainingSize: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const remainingSize = entity.remainingSize}
-					{#if remainingSize != null}
-						<div>
-							<dt>remaining size</dt>
-							<dd>
-								{remainingSize}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							filledSize: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const filledSize = entity.filledSize}
-					{#if filledSize != null}
-						<div>
-							<dt>filled size</dt>
-							<dd>
-								{filledSize}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
 							totalFilled: true,
 						},
 					})

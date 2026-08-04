@@ -50,7 +50,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{polkadotValidator.$network.name || (polkadotValidatorSelector.$network.caip2 == null ? '' : `${polkadotValidatorSelector.$network.caip2.namespace}:${polkadotValidatorSelector.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{polkadotValidator.$network.name || (polkadotValidator.$network.caip2 == null ? '' : `${polkadotValidator.$network.caip2.namespace}:${polkadotValidator.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{nearBlockSelector.hash}
+				{nearBlock.hash}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

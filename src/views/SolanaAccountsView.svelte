@@ -45,7 +45,7 @@
 			entitySelector={solanaAccountSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]',
 					{
 						network: (
 							'caip2' in network ?
@@ -63,7 +63,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{solanaAccount.$network.name || (solanaAccountSelector.$network.caip2 == null ? '' : `${solanaAccountSelector.$network.caip2.namespace}:${solanaAccountSelector.$network.caip2.reference}`) || 'Network'}
+				{solanaAccount.$network.name || (solanaAccount.$network.caip2 == null ? '' : `${solanaAccount.$network.caip2.namespace}:${solanaAccount.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

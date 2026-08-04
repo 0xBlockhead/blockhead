@@ -39,6 +39,7 @@
 	{#snippet Title()}
 		<TronAccountView
 			selection={select(EntityType.TronAccount, selection.entitySelector.$account)}
+			href={null}
 			layout={EntityLayout.Title}
 		/>
 	{/snippet}

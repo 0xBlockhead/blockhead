@@ -33,13 +33,12 @@
 	}
 >
 	{#snippet Item({ item: icpNetwork })}
-		{@const icpNetworkSelector = icpNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.IcpNetwork}
-			entitySelector={icpNetworkSelector}
+			entitySelector={icpNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{icpNetwork.$network.name || (icpNetworkSelector.$network.caip2 == null ? '' : `${icpNetworkSelector.$network.caip2.namespace}:${icpNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{icpNetwork.$network.name || (icpNetwork.$network.caip2 == null ? '' : `${icpNetwork.$network.caip2.namespace}:${icpNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -34,13 +34,12 @@
 	}
 >
 	{#snippet Item({ item: starknetNetwork })}
-		{@const starknetNetworkSelector = starknetNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.StarknetNetwork}
-			entitySelector={starknetNetworkSelector}
+			entitySelector={starknetNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{starknetNetwork.$network.name || (starknetNetworkSelector.$network.caip2 == null ? '' : `${starknetNetworkSelector.$network.caip2.namespace}:${starknetNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{starknetNetwork.$network.name || (starknetNetwork.$network.caip2 == null ? '' : `${starknetNetwork.$network.caip2.namespace}:${starknetNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

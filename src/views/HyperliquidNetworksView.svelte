@@ -33,13 +33,12 @@
 	}
 >
 	{#snippet Item({ item: hyperliquidNetwork })}
-		{@const hyperliquidNetworkSelector = hyperliquidNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.HyperliquidNetwork}
-			entitySelector={hyperliquidNetworkSelector}
+			entitySelector={hyperliquidNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{hyperliquidNetwork.$network.name || (hyperliquidNetworkSelector.$network.caip2 == null ? '' : `${hyperliquidNetworkSelector.$network.caip2.namespace}:${hyperliquidNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{hyperliquidNetwork.$network.name || (hyperliquidNetwork.$network.caip2 == null ? '' : `${hyperliquidNetwork.$network.caip2.namespace}:${hyperliquidNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

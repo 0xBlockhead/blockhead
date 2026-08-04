@@ -62,7 +62,7 @@
 			}
 		>
 			{#snippet Title()}
-				{`Validator #${beaconValidatorSelector.indexInNetwork}`}
+				{`Validator #${beaconValidator.indexInNetwork}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

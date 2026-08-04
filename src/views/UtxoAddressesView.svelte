@@ -67,7 +67,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{utxoAddress.$network.name || (utxoAddressSelector.$network.caip2 == null ? '' : `${utxoAddressSelector.$network.caip2.namespace}:${utxoAddressSelector.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{utxoAddress.$network.name || (utxoAddress.$network.caip2 == null ? '' : `${utxoAddress.$network.caip2.namespace}:${utxoAddress.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

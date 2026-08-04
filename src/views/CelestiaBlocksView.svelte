@@ -35,13 +35,12 @@
 	}
 >
 	{#snippet Item({ item: celestiaBlock })}
-		{@const celestiaBlockSelector = celestiaBlock[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.CelestiaBlock}
-			entitySelector={celestiaBlockSelector}
+			entitySelector={celestiaBlock[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{celestiaBlockSelector.height}
+				{celestiaBlock.height}
 			{/snippet}
 
 			{#snippet Value()}

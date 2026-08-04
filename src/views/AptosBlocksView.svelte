@@ -34,13 +34,12 @@
 	}
 >
 	{#snippet Item({ item: aptosBlock })}
-		{@const aptosBlockSelector = aptosBlock[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AptosBlock}
-			entitySelector={aptosBlockSelector}
+			entitySelector={aptosBlock[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{aptosBlockSelector.height}
+				{aptosBlock.height}
 			{/snippet}
 
 			{#snippet Value()}

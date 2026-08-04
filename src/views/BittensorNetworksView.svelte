@@ -33,13 +33,12 @@
 	}
 >
 	{#snippet Item({ item: bittensorNetwork })}
-		{@const bittensorNetworkSelector = bittensorNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BittensorNetwork}
-			entitySelector={bittensorNetworkSelector}
+			entitySelector={bittensorNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{bittensorNetwork.$network.name || (bittensorNetworkSelector.$network.caip2 == null ? '' : `${bittensorNetworkSelector.$network.caip2.namespace}:${bittensorNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{bittensorNetwork.$network.name || (bittensorNetwork.$network.caip2 == null ? '' : `${bittensorNetwork.$network.caip2.namespace}:${bittensorNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

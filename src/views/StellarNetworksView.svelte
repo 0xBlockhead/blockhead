@@ -34,13 +34,12 @@
 	}
 >
 	{#snippet Item({ item: stellarNetwork })}
-		{@const stellarNetworkSelector = stellarNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.StellarNetwork}
-			entitySelector={stellarNetworkSelector}
+			entitySelector={stellarNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{stellarNetwork.$network.name || (stellarNetworkSelector.$network.caip2 == null ? '' : `${stellarNetworkSelector.$network.caip2.namespace}:${stellarNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{stellarNetwork.$network.name || (stellarNetwork.$network.caip2 == null ? '' : `${stellarNetwork.$network.caip2.namespace}:${stellarNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

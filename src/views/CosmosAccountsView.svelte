@@ -45,7 +45,7 @@
 			entitySelector={cosmosAccountSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]',
 					{
 						network: (
 							'caip2' in network ?
@@ -67,7 +67,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{cosmosAccount.$network.name || (cosmosAccountSelector.$network.caip2 == null ? '' : `${cosmosAccountSelector.$network.caip2.namespace}:${cosmosAccountSelector.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{cosmosAccount.$network.name || (cosmosAccount.$network.caip2 == null ? '' : `${cosmosAccount.$network.caip2.namespace}:${cosmosAccount.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

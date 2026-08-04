@@ -37,13 +37,12 @@
 	}
 >
 	{#snippet Item({ item: moneroNetwork })}
-		{@const moneroNetworkSelector = moneroNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.MoneroNetwork}
-			entitySelector={moneroNetworkSelector}
+			entitySelector={moneroNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{moneroNetwork.$network.name || (moneroNetworkSelector.$network.caip2 == null ? '' : `${moneroNetworkSelector.$network.caip2.namespace}:${moneroNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{moneroNetwork.$network.name || (moneroNetwork.$network.caip2 == null ? '' : `${moneroNetwork.$network.caip2.namespace}:${moneroNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

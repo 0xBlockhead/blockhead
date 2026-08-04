@@ -56,7 +56,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{aptosStateChangeSelector.$transaction.hash || String(aptosStateChangeSelector.$transaction.version) || 'aptos transaction'}</span>
+				<span data-text="annotation">{aptosStateChange.$transaction.hash || String(aptosStateChange.$transaction.version) || 'aptos transaction'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -49,6 +49,7 @@
 	{#snippet Title()}
 		<StarknetContractView
 			selection={select(EntityType.StarknetContract, selection.entitySelector.$contract)}
+			href={null}
 			layout={EntityLayout.Title}
 		/>
 	{/snippet}

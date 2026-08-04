@@ -33,13 +33,12 @@
 	}
 >
 	{#snippet Item({ item: kaspaNetwork })}
-		{@const kaspaNetworkSelector = kaspaNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.KaspaNetwork}
-			entitySelector={kaspaNetworkSelector}
+			entitySelector={kaspaNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{kaspaNetwork.$network.name || (kaspaNetworkSelector.$network.caip2 == null ? '' : `${kaspaNetworkSelector.$network.caip2.namespace}:${kaspaNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{kaspaNetwork.$network.name || (kaspaNetwork.$network.caip2 == null ? '' : `${kaspaNetwork.$network.caip2.namespace}:${kaspaNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

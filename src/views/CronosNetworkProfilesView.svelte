@@ -35,13 +35,12 @@
 	}
 >
 	{#snippet Item({ item: cronosNetworkProfile })}
-		{@const cronosNetworkProfileSelector = cronosNetworkProfile[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.CronosNetworkProfile}
-			entitySelector={cronosNetworkProfileSelector}
+			entitySelector={cronosNetworkProfile[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{cronosNetworkProfile.$network.name || (cronosNetworkProfileSelector.$network.caip2 == null ? '' : `${cronosNetworkProfileSelector.$network.caip2.namespace}:${cronosNetworkProfileSelector.$network.caip2.reference}`) || 'Network'}
+				{cronosNetworkProfile.$network.name || (cronosNetworkProfile.$network.caip2 == null ? '' : `${cronosNetworkProfile.$network.caip2.namespace}:${cronosNetworkProfile.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

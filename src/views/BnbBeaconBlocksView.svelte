@@ -35,13 +35,12 @@
 	}
 >
 	{#snippet Item({ item: bnbBeaconBlock })}
-		{@const bnbBeaconBlockSelector = bnbBeaconBlock[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BnbBeaconBlock}
-			entitySelector={bnbBeaconBlockSelector}
+			entitySelector={bnbBeaconBlock[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{bnbBeaconBlockSelector.height}
+				{bnbBeaconBlock.height}
 			{/snippet}
 
 			{#snippet Value()}

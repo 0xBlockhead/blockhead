@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -38,13 +40,27 @@
 		<EntityView
 			entityType={EntityType.StarknetContract}
 			entitySelector={starknetContractSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]',
+					{
+						network: (
+							'caip2' in starknetContractSelector.$network.$network ?
+								caip2StringFromValue(starknetContractSelector.$network.$network.caip2)
+							:
+								starknetContractSelector.$network.$network.slug
+						),
+						accountId: starknetContractSelector.address,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{starknetContractSelector.address || 'starknet contract'}
 			{/snippet}
 
 			{#snippet Value()}
-				{starknetContract.$network.$network.name || (starknetContractSelector.$network.$network.caip2 == null ? '' : `${starknetContractSelector.$network.$network.caip2.namespace}:${starknetContractSelector.$network.$network.caip2.reference}`) || 'Network'}
+				{starknetContract.$network.$network.name || (starknetContract.$network.$network.caip2 == null ? '' : `${starknetContract.$network.$network.caip2.namespace}:${starknetContract.$network.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

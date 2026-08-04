@@ -35,17 +35,16 @@
 	}
 >
 	{#snippet Item({ item: starknetBlock })}
-		{@const starknetBlockSelector = starknetBlock[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.StarknetBlock}
-			entitySelector={starknetBlockSelector}
+			entitySelector={starknetBlock[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{starknetBlockSelector.blockNumber}
+				{starknetBlock.blockNumber}
 			{/snippet}
 
 			{#snippet Value()}
-				{starknetBlockSelector.blockHash}
+				{starknetBlock.blockHash}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

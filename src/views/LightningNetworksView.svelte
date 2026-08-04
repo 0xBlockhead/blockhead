@@ -52,7 +52,7 @@
 			}
 		>
 			{#snippet Title()}
-				{(lightningNetwork.name ?? '') || lightningNetwork.$network.name || (lightningNetworkSelector.$network.caip2 == null ? '' : `${lightningNetworkSelector.$network.caip2.namespace}:${lightningNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{(lightningNetwork.name ?? '') || lightningNetwork.$network.name || (lightningNetwork.$network.caip2 == null ? '' : `${lightningNetwork.$network.caip2.namespace}:${lightningNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

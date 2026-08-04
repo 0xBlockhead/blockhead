@@ -27,11 +27,8 @@
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
-	import DydxChainNetwork_TimestampsView from '$/views/DydxChainNetwork_TimestampsView.svelte'
 	import DydxChainMarketsView from '$/views/DydxChainMarketsView.svelte'
-	import DydxChainOrdersView from '$/views/DydxChainOrdersView.svelte'
-	import DydxChainPerpetualPosition_TimestampsView from '$/views/DydxChainPerpetualPosition_TimestampsView.svelte'
-	import DydxChainSubaccountsView from '$/views/DydxChainSubaccountsView.svelte'
+	import DydxChainNetwork_TimestampsView from '$/views/DydxChainNetwork_TimestampsView.svelte'
 </script>
 
 
@@ -68,38 +65,6 @@
 
 	{#snippet Details()}
 		<CollapsibleTabs
-			id={viewDomId + '-carousel-dydx-chain-activity'}
-			sectionIdPrefix={viewDomId}
-			sections={
-				[
-					{
-						id: 'dydx-chain-observations',
-						label: 'Observations',
-					},
-				]
-			}
-			data-card
-			class='network-view-collapsible-chain-activity'
-		>
-			{#snippet Summary()}
-				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Chain activity</HeadingComponent>
-				</header>
-			{/snippet}
-
-			{#snippet SectionDydxChainObservations({ id, label })}
-				<DydxChainNetwork_TimestampsView
-					selection={selection.$$timestamps}
-					collapsible={false}
-					title={label}
-					emptyText='No dYdX network observations.'
-					id={`${id}-list`}
-				/>
-			{/snippet}
-
-		</CollapsibleTabs>
-
-		<CollapsibleTabs
 			id={viewDomId + '-carousel-dydx-markets-trading'}
 			sectionIdPrefix={viewDomId}
 			sections={
@@ -107,14 +72,6 @@
 					{
 						id: 'dydx-markets',
 						label: 'Markets',
-					},
-					{
-						id: 'dydx-orders',
-						label: 'Orders',
-					},
-					{
-						id: 'dydx-positions',
-						label: 'Positions',
 					},
 				]
 			}
@@ -137,54 +94,34 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionDydxOrders({ id, label })}
-				<DydxChainOrdersView
-					selection={selection.$$orders}
-					collapsible={false}
-					title={label}
-					emptyText='No dYdX orders.'
-					id={`${id}-list`}
-				/>
-			{/snippet}
-
-			{#snippet SectionDydxPositions({ id, label })}
-				<DydxChainPerpetualPosition_TimestampsView
-					selection={selection.$$positions}
-					collapsible={false}
-					title={label}
-					emptyText='No dYdX position observations.'
-					id={`${id}-list`}
-				/>
-			{/snippet}
-
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={viewDomId + '-carousel-dydx-accounts'}
+			id={viewDomId + '-carousel-dydx-chain-indexer'}
 			sectionIdPrefix={viewDomId}
 			sections={
 				[
 					{
-						id: 'dydx-subaccounts',
-						label: 'Subaccounts',
+						id: 'dydx-chain-observations',
+						label: 'Observations',
 					},
 				]
 			}
 			data-card
-			class='network-view-collapsible-accounts'
+			class='network-view-collapsible-chain-activity'
 		>
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Accounts</HeadingComponent>
+					<HeadingComponent>Chain and indexer</HeadingComponent>
 				</header>
 			{/snippet}
 
-			{#snippet SectionDydxSubaccounts({ id, label })}
-				<DydxChainSubaccountsView
-					selection={selection.$$subaccounts}
+			{#snippet SectionDydxChainObservations({ id, label })}
+				<DydxChainNetwork_TimestampsView
+					selection={selection.$$timestamps}
 					collapsible={false}
 					title={label}
-					emptyText='No dYdX subaccounts.'
+					emptyText='No dYdX network observations.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

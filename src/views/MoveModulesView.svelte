@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{moveModule.$network.name || (moveModuleSelector.$network.caip2 == null ? '' : `${moveModuleSelector.$network.caip2.namespace}:${moveModuleSelector.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{moveModule.$network.name || (moveModule.$network.caip2 == null ? '' : `${moveModule.$network.caip2.namespace}:${moveModule.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

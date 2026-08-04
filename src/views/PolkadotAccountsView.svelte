@@ -45,7 +45,7 @@
 			entitySelector={polkadotAccountSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]',
 					{
 						network: (
 							'caip2' in network ?
@@ -67,7 +67,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{polkadotAccount.$network.name || (polkadotAccountSelector.$network.caip2 == null ? '' : `${polkadotAccountSelector.$network.caip2.namespace}:${polkadotAccountSelector.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{polkadotAccount.$network.name || (polkadotAccount.$network.caip2 == null ? '' : `${polkadotAccount.$network.caip2.namespace}:${polkadotAccount.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

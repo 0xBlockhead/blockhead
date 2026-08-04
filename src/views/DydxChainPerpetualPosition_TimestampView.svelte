@@ -229,18 +229,18 @@
 				resource={
 					viewSelection({
 						fields: {
-							fundingIndex: true,
+							netFunding: true,
 						},
 					})
 				}
 			>
 				{#snippet children(entity)}
-					{@const fundingIndex = entity.fundingIndex}
-					{#if fundingIndex != null}
+					{@const netFunding = entity.netFunding}
+					{#if netFunding != null}
 						<div>
-							<dt>funding index</dt>
+							<dt>net funding</dt>
 							<dd>
-								{fundingIndex}
+								{netFunding}
 							</dd>
 						</div>
 					{/if}

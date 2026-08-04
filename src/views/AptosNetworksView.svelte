@@ -33,13 +33,12 @@
 	}
 >
 	{#snippet Item({ item: aptosNetwork })}
-		{@const aptosNetworkSelector = aptosNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AptosNetwork}
-			entitySelector={aptosNetworkSelector}
+			entitySelector={aptosNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{aptosNetwork.$network.name || (aptosNetworkSelector.$network.caip2 == null ? '' : `${aptosNetworkSelector.$network.caip2.namespace}:${aptosNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{aptosNetwork.$network.name || (aptosNetwork.$network.caip2 == null ? '' : `${aptosNetwork.$network.caip2.namespace}:${aptosNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

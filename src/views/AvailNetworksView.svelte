@@ -33,13 +33,12 @@
 	}
 >
 	{#snippet Item({ item: availNetwork })}
-		{@const availNetworkSelector = availNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AvailNetwork}
-			entitySelector={availNetworkSelector}
+			entitySelector={availNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{availNetwork.$network.name || (availNetworkSelector.$network.caip2 == null ? '' : `${availNetworkSelector.$network.caip2.namespace}:${availNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{availNetwork.$network.name || (availNetwork.$network.caip2 == null ? '' : `${availNetwork.$network.caip2.namespace}:${availNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

@@ -34,13 +34,12 @@
 	}
 >
 	{#snippet Item({ item: bnbBeaconNetwork })}
-		{@const bnbBeaconNetworkSelector = bnbBeaconNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BnbBeaconNetwork}
-			entitySelector={bnbBeaconNetworkSelector}
+			entitySelector={bnbBeaconNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{bnbBeaconNetwork.$network.name || (bnbBeaconNetworkSelector.$network.caip2 == null ? '' : `${bnbBeaconNetworkSelector.$network.caip2.namespace}:${bnbBeaconNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{bnbBeaconNetwork.$network.name || (bnbBeaconNetwork.$network.caip2 == null ? '' : `${bnbBeaconNetwork.$network.caip2.namespace}:${bnbBeaconNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

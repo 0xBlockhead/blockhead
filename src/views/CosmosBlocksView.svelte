@@ -37,13 +37,12 @@
 	}
 >
 	{#snippet Item({ item: cosmosBlock })}
-		{@const cosmosBlockSelector = cosmosBlock[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.CosmosBlock}
-			entitySelector={cosmosBlockSelector}
+			entitySelector={cosmosBlock[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{`Block #${cosmosBlockSelector.height}`}
+				{`Block #${cosmosBlock.height}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

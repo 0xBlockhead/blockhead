@@ -78,7 +78,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{polkadotBlockSelector.hash}</span>
+				<span data-text="annotation">{polkadotBlock.hash}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

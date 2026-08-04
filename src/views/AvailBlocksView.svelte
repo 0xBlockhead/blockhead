@@ -35,13 +35,12 @@
 	}
 >
 	{#snippet Item({ item: availBlock })}
-		{@const availBlockSelector = availBlock[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AvailBlock}
-			entitySelector={availBlockSelector}
+			entitySelector={availBlock[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{availBlockSelector.blockNumber}
+				{availBlock.blockNumber}
 			{/snippet}
 
 			{#snippet Value()}

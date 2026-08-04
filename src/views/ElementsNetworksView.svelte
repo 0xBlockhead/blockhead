@@ -34,13 +34,12 @@
 	}
 >
 	{#snippet Item({ item: elementsNetwork })}
-		{@const elementsNetworkSelector = elementsNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.ElementsNetwork}
-			entitySelector={elementsNetworkSelector}
+			entitySelector={elementsNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{elementsNetwork.$network.name || (elementsNetworkSelector.$network.caip2 == null ? '' : `${elementsNetworkSelector.$network.caip2.namespace}:${elementsNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{elementsNetwork.$network.name || (elementsNetwork.$network.caip2 == null ? '' : `${elementsNetwork.$network.caip2.namespace}:${elementsNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

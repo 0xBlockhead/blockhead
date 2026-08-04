@@ -33,13 +33,12 @@
 	}
 >
 	{#snippet Item({ item: celestiaNetwork })}
-		{@const celestiaNetworkSelector = celestiaNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.CelestiaNetwork}
-			entitySelector={celestiaNetworkSelector}
+			entitySelector={celestiaNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{celestiaNetwork.$network.name || (celestiaNetworkSelector.$network.caip2 == null ? '' : `${celestiaNetworkSelector.$network.caip2.namespace}:${celestiaNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{celestiaNetwork.$network.name || (celestiaNetwork.$network.caip2 == null ? '' : `${celestiaNetwork.$network.caip2.namespace}:${celestiaNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

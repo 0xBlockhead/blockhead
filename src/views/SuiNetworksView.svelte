@@ -33,13 +33,12 @@
 	}
 >
 	{#snippet Item({ item: suiNetwork })}
-		{@const suiNetworkSelector = suiNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.SuiNetwork}
-			entitySelector={suiNetworkSelector}
+			entitySelector={suiNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{suiNetwork.$network.name || (suiNetworkSelector.$network.caip2 == null ? '' : `${suiNetworkSelector.$network.caip2.namespace}:${suiNetworkSelector.$network.caip2.reference}`) || 'Network'}
+				{suiNetwork.$network.name || (suiNetwork.$network.caip2 == null ? '' : `${suiNetwork.$network.caip2.namespace}:${suiNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

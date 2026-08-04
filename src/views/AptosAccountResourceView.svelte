@@ -38,6 +38,7 @@
 	{#snippet Value()}
 		<AptosAccountView
 			selection={select(EntityType.AptosAccount, selection.entitySelector.$account)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}
