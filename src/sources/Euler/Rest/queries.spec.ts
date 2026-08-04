@@ -151,6 +151,52 @@ describe('Euler EVK vault operations', () => {
 		)
 	})
 
+	it('preserves an upstream successful empty vault list', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			data: [],
+			meta: {
+				total: 0,
+				offset: 0,
+				limit: eulerVaultListDefaultLimit,
+			},
+		})
+
+		await expect(listVaults({
+			chainId: 1,
+		})).resolves.toEqual([])
+	})
+
+	it('fails closed when a vault list contains another chain', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			data: [
+				{
+					...baseVaultSummary,
+					chainId: 8453,
+				},
+			],
+		})
+
+		await expect(listVaults({
+			chainId: 1,
+		})).rejects.toThrow(`${Source.Euler_Rest}: vault chain mismatch`)
+	})
+
+	it('rejects invalid vault list limits before transport', async () => {
+		await expect(listVaults({
+			chainId: 1,
+			limit: 0,
+		})).rejects.toThrow(`${Source.Euler_Rest}: limit must be 1..1000`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('fails closed when the vault list response has no data', async () => {
+		sourceGetJson.mockResolvedValueOnce({})
+
+		await expect(listVaults({
+			chainId: 1,
+		})).rejects.toThrow(`${Source.Euler_Rest}: vault list response missing data`)
+	})
+
 	it('reads vault detail by chain id and vault address', async () => {
 		sourceGetJson.mockResolvedValueOnce({
 			data: baseVaultDetail,
