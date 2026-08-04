@@ -6,22 +6,55 @@ import { Source } from '$/sources/Source.ts'
 
 /**
  * Official Uniswap V3 factory + NonfungiblePositionManager deployments.
- * Same CREATE2 addresses across the listed EVM chains (Uniswap docs / interface).
- * @see https://docs.uniswap.org/contracts/v3/reference/deployments/
+ * Addresses are chain-specific — do not assume CREATE2 parity across networks.
+ * @see https://developers.uniswap.org/docs/protocols/v3/deployments
+ * @see https://developers.uniswap.org/deployments.json
  */
-const UNISWAP_V3_FACTORY = '0x1f98431c8ad98523631ae4a59f267346ea31f984' as const
-const UNISWAP_V3_NONFUNGIBLE_POSITION_MANAGER = '0xc36442b4a4522e871399cd717abdd847ab11fe88' as const
-
-const uniswapV3DeploymentChainIds = [
-	1,
-	10,
-	56,
-	137,
-	8453,
-	42161,
-	42220,
-	43114,
+export const uniswapV3Deployments = [
+	{
+		chainId: 1,
+		factoryAddress: '0x1f98431c8ad98523631ae4a59f267346ea31f984',
+		nonfungiblePositionManagerAddress: '0xc36442b4a4522e871399cd717abdd847ab11fe88',
+	},
+	{
+		chainId: 10,
+		factoryAddress: '0x1f98431c8ad98523631ae4a59f267346ea31f984',
+		nonfungiblePositionManagerAddress: '0xc36442b4a4522e871399cd717abdd847ab11fe88',
+	},
+	{
+		chainId: 56,
+		factoryAddress: '0xdb1d10011ad0ff90774d0c6bb92e5c5c8b4461f7',
+		nonfungiblePositionManagerAddress: '0x7b8a01b39d58278b5de7e48c8449c9f4f5170613',
+	},
+	{
+		chainId: 137,
+		factoryAddress: '0x1f98431c8ad98523631ae4a59f267346ea31f984',
+		nonfungiblePositionManagerAddress: '0xc36442b4a4522e871399cd717abdd847ab11fe88',
+	},
+	{
+		chainId: 8453,
+		factoryAddress: '0x33128a8fc17869897dce68ed026d694621f6fdfd',
+		nonfungiblePositionManagerAddress: '0x03a520b32c04bf3beef7beb72e919cf822ed34f1',
+	},
+	{
+		chainId: 42161,
+		factoryAddress: '0x1f98431c8ad98523631ae4a59f267346ea31f984',
+		nonfungiblePositionManagerAddress: '0xc36442b4a4522e871399cd717abdd847ab11fe88',
+	},
+	{
+		chainId: 42220,
+		factoryAddress: '0xafe208a311b21f13ef87e33a90049fc17a7acdec',
+		nonfungiblePositionManagerAddress: '0x3d79edaabc0eab6f08ed885c05fc0b014290d95a',
+	},
+	{
+		chainId: 43114,
+		factoryAddress: '0x740b1c1de25031c31ff4fc9a62f554a55cdc1bad',
+		nonfungiblePositionManagerAddress: '0x655c406ebfa14ee2006250925e54ec43ad184f8b',
+	},
 ] as const
+
+
+export type UniswapV3Deployment = (typeof uniswapV3Deployments)[number]
 
 
 /**
@@ -53,22 +86,6 @@ export const uniswapV3TickSpacingByFee = Object.fromEntries(
 		tier.tickSpacing,
 	])
 )
-
-
-export type UniswapV3Deployment = {
-	chainId: (typeof uniswapV3DeploymentChainIds)[number]
-	factoryAddress: typeof UNISWAP_V3_FACTORY
-	nonfungiblePositionManagerAddress: typeof UNISWAP_V3_NONFUNGIBLE_POSITION_MANAGER
-}
-
-
-export const uniswapV3Deployments = (
-	uniswapV3DeploymentChainIds.map((chainId) => ({
-		chainId,
-		factoryAddress: UNISWAP_V3_FACTORY,
-		nonfungiblePositionManagerAddress: UNISWAP_V3_NONFUNGIBLE_POSITION_MANAGER,
-	}))
-) as const satisfies readonly UniswapV3Deployment[]
 
 
 export const uniswapV3DeploymentByChainId = Object.fromEntries(

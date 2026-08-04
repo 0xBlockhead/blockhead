@@ -297,4 +297,19 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 			}, context)
 		).rejects.toThrow('Voltaire_JsonRpc: no JSON-RPC URL for UniswapV3Pool on chain 8453')
 	})
+
+	it('rejects Base-native NFPM when only Ethereum JSON-RPC transports are mocked', async () => {
+		const positionResolver = uniswapV3Resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UniswapV3Position
+		))
+		if (positionResolver == null)
+			throw new Error('missing UniswapV3Position resolver')
+
+		await expect(
+			positionResolver.resolve.PositionManagerTokenId.resolve({
+				positionManager: '0x03a520b32c04bf3beef7beb72e919cf822ed34f1',
+				tokenId: 7n,
+			}, context)
+		).rejects.toThrow('Voltaire_JsonRpc: no JSON-RPC URL for UniswapV3Position on chain 8453')
+	})
 })

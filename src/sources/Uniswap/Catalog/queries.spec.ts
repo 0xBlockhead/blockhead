@@ -28,9 +28,28 @@ describe('Uniswap Catalog', () => {
 		expect(uniswapV3Deployments.length).toBeGreaterThan(0)
 	})
 
+	it('uses official per-chain factory and NFPM addresses', () => {
+		expect(getUniswapV3FactoryAddress(8453)).toBe('0x33128a8fc17869897dce68ed026d694621f6fdfd')
+		expect(getUniswapV3NonfungiblePositionManagerAddress(8453)).toBe('0x03a520b32c04bf3beef7beb72e919cf822ed34f1')
+		expect(getUniswapV3FactoryAddress(56)).toBe('0xdb1d10011ad0ff90774d0c6bb92e5c5c8b4461f7')
+		expect(getUniswapV3NonfungiblePositionManagerAddress(56)).toBe('0x7b8a01b39d58278b5de7e48c8449c9f4f5170613')
+		expect(getUniswapV3FactoryAddress(42220)).toBe('0xafe208a311b21f13ef87e33a90049fc17a7acdec')
+		expect(getUniswapV3NonfungiblePositionManagerAddress(42220)).toBe('0x3d79edaabc0eab6f08ed885c05fc0b014290d95a')
+		expect(getUniswapV3FactoryAddress(43114)).toBe('0x740b1c1de25031c31ff4fc9a62f554a55cdc1bad')
+		expect(getUniswapV3NonfungiblePositionManagerAddress(43114)).toBe('0x655c406ebfa14ee2006250925e54ec43ad184f8b')
+		expect(getUniswapV3FactoryAddress(8453)).not.toBe(getUniswapV3FactoryAddress(1))
+	})
+
 	it('maps NFPM address back to supported chain ids', () => {
-		expect(chainIdsForUniswapV3NonfungiblePositionManager('0xC36442b4a4522E871399CD717aBDD847Ab11FE88')).toContain(1)
-		expect(chainIdsForUniswapV3NonfungiblePositionManager('0xC36442b4a4522E871399CD717aBDD847Ab11FE88')).toContain(8453)
+		expect(chainIdsForUniswapV3NonfungiblePositionManager('0xC36442b4a4522E871399CD717aBDD847Ab11FE88')).toEqual([
+			1,
+			10,
+			137,
+			42161,
+		])
+		expect(chainIdsForUniswapV3NonfungiblePositionManager('0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1')).toEqual([
+			8453,
+		])
 	})
 
 	it('seeds hub pools with known token pairs and fee tiers', () => {
@@ -55,6 +74,11 @@ describe('Uniswap Catalog', () => {
 	it('keeps token0 < token1 for every seeded pool', () => {
 		for (const pool of uniswapV3Pools)
 			expect(pool.token0 < pool.token1).toBe(true)
+	})
+
+	it('seeds pools only on chains with a catalogued factory deployment', () => {
+		for (const pool of uniswapV3Pools)
+			expect(getUniswapV3FactoryAddress(pool.chainId)).toBeDefined()
 	})
 })
 

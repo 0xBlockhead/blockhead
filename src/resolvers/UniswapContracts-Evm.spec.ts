@@ -108,6 +108,34 @@ describe('UniswapContracts_Evm resolver', () => {
 		})
 	})
 
+	it('resolves Base catalog pools against Base-native factory deployment', async () => {
+		const poolResolver = uniswapContractsEvm.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UniswapV3Pool
+		))
+		if (poolResolver == null)
+			throw new Error('missing UniswapV3Pool resolver')
+
+		const baseNetwork = {
+			caip2: {
+				namespace: 'eip155' as const,
+				reference: '8453',
+			},
+		}
+		const snapshot = await poolResolver.resolve.NetworkPoolAddress.resolve({
+			$network: baseNetwork,
+			poolAddress: '0xd0b53d9277642d899dd5c92cfd4e0a7d3a6a6c3b',
+		}, context)
+
+		expect(poolResolver.projections.$factory(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: baseNetwork,
+				address: '0x33128a8fc17869897dce68ed026d694621f6fdfd',
+			},
+		})
+		expect(poolResolver.projections.fee(snapshot)).toBe(500)
+		expect(poolResolver.projections.tickSpacing(snapshot)).toBe(10)
+	})
+
 	it('rejects networks without a Uniswap V3 factory deployment', async () => {
 		const poolResolver = uniswapContractsEvm.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.UniswapV3Pool
