@@ -149,7 +149,9 @@ const normalizePairs = (
 	pairs: DexscreenerPair[] | null | undefined,
 	resolvedAtMs = Date.now(),
 ) => {
-	const rows = pairs ?? []
+	if (!Array.isArray(pairs))
+		throw new Error('Dexscreener_Rest: invalid pairs response envelope')
+	const rows = pairs
 	if (
 		rows.length > maximumPairs
 		|| new Set(rows.map((pair) => `${pair.chainId}:${pair.pairAddress?.toLowerCase()}`)).size !== rows.length
@@ -170,6 +172,8 @@ export const getLatestPairs = async ({
 	const response = await getDexscreenerJson<DexscreenerPairsResponse>(
 		`/latest/dex/pairs/${encodeURIComponent(chainId)}/${encodeURIComponent(pairId)}`
 	)
+	if (response == null || !Array.isArray(response.pairs))
+		throw new Error('Dexscreener_Rest: invalid latest-pairs response envelope')
 	const pairs = normalizePairs(response.pairs)
 	if (pairs.length === 0)
 		throw new Error('Dexscreener_Rest: pair not found')
@@ -249,6 +253,8 @@ export const getPairSearch = async ({
 	const response = await getDexscreenerJson<DexscreenerSearchResponse>(
 		`/latest/dex/search?q=${encodeURIComponent(q)}`
 	)
+	if (response == null || !Array.isArray(response.pairs))
+		throw new Error('Dexscreener_Rest: invalid pair-search response envelope')
 	return {
 		pairs: normalizePairs(response.pairs),
 	}

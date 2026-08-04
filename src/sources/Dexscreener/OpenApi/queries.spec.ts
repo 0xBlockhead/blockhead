@@ -102,6 +102,49 @@ describe('Dexscreener public pair observations', () => {
 		})).rejects.toThrow('pair not found')
 	})
 
+	it('accepts valid empty list envelopes for supported token and search lists', async () => {
+		getJson
+			.mockResolvedValueOnce([])
+			.mockResolvedValueOnce([])
+			.mockResolvedValueOnce({ pairs: [] })
+
+		await expect(getTokenPairs({
+			chainId: pair.chainId,
+			tokenAddress: pair.baseToken.address,
+		})).resolves.toEqual([])
+		await expect(getTokens({
+			chainId: pair.chainId,
+			tokenAddresses: [pair.baseToken.address],
+		})).resolves.toEqual([])
+		await expect(getPairSearch({
+			q: 'no matching pools',
+		})).resolves.toEqual({ pairs: [] })
+	})
+
+	it('rejects malformed pair-list envelopes instead of treating them as empty lists', async () => {
+		getJson
+			.mockResolvedValueOnce({ pairs: null })
+			.mockResolvedValueOnce(null)
+			.mockResolvedValueOnce(undefined)
+			.mockResolvedValueOnce({ pairs: null })
+
+		await expect(getLatestPairs({
+			chainId: pair.chainId,
+			pairId: pair.pairAddress,
+		})).rejects.toThrow('response envelope')
+		await expect(getTokenPairs({
+			chainId: pair.chainId,
+			tokenAddress: pair.baseToken.address,
+		})).rejects.toThrow('response envelope')
+		await expect(getTokens({
+			chainId: pair.chainId,
+			tokenAddresses: [pair.baseToken.address],
+		})).rejects.toThrow('response envelope')
+		await expect(getPairSearch({
+			q: 'WETH USDC',
+		})).rejects.toThrow('response envelope')
+	})
+
 	it('requires token-pair rows to contain the exact requested token', async () => {
 		getJson
 			.mockResolvedValueOnce([pair])
@@ -117,6 +160,15 @@ describe('Dexscreener public pair observations', () => {
 		await expect(getTokenPairs({
 			chainId: pair.chainId,
 			tokenAddress: '0x4444444444444444444444444444444444444444',
+		})).rejects.toThrow('does not match requested identity')
+	})
+
+	it('rejects token-list rows outside the requested chain', async () => {
+		getJson.mockResolvedValue([{ ...pair, chainId: 'base' }])
+
+		await expect(getTokenPairs({
+			chainId: pair.chainId,
+			tokenAddress: pair.baseToken.address,
 		})).rejects.toThrow('does not match requested identity')
 	})
 

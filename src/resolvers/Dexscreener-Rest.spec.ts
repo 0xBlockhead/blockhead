@@ -163,6 +163,35 @@ describe('Dexscreener liquidity pool observation clock', () => {
 		)).rejects.toThrow('returned no liquidity pools')
 	})
 
+	it('filters global liquidity-pool search rows to mapped EVM chains', async () => {
+		const resolver = dexscreener.resolvers.find((candidate) => (
+			candidate.entityType === EntityType._Global
+			&& '$$liquidityPools' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Dexscreener_Rest: missing _Global $$liquidityPools resolver')
+		getPairSearch.mockResolvedValue({
+			pairs: [
+				{
+					chainId: 'solana',
+					pairAddress: 'So11111111111111111111111111111111111111112',
+				},
+				{
+					chainId: 'ethereum',
+					pairAddress: poolSelector.id,
+				},
+			],
+		})
+
+		const snapshot = await resolver.resolve['Scope'].resolve(
+			{},
+			emptyContext,
+		)
+		expect(resolver.projections.$$liquidityPools(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: poolSelector,
+		}])
+	})
+
 	it('hard-fails invalid pair token addresses instead of soft-omitting legs', async () => {
 		const resolver = dexscreener.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.LiquidityPool
