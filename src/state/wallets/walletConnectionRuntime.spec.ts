@@ -1820,6 +1820,71 @@ describe('wallet connection runtime normalization', () => {
 		runtime.destroy()
 	})
 
+	it('keeps exactly one selected Connected row across successive connects', async () => {
+		const account = {
+			namespace: 'eip155',
+			reference: '1',
+			accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+			capabilities: [WalletCapability.SignMessage],
+		}
+		const {
+			runtime,
+		} = await mountMockWalletRuntime({
+			connectionResults: [
+				{
+					connectionKey: 'session-1',
+					walletId: 'eip6963:com.example.wallet',
+					status: BlockheadConnectionStatus.Connected,
+					protocol: WalletProtocol.Eip6963,
+					transportKind: WalletTransportKind.InjectedProvider,
+					scopes: [],
+					accounts: [account],
+					activeAccount: account,
+					selected: true,
+				},
+				{
+					connectionKey: 'session-2',
+					walletId: 'eip6963:com.example.wallet',
+					status: BlockheadConnectionStatus.Connected,
+					protocol: WalletProtocol.Eip6963,
+					transportKind: WalletTransportKind.InjectedProvider,
+					scopes: [],
+					accounts: [account],
+					activeAccount: account,
+					selected: true,
+				},
+			],
+		})
+
+		await runtime.connect('eip6963:com.example.wallet')
+		expect(runtime.connections.map((connection) => ({
+			connectionKey: connection.connectionKey,
+			selected: connection.status === BlockheadConnectionStatus.Connected && connection.selected,
+		}))).toEqual([
+			{
+				connectionKey: 'session-1',
+				selected: true,
+			},
+		])
+
+		await runtime.connect('eip6963:com.example.wallet')
+		expect(runtime.connections.map((connection) => ({
+			connectionKey: connection.connectionKey,
+			selected: connection.status === BlockheadConnectionStatus.Connected && connection.selected,
+		}))).toEqual([
+			{
+				connectionKey: 'session-1',
+				selected: false,
+			},
+			{
+				connectionKey: 'session-2',
+				selected: true,
+			},
+		])
+
+		runtime.destroy()
+	})
+
 	it('keeps a connection active when asynchronous wallet disconnect is rejected', async () => {
 		const disconnect = vi.fn(async () => {
 			throw new Error('Wallet rejected disconnect')

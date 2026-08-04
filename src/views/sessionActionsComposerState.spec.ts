@@ -178,6 +178,12 @@ describe('sessionActionsComposerState', () => {
 		expect(finishSessionComposerPreparation({
 			ready: true,
 			walletRequest: {
+				id: '',
+			},
+		})).toEqual(failSessionComposerPreparation('Preparation finished without creating a wallet request.'))
+		expect(finishSessionComposerPreparation({
+			ready: true,
+			walletRequest: {
 				id: 'evm-native-transfer:s:a:h',
 			},
 			readiness: [
