@@ -53,7 +53,11 @@
 			}
 		>
 			{#snippet Title()}
-				{[(redditSubreddit.title ?? ''), 'r/' + redditSubredditSelector.name].filter(Boolean).join(' ') || 'r/' + redditSubredditSelector.name}
+				{(redditSubreddit.title ?? '') || ('r/' + redditSubredditSelector.name)}
+			{/snippet}
+
+			{#snippet Value()}
+				r/{redditSubredditSelector.name}
 			{/snippet}
 		</EntityView>
 	{/snippet}

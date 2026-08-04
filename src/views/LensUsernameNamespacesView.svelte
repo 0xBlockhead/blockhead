@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -42,6 +43,14 @@
 		<EntityView
 			entityType={EntityType.LensUsernameNamespace}
 			entitySelector={lensUsernameNamespaceSelector}
+			href={
+				resolve(
+					'/(social)/(lens)/lens/(lensNetwork)/namespace/[address=evmAddress]',
+					{
+						address: lensUsernameNamespaceSelector.address,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{[lensUsernameNamespace.namespace, (lensUsernameNamespace.tokenName ?? '')].filter(Boolean).join(' ') || 'Lens username namespace'}

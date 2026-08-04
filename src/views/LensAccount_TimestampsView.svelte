@@ -53,7 +53,7 @@
 			}
 		>
 			{#snippet Title()}
-				{[(lensAccountTimestamp.$account.displayName ?? ''), (lensAccountTimestampSelector.$account.localName ?? ''), lensAccountTimestampSelector.$account.address, (lensAccountTimestampSelector.$account.legacyProfileId ?? '')].filter(Boolean).join(' ') || 'Lens account'}
+				{[(lensAccountTimestamp.$account.displayName ?? ''), (lensAccountTimestamp.$account.localName ?? ''), lensAccountTimestamp.$account.address, (lensAccountTimestamp.$account.legacyProfileId ?? '')].filter(Boolean).join(' ') || 'Lens account'}
 			{/snippet}
 
 			{#snippet Value()}

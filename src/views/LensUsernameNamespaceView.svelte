@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -11,6 +12,7 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -20,7 +22,11 @@
 		fields: {
 			namespace: true,
 			tokenName: true,
+			tokenSymbol: true,
 			totalUsernames: true,
+			owner: true,
+			createdAt: true,
+			description: true,
 		},
 	}))
 	const titleFallback = $derived([(prefetched.namespace ?? ''), (prefetched.tokenName ?? '')].filter(Boolean).join(' ') || 'Lens username namespace')
@@ -38,6 +44,17 @@
 	entityType={EntityType.LensUsernameNamespace}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(social)/(lens)/lens/(lensNetwork)/namespace/[address=evmAddress]',
+				{
+					address: selection.entitySelector.address,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -99,13 +116,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							tokenSymbol: true,
-						},
-					})
-				}
+				resource={lensUsernameNamespace}
 			>
 				{#snippet children(entity)}
 					{@const tokenSymbol = entity.tokenSymbol}
@@ -146,13 +157,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							owner: true,
-						},
-					})
-				}
+				resource={lensUsernameNamespace}
 			>
 				{#snippet children(entity)}
 					{@const owner = entity.owner}
@@ -168,13 +173,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							createdAt: true,
-						},
-					})
-				}
+				resource={lensUsernameNamespace}
 			>
 				{#snippet children(entity)}
 					{@const createdAt = entity.createdAt}
@@ -191,13 +190,7 @@
 		</dl>
 
 		<ResourceBoundary
-			resource={
-				selection({
-					fields: {
-						description: true,
-					},
-				})
-			}
+			resource={lensUsernameNamespace}
 		>
 			{#snippet children(entity)}
 				{@const description = entity.description}
@@ -210,19 +203,12 @@
 
 	{#snippet Details()}
 		{@const usernamesResource = selection.$$usernames}
-		<ResourceBoundary
-			resource={usernamesResource}
-		>
-			{#snippet children(entities)}
-				{#if entities.values.length > 0}
-					<LensUsernamesView
-						selection={usernamesResource}
-						countResource={usernamesResource.count}
-						title='Usernames'
-						id='usernames'
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<LensUsernamesView
+			selection={usernamesResource}
+			countResource={usernamesResource.count}
+			title='Usernames'
+			emptyText='No Lens usernames in this namespace.'
+			id='usernames'
+		/>
 	{/snippet}
 </EntityView>

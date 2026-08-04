@@ -37,17 +37,16 @@
 	}
 >
 	{#snippet Item({ item: lensUsername })}
-		{@const lensUsernameSelector = lensUsername[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.LensUsername}
-			entitySelector={lensUsernameSelector}
+			entitySelector={lensUsername[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{[(lensUsername.value ?? ''), lensUsernameSelector.localName].filter(Boolean).join(' ') || 'Lens username'}
+				{[(lensUsername.value ?? ''), lensUsername.localName].filter(Boolean).join(' ') || 'Lens username'}
 			{/snippet}
 
 			{#snippet Value()}
-				{lensUsernameSelector.localName}
+				{lensUsername.localName}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

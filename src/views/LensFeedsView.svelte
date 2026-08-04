@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -41,6 +42,14 @@
 		<EntityView
 			entityType={EntityType.LensFeed}
 			entitySelector={lensFeedSelector}
+			href={
+				resolve(
+					'/(social)/(lens)/lens/(lensNetwork)/feed/[address=evmAddress]',
+					{
+						address: lensFeedSelector.address,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{[(lensFeed.name ?? ''), lensFeedSelector.address].filter(Boolean).join(' ') || 'Lens feed'}

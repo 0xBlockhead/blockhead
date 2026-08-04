@@ -55,7 +55,7 @@
 			}
 		>
 			{#snippet Title()}
-				{[(xUserTimestamp.$user.name ?? ''), xUserTimestampSelector.$user.username, xUserTimestampSelector.$user.id].filter(Boolean).join(' ') || 'X user'}
+				{[(xUserTimestamp.$user.name ?? ''), xUserTimestamp.$user.username, xUserTimestamp.$user.id].filter(Boolean).join(' ') || 'X user'}
 			{/snippet}
 
 			{#snippet Value()}

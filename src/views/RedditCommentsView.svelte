@@ -19,6 +19,7 @@
 
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -54,11 +55,19 @@
 			}
 		>
 			{#snippet Title()}
-				{[(redditComment.body ?? ''), redditCommentSelector.fullname].filter(Boolean).join(' ') || redditCommentSelector.fullname || 'Reddit comment'}
+				{(redditComment.body ?? '') || redditCommentSelector.fullname || 'Reddit comment'}
+			{/snippet}
+
+			{#snippet Value()}
+				{redditCommentSelector.fullname}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{redditComment.createdAt ?? ''}</span>
+				{#if redditComment.createdAt != null}
+					<span data-text="muted">
+						<Timestamp timestamp={redditComment.createdAt} />
+					</span>
+				{/if}
 			{/snippet}
 		</EntityView>
 	{/snippet}

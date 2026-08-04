@@ -6,6 +6,7 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -32,13 +33,20 @@
 	const redditLink = $derived(viewSelection({
 		fields: {
 			title: true,
+			selftext: true,
+			author: true,
 			createdAt: true,
+			url: true,
+			permalink: true,
 		},
 	}))
 	const titleFallback = $derived((prefetched.title ?? '') || selection.entitySelector.fullname || 'Reddit submission')
+	const viewDomId = $derived('reddit-link-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -51,6 +59,7 @@
 <EntityView
 	entityType={EntityType.RedditLink}
 	entitySelector={selection.entitySelector}
+	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
 		href === undefined ?
@@ -75,6 +84,10 @@
 		</ResourceBoundary>
 	{/snippet}
 
+	{#snippet Value()}
+		<TruncatedValue value={selection.entitySelector.fullname} />
+	{/snippet}
+
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={redditLink}>
 			{#snippet children(entity)}
@@ -90,23 +103,37 @@
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<div>
-				<dt>Submission ID</dt>
-				<dd>
-					<TruncatedValue value={selection.entitySelector.fullname} />
-				</dd>
-			</div>
-
 			<ResourceBoundary
 				resource={redditLink}
 			>
 				{#snippet children(entity)}
-					{@const title = entity.title}
-					{#if title != null}
+					{@const author = entity.author}
+					{#if author != null}
 						<div>
-							<dt>Title</dt>
+							<dt>Author</dt>
 							<dd>
-								{title}
+								{author}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$subreddit}
+			>
+				{#snippet children(redditSubreddit)}
+					{#if redditSubreddit != null}
+						<div>
+							<dt>Subreddit</dt>
+							<dd>
+								<RedditSubredditView
+									selection={select(EntityType.RedditSubreddit, redditSubreddit[EntityMetaKey.Selector])}
+									prefetched={redditSubreddit}
+									layout={EntityLayout.Value}
+									open={false}
+									showTypeAnnotation={false}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -115,100 +142,7 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={
-						viewSelection({
-							fields: {
-								selftext: true,
-							},
-						})
-					}
-				>
-					{#snippet children(entity)}
-						{@const selftext = entity.selftext}
-						{#if selftext != null}
-							<div>
-								<dt>Body</dt>
-								<dd>
-									<span data-text="long-text">{selftext}</span>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
-
-			{#if contentOpen}
-				<ResourceBoundary
-					resource={
-						viewSelection({
-							fields: {
-								author: true,
-							},
-						})
-					}
-				>
-					{#snippet children(entity)}
-						{@const author = entity.author}
-						{#if author != null}
-							<div>
-								<dt>Author</dt>
-								<dd>
-									{author}
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
-
-			{#if contentOpen}
-				<ResourceBoundary
 					resource={redditLink}
-				>
-					{#snippet children(entity)}
-						{@const createdAt = entity.createdAt}
-						{#if createdAt != null}
-							<div>
-								<dt>Created</dt>
-								<dd>
-									<Timestamp timestamp={createdAt} />
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
-
-			{#if contentOpen}
-				<ResourceBoundary
-					resource={selection.$subreddit}
-				>
-					{#snippet children(redditSubreddit)}
-						{#if redditSubreddit != null}
-							<div>
-								<dt>Subreddit</dt>
-								<dd>
-									<RedditSubredditView
-										selection={select(EntityType.RedditSubreddit, redditSubreddit[EntityMetaKey.Selector])}
-										prefetched={redditSubreddit}
-										layout={EntityLayout.Value}
-									/>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
-
-			{#if contentOpen}
-				<ResourceBoundary
-					resource={
-						viewSelection({
-							fields: {
-								url: true,
-							},
-						})
-					}
 				>
 					{#snippet children(entity)}
 						{@const url = entity.url}
@@ -232,13 +166,7 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={
-						viewSelection({
-							fields: {
-								permalink: true,
-							},
-						})
-					}
+					resource={redditLink}
 				>
 					{#snippet children(entity)}
 						{@const permalink = entity.permalink}
@@ -260,54 +188,98 @@
 				</ResourceBoundary>
 			{/if}
 		</dl>
+
+		{#if contentOpen}
+			<ResourceBoundary
+				resource={redditLink}
+			>
+				{#snippet children(entity)}
+					{@const selftext = entity.selftext}
+					{#if selftext != null && selftext !== ''}
+						<p data-text="long-text">{selftext}</p>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Details()}
-		{@const commentsResource = selection.$$comments}
-		<ResourceBoundary
-			resource={commentsResource}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-reddit-link-discussion'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'reddit-link-comments',
+						label: 'Comments',
+					},
+				]
+			}
+			data-card
 		>
-			{#snippet children(entities)}
-				{#if entities.values.length > 0}
-					<RedditCommentsView
-						selection={commentsResource}
-						countResource={commentsResource.count}
-						title='Comments'
-						href={
-							resolve(
-								'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/comments',
-								{
-									fullname: encodeURIComponent(selection.entitySelector.fullname),
-								}
-							)
-						}
-						id='comments'
-					/>
-				{/if}
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Discussion</HeadingComponent>
+				</header>
 			{/snippet}
-		</ResourceBoundary>
-		{@const timestampsResource = selection.$$timestamps}
-		<ResourceBoundary
-			resource={timestampsResource}
+
+			{#snippet SectionRedditLinkComments({ id, label })}
+				<RedditCommentsView
+					selection={selection.$$comments}
+					countResource={selection.$$comments.count}
+					href={
+						resolve(
+							'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/comments',
+							{
+								fullname: encodeURIComponent(selection.entitySelector.fullname),
+							}
+						)
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No comments on this submission yet.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-reddit-link-observations'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'reddit-link-timestamps',
+						label: 'Observations',
+					},
+				]
+			}
+			data-card
 		>
-			{#snippet children(entities)}
-				{#if entities.values.length > 0}
-					<RedditLink_TimestampsView
-						selection={timestampsResource}
-						countResource={timestampsResource.count}
-						title='Observations'
-						href={
-							resolve(
-								'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations',
-								{
-									fullname: encodeURIComponent(selection.entitySelector.fullname),
-								}
-							)
-						}
-						id='timestamps'
-					/>
-				{/if}
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Observations</HeadingComponent>
+				</header>
 			{/snippet}
-		</ResourceBoundary>
+
+			{#snippet SectionRedditLinkTimestamps({ id, label })}
+				<RedditLink_TimestampsView
+					selection={selection.$$timestamps}
+					countResource={selection.$$timestamps.count}
+					href={
+						resolve(
+							'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations',
+							{
+								fullname: encodeURIComponent(selection.entitySelector.fullname),
+							}
+						)
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No submission observations yet.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

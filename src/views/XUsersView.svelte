@@ -38,10 +38,9 @@
 	}
 >
 	{#snippet Item({ item: xUser })}
-		{@const xUserSelector = xUser[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.XUser}
-			entitySelector={xUserSelector}
+			entitySelector={xUser[EntityMetaKey.Selector]}
 			href={
 				resolve(
 					'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]',
@@ -52,11 +51,11 @@
 			}
 		>
 			{#snippet Title()}
-				{[(xUser.name ?? ''), xUserSelector.username, xUserSelector.id].filter(Boolean).join(' ') || 'X user'}
+				{[(xUser.name ?? ''), xUser.username, xUser.id].filter(Boolean).join(' ') || 'X user'}
 			{/snippet}
 
 			{#snippet Value()}
-				{['@' + xUserSelector.username, xUserSelector.id].filter(Boolean).join(' ')}
+				{['@' + xUser.username, xUser.id].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -87,9 +87,7 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
-		</dl>
 
-		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={lensNetwork}
 			>
@@ -105,9 +103,7 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
-		</dl>
 
-		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={lensNetwork}
 			>
@@ -144,9 +140,7 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
-		</dl>
 
-		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={lensNetwork}
 			>
@@ -181,6 +175,10 @@
 						id: 'lens-network-accounts',
 						label: 'Accounts',
 					},
+					{
+						id: 'lens-network-post-list',
+						label: 'Posts',
+					},
 				]
 			}
 			data-card
@@ -201,28 +199,6 @@
 					emptyText='No Lens accounts in this observed.'
 					id={`${id}-list`}
 				/>
-			{/snippet}
-
-		</CollapsibleTabs>
-
-		<CollapsibleTabs
-			id={viewDomId + '-carousel-lens-network-posts'}
-			sectionIdPrefix={viewDomId}
-			sections={
-				[
-					{
-						id: 'lens-network-post-list',
-						label: 'Posts',
-					},
-				]
-			}
-			data-card
-			class='network-view-collapsible-posts'
-		>
-			{#snippet Summary()}
-				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Posts</HeadingComponent>
-				</header>
 			{/snippet}
 
 			{#snippet SectionLensNetworkPostList({ id, label })}

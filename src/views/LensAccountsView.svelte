@@ -39,10 +39,9 @@
 	}
 >
 	{#snippet Item({ item: lensAccount })}
-		{@const lensAccountSelector = lensAccount[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.LensAccount}
-			entitySelector={lensAccountSelector}
+			entitySelector={lensAccount[EntityMetaKey.Selector]}
 			href={
 				resolve(
 					'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]',
@@ -53,11 +52,11 @@
 			}
 		>
 			{#snippet Title()}
-				{[(lensAccount.displayName ?? ''), (lensAccountSelector.localName ?? ''), lensAccountSelector.address, (lensAccountSelector.legacyProfileId ?? '')].filter(Boolean).join(' ') || 'Lens account'}
+				{[(lensAccount.displayName ?? ''), (lensAccount.localName ?? ''), lensAccount.address, (lensAccount.legacyProfileId ?? '')].filter(Boolean).join(' ') || 'Lens account'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[(lensAccountSelector.localName ?? ''), lensAccountSelector.address, (lensAccountSelector.legacyProfileId ?? '')].filter(Boolean).join(' ')}
+				{[(lensAccount.localName ?? ''), lensAccount.address, (lensAccount.legacyProfileId ?? '')].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

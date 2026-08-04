@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -11,6 +12,7 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -20,6 +22,8 @@
 		fields: {
 			name: true,
 			createdAt: true,
+			owner: true,
+			description: true,
 		},
 	}))
 	const titleFallback = $derived([(prefetched.name ?? ''), selection.entitySelector.address].filter(Boolean).join(' ') || 'Lens feed')
@@ -37,6 +41,17 @@
 	entityType={EntityType.LensFeed}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(social)/(lens)/lens/(lensNetwork)/feed/[address=evmAddress]',
+				{
+					address: selection.entitySelector.address,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -92,13 +107,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							owner: true,
-						},
-					})
-				}
+				resource={lensFeed}
 			>
 				{#snippet children(entity)}
 					{@const owner = entity.owner}
@@ -131,13 +140,7 @@
 		</dl>
 
 		<ResourceBoundary
-			resource={
-				selection({
-					fields: {
-						description: true,
-					},
-				})
-			}
+			resource={lensFeed}
 		>
 			{#snippet children(entity)}
 				{@const description = entity.description}
@@ -150,19 +153,12 @@
 
 	{#snippet Details()}
 		{@const postsResource = selection.$$posts}
-		<ResourceBoundary
-			resource={postsResource}
-		>
-			{#snippet children(entities)}
-				{#if entities.values.length > 0}
-					<LensPostsView
-						selection={postsResource}
-						countResource={postsResource.count}
-						title='Posts'
-						id='posts'
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<LensPostsView
+			selection={postsResource}
+			countResource={postsResource.count}
+			title='Posts'
+			emptyText='No Lens posts for this feed.'
+			id='posts'
+		/>
 	{/snippet}
 </EntityView>
