@@ -16,6 +16,25 @@ import {
 	type PersistedFarcasterAccountConnection,
 } from '$/state/farcaster/farcasterAccountConnectionState.ts'
 import {
+	applySessionCapabilityGrantUpdate,
+	applySessionLifecycleUpdate,
+	canRemoveSessionLifecycle,
+	draftSessionLifecycle,
+	isEditableSessionLifecycle,
+	lockSessionLifecycle,
+	persistSessionCapabilityGrant,
+	persistSessionLifecycle,
+	removeSessionCapabilityGrantsForConnection,
+	sessionCapabilityGrantFromPersisted,
+	sessionLifecycleFromPersisted,
+	sessionLifecyclePersistRoundTrip,
+	unlockSessionLifecycle,
+	type PersistedSessionCapabilityGrant,
+	type PersistedSessionLifecycle,
+	type SessionCapabilityGrant,
+	type SessionLifecycle,
+} from '$/state/sessions/sessionLifecycleState.ts'
+import {
 	localMutationAuthorityKey,
 	type MutationCollection,
 } from '$/client/$client.svelte.ts'
@@ -667,6 +686,205 @@ export const writeLocalWatchedEvmAccount = (
 	)
 }
 
+const localPrimitiveFieldValue = (
+	context: LocalMutationContext,
+	entityType: EntityType,
+	entitySelector: object,
+	fieldName: string
+) => {
+	const parentSelectorKey = entitySelectorKey(schema, entityDefinitionByType[entityType], entitySelector)
+	return context.entityFieldCollections[entityType][
+		entityFieldAddressKey(entityType, [], fieldName)
+	].toArray.find((row) => (
+		row[EntityMetaKey.Source] === Source.Local_Internal
+		&& row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
+		&& row.facetPathKey === stringify([])
+	))?.[EntityMetaKey.Value]
+}
+
+const readLocalBlockheadSessionLifecycle = (
+	context: LocalMutationContext,
+	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>
+): SessionLifecycle | undefined => {
+	const statusValue = localPrimitiveFieldValue(context, EntityType.BlockheadSession, entitySelector, 'status')
+	const createdAt = localPrimitiveFieldValue(context, EntityType.BlockheadSession, entitySelector, 'createdAt')
+	const updatedAt = localPrimitiveFieldValue(context, EntityType.BlockheadSession, entitySelector, 'updatedAt')
+	const status = (
+		statusValue === BlockheadSessionStatus.Draft
+		|| statusValue === BlockheadSessionStatus.Submitted
+		|| statusValue === BlockheadSessionStatus.Finalized
+	) ?
+		statusValue
+	:
+		undefined
+	if (status == null || typeof createdAt !== 'number' || typeof updatedAt !== 'number')
+		return undefined
+
+	const name = localPrimitiveFieldValue(context, EntityType.BlockheadSession, entitySelector, 'name')
+	const lockedAt = localPrimitiveFieldValue(context, EntityType.BlockheadSession, entitySelector, 'lockedAt')
+	return sessionLifecycleFromPersisted({
+		id: entitySelector.id,
+		...(typeof name === 'string' && { name }),
+		status,
+		createdAt,
+		updatedAt,
+		...(typeof lockedAt === 'number' && { lockedAt }),
+	})
+}
+
+const writeLocalBlockheadSessionLifecycleFields = (
+	context: LocalMutationContext,
+	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
+	session: PersistedSessionLifecycle
+) => {
+	writeLocalPresence(context, EntityType.BlockheadSession, entitySelector)
+	writeLocalPrimitiveFields(context, EntityType.BlockheadSession, entitySelector, {
+		name: session.name,
+		status: session.status,
+		createdAt: session.createdAt,
+		updatedAt: session.updatedAt,
+		lockedAt: session.lockedAt,
+	})
+}
+
+const applyLocalBlockheadSessionLifecycleUpdate = (
+	context: LocalMutationContext,
+	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
+	next: SessionLifecycle
+) => {
+	const applied = applySessionLifecycleUpdate(
+		readLocalBlockheadSessionLifecycle(context, entitySelector),
+		next
+	)
+	writeLocalBlockheadSessionLifecycleFields(
+		context,
+		entitySelector,
+		persistSessionLifecycle(applied)
+	)
+	return applied
+}
+
+const replaceLocalPrimitiveManyField = (
+	context: LocalMutationContext,
+	entityType: EntityType,
+	entitySelector: object,
+	fieldName: string,
+	values: readonly string[]
+) => {
+	const collection = context.entityFieldCollections[entityType][entityFieldAddressKey(entityType, [], fieldName)]
+	const parentSelectorKey = entitySelectorKey(schema, entityDefinitionByType[entityType], entitySelector)
+	const authority = localMutationAuthority(entityType, entitySelector, {
+		fieldName,
+		facetPathKey: stringify([]),
+		resolution: 'resolved',
+	})
+	collection.startSyncImmediate()
+	return collection.utils.replaceRowsWithAuthority(
+		(row) => (
+			row[EntityMetaKey.Source] === Source.Local_Internal
+			&& row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
+		),
+		values.map((value, valueIndex) => ({
+			facetPath: [],
+			facetPathKey: stringify([]),
+			fieldName,
+			valueIndex,
+			[EntityMetaKey.ParentSelector]: entitySelector,
+			[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
+			[EntityMetaKey.Source]: Source.Local_Internal,
+			[EntityMetaKey.Value]: value,
+			valueKey: `Value:${stringify(value)}`,
+		})),
+		authority.selectorKey,
+		authority.authorityKey,
+		authority.resolution
+	)
+}
+
+const readLocalBlockheadWalletCapabilityGrant = (
+	context: LocalMutationContext,
+	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadWalletCapabilityGrant>
+): SessionCapabilityGrant | undefined => {
+	const authorizationKind = localPrimitiveFieldValue(
+		context,
+		EntityType.BlockheadWalletCapabilityGrant,
+		entitySelector,
+		'authorizationKind'
+	)
+	const scope = localPrimitiveFieldValue(
+		context,
+		EntityType.BlockheadWalletCapabilityGrant,
+		entitySelector,
+		'scope'
+	)
+	if (typeof authorizationKind !== 'string' || scope === undefined)
+		return undefined
+
+	const parentSelectorKey = entitySelectorKey(
+		schema,
+		entityDefinitionByType[EntityType.BlockheadWalletCapabilityGrant],
+		entitySelector
+	)
+	const methods = context.entityFieldCollections[EntityType.BlockheadWalletCapabilityGrant][
+		entityFieldAddressKey(EntityType.BlockheadWalletCapabilityGrant, [], 'methods')
+	].toArray
+		.filter((row) => (
+			row[EntityMetaKey.Source] === Source.Local_Internal
+			&& row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
+		))
+		.sort((left, right) => (left.valueIndex ?? 0) - (right.valueIndex ?? 0))
+		.flatMap((row) => (
+			typeof row[EntityMetaKey.Value] === 'string' ? [row[EntityMetaKey.Value]] : []
+		))
+	const resources = context.entityFieldCollections[EntityType.BlockheadWalletCapabilityGrant][
+		entityFieldAddressKey(EntityType.BlockheadWalletCapabilityGrant, [], 'resources')
+	].toArray
+		.filter((row) => (
+			row[EntityMetaKey.Source] === Source.Local_Internal
+			&& row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
+		))
+		.sort((left, right) => (left.valueIndex ?? 0) - (right.valueIndex ?? 0))
+		.flatMap((row) => (
+			typeof row[EntityMetaKey.Value] === 'string' ? [row[EntityMetaKey.Value]] : []
+		))
+	const connectionRow = context.entityFieldCollections[EntityType.BlockheadWalletCapabilityGrant][
+		entityFieldAddressKey(EntityType.BlockheadWalletCapabilityGrant, [], '$connection')
+	].toArray.find((row) => (
+		row[EntityMetaKey.Source] === Source.Local_Internal
+		&& row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
+	))
+	const connectionSelector = Object(Object.getOwnPropertyDescriptor(
+		Object(connectionRow?.[EntityMetaKey.Value]),
+		EntityMetaKey.Selector
+	)?.value)
+	const connectionKey = (
+		typeof connectionSelector.connectionKey === 'string' ?
+			connectionSelector.connectionKey
+		:
+			undefined
+	)
+	const issuedAt = localPrimitiveFieldValue(context, EntityType.BlockheadWalletCapabilityGrant, entitySelector, 'issuedAt')
+	const notBefore = localPrimitiveFieldValue(context, EntityType.BlockheadWalletCapabilityGrant, entitySelector, 'notBefore')
+	const expiresAt = localPrimitiveFieldValue(context, EntityType.BlockheadWalletCapabilityGrant, entitySelector, 'expiresAt')
+	const revokedAt = localPrimitiveFieldValue(context, EntityType.BlockheadWalletCapabilityGrant, entitySelector, 'revokedAt')
+	const proofKind = localPrimitiveFieldValue(context, EntityType.BlockheadWalletCapabilityGrant, entitySelector, 'proofKind')
+	const proofSummary = localPrimitiveFieldValue(context, EntityType.BlockheadWalletCapabilityGrant, entitySelector, 'proofSummary')
+	return {
+		grantId: entitySelector.grantId,
+		...(connectionKey != null && { connectionKey }),
+		authorizationKind,
+		scope,
+		methods,
+		resources,
+		...(typeof issuedAt === 'number' && { issuedAt }),
+		...(typeof notBefore === 'number' && { notBefore }),
+		...(typeof expiresAt === 'number' && { expiresAt }),
+		...(typeof revokedAt === 'number' && { revokedAt }),
+		...(typeof proofKind === 'string' && { proofKind }),
+		...(typeof proofSummary === 'string' && { proofSummary }),
+	}
+}
+
 export const writeLocalBlockheadSession = async (
 	context: LocalMutationContext,
 	parentEntitySelector: EntitySelector<typeof schema, EntityType._Global>,
@@ -676,13 +894,14 @@ export const writeLocalBlockheadSession = async (
 	const entitySelector = {
 		id: `session-${globalThis.crypto.randomUUID()}`,
 	}
-	writeLocalPresence(context, EntityType.BlockheadSession, entitySelector)
-	writeLocalPrimitiveFields(context, EntityType.BlockheadSession, entitySelector, {
-		name: sessionName === '' ? undefined : sessionName,
-		status: BlockheadSessionStatus.Draft,
+	const persisted = persistSessionLifecycle(draftSessionLifecycle({
+		id: entitySelector.id,
+		...(sessionName !== '' && { name: sessionName }),
 		createdAt: now,
 		updatedAt: now,
-		lockedAt: undefined,
+	}))
+	writeLocalBlockheadSessionLifecycleFields(context, entitySelector, persisted)
+	writeLocalPrimitiveFields(context, EntityType.BlockheadSession, entitySelector, {
 		simulationCount: undefined,
 	})
 	const relationshipApplications = [
@@ -750,16 +969,68 @@ export const writeLocalBlockheadSession = async (
 	return entitySelector
 }
 
+/** Reload/upsert path: coerce flat OPFS rows, then monotonic `updatedAt` wins over stale races. */
+export const writeLocalBlockheadSessionLifecycle = async (
+	context: LocalMutationContext,
+	parentEntitySelector: EntitySelector<typeof schema, EntityType._Global>,
+	session: PersistedSessionLifecycle | SessionLifecycle
+) => {
+	const entitySelector = {
+		id: session.id,
+	}
+	const coerced = sessionLifecycleFromPersisted(sessionLifecyclePersistRoundTrip(session))
+	const applied = applyLocalBlockheadSessionLifecycleUpdate(context, entitySelector, coerced)
+	const relationshipApplication = writeLocalEntityReferenceField(
+		context,
+		EntityType._Global,
+		parentEntitySelector,
+		'$$blockheadSessions',
+		entitySelector
+	)
+	await Promise.all([
+		relationshipApplication,
+		context.entityCollections[EntityType.BlockheadSession].utils.waitForPersistence(),
+		...[
+			'name',
+			'status',
+			'createdAt',
+			'updatedAt',
+			'lockedAt',
+		].map((fieldName) => (
+			context.entityFieldCollections[EntityType.BlockheadSession][
+				entityFieldAddressKey(EntityType.BlockheadSession, [], fieldName)
+			].utils.waitForPersistence()
+		)),
+		context.entityFieldCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadSessions')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadSessions')
+		]?.utils.waitForPersistence(),
+	])
+	return persistSessionLifecycle(applied)
+}
+
 export const writeLocalBlockheadSessionName = (
 	context: LocalMutationContext,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
 	sessionName: string
 ) => {
-	writeLocalPresence(context, EntityType.BlockheadSession, entitySelector)
-	writeLocalPrimitiveFields(context, EntityType.BlockheadSession, entitySelector, {
-		name: sessionName === '' ? undefined : sessionName,
-		updatedAt: Date.now(),
-	})
+	const previous = readLocalBlockheadSessionLifecycle(context, entitySelector)
+	if (previous == null || !isEditableSessionLifecycle(previous))
+		return
+
+	applyLocalBlockheadSessionLifecycleUpdate(
+		context,
+		entitySelector,
+		draftSessionLifecycle({
+			id: previous.id,
+			...(sessionName !== '' && { name: sessionName }),
+			createdAt: previous.createdAt,
+			updatedAt: Date.now(),
+			...(previous.lockedAt != null && { lockedAt: previous.lockedAt }),
+		})
+	)
 }
 
 export const writeLocalBlockheadSessionAction = (
@@ -799,9 +1070,17 @@ export const writeLocalBlockheadSessionAction = (
 		'$$actions',
 		entitySelector
 	))
-	writeLocalPrimitiveFields(context, EntityType.BlockheadSession, sessionEntitySelector, {
-		updatedAt: now,
-	})
+	const previousSession = readLocalBlockheadSessionLifecycle(context, sessionEntitySelector)
+	if (previousSession != null) {
+		applyLocalBlockheadSessionLifecycleUpdate(
+			context,
+			sessionEntitySelector,
+			sessionLifecycleFromPersisted({
+				...persistSessionLifecycle(previousSession),
+				updatedAt: now,
+			})
+		)
+	}
 	return Promise.all([
 		...relationshipApplications,
 		context.entityCollections[EntityType.BlockheadSessionAction].utils.waitForPersistence(),
@@ -835,21 +1114,30 @@ export const writeLocalBlockheadSessionLockedAt = (
 	if (lockedAt === undefined)
 		return
 
-	writeLocalPresence(context, EntityType.BlockheadSession, entitySelector)
-	writeLocalPrimitiveFields(context, EntityType.BlockheadSession, entitySelector, {
-		lockedAt,
-		updatedAt: Date.now(),
-	})
+	const previous = readLocalBlockheadSessionLifecycle(context, entitySelector)
+	if (previous == null)
+		return
+
+	const next = lockSessionLifecycle(previous, lockedAt, Date.now())
+	if (next == null)
+		return
+
+	applyLocalBlockheadSessionLifecycleUpdate(context, entitySelector, next)
 }
 
 export const deleteLocalBlockheadSessionLockedAt = (
 	context: LocalMutationContext,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>
 ) => {
-	writeLocalPrimitiveFields(context, EntityType.BlockheadSession, entitySelector, {
-		lockedAt: undefined,
-		updatedAt: Date.now(),
-	})
+	const previous = readLocalBlockheadSessionLifecycle(context, entitySelector)
+	if (previous == null)
+		return
+
+	const next = unlockSessionLifecycle(previous, Date.now())
+	if (next == null)
+		return
+
+	applyLocalBlockheadSessionLifecycleUpdate(context, entitySelector, next)
 }
 
 export const deleteLocalBlockheadSession = (
@@ -857,6 +1145,10 @@ export const deleteLocalBlockheadSession = (
 	parentEntitySelector: EntitySelector<typeof schema, EntityType._Global>,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>
 ) => {
+	const previous = readLocalBlockheadSessionLifecycle(context, entitySelector)
+	if (previous != null && !canRemoveSessionLifecycle(previous))
+		throw new Error(`BlockheadSession ${entitySelector.id} is not removable (status ${previous.status})`)
+
 	let deletedAction = false
 	for (const actionRow of context.entityFieldCollections[EntityType.BlockheadSession][
 		entityFieldAddressKey(EntityType.BlockheadSession, [], '$$actions')
@@ -927,9 +1219,17 @@ export const deleteLocalBlockheadSessionAction = async (
 		]?.utils.waitForPersistence(),
 	])
 	deleteLocalEntityFields(context, EntityType.BlockheadSessionAction, entitySelector)
-	writeLocalPrimitiveFields(context, EntityType.BlockheadSession, sessionEntitySelector, {
-		updatedAt: Date.now(),
-	})
+	const previousSession = readLocalBlockheadSessionLifecycle(context, sessionEntitySelector)
+	if (previousSession != null) {
+		applyLocalBlockheadSessionLifecycleUpdate(
+			context,
+			sessionEntitySelector,
+			sessionLifecycleFromPersisted({
+				...persistSessionLifecycle(previousSession),
+				updatedAt: Date.now(),
+			})
+		)
+	}
 	await Promise.all([
 		...Object.values(context.entityFieldCollections[EntityType.BlockheadSessionAction])
 			.map((collection) => collection.utils.waitForPersistence()),
@@ -939,6 +1239,190 @@ export const deleteLocalBlockheadSessionAction = async (
 	])
 	deleteLocalPresence(context, EntityType.BlockheadSessionAction, entitySelector)
 	await context.entityCollections[EntityType.BlockheadSessionAction].utils.waitForPersistence()
+}
+
+export const writeLocalBlockheadWalletCapabilityGrant = async (
+	context: LocalMutationContext,
+	grant: SessionCapabilityGrant | PersistedSessionCapabilityGrant,
+	now = Date.now()
+) => {
+	const entitySelector = {
+		grantId: grant.grantId,
+	}
+	const hydrated = sessionCapabilityGrantFromPersisted(grant, now)
+	if (hydrated == null)
+		throw new Error(`Session capability grant expired or revoked: ${grant.grantId}`)
+
+	const applied = applySessionCapabilityGrantUpdate(
+		readLocalBlockheadWalletCapabilityGrant(context, entitySelector),
+		hydrated
+	)
+	const persisted = persistSessionCapabilityGrant(applied)
+	const scopeValue = persisted.scope
+	writeLocalPresence(context, EntityType.BlockheadWalletCapabilityGrant, entitySelector)
+	writeLocalPrimitiveFields(context, EntityType.BlockheadWalletCapabilityGrant, entitySelector, {
+		grantId: persisted.grantId,
+		authorizationKind: persisted.authorizationKind,
+		scope: (
+			typeof scopeValue === 'object'
+			|| typeof scopeValue === 'string'
+			|| typeof scopeValue === 'number'
+			|| typeof scopeValue === 'boolean'
+			|| typeof scopeValue === 'bigint'
+		) ?
+			scopeValue
+		:
+			undefined,
+		issuedAt: persisted.issuedAt,
+		notBefore: persisted.notBefore,
+		expiresAt: persisted.expiresAt,
+		revokedAt: persisted.revokedAt,
+		proofKind: persisted.proofKind,
+		proofSummary: persisted.proofSummary,
+	})
+	const relationshipApplications = [
+		replaceLocalPrimitiveManyField(
+			context,
+			EntityType.BlockheadWalletCapabilityGrant,
+			entitySelector,
+			'methods',
+			persisted.methods
+		),
+		replaceLocalPrimitiveManyField(
+			context,
+			EntityType.BlockheadWalletCapabilityGrant,
+			entitySelector,
+			'resources',
+			persisted.resources
+		),
+		(
+			persisted.connectionKey == null ?
+				deleteLocalEntityReferenceFieldRows(
+					context,
+					EntityType.BlockheadWalletCapabilityGrant,
+					entitySelector,
+					'$connection'
+				)
+			:
+				writeLocalEntityReferenceField(
+					context,
+					EntityType.BlockheadWalletCapabilityGrant,
+					entitySelector,
+					'$connection',
+					{
+						connectionKey: persisted.connectionKey,
+					}
+				)
+		),
+		writeLocalEntityReferenceField(
+			context,
+			EntityType._Global,
+			{ scope: '$$blockheadWalletCapabilityGrants' },
+			'$$blockheadWalletCapabilityGrants',
+			entitySelector
+		),
+	]
+	await Promise.all([
+		...relationshipApplications,
+		context.entityCollections[EntityType.BlockheadWalletCapabilityGrant].utils.waitForPersistence(),
+		...[
+			'grantId',
+			'authorizationKind',
+			'scope',
+			'issuedAt',
+			'notBefore',
+			'expiresAt',
+			'revokedAt',
+			'proofKind',
+			'proofSummary',
+			'methods',
+			'resources',
+			'$connection',
+		].map((fieldName) => (
+			context.entityFieldCollections[EntityType.BlockheadWalletCapabilityGrant][
+				entityFieldAddressKey(EntityType.BlockheadWalletCapabilityGrant, [], fieldName)
+			].utils.waitForPersistence()
+		)),
+		context.entityFieldCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadWalletCapabilityGrants')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadWalletCapabilityGrants')
+		]?.utils.waitForPersistence(),
+	])
+	return persisted
+}
+
+export const deleteLocalBlockheadWalletCapabilityGrant = async (
+	context: LocalMutationContext,
+	grantId: string
+) => {
+	const entitySelector = {
+		grantId,
+	}
+	const relationshipApplication = deleteLocalEntityReferenceField(
+		context,
+		EntityType._Global,
+		{ scope: '$$blockheadWalletCapabilityGrants' },
+		'$$blockheadWalletCapabilityGrants',
+		entitySelector
+	)
+	deleteLocalEntityFields(context, EntityType.BlockheadWalletCapabilityGrant, entitySelector)
+	deleteLocalPresence(context, EntityType.BlockheadWalletCapabilityGrant, entitySelector)
+	await Promise.all([
+		relationshipApplication,
+		context.entityCollections[EntityType.BlockheadWalletCapabilityGrant].utils.waitForPersistence(),
+		...Object.values(context.entityFieldCollections[EntityType.BlockheadWalletCapabilityGrant])
+			.map((collection) => collection.utils.waitForPersistence()),
+		...Object.values(context.entityFieldCountCollections[EntityType.BlockheadWalletCapabilityGrant])
+			.flatMap((collection) => collection === undefined ? [] : [collection.utils.waitForPersistence()]),
+		context.entityFieldCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadWalletCapabilityGrants')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadWalletCapabilityGrants')
+		]?.utils.waitForPersistence(),
+	])
+}
+
+export const deleteLocalBlockheadWalletCapabilityGrantsForConnection = async (
+	context: LocalMutationContext,
+	connectionKey: string
+) => {
+	const parentSelectorKey = entitySelectorKey(
+		schema,
+		entityDefinitionByType[EntityType._Global],
+		{ scope: '$$blockheadWalletCapabilityGrants' }
+	)
+	const grants = context.entityFieldCollections[EntityType._Global][
+		entityFieldAddressKey(EntityType._Global, [], '$$blockheadWalletCapabilityGrants')
+	].toArray
+		.filter((row) => (
+			row[EntityMetaKey.Source] === Source.Local_Internal
+			&& row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
+		))
+		.flatMap((row) => {
+			const grantSelector = Object(Object.getOwnPropertyDescriptor(
+				Object(row[EntityMetaKey.Value]),
+				EntityMetaKey.Selector
+			)?.value)
+			if (typeof grantSelector.grantId !== 'string')
+				return []
+
+			const grant = readLocalBlockheadWalletCapabilityGrant(context, {
+				grantId: grantSelector.grantId,
+			})
+			return grant == null ? [] : [grant]
+		})
+	const retainedGrantIds = new Set(
+		removeSessionCapabilityGrantsForConnection(grants, connectionKey)
+			.map((grant) => grant.grantId)
+	)
+	await Promise.all(
+		grants
+			.filter((grant) => !retainedGrantIds.has(grant.grantId))
+			.map((grant) => deleteLocalBlockheadWalletCapabilityGrant(context, grant.grantId))
+	)
 }
 
 export const updateLocalBlockheadSessionActionType = (

@@ -17,6 +17,8 @@ import {
 	deleteLocalBlockheadAccount,
 	deleteLocalBlockheadPanel,
 	deleteLocalBlockheadSession,
+	deleteLocalBlockheadWalletCapabilityGrant,
+	deleteLocalBlockheadWalletCapabilityGrantsForConnection,
 	deleteLocalBlockheadWalletConnection,
 	type LocalMutationContext,
 	updateLocalBlockheadSessionActionType,
@@ -28,9 +30,12 @@ import {
 	writeLocalBlockheadPanelTree,
 	writeLocalBlockheadSession,
 	writeLocalBlockheadSessionAction,
+	writeLocalBlockheadSessionLifecycle,
+	writeLocalBlockheadSessionLockedAt,
 	writeLocalBlockheadSessionSimulation,
 	writeLocalBlockheadSocialPostSession,
 	writeLocalBlockheadTransferIntent,
+	writeLocalBlockheadWalletCapabilityGrant,
 	writeLocalBlockheadWorkspace,
 	writeLocalBlockheadWallet,
 	writeLocalBlockheadWalletConnection,
@@ -40,6 +45,7 @@ import {
 } from '$/collections/localMutations.ts'
 import { SocialProtocol } from '$/schema/SocialProtocol.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
+import { BlockheadSessionStatus } from '$/schema/BlockheadSessionStatus.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
@@ -66,6 +72,14 @@ const walletConnectionMutationSource = source.slice(
 const walletRequestMutationSource = source.slice(
 	source.indexOf('export const writeLocalBlockheadEvmWalletRequest')
 )
+const sessionLifecycleMutationSource = source.slice(
+	source.indexOf('export const writeLocalBlockheadSession ='),
+	source.indexOf('export const writeLocalBlockheadTransferIntent')
+)
+const sessionCapabilityGrantMutationSource = source.slice(
+	source.indexOf('export const writeLocalBlockheadWalletCapabilityGrant'),
+	source.indexOf('export const writeLocalBlockheadTransferIntent')
+)
 
 describe('local wallet connection mutations', () => {
 	it('coerces flat connection rows through the wallet connection state machine before persistence', () => {
@@ -73,6 +87,349 @@ describe('local wallet connection mutations', () => {
 		expect(walletConnectionMutationSource).toContain('selected: persisted.selected')
 		expect(walletConnectionMutationSource).toContain('error: persisted.error')
 		expect(walletConnectionMutationSource).not.toContain('persistWalletConnection(connection)')
+	})
+})
+
+describe('local session lifecycle mutations', () => {
+	it('routes session create/lock/delete through sessionLifecycleState helpers', () => {
+		expect(sessionLifecycleMutationSource).toContain('draftSessionLifecycle({')
+		expect(sessionLifecycleMutationSource).toContain('sessionLifecyclePersistRoundTrip(session)')
+		expect(sessionLifecycleMutationSource).toContain('applyLocalBlockheadSessionLifecycleUpdate(')
+		expect(sessionLifecycleMutationSource).toContain('lockSessionLifecycle(previous, lockedAt')
+		expect(sessionLifecycleMutationSource).toContain('unlockSessionLifecycle(previous')
+		expect(sessionLifecycleMutationSource).toContain('canRemoveSessionLifecycle(previous)')
+		expect(source).toContain('applySessionLifecycleUpdate(')
+		expect(sessionLifecycleMutationSource).not.toMatch(/wallets\/adapters/)
+	})
+
+	it('coerces missing lockedAt on reload and ignores stale updatedAt races', async () => {
+		type MockRow = Record<string, object | string | number | boolean | bigint | undefined>
+		const collectionByAddress = new Map<string, {
+			toArray: MockRow[]
+			startSyncImmediate(): void
+			utils: {
+				waitForPersistence(): Promise<void>
+				replaceRows(predicate: (row: MockRow) => boolean, rows: readonly MockRow[]): void
+				replaceRowsWithAuthority(
+					predicate: (row: MockRow) => boolean,
+					rows: readonly MockRow[],
+					selectorKey: string,
+					authorityKey: string,
+					resolution: 'present' | 'resolved' | 'deleted',
+					onApplied?: () => void | Promise<void>
+				): Promise<void>
+				writeUpsert(row: MockRow | readonly MockRow[]): void
+				writeUpsertWithAuthority(
+					row: MockRow | readonly MockRow[],
+					selectorKey: string,
+					authorityKey: string,
+					resolution: 'present' | 'resolved' | 'deleted',
+					onApplied?: () => void | Promise<void>
+				): Promise<void>
+			}
+		}>()
+		const collectionFor = (address: string) => {
+			const existing = collectionByAddress.get(address)
+			if (existing != null)
+				return existing
+
+			const rows: MockRow[] = []
+			const collection = {
+				toArray: rows,
+				startSyncImmediate: () => {},
+				utils: {
+					waitForPersistence: async () => {},
+					replaceRows: (predicate: (row: MockRow) => boolean, nextRows: readonly MockRow[]) => {
+						for (let index = rows.length - 1; index >= 0; index--)
+							if (predicate(rows[index]))
+								rows.splice(index, 1)
+						rows.push(...nextRows)
+					},
+					replaceRowsWithAuthority: (
+						predicate: (row: MockRow) => boolean,
+						nextRows: readonly MockRow[],
+						_selectorKey: string,
+						_authorityKey: string,
+						_resolution: 'present' | 'resolved' | 'deleted',
+						onApplied?: () => void | Promise<void>
+					) => {
+						collection.utils.replaceRows(predicate, nextRows)
+						return Promise.resolve(onApplied?.()).then(() => {})
+					},
+					writeUpsert: (row: MockRow | readonly MockRow[]) => {
+						for (const nextRow of Array.isArray(row) ? row : [row]) {
+							const index = rows.findIndex((existingRow) => (
+								existingRow[EntityMetaKey.Source] === nextRow[EntityMetaKey.Source]
+								&& existingRow[EntityMetaKey.ParentSelectorKey] === nextRow[EntityMetaKey.ParentSelectorKey]
+								&& existingRow[EntityMetaKey.SelectorKey] === nextRow[EntityMetaKey.SelectorKey]
+								&& existingRow.valueKey === nextRow.valueKey
+							))
+							if (index >= 0)
+								rows.splice(index, 1)
+							rows.push(nextRow)
+						}
+					},
+					writeUpsertWithAuthority: (
+						row: MockRow | readonly MockRow[],
+						_selectorKey: string,
+						_authorityKey: string,
+						_resolution: 'present' | 'resolved' | 'deleted',
+						onApplied?: () => void | Promise<void>
+					) => {
+						collection.utils.writeUpsert(row)
+						return Promise.resolve(onApplied?.()).then(() => {})
+					},
+				},
+			}
+			collectionByAddress.set(address, collection)
+			return collection
+		}
+		const context: LocalMutationContext = {
+			entityCollections: new Proxy({}, {
+				get: (_target, entityType: string) => collectionFor(`entity:${entityType}`),
+			}),
+			entityFieldCollections: new Proxy({}, {
+				get: (_target, entityType: string) => new Proxy({}, {
+					get: (_fields, fieldAddress: string) => collectionFor(`field:${entityType}:${fieldAddress}`),
+				}),
+			}),
+			entityFieldCountCollections: new Proxy({}, {
+				get: (_target, entityType: string) => new Proxy({}, {
+					get: (_fields, fieldName: string) => collectionFor(`count:${entityType}:${fieldName}`),
+				}),
+			}),
+		}
+		const parentSelector = {
+			scope: '$$blockheadSessions',
+		}
+		const coerced = await writeLocalBlockheadSessionLifecycle(context, parentSelector, {
+			id: 'session-reload',
+			name: 'reload',
+			status: BlockheadSessionStatus.Submitted,
+			createdAt: 1,
+			updatedAt: 20,
+		})
+		expect(coerced).toEqual({
+			id: 'session-reload',
+			name: 'reload',
+			status: BlockheadSessionStatus.Submitted,
+			createdAt: 1,
+			updatedAt: 20,
+			lockedAt: 20,
+		})
+		expect(context.entityFieldCollections[EntityType.BlockheadSession][entityFieldAddressKey(
+			EntityType.BlockheadSession,
+			[],
+			'lockedAt'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 20,
+			}),
+		])
+
+		await writeLocalBlockheadSessionLifecycle(context, parentSelector, {
+			id: 'session-reload',
+			name: 'stale-name',
+			status: BlockheadSessionStatus.Draft,
+			createdAt: 1,
+			updatedAt: 10,
+		})
+		expect(context.entityFieldCollections[EntityType.BlockheadSession][entityFieldAddressKey(
+			EntityType.BlockheadSession,
+			[],
+			'name'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 'reload',
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadSession][entityFieldAddressKey(
+			EntityType.BlockheadSession,
+			[],
+			'status'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: BlockheadSessionStatus.Submitted,
+			}),
+		])
+
+		expect(() => deleteLocalBlockheadSession(context, parentSelector, {
+			id: 'session-reload',
+		})).toThrow('not removable')
+
+		const draftSelector = await writeLocalBlockheadSession(context, parentSelector, 'draft-removable')
+		writeLocalBlockheadSessionLockedAt(context, draftSelector, 5)
+		expect(context.entityFieldCollections[EntityType.BlockheadSession][entityFieldAddressKey(
+			EntityType.BlockheadSession,
+			[],
+			'lockedAt'
+		)].toArray).toContainEqual(expect.objectContaining({
+			[EntityMetaKey.ParentSelector]: draftSelector,
+			[EntityMetaKey.Value]: 5,
+		}))
+		await deleteLocalBlockheadSession(context, parentSelector, draftSelector)
+		expect(context.entityCollections[EntityType.BlockheadSession].toArray.find((row) => (
+			row[EntityMetaKey.SelectorKey] === stringify(draftSelector)
+		))).toBeUndefined()
+	})
+})
+
+describe('local session capability grant mutations', () => {
+	it('hydrates grants through sessionCapabilityGrant lifecycle before persistence', () => {
+		expect(sessionCapabilityGrantMutationSource).toContain('sessionCapabilityGrantFromPersisted(grant, now)')
+		expect(sessionCapabilityGrantMutationSource).toContain('applySessionCapabilityGrantUpdate(')
+		expect(sessionCapabilityGrantMutationSource).toContain('persistSessionCapabilityGrant(applied)')
+		expect(sessionCapabilityGrantMutationSource).toContain('removeSessionCapabilityGrantsForConnection(grants, connectionKey)')
+	})
+
+	it('rejects expired reload grants, ignores stale reissues, and removes grants with their connection', async () => {
+		type MockRow = Record<string, object | string | number | boolean | bigint | undefined>
+		const collectionByAddress = new Map<string, {
+			toArray: MockRow[]
+			startSyncImmediate(): void
+			utils: {
+				waitForPersistence(): Promise<void>
+				replaceRows(predicate: (row: MockRow) => boolean, rows: readonly MockRow[]): void
+				replaceRowsWithAuthority(
+					predicate: (row: MockRow) => boolean,
+					rows: readonly MockRow[],
+					selectorKey: string,
+					authorityKey: string,
+					resolution: 'present' | 'resolved' | 'deleted',
+					onApplied?: () => void | Promise<void>
+				): Promise<void>
+				writeUpsert(row: MockRow | readonly MockRow[]): void
+				writeUpsertWithAuthority(
+					row: MockRow | readonly MockRow[],
+					selectorKey: string,
+					authorityKey: string,
+					resolution: 'present' | 'resolved' | 'deleted',
+					onApplied?: () => void | Promise<void>
+				): Promise<void>
+			}
+		}>()
+		const collectionFor = (address: string) => {
+			const existing = collectionByAddress.get(address)
+			if (existing != null)
+				return existing
+
+			const rows: MockRow[] = []
+			const collection = {
+				toArray: rows,
+				startSyncImmediate: () => {},
+				utils: {
+					waitForPersistence: async () => {},
+					replaceRows: (predicate: (row: MockRow) => boolean, nextRows: readonly MockRow[]) => {
+						for (let index = rows.length - 1; index >= 0; index--)
+							if (predicate(rows[index]))
+								rows.splice(index, 1)
+						rows.push(...nextRows)
+					},
+					replaceRowsWithAuthority: (
+						predicate: (row: MockRow) => boolean,
+						nextRows: readonly MockRow[],
+						_selectorKey: string,
+						_authorityKey: string,
+						_resolution: 'present' | 'resolved' | 'deleted',
+						onApplied?: () => void | Promise<void>
+					) => {
+						collection.utils.replaceRows(predicate, nextRows)
+						return Promise.resolve(onApplied?.()).then(() => {})
+					},
+					writeUpsert: (row: MockRow | readonly MockRow[]) => {
+						for (const nextRow of Array.isArray(row) ? row : [row]) {
+							const index = rows.findIndex((existingRow) => (
+								existingRow[EntityMetaKey.Source] === nextRow[EntityMetaKey.Source]
+								&& existingRow[EntityMetaKey.ParentSelectorKey] === nextRow[EntityMetaKey.ParentSelectorKey]
+								&& existingRow[EntityMetaKey.SelectorKey] === nextRow[EntityMetaKey.SelectorKey]
+								&& existingRow.valueKey === nextRow.valueKey
+							))
+							if (index >= 0)
+								rows.splice(index, 1)
+							rows.push(nextRow)
+						}
+					},
+					writeUpsertWithAuthority: (
+						row: MockRow | readonly MockRow[],
+						_selectorKey: string,
+						_authorityKey: string,
+						_resolution: 'present' | 'resolved' | 'deleted',
+						onApplied?: () => void | Promise<void>
+					) => {
+						collection.utils.writeUpsert(row)
+						return Promise.resolve(onApplied?.()).then(() => {})
+					},
+				},
+			}
+			collectionByAddress.set(address, collection)
+			return collection
+		}
+		const context: LocalMutationContext = {
+			entityCollections: new Proxy({}, {
+				get: (_target, entityType: string) => collectionFor(`entity:${entityType}`),
+			}),
+			entityFieldCollections: new Proxy({}, {
+				get: (_target, entityType: string) => new Proxy({}, {
+					get: (_fields, fieldAddress: string) => collectionFor(`field:${entityType}:${fieldAddress}`),
+				}),
+			}),
+			entityFieldCountCollections: new Proxy({}, {
+				get: (_target, entityType: string) => new Proxy({}, {
+					get: (_fields, fieldName: string) => collectionFor(`count:${entityType}:${fieldName}`),
+				}),
+			}),
+		}
+		const grant = {
+			grantId: 'grant-1',
+			connectionKey: 'conn-a',
+			authorizationKind: 'wallet-scope',
+			scope: {
+				namespace: 'eip155',
+				reference: '1',
+			},
+			methods: [
+				'eth_sendTransaction',
+			],
+			resources: [
+				'eip155:1',
+			],
+			issuedAt: 10,
+		} as const
+
+		await expect(writeLocalBlockheadWalletCapabilityGrant(context, {
+			...grant,
+			expiresAt: 1,
+		}, 50)).rejects.toThrow('expired or revoked')
+
+		await writeLocalBlockheadWalletCapabilityGrant(context, grant, 50)
+		await writeLocalBlockheadWalletCapabilityGrant(context, {
+			...grant,
+			issuedAt: 5,
+			methods: [
+				'eth_sign',
+			],
+		}, 50)
+		expect(context.entityFieldCollections[EntityType.BlockheadWalletCapabilityGrant][entityFieldAddressKey(
+			EntityType.BlockheadWalletCapabilityGrant,
+			[],
+			'methods'
+		)].toArray.map((row) => row[EntityMetaKey.Value])).toEqual([
+			'eth_sendTransaction',
+		])
+
+		await writeLocalBlockheadWalletCapabilityGrant(context, {
+			...grant,
+			grantId: 'grant-2',
+			connectionKey: 'conn-b',
+		}, 50)
+		await deleteLocalBlockheadWalletCapabilityGrantsForConnection(context, 'conn-a')
+		expect(context.entityCollections[EntityType.BlockheadWalletCapabilityGrant].toArray.map((row) => (
+			Object(row[EntityMetaKey.Selector]).grantId
+		))).toEqual([
+			'grant-2',
+		])
+		await deleteLocalBlockheadWalletCapabilityGrant(context, 'grant-2')
+		expect(context.entityCollections[EntityType.BlockheadWalletCapabilityGrant].toArray).toHaveLength(0)
 	})
 })
 

@@ -44,6 +44,14 @@ const preparationSource = readFileSync(
 	new URL('./walletRequestPreparation.ts', import.meta.url),
 	'utf8'
 )
+const localMutationsSource = readFileSync(
+	new URL('../../collections/localMutations.ts', import.meta.url),
+	'utf8'
+)
+const walletConnectionRuntimeSource = readFileSync(
+	new URL('./walletConnectionRuntime.svelte.ts', import.meta.url),
+	'utf8'
+)
 
 
 describe('walletRequestPreparation', () => {
@@ -53,6 +61,15 @@ describe('walletRequestPreparation', () => {
 		expect(preparationSource).not.toMatch(/eth_sendTransaction\(/)
 		expect(preparationSource).not.toMatch(/BlockheadWalletAccount/)
 		expect(preparationSource).toMatch(/BlockheadWalletRequestCall/)
+	})
+
+	it('wires selection, capability, and call-batch gates into prepare callers', () => {
+		expect(localMutationsSource).toMatch(/resolveWalletPrepSelection/)
+		expect(localMutationsSource).toMatch(/resolveWalletTransactionPrepGate/)
+		expect(localMutationsSource).toMatch(/resolveWalletRequestCallsPreparation/)
+		expect(localMutationsSource).toMatch(/WalletCapability\.SendTransaction/)
+		expect(walletConnectionRuntimeSource).toMatch(/resolveWalletPrepSelection/)
+		expect(walletConnectionRuntimeSource).toMatch(/writeLocalBlockheadWalletRequest\([\s\S]*connections\)/)
 	})
 
 	it('requires exactly one Connected+selected wallet before prep binding', () => {

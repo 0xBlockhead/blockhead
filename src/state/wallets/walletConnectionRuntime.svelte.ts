@@ -50,6 +50,9 @@ import {
 	walletConnectionKey,
 	withExclusiveWalletConnectionSelection,
 } from './walletConnectionState.ts'
+import {
+	resolveWalletPrepSelection,
+} from './walletRequestPreparation.ts'
 import { createWalletStandardAdapter } from './adapters/walletStandard.ts'
 import {
 	createWalletConnectV2Adapter,
@@ -524,14 +527,13 @@ const createWalletRuntimeState = (
 		connectionKey: string,
 		message: string
 	) => {
-		const connection = connections.find((candidate) => (
-			walletConnectionKey(candidate) === connectionKey
-		))
-		const account = connection?.activeAccount ?? connection?.accounts.at(0)
-		if (connection == null || account == null)
-			throw new Error('Connected wallet account is unavailable')
-		if (!isSelectedWalletConnection(connection))
-			throw new Error('Selected wallet connection is not connected')
+		const selection = resolveWalletPrepSelection(connections)
+		if (!selection.ready)
+			throw new Error(selection.error)
+		if (selection.connectionKey !== connectionKey)
+			throw new Error('Wallet request connectionKey does not match the selected wallet connection.')
+
+		const { account, connection } = selection
 		if (!account.capabilities.includes(WalletCapability.SignMessage))
 			throw new Error('Selected wallet account does not authorize message signing')
 		if (account.namespace !== 'eip155')
@@ -567,7 +569,7 @@ const createWalletRuntimeState = (
 				message,
 			})),
 			requestedAt,
-		})
+		}, connections)
 		await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
 			timestampMs: requestedAt,
 			source: Source.Local_Internal,
