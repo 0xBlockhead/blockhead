@@ -55,6 +55,18 @@ export type PreparedWalletRequestObservation = {
 	submittedAt?: undefined
 }
 
+export type ExecutableWalletRequestPrepReady = {
+	ready: true
+	gate: WalletTransactionPrepGateReady
+	calls: readonly WalletRequestCallPreparation[]
+	observation: PreparedWalletRequestObservation
+}
+
+export type ExecutableWalletRequestPrep =
+	| ExecutableWalletRequestPrepReady
+	| WalletPrepSelectionBlocked
+	| Extract<WalletRequestCallsPreparation, { ready: false }>
+
 
 export const selectedConnectedWalletConnections = (
 	connections: readonly WalletConnection[]
@@ -177,6 +189,46 @@ export const resolveWalletRequestCallsPreparation = (
 export const preparedWalletRequestObservation = (): PreparedWalletRequestObservation => ({
 	status: 'prepared',
 })
+
+export const resolveExecutableWalletRequestPrep = ({
+	connections,
+	namespace,
+	reference,
+	accountAddress,
+	calls,
+	requestMethod = 'eth_sendTransaction',
+	capability = WalletCapability.SendTransaction,
+}: {
+	connections: readonly WalletConnection[]
+	namespace: string
+	reference: string
+	accountAddress: string
+	calls: readonly WalletRequestCallPreparation[]
+	requestMethod?: string
+	capability?: WalletCapability
+}): ExecutableWalletRequestPrep => {
+	const gate = resolveWalletTransactionPrepGate({
+		connections,
+		namespace,
+		reference,
+		accountAddress,
+		requestMethod,
+		capability,
+	})
+	if (!gate.ready)
+		return gate
+
+	const callBatch = resolveWalletRequestCallsPreparation(calls)
+	if (!callBatch.ready)
+		return callBatch
+
+	return {
+		ready: true,
+		gate,
+		calls: callBatch.calls,
+		observation: preparedWalletRequestObservation(),
+	}
+}
 
 export const isPreparedWalletRequestWithoutSend = (
 	request: {

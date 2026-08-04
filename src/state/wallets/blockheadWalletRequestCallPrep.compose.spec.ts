@@ -12,6 +12,7 @@ import { connectedWalletConnection } from './walletConnectionState.ts'
 import {
 	isPreparedWalletRequestWithoutSend,
 	preparedWalletRequestObservation,
+	resolveExecutableWalletRequestPrep,
 	resolveWalletRequestCallsPreparation,
 	resolveWalletTransactionPrepGate,
 } from './walletRequestPreparation.ts'
@@ -58,32 +59,6 @@ const orderedCalls = [
 	},
 ] as const
 
-const resolveExecutableWalletRequestPrep = (
-	connections: readonly ReturnType<typeof connectedWalletConnection>[],
-	calls: Parameters<typeof resolveWalletRequestCallsPreparation>[0],
-) => {
-	const gate = resolveWalletTransactionPrepGate({
-		connections,
-		namespace: 'eip155',
-		reference: '1',
-		accountAddress: account.accountAddress,
-	})
-	if (!gate.ready)
-		return gate
-
-	const callBatch = resolveWalletRequestCallsPreparation(calls)
-	if (!callBatch.ready)
-		return callBatch
-
-	return {
-		ready: true as const,
-		gate,
-		calls: callBatch.calls,
-		observation: preparedWalletRequestObservation(),
-	}
-}
-
-
 describe('BlockheadWalletRequestCall prep compose', () => {
 	it('blocks executable prep when the call batch is empty even if wallet gate is ready', () => {
 		const gate = resolveWalletTransactionPrepGate({
@@ -102,7 +77,13 @@ describe('BlockheadWalletRequestCall prep compose', () => {
 			error: 'Wallet request preparation requires at least one BlockheadWalletRequestCall.',
 		})
 
-		const executable = resolveExecutableWalletRequestPrep([selectedConnection], [])
+		const executable = resolveExecutableWalletRequestPrep({
+			connections: [selectedConnection],
+			namespace: 'eip155',
+			reference: '1',
+			accountAddress: account.accountAddress,
+			calls: [],
+		})
 		expect(executable).toEqual({
 			ready: false,
 			error: 'Wallet request preparation requires at least one BlockheadWalletRequestCall.',
@@ -111,7 +92,13 @@ describe('BlockheadWalletRequestCall prep compose', () => {
 	})
 
 	it('accepts ordered BlockheadWalletRequestCall rows with inputDataHash and yields prep-without-send', () => {
-		const executable = resolveExecutableWalletRequestPrep([selectedConnection], orderedCalls)
+		const executable = resolveExecutableWalletRequestPrep({
+			connections: [selectedConnection],
+			namespace: 'eip155',
+			reference: '1',
+			accountAddress: account.accountAddress,
+			calls: orderedCalls,
+		})
 		expect(executable).toMatchObject({
 			ready: true,
 			gate: {
@@ -145,18 +132,24 @@ describe('BlockheadWalletRequestCall prep compose', () => {
 	})
 
 	it('blocks executable prep when any ordered call lacks inputDataHash', () => {
-		expect(resolveExecutableWalletRequestPrep([selectedConnection], [
-			{
-				toAddress: '0x2222222222222222222222222222222222222222',
-				value: 1n,
-				inputDataHash: firstCallHash,
-			},
-			{
-				toAddress: '0x3333333333333333333333333333333333333333',
-				value: 2n,
-				inputDataHash: '',
-			},
-		])).toEqual({
+		expect(resolveExecutableWalletRequestPrep({
+			connections: [selectedConnection],
+			namespace: 'eip155',
+			reference: '1',
+			accountAddress: account.accountAddress,
+			calls: [
+				{
+					toAddress: '0x2222222222222222222222222222222222222222',
+					value: 1n,
+					inputDataHash: firstCallHash,
+				},
+				{
+					toAddress: '0x3333333333333333333333333333333333333333',
+					value: 2n,
+					inputDataHash: '',
+				},
+			],
+		})).toEqual({
 			ready: false,
 			error: 'Each BlockheadWalletRequestCall requires a non-empty inputDataHash.',
 		})
@@ -179,7 +172,13 @@ describe('BlockheadWalletRequestCall prep compose', () => {
 		})
 		expect(isEditableSessionLifecycle(locked)).toBe(true)
 
-		const executable = resolveExecutableWalletRequestPrep([selectedConnection], orderedCalls)
+		const executable = resolveExecutableWalletRequestPrep({
+			connections: [selectedConnection],
+			namespace: 'eip155',
+			reference: '1',
+			accountAddress: account.accountAddress,
+			calls: orderedCalls,
+		})
 		if (!executable.ready)
 			throw new Error('expected executable prep')
 
