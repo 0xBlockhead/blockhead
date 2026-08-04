@@ -222,6 +222,26 @@ const runtimeSecretCredentials = [
 		},
 	],
 	[
+		Source.TronGrid_Rest,
+		undefined,
+		'TRONGRID_API_KEY',
+		{
+			header: {
+				name: 'TRON-PRO-API-KEY',
+			},
+		},
+	],
+	[
+		Source.TronScan_Rest,
+		undefined,
+		'TRONSCAN_API_KEY',
+		{
+			header: {
+				name: 'TRON-PRO-API-KEY',
+			},
+		},
+	],
+	[
 		Source.Voyager,
 		undefined,
 		'VOYAGER_API_KEY',

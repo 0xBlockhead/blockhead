@@ -71,6 +71,7 @@ export enum ApiFamily {
 	CelestiaNodeJsonRpc = 'CelestiaNodeJsonRpc',
 	CertifiedHttpGateway = 'CertifiedHttpGateway',
 	CosmosLcdApi = 'CosmosLcdApi',
+	DydxIndexer = 'DydxIndexer',
 	EnvioHyperSyncApi = 'EnvioHyperSyncApi',
 	EthereumBeaconRest = 'EthereumBeaconRest',
 	EtherscanModuleAction = 'EtherscanModuleAction',
@@ -420,6 +421,13 @@ type SourceBindingCompatibility =
 		WireProtocol.WebSocketMessages,
 		ApiFamily.BitTorrentTracker,
 		SourceEndpointKind.WebSocketUrl
+	>
+	| SourceBindingCompatibilityRow<
+		WireProtocol.WebSocketMessages,
+		ApiFamily.DydxIndexer,
+		SourceEndpointKind.WebSocketUrl,
+		SourceOperationGroup.GenericSubscribe,
+		SourceArtifactKind.HandwrittenTypes
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.WebSocketMessages,

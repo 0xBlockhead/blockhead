@@ -130,10 +130,18 @@ describe('MevRelay REST resolvers', () => {
 		}, context)).rejects.toThrow('502')
 	})
 
-	it('returns empty network MEV lists for chains without relay hosts', async () => {
-		await expect(networkPayloadsResolver.resolve.Caip2.resolve(unsupportedNetwork, context)).resolves.toEqual([])
-		await expect(networkBuildersResolver.resolve.Caip2.resolve(unsupportedNetwork, context)).resolves.toEqual([])
+	it('hard-fails network MEV lists for chains without relay hosts', async () => {
+		await expect(networkPayloadsResolver.resolve.Caip2.resolve(unsupportedNetwork, context)).rejects.toThrow('MevRelay_Rest: no relay hosts for chain 137')
+		await expect(networkBuildersResolver.resolve.Caip2.resolve(unsupportedNetwork, context)).rejects.toThrow('MevRelay_Rest: no relay hosts for chain 137')
 		expect(getProposerPayloadDeliveredForRelayHost).not.toHaveBeenCalled()
+	})
+
+	it('returns empty network MEV lists when mapped relays have no matching rows', async () => {
+		getProposerPayloadDeliveredForRelayHost.mockResolvedValue([])
+
+		await expect(networkPayloadsResolver.resolve.Caip2.resolve(network, context)).resolves.toEqual([])
+		await expect(networkBuildersResolver.resolve.Caip2.resolve(network, context)).resolves.toEqual([])
+		expect(getProposerPayloadDeliveredForRelayHost).toHaveBeenCalled()
 	})
 
 	it('aggregates network proposer payloads across mapped relays without swallowing failures', async () => {

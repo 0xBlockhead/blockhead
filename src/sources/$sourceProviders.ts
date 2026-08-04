@@ -157,6 +157,7 @@ import onnxSourceProvider from './Onnx/index.ts'
 import openAISourceProvider from './OpenAI/index.ts'
 import openchainSourceProvider from './Openchain/index.ts'
 import openSeaSourceProvider from './OpenSea/index.ts'
+import osmosisSourceProvider from './Osmosis/index.ts'
 import pathfinderSourceProvider from './Pathfinder/index.ts'
 import payjoinSourceProvider from './Payjoin/index.ts'
 import petraSourceProvider from './Petra/index.ts'
@@ -225,6 +226,7 @@ import tronTip1193SourceProvider from './TronTip1193/index.ts'
 import tronTip6963SourceProvider from './TronTip6963/index.ts'
 import trustWalletAssetsSourceProvider from './TrustWalletAssets/index.ts'
 import tzktSourceProvider from './Tzkt/index.ts'
+import uniswapSourceProvider from './Uniswap/index.ts'
 import voltaireSourceProvider from './Voltaire/index.ts'
 import voyagerSourceProvider from './Voyager/index.ts'
 import wakuNodeSourceProvider from './WakuNode/index.ts'
@@ -404,6 +406,7 @@ const sourceProviders = [
 	openAISourceProvider,
 	openchainSourceProvider,
 	openSeaSourceProvider,
+	osmosisSourceProvider,
 	pathfinderSourceProvider,
 	payjoinSourceProvider,
 	petraSourceProvider,
@@ -470,6 +473,7 @@ const sourceProviders = [
 	tronTip6963SourceProvider,
 	trustWalletAssetsSourceProvider,
 	tzktSourceProvider,
+	uniswapSourceProvider,
 	voltaireSourceProvider,
 	voyagerSourceProvider,
 	wakuNodeSourceProvider,

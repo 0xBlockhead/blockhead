@@ -118,7 +118,17 @@ describe('MevRelay REST bidtrace queries', () => {
 
 		await expect(getProposerPayloadDeliveredForRelayHost('relay.example.invalid', {
 			limit: 1,
-		})).rejects.toThrow('no canonical relay binding')
+		})).rejects.toThrow('MevRelay_Rest: no canonical relay binding for relay.example.invalid')
 		expect(fetchMock).not.toHaveBeenCalled()
+	})
+
+	it('returns an empty array when a mapped relay has no bidtraces', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([]))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getProposerPayloadDeliveredForRelayHost('boost-relay.flashbots.net', {
+			limit: 1,
+		})).resolves.toEqual([])
 	})
 })

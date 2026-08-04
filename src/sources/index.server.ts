@@ -28,6 +28,16 @@ export const enabledSources = new Set(
 	enabledSourceBindings.map((binding) => binding.source)
 )
 
+export const enabledBrowserServerSourceBindingIds = new Set(
+	enabledSourceBindings
+		.filter((binding) => (
+			binding.delivery === SourceDelivery.HttpProxy
+				|| binding.delivery === SourceDelivery.RemoteLive
+				|| binding.delivery === SourceDelivery.RemoteQuery
+		))
+		.map(sourceBindingId)
+)
+
 export const httpProxyOrigins = new Set(
 	enabledSourceBindings
 		.filter((binding) => binding.delivery === SourceDelivery.HttpProxy)

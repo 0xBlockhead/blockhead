@@ -276,6 +276,54 @@ describe('source binding indexes', () => {
 		expect(() => statSync('src/sources/GetBlock/Yellowstone/managedGrpc.server.ts')).toThrow()
 	})
 
+	it('proxies TRON APIs with server-owned key injection', () => {
+		const tronGridBinding = sourceBindings.find(({ source }) => source === Source.TronGrid_Rest)
+		const tronScanBinding = sourceBindings.find(({ source }) => source === Source.TronScan_Rest)
+		expect(tronGridBinding).toBeDefined()
+		expect(tronScanBinding).toBeDefined()
+		if (tronGridBinding == null || tronScanBinding == null)
+			throw new Error('TRON source bindings are missing')
+
+		expect([tronGridBinding, tronScanBinding]).toMatchObject([
+			{
+				delivery: SourceDelivery.HttpProxy,
+				endpoints: [{
+					locator: 'https://api.trongrid.io',
+					corsEnabled: false,
+				}],
+				credentials: [{
+					scope: SourceCredentialScope.RuntimeSecret,
+				}],
+			},
+			{
+				delivery: SourceDelivery.HttpProxy,
+				endpoints: [{
+					locator: 'https://apilist.tronscanapi.com',
+					corsEnabled: false,
+				}],
+				credentials: [{
+					scope: SourceCredentialScope.RuntimeSecret,
+				}],
+			},
+		])
+		expect(sourceServerCredentialsById.get(sourceBindingId(tronGridBinding))).toEqual({
+			envKey: 'TRONGRID_API_KEY',
+			injection: {
+				header: {
+					name: 'TRON-PRO-API-KEY',
+				},
+			},
+		})
+		expect(sourceServerCredentialsById.get(sourceBindingId(tronScanBinding))).toEqual({
+			envKey: 'TRONSCAN_API_KEY',
+			injection: {
+				header: {
+					name: 'TRON-PRO-API-KEY',
+				},
+			},
+		})
+	})
+
 	it('routes source HTTP from the binding delivery contract', async () => {
 		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response('ok'))
 		const binding = sourceBindings.find((binding) => binding.source === Source.Blockscout_Rest)

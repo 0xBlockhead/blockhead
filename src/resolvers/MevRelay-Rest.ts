@@ -34,9 +34,12 @@ const parsePayloadBlockNumber = (payload: BidTrace) => {
 
 const relayHostsForChainId = async (chainId: number) => {
 	const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
-	return mevRelayHosts
+	const hosts = mevRelayHosts
 		.filter((mevRelayHost) => mevRelayHost.chainId === chainId)
 		.map((mevRelayHost) => mevRelayHost.host)
+	if (hosts.length === 0)
+		throw new Error(`MevRelay_Rest: no relay hosts for chain ${chainId}`)
+	return hosts
 }
 
 const deliveredPayloadReference = <_Network>(
@@ -303,7 +306,6 @@ export default {
 						const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 						const chainId = Number(entitySelector.caip2.reference)
 						const relayHosts = await relayHostsForChainId(chainId)
-						if (relayHosts.length === 0) return []
 
 						const entityLimit = resolverContextRowLimit(context)
 						const deliveredPayloadReferences: NonNullable<ReturnType<typeof deliveredPayloadReference>>[] = []
@@ -345,7 +347,6 @@ export default {
 						const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 						const chainId = Number(caip2.reference)
 						const relayHosts = await relayHostsForChainId(chainId)
-						if (relayHosts.length === 0) return []
 
 						const entityLimit = resolverContextRowLimit(context)
 						const builderPubkeys = new Set<string>()
