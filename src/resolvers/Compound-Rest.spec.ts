@@ -45,6 +45,9 @@ const compoundCometResolver = compoundRest.resolvers.find((resolver) => (
 const compoundCometAssetResolver = compoundRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CompoundCometAsset
 ))
+const networkResolver = compoundRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+))
 
 const baseCometAddress = '0xb125e6687d4313864e53df431d5425969c15eb2f'
 
@@ -93,6 +96,7 @@ describe('Compound Rest resolver module', () => {
 		expect(compoundRest.source).toBe(Source.Compound_Rest)
 		expect(compoundCometResolver).toBeDefined()
 		expect(compoundCometAssetResolver).toBeDefined()
+		expect(networkResolver).toBeDefined()
 	})
 
 	it('rejects non-eip155 networks before transport', async () => {
@@ -123,6 +127,36 @@ describe('Compound Rest resolver module', () => {
 				cometAddress: '0x0000000000000000000000000000000000000001',
 			}, context)
 		).rejects.toThrow(`${Source.Compound_Rest}: unknown comet`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('rejects Compound Comet lists for unsupported eip155 networks', async () => {
+		if (networkResolver == null)
+			throw new Error('missing Network resolver')
+
+		await expect(
+			networkResolver.resolve.Caip2.resolve({
+				caip2: {
+					namespace: 'eip155',
+					reference: '11155111',
+				},
+			}, context)
+		).rejects.toThrow(`${Source.Compound_Rest}: no Compound III deployments for chain 11155111`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('lists cataloged Compound Comets for supported eip155 networks', async () => {
+		if (networkResolver == null)
+			throw new Error('missing Network resolver')
+
+		await expect(
+			networkResolver.resolve.Caip2.resolve(baseNetwork, context)
+		).resolves.toContainEqual({
+			[EntityMetaKey.Selector]: {
+				$network: baseNetwork,
+				cometAddress: baseCometAddress,
+			},
+		})
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 

@@ -180,4 +180,36 @@ describe('Compound III deployment operations', () => {
 			marketSlug: 'usdc',
 		})).rejects.toThrow(`${Source.Compound_Rest}: configuration response missing data`)
 	})
+
+	it('distinguishes empty collateral lists from malformed deployment envelopes', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce({
+				...baseConfiguration,
+				assets: {},
+			})
+			.mockResolvedValueOnce({
+				...baseConfiguration,
+				assets: {
+					WETH: {},
+				},
+			})
+			.mockResolvedValueOnce({})
+
+		await expect(getConfiguration({
+			networkSlug: 'base',
+			marketSlug: 'usdc',
+		})).resolves.toMatchObject({
+			collateralAssetCount: 0,
+			assets: [],
+		})
+		await expect(getConfiguration({
+			networkSlug: 'base',
+			marketSlug: 'usdc',
+		})).rejects.toThrow(`${Source.Compound_Rest}: invalid configuration response envelope`)
+		await expect(getRoots({
+			networkSlug: 'base',
+			marketSlug: 'usdc',
+			expectedCometAddress: baseCometAddress,
+		})).rejects.toThrow(`${Source.Compound_Rest}: invalid roots response envelope`)
+	})
 })

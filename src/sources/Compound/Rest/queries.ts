@@ -13,6 +13,10 @@ import type {
 	CompoundCometRoots,
 	CompoundCometRootsWire,
 } from '$/sources/Compound/Rest/types.ts'
+import {
+	compoundCometConfigurationEnvelope,
+	compoundCometRootsEnvelope,
+} from '$/sources/Compound/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
@@ -43,6 +47,20 @@ const assertNonEmptyString = (
 	if (value.length < 1)
 		throw new Error(`${Source.Compound_Rest}: configuration missing ${label}`)
 	return value
+}
+
+const assertEnvelope = (
+	envelope: {
+		assert: (value: unknown) => unknown
+	},
+	value: unknown,
+	label: string
+) => {
+	try {
+		envelope.assert(value)
+	} catch {
+		throw new Error(`${Source.Compound_Rest}: invalid ${label} response envelope`)
+	}
 }
 
 const deploymentPath = (
@@ -91,8 +109,6 @@ const assertConfigurationWire = (
 				left.symbol.localeCompare(right.symbol)
 			))
 	)
-	if (assets.length < 1)
-		throw new Error(`${Source.Compound_Rest}: configuration missing collateral assets`)
 
 	return {
 		name: assertNonEmptyString(wire.name, 'name'),
@@ -164,6 +180,7 @@ export const getConfiguration = async ({
 	)
 	if (wire == null)
 		throw new Error(`${Source.Compound_Rest}: configuration response missing data`)
+	assertEnvelope(compoundCometConfigurationEnvelope, wire, 'configuration')
 
 	return assertConfigurationWire(wire)
 }
@@ -190,6 +207,7 @@ export const getRoots = async ({
 	)
 	if (wire == null)
 		throw new Error(`${Source.Compound_Rest}: roots response missing data`)
+	assertEnvelope(compoundCometRootsEnvelope, wire, 'roots')
 
 	return assertRootsWire(wire, normalizedCometAddress)
 }

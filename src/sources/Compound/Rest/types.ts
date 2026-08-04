@@ -1,3 +1,5 @@
+import { type as arktype } from 'arktype'
+
 export type CompoundCometConfigurationAssetWire = {
 	address: string
 	priceFeed: string
@@ -39,6 +41,47 @@ export type CompoundCometRootsWire = {
 	rewards?: string
 	bulker?: string
 }
+
+export const compoundCometConfigurationEnvelope = arktype({
+	name: 'string',
+	symbol: 'string',
+	baseToken: 'string',
+	baseTokenAddress: 'string',
+	baseTokenPriceFeed: 'string',
+	'borrowMin?': 'string',
+	'governor?': 'string',
+	'pauseGuardian?': 'string',
+	'storeFrontPriceFactor?': 'number',
+	'targetReserves?': 'string',
+	'rewardTokenAddress?': 'string',
+	'rates?': {
+		supplyKink: 'number',
+		supplySlopeLow: 'number',
+		supplySlopeHigh: 'number',
+		supplyBase: 'number',
+		borrowKink: 'number',
+		borrowSlopeLow: 'number',
+		borrowSlopeHigh: 'number',
+		borrowBase: 'number',
+	},
+	assets: {
+		'[string]': {
+			address: 'string',
+			priceFeed: 'string',
+			decimals: '/^(0|[1-9][0-9]*)$/',
+			borrowCF: 'number',
+			liquidateCF: 'number',
+			liquidationFactor: 'number',
+			supplyCap: 'string',
+		},
+	},
+})
+export const compoundCometRootsEnvelope = arktype({
+	comet: 'string',
+	'configurator?': 'string',
+	'rewards?': 'string',
+	'bulker?': 'string',
+})
 
 export type CompoundCometConfigurationAsset = {
 	symbol: string

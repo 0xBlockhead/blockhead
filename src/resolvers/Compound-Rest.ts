@@ -227,7 +227,11 @@ export default {
 					resolve: async (network) => {
 						const chainId = eip155ChainId(network)
 						const { compoundCometsByChainId } = await import('$/sources/Compound/Rest/constants.ts')
-						return (compoundCometsByChainId[chainId] ?? []).map((deployment) => ({
+						const deployments = compoundCometsByChainId[chainId]
+						if (deployments == null)
+							throw new Error(`${Source.Compound_Rest}: no Compound III deployments for chain ${String(chainId)}`)
+
+						return deployments.map((deployment) => ({
 							[EntityMetaKey.Selector]: {
 								$network: network,
 								cometAddress: deployment.cometAddress,
