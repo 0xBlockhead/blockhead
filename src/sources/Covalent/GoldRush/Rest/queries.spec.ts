@@ -165,6 +165,32 @@ describe('GoldRush account token balances', () => {
 			address: 'vitalik.eth',
 		})).rejects.toThrow('invalid account address')
 		expect(sourceGetJson).not.toHaveBeenCalled()
+
+		await expect(getTokenBalances({
+			chainId: 999,
+			address,
+		})).rejects.toThrow('unsupported chain 999')
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('defaults chainName from chainId for balances_v2', async () => {
+		vi.mocked(sourceGetJson).mockResolvedValueOnce({
+			data,
+			error: false,
+			error_message: null,
+			error_code: null,
+		})
+
+		await expect(getTokenBalances({
+			chainId: 1,
+			address,
+		})).resolves.toMatchObject({
+			chain_name: 'eth-mainnet',
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			`https://api.covalenthq.com/v1/eth-mainnet/address/${address}/balances_v2/?no-spam=true`
+		)
 	})
 
 	it('keeps account history page identity, order, and continuation provenance', async () => {

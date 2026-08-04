@@ -16,7 +16,15 @@ const binding = bindings[Source.GoldRushFoundational_Rest][0]
 const evmAddressPattern = /^0x[0-9a-f]{40}$/i
 const unsignedIntegerPattern = /^(0|[1-9][0-9]*)$/
 
-const goldRushBaseUrl = (
+const goldRushChainNameByChainId = {
+	1: 'eth-mainnet',
+	10: 'optimism-mainnet',
+	137: 'matic-mainnet',
+	8453: 'base-mainnet',
+	42161: 'arbitrum-mainnet',
+} as const
+
+export const goldRushChainName = (
 	chainId: number
 ) => {
 	if (
@@ -25,17 +33,33 @@ const goldRushBaseUrl = (
 	)
 		throw new Error(`GoldRushFoundational_Rest: unsupported chain ${String(chainId)}`)
 
+	const chainName = (
+		chainId in goldRushChainNameByChainId ?
+			goldRushChainNameByChainId[chainId as keyof typeof goldRushChainNameByChainId]
+		:
+			undefined
+	)
+	if (chainName == null)
+		throw new Error(`GoldRushFoundational_Rest: unsupported chain ${String(chainId)}`)
+
+	return chainName
+}
+
+const goldRushBaseUrl = (
+	chainId: number
+) => {
+	goldRushChainName(chainId)
 	return firstHttpUrlForBinding(binding)
 }
 
 export const getTransaction = async ({
 	chainId,
-	chainName,
+	chainName = goldRushChainName(chainId),
 	txHash,
 	expansions,
 }: {
 	chainId: number
-	chainName: string
+	chainName?: string
 	txHash: string
 	expansions?: GoldRushTransactionExpansions
 }) => {
@@ -79,12 +103,12 @@ export const getTransaction = async ({
 
 export const getTokenBalances = async ({
 	chainId,
-	chainName,
+	chainName = goldRushChainName(chainId),
 	address,
 	noSpam = true,
 }: {
 	chainId: number
-	chainName: string
+	chainName?: string
 	address: string
 	noSpam?: boolean
 }) => {
@@ -167,14 +191,14 @@ export const getTokenBalances = async ({
 
 export const getAddressTransactions = async ({
 	chainId,
-	chainName,
+	chainName = goldRushChainName(chainId),
 	address,
 	page,
 	noLogs = false,
 	ascending = false,
 }: {
 	chainId: number
-	chainName: string
+	chainName?: string
 	address: string
 	page: number
 	noLogs?: boolean
