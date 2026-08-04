@@ -2344,6 +2344,86 @@ test('folds OsmosisPool Directory into Network.Cosmos without EVM LiquidityPool'
 	)
 })
 
+test('folds Hyperliquid Directory into Network.Hyperliquid without EVM LiquidityPool', () => {
+	const network = app.schema.entities.find((entity) => entity.entityType === EntityType.Network)
+	const hyperliquid = network?.facets.find((facet) => facet.name === 'Hyperliquid')
+	assert.deepEqual(
+		hyperliquid?.fields.find((field) => field.name === '$$timestamps')?.defaultSources,
+		[Source.Hyperliquid],
+	)
+	assert.deepEqual(
+		hyperliquid?.fields.find((field) => field.name === '$$perpMarkets')?.defaultSources,
+		[Source.Hyperliquid],
+	)
+	assert.equal(
+		hyperliquid?.fields.find((field) => field.name === '$$perpMarkets')?.entityType,
+		EntityType.HyperliquidPerpMarket,
+	)
+
+	const hyperliquidNetwork = app.schema.entities.find((entity) => entity.entityType === EntityType.HyperliquidNetwork)
+	const hyperliquidNetworkTimestamp = app.schema.entities.find((entity) => entity.entityType === EntityType.HyperliquidNetwork_Timestamp)
+	const hyperliquidPerpMarket = app.schema.entities.find((entity) => entity.entityType === EntityType.HyperliquidPerpMarket)
+	const hyperliquidPerpMarketTimestamp = app.schema.entities.find((entity) => entity.entityType === EntityType.HyperliquidPerpMarket_Timestamp)
+	assert.ok(hyperliquidNetwork && hyperliquidNetworkTimestamp && hyperliquidPerpMarket && hyperliquidPerpMarketTimestamp)
+	assert.notEqual(hyperliquidPerpMarket.entityType, EntityType.LiquidityPool)
+	assert.deepEqual(
+		hyperliquidNetwork.fields.find((field) => field.name === '$$timestamps')?.defaultSources,
+		[Source.Hyperliquid],
+	)
+	assert.deepEqual(
+		hyperliquidNetwork.fields.find((field) => field.name === '$$perpMarkets')?.defaultSources,
+		[Source.Hyperliquid],
+	)
+	assert.match(
+		JSON.stringify(hyperliquidNetworkTimestamp.views?.singular?.content?.dl ?? []),
+		/perpMarketCount|totalStake/,
+	)
+	assert.match(
+		JSON.stringify(hyperliquidPerpMarket.views?.singular?.content?.dl ?? []),
+		/"coin"/,
+	)
+	assert.match(
+		JSON.stringify(hyperliquidPerpMarketTimestamp.views?.singular?.content?.dl ?? []),
+		/maxLeverage/,
+	)
+
+	const networkView = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/views/NetworkView.svelte')
+	assert.ok(networkView)
+	const renderedNetworkView = renderGeneratedFile(networkView)
+	assert.match(renderedNetworkView, /hyperliquid-markets-perps/)
+	assert.match(renderedNetworkView, /Source\.Hyperliquid/)
+
+	const hyperliquidPerpMarketView = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/views/HyperliquidPerpMarketView.svelte')
+	assert.ok(hyperliquidPerpMarketView)
+	const renderedHyperliquidPerpMarketView = renderGeneratedFile(hyperliquidPerpMarketView)
+	assert.match(renderedHyperliquidPerpMarketView, /\bcoin\b/)
+	assert.match(renderedHyperliquidPerpMarketView, /HyperliquidPerpMarket_TimestampsView|\$\$timestamps/)
+
+	const hyperliquidNetworkTimestampView = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/views/HyperliquidNetwork_TimestampView.svelte')
+	assert.ok(hyperliquidNetworkTimestampView)
+	assert.match(renderGeneratedFile(hyperliquidNetworkTimestampView), /perpMarketCount|perp market count/)
+	assert.match(renderGeneratedFile(hyperliquidNetworkTimestampView), /totalStake|total stake/)
+
+	const hyperliquidPerpMarketTimestampView = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/views/HyperliquidPerpMarket_TimestampView.svelte')
+	assert.ok(hyperliquidPerpMarketTimestampView)
+	assert.match(renderGeneratedFile(hyperliquidPerpMarketTimestampView), /maxLeverage|max leverage/)
+
+	assert.ok(
+		baselineCompiledApp.generatedFiles.some(({ path }) => (
+			path.includes('perp-market')
+			&& path.endsWith('+page.svelte')
+		))
+	)
+	assert.match(
+		generatedSource('src/schema/HyperliquidNetwork.ts'),
+		/defaultSources: \[\s+Source\.Hyperliquid,\s+\]/,
+	)
+	assert.match(
+		generatedSource('src/schema/HyperliquidPerpMarket.ts'),
+		/defaultSources: \[\s+Source\.Hyperliquid,\s+\]/,
+	)
+})
+
 test('renders source-backed social hub lists as carousel cards', () => {
 	for (const [viewPath, listName] of [
 		['src/views/RssNetworkView.svelte', 'RssFeedsView'],

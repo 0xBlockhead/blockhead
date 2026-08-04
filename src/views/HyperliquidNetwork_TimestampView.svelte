@@ -4,6 +4,7 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,13 +14,27 @@
 	// State
 	let {
 		selection,
+		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.HyperliquidNetwork_Timestamp>, 'prefetched'> = $props()
 
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Hyperliquid,
+		],
+	}))
+	const hyperliquidNetworkTimestamp = $derived(viewSelection({
+		fields: {
+			perpMarketCount: true,
+			totalStake: true,
+		},
+	}))
+
 
 	// Components
+	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -29,10 +44,23 @@
 <EntityView
 	entityType={EntityType.HyperliquidNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Title()}
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
+	{/snippet}
+
+	{#snippet Value()}
+		<ResourceBoundary resource={hyperliquidNetworkTimestamp}>
+			{#snippet children(entity)}
+				{[String(entity.perpMarketCount ?? ''), String(entity.totalStake ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
@@ -58,15 +86,11 @@
 					{selection.entitySelector.source}
 				</dd>
 			</div>
+		</dl>
 
+		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							perpMarketCount: true,
-						},
-					})
-				}
+				resource={hyperliquidNetworkTimestamp}
 			>
 				{#snippet children(entity)}
 					{@const perpMarketCount = entity.perpMarketCount}
@@ -74,7 +98,9 @@
 						<div>
 							<dt>perp market count</dt>
 							<dd>
-								{perpMarketCount}
+								<NumberValue
+									value={perpMarketCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -83,7 +109,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							spotAssetCount: true,
 						},
@@ -96,7 +122,9 @@
 						<div>
 							<dt>spot asset count</dt>
 							<dd>
-								{spotAssetCount}
+								<NumberValue
+									value={spotAssetCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -105,7 +133,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							spotPairCount: true,
 						},
@@ -118,16 +146,20 @@
 						<div>
 							<dt>spot pair count</dt>
 							<dd>
-								{spotPairCount}
+								<NumberValue
+									value={spotPairCount}
+								/>
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+		</dl>
 
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							validatorCount: true,
 						},
@@ -140,7 +172,9 @@
 						<div>
 							<dt>validator count</dt>
 							<dd>
-								{validatorCount}
+								<NumberValue
+									value={validatorCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -149,7 +183,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							activeValidatorCount: true,
 						},
@@ -162,7 +196,9 @@
 						<div>
 							<dt>active validator count</dt>
 							<dd>
-								{activeValidatorCount}
+								<NumberValue
+									value={activeValidatorCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -171,7 +207,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							jailedValidatorCount: true,
 						},
@@ -184,7 +220,9 @@
 						<div>
 							<dt>jailed validator count</dt>
 							<dd>
-								{jailedValidatorCount}
+								<NumberValue
+									value={jailedValidatorCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -192,13 +230,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							totalStake: true,
-						},
-					})
-				}
+				resource={hyperliquidNetworkTimestamp}
 			>
 				{#snippet children(entity)}
 					{@const totalStake = entity.totalStake}
@@ -206,16 +238,20 @@
 						<div>
 							<dt>total stake</dt>
 							<dd>
-								{totalStake}
+								<NumberValue
+									value={totalStake}
+								/>
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+		</dl>
 
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							borrowLendReserveCount: true,
 						},
@@ -228,7 +264,9 @@
 						<div>
 							<dt>borrow lend reserve count</dt>
 							<dd>
-								{borrowLendReserveCount}
+								<NumberValue
+									value={borrowLendReserveCount}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -237,7 +275,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							vaultCount: true,
 						},
@@ -250,7 +288,9 @@
 						<div>
 							<dt>vault count</dt>
 							<dd>
-								{vaultCount}
+								<NumberValue
+									value={vaultCount}
+								/>
 							</dd>
 						</div>
 					{/if}

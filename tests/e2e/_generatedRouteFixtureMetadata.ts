@@ -2177,6 +2177,20 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/perp-market/[coin]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/perp-market/[coin=stringSegment]',
+		mappings: [
+			{
+				id: 'HyperliquidPerpMarket.NetworkCoin',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/perp-market/[coin]:HyperliquidPerpMarket.NetworkCoin'],
+				probeCases: [[[0, '1', ['coin', 'network']]]],
+				projectionPath: [
+					'Hyperliquid',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/precompiles': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/precompiles',
 		mappings: [

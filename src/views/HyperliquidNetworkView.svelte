@@ -6,6 +6,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -29,7 +30,9 @@
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import HyperliquidNetwork_TimestampsView from '$/views/HyperliquidNetwork_TimestampsView.svelte'
 	import HyperliquidSpotAssetsView from '$/views/HyperliquidSpotAssetsView.svelte'
+	import HyperliquidPerpMarketsView from '$/views/HyperliquidPerpMarketsView.svelte'
 </script>
 
 
@@ -98,22 +101,21 @@
 			{/snippet}
 
 			{#snippet SectionHyperliquidChainObservations({ id, label })}
-				<EntitiesList
-					entityType={EntityType.HyperliquidNetwork_Timestamp}
+				<HyperliquidNetwork_TimestampsView
+					selection={
+						selection
+						.$$timestamps({
+							sources: [
+								Source.Hyperliquid,
+							],
+							limit: 16,
+						})
+					}
 					collapsible={false}
 					title={label}
 					emptyText='No Hyperliquid network observations.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$timestamps()}
-				>
-					{#snippet Item({ item: hyperliquidNetworkTimestamp })}
-						<EntityView
-							entityType={EntityType.HyperliquidNetwork_Timestamp}
-							entitySelector={hyperliquidNetworkTimestamp[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionHyperliquidChainBlocks({ id, label })}
@@ -124,7 +126,15 @@
 					emptyText='No Hyperliquid blocks.'
 					open={true}
 					id={`${id}-list`}
-					resource={selection.$$blocks()}
+					resource={
+						selection
+						.$$blocks({
+							sources: [
+								Source.Hyperliquid,
+							],
+							limit: 16,
+						})()
+					}
 				>
 					{#snippet Item({ item: hyperliquidBlock })}
 						<EntityView
@@ -143,7 +153,15 @@
 					emptyText='No Hyperliquid transactions.'
 					open={true}
 					id={`${id}-list`}
-					resource={selection.$$transactions()}
+					resource={
+						selection
+						.$$transactions({
+							sources: [
+								Source.Hyperliquid,
+							],
+							limit: 16,
+						})()
+					}
 				>
 					{#snippet Item({ item: hyperliquidTransaction })}
 						<EntityView
@@ -184,7 +202,15 @@
 					emptyText='No Hyperliquid validators.'
 					open={true}
 					id={`${id}-list`}
-					resource={selection.$$validators()}
+					resource={
+						selection
+						.$$validators({
+							sources: [
+								Source.Hyperliquid,
+							],
+							limit: 16,
+						})()
+					}
 				>
 					{#snippet Item({ item: hyperliquidValidator })}
 						<EntityView
@@ -231,7 +257,15 @@
 
 			{#snippet SectionHyperliquidSpotAssets({ id, label })}
 				<HyperliquidSpotAssetsView
-					selection={selection.$$spotAssets}
+					selection={
+						selection
+						.$$spotAssets({
+							sources: [
+								Source.Hyperliquid,
+							],
+							limit: 16,
+						})
+					}
 					collapsible={false}
 					title={label}
 					emptyText='No Hyperliquid spot assets.'
@@ -247,7 +281,15 @@
 					emptyText='No Hyperliquid spot pairs.'
 					open={true}
 					id={`${id}-list`}
-					resource={selection.$$spotPairs()}
+					resource={
+						selection
+						.$$spotPairs({
+							sources: [
+								Source.Hyperliquid,
+							],
+							limit: 16,
+						})()
+					}
 				>
 					{#snippet Item({ item: hyperliquidSpotPair })}
 						<EntityView
@@ -259,22 +301,21 @@
 			{/snippet}
 
 			{#snippet SectionHyperliquidPerpMarkets({ id, label })}
-				<EntitiesList
-					entityType={EntityType.HyperliquidPerpMarket}
+				<HyperliquidPerpMarketsView
+					selection={
+						selection
+						.$$perpMarkets({
+							sources: [
+								Source.Hyperliquid,
+							],
+							limit: 16,
+						})
+					}
 					collapsible={false}
 					title={label}
 					emptyText='No Hyperliquid perp markets.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$perpMarkets()}
-				>
-					{#snippet Item({ item: hyperliquidPerpMarket })}
-						<EntityView
-							entityType={EntityType.HyperliquidPerpMarket}
-							entitySelector={hyperliquidPerpMarket[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionHyperliquidVaults({ id, label })}
@@ -285,7 +326,15 @@
 					emptyText='No Hyperliquid vaults.'
 					open={true}
 					id={`${id}-list`}
-					resource={selection.$$vaults()}
+					resource={
+						selection
+						.$$vaults({
+							sources: [
+								Source.Hyperliquid,
+							],
+							limit: 16,
+						})()
+					}
 				>
 					{#snippet Item({ item: hyperliquidVault })}
 						<EntityView

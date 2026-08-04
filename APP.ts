@@ -38132,6 +38132,7 @@ export const schema = {
 					singular: "hyperliquid network",
 					plural: "hyperliquid networks",
 				},
+				description: "Hyperliquid L1 network hub — native perps/spot/validators (not EVM LiquidityPool).",
 			})({
 				"$network": {
 					label: "network",
@@ -38150,6 +38151,7 @@ export const schema = {
 						],
 					},
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"restEndpoints": {
 					label: "REST endpoints",
@@ -38162,54 +38164,63 @@ export const schema = {
 						],
 					},
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"$$timestamps": {
 					label: "timestamps",
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.HyperliquidNetwork_Timestamp,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"$$blocks": {
 					label: "blocks",
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.HyperliquidBlock,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"$$transactions": {
 					label: "transactions",
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.HyperliquidTransaction,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"$$validators": {
 					label: "validators",
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.HyperliquidValidator,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"$$spotAssets": {
 					label: "spot assets",
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.HyperliquidSpotAsset,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"$$spotPairs": {
 					label: "spot pairs",
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.HyperliquidSpotPair,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"$$perpMarkets": {
 					label: "perp markets",
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.HyperliquidPerpMarket,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"$$vaults": {
 					label: "vaults",
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.HyperliquidVault,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Hyperliquid],
 				},
 			})({
 				selectors: {
@@ -38219,6 +38230,9 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						query: {
+							sources: [Source.Hyperliquid],
+						},
 						summary: {
 							title: ["$network"],
 							value: [{ kind: _ViewItemKind.Text, label: "Hyperliquid" }],
@@ -38234,9 +38248,9 @@ export const schema = {
 								label: "Chain activity",
 								className: "network-view-collapsible-chain-activity",
 								sections: [
-									{ id: "hyperliquid-chain-observations", field: "$$timestamps", List: "HyperliquidNetwork_TimestampsView", label: "Observations", emptyText: "No Hyperliquid network observations." },
-									{ id: "hyperliquid-chain-blocks", field: "$$blocks", List: "HyperliquidBlocksView", label: "Blocks", emptyText: "No Hyperliquid blocks." },
-									{ id: "hyperliquid-chain-transactions", field: "$$transactions", List: "HyperliquidTransactionsView", label: "Transactions", emptyText: "No Hyperliquid transactions." },
+									{ id: "hyperliquid-chain-observations", field: "$$timestamps", List: "HyperliquidNetwork_TimestampsView", label: "Observations", emptyText: "No Hyperliquid network observations.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
+									{ id: "hyperliquid-chain-blocks", field: "$$blocks", List: "HyperliquidBlocksView", label: "Blocks", emptyText: "No Hyperliquid blocks.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
+									{ id: "hyperliquid-chain-transactions", field: "$$transactions", List: "HyperliquidTransactionsView", label: "Transactions", emptyText: "No Hyperliquid transactions.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
 								],
 							},
 							{
@@ -38244,7 +38258,7 @@ export const schema = {
 								label: "Validators",
 								className: "network-view-collapsible-validators",
 								sections: [
-									{ id: "hyperliquid-validator-list", field: "$$validators", List: "HyperliquidValidatorsView", label: "Validators", emptyText: "No Hyperliquid validators." },
+									{ id: "hyperliquid-validator-list", field: "$$validators", List: "HyperliquidValidatorsView", label: "Validators", emptyText: "No Hyperliquid validators.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
 								],
 							},
 							{
@@ -38252,10 +38266,10 @@ export const schema = {
 								label: "Markets",
 								className: "network-view-collapsible-markets",
 								sections: [
-									{ id: "hyperliquid-spot-assets", field: "$$spotAssets", List: "HyperliquidSpotAssetsView", label: "Spot assets", emptyText: "No Hyperliquid spot assets." },
-									{ id: "hyperliquid-spot-pairs", field: "$$spotPairs", List: "HyperliquidSpotPairsView", label: "Spot pairs", emptyText: "No Hyperliquid spot pairs." },
-									{ id: "hyperliquid-perp-markets", field: "$$perpMarkets", List: "HyperliquidPerpMarketsView", label: "Perp markets", emptyText: "No Hyperliquid perp markets." },
-									{ id: "hyperliquid-vaults", field: "$$vaults", List: "HyperliquidVaultsView", label: "Vaults", emptyText: "No Hyperliquid vaults." },
+									{ id: "hyperliquid-spot-assets", field: "$$spotAssets", List: "HyperliquidSpotAssetsView", label: "Spot assets", emptyText: "No Hyperliquid spot assets.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
+									{ id: "hyperliquid-spot-pairs", field: "$$spotPairs", List: "HyperliquidSpotPairsView", label: "Spot pairs", emptyText: "No Hyperliquid spot pairs.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
+									{ id: "hyperliquid-perp-markets", field: "$$perpMarkets", List: "HyperliquidPerpMarketsView", label: "Perp markets", emptyText: "No Hyperliquid perp markets.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
+									{ id: "hyperliquid-vaults", field: "$$vaults", List: "HyperliquidVaultsView", label: "Vaults", emptyText: "No Hyperliquid vaults.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
 								],
 							},
 						],
@@ -38270,6 +38284,7 @@ export const schema = {
 					singular: "hyperliquid network timestamp",
 					plural: "hyperliquid network observations",
 				},
+				description: "As-of Hyperliquid network snapshot (perp/spot/validator counts and stake).",
 			})({
 				"$network": {
 					label: "network",
@@ -38296,54 +38311,63 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"spotAssetCount": {
 					label: "spot asset count",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"spotPairCount": {
 					label: "spot pair count",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"validatorCount": {
 					label: "validator count",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"activeValidatorCount": {
 					label: "active validator count",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"jailedValidatorCount": {
 					label: "jailed validator count",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"totalStake": {
 					label: "total stake",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "bigint" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"borrowLendReserveCount": {
 					label: "borrow lend reserve count",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"vaultCount": {
 					label: "vault count",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
 				},
 			})({
 				selectors: {
@@ -38354,6 +38378,23 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						query: {
+							sources: [Source.Hyperliquid],
+						},
+						summary: {
+							title: [{ field: "timestampMs", format: "timestamp" }],
+							value: [{ field: "perpMarketCount", format: "number" }, { field: "totalStake", format: "number" }],
+						},
+						content: {
+							dl: [
+								["$network", { field: "timestampMs", format: "timestamp" }, "source"],
+								[{ field: "perpMarketCount", format: "number" }, { field: "spotAssetCount", format: "number" }, { field: "spotPairCount", format: "number" }],
+								[{ field: "validatorCount", format: "number" }, { field: "activeValidatorCount", format: "number" }, { field: "jailedValidatorCount", format: "number" }, { field: "totalStake", format: "number" }],
+								[{ field: "borrowLendReserveCount", format: "number" }, { field: "vaultCount", format: "number" }],
+							],
+						},
+					},
 					plural: { component: "HyperliquidNetwork_TimestampsView" },
 				},
 			}),
@@ -38648,6 +38689,7 @@ export const schema = {
 					singular: "hyperliquid perp market",
 					plural: "hyperliquid perp markets",
 				},
+				description: "Hyperliquid native perpetual market identified by network + coin (not EVM LiquidityPool).",
 			})({
 				"$network": {
 					label: "network",
@@ -38658,14 +38700,15 @@ export const schema = {
 				"coin": {
 					label: "coin",
 					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "string" },
 					cardinality: EntityFieldCardinality.One,
+					valueType: "string",
 				},
 				"$$timestamps": {
 					label: "timestamps",
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.HyperliquidPerpMarket_Timestamp,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Hyperliquid],
 				},
 			})({
 				selectors: {
@@ -38675,7 +38718,31 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "HyperliquidPerpMarketsView" },
+					singular: {
+						query: {
+							sources: [Source.Hyperliquid],
+						},
+						summary: {
+							title: ["coin"],
+							HeadingAfter: ["$network"],
+						},
+						content: {
+							dl: [
+								["$network", "coin"],
+							],
+						},
+						carousels: [
+							{
+								id: "hyperliquid-perp-market-observations",
+								label: "Observations",
+								className: "network-view-collapsible-chain-activity",
+								sections: [
+									{ id: "hyperliquid-perp-market-timestamps", field: "$$timestamps", List: "HyperliquidPerpMarket_TimestampsView", label: "Observations", emptyText: "No Hyperliquid perp market observations.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
+								],
+							},
+						],
+					},
+					plural: { component: "HyperliquidPerpMarketsView", title: "Perp markets" },
 				},
 			}),
 
@@ -38711,12 +38778,14 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"onlyIsolated": {
 					label: "only isolated",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "boolean" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
 				},
 			})({
 				selectors: {
@@ -38727,6 +38796,21 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						query: {
+							sources: [Source.Hyperliquid],
+						},
+						summary: {
+							title: ["$perpMarket"],
+							value: [{ field: "maxLeverage", format: "number" }],
+						},
+						content: {
+							dl: [
+								["$perpMarket", { field: "timestampMs", format: "timestamp" }, "source"],
+								[{ field: "maxLeverage", format: "number" }, "onlyIsolated"],
+							],
+						},
+					},
 					plural: { component: "HyperliquidPerpMarket_TimestampsView" },
 				},
 			}),
@@ -47697,8 +47781,8 @@ export const schema = {
 									label: "Markets",
 									className: "network-view-collapsible-markets",
 									sections: [
-										{ id: "hyperliquid-markets-perps", field: ["Hyperliquid", "$$perpMarkets"], List: "HyperliquidPerpMarketsView", label: "Perps", selection: { sources: [Source.Hyperliquid], limit: 16 } },
-										{ id: "hyperliquid-markets-spot-assets", field: ["Hyperliquid", "$$spotAssets"], List: "HyperliquidSpotAssetsView", label: "Spot assets", selection: { sources: [Source.Hyperliquid], limit: 16 } },
+										{ id: "hyperliquid-markets-perps", field: ["Hyperliquid", "$$perpMarkets"], List: "HyperliquidPerpMarketsView", label: "Perps", emptyText: "No Hyperliquid perp markets.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
+										{ id: "hyperliquid-markets-spot-assets", field: ["Hyperliquid", "$$spotAssets"], List: "HyperliquidSpotAssetsView", label: "Spot assets", emptyText: "No Hyperliquid spot assets.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
 									],
 								},
 								{
@@ -70322,13 +70406,6 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidorderbook_timestamp",
 			},
 		},
-		[EntityType.HyperliquidPerpMarket]: {
-			"NetworkCoin": {
-				kind: "Research",
-				decision: "Retain HyperliquidPerpMarket.NetworkCoin as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidperpmarket",
-			},
-		},
 		[EntityType.HyperliquidPerpMarket_Timestamp]: {
 			"PerpMarketTimestampMsSource": {
 				kind: "Research",
@@ -78677,6 +78754,30 @@ export const routes = defineRoutes(schema)({
 																},
 																params: {
 																	"poolId": ["poolId"],
+																},
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"perp-market": {
+											children: {
+												"[coin]": {
+													selectors: {
+														[EntityType.HyperliquidPerpMarket]: {
+															"NetworkCoin": {
+																when: {
+																	path: ["namespace"],
+																	is: "Hyperliquid",
+																},
+																projection: {
+																	entityType: EntityType.Network,
+																	facetPath: ["Hyperliquid"],
+																},
+																params: {
+																	"coin": ["coin"],
 																},
 																page: {},
 															},

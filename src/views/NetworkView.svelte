@@ -272,6 +272,8 @@
 	import XrplAmendmentsView from '$/views/XrplAmendmentsView.svelte'
 	import XrplAmmsView from '$/views/XrplAmmsView.svelte'
 	import HederaAccountsView from '$/views/HederaAccountsView.svelte'
+	import HyperliquidNetwork_TimestampsView from '$/views/HyperliquidNetwork_TimestampsView.svelte'
+	import HyperliquidPerpMarketsView from '$/views/HyperliquidPerpMarketsView.svelte'
 	import HyperliquidSpotAssetsView from '$/views/HyperliquidSpotAssetsView.svelte'
 </script>
 
@@ -5748,27 +5750,18 @@
 						{/snippet}
 
 						{#snippet SectionHyperliquidChainObservations({ id, label })}
-							<EntitiesList
-								entityType={EntityType.HyperliquidNetwork_Timestamp}
-								collapsible={false}
-								title={label}
-								open={true}
-								id={`${id}-list`}
-								resource={
+							<HyperliquidNetwork_TimestampsView
+								selection={
 									projection
 									.$$timestamps({
 										sources: hyperliquidSources,
 										limit: 16,
-									})()
+									})
 								}
-							>
-								{#snippet Item({ item: hyperliquidNetworkTimestamp })}
-									<EntityView
-										entityType={EntityType.HyperliquidNetwork_Timestamp}
-										entitySelector={hyperliquidNetworkTimestamp[EntityMetaKey.Selector]}
-									/>
-								{/snippet}
-							</EntitiesList>
+								collapsible={false}
+								title={label}
+								id={`${id}-list`}
+							/>
 						{/snippet}
 
 						{#snippet SectionHyperliquidChainBlocks({ id, label })}
@@ -5915,27 +5908,19 @@
 						{/snippet}
 
 						{#snippet SectionHyperliquidMarketsPerps({ id, label })}
-							<EntitiesList
-								entityType={EntityType.HyperliquidPerpMarket}
-								collapsible={false}
-								title={label}
-								open={true}
-								id={`${id}-list`}
-								resource={
+							<HyperliquidPerpMarketsView
+								selection={
 									projection
 									.$$perpMarkets({
 										sources: hyperliquidSources,
 										limit: 16,
-									})()
+									})
 								}
-							>
-								{#snippet Item({ item: hyperliquidPerpMarket })}
-									<EntityView
-										entityType={EntityType.HyperliquidPerpMarket}
-										entitySelector={hyperliquidPerpMarket[EntityMetaKey.Selector]}
-									/>
-								{/snippet}
-							</EntitiesList>
+								collapsible={false}
+								title={label}
+								emptyText='No Hyperliquid perp markets.'
+								id={`${id}-list`}
+							/>
 						{/snippet}
 
 						{#snippet SectionHyperliquidMarketsSpotAssets({ id, label })}
@@ -5949,6 +5934,7 @@
 								}
 								collapsible={false}
 								title={label}
+								emptyText='No Hyperliquid spot assets.'
 								id={`${id}-list`}
 							/>
 						{/snippet}
