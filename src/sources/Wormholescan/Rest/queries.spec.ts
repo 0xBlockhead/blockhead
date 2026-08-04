@@ -37,10 +37,19 @@ describe('Wormholescan OpenAPI operations', () => {
 		expect(getJson).toHaveBeenCalledWith(binding, 'health')
 	})
 
-	it('encodes official operation filters without a generic path surface', async () => {
-		getJson.mockResolvedValue([])
+	it('checks readiness through the canonical binding', async () => {
+		getJson.mockResolvedValue({ ready: 'OK' })
 
-		await queries.getOperations({
+		await expect(queries.getReady()).resolves.toEqual({ ready: 'OK' })
+		expect(getJson).toHaveBeenCalledWith(binding, 'ready')
+	})
+
+	it('unwraps the official operations page envelope and encodes filters', async () => {
+		getJson.mockResolvedValue({
+			operations: [{ id: '2/emitter/1' }],
+		})
+
+		await expect(queries.getOperations({
 			address: '0xaddress/with space',
 			page: 2,
 			pageSize: 25,
@@ -48,7 +57,7 @@ describe('Wormholescan OpenAPI operations', () => {
 			exclusiveAppId: false,
 			minAmount: 0,
 			addressType: 'from',
-		})
+		})).resolves.toEqual([{ id: '2/emitter/1' }])
 
 		expect(getJson).toHaveBeenCalledWith(
 			binding,
@@ -56,15 +65,26 @@ describe('Wormholescan OpenAPI operations', () => {
 		)
 	})
 
-	it('searches the official operation endpoint by source transaction hashes', async () => {
-		postJson.mockResolvedValue([])
+	it('hard-fails when the operations page omits operations', async () => {
+		getJson.mockResolvedValue({})
+
+		await expect(queries.getOperations()).rejects.toThrow(
+			'Wormholescan operations: operations page missing operations'
+		)
+	})
+
+	it('searches operations by source transaction hashes through the page envelope', async () => {
+		postJson.mockResolvedValue({
+			operations: [{ id: '2/emitter/9' }],
+		})
 		const transactionHashes = [
 			'0x1111111111111111111111111111111111111111111111111111111111111111',
 			'0x2222222222222222222222222222222222222222222222222222222222222222',
 		]
 
-		await queries.searchOperations(transactionHashes)
-
+		await expect(queries.searchOperations(transactionHashes)).resolves.toEqual([
+			{ id: '2/emitter/9' },
+		])
 		expect(postJson).toHaveBeenCalledWith({
 			binding,
 			path: 'operations',
@@ -72,10 +92,41 @@ describe('Wormholescan OpenAPI operations', () => {
 		})
 	})
 
+	it('loads a single operation by wormhole id path', async () => {
+		getJson.mockResolvedValue({ id: '2/abcdef/7' })
+
+		await expect(queries.getOperationById({
+			chainId: 2,
+			emitter: 'abcdef',
+			sequence: 7,
+		})).resolves.toEqual({ id: '2/abcdef/7' })
+		expect(getJson).toHaveBeenCalledWith(
+			binding,
+			'operations/2/abcdef/7'
+		)
+	})
+
+	it('loads a global transaction by wormhole id path', async () => {
+		getJson.mockResolvedValue({ id: 'global' })
+
+		await expect(queries.findGlobalTransactionById({
+			chainId: 2,
+			emitter: 'ab/cd',
+			sequence: '3',
+		})).resolves.toEqual({ id: 'global' })
+		expect(getJson).toHaveBeenCalledWith(
+			binding,
+			'global-tx/2/ab%2Fcd/3'
+		)
+	})
+
 	it('exports only named OpenAPI operations', () => {
 		expect(Object.keys(queries).sort()).toEqual([
+			'findGlobalTransactionById',
 			'getHealth',
+			'getOperationById',
 			'getOperations',
+			'getReady',
 			'searchOperations',
 		])
 	})

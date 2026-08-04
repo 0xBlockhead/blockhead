@@ -82,7 +82,12 @@ const lifiTransferStatusSnapshot = async (
 		fetchTransferStatus({ txHash: txHashOrStepId }),
 		fetchChains(),
 	])
-	const fromNetwork = lifiEvmNetworkRef(status.sending.chainId, chains)
+	const fromNetwork = (
+		status.sending == null ?
+			undefined
+		:
+			lifiEvmNetworkRef(status.sending.chainId, chains)
+	)
 	const toNetwork = (
 		status.receiving == null ?
 			undefined
@@ -117,6 +122,8 @@ const lifiBridgeTransferSnapshot = async (
 		fromNetwork,
 		toNetwork,
 	} = await lifiTransferStatusSnapshot(transferId)
+	if (status.status === 'NOT_FOUND' || status.sending == null)
+		throw new Error('Lifi_Rest: transfer not found')
 	const { coinInstanceRefFromLifiToken } = await import(
 		'$/resolvers/Lifi/Rest/bridgeRouteSteps.ts'
 	)

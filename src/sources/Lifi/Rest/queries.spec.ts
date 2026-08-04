@@ -243,6 +243,51 @@ describe('LI.FI public catalogs', () => {
 		await expect(fetchTokens()).rejects.toThrow('tokens catalog')
 		await expect(fetchTools()).rejects.toThrow('tools catalog')
 	})
+
+	it('normalizes mixed string/number tool chain ids without soft-empty success', async () => {
+		vi.mocked(lifiRestFetch).mockResolvedValue(new Response(JSON.stringify({
+			bridges: [{
+				key: 'across',
+				name: 'Across',
+				supportedChains: [{
+					fromChainId: '1',
+					toChainId: 10,
+				}],
+			}],
+			exchanges: [{
+				key: 'uniswap',
+				name: 'Uniswap',
+				supportedChains: ['1', 10],
+			}],
+		})))
+
+		await expect(fetchTools()).resolves.toEqual({
+			bridges: [{
+				key: 'across',
+				name: 'Across',
+				supportedChains: [{
+					fromChainId: 1,
+					toChainId: 10,
+				}],
+			}],
+			exchanges: [{
+				key: 'uniswap',
+				name: 'Uniswap',
+				supportedChains: [1, 10],
+			}],
+		})
+	})
+
+	it('hard-fails HTTP errors instead of soft-empty catalogs', async () => {
+		vi.mocked(lifiRestFetch)
+			.mockResolvedValueOnce(new Response('missing', { status: 404 }))
+			.mockResolvedValueOnce(new Response('rate limited', { status: 429 }))
+			.mockResolvedValueOnce(new Response('upstream', { status: 500 }))
+
+		await expect(fetchChains()).rejects.toThrow(/Lifi_Rest \/v1\/chains.*404/)
+		await expect(fetchTokens()).rejects.toThrow(/Lifi_Rest \/v1\/tokens.*429/)
+		await expect(fetchTools()).rejects.toThrow(/Lifi_Rest \/v1\/tools.*500/)
+	})
 })
 
 describe('LI.FI transfer status', () => {
@@ -284,6 +329,33 @@ describe('LI.FI transfer status', () => {
 		)
 	})
 
+	it('preserves official NOT_FOUND without inventing transfer legs', async () => {
+		vi.mocked(lifiRestFetch).mockResolvedValue(new Response(JSON.stringify({
+			status: 'NOT_FOUND',
+		})))
+
+		await expect(fetchTransferStatus({
+			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+		})).resolves.toEqual({
+			status: 'NOT_FOUND',
+		})
+	})
+
+	it('hard-fails status HTTP errors and incomplete non-NOT_FOUND payloads', async () => {
+		vi.mocked(lifiRestFetch)
+			.mockResolvedValueOnce(new Response('missing', { status: 404 }))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				status: 'PENDING',
+			})))
+
+		await expect(fetchTransferStatus({
+			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+		})).rejects.toThrow(/Lifi_Rest \/v1\/status.*404/)
+		await expect(fetchTransferStatus({
+			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+		})).rejects.toThrow('malformed transfer status')
+	})
+
 	it('shares the canonical LI.FI REST source binding', () => {
 		expect(Object.keys(bindings)).toEqual([Source.Lifi_Rest])
 		expect(bindings[Source.Lifi_Rest][0].source).toBe(Source.Lifi_Rest)
@@ -294,5 +366,17 @@ describe('LI.FI transfer status', () => {
 			'transfer status requires'
 		)
 		expect(lifiRestFetch).not.toHaveBeenCalled()
+	})
+})
+
+describe('LI.FI quote HTTP failures', () => {
+	beforeEach(() => {
+		vi.mocked(lifiRestFetch).mockReset()
+	})
+
+	it('hard-fails quote HTTP errors instead of soft-empty routes', async () => {
+		vi.mocked(lifiRestFetch).mockResolvedValue(new Response('no route', { status: 404 }))
+
+		await expect(fetchQuote(request)).rejects.toThrow(/Lifi_Rest \/v1\/quote.*404/)
 	})
 })

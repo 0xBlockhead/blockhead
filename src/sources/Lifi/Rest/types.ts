@@ -48,23 +48,23 @@ type GeneratedExchange = components['schemas']['Exchange']
 
 /**
  * LI.FI's OpenAPI declares bridge chain ids as strings and exchange chains as
- * one string. Current responses use numeric bridge pairs and numeric exchange
- * arrays; LI.FI's API-reference exchange example still shows string members.
+ * one string. Live responses mix numeric and string ids; queries normalize to
+ * numbers before returning.
  */
 export type LifiToolsResponse = {
 	bridges?: (
 		Omit<GeneratedBridge, 'supportedChains'>
 		& {
 			supportedChains?: {
-				fromChainId?: number
-				toChainId?: number
+				fromChainId?: number | string
+				toChainId?: number | string
 			}[]
 		}
 	)[]
 	exchanges?: (
 		Omit<GeneratedExchange, 'supportedChains'>
 		& {
-			supportedChains?: number[]
+			supportedChains?: (number | string)[]
 		}
 	)[]
 }

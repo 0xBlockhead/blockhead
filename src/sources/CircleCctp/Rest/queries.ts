@@ -12,6 +12,9 @@ const binding = bindings[Source.CircleCctpIris][0]
 type GetMessagesV2 = operations['getMessagesV2']
 type GetMessagesV2Query = NonNullable<GetMessagesV2['parameters']['query']>
 type GetMessagesV2Response = GetMessagesV2['responses'][200]['content']['application/json']
+type GetBurnUsdcFees = operations['getBurnUsdcFees']
+type GetBurnUsdcFeesResponse = GetBurnUsdcFees['responses'][200]['content']['application/json']
+type GetFastBurnUsdcAllowanceResponse = operations['getFastBurnUsdcAllowance']['responses'][200]['content']['application/json']
 type CircleCctpMessageSubject =
 	| {
 		transactionHash: NonNullable<GetMessagesV2Query['transactionHash']>
@@ -113,4 +116,48 @@ export const getMessages = async ({
 	}
 
 	return result
+}
+
+export const getBurnUsdcFees = async ({
+	sourceDomain,
+	destinationDomain,
+	forward,
+	hyperCoreDeposit,
+}: {
+	sourceDomain: GetBurnUsdcFees['parameters']['path']['sourceDomainId']
+	destinationDomain: GetBurnUsdcFees['parameters']['path']['destDomainId']
+	forward?: boolean
+	hyperCoreDeposit?: boolean
+}) => {
+	assertDomain(sourceDomain, 'source domain')
+	assertDomain(destinationDomain, 'destination domain')
+	if (hyperCoreDeposit === true && forward !== true)
+		throw new Error('Circle CCTP Iris: hyperCoreDeposit requires forward')
+
+	const url = new URL(
+		`/v2/burn/USDC/fees/${String(sourceDomain)}/${String(destinationDomain)}`,
+		firstHttpUrlForBinding(binding)
+	)
+	if (forward != null)
+		url.searchParams.set('forward', String(forward))
+	if (hyperCoreDeposit != null)
+		url.searchParams.set('hyperCoreDeposit', String(hyperCoreDeposit))
+
+	const response = await sourceFetch(binding, url.toString())
+	if (!response.ok)
+		await throwHttpError('Circle CCTP Iris get burn USDC fees', response)
+
+	return await response.json<GetBurnUsdcFeesResponse>()
+}
+
+export const getFastBurnUsdcAllowance = async () => {
+	const url = new URL(
+		'/v2/fastBurn/USDC/allowance',
+		firstHttpUrlForBinding(binding)
+	)
+	const response = await sourceFetch(binding, url.toString())
+	if (!response.ok)
+		await throwHttpError('Circle CCTP Iris get fast burn USDC allowance', response)
+
+	return await response.json<GetFastBurnUsdcAllowanceResponse>()
 }

@@ -8,7 +8,11 @@ import {
 
 import type { components } from '$/sources/CircleCctp/OpenApi/openapi.d.ts'
 import bindings from '$/sources/CircleCctp/bindings.ts'
-import { getMessages } from '$/sources/CircleCctp/Rest/queries.ts'
+import {
+	getBurnUsdcFees,
+	getFastBurnUsdcAllowance,
+	getMessages,
+} from '$/sources/CircleCctp/Rest/queries.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 
@@ -161,5 +165,70 @@ describe('Circle CCTP Iris V2 messages', () => {
 				transactionHash,
 			},
 		})).rejects.toThrow('duplicate source-domain nonce')
+	})
+
+	it('hard-fails non-OK burn fee and allowance HTTP responses', async () => {
+		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(null, {
+			status: 500,
+		}))
+		await expect(getBurnUsdcFees({
+			sourceDomain: 0,
+			destinationDomain: 5,
+			forward: true,
+		})).rejects.toThrow('Circle CCTP Iris get burn USDC fees')
+
+		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(null, {
+			status: 502,
+		}))
+		await expect(getFastBurnUsdcAllowance()).rejects.toThrow('Circle CCTP Iris get fast burn USDC allowance')
+	})
+
+	it('preserves official burn fee and fast-burn allowance payloads', async () => {
+		const feeRows = [
+			{
+				finalityThreshold: 1000,
+				minimumFee: 1,
+				forwardFee: {
+					low: 90,
+					medium: 110,
+					high: 160,
+				},
+			},
+			{
+				finalityThreshold: 2000,
+				minimumFee: 0,
+			},
+		] as const satisfies components['schemas']['USDCBurnFeesResponseV2']
+		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(JSON.stringify(feeRows)))
+		await expect(getBurnUsdcFees({
+			sourceDomain: 0,
+			destinationDomain: 5,
+			forward: true,
+			hyperCoreDeposit: true,
+		})).resolves.toEqual(feeRows)
+		expect(sourceFetch).toHaveBeenCalledWith(
+			binding,
+			'https://iris-api.circle.com/v2/burn/USDC/fees/0/5?forward=true&hyperCoreDeposit=true'
+		)
+
+		const allowance = {
+			allowance: 123999.999999,
+			lastUpdated: '2025-01-23T10:00:00Z',
+		} as const satisfies components['schemas']['USDCFastBurnAllowanceResponseV2']
+		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(JSON.stringify(allowance)))
+		await expect(getFastBurnUsdcAllowance()).resolves.toEqual(allowance)
+		expect(sourceFetch).toHaveBeenLastCalledWith(
+			binding,
+			'https://iris-api.circle.com/v2/fastBurn/USDC/allowance'
+		)
+	})
+
+	it('rejects hyperCoreDeposit without forward', async () => {
+		await expect(getBurnUsdcFees({
+			sourceDomain: 0,
+			destinationDomain: 5,
+			hyperCoreDeposit: true,
+		})).rejects.toThrow('hyperCoreDeposit requires forward')
+		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 })

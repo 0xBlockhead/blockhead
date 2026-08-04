@@ -162,4 +162,20 @@ describe('LI.FI transfer status resolvers', () => {
 		expect(resolver.projections).not.toHaveProperty('refundTxHash')
 		expect(resolver.projections).not.toHaveProperty('estimatedCompletionMs')
 	})
+
+	it('hard-fails BridgeTransfer snapshots for official NOT_FOUND status', async () => {
+		fetchChains.mockResolvedValue(chains)
+		fetchTransferStatus.mockResolvedValue({
+			status: 'NOT_FOUND',
+		})
+		const resolver = lifiRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer
+		))
+		if (resolver == null)
+			throw new Error('LI.FI BridgeTransfer resolver is not registered')
+
+		await expect(
+			resolver.resolve.SourceTransferId.resolve(transfer)
+		).rejects.toThrow('transfer not found')
+	})
 })

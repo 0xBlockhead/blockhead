@@ -4,7 +4,7 @@
  * @see https://docs.li.fi/api-reference/fetch-all-known-tokens
  */
 
-import { throwIfHttpNotOk } from '$/lib/http.ts'
+import { throwHttpError } from '$/lib/http.ts'
 import { lifiRestFetch } from '$/sources/Lifi/Rest/client.ts'
 import type {
 	FetchLifiChainsOptions,
@@ -27,6 +27,14 @@ const maximumTools = 1_000
 const maximumSupportedChainsPerTool = 10_000
 const unsignedIntegerPattern = /^(0|[1-9]\d*)$/
 const decimalPattern = /^(0|[1-9]\d*)(\.\d+)?$/
+
+const throwIfLifiHttpNotOk = async (
+	response: Response,
+	path: string
+) => {
+	if (response.ok) return
+	await throwHttpError(`Lifi_Rest ${path}`, response)
+}
 
 const assertQuoteStep = (
 	step: LifiQuoteStepLike,
@@ -77,10 +85,11 @@ export async function fetchChains(
 	const queryString = params.toString()
 	const path = `/v1/chains${queryString ? `?${queryString}` : ''}`
 	const res = await lifiRestFetch(path)
-	await throwIfHttpNotOk(res, path)
+	await throwIfLifiHttpNotOk(res, path)
 	const result = await res.json<LifiChainsResponse>()
 	if (
-		result.chains.length > maximumCatalogChains
+		result.chains == null
+		|| result.chains.length > maximumCatalogChains
 		|| new Set(result.chains.map((chain) => chain.id)).size !== result.chains.length
 		|| new Set(result.chains.map((chain) => chain.key)).size !== result.chains.length
 		|| result.chains.some((chain) => (
@@ -110,10 +119,11 @@ export async function fetchTokens(
 	const queryString = params.toString()
 	const path = `/v1/tokens${queryString ? `?${queryString}` : ''}`
 	const res = await lifiRestFetch(path)
-	await throwIfHttpNotOk(res, path)
+	await throwIfLifiHttpNotOk(res, path)
 	const result = await res.json<LifiTokensResponse>()
 	if (
-		Object.values(result.tokens).reduce((total, tokens) => total + tokens.length, 0) > maximumCatalogTokens
+		result.tokens == null
+		|| Object.values(result.tokens).reduce((total, tokens) => total + tokens.length, 0) > maximumCatalogTokens
 		|| Object.entries(result.tokens).some(([chainId, tokens]) => (
 			tokens.some((token) => (
 				String(token.chainId) !== chainId
@@ -146,8 +156,26 @@ export const fetchTransferStatus = async (
 		...(params.toChain != null && { toChain: params.toChain }),
 	})}`
 	const response = await lifiRestFetch(path)
-	await throwIfHttpNotOk(response, path)
-	return response.json<LifiStatusResponse>()
+	await throwIfLifiHttpNotOk(response, path)
+	const status = await response.json<LifiStatusResponse>()
+	if (
+		status.status == null
+		|| (
+			status.status !== 'NOT_FOUND'
+			&& status.status !== 'INVALID'
+			&& (
+				status.sending == null
+				|| status.sending.txHash == null
+				|| status.sending.txHash === ''
+				|| !unsignedIntegerPattern.test(status.sending.amount ?? '')
+				|| status.sending.token == null
+				|| !Number.isSafeInteger(status.sending.chainId)
+				|| status.sending.chainId <= 0
+			)
+		)
+	)
+		throw new Error('Lifi_Rest: malformed transfer status')
+	return status
 }
 
 /**
@@ -157,7 +185,7 @@ export const fetchTransferStatus = async (
 export async function fetchTools() {
 	const path = '/v1/tools'
 	const res = await lifiRestFetch(path)
-	await throwIfHttpNotOk(res, path)
+	await throwIfLifiHttpNotOk(res, path)
 	const result = await res.json<LifiToolsResponse>()
 	const bridges = result.bridges?.map((tool) => {
 		if (
@@ -171,24 +199,24 @@ export async function fetchTools() {
 			throw new Error('Lifi_Rest: malformed tools catalog')
 
 		const supportedChains = tool.supportedChains.map((pair) => {
+			const fromChainId = Number(pair.fromChainId)
+			const toChainId = Number(pair.toChainId)
 			if (
-				pair.fromChainId == null
-				|| !unsignedIntegerPattern.test(String(pair.fromChainId))
-				|| String(pair.fromChainId) === '0'
-				|| pair.toChainId == null
-				|| !unsignedIntegerPattern.test(String(pair.toChainId))
-				|| String(pair.toChainId) === '0'
+				!Number.isSafeInteger(fromChainId)
+				|| fromChainId <= 0
+				|| !Number.isSafeInteger(toChainId)
+				|| toChainId <= 0
 			)
 				throw new Error('Lifi_Rest: malformed tools catalog')
 
 			return {
-				fromChainId: pair.fromChainId,
-				toChainId: pair.toChainId,
+				fromChainId,
+				toChainId,
 			}
 		})
 		if (
 			new Set(supportedChains.map((pair) => (
-				`${String(pair.fromChainId)}:${String(pair.toChainId)}`
+				`${pair.fromChainId}:${pair.toChainId}`
 			))).size !== supportedChains.length
 		)
 			throw new Error('Lifi_Rest: malformed tools catalog')
@@ -210,11 +238,20 @@ export async function fetchTools() {
 		)
 			throw new Error('Lifi_Rest: malformed tools catalog')
 
+		const supportedChains = exchange.supportedChains.map((chainId) => {
+			const normalizedChainId = Number(chainId)
+			if (!Number.isSafeInteger(normalizedChainId) || normalizedChainId <= 0)
+				throw new Error('Lifi_Rest: malformed tools catalog')
+			return normalizedChainId
+		})
+		if (new Set(supportedChains).size !== supportedChains.length)
+			throw new Error('Lifi_Rest: malformed tools catalog')
+
 		return {
 			key: exchange.key,
 			name: exchange.name,
 			...(exchange.logoURI != null && { logoURI: exchange.logoURI }),
-			supportedChains: exchange.supportedChains,
+			supportedChains,
 		}
 	})
 	if (
@@ -264,7 +301,7 @@ export const fetchQuote = async (
 	})
 	const path = `/v1/quote?${search}`
 	const response = await lifiRestFetch(path)
-	await throwIfHttpNotOk(response, path)
+	await throwIfLifiHttpNotOk(response, path)
 	const quote = await response.json<LifiQuoteStep>()
 
 	assertQuoteStep(quote, 'top-level')
