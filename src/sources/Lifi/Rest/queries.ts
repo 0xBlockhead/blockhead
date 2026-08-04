@@ -6,6 +6,14 @@
 
 import { throwHttpError } from '$/lib/http.ts'
 import { lifiRestFetch } from '$/sources/Lifi/Rest/client.ts'
+import {
+	maximumCatalogChains,
+	maximumCatalogTokens,
+	maximumCostRows,
+	maximumQuoteSteps,
+	maximumSupportedChainsPerTool,
+	maximumTools,
+} from '$/sources/Lifi/Rest/constants.ts'
 import type {
 	FetchLifiChainsOptions,
 	FetchLifiTokensOptions,
@@ -20,12 +28,6 @@ import type {
 	LifiToolsResponse,
 } from '$/sources/Lifi/Rest/types.ts'
 
-const maximumQuoteSteps = 32
-const maximumCostRows = 64
-const maximumCatalogChains = 1_000
-const maximumCatalogTokens = 100_000
-const maximumTools = 1_000
-const maximumSupportedChainsPerTool = 10_000
 const unsignedIntegerPattern = /^(0|[1-9]\d*)$/
 const decimalPattern = /^(0|[1-9]\d*)(\.\d+)?$/
 
@@ -62,6 +64,25 @@ const throwIfLifiHttpNotOk = async (
 ) => {
 	if (response.ok) return
 	await throwHttpError(`Lifi_Rest ${path}`, response)
+}
+
+const assertTransactionInfo = (
+	info: NonNullable<LifiStatusResponse['sending']>,
+	label: string
+) => {
+	if (
+		info.txHash == null
+		|| info.txHash === ''
+		|| !unsignedIntegerPattern.test(info.amount ?? '')
+		|| info.token == null
+		|| !Number.isSafeInteger(info.chainId)
+		|| info.chainId <= 0
+		|| !Number.isSafeInteger(info.token.decimals)
+		|| info.token.decimals < 0
+		|| info.token.decimals > 255
+		|| info.token.chainId !== info.chainId
+	)
+		throw new Error(`Lifi_Rest: malformed ${label} transfer leg`)
 }
 
 const assertQuoteStep = (
@@ -186,23 +207,33 @@ export const fetchTransferStatus = async (
 	const response = await lifiRestFetch(path)
 	await throwIfLifiHttpNotOk(response, path)
 	const status = await response.json<LifiStatusResponse>()
+	if (status.status == null)
+		throw new Error('Lifi_Rest: malformed transfer status')
+
+	if (status.status === 'NOT_FOUND')
+		return status
+
+	if (status.status === 'INVALID')
+		return status
+
 	if (
-		status.status == null
-		|| (
-			status.status !== 'NOT_FOUND'
-			&& status.status !== 'INVALID'
-			&& (
-				status.sending == null
-				|| status.sending.txHash == null
-				|| status.sending.txHash === ''
-				|| !unsignedIntegerPattern.test(status.sending.amount ?? '')
-				|| status.sending.token == null
-				|| !Number.isSafeInteger(status.sending.chainId)
-				|| status.sending.chainId <= 0
-			)
-		)
+		status.sending == null
+		|| status.tool == null
+		|| status.tool === ''
 	)
 		throw new Error('Lifi_Rest: malformed transfer status')
+
+	assertTransactionInfo(status.sending, 'sending')
+
+	if (status.receiving != null)
+		assertTransactionInfo(status.receiving, 'receiving')
+
+	if (
+		status.transactionId != null
+		&& status.transactionId === ''
+	)
+		throw new Error('Lifi_Rest: malformed transfer status')
+
 	return status
 }
 

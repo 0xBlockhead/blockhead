@@ -24,6 +24,7 @@ import { entityDefinitionByType, schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { LifiChain } from '$/sources/Lifi/Rest/types.ts'
+import type { LifiStatusRequest } from '$/sources/Lifi/Rest/types.ts'
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 
 const lifiEvmNetworkRef = (
@@ -69,7 +70,7 @@ const lifiCoinInstanceSelector = (
 }
 
 const lifiTransferStatusSnapshot = async (
-	txHashOrStepId: string
+	statusRequest: LifiStatusRequest
 ) => {
 	const {
 		fetchChains,
@@ -79,7 +80,7 @@ const lifiTransferStatusSnapshot = async (
 		status,
 		{ chains },
 	] = await Promise.all([
-		fetchTransferStatus({ txHash: txHashOrStepId }),
+		fetchTransferStatus(statusRequest),
 		fetchChains(),
 	])
 	const fromNetwork = (
@@ -103,27 +104,64 @@ const lifiTransferStatusSnapshot = async (
 	}
 }
 
-const lifiStatusIdentifierForTransfer = (
+const lifiTransferStatusRequestFromTransfer = (
 	transfer: EntitySelector<typeof schema, EntityType.BridgeTransfer>
-) => {
+): LifiStatusRequest => {
 	if (transfer.source !== Source.Lifi_Rest)
 		throw new Error(`Lifi_Rest: unsupported bridge transfer source ${transfer.source}`)
 
-	return '$sourceTx' in transfer ? transfer.$sourceTx.txHash : transfer.transferId
+	if ('$sourceTx' in transfer) {
+		const fromChain = (
+			transfer.$sourceTx.$network.caip2.namespace === 'eip155' ?
+				transfer.$sourceTx.$network.caip2.reference
+			:
+				undefined
+		)
+		return {
+			txHash: transfer.$sourceTx.txHash,
+			...(fromChain != null && { fromChain }),
+		}
+	}
+
+	return { txHash: transfer.transferId }
+}
+
+const lifiCanonicalTransferId = (
+	transfer: EntitySelector<typeof schema, EntityType.BridgeTransfer>,
+	status: Awaited<ReturnType<typeof lifiTransferStatusSnapshot>>['status']
+) => {
+	if ('transferId' in transfer) {
+		if (
+			status.transactionId != null
+			&& status.transactionId !== ''
+			&& status.transactionId !== transfer.transferId
+		)
+			throw new Error('Lifi_Rest: transfer id does not match status')
+
+		return transfer.transferId
+	}
+
+	if (status.transactionId == null || status.transactionId === '')
+		throw new Error('Lifi_Rest: status missing transaction id')
+
+	return status.transactionId
 }
 
 const lifiBridgeTransferSnapshot = async (
-	transfer: EntitySelector<typeof schema, EntityType.BridgeTransfer>,
-	transferId: string
+	transfer: EntitySelector<typeof schema, EntityType.BridgeTransfer>
 ) => {
 	const {
 		status,
 		observedAtMs,
 		fromNetwork,
 		toNetwork,
-	} = await lifiTransferStatusSnapshot(transferId)
+	} = await lifiTransferStatusSnapshot(
+		lifiTransferStatusRequestFromTransfer(transfer)
+	)
 	if (status.status === 'NOT_FOUND' || status.sending == null)
 		throw new Error('Lifi_Rest: transfer not found')
+
+	const transferId = lifiCanonicalTransferId(transfer, status)
 	const { coinInstanceRefFromLifiToken } = await import(
 		'$/resolvers/Lifi/Rest/bridgeRouteSteps.ts'
 	)
@@ -505,15 +543,10 @@ export default {
 			entityType: EntityType.BridgeTransfer,
 			resolve: {
 				SourceTransferId: {
-					resolve: async (transfer) => {
-						if (transfer.source !== Source.Lifi_Rest)
-							throw new Error(`Lifi_Rest: unsupported bridge transfer source ${transfer.source}`)
-
-						return lifiBridgeTransferSnapshot(
-							transfer,
-							transfer.transferId
-						)
-					},
+					resolve: lifiBridgeTransferSnapshot,
+				},
+				SourceTxSourceLogIndex: {
+					resolve: lifiBridgeTransferSnapshot,
 				},
 			},
 		})({
@@ -548,7 +581,7 @@ export default {
 							status,
 							toNetwork,
 						} = await lifiTransferStatusSnapshot(
-							lifiStatusIdentifierForTransfer($transfer)
+							lifiTransferStatusRequestFromTransfer($transfer)
 						)
 						const destinationTxHash = (
 							status.receiving == null || toNetwork == null ?

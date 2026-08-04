@@ -376,6 +376,61 @@ describe('LI.FI transfer status', () => {
 		})
 	})
 
+	it('preserves official INVALID without requiring transfer legs', async () => {
+		vi.mocked(lifiRestFetch).mockResolvedValue(new Response(JSON.stringify({
+			status: 'INVALID',
+			substatusMessage: 'Unsupported transaction hash.',
+		})))
+
+		await expect(fetchTransferStatus({
+			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+		})).resolves.toEqual({
+			status: 'INVALID',
+			substatusMessage: 'Unsupported transaction hash.',
+		})
+	})
+
+	it('validates receiving legs and rejects empty tool names', async () => {
+		vi.mocked(lifiRestFetch)
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				status: 'PENDING',
+				tool: '',
+				sending: {
+					txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+					txLink: 'https://example.com/source',
+					amount: '100',
+					token: fromToken,
+					chainId: 1,
+				},
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				status: 'DONE',
+				tool: 'across',
+				transactionId: 'lifi-transfer-id',
+				sending: {
+					txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+					txLink: 'https://example.com/source',
+					amount: '100',
+					token: fromToken,
+					chainId: 1,
+				},
+				receiving: {
+					txHash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+					txLink: 'https://example.com/destination',
+					amount: '1.5',
+					token: toToken,
+					chainId: 10,
+				},
+			})))
+
+		await expect(fetchTransferStatus({
+			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+		})).rejects.toThrow('malformed transfer status')
+		await expect(fetchTransferStatus({
+			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+		})).rejects.toThrow('receiving transfer leg')
+	})
+
 	it('hard-fails status HTTP errors and incomplete non-NOT_FOUND payloads', async () => {
 		vi.mocked(lifiRestFetch)
 			.mockResolvedValueOnce(new Response('missing', { status: 404 }))

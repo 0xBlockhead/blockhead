@@ -114,6 +114,7 @@ describe('LI.FI transfer status resolvers', () => {
 			transferId: transfer.transferId,
 			amountIn: 1_000_000_000_000_000_000n,
 			amountOut: 999_000_000_000_000_000n,
+			railId: 'Across',
 			$sourceTx: {
 				[EntityMetaKey.Selector]: {
 					$network: {
@@ -125,6 +126,17 @@ describe('LI.FI transfer status resolvers', () => {
 					txHash: sourceTxHash,
 				},
 			},
+			$destinationTx: {
+				[EntityMetaKey.Selector]: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '10',
+						},
+					},
+					txHash: destinationTxHash,
+				},
+			},
 		})
 		expect(resolver.projections.$$timestamps(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
@@ -133,6 +145,54 @@ describe('LI.FI transfer status resolvers', () => {
 				source: Source.Lifi_Rest,
 			},
 		}])
+	})
+
+	it('resolves source-tx selectors with fromChain and canonical transactionId', async () => {
+		fetchChains.mockResolvedValue(chains)
+		fetchTransferStatus.mockResolvedValue(status)
+		const resolver = lifiRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer
+		))
+		if (resolver == null)
+			throw new Error('LI.FI BridgeTransfer resolver is not registered')
+
+		const sourceTxTransfer = {
+			source: Source.Lifi_Rest,
+			$sourceTx: {
+				$network: {
+					caip2: {
+						namespace: 'eip155' as const,
+						reference: '1',
+					},
+				},
+				txHash: sourceTxHash,
+			},
+			logIndex: 0,
+		}
+		const snapshot = await resolver.resolve.SourceTxSourceLogIndex.resolve(sourceTxTransfer)
+
+		expect(fetchTransferStatus).toHaveBeenCalledWith({
+			txHash: sourceTxHash,
+			fromChain: '1',
+		})
+		expect(snapshot.transferId).toBe(transfer.transferId)
+	})
+
+	it('rejects mismatched transfer ids from official status', async () => {
+		fetchChains.mockResolvedValue(chains)
+		fetchTransferStatus.mockResolvedValue({
+			...status,
+			transactionId: 'foreign-transfer-id',
+		})
+		const resolver = lifiRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer
+		))
+		if (resolver == null)
+			throw new Error('LI.FI BridgeTransfer resolver is not registered')
+
+		await expect(
+			resolver.resolve.SourceTransferId.resolve(transfer)
+		).rejects.toThrow('transfer id does not match status')
 	})
 
 	it('projects only status fields present in the official operation', async () => {
