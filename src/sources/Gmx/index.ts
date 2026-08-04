@@ -1,3 +1,5 @@
+// Generated from APP.ts.
+
 import bindings from '$/sources/Gmx/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
@@ -8,7 +10,7 @@ export default {
 	label: 'GMX',
 	sources: {
 		[Source.Gmx_Rest]: {
-			label: 'GMX API',
+			label: 'GMX v2 API',
 		},
 	},
 	bindings,

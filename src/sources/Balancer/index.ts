@@ -1,3 +1,5 @@
+// Generated from APP.ts.
+
 import bindings from '$/sources/Balancer/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
@@ -8,7 +10,7 @@ export default {
 	label: 'Balancer',
 	sources: {
 		[Source.Balancer_Rest]: {
-			label: 'Balancer API (v2/v3 GraphQL)',
+			label: 'Balancer API v3',
 		},
 	},
 	bindings,

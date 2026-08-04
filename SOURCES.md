@@ -4,7 +4,7 @@ This file is generated from APP compiler-plane source metadata: the canonical pr
 
 Provider/source identity, target, endpoint reality, protocol, API family, operation groups, delivery, credentials, and artifacts remain independent axes. Artifacts and generated clients are binding metadata. CORS is recorded per HTTP endpoint; proxy and live behavior are recorded as delivery.
 
-247 providers register 278 sources and 479 bindings.
+253 providers register 284 sources and 487 bindings.
 
 ## Providers
 
@@ -31,6 +31,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | AwsBedrock | AWS Bedrock |
 | Axelarscan | Axelarscan |
 | AzureAiFoundry | Azure AI Foundry |
+| Balancer | Balancer |
 | Beacon | Beacon |
 | BeaconchaIn | Beaconcha.in |
 | BitcoinBips | Bitcoin BIPs |
@@ -63,12 +64,14 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | CoinMarketCap | Coin Market Cap |
 | Coinpaprika | Coinpaprika |
 | CometBft | CometBFT |
+| Compound | Compound |
 | Conseil | Conseil |
 | CosmosAdrs | Cosmos ADRs |
 | CosmosChainRegistry | Cosmos Chain Registry name |
 | CosmosSdk | Cosmos SDK |
 | Covalent | Covalent |
 | CronosExplorer | Cronos Explorer |
+| Curve | Curve |
 | CycloneDx | CycloneDX |
 | Defillama | Defillama |
 | Dexscreener | Dexscreener |
@@ -90,6 +93,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | EthereumLists | ethereum-lists (chainid.network) |
 | EthereumSpecs | Ethereum specs |
 | Etherscan | Etherscan |
+| Euler | Euler |
 | Farcaster | Farcaster |
 | FedimintClient | Fedimint client |
 | FedimintGatewayd | Fedimint gatewayd |
@@ -101,6 +105,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | GetBlock | GetBlock |
 | Git | Git |
 | Gitlab | GitLab |
+| Gmx | GMX |
 | GoogleAi | Google AI |
 | HashConnect | HashConnect |
 | HederaMirrorNode | Hedera mirror node |
@@ -172,6 +177,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | Osmosis | Osmosis |
 | Pathfinder | Pathfinder |
 | Payjoin | Payjoin |
+| Pendle | Pendle |
 | Petra | Petra |
 | Piped | Piped |
 | PlugWallet | Plug Wallet |
@@ -284,6 +290,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | AwsBedrock_Rest | AwsBedrock | AWS Bedrock REST |
 | Axelarscan_Rest | Axelarscan | Axelarscan REST |
 | AzureAiFoundry_Rest | AzureAiFoundry | Azure AI Foundry REST |
+| Balancer_Rest | Balancer | Balancer API v3 |
 | Beacon_Rest | Beacon | Beacon (consensus) REST |
 | BeaconchaIn_Rest | BeaconchaIn | Beaconcha.in REST |
 | BitcoinBips_Github | BitcoinBips | Bitcoin BIPs GitHub |
@@ -321,6 +328,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | CoinMarketCap_Rest | CoinMarketCap | Coin Market Cap REST |
 | Coinpaprika_Rest | Coinpaprika | Coinpaprika REST |
 | CometBft_Rest | CometBft | CometBFT REST |
+| Compound_Rest | Compound | Compound comet deployments |
 | Conseil_Postgres | Conseil | Conseil Postgres |
 | Constants_Internal | _Constants | Checked-in constants |
 | CosmosAdrs_Github | CosmosAdrs | Cosmos ADRs GitHub |
@@ -328,6 +336,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | CosmosSdk_Rest | CosmosSdk | Cosmos SDK REST |
 | CroissantDocument_Local | MlCommons | Croissant document |
 | CronosExplorer | CronosExplorer | Cronos Explorer |
+| Curve_Rest | Curve | Curve API |
 | CycloneDxDocument_Local | CycloneDx | CycloneDX document |
 | Defillama_Rest | Defillama | Defillama REST |
 | Dexscreener_Rest | Dexscreener | Dexscreener REST |
@@ -350,6 +359,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | EthereumLists_Rest | EthereumLists | ethereum-lists REST |
 | EthereumSpecs_Github | EthereumSpecs | Ethereum specs GitHub |
 | Etherscan_Rest | Etherscan | Etherscan REST |
+| Euler_Rest | Euler | Euler v3 API |
 | Farcaster_Rest | Farcaster | Farcaster REST |
 | FedimintClient_Rpc | FedimintClient | Fedimint client RPC |
 | FedimintGatewayd_Rest | FedimintGatewayd | Fedimint gatewayd REST |
@@ -362,6 +372,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | Git_Local | Git | Local Git repository |
 | Git_Remote | Git | Remote Git repository |
 | Gitlab_Rest | Gitlab | GitLab REST |
+| Gmx_Rest | Gmx | GMX v2 API |
 | GoldRushFoundational_Rest | Covalent | GoldRush Foundational API |
 | GoogleAi_Rest | GoogleAi | Google AI REST |
 | HashConnect_WalletApi | HashConnect | HashConnect wallet API |
@@ -443,6 +454,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | PayjoinDirectory_Rest | Payjoin | Payjoin directory REST |
 | PayjoinOhttpRelay_Http | Payjoin | Payjoin OHTTP relay |
 | PayjoinReceiver_Http | Payjoin | Payjoin receiver HTTP |
+| Pendle_Rest | Pendle | Pendle API |
 | Petra_WalletApi | Petra | Petra wallet API |
 | Piped_Rest | Piped | Piped API REST |
 | PlugWallet_WalletApi | PlugWallet | Plug Wallet API |
@@ -567,6 +579,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["AwsBedrock_Rest","Global","aws-bedrock","RemoteQuery","RestJson"] | AwsBedrock | AwsBedrock_Rest | Global | aws-bedrock | HttpRest | RestJson | AiModelCatalog, AiProviderOperationCatalog | RemoteQuery |
 | ["Axelarscan_Rest","Global","axelarscan-api","HttpProxy","RestJson"] | Axelarscan | Axelarscan_Rest | Global | axelarscan-api | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["AzureAiFoundry_Rest","Global","azure-ai-foundry","RemoteQuery","RestJson"] | AzureAiFoundry | AzureAiFoundry_Rest | Global | azure-ai-foundry | HttpRest | RestJson | AiModelCatalog, AiProviderOperationCatalog | RemoteQuery |
+| ["Balancer_Rest","Global","balancer-api-v3","BrowserDirect","GraphqlHttp"] | Balancer | Balancer_Rest | Global | balancer-api-v3 | Graphql | GraphqlHttp | GenericRead | BrowserDirect |
 | ["Beacon_Rest","Eip155Chain","1","BrowserDirect","EthereumBeaconRest"] | Beacon | Beacon_Rest | Eip155Chain | 1 | HttpRest | EthereumBeaconRest | GenericRead | BrowserDirect |
 | ["Beacon_Rest","Eip155Chain","11155111","BrowserDirect","EthereumBeaconRest"] | Beacon | Beacon_Rest | Eip155Chain | 11155111 | HttpRest | EthereumBeaconRest | GenericRead | BrowserDirect |
 | ["Beacon_Rest","Eip155Chain","17000","BrowserDirect","EthereumBeaconRest"] | Beacon | Beacon_Rest | Eip155Chain | 17000 | HttpRest | EthereumBeaconRest | GenericRead | BrowserDirect |
@@ -631,6 +644,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Coinpaprika_Rest","Global","free-api","HttpProxy","OpenApiHttp"] | Coinpaprika | Coinpaprika_Rest | Global | free-api | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
 | ["Coinpaprika_Rest","Global","pro-api","HttpProxy","OpenApiHttp"] | Coinpaprika | Coinpaprika_Rest | Global | pro-api | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
 | ["CometBft_Rest","Caip2Network","cosmos:cosmoshub-4","BrowserDirect","RestJson"] | CometBft | CometBft_Rest | Caip2Network | cosmos:cosmoshub-4 | HttpRest | RestJson | GenericRead | BrowserDirect |
+| ["Compound_Rest","GitRepository","compound-finance/comet@f766f51583c23acc33b2a7824654ef2029a96804:deployments","BrowserDirect","RestJson"] | Compound | Compound_Rest | GitRepository | compound-finance/comet@f766f51583c23acc33b2a7824654ef2029a96804:deployments | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["Conseil_Postgres","SqlDataset","conseil","ServerOnly","Postgres"] | Conseil | Conseil_Postgres | SqlDataset | conseil | Sql | Postgres | GenericRead | ServerOnly |
 | ["Constants_Internal","Global","checked-in-catalog","BrowserDirect","CatalogRows"] | _Constants | Constants_Internal | Global | checked-in-catalog | InProcess | CatalogRows | GenericRead | BrowserDirect |
 | ["CosmosAdrs_Github","GitRepository","cosmos/cosmos-sdk@main:docs/architecture","BrowserDirect","GithubContentsApi"] | CosmosAdrs | CosmosAdrs_Github | GitRepository | cosmos/cosmos-sdk@main:docs/architecture | HttpRest | GithubContentsApi | GithubRepositoryContents | BrowserDirect |
@@ -638,6 +652,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["CosmosSdk_Rest","Caip2Network","cosmos:cosmoshub-4","BrowserDirect","RestJson"] | CosmosSdk | CosmosSdk_Rest | Caip2Network | cosmos:cosmoshub-4 | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["CroissantDocument_Local","LocalDevice","croissant-document","LocalOnly","LocalParser"] | MlCommons | CroissantDocument_Local | LocalDevice | croissant-document | LocalFile | LocalParser | AiDatasetMetadata, DocumentClaimExtraction | LocalOnly |
 | ["CronosExplorer","Global","cronos-explorer-api","HttpProxy","EtherscanModuleAction"] | CronosExplorer | CronosExplorer | Global | cronos-explorer-api | HttpRest | EtherscanModuleAction | GenericRead | HttpProxy |
+| ["Curve_Rest","Global","curve-api","BrowserDirect","RestJson"] | Curve | Curve_Rest | Global | curve-api | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["CycloneDxDocument_Local","LocalDevice","cyclonedx-document","LocalOnly","LocalParser"] | CycloneDx | CycloneDxDocument_Local | LocalDevice | cyclonedx-document | LocalFile | LocalParser | AiArtifactCatalog, DocumentClaimExtraction | LocalOnly |
 | ["Defillama_Rest","Global","coins-public","HttpProxy","OpenApiHttp"] | Defillama | Defillama_Rest | Global | coins-public | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
 | ["Defillama_Rest","Global","chain-icons","HttpProxy","StaticWebsite"] | Defillama | Defillama_Rest | Global | chain-icons | RawHttp | StaticWebsite | GenericRead | HttpProxy |
@@ -679,6 +694,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["EthereumSpecs_Github","GitRepository","ethereum/go-ethereum@master:params/config.go","BrowserDirect","GithubContentsApi"] | EthereumSpecs | EthereumSpecs_Github | GitRepository | ethereum/go-ethereum@master:params/config.go | HttpRest | GithubContentsApi | GithubRepositoryContents | BrowserDirect |
 | ["EthereumSpecs_Github","GitRepository","ethereum/execution-specs@8dbde99b65d519ea4c96084d784f85957e9314d0:network-upgrades/mainnet-upgrades","BrowserDirect","GithubContentsApi"] | EthereumSpecs | EthereumSpecs_Github | GitRepository | ethereum/execution-specs@8dbde99b65d519ea4c96084d784f85957e9314d0:network-upgrades/mainnet-upgrades | HttpRest | GithubContentsApi | GithubRepositoryContents | BrowserDirect |
 | ["Etherscan_Rest","Global","etherscan-v2","HttpProxy","EtherscanModuleAction"] | Etherscan | Etherscan_Rest | Global | etherscan-v2 | HttpRest | EtherscanModuleAction | EtherscanAccountModule, EtherscanContractModule, EvmRpcCore | HttpProxy |
+| ["Euler_Rest","Global","euler-v3-api","BrowserDirect","RestJson"] | Euler | Euler_Rest | Global | euler-v3-api | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["Farcaster_Rest","Global","client-api","HttpProxy","RestJson"] | Farcaster | Farcaster_Rest | Global | client-api | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["Farcaster_Rest","Global","web-api","HttpProxy","RestJson"] | Farcaster | Farcaster_Rest | Global | web-api | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["FedimintClient_Rpc","LocalDevice","fedimint-client","LocalOnly","JsonRpcApi"] | FedimintClient | FedimintClient_Rpc | LocalDevice | fedimint-client | JsonRpc2 | JsonRpcApi | GenericRead | LocalOnly |
@@ -692,6 +708,9 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Git_Local","GitRepository","local-git-repository","LocalOnly","GitObject"] | Git | Git_Local | GitRepository | local-git-repository | Git | GitObject | GitRepositoryContents, RepositoryMetadata | LocalOnly |
 | ["Git_Remote","GitRepository","remote-git-repository","ServerOnly","GitObject"] | Git | Git_Remote | GitRepository | remote-git-repository | Git | GitObject | GitRepositoryContents, RepositoryMetadata | ServerOnly |
 | ["Gitlab_Rest","Global","gitlab-rest","HttpProxy","GitlabRestApi"] | Gitlab | Gitlab_Rest | Global | gitlab-rest | HttpRest | GitlabRestApi | GitRepositoryContents, IssueTracking, PullRequestReview, ReleaseMetadata, RepositoryMetadata | HttpProxy |
+| ["Gmx_Rest","Eip155Chain","42161","BrowserDirect","RestJson"] | Gmx | Gmx_Rest | Eip155Chain | 42161 | HttpRest | RestJson | GenericRead | BrowserDirect |
+| ["Gmx_Rest","Eip155Chain","43114","BrowserDirect","RestJson"] | Gmx | Gmx_Rest | Eip155Chain | 43114 | HttpRest | RestJson | GenericRead | BrowserDirect |
+| ["Gmx_Rest","Eip155Chain","4326","BrowserDirect","RestJson"] | Gmx | Gmx_Rest | Eip155Chain | 4326 | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["GoldRushFoundational_Rest","Eip155Chain","1","HttpProxy","GoldRushFoundationalApi"] | Covalent | GoldRushFoundational_Rest | Eip155Chain | 1 | HttpRest | GoldRushFoundationalApi | GenericRead | HttpProxy |
 | ["GoogleAi_Rest","Global","google-ai-api","RemoteQuery","RestJson"] | GoogleAi | GoogleAi_Rest | Global | google-ai-api | HttpRest | RestJson | AiModelCatalog, AiProviderOperationCatalog, GenericRead | RemoteQuery |
 | ["HashConnect_WalletApi","LocalDevice","hashconnect","BrowserDirect","WalletApi"] | HashConnect | HashConnect_WalletApi | LocalDevice | hashconnect | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
@@ -789,6 +808,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["PayjoinDirectory_Rest","Global","directory","HttpProxy","RestJson"] | Payjoin | PayjoinDirectory_Rest | Global | directory | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["PayjoinOhttpRelay_Http","Global","ohttp-relay","RemoteQuery","RestJson"] | Payjoin | PayjoinOhttpRelay_Http | Global | ohttp-relay | RawHttp | RestJson | GenericRead | RemoteQuery |
 | ["PayjoinReceiver_Http","Global","receiver","RemoteQuery","RestJson"] | Payjoin | PayjoinReceiver_Http | Global | receiver | RawHttp | RestJson | GenericRead | RemoteQuery |
+| ["Pendle_Rest","Global","pendle-api","BrowserDirect","RestJson"] | Pendle | Pendle_Rest | Global | pendle-api | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["Petra_WalletApi","LocalDevice","petra","BrowserDirect","WalletApi"] | Petra | Petra_WalletApi | LocalDevice | petra | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
 | ["Piped_Rest","Global","piped-api","BrowserDirect","RestJson"] | Piped | Piped_Rest | Global | piped-api | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["PlugWallet_WalletApi","LocalDevice","plug-wallet","BrowserDirect","WalletApi"] | PlugWallet | PlugWallet_WalletApi | LocalDevice | plug-wallet | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
@@ -1053,6 +1073,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["AwsBedrock_Rest","Global","aws-bedrock","RemoteQuery","RestJson"] | HttpUrl | env:AWS_BEDROCK_ENDPOINT |  |  |
 | ["Axelarscan_Rest","Global","axelarscan-api","HttpProxy","RestJson"] | HttpUrl | https://api.axelarscan.io | https://api.axelarscan.io | false |
 | ["AzureAiFoundry_Rest","Global","azure-ai-foundry","RemoteQuery","RestJson"] | HttpUrl | env:AZURE_AI_FOUNDRY_ENDPOINT |  |  |
+| ["Balancer_Rest","Global","balancer-api-v3","BrowserDirect","GraphqlHttp"] | HttpUrl | https://api-v3.balancer.fi/ | https://api-v3.balancer.fi | true |
 | ["Beacon_Rest","Eip155Chain","1","BrowserDirect","EthereumBeaconRest"] | HttpUrl | https://ethereum-beacon-api.publicnode.com | https://ethereum-beacon-api.publicnode.com | true |
 | ["Beacon_Rest","Eip155Chain","11155111","BrowserDirect","EthereumBeaconRest"] | HttpUrl | https://ethereum-sepolia-beacon-api.publicnode.com | https://ethereum-sepolia-beacon-api.publicnode.com | true |
 | ["Beacon_Rest","Eip155Chain","17000","BrowserDirect","EthereumBeaconRest"] | HttpUrl | https://ethereum-holesky-beacon-api.publicnode.com | https://ethereum-holesky-beacon-api.publicnode.com | true |
@@ -1123,6 +1144,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Coinpaprika_Rest","Global","free-api","HttpProxy","OpenApiHttp"] | HttpUrl | https://api.coinpaprika.com/v1 | https://api.coinpaprika.com | false |
 | ["Coinpaprika_Rest","Global","pro-api","HttpProxy","OpenApiHttp"] | HttpUrl | https://api-pro.coinpaprika.com/v1 | https://api-pro.coinpaprika.com | false |
 | ["CometBft_Rest","Caip2Network","cosmos:cosmoshub-4","BrowserDirect","RestJson"] | HttpUrl | https://cosmos-rpc.publicnode.com | https://cosmos-rpc.publicnode.com | true |
+| ["Compound_Rest","GitRepository","compound-finance/comet@f766f51583c23acc33b2a7824654ef2029a96804:deployments","BrowserDirect","RestJson"] | HttpUrl | https://raw.githubusercontent.com/compound-finance/comet/f766f51583c23acc33b2a7824654ef2029a96804/ | https://raw.githubusercontent.com | true |
 | ["Conseil_Postgres","SqlDataset","conseil","ServerOnly","Postgres"] | PostgresDsn | env:CONSEIL_DATABASE_URL |  |  |
 | ["Constants_Internal","Global","checked-in-catalog","BrowserDirect","CatalogRows"] | InProcess | src/constants/** |  |  |
 | ["CosmosAdrs_Github","GitRepository","cosmos/cosmos-sdk@main:docs/architecture","BrowserDirect","GithubContentsApi"] | HttpUrl | https://api.github.com | https://api.github.com | true |
@@ -1132,6 +1154,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["CosmosSdk_Rest","Caip2Network","cosmos:cosmoshub-4","BrowserDirect","RestJson"] | HttpUrl | https://rest.cosmos.directory/cosmoshub | https://rest.cosmos.directory | true |
 | ["CroissantDocument_Local","LocalDevice","croissant-document","LocalOnly","LocalParser"] | LocalFilePath | selected-file-or-artifact |  |  |
 | ["CronosExplorer","Global","cronos-explorer-api","HttpProxy","EtherscanModuleAction"] | HttpUrl | https://cronos.org/explorer/api | https://cronos.org | false |
+| ["Curve_Rest","Global","curve-api","BrowserDirect","RestJson"] | HttpUrl | https://api.curve.finance | https://api.curve.finance | true |
 | ["CycloneDxDocument_Local","LocalDevice","cyclonedx-document","LocalOnly","LocalParser"] | LocalFilePath | selected-file-or-artifact |  |  |
 | ["Defillama_Rest","Global","coins-public","HttpProxy","OpenApiHttp"] | HttpUrl | https://coins.llama.fi | https://coins.llama.fi | false |
 | ["Defillama_Rest","Global","chain-icons","HttpProxy","StaticWebsite"] | HttpUrl | https://icons.llama.fi | https://icons.llama.fi | false |
@@ -1177,6 +1200,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["EthereumSpecs_Github","GitRepository","ethereum/go-ethereum@master:params/config.go","BrowserDirect","GithubContentsApi"] | HttpUrl | https://raw.githubusercontent.com/ethereum/go-ethereum/master/params/config.go | https://raw.githubusercontent.com | true |
 | ["EthereumSpecs_Github","GitRepository","ethereum/execution-specs@8dbde99b65d519ea4c96084d784f85957e9314d0:network-upgrades/mainnet-upgrades","BrowserDirect","GithubContentsApi"] | HttpUrl | https://raw.githubusercontent.com/ethereum/execution-specs/8dbde99b65d519ea4c96084d784f85957e9314d0/network-upgrades/mainnet-upgrades/ | https://raw.githubusercontent.com | true |
 | ["Etherscan_Rest","Global","etherscan-v2","HttpProxy","EtherscanModuleAction"] | HttpUrl | https://api.etherscan.io/v2/api | https://api.etherscan.io | false |
+| ["Euler_Rest","Global","euler-v3-api","BrowserDirect","RestJson"] | HttpUrl | https://v3.euler.finance | https://v3.euler.finance | true |
 | ["Farcaster_Rest","Global","client-api","HttpProxy","RestJson"] | HttpUrl | https://api.farcaster.xyz | https://api.farcaster.xyz | false |
 | ["Farcaster_Rest","Global","web-api","HttpProxy","RestJson"] | HttpUrl | https://farcaster.xyz | https://farcaster.xyz | false |
 | ["FedimintClient_Rpc","LocalDevice","fedimint-client","LocalOnly","JsonRpcApi"] | HttpUrl | env:FEDIMINT_CLIENT_RPC_URL |  | false |
@@ -1191,6 +1215,12 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Git_Local","GitRepository","local-git-repository","LocalOnly","GitObject"] | LocalFilePath | {repository-path} |  |  |
 | ["Git_Remote","GitRepository","remote-git-repository","ServerOnly","GitObject"] | HttpUrl | https://{host}/{owner}/{repo}.git | https://{host} | false |
 | ["Gitlab_Rest","Global","gitlab-rest","HttpProxy","GitlabRestApi"] | HttpUrl | https://gitlab.com | https://gitlab.com | false |
+| ["Gmx_Rest","Eip155Chain","42161","BrowserDirect","RestJson"] | HttpUrl | https://arbitrum.gmxapi.io/v1 | https://arbitrum.gmxapi.io | true |
+| ["Gmx_Rest","Eip155Chain","42161","BrowserDirect","RestJson"] | HttpUrl | https://arbitrum.gmxapi.ai/v1 | https://arbitrum.gmxapi.ai | true |
+| ["Gmx_Rest","Eip155Chain","43114","BrowserDirect","RestJson"] | HttpUrl | https://avalanche.gmxapi.io/v1 | https://avalanche.gmxapi.io | true |
+| ["Gmx_Rest","Eip155Chain","43114","BrowserDirect","RestJson"] | HttpUrl | https://avalanche.gmxapi.ai/v1 | https://avalanche.gmxapi.ai | true |
+| ["Gmx_Rest","Eip155Chain","4326","BrowserDirect","RestJson"] | HttpUrl | https://megaeth.gmxapi.io/v1 | https://megaeth.gmxapi.io | true |
+| ["Gmx_Rest","Eip155Chain","4326","BrowserDirect","RestJson"] | HttpUrl | https://megaeth.gmxapi.ai/v1 | https://megaeth.gmxapi.ai | true |
 | ["GoldRushFoundational_Rest","Eip155Chain","1","HttpProxy","GoldRushFoundationalApi"] | HttpUrl | https://api.covalenthq.com | https://api.covalenthq.com | false |
 | ["GoogleAi_Rest","Global","google-ai-api","RemoteQuery","RestJson"] | HttpUrl | https://generativelanguage.googleapis.com | https://generativelanguage.googleapis.com | false |
 | ["HashConnect_WalletApi","LocalDevice","hashconnect","BrowserDirect","WalletApi"] | BrowserWalletProvider | hashconnect |  |  |
@@ -1299,6 +1329,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["PayjoinDirectory_Rest","Global","directory","HttpProxy","RestJson"] | HttpUrl | http://localhost:8080 | http://localhost:8080 | false |
 | ["PayjoinOhttpRelay_Http","Global","ohttp-relay","RemoteQuery","RestJson"] | HttpUrl | https://{payjoin-ohttp-relay-host} | https://{payjoin-ohttp-relay-host} | false |
 | ["PayjoinReceiver_Http","Global","receiver","RemoteQuery","RestJson"] | HttpUrl | https://{payjoin-receiver-host} | https://{payjoin-receiver-host} | false |
+| ["Pendle_Rest","Global","pendle-api","BrowserDirect","RestJson"] | HttpUrl | https://api-v2.pendle.finance/core | https://api-v2.pendle.finance | true |
 | ["Petra_WalletApi","LocalDevice","petra","BrowserDirect","WalletApi"] | BrowserWalletProvider | petra |  |  |
 | ["Piped_Rest","Global","piped-api","BrowserDirect","RestJson"] | HttpUrl | https://api.piped.private.coffee | https://api.piped.private.coffee | true |
 | ["PlugWallet_WalletApi","LocalDevice","plug-wallet","BrowserDirect","WalletApi"] | BrowserWalletProvider | plug |  |  |
@@ -1756,6 +1787,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Atproto_BskySocial_Xrpc","Global","bsky-social-appview","HttpProxy","XrpcLexicon"] | Lexicon | src/sources/_shared/interfaces/BskyAppViewXrpc/Lexicon | no |  |  |
 | ["Atproto_Xrpc","Global","bsky-public-appview","HttpProxy","XrpcLexicon"] | GenerationManifest | src/sources/_shared/interfaces/BskyAppViewXrpc/Lexicon/schema-source.ts | no |  |  |
 | ["Atproto_Xrpc","Global","bsky-public-appview","HttpProxy","XrpcLexicon"] | Lexicon | src/sources/_shared/interfaces/BskyAppViewXrpc/Lexicon | no |  |  |
+| ["Balancer_Rest","Global","balancer-api-v3","BrowserDirect","GraphqlHttp"] | HandwrittenTypes | src/sources/Balancer/Rest/types.ts | no |  | https://docs.balancer.fi/data-and-analytics/data-and-analytics/balancer-api/balancer-api.html |
 | ["Beacon_Rest","Eip155Chain","1","BrowserDirect","EthereumBeaconRest"] | GenerationManifest | src/sources/Beacon/OpenApi/schema-source.ts | no |  |  |
 | ["Beacon_Rest","Eip155Chain","1","BrowserDirect","EthereumBeaconRest"] | OpenApiSpec | src/sources/Beacon/OpenApi/beacon-node-oapi.yaml | no |  |  |
 | ["Beacon_Rest","Eip155Chain","1","BrowserDirect","EthereumBeaconRest"] | OpenApiTypes | src/sources/Beacon/OpenApi/openapi.d.ts | yes |  |  |
@@ -1832,7 +1864,9 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Coinpaprika_Rest","Global","free-api","HttpProxy","OpenApiHttp"] | OpenApiSpec | src/sources/Coinpaprika/OpenApi/openapi.yml | no |  |  |
 | ["Coinpaprika_Rest","Global","free-api","HttpProxy","OpenApiHttp"] | OpenApiTypes | src/sources/Coinpaprika/OpenApi/openapi.d.ts | yes |  |  |
 | ["CometBft_Rest","Caip2Network","cosmos:cosmoshub-4","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/CometBft/Rest/types.ts | no |  |  |
+| ["Compound_Rest","GitRepository","compound-finance/comet@f766f51583c23acc33b2a7824654ef2029a96804:deployments","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Compound/Rest/types.ts | no |  | https://docs.compound.finance/ |
 | ["CosmosSdk_Rest","Caip2Network","cosmos:cosmoshub-4","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/CosmosSdk/Rest/types.ts | no |  |  |
+| ["Curve_Rest","Global","curve-api","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Curve/Rest/types.ts | no |  | https://api.curve.finance/v1/documentation/ |
 | ["Defillama_Rest","Global","coins-public","HttpProxy","OpenApiHttp"] | GenerationManifest | src/sources/Defillama/OpenApi/schema-source.ts | no |  |  |
 | ["Defillama_Rest","Global","coins-public","HttpProxy","OpenApiHttp"] | OpenApiSpec | src/sources/Defillama/OpenApi/openapi.json | no |  |  |
 | ["Defillama_Rest","Global","coins-public","HttpProxy","OpenApiHttp"] | OpenApiTypes | src/sources/Defillama/OpenApi/openapi.d.ts | yes |  |  |
@@ -1895,11 +1929,15 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Erigon_JsonRpc","LocalDevice","erigon-node","LocalOnly","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | ["EthereumLists_Rest","Global","chains-json","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/EthereumLists/Rest/types.ts | no |  |  |
 | ["Etherscan_Rest","Global","etherscan-v2","HttpProxy","EtherscanModuleAction"] | HandwrittenTypes | src/sources/Etherscan/Rest/types.ts | no |  |  |
+| ["Euler_Rest","Global","euler-v3-api","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Euler/Rest/types.ts | no |  | https://docs.euler.finance/developers/data-querying/euler-v3-api |
 | ["Farcaster_Rest","Global","client-api","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/Farcaster/Rest/types.ts | no |  |  |
 | ["Filfox_Rest","Global","api","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Filfox/Rest/types.ts | no |  |  |
 | ["GetBlockRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
 | ["GetBlockRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | ["GetBlockYellowstone_Grpc","Caip2Network","solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp","RemoteLive","GrpcService"] | HandwrittenTypes | src/sources/GetBlock/Yellowstone/types.ts | no |  | https://getblock.io/docs/yellowstone-grpc/ |
+| ["Gmx_Rest","Eip155Chain","42161","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Gmx/Rest/types.ts | no |  | https://docs.gmx.io/docs/api/overview/ |
+| ["Gmx_Rest","Eip155Chain","43114","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Gmx/Rest/types.ts | no |  | https://docs.gmx.io/docs/api/overview/ |
+| ["Gmx_Rest","Eip155Chain","4326","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Gmx/Rest/types.ts | no |  | https://docs.gmx.io/docs/api/overview/ |
 | ["GoldRushFoundational_Rest","Eip155Chain","1","HttpProxy","GoldRushFoundationalApi"] | HandwrittenTypes | src/sources/Covalent/GoldRush/Rest/types.ts | no |  | https://goldrush.dev/docs/skills/goldrush-foundational-api/references/endpoints-transactions/ |
 | ["HederaSdk_Grpc","Caip2Network","hedera:mainnet","ServerOnly","GrpcService"] | GenerationManifest | src/sources/HederaSdk/Grpc/schema-source.ts | no |  |  |
 | ["HederaSdk_Grpc","Caip2Network","hedera:mainnet","ServerOnly","GrpcService"] | Proto | src/sources/HederaSdk/Grpc/proto | no |  |  |
@@ -1964,6 +2002,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Pathfinder","NetworkSlug","starknet","LocalOnly","StarknetJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/schema-source.ts | no |  |  |
 | ["Pathfinder","NetworkSlug","starknet","LocalOnly","StarknetJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/openrpc.json | no |  |  |
 | ["PayjoinDirectory_Rest","Global","directory","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/Payjoin/Directory/Rest/queries.ts | no |  |  |
+| ["Pendle_Rest","Global","pendle-api","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Pendle/Rest/types.ts | no |  | https://docs.pendle.finance/pendle-v2-dev/Backend/ApiOverview |
 | ["Piped_Rest","Global","piped-api","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Piped/Rest/types.ts | no |  |  |
 | ["Polkadot_JsonRpc","Caip2Network","polkadot:91b171bb158e2d3848fa23a9f1c25182","BrowserDirect","SubstrateJsonRpc"] | HandwrittenTypes | src/sources/Polkadot/JsonRpc/types.ts | no |  |  |
 | ["Primal_Rest","Global","primal-api","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/Primal/Rest/types.ts | no |  |  |

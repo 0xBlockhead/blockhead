@@ -1,3 +1,5 @@
+// Generated from APP.ts.
+
 import bindings from '$/sources/Compound/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
@@ -8,7 +10,7 @@ export default {
 	label: 'Compound',
 	sources: {
 		[Source.Compound_Rest]: {
-			label: 'Compound III deployment artifacts',
+			label: 'Compound comet deployments',
 		},
 	},
 	bindings,

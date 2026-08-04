@@ -1,12 +1,10 @@
-import {
-	gmxApiDeployments,
-} from '$/sources/Gmx/Rest/constants.ts'
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
 	genericReadOperationGroups,
 	indexSourceBindings,
-	mapSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
@@ -30,25 +28,62 @@ const gmxRestBindingAxes = {
 	],
 } as const
 
-export default indexSourceBindings(mapSourceBindings(
-	gmxApiDeployments,
-	(deployment) => ({
+export default indexSourceBindings([
+	{
 		...gmxRestBindingAxes,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
-			key: deployment.key,
+			key: '42161',
 		},
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: deployment.apiBaseUrl,
+				locator: 'https://arbitrum.gmxapi.io/v1',
 				corsEnabled: true,
 			},
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: deployment.peerApiBaseUrl,
+				locator: 'https://arbitrum.gmxapi.ai/v1',
 				corsEnabled: true,
 			},
 		],
-	})
-))
+	},
+	{
+		...gmxRestBindingAxes,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '43114',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://avalanche.gmxapi.io/v1',
+				corsEnabled: true,
+			},
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://avalanche.gmxapi.ai/v1',
+				corsEnabled: true,
+			},
+		],
+	},
+	{
+		...gmxRestBindingAxes,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '4326',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://megaeth.gmxapi.io/v1',
+				corsEnabled: true,
+			},
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://megaeth.gmxapi.ai/v1',
+				corsEnabled: true,
+			},
+		],
+	},
+])

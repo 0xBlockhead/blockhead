@@ -1,3 +1,5 @@
+// Generated from APP.ts.
+
 import bindings from '$/sources/Euler/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
@@ -8,7 +10,7 @@ export default {
 	label: 'Euler',
 	sources: {
 		[Source.Euler_Rest]: {
-			label: 'Euler Data v3 REST API',
+			label: 'Euler v3 API',
 		},
 	},
 	bindings,

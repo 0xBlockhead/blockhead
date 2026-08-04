@@ -205,6 +205,7 @@ export enum Source {
 	AwsBedrock_Rest = "AwsBedrock_Rest",
 	Axelarscan_Rest = "Axelarscan_Rest",
 	AzureAiFoundry_Rest = "AzureAiFoundry_Rest",
+	Balancer_Rest = "Balancer_Rest",
 	Beacon_Rest = "Beacon_Rest",
 	BeaconchaIn_Rest = "BeaconchaIn_Rest",
 	BitcoinBips_Github = "BitcoinBips_Github",
@@ -242,6 +243,7 @@ export enum Source {
 	CoinMarketCap_Rest = "CoinMarketCap_Rest",
 	Coinpaprika_Rest = "Coinpaprika_Rest",
 	CometBft_Rest = "CometBft_Rest",
+	Compound_Rest = "Compound_Rest",
 	Conseil_Postgres = "Conseil_Postgres",
 	Constants_Internal = "Constants_Internal",
 	CosmosAdrs_Github = "CosmosAdrs_Github",
@@ -249,6 +251,7 @@ export enum Source {
 	CosmosSdk_Rest = "CosmosSdk_Rest",
 	CroissantDocument_Local = "CroissantDocument_Local",
 	CronosExplorer = "CronosExplorer",
+	Curve_Rest = "Curve_Rest",
 	CycloneDxDocument_Local = "CycloneDxDocument_Local",
 	Defillama_Rest = "Defillama_Rest",
 	Dexscreener_Rest = "Dexscreener_Rest",
@@ -271,6 +274,7 @@ export enum Source {
 	EthereumLists_Rest = "EthereumLists_Rest",
 	EthereumSpecs_Github = "EthereumSpecs_Github",
 	Etherscan_Rest = "Etherscan_Rest",
+	Euler_Rest = "Euler_Rest",
 	Farcaster_Rest = "Farcaster_Rest",
 	FedimintClient_Rpc = "FedimintClient_Rpc",
 	FedimintGatewayd_Rest = "FedimintGatewayd_Rest",
@@ -283,6 +287,7 @@ export enum Source {
 	Git_Local = "Git_Local",
 	Git_Remote = "Git_Remote",
 	Gitlab_Rest = "Gitlab_Rest",
+	Gmx_Rest = "Gmx_Rest",
 	GoldRushFoundational_Rest = "GoldRushFoundational_Rest",
 	GoogleAi_Rest = "GoogleAi_Rest",
 	HashConnect_WalletApi = "HashConnect_WalletApi",
@@ -364,6 +369,7 @@ export enum Source {
 	PayjoinDirectory_Rest = "PayjoinDirectory_Rest",
 	PayjoinOhttpRelay_Http = "PayjoinOhttpRelay_Http",
 	PayjoinReceiver_Http = "PayjoinReceiver_Http",
+	Pendle_Rest = "Pendle_Rest",
 	Petra_WalletApi = "Petra_WalletApi",
 	Piped_Rest = "Piped_Rest",
 	PlugWallet_WalletApi = "PlugWallet_WalletApi",
@@ -485,6 +491,7 @@ export enum SourceProvider {
 	AwsBedrock = "AwsBedrock",
 	Axelarscan = "Axelarscan",
 	AzureAiFoundry = "AzureAiFoundry",
+	Balancer = "Balancer",
 	Beacon = "Beacon",
 	BeaconchaIn = "BeaconchaIn",
 	BitcoinBips = "BitcoinBips",
@@ -517,12 +524,14 @@ export enum SourceProvider {
 	CoinMarketCap = "CoinMarketCap",
 	Coinpaprika = "Coinpaprika",
 	CometBft = "CometBft",
+	Compound = "Compound",
 	Conseil = "Conseil",
 	CosmosAdrs = "CosmosAdrs",
 	CosmosChainRegistry = "CosmosChainRegistry",
 	CosmosSdk = "CosmosSdk",
 	Covalent = "Covalent",
 	CronosExplorer = "CronosExplorer",
+	Curve = "Curve",
 	CycloneDx = "CycloneDx",
 	Defillama = "Defillama",
 	Dexscreener = "Dexscreener",
@@ -544,6 +553,7 @@ export enum SourceProvider {
 	EthereumLists = "EthereumLists",
 	EthereumSpecs = "EthereumSpecs",
 	Etherscan = "Etherscan",
+	Euler = "Euler",
 	Farcaster = "Farcaster",
 	FedimintClient = "FedimintClient",
 	FedimintGatewayd = "FedimintGatewayd",
@@ -555,6 +565,7 @@ export enum SourceProvider {
 	GetBlock = "GetBlock",
 	Git = "Git",
 	Gitlab = "Gitlab",
+	Gmx = "Gmx",
 	GoogleAi = "GoogleAi",
 	HashConnect = "HashConnect",
 	HederaMirrorNode = "HederaMirrorNode",
@@ -626,6 +637,7 @@ export enum SourceProvider {
 	Osmosis = "Osmosis",
 	Pathfinder = "Pathfinder",
 	Payjoin = "Payjoin",
+	Pendle = "Pendle",
 	Petra = "Petra",
 	Piped = "Piped",
 	PlugWallet = "PlugWallet",
@@ -1305,6 +1317,7 @@ export enum EntityType {
 	AvalancheSubnet_Timestamp = "AvalancheSubnet_Timestamp",
 	AvalancheValidator = "AvalancheValidator",
 	AvalancheValidator_Timestamp = "AvalancheValidator_Timestamp",
+	BalancerPool = "BalancerPool",
 	BeaconAttestation = "BeaconAttestation",
 	BeaconCommittee = "BeaconCommittee",
 	BeaconEpoch = "BeaconEpoch",
@@ -1534,6 +1547,8 @@ export enum EntityType {
 	Coin_Timestamp = "Coin_Timestamp",
 	CoinBridgeCapability = "CoinBridgeCapability",
 	ComplianceModule = "ComplianceModule",
+	CompoundComet = "CompoundComet",
+	CompoundCometAsset = "CompoundCometAsset",
 	ContractInterfaceMember = "ContractInterfaceMember",
 	CosmosAccount = "CosmosAccount",
 	CosmosAccount_Timestamp = "CosmosAccount_Timestamp",
@@ -1550,6 +1565,7 @@ export enum EntityType {
 	CronosNetworkProfile = "CronosNetworkProfile",
 	Currency = "Currency",
 	Currency_Timestamp = "Currency_Timestamp",
+	CurvePool = "CurvePool",
 	DogecoinAuxPowMerkleBranch = "DogecoinAuxPowMerkleBranch",
 	DogecoinAuxPowParentBlockHeader = "DogecoinAuxPowParentBlockHeader",
 	DogecoinBlockAuxPow = "DogecoinBlockAuxPow",
@@ -1611,6 +1627,7 @@ export enum EntityType {
 	EthereumConsensusUpgrade = "EthereumConsensusUpgrade",
 	EthereumExecutionUpgrade = "EthereumExecutionUpgrade",
 	EthereumNetworkUpgrade = "EthereumNetworkUpgrade",
+	EulerEvkVault = "EulerEvkVault",
 	EvmAccount = "EvmAccount",
 	EvmActorCoinAllowance = "EvmActorCoinAllowance",
 	EvmActorCoinAllowance_Block = "EvmActorCoinAllowance_Block",
@@ -1700,6 +1717,7 @@ export enum EntityType {
 	GitTree = "GitTree",
 	GitTreeEntry = "GitTreeEntry",
 	GitTreePathResolution = "GitTreePathResolution",
+	GmxMarket = "GmxMarket",
 	HederaAccount = "HederaAccount",
 	HederaAccount_Timestamp = "HederaAccount_Timestamp",
 	HederaAllowance = "HederaAllowance",
@@ -1908,6 +1926,7 @@ export enum EntityType {
 	PayjoinEndpoint_Timestamp = "PayjoinEndpoint_Timestamp",
 	Payout = "Payout",
 	PayoutClaim_Timestamp = "PayoutClaim_Timestamp",
+	PendleMarket = "PendleMarket",
 	PolkadotAccount = "PolkadotAccount",
 	PolkadotAccount_Timestamp = "PolkadotAccount_Timestamp",
 	PolkadotAsset = "PolkadotAsset",
@@ -2115,6 +2134,7 @@ export enum EntityType {
 	UtxoOutput = "UtxoOutput",
 	UtxoTransaction = "UtxoTransaction",
 	WalletConnectionMethod = "WalletConnectionMethod",
+	WormholeVaa = "WormholeVaa",
 	XmtpConversation = "XmtpConversation",
 	XmtpNetwork = "XmtpNetwork",
 	XNetwork = "XNetwork",
@@ -12031,6 +12051,52 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.BalancerPool,
+				labels: {
+					singular: "Balancer pool",
+					plural: "Balancer pools",
+				},
+				description: "A Balancer v2/v3 pool identified by EIP-155 network + native pool id (v2 bytes32 poolId, v3 pool address), with Vault accounting per docs.balancer.fi.",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"poolId": { label: "Pool ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"address": { label: "Address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Balancer_Rest] },
+				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Balancer_Rest] },
+				"poolType": { label: "Pool type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Balancer_Rest] },
+				"version": { label: "Version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Balancer_Rest] },
+				"protocolVersion": { label: "Protocol version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Balancer_Rest] },
+				"vaultAddress": { label: "Vault address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Balancer_Rest] },
+				"swapFee": { label: "Swap fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Balancer_Rest] },
+				"totalLiquidity": { label: "Total liquidity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Balancer_Rest] },
+				"totalShares": { label: "Total shares", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Balancer_Rest] },
+			})({
+				selectors: {
+					"NetworkPoolId": ["$network", "poolId"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Balancer_Rest],
+						},
+						summary: {
+							title: ["name"],
+							value: ["poolType", "totalLiquidity"],
+							HeadingAfter: ["$network"],
+						},
+						closed: ["name", "poolType"],
+						content: {
+							dl: [
+								["$network", { field: "address", format: "address" }, "poolId", "name"],
+								["poolType", "version", "protocolVersion", { field: "vaultAddress", format: "address" }],
+								["swapFee", "totalLiquidity", "totalShares"],
+							],
+						},
+					},
+					plural: { component: "BalancerPoolsView", title: "Balancer pools" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.BeaconAttestation,
 				labels: {
 					singular: "beacon attestation",
@@ -20432,7 +20498,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Lifi_Rest, Source.Allium_Rest, Source.Dune_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.Across_Rest, Source.Lifi_Rest, Source.Allium_Rest, Source.Dune_Rest, Source.Voltaire_JsonRpc],
 							fields: ["transferId"],
 							openFields: ["logIndex", "amountIn", "amountOut", "railId", "settlementModel", "verificationModel", "assetOutcome"],
 						},
@@ -24151,6 +24217,102 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.CompoundComet,
+				labels: {
+					singular: "Compound Comet market",
+					plural: "Compound Comet markets",
+				},
+				description: "A Compound III Comet money market on an EIP-155 network, identified by its proxy contract address.",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"cometAddress": { label: "Comet address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"marketSlug": { label: "Market slug", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Compound_Rest] },
+				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Compound_Rest] },
+				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Compound_Rest] },
+				"baseTokenSymbol": { label: "Base token symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Compound_Rest] },
+				"baseTokenAddress": { label: "Base token address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
+				"baseTokenPriceFeedAddress": { label: "Base token price feed address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
+				"collateralAssetCount": { label: "Collateral asset count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Compound_Rest] },
+				"$$assets": { label: "Collateral assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CompoundCometAsset, defaultSources: [Source.Compound_Rest] },
+				"borrowMin": { label: "Minimum borrow", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Compound_Rest] },
+				"targetReserves": { label: "Target reserves", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Compound_Rest] },
+				"governorAddress": { label: "Governor address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
+				"pauseGuardianAddress": { label: "Pause guardian address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
+				"configuratorAddress": { label: "Configurator address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
+				"rewardsAddress": { label: "Rewards address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
+				"bulkerAddress": { label: "Bulker address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
+			})({
+				selectors: {
+					"NetworkCometAddress": ["$network", "cometAddress"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Compound_Rest],
+						},
+						summary: {
+							title: ["name"],
+							value: ["baseTokenSymbol", "collateralAssetCount"],
+							HeadingAfter: ["$network"],
+						},
+						closed: ["name", { field: "cometAddress", format: "address" }],
+						content: {
+							dl: [
+								["$network", { field: "cometAddress", format: "address" }, "name", "symbol", "marketSlug"],
+								["baseTokenSymbol", { field: "baseTokenAddress", format: "address" }, { field: "baseTokenPriceFeedAddress", format: "address" }, "collateralAssetCount"],
+								["borrowMin", "targetReserves", { field: "governorAddress", format: "address" }, { field: "pauseGuardianAddress", format: "address" }, { field: "configuratorAddress", format: "address" }, { field: "rewardsAddress", format: "address" }, { field: "bulkerAddress", format: "address" }],
+							],
+						},
+						lists: [
+							{ field: "$$assets", component: "CompoundCometAssetsView", label: "Collateral assets", emptyText: "No collateral assets." },
+						],
+					},
+					plural: { component: "CompoundCometsView", title: "Compound Comet markets" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.CompoundCometAsset,
+				labels: {
+					singular: "Compound Comet collateral asset",
+					plural: "Compound Comet collateral assets",
+				},
+				description: "A collateral asset configured on a Compound III Comet market, from official deployment configuration.json.",
+			})({
+				"$comet": { label: "Comet market", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CompoundComet },
+				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"tokenAddress": { label: "Token address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
+				"priceFeedAddress": { label: "Price feed address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
+				"decimals": { label: "Decimals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Compound_Rest] },
+				"borrowCF": { label: "Borrow collateral factor", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Compound_Rest] },
+				"liquidateCF": { label: "Liquidation collateral factor", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Compound_Rest] },
+				"liquidationFactor": { label: "Liquidation factor", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Compound_Rest] },
+				"supplyCap": { label: "Supply cap", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Compound_Rest] },
+			})({
+				selectors: {
+					"CometAssetSymbol": ["$comet", "symbol"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Compound_Rest],
+						},
+						summary: {
+							title: ["symbol"],
+							value: ["borrowCF", "liquidateCF"],
+						},
+						content: {
+							dl: [
+								["$comet", "symbol", { field: "tokenAddress", format: "address" }, { field: "priceFeedAddress", format: "address" }, "decimals"],
+								["borrowCF", "liquidateCF", "liquidationFactor", "supplyCap"],
+							],
+						},
+					},
+					plural: { component: "CompoundCometAssetsView", title: "Compound Comet collateral assets" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.ContractInterfaceMember,
 				labels: {
 					singular: "contract interface member",
@@ -24825,6 +24987,56 @@ export const schema = {
 					},
 					plural: { component: "Currency_TimestampsView",
 					},
+				},
+			}),
+
+			entity({
+				entityType: EntityType.CurvePool,
+				labels: {
+					singular: "Curve pool",
+					plural: "Curve pools",
+				},
+				description: "A Curve Finance liquidity pool on an EIP-155 network, identified by its pool contract address (protocol-native; not a generic LiquidityPool).",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"poolAddress": { label: "Pool address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Curve_Rest] },
+				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Curve_Rest] },
+				"registryId": { label: "Registry ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Curve_Rest] },
+				"lpTokenAddress": { label: "LP token address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Curve_Rest] },
+				"virtualPrice": { label: "Virtual price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Curve_Rest] },
+				"amplificationCoefficient": { label: "Amplification coefficient", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Curve_Rest] },
+				"totalSupply": { label: "Total supply", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Curve_Rest] },
+				"usdTotal": { label: "Total value (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"isMetaPool": { label: "Is meta pool", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Curve_Rest] },
+				"gaugeAddress": { label: "Gauge address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Curve_Rest] },
+				"assetTypeName": { label: "Asset type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Curve_Rest] },
+				"creationBlockNumber": { label: "Creation block number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"creationTs": { label: "Creation timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+			})({
+				selectors: {
+					"NetworkPoolAddress": ["$network", "poolAddress"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Curve_Rest],
+						},
+						summary: {
+							title: ["name", "symbol"],
+							value: ["virtualPrice", "usdTotal"],
+							HeadingAfter: ["$network"],
+						},
+						closed: ["name", { field: "poolAddress", format: "address" }],
+						content: {
+							dl: [
+								["$network", { field: "poolAddress", format: "address" }, "name", "symbol", "registryId"],
+								[{ field: "lpTokenAddress", format: "address" }, "virtualPrice", "amplificationCoefficient", "totalSupply", { field: "usdTotal", format: "number" }],
+								["isMetaPool", "assetTypeName", { field: "gaugeAddress", format: "address" }, { field: "creationBlockNumber", format: "number" }, { field: "creationTs", format: "timestamp" }],
+							],
+						},
+					},
+					plural: { component: "CurvePoolsView", title: "Curve pools" },
 				},
 			}),
 
@@ -28066,6 +28278,62 @@ export const schema = {
 							limit: 512,
 						},
 					},
+				},
+			}),
+
+			entity({
+				entityType: EntityType.EulerEvkVault,
+				labels: {
+					singular: "Euler EVK vault",
+					plural: "Euler EVK vaults",
+				},
+				description: "An Euler v2 EVK (Euler Vault Kit) lending vault on an EIP-155 network, identified by vault contract address.",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"vaultAddress": { label: "Vault address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Euler_Rest] },
+				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Euler_Rest] },
+				"decimals": { label: "Decimals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Euler_Rest] },
+				"assetAddress": { label: "Asset address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Euler_Rest] },
+				"assetSymbol": { label: "Asset symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Euler_Rest] },
+				"totalAssets": { label: "Total assets", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Euler_Rest] },
+				"totalBorrows": { label: "Total borrows", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Euler_Rest] },
+				"totalSupplyUsd": { label: "Total supply (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Euler_Rest] },
+				"totalBorrowsUsd": { label: "Total borrows (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Euler_Rest] },
+				"utilization": { label: "Utilization", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Euler_Rest] },
+				"supplyApy": { label: "Supply APY", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Euler_Rest] },
+				"borrowApy": { label: "Borrow APY", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Euler_Rest] },
+				"createdAt": { label: "Created at", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Euler_Rest] },
+				"dTokenAddress": { label: "Debt token address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Euler_Rest] },
+				"oracleAddress": { label: "Oracle address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Euler_Rest] },
+				"governorAddress": { label: "Governor address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Euler_Rest] },
+				"supplyCap": { label: "Supply cap", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Euler_Rest] },
+				"borrowCap": { label: "Borrow cap", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Euler_Rest] },
+				"interestFee": { label: "Interest fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Euler_Rest] },
+			})({
+				selectors: {
+					"NetworkVaultAddress": ["$network", "vaultAddress"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Euler_Rest],
+						},
+						summary: {
+							title: ["name", "symbol"],
+							value: ["totalAssets", "utilization"],
+							HeadingAfter: ["$network"],
+						},
+						closed: ["name", { field: "vaultAddress", format: "address" }],
+						content: {
+							dl: [
+								["$network", { field: "vaultAddress", format: "address" }, "name", "symbol", "decimals"],
+								[{ field: "assetAddress", format: "address" }, "assetSymbol", "totalAssets", "totalBorrows", "utilization"],
+								["supplyApy", "borrowApy", "supplyCap", "borrowCap", "interestFee", { field: "dTokenAddress", format: "address" }, { field: "oracleAddress", format: "address" }, { field: "governorAddress", format: "address" }, "createdAt"],
+							],
+						},
+					},
+					plural: { component: "EulerEvkVaultsView", title: "Euler EVK vaults" },
 				},
 			}),
 
@@ -34831,6 +35099,54 @@ export const schema = {
 						content: { dl: [["$repository", { field: "commitObjectId", format: "truncated" }, "path", "treeObjectIds", { field: "blobObjectId", format: "truncated" }, { field: "submoduleCommitId", format: "truncated" }, "status"]] },
 					},
 					plural: { component: "GitTreePathResolutionsView", title: "Git tree path resolutions", },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.GmxMarket,
+				labels: {
+					singular: "GMX market",
+					plural: "GMX markets",
+				},
+				description: "A GMX V2 perpetual or spot market on an EIP-155 network, identified by its GM market token address.",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"marketTokenAddress": { label: "Market token address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Gmx_Rest] },
+				"indexTokenAddress": { label: "Index token address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Gmx_Rest] },
+				"longTokenAddress": { label: "Long token address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Gmx_Rest] },
+				"shortTokenAddress": { label: "Short token address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Gmx_Rest] },
+				"isSpotOnly": { label: "Spot only", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.Gmx_Rest] },
+				"isDisabled": { label: "Disabled", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.Gmx_Rest] },
+				"longInterestUsd": { label: "Long open interest (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Gmx_Rest] },
+				"shortInterestUsd": { label: "Short open interest (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Gmx_Rest] },
+				"longPoolAmount": { label: "Long pool amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Gmx_Rest] },
+				"shortPoolAmount": { label: "Short pool amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Gmx_Rest] },
+				"fundingFactorPerSecond": { label: "Funding factor per second", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Gmx_Rest] },
+			})({
+				selectors: {
+					"NetworkMarketTokenAddress": ["$network", "marketTokenAddress"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Gmx_Rest],
+						},
+						summary: {
+							title: ["name"],
+							value: ["longInterestUsd", "shortInterestUsd"],
+							HeadingAfter: ["$network"],
+						},
+						closed: ["name", "isSpotOnly"],
+						content: {
+							dl: [
+								["$network", { field: "marketTokenAddress", format: "address" }, "name", "isSpotOnly", "isDisabled"],
+								[{ field: "indexTokenAddress", format: "address" }, { field: "longTokenAddress", format: "address" }, { field: "shortTokenAddress", format: "address" }],
+								["longInterestUsd", "shortInterestUsd", "longPoolAmount", "shortPoolAmount", "fundingFactorPerSecond"],
+							],
+						},
+					},
+					plural: { component: "GmxMarketsView", title: "GMX markets" },
 				},
 			}),
 
@@ -46968,6 +47284,7 @@ export const schema = {
 						"$$erc4337AccountFactories": { label: "ERC-4337 account factories", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Erc4337AccountFactory },
 						"$$userOperations": { label: "User operations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmUserOperation, defaultSources: [Source.Blockscout_Rest] },
 						"$$aaveMarkets": { label: "Aave markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AaveMarket, defaultSources: [Source.Aave_Rest] },
+						"$$balancerPools": { label: "Balancer pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BalancerPool, defaultSources: [Source.Balancer_Rest] },
 						"$$bridges": { label: "Bridges", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkBridge, defaultSources: [Source.Chainlist_Rest, Source.EthereumLists_Rest] },
 						"$$erc20TokenTransfers": { label: "ERC-20 token transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTokenTransfer, defaultSources: [Source.Blockscout_Rest] },
 						"$$nftTokenTransfers": { label: "NFT token transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTokenTransfer, defaultSources: [Source.Blockscout_Rest] },
@@ -47193,6 +47510,7 @@ export const schema = {
 									className: "network-view-collapsible-defi",
 									sections: [
 										{ id: "evm-defi-aave-markets", field: ["Evm", "$$aaveMarkets"], List: "AaveMarketsView", label: "Aave markets", emptyText: "No Aave markets.", selection: { sources: [Source.Aave_Rest], limit: 16 } },
+										{ id: "evm-defi-balancer-pools", field: ["Evm", "$$balancerPools"], List: "BalancerPoolsView", label: "Balancer pools", emptyText: "No Balancer pools.", selection: { sources: [Source.Balancer_Rest], limit: 16 } },
 									],
 								},
 							],
@@ -49965,6 +50283,64 @@ export const schema = {
 						content: { dl: [["$payout", "$account", { field: "timestampMs", format: "timestamp" }, "source"], ["eligibleAmount", "claimedAmount", "claimStatus", "proofHash", "$claimTransaction", { field: "expiresAt", format: "timestamp" }], ["error"]] },
 					},
 					plural: { component: "PayoutClaim_TimestampsView", title: "Payout claim observations", },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.PendleMarket,
+				labels: {
+					singular: "Pendle market",
+					plural: "Pendle markets",
+				},
+				description: "A Pendle V2 yield-trading market on an EIP-155 network, identified by its market contract address (PT/YT/SY split around a standardized yield token).",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"marketAddress": { label: "Market address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Pendle_Rest] },
+				"protocol": { label: "Protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Pendle_Rest] },
+				"icon": { label: "Icon", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Pendle_Rest] },
+				"expiryTimestampMs": { label: "Expiry", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Pendle_Rest] },
+				"ptAddress": { label: "PT address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Pendle_Rest] },
+				"ytAddress": { label: "YT address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Pendle_Rest] },
+				"syAddress": { label: "SY address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Pendle_Rest] },
+				"underlyingAssetAddress": { label: "Underlying asset address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Pendle_Rest] },
+				"impliedApy": { label: "Implied APY", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Pendle_Rest] },
+				"underlyingApy": { label: "Underlying APY", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Pendle_Rest] },
+				"totalTvlUsd": { label: "Total TVL (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Pendle_Rest] },
+				"liquidityUsd": { label: "Liquidity (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Pendle_Rest] },
+				"tradingVolumeUsd": { label: "Trading volume (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Pendle_Rest] },
+				"feeRate": { label: "Fee rate", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Pendle_Rest] },
+				"totalPt": { label: "Total PT", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Pendle_Rest] },
+				"totalSy": { label: "Total SY", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Pendle_Rest] },
+				"totalSupply": { label: "Total supply", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Pendle_Rest] },
+				"isPrime": { label: "Prime", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.Pendle_Rest] },
+				"isNew": { label: "New", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.Pendle_Rest] },
+				"observedAtTimestampMs": { label: "Observed at", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Pendle_Rest] },
+			})({
+				selectors: {
+					"NetworkMarketAddress": ["$network", "marketAddress"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Pendle_Rest],
+						},
+						summary: {
+							title: ["name"],
+							value: ["impliedApy", "underlyingApy"],
+							HeadingAfter: ["$network"],
+						},
+						closed: ["name", { field: "expiryTimestampMs", format: "timestamp" }],
+						content: {
+							dl: [
+								["$network", { field: "marketAddress", format: "address" }, "name", "protocol", { field: "expiryTimestampMs", format: "timestamp" }],
+								[{ field: "ptAddress", format: "address" }, { field: "ytAddress", format: "address" }, { field: "syAddress", format: "address" }, { field: "underlyingAssetAddress", format: "address" }],
+								["impliedApy", "underlyingApy", "totalTvlUsd", "liquidityUsd", "tradingVolumeUsd", "feeRate"],
+								["totalPt", "totalSy", "totalSupply", "isPrime", "isNew", { field: "observedAtTimestampMs", format: "timestamp" }],
+							],
+						},
+					},
+					plural: { component: "PendleMarketsView", title: "Pendle markets" },
 				},
 			}),
 
@@ -63915,6 +64291,46 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.WormholeVaa,
+				labels: {
+					singular: "Wormhole VAA",
+					plural: "Wormhole VAAs",
+				},
+			})({
+				"emitterChain": { label: "Emitter chain", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"emitter": { label: "Emitter", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"sequence": { label: "Sequence", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"digest": { label: "Digest", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"guardianSetIndex": { label: "Guardian set index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"emitterNativeAddr": { label: "Emitter native address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"timestamp": { label: "Timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"txHash": { label: "Transaction hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
+			})({
+				selectors: {
+					"EmitterChainEmitterSequence": ["emitterChain", "emitter", "sequence"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Wormholescan],
+						},
+						summary: {
+							title: ["digest"],
+							value: ["emitterChain", "sequence"],
+						},
+						closed: ["emitterChain", "emitter", "sequence"],
+						content: {
+							dl: [
+								["emitterChain", "emitter", "sequence", "digest", "guardianSetIndex"],
+								["emitterNativeAddr", { field: "timestamp", format: "timestamp" }, { field: "txHash", format: "hash" }],
+							],
+						},
+					},
+					plural: { component: "WormholeVaasView", title: "Wormhole VAAs" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.XmtpConversation,
 				labels: {
 					singular: "XMTP conversation",
@@ -68018,6 +68434,13 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#avalanchevalidator_timestamp",
 			},
 		},
+		[EntityType.BalancerPool]: {
+			"NetworkPoolId": {
+				kind: "Research",
+				decision: "Retain BalancerPool.NetworkPoolId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#balancerpool",
+			},
+		},
 		[EntityType.BeaconValidator]: {
 			"NetworkPubkey": {
 				kind: "Research",
@@ -69407,6 +69830,20 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#compliancemodule",
 			},
 		},
+		[EntityType.CompoundComet]: {
+			"NetworkCometAddress": {
+				kind: "Research",
+				decision: "Retain CompoundComet.NetworkCometAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#compoundcomet",
+			},
+		},
+		[EntityType.CompoundCometAsset]: {
+			"CometAssetSymbol": {
+				kind: "Research",
+				decision: "Retain CompoundCometAsset.CometAssetSymbol as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#compoundcometasset",
+			},
+		},
 		[EntityType.ContractInterfaceMember]: {
 			"InterfaceIdMemberKey": {
 				kind: "Research",
@@ -69501,6 +69938,13 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain CronosNetworkProfile.Network as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#cronosnetworkprofile",
+			},
+		},
+		[EntityType.CurvePool]: {
+			"NetworkPoolAddress": {
+				kind: "Research",
+				decision: "Retain CurvePool.NetworkPoolAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#curvepool",
 			},
 		},
 		[EntityType.DogecoinAuxPowMerkleBranch]: {
@@ -69842,6 +70286,13 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain EthereumNetworkUpgrade.EvmNetworkUpgradeId as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#ethereumnetworkupgrade",
+			},
+		},
+		[EntityType.EulerEvkVault]: {
+			"NetworkVaultAddress": {
+				kind: "Research",
+				decision: "Retain EulerEvkVault.NetworkVaultAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eulerevkvault",
 			},
 		},
 		[EntityType.EvmAccount]: {
@@ -70202,6 +70653,13 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain GitTreePathResolution.RepositoryCommitObjectIdPath as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#gittreepathresolution",
+			},
+		},
+		[EntityType.GmxMarket]: {
+			"NetworkMarketTokenAddress": {
+				kind: "Research",
+				decision: "Retain GmxMarket.NetworkMarketTokenAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gmxmarket",
 			},
 		},
 		[EntityType.HederaAccount_Timestamp]: {
@@ -71417,6 +71875,13 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#payoutclaim_timestamp",
 			},
 		},
+		[EntityType.PendleMarket]: {
+			"NetworkMarketAddress": {
+				kind: "Research",
+				decision: "Retain PendleMarket.NetworkMarketAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#pendlemarket",
+			},
+		},
 		[EntityType.PolkadotAsset]: {
 			"NetworkAssetKindAssetId": {
 				kind: "Research",
@@ -72601,6 +73066,13 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain WalletConnectionMethod.Id as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#walletconnectionmethod",
+			},
+		},
+		[EntityType.WormholeVaa]: {
+			"EmitterChainEmitterSequence": {
+				kind: "Research",
+				decision: "Retain WormholeVaa.EmitterChainEmitterSequence as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#wormholevaa",
 			},
 		},
 		[EntityType.XrplAccount_Timestamp]: {
@@ -84057,6 +84529,10 @@ export const app = {
 				label: "Azure AI Foundry",
 			},
 			{
+				provider: "Balancer",
+				label: "Balancer",
+			},
+			{
 				provider: "Beacon",
 				label: "Beacon",
 			},
@@ -84185,6 +84661,10 @@ export const app = {
 				label: "CometBFT",
 			},
 			{
+				provider: "Compound",
+				label: "Compound",
+			},
+			{
 				provider: "Conseil",
 				label: "Conseil",
 			},
@@ -84207,6 +84687,10 @@ export const app = {
 			{
 				provider: "CronosExplorer",
 				label: "Cronos Explorer",
+			},
+			{
+				provider: "Curve",
+				label: "Curve",
 			},
 			{
 				provider: "CycloneDx",
@@ -84293,6 +84777,10 @@ export const app = {
 				label: "Etherscan",
 			},
 			{
+				provider: "Euler",
+				label: "Euler",
+			},
+			{
 				provider: "Farcaster",
 				label: "Farcaster",
 			},
@@ -84335,6 +84823,10 @@ export const app = {
 			{
 				provider: "Gitlab",
 				label: "GitLab",
+			},
+			{
+				provider: "Gmx",
+				label: "GMX",
 			},
 			{
 				provider: "GoogleAi",
@@ -84619,6 +85111,10 @@ export const app = {
 			{
 				provider: "Payjoin",
 				label: "Payjoin",
+			},
+			{
+				provider: "Pendle",
+				label: "Pendle",
 			},
 			{
 				provider: "Petra",
@@ -85700,6 +86196,38 @@ export const app = {
 							keys: [
 								"AZURE_AI_FOUNDRY_API_KEY",
 							],
+						},
+					],
+				},
+			},
+			{
+				source: Source.Balancer_Rest,
+				provider: "Balancer",
+				label: "Balancer API v3",
+				binding: {
+					target: {
+						kind: SourceTargetKind.Global,
+						key: "balancer-api-v3",
+					},
+					endpoints: [
+						{
+							endpointKind: SourceEndpointKind.HttpUrl,
+							locator: "https://api-v3.balancer.fi/",
+							corsEnabled: true,
+						},
+					],
+					wireProtocol: WireProtocol.Graphql,
+					apiFamily: ApiFamily.GraphqlHttp,
+					operationGroups: [
+						SourceOperationGroup.GenericRead,
+					],
+					delivery: SourceDelivery.BrowserDirect,
+					credentials: [],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/Balancer/Rest/types.ts",
+							referenceUrl: "https://docs.balancer.fi/data-and-analytics/data-and-analytics/balancer-api/balancer-api.html",
 						},
 					],
 				},
@@ -87767,6 +88295,38 @@ export const app = {
 				},
 			},
 			{
+				source: Source.Compound_Rest,
+				provider: "Compound",
+				label: "Compound comet deployments",
+				binding: {
+					target: {
+						kind: SourceTargetKind.GitRepository,
+						key: "compound-finance/comet@f766f51583c23acc33b2a7824654ef2029a96804:deployments",
+					},
+					endpoints: [
+						{
+							endpointKind: SourceEndpointKind.HttpUrl,
+							locator: "https://raw.githubusercontent.com/compound-finance/comet/f766f51583c23acc33b2a7824654ef2029a96804/",
+							corsEnabled: true,
+						},
+					],
+					wireProtocol: WireProtocol.HttpRest,
+					apiFamily: ApiFamily.RestJson,
+					operationGroups: [
+						SourceOperationGroup.GenericRead,
+					],
+					delivery: SourceDelivery.BrowserDirect,
+					credentials: [],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/Compound/Rest/types.ts",
+							referenceUrl: "https://docs.compound.finance/",
+						},
+					],
+				},
+			},
+			{
 				source: Source.Conseil_Postgres,
 				provider: "Conseil",
 				label: "Conseil Postgres",
@@ -87957,6 +88517,38 @@ export const app = {
 					],
 					delivery: SourceDelivery.HttpProxy,
 					credentials: [],
+				},
+			},
+			{
+				source: Source.Curve_Rest,
+				provider: "Curve",
+				label: "Curve API",
+				binding: {
+					target: {
+						kind: SourceTargetKind.Global,
+						key: "curve-api",
+					},
+					endpoints: [
+						{
+							endpointKind: SourceEndpointKind.HttpUrl,
+							locator: "https://api.curve.finance",
+							corsEnabled: true,
+						},
+					],
+					wireProtocol: WireProtocol.HttpRest,
+					apiFamily: ApiFamily.RestJson,
+					operationGroups: [
+						SourceOperationGroup.GenericRead,
+					],
+					delivery: SourceDelivery.BrowserDirect,
+					credentials: [],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/Curve/Rest/types.ts",
+							referenceUrl: "https://api.curve.finance/v1/documentation/",
+						},
+					],
 				},
 			},
 			{
@@ -89323,6 +89915,38 @@ export const app = {
 				},
 			},
 			{
+				source: Source.Euler_Rest,
+				provider: "Euler",
+				label: "Euler v3 API",
+				binding: {
+					target: {
+						kind: SourceTargetKind.Global,
+						key: "euler-v3-api",
+					},
+					endpoints: [
+						{
+							endpointKind: SourceEndpointKind.HttpUrl,
+							locator: "https://v3.euler.finance",
+							corsEnabled: true,
+						},
+					],
+					wireProtocol: WireProtocol.HttpRest,
+					apiFamily: ApiFamily.RestJson,
+					operationGroups: [
+						SourceOperationGroup.GenericRead,
+					],
+					delivery: SourceDelivery.BrowserDirect,
+					credentials: [],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/Euler/Rest/types.ts",
+							referenceUrl: "https://docs.euler.finance/developers/data-querying/euler-v3-api",
+						},
+					],
+				},
+			},
+			{
 				source: Source.Farcaster_Rest,
 				provider: "Farcaster",
 				label: "Farcaster REST",
@@ -89734,6 +90358,109 @@ export const app = {
 						},
 					],
 				},
+			},
+			{
+				source: Source.Gmx_Rest,
+				provider: "Gmx",
+				label: "GMX v2 API",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: "42161",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://arbitrum.gmxapi.io/v1",
+								corsEnabled: true,
+							},
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://arbitrum.gmxapi.ai/v1",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/Gmx/Rest/types.ts",
+								referenceUrl: "https://docs.gmx.io/docs/api/overview/",
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: "43114",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://avalanche.gmxapi.io/v1",
+								corsEnabled: true,
+							},
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://avalanche.gmxapi.ai/v1",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/Gmx/Rest/types.ts",
+								referenceUrl: "https://docs.gmx.io/docs/api/overview/",
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: "4326",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://megaeth.gmxapi.io/v1",
+								corsEnabled: true,
+							},
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://megaeth.gmxapi.ai/v1",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/Gmx/Rest/types.ts",
+								referenceUrl: "https://docs.gmx.io/docs/api/overview/",
+							},
+						],
+					},
+				],
 			},
 			{
 				source: Source.GoldRushFoundational_Rest,
@@ -92722,6 +93449,38 @@ export const app = {
 					],
 					delivery: SourceDelivery.RemoteQuery,
 					credentials: [],
+				},
+			},
+			{
+				source: Source.Pendle_Rest,
+				provider: "Pendle",
+				label: "Pendle API",
+				binding: {
+					target: {
+						kind: SourceTargetKind.Global,
+						key: "pendle-api",
+					},
+					endpoints: [
+						{
+							endpointKind: SourceEndpointKind.HttpUrl,
+							locator: "https://api-v2.pendle.finance/core",
+							corsEnabled: true,
+						},
+					],
+					wireProtocol: WireProtocol.HttpRest,
+					apiFamily: ApiFamily.RestJson,
+					operationGroups: [
+						SourceOperationGroup.GenericRead,
+					],
+					delivery: SourceDelivery.BrowserDirect,
+					credentials: [],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/Pendle/Rest/types.ts",
+							referenceUrl: "https://docs.pendle.finance/pendle-v2-dev/Backend/ApiOverview",
+						},
+					],
 				},
 			},
 			{
@@ -100467,6 +101226,10 @@ export const app = {
 				path: "src/resolvers/Atproto-Xrpc.ts",
 			},
 			{
+				source: Source.Balancer_Rest,
+				path: "src/resolvers/Balancer-Rest.ts",
+			},
+			{
 				source: Source.Beacon_Rest,
 				path: "src/resolvers/Beacon-Rest.ts",
 			},
@@ -100571,6 +101334,10 @@ export const app = {
 				path: "src/resolvers/CometBft-Rest.ts",
 			},
 			{
+				source: Source.Compound_Rest,
+				path: "src/resolvers/Compound-Rest.ts",
+			},
+			{
 				source: Source.Constants_Internal,
 				path: "src/resolvers/Constants.ts",
 			},
@@ -100585,6 +101352,10 @@ export const app = {
 			{
 				source: Source.CosmosSdk_Rest,
 				path: "src/resolvers/CosmosSdk-Rest.ts",
+			},
+			{
+				source: Source.Curve_Rest,
+				path: "src/resolvers/Curve-Rest.ts",
 			},
 			{
 				source: Source.Defillama_Rest,
@@ -100655,6 +101426,10 @@ export const app = {
 				path: "src/resolvers/Etherscan-Rest.ts",
 			},
 			{
+				source: Source.Euler_Rest,
+				path: "src/resolvers/Euler-Rest.ts",
+			},
+			{
 				source: Source.Farcaster_Rest,
 				path: "src/resolvers/Farcaster-Rest.ts",
 			},
@@ -100673,6 +101448,10 @@ export const app = {
 			{
 				source: Source.GetBlockYellowstone_Grpc,
 				path: "src/resolvers/GetBlock-Yellowstone.ts",
+			},
+			{
+				source: Source.Gmx_Rest,
+				path: "src/resolvers/Gmx-Rest.ts",
 			},
 			{
 				source: Source.GoldRushFoundational_Rest,
@@ -100833,6 +101612,10 @@ export const app = {
 			{
 				source: Source.PayjoinDirectory_Rest,
 				path: "src/resolvers/PayjoinDirectory-Rest.ts",
+			},
+			{
+				source: Source.Pendle_Rest,
+				path: "src/resolvers/Pendle-Rest.ts",
 			},
 			{
 				source: Source.Piped_Rest,

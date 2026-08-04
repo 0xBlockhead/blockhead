@@ -222,6 +222,7 @@
 	import EvmNetworkBridgesView from '$/views/EvmNetworkBridgesView.svelte'
 	import EvmTokenTransfersView from '$/views/EvmTokenTransfersView.svelte'
 	import AaveMarketsView from '$/views/AaveMarketsView.svelte'
+	import BalancerPoolsView from '$/views/BalancerPoolsView.svelte'
 	import CosmosBlocksView from '$/views/CosmosBlocksView.svelte'
 	import CosmosValidatorsView from '$/views/CosmosValidatorsView.svelte'
 	import CosmosAccountsView from '$/views/CosmosAccountsView.svelte'
@@ -2573,6 +2574,10 @@
 								id: 'evm-defi-aave-markets',
 								label: 'Aave markets',
 							},
+							{
+								id: 'evm-defi-balancer-pools',
+								label: 'Balancer pools',
+							},
 						]
 					}
 					data-card
@@ -2610,6 +2615,24 @@
 							collapsible={false}
 							title={label}
 							emptyText='No Aave markets.'
+							id={`${id}-list`}
+						/>
+					{/snippet}
+
+					{#snippet SectionEvmDefiBalancerPools({ id, label })}
+						<BalancerPoolsView
+							selection={
+								projection
+								.$$balancerPools({
+									sources: [
+										Source.Balancer_Rest,
+									],
+									limit: 16,
+								})
+							}
+							collapsible={false}
+							title={label}
+							emptyText='No Balancer pools.'
 							id={`${id}-list`}
 						/>
 					{/snippet}

@@ -397,6 +397,13 @@ export default entity({
 					Source.Aave_Rest,
 				],
 			},
+			$$balancerPools: {
+				entityType: EntityType.BalancerPool,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Balancer_Rest,
+				],
+			},
 			$$bridges: {
 				entityType: EntityType.EvmNetworkBridge,
 				cardinality: EntityFieldCardinality.Many,

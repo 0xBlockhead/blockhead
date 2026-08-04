@@ -1,3 +1,5 @@
+// Generated from APP.ts.
+
 import bindings from '$/sources/Pendle/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
@@ -8,7 +10,7 @@ export default {
 	label: 'Pendle',
 	sources: {
 		[Source.Pendle_Rest]: {
-			label: 'Pendle REST API',
+			label: 'Pendle API',
 		},
 	},
 	bindings,

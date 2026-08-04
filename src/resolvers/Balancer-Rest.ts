@@ -1,3 +1,4 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
@@ -80,6 +81,32 @@ export default {
 			swapFee: (pool) => pool.swapFee,
 			totalLiquidity: (pool) => pool.totalLiquidity,
 			totalShares: (pool) => pool.totalShares,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
+					resolve: async (network, context) => {
+						const chainId = eip155ChainId(network)
+						const { listPools } = await import('$/sources/Balancer/Rest/queries.ts')
+						return (await listPools({
+							chainId,
+							limit: resolverContextRowLimit(context),
+						}))
+							.map((pool) => ({
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									poolId: pool.id,
+								},
+							}))
+					},
+				},
+			},
+		})({
+			Evm: {
+				$$balancerPools: (pools) => pools,
+			},
 		}),
 	],
 } as const satisfies RegisteredSourceResolverModule<Source.Balancer_Rest>

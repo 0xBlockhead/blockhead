@@ -1,3 +1,5 @@
+// Generated from APP.ts.
+
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -100,14 +102,14 @@ export default entity({
 		],
 	},
 	creationBlockNumber: {
-		primitiveType: type('number.integer >= 0'),
+		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Curve_Rest,
 		],
 	},
 	creationTs: {
-		primitiveType: type('number.integer >= 0'),
+		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Curve_Rest,

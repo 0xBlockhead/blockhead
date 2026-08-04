@@ -1,3 +1,5 @@
+// Generated from APP.ts.
+
 import bindings from '$/sources/Curve/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
@@ -8,7 +10,7 @@ export default {
 	label: 'Curve',
 	sources: {
 		[Source.Curve_Rest]: {
-			label: 'Curve Finance REST API',
+			label: 'Curve API',
 		},
 	},
 	bindings,
