@@ -140,6 +140,7 @@ describe('Local_Internal wallet request resolvers', () => {
 			callIndex: 0,
 			toAddress: '0x0000000000000000000000000000000000000001',
 			value: 0n,
+			inputDataHash: '0x2222222222222222222222222222222222222222222222222222222222222222',
 		})
 
 		await expect(timestampResolver.resolve.WalletRequestTimestampMsSource.resolve({
