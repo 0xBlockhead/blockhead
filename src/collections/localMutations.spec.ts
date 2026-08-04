@@ -1321,12 +1321,21 @@ describe('local mutation authority journal', () => {
 				calls: [],
 			}
 		)).rejects.toThrow('EVM wallet request detail already exists: wallet-request-1')
+		await expect(writeLocalBlockheadWalletRequest(context, {
+			...walletRequestDefinition,
+			id: 'wallet-request-empty-calls',
+			evm: {
+				...walletRequestDefinition.evm,
+				calls: [],
+			},
+		})).rejects.toThrow('Wallet request preparation requires at least one BlockheadWalletRequestCall.')
 		expect(context.entityFieldCollections[EntityType.BlockheadWalletRequest][entityFieldAddressKey(
 			EntityType.BlockheadWalletRequest,
 			[],
 			'requestMethod'
 		)].toArray[0]?.[EntityMetaKey.Value]).toBe('wallet_sendCalls')
 		expect(walletRequestMutationSource).not.toMatch(/\b(?:callCount|caip2)\b/)
+		expect(walletRequestMutationSource).toMatch(/at least one BlockheadWalletRequestCall/)
 		await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
 			timestampMs: 1,
 			source: Source.Local_Internal,

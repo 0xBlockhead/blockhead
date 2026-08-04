@@ -2423,6 +2423,8 @@ export const writeLocalBlockheadWalletRequest = async (
 			entitySelector,
 			'$evmRequest'
 		)
+	else if (request.evm.calls.length === 0)
+		throw new Error('Wallet request preparation requires at least one BlockheadWalletRequestCall.')
 	else
 		await writeLocalBlockheadEvmWalletRequest(context, entitySelector, request.evm)
 	await Promise.all([
