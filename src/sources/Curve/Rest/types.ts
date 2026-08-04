@@ -2,6 +2,7 @@
  * Curve Finance REST wire shapes (`api.curve.finance/v1`).
  * @see https://api.curve.finance/v1/documentation/
  */
+import { type as arktype } from 'arktype'
 
 export type CurvePoolListItemWire = {
 	type: string
@@ -51,6 +52,51 @@ export type CurvePoolsResponse = {
 		poolData: CurvePoolWire[]
 	}
 }
+
+const curvePoolCoinEnvelope = arktype({
+	address: 'string',
+	decimals: 'string',
+	symbol: 'string',
+	name: 'string',
+	'poolBalance?': 'string',
+	'usdPrice?': 'number | null',
+	'isBasePoolLpToken?': 'boolean',
+})
+const curvePoolEnvelope = arktype({
+	id: 'string',
+	address: 'string',
+	name: 'string',
+	symbol: 'string',
+	lpTokenAddress: 'string',
+	coinsAddresses: 'string[]',
+	decimals: 'string[]',
+	coins: curvePoolCoinEnvelope.array(),
+	'virtualPrice?': 'string | null',
+	'amplificationCoefficient?': 'string | null',
+	'totalSupply?': 'string | null',
+	'usdTotal?': 'number | null',
+	'isMetaPool?': 'boolean',
+	'gaugeAddress?': 'string | null',
+	'assetTypeName?': 'string | null',
+	'creationBlockNumber?': 'number | null',
+	'creationTs?': 'number | null',
+})
+
+export const curvePoolListEnvelope = arktype({
+	success: 'true',
+	data: {
+		poolList: arktype({
+			type: 'string',
+			address: 'string',
+		}).array(),
+	},
+})
+export const curvePoolsEnvelope = arktype({
+	success: 'true',
+	data: {
+		poolData: curvePoolEnvelope.array(),
+	},
+})
 
 export type CurvePoolListItem = {
 	blockchainId: string

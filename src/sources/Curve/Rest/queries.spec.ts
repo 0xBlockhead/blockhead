@@ -143,6 +143,59 @@ describe('Curve pool operations', () => {
 		)
 	})
 
+	it('returns empty lists only from successful envelopes', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce({
+				success: true,
+				data: {
+					poolList: [],
+				},
+			})
+			.mockResolvedValueOnce({
+				success: true,
+				data: {
+					poolData: [],
+				},
+			})
+
+		await expect(listPools({
+			chainId: 1,
+		})).resolves.toEqual([])
+		await expect(listPoolsByRegistry({
+			chainId: 1,
+			registryId: 'main',
+		})).resolves.toEqual([])
+	})
+
+	it('rejects malformed pool list and registry envelopes', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce({
+				success: false,
+				data: {
+					poolList: [],
+				},
+			})
+			.mockResolvedValueOnce({
+				success: true,
+				data: {
+					poolData: [
+						{
+							...threePoolWire,
+							name: null,
+						},
+					],
+				},
+			})
+
+		await expect(listPools({
+			chainId: 1,
+		})).rejects.toThrow('Curve_Rest: invalid pool list response envelope')
+		await expect(listPoolsByRegistry({
+			chainId: 1,
+			registryId: 'main',
+		})).rejects.toThrow('Curve_Rest: invalid pools response envelope')
+	})
+
 	it('reads registry pool detail via getPools', async () => {
 		sourceGetJson.mockResolvedValueOnce({
 			success: true,

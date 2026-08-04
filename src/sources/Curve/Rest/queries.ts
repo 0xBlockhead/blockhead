@@ -14,6 +14,10 @@ import type {
 	CurvePoolSnapshot,
 	CurvePoolWire,
 } from '$/sources/Curve/Rest/types.ts'
+import {
+	curvePoolListEnvelope,
+	curvePoolsEnvelope,
+} from '$/sources/Curve/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const maximumPoolsPerChain = 50_000
@@ -73,6 +77,20 @@ const assertNonEmptyString = (
 	if (value == null || value === '')
 		throw new Error(`${Source.Curve_Rest}: pool missing ${label}`)
 	return value
+}
+
+const assertEnvelope = (
+	envelope: {
+		assert: (value: unknown) => unknown
+	},
+	value: unknown,
+	label: string
+) => {
+	try {
+		envelope.assert(value)
+	} catch {
+		throw new Error(`${Source.Curve_Rest}: invalid ${label} response envelope`)
+	}
 }
 
 const mapPoolWire = (
@@ -144,8 +162,7 @@ export const listPools = async ({
 	const response = await curveGetJson<CurvePoolListResponse>(
 		`/v1/getPoolList/${platform.blockchainId}`
 	)
-	if (response.success !== true || response.data?.poolList == null)
-		throw new Error(`${Source.Curve_Rest}: pool list response missing data`)
+	assertEnvelope(curvePoolListEnvelope, response, 'pool list')
 	if (response.data.poolList.length > maximumPoolsPerChain)
 		throw new Error(`${Source.Curve_Rest}: excessive pool list`)
 
@@ -174,8 +191,7 @@ export const listPoolsByRegistry = async ({
 	const response = await curveGetJson<CurvePoolsResponse>(
 		`/v1/getPools/${platform.blockchainId}/${registry}`
 	)
-	if (response.success !== true || response.data?.poolData == null)
-		throw new Error(`${Source.Curve_Rest}: pools response missing data`)
+	assertEnvelope(curvePoolsEnvelope, response, 'pools')
 	if (response.data.poolData.length > maximumPoolsPerChain)
 		throw new Error(`${Source.Curve_Rest}: excessive pools response`)
 
