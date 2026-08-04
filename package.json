@@ -101,5 +101,6 @@
 		"ox": "0.9.17",
 		"satteri": "^0.9.3",
 		"weakmap.prototype.getorinsertcomputed": "^1.0.0"
-	}
+	},
+	"workspaces": ["."]
 }
