@@ -11,6 +11,10 @@ import {
 	getEpoch,
 	getEpochSlots,
 	getSlot,
+	getSlotAttestations,
+	getSlotAttesterSlashings,
+	getSlotProposerSlashings,
+	getSlotWithdrawals,
 	getValidator,
 } from '$/sources/BeaconchaIn/Rest/queries.ts'
 import { Source } from '$/sources/Source.ts'
@@ -116,6 +120,19 @@ describe('BeaconchaIn REST queries', () => {
 		})).rejects.toThrow('returned no data')
 	})
 
+	it('hard-fails non-OK wire status even when HTTP is 200', async () => {
+		vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({
+			status: 'ERROR: rate limited',
+			data: null,
+		})))
+		vi.stubGlobal('window', {})
+
+		await expect(getSlot(publicEnv, {
+			chainId: 1,
+			slot: 'head',
+		})).rejects.toThrow('failed (status ERROR: rate limited)')
+	})
+
 	it('hard-fails HTTP errors for slot and validator', async () => {
 		vi.stubGlobal('fetch', vi.fn<typeof fetch>()
 			.mockResolvedValueOnce(jsonResponse({ status: 'ERROR: boom', data: null }, 500))
@@ -131,6 +148,19 @@ describe('BeaconchaIn REST queries', () => {
 			chainId: 1,
 			indexOrPubkey: 1,
 		})).rejects.toThrow('404')
+	})
+
+	it('returns successful empty epoch slot lists as []', async () => {
+		vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({
+			status: 'OK',
+			data: [],
+		})))
+		vi.stubGlobal('window', {})
+
+		await expect(getEpochSlots(publicEnv, {
+			chainId: 1,
+			epoch: 300000,
+		})).resolves.toEqual([])
 	})
 
 	it('loads epoch slots and validator payloads', async () => {
@@ -161,5 +191,70 @@ describe('BeaconchaIn REST queries', () => {
 			chainId: 999,
 			epoch: 1,
 		})).rejects.toThrow('no binding for chain 999')
+	})
+
+	it('loads slot duty lists and hard-fails null duty payloads', async () => {
+		const fetchMock = vi.fn<typeof fetch>()
+			.mockResolvedValueOnce(jsonResponse({
+				status: 'OK',
+				data: [{
+					aggregationbits: '0xff',
+					block_index: 0,
+					committeeindex: 1,
+					slot: 9599999,
+					block_slot: 9600000,
+				}],
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				status: 'OK',
+				data: [{
+					address: '0x' + 'bb'.repeat(20),
+					amount: 1,
+					block_slot: 9600000,
+					validatorindex: 7,
+					withdrawalindex: 99,
+				}],
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				status: 'OK',
+				data: [],
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				status: 'OK',
+				data: [],
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				status: 'OK',
+				data: null,
+			}))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getSlotAttestations(publicEnv, {
+			chainId: 1,
+			slot: 9600000,
+		})).resolves.toEqual([{
+			aggregationbits: '0xff',
+			block_index: 0,
+			committeeindex: 1,
+			slot: 9599999,
+			block_slot: 9600000,
+		}])
+		await expect(getSlotWithdrawals(publicEnv, {
+			chainId: 1,
+			slot: 9600000,
+		})).resolves.toHaveLength(1)
+		await expect(getSlotAttesterSlashings(publicEnv, {
+			chainId: 1,
+			slot: 9600000,
+		})).resolves.toEqual([])
+		await expect(getSlotProposerSlashings(publicEnv, {
+			chainId: 1,
+			slot: 9600000,
+		})).resolves.toEqual([])
+		await expect(getSlotWithdrawals(publicEnv, {
+			chainId: 1,
+			slot: 9600000,
+		})).rejects.toThrow('returned no data')
 	})
 })

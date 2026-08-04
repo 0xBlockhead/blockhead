@@ -61,3 +61,30 @@ export type BeaconchaInValidator = {
 	name?: string
 	total_withdrawals?: number
 }
+
+export type BeaconchaInAttestation = {
+	aggregationbits: string
+	block_index: number
+	committeeindex: number
+	slot: number
+	block_slot: number
+}
+
+export type BeaconchaInWithdrawal = {
+	address: string
+	amount: number
+	block_slot: number
+	validatorindex: number
+	withdrawalindex: number
+}
+
+export type BeaconchaInAttesterSlashing = {
+	block_index: number
+	block_slot: number
+}
+
+export type BeaconchaInProposerSlashing = {
+	block_index: number
+	block_slot: number
+	proposerindex: number
+}

@@ -4,7 +4,10 @@ import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
-import type { ResolverSelectorPattern } from '$/resolvers/$resolvers.ts'
+import {
+	resolverContextRowLimit,
+	type ResolverSelectorPattern,
+} from '$/resolvers/$resolvers.ts'
 import {
 	EntityMetaKey,
 	type EntitySelector,
@@ -104,6 +107,7 @@ export default {
 									epoch: epochSelector,
 								}
 							))
+								.slice(0, resolverContextRowLimit(context))
 								.map((slot) => ({
 									[EntityMetaKey.Selector]: {
 										$network,
@@ -158,6 +162,227 @@ export default {
 			stateRoot: (slot) => slot.stateRoot,
 			signature: (slot) => slot.signature,
 			canonical: (slot) => slot.canonical,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BeaconSlot,
+			resolve: {
+				EvmNetworkSlot: {
+					appliesTo: eip155NetworkApplicability,
+					resolve: async ({ $network, slot }, context) => {
+						const { getSlotAttestations } = await import('$/sources/BeaconchaIn/Rest/queries.ts')
+						return (
+							(await getSlotAttestations(
+								context.publicEnv,
+								{
+									chainId: eip155ChainId($network),
+									slot,
+								}
+							))
+								.slice(0, resolverContextRowLimit(context))
+								.map((attestation) => ({
+									[EntityMetaKey.Selector]: {
+										$network,
+										slot,
+										indexInSlot: attestation.block_index,
+									},
+								}))
+						)
+					},
+				},
+			},
+		})({
+			$$beaconAttestations: (attestations) => attestations,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BeaconSlot,
+			resolve: {
+				EvmNetworkSlot: {
+					appliesTo: eip155NetworkApplicability,
+					resolve: async ({ $network, slot }, context) => {
+						const { getSlotWithdrawals } = await import('$/sources/BeaconchaIn/Rest/queries.ts')
+						return (
+							(await getSlotWithdrawals(
+								context.publicEnv,
+								{
+									chainId: eip155ChainId($network),
+									slot,
+								}
+							))
+								.slice(0, resolverContextRowLimit(context))
+								.map((_withdrawal, indexInSlot) => ({
+									[EntityMetaKey.Selector]: {
+										$network,
+										slot,
+										indexInSlot,
+									},
+								}))
+						)
+					},
+				},
+			},
+		})({
+			$$beaconWithdrawals: (withdrawals) => withdrawals,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BeaconSlot,
+			resolve: {
+				EvmNetworkSlot: {
+					appliesTo: eip155NetworkApplicability,
+					resolve: async ({ $network, slot }, context) => {
+						const {
+							getSlotAttesterSlashings,
+							getSlotProposerSlashings,
+						} = await import('$/sources/BeaconchaIn/Rest/queries.ts')
+						const chainId = eip155ChainId($network)
+						const [attesterSlashings, proposerSlashings] = await Promise.all([
+							getSlotAttesterSlashings(context.publicEnv, { chainId, slot }),
+							getSlotProposerSlashings(context.publicEnv, { chainId, slot }),
+						])
+						const limit = resolverContextRowLimit(context)
+						return (
+							[
+								...proposerSlashings.map((slashing) => ({
+									[EntityMetaKey.Selector]: {
+										$network,
+										slot,
+										kind: 'proposer' as const,
+										indexInSlot: slashing.block_index,
+									},
+								})),
+								...attesterSlashings.map((slashing) => ({
+									[EntityMetaKey.Selector]: {
+										$network,
+										slot,
+										kind: 'attester' as const,
+										indexInSlot: slashing.block_index,
+									},
+								})),
+							]
+								.slice(0, limit)
+						)
+					},
+				},
+			},
+		})({
+			$$beaconSlashings: (slashings) => slashings,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BeaconAttestation,
+			resolve: {
+				EvmNetworkSlotIndexInSlot: {
+					appliesTo: eip155NetworkApplicability,
+					resolve: async ({ $network, slot, indexInSlot }, context) => {
+						const { getSlotAttestations } = await import('$/sources/BeaconchaIn/Rest/queries.ts')
+						const attestation = (
+							await getSlotAttestations(
+								context.publicEnv,
+								{
+									chainId: eip155ChainId($network),
+									slot,
+								}
+							)
+						).find((candidate) => candidate.block_index === indexInSlot)
+						if (attestation == null)
+							throw new Error(`BeaconchaIn_Rest: attestation not found at index ${String(indexInSlot)}`)
+						return {
+							committeeIndex: attestation.committeeindex,
+							aggregationBits: with0xHex(attestation.aggregationbits),
+						}
+					},
+				},
+			},
+		})({
+			committeeIndex: (attestation) => attestation.committeeIndex,
+			aggregationBits: (attestation) => attestation.aggregationBits,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BeaconWithdrawal,
+			resolve: {
+				EvmNetworkSlotIndexInSlot: {
+					appliesTo: eip155NetworkApplicability,
+					resolve: async ({ $network, slot, indexInSlot }, context) => {
+						const { getSlotWithdrawals } = await import('$/sources/BeaconchaIn/Rest/queries.ts')
+						const withdrawal = (
+							await getSlotWithdrawals(
+								context.publicEnv,
+								{
+									chainId: eip155ChainId($network),
+									slot,
+								}
+							)
+						)[indexInSlot]
+						if (withdrawal == null)
+							throw new Error(`BeaconchaIn_Rest: withdrawal not found at index ${String(indexInSlot)}`)
+						return {
+							validatorIndex: withdrawal.validatorindex,
+							$validator: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									indexInNetwork: withdrawal.validatorindex,
+								},
+							},
+							$account: {
+								[EntityMetaKey.Selector]: {
+									address: with0xHex(withdrawal.address),
+								},
+							},
+							amountGwei: BigInt(withdrawal.amount),
+						}
+					},
+				},
+			},
+		})({
+			validatorIndex: (withdrawal) => withdrawal.validatorIndex,
+			$validator: (withdrawal) => withdrawal.$validator,
+			$account: (withdrawal) => withdrawal.$account,
+			amountGwei: (withdrawal) => withdrawal.amountGwei,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BeaconSlashing,
+			resolve: {
+				EvmNetworkSlotKindIndexInSlot: {
+					appliesTo: eip155NetworkApplicability,
+					resolve: async ({ $network, slot, kind, indexInSlot }, context) => {
+						const {
+							getSlotAttesterSlashings,
+							getSlotProposerSlashings,
+						} = await import('$/sources/BeaconchaIn/Rest/queries.ts')
+						const chainId = eip155ChainId($network)
+						if (kind !== 'proposer' && kind !== 'attester')
+							throw new Error(`BeaconchaIn_Rest: unsupported slashing kind ${String(kind)}`)
+
+						const slashing = (
+							await (
+								kind === 'proposer' ?
+									getSlotProposerSlashings(context.publicEnv, { chainId, slot })
+								:
+									getSlotAttesterSlashings(context.publicEnv, { chainId, slot })
+							)
+						).find((candidate) => candidate.block_index === indexInSlot)
+						if (slashing == null)
+							throw new Error(`BeaconchaIn_Rest: ${kind} slashing not found at index ${String(indexInSlot)}`)
+						return {
+							$network,
+							slot,
+							kind,
+							indexInSlot: slashing.block_index,
+						}
+					},
+				},
+			},
+		})({
+			$network: (slashing) => ({
+				[EntityMetaKey.Selector]: slashing.$network,
+			}),
+			slot: (slashing) => slashing.slot,
+			kind: (slashing) => slashing.kind,
+			indexInSlot: (slashing) => slashing.indexInSlot,
 		}),
 
 		defineResolver({

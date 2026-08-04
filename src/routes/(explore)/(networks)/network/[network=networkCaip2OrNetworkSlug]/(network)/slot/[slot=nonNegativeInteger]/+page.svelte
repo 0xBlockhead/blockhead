@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -15,7 +16,12 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BeaconSlot, data.selector))
+	const pageSelection = $derived(select(EntityType.BeaconSlot, data.selector, {
+		sources: [
+			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
+		],
+	}))
 
 
 	// Components

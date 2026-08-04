@@ -9,10 +9,14 @@ import {
 } from '$/sources/$sources.ts'
 import bindings from '$/sources/BeaconchaIn/bindings.ts'
 import type {
+	BeaconchaInAttestation,
+	BeaconchaInAttesterSlashing,
 	BeaconchaInEpoch,
+	BeaconchaInProposerSlashing,
 	BeaconchaInResponse,
 	BeaconchaInSlot,
 	BeaconchaInValidator,
+	BeaconchaInWithdrawal,
 } from '$/sources/BeaconchaIn/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -48,7 +52,9 @@ const beaconchaInGetJson = async <_Data>(
 	if (!response.ok) await throwHttpError(label, response)
 
 	const wire = await response.json<BeaconchaInResponse<_Data>>()
-	if (wire.status !== 'OK' || wire.data == null)
+	if (wire.status !== 'OK')
+		throw new Error(`BeaconchaIn_Rest: ${label} failed (status ${wire.status})`)
+	if (wire.data == null)
 		throw new Error(`BeaconchaIn_Rest: ${label} returned no data (status ${wire.status})`)
 
 	return wire.data
@@ -130,6 +136,86 @@ export const getValidator = (
 			chainId,
 			path: `/validator/${encodeURIComponent(String(indexOrPubkey))}`,
 			label: 'BeaconchaIn GET validator',
+		}
+	)
+)
+
+export const getSlotAttestations = (
+	publicEnv: SourcePublicEnv,
+	{
+		chainId,
+		slot,
+	}: {
+		chainId: number
+		slot: number | 'latest'
+	}
+) => (
+	beaconchaInGetJson<BeaconchaInAttestation[]>(
+		publicEnv,
+		{
+			chainId,
+			path: `/slot/${String(slot)}/attestations`,
+			label: 'BeaconchaIn GET slot attestations',
+		}
+	)
+)
+
+export const getSlotWithdrawals = (
+	publicEnv: SourcePublicEnv,
+	{
+		chainId,
+		slot,
+	}: {
+		chainId: number
+		slot: number | 'latest'
+	}
+) => (
+	beaconchaInGetJson<BeaconchaInWithdrawal[]>(
+		publicEnv,
+		{
+			chainId,
+			path: `/slot/${String(slot)}/withdrawals`,
+			label: 'BeaconchaIn GET slot withdrawals',
+		}
+	)
+)
+
+export const getSlotAttesterSlashings = (
+	publicEnv: SourcePublicEnv,
+	{
+		chainId,
+		slot,
+	}: {
+		chainId: number
+		slot: number | 'latest'
+	}
+) => (
+	beaconchaInGetJson<BeaconchaInAttesterSlashing[]>(
+		publicEnv,
+		{
+			chainId,
+			path: `/slot/${String(slot)}/attesterslashings`,
+			label: 'BeaconchaIn GET slot attester slashings',
+		}
+	)
+)
+
+export const getSlotProposerSlashings = (
+	publicEnv: SourcePublicEnv,
+	{
+		chainId,
+		slot,
+	}: {
+		chainId: number
+		slot: number | 'latest'
+	}
+) => (
+	beaconchaInGetJson<BeaconchaInProposerSlashing[]>(
+		publicEnv,
+		{
+			chainId,
+			path: `/slot/${String(slot)}/proposerslashings`,
+			label: 'BeaconchaIn GET slot proposer slashings',
 		}
 	)
 )
