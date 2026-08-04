@@ -142,6 +142,15 @@ describe('CoinGecko coin-instance projection', () => {
 		expect(getAssetPlatforms).toHaveBeenCalledOnce()
 	})
 
+	it('derives a canonical selector from the same indexed catalog without refetching', async () => {
+		await expect(resolveCanonicalCoinInstanceEntitySelector(
+			ethereumContract,
+			{}
+		)).resolves.toEqual(baseNative)
+		expect(getCoin).toHaveBeenCalledOnce()
+		expect(getAssetPlatforms).toHaveBeenCalledOnce()
+	})
+
 	it('throws when the catalog coin has no Coingecko wire mapping', async () => {
 		await expect(fetchCoinInstanceStubsForCoin(
 			CoinId.Unknown,

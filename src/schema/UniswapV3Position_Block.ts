@@ -40,6 +40,14 @@ export default entity({
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
+	feeGrowthInside0LastX128: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	feeGrowthInside1LastX128: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 })({
 	selectors: {
 		PositionBlockNumber: [

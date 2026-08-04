@@ -161,7 +161,10 @@ export const uniswapV3Resolvers = [
 				resolve: async ({ $pool, blockNumber }) => {
 					const chainId = chainIdFromNetwork($pool.$network)
 					const {
+						getPoolFeeGrowthGlobal0X128,
+						getPoolFeeGrowthGlobal1X128,
 						getPoolLiquidity,
+						getPoolProtocolFees,
 						getPoolSlot0,
 						normalizeUniswapAddress,
 					} = await import('$/sources/Uniswap/Contracts/queries.ts')
@@ -171,9 +174,15 @@ export const uniswapV3Resolvers = [
 						const [
 							slot0,
 							liquidity,
+							feeGrowthGlobal0X128,
+							feeGrowthGlobal1X128,
+							protocolFees,
 						] = await Promise.all([
 							getPoolSlot0({ getCall, poolAddress, blockNumber }),
 							getPoolLiquidity({ getCall, poolAddress, blockNumber }),
+							getPoolFeeGrowthGlobal0X128({ getCall, poolAddress, blockNumber }),
+							getPoolFeeGrowthGlobal1X128({ getCall, poolAddress, blockNumber }),
+							getPoolProtocolFees({ getCall, poolAddress, blockNumber }),
 						])
 
 						return {
@@ -185,6 +194,10 @@ export const uniswapV3Resolvers = [
 							observationCardinalityNext: slot0.observationCardinalityNext,
 							feeProtocol: slot0.feeProtocol,
 							unlocked: slot0.unlocked,
+							feeGrowthGlobal0X128,
+							feeGrowthGlobal1X128,
+							protocolFeesToken0: protocolFees.token0,
+							protocolFeesToken1: protocolFees.token1,
 						}
 					})
 				},
@@ -199,6 +212,10 @@ export const uniswapV3Resolvers = [
 		observationCardinalityNext: (entity) => entity.observationCardinalityNext,
 		feeProtocol: (entity) => entity.feeProtocol,
 		unlocked: (entity) => entity.unlocked,
+		feeGrowthGlobal0X128: (entity) => entity.feeGrowthGlobal0X128,
+		feeGrowthGlobal1X128: (entity) => entity.feeGrowthGlobal1X128,
+		protocolFeesToken0: (entity) => entity.protocolFeesToken0,
+		protocolFeesToken1: (entity) => entity.protocolFeesToken1,
 	}),
 
 	defineResolver({
@@ -322,6 +339,8 @@ export const uniswapV3Resolvers = [
 									liquidity: position.liquidity,
 									tokensOwed0: position.tokensOwed0,
 									tokensOwed1: position.tokensOwed1,
+									feeGrowthInside0LastX128: position.feeGrowthInside0LastX128,
+									feeGrowthInside1LastX128: position.feeGrowthInside1LastX128,
 								}
 							})
 						} catch (error) {
@@ -338,5 +357,7 @@ export const uniswapV3Resolvers = [
 		liquidity: (entity) => entity.liquidity,
 		tokensOwed0: (entity) => entity.tokensOwed0,
 		tokensOwed1: (entity) => entity.tokensOwed1,
+		feeGrowthInside0LastX128: (entity) => entity.feeGrowthInside0LastX128,
+		feeGrowthInside1LastX128: (entity) => entity.feeGrowthInside1LastX128,
 	}),
 ]

@@ -10,6 +10,11 @@ const ADDRESS_OUTPUT = [{ type: 'address' as const, name: '' }] as const
 const UINT24_OUTPUT = [{ type: 'uint24' as const, name: '' }] as const
 const INT24_OUTPUT = [{ type: 'int24' as const, name: '' }] as const
 const UINT128_OUTPUT = [{ type: 'uint128' as const, name: '' }] as const
+const UINT256_OUTPUT = [{ type: 'uint256' as const, name: '' }] as const
+const PROTOCOL_FEES_OUTPUT = [
+	{ type: 'uint128' as const, name: 'token0' },
+	{ type: 'uint128' as const, name: 'token1' },
+] as const
 
 const POOL_ABI = new Abi([
 	{
@@ -53,6 +58,30 @@ const POOL_ABI = new Abi([
 		stateMutability: 'view',
 		inputs: [],
 		outputs: [{ type: 'uint128', name: '' }],
+	},
+	{
+		type: 'function',
+		name: 'feeGrowthGlobal0X128',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [{ type: 'uint256', name: '' }],
+	},
+	{
+		type: 'function',
+		name: 'feeGrowthGlobal1X128',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [{ type: 'uint256', name: '' }],
+	},
+	{
+		type: 'function',
+		name: 'protocolFees',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [
+			{ type: 'uint128', name: 'token0' },
+			{ type: 'uint128', name: 'token1' },
+		],
 	},
 	{
 		type: 'function',
@@ -217,11 +246,27 @@ const decodeUint128 = (
 }
 
 
+const decodeUint256 = (
+	response: string,
+	label: string
+) => {
+	if (typeof response !== 'string' || response === '0x' || response.length < 66)
+		throw new Error(`UniswapContracts_Evm: empty ${label} result`)
+
+	const [value] = decodeParameters(UINT256_OUTPUT, toBytes(response))
+	if (typeof value === 'bigint')
+		return value
+
+	return BigInt(String(value))
+}
+
+
 const toSignedInt24Number = (
 	value: bigint | number | string
 ) => {
 	const asBigInt = typeof value === 'bigint' ? value : BigInt(String(value))
-	const asNumber = Number(asBigInt)
+	const signed = BigInt.asIntN(24, asBigInt)
+	const asNumber = Number(signed)
 	if (!Number.isSafeInteger(asNumber) || asNumber < -8388608 || asNumber > 8388607)
 		throw new Error('UniswapContracts_Evm: int24 out of range')
 
@@ -361,6 +406,75 @@ export const getPoolLiquidity = async ({
 )
 
 
+export const getPoolFeeGrowthGlobal0X128 = async ({
+	getCall,
+	poolAddress,
+	blockNumber = 'latest',
+}: {
+	getCall: EthCall
+	poolAddress: string
+	blockNumber?: bigint | 'latest'
+}) => (
+	decodeUint256(
+		await getCall({
+			to: assertAddress(poolAddress, 'pool address'),
+			input: encodeFunction(POOL_ABI, 'feeGrowthGlobal0X128', []),
+			blockTag: blockTagFor(blockNumber),
+		}),
+		'feeGrowthGlobal0X128'
+	)
+)
+
+
+export const getPoolFeeGrowthGlobal1X128 = async ({
+	getCall,
+	poolAddress,
+	blockNumber = 'latest',
+}: {
+	getCall: EthCall
+	poolAddress: string
+	blockNumber?: bigint | 'latest'
+}) => (
+	decodeUint256(
+		await getCall({
+			to: assertAddress(poolAddress, 'pool address'),
+			input: encodeFunction(POOL_ABI, 'feeGrowthGlobal1X128', []),
+			blockTag: blockTagFor(blockNumber),
+		}),
+		'feeGrowthGlobal1X128'
+	)
+)
+
+
+export const getPoolProtocolFees = async ({
+	getCall,
+	poolAddress,
+	blockNumber = 'latest',
+}: {
+	getCall: EthCall
+	poolAddress: string
+	blockNumber?: bigint | 'latest'
+}) => {
+	const response = await getCall({
+		to: assertAddress(poolAddress, 'pool address'),
+		input: encodeFunction(POOL_ABI, 'protocolFees', []),
+		blockTag: blockTagFor(blockNumber),
+	})
+	if (typeof response !== 'string' || response === '0x' || response.length < 2 + 2 * 64)
+		throw new Error('UniswapContracts_Evm: empty protocolFees result')
+
+	const [
+		token0,
+		token1,
+	] = decodeParameters(PROTOCOL_FEES_OUTPUT, toBytes(response))
+
+	return {
+		token0: typeof token0 === 'bigint' ? token0 : BigInt(String(token0)),
+		token1: typeof token1 === 'bigint' ? token1 : BigInt(String(token1)),
+	}
+}
+
+
 export const getPoolSlot0 = async ({
 	getCall,
 	poolAddress,
@@ -489,8 +603,8 @@ export const getPosition = async ({
 		tickLower,
 		tickUpper,
 		liquidity,
-		_feeGrowthInside0LastX128,
-		_feeGrowthInside1LastX128,
+		feeGrowthInside0LastX128,
+		feeGrowthInside1LastX128,
 		tokensOwed0,
 		tokensOwed1,
 	] = decodeParameters(POSITIONS_OUTPUT, toBytes(response))
@@ -514,6 +628,18 @@ export const getPosition = async ({
 		tickLower: toSignedInt24Number(tickLower),
 		tickUpper: toSignedInt24Number(tickUpper),
 		liquidity: typeof liquidity === 'bigint' ? liquidity : BigInt(String(liquidity)),
+		feeGrowthInside0LastX128: (
+			typeof feeGrowthInside0LastX128 === 'bigint' ?
+				feeGrowthInside0LastX128
+			:
+				BigInt(String(feeGrowthInside0LastX128))
+		),
+		feeGrowthInside1LastX128: (
+			typeof feeGrowthInside1LastX128 === 'bigint' ?
+				feeGrowthInside1LastX128
+			:
+				BigInt(String(feeGrowthInside1LastX128))
+		),
 		tokensOwed0: typeof tokensOwed0 === 'bigint' ? tokensOwed0 : BigInt(String(tokensOwed0)),
 		tokensOwed1: typeof tokensOwed1 === 'bigint' ? tokensOwed1 : BigInt(String(tokensOwed1)),
 	}
