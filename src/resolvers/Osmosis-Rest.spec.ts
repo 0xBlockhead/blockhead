@@ -62,6 +62,15 @@ const blockResolver = osmosisRest.resolvers.find((resolver) => (
 const denomTraceResolver = osmosisRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.IbcDenomTrace
 ))
+const osmosisPoolResolver = osmosisRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.OsmosisPool
+))
+const osmosisPoolAssetResolver = osmosisRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.OsmosisPoolAsset
+))
+const osmosisPoolTimestampResolver = osmosisRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.OsmosisPool_Timestamp
+))
 
 describe('Osmosis LCD resolver module', () => {
 	beforeEach(() => {
@@ -76,6 +85,9 @@ describe('Osmosis LCD resolver module', () => {
 			EntityType.Network_Timestamp,
 			EntityType.CosmosBlock,
 			EntityType.IbcDenomTrace,
+			EntityType.OsmosisPool,
+			EntityType.OsmosisPoolAsset,
+			EntityType.OsmosisPool_Timestamp,
 			EntityType.Network,
 			EntityType.Network,
 		])
@@ -83,6 +95,9 @@ describe('Osmosis LCD resolver module', () => {
 		expect(timestampResolver).toBeDefined()
 		expect(blockResolver).toBeDefined()
 		expect(denomTraceResolver).toBeDefined()
+		expect(osmosisPoolResolver).toBeDefined()
+		expect(osmosisPoolAssetResolver).toBeDefined()
+		expect(osmosisPoolTimestampResolver).toBeDefined()
 		expect(networkTimestampsResolver).toBeDefined()
 		expect(networkBlocksResolver).toBeDefined()
 	})
@@ -306,5 +321,138 @@ describe('Osmosis LCD resolver module', () => {
 				},
 			},
 		])
+	})
+
+	it('resolves a native OsmosisPool from poolmanager getPool', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			pool: {
+				'@type': '/osmosis.gamm.v1beta1.Pool',
+				address: 'osmo1pool',
+				id: '1',
+				pool_params: {
+					swap_fee: '0.002',
+					exit_fee: '0',
+				},
+				total_weight: '100',
+				total_shares: {
+					denom: 'gamm/pool/1',
+					amount: '1000',
+				},
+				pool_assets: [
+					{
+						token: {
+							denom: 'uosmo',
+							amount: '500',
+						},
+						weight: '50',
+					},
+					{
+						token: {
+							denom: 'uion',
+							amount: '500',
+						},
+						weight: '50',
+					},
+				],
+			},
+		})
+
+		if (osmosisPoolResolver == null)
+			throw new Error('missing OsmosisPool resolver')
+
+		const poolSelector = {
+			$network: osmosisNetwork,
+			poolId: '1',
+		}
+		const snapshot = await osmosisPoolResolver.resolve.NetworkPoolId.resolve(poolSelector, context)
+		expect(osmosisPoolResolver.projections.poolId(snapshot)).toBe('1')
+		expect(osmosisPoolResolver.projections.typeUrl(snapshot)).toBe('/osmosis.gamm.v1beta1.Pool')
+		expect(osmosisPoolResolver.projections.address(snapshot)).toBe('osmo1pool')
+		expect(osmosisPoolResolver.projections.swapFee(snapshot)).toBe('0.002')
+		expect(osmosisPoolResolver.projections.totalSharesDenom(snapshot)).toBe('gamm/pool/1')
+		expect(osmosisPoolResolver.projections.$$assets(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$pool: poolSelector,
+					denom: 'uosmo',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$pool: poolSelector,
+					denom: 'uion',
+				},
+			},
+		])
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.stringContaining('/osmosis/poolmanager/v1beta1/pools/1')
+		)
+	})
+
+	it('resolves OsmosisPoolAsset balances from the parent pool snapshot', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			pool: {
+				id: '1',
+				pool_assets: [
+					{
+						token: {
+							denom: 'uosmo',
+							amount: '500',
+						},
+						weight: '50',
+					},
+				],
+			},
+		})
+
+		if (osmosisPoolAssetResolver == null)
+			throw new Error('missing OsmosisPoolAsset resolver')
+
+		const snapshot = await osmosisPoolAssetResolver.resolve.PoolDenom.resolve({
+			$pool: {
+				$network: osmosisNetwork,
+				poolId: '1',
+			},
+			denom: 'uosmo',
+		}, context)
+
+		expect(osmosisPoolAssetResolver.projections.denom(snapshot)).toBe('uosmo')
+		expect(osmosisPoolAssetResolver.projections.amount(snapshot)).toBe('500')
+		expect(osmosisPoolAssetResolver.projections.weight(snapshot)).toBe('50')
+		expect(osmosisPoolAssetResolver.projections.$cosmosDenom(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: osmosisNetwork,
+				denom: 'uosmo',
+			},
+		})
+	})
+
+	it('resolves OsmosisPool_Timestamp spot price from getSpotPrice', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			spot_price: '1.25',
+		})
+
+		if (osmosisPoolTimestampResolver == null)
+			throw new Error('missing OsmosisPool_Timestamp resolver')
+
+		const snapshot = await osmosisPoolTimestampResolver.resolve.PoolTimestampMsBaseQuote.resolve({
+			$pool: {
+				$network: osmosisNetwork,
+				poolId: '1',
+			},
+			timestampMs: 1_700_000_000_000,
+			baseAssetDenom: 'uosmo',
+			quoteAssetDenom: 'uion',
+		}, context)
+
+		expect(osmosisPoolTimestampResolver.projections.spotPrice(snapshot)).toBe('1.25')
+		expect(osmosisPoolTimestampResolver.projections.source(snapshot)).toBe(Source.Osmosis_LCD_Rest)
+		expect(osmosisPoolTimestampResolver.projections.baseAssetDenom(snapshot)).toBe('uosmo')
+		expect(osmosisPoolTimestampResolver.projections.quoteAssetDenom(snapshot)).toBe('uion')
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.stringMatching(/\/osmosis\/poolmanager\/v1beta1\/pools\/1\/prices\?/)
+		)
 	})
 })

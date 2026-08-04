@@ -743,6 +743,9 @@ import NostrSearchQuerySchema from '$/schema/NostrSearchQuery.ts'
 import OracleFeed_RoundSchema from '$/schema/OracleFeed_Round.ts'
 import OracleFeed_TimestampSchema from '$/schema/OracleFeed_Timestamp.ts'
 import OracleFeedSchema from '$/schema/OracleFeed.ts'
+import OsmosisPool_TimestampSchema from '$/schema/OsmosisPool_Timestamp.ts'
+import OsmosisPoolAssetSchema from '$/schema/OsmosisPoolAsset.ts'
+import OsmosisPoolSchema from '$/schema/OsmosisPool.ts'
 import PayjoinDirectorySchema from '$/schema/PayjoinDirectory.ts'
 import PayjoinEndpoint_TimestampSchema from '$/schema/PayjoinEndpoint_Timestamp.ts'
 import PayjoinEndpointSchema from '$/schema/PayjoinEndpoint.ts'
@@ -1788,6 +1791,9 @@ const schemaChunk14 = [
 	OracleFeedSchema,
 	OracleFeed_RoundSchema,
 	OracleFeed_TimestampSchema,
+	OsmosisPoolSchema,
+	OsmosisPool_TimestampSchema,
+	OsmosisPoolAssetSchema,
 	PayjoinDirectorySchema,
 	PayjoinEndpointSchema,
 	PayjoinEndpoint_TimestampSchema,

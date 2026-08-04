@@ -1575,4 +1575,73 @@ describe('entity selectors', () => {
 		])
 		expect(bridges?.defaultSources).not.toContain(Source.Lifi_Rest)
 	})
+
+	it('registers native OsmosisPool entities off EVM LiquidityPool', () => {
+		const osmosisPool = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.OsmosisPool)
+		const osmosisPoolAsset = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.OsmosisPoolAsset)
+		const osmosisPoolTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.OsmosisPool_Timestamp)
+		const liquidityPool = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.LiquidityPool)
+
+		if (osmosisPool == null || osmosisPoolAsset == null || osmosisPoolTimestamp == null || liquidityPool == null)
+			throw new Error('Osmosis pool schema rows missing')
+
+		expect(osmosisPool.selectors.map((selector) => selector.fields)).toEqual([
+			[
+				'$network',
+				'poolId',
+			],
+		])
+		expect(entityFieldDefinitions(osmosisPool).map(({ name }) => name)).toEqual(
+			expect.arrayContaining([
+				'$network',
+				'poolId',
+				'typeUrl',
+				'$$assets',
+				'$$timestamps',
+			])
+		)
+		expect(entityFieldDefinitions(osmosisPool).find(({ name }) => name === '$$assets')).toMatchObject({
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.OsmosisPoolAsset,
+			defaultSources: [
+				Source.Osmosis_LCD_Rest,
+			],
+		})
+		expect(entityFieldDefinitions(osmosisPool).map(({ name }) => name)).not.toEqual(
+			expect.arrayContaining([
+				'$baseToken',
+				'$quoteToken',
+				'v4PoolId',
+			])
+		)
+		expect(entityFieldDefinitions(liquidityPool).map(({ name }) => name)).not.toContain('$$assets')
+
+		expect(osmosisPoolAsset.selectors.map((selector) => selector.fields)).toEqual([
+			[
+				'$pool',
+				'denom',
+			],
+		])
+		expect(entityFieldDefinitions(osmosisPoolAsset).find(({ name }) => name === '$pool')).toMatchObject({
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.OsmosisPool,
+		})
+
+		expect(osmosisPoolTimestamp.selectors.map((selector) => selector.fields)).toEqual([
+			[
+				'$pool',
+				'timestampMs',
+				'baseAssetDenom',
+				'quoteAssetDenom',
+			],
+		])
+		expect(entityFieldDefinitions(osmosisPoolTimestamp).map(({ name }) => name)).toEqual(
+			expect.arrayContaining([
+				'spotPrice',
+				'baseAssetDenom',
+				'quoteAssetDenom',
+				'source',
+			])
+		)
+	})
 })
