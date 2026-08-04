@@ -35,7 +35,7 @@ export default indexSourceBindings([
 			{
 				scope: SourceCredentialScope.PublicConfig,
 				env: arktype({
-					'PUBLIC_BLOCKCHAIR_API_KEY': 'string > 0?',
+					'PUBLIC_BLOCKCHAIR_API_KEY': 'string',
 				}),
 			},
 		],
