@@ -3,6 +3,7 @@
 export enum SourceProvider {
 	_Constants = '_Constants',
 	Acp = 'Acp',
+	Aave = 'Aave',
 	Across = 'Across',
 	AlgorandWallet = 'AlgorandWallet',
 	Allium = 'Allium',
@@ -142,6 +143,7 @@ export enum SourceProvider {
 	Mlflow = 'Mlflow',
 	MoneroDaemonRpc = 'MoneroDaemonRpc',
 	MoneroWalletRpc = 'MoneroWalletRpc',
+	Morpho = 'Morpho',
 	NearBlocks = 'NearBlocks',
 	NearConnect = 'NearConnect',
 	NearNeps = 'NearNeps',

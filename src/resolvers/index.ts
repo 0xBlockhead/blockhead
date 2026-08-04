@@ -13,6 +13,7 @@ type ResolverLoaderEntry = {
 }[Source]
 
 const resolverLoaderEntries = [
+	[Source.Aave_Rest, () => import('./Aave-Rest.ts')],
 	[Source.AcpRegistry_Rest, () => import('./AcpRegistry-Rest.ts')],
 	[Source.Allium_Rest, () => import('./Allium-Rest.ts')],
 	[Source.Amboss_Graphql, () => import('./Amboss-Graphql.ts')],

@@ -390,6 +390,13 @@ export default entity({
 					Source.Blockscout_Rest,
 				],
 			},
+			$$aaveMarkets: {
+				entityType: EntityType.AaveMarket,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Aave_Rest,
+				],
+			},
 			$$bridges: {
 				entityType: EntityType.EvmNetworkBridge,
 				cardinality: EntityFieldCardinality.Many,

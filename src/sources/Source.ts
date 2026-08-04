@@ -3,6 +3,7 @@
 export enum Source {
 	AcpLocal_JsonRpc = 'AcpLocal_JsonRpc',
 	AcpRegistry_Rest = 'AcpRegistry_Rest',
+	Aave_Rest = 'Aave_Rest',
 	Across_Rest = 'Across_Rest',
 	AlgorandWallet_WalletApi = 'AlgorandWallet_WalletApi',
 	Allium_Rest = 'Allium_Rest',

@@ -2,6 +2,7 @@
 
 import constantsSourceProvider from './_Constants/index.ts'
 import acpSourceProvider from './Acp/index.ts'
+import aaveSourceProvider from './Aave/index.ts'
 import acrossSourceProvider from './Across/index.ts'
 import algorandWalletSourceProvider from './AlgorandWallet/index.ts'
 import alliumSourceProvider from './Allium/index.ts'
@@ -251,6 +252,7 @@ import zeroGSourceProvider from './ZeroG/index.ts'
 const sourceProviders = [
 	constantsSourceProvider,
 	acpSourceProvider,
+	aaveSourceProvider,
 	acrossSourceProvider,
 	algorandWalletSourceProvider,
 	alliumSourceProvider,

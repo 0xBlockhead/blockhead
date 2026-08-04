@@ -40,6 +40,7 @@ import A2aPushNotificationConfigSchema from '$/schema/A2aPushNotificationConfig.
 import A2aTask_TimestampSchema from '$/schema/A2aTask_Timestamp.ts'
 import A2aTaskSchema from '$/schema/A2aTask.ts'
 import A2aTaskEventSchema from '$/schema/A2aTaskEvent.ts'
+import AaveMarketSchema from '$/schema/AaveMarket.ts'
 import AccountSchema from '$/schema/Account.ts'
 import AcpAgentProgramSchema from '$/schema/AcpAgentProgram.ts'
 import AcpAgentProgramVersionSchema from '$/schema/AcpAgentProgramVersion.ts'
@@ -1046,6 +1047,7 @@ const schemaChunk0 = [
 	A2aTaskSchema,
 	A2aTask_TimestampSchema,
 	A2aTaskEventSchema,
+	AaveMarketSchema,
 	AccountSchema,
 	AcpAgentProgramSchema,
 	AcpAgentProgramVersionSchema,

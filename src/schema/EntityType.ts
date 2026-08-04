@@ -40,6 +40,7 @@ export enum EntityType {
 	A2aTask = 'A2aTask',
 	A2aTask_Timestamp = 'A2aTask_Timestamp',
 	A2aTaskEvent = 'A2aTaskEvent',
+	AaveMarket = 'AaveMarket',
 	Account = 'Account',
 	AcpAgentProgram = 'AcpAgentProgram',
 	AcpAgentProgramVersion = 'AcpAgentProgramVersion',
