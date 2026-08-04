@@ -390,6 +390,32 @@ describe('LI.FI transfer status', () => {
 		})
 	})
 
+	it('rejects unknown statuses and blank canonical transfer identities', async () => {
+		vi.mocked(lifiRestFetch)
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				status: 'FOREIGN',
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				status: 'PENDING',
+				tool: 'across',
+				transactionId: ' ',
+				sending: {
+					txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+					txLink: 'https://example.com/source',
+					amount: '100',
+					token: fromToken,
+					chainId: 1,
+				},
+			})))
+
+		await expect(fetchTransferStatus({
+			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+		})).rejects.toThrow('malformed transfer status')
+		await expect(fetchTransferStatus({
+			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+		})).rejects.toThrow('malformed transfer status')
+	})
+
 	it('validates receiving legs and rejects empty tool names', async () => {
 		vi.mocked(lifiRestFetch)
 			.mockResolvedValueOnce(new Response(JSON.stringify({

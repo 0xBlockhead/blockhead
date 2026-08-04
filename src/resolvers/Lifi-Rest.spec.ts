@@ -178,6 +178,38 @@ describe('LI.FI transfer status resolvers', () => {
 		expect(snapshot.transferId).toBe(transfer.transferId)
 	})
 
+	it('rejects status responses that do not identify the requested source transaction', async () => {
+		fetchChains.mockResolvedValue(chains)
+		fetchTransferStatus.mockResolvedValue({
+			...status,
+			sending: {
+				...status.sending,
+				txHash: destinationTxHash,
+			},
+		})
+		const resolver = lifiRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer
+		))
+		if (resolver == null)
+			throw new Error('LI.FI BridgeTransfer resolver is not registered')
+
+		await expect(
+			resolver.resolve.SourceTxSourceLogIndex.resolve({
+				source: Source.Lifi_Rest,
+				$sourceTx: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '1',
+						},
+					},
+					txHash: sourceTxHash,
+				},
+				logIndex: 0,
+			})
+		).rejects.toThrow('transfer status does not match source transaction')
+	})
+
 	it('rejects mismatched transfer ids from official status', async () => {
 		fetchChains.mockResolvedValue(chains)
 		fetchTransferStatus.mockResolvedValue({
@@ -237,5 +269,22 @@ describe('LI.FI transfer status resolvers', () => {
 		await expect(
 			resolver.resolve.SourceTransferId.resolve(transfer)
 		).rejects.toThrow('transfer not found')
+	})
+
+	it('hard-fails BridgeTransfer snapshots for official INVALID status', async () => {
+		fetchTransferStatus.mockResolvedValue({
+			...status,
+			status: 'INVALID',
+		})
+		const resolver = lifiRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer
+		))
+		if (resolver == null)
+			throw new Error('LI.FI BridgeTransfer resolver is not registered')
+
+		await expect(
+			resolver.resolve.SourceTransferId.resolve(transfer)
+		).rejects.toThrow('transfer status invalid')
+		expect(fetchChains).not.toHaveBeenCalled()
 	})
 })

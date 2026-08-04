@@ -207,7 +207,13 @@ export const fetchTransferStatus = async (
 	const response = await lifiRestFetch(path)
 	await throwIfLifiHttpNotOk(response, path)
 	const status = await response.json<LifiStatusResponse>()
-	if (status.status == null)
+	if (
+		status.status !== 'NOT_FOUND'
+		&& status.status !== 'INVALID'
+		&& status.status !== 'PENDING'
+		&& status.status !== 'DONE'
+		&& status.status !== 'FAILED'
+	)
 		throw new Error('Lifi_Rest: malformed transfer status')
 
 	if (status.status === 'NOT_FOUND')
@@ -230,7 +236,7 @@ export const fetchTransferStatus = async (
 
 	if (
 		status.transactionId != null
-		&& status.transactionId === ''
+		&& status.transactionId.trim() === ''
 	)
 		throw new Error('Lifi_Rest: malformed transfer status')
 
