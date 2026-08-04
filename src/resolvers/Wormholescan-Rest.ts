@@ -259,7 +259,12 @@ const loadOperationForTransfer = async (
 }
 
 const wormholeVaaSnapshotFromWire = (
-	vaa: WormholescanVaa
+	vaa: WormholescanVaa,
+	{
+		emitterChain,
+		emitter,
+		sequence,
+	}: EntitySelector<typeof schema, EntityType.WormholeVaa>
 ) => {
 	if (vaa.digest == null || vaa.digest === '')
 		throw new Error('Wormholescan_Rest: VAA missing digest')
@@ -271,6 +276,9 @@ const wormholeVaaSnapshotFromWire = (
 	const txHash = evmTxHashFromWormholeWire(vaa.txHash)
 
 	return {
+		emitterChain,
+		emitter,
+		sequence,
 		digest: vaa.digest,
 		guardianSetIndex: vaa.guardianSetIndex,
 		timestamp: vaa.timestamp,
@@ -380,11 +388,18 @@ export default {
 						const { getVaaById } = await import(
 							'$/sources/Wormholescan/Rest/queries.ts'
 						)
-						return wormholeVaaSnapshotFromWire(await getVaaById({
-							chainId: emitterChain,
-							emitter,
-							sequence,
-						}))
+						return wormholeVaaSnapshotFromWire(
+							await getVaaById({
+								chainId: emitterChain,
+								emitter,
+								sequence,
+							}),
+							{
+								emitterChain,
+								emitter,
+								sequence,
+							}
+						)
 					},
 				},
 			},

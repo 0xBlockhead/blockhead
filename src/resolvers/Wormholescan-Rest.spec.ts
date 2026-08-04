@@ -298,12 +298,18 @@ describe('Wormholescan WormholeVaa resolvers', () => {
 			sequence: '42',
 		})
 		expect(snapshot).toEqual({
+			emitterChain: 2,
+			emitter: vaaEmitter,
+			sequence: '42',
 			digest: 'deadbeef',
 			guardianSetIndex: 3,
 			timestamp: '2026-01-02T03:04:05.000Z',
 			emitterNativeAddr: '0x1111111111111111111111111111111111111111',
 			txHash: vaaTxHash,
 		})
+		expect(resolver.projections.emitterChain(snapshot)).toBe(vaaSelector.emitterChain)
+		expect(resolver.projections.emitter(snapshot)).toBe(vaaSelector.emitter)
+		expect(resolver.projections.sequence(snapshot)).toBe(vaaSelector.sequence)
 	})
 
 	it('omits optional emitterNativeAddr and txHash when absent', async () => {
@@ -326,6 +332,9 @@ describe('Wormholescan WormholeVaa resolvers', () => {
 		const snapshot = await resolver.resolve.EmitterChainEmitterSequence.resolve(vaaSelector)
 
 		expect(snapshot).toEqual({
+			emitterChain: 2,
+			emitter: vaaEmitter,
+			sequence: '42',
 			digest: 'deadbeef',
 			guardianSetIndex: 3,
 			timestamp: '2026-01-02T03:04:05.000Z',
