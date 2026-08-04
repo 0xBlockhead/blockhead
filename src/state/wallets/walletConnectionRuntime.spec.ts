@@ -37,6 +37,7 @@ const mountMockWalletRuntime = async ({
 	persistWalletRequest = vi.fn(),
 	persistWalletRequestObservation = vi.fn(),
 	persistWalletRequestSubmittedAt = vi.fn(),
+	persistedConnections,
 	persistedProtocol = WalletProtocol.Eip6963,
 	persistedStatus,
 	persistedTransportKind = WalletTransportKind.InjectedProvider,
@@ -57,6 +58,14 @@ const mountMockWalletRuntime = async ({
 		walletRequestSelector: object,
 		submittedAt: number
 	) => void | Promise<void>
+	persistedConnections?: {
+		connectionKey: string
+		walletId: string
+		status: BlockheadConnectionStatus
+		protocol: WalletProtocol
+		transportKind: WalletTransportKind
+		selected: boolean
+	}[]
 	persistedProtocol?: WalletProtocol
 	persistedStatus?: BlockheadConnectionStatus
 	persistedTransportKind?: WalletTransportKind
@@ -70,21 +79,34 @@ const mountMockWalletRuntime = async ({
 		accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
 		capabilities: [WalletCapability.SignMessage],
 	}
-	const persistedConnection = (
-		persistedStatus == null ?
-			undefined
-		:
+	const persistedRows = (
+		persistedConnections
+		?? (
+			persistedStatus == null ?
+				[]
+			:
+				[
+					{
+						connectionKey: 'persisted-session',
+						walletId,
+						status: persistedStatus,
+						protocol: persistedProtocol,
+						transportKind: persistedTransportKind,
+						selected: persistedStatus === BlockheadConnectionStatus.Connected,
+					},
+				]
+		)
+	)
+	const persistedByKey = Object.fromEntries(
+		persistedRows.map((row) => [
+			row.connectionKey,
 			{
-				connectionKey: 'persisted-session',
-				walletId,
-				status: persistedStatus,
-				protocol: persistedProtocol,
-				transportKind: persistedTransportKind,
+				...row,
 				scopes: [],
 				accounts: [account],
 				activeAccount: account,
-				selected: persistedStatus === BlockheadConnectionStatus.Connected,
-			}
+			},
+		])
 	)
 	const subscribeConnection = vi.fn((
 		_walletId: string,
@@ -92,6 +114,7 @@ const mountMockWalletRuntime = async ({
 		_connectionKey?: string
 	) => () => {})
 	const deleteConnection = vi.fn()
+	const writeConnection = vi.fn()
 	const writeWalletRequest = vi.fn(persistWalletRequest)
 	const writeWalletRequestObservation = vi.fn(persistWalletRequestObservation)
 	const writeWalletRequestSubmittedAt = vi.fn(persistWalletRequestSubmittedAt)
@@ -128,75 +151,80 @@ const mountMockWalletRuntime = async ({
 	vi.doMock('$/collections/localMutations.ts', () => ({
 		deleteLocalBlockheadWalletConnection: deleteConnection,
 		writeLocalBlockheadWallet: vi.fn(),
-		writeLocalBlockheadWalletConnection: vi.fn(),
+		writeLocalBlockheadWalletConnection: writeConnection,
 		writeLocalBlockheadWalletRequest: writeWalletRequest,
 		writeLocalBlockheadWalletRequest_Timestamp: writeWalletRequestObservation,
 		writeLocalBlockheadWalletRequestSubmittedAt: writeWalletRequestSubmittedAt,
 	}))
 
-	const persistedConnectionPromise = Promise.resolve(persistedConnection)
-	const persistedConnectionSelection = Object.assign(
-		() => persistedConnectionPromise,
-		{
-			then: persistedConnectionPromise.then.bind(persistedConnectionPromise),
-			catch: persistedConnectionPromise.catch.bind(persistedConnectionPromise),
-			finally: persistedConnectionPromise.finally.bind(persistedConnectionPromise),
-			$wallet: Promise.resolve({
-				[EntityMetaKey.Selector]: {
-					id: walletId,
-				},
-			}),
-			$$accounts: () => Promise.resolve({
-				values: persistedConnection?.accounts.map((persistedAccount) => ({
+	const selectionFor = (
+		connectionKey: string
+	) => {
+		const persistedConnection = persistedByKey[connectionKey]
+		const persistedConnectionPromise = Promise.resolve(persistedConnection)
+		return Object.assign(
+			() => persistedConnectionPromise,
+			{
+				then: persistedConnectionPromise.then.bind(persistedConnectionPromise),
+				catch: persistedConnectionPromise.catch.bind(persistedConnectionPromise),
+				finally: persistedConnectionPromise.finally.bind(persistedConnectionPromise),
+				$wallet: Promise.resolve({
 					[EntityMetaKey.Selector]: {
-						caip10: {
-							namespace: persistedAccount.namespace,
-							reference: persistedAccount.reference,
-							accountAddress: persistedAccount.accountAddress,
-						},
+						id: persistedConnection?.walletId ?? walletId,
 					},
-				})) ?? [],
-			}),
-			$activeAccount: Promise.resolve(
-				persistedConnection?.activeAccount == null ?
-					undefined
-				:
-					{
+				}),
+				$$accounts: () => Promise.resolve({
+					values: persistedConnection?.accounts.map((persistedAccount) => ({
 						[EntityMetaKey.Selector]: {
 							caip10: {
-								namespace: persistedConnection.activeAccount.namespace,
-								reference: persistedConnection.activeAccount.reference,
-								accountAddress: persistedConnection.activeAccount.accountAddress,
+								namespace: persistedAccount.namespace,
+								reference: persistedAccount.reference,
+								accountAddress: persistedAccount.accountAddress,
 							},
 						},
-					}
-			),
-		}
-	)
+					})) ?? [],
+				}),
+				$activeAccount: Promise.resolve(
+					persistedConnection?.activeAccount == null ?
+						undefined
+					:
+						{
+							[EntityMetaKey.Selector]: {
+								caip10: {
+									namespace: persistedConnection.activeAccount.namespace,
+									reference: persistedConnection.activeAccount.reference,
+									accountAddress: persistedConnection.activeAccount.accountAddress,
+								},
+							},
+						}
+				),
+			}
+		)
+	}
 	const { mountWalletConnectionRuntime } = await import('./walletConnectionRuntime.svelte.ts')
 	const runtime = mountWalletConnectionRuntime({
 		entityCollections: {},
 		entityFieldCollections: {},
 		entityFieldCountCollections: {},
-		select: (entityType: EntityType) => (
+		select: (
+			entityType: EntityType,
+			selector?: {
+				connectionKey?: string
+			}
+		) => (
 			entityType === EntityType._Global ?
 				{
 					$$blockheadWalletConnections: () => Promise.resolve({
-						values: persistedConnection == null ?
-							[]
-						:
-							[
-								{
-									connectionKey: persistedConnection.connectionKey,
-									[EntityMetaKey.Selector]: {
-										connectionKey: persistedConnection.connectionKey,
-									},
-								},
-							],
+						values: persistedRows.map((row) => ({
+							connectionKey: row.connectionKey,
+							[EntityMetaKey.Selector]: {
+								connectionKey: row.connectionKey,
+							},
+						})),
 					}),
 				}
 			:
-				persistedConnectionSelection
+				selectionFor(selector?.connectionKey ?? persistedRows[0]?.connectionKey ?? 'persisted-session')
 		),
 	})
 
@@ -205,6 +233,7 @@ const mountMockWalletRuntime = async ({
 		disconnect,
 		runtime,
 		subscribeConnection,
+		writeConnection,
 		writeWalletRequest,
 		writeWalletRequestObservation,
 		writeWalletRequestSubmittedAt,
@@ -1643,6 +1672,53 @@ describe('wallet connection runtime normalization', () => {
 				],
 			}),
 		]))
+
+		runtime.destroy()
+	})
+
+	it('demotes extra selected persisted connections on hydrate so prepare stays single-selected', async () => {
+		const { runtime, writeConnection } = await mountMockWalletRuntime({
+			candidateAvailable: false,
+			persistedConnections: [
+				{
+					connectionKey: 'older-selected',
+					walletId: 'eip6963:com.example.wallet',
+					status: BlockheadConnectionStatus.Connected,
+					protocol: WalletProtocol.Eip6963,
+					transportKind: WalletTransportKind.InjectedProvider,
+					selected: true,
+				},
+				{
+					connectionKey: 'newer-selected',
+					walletId: 'eip6963:com.example.other',
+					status: BlockheadConnectionStatus.Connected,
+					protocol: WalletProtocol.Eip6963,
+					transportKind: WalletTransportKind.InjectedProvider,
+					selected: true,
+				},
+			],
+		})
+
+		await vi.waitFor(() => expect(runtime.connections).toEqual([
+			expect.objectContaining({
+				connectionKey: 'older-selected',
+				status: BlockheadConnectionStatus.Connected,
+				selected: false,
+			}),
+			expect.objectContaining({
+				connectionKey: 'newer-selected',
+				status: BlockheadConnectionStatus.Connected,
+				selected: true,
+			}),
+		]))
+		expect(writeConnection).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				connectionKey: 'older-selected',
+				status: BlockheadConnectionStatus.Connected,
+				selected: false,
+			})
+		)
 
 		runtime.destroy()
 	})

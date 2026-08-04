@@ -178,6 +178,10 @@ describe('source applicability planning contract', () => {
 			expect(applicabilityStart).toBeLessThan(productSubsetStart)
 		}
 		expect(clientSource).not.toMatch(/sourceNames\s*\?\?\s*applicableResolverSources/)
+		expect(clientSource).toContain('const includesEnabledLocalInternal = (')
+		expect(clientSource).toContain('enabledSources.has(Source.Local_Internal)')
+		expect(clientSource.match(/includesEnabledLocalInternal\(subset\.sources, enabledSources\)/g)?.length).toBeGreaterThanOrEqual(9)
+		expect(clientSource).not.toMatch(/subset\.sources\?\.includes\(Source\.Local_Internal\) === true/)
 	})
 
 	it('excluded source never invokes or owns outcome', async () => {

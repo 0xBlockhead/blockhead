@@ -9,6 +9,7 @@ import {
 	ExecutionProtocol,
 	NetworkExecutionUpgradeLayer,
 } from '$/schema/NetworkUpgradeProtocols.ts'
+import { ChainId } from '$/constants/ChainId.ts'
 import {
 	baseMainnetNetworkUpgradeActivations,
 	baseSepoliaNetworkUpgradeActivations,
@@ -156,9 +157,9 @@ export const ethereumNetworkMarketingUmbrellas = [
 
 
 const ETHEREUM_NETWORK_UPGRADE_UMBRELLA_CHAIN_IDS = new Set<number>([
-	1,
-	11_155_111,
-	17_000,
+	ChainId.Ethereum,
+	ChainId.EthereumSepolia,
+	ChainId.Holesky,
 ])
 
 const activationFieldsFromActivation = (
@@ -312,13 +313,13 @@ const activationsWithChainId = (
 )
 
 const withChain = [
-	...activationsWithChainId(1, ethereumMainnetNetworkUpgradeActivations),
-	...activationsWithChainId(10, opMainnetNetworkUpgradeActivations),
-	...activationsWithChainId(8453, baseMainnetNetworkUpgradeActivations),
-	...activationsWithChainId(17_000, holeskyNetworkUpgradeActivations),
-	...activationsWithChainId(84_532, baseSepoliaNetworkUpgradeActivations),
-	...activationsWithChainId(11_155_111, sepoliaNetworkUpgradeActivations),
-	...activationsWithChainId(11_155_420, opSepoliaNetworkUpgradeActivations),
+	...activationsWithChainId(ChainId.Ethereum, ethereumMainnetNetworkUpgradeActivations),
+	...activationsWithChainId(ChainId.Optimism, opMainnetNetworkUpgradeActivations),
+	...activationsWithChainId(ChainId.Base, baseMainnetNetworkUpgradeActivations),
+	...activationsWithChainId(ChainId.Holesky, holeskyNetworkUpgradeActivations),
+	...activationsWithChainId(ChainId.BaseSepolia, baseSepoliaNetworkUpgradeActivations),
+	...activationsWithChainId(ChainId.EthereumSepolia, sepoliaNetworkUpgradeActivations),
+	...activationsWithChainId(ChainId.OPSepolia, opSepoliaNetworkUpgradeActivations),
 ]
 
 const chainIdsWithUpgradeActivations = (

@@ -2498,6 +2498,14 @@ const requestedSources = (
 	?? resolverSources
 )
 
+const includesEnabledLocalInternal = (
+	sources: readonly string[] | undefined,
+	enabledSources: ReadonlySet<string>
+) => (
+	sources?.includes(Source.Local_Internal) === true
+	&& enabledSources.has(Source.Local_Internal)
+)
+
 const resolvableSources = (
 	subset: ReturnType<typeof parseResolverSubset>,
 	defaultSources: readonly string[] | undefined,
@@ -3710,7 +3718,7 @@ export const client = <
 
 			return (
 				subset.selectorKeys.length > 0
-				&& subset.sources?.includes(Source.Local_Internal) === true
+				&& includesEnabledLocalInternal(subset.sources, enabledSources)
 				&& subset.filters.every((filter) => (
 					filter.fieldPath[0] === EntityMetaKey.SelectorKey
 					|| filter.fieldPath[0] === EntityMetaKey.Source
@@ -3763,7 +3771,7 @@ export const client = <
 								entityResolvers,
 								subset.sources
 							),
-							...(subset.sources?.includes(Source.Local_Internal) === true ? [Source.Local_Internal] : []),
+							...(includesEnabledLocalInternal(subset.sources, enabledSources) ? [Source.Local_Internal] : []),
 						])]
 					},
 					localAuthoritySourceRowKeys: (
@@ -3794,7 +3802,7 @@ export const client = <
 								entityResolvers,
 								subset.sources
 							),
-							...(subset.sources?.includes(Source.Local_Internal) === true ? [Source.Local_Internal] : []),
+							...(includesEnabledLocalInternal(subset.sources, enabledSources) ? [Source.Local_Internal] : []),
 						])
 						const allRows = productSubsetOwnedRows(
 							marker,
@@ -3921,7 +3929,7 @@ export const client = <
 
 					return (
 						subset.parentSelectorKeys.length > 0
-							&& subset.sources?.includes(Source.Local_Internal) === true
+							&& includesEnabledLocalInternal(subset.sources, enabledSources)
 							&& subset.parentSelectorKeys.every((selectorKey) => (
 								entityFieldCardinalityIsMultiple(definition.cardinality) ?
 									entityFieldCollectionUtils.utils.hasLocalMutationAuthority(
@@ -4024,7 +4032,7 @@ export const client = <
 										resolverParts.map((resolverPart) => resolverPart.resolver),
 										parentSelectorsFromSubset(subset).map(({ selector }) => selector)
 									),
-									...(subset.sources?.includes(Source.Local_Internal) === true ? [Source.Local_Internal] : []),
+									...(includesEnabledLocalInternal(subset.sources, enabledSources) ? [Source.Local_Internal] : []),
 								])]
 							},
 							localAuthoritySourceRowKeys: (
@@ -4069,7 +4077,7 @@ export const client = <
 										resolverParts.map((resolverPart) => resolverPart.resolver),
 										parentSelectorsFromSubset(subset).map(({ selector }) => selector)
 									),
-									...(subset.sources?.includes(Source.Local_Internal) === true ? [Source.Local_Internal] : []),
+									...(includesEnabledLocalInternal(subset.sources, enabledSources) ? [Source.Local_Internal] : []),
 								])
 								const allRows = productSubsetOwnedRows(
 									marker,
@@ -4264,7 +4272,7 @@ export const client = <
 
 					return (
 						subset.parentSelectorKeys.length > 0
-						&& subset.sources?.includes(Source.Local_Internal) === true
+						&& includesEnabledLocalInternal(subset.sources, enabledSources)
 						&& subset.parentSelectorKeys.every((selectorKey) => (
 							entityFieldCountCollectionUtils.utils.hasLocalMutationAuthority(
 								selectorKey,
@@ -4336,7 +4344,7 @@ export const client = <
 										resolverParts.map((resolverPart) => resolverPart.resolver),
 										parentSelectorsFromSubset(subset).map(({ selector }) => selector)
 									),
-									...(subset.sources?.includes(Source.Local_Internal) === true ? [Source.Local_Internal] : []),
+									...(includesEnabledLocalInternal(subset.sources, enabledSources) ? [Source.Local_Internal] : []),
 								])]
 							},
 							localAuthoritySourceRowKeys: (
@@ -4381,7 +4389,7 @@ export const client = <
 										resolverParts.map((resolverPart) => resolverPart.resolver),
 										parentSelectorsFromSubset(subset).map(({ selector }) => selector)
 									),
-									...(subset.sources?.includes(Source.Local_Internal) === true ? [Source.Local_Internal] : []),
+									...(includesEnabledLocalInternal(subset.sources, enabledSources) ? [Source.Local_Internal] : []),
 								])
 								const allRows = productSubsetOwnedRows(
 									marker,

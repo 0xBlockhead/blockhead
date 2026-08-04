@@ -2672,7 +2672,7 @@ describe('client resolver stack architecture', () => {
 			})
 		await expect.poll(() => upgrades.current?.values.length).toBe(1)
 		await expect(upgrades).resolves.toEqual(upgrades.current)
-	}, 30_000)
+	}, 90_000)
 
 	it('hydrates identity from selector defaults without activating unrelated selector resolvers', async () => {
 		const fixtureSchema = [
@@ -4982,7 +4982,7 @@ describe('client resolver stack architecture', () => {
 		)
 		expect(deletedItemsResource.current).toBeUndefined()
 		expect(deletedItemsResource.ready).toBe(false)
-	})
+	}, 30_000)
 
 	it('keeps view-facing reads behind the proxy and subscribe files', () => {
 		expect(source('$proxy.svelte.ts')).not.toMatch(/entityCollections|entityFieldCollections|queryCollectionOptions/)

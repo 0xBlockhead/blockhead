@@ -339,7 +339,7 @@ const createWalletRuntimeState = (
 		)
 
 		const persistedConnectionKeys = new Set(persistedConnections.map(walletConnectionKey))
-		connections = [
+		const mergedConnections = [
 			...connections.filter((connection) => {
 				const connectionKey = walletConnectionKey(connection)
 				return runtimeMutatedConnectionKeys.has(connectionKey) || !persistedConnectionKeys.has(connectionKey)
@@ -348,7 +348,32 @@ const createWalletRuntimeState = (
 				walletConnectionKey(connection)
 			)),
 		]
-		for (const connection of persistedConnections) {
+		const nextConnections = withExclusiveWalletConnectionSelection(mergedConnections)
+		const mergedByKey = new Map(
+			mergedConnections.map((connection) => [
+				walletConnectionKey(connection),
+				connection,
+			])
+		)
+		await Promise.all(
+			nextConnections.flatMap((connection) => {
+				const connectionKey = walletConnectionKey(connection)
+				const prior = mergedByKey.get(connectionKey)
+				if (
+					prior == null
+					|| !isSelectedWalletConnection(prior)
+					|| isSelectedWalletConnection(connection)
+				)
+					return []
+
+				runtimeMutatedConnectionKeys.add(connectionKey)
+				return [
+					writeLocalBlockheadWalletConnection(context, connection),
+				]
+			})
+		)
+		connections = nextConnections
+		for (const connection of nextConnections) {
 			const adapter = adapterByWalletId.get(connection.walletId)
 			if (adapter == null)
 				continue

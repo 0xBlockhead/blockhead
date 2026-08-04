@@ -331,8 +331,8 @@ export const networks = [
 		slug: 'ethereum',
 		name: 'Ethereum Mainnet',
 		caip2: {
-			namespace: 'eip155',
-			reference: '1',
+			namespace: Caip2Namespace.Eip155,
+			reference: Caip2Reference.EthereumMainnet,
 		},
 		namespace: NetworkNamespace.Evm,
 		environment: NetworkEnvironment.Mainnet,
@@ -340,11 +340,47 @@ export const networks = [
 		executionModels: [NetworkExecutionModel.Evm],
 	},
 	{
+		slug: 'ethereum-sepolia',
+		name: 'Ethereum Sepolia',
+		caip2: {
+			namespace: Caip2Namespace.Eip155,
+			reference: Caip2Reference.EthereumSepolia,
+		},
+		namespace: NetworkNamespace.Evm,
+		environment: NetworkEnvironment.Testnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [NetworkExecutionModel.Evm],
+	},
+	{
+		slug: 'ethereum-holesky',
+		name: 'Ethereum Holesky',
+		caip2: {
+			namespace: Caip2Namespace.Eip155,
+			reference: Caip2Reference.EthereumHolesky,
+		},
+		namespace: NetworkNamespace.Evm,
+		environment: NetworkEnvironment.Testnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [NetworkExecutionModel.Evm],
+	},
+	{
+		slug: 'ethereum-hoodi',
+		name: 'Ethereum Hoodi',
+		caip2: {
+			namespace: Caip2Namespace.Eip155,
+			reference: Caip2Reference.EthereumHoodi,
+		},
+		namespace: NetworkNamespace.Evm,
+		environment: NetworkEnvironment.Testnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [NetworkExecutionModel.Evm],
+	},
+	{
 		slug: 'optimism',
 		name: 'Optimism',
 		caip2: {
-			namespace: 'eip155',
-			reference: '10',
+			namespace: Caip2Namespace.Eip155,
+			reference: Caip2Reference.Optimism,
 		},
 		namespace: NetworkNamespace.Evm,
 		environment: NetworkEnvironment.Mainnet,
@@ -355,8 +391,8 @@ export const networks = [
 		slug: 'polygon',
 		name: 'Polygon',
 		caip2: {
-			namespace: 'eip155',
-			reference: '137',
+			namespace: Caip2Namespace.Eip155,
+			reference: Caip2Reference.Polygon,
 		},
 		namespace: NetworkNamespace.Evm,
 		environment: NetworkEnvironment.Mainnet,
@@ -662,9 +698,29 @@ export const networkResourceUrls = [
 		url: 'https://chainscan-galileo.0g.ai/',
 	},
 	{
+		networkSlug: 'aptos',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://explorer.aptoslabs.com/',
+	},
+	{
+		networkSlug: 'aptos-testnet',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://explorer.aptoslabs.com/?network=testnet',
+	},
+	{
+		networkSlug: 'aptos-testnet',
+		kind: NetworkResourceKind.Faucet,
+		url: 'https://aptos.dev/en/network/faucet',
+	},
+	{
 		networkSlug: 'arbitrum',
 		kind: NetworkResourceKind.BlockExplorer,
 		url: 'https://arbiscan.io/',
+	},
+	{
+		networkSlug: 'base',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://basescan.org/',
 	},
 	{
 		networkSlug: 'bitcoin',
@@ -672,9 +728,24 @@ export const networkResourceUrls = [
 		url: 'https://mempool.space/',
 	},
 	{
+		networkSlug: 'bitcoin-testnet',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://mempool.space/testnet',
+	},
+	{
 		networkSlug: 'bitcoin-cash',
 		kind: NetworkResourceKind.BlockExplorer,
 		url: 'https://explorer.bitcoinunlimited.info/',
+	},
+	{
+		networkSlug: 'bnb-smart-chain',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://bscscan.com/',
+	},
+	{
+		networkSlug: 'cardano',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://cardanoscan.io/',
 	},
 	{
 		networkSlug: 'cosmos',
@@ -692,6 +763,36 @@ export const networkResourceUrls = [
 		url: 'https://etherscan.io/',
 	},
 	{
+		networkSlug: 'ethereum-sepolia',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://sepolia.etherscan.io/',
+	},
+	{
+		networkSlug: 'ethereum-sepolia',
+		kind: NetworkResourceKind.Faucet,
+		url: 'https://cloud.google.com/application/web3/faucet/ethereum/sepolia',
+	},
+	{
+		networkSlug: 'ethereum-holesky',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://holesky.etherscan.io/',
+	},
+	{
+		networkSlug: 'ethereum-holesky',
+		kind: NetworkResourceKind.Faucet,
+		url: 'https://cloud.google.com/application/web3/faucet/ethereum/holesky',
+	},
+	{
+		networkSlug: 'ethereum-hoodi',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://hoodi.etherscan.io/',
+	},
+	{
+		networkSlug: 'ethereum-hoodi',
+		kind: NetworkResourceKind.Faucet,
+		url: 'https://hoodi-faucet.pk910.de/',
+	},
+	{
 		networkSlug: 'filecoin',
 		kind: NetworkResourceKind.BlockExplorer,
 		url: 'https://filfox.info/',
@@ -700,6 +801,11 @@ export const networkResourceUrls = [
 		networkSlug: 'hyperliquid',
 		kind: NetworkResourceKind.BlockExplorer,
 		url: 'https://app.hyperliquid.xyz/explorer',
+	},
+	{
+		networkSlug: 'kusama',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://kusama.subscan.io/',
 	},
 	{
 		networkSlug: 'lightning',
@@ -715,6 +821,11 @@ export const networkResourceUrls = [
 		networkSlug: 'optimism',
 		kind: NetworkResourceKind.BlockExplorer,
 		url: 'https://optimistic.etherscan.io/',
+	},
+	{
+		networkSlug: 'osmosis',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://www.mintscan.io/osmosis',
 	},
 	{
 		networkSlug: 'litecoin',
@@ -737,14 +848,54 @@ export const networkResourceUrls = [
 		url: 'https://polkadot.subscan.io/',
 	},
 	{
+		networkSlug: 'polygon',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://polygonscan.com/',
+	},
+	{
 		networkSlug: 'solana',
 		kind: NetworkResourceKind.BlockExplorer,
 		url: 'https://explorer.solana.com/',
 	},
 	{
+		networkSlug: 'starknet',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://starkscan.co/',
+	},
+	{
+		networkSlug: 'starknet-sepolia',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://sepolia.starkscan.co/',
+	},
+	{
+		networkSlug: 'stellar',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://stellar.expert/explorer/public',
+	},
+	{
+		networkSlug: 'sui',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://suiscan.xyz/',
+	},
+	{
+		networkSlug: 'tezos',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://tzkt.io/',
+	},
+	{
 		networkSlug: 'tron',
 		kind: NetworkResourceKind.BlockExplorer,
 		url: 'https://tronscan.org/',
+	},
+	{
+		networkSlug: 'tron-nile',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://nile.tronscan.org/',
+	},
+	{
+		networkSlug: 'xrpl',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://livenet.xrpl.org/',
 	},
 	{
 		networkSlug: 'zcash',
