@@ -44,12 +44,12 @@ const preparationSource = readFileSync(
 	new URL('./walletRequestPreparation.ts', import.meta.url),
 	'utf8'
 )
-const localMutationsSource = readFileSync(
-	new URL('../../collections/localMutations.ts', import.meta.url),
-	'utf8'
-)
 const walletConnectionRuntimeSource = readFileSync(
 	new URL('./walletConnectionRuntime.svelte.ts', import.meta.url),
+	'utf8'
+)
+const prepWithoutSendComposeSource = readFileSync(
+	new URL('../sessions/prepWithoutSendGrantRemoval.compose.spec.ts', import.meta.url),
 	'utf8'
 )
 
@@ -64,12 +64,12 @@ describe('walletRequestPreparation', () => {
 	})
 
 	it('wires selection, capability, and call-batch gates into prepare callers', () => {
-		expect(localMutationsSource).toMatch(/resolveWalletPrepSelection/)
-		expect(localMutationsSource).toMatch(/resolveWalletTransactionPrepGate/)
-		expect(localMutationsSource).toMatch(/resolveWalletRequestCallsPreparation/)
-		expect(localMutationsSource).toMatch(/WalletCapability\.SendTransaction/)
 		expect(walletConnectionRuntimeSource).toMatch(/resolveWalletPrepSelection/)
 		expect(walletConnectionRuntimeSource).toMatch(/writeLocalBlockheadWalletRequest\([\s\S]*connections\)/)
+		expect(prepWithoutSendComposeSource).toMatch(/resolveWalletTransactionPrepGate/)
+		expect(prepWithoutSendComposeSource).toMatch(/resolveWalletRequestCallsPreparation/)
+		expect(prepWithoutSendComposeSource).toMatch(/WalletCapability\.SendTransaction/)
+		expect(prepWithoutSendComposeSource).toMatch(/isPreparedWalletRequestWithoutSend/)
 	})
 
 	it('requires exactly one Connected+selected wallet before prep binding', () => {

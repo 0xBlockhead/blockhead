@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
 import { WalletCapability, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSessionStatus.ts'
-import { connectedWalletConnection } from '$/state/wallets/walletConnectionState.ts'
+import {
+	connectedWalletConnection,
+	disconnectWalletConnection,
+} from '$/state/wallets/walletConnectionState.ts'
 import {
 	isPreparedWalletRequestWithoutSend,
 	preparedWalletRequestObservation,
@@ -18,6 +22,8 @@ import {
 	removeSessionCapabilityGrantsForConnection,
 	retainCurrentSessionCapabilityGrants,
 	revokeSessionCapabilityGrant,
+	submitSessionLifecycle,
+	unlockSessionLifecycle,
 } from './sessionLifecycleState.ts'
 
 
@@ -156,5 +162,70 @@ describe('prep-without-send + session grant removal compose', () => {
 		expect(isEditableSessionLifecycle(locked)).toBe(true)
 		expect(locked).not.toHaveProperty('submittedAt')
 		expect(prepared).not.toHaveProperty('submittedAt')
+	})
+
+	it('disconnect clears prep readiness and connection grants while leaving prepared Draft unsent', () => {
+		const locked = lockSessionLifecycle(
+			draftSessionLifecycle({
+				id: 'session-compose-disconnect',
+				name: 'chrome settle compose',
+				createdAt: 1,
+				updatedAt: 1,
+			}),
+			8,
+			8
+		)!
+
+		expect(resolveWalletTransactionPrepGate({
+			connections: [selectedConnection],
+			namespace: 'eip155',
+			reference: '1',
+			accountAddress: account.accountAddress,
+		}).ready).toBe(true)
+
+		const prepared = preparedWalletRequestObservation()
+		expect(isPreparedWalletRequestWithoutSend(prepared)).toBe(true)
+
+		const disconnected = disconnectWalletConnection(selectedConnection, 9)
+		expect(disconnected).toMatchObject({
+			status: BlockheadConnectionStatus.Disconnected,
+			connectionKey,
+		})
+		expect(disconnected).not.toHaveProperty('selected')
+
+		expect(resolveWalletTransactionPrepGate({
+			connections: [disconnected],
+			namespace: 'eip155',
+			reference: '1',
+			accountAddress: account.accountAddress,
+		})).toEqual({
+			ready: false,
+			error: 'Wallet request preparation requires exactly one selected wallet connection; received 0.',
+		})
+
+		const grantsAfterDisconnect = removeSessionCapabilityGrantsForConnection([
+			grantForConnection,
+			grantOtherConnection,
+		], connectionKey)
+		expect(grantsAfterDisconnect.map((grant) => grant.grantId)).toEqual([
+			'grant-compose-b',
+		])
+		expect(retainCurrentSessionCapabilityGrants(grantsAfterDisconnect, 50).map((grant) => grant.grantId)).toEqual([
+			'grant-compose-b',
+		])
+
+		const unlocked = unlockSessionLifecycle(locked, 11)
+		expect(unlocked).toMatchObject({
+			status: BlockheadSessionStatus.Draft,
+			updatedAt: 11,
+		})
+		expect(unlocked).not.toHaveProperty('lockedAt')
+		expect(isEditableSessionLifecycle(unlocked!)).toBe(true)
+		expect(submitSessionLifecycle(unlocked!, 12)).toBeUndefined()
+
+		expect(isPreparedWalletRequestWithoutSend(prepared)).toBe(true)
+		expect(prepared).not.toHaveProperty('submittedAt')
+		expect(locked.status).toBe(BlockheadSessionStatus.Draft)
+		expect(locked).not.toHaveProperty('submittedAt')
 	})
 })
