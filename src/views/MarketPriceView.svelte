@@ -83,15 +83,13 @@
 						resource={
 							selection
 							.$$quotes({
-								limit: 1,
 								orderBy: [
 									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
 								],
-							})
+							}).first()
 						}
 					>
-						{#snippet children(marketTimestamps)}
-							{@const marketTimestamp = marketTimestamps.values[0]}
+						{#snippet children(marketTimestamp)}
 							{#if marketTimestamp != null}
 								<Market_TimestampView
 									selection={select(EntityType.Market_Timestamp, marketTimestamp[EntityMetaKey.Selector])}

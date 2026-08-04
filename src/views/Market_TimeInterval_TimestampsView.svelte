@@ -18,11 +18,13 @@
 		placeholderText = 'Loading OHLC candles...',
 		open = $bindable(true),
 		timeInterval,
+		limit = 4096,
 		...EntitiesListProps
 	}: EntityListViewProps<
 		EntityType.Market_TimeInterval_Timestamp,
 		{
 			timeInterval?: RegisteredEntitySelector<EntityType.Market_TimeInterval_Timestamp>['timeInterval']
+			limit?: number
 		}
 	> = $props()
 
@@ -38,7 +40,7 @@
 	</p>
 
 	<p>
-		Candles load from every declared OHLC provider on the parent market row (Coingecko, Coinpaprika, CoinMarketCap, …).
+		Candles load from schema defaultSources on the parent market row (Coingecko, Coinpaprika, CoinMarketCap).
 	</p>
 {/snippet}
 
@@ -60,7 +62,7 @@
 				close: true,
 				timestampMs: true,
 			},
-			limit: 4096,
+			limit,
 		})
 	}
 	getResourceItems={

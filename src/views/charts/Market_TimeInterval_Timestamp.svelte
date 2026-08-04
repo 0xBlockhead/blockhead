@@ -28,6 +28,11 @@
 		resource,
 		timeInterval,
 		limit = 4096,
+		sources = [
+			Source.Coingecko_Rest,
+			Source.Coinpaprika_Rest,
+			Source.CoinMarketCap_Rest,
+		],
 		priceDecimals = 8,
 		stepInlineSize = '0.875rem',
 		height = '22rem',
@@ -36,6 +41,7 @@
 		resource: EntityProxyEntitiesResource<typeof schema, EntityType.Market_TimeInterval_Timestamp>
 		timeInterval: MarketTimeInterval
 		limit?: number
+		sources?: readonly Source[]
 		priceDecimals?: number
 		stepInlineSize?: string
 		height?: string
@@ -56,13 +62,9 @@
 
 <ResourceBoundary
 	resource={resource({
-			sources: [
-				Source.Coingecko_Rest,
-		Source.Coinpaprika_Rest,
-				Source.CoinMarketCap_Rest,
-			],
-			limit,
-		})}
+		sources: [...sources],
+		limit,
+	})}
 	placeholderText="Loading OHLC candles…"
 >
 	{#snippet children(marketTimeIntervalTimestamps)}

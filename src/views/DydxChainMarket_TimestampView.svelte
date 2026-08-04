@@ -34,7 +34,6 @@
 
 
 	// Components
-	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import DydxChainMarketView from '$/views/DydxChainMarketView.svelte'
@@ -142,9 +141,7 @@
 						<div>
 							<dt>funding rate</dt>
 							<dd>
-								<NumberValue
-									value={fundingRate}
-								/>
+								{fundingRate}
 							</dd>
 						</div>
 					{/if}
