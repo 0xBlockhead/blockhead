@@ -241,4 +241,12 @@ describe('Local_Internal wallet request resolvers', () => {
 			},
 		])
 	})
+
+	it('rejects calls for an absent EVM request instead of composing an empty list', { timeout: 60_000 }, async () => {
+		await expect(callsListResolver.resolve.EvmWalletRequest.resolve({
+			$walletRequest: { id: 'missing-wallet-request' },
+		}, context)).rejects.toThrow(
+			'Local_Internal: BlockheadEvmWalletRequest not present in local catalog'
+		)
+	})
 })

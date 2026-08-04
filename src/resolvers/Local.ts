@@ -1520,22 +1520,30 @@ export default {
 			entityType: EntityType.BlockheadEvmWalletRequest,
 			resolve: {
 				EvmWalletRequest: {
-					resolve: async ({ $walletRequest }, context) => (
-						sliceNormalizedRowsForSubset(
-							(await readNormalizedLocalInternal()).blockheadWalletRequestCalls
-								.filter((call) => call.walletRequestId === $walletRequest.id)
-								.toSorted((left, right) => left.callIndex - right.callIndex),
-							context
-						)
-							.map((call) => ({
-								[EntityMetaKey.Selector]: {
-									$evmRequest: {
-										$walletRequest: { id: call.walletRequestId },
+					resolve: async ({ $walletRequest }, context) => {
+						const catalog = await readNormalizedLocalInternal()
+						if (!catalog.blockheadEvmWalletRequests.some((request) => (
+							request.walletRequestId === $walletRequest.id
+						)))
+							throw new Error('Local_Internal: BlockheadEvmWalletRequest not present in local catalog')
+
+						return (
+							sliceNormalizedRowsForSubset(
+								catalog.blockheadWalletRequestCalls
+									.filter((call) => call.walletRequestId === $walletRequest.id)
+									.toSorted((left, right) => left.callIndex - right.callIndex),
+								context
+							)
+								.map((call) => ({
+									[EntityMetaKey.Selector]: {
+										$evmRequest: {
+											$walletRequest: { id: call.walletRequestId },
+										},
+										callIndex: call.callIndex,
 									},
-									callIndex: call.callIndex,
-								},
-							}))
-					),
+								}))
+						)
+					},
 				},
 			},
 		})({
