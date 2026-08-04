@@ -13,6 +13,7 @@ import {
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
+import { safeTransactionServiceHosts } from '$/sources/SafeTransactionService/Rest/constants.ts'
 
 const safeTransactionServiceRestBindingAxes = {
 	source: Source.SafeTransactionService_Rest,
@@ -34,20 +35,10 @@ const safeTransactionServiceRestBindingAxes = {
 } as const
 
 export default indexSourceBindings(mapSourceBindings(
-	[
-		{
-			key: '1',
-			locator: 'https://api.safe.global/tx-service/eth',
-		},
-		{
-			key: '100',
-			locator: 'https://api.safe.global/tx-service/gno',
-		},
-		{
-			key: '8453',
-			locator: 'https://api.safe.global/tx-service/base',
-		},
-	] as const,
+	safeTransactionServiceHosts.map((host) => ({
+		key: String(host.chainId),
+		locator: host.baseUrl,
+	})),
 	({
 		key,
 		locator,

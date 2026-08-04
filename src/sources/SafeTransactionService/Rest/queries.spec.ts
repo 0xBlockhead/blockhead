@@ -91,11 +91,66 @@ describe('Safe Transaction Service public multisig queries', () => {
 	it('indexes bound EIP-155 chains and hard-fails unknown ones', () => {
 		expect(safeTransactionServiceChainIds).toEqual([
 			1,
+			10,
+			50,
+			56,
 			100,
+			130,
+			137,
+			143,
+			146,
+			196,
+			204,
+			232,
+			324,
+			480,
+			677,
+			988,
+			999,
+			1001,
+			1672,
+			3338,
+			4217,
+			4326,
+			4663,
+			5000,
+			5003,
+			5042,
+			8217,
 			8453,
+			9745,
+			10143,
+			10200,
+			16661,
+			25363,
+			42161,
+			42220,
+			42431,
+			43111,
+			43114,
+			46630,
+			57073,
+			59144,
+			80069,
+			80094,
+			81224,
+			84532,
+			102030,
+			534352,
+			747474,
+			5042002,
+			11142220,
+			11155111,
+			1313161554,
 		])
 		expect(requireSafeTransactionServiceBinding(8453).source).toBe(Source.SafeTransactionService_Rest)
-		expect(() => requireSafeTransactionServiceBinding(999)).toThrow('no binding for chain 999')
+		expect(requireSafeTransactionServiceBinding(10).endpoints[0]?.locator).toBe(
+			'https://api.safe.global/tx-service/oeth'
+		)
+		expect(requireSafeTransactionServiceBinding(137).endpoints[0]?.locator).toBe(
+			'https://api.safe.global/tx-service/pol'
+		)
+		expect(() => requireSafeTransactionServiceBinding(31337)).toThrow('no binding for chain 31337')
 	})
 
 	it('preserves exact Safe identity, owners, threshold, and lossless nonce', async () => {

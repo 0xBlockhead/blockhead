@@ -76,12 +76,12 @@ describe('Safe Transaction Service resolver module', () => {
 				$network: {
 					caip2: {
 						namespace: 'eip155',
-						reference: '999',
+						reference: '31337',
 					},
 				},
 				address: safeAddress,
 			}, context)
-		).rejects.toThrow('no binding for chain 999')
+		).rejects.toThrow('no binding for chain 31337')
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
