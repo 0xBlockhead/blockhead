@@ -19,12 +19,18 @@ describe('CoinGecko resolver collapse', () => {
 		[EntityType.Market_Derivative_Timestamp, 'fundingRate'],
 		[EntityType.Market_Timestamp, 'price'],
 		[EntityType.Market_TimeInterval_Timestamp, 'open'],
+		[EntityType.Coin_Timestamp, 'marketCap'],
+		[EntityType.Coin_Timestamp, 'change24hPercent'],
+		[EntityType.Coin_Timestamp, 'totalSupply'],
 	].map(([entityType, field]) => (
 		coingecko.resolvers.filter((resolver) => (
 			resolver.entityType === entityType
 			&& field in resolver.projections
 		)).length
 	))).toEqual([
+		1,
+		1,
+		1,
 		1,
 		1,
 		1,

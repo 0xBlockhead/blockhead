@@ -102,26 +102,39 @@ const coinpaprikaOhlcCandles = async (
 
 const coinpaprikaMarketSelector = (
 	market: CoinpaprikaMarket,
-	catalogCoinId: CoinId
+	scope?: {
+		catalogCoinId?: CoinId
+		marketVenueId?: MarketVenueId
+	}
 ): EntitySelector<typeof schema, EntityType.Market> | null => {
 	const baseWireId = market.base_currency_id
 	const quoteWireId = market.quote_currency_id
+	if (baseWireId == null || quoteWireId == null)
+		return null
+
+	const baseCoinId = coinIdByWireId.get(baseWireId)
 	if (
-		baseWireId == null
-		|| quoteWireId == null
-		|| coinIdByWireId.get(baseWireId) !== catalogCoinId
+		baseCoinId == null
+		|| (
+			scope?.catalogCoinId != null
+			&& baseCoinId !== scope.catalogCoinId
+		)
 	)
 		return null
 
-	let marketVenueId: MarketVenueId | undefined
-	try {
-		const hostname = new URL(market.market_url ?? '').hostname.toLowerCase()
-		marketVenueId = coinpaprikaMarketVenueIdByHostnameFragment.find(([fragment]) => (
-			hostname.includes(fragment)
-		))?.[1]
-	} catch {
-		return null
-	}
+	const marketVenueId = (
+		scope?.marketVenueId
+		?? (() => {
+			try {
+				const hostname = new URL(market.market_url ?? '').hostname.toLowerCase()
+				return coinpaprikaMarketVenueIdByHostnameFragment.find(([fragment]) => (
+					hostname.includes(fragment)
+				))?.[1]
+			} catch {
+				return undefined
+			}
+		})()
+	)
 	if (marketVenueId == null)
 		return null
 
@@ -135,7 +148,7 @@ const coinpaprikaMarketSelector = (
 	)
 	const $base = {
 		kind: MarketAssetKind.Coin,
-		assetKey: catalogCoinId,
+		assetKey: baseCoinId,
 	} as const
 	if (coinpaprikaUsdQuoteWireIds.some((wireId) => wireId === quoteWireId))
 		return {
@@ -165,18 +178,16 @@ const coinpaprikaMarketSelector = (
 	)
 }
 
-const coinpaprikaMarketSelectorsForCoin = async (
-	publicEnv: SourcePublicEnv,
-	catalogCoinId: CoinId,
-	coinpaprikaId: string
+const dedupeMarketSelectors = (
+	markets: CoinpaprikaMarket[],
+	scope?: {
+		catalogCoinId?: CoinId
+		marketVenueId?: MarketVenueId
+	}
 ) => {
-	const { getCoinMarkets } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
 	const seen = new Set<string>()
-	return (await getCoinMarkets({
-		publicEnv,
-		coinpaprikaId,
-	})).flatMap((market) => {
-		const marketSelector = coinpaprikaMarketSelector(market, catalogCoinId)
+	return markets.flatMap((market) => {
+		const marketSelector = coinpaprikaMarketSelector(market, scope)
 		if (marketSelector == null)
 			return []
 
@@ -194,6 +205,44 @@ const coinpaprikaMarketSelectorsForCoin = async (
 		seen.add(key)
 		return [marketSelector]
 	})
+}
+
+const coinpaprikaMarketSelectorsForCoin = async (
+	publicEnv: SourcePublicEnv,
+	catalogCoinId: CoinId,
+	coinpaprikaId: string
+) => {
+	const { getCoinMarkets } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
+	return dedupeMarketSelectors(
+		await getCoinMarkets({
+			publicEnv,
+			coinpaprikaId,
+		}),
+		{
+			catalogCoinId,
+		}
+	)
+}
+
+const coinpaprikaMarketSelectorsForVenue = async (
+	publicEnv: SourcePublicEnv,
+	marketVenueId: MarketVenueId
+) => {
+	const { coinpaprikaExchangeIdByMarketVenueId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
+	const exchangeId = coinpaprikaExchangeIdByMarketVenueId[marketVenueId]
+	if (exchangeId == null)
+		throw new Error(`Coinpaprika_Rest: exchange not mapped for venue ${marketVenueId}`)
+
+	const { getExchangeMarkets } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
+	return dedupeMarketSelectors(
+		await getExchangeMarkets({
+			publicEnv,
+			exchangeId,
+		}),
+		{
+			marketVenueId,
+		}
+	)
 }
 
 export default {
@@ -241,6 +290,101 @@ export default {
 				name: (coin) => coin.name,
 				symbol: (coin) => coin.symbol,
 				$logo: (coin) => coin.$logo,
+			}),
+
+		defineResolver({
+			entityType: EntityType.Coin,
+			resolve: {
+				CoinId: {
+					resolve: async ({ coinId }, context) => {
+						const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
+						const { getTickerById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
+						const coinpaprikaId = idByCoinId[coinId]
+						if (coinpaprikaId == null) throw new Error('Coinpaprika_Rest: coin not mapped')
+
+						const ticker = await getTickerById({
+							publicEnv: context.publicEnv,
+							coinpaprikaId,
+						})
+						const timestampMs = coinpaprikaTickerTimestampMs(ticker)
+						if (!Number.isFinite(timestampMs))
+							throw new Error('Coinpaprika_Rest: coin ticker clock missing')
+
+						return [{
+							[EntityMetaKey.Selector]: {
+								$coin: {
+									coinId,
+								},
+								timestampMs,
+								source: Source.Coinpaprika_Rest,
+							},
+						}]
+					},
+				}
+			},
+		})({
+				$$timestamps: (coin) => coin,
+			}),
+
+		defineResolver({
+			entityType: EntityType.Coin_Timestamp,
+			resolve: {
+				CoinTimestampMsSource: {
+					resolve: async ({ $coin, timestampMs: timestampMsSelector, source }, context) => {
+						if (source !== Source.Coinpaprika_Rest)
+							throw new Error('Coinpaprika_Rest: Coin_Timestamp source mismatch')
+						const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
+						const { getTickerById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
+						const coinpaprikaId = idByCoinId[$coin.coinId]
+						if (coinpaprikaId == null) throw new Error('Coinpaprika_Rest: coin not mapped')
+
+						const ticker = await getTickerById({
+							publicEnv: context.publicEnv,
+							coinpaprikaId,
+						})
+						const timestampMs = coinpaprikaTickerTimestampMs(ticker)
+						if (!Number.isFinite(timestampMs))
+							throw new Error('Coinpaprika_Rest: coin ticker clock missing')
+						if (timestampMs !== timestampMsSelector)
+							throw new Error('Coinpaprika_Rest: Coin_Timestamp id does not match ticker clock')
+
+						const usdQuote = ticker.quotes?.USD
+						const marketCapUsd = usdQuote?.market_cap
+						const change24hPercent = usdQuote?.percent_change_24h
+						const totalSupply = ticker.total_supply
+						return {
+							...(ticker.rank != null
+							&& Number.isFinite(ticker.rank) && {
+								marketCapRank: ticker.rank,
+							}),
+							...(marketCapUsd != null
+							&& Number.isFinite(marketCapUsd) && {
+								marketCap: BigInt(Math.round(marketCapUsd)),
+								marketCapUsd,
+							}),
+							...(change24hPercent != null
+							&& Number.isFinite(change24hPercent) && {
+								change24hPercent,
+							}),
+							...(totalSupply != null
+							&& Number.isFinite(totalSupply)
+							&& totalSupply >= 0 && {
+								totalSupply: BigInt(Math.round(totalSupply)),
+							}),
+							transport: 'coinpaprika-ticker',
+							providerAssetId: coinpaprikaId,
+						}
+					},
+				},
+			},
+		})({
+				marketCapRank: (coinTimestamp) => coinTimestamp.marketCapRank,
+				marketCapUsd: (coinTimestamp) => coinTimestamp.marketCapUsd,
+				marketCap: (coinTimestamp) => coinTimestamp.marketCap,
+				change24hPercent: (coinTimestamp) => coinTimestamp.change24hPercent,
+				totalSupply: (coinTimestamp) => coinTimestamp.totalSupply,
+				transport: (coinTimestamp) => coinTimestamp.transport,
+				providerAssetId: (coinTimestamp) => coinTimestamp.providerAssetId,
 			}),
 
 		defineResolver({
@@ -427,7 +571,7 @@ export default {
 							const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 						const coinpaprikaId = idByCoinId[coinId]
 						if (coinpaprikaId == null)
-							return []
+							throw new Error('Coinpaprika_Rest: coin not mapped')
 						const lim = resolverContextRowLimit(context)
 						const venueMarketIds = await coinpaprikaMarketSelectorsForCoin(
 							context.publicEnv,
@@ -448,6 +592,27 @@ export default {
 			},
 		})({
 				$$marketsWithCoinAsBase: (coin) => coin,
+			}),
+
+		defineResolver({
+			entityType: EntityType.MarketVenue,
+			resolve: {
+				MarketVenueId: {
+					resolve: async ({ marketVenueId }, context) => {
+						const lim = resolverContextRowLimit(context)
+						return (await coinpaprikaMarketSelectorsForVenue(
+							context.publicEnv,
+							marketVenueId
+						))
+							.map((marketId) => ({
+								[EntityMetaKey.Selector]: marketId,
+							}))
+							.slice(0, lim)
+					},
+				}
+			},
+		})({
+				$$markets: (marketVenue) => marketVenue,
 			}),
 
 		defineResolver({

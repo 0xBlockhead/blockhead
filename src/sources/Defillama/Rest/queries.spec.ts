@@ -11,7 +11,14 @@ import {
 	getChart,
 	getChainIconUrl,
 	getCurrentPrices,
+	getFirstPrices,
+	getHistoricalPrices,
+	getPercentageChange,
+	getProChart,
 	getProCurrentPrices,
+	getProFirstPrices,
+	getProHistoricalPrices,
+	getProPercentageChange,
 } from '$/sources/Defillama/Rest/queries.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -60,6 +67,58 @@ describe('DeFiLlama REST endpoint selection', () => {
 		)
 	})
 
+	it('uses the public historical-prices endpoint', async () => {
+		await getHistoricalPrices({
+			coins: ['coingecko:ethereum'],
+			timestamp: 1_700_000_000,
+		})
+
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bindingByTargetKey['coins-public'],
+			'https://coins.llama.fi/prices/historical/1700000000/coingecko%3Aethereum'
+		)
+	})
+
+	it('uses the Pro historical-prices gateway path', async () => {
+		await getProHistoricalPrices({
+			coins: ['coingecko:ethereum'],
+			timestamp: 1_700_000_000,
+			publicEnv: {
+				PUBLIC_DEFILLAMA_PRO_API_KEY: 'pro key',
+			},
+		})
+
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bindingByTargetKey['coins-pro'],
+			'https://pro-api.llama.fi/pro%20key/coins/prices/historical/1700000000/coingecko%3Aethereum'
+		)
+	})
+
+	it('uses the public first-prices endpoint', async () => {
+		await getFirstPrices({
+			coins: ['coingecko:ethereum'],
+		})
+
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bindingByTargetKey['coins-public'],
+			'https://coins.llama.fi/prices/first/coingecko%3Aethereum'
+		)
+	})
+
+	it('uses the Pro first-prices gateway path', async () => {
+		await getProFirstPrices({
+			coins: ['coingecko:ethereum'],
+			publicEnv: {
+				PUBLIC_DEFILLAMA_PRO_API_KEY: 'pro key',
+			},
+		})
+
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bindingByTargetKey['coins-pro'],
+			'https://pro-api.llama.fi/pro%20key/coins/prices/first/coingecko%3Aethereum'
+		)
+	})
+
 	it('sends every documented chart query parameter', async () => {
 		await getChart({
 			coins: [
@@ -75,6 +134,51 @@ describe('DeFiLlama REST endpoint selection', () => {
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			bindingByTargetKey['coins-public'],
 			'https://coins.llama.fi/chart/coingecko%3Aethereum,coingecko%3Abitcoin?start=1700000000&end=1700086400&span=24&period=1h'
+		)
+	})
+
+	it('uses the Pro chart gateway path', async () => {
+		await getProChart({
+			coins: ['coingecko:ethereum'],
+			span: 90,
+			period: '1d',
+			publicEnv: {
+				PUBLIC_DEFILLAMA_PRO_API_KEY: 'pro key',
+			},
+		})
+
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bindingByTargetKey['coins-pro'],
+			'https://pro-api.llama.fi/pro%20key/coins/chart/coingecko%3Aethereum?span=90&period=1d'
+		)
+	})
+
+	it('sends percentage query parameters', async () => {
+		await getPercentageChange({
+			coins: ['coingecko:ethereum'],
+			period: '24h',
+			timestamp: 1_700_000_000,
+			lookForward: false,
+		})
+
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bindingByTargetKey['coins-public'],
+			'https://coins.llama.fi/percentage/coingecko%3Aethereum?timestamp=1700000000&lookForward=false&period=24h'
+		)
+	})
+
+	it('uses the Pro percentage gateway path', async () => {
+		await getProPercentageChange({
+			coins: ['coingecko:ethereum'],
+			period: '24h',
+			publicEnv: {
+				PUBLIC_DEFILLAMA_PRO_API_KEY: 'pro key',
+			},
+		})
+
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bindingByTargetKey['coins-pro'],
+			'https://pro-api.llama.fi/pro%20key/coins/percentage/coingecko%3Aethereum?period=24h'
 		)
 	})
 

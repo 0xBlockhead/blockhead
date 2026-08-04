@@ -207,18 +207,5 @@ export default {
 		})({
 				$parentLiquidityPool: (snapshot) => snapshot,
 			}),
-
-		defineResolver({
-			entityType: EntityType.LiquidityPool_Block,
-			resolve: {
-				LiquidityPoolBlockNumber: {
-					resolve: async ({ $liquidityPool }) => ({
-						[EntityMetaKey.Selector]: $liquidityPool,
-					}),
-				},
-			},
-		})({
-				$parentLiquidityPool: (snapshot) => snapshot,
-			}),
 	],
 } satisfies RegisteredSourceResolverModule

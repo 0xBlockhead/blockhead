@@ -11,6 +11,7 @@ import {
 	getLatestPairs,
 	getPairSearch,
 	getTokenPairs,
+	getTokens,
 } from '$/sources/Dexscreener/OpenApi/queries.ts'
 import bindings from '$/sources/Dexscreener/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -66,25 +67,39 @@ const pair = {
 describe('Dexscreener public pair observations', () => {
 	afterEach(() => {
 		vi.unstubAllGlobals()
+		vi.useRealTimers()
 	})
 
 	beforeEach(() => {
 		getJson.mockReset()
+		vi.useFakeTimers()
+		vi.setSystemTime(1_725_000_000_000)
 	})
 
-	it('preserves the endpoint pair shape, exact identity, and metric units', async () => {
+	it('preserves the endpoint pair shape, exact identity, metric units, and resolution clock', async () => {
 		getJson.mockResolvedValue({ pairs: [pair] })
 
 		await expect(getLatestPairs({
 			chainId: pair.chainId,
 			pairId: pair.pairAddress,
 		})).resolves.toEqual({
-			pairs: [pair],
+			pairs: [{
+				...pair,
+				resolvedAtMs: 1_725_000_000_000,
+			}],
 		})
 		expect(getJson).toHaveBeenCalledWith(
 			binding,
 			`/latest/dex/pairs/${pair.chainId}/${pair.pairAddress}`
 		)
+	})
+
+	it('rejects empty latest-pair payloads instead of soft-empty success', async () => {
+		getJson.mockResolvedValue({ pairs: [] })
+		await expect(getLatestPairs({
+			chainId: pair.chainId,
+			pairId: pair.pairAddress,
+		})).rejects.toThrow('pair not found')
 	})
 
 	it('requires token-pair rows to contain the exact requested token', async () => {
@@ -95,11 +110,32 @@ describe('Dexscreener public pair observations', () => {
 		await expect(getTokenPairs({
 			chainId: pair.chainId,
 			tokenAddress: pair.baseToken.address,
-		})).resolves.toHaveLength(1)
+		})).resolves.toEqual([{
+			...pair,
+			resolvedAtMs: 1_725_000_000_000,
+		}])
 		await expect(getTokenPairs({
 			chainId: pair.chainId,
 			tokenAddress: '0x4444444444444444444444444444444444444444',
 		})).rejects.toThrow('does not match requested identity')
+	})
+
+	it('loads multi-token pair rows for the requested addresses', async () => {
+		getJson.mockResolvedValue([pair])
+		await expect(getTokens({
+			chainId: pair.chainId,
+			tokenAddresses: [
+				pair.baseToken.address,
+				pair.quoteToken.address,
+			],
+		})).resolves.toEqual([{
+			...pair,
+			resolvedAtMs: 1_725_000_000_000,
+		}])
+		expect(getJson).toHaveBeenCalledWith(
+			binding,
+			`/tokens/v1/${pair.chainId}/${pair.baseToken.address},${pair.quoteToken.address}`
+		)
 	})
 
 	it.each([

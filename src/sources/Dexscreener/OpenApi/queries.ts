@@ -9,10 +9,12 @@ import type {
 	DexscreenerPairsResponse,
 	DexscreenerSearchResponse,
 	DexscreenerTokenPairsResponse,
+	DexscreenerTokensResponse,
 } from '$/sources/Dexscreener/OpenApi/types.ts'
 
 
 const maximumPairs = 100
+const maximumTokenAddresses = 30
 const maximumLabels = 32
 const maximumTimeframes = 32
 const unsignedDecimalPattern = /^(0|[1-9]\d*)(\.\d+)?$/
@@ -48,7 +50,10 @@ const normalizeTimeframeNumbers = (
 	return Object.fromEntries(entries)
 }
 
-const normalizePair = (pair: DexscreenerPair) => {
+const normalizePair = (
+	pair: DexscreenerPair,
+	resolvedAtMs: number,
+) => {
 	if (
 		pair.chainId == null
 		|| pair.chainId === ''
@@ -136,17 +141,21 @@ const normalizePair = (pair: DexscreenerPair) => {
 		...(pairCreatedAt != null && {
 			pairCreatedAt,
 		}),
+		resolvedAtMs,
 	}
 }
 
-const normalizePairs = (pairs: DexscreenerPair[] | null | undefined) => {
+const normalizePairs = (
+	pairs: DexscreenerPair[] | null | undefined,
+	resolvedAtMs = Date.now(),
+) => {
 	const rows = pairs ?? []
 	if (
 		rows.length > maximumPairs
 		|| new Set(rows.map((pair) => `${pair.chainId}:${pair.pairAddress?.toLowerCase()}`)).size !== rows.length
 	)
 		throw new Error('Dexscreener_Rest: malformed pair cardinality')
-	return rows.map(normalizePair)
+	return rows.map((pair) => normalizePair(pair, resolvedAtMs))
 }
 
 export const getLatestPairs = async ({
@@ -162,6 +171,8 @@ export const getLatestPairs = async ({
 		`/latest/dex/pairs/${encodeURIComponent(chainId)}/${encodeURIComponent(pairId)}`
 	)
 	const pairs = normalizePairs(response.pairs)
+	if (pairs.length === 0)
+		throw new Error('Dexscreener_Rest: pair not found')
 	if (pairs.some((pair) => (
 		pair.chainId !== chainId
 		|| pair.pairAddress.toLowerCase() !== pairId.toLowerCase()
@@ -192,6 +203,39 @@ export const getTokenPairs = async ({
 		)
 	)))
 		throw new Error('Dexscreener_Rest: token pair response does not match requested identity')
+	return pairs
+}
+
+export const getTokens = async ({
+	chainId,
+	tokenAddresses,
+}: {
+	chainId: string
+	tokenAddresses: string[]
+}) => {
+	if (chainId === '')
+		throw new Error('Dexscreener_Rest: empty requested chain identity')
+	if (
+		tokenAddresses.length === 0
+		|| tokenAddresses.length > maximumTokenAddresses
+		|| tokenAddresses.some((tokenAddress) => tokenAddress === '')
+		|| new Set(tokenAddresses.map((tokenAddress) => tokenAddress.toLowerCase())).size !== tokenAddresses.length
+	)
+		throw new Error('Dexscreener_Rest: malformed token address list')
+	const requested = new Set(tokenAddresses.map((tokenAddress) => tokenAddress.toLowerCase()))
+	const pairs = normalizePairs(
+		await getDexscreenerJson<DexscreenerTokensResponse>(
+			`/tokens/v1/${encodeURIComponent(chainId)}/${tokenAddresses.map(encodeURIComponent).join(',')}`
+		)
+	)
+	if (pairs.some((pair) => (
+		pair.chainId !== chainId
+		|| (
+			!requested.has(pair.baseToken.address.toLowerCase())
+			&& !requested.has(pair.quoteToken.address.toLowerCase())
+		)
+	)))
+		throw new Error('Dexscreener_Rest: tokens response does not match requested identity')
 	return pairs
 }
 

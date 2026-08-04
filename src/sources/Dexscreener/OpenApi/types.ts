@@ -10,6 +10,10 @@ export type DexscreenerTokenPairsResponse = (
 	paths['/token-pairs/v1/{chainId}/{tokenAddress}']['get']['responses'][200]['content']['application/json']
 )
 
+export type DexscreenerTokensResponse = (
+	paths['/tokens/v1/{chainId}/{tokenAddresses}']['get']['responses'][200]['content']['application/json']
+)
+
 export type DexscreenerSearchResponse = (
 	paths['/latest/dex/search']['get']['responses'][200]['content']['application/json']
 )

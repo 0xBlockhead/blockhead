@@ -20,6 +20,7 @@ const {
 	getCoinsMarkets,
 	getCoinTickers,
 	getDerivativesExchange,
+	getSimplePrice,
 } = await import('$/sources/Coingecko/Rest/queries.ts')
 
 describe('CoinGecko documented endpoints', () => {
@@ -44,6 +45,21 @@ describe('CoinGecko documented endpoints', () => {
 			{},
 			'/coins/bitcoin?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false'
 		)
+	})
+
+	it('does not soft-empty non-404 HTTP failures', async () => {
+		coingeckoFetch.mockResolvedValueOnce(new Response('rate limited', { status: 429 }))
+		await expect(getCoin({
+			publicEnv: {},
+			id: 'bitcoin',
+		})).rejects.toThrow(/CoinGecko \/coins\/bitcoin/)
+
+		coingeckoFetch.mockResolvedValueOnce(new Response('upstream', { status: 500 }))
+		await expect(getSimplePrice({
+			publicEnv: {},
+			ids: 'bitcoin',
+			vs_currencies: 'usd',
+		})).rejects.toThrow(/CoinGecko \/simple\/price/)
 	})
 
 	it('does not add unsupported detail parameters to the contract endpoint', async () => {
@@ -137,6 +153,33 @@ describe('CoinGecko documented endpoints', () => {
 		expect(coingeckoFetch).toHaveBeenCalledWith(
 			{},
 			'/derivatives/exchanges/binance_futures?include_tickers=unexpired'
+		)
+	})
+
+	it('batches documented simple price flags into one request', async () => {
+		const prices = {
+			bitcoin: {
+				usd: 100,
+				last_updated_at: 1_700_000_000,
+			},
+			ethereum: {
+				usd: 10,
+				last_updated_at: 1_700_000_001,
+			},
+		}
+		coingeckoFetch.mockResolvedValueOnce(new Response(JSON.stringify(prices)))
+
+		await expect(getSimplePrice({
+			publicEnv: {},
+			ids: 'bitcoin,ethereum',
+			vs_currencies: 'usd',
+			include_last_updated_at: true,
+			include_market_cap: true,
+			include_24hr_change: true,
+		})).resolves.toEqual(prices)
+		expect(coingeckoFetch).toHaveBeenCalledWith(
+			{},
+			'/simple/price?ids=bitcoin%2Cethereum&vs_currencies=usd&include_last_updated_at=true&include_market_cap=true&include_24hr_change=true'
 		)
 	})
 })

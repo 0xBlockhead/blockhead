@@ -1,14 +1,20 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { CoinId } from '$/constants/Coin.ts'
+import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const getCoins = vi.hoisted(() => vi.fn())
+const getTickerById = vi.hoisted(() => vi.fn())
+const getExchangeMarkets = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Coinpaprika/OpenApi/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/Coinpaprika/OpenApi/queries.ts')>(),
 	getCoins,
+	getTickerById,
+	getExchangeMarkets,
 }))
 
 const { default: coinpaprikaResolvers } = await import('$/resolvers/Coinpaprika-Rest.ts')
@@ -64,5 +70,120 @@ describe('Coinpaprika coin catalog resolver', () => {
 				},
 			},
 		])
+	})
+})
+
+describe('Coinpaprika coin timestamp resolvers', () => {
+	it('projects $$timestamps from the ticker clock and maps Coin_Timestamp fields', async () => {
+		getTickerById.mockResolvedValue({
+			id: 'eth-ethereum',
+			rank: 2,
+			total_supply: 120_000_000,
+			last_updated: '2026-08-04T09:00:00Z',
+			quotes: {
+				USD: {
+					market_cap: 400_000_000_000,
+					percent_change_24h: 1.25,
+				},
+			},
+		})
+
+		const timestampsResolver = coinpaprikaResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Coin
+			&& '$$timestamps' in candidate.projections
+		))
+		if (timestampsResolver == null)
+			throw new Error('Coinpaprika coin $$timestamps resolver is not registered')
+
+		const timestampRows = await timestampsResolver.resolve['CoinId'].resolve({
+			coinId: CoinId.ETH,
+		}, resolverContext)
+		expect(timestampRows).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$coin: {
+						coinId: CoinId.ETH,
+					},
+					timestampMs: Date.parse('2026-08-04T09:00:00Z'),
+					source: Source.Coinpaprika_Rest,
+				},
+			},
+		])
+
+		const coinTimestampResolver = coinpaprikaResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Coin_Timestamp
+			&& 'marketCap' in candidate.projections
+		))
+		if (coinTimestampResolver == null)
+			throw new Error('Coinpaprika Coin_Timestamp resolver is not registered')
+
+		await expect(coinTimestampResolver.resolve['CoinTimestampMsSource'].resolve({
+			$coin: {
+				coinId: CoinId.ETH,
+			},
+			timestampMs: Date.parse('2026-08-04T09:00:00Z'),
+			source: Source.Coinpaprika_Rest,
+		}, resolverContext)).resolves.toEqual({
+			marketCapRank: 2,
+			marketCap: 400_000_000_000n,
+			marketCapUsd: 400_000_000_000,
+			change24hPercent: 1.25,
+			totalSupply: 120_000_000n,
+			transport: 'coinpaprika-ticker',
+			providerAssetId: 'eth-ethereum',
+		})
+	})
+})
+
+describe('Coinpaprika market venue markets', () => {
+	it('maps exchange markets onto catalog selectors for a known venue', async () => {
+		getExchangeMarkets.mockResolvedValue([
+			{
+				base_currency_id: 'btc-bitcoin',
+				quote_currency_id: 'usdt-tether',
+				category: 'Spot',
+				pair: 'BTC/USDT',
+			},
+			{
+				base_currency_id: 'unknown-coin',
+				quote_currency_id: 'usdt-tether',
+				category: 'Spot',
+				pair: 'UNK/USDT',
+			},
+		])
+
+		const resolver = coinpaprikaResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.MarketVenue
+			&& '$$markets' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Coinpaprika MarketVenue $$markets resolver is not registered')
+
+		const rows = await resolver.resolve['MarketVenueId'].resolve({
+			marketVenueId: MarketVenueId.Binance,
+		}, resolverContext)
+
+		expect(rows).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$base: {
+						kind: 'Coin',
+						assetKey: CoinId.BTC,
+					},
+					$quote: {
+						kind: 'Currency',
+						assetKey: 'USD',
+					},
+					$marketVenue: {
+						marketVenueId: MarketVenueId.Binance,
+					},
+					marketKind: 'Spot',
+				},
+			},
+		])
+		expect(getExchangeMarkets).toHaveBeenCalledWith({
+			publicEnv: {},
+			exchangeId: 'binance',
+		})
 	})
 })

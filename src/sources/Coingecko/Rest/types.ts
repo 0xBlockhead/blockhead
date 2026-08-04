@@ -8,6 +8,7 @@ type CoinsMarketsOperation = paths['/coins/markets']['get']
 type CoinOhlcOperation = paths['/coins/{id}/ohlc']['get']
 type CoinTickersOperation = paths['/coins/{id}/tickers']['get']
 type DerivativesExchangeOperation = paths['/derivatives/exchanges/{id}']['get']
+type SimplePriceOperation = paths['/simple/price']['get']
 
 type CoinResponse = CoinOperation['responses'][200]['content']['application/json']
 type CoinByContractResponse = (
@@ -28,9 +29,18 @@ type CoinTickersResponse = (
 type DerivativesExchangeResponse = (
 	DerivativesExchangeOperation['responses'][200]['content']['application/json']
 )
+type SimplePriceResponse = (
+	SimplePriceOperation['responses'][200]['content']['application/json']
+)
 
-export type CoingeckoCoin = CoinResponse
-export type CoingeckoCoinByContract = CoinByContractResponse
+/** Live `/coins/{id}` payloads sometimes omit `image` despite the checked-in OpenAPI required shape. */
+export type CoingeckoCoin = Omit<CoinResponse, 'image'> & {
+	image?: CoinResponse['image']
+}
+/** Live contract lookups can omit `image` the same way as `/coins/{id}`. */
+export type CoingeckoCoinByContract = Omit<CoinByContractResponse, 'image'> & {
+	image?: CoinByContractResponse['image']
+}
 export type CoingeckoAssetPlatform = AssetPlatformsResponse[number]
 export type CoingeckoCoinsMarket = CoinsMarketsResponse[number]
 export type CoingeckoCoinTickers = CoinTickersResponse
@@ -39,6 +49,8 @@ export type CoingeckoDerivativesExchange = DerivativesExchangeResponse
 export type CoingeckoDerivativesExchangeTicker = NonNullable<
 	DerivativesExchangeResponse['tickers']
 >[number]
+export type CoingeckoSimplePrice = SimplePriceResponse
+export type CoingeckoSimplePriceRow = CoingeckoSimplePrice[string]
 
 /** Exact five-value OHLC wire row; the official schema widens each row to `number[]`. */
 export type CoingeckoOhlc = [
@@ -95,5 +107,10 @@ export type GetCoingeckoCoinTickersArgs = (
 export type GetCoingeckoDerivativesExchangeArgs = (
 	& DerivativesExchangeOperation['parameters']['path']
 	& NonNullable<DerivativesExchangeOperation['parameters']['query']>
+	& { publicEnv: SourcePublicEnv }
+)
+
+export type GetCoingeckoSimplePriceArgs = (
+	& SimplePriceOperation['parameters']['query']
 	& { publicEnv: SourcePublicEnv }
 )

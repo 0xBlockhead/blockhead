@@ -27,6 +27,49 @@ type ChartCoin = NonNullable<
 		'ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1'
 	]
 >
+type HistoricalPricesOperation = paths['/prices/historical/{timestamp}/{coins}']['get']
+type HistoricalPricesResponse = (
+	HistoricalPricesOperation['responses'][200]['content']['application/json']
+)
+type HistoricalPrice = NonNullable<
+	NonNullable<HistoricalPricesResponse['coins']>[
+		'ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1'
+	]
+>
+type ProHistoricalPricesOperation = proPaths['/coins/prices/historical/{timestamp}/{coins}']['get']
+type ProHistoricalPricesResponse = (
+	ProHistoricalPricesOperation['responses'][200]['content']['application/json']
+)
+type ProHistoricalPrice = NonNullable<
+	NonNullable<ProHistoricalPricesResponse['coins']>[
+		'ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1'
+	]
+>
+type FirstPricesOperation = paths['/prices/first/{coins}']['get']
+type FirstPricesResponse = (
+	FirstPricesOperation['responses'][200]['content']['application/json']
+)
+type FirstPrice = NonNullable<
+	NonNullable<FirstPricesResponse['coins']>[
+		'ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1'
+	]
+>
+type ProFirstPricesOperation = proPaths['/coins/prices/first/{coins}']['get']
+type ProFirstPricesResponse = (
+	ProFirstPricesOperation['responses'][200]['content']['application/json']
+)
+type ProFirstPrice = NonNullable<
+	NonNullable<ProFirstPricesResponse['coins']>[
+		'ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1'
+	]
+>
+type PercentageOperation = paths['/percentage/{coins}']['get']
+type PercentageResponse = PercentageOperation['responses'][200]['content']['application/json']
+type ProPercentageOperation = proPaths['/coins/percentage/{coins}']['get']
+type ProPercentageResponse = (
+	ProPercentageOperation['responses'][200]['content']['application/json']
+)
+type ProChartOperation = proPaths['/coins/chart/{coins}']['get']
 
 type DynamicCoinResponse<_Response, _Coin> = (
 	& Omit<_Response, 'coins'>
@@ -69,7 +112,84 @@ export type GetDefillamaChartArgs = (
 	}
 )
 
+export type GetProDefillamaChartArgs = (
+	& NonNullable<ProChartOperation['parameters']['query']>
+	& {
+		coins: string[]
+		publicEnv: SourcePublicEnv
+	}
+)
+
 export type DefillamaChartResponse = DynamicCoinResponse<
 	ChartResponse,
 	ChartCoin
+>
+
+export type GetDefillamaHistoricalPricesArgs = (
+	& Omit<HistoricalPricesOperation['parameters']['path'], 'coins'>
+	& {
+		coins: string[]
+	}
+)
+
+export type GetProDefillamaHistoricalPricesArgs = (
+	& Omit<ProHistoricalPricesOperation['parameters']['path'], 'coins'>
+	& {
+		coins: string[]
+		publicEnv: SourcePublicEnv
+	}
+)
+
+export type DefillamaHistoricalPricesResponse = DynamicCoinResponse<
+	HistoricalPricesResponse,
+	HistoricalPrice
+>
+
+export type DefillamaProHistoricalPricesResponse = DynamicCoinResponse<
+	ProHistoricalPricesResponse,
+	ProHistoricalPrice
+>
+
+export type GetDefillamaFirstPricesArgs = {
+	coins: string[]
+}
+
+export type GetProDefillamaFirstPricesArgs = {
+	coins: string[]
+	publicEnv: SourcePublicEnv
+}
+
+export type DefillamaFirstPricesResponse = DynamicCoinResponse<
+	FirstPricesResponse,
+	FirstPrice
+>
+
+export type DefillamaProFirstPricesResponse = DynamicCoinResponse<
+	ProFirstPricesResponse,
+	ProFirstPrice
+>
+
+export type GetDefillamaPercentageArgs = (
+	& NonNullable<PercentageOperation['parameters']['query']>
+	& {
+		coins: string[]
+	}
+)
+
+export type GetProDefillamaPercentageArgs = (
+	& NonNullable<ProPercentageOperation['parameters']['query']>
+	& {
+		coins: string[]
+		publicEnv: SourcePublicEnv
+	}
+)
+
+export type DefillamaPercentageResponse = DynamicCoinResponse<
+	PercentageResponse,
+	number
+>
+
+export type DefillamaProPercentageResponse = DynamicCoinResponse<
+	ProPercentageResponse,
+	number
 >

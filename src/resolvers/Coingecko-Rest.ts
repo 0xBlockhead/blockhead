@@ -37,26 +37,29 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type {
-	CoingeckoCoin,
 	CoingeckoCoinTicker,
 	CoingeckoDerivativesExchangeTicker,
 } from '$/sources/Coingecko/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const coingeckoMarketSpot = (coin: CoingeckoCoin | undefined) => {
-	if (coin == null)
+const coingeckoSimplePriceSpot = (
+	row: {
+		usd?: number
+		last_updated_at?: number
+	} | undefined
+) => {
+	if (row == null)
 		return undefined
 
-	const usd = coin.market_data?.current_price?.usd
+	const usd = row.usd
 	if (usd == null || !Number.isFinite(usd))
 		return undefined
 
-	const lastUpdatedAtSec = Date.parse(coin.market_data?.last_updated ?? '') / 1000
-	if (!Number.isFinite(lastUpdatedAtSec))
+	const lastUpdatedAtSec = row.last_updated_at
+	if (lastUpdatedAtSec == null || !Number.isFinite(lastUpdatedAtSec))
 		return undefined
 
 	return {
-		coin,
 		usd,
 		lastUpdatedAtSec,
 	}
@@ -431,8 +434,8 @@ export default {
 						})
 						if (coin == null) throw new Error('Coingecko_Rest: coin not returned by API')
 
-						const logoUrl = coin.image.large
-						const logoMedia = mediaFromUrl(logoUrl, MediaType.Image)
+						const logoUrl = coin.image == null ? undefined : coin.image.large
+						const logoMedia = logoUrl == null ? undefined : mediaFromUrl(logoUrl, MediaType.Image)
 
 						const coinName = coin.name
 						return {
@@ -488,14 +491,27 @@ export default {
 							throw new Error('Coingecko_Rest: coin market-data clock missing')
 						if (timestampMs !== timestampMsSelector)
 							throw new Error('Coingecko_Rest: Coin_Timestamp id does not match market-data clock')
+						const marketCapUsd = marketData?.market_cap?.usd
+						const change24hPercent = marketData?.price_change_percentage_24h
+						const totalSupply = marketData?.total_supply
 						return {
 							...(marketData?.market_cap_rank != null
 							&& Number.isFinite(marketData.market_cap_rank) && {
 								marketCapRank: marketData.market_cap_rank,
 							}),
-							...(marketData?.market_cap?.usd != null
-							&& Number.isFinite(marketData.market_cap.usd) && {
-								marketCapUsd: marketData.market_cap.usd,
+							...(marketCapUsd != null
+							&& Number.isFinite(marketCapUsd) && {
+								marketCap: BigInt(Math.round(marketCapUsd)),
+								marketCapUsd,
+							}),
+							...(change24hPercent != null
+							&& Number.isFinite(change24hPercent) && {
+								change24hPercent,
+							}),
+							...(totalSupply != null
+							&& Number.isFinite(totalSupply)
+							&& totalSupply >= 0 && {
+								totalSupply: BigInt(Math.round(totalSupply)),
 							}),
 							transport: 'coingecko-coin',
 							providerAssetId: coingeckoId,
@@ -506,6 +522,9 @@ export default {
 		})({
 				marketCapRank: (coinTimestamp) => coinTimestamp.marketCapRank,
 				marketCapUsd: (coinTimestamp) => coinTimestamp.marketCapUsd,
+				marketCap: (coinTimestamp) => coinTimestamp.marketCap,
+				change24hPercent: (coinTimestamp) => coinTimestamp.change24hPercent,
+				totalSupply: (coinTimestamp) => coinTimestamp.totalSupply,
 				transport: (coinTimestamp) => coinTimestamp.transport,
 				providerAssetId: (coinTimestamp) => coinTimestamp.providerAssetId,
 			}),
@@ -543,8 +562,8 @@ export default {
 
 						const coinId = coinIdByWireId.get(coin.id) ?? CoinId.Unknown
 						const decimals = coin.detail_platforms[assetPlatformId]?.decimal_place
-						const iconUrl = coin.image.large
-						const iconMedia = mediaFromUrl(iconUrl, MediaType.Image)
+						const iconUrl = coin.image == null ? undefined : coin.image.large
+						const iconMedia = iconUrl == null ? undefined : mediaFromUrl(iconUrl, MediaType.Image)
 						const coinName = coin.name
 						if (decimals == null)
 							throw new Error('Coingecko_Rest: ERC-20 decimals not mapped')
@@ -585,37 +604,28 @@ export default {
 						if (!isSeededCoinCurrencyMarket($market))
 							throw new Error('Coingecko_Rest: Market_Timestamp is catalog coin USD market only')
 						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-						const { getCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
+						const { getSimplePrice } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const coinId = $market.$base.assetKey
 						const coingeckoId = idByCoinId[coinId]
 						if (feedKey !== coingeckoId)
 							throw new Error('Coingecko_Rest: Market_Timestamp feedKey does not match Coingecko id')
 
-						const spot = coingeckoMarketSpot(await getCoin({
+						const spot = coingeckoSimplePriceSpot((await getSimplePrice({
 							publicEnv: context.publicEnv,
-							id: coingeckoId,
-						}))
+							ids: coingeckoId,
+							vs_currencies: 'usd',
+							include_last_updated_at: true,
+						}))[coingeckoId])
 						if (spot == null) throw new Error('Coingecko_Rest: coin market spot not returned')
-						const { usd, lastUpdatedAtSec, coin } = spot
+						const { usd, lastUpdatedAtSec } = spot
 						const timestampMs = lastUpdatedAtSec * 1000
 						if (timestampMs !== timestampMsSelector)
 							throw new Error('Coingecko_Rest: Market_Timestamp id does not match spot clock')
-						const eth = coin.platforms.ethereum
-						const caip19 = (
-							/^0x[a-fA-F0-9]{40}$/.test(eth) ?
-								`eip155:1/erc20:${eth.toLowerCase()}`
-							:
-								coin.id === 'ethereum' ?
-									'eip155:1/slip44:60'
-								:
-									undefined
-						)
 
 						return {
 							price: BigInt(Math.round(usd * 1e8)),
-							transport: 'coingecko-coins-id-market-data-usd-1e8',
+							transport: 'coingecko-simple-price-usd-1e8',
 							providerAssetId: coingeckoId,
-							...(caip19 && { caip19 }),
 						}
 					},
 				}
@@ -624,7 +634,6 @@ export default {
 				price: (timestamp) => timestamp.price,
 				transport: (timestamp) => timestamp.transport,
 				providerAssetId: (timestamp) => timestamp.providerAssetId,
-				caip19: (timestamp) => timestamp.caip19,
 			}),
 
 		defineResolver({
@@ -721,32 +730,34 @@ export default {
 							coingeckoCatalogCoinIds,
 							idByCoinId,
 						} = await import('$/sources/Coingecko/Rest/constants.ts')
-						const { getCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
+						const { getSimplePrice } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const lim = resolverContextRowLimit(context)
-						return (
-							(await Promise.all(
-								coingeckoCatalogCoinIds
-									.slice(0, lim)
-									.map(async (coinId) => {
-										const coingeckoId = idByCoinId[coinId]
-										const spot = coingeckoMarketSpot(await getCoin({
-											publicEnv: context.publicEnv,
-											id: coingeckoId,
-										}))
-										if (spot == null)
-											return []
-										return [
-											{
-												[EntityMetaKey.Selector]: {
-													$market: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coinId]),
-													timestampMs: spot.lastUpdatedAtSec * 1000,
-													feedKey: coingeckoId,
-												},
-											},
-										]
-									})
-							)).flat()
-						)
+						const catalogCoinIds = coingeckoCatalogCoinIds.slice(0, lim)
+						if (catalogCoinIds.length === 0)
+							return []
+
+						const prices = await getSimplePrice({
+							publicEnv: context.publicEnv,
+							ids: catalogCoinIds.map((coinId) => idByCoinId[coinId]).join(','),
+							vs_currencies: 'usd',
+							include_last_updated_at: true,
+						})
+						return catalogCoinIds.flatMap((coinId) => {
+							const coingeckoId = idByCoinId[coinId]
+							const spot = coingeckoSimplePriceSpot(prices[coingeckoId])
+							if (spot == null)
+								return []
+
+							return [
+								{
+									[EntityMetaKey.Selector]: {
+										$market: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coinId]),
+										timestampMs: spot.lastUpdatedAtSec * 1000,
+										feedKey: coingeckoId,
+									},
+								},
+							]
+						})
 					},
 				}
 			},
@@ -1047,13 +1058,15 @@ export default {
 						if (!isSeededCoinCurrencyMarket($market))
 							return []
 						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-						const { getCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
+						const { getSimplePrice } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const coinId = $market.$base.assetKey
 						const coingeckoId = idByCoinId[coinId]
-						const spot = coingeckoMarketSpot(await getCoin({
+						const spot = coingeckoSimplePriceSpot((await getSimplePrice({
 							publicEnv: context.publicEnv,
-							id: coingeckoId,
-						}))
+							ids: coingeckoId,
+							vs_currencies: 'usd',
+							include_last_updated_at: true,
+						}))[coingeckoId])
 						if (spot == null) throw new Error('Coingecko_Rest: coin market spot not returned')
 						return [
 							{

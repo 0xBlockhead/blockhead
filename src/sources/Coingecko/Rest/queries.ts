@@ -14,6 +14,7 @@ import type {
 	CoingeckoCoinsMarket,
 	CoingeckoDerivativesExchange,
 	CoingeckoOhlc,
+	CoingeckoSimplePrice,
 	GetCoingeckoAssetPlatformsArgs,
 	GetCoingeckoCoinArgs,
 	GetCoingeckoCoinByContractArgs,
@@ -21,6 +22,7 @@ import type {
 	GetCoingeckoCoinsMarketsArgs,
 	GetCoingeckoCoinTickersArgs,
 	GetCoingeckoDerivativesExchangeArgs,
+	GetCoingeckoSimplePriceArgs,
 } from '$/sources/Coingecko/Rest/types.ts'
 
 /** `GET /coins/{id}` — coin metadata and current market data. */
@@ -202,4 +204,25 @@ export const getDerivativesExchange = async ({
 		await throwHttpError(`CoinGecko /derivatives/exchanges/${id}`, response)
 
 	return response.json<CoingeckoDerivativesExchange>()
+}
+
+/** `GET /simple/price` — batched spot prices by CoinGecko ids. */
+export const getSimplePrice = async ({
+	publicEnv,
+	...query
+}: GetCoingeckoSimplePriceArgs) => {
+	const searchParams = new URLSearchParams()
+	for (const [name, value] of Object.entries(query))
+		if (value != null)
+			searchParams.set(name, String(value))
+
+	const response = await coingeckoFetch(
+		publicEnv,
+		`/simple/price?${searchParams}`
+	)
+
+	if (!response.ok)
+		await throwHttpError('CoinGecko /simple/price', response)
+
+	return response.json<CoingeckoSimplePrice>()
 }

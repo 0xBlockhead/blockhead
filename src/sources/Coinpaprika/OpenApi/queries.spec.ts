@@ -1,12 +1,17 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { CoinId } from '$/constants/Coin.ts'
-import { idByCoinId } from '$/sources/Coinpaprika/OpenApi/constants.ts'
+import { MarketVenueId } from '$/constants/MarketVenue.ts'
+import {
+	coinpaprikaExchangeIdByMarketVenueId,
+	idByCoinId,
+} from '$/sources/Coinpaprika/OpenApi/constants.ts'
 import {
 	getCoinMarkets,
 	getCoins,
 	getExchangeMarkets,
 	getOhlcvHistorical,
+	getTickerById,
 	getTickers,
 } from '$/sources/Coinpaprika/OpenApi/queries.ts'
 
@@ -18,6 +23,12 @@ describe('Coinpaprika coin queries', () => {
 
 	it('uses the current canonical AAVE API id', () => {
 		expect(idByCoinId[CoinId.AAVE]).toBe('aave-new')
+	})
+
+	it('maps catalog venues onto Coinpaprika exchange wire ids', () => {
+		expect(coinpaprikaExchangeIdByMarketVenueId[MarketVenueId.Binance]).toBe('binance')
+		expect(coinpaprikaExchangeIdByMarketVenueId[MarketVenueId.Coinbase]).toBe('gdax')
+		expect(coinpaprikaExchangeIdByMarketVenueId[MarketVenueId.Okx]).toBe('okex')
 	})
 
 	it('loads all catalog tickers with one bulk request', async () => {
@@ -39,6 +50,40 @@ describe('Coinpaprika coin queries', () => {
 				'https://api.coinpaprika.com/v1/tickers?quotes=USD'
 			)),
 			expect.any(Object)
+		)
+	})
+
+	it('loads a single ticker by coin id through the registered browser proxy transport', async () => {
+		const ticker = {
+			id: 'eth-ethereum',
+			name: 'Ethereum',
+			symbol: 'ETH',
+			last_updated: '2026-08-04T09:00:00Z',
+			quotes: {
+				USD: {
+					price: 3200,
+					market_cap: 400_000_000_000,
+					percent_change_24h: 1.25,
+				},
+			},
+		}
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify(ticker)))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getTickerById({
+			publicEnv: {},
+			coinpaprikaId: 'eth-ethereum',
+		})).resolves.toEqual(ticker)
+		expect(fetchMock).toHaveBeenCalledWith(
+			expect.stringContaining(encodeURIComponent(
+				'https://api.coinpaprika.com/v1/tickers/eth-ethereum'
+			)),
+			expect.objectContaining({
+				headers: {
+					Accept: 'application/json',
+				},
+			})
 		)
 	})
 

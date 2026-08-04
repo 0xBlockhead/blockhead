@@ -1,12 +1,20 @@
 import {
 	MarketAssetKind,
 	MarketKind,
+	marketOhlcDailyTimeInterval,
+	marketOhlcDefaultLookbackDayCount,
 } from '$/constants/Market.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { isSeededCoinCurrencyMarket } from '$/resolvers/market.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	EntityMetaKey,
+	entityFieldAddressKey,
+	type EntitySelector,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import {
 	optionalPublicEnvString,
@@ -42,6 +50,79 @@ const getConfiguredCurrentPrices = async (
 		})
 }
 
+const getConfiguredHistoricalPrices = async (
+	coins: string[],
+	timestamp: number,
+	publicEnv: SourcePublicEnv
+) => {
+	const {
+		getHistoricalPrices,
+		getProHistoricalPrices,
+	} = await import('$/sources/Defillama/Rest/queries.ts')
+
+	return optionalPublicEnvString(publicEnv, 'PUBLIC_DEFILLAMA_PRO_API_KEY') == null ?
+		getHistoricalPrices({
+			coins,
+			timestamp,
+		})
+	:
+		getProHistoricalPrices({
+			coins,
+			timestamp,
+			publicEnv,
+		})
+}
+
+const getConfiguredDailyChart = async (
+	coins: string[],
+	span: number,
+	publicEnv: SourcePublicEnv
+) => {
+	const {
+		getChart,
+		getProChart,
+	} = await import('$/sources/Defillama/Rest/queries.ts')
+
+	return optionalPublicEnvString(publicEnv, 'PUBLIC_DEFILLAMA_PRO_API_KEY') == null ?
+		getChart({
+			coins,
+			span,
+			period: '1d',
+		})
+	:
+		getProChart({
+			coins,
+			span,
+			period: '1d',
+			publicEnv,
+		})
+}
+
+const priceSnapshotFromWire = (
+	requestedId: string,
+	price: {
+		price: number
+		timestamp: number
+	}
+) => ({
+	price: BigInt(Math.round(price.price * 1e8)),
+	transport: 'defillama-current-usd-1e8',
+	providerAssetId: requestedId,
+})
+
+const chartPricesForRequestedId = (
+	coins: Record<string, {
+		prices?: {
+			timestamp?: number
+			price?: number
+		}[]
+	}> | undefined,
+	requestedId: string
+) => (
+	currentPriceForRequestedId(coins, requestedId)?.prices
+	?? []
+)
+
 export default {
 	source: Source.Defillama_Rest,
 
@@ -63,7 +144,7 @@ export default {
 						if (requestedId == null || requestedId !== feedKey)
 							throw new Error('Defillama_Rest: Market_Timestamp feedKey does not match catalog coin')
 
-						const price = currentPriceForRequestedId(
+						const currentPrice = currentPriceForRequestedId(
 							(
 								await getConfiguredCurrentPrices(
 									[requestedId],
@@ -72,15 +153,27 @@ export default {
 							).coins,
 							requestedId
 						)
-						if (price == null)
-							throw new Error('Defillama_Rest: current price not returned')
-						if (price.timestamp * 1_000 !== timestampMsSelector)
+						if (currentPrice != null && currentPrice.timestamp * 1_000 === timestampMsSelector)
+							return priceSnapshotFromWire(requestedId, currentPrice)
+
+						const historicalPrice = currentPriceForRequestedId(
+							(
+								await getConfiguredHistoricalPrices(
+									[requestedId],
+									Math.floor(timestampMsSelector / 1_000),
+									context.publicEnv
+								)
+							).coins,
+							requestedId
+						)
+						if (historicalPrice == null)
+							throw new Error('Defillama_Rest: historical price not returned')
+						if (historicalPrice.timestamp * 1_000 !== timestampMsSelector)
 							throw new Error('Defillama_Rest: Market_Timestamp id does not match price clock')
 
 						return {
-							price: BigInt(Math.round(price.price * 1e8)),
-							transport: 'defillama-current-usd-1e8',
-							providerAssetId: requestedId,
+							...priceSnapshotFromWire(requestedId, historicalPrice),
+							transport: 'defillama-historical-usd-1e8',
 						}
 					},
 				},
@@ -145,6 +238,138 @@ export default {
 			},
 		})({
 			$parentMarket: (market) => market,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Market_TimeInterval_Timestamp,
+			resolve: {
+				MarketTimeIntervalTimestampMs: {
+					resolve: async ({ $market, timeInterval, timestampMs: timestampMsSelector }, context) => {
+						if ($market.marketKind !== MarketKind.Spot)
+							throw new Error('Defillama_Rest: chart is spot-only')
+						if ($market.$base.kind !== MarketAssetKind.Coin)
+							throw new Error('Defillama_Rest: chart base asset is not a coin')
+						if (!isSeededCoinCurrencyMarket($market))
+							throw new Error('Defillama_Rest: chart is catalog coin USD market only')
+						if (
+							timeInterval.unit !== marketOhlcDailyTimeInterval.unit
+							|| timeInterval.value !== marketOhlcDailyTimeInterval.value
+						)
+							throw new Error('Defillama_Rest: chart timeInterval must be daily')
+
+						const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
+						const requestedId = defillamaCurrentPriceIdByCoinId[$market.$base.assetKey]
+						if (requestedId == null)
+							throw new Error('Defillama_Rest: chart coin not mapped')
+
+						const chartPoint = chartPricesForRequestedId(
+							(
+								await getConfiguredDailyChart(
+									[requestedId],
+									marketOhlcDefaultLookbackDayCount,
+									context.publicEnv
+								)
+							).coins,
+							requestedId
+						)
+							.find((point) => (
+								point.timestamp != null
+								&& point.price != null
+								&& point.timestamp * 1_000 === timestampMsSelector
+							))
+						if (chartPoint?.price == null || chartPoint.timestamp == null)
+							throw new Error('Defillama_Rest: chart point not found for timestamp')
+
+						const close = BigInt(Math.round(chartPoint.price * 1e8))
+						return {
+							[EntityMetaKey.Selector]: {
+								$market,
+								timeInterval: marketOhlcDailyTimeInterval,
+								timestampMs: chartPoint.timestamp * 1_000,
+							} satisfies EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>,
+							open: close,
+							high: close,
+							low: close,
+							close,
+						}
+					},
+				},
+			},
+		})({
+			open: (timestamp) => timestamp.open,
+			high: (timestamp) => timestamp.high,
+			low: (timestamp) => timestamp.low,
+			close: (timestamp) => timestamp.close,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Market,
+			resolve: {
+				BaseQuoteMarketVenueKind: {
+					resolve: async (entitySelector, context) => {
+						if (entitySelector.marketKind !== MarketKind.Spot)
+							return []
+						if (entitySelector.$base.kind !== MarketAssetKind.Coin)
+							return []
+						if (!isSeededCoinCurrencyMarket(entitySelector))
+							return []
+
+						const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
+						const requestedId = defillamaCurrentPriceIdByCoinId[entitySelector.$base.assetKey]
+						if (requestedId == null)
+							return []
+
+						const lim = Math.min(
+							resolverContextRowLimit(context),
+							marketOhlcDefaultLookbackDayCount
+						)
+						return chartPricesForRequestedId(
+							(
+								await getConfiguredDailyChart(
+									[requestedId],
+									lim,
+									context.publicEnv
+								)
+							).coins,
+							requestedId
+						)
+							.flatMap((point) => (
+								point.timestamp == null || point.price == null ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											$market: entitySelector,
+											timeInterval: marketOhlcDailyTimeInterval,
+											timestampMs: point.timestamp * 1_000,
+										} satisfies EntitySelector<typeof schema, EntityType.Market_TimeInterval_Timestamp>,
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'open')]: BigInt(Math.round(point.price * 1e8)),
+											[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'high')]: BigInt(Math.round(point.price * 1e8)),
+											[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'low')]: BigInt(Math.round(point.price * 1e8)),
+											[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'close')]: BigInt(Math.round(point.price * 1e8)),
+										},
+									}]
+							))
+							.slice(0, lim)
+					},
+				},
+			},
+		})({
+			$$marketTimeIntervalTimestamps: (market) => market,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Market_TimeInterval_Timestamp,
+			resolve: {
+				MarketTimeIntervalTimestampMs: {
+					resolve: async ({ $market }) => ({
+						[EntityMetaKey.Selector]: $market,
+					}),
+				},
+			},
+		})({
+			$parentMarket: (timestamp) => timestamp,
 		}),
 
 		defineResolver({
