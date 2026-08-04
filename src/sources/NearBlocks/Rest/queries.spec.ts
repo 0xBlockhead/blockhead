@@ -191,6 +191,26 @@ describe('NearBlocks v1 entity transport', () => {
 		await expect(getBlock({
 			block: 'block-hash',
 		})).rejects.toThrow('hash does not match')
+
+		getNearBlocksRestJson.mockResolvedValueOnce({
+			blocks: [{
+				...block,
+				prev_block_hash: '',
+			}],
+		})
+		await expect(getBlock({
+			block: 208137439n,
+		})).rejects.toThrow('previous block hash must not be empty')
+
+		getNearBlocksRestJson.mockResolvedValueOnce({
+			blocks: [{
+				...block,
+				epoch_id: '',
+			}],
+		})
+		await expect(getBlock({
+			block: 208137439n,
+		})).rejects.toThrow('epoch id must not be empty')
 	})
 
 	it('loads transactions and rejects missing actions or hash drift', async () => {
@@ -227,6 +247,16 @@ describe('NearBlocks v1 entity transport', () => {
 		await expect(getTransaction({
 			transactionHash: 'transaction-hash',
 		})).rejects.toThrow('action kind must not be empty')
+
+		getNearBlocksRestJson.mockResolvedValueOnce({
+			txns: [{
+				...transaction,
+				included_in_block_hash: '',
+			}],
+		})
+		await expect(getTransaction({
+			transactionHash: 'transaction-hash',
+		})).rejects.toThrow('included block hash must not be empty')
 
 		getNearBlocksRestJson.mockResolvedValueOnce({
 			txns: [{

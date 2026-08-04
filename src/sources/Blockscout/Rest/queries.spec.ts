@@ -322,4 +322,46 @@ describe('Blockscout account-abstraction queries', () => {
 			expect.any(Object)
 		)
 	})
+
+	it('forwards account-abstraction address filters on operations and accounts', async () => {
+		const fetchMock = vi.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(jsonResponse({
+				items: [userOperation],
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				items: [{
+					address: {
+						hash: hex('b', 40),
+					},
+					total_ops: 1,
+				}],
+			}))
+
+		await expect(getUserOperationsPage({
+			chainId: 1,
+			limit: 3,
+			bundler: hex('c', 40),
+		})).resolves.toEqual([userOperation])
+		expect(fetchMock).toHaveBeenNthCalledWith(
+			1,
+			expect.stringContaining(`bundler=${hex('c', 40)}`),
+			expect.any(Object)
+		)
+
+		await expect(getErc4337SmartAccountList({
+			chainId: 1,
+			limit: 3,
+			factory: hex('d', 40),
+		})).resolves.toEqual([{
+			address: {
+				hash: hex('b', 40),
+			},
+			total_ops: 1,
+		}])
+		expect(fetchMock).toHaveBeenNthCalledWith(
+			2,
+			expect.stringContaining(`factory=${hex('d', 40)}`),
+			expect.any(Object)
+		)
+	})
 })

@@ -22,16 +22,16 @@ export type NearBlocksAccountResponse = {
 export type NearBlocksBlock = {
 	author_account_id?: string
 	block_hash: string
-	block_height: string
+	block_height: string | number
 	block_timestamp: string
 	chunks_agg?: {
 		gas_limit?: number
 		gas_used?: number
 		shards?: number
 	}
-	epoch_id?: string
+	epoch_id: string
 	gas_price?: string
-	prev_block_hash?: string
+	prev_block_hash: string
 	receipts_agg?: {
 		count?: number
 	}
@@ -62,7 +62,7 @@ export type NearBlocksTransaction = {
 		block_height?: number | string
 	}
 	block_timestamp: string
-	included_in_block_hash?: string
+	included_in_block_hash: string
 	nonce?: number | string
 	outcomes?: {
 		status?: boolean

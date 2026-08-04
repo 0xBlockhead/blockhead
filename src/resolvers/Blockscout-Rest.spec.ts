@@ -13,6 +13,7 @@ import type {
 } from '$/sources/Blockscout/Rest/types.ts'
 
 const getAddressDetails = vi.hoisted(() => vi.fn())
+const getErc4337BundlerDetail = vi.hoisted(() => vi.fn())
 const getErc4337SmartAccountList = vi.hoisted(() => vi.fn())
 const getStats = vi.hoisted(() => vi.fn())
 const getTransactionByHash = vi.hoisted(() => vi.fn())
@@ -22,6 +23,7 @@ const getUserOperationsPage = vi.hoisted(() => vi.fn())
 vi.mock('$/sources/Blockscout/Rest/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/Blockscout/Rest/queries.ts')>(),
 	getAddressDetails,
+	getErc4337BundlerDetail,
 	getErc4337SmartAccountList,
 	getStats,
 	getTransactionByHash,
@@ -163,6 +165,49 @@ describe('Blockscout Network account abstraction applicability', () => {
 				reference: '5',
 			},
 		}, context)).resolves.toEqual([])
+	})
+
+	it.each([
+		'$$erc4337Bundlers',
+		'$$erc4337Paymasters',
+		'$$erc4337AccountFactories',
+	])('omits Network %s rather than soft-emptying timed-out registry lists', (fieldName) => {
+		expect(blockscoutRest.resolvers.some((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& fieldName in candidate.projections.Evm
+		))).toBe(false)
+	})
+
+	it('materializes bundler detail timestamps from total_ops', async () => {
+		getErc4337BundlerDetail.mockResolvedValue({
+			address: blockscoutAddress,
+			total_bundles: 2,
+			total_ops: 9,
+		})
+		const resolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Erc4337Bundler
+			&& '$$timestamps' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Blockscout Erc4337Bundler timestamp resolver is not registered')
+
+		const entitySelector = {
+			$network: network,
+			address: contract.address,
+		}
+		const resolved = await resolver.resolve.EvmNetworkAddress.resolve(entitySelector, context)
+		expect(getErc4337BundlerDetail).toHaveBeenCalledWith({
+			chainId: 1,
+			address: contract.address,
+		})
+		expect(resolved.$$timestamps).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$bundler: entitySelector,
+				timestampMs: expect.any(Number),
+				source: Source.Blockscout_Rest,
+			},
+			userOperationsCount: 9,
+		}])
 	})
 
 	it('materializes the official user-operation list response', async () => {

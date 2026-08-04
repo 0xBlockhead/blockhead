@@ -29,10 +29,7 @@ import type {
 	BlockscoutErc4337AccountsPage,
 	BlockscoutErc4337AccountFactory,
 	BlockscoutErc4337Bundler,
-	BlockscoutErc4337BundlersPage,
-	BlockscoutErc4337FactoriesPage,
 	BlockscoutErc4337Paymaster,
-	BlockscoutErc4337PaymastersPage,
 	BlockscoutSmartContract,
 	BlockscoutSmartContractForList,
 	BlockscoutSmartContractsPage,
@@ -46,12 +43,6 @@ import type {
 	BlockscoutUserOperationDetail,
 	BlockscoutUserOperationsPage,
 } from '$/sources/Blockscout/Rest/types.ts'
-
-type BlockscoutErc4337RegistryPage =
-	| BlockscoutErc4337AccountsPage
-	| BlockscoutErc4337BundlersPage
-	| BlockscoutErc4337PaymastersPage
-	| BlockscoutErc4337FactoriesPage
 
 const bindingByApiFamilyAndChainId = new Map(
 	bindings[Source.Blockscout_Rest].map((binding) => [
@@ -485,10 +476,18 @@ export const getUserOperationsPage = async ({
 	chainId,
 	limit,
 	transactionHash,
+	sender,
+	bundler,
+	paymaster,
+	factory,
 }: {
 	chainId: number
 	limit: number
 	transactionHash?: string
+	sender?: string
+	bundler?: string
+	paymaster?: string
+	factory?: string
 }) => {
 	if (limit <= 0)
 		return []
@@ -504,6 +503,18 @@ export const getUserOperationsPage = async ({
 					32,
 					'Blockscout user operations by transaction'
 				),
+			}),
+			...(sender != null && {
+				sender: blockscoutErc4337PathHash(sender, 20, 'Blockscout user operations by sender'),
+			}),
+			...(bundler != null && {
+				bundler: blockscoutErc4337PathHash(bundler, 20, 'Blockscout user operations by bundler'),
+			}),
+			...(paymaster != null && {
+				paymaster: blockscoutErc4337PathHash(paymaster, 20, 'Blockscout user operations by paymaster'),
+			}),
+			...(factory != null && {
+				factory: blockscoutErc4337PathHash(factory, 20, 'Blockscout user operations by factory'),
 			}),
 		},
 	})).items
@@ -539,18 +550,23 @@ const erc4337RegistryPath = {
 export const getErc4337SmartAccountList = async ({
 	chainId,
 	limit,
+	factory,
 }: {
 	chainId: number
 	limit: number
+	factory?: string
 }) => {
 	if (limit <= 0)
 		return []
 
-	return (await getBlockscoutJson<BlockscoutErc4337RegistryPage>({
+	return (await getBlockscoutJson<BlockscoutErc4337AccountsPage>({
 		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
 		path: erc4337RegistryPath.smartAccount,
 		searchParams: {
 			page_size: blockscoutItemsCount(limit),
+			...(factory != null && {
+				factory: blockscoutErc4337PathHash(factory, 20, 'Blockscout ERC-4337 accounts by factory'),
+			}),
 		},
 	})).items
 }

@@ -7,7 +7,10 @@ import type { components } from '$/sources/Starkscan/OpenApi/openapi.d.ts'
 type AddressSummary = components['schemas']['AddressSummaryView']
 type AddressTransaction = components['schemas']['AddressTransactionListItem']
 type AddressTokenHoldings = components['schemas']['AddressTokenHoldingsView']
+type BlockView = components['schemas']['BlockView']
+type ClassDetail = components['schemas']['ClassDetailView']
 type ContractEvent = components['schemas']['ContractEventItem']
+type TransactionDetail = components['schemas']['TransactionDetailView']
 
 const { getJson } = vi.hoisted(() => ({
 	getJson: vi.fn(),
@@ -20,8 +23,11 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 const {
 	getAddressSummary,
 	getAddressTransactions,
+	getBlock,
+	getClass,
 	getContractEvents,
 	getExactTokenHoldings,
+	getTransaction,
 } = await import('$/sources/Starkscan/Rest/queries.ts')
 
 const binding = bindings[Source.Starkscan][0]
@@ -97,6 +103,139 @@ const event = {
 	data: ['0x33'],
 	decodingStatus: 'unknown',
 } satisfies ContractEvent
+
+const block = {
+	chainId: 'SN_MAIN',
+	blockNumber: 10_630_025,
+	blockHash: '0xabc',
+	parentHash: '0xdef',
+	timestampIso: '2026-07-15T12:00:00Z',
+	txCount: 1,
+	rawObjectKey: 'block:10630025',
+	stateRoot: '0x11',
+	sequencerAddress: '0x22',
+	l1DataAvailabilityMode: null,
+	starknetVersion: '0.13.2',
+	l1GasPrice: {
+		priceInWei: '1',
+		priceInFri: null,
+	},
+	l2GasPrice: null,
+	l1DataGasPrice: {
+		priceInWei: null,
+		priceInFri: '2',
+	},
+	transactions: [{
+		txHash: '0xabc',
+		txIndex: 0,
+		txCursor: '10630025:0',
+		fromAddress: '0x1',
+		toAddress: '0x2',
+		executionStatus: 'SUCCEEDED',
+		finalityStatus: 'ACCEPTED_ON_L2',
+	}],
+} satisfies BlockView
+
+const transactionDetail = {
+	chainId: 'SN_MAIN',
+	blockNumber: 10_630_025,
+	timestampIso: '2026-07-15T12:00:00Z',
+	txIndex: 4,
+	txHash: '0x0abc',
+	txCursor: '10630025:4',
+	fromAddress: '0x01',
+	toAddress: '0x2',
+	executionStatus: 'SUCCEEDED',
+	finalityStatus: 'ACCEPTED_ON_L2',
+	txType: 'INVOKE',
+	rawObjectKey: 'tx:0xabc',
+	receipt: {
+		executionStatus: 'SUCCEEDED',
+		finalityStatus: 'ACCEPTED_ON_L2',
+		gasUsed: '12',
+		effectiveGasPrice: '3',
+		revertReason: null,
+	},
+	logsTruncated: false,
+	eventDecodingDegraded: false,
+	logs: [{
+		logIndex: 1,
+		address: '0x01',
+		keys: ['0x11'],
+		topic0: '0x11',
+		topic1: null,
+		topic2: null,
+		topic3: null,
+		data: ['0x22'],
+		decodingStatus: 'unknown',
+	}],
+	calldata: ['0x33'],
+	tokenTransfers: [],
+	messages: [],
+	messagesCoverage: {
+		status: 'exact',
+		source: 'starknet_protocol_messages',
+		reasonCode: 'no_matching_message_rows',
+		message: 'No messages',
+	},
+	bridgeIntent: null,
+} satisfies TransactionDetail
+
+const classDetail = {
+	class: {
+		chainId: 'SN_MAIN',
+		classHash: '0x0abc',
+		classLabel: null,
+		classLabelSource: null,
+		verificationTier: 'unverified',
+		originKind: 'declare',
+		originTransactionHash: '0xdef',
+		originatedAtBlock: 100,
+		originatedAtIso: '2026-07-15T12:00:00Z',
+		originSource: 'indexed_finalized_declare_tx',
+		originFinalityStatus: 'finalized',
+		originRefreshedAtIso: '2026-07-15T12:00:00Z',
+		declarationTxHash: '0xdef',
+		declaredAtBlock: 100,
+		declaredAtIso: '2026-07-15T12:00:00Z',
+		compiledClassHash: '0x11',
+		classKind: null,
+		classVersion: '0.1.0',
+		abiAvailable: false,
+		abiSource: null,
+		instanceCount: 1,
+		currentInstanceCount: 1,
+		accountInstanceCount: 0,
+		contractInstanceCount: 1,
+		unknownInstanceCount: 0,
+		verifiedInstanceCount: 0,
+		firstSeenBlockNumber: 100,
+		usageAsOfBlock: 100,
+		firstSeenAtIso: '2026-07-15T12:00:00Z',
+		sampleContractAddress: '0x01',
+		source: 'indexed_finalized_declare_tx',
+		usageRefreshedAtIso: '2026-07-15T12:00:00Z',
+		refreshedAtIso: '2026-07-15T12:00:00Z',
+	},
+	instances: [{
+		address: '0x01',
+		isAccount: false,
+		relationshipKind: 'deployed_as_class',
+		evidenceBlockNumber: 100,
+		evidenceTransactionHash: '0xdef',
+		evidenceAtIso: '2026-07-15T12:00:00Z',
+		evidenceSource: 'indexed_deploy',
+		deployedAtBlock: 100,
+		deployedAtTxHash: '0xdef',
+		deployedByAddress: '0x2',
+		createdOnIso: '2026-07-15T12:00:00Z',
+		observedAtBlock: null,
+		observedAtIso: null,
+		observationSource: null,
+		source: 'indexed_deploy',
+	}],
+	nextInstanceCursor: '0x02',
+} satisfies ClassDetail
 
 describe('Starkscan account portfolio transport', () => {
 	beforeEach(() => {
@@ -343,5 +482,83 @@ describe('Starkscan account portfolio transport', () => {
 			cursor: '',
 		})).rejects.toThrow('must not be empty')
 		expect(getJson).not.toHaveBeenCalled()
+	})
+})
+
+describe('Starkscan block transaction and class transport', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('loads a certified block preview by number', async () => {
+		getJson.mockResolvedValueOnce(block)
+		await expect(getBlock('10630025')).resolves.toEqual(block)
+		expect(getJson).toHaveBeenCalledWith(
+			binding,
+			'/v1/SN_MAIN/block/10630025?tx_limit=200'
+		)
+	})
+
+	it('rejects mismatched block identities and oversized previews', async () => {
+		getJson.mockResolvedValueOnce({
+			...block,
+			blockNumber: 1,
+		})
+		await expect(getBlock('10630025')).rejects.toThrow('block number does not match request')
+
+		getJson.mockResolvedValueOnce({
+			...block,
+			transactions: Array.from({ length: 201 }, (_, index) => ({
+				...block.transactions[0],
+				txHash: `0x${(index + 1).toString(16)}`,
+				txIndex: index,
+				txCursor: `10630025:${index}`,
+			})),
+		})
+		await expect(getBlock('10630025')).rejects.toThrow('exceeds certified cap')
+	})
+
+	it('loads transaction detail and fails closed on truncated or degraded logs', async () => {
+		getJson.mockResolvedValueOnce(transactionDetail)
+		await expect(getTransaction('0xabc')).resolves.toEqual(transactionDetail)
+		expect(getJson).toHaveBeenCalledWith(
+			binding,
+			'/v1/SN_MAIN/tx/0xabc?logLimit=96'
+		)
+
+		getJson.mockResolvedValueOnce({
+			...transactionDetail,
+			logsTruncated: true,
+		})
+		await expect(getTransaction('0xabc')).rejects.toThrow('logs are truncated')
+
+		getJson.mockResolvedValueOnce({
+			...transactionDetail,
+			eventDecodingDegraded: true,
+		})
+		await expect(getTransaction('0xabc')).rejects.toThrow('operationally degraded')
+	})
+
+	it('loads class detail with address-ordered instances and opaque continuation', async () => {
+		getJson.mockResolvedValueOnce(classDetail)
+		await expect(getClass({
+			classHash: '0xabc',
+			limit: 25,
+			cursor: '0x00',
+		})).resolves.toEqual(classDetail)
+		expect(getJson).toHaveBeenCalledWith(
+			binding,
+			'/v1/SN_MAIN/class/0xabc?instanceLimit=25&instanceSort=address_asc&instanceCursor=0x00'
+		)
+
+		getJson.mockResolvedValueOnce({
+			...classDetail,
+			nextInstanceCursor: '0x00',
+		})
+		await expect(getClass({
+			classHash: '0xabc',
+			limit: 25,
+			cursor: '0x00',
+		})).rejects.toThrow('did not advance')
 	})
 })

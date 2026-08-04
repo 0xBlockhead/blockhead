@@ -31,8 +31,7 @@ const nearBlockFields = (
 ) => ({
 	hash: block.block_hash,
 	...(
-		block.prev_block_hash != null
-		&& height > 0n
+		height > 0n
 		&& {
 			$parent: {
 				[EntityMetaKey.Selector]: {
@@ -43,9 +42,7 @@ const nearBlockFields = (
 			},
 		}
 	),
-	...(block.epoch_id != null && {
-		epochId: block.epoch_id,
-	}),
+	epochId: block.epoch_id,
 	timestampMs: nearNanosToMs(block.block_timestamp),
 })
 
@@ -54,6 +51,7 @@ const nearTransactionFields = (
 	hash: string,
 	transaction: NearBlocksTransaction
 ) => ({
+	signerAccountId: transaction.signer_account_id,
 	$signer: {
 		[EntityMetaKey.Selector]: {
 			$network,
@@ -88,30 +86,33 @@ const nearTransactionFields = (
 			}),
 		},
 	})),
-	...(transaction.outcomes != null && {
-		$$executionOutcomes: [
-			{
-				[EntityMetaKey.Selector]: {
-					$transaction: {
-						$network,
-						hash,
-						signerAccountId: transaction.signer_account_id,
+	$$executionOutcomes: (
+		transaction.outcomes == null ?
+			[]
+		:
+			[
+				{
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network,
+							hash,
+							signerAccountId: transaction.signer_account_id,
+						},
+						outcomeId: hash,
 					},
-					outcomeId: hash,
+					[EntityMetaKey.Fields]: {
+						...(transaction.outcomes.status != null && {
+							[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'status')]: (
+								transaction.outcomes.status ?
+									'SuccessValue'
+								:
+									'Failure'
+							),
+						}),
+					},
 				},
-				[EntityMetaKey.Fields]: {
-					...(transaction.outcomes.status != null && {
-						[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'status')]: (
-							transaction.outcomes.status ?
-								'SuccessValue'
-							:
-								'Failure'
-						),
-					}),
-				},
-			},
-		],
-	}),
+			]
+	),
 })
 
 export default {
@@ -204,6 +205,7 @@ export default {
 				},
 			},
 		})({
+			signerAccountId: (snapshot) => snapshot.signerAccountId,
 			$signer: (snapshot) => snapshot.$signer,
 			$receiver: (snapshot) => snapshot.$receiver,
 			nonce: (snapshot) => snapshot.nonce,

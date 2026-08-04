@@ -156,6 +156,7 @@ describe('NearBlocks schema-shaped resolvers', () => {
 				accountId: 'bob.near',
 			},
 		})
+		expect(transactionResolver.projections.signerAccountId(snapshot)).toBe('bob.near')
 		expect(transactionResolver.projections.$receiver(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: {
 				$network: network,

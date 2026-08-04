@@ -97,10 +97,8 @@ const assertBlock = (
 		throw new Error('NearBlocks_Rest: block hash does not match request')
 	if (height != null && blockHeight !== height)
 		throw new Error('NearBlocks_Rest: block height does not match request')
-	if (block.prev_block_hash === '')
-		throw new Error('NearBlocks_Rest: previous block hash must not be empty')
-	if (block.epoch_id === '')
-		throw new Error('NearBlocks_Rest: epoch id must not be empty')
+	assertNonemptyString(block.prev_block_hash, 'previous block hash')
+	assertNonemptyString(block.epoch_id, 'epoch id')
 	return block
 }
 
@@ -113,8 +111,7 @@ const assertTransaction = (
 	assertNonemptyString(transaction.signer_account_id, 'transaction signer')
 	assertNonemptyString(transaction.receiver_account_id, 'transaction receiver')
 	assertNonnegativeIntegerString(transaction.block_timestamp, 'transaction block timestamp')
-	if (transaction.included_in_block_hash === '')
-		throw new Error('NearBlocks_Rest: included block hash must not be empty')
+	assertNonemptyString(transaction.included_in_block_hash, 'included block hash')
 	if (transaction.nonce != null)
 		assertNonnegativeIntegerWire(transaction.nonce, 'transaction nonce')
 	if (transaction.block?.block_height != null)

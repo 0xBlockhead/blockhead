@@ -190,6 +190,7 @@ const nearTransactionFields = (
 	network: NetworkId,
 	transaction: NearRpcTransaction
 ) => ({
+	signerAccountId: transaction.signer_id,
 	$signer: {
 		[EntityMetaKey.Selector]: {
 			$network: network,
@@ -547,6 +548,7 @@ export default {
 										signerAccountId: transaction.signer_id,
 									},
 									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.NearTransaction, [], 'signerAccountId')]: fields.signerAccountId,
 										[entityFieldAddressKey(EntityType.NearTransaction, [], '$signer')]: fields.$signer,
 										[entityFieldAddressKey(EntityType.NearTransaction, [], '$receiver')]: fields.$receiver,
 										[entityFieldAddressKey(EntityType.NearTransaction, [], 'nonce')]: fields.nonce,
@@ -599,6 +601,7 @@ export default {
 				}
 			},
 		})({
+			signerAccountId: (transaction) => transaction.signerAccountId,
 			$signer: (transaction) => transaction.$signer,
 			$receiver: (transaction) => transaction.$receiver,
 			nonce: (transaction) => transaction.nonce,

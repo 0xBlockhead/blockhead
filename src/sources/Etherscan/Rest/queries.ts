@@ -53,7 +53,7 @@ const etherscanAccountListQuery = ({
 	endblock: '99999999',
 	page: '1',
 	offset: String(Math.min(Math.max(1, offset), getAccountListMaxOffset)),
-	sort: 'asc',
+	sort: 'desc',
 })
 
 const etherscanAccountListRows = async <T>({
@@ -464,72 +464,119 @@ export const getTokenTransfersByAddress = async ({
 	})
 }
 
+const erc20Or721TransferTopic0 = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+const erc1155TransferSingleTopic0 = '0xc3d58168c5ae7397731d063d5bbf3d657854427345f4cdd250f21a1b7afe5f2f'
+
+const addressFromIndexedTopic = (
+	topic: string | undefined
+) => (
+	topic == null || topic.length < 42 ?
+		undefined
+	:
+		hexLowerOfByteSize(`0x${topic.slice(-40)}`, 20)
+)
+
+const uintStringFromDataWord = (
+	data: string | undefined,
+	wordIndex: number
+) => {
+	if (data == null || data === '' || data === '0x') return undefined
+	const hex = data.startsWith('0x') || data.startsWith('0X') ? data.slice(2) : data
+	const word = hex.slice(wordIndex * 64, wordIndex * 64 + 64)
+	if (word.length !== 64) return undefined
+	try {
+		return BigInt(`0x${word}`).toString()
+	} catch {
+		return undefined
+	}
+}
+
 /**
- * Token transfers within one transaction — Etherscan has no `tokentx` by tx hash; loads
- * **`from`** / **`to`** participant address lists and filters by **`hash`**.
+ * Token transfers within one transaction — derived from **`eth_getTransactionReceipt`** logs
+ * (Etherscan has no `tokentx`/`tokennfttx`/`token1155tx` by tx hash).
  */
 export const getTokenTransfersByTransaction = async ({
 	publicEnv,
 	chainId,
 	txHash,
-	offset,
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	txHash: string
-	offset: number
+	/** retained for call-site compatibility; receipt logs are complete for the tx */
+	offset?: number
 }) => {
 	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
 	if (normalizedTxHash == null) return null
 
-	const tx = await getTransactionByHash({
+	const receipt = await getTransactionReceipt({
 		publicEnv,
 		chainId,
 		txHash: normalizedTxHash,
 	})
-	if (tx == null) return null
-	const participantAddresses = [
-		...new Set(
-			[
-				tx.from,
-				tx.to,
-			]
-				.filter((address): address is `0x${string}` => (
-					address != null && address !== ''
-				))
-		),
-	]
-	if (participantAddresses.length === 0) return []
-	const participantRows = await Promise.all(
-		participantAddresses.map((address) => (
-			getTokenTransfersByAddress({
-				publicEnv,
-				chainId,
-				address,
-				offset,
-			})
-		))
-	)
-	if (participantRows.some((rows) => rows == null)) return null
-	const seen = new Set<string>()
-	return participantRows.flatMap((rows) => rows ?? []).filter(({ standard, row }) => {
-		if (row.hash?.toLowerCase() !== normalizedTxHash) return false
-		const key = [
-			row.logIndex ?? '',
-			row.transactionIndex ?? '',
-			row.from?.toLowerCase() ?? '',
-			row.to?.toLowerCase() ?? '',
-			row.contractAddress?.toLowerCase() ?? '',
-			standard === 'erc20' ?
-				row.value ?? ''
-			: standard === 'erc721' ?
-				row.tokenID ?? ''
-			:
-				`${row.tokenID ?? ''}:${row.tokenValue ?? ''}`,
-		].join(':')
-		if (seen.has(key)) return false
-		seen.add(key)
-		return true
+	if (receipt == null) return null
+
+	return (receipt.logs ?? []).flatMap((log): EtherscanTokenTransferTagged[] => {
+		const topic0 = log.topics?.[0]?.toLowerCase()
+		const contractAddress = hexLowerOfByteSize(log.address ?? '', 20)
+		const shared = {
+			hash: normalizedTxHash,
+			blockNumber: log.blockNumber,
+			blockHash: log.blockHash,
+			transactionIndex: log.transactionIndex,
+			logIndex: log.logIndex,
+			...(contractAddress != null && { contractAddress }),
+		}
+
+		if (topic0 === erc20Or721TransferTopic0) {
+			const from = addressFromIndexedTopic(log.topics?.[1])
+			const to = addressFromIndexedTopic(log.topics?.[2])
+			const tokenIdTopic = log.topics?.[3]
+			if (tokenIdTopic != null) {
+				const tokenID = uintStringFromDataWord(tokenIdTopic, 0)
+				if (tokenID == null) return []
+				return [{
+					standard: 'erc721',
+					row: {
+						...shared,
+						...(from != null && { from }),
+						...(to != null && { to }),
+						tokenID,
+					},
+				}]
+			}
+			const value = uintStringFromDataWord(log.data, 0)
+			if (value == null) return []
+			return [{
+				standard: 'erc20',
+				row: {
+					...shared,
+					...(from != null && { from }),
+					...(to != null && { to }),
+					value,
+				},
+			}]
+		}
+
+		if (topic0 === erc1155TransferSingleTopic0) {
+			const from = addressFromIndexedTopic(log.topics?.[2])
+			const to = addressFromIndexedTopic(log.topics?.[3])
+			const tokenID = uintStringFromDataWord(log.data, 0)
+			const tokenValue = uintStringFromDataWord(log.data, 1)
+			if (tokenID == null || tokenValue == null) return []
+			return [{
+				standard: 'erc1155',
+				row: {
+					...shared,
+					...(from != null && { from }),
+					...(to != null && { to }),
+					tokenID,
+					tokenValue,
+				},
+			}]
+		}
+
+		return []
 	})
 }
 
