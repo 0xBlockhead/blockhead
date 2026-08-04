@@ -50,6 +50,13 @@ export default entity({
 			Source.NearRpc_JsonRpc,
 		],
 	},
+	$$transactions: {
+		entityType: EntityType.NearTransaction,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.NearBlocks_Rest,
+		],
+	},
 })({
 	selectors: {
 		NetworkAccountId: [

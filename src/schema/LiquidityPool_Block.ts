@@ -25,7 +25,7 @@ export default entity({
 		entityType: EntityType.LiquidityPool,
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
-			Source.Dexscreener_Rest,
+			Source.Voltaire_JsonRpc,
 		],
 	},
 	sqrtPriceX96: {

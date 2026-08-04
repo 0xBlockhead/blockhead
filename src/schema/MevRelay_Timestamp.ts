@@ -24,14 +24,6 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	reachable: {
-		primitiveType: type('boolean'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	statusCode: {
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	deliveredPayloadSampleCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -50,10 +42,6 @@ export default entity({
 	},
 	sampleLimit: {
 		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	error: {
-		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({
