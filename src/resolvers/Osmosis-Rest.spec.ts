@@ -346,7 +346,7 @@ describe('Osmosis LCD resolver module', () => {
 			throw new Error('missing Network $$osmosisPools resolver')
 
 		const snapshot = await networkOsmosisPoolsResolver.resolve.Caip2.resolve(osmosisNetwork, context)
-		expect(networkOsmosisPoolsResolver.projections.Cosmos.$$osmosisPools(snapshot)).toEqual([
+		expect(networkOsmosisPoolsResolver.projections.Cosmos.$$osmosisPools.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: osmosisNetwork,
@@ -360,6 +360,7 @@ describe('Osmosis LCD resolver module', () => {
 				},
 			},
 		])
+		expect(networkOsmosisPoolsResolver.projections.Cosmos.$$osmosisPools.resolveCount(snapshot)).toBe(2)
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			expect.anything(),
 			expect.stringContaining('/osmosis/poolmanager/v1beta1/all-pools')
@@ -375,6 +376,23 @@ describe('Osmosis LCD resolver module', () => {
 		await expect(
 			networkOsmosisPoolsResolver.resolve.Caip2.resolve(osmosisNetwork, context)
 		).rejects.toThrow()
+	})
+
+	it('reports the complete Osmosis pool count for a bounded hub window', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			pools: Array.from({
+				length: 17,
+			}, (_value, index) => ({
+				id: String(index + 1),
+			})),
+		})
+
+		if (networkOsmosisPoolsResolver == null)
+			throw new Error('missing Network $$osmosisPools resolver')
+
+		const snapshot = await networkOsmosisPoolsResolver.resolve.Caip2.resolve(osmosisNetwork, context)
+		expect(networkOsmosisPoolsResolver.projections.Cosmos.$$osmosisPools.select(snapshot)).toHaveLength(16)
+		expect(networkOsmosisPoolsResolver.projections.Cosmos.$$osmosisPools.resolveCount(snapshot)).toBe(17)
 	})
 
 	it('rejects $$osmosisPools for non-Osmosis networks without transport', async () => {

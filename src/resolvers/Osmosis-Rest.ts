@@ -580,18 +580,24 @@ export default {
 					const {
 						pools,
 					} = await getPools()
-					return pools.slice(0, resolverContextRowLimit(context)).map((pool) => ({
-						[EntityMetaKey.Selector]: {
-							$network: network,
-							poolId: pool.id,
-						},
-					}))
+					return {
+						rows: pools.slice(0, resolverContextRowLimit(context)).map((pool) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								poolId: pool.id,
+							},
+						})),
+						totalCount: pools.length,
+					}
 				}
 			),
 		})({
 			Cosmos: {
-				$$osmosisPools: (pools) => pools,
+				$$osmosisPools: {
+					select: (snapshot) => snapshot.rows,
+					resolveCount: (snapshot) => snapshot.totalCount,
+				},
 			},
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Osmosis_LCD_Rest>
+}
