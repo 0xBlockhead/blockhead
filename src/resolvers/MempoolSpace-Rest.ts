@@ -572,8 +572,92 @@ export default {
 					},
 				]
 			}),
+			resolveLive: {
+				utxoNetwork: {
+					facetPath: [
+						'Utxo',
+					],
+					publishes: {
+						'$$timestamps': true,
+						'$$blocks': true,
+						'$$transactions': true,
+					},
+					start: ({
+						fields,
+						parentEntitySelector,
+						signal,
+					}) => {
+						assertBitcoinMainnet(parentEntitySelector)
+						const refresh = async () => {
+							const {
+								getBlocks,
+								getMempoolStats,
+								getRecommendedFees,
+							} = await import('$/sources/MempoolSpace/Rest/queries.ts')
+							const [
+								blocks,
+								mempoolStats,
+								fees,
+							] = await Promise.all([
+								getBlocks(),
+								getMempoolStats(),
+								getRecommendedFees(),
+							])
+							const block = blocks.at(0)
+							if (block == null)
+								throw new Error('MempoolSpace_Rest: no blocks returned')
+							if (signal.aborted)
+								return
+
+							fields.$$timestamps.replaceRows([{
+								source: Source.MempoolSpace_Rest,
+								value: [{
+									[EntityMetaKey.Selector]: {
+										$network: parentEntitySelector,
+										timestampMs: Date.now(),
+										source: Source.MempoolSpace_Rest,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: BigInt(block.height),
+										[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHash')]: block.id,
+										[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: mempoolStats.count,
+										[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: BigInt(Math.ceil(mempoolStats.vsize)),
+										[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'suggestedTransactionFeePerByteSats')]: fees.hourFee,
+									},
+								}],
+							}])
+							fields.invalidate([
+								'$$blocks',
+								'$$transactions',
+							])
+						}
+						const interval = setInterval(
+							() => {
+								void refresh()
+							},
+							30_000
+						)
+						const cleanup = () => {
+							clearInterval(interval)
+						}
+
+						signal.addEventListener('abort', cleanup, { once: true })
+						void refresh()
+
+						return cleanup
+					},
+				},
+			},
 		})({
 				$$timestamps: (timestamps) => timestamps,
+				Utxo: {
+					$$blocks: {
+						select: () => [],
+					},
+					$$transactions: {
+						select: () => [],
+					},
+				},
 			}),
 
 		defineResolver({
