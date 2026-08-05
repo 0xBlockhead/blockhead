@@ -19,5 +19,8 @@ export type WormholescanVaa = components['schemas']['vaa.VaaDoc'] & {
 
 /** Live `find-vaa-by-id` returns a single doc in `data` (OpenAPI incorrectly types an array). */
 export type WormholescanVaaByIdResponse = {
-	data?: WormholescanVaa
+	data: WormholescanVaa
+	pagination: {
+		next: string
+	}
 }

@@ -41,7 +41,7 @@ const wormholescanTransferIdParts = (
 		|| emitter === ''
 		|| sequence === ''
 		|| !/^(0|[1-9]\d*)$/.test(chainIdText)
-		|| !/^(0|[1-9]\d*)$/.test(sequence)
+		|| !Number.isSafeInteger(Number(chainIdText))
 	)
 		throw new Error(`Wormholescan_Rest: invalid operation transfer id ${transferId}`)
 

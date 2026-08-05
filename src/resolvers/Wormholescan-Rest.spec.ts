@@ -168,6 +168,31 @@ describe('Wormholescan BridgeTransfer resolvers', () => {
 		expect(snapshot.transferId).toBe(transfer.transferId)
 	})
 
+	it('resolves an official opaque operation sequence', async () => {
+		const sequence = '55ee23ea14ca558ffda4e033257cee58b30db3868bd68bdbb60266f0cf2020ce-0'
+		getOperationById.mockResolvedValue({
+			...operation,
+			id: `2/0000000000000000000000001111111111111111111111111111111111111111/${sequence}`,
+		})
+		const resolver = wormholescanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer
+		))
+		if (resolver == null)
+			throw new Error('Wormholescan BridgeTransfer resolver is not registered')
+
+		await expect(resolver.resolve.SourceTransferId.resolve({
+			source: Source.Wormholescan,
+			transferId: `2/0000000000000000000000001111111111111111111111111111111111111111/${sequence}`,
+		})).resolves.toMatchObject({
+			transferId: `2/0000000000000000000000001111111111111111111111111111111111111111/${sequence}`,
+		})
+		expect(getOperationById).toHaveBeenCalledWith({
+			chainId: 2,
+			emitter: '0000000000000000000000001111111111111111111111111111111111111111',
+			sequence,
+		})
+	})
+
 	it('projects destination status fields from the official operation', async () => {
 		getOperationById.mockResolvedValue(operation)
 		const resolver = wormholescanRest.resolvers.find((candidate) => (

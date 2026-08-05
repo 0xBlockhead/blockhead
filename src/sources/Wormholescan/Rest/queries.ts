@@ -12,6 +12,7 @@ import { Source } from '$/sources/Source.ts'
 const binding = bindings[Source.Wormholescan][0]
 const integerStringPattern = /^(?:0|[1-9]\d*)$/
 const emitterAddressPattern = /^[0-9a-fA-F]{1,128}$/
+const operationSequencePattern = /^[0-9a-fA-F]+(?:-\d+)?$/
 
 const queryString = (
 	parameters: Record<string, string | number | boolean | undefined>
@@ -29,10 +30,12 @@ const operationsFromPage = (
 	page: WormholescanOperationsPage,
 	path: string
 ) => {
-	if (page == null || page.operations == null)
+	if (page == null || !Array.isArray(page.operations))
 		throw new Error(`Wormholescan_Rest: ${path} missing operations`)
 
-	return page.operations
+	return page.operations.map((operation) => (
+		assertOperation(operation)
+	))
 }
 
 const assertWormholeChainId = (chainId: number) => {
@@ -53,13 +56,14 @@ const assertSequence = (sequence: number | string) => {
 		throw new Error(`Wormholescan_Rest: invalid VAA sequence ${sequence}`)
 }
 
+const assertOperationSequence = (sequence: number | string) => {
+	if (!operationSequencePattern.test(String(sequence)))
+		throw new Error(`Wormholescan_Rest: invalid operation sequence ${sequence}`)
+}
+
 const assertOperation = (
 	operation: WormholescanOperation,
-	{
-		chainId,
-		emitter,
-		sequence,
-	}: {
+	request?: {
 		chainId: number
 		emitter: string
 		sequence: number | string
@@ -67,8 +71,28 @@ const assertOperation = (
 ) => {
 	if (operation == null || operation.id == null || operation.id === '')
 		throw new Error('Wormholescan_Rest: operation missing id')
-	if (operation.id !== `${chainId}/${emitter}/${sequence}`)
+	if (operation.emitterChain == null)
+		throw new Error('Wormholescan_Rest: operation missing emitter chain')
+	assertWormholeChainId(operation.emitterChain)
+	if (operation.emitterAddress?.hex == null || operation.emitterAddress.hex === '')
+		throw new Error('Wormholescan_Rest: operation missing emitter address')
+	assertEmitterAddress(operation.emitterAddress.hex)
+	if (operation.sequence == null || operation.sequence === '')
+		throw new Error('Wormholescan_Rest: operation missing sequence')
+	assertOperationSequence(operation.sequence)
+	if (operation.id !== `${operation.emitterChain}/${operation.emitterAddress.hex}/${operation.sequence}`)
 		throw new Error(`Wormholescan_Rest: mismatched operation id ${operation.id}`)
+	if (
+		request != null
+		&& (
+			operation.emitterChain !== request.chainId
+			|| operation.emitterAddress.hex.toLowerCase() !== request.emitter.toLowerCase()
+			|| operation.sequence !== String(request.sequence)
+		)
+	)
+		throw new Error(`Wormholescan_Rest: mismatched operation id ${operation.id}`)
+
+	return operation
 }
 
 const assertVaa = (
@@ -147,19 +171,19 @@ export const getOperationById = async (
 ) => {
 	assertWormholeChainId(chainId)
 	assertEmitterAddress(emitter)
-	assertSequence(sequence)
+	assertOperationSequence(sequence)
 
-	const operation = await getJson<WormholescanOperation>(
-		binding,
-		`operations/${chainId}/${encodeURIComponent(emitter)}/${sequence}`
+	return assertOperation(
+		await getJson<WormholescanOperation>(
+			binding,
+			`operations/${chainId}/${encodeURIComponent(emitter)}/${sequence}`
+		),
+		{
+			chainId,
+			emitter,
+			sequence,
+		}
 	)
-	assertOperation(operation, {
-		chainId,
-		emitter,
-		sequence,
-	})
-
-	return operation
 }
 
 export const findGlobalTransactionById = (
@@ -202,6 +226,8 @@ export const getVaaById = async (
 	)
 	if (page == null || page.data == null)
 		throw new Error('Wormholescan_Rest: VAA missing data')
+	if (page.pagination == null || typeof page.pagination.next !== 'string')
+		throw new Error('Wormholescan_Rest: VAA missing pagination')
 
 	assertVaa(page.data, {
 		chainId,

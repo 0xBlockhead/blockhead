@@ -43,7 +43,12 @@ describe('Wormholescan OpenAPI operations', () => {
 
 	it('unwraps the live operations page envelope and encodes filters', async () => {
 		getJson.mockResolvedValue({
-			operations: [{ id: '2/emitter/1' }],
+			operations: [{
+				id: '2/abcdef/1',
+				emitterChain: 2,
+				emitterAddress: { hex: 'abcdef' },
+				sequence: '1',
+			}],
 		})
 
 		await expect(queries.getOperations({
@@ -54,7 +59,9 @@ describe('Wormholescan OpenAPI operations', () => {
 			exclusiveAppId: false,
 			minAmount: 0,
 			addressType: 'from',
-		})).resolves.toEqual([{ id: '2/emitter/1' }])
+		})).resolves.toMatchObject([{
+			id: '2/abcdef/1',
+		}])
 
 		expect(getJson).toHaveBeenCalledWith(
 			binding,
@@ -79,13 +86,18 @@ describe('Wormholescan OpenAPI operations', () => {
 	})
 
 	it('loads a single operation by wormhole id path', async () => {
-		getJson.mockResolvedValue({ id: '2/abcdef/7' })
+		getJson.mockResolvedValue({
+			id: '2/abcdef/7',
+			emitterChain: 2,
+			emitterAddress: { hex: 'abcdef' },
+			sequence: '7',
+		})
 
 		await expect(queries.getOperationById({
 			chainId: 2,
 			emitter: 'abcdef',
 			sequence: 7,
-		})).resolves.toEqual({ id: '2/abcdef/7' })
+		})).resolves.toMatchObject({ id: '2/abcdef/7' })
 		expect(getJson).toHaveBeenCalledWith(
 			binding,
 			'operations/2/abcdef/7'
@@ -93,7 +105,12 @@ describe('Wormholescan OpenAPI operations', () => {
 	})
 
 	it('hard-fails when a detail operation does not echo its requested identity', async () => {
-		getJson.mockResolvedValue({ id: '2/abcdef/8' })
+		getJson.mockResolvedValue({
+			id: '2/abcdef/8',
+			emitterChain: 2,
+			emitterAddress: { hex: 'abcdef' },
+			sequence: '7',
+		})
 
 		await expect(queries.getOperationById({
 			chainId: 2,
@@ -126,9 +143,25 @@ describe('Wormholescan OpenAPI operations', () => {
 		await expect(queries.getOperationById({
 			chainId: 2,
 			emitter: 'abcdef',
-			sequence: '07',
-		})).rejects.toThrow('Wormholescan_Rest: invalid VAA sequence')
+			sequence: 'not/a-sequence',
+		})).rejects.toThrow('Wormholescan_Rest: invalid operation sequence')
 		expect(getJson).not.toHaveBeenCalled()
+	})
+
+	it('accepts an opaque operation sequence from the live operation identifier', async () => {
+		const sequence = '55ee23ea14ca558ffda4e033257cee58b30db3868bd68bdbb60266f0cf2020ce-0'
+		getJson.mockResolvedValue({
+			id: `2/abcdef/${sequence}`,
+			emitterChain: 2,
+			emitterAddress: { hex: 'abcdef' },
+			sequence,
+		})
+
+		await expect(queries.getOperationById({
+			chainId: 2,
+			emitter: 'abcdef',
+			sequence,
+		})).resolves.toMatchObject({ sequence })
 	})
 
 	it('loads a global transaction by wormhole id path', async () => {
@@ -155,7 +188,10 @@ describe('Wormholescan OpenAPI operations', () => {
 			timestamp: '2021-09-13T16:29:18Z',
 			vaa: 'AQAAAA',
 		}
-		getJson.mockResolvedValue({ data: vaa })
+		getJson.mockResolvedValue({
+			data: vaa,
+			pagination: { next: '' },
+		})
 
 		await expect(queries.getVaaById({
 			chainId: 2,
@@ -170,7 +206,7 @@ describe('Wormholescan OpenAPI operations', () => {
 	})
 
 	it('hard-fails when the VAA page omits data', async () => {
-		getJson.mockResolvedValue({})
+		getJson.mockResolvedValue({ pagination: { next: '' } })
 
 		await expect(queries.getVaaById({
 			chainId: 2,
@@ -189,6 +225,25 @@ describe('Wormholescan OpenAPI operations', () => {
 		})).rejects.toThrow('Wormholescan_Rest: VAA missing data')
 	})
 
+	it('hard-fails when the VAA page omits pagination', async () => {
+		getJson.mockResolvedValue({
+			data: {
+				id: '2/aa/1',
+				sequence: 1,
+				emitterChain: 2,
+				emitterAddr: 'aa',
+				timestamp: '2021-09-13T16:29:18Z',
+				vaa: 'AQAAAA',
+			},
+		})
+
+		await expect(queries.getVaaById({
+			chainId: 2,
+			emitter: 'aa',
+			sequence: 1,
+		})).rejects.toThrow('Wormholescan_Rest: VAA missing pagination')
+	})
+
 	it('hard-fails when the VAA identity does not match the request', async () => {
 		getJson.mockResolvedValue({
 			data: {
@@ -199,6 +254,7 @@ describe('Wormholescan OpenAPI operations', () => {
 				timestamp: '2021-09-13T16:29:18Z',
 				vaa: 'AQAAAA',
 			},
+			pagination: { next: '' },
 		})
 
 		await expect(queries.getVaaById({
@@ -218,6 +274,7 @@ describe('Wormholescan OpenAPI operations', () => {
 				timestamp: '2021-09-13T16:29:18Z',
 				vaa: '',
 			},
+			pagination: { next: '' },
 		})
 
 		await expect(queries.getVaaById({
